@@ -49,13 +49,13 @@ pub struct CleanupConfig {
 impl Default for CleanupConfig {
     fn default() -> Self {
         Self {
-            session_max_inactive: Duration::from_secs(24 * 60 * 60),
-            jwt_token_retention: Duration::from_secs(30 * 24 * 60 * 60),
-            verification_token_retention: Duration::from_secs(60 * 60),
-            oauth_state_retention: Duration::from_secs(10 * 60),
-            magic_link_retention: Duration::from_secs(60 * 60),
-            email_otp_retention: Duration::from_secs(10 * 60),
-            rate_limit_window: Duration::from_secs(60 * 60),
+            session_max_inactive: Duration::from_hours(24),
+            jwt_token_retention: Duration::from_hours(720),
+            verification_token_retention: Duration::from_hours(1),
+            oauth_state_retention: Duration::from_mins(10),
+            magic_link_retention: Duration::from_hours(1),
+            email_otp_retention: Duration::from_mins(10),
+            rate_limit_window: Duration::from_hours(1),
         }
     }
 }

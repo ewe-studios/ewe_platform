@@ -94,15 +94,23 @@ jobs:
           CI_PACKAGES: ${{ github.event.inputs.packages }}
         run: python3 scripts/ci/ci.py plan
 
-      # The example manifests outside the workspace take the crates by path.
-      # No package job builds them, so their lockfiles drift behind the crate
-      # versions, and `cargo build --locked` then fails there (issue #245).
-      # `--locked` alone does not check a lockfile without dependency
-      # resolution, so this reads full metadata, not `--no-deps`.
-      - name: Check the standalone example lockfiles
+      # Every nested lockfile is checked, not only the examples. A nested
+      # workspace sits outside the root workspace, so no package job builds it.
+      # Its lockfile drifts behind the crate versions, and `cargo build --locked`
+      # then fails there (issue #245, issue #481). `--locked` alone does not
+      # check a lockfile without dependency resolution, so this reads full
+      # metadata, not `--no-deps`. The root `Cargo.lock` is covered by the
+      # package jobs and is skipped here.
+      - name: Check the nested lockfiles
         run: |
-          for dir in examples/devbinary examples/web/wello examples/platform_android/src-tauri; do
+          locks=$(git ls-files '*Cargo.lock')
+          for lock in $locks; do
+            if [ "$lock" = "Cargo.lock" ]; then
+              continue
+            fi
+            dir=$(dirname "$lock")
             echo "checking $dir"
+            # A failing `cargo metadata` stops the step (set -e).
             cargo metadata --locked --format-version 1 --manifest-path "$dir/Cargo.toml" > /dev/null
           done
 
@@ -424,3 +432,16 @@ jobs:
 
       - name: Build
         run: cargo build --profile uat --workspace
+
+      - name: Check the iOS target
+        # The GitHub-hosted macOS image ships full Xcode with the iPhoneOS
+        # SDK, so this job proves the iOS build on every master and nightly
+        # run. The VM job `macos-ssh` (platform-vms.yaml) runs the same checks
+        # against the pinned SDK, but only on an Apple-hardware runner (#355,
+        # #464). LLVM is required: Cranelift cannot build ring for iOS.
+        run: |
+          rustup target add aarch64-apple-ios
+          xcrun --sdk iphoneos --show-sdk-version
+          cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
+          cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
+          cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat

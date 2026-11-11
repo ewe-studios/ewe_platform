@@ -302,8 +302,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
             "if (Test-Path '{transcript_path}') {{ [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes('{transcript_path}')) }} else {{ '' }}"
         ))
             && !tlog.stdout.trim().is_empty()
-        {
-            if let Ok(bytes) = base64::Engine::decode(
+            && let Ok(bytes) = base64::Engine::decode(
                 &base64::engine::general_purpose::STANDARD,
                 tlog.stdout.trim(),
             ) {
@@ -326,7 +325,6 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                     last_transcript_size = current_size;
                 }
             }
-        }
 
         // Poll bootstrap-step-error.log for new content
         if poll_count.is_multiple_of(3)
@@ -334,8 +332,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                 "if (Test-Path '{error_log}') {{ [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes('{error_log}')) }} else {{ '' }}"
             ))
                 && !elog.stdout.trim().is_empty()
-            {
-                if let Ok(bytes) = base64::Engine::decode(
+                && let Ok(bytes) = base64::Engine::decode(
                     &base64::engine::general_purpose::STANDARD,
                     elog.stdout.trim(),
                 ) {
@@ -359,7 +356,6 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                         last_error_log_size = current_size;
                     }
                 }
-            }
 
         // Check sentinel — use contains() to handle CLIXML wrapper output
         let sentinel = winrm.run_ps_quiet(&format!(

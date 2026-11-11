@@ -455,6 +455,7 @@ dependencies = [
  "fastrand",
  "flate2",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_nostd",
  "foundation_reactor",

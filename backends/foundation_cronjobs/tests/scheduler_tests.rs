@@ -176,14 +176,11 @@ async fn scheduler_runs_job_at_fire_time() {
 
     // Before the first fire: parks for 15 minutes and does not run.
     let status = task.next_status(ctx.clone());
-    assert_eq!(
-        status,
-        Some(TaskStatus::Delayed(Duration::from_secs(15 * 60)))
-    );
+    assert_eq!(status, Some(TaskStatus::Delayed(Duration::from_mins(15))));
     assert_eq!(runs.load(Ordering::SeqCst), 0);
 
     // At the fire time: runs once and parks for the next fire.
-    clock.advance_wall(Duration::from_secs(15 * 60));
+    clock.advance_wall(Duration::from_mins(15));
     let status = task.next_status(ctx.clone());
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
     assert_eq!(runs.load(Ordering::SeqCst), 1);
@@ -207,7 +204,7 @@ async fn scheduler_records_result() {
     task.next_status(ctx.clone());
 
     let fire = utc(2026, 1, 1, 0, 15, 0);
-    clock.advance_wall(Duration::from_secs(15 * 60));
+    clock.advance_wall(Duration::from_mins(15));
     task.next_status(ctx.clone());
 
     let snap = task.snapshot();
@@ -365,10 +362,7 @@ async fn scheduler_parks_between_fires() {
     let ctx = Ctx::host();
 
     let status = task.next_status(ctx.clone());
-    assert_eq!(
-        status,
-        Some(TaskStatus::Delayed(Duration::from_secs(24 * 60 * 60)))
-    );
+    assert_eq!(status, Some(TaskStatus::Delayed(Duration::from_hours(24))));
     assert_eq!(runs.load(Ordering::SeqCst), 0);
 
     // Polling again without moving the clock parks again and never runs.

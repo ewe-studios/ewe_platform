@@ -199,11 +199,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
         )
     })?;
     for pair in pairs {
-        let name = pair
-            .path
-            .get_ident()
-            .map(ToString::to_string)
-            .unwrap_or_default();
+        let name = pair.path.get_ident().map_or_default(ToString::to_string);
         match name.as_str() {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),

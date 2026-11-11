@@ -38,8 +38,7 @@ fn raw_results(rows: &[serde_json::Value]) -> serde_json::Value {
     let columns: Vec<String> = rows
         .first()
         .and_then(|r| r.as_object())
-        .map(|o| o.keys().cloned().collect())
-        .unwrap_or_default();
+        .map_or_default(|o| o.keys().cloned().collect());
     let values: Vec<Vec<serde_json::Value>> = rows
         .iter()
         .map(|r| columns.iter().map(|c| r[c].clone()).collect())
@@ -124,8 +123,7 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
             .unwrap()
             .get(id)
             .cloned()
-            .map(|row| vec![row])
-            .unwrap_or_default();
+            .map_or_default(|row| vec![row]);
         json!({
             "result": [{ "results": raw_results(&results), "success": true, "meta": {} }],
             "success": true,

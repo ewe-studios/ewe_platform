@@ -40,11 +40,7 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
             let Meta::NameValue(nv) = meta else {
                 return syn::Error::new_spanned(meta, "expected `key = value`").to_compile_error();
             };
-            let key = nv
-                .path
-                .get_ident()
-                .map(ToString::to_string)
-                .unwrap_or_default();
+            let key = nv.path.get_ident().map_or_default(ToString::to_string);
             let value: &Expr = &nv.value;
             match key.as_str() {
                 "port" => field_inits.push(quote! { port: #value }),

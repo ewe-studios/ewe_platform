@@ -217,8 +217,8 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
     serde_json::json!({
         "kty": "EC",
         "crv": "P-256",
-        "x": b64(point.x().map(sha2::digest::generic_array::GenericArray::as_slice).unwrap_or_default()),
-        "y": b64(point.y().map(sha2::digest::generic_array::GenericArray::as_slice).unwrap_or_default()),
+        "x": b64(point.x().map_or_default(sha2::digest::generic_array::GenericArray::as_slice)),
+        "y": b64(point.y().map_or_default(sha2::digest::generic_array::GenericArray::as_slice)),
     })
 }
 

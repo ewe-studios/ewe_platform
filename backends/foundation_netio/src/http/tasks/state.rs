@@ -337,7 +337,7 @@ impl<S: Clone, E: Clone> ErrorCollector<S, E> {
     /// Collect all recorded errors
     #[must_use]
     pub fn collect(&self) -> Vec<(S, E)> {
-        self.inner.lock().map(|g| g.clone()).unwrap_or_default()
+        self.inner.lock().map_or_default(|g| g.clone())
     }
 
     /// Check if any errors were recorded

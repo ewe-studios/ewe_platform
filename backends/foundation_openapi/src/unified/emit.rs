@@ -578,8 +578,7 @@ pub fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
                 TypeBody::Struct { fields, .. } => fields
                     .iter()
                     .find(|f| f.name == "result")
-                    .map(|f| f.ty.clone())
-                    .unwrap_or_default(),
+                    .map_or_default(|f| f.ty.clone()),
                 TypeBody::Alias { .. } | TypeBody::Union { .. } => continue,
             };
             let target = format!("{}{name}<{result_ty}>", shared_path(loc.0, shared));

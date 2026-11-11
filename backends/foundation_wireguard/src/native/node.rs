@@ -789,8 +789,7 @@ impl WgMeshTask {
             let known: Vec<SocketAddr> = swim
                 .membership()
                 .get(&self.my_id)
-                .map(|r| r.endpoints.clone())
-                .unwrap_or_default();
+                .map_or_default(|r| r.endpoints.clone());
             if rec.endpoints != known {
                 tracing::debug!(
                     old = ?known,

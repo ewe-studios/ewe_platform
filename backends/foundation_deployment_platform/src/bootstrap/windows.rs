@@ -322,10 +322,10 @@ fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Resu
     let state = winrm.run_ps_quiet(
         "Get-Service sshd -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
     );
-    if let Ok(s) = state {
-        if s.stdout.contains("Running") {
-            return Ok(());
-        }
+    if let Ok(s) = state
+        && s.stdout.contains("Running")
+    {
+        return Ok(());
     }
 
     elevated::run_elevated(winrm, INSTALL_OPENSSH_PS1, 1800, progress)?;
@@ -802,10 +802,10 @@ fn install_winfsp(winrm: &WinRM) -> Result<()> {
     let check = winrm.run_ps_quiet(
         "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
     );
-    if let Ok(s) = check {
-        if s.stdout.contains("Running") {
-            return Ok(());
-        }
+    if let Ok(s) = check
+        && s.stdout.contains("Running")
+    {
+        return Ok(());
     }
 
     elevated::run_elevated(winrm, INSTALL_WINFSP_PS1, 600, None)?;

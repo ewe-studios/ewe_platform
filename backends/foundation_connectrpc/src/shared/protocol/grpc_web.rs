@@ -261,9 +261,7 @@ pub fn parse_status_trailers(trailers: &SimpleHeaders) -> Option<ErrorTrace<Conn
     if status == 0 {
         return None;
     }
-    let message = get(constants::TRAILER_MESSAGE)
-        .map(|m| percent_decode_message(&m))
-        .unwrap_or_default();
+    let message = get(constants::TRAILER_MESSAGE).map_or_default(|m| percent_decode_message(&m));
     let code = Code::from_u32(status).unwrap_or(Code::Unknown);
     Some(ConnectError::wire(code, message).into())
 }
@@ -769,8 +767,7 @@ impl ProtocolHandler for GrpcWebHandler {
                 .connection
                 .peer_addr
                 .as_ref()
-                .map(|a| format!("{a:?}"))
-                .unwrap_or_default(),
+                .map_or_default(|a| format!("{a:?}")),
             protocol: "grpc-web".to_string(),
         };
 

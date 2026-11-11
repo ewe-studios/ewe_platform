@@ -51,7 +51,7 @@ fn test_locked_past() {
 fn test_record_failed_attempts_locks() {
     let mut user = test_user();
     for _ in 0..5 {
-        user.record_failed_attempt(5, Duration::from_secs(900), &test_clock());
+        user.record_failed_attempt(5, Duration::from_mins(15), &test_clock());
     }
     assert!(user.is_locked(&test_clock()));
     assert_eq!(user.failed_login_attempts, 5);

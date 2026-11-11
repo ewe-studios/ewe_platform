@@ -963,7 +963,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             HttpClientError::ProxyConnectionFailed(format!(
                 "Failed to connect to proxy {}: {}",
                 proxy.host,
-                last_error.map(|e| e.to_string()).unwrap_or_default()
+                last_error.map_or_default(|e| e.to_string())
             ))
         })?;
 

@@ -1,4 +1,4 @@
-//! Shared test fixtures for foundation_testbed integration tests.
+//! Shared test fixtures for `foundation_testbed` integration tests.
 //!
 //! Provides `TestVm` — an RAII guard that starts a VM on construction
 //! and stops it on drop, ensuring cleanup even on test panic.
@@ -58,7 +58,7 @@ impl TestVm {
         display: DisplayMode,
         mount_project: bool,
     ) -> Result<Self> {
-        let profile = get_profile(profile_name).map(|p| p.clone())?;
+        let profile = get_profile(profile_name).cloned()?;
         println!(
             "[{}] Starting VM '{}' ({:?})...",
             std::any::type_name::<Self>(),
@@ -89,10 +89,10 @@ impl TestVm {
         let ssh_port = qemu.resolved_ports.ssh_port;
 
         // Save state
-        let monitor_path = foundation_testbed::platform::config::monitor_dir(&profile.name)
+        let monitor_path = foundation_testbed::platform::config::monitor_dir(profile.name)
             .join(format!("{}.monitor", profile.name));
         let vm_state = state::from_qemu(
-            &profile.name,
+            profile.name,
             &qemu.disk_path,
             qemu.pid,
             &monitor_path,
@@ -114,7 +114,7 @@ impl TestVm {
         })
     }
 
-    /// Wait for SSH (Linux/macOS) or WinRM (Windows) to become reachable.
+    /// Wait for SSH (Linux/macOS) or `WinRM` (Windows) to become reachable.
     /// Mounts the project directory inside the guest if requested.
     pub fn wait_for_ready(&mut self, timeout: Duration) -> Result<()> {
         let start = Instant::now();
@@ -123,7 +123,7 @@ impl TestVm {
             GuestOs::Linux | GuestOs::MacOS => {
                 println!(
                     "[{}] Waiting for SSH connectivity on port {} (timeout: {:?})...",
-                    &self.profile_name, self.ssh_port, timeout
+                    self.profile_name, self.ssh_port, timeout
                 );
                 loop {
                     if start.elapsed() > timeout {
@@ -131,8 +131,7 @@ impl TestVm {
                             foundation_testbed::platform::config::TestbedError::SshFailed {
                                 port: self.ssh_port,
                                 source: anyhow::anyhow!(
-                                    "timed out waiting for VM connectivity after {:?}",
-                                    timeout
+                                    "timed out waiting for VM connectivity after {timeout:?}"
                                 ),
                             },
                         );
@@ -140,7 +139,7 @@ impl TestVm {
                     if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)
                         .is_ok()
                     {
-                        println!("[{}] SSH ready", &self.profile_name);
+                        println!("[{}] SSH ready", self.profile_name);
                         if self.mount_project {
                             self.mount_project_in_guest()?;
                         }
@@ -152,7 +151,7 @@ impl TestVm {
             GuestOs::Windows => {
                 println!(
                     "[{}] Waiting for WinRM connectivity (timeout: {:?})...",
-                    &self.profile_name, timeout
+                    self.profile_name, timeout
                 );
                 loop {
                     if start.elapsed() > timeout {
@@ -160,8 +159,7 @@ impl TestVm {
                             foundation_testbed::platform::config::TestbedError::SshFailed {
                                 port: self.ssh_port,
                                 source: anyhow::anyhow!(
-                                    "timed out waiting for WinRM after {:?}",
-                                    timeout
+                                    "timed out waiting for WinRM after {timeout:?}"
                                 ),
                             },
                         );
@@ -169,11 +167,10 @@ impl TestVm {
                     if let Ok(winrm) = foundation_testbed::platform::winrm::WinRM::from_profile(
                         &self.profile,
                         foundation_context::Ctx::host(),
-                    ) {
-                        if winrm.ping() {
-                            println!("[{}] WinRM ready", &self.profile_name);
-                            return Ok(());
-                        }
+                    ) && winrm.ping()
+                    {
+                        println!("[{}] WinRM ready", self.profile_name);
+                        return Ok(());
                     }
                     std::thread::sleep(Duration::from_secs(5));
                 }
@@ -183,7 +180,7 @@ impl TestVm {
 
     /// Run the bootstrap flow (installs OpenSSH + dev tools).
     ///
-    /// For Windows: two-phase — WinRM installs OpenSSH, then SSH installs tools.
+    /// For Windows: two-phase — `WinRM` installs OpenSSH, then SSH installs tools.
     /// For Linux/macOS: SSH-only bootstrap.
     ///
     /// Logs are written to `$PWD/.testbed/<profile-name>/bootstrap.log`.
@@ -192,7 +189,7 @@ impl TestVm {
             &self.profile,
             &foundation_context::Ctx::host(),
         ) {
-            println!("[{}] Already bootstrapped, skipping", &self.profile_name);
+            println!("[{}] Already bootstrapped, skipping", self.profile_name);
             return Ok(());
         }
 
@@ -269,7 +266,7 @@ impl TestVm {
             }
         }
 
-        logger.message(&format!("✓ {} bootstrap complete", &self.profile_name));
+        logger.message(&format!("✓ {} bootstrap complete", self.profile_name));
         Ok(())
     }
 
@@ -279,17 +276,17 @@ impl TestVm {
         if self.profile.os != GuestOs::Linux {
             println!(
                 "[{}] Skipping 9p mount ({:?} requires virtio drivers or SCP)",
-                &self.profile_name, self.profile.os
+                self.profile_name, self.profile.os
             );
             return Ok(());
         }
         println!(
             "[{}] Mounting project directory in guest...",
-            &self.profile_name
+            self.profile_name
         );
         let mount_cmd = mount::guest_mount_command(mount::DEFAULT_TAG, mount::DEFAULT_GUEST_PATH);
         let output = self.ssh_exec(&mount_cmd)?;
-        println!("[{}] Mount result: {}", &self.profile_name, output.trim());
+        println!("[{}] Mount result: {}", self.profile_name, output.trim());
         Ok(())
     }
 
@@ -307,7 +304,7 @@ impl TestVm {
         ssh::exec_ps_windows(&mut session, script)
     }
 
-    /// Get a reference to the QemuVm for advanced operations.
+    /// Get a reference to the `QemuVm` for advanced operations.
     pub fn qemu(&self) -> Option<&QemuVm> {
         self.qemu.as_ref()
     }
@@ -337,7 +334,7 @@ impl Drop for TestVm {
 
 /// Ensure a VM image is cached (downloads if needed).
 pub fn ensure_image(profile_name: &str) -> Result<PathBuf> {
-    let profile = get_profile(profile_name).map(|p| p.clone())?;
+    let profile = get_profile(profile_name).cloned()?;
     foundation_testbed::platform::import::ensure_image(&profile)
 }
 
