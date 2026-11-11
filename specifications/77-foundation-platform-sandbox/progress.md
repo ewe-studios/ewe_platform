@@ -3,20 +3,32 @@
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
-**Abbreviations in this file.** application programming interface (API); virtual machine
-(VM); pull request (PR); continuous integration (CI); AeroSpace and Defence Industries
-Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+**Abbreviations in this file.** remote procedure call (RPC); virtual machine (VM); Durable
+Object (DO); minimum viable product (MVP); pull request (PR); continuous integration (CI);
+AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
+ASD-STE100.
 
 ## Landed
 
-- 2026-11-11: the spec, with ten features (feature 10 came later the same day). It is a draft. No code exists. The owner has not
-  yet answered the open questions (requirements section 9).
-- 2026-11-11: feature 10 added on the owner's request: research for an image builder (a
-  Dockerfile-like `Sandboxfile`, and container images as a source). It has the first
-  analysis, a draft grammar, ten measurement tasks and the expected follow-up features.
-- 2026-11-11: the research. The Firecracker, libkrun (1.19 and `main`), Cloudflare
-  sandbox-sdk and Cloudflare containers sources were read. The facts and their sources are
-  in `learnings.md`.
+- 2026-11-11: the research. The Firecracker, libkrun (1.19 and `main`), libkrunfw,
+  Cloudflare sandbox-sdk, Cloudflare containers and Rust `worker` crate sources were read.
+  The facts and their sources are in `learnings.md`.
+- 2026-11-11: the first design (one guest agent with an own frame protocol; a TypeScript
+  bridge Worker). The owner replaced it the same day; `learnings.md` section 7 records why
+  each part went.
+- 2026-11-11: the owner's architecture. A control plane (`agent-sandbox`) and a slave in
+  each sandbox (`agent-slave`) that talk over Connect RPC. All logic is library code in
+  `foundation_platform_sandbox`, split into `shared`, `native` and `cloudflare`. Programs,
+  the DO and the `Provider` implementations are boundaries. The MVP is Firecracker, then
+  Cloudflare.
+- 2026-11-11: the spec in the story-driven form: `requirements.md` and 16 feature files.
+  Each feature has its story, bounded context, law worksheet, invariants, must-have lists,
+  acceptance scenarios, technical breakdown and a table from laws to tests.
+- 2026-11-11: the skill `story-driven-specification` in the `.agents` repository (on its
+  `master`), and `specifications-management` version 5.0, which makes that layout
+  mandatory. The submodule pointer of this repository moved to that commit.
+
+No product code exists. The spec is a draft in a pull request for the owner's review.
 
 ## In progress
 
@@ -24,52 +36,62 @@ Nothing. The spec waits for the owner review.
 
 ## Next
 
-1. The owner reads `requirements.md` and answers questions Q1 to Q9.
+1. The owner reviews the PR and answers the open questions (requirements section 10.2).
 2. Update the spec with the answers. Set `status: "in-progress"`.
-3. Feature 00 (one agent, sonnet).
-4. Features 01, 02, 03 part A and 05 in parallel (one agent each).
-5. Feature 04: milestone M1, the first sandbox, on libkrun.
-6. Feature 03 part B, then feature 06: milestone M2, Firecracker.
-7. Feature 07: version 0.1.
-8. Features 08 and 09: version 0.2.
-9. Feature 10 (research) starts after M1, in parallel with steps 6 to 8. Its result adds
-   features 11 and later.
+3. Feature 00 (one agent).
+4. Features 01, 02, 03 and 04 in parallel (one agent each).
+5. Feature 05, then feature 06: MVP-A (Firecracker).
+6. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
+   MVP-B (Cloudflare).
+7. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested).
+8. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 
-| Milestone | Features | State |
-|---|---|---|
-| M1: a command runs in a libkrun microVM on Linux and macOS | 00, 01, 02, 03 part A, 04 | not started |
-| M2: a command runs in a Firecracker microVM on Linux | 03 part B, 05, 06 | not started |
-| 0.1: `Provider` implementations and an example | 07 | not started |
-| 0.2: Cloudflare Sandbox and Cloudflare Containers | 08, 09 | not started |
-| Image decision: how sandbox images are built | 10 (research) | not started |
+| Milestone | Features | Features deep (longest path) | State |
+|---|---|---|---|
+| MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 5 (00, then 01, 02 or 04, then 05, then 06) | not started |
+| MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02) | not started |
+| Phase 2: libkrun, Docker, nested sandboxes | 09, 10, 11 | 1 to 2 more each | not started |
+| Phase 3: sandbox images | 12, 13, 14, 15 | 4 more | not started |
 
-## Facts that a feature must measure
+## What was checked while the spec was written, and what was not
 
-The research could not prove these from the sources. Each one is a "measure first" step in
-its feature, and the result goes to `learnings.md`.
+Checked by a command in the specification session:
 
-| Feature | Fact |
+- `foundation_nativeapis` with the `fd` feature compiles for `x86_64-unknown-linux-musl`.
+- `foundation_deployment_platform` does not compile for that target with default features
+  (a C dependency through TLS).
+- `foundation_deployment` depends on `foundation_db`.
+
+Taken from source code and documents, with file and line in `learnings.md`: every
+Firecracker, libkrun, libkrunfw, Cloudflare and `worker` crate fact.
+
+Not run: no microVM, no container and no Worker was started. The session had no
+`/dev/kvm`. The first real run of each driver is in its feature, and each feature's "Done
+when" needs that run.
+
+## Things a feature decides by a run
+
+These are not open design questions. The design does not depend on the answer; the feature
+records the value.
+
+| Feature | Value to record |
 |---|---|
-| 01 | The musl agent links on macOS with `rust-lld`. |
-| 02 | How an `async fn` in this repository awaits readiness of a raw Unix socket. |
-| 04 | `krun_add_virtiofs3` with the root tag and `read_only = true` boots with no `krun_set_root`. |
-| 04 | `krun_set_exec`: `argv` has, or does not have, the program name. |
-| 04 | The `libkrunfw` kernel has overlayfs, and overlayfs accepts `lowerdir=/` on virtio-fs. |
-| 05 | The `gen_api` generator handles enum strings with a space and with a digit first. |
-| 06 | The oldest Firecracker version that the real test passes on. |
-| 08 | The Durable Object can open a raw connection to a container port (M1 to M5 of feature 08). |
-| 09 | A WebSocket client exists in this repository. |
+| 05 | The boot time; the oldest Firecracker version that the real tests pass on. |
+| 06 | The size of `agent-slave` for each target. |
+| 08 | Whether `wrangler dev` keeps a container across a restart (the test accepts both). |
+| 09 | The boot time on Linux and macOS; the libkrun version of each run. |
+| 12 | Which hosts have a libkrun with block support. |
+
+## Open questions for the owner
+
+Requirements section 10.2: Q1 (the meaning of "Docker sandbox" and "Cloudflare sandbox"),
+Q2 (`foundation_platform_docker` or the existing `foundation_deployment_docker`), Q3
+(where the `agent-slave` entry point is; the measurement says its own package), Q4
+(authentication for the MVP), Q5 (no `start.md` files).
 
 ## Findings to file as GitHub issues
 
-Root rule 9 says that each finding becomes an issue. The spec session filed none, because
-the owner asked for design work only. File these when the spec is approved, or tell the
-session to file them now.
-
-| Finding | Label |
-|---|---|
-| `ResolvedPorts.ssh_port` and `vnc_port` are `u16`; a provider with no such port returns 0 (`foundation_deployment_platform/src/providers/mod.rs`). Likely fix: `Option<u16>`. | `severity: low` |
-| `backends/foundation_deployment_docker/specs/swagger2openapi.py` is in one crate; a second Swagger 2.0 source (Firecracker) needs it. Likely fix: move it to `scripts/openapi/`. | `severity: low` |
-| The `.agents` skill `specifications-management` requires `start.md` files; spec 76 and this spec do not have them. Likely fix: update the skill or add the files. | `severity: low` |
+Decision D9: no issue is filed while the spec is in review. Feature 06, section 6.10, has
+the list to file when the owner approves.

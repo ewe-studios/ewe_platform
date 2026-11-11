@@ -112,8 +112,10 @@ Source: `docs/vsock.md`.
 - A snapshot restore resets vsock connections. This matters when snapshots arrive later:
   the agent must connect again.
 
-Decision: the guest connects (port 1024). Reasons: the accept is the ready signal, there is
-no text handshake, and libkrun supports the same direction.
+Decision: the host connects (the slave listens on port 1024 and serves RPC). The control
+plane writes `CONNECT 1024\n` after each new connection and reads the `OK` line. When the
+slave does not listen yet, Firecracker closes the connection; the control plane's
+readiness wait tries again.
 
 ### 2.5 CI kernel configuration
 
@@ -132,7 +134,7 @@ Source: `docs/getting-started.md`, lines 108 to 140. The bucket is
 Feature 03 pins one prefix and one SHA-256 for each file; it does not list the bucket at run
 time.
 
-### 2.7 Things we do not use in 0.1
+### 2.7 Things we do not use in this spec
 
 - `jailer` (`docs/jailer.md`): needs root. It gives a chroot, cgroups and namespaces to the
   VMM process.
@@ -189,7 +191,8 @@ Source: `src/devices/src/virtio/vsock/muxer.rs`, lines 540 to 575, and
   `UnixProxy` that connects to the host path.
 - A port with `listen = true` gets a reset when the guest connects to it. The VMM made a
   listening socket on the host path at start (`create_lisening_ipc_sockets`).
-- So `krun_add_vsock_port(ctx, 1024, path)` gives the direction that we want. No text
+- With RPC the slave is the server, so we use `krun_add_vsock_port2(ctx, 1024, path, true)`:
+  the VMM listens on `path`, and a host connection goes to the guest port. No text
   handshake exists on this path.
 
 ### 3.4 Built-in init and standard streams
@@ -245,37 +248,87 @@ Source: `docs/security-model.md`.
 - TSI with `KRUN_TSI_HIJACK_UNIX` lets the guest connect to host UDS paths. We never set
   this bit.
 
+### 3.8 More facts from the libkrun and libkrunfw sources (2026-11-11)
+
+- **`krun_set_exec` arguments.** `argv` does not include the program name:
+  `examples/chroot_vm.c` line 316 passes `guest_argv[0]` as `exec_path` and
+  `&guest_argv[1]` as `argv`.
+- **The built-in init and a read-only root.** `src/init_blob/init/init.c`,
+  `mount_filesystems` (line 536): it calls `mkdir` for `/dev`, `/proc`, `/sys` and accepts
+  `EEXIST`; it mounts `devtmpfs`, `proc`, `sysfs`, `cgroup2`; it makes `/dev/pts` and
+  `/dev/shm` inside the `devtmpfs` mount. So a read-only root boots when the three
+  directories exist.
+- **Guest kernel (`libkrunfw`, kernel 6.12.109).** `config-libkrunfw_x86_64` and
+  `config-libkrunfw_aarch64` both have `OVERLAY_FS`, `TMPFS`, `TMPFS_XATTR`, `EXT4_FS`,
+  `VIRTIO_BLK`, `VIRTIO_FS`, `FUSE_FS`, `EROFS_FS`, `BLK_DEV_LOOP` built in. **x86_64 has
+  no squashfs** (`# CONFIG_SQUASHFS is not set`); aarch64 has it. The Firecracker CI
+  kernels have squashfs and ext4, and no EROFS. So ext4 is the one image format that every
+  microVM kernel of this spec mounts.
+- **Block support is a build option.** `Makefile` line 39: `BLK=1` adds `--features blk`.
+  `krun_has_feature(KRUN_FEATURE_BLK)` reports it (`src/libkrun/src/lib.rs` line 2052).
+  Homebrew builds with `BLK=1 NET=1 GPU=1 TIMESYNC=1` (`homebrew-core`
+  `Formula/lib/libkrun.rb` line 74; `slp/homebrew-krun` `Formula/libkrun.rb` line 25). The
+  Nix package has `withBlk ? false` (`pkgs/by-name/li/libkrun/package.nix` line 19). The
+  Fedora and Arch package files could not be read from this session.
+- **File owners on virtio-fs.** macOS: the passthrough stores owner and mode in the
+  extended attribute `user.containers.override_stat` (`macos/passthrough.rs` line 37). The
+  Linux passthrough has no such override: the guest sees the real host owner. So a host
+  directory is not a portable way to keep file owners; an ext4 image is.
+- **Disk images.** `krun_add_disk2(ctx, block_id, path, format, read_only)` (header line
+  226). The header warns against opening a non-raw image from a source that is not
+  trusted, and against format probing. We pass `KRUN_DISK_FORMAT_RAW` always.
+
 ## 4. Cloudflare
 
 ### 4.1 Model
 
-Source: `sandbox-sdk/README.md`, `docs/architecture.md`, `examples/minimal/`.
+Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.md`,
+`examples/`), `cloudflare/containers` at `a17055c` (`src/lib/container.ts`).
 
-- A sandbox is a DO and its container. The DO calls `this.ctx.container`.
-- Calls seen in the examples: `container.running`, `container.start({ image, enableInternet })`,
-  `container.images.<name>`, `container.exec(argv, { cwd, signal, stderr })`,
-  `process.output()`, `container.getTcpPort(port).fetch()`, `container.destroy()`,
-  `container.snapshotContainer({})`.
-- `wrangler.jsonc` declares the container: `containers[].class_name`,
-  `scheduling_policy: "durable_object"`, `images.<name>.dockerfile`, and a DO binding.
-- Version 1.0 of `@cloudflare/sandbox` has only `Files`, `S3Mount` and `DirectoryBackup`.
-  Version 0.x had a `Sandbox` class with a server in the container; that design is gone.
-- `Files` works by `exec()` of a static helper (`sandbox-shim`) for each operation. The
-  frame format is in `docs/shim-protocol.md`. We do not use it: our agent does file
-  transfer on all backends.
+- A sandbox is a Durable Object (DO) and its container. The DO calls `this.ctx.container`.
+- Calls seen: `running`, `start({ image, instance, enableInternet, env, entrypoint, labels })`,
+  `setInactivityTimeout(ms)`, `monitor()`, `signal(n)`, `destroy()`,
+  `getTcpPort(port).fetch(request)`, `exec(argv, options)`, `snapshotContainer({})`.
+- Every use of `getTcpPort` in both repositories calls `.fetch`. The architecture document
+  says that it streams bodies and carries WebSockets. No source shows a raw TCP socket
+  from a DO to a container port.
+- A `fetch` to a port with no listener throws an error whose text contains
+  `the container is not listening` (`container.ts` line 27, `NOT_LISTENING_ERROR`); the
+  library retries on it (lines 927 to 950).
+- The image of a container class is in the Worker configuration:
+  `containers: [{ image: "./Dockerfile", class_name, name, max_instances }]`, with a DO
+  binding and a `new_sqlite_classes` migration
+  (`containers/examples/core-tests/wrangler.jsonc`).
+- `wrangler dev` runs the container with Docker on the local machine.
+- Since version 1.0, `@cloudflare/sandbox` has only file helpers that work through
+  `exec()` of a static helper program. The DO class is application code.
 
-### 4.2 Facts to measure at the start of feature 08
+### 4.2 The Rust `worker` crate (version 0.8.5, in this workspace's `Cargo.lock`)
 
-The examples prove `getTcpPort(port).fetch()`. They do not prove a raw TCP `connect()` from
-the DO to a container port. Feature 08 measures this first and has a written fall-back.
+- `State::container() -> Option<Container>` (`src/durable.rs` line 258).
+- `Container`: `running()`, `start(Option<ContainerStartupOptions>)`, `wait_for_exit()`,
+  `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`
+  (`src/container.rs` lines 13 to 41).
+- `ContainerStartupOptions`: `entrypoint`, `enable_internet`, `env`. No image, no instance
+  type, no inactivity time-out (lines 86 to 112).
+- `Fetcher::fetch` and `fetch_request` (`src/fetcher.rs` lines 23 and 48).
+- So a Rust DO can start its container and call a port with `fetch`. This is why the
+  control plane can run in a DO with no TypeScript.
 
 ### 4.3 This repository
 
+- A Rust DO exists: `backends/foundation_keychain/src/server/signalr_do.rs`, on helpers in
+  `backends/foundation_deployment_cloudflare/src/workers/`.
+- A Worker serves HTTP through `foundation_http::wasm` (`CfHttpAppSingleton`,
+  `serve_cf::CfServe`, `dispatch`); `examples/cf-agent-loop/src/lib.rs` is the pattern,
+  with its own workspace root and `worker-build`.
+- `foundation_connectrpc`: the router and the client are in `shared/` (all targets). The
+  `fetch` client transport is only a capability constant today
+  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 65 feature 05
+  plans a general one.
 - `backends/foundation_cloudflare_workers` has generated calls for
-  `GET /accounts/{account_id}/containers` and the registry credentials call (lines 8469
-  to 8550 of `src/workers/mod.rs`). They list and authorise; they do not start a
-  container.
-- `backends/foundation_deployment_cloudflare` deploys Workers.
+  `GET /accounts/{account_id}/containers` and the registry credentials call. They list and
+  authorise; they do not start a container.
 
 ## 5. This repository: patterns to follow
 
@@ -290,15 +343,37 @@ the DO to a container port. Feature 08 measures this first and has a written fal
 | A `Provider` implementation | `foundation_deployment_platform/src/providers/docker/mod.rs`. |
 | A sync wrapper on an async call | `foundation_core::valtron::block_on_future` (`executors/sendables.rs`, line 1004). |
 | `#[task]` state machines | `.agents/skills/rust-valtron-usage/skill.md`, section "State Tasks". |
+| A fd that a valtron task parks on | `foundation_nativeapis::native::fd::RegisteredFd` implements `EventReadiness`; a task returns `TaskStatus::Depends(fd)` (`native/fd/mod.rs`, module documentation). Shared reactor: `Reactor::get()?.registry()`. |
+| A Connect RPC service, code-first | `#[service(package = "...", codecs(json))]` on a trait: `backends/foundation_connectrpc/examples/code_first_streaming/main.rs`. |
+| An RPC server on a custom listener | `HttpServer::serve_with_acceptor` (`foundation_http/src/native/server/mod.rs` line 539) with a `foundation_netio::native::connection::Acceptor`. |
+| An RPC client transport | The `Transport` trait, `foundation_connectrpc/src/shared/transport/base.rs` line 161; `H1Transport::new(DynNetClient)`. |
+| An in-process RPC pair for tests | `PipeClientConn` and `PipeHandlerConn`, `foundation_connectrpc/src/shared/transport/conn.rs`. |
+| Signals in a native program | `foundation_nativeapis`, features `signal` and `signal-unix`. |
+| KVM in CI | GitHub-hosted `ubuntu-latest` has `/dev/kvm`; `.github/workflows/platform-images-vm.yaml` uses it. |
 
-## 6. Design dead ends
+## 6. Measured on 2026-11-11
+
+| Command | Result |
+|---|---|
+| `cargo check -p foundation_nativeapis --no-default-features --features fd --target x86_64-unknown-linux-musl --profile uat` | Passes. The readiness layer builds for a static slave. |
+| `cargo check -p foundation_deployment_platform --target x86_64-unknown-linux-musl --profile uat` | Fails: `ring` (pulled by `foundation_netio` with `ssl`) needs a musl C compiler. So `agent-slave` is its own package (feature 06, section 6.1). |
+| `cargo tree -p foundation_deployment --depth 1 -e normal` | Depends on `foundation_db`. So the generated Firecracker client's common types move to a small crate before the slave can hold the Firecracker driver (feature 11, section 6.5). |
+| `ls /dev/kvm` in the specification session | Not present. No microVM was run while this spec was written; every microVM fact is from source code and documents. |
+
+## 7. Design dead ends
 
 | Idea | Why we did not use it |
 |---|---|
 | Call libkrun in the caller process | `krun_start_enter` calls `exit()`. It would stop the caller. |
 | Link `krun-sys` | Every build would need libkrun, `pkg-config` and `clang`. |
-| Put the agent in the user rootfs image | It changes user data, and each image needs a rebuild when the agent changes. |
-| Host connects to the guest on vsock | It needs a retry loop until the guest listens, and the two VMMs use different handshakes. |
+| Put the slave in the user rootfs image | It changes user data, and each image needs a rebuild when the slave changes. |
+| An own frame protocol with channels and credit windows (first design of this spec) | The repository has Connect RPC. A Worker can only `fetch`, which fits unary and server-streaming calls, and each call's HTTP stream gives the back pressure. One contract then works on a Unix socket, on vsock and on `fetch`. |
+| A TypeScript bridge Worker that pipes a WebSocket to the container (first design) | The Rust `worker` crate has the container API, so the control plane itself runs in the DO, in Rust, with the same core. |
+| The guest connects to the host on vsock (first design) | With RPC the slave is the server. The control plane dials and retries until `Info` answers; the same loop serves every substrate. |
+| A slave on `std` threads (first design) | The owner wants valtron everywhere; the readiness layer builds for musl, so there is no reason for an exception. |
+| A root directory as the image form on libkrun | File owners do not survive on a Linux host (section 3.8). |
+| squashfs as the common image form | The `libkrunfw` x86_64 kernel has no squashfs (section 3.8). |
+| `mkfs.ext4 -d <directory>` to fill an image | It copies the host owner of each file. The guest fills the image as root (feature 12). |
 | Firecracker `--config-file --no-api` | No typed error for each field, and no path to pause or snapshot. |
-| Use the Cloudflare `Files` shim | It is a second file protocol for one backend only. |
+| The Cloudflare `Files` helper | A second file protocol for one substrate only. |
 | A serial console protocol for exit codes | Not reliable: kernel messages mix with program output on the same stream. |
