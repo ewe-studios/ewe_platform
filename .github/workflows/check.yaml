@@ -15,6 +15,9 @@ name: "Audit: Checks & Tests"
 # only when it is missing) before the package jobs start; see
 # ci/platform-images/README.md.
 #
+# A `macos-test` job runs the tests of the packages with macOS-specific code
+# (`macos-runs` in ci/packages.toml) on a macOS runner.
+#
 # Pull requests test only what they affect. Pushes to master, the nightly
 # schedule and manual runs test the whole workspace (or the packages you name).
 
@@ -68,6 +71,9 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
+      # The selected packages that set `macos-runs` in ci/packages.toml.
+      macos-matrix: ${{ steps.plan.outputs.macos-matrix }}
+      macos-count: ${{ steps.plan.outputs.macos-count }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@v1
@@ -320,11 +326,62 @@ jobs:
       - name: wasm
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
 
+  macos-test:
+    name: macOS ${{ matrix.package }}
+    needs: plan
+    # Runs the tests of the selected packages that have macOS-specific code
+    # (`macos-runs` in ci/packages.toml). A pull request selects only the
+    # changed packages and their dependents, so this job is path-filtered too.
+    # No container and no CI image: the job runs on the macOS runner itself.
+    if: needs.plan.outputs.macos-count != '0'
+    # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
+    # DEVELOPER_DIR picks Xcode 26.2, the same as the `macos` job.
+    runs-on: blacksmith-6vcpu-macos-26
+    timeout-minutes: ${{ matrix.timeout }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.macos-matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch llama.cpp
+        if: matrix.llama
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402). rustfmt is there because the
+        # generated provider crates' build scripts run it.
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: macos-test-${{ matrix.package }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: test
+        # On a macOS host, ci.py runs only the test step, with `macos-runs`.
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact]
+    needs: [image, plan, package, package-artifact, macos-test]
     if: always()
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
@@ -334,10 +391,11 @@ jobs:
           PLAN: ${{ needs.plan.result }}
           PACKAGES: ${{ needs.package.result }}
           PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
+          MACOS_TESTS: ${{ needs.macos-test.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, macOS tests: $MACOS_TESTS"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$MACOS_TESTS"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;
