@@ -423,8 +423,13 @@ jobs:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
     if: github.event_name != 'pull_request'
-    runs-on: blacksmith-6vcpu-macos-15
+    # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
+    # DEVELOPER_DIR picks Xcode 26.2, which ships the iPhoneOS 26.2 SDK. The
+    # macOS VM image pins the same SDK (components.env IOS_SDK_VERSION).
+    runs-on: blacksmith-6vcpu-macos-26
     timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -457,16 +462,16 @@ jobs:
         run: cargo build --profile uat --workspace
 
       - name: Check the iOS target
-        # The Blacksmith macOS 15 image ships Xcode 16.4 with the iPhoneOS 18.5
-        # SDK, so this job proves the iOS build on every master and nightly
-        # run. The SDK is older than the VM pin (26.2): if code starts to use
-        # an iOS 26 API, run this job on macos-latest (iOS SDK 26.5) instead.
-        # The VM job `macos-ssh` (platform-vms.yaml) runs the same checks
-        # against the pinned SDK, but only on an Apple-hardware runner (#355,
-        # #464). LLVM is required: Cranelift cannot build ring for iOS.
+        # The job uses Xcode 26.2, so the check runs against the iPhoneOS 26.2
+        # SDK, the same SDK as the VM pin. The step fails if the SDK is
+        # different. The VM job `macos-ssh` (platform-vms.yaml) runs the same
+        # checks inside the VM (#355, #464). LLVM is required: Cranelift
+        # cannot build ring for iOS.
         run: |
           rustup target add aarch64-apple-ios
-          xcrun --sdk iphoneos --show-sdk-version
+          sdk=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "iPhoneOS SDK: $sdk"
+          test "$sdk" = "26.2" || { echo "::error::expected the iPhoneOS 26.2 SDK, got $sdk"; exit 1; }
           cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
           cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
           cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
