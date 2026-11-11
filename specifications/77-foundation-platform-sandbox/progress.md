@@ -9,8 +9,11 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 ## Landed
 
-- 2026-11-11: the spec, with ten features. It is a draft. No code exists. The owner has not
+- 2026-11-11: the spec, with ten features (feature 10 came later the same day). It is a draft. No code exists. The owner has not
   yet answered the open questions (requirements section 9).
+- 2026-11-11: feature 10 added on the owner's request: research for an image builder (a
+  Dockerfile-like `Sandboxfile`, and container images as a source). It has the first
+  analysis, a draft grammar, ten measurement tasks and the expected follow-up features.
 - 2026-11-11: the research. The Firecracker, libkrun (1.19 and `main`), Cloudflare
   sandbox-sdk and Cloudflare containers sources were read. The facts and their sources are
   in `learnings.md`.
@@ -29,6 +32,8 @@ Nothing. The spec waits for the owner review.
 6. Feature 03 part B, then feature 06: milestone M2, Firecracker.
 7. Feature 07: version 0.1.
 8. Features 08 and 09: version 0.2.
+9. Feature 10 (research) starts after M1, in parallel with steps 6 to 8. Its result adds
+   features 11 and later.
 
 ## Milestones
 
@@ -38,6 +43,7 @@ Nothing. The spec waits for the owner review.
 | M2: a command runs in a Firecracker microVM on Linux | 03 part B, 05, 06 | not started |
 | 0.1: `Provider` implementations and an example | 07 | not started |
 | 0.2: Cloudflare Sandbox and Cloudflare Containers | 08, 09 | not started |
+| Image decision: how sandbox images are built | 10 (research) | not started |
 
 ## Facts that a feature must measure
 

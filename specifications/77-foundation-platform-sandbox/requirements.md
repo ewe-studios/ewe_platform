@@ -19,8 +19,8 @@ related_specs:
   - "specifications/76-shared-context"
 features:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0%
 ---
 
@@ -105,8 +105,9 @@ issue with the label `enhancement` when feature 07 lands.
 - Guest network devices (tap, `passt`, `gvproxy`), port forwards and egress policy. Version
   0.1 has two network modes only (section 5.5).
 - Snapshots, pause and resume.
-- OCI image pull and layer unpack. Version 0.1 takes a rootfs directory, a rootfs image or
-  an Alpine release archive (feature 03).
+- An image builder. Version 0.1 takes a rootfs directory, a rootfs image or an Alpine
+  release archive (feature 03). Feature 10 is the research for a Dockerfile-like builder
+  and for container images as a source; it writes its own follow-up features.
 - Interactive terminals (pseudo terminal, window resize).
 - The libkrun 2.0 API (section 4.2).
 - Windows hosts.
@@ -405,6 +406,8 @@ graph LR
   V01 --> F08[08 bridge Worker]
   F08 --> F09[09 Cloudflare backend]
   F09 --> V02((0.2))
+  F04 --> F10[10 image builder research]
+  F10 --> IMG((image features 11+))
 ```
 
 _Caption: features 01, 02, 03 and 05 can run in parallel after feature 00; libkrun reaches the first working sandbox (M1) before Firecracker (M2)._
@@ -421,6 +424,10 @@ _Caption: features 01, 02, 03 and 05 can run in parallel after feature 00; libkr
 | 07 | [Provider and doctor](features/07-provider-and-doctor/feature.md) | sonnet | **0.1.** `FirecrackerProvider` and `LibkrunProvider` implement `Provider`. An example runs a program. |
 | 08 | [Cloudflare bridge Worker](features/08-cloudflare-bridge-worker/feature.md) | sonnet | The Worker runs in `wrangler dev`, starts a container and pipes the agent stream. |
 | 09 | [Cloudflare backend](features/09-cloudflare-backend/feature.md) | sonnet | **0.2.** `echo` runs in a Cloudflare container through the same `Sandbox` API. |
+| 10 | [Image builder (research)](features/10-image-builder-research/feature.md) | opus | The owner approved a decision on how sandbox images are built, and the follow-up feature files exist. No product code. |
+
+Feature 10 can start as soon as M1 works, in parallel with features 05 to 07. It needs a
+working sandbox for its measurements, and it does not block version 0.1.
 
 ### 6.1 Why libkrun is first
 
@@ -482,4 +489,5 @@ gives a different answer.
 | Q6 | Which CI runner has KVM for the real microVM tests? macOS runners cannot run HVF guests. | One Linux job on a runner with `/dev/kvm`. macOS libkrun is verified on a developer machine before each release, and `progress.md` records it. |
 | Q7 | The bridge Worker: TypeScript or Rust (`workers-rs`)? The DO container API is new, and the Rust bindings may not have it. | TypeScript, less than 300 lines, with all logic in the Rust agent and client. |
 | Q8 | `ResolvedPorts` has `ssh_port: u16` and `vnc_port: u16`. A sandbox has neither. The Docker provider already returns 0. | Return 0 in 0.1 and file a `severity: low` issue to make the two fields `Option<u16>`. |
+| Q10 | Sandbox images: build from containers (Dockerfile and Docker), from our own build file (`Sandboxfile`, with `RUN` in a microVM), or both? | Both, in three stages: a container-to-image converter first, then the `Sandboxfile` builder with a container image as one possible base, then a registry pull with no Docker. Feature 10 measures this before any code. |
 | Q9 | The existing `start.md` workflow files are not in the newest spec (76). | Follow spec 76: `requirements.md`, `progress.md`, `learnings.md` and one `feature.md` for each feature. |
