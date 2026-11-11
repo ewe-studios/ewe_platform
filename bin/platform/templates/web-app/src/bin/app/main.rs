@@ -30,7 +30,7 @@ impl ServeFactory for IndexHandler {
 impl Serve for IndexHandler {
     fn serve(
         &self,
-        ctx: Ctx,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -38,9 +38,9 @@ impl Serve for IndexHandler {
             Some(html_data) => {
                 let content =
                     String::from_utf8(html_data.data.to_vec()).expect("should generate str");
-                send_html(conn, 200, &content, &ctx)
+                send_html(conn, 200, &content)
             }
-            None => send_not_found(conn, &ctx),
+            None => send_not_found(conn),
         }
     }
 }
