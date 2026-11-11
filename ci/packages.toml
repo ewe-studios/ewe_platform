@@ -34,6 +34,19 @@
 #                             it to false with a `reason` until its list is
 #                             empty, and must keep every feature tree in
 #                             `clippy-runs` so the list stays complete.
+#   macos-runs      = [...]   one `cargo test` per entry on the macOS runner (job
+#                             `macos-test` in check.yaml), same feature-flag
+#                             syntax as `runs`. Only the feature sets that
+#                             build on macOS belong here: leave out `uring`,
+#                             `ptrace`, `vfs-fuse` and `vfs-preload`. A
+#                             package without this key is not tested on macOS.
+#                             ci.py uses it when it runs on a macOS host.
+#                             List a package only if its tests reach code that
+#                             is gated on `target_os = "macos"`.
+#   macos-env       = { K = "v" }  environment for the macOS test commands. It
+#                             replaces `env` on macOS, so the Linux-only
+#                             `EWE_REQUIRE_IO_URING` and `EWE_REQUIRE_PTRACE`
+#                             never reach a macOS run.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   failure-lines = N         failed-test lines kept per command for the end-of-run
@@ -298,6 +311,8 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
+# `multi` compiles the macOS branch of tests/h2_parking_tests.rs.
+macos-runs = ["", "multi"]
 # tests/integration_tests.rs (and the other server suites) are gated on
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
@@ -396,6 +411,11 @@ wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
 # and `ptrace`.
 env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
 container-options = "--security-opt seccomp=unconfined"
+# macOS runs (job `macos-test`): the kqueue reactor (`fd`), the macOS signal
+# handler (default `signal`), the polling watcher (`watcher-macos`), the Mach
+# port IPC transport (`vfs-ipc`) and the userspace data plane (`netstack`). The
+# `tun` (needs root), `uring`, `ptrace`, FUSE and preload sets are Linux-only.
+macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc"]
 
 [packages.foundation_iogate]
 # 3 pedantic warnings; clear them and delete this override (#441).
@@ -416,11 +436,15 @@ runs = ["", "quic"]
 # Clippy covers the quic tree too, at zero warnings (clippy-deny-warnings is
 # the default), so a new H3 warning fails CI.
 clippy-runs = ["", "quic"]
+# The default run also compiles the macOS branch of the completion dial tests.
+macos-runs = [""]
 # The completion dial and splice tests need io_uring; fail instead of skipping.
 env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_reactor]
+# The macOS reactor uses kqueue. `uring` is Linux-only, so only the default run.
+macos-runs = [""]
 # At zero clippy warnings under `--all-targets`: a new one fails CI. Without
 # this, a warning here blocked the clippy gate of every crate that depends on it.
 clippy-deny-warnings = true
@@ -430,6 +454,8 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_compact]
+# The default run covers the macOS entropy and errno backends.
+macos-runs = [""]
 wasm = "enforce"
 # Defaults use the wasm-bindgen time/entropy backend; the second run is the
 # owned path's `host-abi` backend.
@@ -456,6 +482,11 @@ wasm-runs = ["--no-default-features --features rpc"]
 # Spec 70 feature 128: the rpc wasm build is at zero warnings, and the gate
 # keeps it there. The native-dep items in `dispatch.rs` are gated to non-wasm.
 wasm-deny-warnings = true
+
+[packages.foundation_boringtun]
+# The `device` feature builds the kqueue poller and the utun device that only
+# exist on macOS. Without `device`, the macOS code is not compiled.
+macos-runs = ["", "device"]
 
 # ---------------------------------------------------------------------------
 # Example workspaces
