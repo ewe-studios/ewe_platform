@@ -281,3 +281,11 @@ standard ASD-STE100.
   imports a new crate (`foundation_context`), add that crate to each standalone manifest too.
 - `ci.py` runs every build command and then fails. So the last lines in the log (here, the
   two `cargo fmt` checks) are not the cause. Search the log for `##[error]` to find the failed command.
+- The io_uring completion selector lost a wakeup (#506). It re-armed a starved recv only when
+  the buffer recycle counter moved. A buffer that came back before the `-ENOBUFS` completion
+  was read used up that move, and the token parked for good. A level check (a buffer is free)
+  does not miss it. Kernels before 6.12 post `-ENOBUFS` early, so only the 6.6 runner showed it.
+- A CI job that tests on one runner type can hide kernel-dependent bugs. Moving the Linux jobs
+  to Blacksmith (kernel 6.6) found #506, which GitHub's newer kernel never showed.
+- CI ran clippy on foundation_reactor without the `uring` feature, so 65 findings stayed
+  hidden (#507). Check that `clippy-runs` covers every feature that gates code.
