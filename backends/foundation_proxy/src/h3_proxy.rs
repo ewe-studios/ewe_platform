@@ -151,7 +151,16 @@ impl H3Serve for H3ProxyHandler {
                 )
                 .await
             } else {
-                Ok(forward(&client, &method, &url, headers, SendSafeBody::None, None).await)
+                Ok(forward(
+                    &client,
+                    &method,
+                    &url,
+                    headers,
+                    SendSafeBody::None,
+                    None,
+                    &ctx,
+                )
+                .await)
             };
 
             match outcome {
@@ -205,6 +214,7 @@ async fn forward_with_body(
             upstream.headers,
             body,
             Some(readiness),
+            ctx,
         )
         .fuse();
         let pump =
@@ -248,6 +258,7 @@ async fn forward(
     headers: SimpleHeaders,
     body: SendSafeBody,
     readiness: Option<BodyReadiness>,
+    ctx: &Ctx,
 ) -> Result<UpstreamResponse, String> {
     let mut builder = ClientRequestBuilder::<SystemDnsResolver>::new(method_of(method), url)
         .map_err(|e| format!("build upstream request: {e}"))?
@@ -259,7 +270,7 @@ async fn forward(
     let response = client
         .request(builder)
         .map_err(|e| format!("prepare upstream request: {e}"))?
-        .send_async()
+        .send_async(ctx)
         .await
         .map_err(|e| format!("send upstream request: {e}"))?;
     let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
