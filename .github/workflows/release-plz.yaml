@@ -92,7 +92,11 @@ jobs:
   publish:
     name: Publish to crates.io
     needs: [gate, image]
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # Stays on the GitHub-hosted runner. The job spends hours waiting out the
+    # crates.io rate limit (scripts/ci/publish_with_retry.py), so a paid
+    # runner would bill for idle time, and faster hardware does not shorten
+    # a rate-limit wait.
+    runs-on: ubuntu-latest
     # Publishing builds every crate from its packaged tarball, llama.cpp
     # included, so it runs in the CI image with the baked submodules.
     container:

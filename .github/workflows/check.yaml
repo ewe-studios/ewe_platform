@@ -434,9 +434,11 @@ jobs:
         run: cargo build --profile uat --workspace
 
       - name: Check the iOS target
-        # The GitHub-hosted macOS image ships full Xcode with the iPhoneOS
+        # The Blacksmith macOS 15 image ships Xcode 16.4 with the iPhoneOS 18.5
         # SDK, so this job proves the iOS build on every master and nightly
-        # run. The VM job `macos-ssh` (platform-vms.yaml) runs the same checks
+        # run. The SDK is older than the VM pin (26.2): if code starts to use
+        # an iOS 26 API, run this job on macos-latest (iOS SDK 26.5) instead.
+        # The VM job `macos-ssh` (platform-vms.yaml) runs the same checks
         # against the pinned SDK, but only on an Apple-hardware runner (#355,
         # #464). LLVM is required: Cranelift cannot build ring for iOS.
         run: |
