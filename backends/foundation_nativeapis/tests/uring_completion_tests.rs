@@ -367,15 +367,67 @@ fn a_starved_pool_recovers_once_buffers_are_returned() {
         Completion::Data(buf) => assert_eq!(&buf[..], b"second"),
         other => panic!("expected Data, got {other:?}"),
     }
+    // `second` still holds the only buffer. Kernels before 6.12 try the next
+    // recv at once after the last buffer is used, and answer -ENOBUFS even with
+    // no data. The token may be parked again here, and that is correct. Return
+    // the buffer, then wait for the reactor to re-arm the token.
+    drop(second);
+    let deadline = Instant::now() + Duration::from_secs(3);
+    let mut events = Events::with_capacity(16);
+    while sel.starved_tokens() != 0 && Instant::now() < deadline {
+        events.clear();
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
+    }
     assert_eq!(
         sel.starved_tokens(),
         0,
-        "the token must no longer be parked"
+        "the token must no longer be parked once the buffer is returned"
     );
 
     sel.deregister_fd(a).expect("deregister");
     close(a);
     close(b);
+}
+
+#[test]
+fn a_buffer_returned_before_the_enobufs_is_seen_still_re_arms() {
+    require_completion_tier!();
+
+    // The consumer returns its buffer right after the second message is sent,
+    // and before the selector reads any completion. The kernel may already
+    // have queued -ENOBUFS for that message. A starved token must still re-arm.
+    for round in 0..20_u32 {
+        let sel = Selector::with_ring(1, 64).expect("completion selector");
+        let (a, b) = socketpair();
+        let token = Token(1);
+        sel.register_recv_fd(a, token, Interest::READABLE)
+            .expect("register socket");
+
+        write_all(b, b"first");
+        let first = collect_completions(&sel, token, Duration::from_secs(2));
+        assert_eq!(first.len(), 1, "round {round}: first message");
+
+        write_all(b, b"second");
+        drop(first);
+
+        let second = collect_completions(&sel, token, Duration::from_secs(3));
+        assert_eq!(second.len(), 1, "round {round}: second message must arrive");
+        drop(second);
+
+        let deadline = Instant::now() + Duration::from_secs(3);
+        let mut events = Events::with_capacity(16);
+        while sel.starved_tokens() != 0 && Instant::now() < deadline {
+            events.clear();
+            sel.poll(&mut events, Some(Duration::from_millis(25)))
+                .expect("poll");
+        }
+        assert_eq!(sel.starved_tokens(), 0, "round {round}: token still parked");
+
+        sel.deregister_fd(a).expect("deregister");
+        close(a);
+        close(b);
+    }
 }
 
 /// The evidence for Decision 14 OQ#14.1's committed re-evaluation.
