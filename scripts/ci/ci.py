@@ -12,6 +12,12 @@ mystery:
 On a macOS host (`sys.platform == "darwin"`) `run` does only the test step, with
 the feature sets of the package's `macos-runs` key. A package without that key
 is not tested on macOS. `plan` also writes the `macos-matrix` output.
+A Windows host (`sys.platform == "win32"`) works the same way with the
+`windows-runs` key and the `windows-matrix` output.
+
+`plan` also runs a guard. A package with macOS or Windows specific code must
+set `macos-runs` / `windows-runs`, or opt out with `macos-tests = "none"` /
+`windows-tests = "none"` and a reason. See `platform_guard`.
 
 Per-package settings live in `ci/packages.toml`. Everything else (the package
 list, which packages need the llama.cpp submodule, who depends on whom) comes
@@ -81,16 +87,20 @@ GLOBAL_PATHS = (
 
 STEPS = ("fmt", "build", "clippy", "test", "wasm")
 MODES = ("enforce", "report", "off")
-PLATFORMS = ("linux", "macos")
+PLATFORMS = ("linux", "macos", "windows")
 
 
 def host_platform() -> str:
-    """The platform this script runs on: "macos" on Darwin, else "linux".
+    """The platform this script runs on: "macos", "windows" or "linux".
 
-    One `sys.platform` check is enough. The macOS job runs this script on the
-    runner itself, with no container, so no flag is needed.
+    One `sys.platform` check is enough. The macOS and Windows jobs run this
+    script on the runner itself, with no container, so no flag is needed.
     """
-    return "macos" if sys.platform == "darwin" else "linux"
+    if sys.platform == "darwin":
+        return "macos"
+    if sys.platform == "win32":
+        return "windows"
+    return "linux"
 
 
 
@@ -148,6 +158,26 @@ class Settings:
     # Environment for the macOS test commands. It replaces `env` on macOS, so
     # the Linux-only `EWE_REQUIRE_*` variables never reach a macOS run.
     macos_env: dict[str, str] = field(default_factory=dict)
+    # The same two keys for the Windows test job (`windows-runs`, `windows-env`).
+    windows_runs: list[str] | None = None
+    windows_env: dict[str, str] = field(default_factory=dict)
+    # `macos-tests = "none"` / `windows-tests = "none"` with a reason: the
+    # package has platform code but is not tested on that platform. The guard
+    # in `platform_guard` accepts it. The value is the reason text.
+    macos_opt_out: str | None = None
+    windows_opt_out: str | None = None
+
+    def platform_runs(self, platform: str) -> list[str] | None:
+        """The feature sets of the test job for `platform`, or None."""
+        return {"macos": self.macos_runs, "windows": self.windows_runs}.get(platform)
+
+    def platform_env(self, platform: str) -> dict[str, str]:
+        """The environment for `platform`; the Linux `env` otherwise."""
+        if platform == "macos":
+            return self.macos_env
+        if platform == "windows":
+            return self.windows_env
+        return self.env
 
 
 @dataclass
@@ -278,17 +308,31 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         for key in ("run", "contains"):
             if not isinstance(wasm_expect_error.get(key), str):
                 raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
-    macos_runs = package.get("macos-runs")
-    if macos_runs is not None:
-        if (
-            not isinstance(macos_runs, list)
-            or not macos_runs
-            or not all(isinstance(r, str) for r in macos_runs)
-        ):
-            raise SystemExit(f"{name}: `macos-runs` must be a non-empty list of strings")
-    macos_env = package.get("macos-env", {})
-    if not isinstance(macos_env, dict) or not all(isinstance(v, str) for v in macos_env.values()):
-        raise SystemExit(f"{name}: `macos-env` must be a table of strings")
+    platform_keys: dict[str, tuple] = {}
+    for plat in ("macos", "windows"):
+        runs_key = package.get(f"{plat}-runs")
+        if runs_key is not None:
+            if (
+                not isinstance(runs_key, list)
+                or not runs_key
+                or not all(isinstance(r, str) for r in runs_key)
+            ):
+                raise SystemExit(f"{name}: `{plat}-runs` must be a non-empty list of strings")
+        env_key = package.get(f"{plat}-env", {})
+        if not isinstance(env_key, dict) or not all(isinstance(v, str) for v in env_key.values()):
+            raise SystemExit(f"{name}: `{plat}-env` must be a table of strings")
+        opt_out = None
+        if f"{plat}-tests" in package:
+            if package[f"{plat}-tests"] != "none":
+                raise SystemExit(f'{name}: `{plat}-tests` must be "none"')
+            if runs_key is not None:
+                raise SystemExit(f"{name}: `{plat}-tests` and `{plat}-runs` exclude each other")
+            opt_out = package.get(f"{plat}-reason") or package.get("reason")
+            if not isinstance(opt_out, str) or not opt_out.strip():
+                raise SystemExit(f'{name}: `{plat}-tests = "none"` needs a `{plat}-reason` or a `reason`')
+        platform_keys[plat] = (runs_key, env_key, opt_out)
+    macos_runs, macos_env, macos_opt_out = platform_keys["macos"]
+    windows_runs, windows_env, windows_opt_out = platform_keys["windows"]
     s = Settings(
         skip=merged.get("skip"),
         fmt=merged.get("fmt", "report"),
@@ -311,6 +355,10 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         wasm_expect_error=wasm_expect_error,
         macos_runs=list(macos_runs) if macos_runs is not None else None,
         macos_env=dict(macos_env),
+        windows_runs=list(windows_runs) if windows_runs is not None else None,
+        windows_env=dict(windows_env),
+        macos_opt_out=macos_opt_out,
+        windows_opt_out=windows_opt_out,
     )
     for step in STEPS:
         if getattr(s, step) not in MODES:
@@ -471,14 +519,15 @@ def test_command(name: str, run: str, profile: str, test_args: list[str]) -> lis
 def commands(
     name: str, s: Settings, profile: str, platform: str = "linux"
 ) -> dict[str, list[list[str] | PlannedCommand]]:
-    if platform == "macos":
-        # The macOS job runs tests only. Format, clippy and the wasm gate stay
-        # on Linux. `cargo test` builds the targets, so no build step runs.
-        macos_plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
-        if s.macos_runs and s.test != "off":
-            for run in s.macos_runs:
-                macos_plan["test"].append(test_command(name, run, profile, s.test_args))
-        return macos_plan
+    if platform in ("macos", "windows"):
+        # The macOS and Windows jobs run tests only. Format, clippy and the wasm
+        # gate stay on Linux. `cargo test` builds the targets, so no build step.
+        host_plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
+        host_runs = s.platform_runs(platform)
+        if host_runs and s.test != "off":
+            for run in host_runs:
+                host_plan["test"].append(test_command(name, run, profile, s.test_args))
+        return host_plan
     if name == "examples":
         return examples_commands(profile)
     if name == "wasm-tests":
@@ -549,6 +598,17 @@ def commands(
     return plan
 
 
+def display_command(cmd: list[str]) -> str:
+    """The command as one line for the log. Display only: no shell runs it.
+
+    Every command runs as an argument list, so no POSIX shell is involved. The
+    quoting follows the host (`shlex` on POSIX, `list2cmdline` on Windows).
+    """
+    if os.name == "nt":
+        return subprocess.list2cmdline(cmd)
+    return shlex.join(cmd)
+
+
 def annotate(level: str, message: str) -> None:
     print(f"::{level}::{message}" if IN_GITHUB else f"{level}: {message}", flush=True)
 
@@ -572,6 +632,9 @@ def run_streamed(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        # Cargo prints UTF-8 on every host. The Windows default code page
+        # (cp1252) would garble or reject it.
+        encoding="utf-8",
         errors="replace",
         bufsize=1,
     )
@@ -612,15 +675,16 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
         print(f"skipping {name}: {s.skip}")
         return 0
 
-    if platform == "macos" and s.macos_runs is None:
-        print(f"skipping {name}: no `macos-runs` in ci/packages.toml, so it is not tested on macOS")
+    if platform != "linux" and s.platform_runs(platform) is None:
+        label = {"macos": "macOS", "windows": "Windows"}[platform]
+        print(f"skipping {name}: no `{platform}-runs` in ci/packages.toml, so it is not tested on {label}")
         return 0
 
     plan = commands(name, s, profile, platform)
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
-    # On macOS the package's `macos-env` replaces `env`.
-    package_env = s.macos_env if platform == "macos" else s.env
+    # On macOS and Windows the package's `<platform>-env` replaces `env`.
+    package_env = s.platform_env(platform)
     env = {**package_env, **os.environ}
     env["CARGO_TARGET_DIR"] = target_dir()
     if package_env:
@@ -643,12 +707,12 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
                 cmd, cmd_env = entry.argv, entry.env
             else:
                 cmd, cmd_env = entry, {}
-            line = shlex.join(cmd)
+            line = display_command(cmd)
             if cmd_env:
                 # Show the command-only environment in the log, so a reader can
                 # see the deny flag that the runner applies.
                 line = " ".join(
-                    f"{k}={shlex.quote(v)}" for k, v in sorted(cmd_env.items())
+                    f"{k}={display_command([v])}" for k, v in sorted(cmd_env.items())
                 ) + " " + line
             print(f"::group::{step}: {line}" if IN_GITHUB else f"$ {line}", flush=True)
             remaining = deadline - time.monotonic()
@@ -711,6 +775,89 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
 
 
 # ---------------------------------------------------------------------------
+# Platform guard
+#
+# A package with macOS or Windows specific code must be tested on that OS, or
+# say why not. The guard runs in `plan`, so every CI run checks it.
+
+# `cfg(...)`, `cfg!(...)` and `cfg_attr(...)` openers. The scan reads the text
+# inside the balanced brackets.
+CFG_OPEN = re.compile(r"\bcfg(?:_attr)?!?\s*\(")
+STRING_LITERAL = re.compile(r'"(?:[^"\\]|\\.)*"')
+MACOS_CFG = re.compile(r'target_os\s*=\s*"macos"|target_vendor\s*=\s*"apple"')
+WINDOWS_CFG = re.compile(r'target_(?:os|family)\s*=\s*"windows"')
+# A bare `windows` predicate, as in `cfg(windows)`. Checked after string
+# literals are blanked, so `feature = "windows"` does not match.
+WINDOWS_BARE = re.compile(r"(?<![\w.])windows(?![\w=])")
+COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+
+
+def cfg_expressions(source: str) -> list[str]:
+    """The text inside every real `cfg(...)` / `cfg!(...)` in Rust `source`.
+
+    Comments are removed first, so a cfg in a comment or doc comment is ignored.
+    """
+    text = COMMENTS.sub("", source)
+    found = []
+    for match in CFG_OPEN.finditer(text):
+        depth, i = 1, match.end()
+        while i < len(text) and depth:
+            depth += {"(": 1, ")": -1}.get(text[i], 0)
+            i += 1
+        found.append(text[match.end() : i - 1])
+    return found
+
+
+def platform_cfg_sites(source: str) -> dict[str, int]:
+    """Count the macOS and Windows cfg sites in Rust `source`."""
+    counts = {"macos": 0, "windows": 0}
+    for expr in cfg_expressions(source):
+        if MACOS_CFG.search(expr):
+            counts["macos"] += 1
+        if WINDOWS_CFG.search(expr) or WINDOWS_BARE.search(STRING_LITERAL.sub('""', expr)):
+            counts["windows"] += 1
+    return counts
+
+
+def package_platform_sites(package_dir: Path) -> dict[str, int]:
+    """Count the platform cfg sites in the `src/` and `tests/` of one package."""
+    total = {"macos": 0, "windows": 0}
+    for sub in ("src", "tests"):
+        for path in sorted((package_dir / sub).rglob("*.rs")):
+            counts = platform_cfg_sites(path.read_text(encoding="utf-8", errors="replace"))
+            for plat in total:
+                total[plat] += counts[plat]
+    return total
+
+
+def platform_guard(
+    packages: dict[str, Package], settings: dict[str, Settings], root: Path = ROOT
+) -> list[str]:
+    """One error message per package with platform code and no test on it.
+
+    The synthetic packages (`examples`, `wasm-tests`) and skipped packages are
+    not checked.
+    """
+    errors = []
+    for name in sorted(packages):
+        s = settings[name]
+        if s.skip or name in ("examples", "wasm-tests"):
+            continue
+        sites = package_platform_sites(root / packages[name].dir)
+        for plat, label in (("macos", "macOS"), ("windows", "Windows")):
+            if sites[plat] == 0 or s.platform_runs(plat) is not None:
+                continue
+            if (s.macos_opt_out if plat == "macos" else s.windows_opt_out) is not None:
+                continue
+            errors.append(
+                f"{name}: {sites[plat]} {label}-specific cfg site(s) but no `{plat}-runs` in "
+                f"ci/packages.toml. Add `{plat}-runs`, or set `{plat}-tests = \"none\"` "
+                f"with a `reason`."
+            )
+    return errors
+
+
+# ---------------------------------------------------------------------------
 # CLI
 
 
@@ -729,6 +876,10 @@ def cmd_list(_: argparse.Namespace) -> int:
 def cmd_plan(args: argparse.Namespace) -> int:
     packages = load_workspace()
     settings = load_settings(packages)
+    if problems := platform_guard(packages, settings):
+        for problem in problems:
+            annotate("error", problem)
+        return 1
     selected, why = select(args, packages)
 
     include = [
@@ -750,6 +901,13 @@ def cmd_plan(args: argparse.Namespace) -> int:
         if settings[item["package"]].macos_runs is not None and settings[item["package"]].test != "off"
     ]
     macos_matrix = json.dumps({"include": macos_include})
+    # The Windows test matrix: the selected packages that set `windows-runs`.
+    windows_include = [
+        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
+        for item in include
+        if settings[item["package"]].windows_runs is not None and settings[item["package"]].test != "off"
+    ]
+    windows_matrix = json.dumps({"include": windows_include})
     summary = f"{len(include)} package(s) selected ({why})"
     print(summary, file=sys.stderr)
 
@@ -757,6 +915,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
         with open(out, "a") as fh:
             fh.write(f"matrix={matrix}\ncount={len(include)}\n")
             fh.write(f"macos-matrix={macos_matrix}\nmacos-count={len(macos_include)}\n")
+            fh.write(f"windows-matrix={windows_matrix}\nwindows-count={len(windows_include)}\n")
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(step_summary, "a") as fh:
             fh.write(f"### CI plan\n\n{summary}\n\n")
@@ -765,6 +924,9 @@ def cmd_plan(args: argparse.Namespace) -> int:
             if macos_include:
                 names = ", ".join(f"`{i['package']}`" for i in macos_include)
                 fh.write(f"\nmacOS tests: {names}\n\n")
+            if windows_include:
+                names = ", ".join(f"`{i['package']}`" for i in windows_include)
+                fh.write(f"\nWindows tests: {names}\n\n")
             for name in skipped:
                 fh.write(f"- ~~`{name}`~~ skipped: {settings[name].skip}\n")
     print(matrix)
@@ -792,6 +954,12 @@ def main() -> int:
     run.add_argument("--step", action="append", choices=STEPS, help="repeatable; default: all steps")
     run.add_argument("--profile", default=os.environ.get("CI_PROFILE", "uat"))
     run.set_defaults(func=cmd_run)
+
+    # Cargo output and package names can hold non-ASCII text. The Windows
+    # console code page cannot print it, so write UTF-8 on every host.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
     args = parser.parse_args()
     return args.func(args)
