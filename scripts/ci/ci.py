@@ -515,7 +515,9 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     if s.env:
         print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
     print(f"{name}: target dir {env['CARGO_TARGET_DIR']}", flush=True)
+    # One message per failed or timed-out command. Used for the summary below.
     failures: list[str] = []
+    timed_out = False
     # One hard deadline for the whole package. GitHub gives the same job
     # `timeout-minutes`; a local run had no kill switch, so a step that looped
     # (a hung test, a deadlocked build) never returned. Each command borrows
@@ -540,9 +542,11 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
             if remaining <= 0:
                 if IN_GITHUB:
                     print("::endgroup::", flush=True)
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
-                return 1
+                note = f"{name}: `{line}` timed out after {s.timeout_minutes} minutes"
+                failures.append(note)
+                annotate("error", note)
+                timed_out = True
+                break
             try:
                 code = subprocess.run(
                     cmd, cwd=ROOT, env={**env, **cmd_env}, timeout=remaining
@@ -550,19 +554,42 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
             except subprocess.TimeoutExpired:
                 if IN_GITHUB:
                     print("::endgroup::", flush=True)
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
-                return 1
+                note = f"{name}: `{line}` timed out after {s.timeout_minutes} minutes"
+                failures.append(note)
+                annotate("error", note)
+                timed_out = True
+                break
             if IN_GITHUB:
                 print("::endgroup::", flush=True)
             if code == 0:
                 continue
             if mode == "enforce":
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` failed")
+                note = f"{name}: `{line}` failed"
+                failures.append(note)
+                annotate("error", note)
             else:
                 why = f" — {s.reason}" if s.reason else ""
                 annotate("warning", f"{name}: `{line}` failed (report-only{why})")
+        if timed_out:
+            # A timeout ends the package, as it always did. Skip later steps.
+            break
+
+    if failures:
+        # Why this summary: the per-command error line can scroll out of the log
+        # tail. GitHub's log API returns only the last 5000 lines. A later command
+        # can print thousands of lines and push the error out of that window.
+        # This block prints last, so every failed command stays visible.
+        steps_text = ", ".join(steps)
+        header = f"{name}: {len(failures)} failed command(s) in step {steps_text}"
+        if IN_GITHUB:
+            print(f"::group::{header}", flush=True)
+        else:
+            print(header, flush=True)
+        for note in failures:
+            print(note, flush=True)
+        if IN_GITHUB:
+            print("::endgroup::", flush=True)
+        annotate("error", f"{header}: " + "; ".join(failures))
 
     return 1 if failures else 0
 
