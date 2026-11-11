@@ -274,3 +274,10 @@ standard ASD-STE100.
   bad URL to make every attempt fail.
 - Issue 474: a frozen clock must not hide a launch failure. A test that steps the clock from
   the start ends a failed browser launch on its clock deadline.
+- The wasm-tests job runs `cargo check --tests` for wasm32. A new test file that uses a
+  native-only module (for example `foundation_netio::native`) needs
+  `#![cfg(not(target_family = "wasm"))]`. Otherwise the wasm job fails.
+- The standalone crates under `integration/` have their own manifest. When a shared test file
+  imports a new crate (`foundation_context`), add that crate to each standalone manifest too.
+- `ci.py` runs every build command and then fails. So the last lines in the log (here, the
+  two `cargo fmt` checks) are not the cause. Search the log for `##[error]` to find the failed command.
