@@ -558,8 +558,7 @@ fn presentation_replace_swaps_content_in_place() {
     let active = session
         .webview_stack()
         .active_route()
-        .map(std::string::ToString::to_string)
-        .unwrap_or_default();
+        .map_or_default(std::string::ToString::to_string);
     assert!(
         active.contains("nav_replace"),
         "Active route should be nav_replace, got: {active}"
