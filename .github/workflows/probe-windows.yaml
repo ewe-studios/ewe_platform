@@ -1,0 +1,136 @@
+name: probe-windows
+
+on:
+  push:
+    branches: [blacksmith-migration-dbaa69e]
+    paths: ['.github/workflows/probe-windows.yaml']
+  workflow_dispatch:
+
+jobs:
+  w2025_4:
+    runs-on: blacksmith-4vcpu-windows-2025
+    continue-on-error: true
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Probe
+        run: |
+          $ErrorActionPreference = 'Continue'
+          function Probe([string]$Name, [scriptblock]$Block) {
+            Write-Output "== $Name =="
+            try { & $Block 2>&1 | Out-String | Write-Output } catch { Write-Output "ERROR: $($_.Exception.Message)" }
+          }
+          Probe 'ImageOS' { "$env:ImageOS $env:ImageVersion" }
+          Probe 'OSVersion' { [System.Environment]::OSVersion }
+          Probe 'Win32_OperatingSystem' { Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version | Format-List }
+          Probe 'LogicalProcessors' { (Get-CimInstance Win32_Processor).NumberOfLogicalProcessors }
+          Probe 'rustup' { rustup --version }
+          Probe 'rustc' { rustc -V }
+          Probe 'cargo' { cargo -V }
+          Probe 'rustup toolchain list' { rustup toolchain list }
+          Probe 'vswhere' { & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -all -products * -format value -property installationPath }
+          Probe 'winsdk include' { Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Include" -Name }
+          Probe 'git' { git --version }
+          Probe 'pwsh' { pwsh -v }
+          Probe 'python' { python --version }
+          Probe 'clang' { clang --version }
+          Probe 'perl' { perl -v | Select-Object -First 2 }
+          Probe 'disk C' { Get-PSDrive C | Select-Object Used,Free | Format-List }
+
+  w2022_4:
+    runs-on: blacksmith-4vcpu-windows-2022
+    continue-on-error: true
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Probe
+        run: |
+          $ErrorActionPreference = 'Continue'
+          function Probe([string]$Name, [scriptblock]$Block) {
+            Write-Output "== $Name =="
+            try { & $Block 2>&1 | Out-String | Write-Output } catch { Write-Output "ERROR: $($_.Exception.Message)" }
+          }
+          Probe 'ImageOS' { "$env:ImageOS $env:ImageVersion" }
+          Probe 'OSVersion' { [System.Environment]::OSVersion }
+          Probe 'Win32_OperatingSystem' { Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version | Format-List }
+          Probe 'LogicalProcessors' { (Get-CimInstance Win32_Processor).NumberOfLogicalProcessors }
+          Probe 'rustup' { rustup --version }
+          Probe 'rustc' { rustc -V }
+          Probe 'cargo' { cargo -V }
+          Probe 'rustup toolchain list' { rustup toolchain list }
+          Probe 'vswhere' { & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -all -products * -format value -property installationPath }
+          Probe 'winsdk include' { Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Include" -Name }
+          Probe 'git' { git --version }
+          Probe 'pwsh' { pwsh -v }
+          Probe 'python' { python --version }
+          Probe 'clang' { clang --version }
+          Probe 'perl' { perl -v | Select-Object -First 2 }
+          Probe 'disk C' { Get-PSDrive C | Select-Object Used,Free | Format-List }
+
+  w2025_2:
+    runs-on: blacksmith-2vcpu-windows-2025
+    continue-on-error: true
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Probe
+        run: |
+          $ErrorActionPreference = 'Continue'
+          function Probe([string]$Name, [scriptblock]$Block) {
+            Write-Output "== $Name =="
+            try { & $Block 2>&1 | Out-String | Write-Output } catch { Write-Output "ERROR: $($_.Exception.Message)" }
+          }
+          Probe 'ImageOS' { "$env:ImageOS $env:ImageVersion" }
+          Probe 'OSVersion' { [System.Environment]::OSVersion }
+          Probe 'Win32_OperatingSystem' { Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version | Format-List }
+          Probe 'LogicalProcessors' { (Get-CimInstance Win32_Processor).NumberOfLogicalProcessors }
+          Probe 'rustup' { rustup --version }
+          Probe 'rustc' { rustc -V }
+          Probe 'cargo' { cargo -V }
+          Probe 'rustup toolchain list' { rustup toolchain list }
+          Probe 'vswhere' { & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -all -products * -format value -property installationPath }
+          Probe 'winsdk include' { Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Include" -Name }
+          Probe 'git' { git --version }
+          Probe 'pwsh' { pwsh -v }
+          Probe 'python' { python --version }
+          Probe 'clang' { clang --version }
+          Probe 'perl' { perl -v | Select-Object -First 2 }
+          Probe 'disk C' { Get-PSDrive C | Select-Object Used,Free | Format-List }
+
+  gh_latest:
+    runs-on: windows-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Probe
+        run: |
+          $ErrorActionPreference = 'Continue'
+          function Probe([string]$Name, [scriptblock]$Block) {
+            Write-Output "== $Name =="
+            try { & $Block 2>&1 | Out-String | Write-Output } catch { Write-Output "ERROR: $($_.Exception.Message)" }
+          }
+          Probe 'ImageOS' { "$env:ImageOS $env:ImageVersion" }
+          Probe 'OSVersion' { [System.Environment]::OSVersion }
+          Probe 'Win32_OperatingSystem' { Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version | Format-List }
+          Probe 'LogicalProcessors' { (Get-CimInstance Win32_Processor).NumberOfLogicalProcessors }
+          Probe 'rustup' { rustup --version }
+          Probe 'rustc' { rustc -V }
+          Probe 'cargo' { cargo -V }
+          Probe 'rustup toolchain list' { rustup toolchain list }
+          Probe 'vswhere' { & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -all -products * -format value -property installationPath }
+          Probe 'winsdk include' { Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Include" -Name }
+          Probe 'git' { git --version }
+          Probe 'pwsh' { pwsh -v }
+          Probe 'python' { python --version }
+          Probe 'clang' { clang --version }
+          Probe 'perl' { perl -v | Select-Object -First 2 }
+          Probe 'disk C' { Get-PSDrive C | Select-Object Used,Free | Format-List }
