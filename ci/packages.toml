@@ -62,8 +62,18 @@
 #                             tool, library or service. It excludes `macos-runs` /
 #                             `windows-runs`. The guard (run by `plan`) fails
 #                             for an opt-out without a reason.
+#   macos-shards / windows-shards / shard-timeout-minutes (in [defaults])
+#                             how many shard jobs test the packages on each OS
+#                             (default 4), and the longest shard job. A shard
+#                             tests several packages in a row with one target
+#                             directory, so shared dependencies build once. The
+#                             count trades wall time for runner minutes.
+#   When CI runs: a pull request tests the packages the change affects; a push
+#                             to master tests the packages the merge affected;
+#                             the nightly schedule and a manual "all" run test
+#                             every package on Linux, macOS and Windows.
 #   max-parallel-linux / max-parallel-macos / max-parallel-windows (in [defaults])
-#                             the most jobs of one matrix that run at once
+#                             the most jobs of one matrix (shards, on macOS and Windows) that run at once
 #                             (`strategy.max-parallel` in check.yaml). Free
 #                             GitHub plans run about 20 jobs at once, with at
 #                             most 5 macOS jobs, and Blacksmith free minutes
@@ -118,6 +128,15 @@ linux-only-features = [
   "vfs-preload",
   "vms",
 ]
+# macOS and Windows jobs are shards: one job tests several packages in a row with
+# one target directory, so dependencies that packages share build once. More
+# shards finish sooner but use more runner minutes. A shard has at least one
+# package, so a small selection makes fewer shards than this.
+macos-shards = 4
+windows-shards = 4
+# The most minutes one shard job may run: the sum of its packages' timeouts,
+# capped at this value.
+shard-timeout-minutes = 300
 # Most jobs of one matrix that run at once. See the header for the reason.
 max-parallel-linux = 8
 max-parallel-macos = 2

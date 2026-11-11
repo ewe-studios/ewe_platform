@@ -20,9 +20,11 @@ name: "Audit: Checks & Tests"
 # `macos-tests = "none"` / `windows-tests = "none"` and a reason in
 # ci/packages.toml. The plan step fails when an opt-out has no reason.
 #
-# Pull requests test only what they affect, on all three operating systems.
-# Pushes to master, the nightly schedule and manual runs test the whole
-# workspace (or the packages you name) on all three.
+# Pull requests test only what they affect, on all three operating systems. A
+# push to master tests what the merge affected (against the commit before the
+# push). The nightly schedule and a manual "all" run test every package on
+# Linux, macOS and Windows. The macOS and Windows jobs are shards of several
+# packages each (`ci.py run-many`).
 #
 # On a pull request every package job also passes `--if-affected` to ci.py. The
 # runner then decides from the change and the dependency graph whether the
@@ -92,9 +94,11 @@ jobs:
       # Every selected package that is not opted out of macOS in ci/packages.toml.
       macos-matrix: ${{ steps.plan.outputs.macos-matrix }}
       macos-count: ${{ steps.plan.outputs.macos-count }}
+      macos-shard-count: ${{ steps.plan.outputs.macos-shard-count }}
       # Every selected package that is not opted out of Windows.
       windows-matrix: ${{ steps.plan.outputs.windows-matrix }}
       windows-count: ${{ steps.plan.outputs.windows-count }}
+      windows-shard-count: ${{ steps.plan.outputs.windows-shard-count }}
       # Most jobs of one matrix that run at once (ci/packages.toml [defaults]).
       max-parallel-linux: ${{ steps.plan.outputs.max-parallel-linux }}
       max-parallel-macos: ${{ steps.plan.outputs.max-parallel-macos }}
@@ -120,7 +124,10 @@ jobs:
       - name: Select packages
         id: plan
         env:
-          CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+          # A pull request diffs against its base. A push to master diffs against
+          # the commit before the push; ci.py tests everything when that commit
+          # is missing or all zeros. The schedule and a manual run leave it empty.
+          CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || '' }}
           CI_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
           CI_PACKAGES: ${{ github.event.inputs.packages }}
         run: python3 scripts/ci/ci.py plan
@@ -433,11 +440,12 @@ jobs:
         run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_nativeapis --features ipc
 
   macos-test:
-    name: macOS ${{ matrix.package }}
+    name: macOS ${{ matrix.shard }}
     needs: plan
     # Runs the tests of every selected package that is not opted out of macOS
-    # (ci/packages.toml). A pull request selects only the changed packages and
-    # their dependents.
+    # (ci/packages.toml). One job is a shard: it tests several packages in a row
+    # with one target directory (`ci.py run-many`), so shared dependencies build
+    # once. The plan job sets the shard count (`macos-shards`).
     # No container and no CI image: the job runs on the macOS runner itself.
     if: needs.plan.outputs.macos-count != '0'
     # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
@@ -482,20 +490,20 @@ jobs:
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
         with:
-          key: macos-test-${{ matrix.package }}
+          key: macos-test-${{ matrix.index }}
           cache-bin: "false"
           # Only master writes caches, so PR runs can't evict each other.
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: test
         # On a macOS host, ci.py runs only the test step, with the macOS runs.
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: python3 scripts/ci/ci.py run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
   windows-test:
-    name: Windows ${{ matrix.package }}
+    name: Windows ${{ matrix.shard }}
     needs: plan
     # Runs the tests of every selected package that is not opted out of Windows
-    # (ci/packages.toml). Selected like `macos-test`.
+    # (ci/packages.toml), in shards like `macos-test`.
     # No container: the job runs on the Windows runner itself.
     if: needs.plan.outputs.windows-count != '0'
     # RUNNER LABEL: change it on this line only. The `env` context is not
@@ -543,14 +551,14 @@ jobs:
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
         with:
-          key: windows-test-${{ matrix.package }}
+          key: windows-test-${{ matrix.index }}
           cache-bin: "false"
           # Only master writes caches, so PR runs can't evict each other.
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: test
         # On a Windows host, ci.py runs only the test step, with the Windows runs.
-        run: python scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: python scripts/ci/ci.py run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.

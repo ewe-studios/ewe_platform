@@ -116,14 +116,15 @@ class PlanOutputs(unittest.TestCase):
     def test_plan_selects_every_package_on_all_three_oses(self):
         lines = self.plan("foundation_reactor foundation_signals")
         self.assertEqual(lines["count"], "2")
+        self.assertEqual(lines["windows-shard-count"], "2")
         self.assertEqual(lines["windows-count"], "2")
         self.assertEqual(lines["macos-count"], "2")
 
     def test_plan_leaves_out_the_opted_out_packages(self):
         lines = self.plan("foundation_ai examples foundation_signals")
-        names = [i["package"] for i in json.loads(lines["windows-matrix"])["include"]]
-        self.assertEqual(names, ["foundation_ai", "foundation_signals"])
-        names = [i["package"] for i in json.loads(lines["macos-matrix"])["include"]]
+        names = " ".join(i["packages"] for i in json.loads(lines["windows-matrix"])["include"]).split()
+        self.assertEqual(sorted(names), ["foundation_ai", "foundation_signals"])
+        names = " ".join(i["packages"] for i in json.loads(lines["macos-matrix"])["include"]).split()
         self.assertEqual(names, ["foundation_signals"])
 
     def test_plan_writes_the_max_parallel_limits(self):
