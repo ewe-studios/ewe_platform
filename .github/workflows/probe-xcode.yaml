@@ -1,0 +1,85 @@
+name: Probe Xcode versions on Blacksmith macOS
+# Temporary: lists the Xcode versions and iOS SDKs on each Blacksmith macOS
+# runner label. Delete after use.
+on:
+  push:
+    branches: [claude/friendly-ritchie-7acn6p]
+    paths: ['.github/workflows/probe-xcode.yaml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos15:
+    continue-on-error: true
+    runs-on: blacksmith-6vcpu-macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Probe Xcode and SDKs
+        shell: bash
+        run: |
+          set +e
+          sw_vers
+          echo "--- Xcode apps:"
+          for app in $(ls -d /Applications/Xcode*.app 2>/dev/null); do
+            echo "=== $app"
+            DEVELOPER_DIR="$app/Contents/Developer" xcodebuild -version
+            DEVELOPER_DIR="$app/Contents/Developer" xcrun --sdk iphoneos --show-sdk-version
+          done
+          echo "--- ls -d /Applications/Xcode*.app:"
+          ls -d /Applications/Xcode*.app
+          echo "--- xcode-select -p:"
+          xcode-select -p
+          echo "--- CommandLineTools SDKs:"
+          ls /Library/Developer/CommandLineTools/SDKs 2>/dev/null
+          echo "--- disk:"
+          df -h /
+
+  macos26:
+    continue-on-error: true
+    runs-on: blacksmith-6vcpu-macos-26
+    timeout-minutes: 10
+    steps:
+      - name: Probe Xcode and SDKs
+        shell: bash
+        run: |
+          set +e
+          sw_vers
+          echo "--- Xcode apps:"
+          for app in $(ls -d /Applications/Xcode*.app 2>/dev/null); do
+            echo "=== $app"
+            DEVELOPER_DIR="$app/Contents/Developer" xcodebuild -version
+            DEVELOPER_DIR="$app/Contents/Developer" xcrun --sdk iphoneos --show-sdk-version
+          done
+          echo "--- ls -d /Applications/Xcode*.app:"
+          ls -d /Applications/Xcode*.app
+          echo "--- xcode-select -p:"
+          xcode-select -p
+          echo "--- CommandLineTools SDKs:"
+          ls /Library/Developer/CommandLineTools/SDKs 2>/dev/null
+          echo "--- disk:"
+          df -h /
+
+  macoslatest:
+    continue-on-error: true
+    runs-on: blacksmith-6vcpu-macos-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe Xcode and SDKs
+        shell: bash
+        run: |
+          set +e
+          sw_vers
+          echo "--- Xcode apps:"
+          for app in $(ls -d /Applications/Xcode*.app 2>/dev/null); do
+            echo "=== $app"
+            DEVELOPER_DIR="$app/Contents/Developer" xcodebuild -version
+            DEVELOPER_DIR="$app/Contents/Developer" xcrun --sdk iphoneos --show-sdk-version
+          done
+          echo "--- ls -d /Applications/Xcode*.app:"
+          ls -d /Applications/Xcode*.app
+          echo "--- xcode-select -p:"
+          xcode-select -p
+          echo "--- CommandLineTools SDKs:"
+          ls /Library/Developer/CommandLineTools/SDKs 2>/dev/null
+          echo "--- disk:"
+          df -h /
