@@ -21,9 +21,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
+import threading
 import time
 import tomllib
 from dataclasses import dataclass, field
@@ -112,6 +114,9 @@ class Settings:
     wasm_deny_warnings: bool
     test_args: list[str]
     timeout_minutes: int
+    # Most failure lines kept per command for the end-of-run summary. The
+    # `failure-lines` setting; the default is 200.
+    failure_lines: int
     reason: str | None
     # Extra environment for this package's cargo commands (the `env` table).
     env: dict[str, str] = field(default_factory=dict)
@@ -266,6 +271,8 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         wasm_deny_warnings=bool(merged.get("wasm-deny-warnings", False)),
         test_args=list(merged.get("test-args", [])),
         timeout_minutes=int(merged.get("timeout-minutes", 60)),
+        # Default 200 lines: enough for many failed tests, small for a log tail.
+        failure_lines=int(merged.get("failure-lines", 200)),
         reason=merged.get("reason"),
         env=env,
         container_options=container_options,
@@ -498,6 +505,55 @@ def annotate(level: str, message: str) -> None:
     print(f"::{level}::{message}" if IN_GITHUB else f"{level}: {message}", flush=True)
 
 
+# Lines that show why a test run failed. Kept for the end-of-run summary.
+FAILURE_LINE = re.compile(r"^test .* \.\.\. FAILED$|^---- .* stdout ----$|panicked at")
+
+
+def run_streamed(
+    cmd: list[str], env: dict[str, str], timeout: float, limit: int
+) -> tuple[int, list[str]]:
+    """Run `cmd`, stream its merged output, and keep the failure lines.
+
+    Returns (exit code, kept lines). Raises `subprocess.TimeoutExpired` after it
+    kills the process when `timeout` seconds pass. At most `limit` lines are kept.
+    """
+    proc = subprocess.Popen(
+        cmd,
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        errors="replace",
+        bufsize=1,
+    )
+    kept: list[str] = []
+    timer = threading.Timer(timeout, proc.kill)
+    timer.start()
+    try:
+        after_panic = False
+        assert proc.stdout is not None
+        for raw in proc.stdout:
+            sys.stdout.write(raw)
+            sys.stdout.flush()
+            text = raw.rstrip("\n")
+            if FAILURE_LINE.search(text) or after_panic:
+                if len(kept) < limit:
+                    kept.append(text)
+            # The line after `panicked at` holds the panic message.
+            after_panic = "panicked at" in text
+        code = proc.wait()
+    finally:
+        expired = not timer.is_alive()
+        timer.cancel()
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+    if expired:
+        raise subprocess.TimeoutExpired(cmd, timeout)
+    return code, kept
+
+
 def run_package(name: str, steps: list[str], profile: str) -> int:
     packages = load_workspace()
     if name not in packages:
@@ -517,6 +573,8 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     print(f"{name}: target dir {env['CARGO_TARGET_DIR']}", flush=True)
     # One message per failed or timed-out command. Used for the summary below.
     failures: list[str] = []
+    # Kept failure lines per failure note, printed under it in the summary.
+    details: dict[str, list[str]] = {}
     timed_out = False
     # One hard deadline for the whole package. GitHub gives the same job
     # `timeout-minutes`; a local run had no kill switch, so a step that looped
@@ -548,9 +606,9 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
                 timed_out = True
                 break
             try:
-                code = subprocess.run(
-                    cmd, cwd=ROOT, env={**env, **cmd_env}, timeout=remaining
-                ).returncode
+                code, kept = run_streamed(
+                    cmd, {**env, **cmd_env}, remaining, s.failure_lines
+                )
             except subprocess.TimeoutExpired:
                 if IN_GITHUB:
                     print("::endgroup::", flush=True)
@@ -566,6 +624,7 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
             if mode == "enforce":
                 note = f"{name}: `{line}` failed"
                 failures.append(note)
+                details[note] = kept
                 annotate("error", note)
             else:
                 why = f" — {s.reason}" if s.reason else ""
@@ -587,6 +646,8 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
             print(header, flush=True)
         for note in failures:
             print(note, flush=True)
+            for kept_line in details.get(note, []):
+                print(f"    {kept_line}", flush=True)
         if IN_GITHUB:
             print("::endgroup::", flush=True)
         annotate("error", f"{header}: " + "; ".join(failures))

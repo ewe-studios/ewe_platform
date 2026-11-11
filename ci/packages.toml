@@ -36,6 +36,8 @@
 #                             `clippy-runs` so the list stays complete.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
+#   failure-lines = N         failed-test lines kept per command for the end-of-run
+#                             summary (default 200)
 #   reason          = "why"   shown next to report-only failures
 #   env             = { K = "v" }  environment for every cargo command of the
 #                             package (e.g. CARGO_BUILD_JOBS to bound memory).
