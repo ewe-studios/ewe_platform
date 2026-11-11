@@ -38,7 +38,7 @@ static TASK_CLOCK: LazyLock<Arc<SimulatedClock>> =
 
 /// The timeout-path test clock: about thirty minutes ahead of real time.
 static TIMEOUT_CLOCK: LazyLock<Arc<SimulatedClock>> =
-    LazyLock::new(|| Arc::new(SimulatedClock::new(Duration::from_secs(1800))));
+    LazyLock::new(|| Arc::new(SimulatedClock::new(Duration::from_mins(30))));
 
 #[test]
 fn with_clock_returns_the_given_clock_and_keeps_the_original() {

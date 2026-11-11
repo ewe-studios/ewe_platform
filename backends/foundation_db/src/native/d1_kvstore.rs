@@ -648,21 +648,19 @@ impl D1Store {
         let columns = results
             .get("columns")
             .and_then(serde_json::Value::as_array)
-            .map(|c| {
+            .map_or_default(|c| {
                 c.iter()
                     .map(|n| n.as_str().unwrap_or_default().to_string())
                     .collect()
-            })
-            .unwrap_or_default();
+            });
         let rows = results
             .get("rows")
             .and_then(serde_json::Value::as_array)
-            .map(|r| {
+            .map_or_default(|r| {
                 r.iter()
                     .map(|row| row.as_array().cloned().unwrap_or_default())
                     .collect()
-            })
-            .unwrap_or_default();
+            });
         (columns, rows)
     }
 

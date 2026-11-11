@@ -77,8 +77,7 @@ impl OverlayConfig {
         let title_js = self
             .title
             .as_ref()
-            .map(|t| format!("__eweNav.setTitle({t:?});"))
-            .unwrap_or_default();
+            .map_or_default(|t| format!("__eweNav.setTitle({t:?});"));
 
         format!(
             "if(window.__eweNav){{__eweNav.setPosition('{pos}');{title_js}__eweNav.{visibility}}}"

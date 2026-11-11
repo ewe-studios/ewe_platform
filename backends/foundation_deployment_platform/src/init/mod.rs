@@ -141,8 +141,7 @@ pub fn generate_testbed_toml(vm_names: &[String]) -> String {
     );
 
     let local_store = dirs::home_dir()
-        .map(|h| h.join(".testbed"))
-        .unwrap_or_default()
+        .map_or_default(|h| h.join(".testbed"))
         .to_string_lossy()
         .into_owned();
     let _ = writeln!(

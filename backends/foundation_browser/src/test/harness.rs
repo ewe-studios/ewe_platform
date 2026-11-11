@@ -111,15 +111,12 @@ impl TestConfig {
     }
 
     fn statics(&self) -> Vec<StaticMount> {
-        self.static_dir
-            .as_ref()
-            .map(|dir| {
-                vec![StaticMount {
-                    mount: self.static_mount.clone(),
-                    dir: dir.clone(),
-                }]
-            })
-            .unwrap_or_default()
+        self.static_dir.as_ref().map_or_default(|dir| {
+            vec![StaticMount {
+                mount: self.static_mount.clone(),
+                dir: dir.clone(),
+            }]
+        })
     }
 }
 

@@ -167,8 +167,7 @@ pub fn export_vm(name: &str, opts: &ExportOptions, ctx: &Ctx) -> Result<PathBuf>
         let mut session = ssh::connect(&profile).ok();
         session
             .as_mut()
-            .map(|s| detect_installed_tools(s, profile.os))
-            .unwrap_or_default()
+            .map_or_default(|s| detect_installed_tools(s, profile.os))
     } else {
         std::collections::HashMap::new()
     };

@@ -225,8 +225,7 @@ fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
             let accept = req
                 .headers
                 .get(&SimpleHeader::ACCEPT)
-                .map(|v| v.join(", "))
-                .unwrap_or_default();
+                .map_or_default(|v| v.join(", "));
 
             captured
                 .requests

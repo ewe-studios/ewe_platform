@@ -1108,8 +1108,7 @@ pub(crate) fn build_ctx(
             .connection
             .peer_addr
             .as_ref()
-            .map(|a| format!("{a:?}"))
-            .unwrap_or_default(),
+            .map_or_default(|a| format!("{a:?}")),
         protocol: protocol_name(protocol.kind()).to_string(),
     };
     let request_context = RequestContext::for_dispatch(

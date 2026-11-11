@@ -394,12 +394,11 @@ impl AcmeClient {
         let authorizations: Vec<String> = resp
             .get("authorizations")
             .and_then(|a| a.as_array())
-            .map(|arr| {
+            .map_or_default(|arr| {
                 arr.iter()
                     .filter_map(|v| v.as_str().map(String::from))
                     .collect()
-            })
-            .unwrap_or_default();
+            });
 
         Ok((finalize_url, authorizations))
     }
@@ -485,8 +484,7 @@ impl AcmeClient {
             &self
                 .jwk
                 .as_ref()
-                .map(std::string::ToString::to_string)
-                .unwrap_or_default(),
+                .map_or_default(std::string::ToString::to_string),
         );
         let dns = self.dns_setter.as_ref().ok_or("no DNS setter configured")?;
 

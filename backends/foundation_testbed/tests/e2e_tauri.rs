@@ -50,8 +50,10 @@ fn project_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(|p| p.parent())
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("/home/darkvoid/Boxxed/@dev/ewe_platform"))
+        .map_or_else(
+            || PathBuf::from("/home/darkvoid/Boxxed/@dev/ewe_platform"),
+            PathBuf::from,
+        )
 }
 
 /// Return the absolute path to the example Tauri app on the host.
@@ -163,45 +165,28 @@ fn test_project_mount_windows() -> Result<()> {
 
     // Verify the mount directory and example Tauri app are visible
     let (output, exit) = vm.ps_exec(&format!(
-        "if (Test-Path '{}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}",
-        test_path
+        "if (Test-Path '{test_path}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}"
     ))?;
-    println!(
-        "[mount/windows] Mount check ({}): output={:?}, exit={}",
-        mount_type, output, exit
-    );
+    println!("[mount/windows] Mount check ({mount_type}): output={output:?}, exit={exit}");
 
     // Diagnostic: list contents of mount directory
     let (dir_list, _) = vm.ps_exec(
-        &format!("Get-ChildItem '{}' -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Name }} | Select-Object -First 20", test_path)
+        &format!("Get-ChildItem '{test_path}' -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Name }} | Select-Object -First 20")
     ).unwrap_or_else(|_| ("(error listing dir)".to_string(), 0));
-    println!(
-        "[mount/windows] Dir contents ({}): {}",
-        mount_type, dir_list
-    );
+    println!("[mount/windows] Dir contents ({mount_type}): {dir_list}");
 
     // Diagnostic: check mount point details
     let (mount_info, _) = vm.ps_exec(
-        &format!("if (Test-Path '{}') {{ $fs = (Get-Item '{}').PSDrive; if ($fs) {{ 'Provider='+$fs.Provider.Name+' Type='+$fs.DriveType }} else {{ 'exists-no-drive' }} }} else {{ 'missing' }}",
-            test_path, test_path)
+        &format!("if (Test-Path '{test_path}') {{ $fs = (Get-Item '{test_path}').PSDrive; if ($fs) {{ 'Provider='+$fs.Provider.Name+' Type='+$fs.DriveType }} else {{ 'exists-no-drive' }} }} else {{ 'missing' }}")
     ).unwrap_or_else(|_| ("(error)".to_string(), 0));
-    println!(
-        "[mount/windows] Mount info ({}): {}",
-        mount_type, mount_info
-    );
+    println!("[mount/windows] Mount info ({mount_type}): {mount_info}");
 
     assert!(
         output.contains("FOUND"),
-        "example Tauri app should be visible through {} mount (path: {}, dir contents: {})",
-        mount_type,
-        test_path,
-        dir_list
+        "example Tauri app should be visible through {mount_type} mount (path: {test_path}, dir contents: {dir_list})"
     );
 
-    println!(
-        "[mount/windows] Project mount verified via {}, example app visible",
-        mount_type
-    );
+    println!("[mount/windows] Project mount verified via {mount_type}, example app visible");
     Ok(())
 }
 
@@ -325,7 +310,7 @@ fn test_tauri_build_linux() -> Result<()> {
     let trust_cmd =
         format!("cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo 'y' | ~/.local/bin/mise trust 2>&1");
     let trust_output = vm.ssh_exec(&trust_cmd)?;
-    println!("  Trust output: {}", trust_output);
+    println!("  Trust output: {trust_output}");
 
     let build_cmd = format!(
         "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && \
@@ -333,7 +318,7 @@ fn test_tauri_build_linux() -> Result<()> {
          bash -l -c 'cargo tauri build' 2>&1 | tail -20"
     );
     let output = vm.ssh_exec(&build_cmd)?;
-    println!("  Build output:\n{}", output);
+    println!("  Build output:\n{output}");
 
     let artifact_on_host = tauri_app_host_path().join("target/release/tauri-e2e-test");
 
@@ -413,7 +398,7 @@ fn test_headless_app_linux() -> Result<()> {
          export DISPLAY=:99 && \
          bash -l -c 'cargo tauri build' 2>&1 | tail -5"
     ))?;
-    println!("  Build output:\n{}", build_output);
+    println!("  Build output:\n{build_output}");
 
     println!("[headless/linux] Launching app on Xvfb :99...");
     let launch_script = format!(
@@ -445,7 +430,7 @@ fn test_headless_app_windows() -> Result<()> {
         "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST} && cargo tauri build 2>&1 | Select-Object -Last 5"
     );
     let (build_output, _) = vm.ps_exec(&build_cmd)?;
-    println!("  Build output:\n{}", build_output);
+    println!("  Build output:\n{build_output}");
 
     let binary_path = format!(
         "{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}\\target\\x86_64-pc-windows-msvc\\release\\tauri-e2e-test.exe"
@@ -555,7 +540,7 @@ fn test_tauri_build_macos() -> Result<()> {
          export DISPLAY=:99 && \
          cargo tauri build 2>&1 | tail -20";
     let output = vm.ssh_exec(build_cmd)?;
-    println!("  Build output:\n{}", output);
+    println!("  Build output:\n{output}");
 
     let built = assert_build_ok_macos(&vm, "/tmp/tauri-app")?;
     assert!(built, "Tauri build artifact should exist");
@@ -610,7 +595,7 @@ fn test_headless_app_macos() -> Result<()> {
 
     println!("[headless/macos] Building Tauri app...");
     let build_output = vm.ssh_exec("cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -5")?;
-    println!("  Build output:\n{}", build_output);
+    println!("  Build output:\n{build_output}");
 
     println!("[headless/macos] Launching app...");
     let launch_script = "export DISPLAY=:99 && \
@@ -657,7 +642,7 @@ fn test_full_e2e_linux() -> Result<()> {
     let build_output = vm.ssh_exec(&format!(
         "cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && bash -l -c 'cargo tauri build' 2>&1 | tail -10"
     ))?;
-    println!("  Build output:\n{}", build_output);
+    println!("  Build output:\n{build_output}");
 
     let artifact_on_host = tauri_app_host_path().join("target/release/tauri-e2e-test");
     let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
@@ -706,7 +691,7 @@ fn test_full_e2e_windows() -> Result<()> {
     let (build_output, _) = vm.ps_exec(&format!(
         "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST}; cargo tauri build 2>&1 | Select-Object -Last 10"
     ))?;
-    println!("  Build output:\n{}", build_output);
+    println!("  Build output:\n{build_output}");
 
     let artifact_on_host =
         tauri_app_host_path().join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
@@ -771,7 +756,7 @@ fn test_full_e2e_macos() -> Result<()> {
 
     println!("[e2e/macos] Building Tauri app...");
     let build_output = vm.ssh_exec("cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -10")?;
-    println!("  Build output:\n{}", build_output);
+    println!("  Build output:\n{build_output}");
 
     let built = assert_build_ok_macos(&vm, "/tmp/tauri-app")?;
     assert!(built, "build artifact should exist");

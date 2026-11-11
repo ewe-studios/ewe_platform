@@ -837,15 +837,14 @@ pub fn rewrite_features_for_groups(
         let mut entries: Vec<String> = features
             .get(umbrella)
             .and_then(toml_edit::Item::as_array)
-            .map(|a| {
+            .map_or_default(|a| {
                 a.iter()
                     .filter_map(|v| v.as_str())
                     // Group features are re-listed below; anything else stays.
                     .filter(|e| !e.starts_with(&group_prefix))
                     .map(str::to_string)
                     .collect()
-            })
-            .unwrap_or_default();
+            });
         entries.extend(group_features.iter().cloned());
         added |= set_feature(features, umbrella, feature_list(&entries));
     }
@@ -1052,14 +1051,13 @@ pub fn rewrite_umbrella_for_split_str(
         let mut entries: Vec<String> = features
             .get(umbrella)
             .and_then(toml_edit::Item::as_array)
-            .map(|a| {
+            .map_or_default(|a| {
                 a.iter()
                     .filter_map(|v| v.as_str())
                     .filter(|e| !e.starts_with(&group_prefix))
                     .map(str::to_string)
                     .collect()
-            })
-            .unwrap_or_default();
+            });
         entries.extend(group_features.iter().cloned());
         // The shim's `shared` module (compiled only when the base feature is on)
         // re-exports the shared types crate, so the base feature pulls it in.

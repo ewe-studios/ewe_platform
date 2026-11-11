@@ -198,8 +198,7 @@ fn remote_value_to_json(rv: &Value) -> Value {
         Some("array" | "set") => Value::Array(
             rv.get("value")
                 .and_then(Value::as_array)
-                .map(|a| a.iter().map(remote_value_to_json).collect())
-                .unwrap_or_default(),
+                .map_or_default(|a| a.iter().map(remote_value_to_json).collect()),
         ),
         Some("object" | "map") => {
             let mut obj = Map::new();

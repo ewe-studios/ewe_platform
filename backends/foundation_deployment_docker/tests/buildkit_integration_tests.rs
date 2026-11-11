@@ -699,7 +699,7 @@ async fn gateway_build_ping_resolve_and_return() {
     let (solve_res, (caps, digest)) = futures::join!(solve_fut, frontend_fut);
     // We aborted via a Return error, so the Solve reports that error — the
     // frontend RPCs (Ping/ResolveImageConfig) are what this test validates.
-    let solve_msg = solve_res.err().map(|e| e.to_string()).unwrap_or_default();
+    let solve_msg = solve_res.err().map_or_default(|e| e.to_string());
     eprintln!(
         "GATEWAY OK — {caps} frontend API caps, alpine digest {digest}; solve ended: {solve_msg}"
     );

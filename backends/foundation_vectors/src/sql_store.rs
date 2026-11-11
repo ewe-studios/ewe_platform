@@ -139,7 +139,9 @@ fn vector_to_blob(v: &Vector) -> Vec<u8> {
 
 fn blob_to_vector(blob: &[u8]) -> Vector {
     let floats: Vec<f32> = blob
-        .chunks_exact(4)
+        .as_chunks::<4>()
+        .0
+        .iter()
         .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
         .collect();
     Vector::new(floats)

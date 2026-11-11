@@ -578,10 +578,10 @@ impl ContainerHandle {
         // Only a colon in the last path segment separates a tag; one before a
         // `/` is a registry port.
         let last_segment = image.rsplit('/').next().unwrap_or(image);
-        if last_segment.contains(':') {
-            if let Some((repo, tag)) = image.rsplit_once(':') {
-                return (repo.to_string(), Some(tag.to_string()));
-            }
+        if last_segment.contains(':')
+            && let Some((repo, tag)) = image.rsplit_once(':')
+        {
+            return (repo.to_string(), Some(tag.to_string()));
         }
         (image.to_string(), None)
     }
@@ -762,28 +762,25 @@ impl ContainerHandle {
 
         let mut ports = HashMap::new();
 
-        if let Some(ns) = &info.network_settings {
-            if let Some(bindings) = &ns.ports {
-                for pm in &config.ports {
-                    let key = format!(
-                        "{}/{}",
-                        pm.container_port,
-                        match pm.protocol {
-                            crate::docker::config::PortProtocol::Tcp => "tcp",
-                            crate::docker::config::PortProtocol::Udp => "udp",
-                        }
-                    );
-                    if let Some(binding) = bindings.get(&key) {
-                        if let Some(arr) = binding.as_array() {
-                            if let Some(first) = arr.first() {
-                                if let Some(hp) = first.get("HostPort").and_then(|v| v.as_str()) {
-                                    if let Ok(port) = hp.parse::<u16>() {
-                                        ports.insert(key, port);
-                                    }
-                                }
-                            }
-                        }
+        if let Some(ns) = &info.network_settings
+            && let Some(bindings) = &ns.ports
+        {
+            for pm in &config.ports {
+                let key = format!(
+                    "{}/{}",
+                    pm.container_port,
+                    match pm.protocol {
+                        crate::docker::config::PortProtocol::Tcp => "tcp",
+                        crate::docker::config::PortProtocol::Udp => "udp",
                     }
+                );
+                if let Some(binding) = bindings.get(&key)
+                    && let Some(arr) = binding.as_array()
+                    && let Some(first) = arr.first()
+                    && let Some(hp) = first.get("HostPort").and_then(|v| v.as_str())
+                    && let Ok(port) = hp.parse::<u16>()
+                {
+                    ports.insert(key, port);
                 }
             }
         }

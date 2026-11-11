@@ -184,11 +184,7 @@ fn failed_to_transport_error(
 }
 
 fn request_url_string(req: &RequestDescriptor) -> String {
-    let query = req
-        .request_uri
-        .query()
-        .map(|q| format!("?{q}"))
-        .unwrap_or_default();
+    let query = req.request_uri.query().map_or_default(|q| format!("?{q}"));
     format!(
         "http://{}:{}{}{}",
         req.request_uri

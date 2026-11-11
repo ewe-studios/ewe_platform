@@ -71,15 +71,14 @@ impl UtmProvider {
         // Per-VM mount configuration
         if let Some((host_path, _guest_path, readonly, _methods)) =
             crate::config::get_mount_for_profile(profile.name, ".")
-        {
-            if let Err(e) = applescript::configure_shared_directory(
+            && let Err(e) = applescript::configure_shared_directory(
                 &vm_entry.uuid,
                 &host_path,
                 "project",
                 readonly,
-            ) {
-                eprintln!("  Warning: could not configure shared directory (non-fatal): {e}");
-            }
+            )
+        {
+            eprintln!("  Warning: could not configure shared directory (non-fatal): {e}");
         }
 
         // Resources
@@ -238,10 +237,10 @@ fn wait_for_vm_started(name: &str, timeout_secs: u64, ctx: &Ctx) -> Result<utmct
                 message: format!("VM '{name}' did not start within {timeout_secs}s"),
             });
         }
-        if let Some(entry) = utmctl::find_vm_by_name(name)? {
-            if entry.status == "started" {
-                return Ok(entry);
-            }
+        if let Some(entry) = utmctl::find_vm_by_name(name)?
+            && entry.status == "started"
+        {
+            return Ok(entry);
         }
         std::thread::sleep(std::time::Duration::from_secs(1));
     }

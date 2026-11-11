@@ -579,7 +579,7 @@ impl SettingsFrame {
             return Err("SETTINGS: payload not multiple of 6");
         }
         let mut settings = Vec::with_capacity(payload.len() / 6);
-        for chunk in payload.chunks_exact(6) {
+        for chunk in payload.as_chunks::<6>().0 {
             let id = u16::from_be_bytes([chunk[0], chunk[1]]);
             let value = u32::from_be_bytes([chunk[2], chunk[3], chunk[4], chunk[5]]);
             if let Some(sid) = SettingId::from_u16(id) {

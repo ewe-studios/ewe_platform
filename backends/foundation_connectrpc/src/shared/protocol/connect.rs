@@ -858,8 +858,7 @@ fn request_peer(request: &SimpleIncomingRequest) -> Peer {
         .connection
         .peer_addr
         .as_ref()
-        .map(|a| format!("{a:?}"))
-        .unwrap_or_default();
+        .map_or_default(|a| format!("{a:?}"));
     Peer {
         addr,
         protocol: "connect".to_string(),

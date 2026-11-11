@@ -140,8 +140,7 @@ impl ServeFactory for StreamHandler {
         Self {
             config: ctx
                 .get::<SseTransportConfig>()
-                .map(|config| *config)
-                .unwrap_or_default(),
+                .map_or_default(|config| *config),
         }
     }
 }

@@ -553,8 +553,9 @@ fn extract_calls(
                 let is_member_call = config.accessor_types.contains(&func.kind());
                 let callee_name = if is_member_call {
                     func.child_by_field_name(config.call_accessor_field)
-                        .map(|f| f.utf8_text(source.as_bytes()).unwrap_or("").to_string())
-                        .unwrap_or_default()
+                        .map_or_default(|f| {
+                            f.utf8_text(source.as_bytes()).unwrap_or("").to_string()
+                        })
                 } else {
                     let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
                     text.split('.')

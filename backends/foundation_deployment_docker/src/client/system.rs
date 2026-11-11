@@ -120,7 +120,7 @@ pub async fn system_data_usage(
     types: Option<&str>,
 ) -> Result<SystemDataUsageResponse, DockerError> {
     let args = SystemDataUsageArgs {
-        r#type: types.map(|t| vec![t.to_string()]).unwrap_or_default(),
+        r#type: types.map_or_default(|t| vec![t.to_string()]),
         verbose: None,
     };
     let response =
