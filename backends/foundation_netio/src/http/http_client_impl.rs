@@ -564,6 +564,19 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
             }
         }
         let source = conn.as_ref().and_then(|c| c.read_wake_source());
+        // Without a readiness source (Windows today: the reactor's fd readiness
+        // is Unix-only), a non-blocking body read can only poll in a loop. A
+        // short gap in the data (for example a full 64 KiB receive window on
+        // Windows) then looks like a stalled peer, and the body ended early
+        // (#520). Read in blocking mode instead, bounded by the body read
+        // timeout that the request already set on the socket.
+        if source.is_none() {
+            if let Some(conn) = conn.as_ref() {
+                if let Err(e) = conn.set_nonblocking(false) {
+                    tracing::debug!(error = %e, "cannot set response socket blocking");
+                }
+            }
+        }
 
         Ok(SimpleResponse::with_read_wake(
             status, headers, body, source,

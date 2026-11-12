@@ -10,6 +10,8 @@
 #   env      extra environment for the test
 
 # Issue #520: a response body ends before its Content-Length on Windows.
+# Rerun with the fix: blocking body reads without a readiness source, and a
+# stall after data is an error.
 os = "windows"
 package = "foundation_deployment_huggingface"
 args = "--test offline_tests"
