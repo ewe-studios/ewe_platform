@@ -137,8 +137,8 @@ impl ConnIo {
     /// for what counts). Fails with `Unsupported` on a transport that cannot
     /// report it, so the caller can tell "never" from "not yet".
     #[must_use]
-    pub(crate) fn hangup(self: &Arc<Self>) -> Hangup {
-        Hangup::new(Arc::clone(self))
+    pub(crate) fn hangup(self: &Arc<Self>, ctx: foundation_context::Ctx) -> Hangup {
+        Hangup::new(Arc::clone(self), ctx)
     }
 }
 
@@ -324,6 +324,8 @@ pub(crate) struct IoReady {
     timeout: Duration,
     /// The valtron timer that wakes this future at the deadline.
     timer: Option<Sleep>,
+    /// The context whose clock measures the timers of this future.
+    ctx: foundation_context::Ctx,
     /// The valtron timer that re-polls a poll-fallback transport at
     /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
     fallback: Option<Sleep>,
@@ -341,7 +343,8 @@ impl IoReady {
             io,
             interest,
             timeout,
-            timer: Some(timer::sleep_until(deadline)),
+            timer: Some(timer::sleep_until(deadline, ctx)),
+            ctx: ctx.clone(),
             fallback: None,
         }
     }
@@ -370,7 +373,10 @@ impl Future for IoReady {
             // paced at the configured interval; the wake is a timer wake, never
             // a spin.
             if this.fallback.is_none() {
-                this.fallback = Some(timer::sleep_for(this.io.poll_fallback_interval()));
+                this.fallback = Some(timer::sleep_for(
+                    this.io.poll_fallback_interval(),
+                    &this.ctx,
+                ));
             }
             if let Some(fallback) = this.fallback.as_mut() {
                 if Pin::new(fallback).poll(cx).is_ready() {
@@ -397,11 +403,17 @@ pub(crate) struct Hangup {
     /// The valtron timer that re-polls a poll-fallback transport's fd at
     /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
     fallback: Option<Sleep>,
+    /// The context whose clock times the poll-fallback timer.
+    ctx: foundation_context::Ctx,
 }
 
 impl Hangup {
-    pub(crate) fn new(io: Arc<ConnIo>) -> Self {
-        Self { io, fallback: None }
+    pub(crate) fn new(io: Arc<ConnIo>, ctx: foundation_context::Ctx) -> Self {
+        Self {
+            io,
+            fallback: None,
+            ctx,
+        }
     }
 }
 
@@ -418,7 +430,10 @@ impl Future for Hangup {
                     // then re-probe `gone_now`. The wake is a timer wake, never
                     // a spin.
                     if this.fallback.is_none() {
-                        this.fallback = Some(timer::sleep_for(this.io.poll_fallback_interval()));
+                        this.fallback = Some(timer::sleep_for(
+                            this.io.poll_fallback_interval(),
+                            &this.ctx,
+                        ));
                     }
                     if let Some(fallback) = this.fallback.as_mut() {
                         if Pin::new(fallback).poll(cx).is_ready() {

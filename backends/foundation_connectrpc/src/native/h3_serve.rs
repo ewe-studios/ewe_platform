@@ -314,6 +314,7 @@ async fn run_streaming_h3(
 
     let cancel = ctx.cancel_signal().clone();
     let deadline = ctx.request.deadline;
+    let timer_ctx = ctx.ctx.clone();
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
@@ -435,7 +436,7 @@ async fn run_streaming_h3(
         let rest = std::pin::pin!(exchange_until_aborted(
             request_side,
             response_side,
-            dispatch::deadline_expiry(Some(&ThreadTimer), deadline),
+            dispatch::deadline_expiry(Some(&ThreadTimer), deadline, &timer_ctx),
             gone,
             &cancel,
         ));

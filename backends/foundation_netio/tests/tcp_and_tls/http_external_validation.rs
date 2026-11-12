@@ -20,6 +20,13 @@ use foundation_testing::http::{
 };
 use serial_test::serial;
 
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 // All valtron pool tests share one global serial lock. A test that builds a pool
 // must not run at the same time as another pool test.
 
@@ -38,7 +45,7 @@ fn test_local_get_echoes_path() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
 
     assert_eq!(res.get_status().into_usize(), 200);
@@ -65,7 +72,7 @@ fn test_local_redirect() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
 
     assert_eq!(res.get_status().into_usize(), 200);
@@ -114,7 +121,7 @@ fn test_local_status_codes() {
             .unwrap()
             .build_client()
             .unwrap()
-            .send()
+            .send(&call_ctx())
             .unwrap()
             .get_status()
             .into_usize()
@@ -148,7 +155,7 @@ fn test_local_header_echo() {
         .header(SimpleHeader::USER_AGENT, "foundation-http/1.0")
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
 
     assert_eq!(res.get_status().into_usize(), 200);

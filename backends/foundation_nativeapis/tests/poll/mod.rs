@@ -1,3 +1,6 @@
+// This suite uses Unix file descriptors, so it builds on Unix only.
+#![cfg(unix)]
+
 /// Integration test: Poll selector correctness.
 ///
 /// Tests the extracted mio-style poll layer:

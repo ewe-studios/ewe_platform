@@ -158,7 +158,11 @@ fn test_from_parts_works() {
     let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let mut action =
         InlineAction::from_parts(InlineActionBehaviour::Schedule, task, channel.clone());
-    let receiver = NotifyRecvIterator::from_notify_queue(channel, Duration::from_millis(50));
+    let receiver = NotifyRecvIterator::from_notify_queue(
+        channel,
+        Duration::from_millis(50),
+        crate::valtron::real_ctx(),
+    );
 
     action
         .apply(None, executor.boxed_engine())

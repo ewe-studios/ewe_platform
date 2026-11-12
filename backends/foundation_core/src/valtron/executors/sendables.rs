@@ -55,6 +55,7 @@ where
         behaviour: InlineActionBehaviour,
         task: Task,
         wait_cycle: std::time::Duration,
+        ctx: Ctx,
     ) -> (
         Self,
         crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending>>,
@@ -64,7 +65,7 @@ where
         (
             Self(Some((behaviour, task, iter_chan.clone(), None))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
-                iter_chan, wait_cycle,
+                iter_chan, wait_cycle, ctx,
             ),
         )
     }
@@ -608,6 +609,7 @@ pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
     backpressure_sleep: Option<std::time::Duration>,
+    ctx: Ctx,
 ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>>
 where
     F: FnOnce() -> Fut + Send + 'static,
@@ -625,7 +627,7 @@ where
         queue_size.unwrap_or(defaults.queue_size),
         backpressure_sleep.or(defaults.backpressure_wait),
     );
-    threaded.execute()
+    threaded.execute(ctx)
 }
 
 // ============================================================================
@@ -823,13 +825,14 @@ pub fn inlined_task<Done, Pending, Task>(
     behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
+    ctx: Ctx,
 ) -> (InlineAction<Done, Pending, Task>, DrivenRecvIterator<Task>)
 where
     Done: Send + 'static,
     Pending: Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
-    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle, ctx);
     (task_action, drive_receiver(task_receiver))
 }
 
@@ -2520,19 +2523,29 @@ pub fn sleep(
 /// busy or the pool is shutting down (racing it as a `select` timeout used to
 /// hang then). Wasm: a valtron [`sleep()`] task, bridged with
 /// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
-pub async fn sleep_async(duration: std::time::Duration) {
-    #[cfg(all(feature = "std", not(target_family = "wasm")))]
-    crate::valtron::timer::sleep_for(duration).await;
+///
+/// The wait reads the clock of `ctx`. The returned future owns a copy of `ctx`,
+/// so it does not borrow the argument.
+pub fn sleep_async(
+    duration: std::time::Duration,
+    ctx: &Ctx,
+) -> impl std::future::Future<Output = ()> {
+    let ctx = ctx.clone();
+    async move {
+        #[cfg(all(feature = "std", not(target_family = "wasm")))]
+        crate::valtron::timer::sleep_for(duration, &ctx).await;
 
-    #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
-    {
-        use crate::valtron::StreamIteratorExt;
-        match sleep(duration) {
-            Ok(timer) => {
-                let _ = timer.into_ready_future().await;
+        #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
+        {
+            use crate::valtron::StreamIteratorExt;
+            let _ = &ctx;
+            match sleep(duration) {
+                Ok(timer) => {
+                    let _ = timer.into_ready_future().await;
+                }
+                // No executor to run the timer: return rather than panic.
+                Err(e) => tracing::error!(error = ?e, "sleep_async could not schedule its timer"),
             }
-            // No executor to run the timer: return rather than panic.
-            Err(e) => tracing::error!(error = ?e, "sleep_async could not schedule its timer"),
         }
     }
 }

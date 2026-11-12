@@ -83,12 +83,17 @@ async fn completion_splice_relays_bytes_both_directions() {
     // The peers have connected (or will), so each accept returns at once.
     let (b, _) = server_b.accept().expect("accept B");
     let (d, _) = server_d.accept().expect("accept D");
+    let ctx = foundation_core::valtron::Ctx::host();
     let relay = Box::pin(splice(
         completion_stream(b, 2),
         completion_stream(d, 3),
         WriterConfig::default(),
+        &ctx,
     ));
-    let deadline = Box::pin(sleep_async(Duration::from_secs(30)));
+    let deadline = Box::pin(sleep_async(
+        Duration::from_secs(30),
+        &foundation_core::valtron::Ctx::host(),
+    ));
     match select(relay, deadline).await {
         Either::Left(_) => {}
         Either::Right(_) => panic!("splice did not end after both peers closed"),

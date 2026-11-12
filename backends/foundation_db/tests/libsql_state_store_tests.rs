@@ -39,7 +39,7 @@ fn ids(states: &[ResourceState]) -> Vec<&str> {
 async fn seeded() -> (LibsqlStore, tempfile::TempDir) {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("state.db").to_string_lossy().into_owned();
-    let store = LibsqlStore::new_state(&path, "my-proj", "dev")
+    let store = LibsqlStore::new_state(&path, "my-proj", "dev", foundation_context::Ctx::host())
         .await
         .unwrap();
     store.init().await.unwrap();
@@ -153,7 +153,7 @@ async fn find_by_kind_and_provider() {
 async fn set_uses_resource_id() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("state.db").to_string_lossy().into_owned();
-    let store = LibsqlStore::new_state(&path, "my-proj", "dev")
+    let store = LibsqlStore::new_state(&path, "my-proj", "dev", foundation_context::Ctx::host())
         .await
         .unwrap();
     store.init().await.unwrap();

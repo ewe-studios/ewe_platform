@@ -5,7 +5,6 @@
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
-use std::os::windows::io::{AsRawHandle, RawHandle};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
@@ -13,9 +12,9 @@ use std::{io, mem, ptr};
 
 use concurrent_queue::ConcurrentQueue;
 
-use crate::native::poll::Poll;
 use crate::shared::error::{Result, WatchError};
 use crate::shared::event::{WatchEvent, WatchEventKind};
+use crate::shared::watcher::NativeWatcher;
 
 use windows_sys::Win32::{Foundation::*, Storage::FileSystem::*, System::IO::*};
 
@@ -29,14 +28,15 @@ struct WatchState {
     overlapped: Box<OVERLAPPED>,
 }
 
+// SAFETY: The directory handle is an owned kernel handle, not tied to a thread.
+// The buffer and the OVERLAPPED value are only used through `&mut WinWatcher`.
+unsafe impl Send for WatchState {}
+unsafe impl Sync for WatchState {}
+
 /// Windows IOCP-based file watcher.
 pub struct WinWatcher {
-    /// The poll selector (owns the IOCP handle).
-    poll: Poll,
     /// Map from path to watch state.
     watches: HashMap<PathBuf, WatchState>,
-    /// Reusable event buffer.
-    events_buf: Vec<u8>,
     /// Cached events — populated by `is_ready()` so they aren't lost,
     /// drained by `poll()`. IOCP is dequeue-based; this cache lets us
     /// peek without consuming.
@@ -46,18 +46,14 @@ pub struct WinWatcher {
 impl WinWatcher {
     /// Create a new WinWatcher.
     pub fn new() -> Result<Self> {
-        let poll = Poll::new()?;
         Ok(Self {
-            poll,
             watches: HashMap::new(),
-            events_buf: Vec::with_capacity(64 << 10), // 64KB
             event_cache: Arc::new(ConcurrentQueue::unbounded()),
         })
     }
 
     /// Open a directory handle for file change notifications.
     fn open_directory(path: &Path) -> io::Result<HANDLE> {
-        use std::ffi::OsStr;
         use std::os::windows::ffi::OsStrExt;
 
         let path_wide: Vec<u16> = path
@@ -74,7 +70,7 @@ impl WinWatcher {
                 ptr::null_mut(),
                 OPEN_EXISTING,
                 FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-                0,
+                ptr::null_mut(),
             );
 
             if handle == INVALID_HANDLE_VALUE {
@@ -130,11 +126,10 @@ impl WinWatcher {
             let info_ptr = &buffer[offset] as *const u8 as *const FILE_NOTIFY_INFORMATION;
             let info = unsafe { &*info_ptr };
 
-            // Decode the filename from UTF-16
-            let name_slice = &buffer[offset + mem::size_of::<FILE_NOTIFY_INFORMATION>()
-                ..offset
-                    + mem::size_of::<FILE_NOTIFY_INFORMATION>()
-                    + info.FileNameLength as usize];
+            // The file name starts at the `FileName` field, not after the whole struct.
+            let name_start = offset + mem::offset_of!(FILE_NOTIFY_INFORMATION, FileName);
+            let name_end = (name_start + info.FileNameLength as usize).min(buffer.len());
+            let name_slice = &buffer[name_start..name_end];
             let name = {
                 let utf16: Vec<u16> = name_slice
                     .chunks_exact(2)
@@ -192,8 +187,6 @@ impl NativeWatcher for WinWatcher {
     }
 
     fn poll(&mut self, timeout: Duration) -> Result<Vec<WatchEvent>> {
-        use crate::native::poll::Events;
-
         // Drain any cached events from a prior is_ready() call first.
         // This ensures events peeked by is_ready() are not lost.
         let cached: Vec<WatchEvent> = self

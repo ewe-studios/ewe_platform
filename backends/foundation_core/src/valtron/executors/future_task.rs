@@ -843,8 +843,11 @@ where
     ///
     /// # Errors
     /// Returns the executor error when the background worker cannot start.
+    ///
+    /// The consumer's waits read the clock of `ctx`.
     pub fn execute(
         self,
+        ctx: Ctx,
     ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>> {
         let queue = Arc::new(NotifyQueue::bounded(self.config.queue_size));
         let worker_queue = queue.clone();
@@ -897,7 +900,7 @@ where
         })?;
 
         Ok(FutureIterator {
-            iter: NotifyRecvIterator::from_notify_queue(queue, notify_queue_wait_timeout),
+            iter: NotifyRecvIterator::from_notify_queue(queue, notify_queue_wait_timeout, ctx),
         })
     }
 }
@@ -1012,7 +1015,9 @@ where
         }
     }
 
-    pub fn execute(self) -> impl Iterator<Item = ThreadedValue<T, E>> {
+    /// This inline mode never blocks on a clock, so it ignores `ctx`. The
+    /// argument keeps the signature the same in every feature set.
+    pub fn execute(self, _ctx: Ctx) -> impl Iterator<Item = ThreadedValue<T, E>> {
         FutureIterator {
             factory: Some(self.future_fn),
             future: None,

@@ -182,13 +182,14 @@ impl Serve for ConnectRpcServe {
         let hooks = CallHooks::new(cancel.clone()).with_timer(&SERVE_TIMER);
         let handler = Arc::clone(&self.handler);
 
+        let hangup_ctx = ctx.clone();
         let fut = async move {
             let dispatch = handler.dispatch_to(ctx, req, body, Box::new(sink), hooks);
             // Watch for the client going away while the call runs: nothing else
             // reads the socket once the body is in, so without this a handler
             // waiting on something other than the peer never learns of it.
             let hangup = Box::pin(async move {
-                match io.hangup().await {
+                match io.hangup(hangup_ctx).await {
                     Ok(()) => {}
                     Err(e) => {
                         // This transport cannot report it; the call still ends

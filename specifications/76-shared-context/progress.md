@@ -208,3 +208,39 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 - Features 03, 04 and 05 after feature 02 is reviewed. They can run in parallel.
   Feature 06 is last.
+
+## 2026-11-10: lane C (issues 483 and 485)
+
+- Issue 483: `ClientRequest::send` and `ClientRequest::send_async` now take `&Ctx`. The
+  `FinalizedResponse` keeps that `Ctx`, so the pool stamps a returned connection with the
+  caller clock. The private `engine_ctx()` helpers are gone.
+- New `send_detached` and `send_detached_async` return the response, the connection and the
+  pool with no drop guard. The `HttpClient` trait impl uses them, because it has no `Ctx`.
+- New test `test_pool_stamps_returned_connection_with_the_caller_clock` in
+  `foundation_netio/tests/simple_http/pool_drain_tests.rs`.
+- Issue 485: the netio blackhole test and the connectrpc blackhole test (issue 466) now dial a
+  local listener with a full accept queue. They no longer depend on the host network.
+
+## 2026-11-10: issue #482, blocking consumers and the timer read a Ctx (branch fix/lane-b)
+
+- Landed: `NotifyQueue::wait_for_item` takes `&Ctx`. The receive iterators and the stream
+  iterator keep the `Ctx` of the code that builds them. `ExecutionEngine` has a new method,
+  `fork_ctx`. The builders use it.
+- Landed: the timer thread owns no clock. Each deadline carries the clock of its caller.
+  `sleep_for`, `sleep_until`, `call_at` and `sleep_async` take a `Ctx`.
+- Landed: callers in the workspace pass a `Ctx`. Tests in `foundation_core/tests/valtron/
+  blocking_clock_injection.rs` prove the waits follow a simulated clock.
+- Open: library code with no `Ctx` in scope uses the engine root (`valtron::fork_ctx`). See
+  `learnings.md` for the list.
+
+## 2026-11-10 - Issue 474, wait loops pause on the Ctx clock
+
+- Landed: `foundation_browser::pause::pause` and `WaitConfig`. `wait_for_port`,
+  `discover_ws_url`, `connect_with_retry` and the testbed browser runner now pause on the
+  `Ctx` clock, not with `std::thread::sleep`.
+- Landed: tests `foundation_browser/tests/wait_loop_tests.rs` and
+  `foundation_testbed/tests/browser_wait_tests.rs`.
+- Landed: the `Locator` assertion retry and the wrangler readiness loop use the same pause.
+- Next: real sleeps remain in the testbed Docker readiness loop (`docker.rs`) and the QEMU
+  control loops (`qemu_control.rs`). The `RpcEngine` reader thread sleep is not a deadline
+  loop. Each needs its own issue.

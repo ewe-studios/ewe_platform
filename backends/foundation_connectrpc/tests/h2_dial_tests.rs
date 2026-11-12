@@ -10,8 +10,8 @@
 //! - `a_closed_port_fails_on_the_head_pipe`: a refused dial reaches the caller
 //!   as `Err(TransportError::Connect)` on the response head, and `open` returns
 //!   at once. The old code returned the error from `open` instead.
-//! - `a_blackholed_dial_does_not_block_the_worker`: a non-routable address with
-//!   a 300 ms connect timeout. `open` returns in under 50 ms and an unrelated
+//! - `a_blackholed_dial_does_not_block_the_worker`: a local listener that never
+//!   answers, with a 300 ms connect timeout. `open` returns in under 50 ms and an unrelated
 //!   valtron task finishes while the dial is still in flight. The old code
 //!   blocks `open` for the whole 300 ms.
 //! - `a_unix_socket_dial_still_connects`: the Unix path connects.
@@ -20,8 +20,8 @@
 //!
 //! HOW: `#[valtron_test]` provides the pool the pump runs on. `initialize_pool`
 //! serializes pool users, so the tests in this binary do not run at once. A
-//! blackhole address is environment dependent: the test reports a skip when the
-//! environment refuses it at once.
+//! blackhole is a local listener with a full accept queue, so it does not
+//! depend on the host network.
 
 // The non-blocking dial parks on the shared reactor, which exists on unix only.
 // Off unix the pump keeps the fixed `POLL_DELAY` fallback, so these tests do
@@ -53,9 +53,6 @@ const CONNECT_TIMEOUT: Duration = Duration::from_millis(300);
 /// How long the unrelated task waits before it records its completion.
 const UNRELATED_TASK_DELAY: Duration = Duration::from_millis(50);
 
-/// A non-routable address that does not answer a connect.
-const BLACKHOLE_URL: &str = "http://10.255.255.1:9/t.Svc/Unary";
-
 fn request_descriptor(url: &str) -> RequestDescriptor {
     RequestDescriptor {
         proto: Proto::HTTP20,
@@ -66,21 +63,69 @@ fn request_descriptor(url: &str) -> RequestDescriptor {
     }
 }
 
-/// Whether the environment refused the blackhole address at once.
+/// A local TCP listener that never answers a new connect.
 ///
-/// A sandbox that has no route to the address fails the first `connect` with
-/// one of these errors. The test then reports a skip instead of a false pass.
-fn refused_at_once(err: &TransportError) -> bool {
-    let TransportError::Connect(inner) = err else {
-        return false;
-    };
-    let Some(io) = inner.downcast_ref::<std::io::Error>() else {
-        return false;
-    };
-    matches!(
-        io.raw_os_error(),
-        Some(libc::EACCES | libc::ENETUNREACH | libc::EHOSTUNREACH)
-    )
+/// WHY: the blackhole test needs a dial that never completes on any host
+/// network. A non-routable address depends on the network: a sandbox may refuse
+/// it at once (issue #466).
+///
+/// HOW: the listener has a backlog of zero and nothing calls `accept`. Some
+/// non-blocking connects fill the queue. On Linux the kernel then drops each
+/// new SYN, so the next connect hangs. The constructor proves this with a
+/// probe connect and panics if the connect completes.
+struct FullBacklogListener {
+    addr: std::net::SocketAddr,
+    _listener: socket2::Socket,
+    _fillers: Vec<socket2::Socket>,
+}
+
+impl FullBacklogListener {
+    fn new() -> Self {
+        let listener = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
+            .expect("create the listener socket");
+        let any: std::net::SocketAddr = "127.0.0.1:0".parse().expect("loopback addr");
+        listener.bind(&any.into()).expect("bind");
+        listener.listen(0).expect("listen");
+        let addr = listener
+            .local_addr()
+            .expect("local addr")
+            .as_socket()
+            .expect("an inet address");
+
+        // Fill the accept queue. The sockets stay open so the queue stays full.
+        let mut fillers = Vec::new();
+        for _ in 0..8 {
+            let filler = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
+                .expect("create a filler socket");
+            filler.set_nonblocking(true).expect("non-blocking filler");
+            // `EINPROGRESS` or an immediate success are both fine here.
+            let _ = filler.connect(&addr.into());
+            fillers.push(filler);
+        }
+        thread::sleep(Duration::from_millis(200));
+
+        // Probe: the next connect must not complete.
+        let probe = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
+            .expect("create the probe socket");
+        let probe_result = probe.connect_timeout(&addr.into(), Duration::from_millis(300));
+        assert!(
+            matches!(
+                probe_result.as_ref().err().map(std::io::Error::kind),
+                Some(std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock)
+            ),
+            "the full listener must make a connect hang, got {probe_result:?}"
+        );
+
+        Self {
+            addr,
+            _listener: listener,
+            _fillers: fillers,
+        }
+    }
+
+    fn url(&self) -> String {
+        format!("http://{}/t.Svc/Unary", self.addr)
+    }
 }
 
 /// A dial to a closed port must reach the caller as a connect error on the
@@ -121,6 +166,7 @@ async fn a_closed_port_fails_on_the_head_pipe() {
 /// A dial to an address that never answers must not hold the worker.
 #[valtron_test(timeout = 5_000)]
 async fn a_blackholed_dial_does_not_block_the_worker() {
+    let blackhole = FullBacklogListener::new();
     let transport = H2Transport::new().with_connect_timeout(CONNECT_TIMEOUT);
 
     // The unrelated task records when it runs. It is scheduled before the dial,
@@ -129,7 +175,7 @@ async fn a_blackholed_dial_does_not_block_the_worker() {
     let task_ran_at = Arc::clone(&ran_at);
     let unrelated = execute(
         from_future(async move {
-            sleep_async(UNRELATED_TASK_DELAY).await;
+            sleep_async(UNRELATED_TASK_DELAY, &foundation_core::valtron::Ctx::host()).await;
             *task_ran_at.lock().expect("task lock") = Some(Instant::now());
         }),
         None,
@@ -137,16 +183,11 @@ async fn a_blackholed_dial_does_not_block_the_worker() {
     .expect("schedule the unrelated task");
 
     let started = Instant::now();
-    let opened = transport.open(request_descriptor(BLACKHOLE_URL));
+    let opened = transport.open(request_descriptor(&blackhole.url()));
     let open_time = started.elapsed();
 
     let mut call = match opened {
         Ok(call) => call,
-        Err(err) if refused_at_once(&err) => {
-            eprintln!("skip: the environment refused the blackhole address at once: {err}");
-            let _ = unrelated.into_collect_future().await;
-            return;
-        }
         Err(err) => panic!("a blackhole dial must not fail inside open after {open_time:?}: {err}"),
     };
     assert!(
@@ -158,18 +199,6 @@ async fn a_blackholed_dial_does_not_block_the_worker() {
     // task must finish well before that.
     let head = call.head.next().await.expect("the call publishes a head");
     let head_resolved = Instant::now();
-
-    // An environment that rejects the address asynchronously cannot show the
-    // overlap. Report a skip instead of a false result.
-    if let Err(ref err) = head {
-        if head_resolved.duration_since(started) < UNRELATED_TASK_DELAY && refused_at_once(err) {
-            eprintln!(
-                "skip: the environment rejected the blackhole address before the unrelated task ran: {err}"
-            );
-            let _ = unrelated.into_collect_future().await;
-            return;
-        }
-    }
 
     let ran = *ran_at.lock().expect("task lock");
     let ran = ran.expect("the unrelated task must run while the dial is in flight");
@@ -224,7 +253,11 @@ async fn a_unix_socket_dial_still_connects() {
             accepted = true;
             break;
         }
-        sleep_async(Duration::from_millis(5)).await;
+        sleep_async(
+            Duration::from_millis(5),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     assert!(accepted, "the peer accepted the unix dial");
 

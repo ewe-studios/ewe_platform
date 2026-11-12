@@ -391,6 +391,7 @@ impl ConnectionHandler {
                         self.conn.clone(),
                         505,
                         "HTTP Version Not Supported",
+                        &self.ctx,
                     ));
                 }
 
@@ -437,7 +438,7 @@ impl ConnectionHandler {
                         err = ?e,
                         "Idle: non-transient read error, sending 400"
                     );
-                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request"))
+                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request", &self.ctx))
                 }
             }
             None => {
@@ -602,7 +603,7 @@ impl ConnectionHandler {
             // Send 100 Continue through the async writer, then wait for body
             // data. The write may park on socket readiness; `ContinueWrite`
             // drives it without holding a worker.
-            return match send_continue_100(self.conn.clone()).split() {
+            return match send_continue_100(self.conn.clone(), &self.ctx).split() {
                 Ok(future) => {
                     self.state = Some(HandlerState::ContinueWrite {
                         future,
@@ -691,7 +692,7 @@ impl ConnectionHandler {
                         err = ?e,
                         "WaitingForBody: hard error on probe"
                     );
-                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request"))
+                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request", &self.ctx))
                 }
             }
         }
@@ -815,6 +816,7 @@ impl ConnectionHandler {
             self.conn.clone(),
             408,
             "Request Timeout — body not received after 100 Continue",
+            &self.ctx,
         ))
     }
 
@@ -991,7 +993,7 @@ impl ConnectionHandler {
             // The request body was never read: the next request on this
             // connection would start inside it, so the connection must close.
             let close = should_close || body_left_unread(&req);
-            self.await_response(send_not_found(self.conn.clone()), close)
+            self.await_response(send_not_found(self.conn.clone(), &self.ctx), close)
         }
     }
 
@@ -1224,6 +1226,7 @@ impl ConnectionHandler {
                         self.conn.clone(),
                         502,
                         "Bad Gateway — Expect: failed to write response",
+                        &self.ctx,
                     ))
                 }
             }

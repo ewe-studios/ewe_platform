@@ -11,11 +11,13 @@ pub struct Label(pub String);
 
 impl Label {
     /// Create a new label.
+    #[must_use]
     pub fn new(s: impl Into<String>) -> Self {
         Self(s.into())
     }
 
     /// Get the label string.
+    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -54,6 +56,7 @@ pub enum LabelOp {
 
 impl LabelOp {
     /// Evaluate this label expression against an endpoint label.
+    #[must_use]
     pub fn matches(&self, label: &str) -> bool {
         match self {
             LabelOp::True => true,
@@ -66,14 +69,19 @@ impl LabelOp {
     }
 
     /// Check if this expression matches a given label.
+    #[must_use]
     pub fn validate(&self, label: &Label) -> bool {
         self.matches(&label.0)
     }
 
+    /// Combine this expression with another one. Both must match.
+    #[must_use]
     pub fn and(self, v: impl Into<Self>) -> Self {
         Self::And(Box::new(self), Box::new(v.into()))
     }
 
+    /// Combine this expression with another one. Either can match.
+    #[must_use]
     pub fn or(self, v: impl Into<Self>) -> Self {
         Self::Or(Box::new(self), Box::new(v.into()))
     }

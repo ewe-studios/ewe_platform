@@ -180,7 +180,7 @@ fn probe_loop(
             return;
         }
 
-        let success = probe_once(backend, config, client);
+        let success = probe_once(backend, config, client, ctx);
         if let Some(now_healthy) = state.record(success) {
             backend.set_healthy(now_healthy);
             if now_healthy {
@@ -202,13 +202,14 @@ fn probe_once(
     backend: &Arc<BackendRuntime>,
     config: &HealthCheckConfig,
     client: &DynNetClient,
+    ctx: &Ctx,
 ) -> bool {
     match backend.protocol() {
         BackendProtocol::Tcp => probe_tcp(&backend.target().authority(), config.timeout),
         BackendProtocol::Udp => probe_udp(&backend.target().authority(), config.timeout),
         // `grpc://` backends answer the standard gRPC health protocol over H2,
         // not an HTTP GET path.
-        BackendProtocol::Grpc => probe_grpc_health(backend.url(), config.timeout),
+        BackendProtocol::Grpc => probe_grpc_health(backend.url(), config.timeout, ctx),
         // `connect` / `grpc-web` are HTTP-family; probe them with the HTTP path
         // probe (a Connect backend has no gRPC health endpoint).
         BackendProtocol::Http
@@ -320,7 +321,7 @@ fn varint(buf: &[u8], i: &mut usize) -> u64 {
 /// single response message is decoded to its `ServingStatus`, cross-checked
 /// against the trailing `grpc-status`. `timeout` bounds the whole exchange: the
 /// pump tasks are raced against a timer, and a win by the timer yields `Err`.
-async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, String> {
+async fn grpc_health_check(url: String, timeout: Duration, ctx: Ctx) -> Result<bool, String> {
     let uri = Uri::parse(&url).map_err(|e| format!("parse health uri {url}: {e}"))?;
     let mut headers = SimpleHeaders::new();
     headers.insert(
@@ -339,7 +340,13 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         headers,
         method: SimpleMethod::POST,
     };
+    // `open` dials and runs the h2 handshake before the timer race below starts,
+    // so it needs its own bounds. The probe timeout bounds the dial, the
+    // handshake and every read: a backend that accepts the connection and then
+    // stays silent fails the probe in `timeout`, not in the 10 s transport default.
     let stream = H2Transport::new()
+        .with_connect_timeout(timeout)
+        .with_handshake_timeout(timeout)
         .with_read_timeout(timeout)
         .open(out_request)
         .map_err(|e| format!("open h2 health upstream {url}: {e}"))?;
@@ -413,7 +420,7 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         writer_task.map(|_| ()).boxed(),
     ])
     .boxed();
-    let timer = async move { sleep_async(timeout).await }.boxed();
+    let timer = async move { sleep_async(timeout, &ctx).await }.boxed();
 
     match select(work, timer).await {
         Either::Left(_) => result
@@ -435,9 +442,9 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
 /// `recv_timeout` backstop — an abandoned inner future and its H2 connection no
 /// longer leak per probe.
 #[must_use]
-pub fn probe_grpc_health(base_url: &str, timeout: Duration) -> bool {
+pub fn probe_grpc_health(base_url: &str, timeout: Duration, ctx: &Ctx) -> bool {
     let url = join_url(base_url, "/grpc.health.v1.Health/Check");
-    block_on_future(grpc_health_check(url, timeout)).unwrap_or(false)
+    block_on_future(grpc_health_check(url, timeout, ctx.clone())).unwrap_or(false)
 }
 
 /// Join a base URL and a health path, avoiding a doubled slash.

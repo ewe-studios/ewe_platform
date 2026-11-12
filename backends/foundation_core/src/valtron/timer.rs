@@ -9,26 +9,44 @@
 //! WHAT: [`sleep_until`] / [`sleep_for`], futures that complete at a deadline
 //! without any valtron task.
 //!
-//! HOW: deadlines live in an ordered map. One thread blocks on a condition
-//! variable until the earliest deadline (or a new, earlier one is added), then
-//! wakes every future that is due. It never polls: with no deadlines it waits
+//! HOW: deadlines live in ordered maps, one map per clock. Each deadline brings
+//! the clock of the `Ctx` that made it, so the thread owns no clock and reads
+//! no real clock by itself (a simulated clock in a test controls the wait).
+//! One thread blocks on a condition variable until the earliest deadline (or a
+//! new, earlier one is added), then wakes every future that is due. It never polls: with no deadlines it waits
 //! without a timeout. A future that is dropped first removes its entry. If the
 //! thread cannot be started the futures still complete, by checking the clock
 //! each time they are polled.
 
-use super::{Clock, MonotonicClock};
 use foundation_compact::Instant;
-use std::collections::BTreeMap;
+use foundation_context::{Clock, Ctx};
+use std::collections::{BTreeMap, HashMap};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Condvar, Mutex, MutexGuard, OnceLock};
+use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock};
 use std::task::{Context, Poll, Wake, Waker};
 use std::time::Duration;
 
-/// The deadlines waiting to fire, keyed by `(deadline, id)`.
+/// The deadlines of one clock, keyed by `(deadline, id)`.
+struct ClockQueue {
+    clock: Arc<dyn Clock>,
+    deadlines: BTreeMap<(Instant, u64), Waker>,
+}
+
+/// The identity of a clock: the address of its shared allocation.
+type ClockId = usize;
+
+fn clock_id(clock: &Arc<dyn Clock>) -> ClockId {
+    Arc::as_ptr(clock).cast::<()>() as usize
+}
+
+/// A timer entry key: which clock measures the deadline, and the deadline.
+type EntryKey = (ClockId, (Instant, u64));
+
+/// The deadlines waiting to fire, grouped by the clock that measures them.
 struct Timers {
-    pending: Mutex<BTreeMap<(Instant, u64), Waker>>,
+    pending: Mutex<HashMap<ClockId, ClockQueue>>,
     changed: Condvar,
     next_id: AtomicU64,
     /// Whether the timer thread is running.
@@ -36,11 +54,54 @@ struct Timers {
 }
 
 impl Timers {
-    fn pending(&self) -> MutexGuard<'_, BTreeMap<(Instant, u64), Waker>> {
+    fn pending(&self) -> MutexGuard<'_, HashMap<ClockId, ClockQueue>> {
         // The map holds no invariant a panic could break.
         self.pending
             .lock()
             .unwrap_or_else(crate::compati::recover_poison)
+    }
+
+    /// Add a deadline measured on `clock`. Returns the key to remove it with,
+    /// and whether it is now the earliest on its clock.
+    fn insert(&self, clock: &Arc<dyn Clock>, deadline: Instant, waker: Waker) -> (EntryKey, bool) {
+        let id = clock_id(clock);
+        let key = (deadline, self.next_id.fetch_add(1, Ordering::Relaxed));
+        let mut pending = self.pending();
+        let queue = pending.entry(id).or_insert_with(|| ClockQueue {
+            clock: Arc::clone(clock),
+            deadlines: BTreeMap::new(),
+        });
+        queue.deadlines.insert(key, waker);
+        let earliest = queue.deadlines.keys().next() == Some(&key);
+        ((id, key), earliest)
+    }
+
+    /// Replace the waker of an existing entry, or add it again.
+    fn register(
+        &self,
+        clock: &Arc<dyn Clock>,
+        key: (Instant, u64),
+        waker: Waker,
+    ) -> (EntryKey, bool) {
+        let id = clock_id(clock);
+        let mut pending = self.pending();
+        let queue = pending.entry(id).or_insert_with(|| ClockQueue {
+            clock: Arc::clone(clock),
+            deadlines: BTreeMap::new(),
+        });
+        queue.deadlines.insert(key, waker);
+        let earliest = queue.deadlines.keys().next() == Some(&key);
+        ((id, key), earliest)
+    }
+
+    fn remove(&self, entry: &EntryKey) {
+        let mut pending = self.pending();
+        if let Some(queue) = pending.get_mut(&entry.0) {
+            queue.deadlines.remove(&entry.1);
+            if queue.deadlines.is_empty() {
+                pending.remove(&entry.0);
+            }
+        }
     }
 }
 
@@ -55,7 +116,7 @@ fn timers() -> &'static Timers {
             })
             .is_ok();
         Timers {
-            pending: Mutex::new(BTreeMap::new()),
+            pending: Mutex::new(HashMap::new()),
             changed: Condvar::new(),
             next_id: AtomicU64::new(0),
             running,
@@ -63,22 +124,47 @@ fn timers() -> &'static Timers {
     })
 }
 
+/// Wake the timer thread so it re-reads every clock.
+///
+/// A [`SimulatedClock`](crate::valtron::SimulatedClock) calls this from
+/// `advance`: its time moves without any operating-system event, so the thread
+/// must look again. A real clock needs no nudge.
+#[cfg(feature = "test-clock")]
+pub(crate) fn nudge() {
+    // Take the lock so the nudge cannot fall between the thread's check and its wait.
+    if let Some(timers) = TIMERS_IF_STARTED.get() {
+        drop(timers.pending());
+        timers.changed.notify_all();
+    }
+}
+
+#[cfg(feature = "test-clock")]
+static TIMERS_IF_STARTED: std::sync::OnceLock<&'static Timers> = std::sync::OnceLock::new();
+
 /// The timer thread: sleep until the earliest deadline, wake what is due.
+///
+/// The thread reads no clock of its own. Each deadline carries the clock of the
+/// `Ctx` that made it, and the thread asks that clock for the time. The real
+/// operating-system wait is only the park until the nearest deadline.
 fn run(timers: &'static Timers) {
-    // The timer thread is the executor's parking path: it blocks on the real
-    // operating-system clock (GitHub issue #102). It reads that clock through
-    // the real `Clock` backend rather than the global.
-    let clock = MonotonicClock::new();
+    #[cfg(feature = "test-clock")]
+    let _ = TIMERS_IF_STARTED.set(timers);
     let mut pending = timers.pending();
     loop {
-        let now = clock.now();
         let mut due = Vec::new();
-        while let Some(entry) = pending.first_entry() {
-            if entry.key().0 > now {
-                break;
+        let mut next_wait: Option<Duration> = None;
+        for queue in pending.values_mut() {
+            let now = queue.clock.now();
+            while let Some(entry) = queue.deadlines.first_entry() {
+                if entry.key().0 > now {
+                    let wait = entry.key().0.saturating_duration_since(now);
+                    next_wait = Some(next_wait.map_or(wait, |w| w.min(wait)));
+                    break;
+                }
+                due.push(entry.remove());
             }
-            due.push(entry.remove());
         }
+        pending.retain(|_, queue| !queue.deadlines.is_empty());
         if !due.is_empty() {
             drop(pending);
             for waker in due {
@@ -87,9 +173,8 @@ fn run(timers: &'static Timers) {
             pending = timers.pending();
             continue;
         }
-        pending = match pending.keys().next().map(|(deadline, _)| *deadline) {
-            Some(deadline) => {
-                let wait = deadline.saturating_duration_since(now);
+        pending = match next_wait {
+            Some(wait) => {
                 timers
                     .changed
                     .wait_timeout(pending, wait)
@@ -105,27 +190,35 @@ fn run(timers: &'static Timers) {
 }
 
 /// A future that completes at `deadline`, woken by the timer thread.
+///
+/// `deadline` is an instant on the clock of `ctx`. The future and the timer
+/// thread both read that clock, so a simulated clock controls the wait.
 #[must_use = "a timer does nothing unless awaited"]
-pub fn sleep_until(deadline: Instant) -> Sleep {
+pub fn sleep_until(deadline: Instant, ctx: &Ctx) -> Sleep {
     let timers = timers();
     Sleep {
         timers,
+        clock: ctx.clock(),
         key: (deadline, timers.next_id.fetch_add(1, Ordering::Relaxed)),
         registered: false,
     }
 }
 
-/// A future that completes `duration` from now. See [`sleep_until`].
+/// A future that completes `duration` from now on the clock of `ctx`.
+/// See [`sleep_until`].
+///
+/// WHY a `Ctx` argument: the timer is a process-wide thread, but it owns no
+/// clock. Each deadline brings the clock of its caller, so the thread never
+/// reads the real clock on its own and a test can inject a simulated clock.
 #[must_use = "a timer does nothing unless awaited"]
-pub fn sleep_for(duration: Duration) -> Sleep {
-    // The timer thread parks on the real clock (GitHub issue #102), so a
-    // duration-based sleep is measured on the same real backend.
-    sleep_until(MonotonicClock::new().now() + duration)
+pub fn sleep_for(duration: Duration, ctx: &Ctx) -> Sleep {
+    sleep_until(ctx.clock().now() + duration, ctx)
 }
 
 /// The future returned by [`sleep_until`] and [`sleep_for`].
 pub struct Sleep {
     timers: &'static Timers,
+    clock: Arc<dyn Clock>,
     key: (Instant, u64),
     registered: bool,
 }
@@ -135,6 +228,10 @@ impl Sleep {
     #[must_use]
     pub fn deadline(&self) -> Instant {
         self.key.0
+    }
+
+    fn entry(&self) -> EntryKey {
+        (clock_id(&self.clock), self.key)
     }
 }
 
@@ -150,11 +247,10 @@ impl Future for Sleep {
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
-        // This future is woken by the real-clock timer thread (GitHub issue
-        // #102), so it checks the same real backend.
-        if MonotonicClock::new().now() >= self.key.0 {
+        // The future checks the same clock that the timer thread uses.
+        if self.clock.now() >= self.key.0 {
             if self.registered {
-                self.timers.pending().remove(&self.key);
+                self.timers.remove(&self.entry());
                 self.registered = false;
             }
             return Poll::Ready(());
@@ -164,12 +260,9 @@ impl Future for Sleep {
             cx.waker().wake_by_ref();
             return Poll::Pending;
         }
-        let key = self.key;
-        let earliest = {
-            let mut pending = self.timers.pending();
-            pending.insert(key, cx.waker().clone());
-            pending.keys().next() == Some(&key)
-        };
+        let (_, earliest) = self
+            .timers
+            .register(&self.clock, self.key, cx.waker().clone());
         self.registered = true;
         // A new earliest deadline must shorten the thread's current wait.
         if earliest {
@@ -182,7 +275,7 @@ impl Future for Sleep {
 impl Drop for Sleep {
     fn drop(&mut self) {
         if self.registered {
-            self.timers.pending().remove(&self.key);
+            self.timers.remove(&self.entry());
         }
     }
 }
@@ -207,13 +300,16 @@ impl Wake for CallbackWake {
 /// the callback if it has not run yet.
 #[must_use = "dropping a TimerCall cancels the callback"]
 pub struct TimerCall {
-    scheduled: Option<(&'static Timers, (Instant, u64))>,
+    scheduled: Option<(&'static Timers, EntryKey)>,
 }
 
 impl core::fmt::Debug for TimerCall {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("TimerCall")
-            .field("deadline", &self.scheduled.map(|(_, key)| key.0))
+            .field(
+                "deadline",
+                &self.scheduled.as_ref().map(|(_, key)| (key.1).0),
+            )
             .finish()
     }
 }
@@ -221,12 +317,13 @@ impl core::fmt::Debug for TimerCall {
 impl Drop for TimerCall {
     fn drop(&mut self) {
         if let Some((timers, key)) = self.scheduled.take() {
-            timers.pending().remove(&key);
+            timers.remove(&key);
         }
     }
 }
 
-/// Run `callback` once on the timer thread at `deadline`, without any valtron
+/// Run `callback` once on the timer thread at `deadline` (an instant on the
+/// clock of `ctx`), without any valtron
 /// task and without a thread of its own.
 ///
 /// WHY: code that must be woken by the clock (a `DrivenStreamIterator` whose
@@ -238,25 +335,24 @@ impl Drop for TimerCall {
 /// timer thread could not be started, `callback` runs at once on the caller's
 /// thread (the caller then sees a spurious wake and re-checks, as
 /// [`Sleep`] does by re-polling).
-pub fn call_at(deadline: Instant, callback: impl FnOnce() + Send + 'static) -> TimerCall {
+pub fn call_at(
+    deadline: Instant,
+    ctx: &Ctx,
+    callback: impl FnOnce() + Send + 'static,
+) -> TimerCall {
     let timers = timers();
     if !timers.running {
         callback();
         return TimerCall { scheduled: None };
     }
-    let key = (deadline, timers.next_id.fetch_add(1, Ordering::Relaxed));
     let waker = Waker::from(std::sync::Arc::new(CallbackWake(Mutex::new(Some(
         Box::new(callback),
     )))));
-    let earliest = {
-        let mut pending = timers.pending();
-        pending.insert(key, waker);
-        pending.keys().next() == Some(&key)
-    };
+    let (entry, earliest) = timers.insert(&ctx.clock(), deadline, waker);
     if earliest {
         timers.changed.notify_one();
     }
     TimerCall {
-        scheduled: Some((timers, key)),
+        scheduled: Some((timers, entry)),
     }
 }

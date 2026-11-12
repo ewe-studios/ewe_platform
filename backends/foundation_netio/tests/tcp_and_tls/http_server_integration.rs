@@ -18,6 +18,13 @@ use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 use foundation_testing::http::{HttpRequest, HttpResponse, TestHttpServer};
 use serial_test::serial;
 
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 // All valtron pool tests share one global serial lock. A test that builds a pool
 // must not run at the same time as another pool test.
 
@@ -34,7 +41,7 @@ fn test_http_client_get_request() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
 
     assert_eq!(res.get_status().into_usize(), 200);
@@ -63,7 +70,7 @@ fn test_http_client_redirects() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
 
     assert_eq!(res.get_status().into_usize(), 200);
@@ -90,7 +97,7 @@ fn test_http_client_status_codes() {
             .unwrap()
             .build_client()
             .unwrap()
-            .send()
+            .send(&call_ctx())
             .unwrap()
             .get_status()
             .into_usize()
@@ -124,7 +131,7 @@ fn test_http_client_custom_headers() {
         .header(SimpleHeader::ACCEPT, "application/json")
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
 
     assert_eq!(res.get_status().into_usize(), 200);
@@ -170,7 +177,7 @@ fn test_http_client_response_body() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
     assert_eq!(collect_bytes_from_send_safe(empty.into_parts().2).len(), 0);
 
@@ -179,7 +186,7 @@ fn test_http_client_response_body() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
     assert_eq!(
         collect_strings_from_send_safe(small.into_parts().2).unwrap(),
@@ -191,7 +198,7 @@ fn test_http_client_response_body() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .unwrap();
     assert_eq!(
         collect_strings_from_send_safe(large.into_parts().2)
@@ -223,7 +230,7 @@ fn test_http_client_concurrent_requests() {
                     .unwrap()
                     .build_client()
                     .unwrap()
-                    .send()
+                    .send(&call_ctx())
                     .unwrap();
                 assert_eq!(res.get_status().into_usize(), 200);
                 collect_strings_from_send_safe(res.into_parts().2).unwrap()

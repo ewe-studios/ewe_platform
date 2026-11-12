@@ -1,5 +1,7 @@
 // Dual-target: runs natively and on wasm.
 mod async_first_api;
+#[cfg(all(feature = "test-clock", not(target_family = "wasm")))]
+mod blocking_clock_injection;
 #[cfg(not(target_family = "wasm"))]
 mod bridge_park;
 mod bridge_park_executor;
@@ -126,3 +128,9 @@ mod waker_queue_bridge;
 #[cfg(feature = "multi")]
 mod worker_panic_accounting;
 mod wrappers;
+
+/// A context on the real clock. Tests that wait on real time use it; tests that
+/// prove the injected clock build their own with a simulated clock.
+pub(crate) fn real_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::host()
+}

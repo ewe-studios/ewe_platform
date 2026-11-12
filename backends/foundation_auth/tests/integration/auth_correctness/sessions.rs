@@ -163,7 +163,9 @@ fn session_survives_restart_with_a_persistent_store() {
     let provider = crate::integration::turso_provider(sql_url);
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = async move {
-        let kv = TursoStorage::new(&kv_url).await.unwrap();
+        let kv = TursoStorage::new(&kv_url, foundation_context::Ctx::host())
+            .await
+            .unwrap();
         kv.init_schema().await.unwrap();
         kv
     }

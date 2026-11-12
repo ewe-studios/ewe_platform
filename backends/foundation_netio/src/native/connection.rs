@@ -919,7 +919,14 @@ impl Connection {
     /// a single HTTP exchange — Docker/BuildKitd close after each response).
     #[must_use]
     pub fn is_unix(&self) -> bool {
-        matches!(self, Self::Unix(_))
+        #[cfg(unix)]
+        {
+            matches!(self, Self::Unix(_))
+        }
+        #[cfg(not(unix))]
+        {
+            false
+        }
     }
 
     /// Whether this connection is a `WireGuard` overlay stream (smoltcp userspace TCP).
@@ -937,6 +944,7 @@ impl Connection {
     #[must_use]
     pub fn should_pool(&self) -> bool {
         match self {
+            #[cfg(unix)]
             Self::Unix(_) => false,
             Self::Overlay(o) => o.should_pool(),
             _ => true,

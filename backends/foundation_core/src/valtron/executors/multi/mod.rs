@@ -167,6 +167,9 @@ pub struct LocalPoolHandle {
     latch: Arc<LockSignal>,
     kill_signal: Arc<OnSignal>,
     yielders: SharedThreadYielders,
+    /// A fork of the pool root. Receivers that the builders return read their
+    /// clock from it.
+    ctx: Ctx,
 }
 
 /// A thread-pool task builder whose resolver is boxed over `Task`.
@@ -188,6 +191,7 @@ impl LocalPoolHandle {
             latch: registry.latch(),
             kill_signal: registry.kill_signal(),
             yielders: registry.yielders(),
+            ctx: registry.fork_ctx(),
         }
     }
 
@@ -199,8 +203,12 @@ impl LocalPoolHandle {
         Task::Pending: Send + 'static,
         Task: TaskIterator + Send + 'static,
     {
-        ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
-            .with_yielders(self.yielders.clone())
+        ThreadPoolTaskBuilder::new(
+            self.shared_tasks.clone(),
+            self.latch.clone(),
+            self.ctx.fork(),
+        )
+        .with_yielders(self.yielders.clone())
     }
 
     /// Create a task builder with an explicit Resolver type.
@@ -214,8 +222,12 @@ impl LocalPoolHandle {
         Task: TaskIterator + Send + 'static,
         Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static,
     {
-        ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
-            .with_yielders(self.yielders.clone())
+        ThreadPoolTaskBuilder::new(
+            self.shared_tasks.clone(),
+            self.latch.clone(),
+            self.ctx.fork(),
+        )
+        .with_yielders(self.yielders.clone())
     }
 
     /// Signal all threads to die.
@@ -1244,6 +1256,8 @@ pub struct ThreadPoolTaskBuilder<
     panic_handler: Option<BoxedPanicHandler>,
     /// Channel capacity for bounded queues (None = unbounded)
     channel_capacity: Option<usize>,
+    /// The context whose clock bounds the waits of the receivers this builder returns.
+    ctx: Ctx,
     _marker: PhantomData<(Done, Pending)>,
 }
 
@@ -1254,8 +1268,10 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Resolver, Task>
 {
-    pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
+    /// Build a task builder. The receivers it returns read their clock from `ctx`.
+    pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>, ctx: Ctx) -> Self {
         Self {
+            ctx,
             tasks,
             latch,
             yielders: None,
@@ -1348,7 +1364,11 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+                Ok(NotifyRecvIterator::from_notify_queue(
+                    iter_chan,
+                    wait_cycle,
+                    self.ctx.fork(),
+                ))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
@@ -1443,7 +1463,10 @@ impl<
                 }
 
                 Ok(NotifyQueueStreamIterator::new(
-                    iter_chan, max_turns, wait_cycle,
+                    iter_chan,
+                    max_turns,
+                    wait_cycle,
+                    self.ctx.fork(),
                 ))
             }
             Err(err) => match err {
@@ -1492,7 +1515,11 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+                Ok(NotifyRecvIterator::from_notify_queue(
+                    iter_chan,
+                    wait_cycle,
+                    self.ctx.fork(),
+                ))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),

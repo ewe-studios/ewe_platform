@@ -184,7 +184,7 @@ impl Serve for Ping {
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        send_text(conn, 200, "pong")
+        send_text(conn, 200, "pong", &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -475,7 +475,13 @@ impl Serve for BigBody {
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        send_bytes(conn, 200, "application/octet-stream", self.0.clone())
+        send_bytes(
+            conn,
+            200,
+            "application/octet-stream",
+            self.0.clone(),
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 

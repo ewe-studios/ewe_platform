@@ -60,8 +60,8 @@ impl TursoStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database can't be opened or migrated.
-    pub async fn in_memory() -> StorageResult<Self> {
-        let storage = Self::new(":memory:").await?;
+    pub async fn in_memory(ctx: Ctx) -> StorageResult<Self> {
+        let storage = Self::new(":memory:", ctx.clone()).await?;
         storage.init_schema().await?;
         Ok(storage)
     }
@@ -71,8 +71,8 @@ impl TursoStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub async fn new(url: &str) -> StorageResult<Self> {
-        Self::with_encryption(url, None).await
+    pub async fn new(url: &str, ctx: Ctx) -> StorageResult<Self> {
+        Self::with_encryption(url, None, ctx.clone()).await
     }
 
     /// Create a new Turso storage connection with optional encryption.
@@ -86,6 +86,7 @@ impl TursoStorage {
     pub async fn with_encryption(
         url: &str,
         encryption_key: Option<EncryptionKey>,
+        ctx: Ctx,
     ) -> StorageResult<Self> {
         let db: turso::Database = Builder::new_local(url).build().await?;
         let conn = db
@@ -93,7 +94,7 @@ impl TursoStorage {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
-            gate: ConnGate::new(),
+            gate: ConnGate::new(ctx),
             encryption_key,
         })
     }

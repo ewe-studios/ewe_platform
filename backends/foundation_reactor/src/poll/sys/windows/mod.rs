@@ -44,6 +44,11 @@ pub struct Selector {
     waker_event: Mutex<Option<HANDLE>>,
 }
 
+// SAFETY: The IOCP handle and the event handle are kernel handles. Windows allows
+// any thread to use them. All other fields sit behind a `Mutex`.
+unsafe impl Send for Selector {}
+unsafe impl Sync for Selector {}
+
 impl Selector {
     /// Create a new IOCP selector.
     pub fn new() -> io::Result<Self> {

@@ -26,7 +26,6 @@ serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
 foundation_macros = { path = "../foundation_macros", version = "0.0.20", optional = true }
 cfg-if = "1"
-once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
@@ -83,6 +82,7 @@ windows-sys = { version = "0.59", features = [
     "Win32_System_Memory",
     "Win32_System_Pipes",
     "Win32_Security",
+    "Win32_System_SystemInformation",
 ]}
 
 # Enable multi-threaded executor only on supported platforms.
@@ -360,7 +360,7 @@ watcher-windows = ["poll"]
 uring = ["dep:io-uring", "foundation_reactor/uring"]
 
 # Interprocess message bus (adapted from ipmb)
-ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
+ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid"]
 
 # Virtual filesystem abstraction — core traits + in-memory impls + overlay
 vfs = ["dep:async-trait", "dep:foundation_errstacks", "dep:foundation_compact"]

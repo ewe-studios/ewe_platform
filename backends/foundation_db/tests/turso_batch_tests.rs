@@ -11,9 +11,13 @@ use tempfile::TempDir;
 async fn batch_statements_apply_atomically() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
-    let storage = TursoStorage::with_encryption(db_path.to_str().unwrap(), None)
-        .await
-        .unwrap();
+    let storage = TursoStorage::with_encryption(
+        db_path.to_str().unwrap(),
+        None,
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .unwrap();
     storage
         .execute_batch("CREATE TABLE batch_test (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
         .await

@@ -22,6 +22,7 @@ use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::writer::{ResponseWriter, WriterConfig};
 use foundation_iogate::ServerIo;
@@ -417,6 +418,9 @@ pub struct ForwardContext<'a> {
     /// Registers a waker for read readiness of the client connection, so the
     /// request body read parks instead of spinning. `None` polls.
     pub client_read_wake: Option<ReadWakeSource>,
+    /// The context of the serve call. Its clock stamps the upstream
+    /// connection when the exchange returns it to the pool.
+    pub call_ctx: &'a Ctx,
     /// The largest request body in bytes; 0 means no limit.
     pub max_request_body: usize,
 }
@@ -458,7 +462,7 @@ async fn exchange(
         .request(builder)
         .map_err(|e| ForwardError::before_response(format!("prepare upstream request: {e}")))?;
 
-    let response = request.send_async().await.map_err(|e| {
+    let response = request.send_async(ctx.call_ctx).await.map_err(|e| {
         ForwardError::before_response(format!("send upstream request to {url}: {e}"))
     })?;
 
@@ -631,11 +635,12 @@ pub async fn forward_upgrade(
     io_mode: ServerIo,
     connect_timeout: std::time::Duration,
     writer_config: WriterConfig,
+    ctx: &Ctx,
 ) -> Result<(), String> {
     let authority = backend.target().authority();
     // Dial through iogate (F50): `Completion` reads the upstream from the io_uring
     // inbox and writes via `IORING_OP_SEND`; `Std` is a plain non-blocking socket.
-    let upstream = crate::aio::dial_tcp(&authority, io_mode, connect_timeout)
+    let upstream = crate::aio::dial_tcp(&authority, io_mode, connect_timeout, ctx)
         .await
         .map_err(|e| format!("connect upstream {authority}: {e}"))?;
 
@@ -651,7 +656,7 @@ pub async fn forward_upgrade(
 
     let request_bytes =
         serialize_request_head(&req.method.to_string(), &req.request_url.url, &headers);
-    let mut writer = ResponseWriter::new(upstream.clone(), writer_config);
+    let mut writer = ResponseWriter::new(upstream.clone(), writer_config, ctx.clone());
     writer
         .write_all(request_bytes.as_bytes())
         .await
@@ -662,7 +667,7 @@ pub async fn forward_upgrade(
         .map_err(|e| format!("flush upgrade request: {e}"))?;
 
     // From here the connection is opaque: splice both directions.
-    crate::aio::splice(conn.clone(), upstream, writer_config).await;
+    crate::aio::splice(conn.clone(), upstream, writer_config, ctx).await;
     Ok(())
 }
 

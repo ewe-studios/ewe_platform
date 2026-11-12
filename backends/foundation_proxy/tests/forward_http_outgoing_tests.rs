@@ -68,7 +68,8 @@ fn forward_http_sends_expected_headers_and_gets_200() {
         .headers(headers)
         .body(SendSafeBody::None);
     let request = client.request(builder).expect("prepare request");
-    let response = request.send().expect("upstream request must succeed");
+    let ctx = foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new()));
+    let response = request.send(&ctx).expect("upstream request must succeed");
 
     assert_eq!(
         response.get_status(),

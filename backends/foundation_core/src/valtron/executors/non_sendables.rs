@@ -53,6 +53,7 @@ where
         behaviour: InlineActionBehaviour,
         task: Task,
         wait_cycle: std::time::Duration,
+        ctx: Ctx,
     ) -> (
         Self,
         crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending>>,
@@ -62,7 +63,7 @@ where
         (
             Self(Some((behaviour, task, iter_chan.clone(), None))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
-                iter_chan, wait_cycle,
+                iter_chan, wait_cycle, ctx,
             ),
         )
     }
@@ -354,13 +355,14 @@ pub fn inlined_task<Done, Pending, Task>(
     behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
+    ctx: Ctx,
 ) -> (InlineAction<Done, Pending, Task>, DrivenRecvIterator<Task>)
 where
     Done: 'static,
     Pending: 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
-    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle, ctx);
     (task_action, drive_receiver(task_receiver))
 }
 
@@ -629,6 +631,7 @@ pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
     backpressure_sleep: Option<std::time::Duration>,
+    ctx: Ctx,
 ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>>
 where
     F: FnOnce() -> Fut + 'static,
@@ -639,7 +642,7 @@ where
 {
     // Single-threaded and no_std modes don't use queue_size or backpressure_sleep
     let _ = (queue_size, backpressure_sleep);
-    Ok(ThreadedIterFuture::new(future_fn).execute())
+    Ok(ThreadedIterFuture::new(future_fn).execute(ctx))
 }
 
 /// Send a task for execution without a need to get back any replies
@@ -1667,7 +1670,10 @@ where
             // on the readiness quantum. Replacing the handle cancels the last one.
             self.1.timer = single::parked_wake_after().map(|after| {
                 let timer_slot = Arc::clone(&slot);
-                crate::valtron::timer::call_at(single::clock().now() + after, move || {
+                // The stream iterator keeps the `Ctx` it was built with, so the
+                // timed wake reads that clock and no `Ctx` is forked per park.
+                let ctx = inner.ctx();
+                crate::valtron::timer::call_at(ctx.clock().now() + after, ctx, move || {
                     timer_slot.fire();
                 })
             });
@@ -2601,19 +2607,29 @@ pub fn sleep(
 /// hang then). Wasm: a valtron [`sleep()`] task, bridged with
 /// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
 #[cfg(any(feature = "std", feature = "alloc"))]
-pub async fn sleep_async(duration: std::time::Duration) {
-    #[cfg(all(feature = "std", not(target_family = "wasm")))]
-    crate::valtron::timer::sleep_for(duration).await;
+///
+/// The wait reads the clock of `ctx`. The returned future owns a copy of `ctx`,
+/// so it does not borrow the argument.
+pub fn sleep_async(
+    duration: std::time::Duration,
+    ctx: &Ctx,
+) -> impl std::future::Future<Output = ()> {
+    let ctx = ctx.clone();
+    async move {
+        #[cfg(all(feature = "std", not(target_family = "wasm")))]
+        crate::valtron::timer::sleep_for(duration, &ctx).await;
 
-    #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
-    {
-        use crate::valtron::StreamIteratorExt;
-        match sleep(duration) {
-            Ok(timer) => {
-                let _ = timer.into_ready_future().await;
+        #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
+        {
+            use crate::valtron::StreamIteratorExt;
+            let _ = &ctx;
+            match sleep(duration) {
+                Ok(timer) => {
+                    let _ = timer.into_ready_future().await;
+                }
+                // No executor to run the timer: return rather than panic.
+                Err(e) => tracing::error!(error = ?e, "sleep_async could not schedule its timer"),
             }
-            // No executor to run the timer: return rather than panic.
-            Err(e) => tracing::error!(error = ?e, "sleep_async could not schedule its timer"),
         }
     }
 }

@@ -72,7 +72,11 @@ pub async fn create_state_store(
     project_dir: &Path,
     _provider: &str,
     stage: &str,
+    ctx: foundation_context::Ctx,
 ) -> Result<Box<dyn StateStore>, crate::core::errors::StorageError> {
+    // Only the libsql backend reads the context.
+    #[cfg(not(feature = "libsql"))]
+    let _ = &ctx;
     #[cfg(feature = "d1")]
     if std::env::var("DEPLOYMENT_D1_DATABASE_ID").is_ok() {
         return Ok(Box::new(D1Store::from_env_state(project, stage)?));
@@ -90,7 +94,7 @@ pub async fn create_state_store(
         || std::env::var("DEPLOYMENT_STATE_DB").is_ok()
         || project_dir.join(".deployment/state.db").exists()
     {
-        let store = LibsqlStore::from_env_state(project_dir, project, stage).await?;
+        let store = LibsqlStore::from_env_state(project_dir, project, stage, ctx).await?;
         return Ok(Box::new(store));
     }
 

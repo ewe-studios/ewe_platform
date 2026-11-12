@@ -127,7 +127,77 @@ fn expect_refused(err: &Arc<dyn std::error::Error + Send + Sync + 'static>) {
 // Non-blocking TCP connect
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Connect to a non-routable address with a 2 s deadline, while a ticker on the
+/// A local TCP listener that never answers a new connect.
+///
+/// WHY: a test needs a dial that never completes, on any host network. An
+/// address such as `10.255.255.1` depends on the network: a sandbox may refuse
+/// it at once. A listener with a full accept queue does not depend on it.
+///
+/// HOW: the listener has a backlog of zero and nothing calls `accept`. Some
+/// non-blocking connects fill the queue. On Linux the kernel then drops each
+/// new SYN, so the next connect hangs and retries until its deadline. The
+/// constructor proves this with a probe connect and panics if the connect
+/// completes, so the test never passes for the wrong reason.
+struct FullBacklogListener {
+    addr: SocketAddr,
+    _listener: socket2::Socket,
+    _fillers: Vec<socket2::Socket>,
+}
+
+impl FullBacklogListener {
+    fn new() -> Self {
+        let listener = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
+            .expect("create the listener socket");
+        let any: SocketAddr = "127.0.0.1:0".parse().expect("loopback addr");
+        listener.bind(&any.into()).expect("bind");
+        listener.listen(0).expect("listen");
+        let addr = listener
+            .local_addr()
+            .expect("local addr")
+            .as_socket()
+            .expect("an inet address");
+
+        // Fill the accept queue. The sockets stay open so the queue stays full.
+        let mut fillers = Vec::new();
+        for _ in 0..8 {
+            let filler = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
+                .expect("create a filler socket");
+            filler.set_nonblocking(true).expect("non-blocking filler");
+            // `EINPROGRESS` or an immediate success are both fine here.
+            let _ = filler.connect(&addr.into());
+            fillers.push(filler);
+        }
+        std::thread::sleep(Duration::from_millis(200));
+
+        // Probe: the next connect must not complete.
+        let probe = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
+            .expect("create the probe socket");
+        let probe_result = probe.connect_timeout(&addr.into(), Duration::from_millis(300));
+        assert!(
+            probe_result.is_err(),
+            "the host accepted a connect on a full listener; this host cannot make a hanging dial"
+        );
+        assert!(
+            matches!(
+                probe_result.as_ref().err().map(std::io::Error::kind),
+                Some(std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock)
+            ),
+            "the full listener must make a connect hang, got {probe_result:?}"
+        );
+
+        Self {
+            addr,
+            _listener: listener,
+            _fillers: fillers,
+        }
+    }
+
+    fn addr(&self) -> SocketAddr {
+        self.addr
+    }
+}
+
+/// Connect to a listener that never answers with a 2 s deadline, while a ticker on the
 /// same pool needs a worker every 10 ms.
 ///
 /// Two connects saturate the two task workers: a blocking connect on each leaves
@@ -135,11 +205,12 @@ fn expect_refused(err: &Arc<dyn std::error::Error + Send + Sync + 'static>) {
 /// workers, so the ticker keeps ticking and each connect ends at the deadline.
 #[valtron_test(seed = 30_001, threads = 4, timeout = 60_000)]
 fn connect_to_blackhole_does_not_hold_a_worker() {
-    // 10.255.255.1 is non-routable on most networks: the SYN is sent and dropped,
-    // so the connect hangs until the client's own deadline. If a network rejects
-    // it at once with `ENETUNREACH`, use a local listener with a full backlog
-    // instead (see connection_tests::test_connection_timeout on Linux).
-    let blackhole: SocketAddr = "10.255.255.1:9".parse().expect("blackhole addr");
+    // A local listener whose accept queue is full never answers a new connect:
+    // the kernel drops the SYN, so the dial hangs until the client's own
+    // deadline. This does not depend on the host network (issue #485).
+    let blackhole_listener = FullBacklogListener::new();
+    let blackhole: SocketAddr = blackhole_listener.addr();
+    let blackhole_url = format!("http://blackhole.test:{}/", blackhole.port());
     let resolver = MockDnsResolver::new().with_response("blackhole.test", vec![blackhole]);
     let pool = Arc::new(HttpConnectionPool::new(ConnectionPool::default(), resolver));
     let config = ClientConfig::default().with_connect_timeout(Duration::from_secs(2));
@@ -148,22 +219,12 @@ fn connect_to_blackhole_does_not_hold_a_worker() {
 
     // Submit the two connects first so they take both workers, then the ticker.
     let conn_a = valtron::execute(
-        HttpExchangeTask::new(
-            get("http://blackhole.test:9/"),
-            0,
-            pool.clone(),
-            config.clone(),
-        ),
+        HttpExchangeTask::new(get(&blackhole_url), 0, pool.clone(), config.clone()),
         None,
     )
     .expect("execute connect a");
     let conn_b = valtron::execute(
-        HttpExchangeTask::new(
-            get("http://blackhole.test:9/"),
-            0,
-            pool.clone(),
-            config.clone(),
-        ),
+        HttpExchangeTask::new(get(&blackhole_url), 0, pool.clone(), config.clone()),
         None,
     )
     .expect("execute connect b");
@@ -182,6 +243,7 @@ fn connect_to_blackhole_does_not_hold_a_worker() {
 
     drop(ticker);
     let elapsed = started.elapsed();
+    drop(blackhole_listener);
 
     let tick_count = ticks.load(Ordering::SeqCst);
     assert!(

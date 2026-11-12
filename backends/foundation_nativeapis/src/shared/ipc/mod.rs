@@ -24,6 +24,10 @@ pub use util::{Align4, EndpointID};
 pub use version::{version_pre, Version};
 
 /// Decode a value from bincode bytes.
+///
+/// # Errors
+///
+/// Returns [`Error::Decode`] when the bytes are not a valid encoding of `T`.
 pub fn decode<'de, T: serde::Deserialize<'de>>(data: &'de [u8]) -> Result<T, Error> {
     let (d, _): (T, _) =
         bincode::serde::borrow_decode_from_slice(data, bincode::config::standard())
@@ -32,6 +36,10 @@ pub fn decode<'de, T: serde::Deserialize<'de>>(data: &'de [u8]) -> Result<T, Err
 }
 
 /// Encode a value to bincode bytes.
+///
+/// # Errors
+///
+/// Returns [`Error::Encode`] when the value cannot be encoded.
 pub fn encode<T: serde::Serialize>(t: &T) -> Result<Vec<u8>, Error> {
     bincode::serde::encode_to_vec(t, bincode::config::standard()).map_err(Error::Encode)
 }

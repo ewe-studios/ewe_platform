@@ -83,7 +83,9 @@ fn turso_take_is_atomic() {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("take.db").to_str().unwrap().to_owned();
     let store = async move {
-        let s = TursoStorage::new(&url).await.unwrap();
+        let s = TursoStorage::new(&url, foundation_context::Ctx::host())
+            .await
+            .unwrap();
         s.init_schema().await.unwrap();
         s
     }
@@ -97,7 +99,7 @@ fn libsql_take_is_atomic() {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("take.db").to_str().unwrap().to_owned();
     let store = async move {
-        let s = foundation_db::LibsqlStore::new_kv(&url, None)
+        let s = foundation_db::LibsqlStore::new_kv(&url, None, foundation_context::Ctx::host())
             .await
             .unwrap();
         s.init_kv().await.unwrap();

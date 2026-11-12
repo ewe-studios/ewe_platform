@@ -47,6 +47,24 @@
 #                             replaces `env` on macOS, so the Linux-only
 #                             `EWE_REQUIRE_IO_URING` and `EWE_REQUIRE_PTRACE`
 #                             never reach a macOS run.
+#   windows-runs    = [...]   one `cargo test` per entry on the Windows runner
+#                             (job `windows-test` in check.yaml), same
+#                             feature-flag syntax as `runs`. Only the feature
+#                             sets that build on Windows belong here: leave out
+#                             `uring`, `ptrace`, `vfs-fuse`, `vfs-preload` and
+#                             `fd` Unix-only sets. A package without this key
+#                             is not tested on Windows.
+#   windows-env     = { K = "v" }  environment for the Windows test commands.
+#                             It replaces `env` on Windows, like `macos-env`.
+#   macos-tests / windows-tests = "none"  the package has macOS or Windows
+#                             specific code (`target_os = "macos"`,
+#                             `target_vendor = "apple"`, `target_os =
+#                             "windows"`, `cfg(windows)`) but is not tested on
+#                             that OS. It needs a `reason` (or `macos-reason` /
+#                             `windows-reason` when `reason` already says
+#                             something else) with the cause. It excludes `macos-runs` /
+#                             `windows-runs`. The CI guard (run by `plan`) fails
+#                             for a package with such code and neither key.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   failure-lines = N         failed-test lines kept per command for the end-of-run
@@ -172,6 +190,10 @@ reason = "67 pedantic warnings; clear them and delete this override (#441)"
 # tests inside the model suite are gated on those features. This keeps the
 # harness and backends compiling without llama.cpp or candle.
 runs = ["testing", "--no-default-features --features testing"]
+# The `target_vendor = "apple"` code is the Candle Metal backend and the llama.cpp
+# Metal choice. Both need an Apple GPU, which the macOS runner does not give.
+macos-tests = "none"
+macos-reason = "Apple-vendor code is the Candle Metal and llama.cpp Metal backends; they need an Apple GPU and model downloads."
 timeout-minutes = 90
 # Wasm gate (spec 65 00-foundation): the agentic layer + cloud providers must
 # compile to wasm32 with no local (llamacpp/candle) backends.
@@ -240,6 +262,8 @@ runs = ["", "--no-default-features --features single_threaded"]
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
 runs = ["", "vms"]
+macos-tests = "none"
+macos-reason = "The macOS provider code starts UTM virtual machines (the `vms` feature), which a macOS runner cannot host."
 # Lint both feature trees: a warning in `vms` code must fail CI too
 # (spec 70 feature 79).
 clippy-runs = ["", "vms"]
@@ -392,9 +416,9 @@ wasm-runs = [""]
 # backend together so a backend that only breaks under a specific feature set is
 # caught in CI.
 runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
-# At zero clippy warnings in the default build and the `vfs-preload` shim tree
-# (spec 70 feature 113): a new one fails CI.
-clippy-runs = ["", "vfs-preload"]
+# At zero clippy warnings in the default build, the `vfs-preload` shim tree
+# (spec 70 feature 113) and the `ipc` message bus (issue #487): a new one fails CI.
+clippy-runs = ["", "vfs-preload", "ipc"]
 clippy-deny-warnings = true
 # The crate builds for wasm32 (issue #411): the native and signal modules are
 # gated at the crate root, and only the shared VFS tree compiles. The default
@@ -416,6 +440,10 @@ container-options = "--security-opt seccomp=unconfined"
 # port IPC transport (`vfs-ipc`) and the userspace data plane (`netstack`). The
 # `tun` (needs root), `uring`, `ptrace`, FUSE and preload sets are Linux-only.
 macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc"]
+# Windows runs (job `windows-test`): the Windows signal handler (default
+# `signal`), the polling watcher (`watcher-windows`) and the named-pipe IPC
+# transport (`ipc`). `fd`, `uring`, `ptrace`, FUSE and preload are Unix-only.
+windows-runs = ["", "watcher-windows", "ipc"]
 
 [packages.foundation_iogate]
 # 3 pedantic warnings; clear them and delete this override (#441).
@@ -430,6 +458,12 @@ env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_proxy]
+# `quic` adds the HTTP/3 front end (F19) and its suites (tests/h3_*). No run
+# compiled them before, so the H3 code was never built or linted in CI.
+runs = ["", "quic"]
+# Clippy covers the quic tree too, at zero warnings (clippy-deny-warnings is
+# the default), so a new H3 warning fails CI.
+clippy-runs = ["", "quic"]
 # The default run also compiles the macOS branch of the completion dial tests.
 macos-runs = [""]
 # The completion dial and splice tests need io_uring; fail instead of skipping.
@@ -439,6 +473,8 @@ container-options = "--security-opt seccomp=unconfined"
 [packages.foundation_reactor]
 # The macOS reactor uses kqueue. `uring` is Linux-only, so only the default run.
 macos-runs = [""]
+# The Windows reactor uses an I/O completion port (IOCP) selector.
+windows-runs = [""]
 # At zero clippy warnings under `--all-targets`: a new one fails CI. Without
 # this, a warning here blocked the clippy gate of every crate that depends on it.
 clippy-deny-warnings = true
@@ -450,6 +486,8 @@ wasm-runs = [""]
 [packages.foundation_compact]
 # The default run covers the macOS entropy and errno backends.
 macos-runs = [""]
+# The default run covers the Windows entropy backend (`BCryptGenRandom`).
+windows-runs = [""]
 wasm = "enforce"
 # Defaults use the wasm-bindgen time/entropy backend; the second run is the
 # owned path's `host-abi` backend.
@@ -481,6 +519,9 @@ wasm-deny-warnings = true
 # The `device` feature builds the kqueue poller and the utun device that only
 # exist on macOS. Without `device`, the macOS code is not compiled.
 macos-runs = ["", "device"]
+# The default run covers the Windows `sleepyinstant` clock backend. `device`
+# builds the Unix tun and poller code only.
+windows-runs = [""]
 
 # ---------------------------------------------------------------------------
 # Example workspaces

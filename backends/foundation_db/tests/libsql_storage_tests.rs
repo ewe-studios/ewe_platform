@@ -8,7 +8,9 @@ use tempfile::TempDir;
 
 /// Open and initialise a KV store.
 async fn open(url: &str) -> LibsqlStore {
-    let storage = LibsqlStore::new_kv(url, None).await.unwrap();
+    let storage = LibsqlStore::new_kv(url, None, foundation_context::Ctx::host())
+        .await
+        .unwrap();
     storage.init_kv().await.unwrap();
     storage
 }

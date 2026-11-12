@@ -30,7 +30,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_context::Ctx;
-#[cfg(unix)]
 use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 
 /// Which direction of I/O a parked task is waiting for.

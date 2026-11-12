@@ -38,7 +38,7 @@ fn make_store() -> (
 ) {
     init_valtron();
     let turso = futures_lite::future::block_on(async {
-        let turso = TursoStorage::new(":memory:").await?;
+        let turso = TursoStorage::new(":memory:", foundation_context::Ctx::host()).await?;
         turso.init_schema().await?;
         Ok::<_, StorageError>(turso)
     })

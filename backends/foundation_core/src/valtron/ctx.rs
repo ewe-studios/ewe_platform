@@ -70,6 +70,9 @@ impl SimulatedClock {
         // Release the lock first: a wake listener may read this clock, and
         // `now` takes the same lock.
         crate::valtron::executors::request_executor_resume();
+        // A timer future that waits on this clock must look again too.
+        #[cfg(all(feature = "std", not(target_family = "wasm")))]
+        crate::valtron::timer::nudge();
     }
 
     /// Add `by` to the wall-clock offset.
@@ -86,6 +89,9 @@ impl SimulatedClock {
             *offset += by;
         }
         crate::valtron::executors::request_executor_resume();
+        // A timer future that waits on this clock must look again too.
+        #[cfg(all(feature = "std", not(target_family = "wasm")))]
+        crate::valtron::timer::nudge();
     }
 }
 

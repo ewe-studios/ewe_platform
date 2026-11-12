@@ -71,7 +71,7 @@ impl H2ProxyHandler {
 impl H2Serve for H2ProxyHandler {
     fn serve_h2(
         &self,
-        _ctx: Ctx,
+        ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
@@ -159,6 +159,7 @@ impl H2Serve for H2ProxyHandler {
                     client,
                     body,
                     &tx,
+                    &ctx,
                 )
                 .await;
             }
@@ -191,6 +192,7 @@ async fn forward_upstream(
     client: SharedHttpClient,
     body: PipeReceiver<H2IncomingFrame>,
     tx: &PipeSender<H2Frame>,
+    ctx: &Ctx,
 ) {
     let url = upstream_url(lease.backend().url(), &path);
 
@@ -230,7 +232,7 @@ async fn forward_upstream(
             }
         };
         let response = match client.request(builder) {
-            Ok(request) => match request.send_async().await {
+            Ok(request) => match request.send_async(ctx).await {
                 Ok(resp) => resp,
                 Err(e) => {
                     tracing::warn!(%url, "H2 upstream request failed: {e}");

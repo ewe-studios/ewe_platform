@@ -592,7 +592,11 @@ mod native {
         let ticker_task = from_future(async move {
             for _ in 0..50 {
                 counter_for_ticker.fetch_add(1, Ordering::SeqCst);
-                sleep_for(std::time::Duration::from_millis(10)).await;
+                sleep_for(
+                    std::time::Duration::from_millis(10),
+                    &foundation_core::valtron::Ctx::host(),
+                )
+                .await;
             }
         });
         let ticker_stream = execute(ticker_task, None).expect("execute ticker");

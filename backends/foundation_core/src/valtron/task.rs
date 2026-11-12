@@ -308,7 +308,9 @@ impl EventReadiness for WakeSignal {
 /// };
 ///
 /// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
-/// let mut stream = NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1));
+/// let ctx = foundation_core::valtron::Ctx::host();
+/// let mut stream =
+///     NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1), ctx);
 ///
 /// // An empty stream parks the task on a signal instead of re-polling it.
 /// let status: TaskStatus<u32, ()> = park_on(&mut stream);
@@ -360,7 +362,9 @@ impl<D, P> TaskStatus<D, P> {
     /// };
     ///
     /// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
-    /// let mut stream = NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1));
+    /// let ctx = foundation_core::valtron::Ctx::host();
+    /// let mut stream =
+    ///     NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1), ctx);
     ///
     /// // With no item yet, the task parks on the stream's wake signal.
     /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
@@ -1702,6 +1706,13 @@ pub trait ExecutionEngine {
     /// rng returns a shared thread-safe `ChaCha8Rng` random generation
     /// managed by the executor.
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>>;
+
+    /// `fork_ctx` returns a fresh [`Ctx`] forked from the engine root.
+    ///
+    /// A blocking consumer that the engine builds (a receive iterator or a
+    /// stream iterator) keeps this `Ctx`. It then reads its clock from the
+    /// engine and never from the real operating-system clock.
+    fn fork_ctx(&self) -> Ctx;
 }
 
 pub type BoxedExecutionAction = Box<dyn ExecutionAction>;

@@ -112,7 +112,7 @@ async fn can_execute_a_task_with_an_async_runtime() {
 
     execute(
         from_future(async move {
-            sleep_async(Duration::from_millis(100)).await;
+            sleep_async(Duration::from_millis(100), &foundation_core::valtron::Ctx::host()).await;
 
             executor
                 .schedule(rr, move |item| async move {
@@ -150,7 +150,7 @@ async fn can_execute_work_without_a_receiver_and_a_async_runtime() {
 
     execute(
         from_future(async move {
-            sleep_async(Duration::from_millis(100)).await;
+            sleep_async(Duration::from_millis(100), &foundation_core::valtron::Ctx::host()).await;
 
             executor
                 .spawn(async move {
@@ -185,7 +185,7 @@ async fn can_execution_in_runtime_while_waiting_for_reciever_lead_to_panic() {
     executor
         .schedule(rr.clone(), move |item| {
             send(from_future(async move {
-                sleep_async(Duration::from_millis(100)).await;
+                sleep_async(Duration::from_millis(100), &foundation_core::valtron::Ctx::host()).await;
                 sender
                     .async_send(item.unwrap())
                     .await
@@ -221,7 +221,7 @@ async fn can_execute_with_closed_sender_with_runtime_and_no_panic() {
     executor
         .schedule(rr.clone(), move |item| {
             send(from_future(async move {
-                sleep_async(Duration::from_millis(100)).await;
+                sleep_async(Duration::from_millis(100), &foundation_core::valtron::Ctx::host()).await;
                 if let Ok(value) = item {
                     sender
                         .async_send(value)
@@ -255,7 +255,7 @@ async fn can_execute_with_async_serve_with_async_runtime() {
     executor
         .schedule(rr.clone(), move |item| {
             send(from_future(async move {
-                sleep_async(Duration::from_millis(500)).await;
+                sleep_async(Duration::from_millis(500), &foundation_core::valtron::Ctx::host()).await;
                 sender
                     .async_send(item.unwrap())
                     .await

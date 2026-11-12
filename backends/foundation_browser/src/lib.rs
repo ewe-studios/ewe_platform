@@ -25,6 +25,7 @@ pub mod error;
 pub mod geometry;
 pub mod jsonrpc;
 pub mod locator;
+pub mod pause;
 pub mod runtime;
 pub mod supervisor;
 pub mod test;
@@ -35,6 +36,7 @@ pub use error::{BrowserError, Result};
 pub use geometry::Rect;
 pub use jsonrpc::{RpcEngine, WireProtocol};
 pub use locator::{Locator, LocatorAssertions};
+pub use pause::WaitConfig;
 
 /// `#[wasm_ui_server]` — boot a server + browser for a test, with deterministic
 /// teardown (see the macro docs).

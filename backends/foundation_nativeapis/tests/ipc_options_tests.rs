@@ -7,7 +7,7 @@ mod tests {
         let opts = Options::new("test-bus", Label::new("my-endpoint"));
         assert_eq!(opts.identifier, "test-bus");
         assert_eq!(opts.label.as_str(), "my-endpoint");
-        assert!(opts.token.is_empty());
+        assert_eq!(opts.token, "");
         assert!(!opts.controller_affinity);
     }
 

@@ -31,6 +31,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::timer::{self, Sleep};
 use foundation_iogate::FdReadiness;
@@ -99,6 +100,8 @@ impl WriterConfig {
 pub struct ResponseWriter {
     conn: SharedByteBufferStream<RawStream>,
     config: WriterConfig,
+    /// The context whose clock measures the send timeout and the retry interval.
+    ctx: Ctx,
     /// The timer for `send_timeout` from the last progress; cleared on every
     /// progress, so an idle writer is not timed out.
     idle_timer: Option<Sleep>,
@@ -114,12 +117,13 @@ struct WaitSource {
 }
 
 impl ResponseWriter {
-    /// A writer for `conn` with the given limits.
+    /// A writer for `conn` with the given limits. Its timers read the clock of `ctx`.
     #[must_use]
-    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig) -> Self {
+    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig, ctx: Ctx) -> Self {
         Self {
             conn,
             config,
+            ctx,
             idle_timer: None,
             wait: None,
         }
@@ -203,7 +207,7 @@ impl ResponseWriter {
         let send_timeout = self.config.send_timeout;
         let timer = self
             .idle_timer
-            .get_or_insert_with(|| timer::sleep_for(send_timeout));
+            .get_or_insert_with(|| timer::sleep_for(send_timeout, &self.ctx));
         // The timer fires at the deadline; no separate clock read is needed.
         if Pin::new(timer).poll(cx).is_ready() {
             return Poll::Ready(Err(io::Error::new(
@@ -213,7 +217,7 @@ impl ResponseWriter {
         }
         let conn = &self.conn;
         let wait = self.wait.get_or_insert_with(|| WaitSource::new(conn));
-        wait.poll(cx, self.config.poll_fallback_interval)
+        wait.poll(cx, self.config.poll_fallback_interval, &self.ctx)
     }
 }
 
@@ -243,7 +247,12 @@ impl WaitSource {
         }
     }
 
-    fn poll(&mut self, cx: &mut Context<'_>, fallback_interval: Duration) -> Poll<io::Result<()>> {
+    fn poll(
+        &mut self,
+        cx: &mut Context<'_>,
+        fallback_interval: Duration,
+        ctx: &Ctx,
+    ) -> Poll<io::Result<()>> {
         if let Some(readiness) = &self.readiness {
             // Register before the readiness probe, so an edge between the two
             // still wakes this task.
@@ -286,7 +295,7 @@ impl WaitSource {
             // let the caller retry its write.
             let fallback = self
                 .fallback
-                .get_or_insert_with(|| timer::sleep_for(fallback_interval));
+                .get_or_insert_with(|| timer::sleep_for(fallback_interval, ctx));
             if Pin::new(fallback).poll(cx).is_ready() {
                 self.fallback = None;
                 Poll::Ready(Ok(()))
@@ -393,6 +402,7 @@ pub fn send_bytes<B: AsRef<[u8]> + Send + Sync + 'static>(
     status: u16,
     content_type: &str,
     body: B,
+    ctx: &Ctx,
 ) -> ConnectionResult {
     let headers = [
         (SimpleHeader::CONTENT_TYPE, content_type.to_string()),
@@ -400,7 +410,7 @@ pub fn send_bytes<B: AsRef<[u8]> + Send + Sync + 'static>(
     ];
     match render_head(status, &headers, body.as_ref().len()) {
         Ok(head) => {
-            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            let writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
             ConnectionResult::Async(Box::pin(write_response(writer, head, body)))
         }
         Err(e) => {
@@ -416,8 +426,9 @@ pub fn send_text(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &str,
+    ctx: &Ctx,
 ) -> ConnectionResult {
-    send_bytes(conn, status, "text/plain", body.as_bytes().to_vec())
+    send_bytes(conn, status, "text/plain", body.as_bytes().to_vec(), ctx)
 }
 
 /// Send an HTML response. See [`send_bytes`].
@@ -426,8 +437,9 @@ pub fn send_html(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &str,
+    ctx: &Ctx,
 ) -> ConnectionResult {
-    send_bytes(conn, status, "text/html", body.as_bytes().to_vec())
+    send_bytes(conn, status, "text/html", body.as_bytes().to_vec(), ctx)
 }
 
 /// Send a JSON response. See [`send_bytes`].
@@ -436,9 +448,10 @@ pub fn send_json<T: Serialize>(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &T,
+    ctx: &Ctx,
 ) -> ConnectionResult {
     match serde_json::to_vec(body) {
-        Ok(bytes) => send_bytes(conn, status, "application/json", bytes),
+        Ok(bytes) => send_bytes(conn, status, "application/json", bytes, ctx),
         Err(e) => {
             tracing::error!("response JSON encode failed: {e}");
             ConnectionResult::Close(None)
@@ -448,8 +461,8 @@ pub fn send_json<T: Serialize>(
 
 /// Send a 404 Not Found response. See [`send_bytes`].
 #[must_use]
-pub fn send_not_found(conn: SharedByteBufferStream<RawStream>) -> ConnectionResult {
-    send_text(conn, 404, "Not Found")
+pub fn send_not_found(conn: SharedByteBufferStream<RawStream>, ctx: &Ctx) -> ConnectionResult {
+    send_text(conn, 404, "Not Found", ctx)
 }
 
 /// Send a 500 Internal Server Error response. See [`send_bytes`].
@@ -457,8 +470,9 @@ pub fn send_not_found(conn: SharedByteBufferStream<RawStream>) -> ConnectionResu
 pub fn send_server_error(
     conn: SharedByteBufferStream<RawStream>,
     reason: Option<&str>,
+    ctx: &Ctx,
 ) -> ConnectionResult {
-    send_text(conn, 500, reason.unwrap_or("Internal Server Error"))
+    send_text(conn, 500, reason.unwrap_or("Internal Server Error"), ctx)
 }
 
 /// Send a `100 Continue` interim response. See [`send_bytes`].
@@ -467,7 +481,7 @@ pub fn send_server_error(
 /// allows an informational (1xx) status without headers. The response is
 /// flushed so the client can send its body at once.
 #[must_use]
-pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>) -> ConnectionResult {
+pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>, ctx: &Ctx) -> ConnectionResult {
     let response = match SimpleOutgoingResponse::builder()
         .with_status(status_from_code(100))
         .with_body(SendSafeBody::None)
@@ -481,7 +495,7 @@ pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>) -> ConnectionR
     };
     match render_message(response) {
         Ok(head) => {
-            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            let writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
             ConnectionResult::Async(Box::pin(write_response(writer, head, [])))
         }
         Err(e) => {

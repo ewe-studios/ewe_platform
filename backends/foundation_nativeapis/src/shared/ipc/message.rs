@@ -1,6 +1,6 @@
 use foundation_core::type_uuid::{Bytes, TypeUuid};
 use foundation_macros::TypeUuid;
-/// Shareable IPC message types and the MessageBox trait.
+/// Shareable IPC message types and the `MessageBox` trait.
 ///
 /// `MessageBox` is a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
 /// The `#[derive(TypeUuid)]` with `#[uuid = "..."]` attribute provides type identification.
@@ -12,16 +12,28 @@ use super::{EndpointID, Error, Label, Version};
 ///
 /// Implemented as a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
 pub trait MessageBox: Send + 'static {
+    /// Decode a message from bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::TypeUuidNotFound`] when `uuid` is not the type uuid of `Self`.
+    /// Returns [`Error::Decode`] when the bytes are not a valid encoding of `Self`.
     fn decode(uuid: Bytes, data: &[u8]) -> Result<Self, Error>
     where
         Self: Sized;
 
+    /// Encode this message to bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Encode`] when the message cannot be encoded.
     fn encode(&self) -> Result<Vec<u8>, Error>;
 
+    /// The type uuid of this message.
     fn uuid(&self) -> Bytes;
 }
 
-/// Blanket impl: any TypeUuid + Serialize + Deserialize type is a MessageBox.
+/// Blanket impl: any `TypeUuid` + `Serialize` + `Deserialize` type is a `MessageBox`.
 impl<T: TypeUuid + Serialize + for<'de> Deserialize<'de> + Send + 'static> MessageBox for T {
     fn decode(uuid: Bytes, data: &[u8]) -> Result<Self, Error>
     where

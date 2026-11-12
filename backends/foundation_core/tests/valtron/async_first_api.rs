@@ -83,7 +83,12 @@ impl<D: 'static, P: 'static> WakeableStream for Script<D, P> {}
 /// A queue-backed stream that signals readiness; it never waits on its own.
 fn queue() -> (Arc<NotifyQueue<Item>>, NotifyQueueStreamIterator<u32, char>) {
     let q = Arc::new(NotifyQueue::unbounded());
-    let it = NotifyQueueStreamIterator::new(Arc::clone(&q), 1, Duration::ZERO);
+    let it = NotifyQueueStreamIterator::new(
+        Arc::clone(&q),
+        1,
+        Duration::ZERO,
+        crate::valtron::real_ctx(),
+    );
     (q, it)
 }
 
@@ -495,7 +500,12 @@ dual!(
 async fn an_async_consumer_never_blocks_in_next() {
     let q: Arc<NotifyQueue<Item>> = Arc::new(NotifyQueue::unbounded());
     q.set_max_spins(1);
-    let it = NotifyQueueStreamIterator::new(Arc::clone(&q), 1, Duration::from_millis(300));
+    let it = NotifyQueueStreamIterator::new(
+        Arc::clone(&q),
+        1,
+        Duration::from_millis(300),
+        crate::valtron::real_ctx(),
+    );
     let started = foundation_compact::Instant::now();
     let producer = async move {
         for i in 0..20 {

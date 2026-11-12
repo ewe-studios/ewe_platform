@@ -22,6 +22,7 @@ use crate::cdp::backend::CdpBackend;
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};
 use crate::jsonrpc::RpcEngine;
+use crate::pause::{pause, WaitConfig};
 use crate::supervisor::BrowserProcess;
 
 /// The context a driver reads: an owned [`Ctx`], or a borrow from the host.
@@ -99,7 +100,7 @@ impl<'a> BrowserDriver<'a> {
         let process = BrowserProcess::launch(config, ctx.ctx_ref())?;
         // Firefox's remote agent takes a beat to start listening; CDP's endpoint
         // is ready as soon as DevToolsActivePort appears, so one shot suffices.
-        let engine = connect_with_retry(process.ws_url(), browser, ctx.ctx_ref())?;
+        let engine = connect_with_retry(process.ws_url(), browser, &config.wait, ctx.ctx_ref())?;
         // BiDi is connection-scoped: open the session once, up front.
         if browser == Browser::Firefox {
             crate::bidi::new_session(&engine)?;
@@ -129,7 +130,18 @@ impl<'a> BrowserDriver<'a> {
 }
 
 /// Connect the engine, retrying briefly (Firefox needs a moment to listen).
-fn connect_with_retry(ws_url: &str, browser: Browser, ctx: &Ctx) -> Result<RpcEngine> {
+///
+/// The retry deadline and the pause between attempts follow the `ctx` clock.
+///
+/// # Errors
+/// The last connect error when the deadline passes.
+#[doc(hidden)]
+pub fn connect_with_retry(
+    ws_url: &str,
+    browser: Browser,
+    wait: &WaitConfig,
+    ctx: &Ctx,
+) -> Result<RpcEngine> {
     let call_timeout = Duration::from_secs(30);
     if browser == Browser::Chromium {
         return RpcEngine::connect(ws_url, call_timeout);
@@ -139,7 +151,7 @@ fn connect_with_retry(ws_url: &str, browser: Browser, ctx: &Ctx) -> Result<RpcEn
         match RpcEngine::connect(ws_url, call_timeout) {
             Ok(engine) => return Ok(engine),
             Err(e) if ctx.clock().now() >= deadline => return Err(e),
-            Err(_) => std::thread::sleep(Duration::from_millis(100)),
+            Err(_) => pause(ctx, wait.poll_interval, wait),
         }
     }
 }

@@ -9,6 +9,13 @@ use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
 use serial_test::serial;
 
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 #[test]
@@ -31,7 +38,7 @@ fn test_redirect_chain_resolves_successfully() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     assert!(res.is_ok());
 }
@@ -56,7 +63,7 @@ fn test_redirect_chain_limit_enforced() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     assert!(matches!(res, Err(HttpClientError::TooManyRedirects)));
 }
@@ -116,7 +123,7 @@ fn test_redirect_as_final_response_chain() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Should follow redirect from final response");
 
     assert!(
@@ -150,7 +157,7 @@ fn test_redirect_307_as_final_response() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Should follow 307 redirect");
 
     assert!(response.is_success());
@@ -183,7 +190,7 @@ fn test_too_many_redirects_as_final_response() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     dbg!("Result is: ", &result);
     assert!(
@@ -247,7 +254,7 @@ fn test_redirect_after_100_continue() {
         .body_text("test body")
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Should follow redirect after 100 Continue");
 
     assert!(
@@ -283,7 +290,7 @@ fn get_without_body_completes_successfully() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
     assert!(res.is_ok(), "GET without body should succeed");
     assert_eq!(
         res.unwrap().get_status().into_usize(),
@@ -309,7 +316,7 @@ fn post_with_empty_body_skips_100_continue() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
     assert!(res.is_ok(), "POST without body should succeed");
 }
 
@@ -327,7 +334,7 @@ fn post_with_body_still_works() {
         .body_text("hello world")
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
     assert!(res.is_ok(), "POST with body should succeed");
     let resp = res.unwrap();
     assert_eq!(
@@ -351,7 +358,7 @@ fn redirect_chain_bodyless_requests_skip_writebody() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     assert!(
         res.is_ok(),

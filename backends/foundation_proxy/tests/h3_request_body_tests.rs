@@ -71,7 +71,12 @@ fn frame_bytes(state: &mut u64) -> Vec<u8> {
 }
 
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
+    use std::fmt::Write as _;
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        write!(out, "{b:02x}").expect("writing to a String does not fail");
+    }
+    out
 }
 
 /// Read one HTTP/1.1 request from `sock`, hash its body (Content-Length or
@@ -195,13 +200,11 @@ fn send_frame(
 
 fn finish(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) {
     loop {
-        match request.poll_finish() {
-            Stream::Next(_) => return,
-            _ => {
-                assert!(Instant::now() < deadline, "finish timed out");
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(_) = request.poll_finish() {
+            return;
         }
+        assert!(Instant::now() < deadline, "finish timed out");
+        std::thread::sleep(ms(1));
     }
 }
 
@@ -373,9 +376,11 @@ fn process_cpu() -> Duration {
         tv_nsec: 0,
     };
     // SAFETY: `ts` is a valid out pointer for the call.
-    let rc = unsafe { libc::clock_gettime(libc::CLOCK_PROCESS_CPUTIME_ID, &mut ts) };
+    let rc = unsafe { libc::clock_gettime(libc::CLOCK_PROCESS_CPUTIME_ID, &raw mut ts) };
     assert_eq!(rc, 0, "clock_gettime");
-    Duration::new(ts.tv_sec as u64, ts.tv_nsec as u32)
+    let secs = u64::try_from(ts.tv_sec).expect("process CPU seconds are not negative");
+    let nanos = u32::try_from(ts.tv_nsec).expect("process CPU nanoseconds fit in u32");
+    Duration::new(secs, nanos)
 }
 
 /// Hold still for one second and return the process CPU used, with the busiest
@@ -384,7 +389,9 @@ fn measure_idle() -> (Duration, Vec<(String, u64)>) {
     let before = process_cpu();
     let ticks_before = thread_ticks();
     std::thread::sleep(Duration::from_secs(1));
-    let used = process_cpu() - before;
+    let used = process_cpu()
+        .checked_sub(before)
+        .expect("process CPU time does not go back");
     let mut threads = Vec::new();
     for (tid, (name, ticks)) in thread_ticks() {
         let was = ticks_before.get(&tid).map_or(0, |t| t.1);

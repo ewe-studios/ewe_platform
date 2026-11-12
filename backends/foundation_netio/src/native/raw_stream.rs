@@ -546,36 +546,40 @@ impl RawStream {
             }
         }
 
-        #[cfg(unix)]
-        let fd = {
-            use std::os::unix::io::AsRawFd;
-            self.as_raw_fd()
-        };
+        // The reactor readiness exists on unix only. Other platforms read the
+        // body with a blocking read, so they have no wake source.
         #[cfg(not(unix))]
-        let fd = -1;
-
-        if fd < 0 {
-            return None;
+        {
+            None
         }
+        #[cfg(unix)]
+        {
+            use std::os::unix::io::AsRawFd;
+            let fd = self.as_raw_fd();
 
-        match foundation_reactor::FdReadiness::register(fd) {
-            Ok(readiness) => {
-                let readiness = Arc::new(readiness);
-                Some(Arc::new(move |waker: &std::task::Waker| {
-                    // Clear the latched readiness before the caller reads again
-                    // and parks. This also disarms the previous waker, so a
-                    // stale readable flag cannot re-wake a reader that already
-                    // drained the socket. The selector re-arm lives in
-                    // `register_waker` (feature 136): macOS kqueue reports a
-                    // readable edge only when the byte count grows, so the
-                    // re-arm delivers a later, smaller frame (feature 129).
-                    readiness.clear();
-                    readiness.register_waker(waker)
-                }))
+            if fd < 0 {
+                return None;
             }
-            Err(err) => {
-                tracing::debug!(error = %err, fd, "cannot register body fd readiness");
-                None
+
+            match foundation_reactor::FdReadiness::register(fd) {
+                Ok(readiness) => {
+                    let readiness = Arc::new(readiness);
+                    Some(Arc::new(move |waker: &std::task::Waker| {
+                        // Clear the latched readiness before the caller reads again
+                        // and parks. This also disarms the previous waker, so a
+                        // stale readable flag cannot re-wake a reader that already
+                        // drained the socket. The selector re-arm lives in
+                        // `register_waker` (feature 136): macOS kqueue reports a
+                        // readable edge only when the byte count grows, so the
+                        // re-arm delivers a later, smaller frame (feature 129).
+                        readiness.clear();
+                        readiness.register_waker(waker)
+                    }))
+                }
+                Err(err) => {
+                    tracing::debug!(error = %err, fd, "cannot register body fd readiness");
+                    None
+                }
             }
         }
     }

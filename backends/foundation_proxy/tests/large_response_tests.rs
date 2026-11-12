@@ -79,6 +79,7 @@ impl Serve for BigBodyHandler {
             200,
             "application/octet-stream",
             Body(Arc::clone(&self.body)),
+            &foundation_core::valtron::Ctx::host(),
         )
     }
 }

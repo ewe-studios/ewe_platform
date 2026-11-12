@@ -14,9 +14,9 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::thread;
 use std::time::Duration;
 
+use foundation_browser::pause::{WaitConfig, pause};
 use foundation_context::Ctx;
 use tracing::{debug, info};
 
@@ -299,7 +299,7 @@ pub(crate) fn run_with_config(
             }
             _ if clock.now() < deadline => {
                 debug!("wrangler not ready yet (port {port})");
-                thread::sleep(Duration::from_millis(100));
+                pause(ctx, Duration::from_millis(100), &WaitConfig::default());
             }
             _ => {
                 stop_wrangler(&mut child);

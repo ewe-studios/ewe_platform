@@ -25,7 +25,9 @@ fn fixed_ctx() -> Ctx {
 async fn turso() -> (TursoStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().unwrap();
     let url = dir.path().join("cleanup.db").to_string_lossy().into_owned();
-    let store = TursoStorage::new(&url).await.unwrap();
+    let store = TursoStorage::new(&url, foundation_context::Ctx::host())
+        .await
+        .unwrap();
     store.init_schema().await.unwrap();
     (store, dir)
 }
