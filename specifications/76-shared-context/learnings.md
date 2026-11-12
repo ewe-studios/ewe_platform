@@ -302,3 +302,10 @@ standard ASD-STE100.
 - The first macOS and Windows run (PR #516) found 11 groups of old bugs: #519 to #528, plus
   #466 and #485. Linux was green. A crate that never ran its tests on an OS hides bugs
   there; a compile check does not find them.
+- The Windows selector waits in `WSAPoll`, and `WSAPoll` watches only sockets (#532). Its
+  waker signalled an event handle, so a wake never ended a poll, and a poll with no socket
+  spun. A loopback UDP socket connected to itself is a wake channel that `WSAPoll` can watch.
+  A register or deregister must also end a blocked poll, or the new set waits for the timeout.
+- #520 (a body that ends before its Content-Length on Windows) is not root-caused yet. The
+  CI log API keeps only the end of the log, and libtest output of a failed test is not in it.
+  A narrow Windows job that runs one test with `--nocapture` is the next step.
