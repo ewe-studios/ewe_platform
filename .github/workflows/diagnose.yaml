@@ -11,6 +11,10 @@ on:
       - .github/workflows/diagnose.yaml
   workflow_dispatch:
 
+# The job only reads the repository.
+permissions:
+  contents: read
+
 # CLAUDE.md rule 16: one diagnose run per branch at a time.
 concurrency:
   group: diagnose-${{ github.ref }}
