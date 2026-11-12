@@ -208,6 +208,11 @@ Add to `SandboxSpec` (feature 00): `parent: Option<SandboxId>` (default `None`) 
 `nested_host: bool` (default `false`). `validate`: `parent` is `Some` exactly when
 `driver == Some(DriverId::Nested)` (`InvalidSpec { field: "parent" }`).
 
+A child's `RootFs` path, and each other path in its spec, is a path **in the parent
+container**, because the inner control plane runs there. The nested host image of section
+6.4 has the default root image at a fixed path; a caller with its own image puts it in
+the parent first (`write_file` on the parent sandbox).
+
 `NestedDriver` is registered in a `SandboxManager` with a handle to that manager's own
 registry (to find the parent).
 

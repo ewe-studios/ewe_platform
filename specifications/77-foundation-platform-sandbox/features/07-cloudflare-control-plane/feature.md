@@ -83,6 +83,13 @@ Cloudflare runtime.
 | on alarm | story | the alarm | Stop when idle; else set the alarm again. |
 | handle | entity | a request | Route to `ControlService`. |
 
+**Sessions and DO memory.** A running `Exec` stream is an open request to the DO, and the
+runtime keeps a DO in memory while a request is open. `ExecInput` and `ExecSignal` are
+separate requests to the same DO and reach the same slave session, because the session
+lives in the slave, not in the DO (the service passes calls through; feature 02, section
+6.10). If the DO is restarted anyway, the open stream ends; the caller sees `StreamLost`,
+and the slave kills that program (feature 01, invariant I8).
+
 **Words.** *One DO, one sandbox*: a DO instance holds a `SandboxManager` with room for one
 sandbox, and its ID is the DO's name. *Not listening*: the container runs and no process
 accepts on the port yet.
@@ -140,13 +147,14 @@ Links to other entities: a record with no running container is removed from stor
 | I1 | One DO holds at most one sandbox, and its ID is the DO name. A second `Create` fails with `TooManySessions`. |
 | I2 | The container starts with the entry point `["/usr/local/bin/agent-slave", "--listen", "tcp:0.0.0.0:1024"]`, with only the environment that the driver sets, and with `enable_internet` equal to `network == Host`. |
 | I3 | Every slave call is one port `fetch`. No call needs a streamed request body. |
-| I4 | A `fetch` that fails because the container is not listening is a transport error, so the readiness wait of feature 02 tries again. Any other `fetch` error is not hidden. |
+| I4 | A `fetch` that fails during the readiness wait is a transport error, so the wait of feature 02 tries again until the deadline. The last error text is in the `BootTimeout` error; it is not hidden. |
 | I5 | A failed `create` destroys the container and leaves no record in storage and no index entry. |
 | I6 | After `Stopped`: the container does not run, storage has no record, the index has no entry, and no alarm is set. |
 | I7 | After a DO restart, the first request restores the sandbox when the container runs and the slave is prepared; if not, it removes the record and answers `NotFound`. |
+| I11 | An alarm on a DO that was removed from memory still stops an idle sandbox: the DO reads its sandbox ID from storage and restores first. |
 | I8 | A sandbox with no request for `idle_timeout` stops. A request before that moves the deadline. A running streaming call counts as use. |
 | I9 | The logic of this feature (driver, transport, store, idle, handler) compiles and passes its tests on a native host with fakes; only `src/cloudflare/` names a `worker` type. |
-| I10 | The driver accepts only `RootFs::ContainerImage(name)` with `name` equal to the configured image name, the default `vcpus` and `memory_mib`, no mounts, and `RootMode::Overlay`. Each other value is rejected before the container starts. |
+| I10 | The driver accepts only `RootFs::ContainerImage(name)` with `name` equal to the configured image name, no mounts, and `RootMode::Overlay`. Each other value is rejected before the container starts. `vcpus` and `memory_mib` are ignored (the Worker configuration sets the instance type). |
 
 ### 4.3 Must have
 
@@ -236,6 +244,12 @@ Feature: Cloudflare control plane
     Then the sandbox is stopped and the container got destroy
     And no alarm is set
 
+  Scenario: An alarm on a fresh DO object still stops the sandbox
+    Given a ready sandbox and idle_timeout 10 minutes
+    When the DO control plane object is dropped
+    And the clock moves 10 minutes and a new object handles the alarm with no request before it
+    Then the sandbox is stopped and the container got destroy
+
   Scenario: A request moves the idle deadline
     Given a ready sandbox and idle_timeout 10 minutes
     When a request arrives after 9 minutes and the alarm fires at 10 minutes
@@ -286,7 +300,7 @@ Feature: Cloudflare control plane
 | `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
 | `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
 | `src/shared/cloudflare/testing.rs` | feature `testing` | `FakeContainer`, `MemoryDoStorage`, `FakeAlarm`, `MemoryIndex`. |
-| `src/cloudflare/mod.rs` | wasm32, feature `cloudflare` | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state(state)`. |
+| `src/cloudflare/mod.rs` | wasm32, feature `cloudflare` | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state(&state, index)`. |
 
 The `shared/cloudflare/` code has no target gate (`.agents` rule: platform-agnostic code is
 in `shared/`). It uses only the traits below.
@@ -336,14 +350,18 @@ pub struct CloudflareConfig {
     pub slave_port: u16,                 // default 1024
     pub slave_path: String,              // default "/usr/local/bin/agent-slave"
     pub idle_timeout: Duration,          // default 10 minutes: the default sleepAfter of @cloudflare/containers
+    pub boot_timeout: Duration,          // default 60 s; used in place of SandboxLimits.boot_timeout.
+                                         // A cold container start with a first image pull takes much longer than a microVM boot.
 }
 ```
 
 `WorkerContainer::fetch` maps an error whose text contains `the container is not listening`
 to `PortError::NotListening`, and every other error to `PortError::Other`. That text match
-is in one function with a test (the text is from the Cloudflare source in section 6.1; if
-Cloudflare changes it, readiness then waits until `boot_timeout` and fails with the real
-error text in the message, so the failure is visible).
+is in one function with a test. The text is from the Cloudflare library source (section
+6.1), not from a contract. To not depend on it for correctness, the readiness wait treats
+**both** `PortError` kinds as "try again" until the deadline; the kind only decides the
+error at the deadline: `BootTimeout { stage: "slave" }` with the last `PortError` text.
+So a changed text costs nothing but a less exact message.
 
 ### 6.4 `CloudflareContainerDriver`
 
@@ -357,7 +375,7 @@ Capabilities: `rootfs_container_image: true`, the other `rootfs_*` false,
 
 | State | Work | Emits | Next |
 |---|---|---|---|
-| `Check` | `RootFs::ContainerImage(name)` with `name == config.image_name` (`UnsupportedRootFs`). `vcpus == 1` and `memory_mib == 512` (`InvalidSpec` with the message "set the instance type in the Worker configuration"). `container.running()` must be false (`TooManySessions`). | `Pending(Preparing)` | `Start` |
+| `Check` | `RootFs::ContainerImage(name)` with `name == config.image_name` (`UnsupportedRootFs`). `container.running()` must be false (`TooManySessions`). `vcpus` and `memory_mib` are not checked and not used: the instance type in the Worker configuration decides them, and the `Capabilities` documentation of this driver says so. | `Pending(Preparing)` | `Start` |
 | `Start` | `container.start(ContainerStart { entrypoint: [slave_path, "--listen", "tcp:0.0.0.0:<slave_port>"], enable_internet: spec.network == Host, env: [] })`. | `Pending(SubstrateStarted)`, then `Ready(Ok(substrate))` | `Done` |
 
 The substrate: `endpoint: CloudflarePort { port }`,
@@ -409,9 +427,14 @@ index error is logged and does not fail the call (the index is a view; section 6
 pub struct DoControlPlane { /* ctx, host, manager, service, restored flag */ }
 
 impl DoControlPlane {
-    /// `id` is the DO name. Builds a SandboxManager with one driver, PortConnector,
-    /// DoRecordStore, max_sandboxes 1 and IdSource::Fixed(id).
-    pub fn new(ctx: Ctx, host: CloudflareHost, id: SandboxId, limits: SandboxLimits) -> Self;
+    /// Builds a SandboxManager with one driver, PortConnector, DoRecordStore,
+    /// max_sandboxes 1, IdSource::Fixed(id) and DropPolicy::Detach.
+    /// `id`: `Some` on a request (the DO name, from the request); `None` on an alarm.
+    /// The ID is stored under the key `sandbox_id` the first time it is known, and read
+    /// from there when `id` is `None`. With no stored ID and `None`, there is nothing to
+    /// do, and `on_alarm` clears the alarm.
+    pub async fn open(ctx: Ctx, host: CloudflareHost, id: Option<SandboxId>, limits: SandboxLimits)
+        -> SandboxResult<Option<Self>>;
 
     /// Handles one HTTP request to this DO: restore (first time), touch, then the
     /// SandboxService router.
@@ -434,7 +457,11 @@ impl DoControlPlane {
    (`examples/cf-agent-loop/src/lib.rs` shows the wiring); on a native host the tests call
    the router through the pipe connection types.
 
-`on_alarm`: read `idle_deadline_ms`. `now >= deadline` and a sandbox exists: `stop()`.
+The manager's `boot_timeout` is `CloudflareConfig.boot_timeout`, not the value of
+`SandboxLimits`.
+
+`on_alarm`: `restore()` first (an alarm can wake a DO that has no object in memory; the
+manager must know the sandbox before it can stop it). Then read `idle_deadline_ms`. `now >= deadline` and a sandbox exists: `stop()`.
 `now < deadline`: `alarm.set(deadline)`. No sandbox: `alarm.clear()`.
 
 ### 6.7 What this feature uses from features 00 and 02
@@ -476,8 +503,13 @@ Each scenario of section 5 is one test.
 | I4, the two readiness scenarios | `not_listening_retries`, `other_error_times_out`, `not_listening_text_match` | expected outcome |
 | I5, the fault table of section 6.9 | `create_fault_matrix` | fault |
 | I1, "One DO holds one sandbox" | `one_sandbox_per_do` | expected outcome |
-| I10, "A wrong image name ..." | `driver_rejects` (image name, vcpus, memory, mounts, `ReadOnly`) | expected outcome |
+| I10, "A wrong image name ..." | `driver_rejects` (image name, mounts, `ReadOnly`), `driver_ignores_cpu_and_memory` | expected outcome |
 | I7, the two restart scenarios | `restore_live`, `restore_dead_container`, `restore_unprepared_slave`, `restore_creating_record` | expected outcome |
+| I11, "An alarm on a fresh DO object ..." | `alarm_on_fresh_object_stops` | expected outcome |
+| transport time-out | `port_call_times_out` (a port that never answers a unary call: the call fails after `rpc_timeout` on the simulated clock) | expected outcome |
+| touch guard | `stream_guard_touches` (a stream open for 3 half-periods makes 3 touches) | example |
+| index failure | `index_error_does_not_fail_create` (a failing `SandboxIndex`; the create succeeds; a warning is logged) | expected outcome |
+| `attach` | `attach_running`, `attach_not_running` | expected outcome |
 | I8, the three idle scenarios | `idle_stops`, `touch_moves_deadline`, `stream_keeps_alive`; `idle_model` (stateful: random requests, alarms and clock steps against a model with one deadline) | stateful model |
 | I6, "Stop removes everything" | `stop_removes_all` | conservation |
 | "A container that exits ..." | `container_exit_fails_sandbox` | fault |

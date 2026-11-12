@@ -323,8 +323,7 @@ arrives as a second device.
 ### 3.4 The lifeline
 
 On macOS the runner gets `lifeline_fd = 3`: the driver makes a pipe, passes the read end as
-file descriptor 3 (an addition to `ProcessSpec`: `extra_fds: Vec<(i32, OwnedFd)>`, used
-only here), and keeps the write end in the handle. Before step 12 it starts one thread that calls
+file descriptor 3 (`ProcessSpec.extra_fds`, feature 00, section 6.9), and keeps the write end in the handle. Before step 12 it starts one thread that calls
 a blocking `read` on that descriptor. When the read returns 0 (the parent is gone), the
 thread calls `libc::_exit(137)`. On Linux the driver sets `kill_with_parent`, and
 `lifeline_fd` is `None`.
@@ -384,16 +383,30 @@ mapped by section 3.5.
 
 A failure in `Prepare` or `Spawn` removes the run directory and emits `Ready(Err(..))`.
 
+The built-in init of libkrun sets `lo` up before it starts the slave
+(`src/init_blob/init/init.c`, the `SIOCSIFFLAGS` call after `mount_filesystems`). The slave
+is not PID 1 here; it makes itself a child subreaper (feature 01, section 6.8), so orphans
+of its programs come to it.
+
+Fault table: `launch`.
+
+| Step that fails | What the caller sees | What is left behind |
+|---|---|---|
+| The root directory does not exist | `InvalidSpec { field: "rootfs" }` | nothing |
+| The runner or the slave file is missing | `BinaryNotFound` | nothing |
+| The socket path is too long | `SocketPathTooLong` | nothing |
+| `krun.json` cannot be written, or the spawn fails | `Io` | nothing (the run directory is removed) |
+| The runner exits before the slave answers (seen by the control plane) | section 3.5 through `exit_error` | nothing (`cleanup`) |
+| The slave never answers (seen by the control plane) | `BootTimeout { stage: "slave" }` | nothing (`kill`, `cleanup`) |
+
 ### 4.2 The handle
 
 The same behaviour as `FcHandle` (feature 05, section 6.7), on the runner process:
 `exited`, `terminate`, `kill`, `log_tail` (from `console.log`), `cleanup` (kill if it runs;
 remove the run directory). `exited()` maps the exit code with section 3.5 when the
 control plane asks for an error (`SubstrateExit.code` carries the raw code; the mapping
-function `krun_exit_error(code, log_tail) -> SandboxError` is used by the manager through
-a method `SubstrateHandle::exit_error(&self, exit: &SubstrateExit, log_tail: Vec<u8>) ->
-SandboxError`, which has a default body that returns `SubstrateExited`; this driver
-overrides it. Add that method to the trait in feature 00.)
+function `krun_exit_error(code, log_tail) -> SandboxError` is this driver's body of
+`SubstrateHandle::exit_error`, which feature 00 defines with a default.)
 
 `attach` returns `Ok(None)` and removes a stale run directory, as for Firecracker.
 
@@ -452,7 +465,7 @@ section 3.2, prints one JSON line (`{"library": "<path>", "max_vcpus": <n>}` fro
   the attribute does not exist. So a directory that a normal user unpacked shows that
   user as the owner of each file in the guest. Programs still run, because each command
   runs as root in the guest. A root file system with correct owners is a sandbox image
-  (feature 10), not a directory. The README says this.
+  (feature 12), not a directory. The README says this.
 
 ## 7. Tests
 

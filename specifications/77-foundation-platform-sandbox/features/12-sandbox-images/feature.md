@@ -122,7 +122,7 @@ Links to other entities: only one sandbox at a time uses a work image in Writabl
 | I2 | After an unpack of a tar, each path has the type, mode, UID, GID, link target and content of its last tar entry. |
 | I3 | No tar entry writes outside `dest`: the unpack runs in a child process whose root is `dest`. |
 | I4 | An unpack stops at `max_unpack_entries` or `max_unpack_bytes` with `ArtifactTooLarge`. |
-| I5 | A failed unpack reports the entry path and the `errno`. The work image is then not usable; the tool removes it. |
+| I5 | A failed unpack reports the entry path and the `errno`. The work image is then not usable; the tool removes it. (Test: `unpack_failure_reports_entry`.) |
 | I6 | In `Writable` mode, a clean `Shutdown` leaves an ext4 file that mounts with no journal replay needed. |
 | I7 | A work image is used by one `Writable` sandbox at a time: the driver takes an exclusive lock on the file and fails with `InvalidSpec { field: "rootfs" }` when it is held. |
 | I8 | `RootFs::Image` gives the same program behaviour on Firecracker and on libkrun (the shared acceptance scenarios pass on both). |
@@ -287,7 +287,11 @@ message names the limit.
 ### 6.3 Booting an image
 
 `SandboxManager::create` with `RootFs::Image(r)`: before driver choice it resolves the
-image (it holds an `Option<ImageStore>`; `None` gives `InvalidSpec { field: "rootfs" }`),
+image through a trait object, `ImageResolver` (`fn resolve(&self, image: &ImageRef) ->
+BoxFuture<SandboxResult<(PathBuf, ImageManifest)>>`), set with the builder method
+`SandboxManager::with_image_resolver(Arc<dyn ImageResolver>)`. `ImageStore` implements it.
+A manager with none gives `InvalidSpec { field: "rootfs" }`. (A trait keeps the manager in
+`shared/`; the store is native code.) Then it
 checks `manifest.arch` against `GuestArch::host()` (`ImageArchMismatch`), and rewrites the
 spec: `rootfs = Ext4Image(path)`; `env` = manifest env then spec env; `workdir` = the spec
 value when it is not the default `/workspace`, else the manifest value, else `/workspace`;
@@ -339,13 +343,20 @@ rejected with `UnsupportedRootFs`, and the probe check `blk` says: "build libkru
 Four calls in both services, with the shape of the file write calls:
 
 ```rust
-pub struct UnpackBeginRequest { pub dest: String, pub oci_whiteouts: bool }
+pub struct UnpackBeginRequest {
+    pub dest: String,
+    pub oci_whiteouts: bool,
+    pub skip: Vec<String>,          // exact paths, relative to dest, that the reader drops
+}
 pub struct UnpackBeginResponse { pub upload_id: String }
 pub struct UnpackChunkRequest { pub upload_id: String, pub offset: u64, pub data: Vec<u8> }   // tar bytes, not compressed
 pub struct UnpackChunkResponse { pub next_offset: u64 }
 pub struct UnpackCommitRequest { pub upload_id: String, pub size: u64 }
 pub struct UnpackCommitResponse { pub entries: u64, pub bytes: u64 }
 pub struct UnpackAbortRequest { pub upload_id: String }
+
+pub struct UnpackOptions { pub oci_whiteouts: bool, pub skip: Vec<String> }   // Default: false, empty
+pub struct UnpackReport { pub entries: u64, pub bytes: u64 }
 
 impl Sandbox {
     /// `tar` is an uncompressed tar byte stream.
@@ -378,6 +389,11 @@ In the slave (`native/slave/unpack.rs`):
 - Limits from `SlaveLimits`: `max_unpack_entries` (default 1 000 000) and
   `max_unpack_bytes` (default 16 GiB), both added to `SandboxLimits`. Passing one fails
   with `Io` and the text `unpack limit`; the control side maps it to `ArtifactTooLarge`.
+- Not supported, each with a clear error (`BadRequest` and the entry path): GNU sparse
+  files (type `S`), and PAX global headers that set a path. Extended attributes other than
+  `security.capability` are ignored. A PAX `mtime` is used when present.
+- When `exec_root` is `/` and the slave cannot `chroot`, `UnpackBegin` fails with
+  `PermissionDenied`: an unpack needs the `chroot` child to be safe.
 - The tar reader is hand-written in the slave (about 300 lines): the slave has no C
   dependency and a small set of crates, and the `tar` crate needs `std::fs` paths that do
   not fit the `chroot` child's fd-relative calls.

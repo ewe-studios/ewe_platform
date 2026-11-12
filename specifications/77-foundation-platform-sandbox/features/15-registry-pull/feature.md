@@ -234,7 +234,7 @@ Repository parts match `[a-z0-9]+([._-][a-z0-9]+)*`. A tag matches
 `src/native/images/registry.rs`. HTTP through `foundation_netio`, with TLS.
 
 ```rust
-pub enum RegistryAuth { Anonymous, Basic { username: String, password: SecretString } }
+pub enum RegistryAuth { Anonymous, Basic { username: String, password: Secret } }
 pub struct RegistryOptions {
     pub auth: Vec<(String, RegistryAuth)>,     // by registry host
     pub allow_insecure: Vec<String>,           // hosts reached with http://
@@ -281,8 +281,7 @@ layers as later work.
 
 ### 6.3 Authentication
 
-1. Send the request with no `Authorization` header (or with `Basic` when the caller gave
-   credentials for the host and the registry is not Docker Hub style; see step 2).
+1. Send the request with no `Authorization` header.
 2. A 401 answer with `WWW-Authenticate: Bearer realm="<url>",service="<s>",scope="<sc>"`:
    `GET <realm>?service=<s>&scope=repository:<repository>:pull`, with `Authorization:
    Basic` when the caller gave credentials for the registry host. The answer is JSON with

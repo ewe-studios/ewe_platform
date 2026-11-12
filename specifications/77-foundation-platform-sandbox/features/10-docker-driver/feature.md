@@ -109,7 +109,7 @@ Links to other entities: attach finds it by its name
 | # | Invariant |
 |---|---|
 | I1 | The user image is not changed and needs no slave in it. The slave is copied into the container's own layer before the start. |
-| I2 | The container gets only the environment that the driver sets, the labels `ewe.sandbox.id` and `ewe.sandbox.driver`, and the name `ewe-sbx-<id>`. |
+| I2 | The driver adds no environment variable to the container. (Docker applies the image's own `ENV` to the container's main process; programs that the slave starts get only `Prepare.env` and their own, feature 01 invariant I13.) The container has the labels `ewe.sandbox.id` and `ewe.sandbox.driver`, and the name `ewe-sbx-<id>`. |
 | I3 | With `NetworkMode::None` the container has Docker network mode `none`. With `Host` it is on the default bridge network. The Docker "host" network mode is never used. |
 | I4 | No container is privileged, and `no-new-privileges` is set. (Feature 11 adds one opt-in exception.) |
 | I5 | A failed `launch` removes the container (force) and the run directory. |
@@ -225,6 +225,10 @@ pub enum DockerLink { Unix, Tcp }
 pub enum SlaveMode { Main, Sidecar }
 ```
 
+With the TCP link and the default `NetworkMode::None`, `validate` fails with
+`UnsupportedNetwork` (`network_none` is false). The README tells a macOS user to set
+`NetworkMode::Host` for the Docker driver, and says why.
+
 Why two links. A UDS in a bind-mounted directory works on a Linux Docker host and needs no
 container network, so `NetworkMode::None` works. Docker Desktop on macOS runs containers in
 a VM, and a UDS does not work across its file sharing; there the link is a published TCP
@@ -247,7 +251,12 @@ A `#[task]` with the states `Prepare`, `Pull`, `Create`, `Inject`, `Start`, `Sid
 | `Done` | Emit `Ready(Ok(substrate))`. | |
 
 The slave command: `["/.ewe/agent-slave", "--listen", <addr>]`, with `<addr>` =
-`unix:/.ewe/run/slave.sock` (UDS link) or `tcp:0.0.0.0:1024` (TCP link).
+`unix:/.ewe/run/slave.sock` (UDS link) or `tcp:0.0.0.0:1024` (TCP link). With the UDS link
+the command also has `--socket-mode 666`: the slave runs as root in the container, and the
+control plane on the host is a normal user, so a socket with mode `0600` could not be
+opened. The run directory has mode `0700` and belongs to the control plane's user, so no
+other host user can reach the socket. `--socket-mode <octal>` is a new option of
+`agent-slave` (default `600`), added by this feature with a test.
 
 - Mode `Main`: the container's entry point is the slave command, and its `Cmd` is empty.
 - Mode `Sidecar`: the container keeps the image's entry point and command.
@@ -282,9 +291,8 @@ run directory, emit `Ready(Err(..))`. A Docker error maps to
 
 ### 6.5 Capabilities and the `network_none` field
 
-Add `network_none: bool` to `Capabilities` (feature 00) and a rule to `validate`:
-`network == None` needs `caps.network_none` (`UnsupportedNetwork`). It is `true` for every
-other driver.
+`Capabilities.network_none` and its `validate` rule are in feature 00. It is `true` for
+every other driver.
 
 `DockerDriver`: `rootfs_container_image: true`, the other `rootfs_*` false,
 `root_modes: [Overlay]`, `host_mounts: true`, `network_host: true`,
@@ -347,6 +355,7 @@ Docker; treat this container as trusted.
 | I6 | `cleanup_idempotent` | the same | expected outcome |
 | I7 | `attach_cases` (running with the label; running without; exited; missing) | the same | expected outcome |
 | `network_none` rule | `validate_network_none` | `tests/contract_*.rs` | expected outcome |
+| `--socket-mode` | `slave_socket_mode` (the socket file has the given mode) | `tests/slave_*.rs` | example |
 | `FileRecordStore` | `file_store_roundtrip`, `file_store_atomic` (a crash between the temporary file and the rename leaves the old record) | `tests/native_host_*.rs` | fault |
 | I1, the first scenario, the shared scenarios | `e2e_docker_acceptance` | `tests/e2e_docker.rs` (real daemon; returns with the probe report when it is not usable) | the shared scenarios |
 | "No network unless asked" | `e2e_docker_no_network` (Linux) | the same | expected outcome |

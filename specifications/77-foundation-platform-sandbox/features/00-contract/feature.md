@@ -310,9 +310,11 @@ returns at the first failure:
    (`InvalidSpec`).
 3. Each `env` key is not empty and has no `=` or zero byte (`InvalidSpec { field: "env" }`).
 4. Each `dns` entry parses as an IP address (`InvalidSpec { field: "dns" }`).
-5. The `rootfs` kind is in `caps` (`UnsupportedRootFs`).
+5. The `rootfs` kind is in `caps` (`UnsupportedRootFs`). `RootFs::Image` never reaches
+   `validate`: the control plane turns it into `Ext4Image` first (feature 12).
 6. `root_mode` is in `caps.root_modes` (`InvalidSpec { field: "root_mode" }`).
-7. `network == Host` needs `caps.network_host` (`UnsupportedNetwork`).
+7. `network == None` needs `caps.network_none`; `network == Host` needs
+   `caps.network_host` (`UnsupportedNetwork`).
 8. `mounts` not empty needs `caps.host_mounts` (`UnsupportedMount`).
 9. Each limit is more than zero; `chunk_bytes <= max_message_bytes / 2`
    (`InvalidSpec { field: "limits" }`).
@@ -323,8 +325,9 @@ pub struct Capabilities {
     pub rootfs_ext4: bool,
     pub rootfs_squashfs: bool,
     pub rootfs_container_image: bool,
-    pub root_modes: &'static [RootMode],
+    pub root_modes: Vec<RootMode>,
     pub host_mounts: bool,
+    pub network_none: bool,          // false only where the link to the slave needs a container network (feature 10, Docker Desktop)
     pub network_host: bool,
     pub max_vcpus: u8,
 }
@@ -387,6 +390,8 @@ pub struct SlaveLimits {
     pub output_drain_timeout_ms: u32,
     pub upload_idle_timeout_ms: u32,
     pub input_queue_bytes: u32,       // chunk_bytes * 4
+    pub max_message_bytes: u32,       // the largest request that the server reads
+    pub event_queue_len: u32,         // events held for one Exec stream before the pumps wait; default 4
 }
 pub struct PrepareResponse { pub root_mode: RootMode }
 
@@ -523,7 +528,11 @@ pub trait SandboxDriver: Send + Sync + 'static {
     /// Checks the host. Starts nothing. Ends in rpc_timeout or sooner.
     fn probe(&self, ctx: Ctx) -> BoxFuture<'static, HostReport>;
     /// Starts one substrate. Emits progress, then one result.
-    fn launch(&self, ctx: Ctx, id: SandboxId, spec: SandboxSpec) -> LaunchStream;
+    /// `deadline`: the launch must give its result before this time, or fail with
+    /// `BootTimeout`. The control plane owns the deadline and uses the same one for the
+    /// readiness wait and `Prepare`.
+    fn launch(&self, ctx: Ctx, id: SandboxId, spec: SandboxSpec,
+              deadline: foundation_compact::Instant) -> LaunchStream;
     /// Finds the substrate of a stored record again, after the control plane restarted.
     /// `Ok(None)`: the substrate does not exist any more. A driver whose substrates die
     /// with the control plane's process returns `Ok(None)` and removes what is left of
@@ -534,7 +543,8 @@ pub trait SandboxDriver: Send + Sync + 'static {
 /// What a control plane keeps about one sandbox outside its memory.
 pub struct StoredRecord {
     pub id: SandboxId, pub driver: DriverId, pub spec: SandboxSpec,
-    pub state: SandboxState, pub created_unix_ms: u64, pub endpoint: SlaveEndpoint,
+    pub state: SandboxState, pub created_unix_ms: u64,
+    pub endpoint: Option<SlaveEndpoint>,     // None while the state is Creating and the driver did not answer yet
 }
 pub type LaunchStream =
     Box<dyn StreamIterator<D = SandboxResult<Substrate>, P = CreateProgress> + Send + 'static>;
@@ -639,7 +649,78 @@ Each has `from_ctx` that returns `HostNotConfigured` when the entry is missing.
 with the end zero byte. The function returns `SocketPathTooLong { path, max: 103 }` when the
 path is longer than 103 bytes.
 
-### 6.10 `SandboxControl` and `Sandbox`
+### 6.10 Small shared types
+
+```rust
+pub struct GuestMount { pub tag: String, pub guest_path: String, pub read_only: bool }
+pub enum FsType { Ext4, Squashfs }
+pub enum GuestArch { X86_64, Aarch64 }            // GuestArch::host() gives the host's
+pub enum ImageRef { Tag(String), Key(String) }    // used by RootFs::Image; resolved in feature 12
+pub struct ProcessExit { pub code: Option<i32>, pub signal: Option<i32> }
+pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+pub type BoxByteStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<Vec<u8>>> + Send>>;
+pub type ExecEventStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<ExecEventMsg>> + Send>>;
+pub type FileChunkStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<FileChunk>> + Send>>;
+/// `impl ByteStream` in a signature means: any `futures::Stream<Item = SandboxResult<Vec<u8>>> + Send + 'static`.
+
+/// A secret text. `Debug` and `Display` print "<redacted>". No workspace crate has such a
+/// type that this crate can use without a new dependency, so it is defined here.
+pub struct Secret(String);
+impl Secret { pub fn new(value: String) -> Self; pub fn expose(&self) -> &str; }
+
+impl SandboxSpec { pub fn new(rootfs: RootFs) -> Self; }                  // every other field has its default
+impl Command { pub fn new<I, S>(argv: I) -> Self where I: IntoIterator<Item = S>, S: Into<String>; }
+```
+
+`SandboxLimits` is a struct with one public field for each row of requirements section 6.3
+(`Duration` for a time, `usize` for a size or a count), a `Default` implementation with
+those values, and one builder method `with_<field>` for each. It also has
+`input_retry_timeout` (30 s; feature 02, section 6.6), `max_unpack_entries` (1 000 000)
+and `max_unpack_bytes` (16 GiB) (feature 12).
+
+Fields of the `SandboxError` variants:
+
+| Variant | Fields |
+|---|---|
+| `NoDriver` | `reports: Vec<HostReport>` |
+| `DriverUnavailable` | `driver: DriverId, reason: String` |
+| `BinaryNotFound`, `LibraryNotFound` | `name: String` |
+| `LibraryTooOld` | `symbol: String` |
+| `InvalidSpec` | `field: String, reason: String` |
+| `SocketPathTooLong` | `path: String, max: usize` |
+| `SubstrateExited` | `code: Option<i32>, log_tail: Vec<u8>` |
+| `SubstrateApi` | `status: u16, message: String` |
+| `BootTimeout` | `stage: String, log_tail: Vec<u8>` |
+| `NotFound` | `what: String` |
+| `SlaveError` | `code: SlaveErrorCode, errno: Option<i32>, message: String` |
+| `ArtifactHashMismatch` | `expected: String, actual: String` |
+| `ArtifactUnsafePath` | `path: String` |
+| `ArtifactTooLarge` | `limit: u64, message: String` |
+| `ImageArchMismatch` | `image: String, host: String` |
+| `BuildStepFailed` | `line: u32, exit: Option<i32>, signal: Option<i32>` |
+| `Rpc` | `code: String, message: String` |
+| `Io` | `op: String, message: String` |
+| the others | none |
+
+### 6.11 What later features add to these types
+
+Feature 00 defines the types above so that the MVP features agree. Later features extend
+them. Each addition is listed here so that an implementer of feature 00 leaves room and an
+implementer of a later feature knows where the type lives. Each later feature has the exact
+definition and its tests.
+
+| Feature | Addition |
+|---|---|
+| 03 | `HostFs::rename`, `HostFs::create_file`; `ArtifactLimits`; `HostConfig.artifact_limits` |
+| 09 | `DriverId::Libkrun` is already here; no new type |
+| 10 | `HostConfig`: nothing; `FileRecordStore` in `native/` |
+| 11 | `SandboxSpec.parent`, `SandboxSpec.nested_host`, `DriverId::Nested`, `SlaveEndpoint::Parent`, `Substrate.calls` |
+| 12 | `RootMode::Writable`; `Command.user`, `ExecRequest.user`; the four `Unpack*` calls in both services and in `ExecFileCalls`; `HostFs::clone_file`, `HostFs::lock_exclusive`; `HostConfig.mkfs_ext4_path`; `ImageLimits` |
+
+`DriverId::Nested` and the enum variants above are added by their feature, with a version
+bump of the crate.
+
+### 6.12 `SandboxControl` and `Sandbox`
 
 Requirements section 6 has the trait. `Sandbox` is a struct that holds an
 `Arc<dyn SandboxOps>`:
@@ -652,6 +733,9 @@ pub trait SandboxOps: Send + Sync + 'static {
     fn read_file(&self, path: String) -> BoxFuture<'_, SandboxResult<FileStream>>;
     fn stop(&self) -> BoxFuture<'_, SandboxResult<ExitReport>>;
     fn kill(&self) -> BoxFuture<'_, SandboxResult<ExitReport>>;
+    /// The low-level calls of this sandbox (feature 02, section 6.6). `ControlService`
+    /// uses them to pass a remote caller's calls through with no change.
+    fn calls(&self) -> Arc<dyn ExecFileCalls>;
 }
 ```
 
@@ -677,6 +761,10 @@ seed.
 | I9 | `ids_are_deterministic` | identity |
 | I10 | the verify command below | build |
 | "A socket path that is too long is refused" | `socket_path_limit` (103 passes, 104 fails) | bound |
+| `Sequence` at its limit | `sequence_at_u64_max` (`accept(u64::MAX)` on a counter at `u64::MAX` gives `Gap`, with no overflow) | bound |
+| `ExitStatus` | `exit_status_one_of` (the two constructors `ExitStatus::code(n)` and `ExitStatus::signal(n)` are the only way to make one; exactly one field is `Some`) | example |
+| `Secret` | `secret_is_redacted` | expected outcome |
+| `HostReport` over RPC | `host_report_roundtrip` | identity |
 
 ## 8. Verify
 

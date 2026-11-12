@@ -182,23 +182,25 @@ Feature: Guest artifacts
   Scenario: The initramfs is the same each time
     When slave_initramfs is called two times for one slave file
     Then the two archives are byte-equal
-    And the archive equals the reference made by GNU cpio
+    And GNU cpio unpacks it into the same entries
 ```
 
 | Law | Test | Oracle |
 |---|---|---|
 | I1 | `fetch_checks_hash`, `alpine_dir_real`, `ci_rootfs_real` | expected outcome |
-| I2 | `store_is_atomic` | fault (the server cuts the body; a bad hash) |
+| I2 | `fetch_streams` | nothing | A 64 MiB body is fetched while a counting writer shows that no buffer larger than 1 MiB is held (invariant I3). |
+| `store_concurrent_ensure` | nothing | Two `ensure` calls for one spec in two tasks both return the same complete entry (invariant I7). |
+| `store_is_atomic` | fault (the server cuts the body; a bad hash) |
 | I3 | `fetch_streams` (a 64 MiB body with a 1 MiB memory budget on the test allocator counter) | bound |
 | I4 | `fetch_stops_at_limit`, `tar_stops_at_limits` | bound |
 | I5 | `tar_rejects_escape` (examples: `../x`, `/abs`, `a/../../x`) | expected outcome |
-| I6 | `cpio_is_deterministic`, `cpio_matches_reference` | identity, differential against GNU `cpio` |
+| I6 | `cpio_is_deterministic`, `cpio_golden`, `cpio_read_by_gnu_cpio` | identity, differential against GNU `cpio` |
 | I7 | `store_concurrent_ensure` | property over interleavings (two valtron tasks) |
 | I8 | `fetch_reads_bounded_error` | bound |
 
 ## 2. Module layout
 
-`backends/foundation_platform_sandbox/src/shared/artifacts/`:
+`backends/foundation_platform_sandbox/src/native/artifacts/`:
 
 | File | Content |
 |---|---|
@@ -227,6 +229,8 @@ impl ArtifactStore {
     pub fn ensure_with_progress(&self, spec: ArtifactSpec) -> ArtifactStream; // Stream<PathBuf, ArtifactProgress>
 
     pub async fn alpine_rootfs_dir(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
+    /// The Alpine archive file itself (`.tar.gz`), for the image importer of feature 13.
+    pub async fn alpine_rootfs_archive(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
     pub async fn firecracker_ci_rootfs(&self, arch: GuestArch) -> SandboxResult<PathBuf>;   // squashfs
     pub async fn firecracker_kernel(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
     pub async fn slave_initramfs(&self, slave_path: &Path) -> SandboxResult<PathBuf>;
@@ -243,9 +247,19 @@ spawner and the connector to that file. `HostFs` gets two more methods for this 
 (a file for streamed writes). The HTTP client is `foundation_netio` and is not behind a
 trait of this crate: tests use a local HTTP server.
 
+`ArtifactSpec { name: String, url: String, sha256: String, kind: ArtifactKind }`, with
+`ArtifactKind::File` (the entry is the downloaded file) and `ArtifactKind::TarGzDir` (the
+entry is the unpacked tree, and the hash is of the archive). `ArtifactLimits` is a field of
+`HostConfig` (`artifact_limits`), with the defaults that this feature names.
+
+The store is native code (`src/native/artifacts/`): it uses the HTTP client, `flate2` and
+`tar`, and nothing on wasm needs it.
+
 Cache layout: `<cache_dir>/<kind>/<sha256-prefix-16>/<file-or-dir>`. A ready entry has a
 marker file `.ready` beside it. `ensure` builds into `<entry>.tmp-<random>` (the suffix from
-`ctx.rng()`) and renames it. The rename is the commit; two processes that build the same
+`ctx.rng()`) and renames it. The rename is the commit (the `.ready` marker is written inside the temporary entry before
+the rename, so an entry that exists is complete; if the rename fails because the entry
+exists, another builder won, and this one removes its temporary copy); two processes that build the same
 entry do not corrupt it, and the loser removes its temporary copy.
 
 ### 3.2 `fetch`
@@ -326,7 +340,7 @@ lower layer.
 
 Why not an ext4 image made from the Alpine directory: `mkfs.ext4 -d <directory>` copies the
 host owner of each file into the image, so a normal user gets an image where no file is
-owned by root. Feature 10 makes ext4 images with correct owners. Version 0.1 tests
+owned by root. Feature 12 makes ext4 images with correct owners. Version 0.1 tests
 Firecracker with the squashfs image, which already has correct owners.
 
 ### 4.3 Kernel
@@ -339,7 +353,8 @@ Firecracker with the squashfs image, which already has correct owners.
 
 | Test | Needs | Proves |
 |---|---|---|
-| `cpio_matches_reference` | nothing | `write_newc` output for a fixed input is equal, byte for byte, to a fixture made with GNU `cpio -o -H newc` (the fixture is in `tests/fixtures/`, with the command in a comment). |
+| `cpio_golden` | nothing | `write_newc` output for a fixed input is equal, byte for byte, to a golden file in `tests/fixtures/` that this code made and a person checked one time with `cpio -t`. The header fields are fixed by rule: inode = the entry index from 1; link count 2 for a directory and 1 for a file; user and group 0; modification time 0; device numbers 0. |
+| `cpio_read_by_gnu_cpio` | `cpio` program | GNU `cpio -i` unpacks the archive into the same entries (names, modes, content). Returns with a message when `cpio` is not found. |
 | `cpio_is_deterministic` | nothing | Two calls give the same bytes. |
 | `cpio_kernel_accepts_it` | KVM | Covered by the microVM tests of feature 05. Named here so the link is clear. |
 | `fetch_checks_hash` | nothing | A local HTTP server (the test server of `foundation_netio` or `foundation_testing`) gives a body; a wrong expected hash fails and leaves no file. |

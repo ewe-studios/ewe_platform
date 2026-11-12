@@ -59,7 +59,7 @@ into it.
 stories, the client side of `SlaveService`, the handles.
 
 **Outside:** the slave (feature 01); the drivers (05, 07, 09, 10), which only start and
-stop a substrate; the RPC server for `SandboxService` and the remote client (feature 06);
+stop a substrate; the listeners and programs that serve `SandboxService` (feature 06);
 where sandbox records are stored when the control plane has no long life (feature 07 gives
 a store for a DO).
 
@@ -125,7 +125,7 @@ Links to other entities: the slave session with the same exec_id
 
 Entity: Create (the story)
 Conserved value:         after a failed create: 0 substrates, 0 records in Ready, 0 host resources
-Bound:                   total time <= boot_timeout (+ clean-up)
+Bound:                   time from the create call to Ready or to the error <= boot_timeout (+ clean-up); one deadline for the driver launch, the readiness wait and Prepare
 Inverse pairs:           none
 Idempotent verbs:        none
 Ordering pairs:          launch -> Info -> Prepare -> Ready (each enables the next);
@@ -145,7 +145,7 @@ Links to other entities: none
 | I4 | After `Stopped`, the driver handle got `cleanup`, and the record is not in `list()`. |
 | I5 | `stop` and `kill` return the same `ExitReport` each time after the first. |
 | I6 | After `Stopping`, `Stopped` or `Failed`, `exec`, `write_file` and `read_file` fail with `SandboxStopped`. |
-| I7 | Progress values arrive in the order of `CreateProgress`, each at most one time, then exactly one result. |
+| I7 | Progress values arrive in the order of `CreateProgress` (a value can repeat, a lower value never follows a higher one), then exactly one result. |
 | I8 | Events reach the caller in the order the slave sent them; `Exit` is last; an event `seq` gap ends the stream with `StreamLost`. |
 | I9 | `ExecStdin::write` sends chunks of at most `chunk_bytes`, in sequence order, and a chunk is not lost or sent as two when a call is retried. |
 | I10 | A failed or dropped `write_file` calls `FileWriteAbort`; the target keeps its old content. |
@@ -160,6 +160,7 @@ Links to other entities: none
 
 - `SandboxManager`, `SlaveClient`, `ExecHandle`, `ExecStdin`, `FileStream`.
 - `RecordStore` with the in-memory implementation.
+- `ControlService`, `SandboxRpcClient`, `check_bearer` (section 6.10).
 - The public module `testing` (feature `testing`): `SimDriver`, `ScriptedSlave`,
   `in_memory_connector`.
 
@@ -167,7 +168,7 @@ Links to other entities: none
 
 - Put the driver's log tail (at most `max_error_message` bytes) in a start error.
 - Kill and clean up on every path that leaves `Creating` or `Ready` without `Stopping`.
-- Retry `ExecInput` on `InputQueueFull` with back-off until the command time-out.
+- Retry `ExecInput` on `InputQueueFull` with back-off, for at most `input_retry_timeout`.
 
 ### 4.5 Must not
 
@@ -303,6 +304,53 @@ Feature: Control-plane core
     When its ExecHandle is dropped
     Then the slave saw the Exec stream close
 
+  Scenario: A manager finds its sandboxes again after a restart
+    Given a record store with one Ready record, a driver whose attach finds the substrate, and a slave that is prepared
+    When a new manager calls restore
+    Then get(id) returns a Ready sandbox
+    And the slave got Info and no Prepare
+    And the driver did not launch
+
+  Scenario: A restart forgets a sandbox whose substrate is gone
+    Given a record store with one Ready record and a driver whose attach returns none
+    When a new manager calls restore
+    Then get(id) fails with NotFound
+    And the record store is empty
+
+  Scenario: A detached manager leaves its sandboxes running
+    Given a manager with DropPolicy Detach and one ready sandbox
+    When the manager is dropped
+    Then the substrate handle got no kill
+
+  Scenario: A dropped manager kills its sandboxes by default
+    Given a manager with DropPolicy KillAll and one ready sandbox
+    When the manager is dropped
+    Then the substrate handle got kill and cleanup
+
+  Scenario: A fixed id holds one sandbox at a time
+    Given a manager with IdSource Fixed("aaaaaaaaaaaa")
+    When the caller creates a sandbox
+    Then its id is "aaaaaaaaaaaa"
+    When the caller creates a second one
+    Then the result is TooManySessions
+    When the first is stopped and the caller creates again
+    Then the create succeeds with the same id
+
+  Scenario: The host limit of sandboxes is enforced
+    Given max_sandboxes is 1 and one ready sandbox
+    When the caller creates another
+    Then the result is TooManySessions
+
+  Scenario: Input that the program never reads gives up
+    Given a slave that always answers InputQueueFull
+    When the caller writes to standard input and the clock moves input_retry_timeout
+    Then write returns InputQueueFull
+
+  Scenario: A read with a gap is stream loss
+    Given the slave sends FileRead chunks with offsets 0 and 200 and the first has 100 bytes
+    When the caller reads the file stream
+    Then it gets the first chunk and then StreamLost
+
   Scenario: The same seed gives the same trace
     When one scripted run executes two times with seed 7
     Then the two call traces are equal
@@ -333,10 +381,18 @@ pub struct ManagerConfig {
     pub limits: SandboxLimits,           // defaults for a spec that does not set them
     pub max_sandboxes: usize,            // default 64
     pub id_source: IdSource,             // default Random
+    pub on_drop: DropPolicy,             // default KillAll
 }
+/// What the manager does with its sandboxes when it is dropped.
+/// `KillAll`: a task kills every record (a host program that ends).
+/// `Detach`: nothing; the substrates keep running, and a later manager finds them with
+/// `restore` (a Durable Object that leaves memory; `agent-sandbox serve` with a record
+/// store on disk).
+pub enum DropPolicy { KillAll, Detach }
 /// `Fixed` is for a control plane that holds one sandbox with a given name (a Cloudflare
 /// DO, feature 07). With `Fixed`, a second create while the first exists fails with
-/// `TooManySessions`.
+/// `TooManySessions`. After that sandbox is `Stopped`, a new create with the same ID is
+/// allowed.
 pub enum IdSource { Random, Fixed(SandboxId) }
 
 impl SandboxManager {
@@ -404,10 +460,10 @@ The task holds an `Arc` of the manager internals through the state (not shown).
 
 | State | Work | Emits | Next |
 |---|---|---|---|
-| `Choose` | Driver choice and validation (section 6.2). Check `max_sandboxes`. Generate the ID. Add a record in `Creating`. Call `driver.launch`. | `Pending(Preparing)` | `Launch` |
-| `Launch` | Take the next item of the launch stream. A `Pending(p)` passes on. `Next(Ok(substrate))`: build the transport with `connector.connect(endpoint)`, make the `SlaveClient`, set `deadline = now + boot_timeout`. | the driver's progress values | `AwaitSlave` |
+| `Choose` | Driver choice and validation (section 6.2). Check `max_sandboxes`. Generate the ID. `deadline = now + boot_timeout`: the one deadline of the whole create. Add a record in `Creating` (its endpoint is `None`). Call `driver.launch(ctx, id, spec, deadline)`. | nothing (the driver emits `Preparing` first) | `Launch` |
+| `Launch` | Take the next item of the launch stream. A `Pending(p)` passes on. `Next(Ok(substrate))`: store the endpoint in the record; build the transport with `connector.connect(endpoint)`; make the `SlaveClient`. The deadline is the one from `Choose`. A progress value that is lower than the last one passed on is dropped. | the driver's progress values | `AwaitSlave` |
 | `AwaitSlave` | Await the first of: `client.info()` with the time-out `min(rpc_timeout, time left)`; `substrate.handle.exited()`; the deadline. An `Info` failure that is a transport error or `Unavailable`: await a timer of `min(5 ms * 2^attempt, 100 ms)` and try again. | `Pending(SlaveConnected)` on the answer | `Prepare` |
-| `Prepare` | `client.prepare(PrepareRequest { root: substrate.root, workdir, env, mounts, dns, limits })`. `dns` is `spec.dns` when the network mode is `Host`, else empty. On success: record state `Ready`, start the watcher, build the `Sandbox`. | `Pending(SlaveReady)`, then `Ready(Ok(sandbox))` | `Done` |
+| `Prepare` | `client.prepare(PrepareRequest { root: substrate.root, workdir, env, mounts, dns, limits })`, with the time that is left to the deadline as its time-out (not `rpc_timeout`: a mount can take longer than one normal call). `dns` is `spec.dns` when the network mode is `Host`, else empty. On success: record state `Ready`, start the watcher, build the `Sandbox`. | `Pending(SlaveReady)`, then `Ready(Ok(sandbox))` | `Done` |
 | `Done` | | `None` | |
 
 `create()` is `execute(create_sandbox::new(..), None)?.into_ready_future().await`.
@@ -489,7 +545,10 @@ impl ExecStdin {
 
 `ExecStdin::write` cuts the bytes into chunks of `chunk_bytes` and calls `ExecInput` for
 each, with the next sequence. On `InputQueueFull` it awaits a timer of
-`min(5 ms * 2^attempt, 200 ms)` and sends the same `seq` again. On a transport error it
+`min(5 ms * 2^attempt, 200 ms)` and sends the same `seq` again, for at most
+`limits.input_retry_timeout` (default 30 s, the `send_timeout` default of nginx is 60 s;
+a program that reads no input for 30 s is treated as not reading). After that, `write`
+returns `InputQueueFull`; the caller can try again or stop. On a transport error it
 sends the same `seq` again one time (the call is idempotent). `close` sends `eof: true`
 with no data. Dropping `ExecStdin` without `close` starts a task that sends `eof`.
 
@@ -541,9 +600,29 @@ _Caption: stop asks the slave first, forces the substrate only after the grace t
 - The watcher task of a `Ready` record awaits `handle.exited()`. When it completes and the
   state is `Ready`: state `Failed`; `cleanup()`; state `Stopped`; remove the record.
 - Dropping the last `Sandbox` handle does nothing. The record stays in the registry, and
-  `get(id)` gives a new handle. A sandbox ends by `stop`, `kill`, its own exit, or when the
-  manager is dropped: `SandboxManager::drop` starts a task that kills every record.
+  `get(id)` gives a new handle. A sandbox ends by `stop`, `kill` or its own exit. When the
+  manager is dropped, `ManagerConfig.on_drop` decides: `KillAll` starts a task that kills
+  every record; `Detach` does nothing.
 - After `Stopping`, `Stopped` or `Failed`, the three work calls return `SandboxStopped`.
+
+Fault table: `stop`.
+
+| Step that fails | What the control plane does | What the caller sees | What is left behind |
+|---|---|---|---|
+| `Shutdown` call fails (the slave is gone) | Goes on to the wait. | nothing yet | |
+| The substrate does not exit in `shutdown_grace` | `terminate(1 s)`; `killed: true`. | `ExitReport { killed: true }` | nothing |
+| `terminate` returns an error | `kill()`. | `ExitReport { killed: true }` | nothing |
+| `cleanup` returns an error | Logs it; the state is `Stopped`; the record is removed. | `Io { op: "cleanup" }` with the first `ExitReport` kept for later calls | what the driver could not remove; the error names it |
+
+Fault table: `write_file`.
+
+| Step that fails | What the control plane does | What the caller sees | What is left behind |
+|---|---|---|---|
+| `FileWriteBegin` | Nothing. | the error | nothing |
+| The caller's byte stream gives an error | `FileWriteAbort`. | that error | nothing |
+| `FileWriteChunk` | `FileWriteAbort` (best effort). | the error | nothing; the slave removed the upload |
+| `FileWriteCommit` | `FileWriteAbort` (best effort). | the error | nothing |
+| The future is dropped | A task sends `FileWriteAbort`. | (gone) | nothing; if the abort is lost, the upload expires in the slave |
 
 ### 6.8 `RecordStore`
 
@@ -576,6 +655,47 @@ The manager calls `put` on each state change and `remove` at `Stopped`. A store 
 
 The doc comment of the module says: these give no isolation and are for tests.
 
+### 6.10 `ControlService`, `SandboxRpcClient` and `check_bearer`
+
+These three make the control plane usable over RPC. They are here, in `shared/`, because
+they have no operating-system call; feature 06 serves them on a host, and feature 07
+serves them in a Durable Object.
+
+```rust
+/// SandboxService on any control plane.
+pub struct ControlService { control: Arc<dyn SandboxControl>, limits: SandboxLimits }
+impl SandboxService for ControlService { /* one method for each call */ }
+```
+
+| Call | Body |
+|---|---|
+| `probe`, `get`, `list`, `stop`, `kill` | Call the control plane; map the result. |
+| `create` | `control.create_with_progress(spec)`; map `Pending(p)` to `CreateEvent::Progress(p)` and the result to `Created(info)` or the stream error. When the client drops the stream before the end, the create task is dropped, and the control plane cleans up (section 6.4). |
+| `exec`, `exec_input`, `exec_signal`, the four file write calls, `file_read` | `control.get(sandbox_id)` (`NotFound { what: "sandbox" }`), then the same call on `sandbox.calls()` with the inner message, with no change. The slave checks `exec_id`, sequence numbers and offsets; the service adds no rule. A sandbox that is not `Ready` gives `SandboxStopped`. |
+
+Errors: `SandboxError::to_connect`.
+
+```rust
+/// SandboxControl on a transport to a SandboxService.
+pub struct SandboxRpcClient { /* generated SandboxService client, ctx, limits */ }
+impl SandboxRpcClient {
+    pub fn new(ctx: Ctx, transport: Arc<dyn Transport>, limits: SandboxLimits) -> Self;
+    pub fn with_token(self, token: Secret) -> Self;      // adds "Authorization: Bearer ..."
+}
+impl SandboxControl for SandboxRpcClient { /* each call maps to its RPC */ }
+```
+
+The remote `Sandbox` handle is the same handle code as the local one (section 6.6), on a
+second implementation of `ExecFileCalls`: the scoped `SandboxService` client, which adds
+the `sandbox_id` to each message. `stop`, `kill` and `info` map to their calls.
+
+```rust
+/// The token check for a served control plane. `header` is the Authorization header.
+/// Compares SHA-256 digests of the given and the expected token in constant time.
+/// Errors: Unauthorized (missing header, a scheme that is not Bearer, a wrong token).
+pub fn check_bearer(header: Option<&str>, token: &Secret) -> SandboxResult<()>;
+```
+
 ## 7. Tests
 
 `backends/foundation_platform_sandbox/tests/`. Each has the valtron test attributes.
@@ -600,7 +720,10 @@ Simulation (`control_sim_*.rs`), with `Ctx::with_seed`, `SimulatedClock`, `SimDr
 | I13, "A substrate that dies ..." | `substrate_exit_fails_sandbox` | fault |
 | I12, "Dropping a command handle ..." | `drop_exec_handle` | expected outcome |
 | I15, "The same seed gives the same trace" | `same_seed_same_trace` | identity |
-| `restore` (section 6.2) | `restore_ready_record`, `restore_dead_substrate`, `restore_unprepared_slave`, `restore_unfinished_record` (one for `Creating`, one for `Stopping`), `restore_twice`; `fixed_id` (the sandbox ID is the configured one; a second create fails with `TooManySessions`) | expected outcome |
+| the restart, drop, fixed id, limit, input and read scenarios above | `restore_ready_record`, `restore_dead_substrate`, `drop_detach`, `drop_kill_all`, `fixed_id`, `max_sandboxes`, `stdin_gives_up`, `read_file_gap`, `stdin_bytes_mode`, `run_with_timeout`, `store_error_in_create_fails`, `store_error_after_ready_is_logged` | expected outcome |
+| `restore`, more cases (section 6.2) | `restore_ready_record`, `restore_dead_substrate`, `restore_unprepared_slave`, `restore_unfinished_record` (one for `Creating`, one for `Stopping`), `restore_twice`; `fixed_id` (the sandbox ID is the configured one; a second create fails with `TooManySessions`) | expected outcome |
+| law L11 of the requirements (the same outcome through the library and through RPC) | `rpc_parity_sim`: every simulation scenario of this table that uses a `Sandbox` runs a second time through `SandboxRpcClient` + `ControlService` over the pipe connection, and the outcomes are equal; `rpc_error_variants` (each `SandboxError` variant that a control call can return keeps its variant and fields); `rpc_create_dropped_cleans_up` | differential, identity, fault |
+| `check_bearer` | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | expected outcome |
 | I16 | the wasm check in section 8; `no_os_calls` (a source scan of `src/shared/control/`) | build, example |
 
 Real slave process (`control_slave_process_*.rs`, Linux, features `slave` and `testing`). A

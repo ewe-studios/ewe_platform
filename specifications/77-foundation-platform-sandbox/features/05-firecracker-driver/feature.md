@@ -32,10 +32,11 @@ When this feature lands, this code works on a Linux host with KVM and the `firec
 program:
 
 ```rust
+// In a `main` function (the only place that builds the first `Ctx`):
 let ctx = Ctx::host();
 let host = SandboxHost::native(HostConfig::discover(&env_reader, &exe_dir));
 ctx.store(host.clone());
-let store = ArtifactStore::new(ctx.clone(), host.clone());
+let store = ArtifactStore::new(ctx.clone(), host.fs.clone(), host.config.cache_dir.clone());
 let rootfs = store.firecracker_ci_rootfs(GuestArch::host()).await?;
 
 let manager = SandboxManager::new(
@@ -252,7 +253,7 @@ Feature: Firecracker driver
 
   Scenario: Stop powers the guest off
     When the caller stops a ready sandbox
-    Then the firecracker process exits with code 0
+    Then the firecracker process exits by itself in less than shutdown_grace
     And ExitReport.killed is false
     And the run directory is gone
 
@@ -274,12 +275,12 @@ Feature: Firecracker driver
 | Part | Source | How Firecracker gets it |
 |---|---|---|
 | Kernel | `spec.kernel`, or `store.firecracker_kernel(arch)` | `BootSource.kernel_image_path` |
-| Init program | `agent-slave`, in an initramfs from `store.agent_initramfs(slave_path)` | `BootSource.initrd_path` |
+| Init program | `agent-slave`, in an initramfs from `store.slave_initramfs(slave_path)` | `BootSource.initrd_path` |
 | User root file system | `RootFs::Ext4Image` or `RootFs::SquashfsImage` | Drive `rootfs`, `is_root_device = false`, `is_read_only = true` |
 | Link to the host | vsock | `Vsock { guest_cid, uds_path }` |
 
-`is_root_device` is false because Firecracker rejects a root drive together with an
-initramfs (`docs/initrd.md`). The slave finds the drive at `/dev/vda`: it is the first
+`is_root_device` is false because the Firecracker documentation says not to use a root
+drive together with an initramfs (`docs/initrd.md`). The slave finds the drive at `/dev/vda`: it is the first
 virtio-block device. The `Substrate.root` that the driver returns is
 `RootSetup { source: BlockDevice { device: "/dev/vda", fstype }, mode: spec.root_mode }`.
 
@@ -289,7 +290,8 @@ Boot arguments:
 console=ttyS0 reboot=k panic=1 quiet ewe.listen=vsock:1024
 ```
 
-On x86_64 add `pci=off i8042.noaux i8042.nomux i8042.dumbkbd`.
+On x86_64 add `pci=off i8042.noaux i8042.nomux i8042.dumbkbd`. On aarch64 the string above
+is complete.
 
 | Argument | Reason |
 |---|---|
@@ -334,7 +336,7 @@ _Caption: the driver configures and starts the VM; the control plane then reache
 
 ```rust
 pub enum FcLaunch {
-    Prepare   { ctx: Ctx, id: SandboxId, spec: SandboxSpec },
+    Prepare   { ctx: Ctx, id: SandboxId, spec: SandboxSpec, deadline: foundation_compact::Instant },
     Spawn     { ctx: Ctx, plan: FcPlan },
     AwaitApi  { ctx: Ctx, plan: FcPlan, vmm: Arc<dyn ChildProcess>, api: Arc<dyn FirecrackerApi>,
                 deadline: foundation_compact::Instant, attempt: u32 },
@@ -367,8 +369,8 @@ async fn fc_launch(ctx: Ctx, state: FcLaunch)
 
 | State | Work | Emits | Next |
 |---|---|---|---|
-| `Prepare` | Resolve the `firecracker` path, the slave path, the kernel, the initramfs and the image (await the artifact store). Make the run directory (mode `0700`). Check the socket path length for `v.sock`. Create an empty `vmm.log`. Pick `guest_cid` from `ctx.rng()` in 3 to `2^31 - 1`. Build the boot arguments. | `Pending(Preparing)` | `Spawn` |
-| `Spawn` | Spawn `firecracker` (section 6.4). `deadline = now + boot_timeout`. | `Pending(SubstrateStarted)` | `AwaitApi` |
+| `Prepare` | Read `SandboxHost::from_ctx(&ctx)` (`HostNotConfigured`) and build the `ArtifactStore` from it. Resolve the `firecracker` path, the slave path, the kernel, the initramfs and the image (await the artifact store). Make the run directory (mode `0700`). Check the socket path length for `v.sock`. Create an empty `vmm.log`. Pick `guest_cid` from `ctx.rng()` in 3 to `2^31 - 1`. Build the boot arguments. Write the file `pid` after the spawn (section 6.4). A kernel or image that is not in the cache is downloaded here, inside the deadline; a caller that wants a fast first create calls the `ArtifactStore` functions before it. | `Pending(Preparing)` | `Spawn` |
+| `Spawn` | Spawn `firecracker` (section 6.4). The deadline is the `launch` argument (feature 00, section 6.8); the driver starts no deadline of its own. | `Pending(SubstrateStarted)` | `AwaitApi` |
 | `AwaitApi` | `vmm.try_wait()`: an exit ends the launch. If `fc.sock` does not exist, or `describe_instance()` fails to connect: await a timer of `min(5 ms * 2^attempt, 100 ms)`, then the same state with `attempt + 1`. A good answer with state `Not started`: go on. Past the deadline: fail. | `Ignore` while it waits | `Configure { MachineConfig }` |
 | `Configure` | One API call for each step (section 6.5). | `Pending(SubstrateConfigured)` after `Vsock`; `Pending(Booting)` after `Start`, then `Ready(Ok(substrate))` | the next step, then `Done` |
 | `Done` | | `None` | |
@@ -405,6 +407,13 @@ firecracker --api-sock <run_dir>/fc.sock --id <sandbox_id> --log-path <run_dir>/
   `/dev/null`. The environment is empty. The work directory is the run directory.
 - `kill_with_parent = true`.
 - `--log-path` needs a file that exists; `Prepare` creates it.
+- After the spawn, the driver writes the child's PID to `<run_dir>/pid`.
+
+**Stale run directories.** A control plane that crashes with a record store in memory
+cannot call `attach`, and its run directories stay. `sweep_stale_run_dirs(host)` removes
+each directory of `state_dir` whose `pid` file names a process that does not exist (or
+that has no `pid` file and is older than `boot_timeout`). `agent-sandbox` calls it at
+start (feature 06), before it serves or runs. A test covers both cases.
 
 | File in `<state_dir>/<sandbox_id>/` | Made by | Content |
 |---|---|---|
@@ -478,7 +487,7 @@ Stop needs no API call: the control plane sends `Shutdown` to the slave, the sla
 |---|---|---|
 | `kvm` | `/dev/kvm` exists and opens for read and write. On a permission error the message says: join the `kvm` group, or `setfacl -m u:$USER:rw /dev/kvm`. | yes |
 | `firecracker` | The program exists at the resolved path, and `firecracker --version` prints a version in `rpc_timeout`. The message has the version. | yes |
-| `firecracker_version` | The version is 1.10 or newer. (The `Vsock` and `Drive` fields that this feature sends are in the API since before 1.0; 1.10 is the oldest release line that upstream supports at the time of this spec. A CI run on an older version changes this number.) | yes |
+| `firecracker_version` | The version is equal to or newer than `MIN_FIRECRACKER_VERSION`, a value in `ci/sandbox.toml` that the probe reads at build time. Its first value is the version that the CI job pins and passes on. The API fields that this feature sends (`Vsock`, `Drive`, `BootSource`, `MachineConfiguration`) are old and stable, so an older version can work; the number is only raised or lowered with a CI run that proves it. | yes |
 | `slave` | The slave program exists for the guest architecture. | yes |
 | `vcpu_rule` | Always ok; the message says "1 vCPU or an even number". | no |
 
@@ -490,7 +499,11 @@ socket or touches the real file system.
 **`NativeProcessSpawner`.** Builds a `std::process::Command` from `ProcessSpec`:
 `env_clear()`, then the given environment; standard input from `/dev/null`; standard output
 and standard error to the two files (append). `kill_with_parent` on Linux: `pre_exec` calls
-`prctl(PR_SET_PDEATHSIG, SIGKILL)`, then exits if `getppid()` is 1. (macOS has no such
+`prctl(PR_SET_PDEATHSIG, SIGKILL)`, then exits if `getppid()` is 1. The kernel sends that
+signal when the **thread** that made the child ends, not when the process ends. So the
+spawner makes every child from one dedicated thread that it starts at construction and
+that lives as long as the spawner (a channel carries the `ProcessSpec` to it and the
+result back). It never spawns from a valtron pool thread. (macOS has no such
 call; feature 09 adds a lifeline pipe for the libkrun runner.) `wait()`: one helper thread
 for each child calls `Child::wait()`, stores the result, and sets a `ResumeSignal`; `wait()`
 awaits that signal. A helper thread is not an executor thread, so the block is allowed.
@@ -525,7 +538,11 @@ impl HttpClientBuilder {
 
 The driver passes `preamble = "CONNECT 1024\n"`, `expect = "OK "`, `max_reply = 32` (the
 longest answer is `OK 2147483647\n`, 14 bytes). The preamble runs one time for each new
-connection, before the first HTTP byte; a pooled connection is not handshaken again. When
+connection, before the first HTTP byte. The HTTP client can keep a connection open and use
+it for a later call; such a connection is already forwarded to the guest port and needs no
+second preamble. A kept connection that the guest closed gives a transport error on the
+next call, and the client opens a new one (calls that are safe to repeat are tried again
+one time; feature 02, section 6.5). When
 no guest program listens yet, Firecracker closes the connection, the read gives end of
 stream, and the call fails with a transport error. The control plane's readiness wait
 treats that as "not ready" and tries again (feature 02, section 6.3).
@@ -570,6 +587,9 @@ the `testing` module, a `FakeFirecrackerApi` that records calls.
 | "The host check names what is missing" | `probe_missing_binary`, `probe_no_kvm` (fake `HostFs`) | expected outcome |
 | `attach` | `attach_returns_none_and_removes_run_dir` | expected outcome |
 | I12 | `no_os_calls_outside_host` (a source scan of `src/native/firecracker/`) | example |
+| I10 | `driver_does_not_call_slave` (the launch runs with a connector that fails every connect; the launch still gives a substrate) | expected outcome |
+| the one deadline | `launch_uses_given_deadline` (a deadline 50 ms away with an API that answers after 100 ms gives `BootTimeout { stage: "api" }`) | expected outcome |
+| stale run directories | `sweep_removes_dead`, `sweep_keeps_live` | expected outcome |
 
 Native side effects (`native_host_*.rs`, Linux and macOS, no VM):
 
@@ -578,6 +598,7 @@ Native side effects (`native_host_*.rs`, Linux and macOS, no VM):
 | `spawn_env_is_empty` | A child started through `NativeProcessSpawner` sees only the given environment. |
 | `spawn_wait_and_signal` | `wait` gives the exit code; a signal ends a child; a signal after the exit is a no-op. |
 | `spawn_kill_with_parent` (Linux) | A helper process spawns `sleep 60` with the flag and is killed; the `sleep` is gone in 2 s. |
+| `spawn_survives_pool_thread_exit` (Linux) | A child with the flag is spawned through a call from a short-lived thread; that thread ends; the child still runs. (It fails if the spawn happens on the calling thread.) |
 | `connector_unix` | A `SlaveService` call works through `Unix`. |
 | `connector_preamble_ok` | A fake UDS server expects `CONNECT 1024\n`, answers `OK 1073741824\n`, then serves HTTP: the call works, and the server saw the preamble one time for one connection. |
 | `connector_preamble_closed` | The server closes after the preamble: the call fails with a transport error. |

@@ -252,9 +252,8 @@ pub fn route(path: &str, body: &[u8]) -> SandboxResult<RouteTarget>;
 | every other method | Read `sandbox_id` from the JSON body (a small struct with only that field). Parse it as `SandboxId` (`InvalidSpec { field: "sandbox_id" }` on a failure). `Sandbox(id)`. |
 | a path that is not a method of the service | `NotFound { what: "method" }` |
 
-`pub fn check_bearer(header: Option<&str>, token: &[u8]) -> SandboxResult<()>`: the shared
-token check of feature 06, section 6.5 (SHA-256 of both, constant-time compare). It is in
-`shared/` so the native server and the Worker use one function.
+The token check is `check_bearer` of feature 02, section 6.10. It is in `shared/`, so the
+native server and the Worker use one function.
 
 ### 6.2 The Worker crate
 
@@ -295,9 +294,11 @@ Errors from steps 1 to 3 are written with the error writer of `foundation_connec
 **`SandboxDo`.** Holds `state`, `env` and a `OnceCell<DoControlPlane>`. On the first
 request it builds `CloudflareHost::from_state(&state, index)` (feature 07,
 `src/cloudflare/`), where `index` is a `SandboxIndex` that calls the index DO, and
-`DoControlPlane::new(ctx, host, id, limits)` with `id` from the DO's name. `fetch` converts
+`DoControlPlane::open(ctx, host, Some(id), limits)` with `id` from the request header
+below. `fetch` converts
 the `worker::Request` to the request type of `foundation_http::wasm`, calls
-`control.handle(..)`, and converts the response back. `alarm` calls `control.on_alarm()`.
+`control.handle(..)`, and converts the response back. `alarm` calls `DoControlPlane::open(ctx, host, None, limits)` when the cell is empty (the
+ID comes from storage; feature 07, section 6.6), then `on_alarm()`.
 Nothing else.
 
 The DO name is not in `worker::State` directly; the Worker entry sends it in the header
@@ -365,13 +366,18 @@ class_name = "SandboxDo"
 name = "ewe-sandbox"
 image = "./Dockerfile"
 max_instances = 10
+instance_type = "lite"
 ```
 
 The `containers` keys are the ones of `cloudflare/containers`,
 `examples/core-tests/wrangler.jsonc` (`image`, `class_name`, `name`, `max_instances`). The
 build command is the one that the skill `rust-valtron-usage` names for Workers
 (`worker-build`). `max_instances = 10` is a starting value for the operator to change; the
-README says where.
+README says where. It is the most sandboxes that the Worker can have at one time: a
+`Create` above it fails in `container.start`, and the caller gets `SubstrateApi` with the
+platform's message. `instance_type` sets the CPU and memory of each sandbox (`"lite"` is
+the value of the Cloudflare minimal example, `instance: "lite"`); `SandboxSpec.vcpus` and
+`memory_mib` are not used on Cloudflare.
 
 The token: `npx wrangler secret put SANDBOX_TOKEN`; for `wrangler dev`, a `.dev.vars` file
 that is in `.gitignore`.
@@ -414,12 +420,14 @@ spec.
 | I1, "Every call needs the token" | `e2e_cloudflare_token` | the same | expected outcome |
 | I5, "An unknown sandbox is NotFound", "A bad sandbox id ..." | `e2e_cloudflare_not_found`, `e2e_cloudflare_bad_id` | the same | expected outcome |
 | I6, "List shows live sandboxes only" | `e2e_cloudflare_list` | the same | expected outcome |
+| stale index entry | `e2e_cloudflare_stale_index`: create a sandbox; kill its container with `docker kill` (not through the API); `Get` answers `NotFound`; `List` then does not show it | the same | expected outcome |
+| index DO paths | `index_put_delete_list` (through `wrangler dev`: the internal paths are reachable only from the Worker; the test checks the effect through `List` after a create and a stop, and that `PUT /index/x` from outside is `NotFound { what: "method" }`) | the same | expected outcome |
 | "Two sandboxes are separate" | `e2e_cloudflare_two_sandboxes` | the same | example |
 | "No internet unless asked" | `e2e_cloudflare_no_internet`, and with `NetworkMode::Host` the same command exits 0 when the test machine has a network (the test returns with a message when it has none) | the same | expected outcome |
 | I4 | `e2e_cloudflare_large_stream` (20 MB of output arrives in order with flat client memory) | the same | identity |
 | "Stop destroys the container" | `e2e_cloudflare_stop` (checks `docker ps` for the container that `wrangler dev` made) | the same | conservation |
 | I9, "The slave and the Worker have the same version" | `e2e_cloudflare_versions` | the same | identity |
-| restart of a DO | `e2e_cloudflare_restart`: create; stop and start `wrangler dev` with the same state directory (`--persist-to`); `Get` answers `NotFound` or `Ready` and a new command works. Both are correct: `wrangler dev` may or may not keep the container. The test asserts that the answer is one of the two and that no call hangs. | the same | expected outcome |
+| restart of a DO | `e2e_cloudflare_restart`: create; stop and start `wrangler dev` with the same state directory (`--persist-to`); then `Get`. The test reads `docker ps` first to know which case it is in: the container survived (then `Get` must give `Ready`, and a new command must work, with no second `Prepare` in the slave) or it did not (then `Get` must give `NotFound`, and `List` must be empty). Each case has one exact expected result. | the same | expected outcome |
 | "A provider starts a Cloudflare sandbox" | `provider_e2e_cloudflare` | `foundation_deployment_platform/tests/sandbox_provider_tests.rs` | example |
 
 The `e2e_cloudflare` tests need `wrangler`, `worker-build` and Docker. They read

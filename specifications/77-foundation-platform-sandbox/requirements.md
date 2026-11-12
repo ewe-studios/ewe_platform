@@ -134,11 +134,13 @@ it what that place has.
 |---|---|---|---|
 | A Linux or macOS host | the program `agent-sandbox` | Firecracker (Linux), libkrun, Docker | HTTP on a UDS (vsock behind it) or TCP |
 | A Cloudflare DO | a `#[durable_object]` class | Cloudflare container | `container.get_tcp_port(port).fetch(..)` |
-| Inside a sandbox (nested) | the program `agent-slave` with the control feature | Firecracker, libkrun | HTTP on a UDS |
+| Inside a Docker container (nested) | the program `agent-slave` with the control feature | Firecracker | HTTP on a UDS |
 
-The last row is the nested case: a slave in a Docker or Cloudflare container holds the same
-control-plane core and can start microVMs inside its container. One container then gives
-many sandboxes.
+The last row is the nested case: a slave in a container holds the same control-plane core
+and can start microVMs inside its container. One container then gives many sandboxes. It
+needs `/dev/kvm` in the container. Docker can give that. A Cloudflare container does not
+have it today, so there the slave reports that it cannot control, with the same code
+(feature 11, section 6.6).
 
 ### 2.3 The six systems
 
@@ -161,7 +163,7 @@ many sandboxes.
 | `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The Cloudflare container driver, the `Fetcher` RPC transport, the DO storage registry, the DO request handler. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
 | `backends/foundation_deployment_platform/src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::sandbox::run`. |
-| `backends/foundation_deployment_platform/src/bin/agent_slave.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. |
+| `bin/agent_slave/src/main.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. It is its own package because it must be a static musl program, and `foundation_deployment_platform` does not build for musl today (decision D4 and question Q3). |
 | `backends/foundation_deployment_platform/src/providers/sandbox/` | library | `Provider` facades. They call `SandboxManager`. No logic. |
 | `infrastructure/sandbox_worker` | Cloudflare Worker (Rust, wasm) | The `#[durable_object]` class and the Worker entry. They call `foundation_platform_sandbox::cloudflare`. No logic. |
 
@@ -182,7 +184,7 @@ definitions.
 
 | Service | Server | Calls |
 |---|---|---|
-| `SlaveService` | slave | `Info`, `Prepare`, `Exec` (stream), `ExecInput`, `ExecSignal`, `FileWriteBegin`, `FileWriteChunk`, `FileWriteCommit`, `FileWriteAbort`, `FileRead` (stream), `Shutdown` |
+| `SlaveService` | slave | `Info`, `Prepare`, `Exec` (stream), `ExecInput`, `ExecSignal`, `FileWriteBegin`, `FileWriteChunk`, `FileWriteCommit`, `FileWriteAbort`, `FileRead` (stream), `Shutdown`. Feature 12 adds `UnpackBegin`, `UnpackChunk`, `UnpackCommit`, `UnpackAbort`. |
 | `SandboxService` | control plane | `Probe`, `Create` (stream of progress), `Get`, `List`, `Stop`, `Kill`, and the `Exec*` and `File*` calls with a sandbox ID, which the control plane passes to the slave |
 
 How the control plane reaches a slave:
@@ -237,7 +239,7 @@ Each feature turns these into its own numbered invariants and tests.
 
 | # | Law | Kind |
 |---|---|---|
-| L1 | A sandbox is `Ready` only after its slave answered `Info` and `Prepare`. | ordering |
+| L1 | A sandbox is `Ready` only after its slave answered `Info` and `Prepare`, and all of that happens inside one `boot_timeout`. | ordering |
 | L2 | A sandbox state moves only along `Creating -> Ready -> Stopping -> Stopped` or `Creating/Ready -> Failed -> Stopped`. | monotone |
 | L3 | A failed `Create` leaves nothing: no process, no container, no directory, no registry record in state `Ready`. | atomicity |
 | L4 | After `Stopped`, the substrate and every host resource of the sandbox are gone. | conservation |
@@ -329,6 +331,12 @@ All are fields of `SandboxLimits` with builder methods.
 | `max_error_message` | 64 KiB | `BodyLimits::max_error_body` in this repository. |
 | `output_drain_timeout` | 2 s | Time the slave waits for output after the program exits. |
 | `upload_idle_timeout` | 60 s | The `client_body_timeout` default of nginx. |
+| `input_retry_timeout` | 30 s | Half of the `send_timeout` default of nginx (60 s). |
+
+`boot_timeout` is one deadline for the whole create: the driver launch, the readiness wait
+and `Prepare` (feature 02, section 6.3). The Cloudflare control plane uses its own value,
+60 s (feature 07). Features 12 and 14 add limits for images and builds in their own
+structs.
 
 ### 6.4 Side effects (root rule 11)
 
@@ -396,14 +404,16 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 
 ### 7.1 What the MVP is
 
-**MVP-A (after feature 06, six features deep on the longest path: 00, 01 or 02, 04, 05,
-06):** on a Linux host with KVM, `agent-sandbox run --rootfs <image> -- <program>` starts a
+**MVP-A (after feature 06; the longest path is four features deep: 00, then one of 01 to
+04, then 05, then 06):** on a Linux host with KVM, `agent-sandbox run --rootfs <image> -- <program>` starts a
 Firecracker microVM with `agent-slave` as PID 1 and prints the program's output; Rust code
 does the same through `SandboxManager`, `SandboxRpcClient` or a `Provider`.
 
 **MVP-B (after feature 08, two more features):** the same `SandboxService` calls work
 against a Cloudflare Worker, where the control plane runs in a DO and the slave runs in the
-DO's container.
+DO's container. Feature 07 needs only features 01 and 02. Feature 08 also needs feature
+06, for the native client (`SandboxRpcClient::connect`), the `Provider` facade and the CI
+workflow; so MVP-B comes after MVP-A.
 
 Features 00 to 04 have no dependency on each other after 00, so 01, 02, 03 and 04 run in
 parallel. Feature 07 starts as soon as 01 and 02 are done, in parallel with 05 and 06.
@@ -477,7 +487,7 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D1 | The `Provider` trait is in `foundation_deployment_platform`. The providers are facades; all logic is in `foundation_platform_sandbox`. |
 | D2 | The control plane is `agent-sandbox`; the in-sandbox part is `agent-slave`. They talk over Connect RPC (`foundation_connectrpc`). |
 | D3 | Everything is a library split into `shared`, `native` and `cloudflare`. Programs, the DO and the Worker are boundaries. |
-| D4 | The program entry points are in `foundation_deployment_platform/src/bin/`. |
+| D4 | The program entry points are in `foundation_deployment_platform/src/bin/`. (`agent-sandbox` is. `agent-slave` cannot be yet: question Q3.) |
 | D5 | The slave uses valtron, not threads. |
 | D6 | MVP order: Firecracker, then Cloudflare. libkrun and Docker follow. |
 | D7 | The slave can start nested microVMs with the same core. |
@@ -490,6 +500,6 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 |---|---|---|
 | Q1 | "Docker sandbox" and "Cloudflare sandbox": section 2.3 reads them as "the control plane itself runs in Docker or on Cloudflare". Is that the meaning, or do they mean the Docker Sandboxes product and the Cloudflare Sandbox SDK as substrates? | Keep section 2.3. The Cloudflare Sandbox SDK is the same container primitive that feature 07 uses. |
 | Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
-| Q3 | `agent-slave` must be a static musl program. Its `main` is in `foundation_deployment_platform` (D4), so that library crate must compile for musl with the features that the program needs. Feature 06 gives it a feature set with no Docker client and no VM code. If the crate cannot build that way, the fall-back is a `bin/agent_slave` package with the same three-line `main`. | Try D4 first; feature 06 has the exact check. |
+| Q3 | Decision D4 puts the entry points in `foundation_deployment_platform/src/bin/`. `agent-sandbox` is there. `agent-slave` must be a static musl program, and that crate does not build for musl today (measured: TLS pulls a C library, and its Docker client is not optional). So the spec puts the three-line `main` of `agent-slave` in its own package, `bin/agent_slave`. | Accept `bin/agent_slave`. To move it later, first put the Docker client and TLS of `foundation_deployment_platform` behind features (an issue in feature 06, section 6.10). |
 | Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. Mutual TLS as in spec 65 comes with the agent-rpc merge. | Accept for the MVP. |
 | Q5 | The old spec `start.md` files are not in spec 76 or here. | Follow spec 76: `requirements.md`, `progress.md`, `learnings.md`, one `feature.md` for each feature. |

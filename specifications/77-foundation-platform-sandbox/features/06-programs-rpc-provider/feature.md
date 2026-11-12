@@ -71,9 +71,8 @@ not decide.
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
 | `SandboxCli`, `SlaveCli` | The parsed arguments of the two programs. | `cli::sandbox`, `cli::slave` |
-| `ControlService` | The `SandboxService` implementation on an `Arc<dyn SandboxControl>`. | `shared::control::service` |
-| `SandboxRpcClient` | `SandboxControl` on a `Transport`. | `shared::control::rpc_client` |
-| Remote sandbox handle | `SandboxOps` on the scoped RPC calls. | `shared::control::rpc_client` |
+| `ControlService`, `SandboxRpcClient` | Defined in feature 02; served and connected here. | feature 02 |
+| `ConnectAddr` | Where a remote control plane is. | `cli` |
 | Access token | A shared secret for TCP listeners. | the operator; read by the boundary |
 | `SandboxProvider`, `SandboxHandle` | The `Provider` adapter and its handle. | `foundation_deployment_platform::providers::sandbox` |
 | `ProviderId` | The identifier of a provider kind. | `foundation_deployment_platform::providers` |
@@ -265,8 +264,7 @@ Feature: Programs, RPC and Provider
 | `foundation_platform_sandbox/src/cli/mod.rs` | Shared argument helpers: `parse_listen`, `parse_connect`. Feature `cli`, native only. |
 | `.../src/cli/sandbox.rs` | `SandboxCli` (a `clap` derive), `pub fn run(ctx: Ctx, cli: SandboxCli) -> i32`. |
 | `.../src/cli/slave.rs` | `SlaveCli`, `pub fn run(ctx: Ctx, cli: SlaveCli) -> i32`. Reads `/proc/cmdline` for `ewe.listen` when `--listen` is not given. Calls `native::slave::run`. Needs the `slave` feature. |
-| `.../src/shared/control/service.rs` | `ControlService`. |
-| `.../src/shared/control/rpc_client.rs` | `SandboxRpcClient` and the remote handle. |
+| `.../src/native/connect.rs` | `SandboxRpcClient::connect`, `ConnectAddr`. |
 | `.../src/native/serve.rs` | `serve_control(ctx, control, listen, auth, shutdown)`: the HTTP server for `SandboxService`. |
 | `foundation_deployment_platform/src/bin/agent_sandbox.rs` | `fn main()`: `Ctx::host()`, store `SandboxHost::native(..)`, parse `SandboxCli`, `std::process::exit(cli::sandbox::run(ctx, cli))`. |
 | `bin/agent_slave/src/main.rs` | `fn main()`: `Ctx::host()`, parse `SlaveCli`, exit with `cli::slave::run(ctx, cli)`. |
@@ -305,6 +303,9 @@ agent-sandbox doctor
   directory gives `Directory`; any other file gives exit code 64 with a message. With no
   `--rootfs`, `run` and `create` use `store.firecracker_ci_rootfs(arch)` when the chosen
   driver is Firecracker.
+- `--rootfs` and `--image` name things on the machine of the control plane. So with
+  `--connect`, `run` and `create` need `--rootfs` or `--image` (exit code 64 without
+  one); the default image is used only with a local manager.
 - With no `--connect`, `run` and `doctor` build a local `SandboxManager` with every driver
   that this build has. `create`, `exec`, `list`, `stop` and `kill` need `--connect` or the
   environment variable `EWE_SANDBOX_CONNECT`; with neither they exit with 64 (a sandbox
@@ -319,7 +320,8 @@ agent-sandbox doctor
 is not a terminal, else `Null`; copy events; on `Exit`, `stop()`; exit with the code of
 invariant I6. A `SIGINT` or `SIGTERM` handler (the repository's signal support,
 `foundation_nativeapis` feature `signal`) sends `ExecSignal(15)` to the command, waits for
-`Exit` up to `shutdown_grace`, then `stop()`. Any error path calls `kill()` before it
+`Exit` up to `shutdown_grace`, then `stop()`. A second signal while that runs calls
+`kill()` at once. Any error path calls `kill()` before it
 exits with 125.
 
 | Exit code of `agent-sandbox` | Meaning |
@@ -330,44 +332,20 @@ exits with 125.
 | 64 | Usage error |
 | 125 | The sandbox or the control plane failed; the error is on standard error |
 
-### 6.3 `ControlService`
+### 6.3 `ControlService` and `SandboxRpcClient`
+
+Both are defined in feature 02 (section 6.10), because they are control-plane library
+code with no operating-system call, and the Cloudflare control plane (feature 07) uses
+`ControlService` too. This feature uses them and adds:
 
 ```rust
-pub struct ControlService { control: Arc<dyn SandboxControl>, limits: SandboxLimits }
-impl SandboxService for ControlService { /* one method for each call */ }
-```
-
-| Call | Body |
-|---|---|
-| `probe`, `get`, `list`, `stop`, `kill` | Call the control plane; map the result. |
-| `create` | `control.create_with_progress(spec)`; map `Pending(p)` to `CreateEvent::Progress(p)` and the result to `Created(info)` or the stream error. When the client drops the stream before the end, the create task is dropped, and the control plane cleans up (feature 02, section 6.4). |
-| `exec` | `control.get(id)`, `sandbox.exec(command)`; the handle is stored in a session map under `(sandbox_id, exec_id)`; events are forwarded with new `seq` numbers from 0 (`Started` first). When the stream ends or the client drops it, the entry is removed and the handle is dropped. |
-| `exec_input` | Finds the session; `Sequence::accept(seq)`; on `Apply`, `stdin.write(data)` and `close` on `eof`. `Duplicate` returns `next_seq`. `Gap` returns `SequenceGap`. |
-| `exec_signal` | Finds the session; `handle.signal(n)`. |
-| `file_write_begin`, `_chunk`, `_commit`, `_abort` | Pass through to the sandbox's slave client with the same messages. (The control plane exposes these four on `Sandbox` as crate-private calls for this purpose; `write_file` is built on them.) |
-| `file_read` | `sandbox.read_file(path)`; forward chunks with offsets. |
-
-The `exec_id` in a scoped `ExecRequest` is the client's. The service uses it as the key of
-its session map; the control plane makes its own `exec_id` towards the slave. An `exec_id`
-that is in use for that sandbox gives `AlreadyExists` (mapped as `SlaveError` with that
-code).
-
-Errors: `SandboxError::to_connect`. An unknown sandbox ID gives `NotFound { what: "sandbox" }`.
-
-### 6.4 `SandboxRpcClient`
-
-```rust
-pub struct SandboxRpcClient { /* generated SandboxService client, ctx, limits */ }
 impl SandboxRpcClient {
-    pub fn new(ctx: Ctx, transport: Arc<dyn Transport>, limits: SandboxLimits) -> Self;
     /// Builds the transport for an address. Native only.
     pub fn connect(ctx: Ctx, addr: ConnectAddr, limits: SandboxLimits) -> SandboxResult<Self>;
-    pub fn with_token(self, token: SecretString) -> Self;   // adds "Authorization: Bearer ..."
 }
 /// `Unix` and `Tcp` are the forms of `--connect`. `Url` is an `http://` or `https://`
 /// base address (the Cloudflare Worker of feature 08).
 pub enum ConnectAddr { Unix(PathBuf), Tcp { host: String, port: u16 }, Url(String) }
-impl SandboxControl for SandboxRpcClient { /* each call maps to its RPC */ }
 ```
 
 `connect` uses `H1Transport` on an HTTP client of `foundation_netio`: a UDS client for
@@ -375,41 +353,28 @@ impl SandboxControl for SandboxRpcClient { /* each call maps to its RPC */ }
 address of the calls is `http://localhost` for `Unix`, `http://<host>:<port>` for `Tcp`,
 and the `Url` as given.
 
-The remote `Sandbox` handle implements `SandboxOps` with the scoped calls. `exec`, input,
-signal, `write_file` and `read_file` have the same client logic as in feature 02
-(`ExecHandle`, `ExecStdin`, chunking, sequence numbers, abort on failure). So that logic is
-written one time: feature 02's handle code is generic over the trait `ExecFileCalls`
-(feature 02, section 6.6),
+### 6.4 Fault table: `agent-sandbox serve`
 
-```rust
-/// The calls that a handle needs. Implemented by SlaveClient (local control plane) and by
-/// the scoped SandboxService client (remote control plane).
-pub trait ExecFileCalls: Send + Sync + 'static {
-    fn exec(&self, req: ExecRequest) -> BoxFuture<'_, SandboxResult<ExecEventStream>>;
-    fn exec_input(&self, req: ExecInputRequest) -> BoxFuture<'_, SandboxResult<ExecInputResponse>>;
-    fn exec_signal(&self, req: ExecSignalRequest) -> BoxFuture<'_, SandboxResult<()>>;
-    fn file_write_begin(&self, req: FileWriteBeginRequest) -> BoxFuture<'_, SandboxResult<FileWriteBeginResponse>>;
-    fn file_write_chunk(&self, req: FileWriteChunkRequest) -> BoxFuture<'_, SandboxResult<FileWriteChunkResponse>>;
-    fn file_write_commit(&self, req: FileWriteCommitRequest) -> BoxFuture<'_, SandboxResult<FileWriteCommitResponse>>;
-    fn file_write_abort(&self, req: FileWriteAbortRequest) -> BoxFuture<'_, SandboxResult<()>>;
-    fn file_read(&self, req: FileReadRequest) -> BoxFuture<'_, SandboxResult<FileChunkStream>>;
-}
-```
-
-and this feature adds the second implementation (the scoped `SandboxService` client). `SecretString` is the secret type that the
-workspace already has (`grep -rn "struct Secret" backends/*/src`); its `Debug` prints no
-value.
+| Step that fails | What the program does | Exit code | What is left behind |
+|---|---|---|---|
+| Bad `--listen`, TCP with no token, empty token file | Prints a usage error. | 64 | nothing |
+| Socket path too long | Prints the error. | 64 | nothing |
+| The address is in use | Prints `address in use`. | 69 | nothing (a live socket of another server is not removed) |
+| `restore` fails for a record | Logs it; removes that record; goes on. | (serves) | nothing |
+| `SIGINT` or `SIGTERM` while it serves | Stops the listener; with `DropPolicy::KillAll` (the default with no record store on disk) stops every sandbox with `shutdown_grace`; removes its UDS file. | 0 | nothing |
 
 ### 6.5 Serving and authentication
 
 `serve_control(ctx, control, listen, auth, shutdown)`:
 
-- `unix:<path>`: check the socket path length; remove a stale socket file only when a
-  connect to it fails with "connection refused"; bind; mode `0600`. No token.
+- `unix:<path>`: check the socket path length (`SocketPathTooLong`, exit code 64); if the
+  path exists, try a connect: "connection refused" means a stale file, which is removed;
+  a connect that works means another server is there, which is exit code 69 with the
+  message `address in use`; bind; mode `0600`. No token.
 - `tcp:<host>:<port>`: needs `auth = Some(token)`. An interceptor
-  (`foundation_connectrpc` `shared/interceptor`) reads `Authorization: Bearer <token>`,
-  compares SHA-256 digests of the two values in constant time, and returns `Unauthorized`
-  on a mismatch. The check runs before the handler.
+  (`foundation_connectrpc` `shared/interceptor`) calls `check_bearer` (feature 02,
+  section 6.10) with the request's `Authorization` header. The check runs before the
+  handler.
 - HTTP/1.1, `ConnectRpcServe` on `HttpServer` (as in feature 01, section 6.4).
 - The token file is read one time at start: the first line, trimmed. An empty file is a
   usage error. The token is never logged.
@@ -550,10 +515,12 @@ When the owner approves issue filing (decision D9):
 
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
-| I1, "The remote client behaves as the local manager" | `rpc_parity`: the shared acceptance scenarios with `SandboxRpcClient` + `ControlService` over `in_memory_connector`-style pipes (simulation), and over a real UDS with the slave process driver | `foundation_platform_sandbox/tests/control_rpc_*.rs` | differential (local and remote give the same outcomes) |
+| I1, "The remote client behaves as the local manager" | `rpc_parity_uds`: the shared acceptance scenarios with `SandboxRpcClient` on a real UDS to `serve_control`, with the slave process driver (the simulation half is in feature 02) | `foundation_platform_sandbox/tests/control_rpc_*.rs` | differential (local and remote give the same outcomes) |
 | I2, "An error keeps its type across RPC" | `rpc_error_variants` (each variant that a control call can return) | the same | identity |
 | I3, the two token scenarios | `tcp_needs_token`, `tcp_wrong_token`, `tcp_no_token_no_start` | `tests/serve_*.rs` | expected outcome |
-| I4 | `unix_socket_mode` | the same | example |
+| I4 | `unix_socket_mode`, `unix_stale_socket_removed`, `unix_live_socket_refused`, `unix_path_too_long` | the same | example |
+| token file | `token_file_empty_is_usage_error`, `token_never_logged` (a `traced_test` log has no token text) | the same | expected outcome |
+| I12 | `blocking_only_at_boundaries` (a source scan: `block_on_future` appears only in `providers/sandbox/` and `main` files) | `tests/boundary_scan.rs` | example |
 | `create` stream dropped by the client | `rpc_create_dropped_cleans_up` (simulation: the driver handle got `kill` and `cleanup`) | `tests/control_rpc_*.rs` | fault |
 | `exec_input` through the service | `rpc_input_duplicate_and_gap` | the same | expected outcome |
 | I5, I6, the two `run` scenarios | `cli_run_exit_code`, `cli_run_signal_exit`, `cli_run_sigint_cleans_up` | `foundation_deployment_platform/tests/agent_sandbox_cli.rs` (real Firecracker; returns with a message when not usable) | expected outcome |

@@ -160,7 +160,8 @@ Links to other entities: every session's root
 | I14 | No task blocks an executor thread on I/O. Every fd is non-blocking on the shared reactor. |
 | I15 | When the slave is PID 1, `run` never returns; the guest powers off. |
 | I16 | After `Shutdown` is accepted, no new session or upload starts. |
-| I17 | A path in a call cannot leave `exec_root` by its text (`..` is refused). |
+| I17 | A path in a call cannot leave `exec_root`: `..` is refused, and symbolic links resolve inside `exec_root`. |
+| I18 | A program runs when the slave has no right to `chroot` and `exec_root` is `/`. |
 
 ### 4.3 Must have
 
@@ -493,14 +494,17 @@ tmpfs and ext4 built in (`learnings.md` sections 2.5 and 3.8).
    is true, else `/dev/null`. Parent ends: `O_CLOEXEC | O_NONBLOCK`, registered on the
    reactor.
 5. Take the child-table lock. `fork()`. Child, with only async-signal-safe calls:
-   `setsid()`, `dup2` the three streams, `chroot(exec_root)`, `chdir(cwd)`, reset the
-   signal mask and handlers, `execve(path, argv, env)`. On a failed step it writes the step
+   `setsid()`, `dup2` the three streams, `chroot(exec_root)` (skipped when `exec_root` is
+   `/`: `chroot` needs a privilege that a normal user and some containers do not have),
+   `chdir(cwd)`, reset the signal mask and handlers, `execve(path, argv, env)`. On a failed step it writes the step
    number and the `errno` (8 bytes) to a close-on-exec status pipe and calls `_exit(127)`.
    Parent: insert the PID in the child table, release the lock.
 6. Await the status pipe. Data: the start failed; the call fails with `NotFound`
    (`ENOENT`), `PermissionDenied` (`EACCES`) or `SpawnFailed` (others), and no event is
    sent. End of file: the program started.
-7. Return the event stream. The stream is fed by a bounded queue of 4 events. The pumps
+7. Return the event stream. The stream is fed by a bounded queue of
+   `SlaveLimits.event_queue_len` events (default 4: enough to join one read of each
+   stream and the exit event). The pumps
    push to it and park when it is full, which stops their pipe reads; this is the back
    pressure from the caller to the program.
 
@@ -538,8 +542,13 @@ call and does nothing.
 
 ### 6.7 Files
 
-Paths are absolute. The slave joins a path to `exec_root` with a function that removes `.`
-and refuses `..` (`BadRequest`).
+Paths are absolute. The slave refuses a path with a `..` part (`BadRequest`). It opens a
+path below `exec_root` with `openat2` and the flag `RESOLVE_IN_ROOT`, on a directory fd of
+`exec_root`. So a symbolic link in the image, also an absolute one, resolves inside
+`exec_root` and cannot reach the slave's own root. (`openat2` is in Linux 5.6 and later;
+the guest kernels of this spec are 6.1 and 6.12.) When `exec_root` is `/`, a normal `open`
+gives the same result. The temporary file of an upload is made in the same directory as the
+target, through the same directory fd, so the final `renameat` stays inside the root.
 
 | Call | Work | Failures |
 |---|---|---|
@@ -555,7 +564,12 @@ and returns, so no task holds a thread.
 
 ### 6.8 Reaper
 
-At start, before any `fork()`, the slave blocks `SIGCHLD` (`sigprocmask`) and opens a
+`slave::run` blocks `SIGCHLD` as its first statement, before the valtron pool or any other
+thread starts (a signal mask belongs to a thread, and new threads copy it; a block that
+comes later leaves threads that can take the signal, and the `signalfd` then misses it).
+`cli::slave::run` therefore calls `slave::block_sigchld()` before it builds the pool. When
+the slave is not PID 1, it also calls `prctl(PR_SET_CHILD_SUBREAPER, 1)`, so orphans of its
+programs come to it and not to the init of the container or of libkrun. Then it opens a
 `signalfd` (`SFD_NONBLOCK | SFD_CLOEXEC`) on the reactor. The reaper task parks on it. When
 it is readable, the task reads it empty and calls `waitpid(-1, &status, WNOHANG)` until the
 result is 0 or `ECHILD`. For a PID in the child table it stores the status and wakes that
@@ -573,8 +587,9 @@ is in the table before the reaper looks.
 
 A second `Shutdown` is accepted and does nothing.
 
-The slave does not stop when its last connection closes. A control plane reaches it with
-one connection for each call, so "no connection" is normal. A sandbox with no control plane
+The slave does not stop when its last connection closes. A control plane opens
+connections as it needs them and can have none open between calls, so "no connection" is
+normal. A sandbox with no control plane
 is ended by its substrate (the VMM process dies with its parent, feature 05; a container
 has an idle time-out, feature 07).
 
@@ -589,13 +604,31 @@ has an idle time-out, feature 07).
 | The caller's stream ends | `SIGKILL` to the group; reaps; removes the session. | (gone) | nothing |
 | A pipe read fails | Treats that stream as ended. | the events so far, then `Exit` | nothing |
 
+### 6.11 Fault tables: `Prepare`, file write, `Shutdown`
+
+| Story | Step that fails | What the slave does | What the caller sees | What is left behind |
+|---|---|---|---|---|
+| `Prepare` | Any mount, the name server file, the work directory | Stops at that step; stays `Booted`. | `RootSetupFailed` or `MountFailed` with the step and `errno` | the mounts made so far (the guest is thrown away; the control plane kills the substrate) |
+| `Prepare` | A second, different request | Nothing. | `AlreadyExists` | nothing |
+| File write | `Begin`: open fails | Nothing. | `NotFound`, `PermissionDenied`, `Io` | nothing |
+| File write | `Chunk`: write fails (for example no space) | Removes the temporary file and the upload. | `Io` with the `errno` | nothing |
+| File write | `Chunk`: gap | Nothing; the upload stays. | `SequenceGap` | the upload, unchanged |
+| File write | `Commit`: size mismatch, `fsync` or rename fails | Removes the temporary file and the upload. | `BadRequest` or `Io` | nothing; the target has its old content |
+| File write | No call for `upload_idle_timeout` | Removes the temporary file and the upload. | a later call gets `NotFound` | nothing |
+| `Shutdown` | A program ignores `SIGTERM` | `SIGKILL` after `grace_ms`. | `Ok` (the answer was sent first) | nothing |
+| `Shutdown` | `reboot()` fails (PID 1) | Writes the error; waits in `pause()`. | `Ok`; the control plane forces the substrate after its grace time | nothing |
+
 ## 7. Tests
 
 `backends/foundation_platform_sandbox/tests/slave_*.rs`, Linux only, as a normal user, with
 the feature `slave`. A test helper starts `slave::run` in a child process (a small test
 program in `tests/support/slave_main.rs`, built as a test binary) on a UDS in a temporary
 directory, and talks to it with the generated `SlaveService` client over
-`H1Transport` on that UDS. Every test sends `RootSource::Plain`.
+`H1Transport` on that UDS. Every test sends `RootSource::Plain`. For the path tests, `SlaveArgs` has a field
+`plain_root: PathBuf` (default `/`) that names the directory that `Plain` uses as
+`exec_root`; the command line does not expose it, and a value other than `/` makes
+programs fail to start unless the slave can `chroot`, so the tests use it only for file
+calls.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
@@ -613,7 +646,9 @@ directory, and talks to it with the generated `SlaveService` client over
 | "A slow reader loses nothing" | `slow_reader_exact` | identity |
 | I10, I11, the file scenarios | `file_atomic`, `file_chunk_duplicate`, `file_chunk_gap`, `file_commit_wrong_size`, `file_abort`, `file_expire`; `upload_model` (stateful: random begin, chunk, commit, abort against a model map) | stateful model, fault |
 | "A file is read in order" | `file_read_roundtrip` (0 bytes, 1 byte, 200000 bytes), `file_read_directory` | identity |
-| I17, "A path cannot leave the root" | `path_escape` (examples: `/../x`, `/a/../../x`, relative) | expected outcome |
+| I17, "A path cannot leave the root" | `path_escape` (examples: `/../x`, `/a/../../x`, relative); `symlink_resolves_in_root` (a temporary directory as `exec_root` through the test hook below, with a link `l -> /etc/passwd`: `FileRead /l` gives `NotFound`, not the host file) | expected outcome |
+| I18 | every test of this table runs as a normal user with `exec_root` `/` | example |
+| reaper set-up | `sigchld_blocked_before_threads` (the test program starts 8 pool threads, runs 200 short programs, and every `Exit` arrives) and `subreaper_adopts` (a program double-forks; the grandchild's exit is reaped by the slave) | bound |
 | "Too many sessions are refused" | `too_many_sessions` | bound |
 | I13 | `env_is_explicit` (the slave process has `SLAVE_SECRET=1`; `env` does not show it) | expected outcome |
 | I16, the shutdown scenarios | `shutdown_grace`, `shutdown_kill`, `shutdown_twice`, `exec_after_shutdown` | expected outcome |

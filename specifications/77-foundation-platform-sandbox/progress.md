@@ -24,6 +24,16 @@ ASD-STE100.
 - 2026-11-11: the spec in the story-driven form: `requirements.md` and 16 feature files.
   Each feature has its story, bounded context, law worksheet, invariants, must-have lists,
   acceptance scenarios, technical breakdown and a table from laws to tests.
+- 2026-11-12: a review by a fresh agent (a smaller model with no context, as the owner
+  asked). It found design defects and gaps; the spec was changed for each. The main ones:
+  a program start no longer needs `chroot` when the root is `/`; children are spawned from
+  one long-lived thread, because the parent-death signal follows the spawning thread; a
+  Durable Object stores its sandbox ID and restores before it handles an alarm; a manager
+  has a drop policy, so a restart does not kill what `restore` must find; one boot
+  deadline covers the launch, the readiness wait and `Prepare`; file paths resolve inside
+  the program root with `openat2`; the slave is a child subreaper when it is not PID 1;
+  `ControlService`, `SandboxRpcClient` and `check_bearer` moved to feature 02, so feature
+  07 does not need feature 06.
 - 2026-11-11: the skill `story-driven-specification` in the `.agents` repository (on its
   `master`), and `specifications-management` version 5.0, which makes that layout
   mandatory. The submodule pointer of this repository moved to that commit.
@@ -50,8 +60,8 @@ Nothing. The spec waits for the owner review.
 
 | Milestone | Features | Features deep (longest path) | State |
 |---|---|---|---|
-| MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 5 (00, then 01, 02 or 04, then 05, then 06) | not started |
-| MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02) | not started |
+| MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 4 (00, then one of 01 to 04, then 05, then 06) | not started |
+| MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02; 08 also needs 06) | not started |
 | Phase 2: libkrun, Docker, nested sandboxes | 09, 10, 11 | 1 to 2 more each | not started |
 | Phase 3: sandbox images | 12, 13, 14, 15 | 4 more | not started |
 
@@ -85,6 +95,11 @@ records the value.
 | 12 | Which hosts have a libkrun with block support. |
 
 ## Open questions for the owner
+
+Known layout difference: features 03, 04 and 09 have the story, context, rules and
+scenario sections with letters (A to D) between "1. Goal" and their numbered technical
+sections; the other features use the nine numbered sections of the skill. The content is
+the same. A renumber is a mechanical edit for a later pass.
 
 Requirements section 10.2: Q1 (the meaning of "Docker sandbox" and "Cloudflare sandbox"),
 Q2 (`foundation_platform_docker` or the existing `foundation_deployment_docker`), Q3

@@ -264,7 +264,10 @@ Docker client tests in `backends/foundation_deployment_docker/tests/`; use the s
 | `describe_instance_parses_state` | The answer `{"app_name":"Firecracker","id":"x","state":"Not started","vmm_version":"1.19.0"}` parses to the right enum value. |
 | `fault_message_is_surfaced` | A 400 answer with `{"fault_message":"bad"}` gives `SubstrateApi { status: 400, message: "bad" }`. |
 | `error_body_is_bounded` | A 400 answer with a 10 MiB body gives a message of at most `max_error_message` bytes. |
+| `call_times_out_note` | The time-out test uses a `SimulatedClock`: the mock server accepts and holds the connection; the test advances the clock past `rpc_timeout`; the call returns the time-out error. No real sleep. |
 | `call_times_out` | A server that does not answer gives a time-out error after `rpc_timeout`. |
+| `no_untyped_json` | A source scan of `src/native/firecracker/client.rs`: no `serde_json::Value` and no hand-written request struct (invariant I1). |
+| `generator_is_stable` | A script, `scripts/sandbox/check-firecracker-gen.sh`, runs the two commands of section 3.2 into a temporary directory and compares the result with `src/native/firecracker/generated/`; no difference (invariant I5). The verify step runs it. |
 | `types_match_real_firecracker` | Needs the `firecracker` program. Starts `firecracker --api-sock`, calls `version()` and `describe_instance()`, and puts a machine configuration. It returns with a message when the program is not found. This is the test against the real service (specifications rule 3). |
 
 ## 5. Verify

@@ -296,7 +296,7 @@ Cache directory `<cache_dir>/images/steps/`: `<key>.ext4` (the snapshot) and `<k
 (the metadata after the step, and the snapshot key for a metadata-only step). A step is a
 cache hit when its `.json` exists and the snapshot it names exists. Store: write to
 `<key>.tmp-<random>`, rename. A reader updates the access time file `<key>.used`; when
-the total size passes `cache_max_bytes`, the builder removes snapshots by oldest use, never
+the total size passes `BuildLimits.cache_max_bytes` (default 20 GiB), the builder removes snapshots by oldest use, never
 one that the running build named.
 
 ### 6.3 `ADD`
@@ -449,6 +449,9 @@ cargo test -p foundation_platform_sandbox --features "images testing slave" --pr
 ## 9. Done when
 
 - Each scenario of section 5 and each row of section 7 passes.
-- The build file of section 1 (with a local HTTP server for `FETCH`) builds and runs.
+- The build file of section 1 builds and runs on a host whose driver gives a guest network
+  (libkrun with block support), with a local HTTP server for `FETCH`. On a Firecracker-only
+  host, the same file without its `RUN --network host` line builds and runs, and the file
+  with that line fails with `UnsupportedNetwork` before any work.
 - A second build of an unchanged file starts no sandbox.
 - The README has the grammar table, the `--shell` rule and the network limit.

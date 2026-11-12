@@ -212,8 +212,8 @@ support `Writable` (Firecracker, or libkrun with block support).
 |---|---|
 | 1. Identify | `Docker`: `image_inspect(name)` (404 and `pull`: `image_pull`, then inspect again). Identity: `docker:<name>@<image Id>`. Check `Architecture` against the guest architecture (`amd64` = x86_64, `arm64` = aarch64): `ImageArchMismatch`. `Tar`: identity `tar:sha256:<hash of the file>` (streamed). `Alpine`: identity `alpine:<artifact hash>`. |
 | 2. Cache | Compute the key. If the store has it: set the tag when one is given; return with `cached: true`. |
-| 3. Open the stream | `Docker`: `create_container` (name `ewe-import-<random>`, label `ewe.sandbox.import=1`, no start), then `container_export(id)`. `Tar`: the file, through `flate2` when its first two bytes are `1f 8b`. `Alpine`: the archive of feature 03, through `flate2`. |
-| 4. Fill | `store.create_blank(size_mib)`; create a sandbox with `RootFs::Ext4Image(work)`, `RootMode::Writable`, `NetworkMode::None`; `sandbox.unpack("/", stream, UnpackOptions { oci_whiteouts: false })`; then the clean-up of section 6.4 through `exec`-free means (section 6.4); `sandbox.stop()`. |
+| 3. Open the stream | `Docker`: `create_container` (name `ewe-import-<random>`, label `ewe.sandbox.import=1`, no start), then `container_export(id)`. `Tar`: the file, through `flate2` when its first two bytes are `1f 8b`. `Alpine`: the archive file of feature 03 (`alpine_rootfs_archive`), through `flate2`. |
+| 4. Fill | `store.create_blank(size_mib)`; create a sandbox with `RootFs::Ext4Image(work)`, `RootMode::Writable`, `NetworkMode::None`; `sandbox.unpack("/", stream, UnpackOptions { oci_whiteouts: false, skip })`, with the `skip` list of section 6.4; `sandbox.stop()`. |
 | 5. Commit | Build the manifest (section 6.3); `store.commit(work, manifest, tag)`. |
 | 6. Always | Remove the temporary container (`remove_container(id, force)`). |
 
@@ -256,9 +256,8 @@ From `image_inspect` (`Config`):
 | `/etc/hosts`, `/etc/hostname`, `/etc/resolv.conf` | Kept as they are (empty files that Docker mounts over). The slave binds its own `resolv.conf` when the sandbox has a network. |
 | `/dev/*` entries | Kept. The slave mounts `devtmpfs` over `/dev`. |
 
-"Not unpacked" needs no command in the guest: `UnpackBegin` gets a field
-`skip: Vec<String>` (exact paths, relative to `dest`); the tar reader drops those entries.
-Add it to the messages of feature 12.
+"Not unpacked" needs no command in the guest: the path is in `UnpackOptions.skip`
+(feature 12, section 6.6), and the tar reader drops the entry.
 
 ### 6.5 Command line
 
