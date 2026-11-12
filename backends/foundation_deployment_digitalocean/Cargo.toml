@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.5"
+version = "0.1.6"
 
 [dependencies]
 base85rs = "0.1"
@@ -14,19 +14,19 @@ workspace = true
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.20"
+version = "0.0.21"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.7"
+version = "0.0.8"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.5"
+version = "0.0.6"
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.20"
+version = "0.0.21"
 
 [dependencies.foundation_netio]
 features = [
@@ -34,7 +34,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.13"
+version = "0.0.14"
 
 [dependencies.serde]
 workspace = true
@@ -76,7 +76,7 @@ workspace = true
 [package]
 description = "DigitalOcean API v2 client — droplet provisioning and SSH keys"
 name = "foundation_deployment_digitalocean"
-version = "0.1.4"
+version = "0.1.5"
 
 [package.authors]
 workspace = true

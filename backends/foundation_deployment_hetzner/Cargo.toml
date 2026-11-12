@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.5"
+version = "0.1.6"
 
 [dependencies]
 base85rs = "0.1"
@@ -14,27 +14,27 @@ workspace = true
 
 [dependencies.foundation_compact]
 path = "../foundation_compact"
-version = "0.2.5"
+version = "0.2.6"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.20"
+version = "0.0.21"
 
 [dependencies.foundation_context]
 path = "../foundation_context"
-version = "0.0.2"
+version = "0.0.3"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.7"
+version = "0.0.8"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.5"
+version = "0.0.6"
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.20"
+version = "0.0.21"
 
 [dependencies.foundation_netio]
 features = [
@@ -42,7 +42,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.13"
+version = "0.0.14"
 
 [dependencies.serde]
 workspace = true
@@ -62,7 +62,7 @@ path = "../foundation_testing"
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.20"
+version = "0.0.21"
 features = ["test-clock"]
 
 [features]
