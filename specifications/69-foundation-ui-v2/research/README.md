@@ -51,8 +51,9 @@ The owner set four goals for this research (PR #157 review, 2026-11-12):
    marks itself live and reacts to changes over a channel. The channel can be local, SSE,
    WebSocket or plain HTTP.
 
-**What is fixed at the top:** the schema, the node ids, the action name and registry contract,
-the signed state envelope, the live mount semantics and the platform scope of a form.
+**What is fixed at the top:** the schema, the node ids, the action name, scope, origin and
+registry contract, the signed state envelope, the live mount semantics and the platform scope
+of a form.
 
 **What each platform decides:** the renderer, the transport it serves, the behaviour bindings,
 the local action implementations and the platform effects.
@@ -61,7 +62,7 @@ the local action implementations and the platform effects.
 flowchart TB
     subgraph STD["Standard at the top"]
         W["foundation_ui_wire<br/>Frame, ActionRequest, core and platform variants"]
-        A["Action contract<br/>name, registry, platform scope"]
+        A["Action contract<br/>name, scope, origin, registry"]
         M["Live mount contract<br/>mount-stream, mount-data, channel"]
     end
     subgraph SHARED["Shared runtime"]
@@ -146,8 +147,8 @@ remaining questions.
 | D34 | (PR #157 review, 2026-11-11; answers Q25) **Spec 52 and `foundation_platform` have valid use.** Build on them; decide what to keep, remove or leave for later as the work proceeds. |
 | D35 | (PR #157 review, 2026-11-12) **North star.** One FlatBuffers contract carries structured UI, data and actions across the web, mobile, WASM and compiled Rust. It must be sensible and structured. Do not redesign everything. |
 | D36 | (PR #157 review, 2026-11-12, corrected in the follow-up) **One consistent set of forms, plus platform forms only where needed.** Every platform can do the cross-platform set. A change that the set cannot express gets a form for one platform only; it has no cross-platform or other-platform twin. One batch can hold cross-platform forms and platform-specific forms together; each runtime applies its own and skips the rest with a typed report. |
-| D37 | (PR #157 review, 2026-11-12) **One action model, registry in Rust or JS.** Web `<script>` functions that become callable once the DOM mounts stay, and join the JS registry as web actions. Mobile never processes script. A remote action delivers the name and the data to the server. |
-| D38 | (PR #157 review, 2026-11-12) **Platform capability hooks.** Shared parts stay at the top. Each platform supplies the capabilities that only it has. An engineer marks a hook as web-only or mobile-only, and the build routes it to that surface. |
+| D37 | (PR #157 review, 2026-11-12, corrected in the follow-up) **One action model with two explicit markers: platform scope and origin.** An action declares its platform scope: every platform, web only, or mobile only. A scoped action exists only where the platform capability really differs, for example a browser picker and a native picker; if it can be written once, it is unscoped and runs everywhere. A reference names the origin: `server:` (the backend), `native:` (a local WASM module or Rust core) or `js:` (page JavaScript, web only). A central action manager checks both markers and coordinates the call. Web `<script>` functions that become callable once the DOM mounts stay; they register as `js:` actions and never reach mobile. |
+| D38 | (PR #157 review, 2026-11-12) **Platform capability hooks.** Shared parts stay at the top. Each platform supplies the capabilities that only it has. The build routes a hook to its surface: a platform-scoped action to web or mobile, an origin to the registry or transport that serves it. The scope and the origin are independent, so they compose; they are not alternatives. |
 | D39 | (PR #157 review, 2026-11-12) **Live mounts on every platform.** `mount-stream` and `mount-data` exist on web and mobile. The core idea is a live location with a channel and a transport: local, SSE, WebSocket or plain HTTP. The representation differs; the semantics do not. |
 | D40 | (PR #157 review, 2026-11-12) **Build on the current shape.** Keep the parts we agreed: the schema, `primal-id`, `HtmlMorph`, the signal islands, the state envelope and the live and stateless modes. Do not redesign what works. |
 
@@ -164,8 +165,8 @@ remaining questions.
 | [07](./07-element-riding-state.md) | State rides on elements, no client caches; eight state formats (§1, §2, §4) | Stateful server; decision 025 says the client never sends state | One `SignedState` per component root, generated body type; base64url on the web, bytes on native (D12); the server may load the truth from the backend (D13); authenticated encryption for private state |
 | [08](./08-state-security-and-replay.md) | HMAC with a rotating secret, verified by any replica (§4) | Private HMAC signer with a key ring and constant-time compare; no UI state token | Tag binds version, key id, times, component, node and session; ordered checks; single use is a domain rule (D14); the [Livewire and industry study](./08b-replay-protection-study.md) sets the layers |
 | [09](./09-stateless-execution.md) | Any replica runs an action with no per-user memory (§4) | One-thread stateful `App`, with a replay backlog for live clients | Both modes stay. The server chooses how it handles state and sends one update or a stream (D15). The signal server and its replay backlog stay |
-| [10](./10-action-model.md) | `#[action]` macro, `Interaction<T>`, a logical `Response`, state-aware `html!` (§5) | Local handlers only; `html!` takes no state | `async fn` that returns `Response` directly; the macro generates the decode and the call glue (D19); the delivery handler encodes the response (D16); `Ctx` wraps `foundation_context::Ctx` (D17); no RPC layer (D18); action names, not ids (D31); platform scope on an action (D38) |
-| [11](./11-app-store-and-command-bus.md) | App Store 2.5.2: data not code, compiled primitives, declarative command bus (§6) | Spec 52 plans WASM hot-swap; components use scoped JS | No code fields for native; one registry model built by the user (D22, D23); the registry can be Rust or JS (D37); a remote action is just an action; version skew handled by the handshake |
+| [10](./10-action-model.md) | `#[action]` macro, `Interaction<T>`, a logical `Response`, state-aware `html!` (§5) | Local handlers only; `html!` takes no state | `async fn` that returns `Response` directly; the macro generates the decode and the call glue (D19); the delivery handler encodes the response (D16); `Ctx` wraps `foundation_context::Ctx` (D17); no RPC layer (D18); action names, not ids (D31); a platform scope at the declaration and an origin at the reference, both routed by one manager (D37, D38) |
+| [11](./11-app-store-and-command-bus.md) | App Store 2.5.2: data not code, compiled primitives, declarative command bus (§6) | Spec 52 plans WASM hot-swap; components use scoped JS | No code fields for native; one registry model built by the user (D22, D23); the registry can be Rust or JS (D37); `server:`, `native:` and `js:` references go to the matching registry or transport; a remote action is just an action; version skew handled by the handshake |
 | [12](./12-scoped-behaviour.md) | Scoped JS and component behaviour (§3, §6) | Scoped JS in the component machinery; no native equivalent | Scoped JS stays, web only. Each native platform gets a compiled equivalent. One behaviour matrix, with a platform hook per behaviour (D38) |
 | [13](./13-platform-capabilities.md) | Reuse across platforms plus platform-specific capabilities (owner review, 2026-11-12) | Shared traits exist; no capability split, no platform hooks | The standard, the shared runtime and the platform sets; the one-form rule; the action and behaviour hooks; live mounts on every platform (D35 to D39) |
 
@@ -248,6 +249,8 @@ Findings become GitHub issues with a severity label (`CLAUDE.md` rule 9).
 | "the message format will have cross platform message types and ui nodes … and then mobile specific messages and web specific message variants" | D36; [02](./02-unified-wire-contract.md) §3.2, §3.3; [13](./13-platform-capabilities.md) §3.2 |
 | "we want a consistent set of forms that are doable on all 3, so we do not have a core form and a web form, thats silly … there is only one for that platform" | D36 corrected; [02](./02-unified-wire-contract.md) §3.2; [03](./03-payload-tiers.md) §3.1; [04](./04-vocabulary-and-interning.md) §3.1; [13](./13-platform-capabilities.md) §3.2 |
 | "actions are registered to a action registry whether in rust or on the js side … `<script>` of functions that once the dom mounts are callable … isolate it to the web" | D37; [10](./10-action-model.md) §3.8; [11](./11-app-store-and-command-bus.md) §3.2; [12](./12-scoped-behaviour.md) §3.1 |
+| "the registery is always told where an action is: an action might be on the server, in wasm running locally or in js side … we can prefix the actions with markers e.g server: … native: … js: … there is a central action manager who knows and coordinate things accordingly" | D37; [10](./10-action-model.md) §3.8; [11](./11-app-store-and-command-bus.md) §3.2; [13](./13-platform-capabilities.md) §3.3 |
+| "No we should keep both ideas" and "they are not mutually exclusive to each other" (platform scope and origin) | D37, D38; [10](./10-action-model.md) §3.8; [13](./13-platform-capabilities.md) §3.3 |
 | "Break down the current architecture to allow reuse across platform but also set out specific capabilities that maybe only for one platform type" | D38; [13](./13-platform-capabilities.md) §3.1, §3.3 |
 | "We should be supporting the ideas of mount-streams, mount-data as well for mobile … all local, SSE, websocket or a plain http requests" | D39; [06](./06-native-rendering.md) §3.7; [13](./13-platform-capabilities.md) §3.4 |
 | "We should not go mad and redesign everything … take all the cool stuff we have here and in the current shape and make it make sense" | D40; [README](./README.md) §1; all idea files keep the earlier decisions |

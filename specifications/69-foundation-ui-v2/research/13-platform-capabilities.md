@@ -31,7 +31,7 @@ where it matters and standards at the top."
 flowchart TB
     subgraph STD["1. Standard (one)"]
         SCH["FlatBuffers schema<br/>one form set, plus platform-only forms"]
-        ACT["Action contract<br/>name, scope, registry"]
+        ACT["Action contract<br/>name, scope, origin,<br/>registry"]
         LIVE["Live mount contract<br/>channel, transport, sequence"]
         STATE["Signed state envelope"]
     end
@@ -66,7 +66,7 @@ D40). This file adds the split and the hooks. It does not add a second framework
 | Shared runtime | `foundation_signals`, `foundation_context::Ctx`; the `App` and `Broadcaster` in `foundation_wasm_ui` | No action registry, no shared dispatcher, no capability traits |
 | Web | the JS runtime, `<mount-stream>` and `<mount-data>`, scoped JS, the HTML morph | No generated reader, no JS action registry, no capability split |
 | Native | `ViewKind::Native` as a type only | No node store, no Swift or Kotlin packages, no platform capability layer |
-| Local logic | Rust and WASM run the signal graph and local handlers | No platform scope, no defined capability boundary |
+| Local logic | Rust and WASM run the signal graph and local handlers | No platform scope, no action origin, no defined capability boundary |
 
 The current code mixes the layers. The JS runtime contains the transport, the parser, the
 renderer and the island logic in one place. The native side does not exist yet. The split
@@ -78,7 +78,7 @@ below gives each layer one job.
 
 | Layer | Holds | Rule |
 |---|---|---|
-| Standard | The schema ([02](./02-unified-wire-contract.md)); the action name, scope and registry contract ([10](./10-action-model.md), [11](./11-app-store-and-command-bus.md)); the live mount contract (§3.4); the signed state envelope ([07](./07-element-riding-state.md), [08](./08-state-security-and-replay.md)) | One definition. Every platform reads it. A platform never adds a private field to it. |
+| Standard | The schema ([02](./02-unified-wire-contract.md)); the action name, scope, origin and registry contract ([10](./10-action-model.md), [11](./11-app-store-and-command-bus.md)); the live mount contract (§3.4); the signed state envelope ([07](./07-element-riding-state.md), [08](./08-state-security-and-replay.md)) | One definition. Every platform reads it. A platform never adds a private field to it. |
 | Shared runtime | The dispatcher, the registry, the frame decode and apply contract, the sequence and resume rules ([09](./09-stateless-execution.md)) | Written once, in Rust. The same code runs on the server, in WASM and on device. |
 | Platform set | The renderer, the transport it serves, the local action host, the behaviour bindings, the platform effects | Each platform implements its set behind the same capability interface. No shared code calls a platform API directly. |
 
@@ -156,40 +156,48 @@ capability. The design spec fixes the names; the shape is:
 |---|---|---|---|---|
 | Render | apply this batch to the id table | DOM applicator ([05](./05-web-zero-copy-applicator.md)) | node store and platform views ([06](./06-native-rendering.md)) | nothing; it sends frames |
 | Update state | verify, replace or load the signed state | base64url attribute on the root element (D12) | the node record bytes (D12) | the in-memory state |
-| Run an action | run the action with this name | JS registry, including scoped script functions (D37) | Rust registry and native actions | the Rust registry |
+| Run an action | route this `origin:name` reference on this surface | `server:`, `native:` or `js:` registry (D37) | `server:` or `native:` registry | `server:` or `native:` registry |
 | Live mount | open a channel and feed frames | `<mount-stream>` or `<mount-data>` ([05](./05-web-zero-copy-applicator.md)) | a live mount record and a channel (§3.4) | an in-process channel |
 | Behaviour | bind this behaviour to this node | scoped JS and browser APIs ([12](./12-scoped-behaviour.md)) | the platform control | the signal graph |
 | Platform effect | run this effect | a DOM API | a `NativeCommand` ([06](./06-native-rendering.md)) | nothing; it sends a command |
 
-**The action hook.** An action declares its platform scope. The scope is a property of the
-action, like its name:
+**The action hook.** An action has two explicit markers. The declaration gives its platform
+scope; the reference gives its origin. The two are independent, so they compose (D37, owner
+correction 2026-11-12).
+
+*At the declaration: the platform scope.*
 
 ```rust
 #[action]                 // every platform
-async fn increment(ctx: &Context, event: Interaction<Counter>) -> Response { /* ... */ }
-
 #[action(web)]            // web only
-async fn open_picker(ctx: &Context, event: Interaction<Picker>) -> Response { /* ... */ }
-
 #[action(mobile)]         // iOS and Android
-async fn open_picker(ctx: &Context, event: Interaction<Picker>) -> Response { /* ... */ }
 ```
 
-This is a shape, not a final syntax (Q31). The rules:
+*At the reference: the origin.*
 
-- The action name is the tag, as today (D31). The macro generates the struct and the scope.
-- The same name can have one implementation per scope. The registry for a platform holds the
-  entry for that platform.
-- The forms of one name live in different modules, or the macro adds a scope suffix to the
-  generated type. The Rust names must not collide.
-- A scoped action exists only where the platform capability really differs, for example a
-  browser file picker and a native picker. If the action can be written once, it is unscoped
-  and runs everywhere; it does not get a web copy and a mobile copy.
-- The event names the action. The runtime looks it up in its own registry. If the action is
-  not there, or it is scoped to another platform, the runtime reports `UnsupportedAction` and
-  does nothing else.
-- A remote action delivers the name and the data to the server. The server runs its own
-  entry. A web-local action runs in JS and never leaves the web.
+| Reference | Runs in | Available on |
+|---|---|---|
+| `server:` | The backend | Every surface with a connection |
+| `native:` | A local WASM module or Rust core | Every surface that carries the core |
+| `js:` | Page JavaScript (a scoped `<script>` function) | Web only |
+
+A **central action manager** parses the reference, checks the origin and the declared scope,
+and coordinates the call ([10](./10-action-model.md) §3.8). The rules:
+
+- **Actions follow the same rule.** A scoped action exists only where the platform capability
+  really differs (browser picker vs native picker). If it can be written once, it is unscoped
+  and runs everywhere.
+- **The registry is told the origin.** The registration call adds the action to the registry
+  for its origin: the server registry, the local registry or the JS registry.
+- **The manager checks both.** An unavailable origin or a scope that excludes this surface is
+  a typed error. It is not a silent no-op.
+- **The server accepts only `server:` references.** A request with another origin is rejected.
+- **The web script capability stays.** The functions that a scoped `<script>` defines register
+  as `js:` actions and never leave the web. A native payload has no script field.
+- **The same name can have one form per scope.** The Rust names must not collide; the macro
+  adds a scope suffix or the forms live in different modules.
+
+This is a shape, not a final syntax (Q31).
 
 **The behaviour hook.** A component names a behaviour, for example `focus_trap`. Each platform
 registers its form under that name ([12](./12-scoped-behaviour.md)). The web form is scoped
@@ -255,8 +263,9 @@ _The diagram shows one live mount contract over any of the four transports._
 |---|---|---|---|---|
 | Schema reader | generated TypeScript | generated Swift | generated Kotlin | generated Rust |
 | Renderer | DOM | SwiftUI | Jetpack Compose | none |
-| Action registry | JS, plus Rust through WASM | Rust and native | Rust and native | Rust |
-| Web script actions | yes, web only | no | no | no |
+| Action registry | Rust through WASM, plus JS | Rust and native | Rust and native | Rust |
+| Action origins | `server:`, `native:`, `js:` | `server:`, `native:` | `server:`, `native:` | `server:`, `native:` |
+| Web script actions (`js:`) | yes, web only | no | no | no |
 | State | base64url attribute (D12) | node record bytes (D12) | node record bytes (D12) | in memory |
 | Live mount | custom element | live mount record | live mount record | in-process channel |
 | Behaviours | scoped JS ([12](./12-scoped-behaviour.md)) | platform controls | platform controls | signal graph |
@@ -281,12 +290,13 @@ No row says "reimplement". Each row says which existing mechanism provides the c
   this file for the layer split.
 - The schema gains one cross-platform form set and the platform-only forms (§3.2). `02` and
   `03` change.
-- The action model gains the platform scope and the JS registry (§3.3). `10`, `11` and `12`
-  change.
+- The action model gains the platform scope, the origin reference and the central action
+  manager (§3.3). `10`, `11` and `12` change.
 - The mobile side gains the live mount representation (§3.4). `06` changes.
 - No working part is removed. The web mount paths, the HTML morph, the signal islands, the
   state envelope and the live mode stay (D40).
 
 ## 5. Open questions
 
-Q31 in [`questions.md`](./questions.md): the exact syntax of the platform hook on an action.
+Q31 in [`questions.md`](./questions.md): the exact syntax of the platform scope and of the
+registration that names the origin.

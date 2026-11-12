@@ -140,7 +140,7 @@ table ActionRequest {
   schema_version: ushort;
   stream_id: ulong;
   sequence_id: ulong;          // client counter, for ordering and duplicate detection
-  action: string;              // the action name in the compiled registry (10, 11, D31)
+  action: string;              // "server:name"; the reference sets the origin (10, 11, D31, D37)
   node_id: uint;
   input: ActionInput;          // typed, unsigned user input (10)
   state: SignedState;          // returned as received, never edited (07, 08)
@@ -163,6 +163,10 @@ enum MountSurface : ubyte { Native = 0, Web = 1 }
 `HtmlMorph`; `mount: Native` cannot (D11, [06](./06-native-rendering.md),
 [11](./11-app-store-and-command-bus.md)).
 
+`action` carries the full reference, for example `server:increment_counter`. The server rejects
+a reference whose origin is not `server:` with a typed error. A `native:` or `js:` reference
+never crosses the transport ([10](./10-action-model.md) §3.8).
+
 ### 3.4 Ordering and resume
 
 ```mermaid
@@ -171,7 +175,7 @@ sequenceDiagram
     participant S as Server (any replica)
     C->>S: ClientHello(resume_from = 17)
     S->>C: Frame(seq 18), Frame(seq 19)
-    C->>S: ActionRequest(seq 5, action increment_counter)
+    C->>S: ActionRequest(seq 5, action server:increment_counter)
     S->>C: Frame(seq 20, ack_action 5, Ops)
     Note over C: gap at seq 21? ask to resume from 20
 ```

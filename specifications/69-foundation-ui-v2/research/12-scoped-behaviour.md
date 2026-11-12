@@ -60,9 +60,10 @@ _North star fit: the web behaviour set, with a native hook behind a platform bin
 - A script node exists only in the web subset of the vocabulary ([04](./04-vocabulary-and-interning.md)).
   It travels as the `ScriptNode` op, which is valid only on a `Web` mount
   ([02](./02-unified-wire-contract.md)).
-- The script functions join the JS action registry when the DOM mounts (D37,
-  [10](./10-action-model.md) §3.8, [11](./11-app-store-and-command-bus.md) §3.2). This is the
-  current web capability, kept as it is.
+- The script functions register as `js:` actions when the DOM mounts (D37,
+  [10](./10-action-model.md) §3.8, [11](./11-app-store-and-command-bus.md) §3.2). The central
+  action manager routes them to the JS registry. This is the current web capability, kept as
+  it is.
 - No change to the current web behaviour. The web is the first target (D4), and the mount paths
   keep working ([05](./05-web-zero-copy-applicator.md)).
 

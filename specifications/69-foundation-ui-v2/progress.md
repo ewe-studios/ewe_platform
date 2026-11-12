@@ -120,6 +120,20 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
     D35 to D40. Every idea file gains a short north star note.
   - `questions.md` gains Q31: the exact platform scope syntax.
 
+- 2026-11-12, ninth pass (action markers):
+  - D37 corrected: an action has two explicit markers. The declaration gives the platform
+    scope (`#[action]`, `#[action(web)]`, `#[action(mobile)]`). The reference gives the origin
+    (`server:`, `native:`, `js:`). A central action manager reads both and routes the call.
+    The two markers are independent and compose.
+  - D38 notes the composition: a scope routes a hook to a platform; an origin routes a call to
+    a registry or transport.
+  - The web `<script>` functions register as `js:` actions and stay web only.
+  - `02` §3.3: `ActionRequest.action` carries `server:name`, and the server rejects another
+    origin. `05` §3, `10` §3.2, §3.6, §3.8, §4, `11` §3.2, §4, `12` §3.1 and `13` §3.3,
+    §3.5, §4 change.
+  - Q31 covers the scope syntax and the origin registration. Q30 notes that the `server:`
+    origin lowers the need for `#[remote_action]`.
+
 ## In progress
 
 - None. The research records the owner's answers in `questions.md`.

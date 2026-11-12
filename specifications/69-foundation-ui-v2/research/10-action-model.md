@@ -55,8 +55,8 @@ The document's ideas here:
    state to the root element. The dispatcher signs the state, not the template (§3.5).
 5. **Event wiring by name.** `primal:onclick="increment_counter"` links an element to an action.
 
-_North star fit: one action model, with a platform scope where a surface needs its own form
-(D37, D38, [13](./13-platform-capabilities.md))._
+_North star fit: one action model, with a platform scope at the declaration and an origin at
+the reference (D37, D38, [13](./13-platform-capabilities.md))._
 
 ## 2. Current state
 
@@ -105,7 +105,8 @@ lookup.
 |---|---|
 | The decode of `Interaction<T>`, from `T` in the signature | Verify the tag, check expiry and bindings |
 | A struct named after the function; its name is the action tag (D23, D31) | Sign the next state |
-| The platform scope on the struct (D38) | Deliver the action to the platform registry |
+| The platform scope on the struct (D37) | Deliver the action to the registry for its origin |
+| The origin marker in the reference (D37) | Read the origin and the scope, then route |
 | The registry entry under the action name, and the name constant that templates use | Hand the `Response` to the delivery handler |
 | The call glue from an event name to the function | Run the generated glue in the dispatcher |
 
@@ -179,11 +180,12 @@ code and makes every render depend on it. The new way: the template only describ
 dispatcher signs once, at the boundary ([09](./09-stateless-execution.md)). The template gets
 the state as a normal value.
 
-### 3.6 Event wiring by id
+### 3.6 Event wiring by reference
 
-`primal:onclick="increment_counter"` becomes `on:tap={Counter::increment}`. The macro resolves it
-to the action name at compile time. The name is the tag the registry uses (D31). A typo is a
-compile error, not a runtime miss.
+`primal:onclick="native:increment_counter"` becomes `on:tap={native:Counter::increment}`. The
+origin prefix selects the route and the name selects the action. The macro resolves the
+generated struct to `origin:name` at compile time. The name is the tag the registry uses (D31).
+A typo is a compile error, not a runtime miss.
 
 ### 3.7 Actions are not RPC procedures
 
@@ -192,51 +194,93 @@ design does not put actions behind an RPC router and does not require ConnectRPC
 `#[service]` macro stays for code that wants RPC. A server can expose an action over any
 transport it uses; the action does not change.
 
-### 3.8 Platform scope and the JavaScript registry
+### 3.8 Two explicit markers: platform scope and origin
 
-One action model serves every surface (D37, owner review 2026-11-12). The action declares its
-platform scope beside its name:
+One action model carries two explicit markers (D37, owner correction 2026-11-12). They are
+independent and they compose; the same action uses both.
 
-- **Every platform** is the default. The Rust registry on the server, in WASM and on device
-  holds it.
-- **Web only** runs on a web mount.
-- **Mobile only** runs on iOS and Android.
+**At the declaration: the platform scope.** The action declares where it exists:
 
-The shape follows `#[action]`. The design spec fixes the exact syntax (Q31):
+| Marker | The action exists on |
+|---|---|
+| `#[action]` | Every platform |
+| `#[action(web)]` | Web only |
+| `#[action(mobile)]` | iOS and Android |
 
 ```rust
 #[action]                 // every platform
+async fn increment(ctx: &Context, event: Interaction<Counter>) -> Response { /* ... */ }
+
 #[action(web)]            // web only
+async fn open_picker(ctx: &Context, event: Interaction<Picker>) -> Response { /* ... */ }
+
 #[action(mobile)]         // iOS and Android
+async fn open_picker(ctx: &Context, event: Interaction<Picker>) -> Response { /* ... */ }
 ```
 
-The registry is a map from the action name to the action for the current platform. It can be
-built in Rust or in JS:
+This is a shape, not a final syntax (Q31).
 
-| Surface | Registry | What it runs |
+**Actions follow the same rule.** A scoped action exists only where the platform capability
+really differs (browser picker vs native picker). If it can be written once, it is unscoped
+and runs everywhere. The same name can have one form per scope, and each platform registry
+holds its own.
+
+**At the reference: the origin.** The registry is always told where an action lives. The
+reference that triggers it carries the origin, `origin:name`:
+
+| Reference | Runs in | Available on |
 |---|---|---|
-| Server | Rust | The server actions |
-| WASM in the browser | Rust | The local actions and the signal graph |
-| Web runtime | JS | The functions that a scoped `<script>` defines, plus the client side of a remote action |
-| iOS and Android | Rust and the native host | The compiled actions |
+| `server:` | The backend | Every surface with a connection |
+| `native:` | A local WASM module or Rust core | Every surface that carries the core |
+| `js:` | Page JavaScript (a scoped `<script>` function) | Web only |
 
-**The web script capability stays.** A web page can include `<script>` functions beside its
-markup, and they become callable once the DOM mounts. That is the current capability, and we
-keep it. Such a function joins the JS registry under its action name and is a web-local
-action. It runs in JS and never leaves the web. A native surface has no script field in its
-payload and never processes one ([11](./11-app-store-and-command-bus.md),
-[12](./12-scoped-behaviour.md)).
+A **central action manager** parses the reference, checks the origin and the declared scope,
+and coordinates the call:
 
-**The rules:**
+```mermaid
+flowchart LR
+    E["event: server:increment<br/>native:toggle<br/>js:open_picker"] --> M[Action manager]
+    M -->|"server:"| T[Action transport]
+    T --> S[Server registry<br/>Rust]
+    M -->|"native:"| N[Local registry<br/>WASM or Rust]
+    M -->|"js:"| J[JS registry<br/>web only]
+```
 
-- The event names the action; the runtime looks the name up in its own registry (D22, D31).
-- The same name can have a web form and a mobile form only when the platform capability really
-  differs, for example a browser file picker and a native picker. Each platform takes its own.
-  If the action can be written once, it is unscoped and runs everywhere.
-- A remote action delivers the name and the data to the server; the server runs its Rust
-  entry. The caller does not care which side runs it (D22).
-- An action that the registry does not hold, or that is scoped to another platform, produces
-  a typed `UnsupportedAction`. The runtime does nothing else.
+_The diagram shows one manager and three origin registries. The reference decides the route,
+and the declaration decides whether the action exists on this surface._
+
+The two markers combine like this:
+
+| | `server:` | `native:` | `js:` |
+|---|---|---|---|
+| `#[action]` | Yes | Yes | Does not exist: `js:` implies web only |
+| `#[action(web)]` | Yes, for web clients | Yes, WASM in the page | Yes, page JS |
+| `#[action(mobile)]` | Yes, for device clients | Yes, device Rust core | Never |
+
+The rules:
+
+- **The reference is explicit.** The event binding carries `origin:name`
+  (`primal:onclick="server:increment_counter"`). The manager does not guess the origin from the
+  name.
+- **The manager checks the origin.** `js:` on mobile is a typed `UnavailableOrigin`. `server:`
+  without a transport and `native:` without the local core are typed errors too. None of them
+  is a silent no-op.
+- **The manager checks the scope.** A `#[action(web)]` action is refused on mobile even when
+  its origin is available. That is a typed `UnsupportedAction`.
+- **The manager routes.** It sends `server:` over the action transport, runs `native:` in the
+  local registry, and runs `js:` in the JS registry.
+- **The server accepts only `server:` references.** A request with another origin is rejected
+  with a typed error ([02](./02-unified-wire-contract.md) §3.3).
+- **The response shape is the same.** Every origin returns a UI update or a state update. The
+  manager applies it the same way.
+- **The web script capability stays.** A web page can include `<script>` functions beside its
+  markup, and they become callable once the DOM mounts. They register as `js:` actions and
+  never leave the web. A native surface has no `js:` origin and no script field
+  ([11](./11-app-store-and-command-bus.md), [12](./12-scoped-behaviour.md)).
+
+The registry is told the origin when the action is added. The design spec fixes the
+registration call. An action reference that the manager cannot resolve, whose origin is not
+available, or whose scope excludes this surface produces a typed error and nothing else.
 
 ## 4. What this changes for us
 
@@ -245,11 +289,12 @@ payload and never processes one ([11](./11-app-store-and-command-bus.md),
 - New `Ctx` and `Context` types that wrap `foundation_context::Ctx` (D17).
 - The action registry is shared with the device ([11](./11-app-store-and-command-bus.md)).
 - A response handler in the server encodes each `Response` (D16).
-- An action gains a platform scope. The JS registry keeps the web script functions callable
-  after mount (§3.8, D37).
+- An action gains a platform scope at its declaration and an origin at its reference. One
+  manager checks both and routes the call. The JS registry keeps the web script functions
+  callable after mount (§3.8, D37).
 
 ## 5. Open questions
 
 Q28 in [`questions.md`](./questions.md): the error path. Q31: the exact syntax of the platform
-scope. Q21 is withdrawn by D18. Q22 is closed: an action is identified by its name, not by a
-derived numeric id (D31).
+scope and of the registration that names the origin. Q21 is withdrawn by D18. Q22 is closed: an
+action is identified by its name, not by a derived numeric id (D31).

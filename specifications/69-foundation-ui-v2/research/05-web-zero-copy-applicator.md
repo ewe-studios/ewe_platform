@@ -76,9 +76,10 @@ them and must keep them working (owner review, 2026-11-11).
    buffer to an odd offset), the reader copies that column and continues. The fallback is
    counted, so a test can see when zero-copy is lost.
 6. **The web runtime hosts the JS registry.** A scoped `<script>` defines functions that
-   become callable once the DOM mounts; they join the registry under their action names
-   (D37). The same registry holds the client side of a remote action. This is a web
-   capability, and it stays on the web ([10](./10-action-model.md) §3.8).
+   become callable once the DOM mounts; they register as `js:` actions under their action
+   names (D37). The same runtime holds the client side of a `server:` action. The central
+   action manager routes each reference. This is a web capability, and it stays on the web
+   ([10](./10-action-model.md) §3.8).
 
 ```mermaid
 sequenceDiagram

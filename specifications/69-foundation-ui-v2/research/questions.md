@@ -135,14 +135,19 @@ function attribute, and it does not build on `#[service]`.
 
 **Rec.** (a). It keeps one return type, in the enum style of the document.
 
-**Q31. What is the exact syntax of the platform scope on an action?** The owner asks for a hook
-that says "this hook is for the web" or "on mobile we do that" (D37, D38,
-[13](./13-platform-capabilities.md) §3.3).
-- (a) An argument on the same macro: `#[action]`, `#[action(web)]`, `#[action(mobile)]`.
-- (b) A separate marker per scope, beside `#[action]`.
+**Q31. What is the exact syntax of the platform scope and of the origin registration?** The
+owner asks for a hook that says "this hook is for the web" or "on mobile we do that" (D37,
+D38). The owner also says that the registry is always told where an action lives:
+`server:`, `native:` or `js:` ([13](./13-platform-capabilities.md) §3.3).
+- (a) Scope as an argument on the same macro: `#[action]`, `#[action(web)]`,
+  `#[action(mobile)]`. The registration call names the origin, for example
+  `registry.register(Origin::Server, action)`.
+- (b) A separate marker per scope, beside `#[action]`. The registration call names the origin
+  in the same way.
 
-**Rec.** (a). One macro, one action name, and the scope is part of the declaration. A macro
-argument keeps the generated struct and the registry entry in one place.
+**Rec.** (a). One macro, one action name, and the scope is part of the declaration. The
+registry is told the origin at registration. A macro argument keeps the generated struct and
+the registry entry in one place.
 
 ## App Store and command bus ([11](./11-app-store-and-command-bus.md))
 
@@ -152,7 +157,8 @@ decide what to keep, what to remove, and what stays for later. Do not freeze the
 
 **Q30. Do we add a `#[remote_action]` marker?** The owner proposes it as a thought
 (2026-11-11). A remote action marks a client call that delivers the name and the data to the
-remote side. The client uses the same registry shape.
+remote side. The `server:` origin now states the location explicitly, so the marker has less
+need. The client uses the same registry shape.
 - (a) Yes, as a second marker beside `#[action]`.
 - (b) One marker with a `remote` option.
 

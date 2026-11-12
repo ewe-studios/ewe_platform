@@ -75,21 +75,23 @@ The design spec must show this gate in the frame writer, so a single code path d
 
 The model is the same on both surfaces (owner review, 2026-11-11):
 
-1. An event names the action that it wants to trigger.
-2. The runtime looks the name up in an action registry.
-3. The action gets the node that fired, its parent, and the information we choose to extract.
-4. The action does its work. It can be local or remote; the caller does not care.
+1. An event names the action that it wants to trigger, with its origin: `origin:name`.
+2. The central action manager reads the origin and the declared platform scope.
+3. The manager routes the call to the matching registry, or to the transport for `server:`.
+4. The action gets the node that fired, its parent, and the information we choose to extract.
+5. The action does its work. The manager coordinates the call, so the template does not
+   implement a transport.
 
 ```mermaid
 flowchart LR
-    E["tap on node 42"] --> R["Action registry<br/>name to action"]
-    R --> A["Action<br/>node 42, parent, event data"]
-    A --> L["Local action<br/>compiled Rust on device"]
-    A --> S["Remote action<br/>delivered to the server"]
+    E["tap on node 42<br/>native:increment"] --> M["Action manager<br/>origin and scope"]
+    M -->|"server:"| SR["Server registry<br/>Rust"]
+    M -->|"native:"| NR["Local registry<br/>WASM or Rust"]
+    M -->|"js:"| JR["JS registry<br/>web only"]
 ```
 
-_The diagram shows the same lookup on the web and on device. The caller does not know whether
-the action is remote._
+_The diagram shows one manager over three origin registries. The reference states the origin;
+the declaration states the platform scope._
 
 **The registry is not a generated global.** The user builds it and registers the actions that
 they want (owner review, 2026-11-11):
@@ -100,19 +102,24 @@ they want (owner review, 2026-11-11):
   and can change.
 - The event tag carries the name. A template that uses the generated struct cannot misspell it.
 
-**The registry can be Rust or JS** (D37, owner review 2026-11-12):
+**The registry has one entry per origin** (D37, owner correction 2026-11-12):
 
-- In Rust it runs on the server, in WASM and on device.
-- In JS it runs in the web runtime. It holds the functions that a scoped `<script>` defines
-  beside the markup. Those functions become callable once the DOM mounts, which is the current
-  web capability and stays. They run in JS and never leave the web.
-- Each platform looks up the name in its own registry. The same name can have a Rust form and
-  a JS form. An action declares its platform scope ([10](./10-action-model.md) §3.8).
+- `server:` actions live in the server registry, in Rust.
+- `native:` actions live in the local registry: Rust in WASM in the browser, or the compiled
+  Rust core on device.
+- `js:` actions live in the JS registry in the web runtime. They are the functions that a
+  scoped `<script>` defines beside the markup. They become callable once the DOM mounts, which
+  is the current web capability and stays. They run in JS and never leave the web.
+- A central action manager reads the origin, checks the declared platform scope, and sends the
+  call to the matching registry or transport ([10](./10-action-model.md) §3.8).
+- The same name can have one form per scope. Each registry holds its own entry.
 - A native payload has no script field. Mobile never runs a script ([12](./12-scoped-behaviour.md)).
 
-**Local and remote actions.** `#[action]` is the base marker. The owner proposes a second
-marker, `#[remote_action]`, as a thought for now (Q30). It marks a client call that delivers the
-name and the data to the remote side. The client uses the same registry shape for both.
+**Local and remote actions.** The origin makes the location explicit. `server:` crosses the
+transport; `native:` and `js:` run locally. `#[action]` is the declaration marker, and its
+argument is the platform scope. The owner proposed `#[remote_action]` as a thought for now
+(Q30); the origin prefix covers the same need. The client uses the same registry shape for
+every origin.
 
 The app sends a hash of its registered action names in `ClientHello`
 ([02](./02-unified-wire-contract.md)). The server never binds an event to a name that the
@@ -158,12 +165,14 @@ downloaded code, so it applies to the native surface only.
   apps. On the web, downloaded JS and WASM stay normal.
 - Component behaviour stays as scoped JS on the web. Each native platform gets a compiled
   equivalent ([12](./12-scoped-behaviour.md)).
-- The registry has two hosts, Rust and JS, behind one name-based contract (D37). The web
-  script functions stay web-only.
+- Actions carry two explicit markers: the platform scope at the declaration and the origin at
+  the reference. One manager routes `server:`, `native:` and `js:` to their registries or
+  transport (D37). The web script functions stay web-only.
 
 ## 5. Open questions
 
-Q30 in [`questions.md`](./questions.md): whether to add a `#[remote_action]` marker. Q23 and
-Q24 are closed: the framework delivers state updates or UI updates (D32), and the update
-policy is not a current concern (D33). Q25 is answered: build on spec 52 and decide what to
-keep or to remove as the work proceeds (D34).
+Q30 in [`questions.md`](./questions.md): whether a separate `#[remote_action]` marker is still
+needed now that the origin prefix states the location. Q23 and Q24 are closed: the framework
+delivers state updates or UI updates (D32), and the update policy is not a current concern
+(D33). Q25 is answered: build on spec 52 and decide what to keep or to remove as the work
+proceeds (D34).

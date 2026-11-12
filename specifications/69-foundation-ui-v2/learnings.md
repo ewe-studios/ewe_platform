@@ -127,9 +127,18 @@ ASD-STE100.
   batch per surface.
 
 - Keep the current web capability for script actions (D37). A `<script>` beside the markup
-  defines functions that become callable after mount. They join the JS registry and stay on
-  the web. Mobile never runs them. The action model is the same on every surface, and the
-  registry has two hosts: Rust and JS.
+  defines functions that become callable after mount. They register as `js:` actions and stay
+  on the web. Mobile never runs them. The action model is the same on every surface, and the
+  registry has one entry per origin.
+
+- The platform scope and the action origin are two markers, not two choices (D37). The
+  declaration says where the action exists (every platform, web, mobile). The reference says
+  where it runs (`server:`, `native:`, `js:`). One manager checks both and routes. Do not
+  remove one marker to simplify the other; they answer different questions and compose.
+
+- The reference names its origin. `server:` goes to the backend, `native:` to a local WASM or
+  Rust core, `js:` to page JS on the web. The central action manager never guesses. The server
+  accepts only `server:` references, so a client cannot send `js:` or `native:` over the wire.
 
 - Reuse is a layer split, not a copy (D38). The standard and the shared runtime are one. Each
   platform implements a capability behind the same interface. An engineer adds a platform hook
