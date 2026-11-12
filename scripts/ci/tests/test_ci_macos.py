@@ -36,14 +36,48 @@ class MacosRuns(unittest.TestCase):
         s = settings_for(self.ci, "foundation_http")
         plan = self.ci.commands("foundation_http", s, "uat", "macos")
         self.assertEqual(len(plan["test"]), len(s.macos_runs))
-        self.assertIn("multi", plan["test"][1])
+        self.assertIn("multi,quic", plan["test"][1])
         for step in ("fmt", "build", "clippy", "wasm"):
             self.assertEqual(plan[step], [])
 
-    def test_a_package_without_the_key_has_no_macos_test(self):
+    def test_a_package_without_the_key_is_tested_on_macos_by_default(self):
         s = settings_for(self.ci, "foundation_signals")
+        self.assertEqual(s.macos_runs, s.runs)
+        self.assertEqual(len(self.ci.commands("foundation_signals", s, "uat", "macos")["test"]), len(s.runs))
+
+    def test_default_macos_runs_drop_linux_only_feature_sets(self):
+        s = settings_for(self.ci, "foundation_deployment_platform")
+        self.assertEqual(s.runs, ["", "vms"])
+        self.assertEqual(s.macos_runs, [""])
+
+    def test_a_package_with_only_linux_only_runs_has_no_macos_test(self):
+        config = tomllib.loads(CONFIG.read_text())
+        defaults = config["defaults"]
+        s = self.ci.settings_for("p", defaults, {"runs": ["uring", "vfs-fuse,x"]})
         self.assertIsNone(s.macos_runs)
-        self.assertEqual(self.ci.commands("foundation_signals", s, "uat", "macos")["test"], [])
+
+    def test_linux_only_filter_reads_flag_style_entries(self):
+        only = ["uring", "vms"]
+        self.assertTrue(self.ci.run_is_linux_only("fd,uring", only))
+        self.assertTrue(self.ci.run_is_linux_only("--no-default-features --features a,vms", only))
+        self.assertFalse(self.ci.run_is_linux_only("--no-run --features docker,integration-tests", only))
+        self.assertFalse(self.ci.run_is_linux_only("", only))
+
+    def test_an_override_replaces_the_default(self):
+        s = settings_for(self.ci, "foundation_boringtun")
+        self.assertEqual(s.macos_runs, ["", "device"])
+
+    def test_an_opt_out_has_no_macos_runs(self):
+        s = settings_for(self.ci, "foundation_ai")
+        self.assertIsNone(s.macos_runs)
+        self.assertTrue(s.macos_opt_out)
+
+    def test_default_macos_env_drops_the_linux_only_variables(self):
+        s = settings_for(self.ci, "foundation_proxy")
+        self.assertIn("EWE_REQUIRE_IO_URING", s.env)
+        self.assertEqual(s.macos_env, {})
+        cloudflare = settings_for(self.ci, "foundation_deployment_cloudflare")
+        self.assertEqual(cloudflare.macos_env, cloudflare.env)
 
     def test_linux_commands_ignore_macos_runs(self):
         s = settings_for(self.ci, "foundation_http")
@@ -53,11 +87,11 @@ class MacosRuns(unittest.TestCase):
         self.assertTrue(linux["fmt"] and linux["build"] and linux["clippy"])
 
     def test_no_macos_run_names_a_linux_only_feature(self):
-        config = tomllib.loads(CONFIG.read_text())
-        for name, table in config["packages"].items():
-            for run in table.get("macos-runs", []):
+        packages = self.ci.load_workspace()
+        for name, s in self.ci.load_settings(packages).items():
+            for run in s.macos_runs or []:
                 for word in LINUX_ONLY:
-                    self.assertNotIn(word, run, f"{name}: macos-runs entry {run!r}")
+                    self.assertNotIn(word, run, f"{name}: macos run {run!r}")
 
     def test_macos_env_replaces_the_linux_env(self):
         s = settings_for(self.ci, "foundation_nativeapis")

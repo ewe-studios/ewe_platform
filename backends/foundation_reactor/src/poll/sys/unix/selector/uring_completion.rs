@@ -33,13 +33,28 @@
 //! When consumers hold every buffer, the kernel completes with `-ENOBUFS` and
 //! drops the multishot registration. Re-arming right then would spin against an
 //! empty pool. The token is instead marked starved and re-armed on the first
-//! `poll()` after [`BufRing::recycle_count`] moves — i.e. after a consumer has
-//! actually freed a buffer.
+//! `poll()` that finds a free buffer in the pool.
+//!
+//! ## One live receive per token
+//!
+//! Each armed `RECV` gets its own id, and the id is the SQE's `user_data`. The
+//! selector keeps the live id of each token. A token has at most one live
+//! receive: an arm request for a token that has one is refused. When a
+//! completion ends a receive (no `F_MORE`), the selector removes its id.
+//!
+//! A cancel is asynchronous, so a cancelled receive can still post completions
+//! after `deregister_fd`. Their id is no longer live. The selector returns their
+//! buffers to the pool and ignores them. Without this, a late completion of a
+//! closed socket could re-arm a new socket that reuses the token. The new socket
+//! then had two receives, which split its bytes between them (#515). The late
+//! completion could also put the old socket's bytes in the new socket's inbox.
 //!
 //! ## Locking
 //!
 //! Same rule as `uring.rs`: `poll()` holds no queue lock while it blocks.
-//! Lock order where several are taken: `entries` → `starved` → `sq`.
+//! Lock order where several are taken: `entries` → `recv_arms` → `starved` →
+//! `sq`. `drain_completions` takes `recv_arms` and `starved` while it holds `cq`;
+//! no path takes `cq` while it holds one of them.
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::io;
@@ -125,6 +140,27 @@ enum Mode {
     Poll,
 }
 
+/// The live multishot receives, by id and by token.
+///
+/// Both maps change together under one lock, so they always agree.
+#[derive(Debug, Default)]
+struct RecvArms {
+    /// Receive id (the SQE's `user_data`) to its token.
+    by_id: HashMap<u64, Token>,
+    /// Token to its live receive id.
+    by_token: HashMap<Token, u64>,
+}
+
+impl RecvArms {
+    /// Forget the receive `id` of `token`.
+    fn remove(&mut self, id: u64, token: Token) {
+        self.by_id.remove(&id);
+        if self.by_token.get(&token) == Some(&id) {
+            self.by_token.remove(&token);
+        }
+    }
+}
+
 /// Per-fd tracking entry.
 #[derive(Debug, Clone, Copy)]
 struct FdEntry {
@@ -144,6 +180,10 @@ pub struct Selector {
     inboxes: Mutex<HashMap<Token, VecDeque<Completion>>>,
     /// Tokens whose multishot recv ended with `-ENOBUFS`, awaiting a free buffer.
     starved: Mutex<HashSet<Token>>,
+    /// The live multishot receives. A token has at most one.
+    recv_arms: Mutex<RecvArms>,
+    /// Source of receive ids. An id is the `user_data` of one `RECV` SQE.
+    next_recv_id: AtomicU64,
     /// User-filled buffer pool backing `IORING_OP_SEND` (F49). The SEND mirror of
     /// `bufring`: it owns the bytes a write submits until the send's CQE arrives.
     send_pool: Arc<SendPool>,
@@ -260,6 +300,8 @@ impl Selector {
             entries: Mutex::new(HashMap::new()),
             inboxes: Mutex::new(HashMap::new()),
             starved: Mutex::new(HashSet::new()),
+            recv_arms: Mutex::new(RecvArms::default()),
+            next_recv_id: AtomicU64::new(0),
             send_pool: SendPool::new(buf_size, entries as usize),
             in_flight_sends: Mutex::new(HashMap::new()),
             next_send_id: AtomicU64::new(0),
@@ -592,11 +634,30 @@ impl Selector {
     }
 
     /// Arm a multishot `RECV` for `fd`, delivering into the buffer ring.
-    fn arm_recv(&self, fd: RawFd, token: Token) -> io::Result<()> {
+    ///
+    /// Returns `false` and submits nothing when `token` already has a live
+    /// receive. Two receives on one socket would split its bytes (#515).
+    fn arm_recv(&self, fd: RawFd, token: Token) -> io::Result<bool> {
+        let mut arms = self
+            .recv_arms
+            .lock()
+            .expect("uring recv arms lock poisoned");
+        if arms.by_token.contains_key(&token) {
+            return Ok(false);
+        }
+        // Ids stay below the tag bits, so a RECV completion never looks tagged.
+        let id = self.next_recv_id.fetch_add(1, Ordering::Relaxed) & MAX_TOKEN;
+        // Record the id before the submit: its first completion can arrive at once.
+        arms.by_id.insert(id, token);
+        arms.by_token.insert(token, id);
         let sqe = opcode::RecvMulti::new(types::Fd(fd), BGID)
             .build()
-            .user_data(token.0 as u64);
-        self.push_and_submit(&sqe)
+            .user_data(id);
+        if let Err(e) = self.push_and_submit(&sqe) {
+            arms.remove(id, token);
+            return Err(e);
+        }
+        Ok(true)
     }
 
     /// Arm a multishot `POLL_ADD` for `fd`.
@@ -615,7 +676,20 @@ impl Selector {
     /// `ASYNC_CANCEL` matches by `user_data` whatever the opcode.
     fn disarm(&self, token: Token, mode: Mode) {
         let user_data = match mode {
-            Mode::Recv => token.0 as u64,
+            Mode::Recv => {
+                let mut arms = self
+                    .recv_arms
+                    .lock()
+                    .expect("uring recv arms lock poisoned");
+                // No live receive (it ended, or it is starved): nothing to cancel.
+                let Some(id) = arms.by_token.get(&token).copied() else {
+                    return;
+                };
+                // Forget the id now. Completions that the cancel lets through
+                // are then stale, and the drain recycles their buffers.
+                arms.remove(id, token);
+                id
+            }
             Mode::Poll => token.0 as u64 | POLL_TAG,
         };
         let sqe = opcode::AsyncCancel::new(user_data)
@@ -710,8 +784,19 @@ impl Selector {
         }
 
         let mut entries = self.entries.lock().expect("uring entries lock poisoned");
+        // The token is still registered (no deregister came first): cancel what
+        // it has armed, so the new fd gets its own receive or poll.
+        if let Some(old) = entries.get(&token).copied() {
+            self.disarm(token, old.mode);
+            self.starved
+                .lock()
+                .expect("uring starved lock poisoned")
+                .remove(&token);
+        }
         match mode {
-            Mode::Recv => self.arm_recv(fd, token)?,
+            Mode::Recv => {
+                self.arm_recv(fd, token)?;
+            }
             Mode::Poll => self.arm_poll(fd, token, interest)?,
         }
         entries.insert(token, FdEntry { fd, interest, mode });
@@ -908,23 +993,40 @@ impl Selector {
             return;
         }
 
-        let mut starved = self.starved.lock().expect("uring starved lock poisoned");
-        if starved.is_empty() {
-            return;
-        }
-        let entries = self.entries.lock().expect("uring entries lock poisoned");
-        starved.retain(|token| match entries.get(token) {
-            Some(entry) => {
-                if let Err(e) = self.arm_recv(entry.fd, *token) {
-                    tracing::warn!(token = token.0, error = %e, "re-arming starved recv failed");
-                    return true; // keep it starved; try again next sweep
-                }
-                tracing::debug!(token = token.0, "re-armed recv after buffer starvation");
-                false
+        // Take the parked tokens out first. Lock order is entries → starved, so
+        // the starved lock is not held while entries is locked.
+        let parked: Vec<Token> = {
+            let mut starved = self.starved.lock().expect("uring starved lock poisoned");
+            if starved.is_empty() {
+                return;
             }
-            // Deregistered while starved.
-            None => false,
-        });
+            starved.drain().collect()
+        };
+        let entries = self.entries.lock().expect("uring entries lock poisoned");
+        let mut still_parked = Vec::new();
+        for token in parked {
+            // Deregistered while starved, or now on the poll path: drop it.
+            let Some(entry) = entries.get(&token).filter(|e| e.mode == Mode::Recv) else {
+                continue;
+            };
+            match self.arm_recv(entry.fd, token) {
+                Ok(true) => {
+                    tracing::debug!(token = token.0, "re-armed recv after buffer starvation");
+                }
+                // A receive is already live. Arming another would split the bytes.
+                Ok(false) => {}
+                Err(e) => {
+                    tracing::warn!(token = token.0, error = %e, "re-arming starved recv failed");
+                    still_parked.push(token); // try again next sweep
+                }
+            }
+        }
+        if !still_parked.is_empty() {
+            self.starved
+                .lock()
+                .expect("uring starved lock poisoned")
+                .extend(still_parked);
+        }
     }
 
     /// Record one completion for `token`.
@@ -1134,7 +1236,38 @@ impl Selector {
                 }
 
                 // ── multishot RECV: the kernel already read the bytes ──
-                let token = Token(user_data as usize);
+                let recv_id = user_data;
+                let more = cqueue::more(flags);
+                let live = {
+                    let mut arms = self
+                        .recv_arms
+                        .lock()
+                        .expect("uring recv arms lock poisoned");
+                    let token = arms.by_id.get(&recv_id).copied();
+                    // A completion without F_MORE ends this receive.
+                    if let (Some(token), false) = (token, more) {
+                        arms.remove(recv_id, token);
+                    }
+                    token
+                };
+                let Some(token) = live else {
+                    // Stale: the receive was cancelled (deregistered or replaced).
+                    // Return its buffer to the pool and deliver nothing.
+                    if result > 0 {
+                        if let Some(bid) = cqueue::buffer_select(flags) {
+                            // SAFETY: as for live data below — the kernel just
+                            // reported `bid`, so no other ProvidedBuf exists for it.
+                            drop(unsafe {
+                                ProvidedBuf::from_completion(
+                                    Arc::clone(&self.bufring),
+                                    bid,
+                                    result as usize,
+                                )
+                            });
+                        }
+                    }
+                    continue;
+                };
 
                 if result > 0 {
                     match cqueue::buffer_select(flags) {
@@ -1180,12 +1313,16 @@ impl Selector {
                     let errno = -result;
                     match errno {
                         // Pool exhausted: park the token until a buffer returns.
+                        // Park only when the receive ended. With F_MORE it is
+                        // still live, and a re-arm would add a second receive.
                         libc::ENOBUFS => {
-                            self.starved
-                                .lock()
-                                .expect("uring starved lock poisoned")
-                                .insert(token);
-                            tracing::debug!(token = token.0, "recv starved: buffer pool empty");
+                            if !more {
+                                self.starved
+                                    .lock()
+                                    .expect("uring starved lock poisoned")
+                                    .insert(token);
+                                tracing::debug!(token = token.0, "recv starved: buffer pool empty");
+                            }
                             continue;
                         }
                         // Cancelled by deregistration.
@@ -1201,7 +1338,7 @@ impl Selector {
                     }
                 }
 
-                if !cqueue::more(flags) {
+                if !more {
                     rearm_recv.push(token);
                 }
             }
@@ -1243,7 +1380,8 @@ impl Selector {
         if !rearm_recv.is_empty() {
             let entries = self.entries.lock().expect("uring entries lock poisoned");
             for token in &rearm_recv {
-                if let Some(entry) = entries.get(token) {
+                if let Some(entry) = entries.get(token).filter(|e| e.mode == Mode::Recv) {
+                    // `arm_recv` refuses a token that already has a live receive.
                     if let Err(e) = self.arm_recv(entry.fd, *token) {
                         tracing::warn!(token = token.0, error = %e, "multishot recv re-arm failed");
                     }

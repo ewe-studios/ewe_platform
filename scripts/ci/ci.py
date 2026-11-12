@@ -8,16 +8,20 @@ mystery:
     python3 scripts/ci/ci.py plan                     # GitHub matrix for the current event
     python3 scripts/ci/ci.py run foundation_ai        # fmt + clippy + tests for one package
     python3 scripts/ci/ci.py run foundation_ai --step test
+    python3 scripts/ci/ci.py affected --base origin/master   # what a change affects, and why
+    python3 scripts/ci/ci.py run foundation_ai --if-affected # skip when the change does not affect it
 
-On a macOS host (`sys.platform == "darwin"`) `run` does only the test step, with
-the feature sets of the package's `macos-runs` key. A package without that key
-is not tested on macOS. `plan` also writes the `macos-matrix` output.
-A Windows host (`sys.platform == "win32"`) works the same way with the
-`windows-runs` key and the `windows-matrix` output.
+On a macOS host (`sys.platform == "darwin"`) `run` does only the test step.
+Every package is tested on macOS by default, with the feature sets of its `runs`
+key minus the sets that name a feature in `linux-only-features`. The
+`macos-runs` key replaces that default. A package opts out with
+`macos-tests = "none"` and a reason. `plan` also writes the `macos-matrix`
+output. A Windows host (`sys.platform == "win32"`) works the same way with the
+`windows-runs` / `windows-tests` keys and the `windows-matrix` output.
 
-`plan` also runs a guard. A package with macOS or Windows specific code must
-set `macos-runs` / `windows-runs`, or opt out with `macos-tests = "none"` /
-`windows-tests = "none"` and a reason. See `platform_guard`.
+`plan` also runs a guard. It fails when an opt-out has no reason, and when a
+`macos-runs` / `windows-runs` entry names a feature the package does not have.
+See `platform_guard`.
 
 Per-package settings live in `ci/packages.toml`. Everything else (the package
 list, which packages need the llama.cpp submodule, who depends on whom) comes
@@ -29,6 +33,7 @@ Standard library only (Python 3.11+ for `tomllib`).
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -38,6 +43,7 @@ import sys
 import threading
 import time
 import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -66,9 +72,12 @@ LLAMA_CRATES = {"infrastructure_llama_bindings", "infrastructure_llama_cpp"}
 
 # A change under any of these can affect every package, so on a pull request it
 # selects the whole workspace. Entries ending in "/" are directory prefixes.
+# Three files are not here because `affected` reads their content: Cargo.lock
+# (only the users of a changed crate), the root Cargo.toml (only its workspace,
+# patch and profile sections) and ci/packages.toml (`[defaults]` is global, a
+# `[packages.X]` section marks X). Workflow files other than the two named below
+# mark nothing: GitHub reruns the jobs of a changed workflow by itself.
 GLOBAL_PATHS = (
-    "Cargo.toml",
-    "Cargo.lock",
     "rust-toolchain.toml",
     "build.rs",
     ".cargo/",
@@ -114,6 +123,10 @@ class Package:
     dir: str  # relative to the workspace root
     needs_llama: bool
     dependents: set[str] = field(default_factory=set)
+    # Names of the external (non-workspace) crates in the dependency closure.
+    external: set[str] = field(default_factory=set)
+    # Names of the direct dependencies, for `[workspace.dependencies]` changes.
+    direct_deps: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -151,21 +164,26 @@ class Settings:
     # `run` (feature flags) and `contains` (the message). Checks the documented
     # minimum feature set instead of dropping the configuration.
     wasm_expect_error: dict | None = None
-    # Feature sets for the macOS test job, in the same syntax as `runs`. None
-    # means the package is not tested on macOS. The Linux-only sets (`uring`,
-    # `ptrace`, `fuse`, `preload`) stay out of this list.
+    # Feature sets for the macOS test job, in the same syntax as `runs`. The
+    # default is `runs` minus the sets that name a `linux-only-features` entry.
+    # The `macos-runs` key replaces it. None means the package is not tested on
+    # macOS: it opted out, or every run is Linux-only.
     macos_runs: list[str] | None = None
-    # Environment for the macOS test commands. It replaces `env` on macOS, so
-    # the Linux-only `EWE_REQUIRE_*` variables never reach a macOS run.
+    # Environment for the macOS test commands. The `macos-env` key replaces it.
+    # Without the key it is `env` minus the Linux-only `EWE_REQUIRE_*` variables.
     macos_env: dict[str, str] = field(default_factory=dict)
-    # The same two keys for the Windows test job (`windows-runs`, `windows-env`).
+    # The same keys for the Windows test job (`windows-runs`, `windows-env`).
     windows_runs: list[str] | None = None
     windows_env: dict[str, str] = field(default_factory=dict)
-    # `macos-tests = "none"` / `windows-tests = "none"` with a reason: the
-    # package has platform code but is not tested on that platform. The guard
-    # in `platform_guard` accepts it. The value is the reason text.
+    # `macos-tests = "none"` / `windows-tests = "none"`: the package cannot be
+    # tested on that platform. The value is the reason text; an empty string is
+    # an opt-out without a reason, which `platform_guard` rejects.
     macos_opt_out: str | None = None
     windows_opt_out: str | None = None
+    # The `macos-runs` / `windows-runs` keys as written, for the guard. None
+    # means the default applies.
+    macos_runs_override: list[str] | None = None
+    windows_runs_override: list[str] | None = None
 
     def platform_runs(self, platform: str) -> list[str] | None:
         """The feature sets of the test job for `platform`, or None."""
@@ -193,6 +211,7 @@ class PlannedCommand:
     env: dict[str, str] = field(default_factory=dict)
 
 
+@functools.cache
 def cargo_metadata() -> dict:
     try:
         out = subprocess.run(
@@ -237,6 +256,9 @@ def load_workspace() -> dict[str, Package]:
             name=meta_pkg["name"],
             dir=Path(meta_pkg["manifest_path"]).parent.relative_to(ROOT).as_posix(),
             needs_llama=bool((dep_names | {meta_pkg["name"]}) & LLAMA_CRATES),
+            external={by_id[d]["name"] for d in closures[pid] if d not in members},
+            direct_deps={d.get("rename") or d["name"] for d in meta_pkg["dependencies"]}
+            | {d["name"] for d in meta_pkg["dependencies"]},
         )
 
     # Reverse edges between workspace members: who is affected by a change.
@@ -286,6 +308,49 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
     }
 
 
+def run_features(run: str) -> list[str]:
+    """The feature names one `runs` entry turns on.
+
+    An entry is "" (defaults), "a b" or "a,b" (feature names), or raw cargo flags
+    that start with "-" (`--features a,b` / `-F a`). Other flags name no feature.
+    """
+    run = run.strip()
+    if not run.startswith("-"):
+        return [f for f in run.replace(",", " ").split() if f]
+    tokens, found, i = run.split(), [], 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok in ("--features", "-F") and i + 1 < len(tokens):
+            found += tokens[i + 1].split(",")
+            i += 1
+        elif tok.startswith("--features="):
+            found += tok.split("=", 1)[1].split(",")
+        i += 1
+    return [f for f in found if f]
+
+
+def run_is_linux_only(run: str, linux_only: list[str]) -> bool:
+    """True when the entry turns on any feature in `linux-only-features`."""
+    return any(f in linux_only for f in run_features(run))
+
+
+def max_parallel() -> dict[str, int]:
+    """The most jobs of one matrix that run at once, per OS (`[defaults]` keys).
+
+    Limits are configuration (CLAUDE.md rule 8). The defaults match
+    ci/packages.toml: free GitHub plans run about 20 jobs at once, with at most
+    5 macOS jobs, so the macOS and Windows defaults stay small.
+    """
+    defaults = tomllib.loads(CONFIG_PATH.read_text()).get("defaults", {})
+    result = {}
+    for plat, fallback in (("linux", 8), ("macos", 2), ("windows", 2)):
+        value = defaults.get(f"max-parallel-{plat}", fallback)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise SystemExit(f"[defaults]: `max-parallel-{plat}` must be a positive integer")
+        result[plat] = value
+    return result
+
+
 def settings_for(name: str, defaults: dict, package: dict) -> Settings:
     """Merge `[defaults]` with one `[packages.<name>]` table and validate it."""
     merged = {**defaults, **package}
@@ -308,6 +373,10 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         for key in ("run", "contains"):
             if not isinstance(wasm_expect_error.get(key), str):
                 raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
+    linux_only = defaults.get("linux-only-features", [])
+    if not isinstance(linux_only, list) or not all(isinstance(f, str) for f in linux_only):
+        raise SystemExit("[defaults]: `linux-only-features` must be a list of strings")
+    runs = list(merged.get("runs", [""])) or [""]
     platform_keys: dict[str, tuple] = {}
     for plat in ("macos", "windows"):
         runs_key = package.get(f"{plat}-runs")
@@ -318,8 +387,10 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
                 or not all(isinstance(r, str) for r in runs_key)
             ):
                 raise SystemExit(f"{name}: `{plat}-runs` must be a non-empty list of strings")
-        env_key = package.get(f"{plat}-env", {})
-        if not isinstance(env_key, dict) or not all(isinstance(v, str) for v in env_key.values()):
+        env_key = package.get(f"{plat}-env")
+        if env_key is not None and (
+            not isinstance(env_key, dict) or not all(isinstance(v, str) for v in env_key.values())
+        ):
             raise SystemExit(f"{name}: `{plat}-env` must be a table of strings")
         opt_out = None
         if f"{plat}-tests" in package:
@@ -327,12 +398,23 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
                 raise SystemExit(f'{name}: `{plat}-tests` must be "none"')
             if runs_key is not None:
                 raise SystemExit(f"{name}: `{plat}-tests` and `{plat}-runs` exclude each other")
-            opt_out = package.get(f"{plat}-reason") or package.get("reason")
-            if not isinstance(opt_out, str) or not opt_out.strip():
-                raise SystemExit(f'{name}: `{plat}-tests = "none"` needs a `{plat}-reason` or a `reason`')
-        platform_keys[plat] = (runs_key, env_key, opt_out)
-    macos_runs, macos_env, macos_opt_out = platform_keys["macos"]
-    windows_runs, windows_env, windows_opt_out = platform_keys["windows"]
+            # A missing reason is not an error here: `platform_guard` reports it.
+            opt_out = str(package.get(f"{plat}-reason") or package.get("reason") or "")
+        # The default runs: the Linux list minus the Linux-only feature sets.
+        if opt_out is not None:
+            effective = None
+        elif runs_key is not None:
+            effective = list(runs_key)
+        else:
+            effective = [r for r in runs if not run_is_linux_only(r, linux_only)] or None
+        effective_env = (
+            dict(env_key)
+            if env_key is not None
+            else {k: v for k, v in env.items() if not k.startswith("EWE_REQUIRE_")}
+        )
+        platform_keys[plat] = (effective, effective_env, opt_out, runs_key)
+    macos_runs, macos_env, macos_opt_out, macos_override = platform_keys["macos"]
+    windows_runs, windows_env, windows_opt_out, windows_override = platform_keys["windows"]
     s = Settings(
         skip=merged.get("skip"),
         fmt=merged.get("fmt", "report"),
@@ -359,6 +441,8 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         windows_env=dict(windows_env),
         macos_opt_out=macos_opt_out,
         windows_opt_out=windows_opt_out,
+        macos_runs_override=list(macos_override) if macos_override is not None else None,
+        windows_runs_override=list(windows_override) if windows_override is not None else None,
     )
     for step in STEPS:
         if getattr(s, step) not in MODES:
@@ -370,15 +454,14 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
 # Selection
 
 
-def changed_files(base: str, head: str) -> list[str]:
-    out = subprocess.run(
-        ["git", "diff", "--name-only", f"{base}...{head}"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    return [line for line in out.splitlines() if line]
+def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=ROOT, check=check, capture_output=True, text=True)
+
+
+def merge_base(base: str, head: str) -> str | None:
+    """The common ancestor of `base` and `head`, or None (shallow clone)."""
+    proc = git("merge-base", base, head, check=False)
+    return proc.stdout.strip() or None if proc.returncode == 0 else None
 
 
 def is_global(path: str) -> bool:
@@ -386,31 +469,212 @@ def is_global(path: str) -> bool:
 
 
 def owning_package(path: str, packages: dict[str, Package]) -> str | None:
-    """The package whose directory contains `path` (the deepest one wins)."""
+    """The package whose directory contains `path` (the deepest one wins).
+
+    The root package (directory ".") owns only `src/`, `tests/` and `benches/`.
+    """
     best: str | None = None
     for pkg in packages.values():
-        if pkg.dir in ("", ".") or not path.startswith(pkg.dir + "/"):
+        if pkg.dir in ("", "."):
+            if best is None and path.split("/", 1)[0] in ("src", "tests", "benches"):
+                best = pkg.name
             continue
-        if best is None or len(pkg.dir) > len(packages[best].dir):
+        if not path.startswith(pkg.dir + "/"):
+            continue
+        if best is None or packages[best].dir in ("", ".") or len(pkg.dir) > len(packages[best].dir):
             best = pkg.name
     return best
 
 
-def affected(files: list[str], packages: dict[str, Package]) -> tuple[set[str], str]:
-    """The packages a change touches, plus every workspace package that depends on them."""
-    files = [f for f in files if not f.endswith(".md")]  # prose doesn't change what code does
-    if any(is_global(f) for f in files):
-        return set(packages), "a workspace-wide file changed"
+@dataclass
+class Changes:
+    """The files a change touches and a way to read each one before and after.
 
-    direct: set[str] = set()
-    for path in files:
-        if owner := owning_package(path, packages):
-            direct.add(owner)
+    `old` and `new` return a file's text, or None when the file does not exist
+    on that side. Tests inject dictionaries; `git_changes` reads git.
+    """
 
-    selected = set(direct)
-    for name in direct:
-        selected |= packages[name].dependents
-    return selected, f"{len(direct)} changed package(s) plus dependents"
+    files: list[str]
+    old: Callable[[str], str | None] = lambda path: None
+    new: Callable[[str], str | None] = lambda path: None
+
+
+def git_changes(base: str, head: str = "HEAD", include_local: bool = False) -> Changes:
+    """The change from `base` to `head`, plus the working tree when `include_local`.
+
+    The pull request diff is `base...head` (from the merge base). In a shallow
+    clone with no merge base it falls back to `base..head`, which is the same
+    when `head` is a merge commit on top of `base`.
+    """
+    mb = merge_base(base, head)
+    if mb:
+        diff = git("diff", "--name-only", f"{base}...{head}").stdout
+    else:
+        mb = base
+        diff = git("diff", "--name-only", base, head).stdout
+    files = {line for line in diff.splitlines() if line}
+    if include_local:
+        files |= set(git("diff", "--name-only", "HEAD").stdout.splitlines())
+        files |= set(git("ls-files", "--others", "--exclude-standard").stdout.splitlines())
+
+    def old(path: str) -> str | None:
+        proc = git("show", f"{mb}:{path}", check=False)
+        return proc.stdout if proc.returncode == 0 else None
+
+    def new(path: str) -> str | None:
+        if include_local:
+            target = ROOT / path
+            return target.read_text(encoding="utf-8", errors="replace") if target.is_file() else None
+        proc = git("show", f"{head}:{path}", check=False)
+        return proc.stdout if proc.returncode == 0 else None
+
+    return Changes(sorted(f for f in files if f), old, new)
+
+
+def lock_changed_crates(old: str | None, new: str | None) -> set[str] | None:
+    """Names of the crates whose version or source differ between two lock files.
+
+    None means a lock file is missing or unreadable, so the caller must assume
+    every package changed.
+    """
+    if old is None or new is None:
+        return None
+    try:
+        def entries(text: str) -> set[tuple]:
+            return {
+                (p["name"], p.get("version"), p.get("source"))
+                for p in tomllib.loads(text).get("package", [])
+            }
+
+        old_entries, new_entries = entries(old), entries(new)
+    except (tomllib.TOMLDecodeError, KeyError):
+        return None
+    return {entry[0] for entry in old_entries ^ new_entries}
+
+
+def root_manifest_changes(old: str | None, new: str | None) -> tuple[bool, set[str]]:
+    """What a root Cargo.toml change means: (is it global?, changed workspace dependencies).
+
+    Global: any part other than `[workspace.dependencies]` changed (members,
+    `[patch]`, profiles, lints, the root package). A changed workspace
+    dependency affects the packages that use it.
+    """
+    if old is None or new is None:
+        return True, set()
+    try:
+        old_doc, new_doc = tomllib.loads(old), tomllib.loads(new)
+    except tomllib.TOMLDecodeError:
+        return True, set()
+    old_deps = old_doc.get("workspace", {}).pop("dependencies", {})
+    new_deps = new_doc.get("workspace", {}).pop("dependencies", {})
+    if old_doc != new_doc:
+        return True, set()
+    return False, {k for k in set(old_deps) | set(new_deps) if old_deps.get(k) != new_deps.get(k)}
+
+
+def config_changes(old: str | None, new: str | None) -> tuple[bool, set[str]]:
+    """What a ci/packages.toml change means: (is it global?, packages whose section changed)."""
+    if old is None or new is None:
+        return True, set()
+    try:
+        old_doc, new_doc = tomllib.loads(old), tomllib.loads(new)
+    except tomllib.TOMLDecodeError:
+        return True, set()
+    old_pkgs, new_pkgs = old_doc.pop("packages", {}), new_doc.pop("packages", {})
+    if old_doc != new_doc:  # [defaults] or any other top-level table
+        return True, set()
+    return False, {k for k in set(old_pkgs) | set(new_pkgs) if old_pkgs.get(k) != new_pkgs.get(k)}
+
+
+def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dict[str, str]:
+    """Map each affected package to the reason it must run.
+
+    Rules:
+    - a file maps to the package with the longest matching directory, and the
+      packages that depend on it (any dependency kind) are affected too;
+    - Cargo.lock marks the packages that use a crate whose version or source
+      changed, plus their dependents;
+    - a global file marks every package (see `GLOBAL_PATHS`);
+    - a `[packages.X]` section change in ci/packages.toml marks only X;
+    - anything else (docs, specifications, prose) marks nothing.
+    """
+    everything = lambda why: {name: why for name in packages}  # noqa: E731
+    direct: dict[str, str] = {}  # reasons that also reach the dependents
+    only: dict[str, str] = {}  # reasons that do not
+    workspace_deps: set[str] = set()
+
+    for path in changes.files:
+        if path.endswith(".md"):
+            continue  # prose does not change what code does
+        if path == "Cargo.lock":
+            crates = lock_changed_crates(changes.old(path), changes.new(path))
+            if crates is None:
+                return everything("Cargo.lock changed and could not be compared")
+            crates -= set(packages)  # a workspace crate is covered by its own manifest
+            for name, pkg in sorted(packages.items()):
+                if used := sorted(crates & pkg.external):
+                    direct.setdefault(name, f"Cargo.lock changed {used[0]}")
+        elif path == "Cargo.toml":
+            whole, deps = root_manifest_changes(changes.old(path), changes.new(path))
+            if whole:
+                return everything("the root Cargo.toml workspace, patch or profile settings changed")
+            workspace_deps |= deps
+        elif path == "ci/packages.toml":
+            whole, names = config_changes(changes.old(path), changes.new(path))
+            if whole:
+                return everything("ci/packages.toml [defaults] changed")
+            for name in names & set(packages):
+                only.setdefault(name, "its section of ci/packages.toml changed")
+        elif is_global(path):
+            return everything(f"{path} changed")
+        elif owner := owning_package(path, packages):
+            direct.setdefault(owner, f"{path} changed")
+
+    for dep in sorted(workspace_deps):
+        for name, pkg in sorted(packages.items()):
+            if dep in pkg.direct_deps:
+                direct.setdefault(name, f"the workspace dependency {dep} changed")
+
+    reasons = dict(only)
+    for name in sorted(direct):
+        reasons.setdefault(name, direct[name])
+    for name in sorted(direct):
+        for dependent in sorted(packages[name].dependents):
+            reasons.setdefault(dependent, f"depends on {name} ({direct[name]})")
+    return reasons
+
+
+def resolve_base(explicit: str | None = None) -> str:
+    """The base ref of a change: `--base`, CI_BASE_SHA, GITHUB_BASE_REF, or master.
+
+    Order: the argument, `$CI_BASE_SHA`, `origin/$GITHUB_BASE_REF` (fetched when
+    missing), then the merge base of HEAD and origin/master.
+    """
+    if explicit:
+        return explicit
+    if sha := os.environ.get("CI_BASE_SHA"):
+        return sha
+    if ref := os.environ.get("GITHUB_BASE_REF"):
+        remote = f"origin/{ref}"
+        if git("rev-parse", "--verify", "--quiet", remote, check=False).returncode != 0:
+            git("fetch", "--no-tags", "origin", ref, check=False)
+        return remote
+    for candidate in ("origin/master", "master"):
+        if git("rev-parse", "--verify", "--quiet", candidate, check=False).returncode == 0:
+            return merge_base("HEAD", candidate) or candidate
+    raise SystemExit("cannot find a base: pass --base, or fetch origin/master")
+
+
+def compute_affected(
+    packages: dict[str, Package], base: str, head: str = "HEAD"
+) -> dict[str, str]:
+    """The one implementation behind `plan`, `affected` and `run --if-affected`.
+
+    Local changes (uncommitted and untracked files) count only for a local run
+    on HEAD, never inside GitHub Actions.
+    """
+    include_local = head == "HEAD" and not os.environ.get("GITHUB_ACTIONS")
+    return affected_with_reasons(git_changes(base, head, include_local), packages)
 
 
 def select(args: argparse.Namespace, packages: dict[str, Package]) -> tuple[set[str], str]:
@@ -426,8 +690,15 @@ def select(args: argparse.Namespace, packages: dict[str, Package]) -> tuple[set[
 
     base = args.base or os.environ.get("CI_BASE_SHA", "")
     head = args.head or os.environ.get("CI_HEAD_SHA", "") or "HEAD"
-    if base:
-        return affected(changed_files(base, head), packages)
+    # A new branch or a first push has an all-zero "before" commit: test everything.
+    if base and not set(base) <= {"0"}:
+        try:
+            reasons = compute_affected(packages, base, head)
+        except subprocess.CalledProcessError as err:
+            # A force push can leave the "before" commit out of the clone.
+            print(f"cannot diff against {base} ({err.stderr.strip()}); full run", file=sys.stderr)
+            return set(packages), "full run (base commit not available)"
+        return set(reasons), f"{len(reasons)} package(s) affected by the change"
     return set(packages), "full run"
 
 
@@ -665,7 +936,18 @@ def run_streamed(
     return code, kept
 
 
-def run_package(name: str, steps: list[str], profile: str, platform: str | None = None) -> int:
+def run_package(
+    name: str,
+    steps: list[str],
+    profile: str,
+    platform: str | None = None,
+    report: list[tuple[str, list[str], dict[str, list[str]]]] | None = None,
+) -> int:
+    """Run the steps of one package. Return 1 when a command failed.
+
+    `report` collects `(name, failures, details)` for a failed package, so
+    `run-many` can print one combined summary.
+    """
     platform = platform or host_platform()
     packages = load_workspace()
     if name not in packages:
@@ -677,7 +959,9 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
 
     if platform != "linux" and s.platform_runs(platform) is None:
         label = {"macos": "macOS", "windows": "Windows"}[platform]
-        print(f"skipping {name}: no `{platform}-runs` in ci/packages.toml, so it is not tested on {label}")
+        opt_out = s.macos_opt_out if platform == "macos" else s.windows_opt_out
+        why = f"it opted out: {opt_out}" if opt_out else "every run names a Linux-only feature"
+        print(f"skipping {name}: not tested on {label}; {why}")
         return 0
 
     plan = commands(name, s, profile, platform)
@@ -770,90 +1054,126 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
         if IN_GITHUB:
             print("::endgroup::", flush=True)
         annotate("error", f"{header}: " + "; ".join(failures))
+        if report is not None:
+            report.append((name, list(failures), dict(details)))
 
     return 1 if failures else 0
+
+
+def run_many(
+    names: list[str],
+    steps: list[str],
+    profile: str,
+    if_affected: bool = False,
+    base: str | None = None,
+    head: str | None = None,
+    platform: str | None = None,
+) -> int:
+    """Run several packages in turn with one target directory (one shard job).
+
+    It does not stop at the first failure. Dependencies that two packages share
+    build once, because every package uses the same CARGO_TARGET_DIR. It ends
+    with one summary block that lists each failed package, its failed commands
+    and their failure lines. Return 1 when any package failed.
+    """
+    report: list[tuple[str, list[str], dict[str, list[str]]]] = []
+    failed: list[str] = []
+    for name in names:
+        print(f"==== {name} ====", flush=True)
+        if if_affected and not_affected(name, base, head):
+            continue
+        if run_package(name, steps, profile, platform, report) != 0:
+            failed.append(name)
+    print(f"==== summary: {len(names)} package(s), {len(failed)} failed ====", flush=True)
+    if IN_GITHUB and failed:
+        print("::group::failed packages", flush=True)
+    for name, failures, details in report:
+        print(f"{name}: {len(failures)} failed command(s)", flush=True)
+        for note in failures:
+            print(f"  {note}", flush=True)
+            for kept_line in details.get(note, []):
+                print(f"      {kept_line}", flush=True)
+    for name in failed:
+        if name not in {r[0] for r in report}:
+            print(f"{name}: failed", flush=True)
+    if IN_GITHUB and failed:
+        print("::endgroup::", flush=True)
+    if failed:
+        annotate("error", "failed packages: " + ", ".join(failed))
+    return 1 if failed else 0
 
 
 # ---------------------------------------------------------------------------
 # Platform guard
 #
-# A package with macOS or Windows specific code must be tested on that OS, or
-# say why not. The guard runs in `plan`, so every CI run checks it.
-
-# `cfg(...)`, `cfg!(...)` and `cfg_attr(...)` openers. The scan reads the text
-# inside the balanced brackets.
-CFG_OPEN = re.compile(r"\bcfg(?:_attr)?!?\s*\(")
-STRING_LITERAL = re.compile(r'"(?:[^"\\]|\\.)*"')
-MACOS_CFG = re.compile(r'target_os\s*=\s*"macos"|target_vendor\s*=\s*"apple"')
-WINDOWS_CFG = re.compile(r'target_(?:os|family)\s*=\s*"windows"')
-# A bare `windows` predicate, as in `cfg(windows)`. Checked after string
-# literals are blanked, so `feature = "windows"` does not match.
-WINDOWS_BARE = re.compile(r"(?<![\w.])windows(?![\w=])")
-COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+# Every package is tested on macOS and Windows unless it opts out. The guard
+# keeps the opt-outs and overrides honest. It runs in `plan`, so every CI run
+# checks it.
 
 
-def cfg_expressions(source: str) -> list[str]:
-    """The text inside every real `cfg(...)` / `cfg!(...)` in Rust `source`.
+def cargo_features(package_dir: Path) -> set[str] | None:
+    """The feature names a package's Cargo.toml offers, or None without a manifest.
 
-    Comments are removed first, so a cfg in a comment or doc comment is ignored.
+    That is the `[features]` table plus every optional dependency, which cargo
+    turns into an implicit feature of the same name.
     """
-    text = COMMENTS.sub("", source)
-    found = []
-    for match in CFG_OPEN.finditer(text):
-        depth, i = 1, match.end()
-        while i < len(text) and depth:
-            depth += {"(": 1, ")": -1}.get(text[i], 0)
-            i += 1
-        found.append(text[match.end() : i - 1])
-    return found
+    manifest = package_dir / "Cargo.toml"
+    if not manifest.is_file():
+        return None
+    try:
+        data = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError:
+        return None  # a manifest that is a template, not TOML: cannot check
+    names = set(data.get("features", {}))
 
+    def collect(tables: dict) -> None:
+        for dep, spec in tables.items():
+            if isinstance(spec, dict) and spec.get("optional"):
+                names.add(dep)
 
-def platform_cfg_sites(source: str) -> dict[str, int]:
-    """Count the macOS and Windows cfg sites in Rust `source`."""
-    counts = {"macos": 0, "windows": 0}
-    for expr in cfg_expressions(source):
-        if MACOS_CFG.search(expr):
-            counts["macos"] += 1
-        if WINDOWS_CFG.search(expr) or WINDOWS_BARE.search(STRING_LITERAL.sub('""', expr)):
-            counts["windows"] += 1
-    return counts
-
-
-def package_platform_sites(package_dir: Path) -> dict[str, int]:
-    """Count the platform cfg sites in the `src/` and `tests/` of one package."""
-    total = {"macos": 0, "windows": 0}
-    for sub in ("src", "tests"):
-        for path in sorted((package_dir / sub).rglob("*.rs")):
-            counts = platform_cfg_sites(path.read_text(encoding="utf-8", errors="replace"))
-            for plat in total:
-                total[plat] += counts[plat]
-    return total
+    for key in ("dependencies", "build-dependencies"):
+        collect(data.get(key, {}))
+    for target in data.get("target", {}).values():
+        collect(target.get("dependencies", {}))
+    return names
 
 
 def platform_guard(
     packages: dict[str, Package], settings: dict[str, Settings], root: Path = ROOT
 ) -> list[str]:
-    """One error message per package with platform code and no test on it.
+    """One error message per broken `macos-*` / `windows-*` setting.
 
-    The synthetic packages (`examples`, `wasm-tests`) and skipped packages are
-    not checked.
+    Two checks:
+    - an opt-out (`<platform>-tests = "none"`) has a reason;
+    - a `<platform>-runs` entry names only features the package has.
+
+    The synthetic packages (`examples`, `wasm-tests`) have no manifest of their
+    own, so the feature check skips them. Skipped packages are not checked.
     """
     errors = []
     for name in sorted(packages):
         s = settings[name]
-        if s.skip or name in ("examples", "wasm-tests"):
+        if s.skip:
             continue
-        sites = package_platform_sites(root / packages[name].dir)
+        features = None if name in ("examples", "wasm-tests") else cargo_features(root / packages[name].dir)
         for plat, label in (("macos", "macOS"), ("windows", "Windows")):
-            if sites[plat] == 0 or s.platform_runs(plat) is not None:
+            opt_out = s.macos_opt_out if plat == "macos" else s.windows_opt_out
+            override = s.macos_runs_override if plat == "macos" else s.windows_runs_override
+            if opt_out is not None and not opt_out.strip():
+                errors.append(
+                    f"{name}: `{plat}-tests = \"none\"` has no reason. Add a `{plat}-reason` "
+                    f"(or `reason`) in ci/packages.toml that names the missing tool, library or "
+                    f"service on {label}."
+                )
+            if features is None or override is None:
                 continue
-            if (s.macos_opt_out if plat == "macos" else s.windows_opt_out) is not None:
-                continue
-            errors.append(
-                f"{name}: {sites[plat]} {label}-specific cfg site(s) but no `{plat}-runs` in "
-                f"ci/packages.toml. Add `{plat}-runs`, or set `{plat}-tests = \"none\"` "
-                f"with a `reason`."
-            )
+            for run in override:
+                for feature in run_features(run):
+                    if feature.split("/", 1)[0].removeprefix("dep:") not in features:
+                        errors.append(
+                            f"{name}: `{plat}-runs` entry {run!r} names feature {feature!r}, "
+                            f"which {packages[name].dir}/Cargo.toml does not define."
+                        )
     return errors
 
 
@@ -871,6 +1191,60 @@ def cmd_list(_: argparse.Namespace) -> int:
         env = "".join(f"  {k}={v}" for k, v in sorted(s.env.items()))
         print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}{env}")
     return 0
+
+
+def package_weight(s: Settings, plat: str) -> int:
+    """The weight of a package for sharding: its number of feature-set runs."""
+    return len(s.platform_runs(plat) or [])
+
+
+def split_shards(items: list[dict], count: int) -> list[list[dict]]:
+    """Split `items` (dicts with `package` and `weight`) into at most `count` shards.
+
+    Greedy: take the heaviest package first and put it in the lightest shard.
+    The result is deterministic (ties break on the package name and the shard
+    index), has no empty shard, and holds every package exactly once.
+    """
+    if not items:
+        return []
+    count = max(1, min(count, len(items)))
+    shards: list[list[dict]] = [[] for _ in range(count)]
+    loads = [0] * count
+    for item in sorted(items, key=lambda i: (-i["weight"], i["package"])):
+        index = min(range(count), key=lambda k: (loads[k], k))
+        shards[index].append(item)
+        loads[index] += item["weight"]
+    return [sorted(shard, key=lambda i: i["package"]) for shard in shards]
+
+
+def shard_matrix(
+    items: list[dict], count: int, max_timeout: int
+) -> list[dict]:
+    """The matrix entries of one OS: one entry per shard."""
+    shards = split_shards(items, count)
+    return [
+        {
+            "shard": f"{n}/{len(shards)}",
+            "index": n,
+            "packages": " ".join(i["package"] for i in shard),
+            "weight": sum(i["weight"] for i in shard),
+            "timeout": min(sum(i["timeout"] for i in shard), max_timeout),
+            "llama": any(i["llama"] for i in shard),
+        }
+        for n, shard in enumerate(shards, start=1)
+    ]
+
+
+def shard_settings() -> dict[str, int]:
+    """`macos-shards`, `windows-shards` and `shard-timeout-minutes` from `[defaults]`."""
+    defaults = tomllib.loads(CONFIG_PATH.read_text()).get("defaults", {})
+    result = {}
+    for key, fallback in (("macos-shards", 4), ("windows-shards", 4), ("shard-timeout-minutes", 300)):
+        value = defaults.get(key, fallback)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise SystemExit(f"[defaults]: `{key}` must be a positive integer")
+        result[key] = value
+    return result
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
@@ -894,20 +1268,32 @@ def cmd_plan(args: argparse.Namespace) -> int:
     ]
     skipped = sorted(n for n in selected if settings[n].skip)
     matrix = json.dumps({"include": include})
-    # The macOS test matrix: the selected packages that set `macos-runs`.
-    macos_include = [
-        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
-        for item in include
-        if settings[item["package"]].macos_runs is not None and settings[item["package"]].test != "off"
-    ]
-    macos_matrix = json.dumps({"include": macos_include})
-    # The Windows test matrix: the selected packages that set `windows-runs`.
-    windows_include = [
-        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
-        for item in include
-        if settings[item["package"]].windows_runs is not None and settings[item["package"]].test != "off"
-    ]
-    windows_matrix = json.dumps({"include": windows_include})
+    # The macOS and Windows test matrices: every selected package that has a
+    # run for that OS, so every package except the opted-out ones. GitHub allows
+    # 256 jobs per matrix; the workspace has about 110 packages, so it fits. If
+    # the workspace ever passes 256 packages, split the matrix by package.
+    def platform_include(plat: str) -> list[dict]:
+        return [
+            {
+                "package": item["package"],
+                "llama": item["llama"],
+                "timeout": item["timeout"],
+                "weight": package_weight(settings[item["package"]], plat),
+            }
+            for item in include
+            if settings[item["package"]].platform_runs(plat) is not None
+            and settings[item["package"]].test != "off"
+        ]
+
+    # One matrix entry per shard, not per package: a shard job tests several
+    # packages in a row with one target directory (see `run_many`).
+    sh = shard_settings()
+    macos_include = platform_include("macos")
+    macos_shards = shard_matrix(macos_include, sh["macos-shards"], sh["shard-timeout-minutes"])
+    macos_matrix = json.dumps({"include": macos_shards})
+    windows_include = platform_include("windows")
+    windows_shards = shard_matrix(windows_include, sh["windows-shards"], sh["shard-timeout-minutes"])
+    windows_matrix = json.dumps({"include": windows_shards})
     summary = f"{len(include)} package(s) selected ({why})"
     print(summary, file=sys.stderr)
 
@@ -915,26 +1301,68 @@ def cmd_plan(args: argparse.Namespace) -> int:
         with open(out, "a") as fh:
             fh.write(f"matrix={matrix}\ncount={len(include)}\n")
             fh.write(f"macos-matrix={macos_matrix}\nmacos-count={len(macos_include)}\n")
+            fh.write(f"macos-shard-count={len(macos_shards)}\n")
             fh.write(f"windows-matrix={windows_matrix}\nwindows-count={len(windows_include)}\n")
+            fh.write(f"windows-shard-count={len(windows_shards)}\n")
+            for plat, limit in max_parallel().items():
+                fh.write(f"max-parallel-{plat}={limit}\n")
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(step_summary, "a") as fh:
             fh.write(f"### CI plan\n\n{summary}\n\n")
             for item in include:
                 fh.write(f"- `{item['package']}`{' (needs llama.cpp)' if item['llama'] else ''}\n")
-            if macos_include:
-                names = ", ".join(f"`{i['package']}`" for i in macos_include)
-                fh.write(f"\nmacOS tests: {names}\n\n")
-            if windows_include:
-                names = ", ".join(f"`{i['package']}`" for i in windows_include)
-                fh.write(f"\nWindows tests: {names}\n\n")
+            for label, shards in (("macOS", macos_shards), ("Windows", windows_shards)):
+                for shard in shards:
+                    fh.write(f"\n{label} {shard['shard']} (weight {shard['weight']}): {shard['packages']}\n")
             for name in skipped:
                 fh.write(f"- ~~`{name}`~~ skipped: {settings[name].skip}\n")
     print(matrix)
     return 0
 
 
+def cmd_affected(args: argparse.Namespace) -> int:
+    packages = load_workspace()
+    base = resolve_base(args.base)
+    head = args.head or "HEAD"
+    reasons = compute_affected(packages, base, head)
+    if args.json:
+        print(json.dumps({"base": base, "head": head, "affected": reasons}, indent=2, sort_keys=True))
+    else:
+        print(f"{len(reasons)} of {len(packages)} package(s) affected by {base}..{head}")
+        for name in sorted(reasons):
+            print(f"{name:36} {reasons[name]}")
+    return 0
+
+
+def not_affected(name: str, base_arg: str | None, head_arg: str | None) -> bool:
+    """True when `--if-affected` says to skip `name`.
+
+    It fails open: when git cannot say, the package runs.
+    """
+    try:
+        packages = load_workspace()
+        base = resolve_base(base_arg)
+        head = head_arg or "HEAD"
+        reasons = compute_affected(packages, base, head)
+    except (subprocess.CalledProcessError, SystemExit, OSError) as err:
+        print(f"{name}: cannot tell what changed ({err}); running", file=sys.stderr)
+        return False
+    if name in reasons:
+        return False
+    print(f"{name}: not affected by {base}..{head}, skipping")
+    return True
+
+
 def cmd_run(args: argparse.Namespace) -> int:
+    if args.if_affected and not_affected(args.package, args.base, args.head):
+        return 0
     return run_package(args.package, args.step or list(STEPS), args.profile)
+
+
+def cmd_run_many(args: argparse.Namespace) -> int:
+    return run_many(
+        args.packages, args.step or list(STEPS), args.profile, args.if_affected, args.base, args.head
+    )
 
 
 def main() -> int:
@@ -949,11 +1377,33 @@ def main() -> int:
     plan.add_argument("--head", help="head commit for change detection")
     plan.set_defaults(func=cmd_plan)
 
+    aff = sub.add_parser("affected", help="list the packages a change affects, and why")
+    aff.add_argument("--base", help="base ref (default: $CI_BASE_SHA, origin/$GITHUB_BASE_REF, or the merge base with origin/master)")
+    aff.add_argument("--head", help="head ref (default: HEAD, plus uncommitted changes)")
+    aff.add_argument("--json", action="store_true", help="print JSON")
+    aff.set_defaults(func=cmd_affected)
+
     run = sub.add_parser("run", help="run fmt / clippy / tests for one package")
     run.add_argument("package")
     run.add_argument("--step", action="append", choices=STEPS, help="repeatable; default: all steps")
     run.add_argument("--profile", default=os.environ.get("CI_PROFILE", "uat"))
+    run.add_argument(
+        "--if-affected",
+        action="store_true",
+        help="skip the package, with exit 0, when the change since the base does not affect it",
+    )
+    run.add_argument("--base", help="base ref for --if-affected (default: see `affected`)")
+    run.add_argument("--head", help="head ref for --if-affected (default: HEAD)")
     run.set_defaults(func=cmd_run)
+
+    many = sub.add_parser("run-many", help="run several packages in turn, with one target directory")
+    many.add_argument("packages", nargs="+", help="package names, or one space separated string")
+    many.add_argument("--step", action="append", choices=STEPS, help="repeatable; default: all steps")
+    many.add_argument("--profile", default=os.environ.get("CI_PROFILE", "uat"))
+    many.add_argument("--if-affected", action="store_true", help="skip each package the change does not affect")
+    many.add_argument("--base", help="base ref for --if-affected")
+    many.add_argument("--head", help="head ref for --if-affected")
+    many.set_defaults(func=cmd_run_many)
 
     # Cargo output and package names can hold non-ASCII text. The Windows
     # console code page cannot print it, so write UTF-8 on every host.
@@ -962,6 +1412,9 @@ def main() -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
 
     args = parser.parse_args()
+    if getattr(args, "command", None) == "run-many":
+        # The shard matrix passes the names as one string.
+        args.packages = [n for item in args.packages for n in item.replace(",", " ").split()]
     return args.func(args)
 
 
