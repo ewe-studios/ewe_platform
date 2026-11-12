@@ -289,3 +289,16 @@ standard ASD-STE100.
   to Blacksmith (kernel 6.6) found #506, which GitHub's newer kernel never showed.
 - CI ran clippy on foundation_reactor without the `uring` feature, so 65 findings stayed
   hidden (#507). Check that `clippy-runs` covers every feature that gates code.
+- The io_uring completion selector used the token as the `user_data` of a receive (#515). A
+  cancel is asynchronous, so a closed socket's receive could post a completion after
+  `deregister_fd`. When a new socket reused the token, that late completion put the old
+  socket's bytes in the new inbox. A late completion without `F_MORE` also re-armed the new
+  socket while its own receive was live, so two receives split its bytes. The fix gives each
+  receive its own id, keeps one live id per token, and refuses a second arm. Completions with
+  an id that is not live return their buffer and deliver nothing.
+- To show an async-cancel race in a test, let the kernel post the completion before the
+  cancel: write to the peer, wait a short time without a poll, then deregister. The test
+  `a_reused_token_gets_only_the_new_sockets_bytes` fails without the fix on kernel 6.18 too.
+- The first macOS and Windows run (PR #516) found 11 groups of old bugs: #519 to #528, plus
+  #466 and #485. Linux was green. A crate that never ran its tests on an OS hides bugs
+  there; a compile check does not find them.
