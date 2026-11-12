@@ -19,15 +19,76 @@ are._
 
 **Abbreviations in this file.** user interface (UI); server-driven user interface (SDUI);
 Document Object Model (DOM); virtual DOM (VDOM); WebAssembly (WASM); JavaScript (JS);
-hash-based message authentication code (HMAC); pull request (PR); AeroSpace and Defence
-Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+hypertext transfer protocol (HTTP); Server-Sent Events (SSE);
+application programming interface (API); identifier (id); pull request (PR); AeroSpace and
+Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
-## 1. Purpose
+## 1. North star
 
-The owner wrote a rearchitecture document for the UI stack:
+**One FlatBuffers contract carries structured UI, data and actions across the web, mobile,
+WASM and compiled Rust. One action model serves every surface. Each platform supplies the
+capabilities that only it can provide.**
+
+Source:
 [`foundation_ui_rearchitecture.md`](../../65-agent-rpc-serving-system/resources/foundation_ui_rearchitecture.md).
-This directory lifts **every idea** in that document into its own file and lays it out
-technically. The aim is to improve on the document, not to bend it to the code we have.
+
+The owner set four goals for this research (PR #157 review, 2026-11-12):
+
+1. **One contract.** A consistent FlatBuffers API and message format that carries UI, data and
+   actions on the web, mobile, WASM and a compiled Rust binary. It must be sensible and
+   structured.
+2. **One action model.** Standardise actions and the action registry per platform. The registry
+   can live in Rust or in JS. The current web capability stays: a `<script>` defines functions
+   that become callable once the DOM mounts. Isolate that capability to the web. The message
+   format carries cross-platform UI nodes and messages, plus web-only and mobile-only variants,
+   so one message can name a web form and a mobile form and each side takes its own.
+3. **Reuse plus specific capabilities.** Break the architecture into shared parts that every
+   platform reuses. Set out the capabilities that only one platform type needs, so there is a
+   standard at the top and flexibility where it matters.
+4. **Live mounts everywhere.** Support `mount-stream` and `mount-data` on mobile too. The
+   representation and orchestration may differ, but the core idea is the same: a location that
+   marks itself live and reacts to changes over a channel. The channel can be local, SSE,
+   WebSocket or plain HTTP.
+
+**What is fixed at the top:** the schema, the node ids, the action name and registry contract,
+the signed state envelope, the live mount semantics and the platform slots on a message row.
+
+**What each platform decides:** the renderer, the transport it serves, the behaviour bindings,
+the local action implementations and the platform effects.
+
+```mermaid
+flowchart TB
+    subgraph STD["Standard at the top"]
+        W["foundation_ui_wire<br/>Frame, ActionRequest, core and platform variants"]
+        A["Action contract<br/>name, registry, platform scope"]
+        M["Live mount contract<br/>mount-stream, mount-data, channel"]
+    end
+    subgraph SHARED["Shared runtime"]
+        D["Dispatcher<br/>verify, run, sign, encode"]
+        R["Action registry<br/>Rust or JS"]
+    end
+    subgraph PLAT["Platform capabilities"]
+        WEB["Web<br/>DOM applicator, JS registry,<br/>scoped JS, SSE/WebSocket/HTTP"]
+        NAT["Native<br/>node store, Swift and Kotlin readers,<br/>platform behaviours"]
+        LOC["WASM and Rust<br/>local actions, signal islands"]
+    end
+    W --> D
+    A --> R
+    M --> D
+    D --> WEB
+    D --> NAT
+    D --> LOC
+```
+
+_The diagram shows one standard, one shared runtime and three platform sets. Each set
+implements only its own capabilities._
+
+**What this is not.** It is not a redesign of the parts that work. Signals, the mount islands,
+the HTML morph, the state envelope and the live mode stay as the earlier decisions define them
+(D8, D14, D15, D40). It is not a new transport (D25). It is not a prescribed store or session
+table (D15). It is not a VDOM or a hydration layer (D20, [01](./01-compile-time-targeting.md)).
+
+## 2. How this research is organised
 
 Each idea file has the same five parts:
 
@@ -39,15 +100,18 @@ Each idea file has the same five parts:
 4. **What this changes for us:** what is replaced, what stays, what is new.
 5. **Open questions:** links to [`questions.md`](./questions.md).
 
-The design specification comes after the owner answers the questions.
+[13](./13-platform-capabilities.md) is the integrating file. It shows how the schema, the
+action registry, the capability hooks and the live mounts work together. Read it first, then
+the idea file that you need. The design specification comes after the owner answers the
+remaining questions.
 
-## 2. Owner decisions (fixed input)
+## 3. Owner decisions (fixed input)
 
 | # | Decision |
 |---|---|
 | D1 | Research the ideas in the document first; the design follows. |
 | D2 | No Tauri content for now. |
-| D3 | The new direction **overrides** spec 36 decision 10, spec 52 and spec 39 decision 025 where they conflict. |
+| D3 | The new direction **overrides** spec 36 decision 10 and spec 39 decision 025 where they conflict. It overrides spec 52 only where spec 52 conflicts with App Store 2.5.2; the rest of spec 52 has valid use and we build on it (D34, revised 2026-11-12). |
 | D4 | **Web first, then native** (revised by the 2026-11-11 review). The web must work consistently first, with the mount paths as they are today. The native layers come after. |
 | D5 | **State signing:** "Client never signs, its always from the server or the wasm bundle running on the client on the web – for on-device, this does not matter." |
 | D6 | **Replay protection:** "Look at industry standard, at Livewire and learn and refine what works best for us." |
@@ -79,32 +143,39 @@ The design specification comes after the owner answers the questions.
 | D32 | (PR #157 review, 2026-11-11) **The framework delivers state updates or UI updates.** Either DOM updates or mobile UI updates; the delivery strategy is not its concern. |
 | D33 | (PR #157 review, 2026-11-11) **The native update policy is not a current concern.** The 2.5.2 payload rule still holds. |
 | D34 | (PR #157 review, 2026-11-11; answers Q25) **Spec 52 and `foundation_platform` have valid use.** Build on them; decide what to keep, remove or leave for later as the work proceeds. |
+| D35 | (PR #157 review, 2026-11-12) **North star.** One FlatBuffers contract carries structured UI, data and actions across the web, mobile, WASM and compiled Rust. It must be sensible and structured. Do not redesign everything. |
+| D36 | (PR #157 review, 2026-11-12) **Core plus platform variants in one message format.** The schema carries cross-platform UI nodes and messages, plus web-only and mobile-only variants. One message can name a web form and a mobile form. Each runtime applies its own variant and skips the others with a typed report. |
+| D37 | (PR #157 review, 2026-11-12) **One action model, registry in Rust or JS.** Web `<script>` functions that become callable once the DOM mounts stay, and join the JS registry as web actions. Mobile never processes script. A remote action delivers the name and the data to the server. |
+| D38 | (PR #157 review, 2026-11-12) **Platform capability hooks.** Shared parts stay at the top. Each platform supplies the capabilities that only it has. An engineer marks a hook as web-only or mobile-only, and the build routes it to that surface. |
+| D39 | (PR #157 review, 2026-11-12) **Live mounts on every platform.** `mount-stream` and `mount-data` exist on web and mobile. The core idea is a live location with a channel and a transport: local, SSE, WebSocket or plain HTTP. The representation differs; the semantics do not. |
+| D40 | (PR #157 review, 2026-11-12) **Build on the current shape.** Keep the parts we agreed: the schema, `primal-id`, `HtmlMorph`, the signal islands, the state envelope and the live and stateless modes. Do not redesign what works. |
 
-## 3. The ideas
+## 4. The ideas
 
 | # | Idea (document section) | Current state | The new way |
 |---|---|---|---|
 | [01](./01-compile-time-targeting.md) | No VDOM, no hydration, compile-time registered elements (§1, §3) | True on the web (`primal-id`, `DomOp` by node id); `MorphNode` still diffs HTML | The mechanism stays; ids become schema fields shared by every platform; `MorphNode` becomes the web-only `HtmlMorph` op (D8); `DomOp` retires (D10); ids are compile-time `primal-id`, not state (D20) |
-| [02](./02-unified-wire-contract.md) | One FlatBuffers contract for every frame (§1, §2) | 6-byte header, protocol byte table, hand-written bodies, no inbound schema | One `.fbs` schema in `foundation_ui_wire` (D21); `flatc` generates Rust, TypeScript, Swift, Kotlin; `Frame` and `ActionRequest` with stream and sequence ids; `ClientHello` handshake; MessagePack stays as an opaque body (D9) |
-| [03](./03-payload-tiers.md) | Three payload tiers: FlatBuffers ops, aligned columns, Arrow bulk data (§1, §2, §3) | Tier 2 by hand on the web; Arrow used for `DomOp` | All tiers are schema types (`OpBatch`, `ColumnarBatch`, `DataTable`); generated zero-copy readers; tier picked by the framework; tiers 1 and 2 share one consolidated representation (D27); Arrow IPC stays for Arrow consumers (D28) |
+| [02](./02-unified-wire-contract.md) | One FlatBuffers contract for every frame (§1, §2) | 6-byte header, protocol byte table, hand-written bodies, no inbound schema | One `.fbs` schema in `foundation_ui_wire` (D21); core and platform variants in one message (D36); `flatc` generates Rust, TypeScript, Swift, Kotlin; `Frame` and `ActionRequest`; `ClientHello` handshake; MessagePack stays opaque (D9) |
+| [03](./03-payload-tiers.md) | Three payload tiers: FlatBuffers ops, aligned columns, Arrow bulk data (§1, §2, §3) | Tier 2 by hand on the web; Arrow used for `DomOp` | All tiers are schema types (`OpBatch`, `ColumnarBatch`, `DataTable`); generated zero-copy readers; tier picked by the framework; tiers 1 and 2 share one consolidated representation (D27); Arrow IPC stays (D28) |
 | [04](./04-vocabulary-and-interning.md) | Numeric tag and attribute ids with string fallback; compiled primitive families (§2, §6) | HTML wire id tables; HTML-shaped `DomOp` | One vocabulary: core names for every platform, a web-only subset, and the string fallback. The web maps core names to HTML names (D10) |
 | [05](./05-web-zero-copy-applicator.md) | JS applicator reads frames and writes the DOM without WASM (§3) | Exists for server frames, with a hand-written parser; `<mount-stream>` and `<mount-data>` islands | Generated reader, one apply loop for all tiers and local WASM frames; the mount paths and islands stay; **the web comes first** (D4) |
-| [06](./06-native-rendering.md) | SwiftUI and Compose, core compiled in; a WebView is allowed (§3, §6) | Type stub only; no Swift, Kotlin or bindings | Node store with one observable record per node; native controls provide the behaviour; platform-language readers; UniFFI for on-device Rust logic; WebView is a second mount surface (D11) |
-| [07](./07-element-riding-state.md) | State rides on elements, no client caches; eight state formats (§1, §2, §4) | Stateful server; decision 025 says the client never sends state | One `SignedState` per component root, generated body type, harvested without parsing; base64url on the web, bytes on native (D12); the server may load the truth from the backend and ignore the client's copy (D13); authenticated encryption for private state |
-| [08](./08-state-security-and-replay.md) | HMAC with a rotating secret, verified by any replica (§4) | Private HMAC signer with a key ring and constant-time compare; no UI state token | Tag binds version, key id, times, component, node and session; ordered checks; single use is a domain rule, not a nonce store (D14); the [Livewire and industry study](./08b-replay-protection-study.md) sets the layers |
-| [09](./09-stateless-execution.md) | Any replica runs an action with no per-user memory (§4) | One-thread stateful `App`, with a replay backlog for live clients | Both modes stay. The server chooses how it handles state and sends one update or a stream (D15). The signal server and its replay backlog are good properties and stay |
-| [10](./10-action-model.md) | `#[action]` macro, `Interaction<T>`, a logical `Response`, state-aware `html!` (§5) | Local handlers only; `html!` takes no state | `async fn` that returns `Response` directly; the macro generates the decode from the signature, not only a registry entry (D19); the delivery handler encodes the response (D16); `Ctx` wraps `foundation_context::Ctx` and `Context` wraps `Ctx` (D17); no RPC layer (D18); templates never sign; event wiring by compile-time action name (D31) |
-| [11](./11-app-store-and-command-bus.md) | App Store 2.5.2: data not code, compiled primitives, declarative command bus (§6) | Spec 52 plans WASM hot-swap; components use scoped JS | No code fields in the schema; one registry model on web and device, built by the user from macro-generated structs (D22, D23); a remote action is just an action; version skew handled by the handshake; the native payload rule is clear |
-| [12](./12-scoped-behaviour.md) | Scoped JS and component behaviour (§3, §6) | Scoped JS in the component machinery; no native equivalent | Scoped JS stays, web only. Each native platform gets a compiled equivalent. One behaviour matrix ([11](./11-app-store-and-command-bus.md)) |
+| [06](./06-native-rendering.md) | SwiftUI and Compose, core compiled in; a WebView is allowed (§3, §6) | Type stub only; no Swift, Kotlin or bindings | Node store with one observable record per node; native controls provide the behaviour; platform-language readers; UniFFI for on-device Rust logic; WebView is a second mount surface (D11); mobile live mounts (D39) |
+| [07](./07-element-riding-state.md) | State rides on elements, no client caches; eight state formats (§1, §2, §4) | Stateful server; decision 025 says the client never sends state | One `SignedState` per component root, generated body type; base64url on the web, bytes on native (D12); the server may load the truth from the backend (D13); authenticated encryption for private state |
+| [08](./08-state-security-and-replay.md) | HMAC with a rotating secret, verified by any replica (§4) | Private HMAC signer with a key ring and constant-time compare; no UI state token | Tag binds version, key id, times, component, node and session; ordered checks; single use is a domain rule (D14); the [Livewire and industry study](./08b-replay-protection-study.md) sets the layers |
+| [09](./09-stateless-execution.md) | Any replica runs an action with no per-user memory (§4) | One-thread stateful `App`, with a replay backlog for live clients | Both modes stay. The server chooses how it handles state and sends one update or a stream (D15). The signal server and its replay backlog stay |
+| [10](./10-action-model.md) | `#[action]` macro, `Interaction<T>`, a logical `Response`, state-aware `html!` (§5) | Local handlers only; `html!` takes no state | `async fn` that returns `Response` directly; the macro generates the decode and the call glue (D19); the delivery handler encodes the response (D16); `Ctx` wraps `foundation_context::Ctx` (D17); no RPC layer (D18); action names, not ids (D31); platform scope on an action (D38) |
+| [11](./11-app-store-and-command-bus.md) | App Store 2.5.2: data not code, compiled primitives, declarative command bus (§6) | Spec 52 plans WASM hot-swap; components use scoped JS | No code fields for native; one registry model built by the user (D22, D23); the registry can be Rust or JS (D37); a remote action is just an action; version skew handled by the handshake |
+| [12](./12-scoped-behaviour.md) | Scoped JS and component behaviour (§3, §6) | Scoped JS in the component machinery; no native equivalent | Scoped JS stays, web only. Each native platform gets a compiled equivalent. One behaviour matrix, with a platform hook per behaviour (D38) |
+| [13](./13-platform-capabilities.md) | Reuse across platforms plus platform-specific capabilities (owner review, 2026-11-12) | Shared traits exist; no capability split, no platform hooks | The standard, the shared runtime and the platform sets; the message variant rule; the action and behaviour hooks; live mounts on every platform (D35 to D39) |
 
-## 4. Conflicts with earlier decisions
+## 5. Conflicts with earlier decisions
 
 | Earlier decision | Why it gives way | Idea |
 |---|---|---|
 | Spec 36 decision 10 (`specifications/completed/36-agentic-api/decisions/10-serialization-format.md`): stored `foundation_ai` conversation data is JSON plus Arrow; the FlatBuffers fallback was dropped | It covers stored AI data, not the UI wire. FlatBuffers is the top format for the UI (D7). Stored AI data is out of scope (D26). | [02](./02-unified-wire-contract.md) |
 | Spec 39 decision 025 (`…/39-foundation-wasm-ui/decisions/025-server-client-state-sync.md:8`, `:40`): the client never sends state; nothing is embedded | State is embedded and returned, signed by the server (D5). The client still never authors state. | [07](./07-element-riding-state.md) |
 | `ViewKind::Native` "post-MVP" (`backends/foundation_ui_traits/src/platform_types.rs:180-187`) | Native is not post-MVP. The web comes first, then native (D4) | [06](./06-native-rendering.md) |
-| Spec 52 decision 04, "WASM hot-swap, no review" (`specifications/52-tauri-foundation-platform/decisions/04-deployment-surfaces.md:32-34`) | Downloaded logic conflicts with App Store 2.5.2 for native apps | [11](./11-app-store-and-command-bus.md) |
+| Spec 52 deployment surfaces 1 and 3, "WASM hot-swap, no review" (`specifications/52-tauri-foundation-platform/decisions/04-deployment-surfaces.md:32-34`) | Downloaded logic conflicts with App Store 2.5.2 for native apps. The other spec 52 parts have valid use and stay (D34) | [11](./11-app-store-and-command-bus.md) |
 
 **One earlier decision does not give way.** Spec 39 decision 027 and the `MorphNode`
 behaviour (`backends/foundation_ui_traits/src/dom_op.rs:159`) stay (D8). The HTML morph becomes
@@ -112,7 +183,7 @@ behaviour (`backends/foundation_ui_traits/src/dom_op.rs:159`) stay (D8). The HTM
 ([01](./01-compile-time-targeting.md), [03](./03-payload-tiers.md)). The `DomOp` enum itself
 does not stay: it becomes part of the web subset of the one vocabulary (D10).
 
-## 5. Bugs found during this research
+## 6. Bugs found during this research
 
 The research found one bug: `foundation_auth` `TokenSigner::verify` compared the HMAC tag in
 non-constant time and had no key id (`backends/foundation_auth/src/shared/session.rs`).
@@ -121,13 +192,13 @@ non-constant time and had no key id (`backends/foundation_auth/src/shared/sessio
 `540611b30` adds the key ring and key ids. The repository no longer keeps a bug backlog file.
 Findings become GitHub issues with a severity label (`CLAUDE.md` rule 9).
 
-## 6. Review comments on PR #157 and how this research applies them
+## 7. Review comments on PR #157 and how this research applies them
 
 | Comment | Applied in |
 |---|---|
 | "What the heck is `agentic records`? … make FlatBuffers the top format and everything else, columnar included, a type in the schema" | D7; [02](./02-unified-wire-contract.md) §1, §2, §3.5 |
 | "Dont we already do this?" (on the no-hydration loop and ids in the first frame) | [01](./01-compile-time-targeting.md) §2, §3 item 1: yes on the web; the new part is one schema and native readers |
-| "Why not represent an `HtmlMorph` command … just another flatbuffer message type for the web?" | D8; [01](./01-compile-time-targeting.md) §3 item 3, §4; [03](./03-payload-tiers.md) §3.1; [11](./11-app-store-and-command-bus.md) §2, §3.1 |
+| "Why not represent an `HtmlMorph` command … just another flatbuffer message type for the web?" | D8; [01](./01-compile-time-targeting.md) §3 item 3, §4; [03](./03-payload-tiers.md) §3.1 |
 | "I never asked you to remove this, you can just have kept it opaque like Arrow and Columnar" (MessagePack) | D9; [02](./02-unified-wire-contract.md) §3.2, §3.5 |
 | "What of the JS then, what exactly are you saying here?" (body encoders replaced) | [02](./02-unified-wire-contract.md) §4; [05](./05-web-zero-copy-applicator.md) §3, §4 |
 | "Why not map web to the core names that work in both … HTML tags and attributes are custom names for it" | D10; [04](./04-vocabulary-and-interning.md) §3.1 |
@@ -140,7 +211,7 @@ Findings become GitHub issues with a severity label (`CLAUDE.md` rule 9).
 | "Why are we rebuilding what the native Swift and Compose provides?" | [06](./06-native-rendering.md) §3.4, §3.5 |
 | "Binary can't ride a HTML element, what's wrong with base64 the string?" | D12; [07](./07-element-riding-state.md) §3.3 |
 | "the server can ignore all the state client sends and maybe only use a valid key to get what it considers authoritative state from the backend" | D13; [07](./07-element-riding-state.md) §3.5; [08](./08-state-security-and-replay.md) §4.4 |
-| "Why this much complexity and storing … the server knows when a payment is initially … a delete is requested … the server should own this and not delegate to a secondary state store" | D14; [08b](./08b-replay-protection-study.md) §3, §4; [08](./08-state-security-and-replay.md) §4.2, §4.4; Q19 |
+| "Why this much complexity and storing … the server knows when a payment is initially … a delete is requested … the server should own this and not delegate to a secondary state store" | D14; [08b](./08b-replay-protection-study.md) §3, §4; [08](./08-state-security-and-replay.md) §4.2, §4.4 |
 | "it chooses to use the context or get a relevant key from the state and pull from the backend" | [09](./09-stateless-execution.md) §3.2 |
 | "these are not bad properties. Signals can't be moved across threads and we do want to use our signal library … a replay backlog is also good" | D15; [09](./09-stateless-execution.md) §2 |
 | "we want this, what exactly is wrong and why was this being removed or designed out?" | D15; [09](./09-stateless-execution.md) §3.1, §4 |
@@ -172,3 +243,9 @@ Findings become GitHub issues with a severity label (`CLAUDE.md` rule 9).
 | "Not even your business right now" and "You are just to deliver either state updates or dom / mobile ui updates simple" | D32; [11](./11-app-store-and-command-bus.md) §5; Q23 removed |
 | "Also not your current concern" (native update policy) | D33; [11](./11-app-store-and-command-bus.md) §3.4, §5; Q24 removed |
 | "it has valid use, we build on it and we decide what to keep or what to remove or what is for later" (spec 52) | D34; [11](./11-app-store-and-command-bus.md) §5; Q25 |
+| "create a flatbuffer based consistent API and message format that carries and works across web, mobile and wasm or compiled rust binary" | D35; [02](./02-unified-wire-contract.md), [13](./13-platform-capabilities.md) §1 |
+| "the message format will have cross platform message types and ui nodes … and then mobile specific messages and web specific message variants" | D36; [02](./02-unified-wire-contract.md) §3.2, §3.3; [13](./13-platform-capabilities.md) §3.2 |
+| "actions are registered to a action registry whether in rust or on the js side … `<script>` of functions that once the dom mounts are callable … isolate it to the web" | D37; [10](./10-action-model.md) §3.8; [11](./11-app-store-and-command-bus.md) §3.2; [12](./12-scoped-behaviour.md) §3.1 |
+| "Break down the current architecture to allow reuse across platform but also set out specific capabilities that maybe only for one platform type" | D38; [13](./13-platform-capabilities.md) §3.1, §3.3 |
+| "We should be supporting the ideas of mount-streams, mount-data as well for mobile … all local, SSE, websocket or a plain http requests" | D39; [06](./06-native-rendering.md) §3.7; [13](./13-platform-capabilities.md) §3.4 |
+| "We should not go mad and redesign everything … take all the cool stuff we have here and in the current shape and make it make sense" | D40; [README](./README.md) §1; all idea files keep the earlier decisions |

@@ -3,9 +3,9 @@
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
-**Abbreviations in this file.** WebAssembly (WASM); remote procedure call (RPC); identifier
-(id); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE
-standard ASD-STE100.
+**Abbreviations in this file.** WebAssembly (WASM); JavaScript (JS); remote procedure call
+(RPC); identifier (id); AeroSpace and Defence Industries Association of Europe (ASD), the owner
+of the STE standard ASD-STE100.
 
 ## 1. The idea, laid out
 
@@ -55,6 +55,9 @@ The document's ideas here:
    state to the root element. The dispatcher signs the state, not the template (§3.5).
 5. **Event wiring by name.** `primal:onclick="increment_counter"` links an element to an action.
 
+_North star fit: one action model, with a platform scope where a surface needs its own form
+(D37, D38, [13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 | Part | Where |
@@ -102,6 +105,7 @@ lookup.
 |---|---|
 | The decode of `Interaction<T>`, from `T` in the signature | Verify the tag, check expiry and bindings |
 | A struct named after the function; its name is the action tag (D23, D31) | Sign the next state |
+| The platform scope on the struct (D38) | Deliver the action to the platform registry |
 | The registry entry under the action name, and the name constant that templates use | Hand the `Response` to the delivery handler |
 | The call glue from an event name to the function | Run the generated glue in the dispatcher |
 
@@ -188,6 +192,50 @@ design does not put actions behind an RPC router and does not require ConnectRPC
 `#[service]` macro stays for code that wants RPC. A server can expose an action over any
 transport it uses; the action does not change.
 
+### 3.8 Platform scope and the JavaScript registry
+
+One action model serves every surface (D37, owner review 2026-11-12). The action declares its
+platform scope beside its name:
+
+- **Every platform** is the default. The Rust registry on the server, in WASM and on device
+  holds it.
+- **Web only** runs on a web mount.
+- **Mobile only** runs on iOS and Android.
+
+The shape follows `#[action]`. The design spec fixes the exact syntax (Q31):
+
+```rust
+#[action]                 // every platform
+#[action(web)]            // web only
+#[action(mobile)]         // iOS and Android
+```
+
+The registry is a map from the action name to the action for the current platform. It can be
+built in Rust or in JS:
+
+| Surface | Registry | What it runs |
+|---|---|---|
+| Server | Rust | The server actions |
+| WASM in the browser | Rust | The local actions and the signal graph |
+| Web runtime | JS | The functions that a scoped `<script>` defines, plus the client side of a remote action |
+| iOS and Android | Rust and the native host | The compiled actions |
+
+**The web script capability stays.** A web page can include `<script>` functions beside its
+markup, and they become callable once the DOM mounts. That is the current capability, and we
+keep it. Such a function joins the JS registry under its action name and is a web-local
+action. It runs in JS and never leaves the web. A native surface has no script field in its
+payload and never processes one ([11](./11-app-store-and-command-bus.md),
+[12](./12-scoped-behaviour.md)).
+
+**The rules:**
+
+- The event names the action; the runtime looks the name up in its own registry (D22, D31).
+- The same name can have a web form and a mobile form. Each platform takes its own.
+- A remote action delivers the name and the data to the server; the server runs its Rust
+  entry. The caller does not care which side runs it (D22).
+- An action that the registry does not hold, or that is scoped to another platform, produces
+  a typed `UnsupportedAction`. The runtime does nothing else.
+
 ## 4. What this changes for us
 
 - New `#[action]` macro. It does not share code with `#[service]` (D18).
@@ -195,8 +243,11 @@ transport it uses; the action does not change.
 - New `Ctx` and `Context` types that wrap `foundation_context::Ctx` (D17).
 - The action registry is shared with the device ([11](./11-app-store-and-command-bus.md)).
 - A response handler in the server encodes each `Response` (D16).
+- An action gains a platform scope. The JS registry keeps the web script functions callable
+  after mount (§3.8, D37).
 
 ## 5. Open questions
 
-Q28 in [`questions.md`](./questions.md): the error path. Q21 is withdrawn by D18. Q22 is
-closed: an action is identified by its name, not by a derived numeric id (D31).
+Q28 in [`questions.md`](./questions.md): the error path. Q31: the exact syntax of the platform
+scope. Q21 is withdrawn by D18. Q22 is closed: an action is identified by its name, not by a
+derived numeric id (D31).

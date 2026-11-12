@@ -30,6 +30,9 @@ table SetAttributeOp  { node_id: uint; attr_id: AttrNameId; custom_attr_name: st
   eight: buttons, text cells, inputs, and so on). The server arranges and updates them; it
   never adds new ones.
 
+_North star fit: one vocabulary at the top, with the web and mobile variants under it (D36,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 | Part | Where |
@@ -52,7 +55,8 @@ custom names for the core names, not a second vocabulary.
 | Layer | For | Elements | Properties |
 |---|---|---|---|
 | Core (every platform) | SwiftUI, Compose, the DOM, WebView | Stack, Text, Image, Button, TextInput, Toggle, List, Scroll, Spacer, Overlay (the primitive families) | Typed: padding, spacing, alignment, colour token, font token, accessibility label, enabled |
-| Web-only subset | The DOM, when a screen needs a tag that the core does not have | HTML tags | HTML attributes, plus the `HtmlMorph` op (D8) |
+| Web-only subset | The DOM, when a screen needs a tag that the core does not have | HTML tags | HTML attributes, plus the `HtmlMorph` and `ScriptNode` ops (D8, D37) |
+| Mobile-only subset | SwiftUI and Compose, when a screen needs a platform control that the core does not have | Native controls | Platform properties and effects, as `NativeControl` and `NativeCommand` (D36, [06](./06-native-rendering.md)) |
 
 Mapping rules:
 
@@ -61,6 +65,8 @@ Mapping rules:
 - A core name is valid on every platform.
 - A web-only name is valid on the web only. A native client reports it and shows a safe
   fallback ([11](./11-app-store-and-command-bus.md)). The web supports every name.
+- A mobile-only name is valid on iOS and Android only. The two subsets are the platform
+  variants of D36; they extend the one vocabulary, and they do not form a second one.
 - The old `TAG_NAMES` and `ATTR_NAMES` tables become the web mapping. A known name keeps its
   number. A custom name falls back to a string. The numbers are append-only.
 

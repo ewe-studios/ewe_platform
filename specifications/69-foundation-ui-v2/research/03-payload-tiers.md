@@ -44,6 +44,9 @@ flowchart TD
 _The diagram shows how the server picks a tier for each update. The threshold is
 configuration._
 
+_North star fit: the tiers are the core of the one message format. They feed the same reader
+on every platform (D35, [13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 Tier 2 exists by hand, on the web only (spec 39 feature 19):
@@ -79,19 +82,34 @@ table HtmlMorph {
 
 union Op { CreateNode: CreateNode, SetText: SetText, SetProp: SetProp,
            AppendChild: AppendChild, Remove: Remove, ReplaceSubtree: ReplaceSubtree,
-           HtmlMorph: HtmlMorph }        // web target only (D8)
-table OpRow  { op: Op; }
+           HtmlMorph: HtmlMorph,          // web target only (D8)
+           ScriptNode: ScriptNode,        // web target only (D37)
+           NativeControl: NativeControl,  // mobile target only (D36)
+           NativeCommand: NativeCommand } // mobile target only (D36)
+table OpRow  {
+  core: Op;      // every platform
+  web: Op;       // web only; NONE when the row has no web form
+  mobile: Op;    // iOS and Android; NONE when the row has no mobile form
+}
 table OpBatch { ops: [OpRow]; }
 ```
 
 The client walks the vector and reads each table through generated accessors. Cost per
 operation is a few offset reads. For a handful of operations this is as fast as tier 2.
 
+Each row can carry a core form, a web form and a mobile form of the same change (D36). A web
+mount takes `web` when it is not `NONE`, else `core`; a native mount takes `mobile` when it is
+not `NONE`, else `core`. A mount that finds no form it supports reports
+`UnsupportedPlatformOp` and continues. Section
+[13](./13-platform-capabilities.md) §3.2 gives the full rule.
+
 `HtmlMorph` carries the existing `DomOp::MorphNode` (op 16, decision 027) as a schema type.
 The web applicator passes `content` to `MorphDom`, unchanged. This is the only operation whose
 payload is markup, and it is valid only for the web target. The server never sends it to a
-native client. Section [11](./11-app-store-and-command-bus.md) explains why that keeps the app
-store rule.
+native client. `ScriptNode` carries a scoped script for a web island (D37). Section
+[11](./11-app-store-and-command-bus.md) explains why that keeps the app store rule. The
+mobile members, `NativeControl` and `NativeCommand`, carry a native control and a platform
+effect ([06](./06-native-rendering.md)).
 
 ### 3.2 Tier 2: `ColumnarBatch` as a schema type
 

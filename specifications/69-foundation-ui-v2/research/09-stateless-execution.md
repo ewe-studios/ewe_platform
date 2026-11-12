@@ -48,6 +48,9 @@ sequenceDiagram
 
 _The diagram shows two actions handled by two replicas with no shared session._
 
+_North star fit: this is the shared dispatcher that every platform set uses (D38,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 | Part | Where | Status |
@@ -104,6 +107,10 @@ paths; the server chooses.
 "Clear the memory context" is not a special step in Rust: the request-scoped values drop at the
 end of the async function. The design must make sure nothing request-scoped is cached in a
 global, so the property holds.
+
+The dispatcher is one shared implementation (D38). The platform set supplies the registry, the
+renderer and the transport behind it. The server, WASM and a compiled Rust binary run the same
+dispatcher ([13](./13-platform-capabilities.md) §3.1).
 
 ### 3.3 The server decides how it holds state
 

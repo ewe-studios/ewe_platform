@@ -52,6 +52,9 @@ built or compared._
 received fragment with the live subtree. The work is bounded by the size of the fragment, not
 by the size of the page. Every other update follows the table above.
 
+_North star fit: one id rule and one node table that every renderer uses
+(D35, [13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 This idea is already true for the web (spec 39).

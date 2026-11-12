@@ -40,6 +40,9 @@ each script. On native, the island counterpart is a region whose state lives in 
 (`foundation_signals`) and whose views bind to it. That needs no downloaded code. It is
 described in §3.3.
 
+_North star fit: the web behaviour set, with a native hook behind a platform binding (D38,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 | Part | Where |
@@ -55,7 +58,11 @@ described in §3.3.
 
 - `scoped_script` and the compile-time transform of decision 019 stay as they are.
 - A script node exists only in the web subset of the vocabulary ([04](./04-vocabulary-and-interning.md)).
-  It is valid only on a `Web` mount ([02](./02-unified-wire-contract.md)).
+  It travels as the `ScriptNode` op, which is valid only on a `Web` mount
+  ([02](./02-unified-wire-contract.md)).
+- The script functions join the JS action registry when the DOM mounts (D37,
+  [10](./10-action-model.md) §3.8, [11](./11-app-store-and-command-bus.md) §3.2). This is the
+  current web capability, kept as it is.
 - No change to the current web behaviour. The web is the first target (D4), and the mount paths
   keep working ([05](./05-web-zero-copy-applicator.md)).
 
@@ -97,11 +104,12 @@ native island are the same idea.
 ### 3.4 The gate and the matrix
 
 - The server reads `mount` from `ClientHello` and never sends a script node to a `Native`
-  mount. The schema has no field for a script ([02](./02-unified-wire-contract.md),
+  mount. The native payload has no script member ([02](./02-unified-wire-contract.md),
   [11](./11-app-store-and-command-bus.md)).
-- Each component declares the behaviours it uses. The build checks that every declared
-  behaviour has a web form and a native form. A behaviour with no native form fails the build
-  for that platform.
+- Each component declares the behaviours it uses. A behaviour is a platform hook: the web form
+  is scoped JS, the native form is a platform binding. The build checks that every declared
+  behaviour has a form for every target platform. A missing form fails the build for that
+  platform (D38, [13](./13-platform-capabilities.md) §3.3).
 - The result is one behaviour matrix, generated in the design spec, not a list in a document
   that can fall behind the code.
 

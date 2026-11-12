@@ -116,6 +116,31 @@ ASD-STE100.
 - Spec 52 and `foundation_platform` have valid use (D34). Build on them and decide what to
   keep, remove or leave for later as the work proceeds. Do not freeze them as a reflex.
 
+- Lead with the north star (D35). The research is one contract that carries UI, data and
+  actions across every surface. Each idea file serves that contract; an idea that reads like a
+  separate redesign makes the set look like over-architecture.
+
+- One message can hold a core form, a web form and a mobile form (D36). The schema has the
+  three slots in one row; the reader takes its own and skips the rest. Do not split the schema
+  per platform and do not force the server to write one batch per surface.
+
+- Keep the current web capability for script actions (D37). A `<script>` beside the markup
+  defines functions that become callable after mount. They join the JS registry and stay on
+  the web. Mobile never runs them. The action model is the same on every surface, and the
+  registry has two hosts: Rust and JS.
+
+- Reuse is a layer split, not a copy (D38). The standard and the shared runtime are one. Each
+  platform implements a capability behind the same interface. An engineer adds a platform hook
+  only where the surfaces differ.
+
+- `mount-stream` and `mount-data` are core ideas, not web features (D39). Mobile uses a live
+  mount record with the same four fields and the same frame schema. Only the representation
+  and the channel host differ.
+
+- The owner's review is a lens, not a delete request. Keep the agreed parts and make them fit
+  the north star (D40). Do not drop the schema, the morph, the islands or the live mode to look
+  simpler.
+
 - When the owner rejects a part strongly, delete it and return to the source document. Do not
   defend the invented part with more detail.
 

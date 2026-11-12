@@ -4,7 +4,8 @@ _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers 
 are._
 
 **Abbreviations in this file.** user interface (UI); server-driven user interface (SDUI);
-Document Object Model (DOM); browser view embedded in an app (WebView); WebAssembly (WASM);
+Document Object Model (DOM); browser view embedded in an app (WebView); Server-Sent Events
+(SSE); hypertext transfer protocol (HTTP); WebAssembly (WASM);
 JavaScript (JS); foreign function interface (FFI); application binary interface (ABI); Unified
 Foreign Function Interface generator (UniFFI); application programming interface (API); central
 processing unit (CPU); identifier (id); AeroSpace and Defence Industries Association of Europe
@@ -40,6 +41,9 @@ flowchart LR
 
 _The diagram shows the two mount surfaces: the native node store and the WebView web runtime.
 Both read the same frames and send the same action requests._
+
+_North star fit: this is the native platform set, with the mobile live mount (D35, D39,
+[13](./13-platform-capabilities.md))._
 
 ## 2. Current state
 
@@ -135,6 +139,37 @@ needs no second server mode.
 - A hybrid screen is allowed: native chrome, with a WebView island inside it.
 - The WebView adds no new wire format. It is the web path in an app shell.
 
+### 3.7 Live mounts on mobile
+
+`mount-stream` and `mount-data` are not web-only ideas (D39, owner review 2026-11-12). The
+core idea is a location that marks itself live and reacts to incoming changes over a channel.
+The representation differs on mobile; the semantics do not
+([13](./13-platform-capabilities.md) §3.4).
+
+A native live mount is a node record with four fields: `kind` (`stream` or `data`),
+`channel_id`, `transport` (`local`, `sse`, `websocket` or `http`) and `resume_from`. The
+Swift or Kotlin host opens the channel and feeds frames into the node store:
+
+```mermaid
+flowchart LR
+    L["Live mount record<br/>kind, channel_id, transport"] --> H["Native host<br/>Swift or Kotlin"]
+    H -->|"SSE, WebSocket, HTTP or local"| C[(Channel)]
+    C -->|Frame bytes| R[Generated reader]
+    R -->|typed ops| T[(Node store)]
+    T --> V[SwiftUI or Compose views]
+```
+
+_The diagram shows a native live mount. The channel and the host differ from the web; the
+frames and the region semantics are the same._
+
+- A `stream` mount keeps frames in `sequence_id` order and resumes from the last applied id.
+- A `data` mount keeps the latest value and drops older values.
+- A local transport connects a signal graph in `foundation_signals` to the region. No network
+  is involved.
+- The payload is the same `Frame` schema as the web path (D29). The native reader applies the
+  `mobile` or `core` form of each op ([13](./13-platform-capabilities.md) §3.2).
+- The mount closes its channel when the region unmounts.
+
 ## 4. What this changes for us
 
 - The work order follows D4: the web first, then these native surfaces.
@@ -143,6 +178,8 @@ needs no second server mode.
 - New Rust crate with the UniFFI surface for on-device logic.
 - iOS and Android targets in the build and in CI.
 - `ViewKind::Native` stops being "post-MVP".
+- The native package gains the live mount record and its channel host (§3.7). The same
+  `mount-stream` and `mount-data` semantics run on both surfaces.
 
 ## 5. Open questions
 

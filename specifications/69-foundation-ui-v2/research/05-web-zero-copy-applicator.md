@@ -35,6 +35,9 @@ flowchart LR
 _The diagram shows that server frames go from the network to the DOM in JS. WASM gets only
 what it needs for local logic._
 
+_North star fit: this is the web platform set. It reads the same contract as native and local
+logic (D35, [13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 | Part | Where |
@@ -72,6 +75,10 @@ them and must keep them working (owner review, 2026-11-11).
 5. **Alignment check stays.** If a column is not aligned (for example after a proxy copies the
    buffer to an odd offset), the reader copies that column and continues. The fallback is
    counted, so a test can see when zero-copy is lost.
+6. **The web runtime hosts the JS registry.** A scoped `<script>` defines functions that
+   become callable once the DOM mounts; they join the registry under their action names
+   (D37). The same registry holds the client side of a remote action. This is a web
+   capability, and it stays on the web ([10](./10-action-model.md) §3.8).
 
 ```mermaid
 sequenceDiagram
@@ -94,6 +101,8 @@ _The diagram shows one applicator for frames from the server and from local WASM
 - **The web comes first** (D4, revised by the 2026-11-11 review). Make the web work
   consistently on the new schema, and keep the `<mount-stream>` and `<mount-data>` paths
   working as they do today. Then the native work starts ([06](./06-native-rendering.md)).
+- The web runtime gains the JS registry (§3 item 6). The script functions stay web-only, and
+  native never receives them (D37, [13](./13-platform-capabilities.md)).
 
 ## 5. Open questions
 

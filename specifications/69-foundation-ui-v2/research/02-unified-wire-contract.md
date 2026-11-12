@@ -38,6 +38,9 @@ Why FlatBuffers:
 | One schema, many languages | `flatc` generates Rust, TS, Swift, Kotlin, and more from one `.fbs` file. |
 | Sequence ids | Ordering and gap detection, in both directions. |
 
+_North star fit: this file is the standard at the top. It carries UI, data and actions on
+every surface; [13](./13-platform-capabilities.md) shows the layers below it (D35)._
+
 ## 2. Current state
 
 | Part | Where |
@@ -105,6 +108,30 @@ the web target ([01](./01-compile-time-targeting.md), [03](./03-payload-tiers.md
 body type. The server sends it only to a client that declares `mount: Web` in `ClientHello`
 (D8, D11, [11](./11-app-store-and-command-bus.md)).
 
+**One message, platform variants.** The schema has three kinds of member (D36, owner review
+2026-11-12):
+
+- **Core** members work on every platform: `CreateNode`, `SetText`, `SetProp`, `AppendChild`,
+  `Remove` and `ReplaceSubtree`.
+- **Web** members work on a web mount only: `HtmlMorph` and `ScriptNode`.
+- **Mobile** members work on a native mount only: `NativeControl` and `NativeCommand`.
+
+An entry in the `Ops` body can carry a core form, a web form and a mobile form for the same
+change:
+
+```flatbuffers
+table OpRow {
+  core: Op;        // NONE when the row has no common form
+  web: Op;         // NONE when the row has no web form
+  mobile: Op;      // NONE when the row has no mobile form
+}
+```
+
+A web mount takes `web` when it is not `NONE`, else `core`. A native mount takes `mobile` when
+it is not `NONE`, else `core`. A mount that finds no form it supports reports
+`UnsupportedPlatformOp` and continues the batch. The server writes one batch and each client
+applies its own form. Section [13](./13-platform-capabilities.md) §3.2 gives the full rule.
+
 ### 3.3 Inbound request
 
 ```flatbuffers
@@ -157,6 +184,7 @@ _The diagram shows how sequence ids let a client detect a gap and resume on any 
 | `MessagePack` body | Kept as an opaque schema type (`MessagePackBlob`) | The owner keeps it (D9). It has no generated reader; a client that needs it decodes it itself. |
 | `Columnar` and `Arrow` as opaque bytes | Typed schema tables ([03](./03-payload-tiers.md)) | Generated readers; no hand-written parsers. |
 | `event_name: string` | `action: string` plus `node_id` | The name is the tag the compiled registry uses. No derived numeric id (D31, [11](./11-app-store-and-command-bus.md)). |
+| One union for every target | Core, web and mobile forms in one `OpRow` | One message can carry a web form and a mobile form (D36, [13](./13-platform-capabilities.md) §3.2). |
 | `sequence_id: uint` only | `stream_id` plus 64-bit `sequence_id` plus `ack_action` | Per-stream ordering, resume after reconnect, request and response pairing. |
 | No handshake | `ClientHello` / `ServerCaps` | Version skew is handled before the first frame. |
 | Eight-way state union | One `SignedState` table ([07](./07-element-riding-state.md)) | The client never reads state, so its format is a server choice. |

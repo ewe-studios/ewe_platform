@@ -22,6 +22,9 @@ nothing about replay. A tag proves that the server made the bytes and that nobod
 them. A tag does **not** prove that the bytes are current, that they belong to this user,
 or that they belong to this action.
 
+_North star fit: the study supports the shared state envelope that every platform uses (D35,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Study
 
 ### 2.1 Laravel Livewire (version 3)

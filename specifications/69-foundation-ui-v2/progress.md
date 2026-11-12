@@ -99,11 +99,30 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
   - `10` §3.1 states that `Interaction<T>` is typed by its `T`, and `input_value` stays a
     `String` inside that typed struct.
 
+- 2026-11-12, eighth review pass (north star, PR review 5868672793):
+  - D35: the north star. One FlatBuffers contract carries structured UI, data and actions
+    across web, mobile, WASM and compiled Rust. Do not redesign everything.
+  - D36: core, web and mobile variants in one message format. One `OpRow` carries a core, a web
+    and a mobile form; each runtime applies its own. `02` §3.2 and §3.5 and `03` §3.1 change.
+  - D37: one action model with a registry in Rust or JS. The web `<script>` functions that
+    become callable after mount stay, join the JS registry and never reach mobile. `05` §3,
+    `10` §3.8, `11` §3.2 and `12` §3.1 change.
+  - D38: platform capability hooks. Shared standard at the top, platform sets at the edges.
+  - D39: `mount-stream` and `mount-data` on mobile too, over local, SSE, WebSocket or HTTP.
+    `06` §3.7 is new.
+  - D40: build on the current shape; keep the agreed parts.
+  - New file `13-platform-capabilities.md`: the standard, the shared runtime and the platform
+    sets, the message variant rule, the action and behaviour hooks, the live mount contract and
+    the reuse map.
+  - `README.md` is rewritten around the north star, with the four goals, the layer diagram and
+    D35 to D40. Every idea file gains a short north star note.
+  - `questions.md` gains Q31: the exact platform scope syntax.
+
 ## In progress
 
 - None. The research records the owner's answers in `questions.md`.
 
 ## Next
 
-- The owner answers the remaining open questions: Q6, Q9, Q18, Q26, Q27, Q28 and Q30.
+- The owner answers the remaining open questions: Q6, Q9, Q18, Q26, Q27, Q28, Q30 and Q31.
 - The design specification starts from the answers.

@@ -22,6 +22,9 @@ The document is silent on four things that a real system needs: what the tag bin
 it is valid, how keys rotate, and replay. Owner decision D6 asks us to learn from Livewire and the
 industry. The full study is in [`08b-replay-protection-study.md`](./08b-replay-protection-study.md).
 
+_North star fit: one security rule for the state envelope, whatever the platform (D35,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Who signs (owner decision D5)
 
 "Client never signs, its always from the server or the wasm bundle running on the client on the

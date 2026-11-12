@@ -135,6 +135,15 @@ function attribute, and it does not build on `#[service]`.
 
 **Rec.** (a). It keeps one return type, in the enum style of the document.
 
+**Q31. What is the exact syntax of the platform scope on an action?** The owner asks for a hook
+that says "this hook is for the web" or "on mobile we do that" (D37, D38,
+[13](./13-platform-capabilities.md) §3.3).
+- (a) An argument on the same macro: `#[action]`, `#[action(web)]`, `#[action(mobile)]`.
+- (b) A separate marker per scope, beside `#[action]`.
+
+**Rec.** (a). One macro, one action name, and the scope is part of the declaration. A macro
+argument keeps the generated struct and the registry entry in one place.
+
 ## App Store and command bus ([11](./11-app-store-and-command-bus.md))
 
 **Q25. What happens to spec 52 and `foundation_platform`?** (D2, D3)

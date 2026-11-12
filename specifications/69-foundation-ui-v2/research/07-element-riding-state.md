@@ -45,6 +45,9 @@ _The diagram shows the state round trip. The client holds state only on the elem
 can handle the next request ([09](./09-stateless-execution.md)). Memory on the client is
 bounded by what is on screen.
 
+_North star fit: one state envelope for every platform (D35,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 The current model is the opposite: the server holds state.

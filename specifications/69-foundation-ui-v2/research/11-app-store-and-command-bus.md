@@ -35,6 +35,9 @@ flowchart LR
 
 _The diagram shows that every event resolves to a compiled action or a safe fallback._
 
+_North star fit: the registry and the App Store rules that every platform set shares (D37,
+[13](./13-platform-capabilities.md))._
+
 ## 2. Current state
 
 | Part | Where | Problem for 2.5.2 |
@@ -54,12 +57,13 @@ markup, an expression language, a condition or a loop. A one-page compliance not
 spec lists every field of every payload type that a native client can receive, and shows this.
 Review of a schema change checks it again.
 
-There is one schema type with a markup field: `HtmlMorph` ([01](./01-compile-time-targeting.md),
-[03](./03-payload-tiers.md), owner decision D8). Its `content` is an HTML fragment. It is **web
-only**:
+There are two schema members that a native client must not run: `HtmlMorph`
+([01](./01-compile-time-targeting.md), [03](./03-payload-tiers.md), owner decision D8) and
+`ScriptNode` (D37). The first carries an HTML fragment; the second carries a scoped script for
+a web island. Both are **web only**:
 
 - The server reads `mount` from `ClientHello` ([02](./02-unified-wire-contract.md)) and never
-  sends `HtmlMorph` to a `Native` mount.
+  sends them to a `Native` mount.
 - A native reader that meets one anyway must report an unsupported operation. It must never
   render the string or run a script from it.
 - On the web, downloaded HTML and JS are normal (D3, §4). The app store rule does not apply
@@ -95,6 +99,16 @@ they want (owner review, 2026-11-11):
 - The app supplies the struct to its registry. The registry is a normal value that the app owns
   and can change.
 - The event tag carries the name. A template that uses the generated struct cannot misspell it.
+
+**The registry can be Rust or JS** (D37, owner review 2026-11-12):
+
+- In Rust it runs on the server, in WASM and on device.
+- In JS it runs in the web runtime. It holds the functions that a scoped `<script>` defines
+  beside the markup. Those functions become callable once the DOM mounts, which is the current
+  web capability and stays. They run in JS and never leave the web.
+- Each platform looks up the name in its own registry. The same name can have a Rust form and
+  a JS form. An action declares its platform scope ([10](./10-action-model.md) §3.8).
+- A native payload has no script field. Mobile never runs a script ([12](./12-scoped-behaviour.md)).
 
 **Local and remote actions.** `#[action]` is the base marker. The owner proposes a second
 marker, `#[remote_action]`, as a thought for now (Q30). It marks a client call that delivers the
@@ -144,6 +158,8 @@ downloaded code, so it applies to the native surface only.
   apps. On the web, downloaded JS and WASM stay normal.
 - Component behaviour stays as scoped JS on the web. Each native platform gets a compiled
   equivalent ([12](./12-scoped-behaviour.md)).
+- The registry has two hosts, Rust and JS, behind one name-based contract (D37). The web
+  script functions stay web-only.
 
 ## 5. Open questions
 
