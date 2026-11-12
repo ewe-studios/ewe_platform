@@ -78,7 +78,7 @@ Links to other entities: field names and enum strings = the API file, byte for b
 
 Entity: FirecrackerClient
 Conserved value:         one method call = one HTTP request
-Bound:                   call time <= api_timeout; error message <= max_error_message
+Bound:                   call time <= rpc_timeout; error message <= max_error_message
 Inverse pairs:           none
 Idempotent verbs:        describe_instance, version (read only)
 Ordering pairs:          none in the client; the order of calls belongs to feature 05
@@ -94,7 +94,7 @@ Links to other entities: none
 | I1 | Every request body and answer uses a generated type. No hand-written copy and no `serde_json::Value`. |
 | I2 | A field that is `None` is not in the JSON. No `null` reaches Firecracker. |
 | I3 | A non-2xx answer becomes `SubstrateApi { status, message }`; the body read is at most `max_error_message` bytes. |
-| I4 | Each call ends in `api_timeout` or sooner. |
+| I4 | Each call ends in `rpc_timeout` or sooner. |
 | I5 | A second generator run gives no diff. |
 | I6 | The crate builds with no `firecracker` feature, and then has no generated code and no `foundation_deployment` dependency. |
 
@@ -152,7 +152,7 @@ Feature: Firecracker API client
 
   Scenario: A silent server times out
     Given the server accepts and never answers
-    When the clock passes api_timeout
+    When the clock passes rpc_timeout
     Then the call fails with a time-out error
 
   Scenario: The types match the real program
@@ -219,7 +219,7 @@ File `src/native/firecracker/client.rs`:
 
 ```rust
 #[derive(Clone)]
-pub struct FirecrackerClient { /* DynNetClient, ApiClient, api_timeout */ }
+pub struct FirecrackerClient { /* DynNetClient, ApiClient, rpc_timeout */ }
 
 impl FirecrackerClient {
     /// `socket` is the `--api-sock` path.
@@ -239,7 +239,7 @@ impl FirecrackerClient {
 - A status that is not 2xx becomes `SandboxError::SubstrateApi { status, message }`. The
   generated code reads at most `BodyLimits::max_error_body` bytes of the body; the client
   sets that from `limits.max_error_message`.
-- Each call has the time-out `limits.api_timeout`, from `ctx.clock()`.
+- Each call has the time-out `limits.rpc_timeout`, from `ctx.clock()`.
 - The client has only the calls that 0.1 uses. The other generated functions stay public
   in `native::firecracker::generated` for later features and for callers. This is not a stub:
   every method that exists is complete.
@@ -264,7 +264,7 @@ Docker client tests in `backends/foundation_deployment_docker/tests/`; use the s
 | `describe_instance_parses_state` | The answer `{"app_name":"Firecracker","id":"x","state":"Not started","vmm_version":"1.19.0"}` parses to the right enum value. |
 | `fault_message_is_surfaced` | A 400 answer with `{"fault_message":"bad"}` gives `SubstrateApi { status: 400, message: "bad" }`. |
 | `error_body_is_bounded` | A 400 answer with a 10 MiB body gives a message of at most `max_error_message` bytes. |
-| `call_times_out` | A server that does not answer gives a time-out error after `api_timeout`. |
+| `call_times_out` | A server that does not answer gives a time-out error after `rpc_timeout`. |
 | `types_match_real_firecracker` | Needs the `firecracker` program. Starts `firecracker --api-sock`, calls `version()` and `describe_instance()`, and puts a machine configuration. It returns with a message when the program is not found. This is the test against the real service (specifications rule 3). |
 
 ## 5. Verify

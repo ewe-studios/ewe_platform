@@ -561,7 +561,7 @@ the `testing` module, a `FakeFirecrackerApi` that records calls.
 | `fc_boot_args_x86_64`, `fc_boot_args_aarch64` | the strings of section 6.1 | example |
 | I5, the fault table of section 6.3 | `launch_fault_matrix` (one case for each row: the error, `SIGKILL` on the fake child, no run directory) | fault |
 | I6, "The API back-off uses the clock" | `await_api_backoff` | example |
-| "An API that never answers times out" | `api_timeout` | expected outcome |
+| "An API that never answers times out" | `api_never_answers` | expected outcome |
 | "A process that exits early is reported" | `vmm_exit_early` | expected outcome |
 | "A rejected setting stops the launch" | `api_error_stops` | expected outcome |
 | "A wrong root kind ..." | `rejects_directory_rootfs`, `rejects_odd_vcpus`, `rejects_host_network`, `rejects_host_mounts` | expected outcome |
