@@ -66,7 +66,7 @@ the drivers (05, 07, 09, 10); `foundation_connectrpc` (the RPC engine, used as i
 | `Sequence` | A counter that accepts only the next number. | `shared::sequence` |
 | `SandboxId`, `ExecId`, `UploadId`, `DriverId` | Identifiers. | `shared::ids` |
 | `Capabilities`, `HostReport` | What a driver can do here. | each driver (defined here) |
-| `SandboxDriver`, `SubstrateHandle`, `SlaveEndpoint` | The driver interface. | defined here; implemented in 05, 07, 09, 10 |
+| `SandboxDriver`, `SubstrateHandle`, `SlaveEndpoint` | The driver interface. | defined here; implemented in 05, 07, 09, 10, 11, 16 |
 | `SandboxControl` | The control-plane interface. | defined here; implemented in 02 and 06 |
 | `SandboxHost`, `SlaveHost` | The side-effect bundles. | defined here; built only by boundaries |
 
@@ -714,6 +714,8 @@ definition and its tests.
 | 03 | `HostFs::rename`, `HostFs::create_file`; `ArtifactLimits`; `HostConfig.artifact_limits` |
 | 09 | `DriverId::Libkrun` is already here; no new type |
 | 10 | `HostConfig`: nothing; `FileRecordStore` in `native/` |
+| 16 | `DriverId::DockerSbx` (display string `docker-sbx`); `HostConfig.sbx_path` |
+| 17 | nothing |
 | 11 | `SandboxSpec.parent`, `SandboxSpec.nested_host`, `DriverId::Nested`, `SlaveEndpoint::Parent`, `Substrate.calls` |
 | 12 | `RootMode::Writable`; `Command.user`, `ExecRequest.user`; the four `Unpack*` calls in both services and in `ExecFileCalls`; `HostFs::clone_file`, `HostFs::lock_exclusive`; `HostConfig.mkfs_ext4_path`; `ImageLimits` |
 

@@ -23,12 +23,15 @@ ASD-STE100.
 
 Two things, both on the existing Docker client (`foundation_deployment_docker`):
 
-1. `DockerDriver`: a `SandboxDriver` that starts a Docker container from any image, puts
-   `agent-slave` into it, and gives the control plane the way to reach that slave. This is
-   the "Docker container" system.
+1. `DockerDriver`: a `SandboxDriver` that talks to the Docker Engine of the host. It starts
+   a container from any image, puts `agent-slave` into it, and gives the control plane the
+   way to reach that slave. The general case is a control plane that runs on the host
+   itself (decision D12).
 2. An image and a compose file that run `agent-sandbox serve` in a container, with the
-   host's Docker socket. This is the "Docker sandbox" system: the control plane itself in
-   Docker.
+   host's Docker socket. This is the operator's choice. The control plane in the container
+   uses the same driver and starts sibling containers on the host's Docker Engine.
+
+The Docker Sandboxes product (`sbx`) is a different system; feature 16 has its driver.
 
 A container is a weaker boundary than a microVM. The README says so. Feature 11 adds
 microVMs inside the container.

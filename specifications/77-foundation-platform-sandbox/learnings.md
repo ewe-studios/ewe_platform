@@ -330,6 +330,24 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
   `GET /accounts/{account_id}/containers` and the registry credentials call. They list and
   authorise; they do not start a container.
 
+### 4.4 The Cloudflare Sandbox product (read again on 2026-11-12)
+
+Source: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.md`,
+`images/sandbox-tools/Dockerfile`, `examples/artifact-workspace/Dockerfile`).
+
+- The product is not a service with its own API. "A sandbox is a Durable Object and its
+  container." The application writes the DO class and calls `this.ctx.container`.
+- The package has no `Sandbox` base class. It does not start, stop, wake or destroy a
+  container.
+- The package adds `Files`, `S3Mount` and `DirectoryBackup`. Each `Files` call starts one
+  short `sandbox-shim` process with `exec()`. The shim is not a daemon.
+- `sandbox-shim` is a static program for `linux/amd64`. The donor image is
+  `docker.io/cloudflare/sandbox:<version>`. An application image copies the file to
+  `/usr/local/bin/sandbox-shim`. Its tag must be equal to the package version.
+- The example images end with `CMD ["sleep", "infinity"]`. The DO starts programs.
+- Result for this spec: the product is the same primitive that feature 07 uses. Support
+  for it is image compatibility and a plain HTTP way in (feature 17). No driver is added.
+
 ## 5. This repository: patterns to follow
 
 | Need | Where to look |
@@ -377,3 +395,80 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
 | Firecracker `--config-file --no-api` | No typed error for each field, and no path to pause or snapshot. |
 | The Cloudflare `Files` helper | A second file protocol for one substrate only. |
 | A serial console protocol for exit codes | Not reliable: kernel messages mix with program output on the same stream. |
+
+**Wrong reading of two system names (2026-11-12).**
+
+The first drafts read "Docker sandbox" and "Cloudflare sandbox" as "the control plane runs
+in Docker or on Cloudflare". The owner meant the two products. Root cause: the spec did
+not look for products with those names before it chose a meaning. The fix is requirements
+section 2.3 and features 16 and 17.
+
+## 8. Docker Sandboxes (the product, read on 2026-11-12)
+
+Source: the `docker/docs` repository (a sparse clone; `docs.docker.com` was not reachable
+from the session). Paths are under `content/manuals/ai/sandboxes/` unless they start with
+`data/` or `content/reference/`.
+
+### 8.1 The product
+
+- The program is `sbx`. The older `docker sandbox` command is deprecated. The daemon is
+  `sandboxd` (`release-notes.md`, `mcp-gateway.md`).
+- `sbx` needs no Docker Desktop and no Docker Engine. Local sandboxes need KVM on Linux
+  (Ubuntu 24.04 or later, user in the `kvm` group), macOS 14 on Apple silicon, or
+  Windows 11 with the Windows Hypervisor Platform (`install.md`).
+- Each sandbox is a microVM with its own Docker daemon, image cache and packages. It
+  stays until `sbx rm` (`architecture.md`).
+- All outbound traffic goes through a proxy on the host. The proxy applies the network
+  policy and puts credentials into requests (`architecture.md`).
+- A sign-in is necessary. In CI: `sbx login --username <id> --password-stdin` with a
+  personal access token (`workflows/automation.md`).
+
+### 8.2 The commands that the driver uses
+
+- `sbx create AGENT|KIT [PATH...]` with `--name` (2 to 63 characters: letters, numbers,
+  hyphens, periods), `--cpus`, `--memory` (minimum 512 MiB), `--template` (an image),
+  `--publish`, `--env`, `--no-progress` (`data/sbx_cli/sbx_create.yaml`).
+- From version 0.42.0 a create with no path gives a sandbox with no host directory. The
+  work directory is the image's `WORKDIR` (`architecture.md`).
+- The agent `shell` has no agent program; the sandbox runs `bash -l` (`agents/shell.md`).
+- `sbx exec [-i] [-t] [-u user] [-w dir] [-e K=V] SANDBOX COMMAND...`. No detach flag.
+  It returns the command's exit status; 125 when `sbx` cannot run it; 127 for a missing
+  program (`data/sbx_cli/sbx_exec.yaml`, `workflows/automation.md`).
+- `sbx cp SRC DST`; the sandbox side is `NAME:/absolute/path` (`usage.md`, line 421).
+- `sbx ports NAME --publish [[HOST_IP:]HOST_PORT:]SANDBOX_PORT`; with only the sandbox
+  port, the system picks the host port. `sbx ls` shows `127.0.0.1:8080->3000/tcp4`
+  (`usage.md`, lines 439 to 483).
+- From version 0.48.0 the structured output changed: `sbx ls --json` is an array; port
+  rows have `host_ip`, `host_port`, `sandbox_port`, `protocol` (a cloud row has
+  `sandbox_port` and `url`); `sbx rm` and `sbx stop` give an array of results with
+  `action`, `resource`, `name`, `id`, `error`. Names are snake case. Results go to
+  `stdout`; errors and progress go to `stderr` (`workflows/automation.md`).
+- A confirmation needs a terminal. `--force` skips it (`workflows/automation.md`).
+- The Docker images run as the user `agent` with `sudo`
+  (`customize/author/base-images.md`).
+
+### 8.3 The HTTP API (not used)
+
+Source: `content/reference/api/sandboxes/api.yaml` (OpenAPI 3.2, "Docker Sandboxes API",
+version v1; its home is `docker/sandboxes-api`).
+
+- The management address is `https://connect.docker.com/sandboxes` (the Docker cloud),
+  with a bearer token.
+- Process and file calls go to the sandbox endpoint (`core.endpoint.uri`) with a
+  short-lived credential from `createEndpointCredential`. The protocol of an endpoint is
+  `http` or `unixSocket`; a local socket uses file permissions and no token.
+- Calls: `createSandbox`, `getSandbox`, `deleteSandbox`, `stop`, `start`, `exec` (runs
+  to the end, output in the answer), `createProcess`, `interact` (a WebSocket),
+  `readOutput` (pages by a sequence number), `signal`, file read, write and upload,
+  ports, snapshots, volumes.
+- The documents give no path for a local socket. So the driver uses the `sbx` program.
+  A cloud sandbox publishes a port as a public HTTPS address; the slave link has no
+  authentication, so the cloud is not in this spec.
+
+### 8.4 Not known until a real run
+
+- Whether the process that `sbx exec` started stays when the `sbx exec` client stops.
+  The design of feature 16 is correct for both answers (`restore` checks `Info`).
+- Which template name is the best default. Candidates from the documents:
+  `docker.io/sbx/shell-image:latest` and `docker/sandbox-templates:claude-code-minimal`.
+

@@ -3,7 +3,8 @@
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
-**Abbreviations in this file.** remote procedure call (RPC); virtual machine (VM); Durable
+**Abbreviations in this file.** remote procedure call (RPC); Hypertext Transfer Protocol
+(HTTP); virtual machine (VM); Durable
 Object (DO); minimum viable product (MVP); pull request (PR); continuous integration (CI);
 AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
 ASD-STE100.
@@ -38,6 +39,12 @@ ASD-STE100.
   `master`), and `specifications-management` version 5.0, which makes that layout
   mandatory. The submodule pointer of this repository moved to that commit.
 
+- 2026-11-12: the owner's answers. "Docker sandbox" and "Cloudflare sandbox" are the
+  products. Feature 16 (the driver for Docker Sandboxes, through the `sbx` program) and
+  feature 17 (support for the Cloudflare Sandbox product: product images and a plain HTTP
+  way in) were added. Requirements section 2.3 was rewritten. Decisions D10 to D13 record
+  the answers; questions Q1 and Q3 are closed. `agent-slave` stays in `bin/agent_slave`.
+
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
 ## In progress
@@ -53,7 +60,8 @@ Nothing. The spec waits for the owner review.
 5. Feature 05, then feature 06: MVP-A (Firecracker).
 6. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
    MVP-B (Cloudflare).
-7. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested).
+7. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 16 (Docker Sandboxes), 17
+   (Cloudflare Sandbox product). Feature 16 needs 10; feature 17 needs 08.
 8. Phase 3: features 12 to 15 (images).
 
 ## Milestones
@@ -62,7 +70,7 @@ Nothing. The spec waits for the owner review.
 |---|---|---|---|
 | MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 4 (00, then one of 01 to 04, then 05, then 06) | not started |
 | MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02; 08 also needs 06) | not started |
-| Phase 2: libkrun, Docker, nested sandboxes | 09, 10, 11 | 1 to 2 more each | not started |
+| Phase 2: libkrun, Docker, nested sandboxes, Docker Sandboxes, Cloudflare Sandbox product | 09, 10, 11, 16, 17 | 1 to 2 more each | not started |
 | Phase 3: sandbox images | 12, 13, 14, 15 | 4 more | not started |
 
 ## What was checked while the spec was written, and what was not
@@ -93,6 +101,8 @@ records the value.
 | 08 | Whether `wrangler dev` keeps a container across a restart (the test accepts both). |
 | 09 | The boot time on Linux and macOS; the libkrun version of each run. |
 | 12 | Which hosts have a libkrun with block support. |
+| 16 | The `sbx` version of the first real run; the template name for the README; whether the slave stays when the `sbx exec` client stops (the test accepts both). |
+| 17 | The digests of the two pinned images. |
 
 ## Open questions for the owner
 
@@ -101,10 +111,9 @@ scenario sections with letters (A to D) between "1. Goal" and their numbered tec
 sections; the other features use the nine numbered sections of the skill. The content is
 the same. A renumber is a mechanical edit for a later pass.
 
-Requirements section 10.2: Q1 (the meaning of "Docker sandbox" and "Cloudflare sandbox"),
-Q2 (`foundation_platform_docker` or the existing `foundation_deployment_docker`), Q3
-(where the `agent-slave` entry point is; the measurement says its own package), Q4
-(authentication for the MVP), Q5 (no `start.md` files).
+Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
+`foundation_deployment_docker`), Q4 (authentication for the MVP), Q5 (no `start.md`
+files). Q1 and Q3 are closed (decisions D10 and D11).
 
 ## Findings to file as GitHub issues
 

@@ -279,8 +279,8 @@ the crate depends on `foundation_netio` with `ssl`, which builds `ring`, which n
 C compiler; and its Docker client is not optional. So `agent-slave` has its own package,
 `bin/agent_slave`, that depends only on `foundation_platform_sandbox` with
 `default-features = false, features = ["slave", "cli"]`. Its `main` is the same three
-lines. Requirements question Q3 asks the owner to confirm. If the owner wants it in
-`foundation_deployment_platform`, that crate first needs its Docker client and TLS behind
+lines. The owner confirmed this (requirements decision D11). A later move into
+`foundation_deployment_platform` first needs its Docker client and TLS behind
 features; that is a separate change.
 
 ### 6.2 `agent-sandbox`

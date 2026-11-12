@@ -1,12 +1,12 @@
 ---
-description: "foundation_platform_sandbox: one core library that starts sandboxes (Firecracker, Cloudflare containers, libkrun, Docker) and runs commands in them. A control plane (agent-sandbox) drives an in-sandbox slave (agent-slave) over Connect RPC. Binaries, the Cloudflare Durable Object and the Provider implementations are thin boundaries on the library."
+description: "foundation_platform_sandbox: one core library that starts sandboxes (Firecracker, Cloudflare containers and the Cloudflare Sandbox product, libkrun, Docker containers, the Docker Sandboxes product) and runs commands in them. A control plane (agent-sandbox) drives an in-sandbox slave (agent-slave) over Connect RPC. Binaries, the Cloudflare Durable Object and the Provider implementations are thin boundaries on the library."
 status: "draft"
 priority: "high"
 created: 2026-11-11
 author: "Main Agent"
 metadata:
-  version: "0.3"
-  last_updated: 2026-11-11
+  version: "0.4"
+  last_updated: 2026-11-12
   estimated_effort: "large"
   tags: [sandbox, microvm, firecracker, libkrun, docker, cloudflare, durable-object, connectrpc, control-plane, valtron, provider]
   stack_files: [rust.md]
@@ -22,8 +22,8 @@ related_specs:
   - "specifications/76-shared-context"
 features:
   completed: 0
-  uncompleted: 16
-  total: 16
+  uncompleted: 18
+  total: 18
   completion_percentage: 0%
 ---
 
@@ -47,7 +47,9 @@ the owner of the STE standard ASD-STE100.
 | Term | Meaning |
 |---|---|
 | sandbox | An isolated Linux environment that runs commands for a caller. |
-| substrate | The technology that gives the isolation: a Firecracker microVM, a libkrun microVM, a Docker container or a Cloudflare container. |
+| substrate | The technology that gives the isolation: a Firecracker microVM, a libkrun microVM, a Docker container, a Docker Sandboxes microVM or a Cloudflare container. |
+| Docker Sandboxes | A Docker product. Its program is `sbx`. Each sandbox is a microVM that Docker manages. It is not a Docker container. |
+| Cloudflare Sandbox | A Cloudflare product: a Durable Object and the container that it starts, with a helper package (`@cloudflare/sandbox`) and a helper program in the image (`sandbox-shim`). |
 | control plane | The code that owns all sandbox set-up: it starts a substrate, waits for the slave, and passes commands to it. The program is `agent-sandbox`. |
 | slave | The code that runs inside each sandbox and does what the control plane asks: start a program, move a file, stop. The program is `agent-slave`. |
 | driver | The control-plane part for one substrate. It knows how to start and stop that substrate. |
@@ -132,7 +134,8 @@ it what that place has.
 
 | Where the control plane runs | Boundary | Drivers available | How it reaches a slave |
 |---|---|---|---|
-| A Linux or macOS host | the program `agent-sandbox` | Firecracker (Linux), libkrun, Docker | HTTP on a UDS (vsock behind it) or TCP |
+| A Linux or macOS host (the general case) | the program `agent-sandbox` | Firecracker (Linux), libkrun, Docker, Docker Sandboxes | HTTP on a UDS (vsock behind it) or TCP |
+| A Docker container on that host (the operator's choice) | the program `agent-sandbox` in the control-plane image, with the host's Docker socket | Docker | TCP, or a UDS in a shared directory |
 | A Cloudflare DO | a `#[durable_object]` class | Cloudflare container | `container.get_tcp_port(port).fetch(..)` |
 | Inside a Docker container (nested) | the program `agent-slave` with the control feature | Firecracker | HTTP on a UDS |
 
@@ -142,16 +145,27 @@ needs `/dev/kvm` in the container. Docker can give that. A Cloudflare container 
 have it today, so there the slave reports that it cannot control, with the same code
 (feature 11, section 6.6).
 
-### 2.3 The six systems
+### 2.3 The systems
+
+The owner named six systems. Two of the names are products (owner answer, 2026-11-12).
 
 | System | Meaning in this spec | Feature |
 |---|---|---|
 | Firecracker | The control plane starts a Firecracker microVM; the slave is PID 1. | 05 |
 | Cloudflare container | The control plane, in a DO, starts its container; the slave is the container's main process. | 07, 08 |
+| Cloudflare Sandbox (the product) | The same primitive as the row above: a DO and its container. An image made for the product runs under our control plane, and an application of the product can call our control plane. | 17 (on 07, 08) |
 | libkrun | The control plane starts a libkrun microVM; the slave is the program of the libkrun init. | 09 |
-| Docker container | The control plane starts a container; the slave is its entry point or a sidecar process. | 10 |
-| Cloudflare sandbox | The control plane itself runs on Cloudflare (a DO) and serves `SandboxService`. | 07, 08 |
-| Docker sandbox | The control plane itself runs in a Docker container and serves `SandboxService`; with nested sandboxes it starts microVMs in that container. | 10, 11 |
+| Docker container | The control plane talks to the Docker Engine of the host and starts containers that hold the slave. The slave is the entry point or a sidecar process. | 10 |
+| Docker Sandboxes (the product) | The control plane runs the `sbx` program; each sandbox is a microVM that Docker manages, with the slave in it. | 16 |
+
+Where the control plane runs is a different question from which system it drives:
+
+- **General case:** `agent-sandbox` runs on the host and drives each local system.
+- **By choice:** `agent-sandbox` runs in a Docker container with the host's Docker socket
+  and starts sibling containers (feature 10, section 6.8).
+- **On Cloudflare:** the control plane is the DO. It runs `agent-slave` in its Cloudflare
+  container. A Cloudflare container cannot start a container or a microVM, so Cloudflare
+  has no nested case (feature 11, section 6.6).
 
 ### 2.4 Crates, modules and boundaries
 
@@ -159,11 +173,11 @@ have it today, so there the slave reports that it cannot control, with the same 
 |---|---|---|
 | `backends/foundation_platform_sandbox` | library | **All logic.** |
 | `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxControl`, `SlaveClient`, the slave's request handling that needs no operating system. |
-| `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun and Docker drivers, the native side effects, the RPC servers on UDS, vsock and TCP. |
+| `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the native side effects, the RPC servers on UDS, vsock and TCP. |
 | `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The Cloudflare container driver, the `Fetcher` RPC transport, the DO storage registry, the DO request handler. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
 | `backends/foundation_deployment_platform/src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::sandbox::run`. |
-| `bin/agent_slave/src/main.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. It is its own package because it must be a static musl program, and `foundation_deployment_platform` does not build for musl today (decision D4 and question Q3). |
+| `bin/agent_slave/src/main.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. It is its own package because it must be a static musl program, and `foundation_deployment_platform` does not build for musl today (decisions D4 and D11). |
 | `backends/foundation_deployment_platform/src/providers/sandbox/` | library | `Provider` facades. They call `SandboxManager`. No logic. |
 | `infrastructure/sandbox_worker` | Cloudflare Worker (Rust, wasm) | The `#[durable_object]` class and the Worker entry. They call `foundation_platform_sandbox::cloudflare`. No logic. |
 
@@ -378,6 +392,8 @@ graph LR
   MB --> F09[09 libkrun]
   MB --> F10[10 Docker]
   F10 --> F11[11 nested sandboxes]
+  F10 --> F16[16 Docker Sandboxes product]
+  MB --> F17[17 Cloudflare Sandbox product]
   MB --> F12[12 images] --> F13[13 container source] --> F14[14 Sandboxfile] --> F15[15 registry pull]
 ```
 
@@ -395,8 +411,10 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 | 07 | [Cloudflare control plane](features/07-cloudflare-control-plane/feature.md) | sonnet | MVP | The control plane compiles to wasm and drives a container through fakes of the Cloudflare types. |
 | 08 | [Cloudflare Worker](features/08-cloudflare-worker/feature.md) | sonnet | **MVP-B** | A command runs in a Cloudflare container through `SandboxService` on a Worker, in `wrangler dev`. |
 | 09 | [libkrun driver](features/09-libkrun-driver/feature.md) | sonnet | 2 | A command runs in a libkrun microVM on Linux and macOS. |
-| 10 | [Docker driver](features/10-docker-driver/feature.md) | sonnet | 2 | A command runs in a Docker container; `agent-sandbox` runs in a container. |
+| 10 | [Docker driver](features/10-docker-driver/feature.md) | sonnet | 2 | A command runs in a Docker container that the control plane starts through the host's Docker Engine; `agent-sandbox` can also run in a container. |
 | 11 | [Nested sandboxes](features/11-nested-sandboxes/feature.md) | sonnet | 2 | A slave in a container starts Firecracker microVMs in it. |
+| 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | sonnet | 2 | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
+| 17 | [Cloudflare Sandbox product support](features/17-cloudflare-sandbox-product/feature.md) | sonnet | 2 | An image made for the Cloudflare Sandbox product runs under the control plane; a plain HTTP caller uses `SandboxService`. |
 | 12 | [Sandbox images](features/12-sandbox-images/feature.md) | sonnet | 3 | An image with a manifest boots on Firecracker and libkrun; the slave can unpack a tree into a writable root. |
 | 13 | [Container image source](features/13-container-image-source/feature.md) | sonnet | 3 | A Docker image becomes a sandbox image. |
 | 14 | [Sandboxfile builder](features/14-sandboxfile-builder/feature.md) | sonnet | 3 | A build file with `FROM`, `ADD`, `FETCH`, `RUN`, `CMD` gives a sandbox image, with a step cache. |
@@ -422,8 +440,8 @@ parallel. Feature 07 starts as soon as 01 and 02 are done, in parallel with 05 a
 
 Firecracker and Cloudflare are the two extremes: a local process with a REST API and a
 PID 1 slave, and a `fetch`-only platform with the control plane in wasm. A core that fits
-both has the right shape. libkrun and Docker then add a driver each, with no change to the
-core.
+both has the right shape. libkrun, Docker and Docker Sandboxes then add a driver each, with
+no change to the core. The Cloudflare Sandbox product adds no driver.
 
 ### 7.3 Not in this spec
 
@@ -435,6 +453,12 @@ Each item becomes a GitHub issue when feature 06 lands.
 - Interactive terminals.
 - The libkrun 2.0 API. Only the runner program calls libkrun, so a later move is local.
 - Windows hosts.
+- The Docker Sandboxes cloud (`sbx --cloud`) and the Docker Sandboxes HTTP API (feature 16,
+  section 6.9). Both need authentication on the slave link first.
+- Authentication on the slave link for a TCP endpoint.
+- Cloudflare Sandbox product functions with no call in the Rust `worker` crate: more than
+  one image for each class, container snapshots, outbound interception, bucket mounts and
+  directory backups (feature 17, section 6.4).
 - Merging agent-rpc into this crate. Spec 65 decides that.
 
 ## 8. Tests
@@ -487,19 +511,21 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D1 | The `Provider` trait is in `foundation_deployment_platform`. The providers are facades; all logic is in `foundation_platform_sandbox`. |
 | D2 | The control plane is `agent-sandbox`; the in-sandbox part is `agent-slave`. They talk over Connect RPC (`foundation_connectrpc`). |
 | D3 | Everything is a library split into `shared`, `native` and `cloudflare`. Programs, the DO and the Worker are boundaries. |
-| D4 | The program entry points are in `foundation_deployment_platform/src/bin/`. (`agent-sandbox` is. `agent-slave` cannot be yet: question Q3.) |
+| D4 | The program entry points are in `foundation_deployment_platform/src/bin/`. (`agent-sandbox` is. `agent-slave` is not: decision D11.) |
 | D5 | The slave uses valtron, not threads. |
 | D6 | MVP order: Firecracker, then Cloudflare. libkrun and Docker follow. |
 | D7 | The slave can start nested microVMs with the same core. |
 | D8 | Image tooling: containers as a source, an own build file, and a registry pull (features 12 to 15). |
 | D9 | The work is a specification on a branch, raised as a PR for review. No GitHub issue is filed yet. |
+| D10 | (2026-11-12) "Docker sandbox" and "Cloudflare sandbox" are the products. Both are supported: Docker Sandboxes with a driver (feature 16), Cloudflare Sandbox on the Cloudflare container driver (feature 17). |
+| D11 | (2026-11-12) `agent-slave` has its own package, `bin/agent_slave`. It must be a static musl program, and `foundation_deployment_platform` does not build for musl today (measured: TLS pulls a C library, and its Docker client is not optional). A later move needs the Docker client and TLS of that crate behind features (an issue in feature 06, section 6.10). |
+| D12 | (2026-11-12) The Docker driver talks to the Docker Engine of the host and starts containers that hold the slave. The general case is a control plane on the host. A control plane in a Docker container is the operator's choice; it uses the host's Docker socket. |
+| D13 | (2026-11-12) On Cloudflare the control plane runs `agent-slave` in Cloudflare containers. There is no nested case there. |
 
 ### 10.2 Open, with a recommendation
 
 | # | Question | Recommendation |
 |---|---|---|
-| Q1 | "Docker sandbox" and "Cloudflare sandbox": section 2.3 reads them as "the control plane itself runs in Docker or on Cloudflare". Is that the meaning, or do they mean the Docker Sandboxes product and the Cloudflare Sandbox SDK as substrates? | Keep section 2.3. The Cloudflare Sandbox SDK is the same container primitive that feature 07 uses. |
 | Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
-| Q3 | Decision D4 puts the entry points in `foundation_deployment_platform/src/bin/`. `agent-sandbox` is there. `agent-slave` must be a static musl program, and that crate does not build for musl today (measured: TLS pulls a C library, and its Docker client is not optional). So the spec puts the three-line `main` of `agent-slave` in its own package, `bin/agent_slave`. | Accept `bin/agent_slave`. To move it later, first put the Docker client and TLS of `foundation_deployment_platform` behind features (an issue in feature 06, section 6.10). |
 | Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. Mutual TLS as in spec 65 comes with the agent-rpc merge. | Accept for the MVP. |
 | Q5 | The old spec `start.md` files are not in spec 76 or here. | Follow spec 76: `requirements.md`, `progress.md`, `learnings.md`, one `feature.md` for each feature. |
