@@ -230,7 +230,9 @@ payload and never processes one ([11](./11-app-store-and-command-bus.md),
 **The rules:**
 
 - The event names the action; the runtime looks the name up in its own registry (D22, D31).
-- The same name can have a web form and a mobile form. Each platform takes its own.
+- The same name can have a web form and a mobile form only when the platform capability really
+  differs, for example a browser file picker and a native picker. Each platform takes its own.
+  If the action can be written once, it is unscoped and runs everywhere.
 - A remote action delivers the name and the data to the server; the server runs its Rust
   entry. The caller does not care which side runs it (D22).
 - An action that the registry does not hold, or that is scoped to another platform, produces

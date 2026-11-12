@@ -120,9 +120,11 @@ ASD-STE100.
   actions across every surface. Each idea file serves that contract; an idea that reads like a
   separate redesign makes the set look like over-architecture.
 
-- One message can hold a core form, a web form and a mobile form (D36). The schema has the
-  three slots in one row; the reader takes its own and skips the rest. Do not split the schema
-  per platform and do not force the server to write one batch per surface.
+- A change has one form (D36). The cross-platform set is what all three surfaces can do. Only a
+  change that the set cannot express gets a form for one platform, and that form has no core
+  or other-platform twin. Do not model a core form plus a web form of the same change; that is
+  duplication. Do not split the schema per platform and do not force the server to write one
+  batch per surface.
 
 - Keep the current web capability for script actions (D37). A `<script>` beside the markup
   defines functions that become callable after mount. They join the JS registry and stay on

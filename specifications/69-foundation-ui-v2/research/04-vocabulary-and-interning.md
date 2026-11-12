@@ -58,10 +58,15 @@ custom names for the core names, not a second vocabulary.
 | Web-only subset | The DOM, when a screen needs a tag that the core does not have | HTML tags | HTML attributes, plus the `HtmlMorph` and `ScriptNode` ops (D8, D37) |
 | Mobile-only subset | SwiftUI and Compose, when a screen needs a platform control that the core does not have | Native controls | Platform properties and effects, as `NativeControl` and `NativeCommand` (D36, [06](./06-native-rendering.md)) |
 
+A core element keeps its core form on every platform. The web and mobile subsets are **not**
+second forms of a core element. They exist only for what the core set cannot express (D36,
+[13](./13-platform-capabilities.md) §3.2).
+
 Mapping rules:
 
-- The core name is the wire name. The web applicator maps it locally: `Stack` becomes a flex
-  `div`, `Text` becomes a `span`, and so on.
+- The core name is the wire name. The web applicator maps it locally at render time: `Stack`
+  becomes a flex `div`, `Text` becomes a `span`, and so on. That is a renderer mapping, not a
+  second wire form.
 - A core name is valid on every platform.
 - A web-only name is valid on the web only. A native client reports it and shows a safe
   fallback ([11](./11-app-store-and-command-bus.md)). The web supports every name.

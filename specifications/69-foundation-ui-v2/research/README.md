@@ -40,8 +40,9 @@ The owner set four goals for this research (PR #157 review, 2026-11-12):
 2. **One action model.** Standardise actions and the action registry per platform. The registry
    can live in Rust or in JS. The current web capability stays: a `<script>` defines functions
    that become callable once the DOM mounts. Isolate that capability to the web. The message
-   format carries cross-platform UI nodes and messages, plus web-only and mobile-only variants,
-   so one message can name a web form and a mobile form and each side takes its own.
+   format carries one cross-platform set of messages and UI nodes, plus a web-only or
+   mobile-only form only for what that set cannot express. Each runtime takes the forms it can
+   do.
 3. **Reuse plus specific capabilities.** Break the architecture into shared parts that every
    platform reuses. Set out the capabilities that only one platform type needs, so there is a
    standard at the top and flexibility where it matters.
@@ -51,7 +52,7 @@ The owner set four goals for this research (PR #157 review, 2026-11-12):
    WebSocket or plain HTTP.
 
 **What is fixed at the top:** the schema, the node ids, the action name and registry contract,
-the signed state envelope, the live mount semantics and the platform slots on a message row.
+the signed state envelope, the live mount semantics and the platform scope of a form.
 
 **What each platform decides:** the renderer, the transport it serves, the behaviour bindings,
 the local action implementations and the platform effects.
@@ -144,7 +145,7 @@ remaining questions.
 | D33 | (PR #157 review, 2026-11-11) **The native update policy is not a current concern.** The 2.5.2 payload rule still holds. |
 | D34 | (PR #157 review, 2026-11-11; answers Q25) **Spec 52 and `foundation_platform` have valid use.** Build on them; decide what to keep, remove or leave for later as the work proceeds. |
 | D35 | (PR #157 review, 2026-11-12) **North star.** One FlatBuffers contract carries structured UI, data and actions across the web, mobile, WASM and compiled Rust. It must be sensible and structured. Do not redesign everything. |
-| D36 | (PR #157 review, 2026-11-12) **Core plus platform variants in one message format.** The schema carries cross-platform UI nodes and messages, plus web-only and mobile-only variants. One message can name a web form and a mobile form. Each runtime applies its own variant and skips the others with a typed report. |
+| D36 | (PR #157 review, 2026-11-12, corrected in the follow-up) **One consistent set of forms, plus platform forms only where needed.** Every platform can do the cross-platform set. A change that the set cannot express gets a form for one platform only; it has no cross-platform or other-platform twin. One batch can hold cross-platform forms and platform-specific forms together; each runtime applies its own and skips the rest with a typed report. |
 | D37 | (PR #157 review, 2026-11-12) **One action model, registry in Rust or JS.** Web `<script>` functions that become callable once the DOM mounts stay, and join the JS registry as web actions. Mobile never processes script. A remote action delivers the name and the data to the server. |
 | D38 | (PR #157 review, 2026-11-12) **Platform capability hooks.** Shared parts stay at the top. Each platform supplies the capabilities that only it has. An engineer marks a hook as web-only or mobile-only, and the build routes it to that surface. |
 | D39 | (PR #157 review, 2026-11-12) **Live mounts on every platform.** `mount-stream` and `mount-data` exist on web and mobile. The core idea is a live location with a channel and a transport: local, SSE, WebSocket or plain HTTP. The representation differs; the semantics do not. |
@@ -155,7 +156,7 @@ remaining questions.
 | # | Idea (document section) | Current state | The new way |
 |---|---|---|---|
 | [01](./01-compile-time-targeting.md) | No VDOM, no hydration, compile-time registered elements (§1, §3) | True on the web (`primal-id`, `DomOp` by node id); `MorphNode` still diffs HTML | The mechanism stays; ids become schema fields shared by every platform; `MorphNode` becomes the web-only `HtmlMorph` op (D8); `DomOp` retires (D10); ids are compile-time `primal-id`, not state (D20) |
-| [02](./02-unified-wire-contract.md) | One FlatBuffers contract for every frame (§1, §2) | 6-byte header, protocol byte table, hand-written bodies, no inbound schema | One `.fbs` schema in `foundation_ui_wire` (D21); core and platform variants in one message (D36); `flatc` generates Rust, TypeScript, Swift, Kotlin; `Frame` and `ActionRequest`; `ClientHello` handshake; MessagePack stays opaque (D9) |
+| [02](./02-unified-wire-contract.md) | One FlatBuffers contract for every frame (§1, §2) | 6-byte header, protocol byte table, hand-written bodies, no inbound schema | One `.fbs` schema in `foundation_ui_wire` (D21); one cross-platform form set plus platform-only forms for what it cannot express (D36); `flatc` generates Rust, TypeScript, Swift, Kotlin; `Frame` and `ActionRequest`; `ClientHello` handshake; MessagePack stays opaque (D9) |
 | [03](./03-payload-tiers.md) | Three payload tiers: FlatBuffers ops, aligned columns, Arrow bulk data (§1, §2, §3) | Tier 2 by hand on the web; Arrow used for `DomOp` | All tiers are schema types (`OpBatch`, `ColumnarBatch`, `DataTable`); generated zero-copy readers; tier picked by the framework; tiers 1 and 2 share one consolidated representation (D27); Arrow IPC stays (D28) |
 | [04](./04-vocabulary-and-interning.md) | Numeric tag and attribute ids with string fallback; compiled primitive families (§2, §6) | HTML wire id tables; HTML-shaped `DomOp` | One vocabulary: core names for every platform, a web-only subset, and the string fallback. The web maps core names to HTML names (D10) |
 | [05](./05-web-zero-copy-applicator.md) | JS applicator reads frames and writes the DOM without WASM (§3) | Exists for server frames, with a hand-written parser; `<mount-stream>` and `<mount-data>` islands | Generated reader, one apply loop for all tiers and local WASM frames; the mount paths and islands stay; **the web comes first** (D4) |
@@ -166,7 +167,7 @@ remaining questions.
 | [10](./10-action-model.md) | `#[action]` macro, `Interaction<T>`, a logical `Response`, state-aware `html!` (§5) | Local handlers only; `html!` takes no state | `async fn` that returns `Response` directly; the macro generates the decode and the call glue (D19); the delivery handler encodes the response (D16); `Ctx` wraps `foundation_context::Ctx` (D17); no RPC layer (D18); action names, not ids (D31); platform scope on an action (D38) |
 | [11](./11-app-store-and-command-bus.md) | App Store 2.5.2: data not code, compiled primitives, declarative command bus (§6) | Spec 52 plans WASM hot-swap; components use scoped JS | No code fields for native; one registry model built by the user (D22, D23); the registry can be Rust or JS (D37); a remote action is just an action; version skew handled by the handshake |
 | [12](./12-scoped-behaviour.md) | Scoped JS and component behaviour (§3, §6) | Scoped JS in the component machinery; no native equivalent | Scoped JS stays, web only. Each native platform gets a compiled equivalent. One behaviour matrix, with a platform hook per behaviour (D38) |
-| [13](./13-platform-capabilities.md) | Reuse across platforms plus platform-specific capabilities (owner review, 2026-11-12) | Shared traits exist; no capability split, no platform hooks | The standard, the shared runtime and the platform sets; the message variant rule; the action and behaviour hooks; live mounts on every platform (D35 to D39) |
+| [13](./13-platform-capabilities.md) | Reuse across platforms plus platform-specific capabilities (owner review, 2026-11-12) | Shared traits exist; no capability split, no platform hooks | The standard, the shared runtime and the platform sets; the one-form rule; the action and behaviour hooks; live mounts on every platform (D35 to D39) |
 
 ## 5. Conflicts with earlier decisions
 
@@ -245,6 +246,7 @@ Findings become GitHub issues with a severity label (`CLAUDE.md` rule 9).
 | "it has valid use, we build on it and we decide what to keep or what to remove or what is for later" (spec 52) | D34; [11](./11-app-store-and-command-bus.md) §5; Q25 |
 | "create a flatbuffer based consistent API and message format that carries and works across web, mobile and wasm or compiled rust binary" | D35; [02](./02-unified-wire-contract.md), [13](./13-platform-capabilities.md) §1 |
 | "the message format will have cross platform message types and ui nodes … and then mobile specific messages and web specific message variants" | D36; [02](./02-unified-wire-contract.md) §3.2, §3.3; [13](./13-platform-capabilities.md) §3.2 |
+| "we want a consistent set of forms that are doable on all 3, so we do not have a core form and a web form, thats silly … there is only one for that platform" | D36 corrected; [02](./02-unified-wire-contract.md) §3.2; [03](./03-payload-tiers.md) §3.1; [04](./04-vocabulary-and-interning.md) §3.1; [13](./13-platform-capabilities.md) §3.2 |
 | "actions are registered to a action registry whether in rust or on the js side … `<script>` of functions that once the dom mounts are callable … isolate it to the web" | D37; [10](./10-action-model.md) §3.8; [11](./11-app-store-and-command-bus.md) §3.2; [12](./12-scoped-behaviour.md) §3.1 |
 | "Break down the current architecture to allow reuse across platform but also set out specific capabilities that maybe only for one platform type" | D38; [13](./13-platform-capabilities.md) §3.1, §3.3 |
 | "We should be supporting the ideas of mount-streams, mount-data as well for mobile … all local, SSE, websocket or a plain http requests" | D39; [06](./06-native-rendering.md) §3.7; [13](./13-platform-capabilities.md) §3.4 |

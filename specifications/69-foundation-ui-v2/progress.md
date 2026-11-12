@@ -102,8 +102,10 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 - 2026-11-12, eighth review pass (north star, PR review 5868672793):
   - D35: the north star. One FlatBuffers contract carries structured UI, data and actions
     across web, mobile, WASM and compiled Rust. Do not redesign everything.
-  - D36: core, web and mobile variants in one message format. One `OpRow` carries a core, a web
-    and a mobile form; each runtime applies its own. `02` §3.2 and §3.5 and `03` §3.1 change.
+  - D36: one cross-platform form set, plus platform-only forms for what the set cannot
+    express. A change has one form; there is no core form beside a web or mobile form. Each
+    runtime applies the common forms, applies its own platform forms, and skips the rest.
+    `02` §3.2 and §3.5, `03` §3.1 and `04` §3.1 change.
   - D37: one action model with a registry in Rust or JS. The web `<script>` functions that
     become callable after mount stay, join the JS registry and never reach mobile. `05` §3,
     `10` §3.8, `11` §3.2 and `12` §3.1 change.

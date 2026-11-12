@@ -86,21 +86,17 @@ union Op { CreateNode: CreateNode, SetText: SetText, SetProp: SetProp,
            ScriptNode: ScriptNode,        // web target only (D37)
            NativeControl: NativeControl,  // mobile target only (D36)
            NativeCommand: NativeCommand } // mobile target only (D36)
-table OpRow  {
-  core: Op;      // every platform
-  web: Op;       // web only; NONE when the row has no web form
-  mobile: Op;    // iOS and Android; NONE when the row has no mobile form
-}
+table OpRow  { op: Op; }
 table OpBatch { ops: [OpRow]; }
 ```
 
 The client walks the vector and reads each table through generated accessors. Cost per
 operation is a few offset reads. For a handful of operations this is as fast as tier 2.
 
-Each row can carry a core form, a web form and a mobile form of the same change (D36). A web
-mount takes `web` when it is not `NONE`, else `core`; a native mount takes `mobile` when it is
-not `NONE`, else `core`. A mount that finds no form it supports reports
-`UnsupportedPlatformOp` and continues. Section
+Each change has one form (D36). The union members marked "cross-platform" on every platform
+are the common set. `HtmlMorph`, `ScriptNode`, `NativeControl` and `NativeCommand` exist only
+where that set cannot express the change, and each belongs to one platform. A runtime applies
+the common members, applies its own platform members, and reports and skips the rest. Section
 [13](./13-platform-capabilities.md) §3.2 gives the full rule.
 
 `HtmlMorph` carries the existing `DomOp::MorphNode` (op 16, decision 027) as a schema type.

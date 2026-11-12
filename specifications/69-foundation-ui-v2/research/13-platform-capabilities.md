@@ -30,7 +30,7 @@ where it matters and standards at the top."
 ```mermaid
 flowchart TB
     subgraph STD["1. Standard (one)"]
-        SCH["FlatBuffers schema<br/>core, web and mobile variants"]
+        SCH["FlatBuffers schema<br/>one form set, plus platform-only forms"]
         ACT["Action contract<br/>name, scope, registry"]
         LIVE["Live mount contract<br/>channel, transport, sequence"]
         STATE["Signed state envelope"]
@@ -86,60 +86,64 @@ The layers communicate through the standard, not through each other. The web ren
 calls a Rust function directly; it reads a frame. Rust never calls a DOM API; it sends a frame
 or a `NativeCommand` ([06](./06-native-rendering.md) §3.2).
 
-### 3.2 The message variants
+### 3.2 One form per change
 
 The owner's rule: "the message format will have cross platform message types and ui nodes …
 and then mobile specific messages and web specific message variants that each side specific
 supports its own, this way once can within the same line specify a message for web and another
 for mobile."
 
-The schema does three things:
+**A change has one form.** The schema has one set of forms that every platform can do, plus
+platform-specific forms only for what that set cannot express (owner correction, 2026-11-12):
 
-1. **Core members** work on every platform: `CreateNode`, `SetText`, `SetProp`, `AppendChild`,
-   `Remove`, `ReplaceSubtree`. They use the core vocabulary ([04](./04-vocabulary-and-interning.md)).
-2. **Web members** carry what only the web can use: `HtmlMorph` (D8) and `ScriptNode` (a scoped
-   script island).
-3. **Mobile members** carry what only a native surface can use: `NativeControl` and
-   `NativeCommand`.
+1. **Cross-platform members** work on every platform: `CreateNode`, `SetText`, `SetProp`,
+   `AppendChild`, `Remove`, `ReplaceSubtree`. They use the core vocabulary
+   ([04](./04-vocabulary-and-interning.md)).
+2. **Web members** exist only when the cross-platform set cannot express the change:
+   `HtmlMorph` (D8) and `ScriptNode` (a scoped script island).
+3. **Mobile members** exist only when the cross-platform set cannot express the change:
+   `NativeControl` and `NativeCommand`.
 
-One entry can hold a core form, a web form and a mobile form for the same logical change:
+The rule is strict:
+
+- If the cross-platform set can express a change, it is a cross-platform member on all three
+  surfaces. It does **not** also get a web form or a mobile form.
+- If the cross-platform set cannot express it, it gets a platform-specific member for the
+  platform that needs it. That member belongs to one platform only. There is no core version
+  and no other-platform version of it.
 
 ```flatbuffers
-table OpRow {
-  core: Op;        // NONE when the row has no common form
-  web: Op;         // NONE when the row has no web form
-  mobile: Op;      // NONE when the row has no mobile form
-}
-table OpBatch { ops: [OpRow]; }
-
 union Op {
-  // core, every platform
+  // cross-platform forms, every surface applies them
   CreateNode: CreateNode, SetText: SetText, SetProp: SetProp,
   AppendChild: AppendChild, Remove: Remove, ReplaceSubtree: ReplaceSubtree,
-  // web only
+  // forms that only the web can express
   HtmlMorph: HtmlMorph, ScriptNode: ScriptNode,
-  // mobile only
+  // forms that only a native surface can express
   NativeControl: NativeControl, NativeCommand: NativeCommand
 }
+table OpRow { op: Op; }
+table OpBatch { ops: [OpRow]; }
 ```
 
 The reader rule is short and the same on every platform:
 
-1. A web mount takes `web` when it is not `NONE`; otherwise it takes `core`.
-2. A mobile mount takes `mobile` when it is not `NONE`; otherwise it takes `core`.
-3. A runtime that finds no form it supports reports `UnsupportedPlatformOp` with the row index
-   and continues the batch. It never guesses a form for another platform.
+1. A cross-platform member applies on every platform.
+2. A platform-specific member applies on its own platform.
+3. A runtime that meets a member for another platform reports `UnsupportedPlatformOp` with the
+   row index and continues the batch. It never applies a form for another platform.
 
-So the server writes one batch. A screen can describe a web toolbar with `HtmlMorph` and a
-native toolbar with `NativeControl` in the same batch. Each side applies its own and skips the
-rest.
+One batch can hold cross-platform members and platform-specific members together. A broadcast
+batch can carry a web region and a native region; each client applies the members for its own
+platform and skips the rest. The platforms do not share a duplicate form of the same change.
 
 Rules for the variants:
 
-- A web member may use the web subset of the vocabulary. A mobile member uses only native
-  controls and the core vocabulary.
-- A web member is never sent to a `Native` mount, and a mobile member is never sent to a
-  `Web` mount. The server writes the batch once and the reader enforces the rule.
+- A web member may use the web subset of the vocabulary. A mobile member uses native controls
+  and the core vocabulary.
+- A web member applies only on a `Web` mount; a mobile member applies only on a native mount.
+- Do not add a cross-platform form beside a platform-specific form of the same change. That is
+  the duplication this rule prevents.
 - A new platform variant is a new union member. It is not a second schema and not a second
   vocabulary.
 
@@ -178,6 +182,9 @@ This is a shape, not a final syntax (Q31). The rules:
   entry for that platform.
 - The forms of one name live in different modules, or the macro adds a scope suffix to the
   generated type. The Rust names must not collide.
+- A scoped action exists only where the platform capability really differs, for example a
+  browser file picker and a native picker. If the action can be written once, it is unscoped
+  and runs everywhere; it does not get a web copy and a mobile copy.
 - The event names the action. The runtime looks it up in its own registry. If the action is
   not there, or it is scoped to another platform, the runtime reports `UnsupportedAction` and
   does nothing else.
@@ -272,7 +279,8 @@ No row says "reimplement". Each row says which existing mechanism provides the c
 
 - The research now has one integrating model. The idea files keep their detail and point to
   this file for the layer split.
-- The schema gains the core, web and mobile variants (§3.2). `02` and `03` change.
+- The schema gains one cross-platform form set and the platform-only forms (§3.2). `02` and
+  `03` change.
 - The action model gains the platform scope and the JS registry (§3.3). `10`, `11` and `12`
   change.
 - The mobile side gains the live mount representation (§3.4). `06` changes.

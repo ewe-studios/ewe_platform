@@ -108,29 +108,30 @@ the web target ([01](./01-compile-time-targeting.md), [03](./03-payload-tiers.md
 body type. The server sends it only to a client that declares `mount: Web` in `ClientHello`
 (D8, D11, [11](./11-app-store-and-command-bus.md)).
 
-**One message, platform variants.** The schema has three kinds of member (D36, owner review
+**One message, one form per change.** The schema has one set of forms that every platform can
+do, plus platform-specific forms only for what that set cannot express (D36, owner review
 2026-11-12):
 
-- **Core** members work on every platform: `CreateNode`, `SetText`, `SetProp`, `AppendChild`,
-  `Remove` and `ReplaceSubtree`.
-- **Web** members work on a web mount only: `HtmlMorph` and `ScriptNode`.
-- **Mobile** members work on a native mount only: `NativeControl` and `NativeCommand`.
+- **Cross-platform** members work on every platform: `CreateNode`, `SetText`, `SetProp`,
+  `AppendChild`, `Remove` and `ReplaceSubtree`.
+- **Web** members exist only for what the cross-platform set cannot express: `HtmlMorph` and
+  `ScriptNode`.
+- **Mobile** members exist only for what the cross-platform set cannot express: `NativeControl`
+  and `NativeCommand`.
 
-An entry in the `Ops` body can carry a core form, a web form and a mobile form for the same
-change:
+A change has one form. If the cross-platform set can express it, every platform uses that form.
+It does not also get a web form or a mobile form. If it cannot, it gets a form for one platform
+only, with no cross-platform twin:
 
 ```flatbuffers
-table OpRow {
-  core: Op;        // NONE when the row has no common form
-  web: Op;         // NONE when the row has no web form
-  mobile: Op;      // NONE when the row has no mobile form
-}
+table OpRow { op: Op; }
 ```
 
-A web mount takes `web` when it is not `NONE`, else `core`. A native mount takes `mobile` when
-it is not `NONE`, else `core`. A mount that finds no form it supports reports
-`UnsupportedPlatformOp` and continues the batch. The server writes one batch and each client
-applies its own form. Section [13](./13-platform-capabilities.md) §3.2 gives the full rule.
+A cross-platform member applies on every platform. A platform-specific member applies on its
+own platform. A runtime that meets a member for another platform reports
+`UnsupportedPlatformOp` and continues the batch. One batch can hold cross-platform members and
+platform-specific members together; each client applies its own. Section
+[13](./13-platform-capabilities.md) §3.2 gives the full rule.
 
 ### 3.3 Inbound request
 
@@ -184,7 +185,7 @@ _The diagram shows how sequence ids let a client detect a gap and resume on any 
 | `MessagePack` body | Kept as an opaque schema type (`MessagePackBlob`) | The owner keeps it (D9). It has no generated reader; a client that needs it decodes it itself. |
 | `Columnar` and `Arrow` as opaque bytes | Typed schema tables ([03](./03-payload-tiers.md)) | Generated readers; no hand-written parsers. |
 | `event_name: string` | `action: string` plus `node_id` | The name is the tag the compiled registry uses. No derived numeric id (D31, [11](./11-app-store-and-command-bus.md)). |
-| One union for every target | Core, web and mobile forms in one `OpRow` | One message can carry a web form and a mobile form (D36, [13](./13-platform-capabilities.md) §3.2). |
+| One union for every target | Cross-platform forms plus platform-specific forms | A change has one form; a platform-specific form exists only where the cross-platform set cannot express it (D36, [13](./13-platform-capabilities.md) §3.2). |
 | `sequence_id: uint` only | `stream_id` plus 64-bit `sequence_id` plus `ack_action` | Per-stream ordering, resume after reconnect, request and response pairing. |
 | No handshake | `ClientHello` / `ServerCaps` | Version skew is handled before the first frame. |
 | Eight-way state union | One `SignedState` table ([07](./07-element-riding-state.md)) | The client never reads state, so its format is a server choice. |
