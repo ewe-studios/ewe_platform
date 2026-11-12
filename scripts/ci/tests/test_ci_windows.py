@@ -49,7 +49,11 @@ class WindowsRuns(unittest.TestCase):
         self.assertEqual(len(self.ci.commands("foundation_signals", s, "uat", "windows")["test"]), len(s.runs))
 
     def test_default_windows_runs_drop_linux_only_feature_sets(self):
-        self.assertEqual(settings_for(self.ci, "foundation_deployment_platform").windows_runs, [""])
+        # foundation_deployment_platform runs ["", "vms"]; `vms` is Linux-only.
+        # It opts out of Windows today (#531), so check the same default on macOS.
+        s = settings_for(self.ci, "foundation_deployment_platform")
+        self.assertEqual(s.macos_runs, [""])
+        self.assertTrue(s.windows_opt_out.strip())
 
     def test_the_synthetic_packages_opt_out_with_a_reason(self):
         for name in ("examples", "wasm-tests"):
@@ -121,9 +125,10 @@ class PlanOutputs(unittest.TestCase):
         self.assertEqual(lines["macos-count"], "2")
 
     def test_plan_leaves_out_the_opted_out_packages(self):
+        # foundation_ai and examples opt out of both macOS and Windows.
         lines = self.plan("foundation_ai examples foundation_signals")
         names = " ".join(i["packages"] for i in json.loads(lines["windows-matrix"])["include"]).split()
-        self.assertEqual(sorted(names), ["foundation_ai", "foundation_signals"])
+        self.assertEqual(names, ["foundation_signals"])
         names = " ".join(i["packages"] for i in json.loads(lines["macos-matrix"])["include"]).split()
         self.assertEqual(names, ["foundation_signals"])
 

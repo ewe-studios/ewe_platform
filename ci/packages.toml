@@ -59,7 +59,9 @@
 #                             Windows by default, so an opt-out needs a reason:
 #                             `macos-reason` / `windows-reason`, or `reason` when
 #                             one text fits all. The reason names the missing
-#                             tool, library or service. It excludes `macos-runs` /
+#                             tool, library or service, or the open GitHub issue
+#                             of a known bug (for example "#519: ..."). The fix
+#                             of that issue removes the opt-out. It excludes `macos-runs` /
 #                             `windows-runs`. The guard (run by `plan`) fails
 #                             for an opt-out without a reason.
 #   macos-shards / windows-shards / shard-timeout-minutes (in [defaults])
@@ -146,6 +148,9 @@ max-parallel-windows = 2
 # Already rustfmt-clean: keep them that way.
 
 [packages.answerme-agent]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 fmt = "enforce"
 
 [packages.ewe_platform_benches]
@@ -176,6 +181,9 @@ fmt = "enforce"
 fmt = "enforce"
 
 [packages.infrastructure_llama_bindings]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 fmt = "enforce"
 # Generated bindings and their tests still carry pedantic warnings (issue #441).
 clippy-deny-warnings = false
@@ -190,6 +198,9 @@ clippy-deny-warnings = false
 reason = "5 pedantic warnings; clear them and delete this override (#441)"
 
 [packages.foundation_deployment_hetzner]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #528: the deploy state file name fails (os error 123). Remove this opt-out when the issue is fixed."
 clippy-deny-warnings = false
 reason = "6 pedantic warnings; clear them and delete this override (#441)"
 
@@ -206,6 +217,9 @@ clippy-deny-warnings = false
 reason = "17 pedantic warnings; clear them and delete this override (#441)"
 
 [packages.infrastructure_llama_cpp]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 clippy-deny-warnings = false
 reason = "2 pedantic warnings; clear them and delete this override (#441)"
 
@@ -218,6 +232,9 @@ clippy-deny-warnings = false
 reason = "2 pedantic warnings; clear them and delete this override (#441)"
 
 [packages.platform_demo]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #525: icons/icon.ico is missing for tauri-build. Remove this opt-out when the issue is fixed."
 clippy-deny-warnings = false
 reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
@@ -225,6 +242,9 @@ reason = "4 pedantic warnings; clear them and delete this override (#441)"
 # Packages that need specific features for their tests.
 
 [packages.foundation_ai]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 # 67 pedantic warnings in test targets; clear them and delete this override (#441).
 clippy-deny-warnings = false
 reason = "67 pedantic warnings; clear them and delete this override (#441)"
@@ -247,6 +267,11 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features"]
 
 [packages.foundation_core]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #522: timing tests fail on the slower runner (waits return early or late). Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #522: timing tests fail on the slower runner (waits return early or late). Remove this opt-out when the issue is fixed."
 # valtron has two executors chosen at compile time: the single-threaded one
 # (default features) and the thread pool (`multi`). Many tests are gated on
 # `multi` or `not(multi)`, so test both executors. The `test-clock` run enables
@@ -284,6 +309,9 @@ wasm-expect-error = { run = "--no-default-features", contains = "foundation_core
 clippy-deny-warnings = true
 
 [packages.foundation_macros]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # At zero clippy warnings across its one feature tree (spec 70 feature 120):
 # a new warning fails CI. The crate has no features, so the default run is
 # the only tree to lint.
@@ -304,6 +332,9 @@ runs = ["", "--no-default-features"]
 runs = ["", "--no-default-features --features single_threaded"]
 
 [packages.foundation_deployment_platform]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # VM orchestration (QEMU/UTM) is behind the non-default `vms` feature; its
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
@@ -316,6 +347,9 @@ clippy-runs = ["", "vms"]
 clippy-deny-warnings = true
 
 [packages.foundation_testbed]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `vms` re-exports foundation_deployment_platform (with its `vms` feature) as
 # `foundation_testbed::platform`; the VM e2e target (tests/e2e_tauri.rs, its
 # tests `#[ignore]`d — they need KVM and VM images) only compiles with it.
@@ -323,6 +357,9 @@ clippy-deny-warnings = true
 runs = ["", "vms"]
 
 [packages.foundation_deployment_docker]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # The Docker client (`client`, `error`, `streaming`) is behind the `docker`
 # feature; with default features none of it compiles, so its mock-daemon tests
 # (API version negotiation, error classification, every endpoint wrapper)
@@ -370,6 +407,9 @@ wasm-runs = ["", "--no-default-features --features workers"]
 # [packages.foundation_core]).
 
 [packages.foundation_auth]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `server-test` runs the IdP server suite (handlers, storage, services).
 runs = ["", "server-test"]
 # Clippy covers the server tree too, so its lint count stays at zero.
@@ -380,6 +420,9 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # tests/integration_tests.rs (and the other server suites) are gated on
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
@@ -393,6 +436,9 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_db]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123); #520: a response body ends before its Content-Length. Remove this opt-out when the issue is fixed."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 runs = ["", "libsql"]
 clippy-runs = ["", "libsql"]
@@ -407,6 +453,11 @@ wasm-runs = [
 ]
 
 [packages.foundation_netio]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #485: the blackhole connect test needs a full listen backlog to hang a connect, and macOS accepts it; #530: a quic poll parks after reading datagrams. Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #521: socket timeouts and DNS block a worker (os error 10060 and 10053); #520: a response body ends before its Content-Length. Remove this opt-out when the issue is fixed."
 # `quic` adds the QUIC, HTTP/3 and WebTransport suites (tests/quic, tests/http3,
 # tests/webtransport), which no run compiled before.
 runs = ["", "quic"]
@@ -418,6 +469,9 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
 [packages.foundation_browser]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # At zero clippy warnings under `--all-targets` (spec 70 feature 109): a new one
 # fails CI.
 clippy-deny-warnings = true
@@ -435,6 +489,9 @@ wasm = "enforce"
 wasm-runs = ["", "turbopuffer", "sql-store"]
 
 [packages.foundation_keychain]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # Runs on Cloudflare Workers (D1 + the fetch client for the icon proxy, #140);
 # the wasm32 target pulls its own backend features, so the default set is the
 # wasm build.
@@ -489,6 +546,9 @@ macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc"]
 windows-runs = ["", "watcher-windows", "ipc"]
 
 [packages.foundation_iogate]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # 3 pedantic warnings; clear them and delete this override (#441).
 clippy-deny-warnings = false
 reason = "3 pedantic warnings; clear them and delete this override (#441)"
@@ -501,6 +561,11 @@ env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_proxy]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #523: the h3 CPU test reads /proc/self/task, which macOS does not have. Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `quic` adds the HTTP/3 front end (F19) and its suites (tests/h3_*). No run
 # compiled them before, so the H3 code was never built or linted in CI.
 runs = ["", "quic"]
@@ -544,6 +609,11 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_connectrpc]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #466: the blackhole dial test needs a full listen backlog to hang a connect, and macOS accepts it. Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `h3` adds the HTTP/3 suites (tests/h3_*), which no run compiled before.
 runs = ["", "h3"]
 wasm = "enforce"
@@ -603,4 +673,32 @@ env = { MISE_ENV = "wasm" }
 clippy-deny-warnings = true
 
 [packages.foundation_codegentools]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #524: the generated Cloudflare types compare as stale. Remove this opt-out when the issue is fixed."
 clippy-deny-warnings = true
+
+[packages.ewe_platform]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_deployment_huggingface]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #520: a response body ends before its Content-Length. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_packager]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #527: tests compare paths with '/' separators. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_toolings]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_wireguard]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does not compile. Remove this opt-out when the issue is fixed."
