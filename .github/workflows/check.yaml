@@ -559,6 +559,21 @@ jobs:
         if: matrix.llama
         run: git submodule update --init --depth 1 tools/llama.cpp
 
+      # The cmake crate (llama.cpp, whisper and other C++ builds) needs a cmake
+      # binary. Visual Studio 2022 ships one, but not on the PATH (#526).
+      - name: Put CMake on the PATH
+        run: |
+          if command -v cmake >/dev/null 2>&1; then cmake --version; exit 0; fi
+          vswhere="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"
+          vs="$("$vswhere" -latest -products '*' -property installationPath | tr -d '\r')"
+          dir="$(cygpath -u "$vs")/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin"
+          if [ ! -x "$dir/cmake.exe" ]; then
+            echo "::error::no cmake.exe under $vs"
+            exit 1
+          fi
+          cygpath -w "$dir" >> "$GITHUB_PATH"
+          "$dir/cmake.exe" --version
+
       - name: Install the pinned toolchain
         # Same logic as `macos-test`. `python` is the Windows interpreter name.
         run: |
