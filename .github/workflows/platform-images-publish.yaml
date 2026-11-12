@@ -232,7 +232,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
 
       - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+        uses: useblacksmith/setup-docker-builder@v2
 
       - name: Point latest and sha-<commit> at the tested images
         env:

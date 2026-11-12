@@ -135,7 +135,7 @@ jobs:
           password: ${{ secrets.registry-password }}
 
       - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+        uses: useblacksmith/setup-docker-builder@v2
 
       - name: Free disk space
         if: inputs.free-disk
