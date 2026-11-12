@@ -156,7 +156,7 @@ The owner named six systems. Two of the names are products (owner answer, 2026-1
 | Cloudflare Sandbox (the product) | The same primitive as the row above: a DO and its container. An image made for the product runs under our control plane, and an application of the product can call our control plane. | 17 (on 07, 08) |
 | libkrun | The control plane starts a libkrun microVM; the slave is the program of the libkrun init. | 09 |
 | Docker container | The control plane talks to the Docker Engine of the host and starts containers that hold the slave. The slave is the entry point or a sidecar process. | 10 |
-| Docker Sandboxes (the product) | The control plane runs the `sbx` program; each sandbox is a microVM that Docker manages, with the slave in it. | 16 |
+| Docker Sandboxes (the product) | The control plane runs the `sbx` program; each sandbox is a microVM that Docker manages, with the slave in it. **Draft, not a must have** (decision D14). | 16 (draft) |
 
 Where the control plane runs is a different question from which system it drives:
 
@@ -392,7 +392,7 @@ graph LR
   MB --> F09[09 libkrun]
   MB --> F10[10 Docker]
   F10 --> F11[11 nested sandboxes]
-  F10 --> F16[16 Docker Sandboxes product]
+  F10 -.-> F16[16 Docker Sandboxes product<br/>draft, not scheduled]
   MB --> F17[17 Cloudflare Sandbox product]
   MB --> F12[12 images] --> F13[13 container source] --> F14[14 Sandboxfile] --> F15[15 registry pull]
 ```
@@ -413,7 +413,7 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 | 09 | [libkrun driver](features/09-libkrun-driver/feature.md) | sonnet | 2 | A command runs in a libkrun microVM on Linux and macOS. |
 | 10 | [Docker driver](features/10-docker-driver/feature.md) | sonnet | 2 | A command runs in a Docker container that the control plane starts through the host's Docker Engine; `agent-sandbox` can also run in a container. |
 | 11 | [Nested sandboxes](features/11-nested-sandboxes/feature.md) | sonnet | 2 | A slave in a container starts Firecracker microVMs in it. |
-| 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | sonnet | 2 | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
+| 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | sonnet | draft, not scheduled | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
 | 17 | [Cloudflare Sandbox product support](features/17-cloudflare-sandbox-product/feature.md) | sonnet | 2 | An image made for the Cloudflare Sandbox product runs under the control plane; a plain HTTP caller uses `SandboxService`. |
 | 12 | [Sandbox images](features/12-sandbox-images/feature.md) | sonnet | 3 | An image with a manifest boots on Firecracker and libkrun; the slave can unpack a tree into a writable root. |
 | 13 | [Container image source](features/13-container-image-source/feature.md) | sonnet | 3 | A Docker image becomes a sandbox image. |
@@ -521,6 +521,7 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D11 | (2026-11-12) `agent-slave` has its own package, `bin/agent_slave`. It must be a static musl program, and `foundation_deployment_platform` does not build for musl today (measured: TLS pulls a C library, and its Docker client is not optional). A later move needs the Docker client and TLS of that crate behind features (an issue in feature 06, section 6.10). |
 | D12 | (2026-11-12) The Docker driver talks to the Docker Engine of the host and starts containers that hold the slave. The general case is a control plane on the host. A control plane in a Docker container is the operator's choice; it uses the host's Docker socket. |
 | D13 | (2026-11-12) On Cloudflare the control plane runs `agent-slave` in Cloudflare containers. There is no nested case there. |
+| D14 | (2026-11-12) The Docker Sandboxes product is not ready. Feature 16 is a draft and not a must have. It is not scheduled, and no milestone needs it. |
 
 ### 10.2 Open, with a recommendation
 

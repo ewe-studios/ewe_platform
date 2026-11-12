@@ -1,9 +1,9 @@
 ---
 feature: "Docker Sandboxes product driver"
-status: "pending"
-priority: "medium"
+status: "draft"
+priority: "low"
 model: "sonnet"
-phase: "2"
+phase: "later"
 depends_on: ["06-programs-rpc-provider", "10-docker-driver"]
 crates: ["foundation_platform_sandbox", "foundation_deployment_platform"]
 ---
@@ -19,6 +19,11 @@ Notation (JSON); Transmission Control Protocol (TCP); application programming in
 (API); personal access token (PAT); continuous integration (CI); behaviour-driven
 development (BDD); AeroSpace and Defence Industries Association of Europe (ASD), the owner
 of the STE standard ASD-STE100.
+
+> **Draft, not a must have (owner decision D14, 2026-11-12).** The Docker Sandboxes product
+> is not ready. This feature is not scheduled and no agent gets it. No other feature
+> depends on it. Before it is scheduled, read the product documents again and update
+> section 6.1, because the `sbx` commands and their output can change.
 
 ## 1. Goal
 

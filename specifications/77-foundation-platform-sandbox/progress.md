@@ -45,6 +45,9 @@ ASD-STE100.
   way in) were added. Requirements section 2.3 was rewritten. Decisions D10 to D13 record
   the answers; questions Q1 and Q3 are closed. `agent-slave` stays in `bin/agent_slave`.
 
+- 2026-11-12: the owner made feature 16 (Docker Sandboxes product) a draft that is not a
+  must have, because the product is not ready (decision D14). It is out of the lane order.
+
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
 ## In progress
@@ -60,8 +63,8 @@ Nothing. The spec waits for the owner review.
 5. Feature 05, then feature 06: MVP-A (Firecracker).
 6. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
    MVP-B (Cloudflare).
-7. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 16 (Docker Sandboxes), 17
-   (Cloudflare Sandbox product). Feature 16 needs 10; feature 17 needs 08.
+7. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
+   product). Feature 17 needs 08.
 8. Phase 3: features 12 to 15 (images).
 
 ## Milestones
@@ -70,7 +73,8 @@ Nothing. The spec waits for the owner review.
 |---|---|---|---|
 | MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 4 (00, then one of 01 to 04, then 05, then 06) | not started |
 | MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02; 08 also needs 06) | not started |
-| Phase 2: libkrun, Docker, nested sandboxes, Docker Sandboxes, Cloudflare Sandbox product | 09, 10, 11, 16, 17 | 1 to 2 more each | not started |
+| Phase 2: libkrun, Docker, nested sandboxes, Cloudflare Sandbox product | 09, 10, 11, 17 | 1 to 2 more each | not started |
+| Draft, not scheduled: Docker Sandboxes product | 16 | 1 more after 10 | draft |
 | Phase 3: sandbox images | 12, 13, 14, 15 | 4 more | not started |
 
 ## What was checked while the spec was written, and what was not
