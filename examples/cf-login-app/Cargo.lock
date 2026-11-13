@@ -885,7 +885,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "argon2",
  "async-trait",
@@ -918,7 +918,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_cloudflare_types"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base85rs",
  "foundation_macros",
@@ -929,7 +929,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
@@ -950,7 +950,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_context"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "foundation_compact",
  "foundation_nostd",
@@ -958,7 +958,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.20"
+version = "0.0.21"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -984,7 +984,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -1014,7 +1014,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.20"
+version = "0.0.21"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -1033,7 +1033,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.13"
+version = "0.0.14"
 dependencies = [
  "async-trait",
  "base64",
@@ -1073,11 +1073,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.8"
+version = "0.0.9"
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "foundation_context",
  "foundation_core",

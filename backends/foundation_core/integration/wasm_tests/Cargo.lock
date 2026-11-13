@@ -359,7 +359,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_codegen"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "custom_debug",
  "derive_more",
@@ -377,7 +377,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "cfg-if",
  "foldhash",
@@ -395,7 +395,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_context"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "foundation_compact",
  "foundation_nostd",
@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.20"
+version = "0.0.21"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -445,7 +445,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.20"
+version = "0.0.21"
 dependencies = [
  "base85rs",
  "brotli",
@@ -464,7 +464,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.8"
+version = "0.0.9"
 
 [[package]]
 name = "foundation_theme"
@@ -472,7 +472,7 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "clap",
  "concurrent-queue",
