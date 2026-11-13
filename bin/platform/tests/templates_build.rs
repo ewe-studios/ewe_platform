@@ -117,42 +117,11 @@ fn templates_generate_projects_that_build() {
             .output()
             .expect("run cargo check");
 
-        // `--message-format=json` puts the compiler errors on stdout, one JSON
-        // object per line. Print each error's rendered text, so a failure
-        // shows the real error and not only "could not compile".
-        let errors: String = String::from_utf8_lossy(&output.stdout)
-            .lines()
-            .filter(|line| line.contains("\"level\":\"error\""))
-            .filter_map(|line| {
-                let start = line.find("\"rendered\":\"")? + "\"rendered\":\"".len();
-                let rest = &line[start..];
-                let end = rest.find("\",\"")?;
-                Some(
-                    rest[..end]
-                        .replace("\\n", "\n")
-                        .replace("\\\"", "\"")
-                        .replace("\\\\", "\\"),
-                )
-            })
-            .collect();
+        let errors = rendered_errors(&String::from_utf8_lossy(&output.stdout));
         let stderr = String::from_utf8_lossy(&output.stderr);
-        // An unused patch means the template asks for another version than the
-        // local crate has (for 0.0.x, "0.0.11" means exactly 0.0.11). Cargo then
-        // builds the old crate from crates.io, and the test checks the wrong code.
-        // Cargo also warns for patched crates that the template does not use at
-        // all; only a patch for a crate in the template's manifest is a stale pin.
         let manifest = std::fs::read_to_string(generated_dir.join("Cargo.toml"))
             .expect("read the generated Cargo.toml");
-        let stale: Vec<&str> = stderr
-            .lines()
-            .filter(|line| line.contains("was not used in the crate graph"))
-            .filter_map(|line| line.split('`').nth(1)?.split(' ').next())
-            .filter(|name| {
-                manifest
-                    .lines()
-                    .any(|dep| dep.trim_start().starts_with(&format!("{name} ")))
-            })
-            .collect();
+        let stale = stale_pins(&stderr, &manifest);
         assert!(
             stale.is_empty(),
             "template {template_name} pins versions that the local crates do not have \
@@ -215,5 +184,37 @@ fn project_warnings(stdout: &[u8], root: &Path) -> Vec<String> {
                 .unwrap_or_default()
                 .to_string()
         })
+        .collect()
+}
+
+/// The rendered text of each compiler error in `cargo --message-format=json`
+/// output. The errors are on stdout, one JSON object per line, so without
+/// this a failure shows only "could not compile".
+fn rendered_errors(stdout: &str) -> String {
+    stdout
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .filter(|msg| msg["message"]["level"] == "error")
+        .filter_map(|msg| msg["message"]["rendered"].as_str().map(str::to_owned))
+        .collect()
+}
+
+/// The crates of `manifest` whose `[patch]` entry Cargo did not use.
+///
+/// An unused patch means the template asks for another version than the local
+/// crate has (for 0.0.x, "0.0.11" means exactly 0.0.11). Cargo then builds the
+/// old crate from crates.io, and the test checks the wrong code. Cargo also
+/// warns for patched crates that the template does not use; those are fine.
+fn stale_pins(stderr: &str, manifest: &str) -> Vec<String> {
+    stderr
+        .lines()
+        .filter(|line| line.contains("was not used in the crate graph"))
+        .filter_map(|line| line.split('`').nth(1)?.split(' ').next())
+        .filter(|name| {
+            manifest
+                .lines()
+                .any(|dep| dep.trim_start().starts_with(&format!("{name} ")))
+        })
+        .map(str::to_owned)
         .collect()
 }
