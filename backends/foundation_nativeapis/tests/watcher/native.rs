@@ -1,4 +1,4 @@
-/// Integration test: end-to-end file watching with InotifyWatcher and PollWatcher.
+/// Integration test: end-to-end file watching with `InotifyWatcher` and `PollWatcher`.
 ///
 /// Tests that actual filesystem events are detected on the current platform.
 use foundation_nativeapis::NativeWatcher;
@@ -16,7 +16,15 @@ impl TempDir {
         let path = std::env::temp_dir().join(format!(
             "nativeapis_test_{}_{}_{}",
             std::process::id(),
-            std::thread::current().name().unwrap_or("anon"),
+            // The thread name is the test path (`native::poll_watcher_unwatch`).
+            // Windows does not allow `:` in a file name, so keep only letters,
+            // digits and `_`.
+            std::thread::current()
+                .name()
+                .unwrap_or("anon")
+                .chars()
+                .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+                .collect::<String>(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -40,6 +48,7 @@ impl Drop for TempDir {
 
 /// Helper: poll the watcher until we get events or timeout.
 /// Retries a few times because inotify can have small delays.
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 fn poll_until_events(
     watcher: &mut impl NativeWatcher,
     timeout: Duration,
@@ -55,7 +64,7 @@ fn poll_until_events(
 }
 
 /// Test: InotifyWatcher detects file creation
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_creation() {
@@ -80,7 +89,7 @@ fn inotify_detects_file_creation() {
 }
 
 /// Test: InotifyWatcher detects file modification
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_modification() {
@@ -106,7 +115,7 @@ fn inotify_detects_file_modification() {
 }
 
 /// Test: InotifyWatcher detects file deletion
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_deletion() {
@@ -135,7 +144,7 @@ fn inotify_detects_file_deletion() {
 }
 
 /// Test: InotifyWatcher detects file rename
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_rename() {
@@ -168,7 +177,7 @@ fn inotify_detects_file_rename() {
 }
 
 /// Test: InotifyWatcher unwatch stops receiving events
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_unwatch_stops_events() {
@@ -192,7 +201,7 @@ fn inotify_unwatch_stops_events() {
 }
 
 /// Test: InotifyWatcher clear removes all watches
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_clear_removes_all_watches() {
@@ -215,7 +224,7 @@ fn inotify_clear_removes_all_watches() {
     );
 }
 
-/// Test: PollWatcher detects file creation (fallback, slower)
+/// Test: `PollWatcher` detects file creation (fallback, slower)
 #[serial]
 #[test]
 fn poll_watcher_detects_file_creation() {
@@ -235,12 +244,11 @@ fn poll_watcher_detects_file_creation() {
     // PollWatcher detects directory metadata change (mtime changes on file creation)
     assert!(
         !events.is_empty(),
-        "Expected at least one event for poll_test.txt creation, got: {:?}",
-        events
+        "Expected at least one event for poll_test.txt creation, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher detects file deletion (by stat change)
+/// Test: `PollWatcher` detects file deletion (by stat change)
 #[serial]
 #[test]
 fn poll_watcher_detects_file_deletion() {
@@ -267,12 +275,11 @@ fn poll_watcher_detects_file_deletion() {
     // PollWatcher detects directory metadata change
     assert!(
         !events.is_empty(),
-        "Expected at least one event for file deletion, got: {:?}",
-        events
+        "Expected at least one event for file deletion, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher detects file modification
+/// Test: `PollWatcher` detects file modification
 #[serial]
 #[test]
 fn poll_watcher_detects_file_modification() {
@@ -300,12 +307,11 @@ fn poll_watcher_detects_file_modification() {
         events
             .iter()
             .any(|e| matches!(e.kind, foundation_nativeapis::WatchEventKind::Modified)),
-        "Expected Modified event for poll_modify.txt, got: {:?}",
-        events
+        "Expected Modified event for poll_modify.txt, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher unwatch stops receiving events
+/// Test: `PollWatcher` unwatch stops receiving events
 #[serial]
 #[test]
 fn poll_watcher_unwatch() {
@@ -324,12 +330,11 @@ fn poll_watcher_unwatch() {
         .expect("poll failed");
     assert!(
         events.is_empty(),
-        "Expected no events after unwatch, got: {:?}",
-        events
+        "Expected no events after unwatch, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher handles non-existent path gracefully
+/// Test: `PollWatcher` handles non-existent path gracefully
 #[serial]
 #[test]
 fn poll_watcher_nonexistent_path() {
@@ -354,7 +359,7 @@ fn poll_watcher_nonexistent_path() {
     );
 }
 
-/// Test: WatcherBuilder builds a PollWatcher as fallback
+/// Test: `WatcherBuilder` builds a `PollWatcher` as fallback
 #[serial]
 #[test]
 fn watcher_builder_fallback_poll() {
@@ -380,7 +385,7 @@ fn watcher_builder_fallback_poll() {
 ///
 /// HOW: `has_events()` now asks `FIONREAD` (non-destructive) and `poll()` reads
 /// the fd directly rather than gating on an epoll edge.
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_has_events_does_not_consume_the_readiness_edge() {

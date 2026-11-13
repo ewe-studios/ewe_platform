@@ -110,17 +110,26 @@ fn templates_generate_projects_that_build() {
 
         let output = Command::new("cargo")
             .arg("check")
-            .arg("--quiet")
+            // No `--quiet`: it hides the "patch was not used" warning checked below.
             .arg("--message-format=json")
             .env("CARGO_TARGET_DIR", &target_dir)
             .current_dir(&generated_dir)
             .output()
             .expect("run cargo check");
 
+        let errors = rendered_errors(&String::from_utf8_lossy(&output.stdout));
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let manifest = std::fs::read_to_string(generated_dir.join("Cargo.toml"))
+            .expect("read the generated Cargo.toml");
+        let stale = stale_pins(&stderr, &manifest);
+        assert!(
+            stale.is_empty(),
+            "template {template_name} pins versions that the local crates do not have \
+             ({stale:?}); update them in its Cargo.toml.template"
+        );
         assert!(
             output.status.success(),
-            "cargo check failed for template {template_name}:\n{}",
-            String::from_utf8_lossy(&output.stderr)
+            "cargo check failed for template {template_name}:\n{errors}\n{stderr}"
         );
 
         // A generated project must build with no warning of its own. Warnings
@@ -175,5 +184,37 @@ fn project_warnings(stdout: &[u8], root: &Path) -> Vec<String> {
                 .unwrap_or_default()
                 .to_string()
         })
+        .collect()
+}
+
+/// The rendered text of each compiler error in `cargo --message-format=json`
+/// output. The errors are on stdout, one JSON object per line, so without
+/// this a failure shows only "could not compile".
+fn rendered_errors(stdout: &str) -> String {
+    stdout
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .filter(|msg| msg["message"]["level"] == "error")
+        .filter_map(|msg| msg["message"]["rendered"].as_str().map(str::to_owned))
+        .collect()
+}
+
+/// The crates of `manifest` whose `[patch]` entry Cargo did not use.
+///
+/// An unused patch means the template asks for another version than the local
+/// crate has (for 0.0.x, "0.0.11" means exactly 0.0.11). Cargo then builds the
+/// old crate from crates.io, and the test checks the wrong code. Cargo also
+/// warns for patched crates that the template does not use; those are fine.
+fn stale_pins(stderr: &str, manifest: &str) -> Vec<String> {
+    stderr
+        .lines()
+        .filter(|line| line.contains("was not used in the crate graph"))
+        .filter_map(|line| line.split('`').nth(1)?.split(' ').next())
+        .filter(|name| {
+            manifest
+                .lines()
+                .any(|dep| dep.trim_start().starts_with(&format!("{name} ")))
+        })
+        .map(str::to_owned)
         .collect()
 }

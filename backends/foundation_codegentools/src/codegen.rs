@@ -719,6 +719,12 @@ impl Codegen {
                     && entry.path().is_dir()
                 {
                     for (sub, body) in read_tree(&entry.path())? {
+                        // The release tool owns each crate's changelog: it adds
+                        // and updates `CHANGELOG.md`, and the generator never
+                        // writes or deletes it, so it is not generated output.
+                        if sub == RELEASE_CHANGELOG {
+                            continue;
+                        }
                         committed.insert(format!("groups/{name}/{sub}"), body);
                     }
                 }
@@ -896,6 +902,10 @@ struct GeneratorTargets {
 /// A missing directory reads as empty rather than an error: "nothing has been
 /// generated yet" is a legitimate `check()` outcome, and it should report as
 /// stale-with-additions, not as an IO failure.
+/// The changelog that the release tool (release-plz) writes at the root of each
+/// published crate. The staleness check ignores it in the group crates.
+const RELEASE_CHANGELOG: &str = "CHANGELOG.md";
+
 fn read_tree(dir: &Path) -> Result<BTreeMap<String, String>, CodegenError> {
     let mut files = BTreeMap::new();
     if !dir.exists() {

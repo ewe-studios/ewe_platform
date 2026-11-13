@@ -4,8 +4,13 @@ name: Diagnose one test
 # .github/diagnose.toml names the OS, the package, the test and the repeat count.
 # The normal CI keeps only the failure lines; this job keeps the whole output
 # of the first failed attempt, at the end of the log, where the log API can read it.
+# A new branch matches the path filter on its first push. Dependabot opens
+# many new branches, so its branches do not start this job. Every other
+# branch does.
 on:
   push:
+    branches-ignore:
+      - "dependabot/**"
     paths:
       - .github/diagnose.toml
       - .github/workflows/diagnose.yaml
@@ -36,9 +41,9 @@ jobs:
           import tomllib
           cfg = tomllib.load(open(".github/diagnose.toml", "rb"))
           runners = {
-              "linux": "blacksmith-4vcpu-ubuntu-2404",
-              "macos": "blacksmith-6vcpu-macos-26",
-              "windows": "blacksmith-4vcpu-windows-2025",
+              "linux": "ubuntu-latest",
+              "macos": "macos-26",
+              "windows": "windows-2025",
           }
           print(f"runner={runners[cfg['os']]}")
           PY

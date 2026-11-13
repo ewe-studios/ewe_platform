@@ -78,8 +78,7 @@
 #                             the most jobs of one matrix (shards, on macOS and Windows) that run at once
 #                             (`strategy.max-parallel` in check.yaml). Free
 #                             GitHub plans run about 20 jobs at once, with at
-#                             most 5 macOS jobs, and Blacksmith free minutes
-#                             are limited. The defaults (8, 2, 2) stay well below
+#                             most 5 macOS jobs. The defaults (8, 2, 2) stay well below
 #                             that, so jobs queue and do not stampede.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
@@ -421,6 +420,8 @@ wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #546: the SSE writer to a slow client never finishes (a lost wakeup). Remove this opt-out when the issue is fixed."
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # tests/integration_tests.rs (and the other server suites) are gated on

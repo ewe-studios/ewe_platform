@@ -134,7 +134,8 @@ required-features = ["fd"]
 [[test]]
 name = "watcher"
 path = "tests/watcher/mod.rs"
-required-features = ["watcher-linux"]
+# No `required-features`: the Linux tests are gated on `watcher-linux` and the
+# Windows tests on `watcher-windows` inside the test files.
 
 [[test]]
 name = "valtron_executor"

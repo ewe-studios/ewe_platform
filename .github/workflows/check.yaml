@@ -31,17 +31,22 @@ name: "Audit: Checks & Tests"
 # package must run, with the same rule as the plan job (`ci.py affected`).
 #
 # Each matrix sets `max-parallel` from ci/packages.toml ([defaults]
-# `max-parallel-*`), so jobs queue on the free GitHub and Blacksmith plans and
+# `max-parallel-*`), so jobs queue within the free GitHub plan and
 # do not stampede. GitHub allows 256 jobs per matrix; the workspace has about
 # 110 packages, so the full run fits in one matrix.
 
+# macOS and Windows tests run only on the full runs: a push to master or to
+# platform/release, a pull request into or from platform/release, the nightly
+# schedule and manual runs. Other pull requests run the Linux jobs only.
 on:
   pull_request:
     branches:
       - master
+      - platform/release
   push:
     branches:
       - master
+      - platform/release
   schedule:
     - cron: "17 2 * * *" # nightly full run, catches drift from dependencies
   workflow_dispatch:
@@ -87,7 +92,7 @@ jobs:
     name: Plan
     # Only reads `cargo metadata`, so it runs on the runner, in parallel with
     # the image job.
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
@@ -105,7 +110,7 @@ jobs:
       max-parallel-windows: ${{ steps.plan.outputs.max-parallel-windows }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 0 # change detection diffs against the PR base
           submodules: false
@@ -158,7 +163,7 @@ jobs:
     # The usual path: the image is in the registry (it existed, or the image
     # job just pushed it).
     if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'registry'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     container:
       image: ${{ needs.image.outputs.image-ref }}
       # Empty for forks (no secrets): the runner then pulls anonymously.
@@ -315,7 +320,7 @@ jobs:
     # built it as an artifact. `container:` can only pull from a registry, so
     # load the image and run the same steps in it with `docker exec`.
     if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'artifact'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
@@ -406,10 +411,12 @@ jobs:
     # The matrix JSON holds each name in quotes, so this match is exact.
     if: >-
       needs.plan.result == 'success' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release') &&
       (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
       contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
-    # Same Blacksmith Windows image as `windows-test`.
-    runs-on: blacksmith-4vcpu-windows-2025
+    # Same GitHub-hosted Windows image as `windows-test`.
+    runs-on: windows-2025
     # Limit, not a measurement: a cold build of both packages takes about 15 to
     # 20 minutes on this runner, and a warm cache cuts that to a few minutes.
     timeout-minutes: 45
@@ -457,10 +464,14 @@ jobs:
     # with one target directory (`ci.py run-many`), so shared dependencies build
     # once. The plan job sets the shard count (`macos-shards`).
     # No container and no CI image: the job runs on the macOS runner itself.
-    if: needs.plan.outputs.macos-count != '0'
-    # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
+    # Full runs only (see `on:`); a normal pull request skips it.
+    if: >-
+      needs.plan.outputs.macos-count != '0' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
+    # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
     # DEVELOPER_DIR picks Xcode 26.2, the same as the `macos` job.
-    runs-on: blacksmith-6vcpu-macos-26
+    runs-on: macos-26
     timeout-minutes: ${{ matrix.timeout }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
@@ -520,12 +531,17 @@ jobs:
     # Runs the tests of every selected package that is not opted out of Windows
     # (ci/packages.toml), in shards like `macos-test`.
     # No container: the job runs on the Windows runner itself.
-    if: needs.plan.outputs.windows-count != '0'
+    # Full runs only (see `on:`); a normal pull request skips it.
+    if: >-
+      needs.plan.outputs.windows-count != '0' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
     # RUNNER LABEL: change it on this line only. The `env` context is not
     # available in `runs-on`, so a workflow-level variable cannot hold it.
-    # Blacksmith Windows Server 2025: Visual Studio 2022 (MSVC), Windows SDK
-    # 10.0.26100, LLVM, Git, Python 3.12 and 67 GB free disk (probe 2026-11-11).
-    runs-on: blacksmith-4vcpu-windows-2025
+    # GitHub-hosted Windows Server 2025: Visual Studio 2022 (MSVC), Windows SDK
+    # and Git. The repository is public, so GitHub-hosted runners cost nothing.
+    # It has less free disk than the Blacksmith image had (about 30 GB, not 67 GB).
+    runs-on: windows-2025
     timeout-minutes: ${{ matrix.timeout }}
     env:
       PYTHONUTF8: "1"
@@ -601,7 +617,7 @@ jobs:
     name: Checks passed
     needs: [image, plan, package, package-artifact, windows, macos-test, windows-test]
     if: always()
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Evaluate
         env:
@@ -628,7 +644,7 @@ jobs:
     # Packaging the whole workspace is slow; run it where releases happen.
     # Non-PR events always have registry credentials, so the image is there.
     if: github.event_name != 'pull_request'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     container:
       image: ${{ needs.image.outputs.image-ref }}
       credentials:
@@ -701,10 +717,10 @@ jobs:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
     if: github.event_name != 'pull_request'
-    # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
+    # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
     # DEVELOPER_DIR picks Xcode 26.2, which ships the iPhoneOS 26.2 SDK. The
     # macOS VM image pins the same SDK (components.env IOS_SDK_VERSION).
-    runs-on: blacksmith-6vcpu-macos-26
+    runs-on: macos-26
     timeout-minutes: 120
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer

@@ -120,7 +120,7 @@ jobs:
     needs: default
     # Fork PRs get an artifact instead; check.yaml covers those.
     if: needs.default.outputs.image-source == 'registry'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     container:
       image: ${{ needs.default.outputs.image-ref }}
@@ -160,7 +160,7 @@ jobs:
     name: Smoke test (cuda)
     needs: cuda
     if: needs.cuda.outputs.image-source == 'registry'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     # Not a `container:` job: the CUDA image is ~15 GB unpacked, so the
     # runner's disk is freed first and the image is run with docker.
@@ -214,10 +214,10 @@ jobs:
     name: Tag latest
     needs: [default, cuda, windows, macos, smoke-default, smoke-cuda]
     if: github.event_name != 'pull_request'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
@@ -231,8 +231,8 @@ jobs:
           username: ${{ needs.default.outputs.registry-username }}
           password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
 
-      - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
 
       - name: Point latest and sha-<commit> at the tested images
         env:
