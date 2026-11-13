@@ -143,6 +143,18 @@ design makes one choice. Each row says why.
 | R8 | `force_align: 8` only | The schema sets `force_align: 8`, and the Rust writer has an alignment helper and a test | `flatc` does not promise the attribute for vectors in every language. The frame writer is Rust only, so one helper makes the rule true without that promise (feature 01 section 6.6) |
 | R9 | The source document writes `html! { ctx, Some(&state), … }` for a view with state | The view form is `html! { view(ctx, Some(&state)), … }`, and it converts into `Response` with `.into()` | `html! { ctx, receiver, … }` is already the reactive form of spec 39, and it must keep working (D40). A leading `view(...)` is the smallest change that the macro can tell apart |
 
+### 2.4 Owner decisions from the approval review (2026-11-13)
+
+These decisions come from the owner's review of this specification. They override the text
+below and the feature files where they differ. The feature files are revised one time, after
+the review of every item is complete. Until then, this section is the rule.
+
+| # | Decision | Replaces |
+|---|---|---|
+| D41 | **A frame is one list of operations.** `Frame { …, operations: [Operation] }`. Each operation says its own type, so the count (one or more) does not matter. The columnar batch of UI operations is one operation type in that list; the reader opens it and applies the operations inside. Plain Arrow data is another operation type: a user-defined data message, not a UI operation. The typed data table, the MessagePack block, the hello answer and an error are operation types in the same list. There is no `Body` union above the list, no tier choice by the framework and no threshold. A sender puts in the list what it wants; the delivery handler decides (D16). | A1 (`columnar_threshold`, default 64); the `Body` union of section 5.4; the tier choice of feature 03; the `Body` cases in features 01, 07, 09, 11, 14 and 15 |
+
+**Status of the review.** Item 1 of 17 (A1) is closed by D41. Items 2 to 17 are open.
+
 ## 3. Spec-level stories
 
 - **S1**: "A user taps a button, and the server changes one label."

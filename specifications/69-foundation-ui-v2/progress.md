@@ -176,7 +176,13 @@ is recorded here as passed.
 
 ## In progress
 
-- None. The specification waits for the owner's approval.
+- The owner reviews the adopted items one at a time (17 items: A1 to A8, five design
+  choices, `WasmEnvelope`, `NativeBehaviour`, two known gaps).
+  - Item 1 (A1) is closed: D41 in `requirements.md` section 2.4. A frame is one list of
+    operations; the columnar batch is one operation type; no threshold.
+  - The feature files are not yet revised for D41. Revise them one time, after the review
+    ends: features 01, 02, 03, 07, 09, 11, 14, 15 and `requirements.md` sections 2.2, 5.4
+    and 5.6.
 
 ## Next
 
