@@ -384,7 +384,7 @@ impl WinWatcher {
             if code == WAIT_TIMEOUT {
                 return Ok(0);
             }
-            return Err(io::Error::from_raw_os_error(code as i32));
+            return Err(io::Error::from_raw_os_error(code.cast_signed()));
         }
         for entry in &entries[..removed as usize] {
             self.handle_completion(entry.lpCompletionKey, entry.lpOverlapped);
@@ -413,7 +413,9 @@ impl WinWatcher {
         let mut bytes: u32 = 0;
         // SAFETY: The handle is open and `overlapped` is this state's own
         // OVERLAPPED. The operation is complete, so the call does not wait.
-        let ok = unsafe { GetOverlappedResult(state.dir_handle, overlapped, &mut bytes, 0) };
+        let ok = unsafe {
+            GetOverlappedResult(state.dir_handle, overlapped, ptr::addr_of_mut!(bytes), 0)
+        };
         let code = if ok == 0 {
             // SAFETY: Reads the thread error code only.
             unsafe { GetLastError() }
@@ -435,7 +437,7 @@ impl WinWatcher {
             tracing::warn!(
                 "WinWatcher: read on {:?} failed: {}",
                 state.root,
-                io::Error::from_raw_os_error(code as i32)
+                io::Error::from_raw_os_error(code.cast_signed())
             );
             state.phase = Phase::Failed;
             return;
