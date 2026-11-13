@@ -28,6 +28,7 @@ fn main() {
                 WatchEventKind::Renamed { from, to } => {
                     println!("  {} -> {}", from.display(), to.display())
                 }
+                WatchEventKind::Rescan => println!("  ! events lost, rescan {:?}", event.path),
             }
         }
     }

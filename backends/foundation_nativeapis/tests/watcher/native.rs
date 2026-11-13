@@ -40,6 +40,7 @@ impl Drop for TempDir {
 
 /// Helper: poll the watcher until we get events or timeout.
 /// Retries a few times because inotify can have small delays.
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 fn poll_until_events(
     watcher: &mut impl NativeWatcher,
     timeout: Duration,
@@ -55,7 +56,7 @@ fn poll_until_events(
 }
 
 /// Test: InotifyWatcher detects file creation
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_creation() {
@@ -80,7 +81,7 @@ fn inotify_detects_file_creation() {
 }
 
 /// Test: InotifyWatcher detects file modification
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_modification() {
@@ -106,7 +107,7 @@ fn inotify_detects_file_modification() {
 }
 
 /// Test: InotifyWatcher detects file deletion
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_deletion() {
@@ -135,7 +136,7 @@ fn inotify_detects_file_deletion() {
 }
 
 /// Test: InotifyWatcher detects file rename
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_detects_file_rename() {
@@ -168,7 +169,7 @@ fn inotify_detects_file_rename() {
 }
 
 /// Test: InotifyWatcher unwatch stops receiving events
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_unwatch_stops_events() {
@@ -192,7 +193,7 @@ fn inotify_unwatch_stops_events() {
 }
 
 /// Test: InotifyWatcher clear removes all watches
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_clear_removes_all_watches() {
@@ -380,7 +381,7 @@ fn watcher_builder_fallback_poll() {
 ///
 /// HOW: `has_events()` now asks `FIONREAD` (non-destructive) and `poll()` reads
 /// the fd directly rather than gating on an epoll edge.
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 #[serial]
 #[test]
 fn inotify_has_events_does_not_consume_the_readiness_edge() {
