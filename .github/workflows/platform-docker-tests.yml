@@ -38,12 +38,12 @@ on:
 jobs:
   # ── macOS VM host ───────────────────────────────────────────────────────
   macos-tests:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     # The macOS image is large and plays its guest disk on a cold runner, which
     # installs macOS from scratch. The smoke test does not wait for that install.
     timeout-minutes: 30
     steps:
-      - uses: useblacksmith/checkout@v1
+      - uses: actions/checkout@v4.4.0
 
       - name: Smoke-test the macOS VM host
         # `docker-compose.yaml` defaults these to the developer's own
@@ -85,10 +85,10 @@ jobs:
 
   # ── Windows VM host ─────────────────────────────────────────────────────
   windows-tests:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: useblacksmith/checkout@v1
+      - uses: actions/checkout@v4.4.0
 
       - name: Smoke-test the Windows VM host
         # The Windows image publishes its web console on host port 8008.
@@ -125,10 +125,10 @@ jobs:
 
   # ── Platform unit tests (in-memory, no Docker needed) ──────────────────
   platform-unit:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: useblacksmith/checkout@v1
+      - uses: actions/checkout@v4.4.0
 
       # `foundation_platform` depends on `tauri`, whose Linux build needs the
       # GTK/WebKit development packages. Without them `cargo test` stops in

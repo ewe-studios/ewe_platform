@@ -40,9 +40,9 @@ jobs:
           import tomllib
           cfg = tomllib.load(open(".github/diagnose.toml", "rb"))
           runners = {
-              "linux": "blacksmith-4vcpu-ubuntu-2404",
-              "macos": "blacksmith-6vcpu-macos-26",
-              "windows": "blacksmith-4vcpu-windows-2025",
+              "linux": "ubuntu-latest",
+              "macos": "macos-26",
+              "windows": "windows-2025",
           }
           print(f"runner={runners[cfg['os']]}")
           PY

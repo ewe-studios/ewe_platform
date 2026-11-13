@@ -78,8 +78,7 @@
 #                             the most jobs of one matrix (shards, on macOS and Windows) that run at once
 #                             (`strategy.max-parallel` in check.yaml). Free
 #                             GitHub plans run about 20 jobs at once, with at
-#                             most 5 macOS jobs, and Blacksmith free minutes
-#                             are limited. The defaults (8, 2, 2) stay well below
+#                             most 5 macOS jobs. The defaults (8, 2, 2) stay well below
 #                             that, so jobs queue and do not stampede.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
