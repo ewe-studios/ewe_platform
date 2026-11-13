@@ -31,7 +31,7 @@ fn load() -> LlamaModels {
         model_location: Some(fixture()),
         lora_location: None,
     };
-    LlamaBackends::LLamaCPU
+    LlamaBackends::cpu(Ctx::host())
         .load_model(spec, &LlamaBackendConfig::default())
         .expect("tiny GGUF fixture loads on the CPU build")
 }

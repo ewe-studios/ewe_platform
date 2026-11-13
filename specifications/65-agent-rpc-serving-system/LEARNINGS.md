@@ -1177,3 +1177,10 @@ cleanly but no longer fit together. What we learned:
   `macos-tests = "none"` entries name the issues, so a local macOS failure of
   these targets is not a merge regression. Run `scripts/ci/linux.sh` for the
   Linux result.
+- **A feature-gated tree hides a master API rename.** `foundation_ai` replaced
+  the `LlamaBackends` enum variants (`LLamaCPU`, `LLamaGPU`, `LLamaMetal`) with
+  the constructors `cpu(ctx)`, `gpu(ctx)` and `metal(ctx)`, each of which now
+  takes a `Ctx`. Only the `gguf` feature compiles `model.rs`'s GGUF loader and
+  `tests/gguf_share_tests.rs`, so every default-feature build and test passed.
+  The Linux CI run of the package's second `runs` entry found the break. After a
+  merge, run every entry of a package's `runs` list, not just the default one.

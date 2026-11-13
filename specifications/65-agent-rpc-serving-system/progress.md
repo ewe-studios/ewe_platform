@@ -470,3 +470,7 @@ Same day, before the commit:
   `run_unary_interceptors`, and the build is clean under `-D warnings`.
 - #550 records three `[workspace.dependencies]` entries that no workspace
   member uses (severity low).
+- The Linux CI run failed the `gguf` test entry: `foundation_ai` renamed the
+  `LlamaBackends` constructors to `cpu(ctx)`, `gpu(ctx)` and `metal(ctx)`.
+  `model.rs` and `gguf_share_tests.rs` now call these, and the `gguf` feature
+  tree compiles again.

@@ -139,7 +139,7 @@ impl ModelHandle {
                 let name = name.clone();
                 let path = path.clone();
                 let device = *device;
-                Self::load_with(name.clone(), move || load_gguf(&name, &path, device))
+                Self::load_with(name.clone(), move || load_gguf(&name, &path, device, ctx))
             }
         }
     }
@@ -248,14 +248,15 @@ fn load_gguf(
     name: &str,
     path: &std::path::Path,
     device: GgufDevice,
+    ctx: Ctx,
 ) -> AgentRpcResult<foundation_ai::backends::llamacpp::LlamaModels> {
     use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
     use foundation_ai::types::ModelSpec;
 
     let backend = match device {
-        GgufDevice::Cpu => LlamaBackends::LLamaCPU,
-        GgufDevice::Gpu => LlamaBackends::LLamaGPU,
-        GgufDevice::Metal => LlamaBackends::LLamaMetal,
+        GgufDevice::Cpu => LlamaBackends::cpu(ctx),
+        GgufDevice::Gpu => LlamaBackends::gpu(ctx),
+        GgufDevice::Metal => LlamaBackends::metal(ctx),
     };
     let spec = ModelSpec {
         name: name.to_string(),
