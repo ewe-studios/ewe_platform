@@ -1,4 +1,4 @@
-/// Integration test: end-to-end file watching with InotifyWatcher and PollWatcher.
+/// Integration test: end-to-end file watching with `InotifyWatcher` and `PollWatcher`.
 ///
 /// Tests that actual filesystem events are detected on the current platform.
 use foundation_nativeapis::NativeWatcher;
@@ -224,7 +224,7 @@ fn inotify_clear_removes_all_watches() {
     );
 }
 
-/// Test: PollWatcher detects file creation (fallback, slower)
+/// Test: `PollWatcher` detects file creation (fallback, slower)
 #[serial]
 #[test]
 fn poll_watcher_detects_file_creation() {
@@ -244,12 +244,11 @@ fn poll_watcher_detects_file_creation() {
     // PollWatcher detects directory metadata change (mtime changes on file creation)
     assert!(
         !events.is_empty(),
-        "Expected at least one event for poll_test.txt creation, got: {:?}",
-        events
+        "Expected at least one event for poll_test.txt creation, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher detects file deletion (by stat change)
+/// Test: `PollWatcher` detects file deletion (by stat change)
 #[serial]
 #[test]
 fn poll_watcher_detects_file_deletion() {
@@ -276,12 +275,11 @@ fn poll_watcher_detects_file_deletion() {
     // PollWatcher detects directory metadata change
     assert!(
         !events.is_empty(),
-        "Expected at least one event for file deletion, got: {:?}",
-        events
+        "Expected at least one event for file deletion, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher detects file modification
+/// Test: `PollWatcher` detects file modification
 #[serial]
 #[test]
 fn poll_watcher_detects_file_modification() {
@@ -309,12 +307,11 @@ fn poll_watcher_detects_file_modification() {
         events
             .iter()
             .any(|e| matches!(e.kind, foundation_nativeapis::WatchEventKind::Modified)),
-        "Expected Modified event for poll_modify.txt, got: {:?}",
-        events
+        "Expected Modified event for poll_modify.txt, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher unwatch stops receiving events
+/// Test: `PollWatcher` unwatch stops receiving events
 #[serial]
 #[test]
 fn poll_watcher_unwatch() {
@@ -333,12 +330,11 @@ fn poll_watcher_unwatch() {
         .expect("poll failed");
     assert!(
         events.is_empty(),
-        "Expected no events after unwatch, got: {:?}",
-        events
+        "Expected no events after unwatch, got: {events:?}"
     );
 }
 
-/// Test: PollWatcher handles non-existent path gracefully
+/// Test: `PollWatcher` handles non-existent path gracefully
 #[serial]
 #[test]
 fn poll_watcher_nonexistent_path() {
@@ -363,7 +359,7 @@ fn poll_watcher_nonexistent_path() {
     );
 }
 
-/// Test: WatcherBuilder builds a PollWatcher as fallback
+/// Test: `WatcherBuilder` builds a `PollWatcher` as fallback
 #[serial]
 #[test]
 fn watcher_builder_fallback_poll() {

@@ -54,7 +54,6 @@ const RECORD_HEADER_LEN: usize = 12;
 /// The smallest change buffer that the watcher accepts, in bytes.
 const MIN_BUFFER_SIZE: u32 = 64;
 
-
 /// Settings of a [`WinWatcher`].
 ///
 /// The defaults follow the Windows documentation. A read of a network share

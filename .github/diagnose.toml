@@ -14,7 +14,7 @@ os = "windows"
 package = "foundation_nativeapis"
 args = "--features watcher-windows --test watcher"
 filter = ""
-repeat = 10
+repeat = 20
 
 [env]
 RUST_BACKTRACE = "1"
