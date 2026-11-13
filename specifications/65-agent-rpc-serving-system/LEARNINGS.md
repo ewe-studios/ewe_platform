@@ -1184,3 +1184,14 @@ cleanly but no longer fit together. What we learned:
   `tests/gguf_share_tests.rs`, so every default-feature build and test passed.
   The Linux CI run of the package's second `runs` entry found the break. After a
   merge, run every entry of a package's `runs` list, not just the default one.
+- **Tests in one binary share one valtron worker pool.** The pool is global to
+  the process, and cargo runs every test of one binary in that process. A test
+  that holds workers for a long time (the gated streaming test waits on the
+  client, up to 5 × 10 s plus the poll turns) leaves the other tests waiting for
+  a worker. On a small CI runner the wait reached the 30 s call deadline, and
+  `chat_stream_round_trips_over_http1` failed with `[deadline_exceeded]`. The
+  test passed alone and in the default entry. The starvation can also show as
+  a server task that starts late. A call deadline in a test must outlast the
+  other tests of the same binary, not just the call itself; it is now 120 s.
+  The root cause is #551 (severity medium): one pool serves tests that block
+  workers. A test count or a thread count does not bound this wait.

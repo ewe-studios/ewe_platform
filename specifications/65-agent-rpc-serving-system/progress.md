@@ -474,3 +474,10 @@ Same day, before the commit:
   `LlamaBackends` constructors to `cpu(ctx)`, `gpu(ctx)` and `metal(ctx)`.
   `model.rs` and `gguf_share_tests.rs` now call these, and the `gguf` feature
   tree compiles again.
+- The second Linux CI run failed the `gguf` test entry again, this time in
+  `chat_stream_round_trips_over_http1` with `[deadline_exceeded]`. The cause is
+  worker starvation, not buffering: all tests in one test binary share
+  valtron's one global worker pool, and the gated streaming test holds workers
+  while it waits for the client. The call deadline in `connect_stream_tests.rs`
+  is now 120 s, so the starvation no longer reaches it. #551 records the
+  starvation (severity medium).

@@ -164,7 +164,12 @@ fn h2_client(base_url: &str) -> AgentServiceClient {
 }
 
 fn ctx() -> RpcCtx {
-    RpcCtx::background().with_deadline(Duration::from_secs(30))
+    // The tests in this binary share valtron's one global worker pool. The
+    // gated test holds workers while it waits for the client to receive each
+    // token, so on a small CI runner another test's server task can wait tens
+    // of seconds for a worker. The deadline must outlast that starvation; a
+    // real hang still fails the test, only later.
+    RpcCtx::background().with_deadline(Duration::from_secs(120))
 }
 
 #[valtron_test(threads = 12)]
