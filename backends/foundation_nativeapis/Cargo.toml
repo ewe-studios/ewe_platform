@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.14"
+version = "0.0.15"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,18 +13,18 @@ keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.20" }
-foundation_context = { path = "../foundation_context", version = "0.0.2" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.8", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.21" }
+foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.9", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.5", optional = true, default-features = false, features = ["std"] }
-foundation_db = { path = "../foundation_db", version = "0.0.7", optional = true, default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6", optional = true, default-features = false, features = ["std"] }
+foundation_db = { path = "../foundation_db", version = "0.0.8", optional = true, default-features = false }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
 
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.20", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.21", optional = true }
 cfg-if = "1"
 bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
@@ -56,7 +56,7 @@ smoltcp = { version = "0.12", default-features = false, features = [
 # the `native` module holds. A wasm build has no user of it, so the manifest
 # gates it to avoid an unused-dependency warning on that target.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.3" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.4" }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]
@@ -87,7 +87,7 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
 
 # Native-only storage backends — excluded on wasm32 because the local engine
 # (turso_core) does not compile without a host filesystem.
@@ -95,11 +95,11 @@ foundation_core = { path = "../foundation_core", version = "0.0.20", features = 
 turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
 # The signal delivery tests measure elapsed time with the foundation_compact
 # instant type. The library dependency is optional (the `vfs` features), so the
 # test target needs its own entry.
-foundation_compact = { path = "../foundation_compact", version = "0.2.5", default-features = false, features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false, features = ["std"] }
 foundation_arrow = { path = "../foundation_arrow" }
 foundation_macros = { path = "../foundation_macros" }
 tracing-test.workspace = true
@@ -134,7 +134,8 @@ required-features = ["fd"]
 [[test]]
 name = "watcher"
 path = "tests/watcher/mod.rs"
-required-features = ["watcher-linux"]
+# No `required-features`: the Linux tests are gated on `watcher-linux` and the
+# Windows tests on `watcher-windows` inside the test files.
 
 [[test]]
 name = "valtron_executor"

@@ -894,3 +894,36 @@ fn limited_eof_stream_reader_pieces_never_pass_batch_size() {
     }
     assert_eq!(collected, data);
 }
+
+/// A read that stalls after some data is an error, never a silent end (#520).
+///
+/// The reader used to return `None` when it ran out of retries after data had
+/// come. A body that stopped mid-way then looked complete to the caller.
+#[test]
+fn batch_reader_stall_after_data_is_an_error() {
+    struct DataThenWouldBlock {
+        sent: bool,
+    }
+    impl Read for DataThenWouldBlock {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            if self.sent {
+                return Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"));
+            }
+            self.sent = true;
+            buf[..4].copy_from_slice(b"part");
+            Ok(4)
+        }
+    }
+
+    let reader = BatchReader::new(DataThenWouldBlock { sent: false }).max_consecutive_retries(3);
+    let items: Vec<_> = reader.collect();
+    assert!(
+        matches!(items.first(), Some(Ok(Data::Bytes(b))) if b == b"part"),
+        "the first item is the data"
+    );
+    let last = items.last().expect("the reader yields items");
+    assert!(
+        matches!(last, Err(e) if e.kind() == io::ErrorKind::WouldBlock),
+        "a stall after data must end with an error, got {last:?}"
+    );
+}

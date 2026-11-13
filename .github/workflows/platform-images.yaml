@@ -83,7 +83,7 @@ permissions:
 jobs:
   ensure:
     name: Ensure image (${{ inputs.os }} ${{ inputs.flavor }})
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     outputs:
       image-ref: ${{ steps.image.outputs.ref }}
@@ -94,7 +94,7 @@ jobs:
       image-hash: ${{ steps.image.outputs.hash }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
@@ -134,8 +134,8 @@ jobs:
           username: ${{ steps.registry.outputs.username }}
           password: ${{ secrets.registry-password }}
 
-      - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
 
       - name: Free disk space
         if: inputs.free-disk

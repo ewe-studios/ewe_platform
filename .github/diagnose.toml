@@ -1,0 +1,21 @@
+# One test to run with its full output on one operating system.
+# The workflow .github/workflows/diagnose.yaml reads this file. A push that
+# changes this file starts the workflow. It does not run on a pull request.
+#
+#   os       linux, macos or windows
+#   package  the cargo package
+#   args     the arguments after `cargo test -p <package>` and before `--`
+#   filter   the test name filter (after `--`); empty runs every test
+#   repeat   how many times to run the test; the run stops at the first failure
+#   env      extra environment for the test
+
+# Issue #511: the Windows file watcher (completion port, safe unwatch).
+os = "windows"
+package = "foundation_nativeapis"
+args = "--features watcher-windows --test watcher"
+filter = ""
+repeat = 20
+
+[env]
+RUST_BACKTRACE = "1"
+RUST_LOG = "foundation_nativeapis=debug,info"

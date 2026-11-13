@@ -134,11 +134,63 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
   - Q31 covers the scope syntax and the origin registration. Q30 notes that the `server:`
     origin lowers the need for `#[remote_action]`.
 
+- 2026-11-13: the design specification is written from the owner decisions D1 to D40.
+  - `requirements.md`: glossary, the decisions adopted, the spec stories, the context map,
+    the three layers, the limits table, the rules for every feature and the Feature Index.
+  - `start.md`, and one `start.md` and one `feature.md` for each of 16 features under
+    `features/`. Each feature is a story with a bounded context, law worksheets, numbered
+    invariants, acceptance scenarios, a technical breakdown with fault tables, a test table,
+    the verify commands and a "Done when" list.
+  - The eight open questions take their recommendations (A1 to A8 in `requirements.md`
+    section 2.2). Nine design refinements over the research are listed as R1 to R9 in
+    section 2.3. The owner confirms both lists at approval.
+  - Three GitHub issues record what the design work found: #547 (CI does not run the
+    JavaScript runtime tests), #548 (the `Broadcaster` backlog has no limit), #549
+    (`chacha::encrypt` takes its nonce from the global entropy source).
+
+## Features
+
+Status key: pending, in progress, complete. Update this table when a feature changes state.
+
+| # | Feature | Model | Status |
+|---|---|---|---|
+| 01 | wire-schema-and-codegen | Sonnet | pending |
+| 02 | vocabulary-and-platform-forms | Sonnet | pending |
+| 03 | frame-writer-and-tiers | Sonnet | pending |
+| 04 | signed-state | Sonnet | pending |
+| 05 | action-runtime | Sonnet | pending |
+| 06 | action-macro | Sonnet | pending |
+| 07 | dispatcher-and-handshake | Sonnet | pending |
+| 08 | html-macro-core-vocabulary | Sonnet | pending |
+| 09 | web-frame-applicator | Sonnet | pending |
+| 10 | web-action-manager | Sonnet | pending |
+| 11 | live-mounts-and-server-streams | Sonnet | pending |
+| 12 | legacy-wire-retirement | Sonnet | pending |
+| 13 | native-core-and-commands | Sonnet | pending |
+| 14 | native-ios-renderer | Sonnet | pending |
+| 15 | native-android-renderer | Sonnet | pending |
+| 16 | behaviour-matrix | Sonnet | pending |
+
+**Phase gate for feature 13:** not open. It opens when the browser scenario of feature 10
+is recorded here as passed.
+
 ## In progress
 
-- None. The research records the owner's answers in `questions.md`.
+- The owner reviews the adopted items one at a time (17 items: A1 to A8, five design
+  choices, `WasmEnvelope`, `NativeBehaviour`, two known gaps).
+  - Item 1 (A1) is closed: D41 in `requirements.md` section 2.4. A frame is one list of
+    operations; the columnar batch is one operation type; no threshold.
+  - Item 2 (A2) is closed: D42. The ten elements are accepted. Operations are grouped by
+    type: `UiOperation` (shared), `WebOperation`, `MobileOperation`; a reader ignores a
+    type that it does not care about.
+  - The feature files are not yet revised for D41 and D42. Revise them one time, after the review
+    ends: features 01, 02, 03, 07, 09, 11, 14, 15 and `requirements.md` sections 2.2, 5.4
+    and 5.6.
 
 ## Next
 
-- The owner answers the remaining open questions: Q6, Q9, Q18, Q26, Q27, Q28, Q30 and Q31.
-- The design specification starts from the answers.
+1. The owner reads `requirements.md` sections 2.2 and 2.3 and confirms or changes A1 to A8
+   and R1 to R9.
+2. The owner approves the acceptance scenarios of the features, or asks for changes.
+3. After approval: feature 01 starts. Features 02 and 04 can start when 01 is complete.
+   Follow the order of the Feature Index.
