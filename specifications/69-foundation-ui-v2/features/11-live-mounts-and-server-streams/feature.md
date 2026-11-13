@@ -1,16 +1,16 @@
 ---
 feature: "live-mounts-and-server-streams"
-description: "The live mount contract on the web and the server: a live channel that sends Frames in sequence order with a replay backlog and resume, the mount elements on the frame protocol, and frames from local WASM logic."
+description: "The live mount contract on the web and the server: a live channel that sends Frames of Messages in sequence order with a replay backlog and resume, the mount elements on the frame protocol, and bare frames from local WASM logic."
 status: "pending"
 priority: "high"
 model: "sonnet"
-depends_on: ["03-frame-writer-and-tiers", "09-web-frame-applicator"]
+depends_on: ["03-frame-writer", "09-web-frame-applicator"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-13
+last_updated: 2026-11-14
 author: "Main Agent"
 crates: ["foundation_wasm_ui", "foundation_wasm", "foundation_browser"]
-decisions: ["D4", "D15", "D25", "D29", "D30", "D39", "D40"]
+decisions: ["D4", "D15", "D25", "D29", "D30", "D39", "D40", "D41", "D42", "D44", "D45", "D46", "D55", "D59"]
 tasks:
   completed: 0
   uncompleted: 11
@@ -32,10 +32,13 @@ the STE standard ASD-STE100.
 
 A live mount is a region that marks itself live, opens a channel, and applies the frames
 that arrive, in order. This feature gives the live mode of the server a channel that sends
-`Frame` buffers with sequence ids, keeps a replay backlog and serves a resume. The existing
-`<mount-stream>` and `<mount-data>` elements carry frames with no new transport. Local WASM
-logic sends the same frames through `host_apply`. The current `Broadcaster` and the current
-wires stay as they are.
+`Frame` buffers with sequence ids. Each frame of kind `FrameMessage` holds a list of
+`Message` items. An item holds one `operation` table (`ui`, `web`, `mobile` or `columnar`),
+or one `data` or `control` table (D41, D44, D45). The channel
+keeps a replay backlog and serves a resume. The existing `<mount-stream>` and
+`<mount-data>` elements carry frames with no new transport. Local WASM logic sends the same
+bare `Frame` bytes through `host_apply`, with no `WasmEnvelope` (D55). The current
+`Broadcaster` and the current wires stay as they are.
 
 ## 2. Story
 
@@ -51,11 +54,11 @@ wires stay as they are.
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Push | Server App | `stabilize()` with pending ops | One frame per mount surface, sent to each connection of that surface |
+| U1 | Push | Server App | `stabilize()` with pending messages | One frame per mount surface, sent to each connection of that surface |
 | U2 | Join | Client | `LiveChannel::register(conn, caps, 0)` | The whole backlog, then live frames |
 | U3 | Resume | Client | `register(conn, caps, n)` | The frames after `n`, then live frames |
 | U4 | Latest only | `<mount-data>` on the frame protocol | Several frames before a flush | Only the newest applies |
-| U5 | Local frames | WASM App | `App::frames()` and `stabilize()` | A bare frame through `host_apply`; the applicator applies it |
+| U5 | Local frames | WASM App | `App::frames()` and `stabilize()` | A bare `Frame` through `host_apply`; the applicator applies it |
 | U6 | Close | Region unmount | `disconnectedCallback` | The transport disconnects (existing behaviour) |
 
 ## 3. Bounded context
@@ -72,8 +75,8 @@ behaviour of the mount elements in `foundation-ui-frames.js`.
 | `Broadcaster`, `BroadcastTx`, `BroadcastSink`, `FrameTransport` | `foundation_wasm_ui::server` (spec 39). They do not change (D15, D40) |
 | `App`, the signal graph, `stabilize` | `foundation_wasm_ui`, `foundation_signals` |
 | `web_form` | Feature 02 |
-| `gate`, `write_ops`, `StreamSequencer`, `ClientCaps` | Feature 03 |
-| `FrameApplicator` (ordering, `onGap`, `setCursor`), the `LiveMount` element creation, the frame routing seams | Feature 09 |
+| `gate`, `write_messages`, `StreamSequencer`, `ClientCaps` | Feature 03 |
+| `FrameApplicator` (ordering, `onGap`, `setCursor`), the `LiveMount` element creation, the frame routing seams | Feature 09. The `LiveMount` operation itself is shared and in the `ui` field (D42) |
 | The SSE and WebSocket servers and the header negotiation | The host and `foundation_browser`'s test server (D25, D30) |
 | The native live mount record | Features 14 and 15 |
 
@@ -85,14 +88,16 @@ behaviour of the mount elements in `foundation-ui-frames.js`.
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
-| `push_ops` | story | App | Gate per surface, encode, store, send to each connection |
+| `push_messages` | story | App | Gate per surface, encode, store, send to each connection |
 | `register` | story | A new connection | Replay from the backlog, then add the connection |
 | `close` | entity | Teardown | Drops the connections |
 | resume (web) | story | `onGap` or a reconnect | The mount reconnects with `resume_from` |
 
 **Words.** "Channel" is one ordered stream of frames with one `stream_id`. "Backlog" is the
 list of frames a late or resuming client can get. "Resume" is a register with a
-`resume_from` greater than 0.
+`resume_from` greater than 0. "Message" is one list entry of `FrameMessage.messages`: one
+`operation` table, or one `data` or `control` table (D44). "Unit" is one `Operation`
+table with at most one of its four fields set (D41).
 
 ## 4. Rules
 
@@ -128,13 +133,14 @@ Links to other entities: none
 |---|---|
 | I1 | A connection receives the frames of its channel in strictly increasing sequence order, with no gap after its first frame. |
 | I2 | `register(conn, caps, n)` sends exactly the stored frames with sequence id greater than `n`, in order, before any live frame. |
-| I3 | A connection with `mount: Native` never receives a `Web` form from a channel; a connection with `mount: Web` never receives a `Mobile` form. |
+| I3 | A connection with `mount: Native` never receives a `web` field from a channel; a connection with `mount: Web` never receives a `mobile` field. |
 | I4 | A push stores the frame before it sends it, and a register replays under the same lock, so a connection never misses a frame between its replay and its first live frame. |
 | I5 | A connection whose `send_binary` returns false is removed and gets no more frames. The other connections are not affected. |
 | I6 | When `max_frames` is set, `register` with `n` lower than `oldest - 1` (frames between were dropped) fails with `LiveError::ResumeTooOld` and sends nothing. |
 | I7 | A `<mount-data>` on the frame protocol applies only the newest queued frame of its stream at a flush. A `<mount-stream>` applies every frame. |
-| I8 | A frame from local WASM logic and a frame from the server with the same ops give the same DOM. |
+| I8 | A bare `Frame` from local WASM logic and a `Frame` from the server with the same messages give the same DOM. |
 | I9 | The existing `Broadcaster` tests and the existing mount tests pass with no change. |
+| I10 | Every message of a `Frame` holds its operation in one field: the `ui`, `web` or `mobile` union member. The channel does not choose a field for the sender (D41). |
 
 ### 4.3 Must have
 
@@ -147,9 +153,11 @@ Links to other entities: none
 
 ### 4.4 Must do
 
-- Encode a pushed batch one time for the web surface and one time for the native surface,
+- Encode a pushed list one time for the web surface and one time for the native surface,
   and only for a surface that has a connection or when the backlog must hold it (always
   store both encodings; a later joiner of either surface needs them).
+- Remove the `web` field from each message before a frame goes to a native connection, and
+  the `mobile` field before it goes to a web connection (D42).
 - Use the existing transports. A binary frame goes through `FrameTransport::send_binary`;
   the page detects it by its identifier (feature 09 seam 2 and 5).
 
@@ -158,7 +166,9 @@ Links to other entities: none
 - Do not change `Broadcaster`, `BroadcastTx`, `BroadcastSink` or `FrameTransport`.
 - Do not prescribe a thread, a Durable Object or a replica layout (D30).
 - Do not let a stream frame change a component's signed state by a side path. A push that
-  changes state sends an `AttachState` op in the batch.
+  changes state sends an `AttachState` unit in the `ui` field of a message.
+- Do not wrap a UI frame in a `WasmEnvelope`. The local UI path sends bare `Frame` bytes
+  (D55). The general WASM ABI keeps its envelope.
 - Do not spin on a slow connection. A full transport queue returns false, and the
   connection is dropped (the client resumes).
 
@@ -171,8 +181,8 @@ Feature: Live mounts and server streams
 
   Scenario: A push reaches every connection in order
     Given a LiveChannel for stream 7 with two web connections
-    When the App pushes [SetText(42,"1")] and then [SetText(42,"2")]
-    Then each connection received two frames with sequence 1 and 2, stream 7 and ack_action 0
+    When the App pushes a Message with ui SetText(node 42, "1") and then the same with "2"
+    Then each connection received two frames with sequence 1 and 2, stream 7 and ack 0
 
   Scenario: A late joiner gets the backlog first
     Given a LiveChannel that pushed 3 frames
@@ -185,11 +195,12 @@ Feature: Live mounts and server streams
     When a web connection registers with resume_from 3
     Then it received exactly the frames with sequence 4 and 5
 
-  Scenario: Each surface gets its own forms
+  Scenario: Each surface gets its own fields
     Given a LiveChannel with one web connection and one native connection
-    When the App pushes [SetText(42,"x"), HtmlMorph(node 40,"<b>x</b>"), NativeCommand(HAPTIC)]
-    Then the web connection's frame holds SetText and HtmlMorph
-    And the native connection's frame holds SetText and NativeCommand
+    When the App pushes three Messages, one with ui SetText, one with web HtmlMorph, one with mobile NativeCommand
+    Then the web frame's first message has the ui field and its second has the web field
+    And the native frame's first message has the ui field and its second has the mobile field
+    And no message in the native frame has a web field
     And both frames have sequence 1
 
   Scenario: A dead connection is dropped and the others continue
@@ -209,10 +220,11 @@ Feature: Live mounts and server streams
     When a connection registers with ClientCaps whose vocabulary_version is 0
     Then register fails with LiveError::UpdateRequired
 
-  Scenario: The App sink turns DomOps into frames
+  Scenario: The App sink turns DomOps into messages
     Given an App built with FrameBroadcastSink over a LiveChannel with a recording web connection
     When the App mounts <span>{count}</span> and sets count to 5 and stabilizes
     Then the recording connection received frames
+    And each message holds one ui or web field
     And applying them to an empty mock document gives a span with the text "5"
 
   Scenario: A mount-stream on the frame protocol applies every frame
@@ -238,10 +250,11 @@ Feature: Live mounts and server streams
     Then host_apply received bytes whose bytes 4 to 8 are "EWF1"
     And the JS dispatcher passed them to the frame handler, not to a protocol-byte handler
 
-  Scenario: An old envelope from WASM still works
+  Scenario: A general ABI envelope still works
     Given the frame seam is installed
-    When host_apply receives a 14-byte-envelope columnar message
-    Then the columnar handler applied it
+    When host_apply receives a 14-byte-envelope message from the general ABI
+    Then its protocol handler applied it
+    And the frame handler did not receive it
 ```
 
 ## 6. Technical breakdown
@@ -258,6 +271,10 @@ Feature: Live mounts and server streams
 | JS `host_apply(memId, ptr, len)` calls `dispatcher.dispatch(memory.get(memId).bytes)` and then disposes the slot; `ProtocolDispatcher.dispatch` parses the `WasmEnvelope` and picks a handler by protocol byte | `backends/foundation_wasm/runtime/foundation-wasm.js:1967-1973`, `:1363-1383` |
 | `<mount-stream>` reads `api`, `transport`, `protocol`, `target`, `data`; default transport `sse`; `disconnectedCallback` disconnects | `backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js:2334-2393` |
 | An SSE `arrow` event is base64 of an envelope-framed message and goes to `decodeEnvelopeFrame` | `foundation-wasm-ui.js:1958-1967` |
+
+The `WasmEnvelope` in the fourth and fifth rows belongs to the current UI path. D55 removes
+it for UI operations only: a UI frame travels as bare `Frame` bytes in this feature. The
+general WASM ABI keeps the 14-byte header for calls, timers, callbacks and group returns.
 
 ### 6.2 Files
 
@@ -322,9 +339,10 @@ impl LiveChannel {
 #[derive(Clone)]
 pub struct LiveTx { /* inner: Arc<Mutex<LiveInner>> */ }
 impl LiveTx {
-    /// Encodes `ops` for each mount surface, stores the frames, sends them.
+    /// Removes each platform field that the surface cannot use, encodes `messages` for
+    /// each mount surface, stores the frames, sends them.
     /// Returns the sequence id of the frame.
-    pub fn push_ops(&self, ops: Vec<OpT>) -> Result<u64, LiveError>;
+    pub fn push_messages(&self, messages: Vec<MessageT>) -> Result<u64, LiveError>;
 }
 
 /// An App protocol sink that sends each batch as a frame through a `LiveTx`.
@@ -341,10 +359,10 @@ backlog: VecDeque<StoredFrame>, sequencer: StreamSequencer, config, writer }` an
 Version 1 serves two capability sets: `ClientCaps::web_current()` and
 `ClientCaps::native_current(Platform::Unknown)`. `register` maps `caps.mount` to one of
 them and fails with `UpdateRequired` when `caps.vocabulary_version != VOCABULARY_VERSION`.
-`caps.known_actions` is not used here: a live frame from an App carries no `BindAction`
-that the App did not render for this build.
+The hello of a live connection sends no action list (D54), so the channel has no name
+table to check.
 
-### 6.4 `push_ops` and `register`
+### 6.4 `push_messages` and `register`
 
 ```mermaid
 sequenceDiagram
@@ -354,9 +372,9 @@ sequenceDiagram
     participant C1 as Web connection
     participant C2 as Native connection
     A->>S: encode_and_write(DomOps)
-    S->>S: web_form for each DomOp
-    S->>L: push_ops(ops)
-    L->>L: seq = last + 1; gate + write_ops for web and for native
+    S->>S: web_form for each DomOp, then one Message per form
+    S->>L: push_messages(messages)
+    L->>L: seq = last + 1; gate + write_messages for web and for native
     L->>L: store StoredFrame; advance the sequencer; drop the oldest if over the limit
     L->>C1: send_binary(web bytes)
     L->>C2: send_binary(native bytes)
@@ -366,11 +384,13 @@ sequenceDiagram
 _The diagram shows one push. The lock covers the encode, the store and the sends, so a
 register cannot run between them._
 
-**`push_ops`**, under the lock:
+**`push_messages`**, under the lock:
 
-1. `header = FrameHeader { stream_id, sequence_id: sequencer.last() + 1, ack_action: 0 }`.
-2. `write_ops(ops.clone(), &web_caps, header, &writer)` and the same for native. An error
-   returns `LiveError::Write`; nothing is stored and the sequencer does not move.
+1. `header = FrameHeader { stream_id, sequence_id: sequencer.last() + 1, ack: 0 }`.
+2. `write_messages(messages.clone(), &web_caps, header, &writer)` and the same for native.
+   Each frame has kind `FrameMessage` with ack 0: it is a push, not an answer.
+   The native copy has no `web` field in any message (D42). An error returns
+   `LiveError::Write`; nothing is stored and the sequencer does not move.
 3. `sequencer.next()`; push the `StoredFrame`; if a limit is set and the backlog is longer,
    pop from the front.
 4. `conns.retain_mut(|(mount, conn)| conn.send_binary(bytes for mount))`.
@@ -385,8 +405,9 @@ register cannot run between them._
    return gives `ConnectionClosed`, and the connection is not added.
 4. Add the connection.
 
-**`FrameBroadcastSink::encode_and_write`**: map each `DomOp` with `web_form`; call
-`tx.push_ops`; on an error, log it with `tracing::error!` and report zero bytes in the
+**`FrameBroadcastSink::encode_and_write`**: map each `DomOp` with `web_form`; wrap each
+`WireForm` member in one `MessageT` with its `operation` field set (`ui` or `web`); call
+`tx.push_messages`; on an error, log it with `tracing::error!` and report zero bytes in the
 `SendResult` (the trait returns no error; this matches how `BroadcastSink` cannot fail).
 Return `(SendResult { memory_id: MemoryId::new(id, 0), op_count, encoded_bytes }, null, 0)`
 as `BroadcastSink` does.
@@ -416,7 +437,8 @@ as `BroadcastSink` does.
 4. **`LiveMount` transport `Local`.** The element gets `transport="local"`. A local mount
    opens no network channel: its frames arrive from WASM through `host_apply`
    (section 6.6) and are routed by `stream_id`. `mountSetup` is not called for it; the
-   wrapper of item 2 returns early for `transport="local"`.
+   wrapper of item 2 returns early for `transport="local"`. The `LiveMount` operation that
+   creates the element is shared and travels in the `ui` field (D42).
 
 The resume URL parameters are a convention of this runtime. The host reads them and calls
 `LiveChannel::register(conn, caps, resume_from)`. The frame protocol itself does not
@@ -436,19 +458,20 @@ impl FrameV1 {
 pub const PROTOCOL_FRAME: u8 = 3;
 impl ProtocolHandler for FrameV1 { /* protocol_byte PROTOCOL_FRAME, version 1; send_to_js = ship */ }
 impl ProtocolMethods<Vec<DomOp>> for FrameV1 {
-    // encode_and_write: web_form each op; write_ops(ops, &ClientCaps::web_current(),
-    //   sequencer.header(0), &config); allocate one arena slot of the frame length; copy the
-    //   frame bytes into it with no header; return (SendResult, ptr, len).
+    // encode_and_write: web_form each op, wrap each form in one MessageT; write_messages(
+    //   messages, &ClientCaps::web_current(), sequencer.header(0), &config); allocate one
+    //   arena slot of the frame length; copy the frame bytes into it with no header;
+    //   return (SendResult, ptr, len).
     // handle_received: Ok(Vec::new()) (send-only, as BroadcastSink).
 }
 impl App { /// An App that ships frames to the page (D29).
     #[must_use] pub fn frames() -> Self { Self::with_protocol(FrameV1::new(0)) } }
 ```
 
-A `write_ops` error here is a bug in the op list (for example a frame above the limit).
-`encode_and_write` cannot return it, so it logs with `tracing::error!`, ships nothing, and
-returns a `SendResult` with `op_count: 0`. The arena calls keep the `expect` style of
-`ColumnarV1::write_batch`.
+A `write_messages` error here is a bug in the message list (for example a frame above the
+limit). `encode_and_write` cannot return it, so it logs with `tracing::error!`, ships
+nothing, and returns a `SendResult` with `op_count: 0`. The arena calls keep the `expect`
+style of `ColumnarV1::write_batch`.
 
 The slot address may not be 8-aligned. Then the applicator copies the columns and counts
 them (feature 09 I7). This is correct, and it is visible in `stats`.
@@ -483,7 +506,7 @@ as the first statement inside the `try`:
 
 ### 6.8 Fault tables
 
-**`push_ops`**
+**`push_messages`**
 
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
@@ -503,7 +526,7 @@ as the first statement inside the `try`:
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
 | The reconnect fails | The existing transport retry of the mount applies (`reconnectDelay`) | The existing console error of the mount | The cursor stays; the region shows its last applied frame |
-| The server answers `ResumeTooOld` (the host maps it to an `Error` frame with code `UpdateRequired`) | The applicator calls `onError` | `ewe:error` on `document` | The region is stale until the page reloads. The action runtime of feature 10 reloads on `UpdateRequired` |
+| The server answers `ResumeTooOld` (the host maps it to a message with `control.error` and code `UpdateRequired`) | The applicator calls `onError` | `ewe:error` on `document` | The region is stale until the page reloads. The action runtime of feature 10 reloads on `UpdateRequired` |
 
 ## 7. Tests
 
@@ -511,31 +534,32 @@ as the first statement inside the `try`:
 |---|---|---|
 | I1; Scenario: push in order | `tests/live_channel_tests.rs::push_reaches_every_connection_in_order`; `::sequences_have_no_gap` (50 pushes, 3 connections that join at pushes 0, 10 and 20 with resume 0) | example, property |
 | I2; Scenarios: late joiner, resume | `live_channel_tests.rs::late_joiner_gets_backlog_first`, `::resume_gets_only_missed_frames` | example |
-| I3; Scenario: each surface | `live_channel_tests.rs::each_surface_gets_its_own_forms` | example |
+| I3; Scenario: each surface | `live_channel_tests.rs::each_surface_gets_its_own_fields` | example |
 | I4 | `live_channel_tests.rs::no_frame_is_missed_between_replay_and_live`: one thread pushes 1000 frames while another registers 20 connections at random points (seeded); each connection's frames are consecutive from its first | stateful model |
 | I5; Scenario: dead connection | `live_channel_tests.rs::dead_connection_is_dropped` | fault |
 | I6; Scenario: resume too old | `live_channel_tests.rs::resume_too_old_is_refused`, `::bounded_backlog_drops_oldest` | expected outcome |
 | Scenario: older vocabulary | `live_channel_tests.rs::older_vocabulary_is_refused` | expected outcome |
-| Scenario: App sink | `live_channel_tests.rs::app_sink_turns_dom_ops_into_frames` (decode with `read_frame` and `columnar_rows`; compare with `web_form` of the DomOps that a `MockProtocol` App records for the same steps) | metamorphic |
+| Scenario: App sink | `live_channel_tests.rs::app_sink_turns_dom_ops_into_messages` (decode with `read_frame` and `columnar_rows`; compare with `web_form` of the DomOps that a `MockProtocol` App records for the same steps) | metamorphic |
+| I10 | `live_channel_tests.rs::every_message_holds_one_operation_field` (read the frame with `read_frame`; each `Message` sets exactly one of `ui`, `web`, `mobile`, `columnar`) | expected outcome |
 | Fault: encode error leaves the sequencer | `live_channel_tests.rs::write_error_uses_no_sequence` (a `WriterConfig` with `max_frame_bytes` 64) | fault |
 | I7; Scenarios: mount-stream, mount-data | `integration/test/frames-live.test.js` "mount-stream applies every frame", "mount-data keeps the latest value" | example |
 | Scenario: gap reconnect | `frames-live.test.js` "a gap reconnects with resume_from" (fake transport that records `connect` URLs) | example |
-| I8; Scenarios: local WASM frames, old envelope | `tests/frame_protocol_tests.rs::frame_v1_ships_bare_frames` (native: the slot bytes pass `read_frame`); `frames-live.test.js` "dispatcher routes EWF1 to the frame handler", "an old envelope still dispatches by protocol byte"; `frames-live.test.js` "local and server frames give the same DOM" (the same fixture through `frameHandler` and through `Patcher.route`) | example, metamorphic |
+| I8; Scenarios: local WASM frames, general ABI envelope | `tests/frame_protocol_tests.rs::frame_v1_ships_bare_frames` (native: the slot bytes pass `read_frame`); `frames-live.test.js` "dispatcher routes EWF1 to the frame handler", "a general ABI envelope still dispatches by protocol byte"; `frames-live.test.js` "local and server frames give the same DOM" (the same fixture through `frameHandler` and through `Patcher.route`) | example, metamorphic |
 | Local mount opens no network channel | `frames-live.test.js` "a local live mount does not connect" | example |
 | I9 | `cargo test -p foundation_wasm_ui` and `mise run ui-web:test` pass with no edit to an existing test | expected outcome |
-| End to end | `examples/ui_counter/tests/counter_browser_tests.rs::live_region_updates_and_resumes`: the example gains a `/live` SSE route over a `LiveChannel` and a `<mount-stream protocol="frame">` clock region; the test sees two updates, drops the connection through the test server, and sees the next update after the reconnect | example |
+| End to end | `examples/ui_todo/tests/todo_browser_tests.rs::live_region_updates_and_resumes`: the example gains a `/live` SSE route over a `LiveChannel` and a `<mount-stream protocol="frame">` region that shows the open-item count; the test sees the count change twice, drops the connection through the test server, and sees the next change after the reconnect | example |
 
 ## 8. Tasks
 
 - [ ] 1. Read issue #548; add a comment to it that names `LiveChannel` when this feature lands.
 - [ ] 2. `BacklogConfig`, `LiveError`, `LiveChannel::new`, `register`, `close` with tests.
-- [ ] 3. `LiveTx::push_ops` with tests, including the concurrent test of I4.
+- [ ] 3. `LiveTx::push_messages` with the per-surface field removal and tests, including the concurrent test of I4.
 - [ ] 4. `FrameBroadcastSink` with its test.
 - [ ] 5. `FrameV1`, `App::frames`, `PROTOCOL_FRAME` with tests.
 - [ ] 6. The seam in `foundation-wasm.js`; the `wasmRuntime` option of `installFrameRuntime`.
 - [ ] 7. `setLatestOnly`, the mount binding, the resume, the local transport; the seam of section 6.7.
 - [ ] 8. `frames-live.test.js`.
-- [ ] 9. The `/live` route in the test server and in `examples/ui_counter`; the browser test.
+- [ ] 9. The `/live` route in the test server and in `examples/ui_todo`; the browser test.
 - [ ] 10. Bump crate versions.
 - [ ] 11. Update `progress.md` and `learnings.md`.
 
@@ -550,7 +574,7 @@ cargo test   -p foundation_wasm --profile uat
 cargo test   -p foundation_browser --profile uat
 mise run ui-web:test
 node --check backends/foundation_wasm/runtime/foundation-wasm.js
-cargo test   -p ui_counter --profile uat
+cargo test   -p ui_todo --profile uat
 mise run test:browser
 git diff --stat backends/foundation_wasm_ui/src/server/mod.rs   # two added lines only
 ```

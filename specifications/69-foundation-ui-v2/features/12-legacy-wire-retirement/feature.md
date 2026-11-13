@@ -1,16 +1,16 @@
 ---
 feature: "legacy-wire-retirement"
-description: "Prove that the frame wire delivers the same web function, switch the defaults to it, move the internal code from DomOp to the generated ops, then remove the old envelope, encoders, parser and DomOp."
+description: "Prove that the frame wire delivers the same web function, switch the defaults to it, move the internal code from DomOp to the generated operation units, then remove the old UI envelope, encoders, parser and DomOp."
 status: "pending"
 priority: "medium"
 model: "sonnet"
 depends_on: ["08-html-macro-core-vocabulary", "09-web-frame-applicator", "10-web-action-manager", "11-live-mounts-and-server-streams"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-13
+last_updated: 2026-11-14
 author: "Main Agent"
 crates: ["foundation_ui_traits", "foundation_ui_wire", "foundation_wasm_ui", "foundation_macros", "foundation_arrow", "foundation_ui_components", "foundation_browser", "foundation_signals", "foundation_wasm"]
-decisions: ["D8", "D9", "D10", "D27", "D28", "D29", "D40"]
+decisions: ["D8", "D9", "D10", "D27", "D28", "D29", "D40", "D41", "D42", "D44", "D45", "D55", "D59"]
 tasks:
   completed: 0
   uncompleted: 14
@@ -31,10 +31,11 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 ## 1. Goal
 
 After this feature, the UI has one wire. The frame wire is the default on the server, in
-WASM and in the mount elements. The internal Rust code builds generated ops, not `DomOp`.
-The hand-written columnar code, the JSON and Arrow `DomOp` encoders, the 6-byte envelope for
-UI frames, the JS `ColumnarParser` and the `DomOp` type are gone. Nothing that a web page
-could do before is lost (D27).
+WASM and in the mount elements. The internal Rust code builds generated `OperationT` units
+with their `ui` or `web` field set, not `DomOp` (D41, D42). The hand-written columnar code,
+the JSON and Arrow `DomOp` encoders, the `WasmEnvelope` use for UI frames, the JS
+`ColumnarParser` and the `DomOp` type are gone. The general WASM ABI keeps its
+`WasmEnvelope` (D55). Nothing that a web page could do before is lost (D27).
 
 This feature only moves and removes code. It adds no behaviour. Its story sections say
 which behaviour must not change.
@@ -45,8 +46,8 @@ which behaviour must not change.
   web."
 - **S2**: "A maintainer switches the defaults to the frame wire, and every test still
   passes."
-- **S3**: "A maintainer changes the internal code from `DomOp` to generated ops, and every
-  test still passes."
+- **S3**: "A maintainer changes the internal code from `DomOp` to generated operation
+  units, and every test still passes."
 - **S4**: "A maintainer removes the old code, and the workspace still builds and passes."
 - **S5**: "A proof item of the parity gate fails."
 
@@ -72,7 +73,7 @@ which behaviour must not change.
 | JSON signal patches and the JSON morph wrapper (`routeJson` cases `json` and `json-morph`) | `foundation-wasm-ui.js` | They are not `DomOp` encodings |
 | `Broadcaster`, `BroadcastTx`, `FrameTransport` | `foundation_wasm_ui::server` | The live mode (D15). They carry bytes of any wire |
 | Arrow IPC for data: `foundation_arrow` derive macros, `apache-arrow.js`, the `ArrowIpc` body | `foundation_arrow` | D28 |
-| `WasmEnvelope` and protocol byte 0 (the batch-instructions stream of the WASM ABI: function calls, timers) | `foundation_wasm` | It is the general WASM ABI, not the UI wire. Only its use for DOM ops goes |
+| `WasmEnvelope` and protocol byte 0 (the batch-instructions stream of the WASM ABI: function calls, timers) | `foundation_wasm` | It is the general WASM ABI, not the UI wire. Only its use for UI operations goes (D55) |
 | `MessagePackBlob` | Schema | D9 |
 
 | Entity | Meaning | Owner (the one writer) |
@@ -122,7 +123,9 @@ Links to other entities: none
 ### 4.3 Must have
 
 - The evidence table in `progress.md` before the first deletion.
-- `foundation_ui_wire::ops`: one constructor function for each old `DomOp` variant.
+- `foundation_ui_wire::ops`: one constructor function for each old `DomOp` variant. Each
+  returns one `OperationT` unit with exactly one union field set: `ui` for a shared
+  operation, `web` for a web operation (D42).
 
 ### 4.4 Must do
 
@@ -227,10 +230,10 @@ the date.
 | # | Item | Command or check |
 |---|---|---|
 | G1 | Each of the 19 `DomOp` variants gives the same DOM on both wires | `mise run ui-web:test` (the `frames-parity` cases of feature 09) |
-| G2 | Both tiers give the same DOM | `mise run ui-web:test` (`frames-columnar`) |
+| G2 | The `columnar` field and the `ui` units give the same DOM | `mise run ui-web:test` (`frames-columnar`) |
 | G3 | The live channel passes | `cargo test -p foundation_wasm_ui --profile uat live_channel` |
-| G4 | The counter example passes in a browser with three origins and a live region | `mise run test:browser` (the `ui_counter` tests of features 10 and 11) |
-| G5 | Every existing App test gives the same DOM through `FrameV1` as through the columnar wire | A new test, `backends/foundation_wasm_ui/tests/frame_parity_app_tests.rs`: for each scenario of `tests/app_tests.rs`, `tests/reactive_structure_tests.rs` and `tests/slots_tests.rs` that records sent batches, run the same steps with a recording `FrameV1` protocol and with `MockProtocol`; assert that the ops of the frames equal `web_form` of the recorded `DomOp`s |
+| G4 | The todo list example passes in a browser with both origins and a live region | `mise run test:browser` (the `ui_todo` tests of features 10 and 11) |
+| G5 | Every existing App test gives the same DOM through `FrameV1` as through the columnar wire | A new test, `backends/foundation_wasm_ui/tests/frame_parity_app_tests.rs`: for each scenario of `tests/app_tests.rs`, `tests/reactive_structure_tests.rs` and `tests/slots_tests.rs` that records sent batches, run the same steps with a recording `FrameV1` protocol and with `MockProtocol`; assert that the `operation` field of each message equals the unit that `web_form` gives for the recorded `DomOp`s |
 | G6 | The browser smoke tests pass on the frame protocol | Run `backends/foundation_browser/tests/smoke.rs` with the test server switched to `FrameBroadcastSink` and `protocol="frame"` by an environment variable `EWE_UI_WIRE=frame` that the test server reads (add it in this step; remove the variable in step C) |
 | G7 | The component behaviours pass | `node --test backends/foundation_ui_components/integration/test/` with the frame runtime installed in the test setup |
 
@@ -257,47 +260,49 @@ A failed item stops the feature (section 4.4).
 ### 6.4 Step B: move the internals from `DomOp` to generated ops
 
 1. Add `backends/foundation_ui_wire/src/ops.rs`: one function for each old variant, with
-   the old field names, that returns the `OpT` of feature 02 section 6.4:
+   the old field names, that returns one `OperationT` unit (feature 02 section 6.4). Each
+   function sets exactly one union field: `ui` for a shared member, `web` for a web member
+   (D42). A caller that needs a list pushes each unit into `Vec<OperationT>`.
 
 ```rust
-#[must_use] pub fn create_element(node_id: u32, tag: &HtmlTag, class: &str) -> OpT;
-#[must_use] pub fn create_text_node(node_id: u32, content: &str) -> OpT;
-#[must_use] pub fn set_text(node_id: u32, text: &str) -> OpT;
-#[must_use] pub fn set_attribute(node_id: u32, name: &AttrName, value: &str) -> OpT;
-#[must_use] pub fn remove_attribute(node_id: u32, name: &AttrName) -> OpT;
-#[must_use] pub fn set_property(node_id: u32, name: &AttrName, value: &str) -> OpT;
-#[must_use] pub fn add_event_listener(node_id: u32, event_name: &AttrName) -> OpT;
-#[must_use] pub fn remove_event_listener(node_id: u32, event_name: &AttrName) -> OpT;
-#[must_use] pub fn append_child(parent_id: u32, child_id: u32) -> OpT;
-#[must_use] pub fn remove_child(parent_id: u32, child_id: u32) -> OpT;   // gives Remove(child_id)
-#[must_use] pub fn remove_node(node_id: u32) -> OpT;
-#[must_use] pub fn insert_before(parent_id: u32, child_id: u32, ref_id: u32) -> OpT;
-#[must_use] pub fn replace_node(old_id: u32, new_id: u32) -> OpT;
-#[must_use] pub fn set_style(node_id: u32, prop: &AttrName, value: &str) -> OpT;
-#[must_use] pub fn add_class(node_id: u32, class: &str) -> OpT;
-#[must_use] pub fn remove_class(node_id: u32, class: &str) -> OpT;
-#[must_use] pub fn morph_node(target: MorphTarget<'_>, action: MorphAction, content: &str) -> OpT;
-#[must_use] pub fn register_node(node_id: u32) -> OpT;
-#[must_use] pub fn unregister_node(node_id: u32) -> OpT;
+#[must_use] pub fn create_element(node_id: u32, tag: &HtmlTag, class: &str) -> OperationT;
+#[must_use] pub fn create_text_node(node_id: u32, content: &str) -> OperationT;
+#[must_use] pub fn set_text(node_id: u32, text: &str) -> OperationT;
+#[must_use] pub fn set_attribute(node_id: u32, name: &AttrName, value: &str) -> OperationT;
+#[must_use] pub fn remove_attribute(node_id: u32, name: &AttrName) -> OperationT;
+#[must_use] pub fn set_property(node_id: u32, name: &AttrName, value: &str) -> OperationT;
+#[must_use] pub fn add_event_listener(node_id: u32, event_name: &AttrName) -> OperationT;
+#[must_use] pub fn remove_event_listener(node_id: u32, event_name: &AttrName) -> OperationT;
+#[must_use] pub fn append_child(parent_id: u32, child_id: u32) -> OperationT;
+#[must_use] pub fn remove_child(parent_id: u32, child_id: u32) -> OperationT;   // gives Remove(child_id)
+#[must_use] pub fn remove_node(node_id: u32) -> OperationT;
+#[must_use] pub fn insert_before(parent_id: u32, child_id: u32, ref_id: u32) -> OperationT;
+#[must_use] pub fn replace_node(old_id: u32, new_id: u32) -> OperationT;
+#[must_use] pub fn set_style(node_id: u32, prop: &AttrName, value: &str) -> OperationT;
+#[must_use] pub fn add_class(node_id: u32, class: &str) -> OperationT;
+#[must_use] pub fn remove_class(node_id: u32, class: &str) -> OperationT;
+#[must_use] pub fn morph_node(target: MorphTarget<'_>, action: MorphAction, content: &str) -> OperationT;
+#[must_use] pub fn register_node(node_id: u32) -> OperationT;
+#[must_use] pub fn unregister_node(node_id: u32) -> OperationT;
 
 /// Replaces `foundation_ui_traits::TargetSelector`.
 pub enum MorphTarget<'a> { NodeId(u32), Id(&'a str), Class(&'a str), Query(&'a str) }
 ```
 
-   `MorphAction` is the generated enum. A test asserts
-   `ops::x(args) == web_form(&DomOp::X { args })` for each function; that test is deleted
-   in step C with `web_form`.
+   `MorphAction` is the generated enum. A test asserts that the one union field of
+   `ops::x(args)` equals the unit of `web_form(&DomOp::X { args })` for each function; that
+   test is deleted in step C with `web_form`.
 2. Change each producer, one crate at a time, and run that crate's tests after each:
-   `ProtocolMethods<Vec<DomOp>>` becomes `ProtocolMethods<Vec<OpT>>`;
-   `InstructionReceiver` queues `OpT`; `slots.rs`, `reactive.rs`, `app.rs`,
+   `ProtocolMethods<Vec<DomOp>>` becomes `ProtocolMethods<Vec<OperationT>>`;
+   `InstructionReceiver` queues `OperationT`; `slots.rs`, `reactive.rs`, `app.rs`,
    `foundation_ui_components`, `foundation_signals` and the reactive codegen of `html!`
    (`html_macro/codegen.rs`, with a new `foundation_ui_wire_path()` in `crate_paths.rs`)
-   call `ops::*`. `FrameV1` and `FrameBroadcastSink` take `Vec<OpT>` and drop their
+   call `ops::*`. `FrameV1` and `FrameBroadcastSink` take `Vec<OperationT>` and drop their
    `web_form` step.
-3. Tests that compare recorded `DomOp` values compare `OpT` values built with `ops::*`.
-   This is a change of the expected-value type only. Do not change which ops a test
-   expects or their order.
-4. `MockProtocol` records `Vec<OpT>`.
+3. Tests that compare recorded `DomOp` values compare `OperationT` values built with
+   `ops::*`. This is a change of the expected-value type only. Do not change which units a
+   test expects or their order.
+4. `MockProtocol` records `Vec<OperationT>`.
 5. Run the verification. Commit.
 
 ### 6.5 Step C: remove
@@ -313,6 +318,11 @@ Delete, then fix the build, then run the verification.
 | `Op`, `TAG_NAMES`, `ATTR_NAMES`, `resolveWireName`, `ColumnarParser`, `DomOpApplicator`, `columnarHandler`, `BATCH_OP_APPLY_DOM`, `registerDomBatchOperation`, `jsonRowsToBatch`, `arrowTableToBatch`, `isJsonDomOpBatch` and its branch in `routeJson`, `ArrowHandler`, the `protocol === 1` and DomOp `protocol === 2` branches of `decodeEnvelopeFrame`, the `arrow` and `arrow-ipc` cases of `Patcher.applyRoute`, `Patcher.ensureApplicator` (replace it with a function that makes only the seeded `NodeRegistry`, and update `installFrameRuntime`), `registerArrowIpc` | `backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js` |
 | `integration/test/frames-parity.test.js`, `batch-protocol.test.js` cases for DOM ops, and the columnar cases of `foundation-wasm-ui.test.js` and `protocol-negotiation.test.js` | `backends/foundation_wasm_ui/integration/test` |
 | The `EWE_UI_WIRE` variable | `backends/foundation_browser` |
+
+`WasmEnvelope` stays in `backends/foundation_wasm` for the general ABI (function calls,
+timers, callbacks, group returns). Only its use for UI operations goes (D55). The frame
+check for `EWF1` in `foundation-wasm.js` stays; the columnar and Arrow branches of
+`decodeEnvelopeFrame` go.
 
 Keep in `decodeEnvelopeFrame`: the frame check, and the JSON branch for non-DomOp JSON.
 `ProtocolHandler.named("arrow")` and a content type `primal-arrow` log
@@ -377,7 +387,7 @@ Run after each step:
 cargo fmt --all -- --check
 for c in foundation_ui_traits foundation_ui_wire foundation_ui_runtime foundation_macros \
          foundation_arrow foundation_signals foundation_wasm foundation_wasm_ui \
-         foundation_ui_components foundation_browser foundation_http ui_counter; do
+         foundation_ui_components foundation_browser foundation_http ui_todo; do
   cargo clippy -p "$c" --profile uat --no-deps -- -D warnings && cargo test -p "$c" --profile uat || break
 done
 cargo check -p foundation_wasm_ui --profile uat --target wasm32-unknown-unknown

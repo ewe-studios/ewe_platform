@@ -216,3 +216,110 @@ ASD-STE100.
   expected store as JSON for each fixture frame, and the Swift and Kotlin stores must give
   the same JSON. This is cheaper than two hand-written sets of expected values, and it
   keeps the two platforms from drifting apart.
+
+- `flatc` was run on 2026-11-14, after the review asked for the measured facts. The release
+  was 25.12.19 first, then 25.9.23. The exact flags of feature 01 section 6.3 work on both:
+  `--rust --gen-object-api --rust-module-root-file --filename-suffix ""`, `--ts
+  --gen-object-api`, `--swift` and `--kotlin`. `mise install github:google/flatbuffers@<v>`
+  downloads the release asset and gives that `flatc`. The install route needs no plugin.
+
+- The pin is 25.9.23, not 25.12.19. The npm `flatbuffers` runtime stops at 25.9.23, and the
+  generated TypeScript imports it. The Rust crate has 25.12.19 and 25.9.23. One release for
+  the tool, the crate and the runtime is the safer rule, so the newest common release wins.
+  This is the rule 17 exception: an upstream package forces the older version.
+
+- `force_align` on a vector is not honoured by every generated writer. Measured with 25.9.23
+  and 25.12.19 and `--gen-object-api`: the Rust `pack` writes `_fbb.create_vector(x)` with no
+  alignment, and Swift writes `addVectorOf` with no alignment. TypeScript and Kotlin write
+  `startVector(8, n, 8)`. The frame writer is Rust, so the `Aligned8` helper and the reader
+  offset check are required. Do not trust the attribute alone.
+
+- `flatc --rust-module-root-file` writes one file per type under the namespace path plus one
+  `mod.rs` at the output root. All schema files in one invocation share that `mod.rs`. Each
+  file must put `include` lines before `namespace`; otherwise `flatc` stops with "includes
+  must come before declarations". A failed invocation can leave earlier output files behind,
+  so the check script writes into a temporary directory first.
+
+- A field named `table` is accepted by `flatc` (tested on the D45 shape). A table may hold
+  three union fields (`ui`, `web`, `mobile`), and an `enum : ushort` is accepted. The D44,
+  D45 and D47 shapes generate in Rust without a workaround.
+
+## Toolchain (2026-11-14)
+
+- mise has a backend for every native tool, so no download script is needed:
+  `github:google/flatbuffers`, `java` (`core:java`), `gradle`
+  (`aqua:gradle/gradle-distributions`), `kotlin` (`github:JetBrains/kotlin`) and
+  `android-sdk` (`vfox:mise-plugins/vfox-android-sdk`). Feature 17 pins them.
+
+- The host JDK is not the Android JDK. The machine had Java 27, and Gradle 9.9.1 starts on
+  it, but a build with `jvmToolchain(21)` fails with "Cannot find a Java installation".
+  Temurin 25 through mise plus `jvmToolchain(25)` compiles with the Kotlin JVM plugin 2.4.21.
+  Pin the JDK; do not rely on the host Java.
+
+- The Android SDK on the host had only the NDK. There is no `sdkmanager`, platform or
+  build-tools. Feature 15's Gradle build needs all three, so feature 17 adds a
+  `toolchain:android` task that installs them.
+
+- Xcode is installed, but `xcodebuild` fails because the active developer directory is
+  `/Library/Developer/CommandLineTools`. The one-time fix is
+  `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`. The toolchain check
+  reports this fault with that command, instead of a bare "Xcode not found".
+
+- The CI image tools live in `ci/platform-images/mise/mise.toml`. A path such as
+  `ci/platform-images/images/linux/mise/mise.toml` does not exist. The image is generic and
+  installs its tools in locked mode; a repository pins its own tools in its own
+  `mise.toml`.
+
+## Operation groups (2026-11-14)
+
+- A count of a shared set must name its scope. D53 says "four shared types", and it is right
+  for the mapping of the nineteen `DomOp` variants. Read as the size of the whole shared
+  set, it is wrong: node creation, props, subtree replacement and the action binding are
+  shared too. Write a count with the set that it counts (D59).
+
+- The shared set is twelve types. Every runtime must apply all twelve, so a wrong member
+  costs three implementations, not one. Cut a type from the shared set only when a platform
+  cannot do it at all, not when that platform has a faster form.
+
+- A platform type is for what the shared set cannot express. `WebElement` stays for HTML
+  tags outside the ten core elements; it is not a second way to create a `Stack` (D36).
+
+## Revision pass for D41 to D59 (2026-11-14)
+
+- One root schema is cheaper than two roots. Two roots (`ActionRequest` and the message
+  frame) need two identifiers, two content types and two readers. One root `Frame` with a
+  `FrameKind` union needs one of each, and the kind check is one typed error
+  (`WireError::WrongKind`). The cost is one extra box per message frame (`Box::new` in the
+  object API), which is small.
+
+- The request size cap belongs after the identifier check and before the field reads. A wrong
+  identifier is cheap and needs no cap; a big buffer with the right identifier needs the cap
+  before a vector length is read.
+
+- `ErrorTrace::new` needs `C: core::error::Error + Send + Sync + 'static`. The generated
+  `ActionErrorT` implements neither `Display` nor `Error`, so the wire crate needs
+  `error_ext.rs`. Do not write a second error type; add the two impls to the generated type
+  (rule 5).
+
+- A behaviour feature that owns the vocabulary cannot land after the features that lower and
+  apply behaviours. Feature 16 owned the name tables, the lowering and the web registry, and
+  it depended on the native renderers. That made feature 08 depend on a later feature and
+  made the web features depend on native. Split by platform instead: the names are
+  vocabulary (feature 02), the lowering is the macro's (feature 08), the web registry is the
+  applicator's (feature 09), and the matrix and the native bindings stay last (feature 16).
+
+- A phase order and a dependency graph can disagree. The Index groups features into phases,
+  but the dependency edges decide the order. Check both after a revision: a feature in an
+  early phase must not depend on a feature in a later phase.
+
+- A plain action needs a reference text. If `origin()` is `Option<Origin>` and a plain action
+  has no origin, the html macro must still write a prefix. Write `host:name`, and let the
+  manager fall forward to `server:<name>` only when the server lists the name (D50 (8)).
+  Reject one name under two origins in the registry, so the fall-forward is unambiguous.
+
+- The example app must be the one the decisions name. The counter example survived in
+  features 10, 11, 12 and the requirements after D48 moved to the todo list. Grep for the
+  example crate name in every file, including verify commands and CI lists.
+
+- A linter and a test cannot see a renamed example crate. Run the verify commands of each
+  feature after a rename; `cargo test -p ui_counter` fails only when a person runs it.

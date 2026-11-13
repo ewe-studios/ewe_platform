@@ -1,20 +1,20 @@
 ---
 feature: "vocabulary-and-platform-forms"
-description: "The one vocabulary: core kinds, props and events, the web name tables, the form-to-platform table, the DomOp mapping and the vocabulary version."
+description: "The one vocabulary: core kinds, props and events, the three form groups, the behaviour names, the web name tables, the DomOp mapping and the vocabulary version."
 status: "pending"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen"]
 estimated_effort: "medium"
 created: 2026-11-13
-last_updated: 2026-11-13
+last_updated: 2026-11-14
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
-decisions: ["D8", "D10", "D36", "D37", "A2", "R4", "R5"]
+decisions: ["D8", "D10", "D36", "D37", "D42", "D53", "D56", "D59", "A2", "R4", "R5"]
 tasks:
   completed: 0
-  uncompleted: 9
-  total: 9
+  uncompleted: 10
+  total: 10
   completion_percentage: 0
 ---
 
@@ -31,13 +31,14 @@ ASD-STE100.
 ## 1. Goal
 
 The module `foundation_ui_wire::vocab` is the one place that says what each vocabulary number
-means. It says which platform each form belongs to, which value type each property takes, how
-the web renders each core name, and how each of the 19 current `DomOp` variants becomes a
-schema form. A generated JS file gives the same tables to the web runtime.
+means. It says which value type each property takes, how the web renders each core name, and
+how each of the 19 current `DomOp` variants becomes a schema form. The platform of a form is
+its union: `UiOperation`, `WebOperation` or `MobileOperation` (D42, D59). A generated JS file
+gives the same tables to the web runtime.
 
 ## 2. Story
 
-- **S1**: "A writer asks if a form can go to a mount surface."
+- **S1**: "A writer knows the group of a form from its type. There is no table to ask."
 - **S2**: "A writer checks that a property has the right value type."
 - **S3**: "The web runtime maps a core name to an HTML element."
 - **S4**: "Current code that makes a `DomOp` gets the schema form of it."
@@ -48,32 +49,33 @@ schema form. A generated JS file gives the same tables to the web runtime.
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Classify a form | Feature 03 writer, any reader | `form_platform(op_type)` | `Cross`, `Web` or `Mobile` |
+| U1 | Group of a form | Any reader | The Rust type of the form | `UiOperation` = every platform, `WebOperation` = web, `MobileOperation` = mobile |
 | U2 | Check a property | Feature 03 writer | `check_prop(prop, &value)` | `Ok(())` or `VocabError::PropKindMismatch` |
 | U3 | Web mapping | Feature 09 | Reads `foundation-ui-vocab.js` | Tag, class and CSS rule of each core name |
-| U4 | Map a `DomOp` | Features 08, 11 | `web_form(&dom_op)` | One `OpT` web form |
+| U4 | Map a `DomOp` | Features 08, 11 | `web_form(&dom_op)` | One `UiOperation` or `WebOperation` form |
 | U5 | Look up a version | Feature 03 writer | `vocab_version(n)` | The highest known number of each enum for that version |
 
 ## 3. Bounded context
 
 **Inside this feature:** the meaning tables for `NodeKind`, `PropId`, `EventId`,
-`NativeControlId`, `NativeCommandId`; the form-to-platform table; the web mapping; the
-`DomOp` mapping; `VOCABULARY_VERSION` and its history table; the design token table type;
-the generated file `foundation-ui-vocab.js`.
+`NativeCommandId` and the three behaviour enums; the group of each form (its union); the web
+mapping; the `DomOp` mapping; `VOCABULARY_VERSION` and its history table; the design token
+table type; the generated file `foundation-ui-vocab.js`.
 
 **Outside:**
 
 | Thing | Owner |
 |---|---|
-| The enum definitions and their numbers | Feature 01 (schema) |
+| The enum definitions, the three unions and their numbers | Feature 01 (schema) |
 | `TAG_NAMES`, `ATTR_NAMES`, `HtmlTag`, `AttrName`, `DomOp` | `foundation_ui_traits` (`src/html.rs`, `src/dom_op.rs`) |
-| Removing ops for a mount surface (the gate) | Feature 03 |
+| Removing the web fields for a `Native` mount (the gate) | Feature 03 |
 | Applying a mapping to the DOM | Feature 09 |
 | Native views for each kind | Features 14 and 15 |
+| The behaviour bindings of each platform | Feature 16 |
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
-| Form table | `Op` union number to `FormPlatform` | `vocab::forms` |
+| Group | The union of each form: `UiOperation`, `WebOperation`, `MobileOperation` | Feature 01 (the schema); this feature tests it |
 | Prop table | `PropId` to `PropKind` | `vocab::props` |
 | Web mapping | Core name to HTML tag, class and CSS | `vocab::web` |
 | Version history | `VocabVersion` rows | `vocab::version` |
@@ -83,22 +85,23 @@ All verbs here are pure look-ups. This feature has no story verb, so it has no f
 
 **Words.** "Core name" is a value of `NodeKind`, `PropId` or `EventId`. "Web name" is an HTML
 tag or attribute; a known web name has a number in `TAG_NAMES` or `ATTR_NAMES`, and a custom
-web name is a string. "Form" is a member of the `Op` union.
+web name is a string. "Form" is a member of one of the three unions. "Group" is the union of
+a form: the shared group, the web group or the mobile group (D42, D59).
 
 ## 4. Rules
 
 ### 4.1 Law worksheets
 
 ```
-Entity: Form table
-Conserved value:         every Op union number from 1 to 24 has exactly one FormPlatform
-Bound:                   the result is one of three values
+Entity: Group
+Conserved value:         every form is a member of exactly one of the three unions
+Bound:                   the group is one of three: shared, web, mobile
 Inverse pairs:           none
-Idempotent verbs:        form_platform (a pure function)
+Idempotent verbs:        none (the group is the Rust type of the form)
 Ordering pairs:          none
-Monotone values:         rows are only added
-Freeze points:           the FormPlatform of a released form never changes
-Links to other entities: the Op union numbers of feature 01
+Monotone values:         members are only added, and only to their own union
+Freeze points:           the union of a released form never changes
+Links to other entities: the three unions of feature 01, and their numbers
 ```
 
 ```
@@ -141,19 +144,20 @@ Links to other entities: foundation-ui-vocab.js equals the Rust tables
 
 | # | Invariant |
 |---|---|
-| I1 | `form_platform` returns `Some` for each `Op` number 1 to 24 and `None` for `NONE` and for each number above 24. |
-| I2 | `applies_on(op, Web)` is true exactly for `Cross` and `Web` forms. `applies_on(op, Native)` is true exactly for `Cross` and `Mobile` forms. |
-| I3 | `HtmlMorph` and `ScriptNode` are `Web` forms. |
+| I1 | The generated `UiOperation`, `WebOperation` and `MobileOperation` unions hold the members of section 6.3, in that order. A form is in exactly one of them. |
+| I2 | No member of `UiOperation` holds a custom name or a web-only field; no member of `WebOperation` holds a mobile-only field; no member of `MobileOperation` holds a web-only field. |
+| I3 | `HtmlMorph`, `ScriptNode` and `WebBehaviour` are members of `WebOperation`. `MountWebView`, `NativeCommand` and `MobileBehaviour` are members of `MobileOperation`. |
 | I4 | `prop_kind` returns `Some` for each `PropId` except `UNKNOWN`. |
 | I5 | `check_prop(p, v)` succeeds exactly when the `PropValue` member of `v` is the member of `prop_kind(p)`. |
-| I6 | For each `DomOp` value `d`, `web_form(&d)` is a `Web` form or a `Cross` form listed in section 6.4, and `dom_op(&web_form(&d)) == Some(d)`. |
-| I7 | The last row of `VOCAB_VERSIONS` has `version == VOCABULARY_VERSION`, and each `max_*` value equals the highest value of that enum in the generated code. |
+| I6 | For each `DomOp` value `d`, `web_form(&d)` gives a `WireForm::Ui` or a `WireForm::Web` member listed in section 6.4, and `dom_op(&web_form(&d)) == Some(d)`. |
+| I7 | The last row of `VOCAB_VERSIONS` has `version == VOCABULARY_VERSION`, and each `max_*` value equals the highest value of that enum in the generated code (the three behaviour maxima included). |
 | I8 | `foundation-ui-vocab.js` holds the same rows as the Rust tables. |
-| I9 | No core table has a free-form string name. Only the web forms have a custom string (D10). |
+| I9 | No core table has a free-form string name. Only a web or mobile form has a custom string (D10, D56). |
+| I10 | Every behaviour name is in exactly one set. `SHARED_BEHAVIOUR_NAMES` holds the four shared names and no other name; `WEB_BEHAVIOUR_NAMES` holds the seven web names and no other name. |
 
 ### 4.3 Must have
 
-- `FormPlatform`, `PropKind`, `VocabVersion`, `VocabError`, `TokenTable`.
+- `WireForm`, `PropKind`, `VocabVersion`, `VocabError`, `TokenTable`.
 - The functions of section 6.2.
 - The generated file `backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js`.
 
@@ -165,7 +169,8 @@ Links to other entities: foundation-ui-vocab.js equals the Rust tables
 
 ### 4.5 Must not
 
-- Do not give a cross-platform form a web twin or a mobile twin (D36).
+- Do not add a table that maps a form to a platform: the union is the platform (D42).
+- Do not give a shared form a web twin or a mobile twin (D36, D59).
 - Do not guess a core name for a web name on a native client (research 04 section 3.3).
 - Do not change `TAG_NAMES` or `ATTR_NAMES` order. They are append-only.
 
@@ -174,22 +179,27 @@ Links to other entities: foundation-ui-vocab.js equals the Rust tables
 ```gherkin
 Feature: Vocabulary and platform forms
 
-  Scenario: A cross-platform form applies on both mount surfaces
-    When the caller asks applies_on(Op::SetText, Web) and applies_on(Op::SetText, Native)
-    Then both answers are true
+  Scenario: A shared form applies on both mount surfaces
+    Given a Message whose operation.ui is SetText
+    When the server builds it for a Native mount and for a Web mount
+    Then the unit is unchanged in both cases
+    And SetText is a member of UiOperation
 
-  Scenario: The HTML morph does not apply on a native mount
-    When the caller asks applies_on(Op::HtmlMorph, Native)
-    Then the answer is false
-    And form_platform(Op::HtmlMorph) is Some(FormPlatform::Web)
+  Scenario: The HTML morph goes only to a web mount
+    Given a Message whose operation.web is HtmlMorph
+    When the server builds it for a Native mount
+    Then the operation.web field is removed before the frame is sent
+    And HtmlMorph is a member of WebOperation
 
-  Scenario: A native command does not apply on a web mount
-    When the caller asks applies_on(Op::NativeCommand, Web)
-    Then the answer is false
+  Scenario: A native command goes only to a mobile mount
+    Given a Message whose operation.mobile is NativeCommand
+    When the server builds it for a web mount
+    Then the operation.mobile field is removed before the frame is sent
 
-  Scenario: An unknown form has no platform
-    When the caller asks form_platform(Op(250))
-    Then the answer is None
+  Scenario: A form is in one union only
+    When the test reads the three generated unions
+    Then no member name appears in more than one of them
+    And each member of UiOperation holds no custom name and no web-only field
 
   Scenario: A padding property takes a length
     Given a PropValue of Length { value: 8.0, unit: Point }
@@ -202,15 +212,28 @@ Feature: Vocabulary and platform forms
     Then the call fails with VocabError::PropKindMismatch
       { prop: PADDING, expected: Length, found: Text }
 
-  Scenario: A set-attribute DomOp becomes a WebAttr form
+  Scenario: A set-attribute DomOp becomes a WebSetAttribute form
     Given DomOp::SetAttribute { node_id: 42, name: class, value: "btn" }
     When the caller calls web_form(&op)
-    Then the result is WebAttr { node_id: 42, attr_id: 1, custom_attr: None, value: "btn", remove: false }
+    Then the result is WireForm::Web(WebSetAttribute { node_id: 42, attr_id: 1,
+      custom_attr: None, value: "btn" })
+
+  Scenario: A remove-attribute DomOp becomes a WebRemoveAttribute form
+    Given DomOp::RemoveAttribute { node_id: 42, name: class }
+    When the caller calls web_form(&op)
+    Then the result is WireForm::Web(WebRemoveAttribute { node_id: 42, attr_id: 1,
+      custom_attr: None })
 
   Scenario: A custom tag keeps its string
     Given DomOp::CreateElement { node_id: 5, tag: "my-card", class: "" }
     When the caller calls web_form(&op)
-    Then the result is WebElement { node_id: 5, tag_id: 0, custom_tag: Some("my-card"), class_name: Some("") }
+    Then the result is WireForm::Web(WebElement { node_id: 5, tag_id: 0,
+      custom_tag: Some("my-card"), class_name: Some("") })
+
+  Scenario: A set-text DomOp becomes a shared form
+    Given DomOp::SetText { node_id: 42, text: "1" }
+    When the caller calls web_form(&op)
+    Then the result is WireForm::Ui(SetText { node_id: 42, text: "1" })
 
   Scenario: An unknown vocabulary version has no row
     When the caller calls vocab_version(99)
@@ -225,14 +248,15 @@ Feature: Vocabulary and platform forms
 
 ```mermaid
 flowchart TD
-    OP["Op union number"] --> FP{"form_platform"}
-    FP -->|"1 to 11"| C["Cross: every platform applies it"]
-    FP -->|"12 to 22"| W["Web: only a Web mount applies it"]
-    FP -->|"23, 24"| M["Mobile: only a Native mount applies it"]
-    FP -->|"0 or above 24"| N["None: unknown form"]
+    U["One Operation unit"] --> S{"which field is set"}
+    S -->|ui| C["UiOperation: every platform applies it"]
+    S -->|web| W["WebOperation: only a web mount applies it"]
+    S -->|mobile| M["MobileOperation: only a mobile mount applies it"]
+    S -->|columnar| K["ColumnarBatch: shared operations, column by column"]
 ```
 
-_The diagram shows how the form table sorts each op into one platform set._
+_The diagram shows that the union type of an operation is its platform. There is no table
+and no look-up._
 
 ### 6.1 Measured facts
 
@@ -246,17 +270,16 @@ _The diagram shows how the form table sorts each op into one platform set._
 
 ### 6.2 Public API (`backends/foundation_ui_wire/src/vocab/`)
 
-Files: `mod.rs`, `forms.rs`, `props.rs`, `web.rs`, `dom_op.rs`, `version.rs`, `tokens.rs`.
+Files: `mod.rs`, `props.rs`, `web.rs`, `dom_op.rs`, `version.rs`, `tokens.rs`,
+`behaviour.rs`.
 Add `foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }` to the
 crate.
 
 ```rust
-// forms.rs
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum FormPlatform { Cross, Web, Mobile }
-/// `op` is the generated union type value (`generated::ewe::ui::Op`).
-#[must_use] pub fn form_platform(op: Op) -> Option<FormPlatform>;
-#[must_use] pub fn applies_on(op: Op, mount: MountSurface) -> bool;
+// forms.rs  (the group is the union type; this module only names the two groups that a
+// DomOp can become)
+#[derive(Clone, Debug, PartialEq)]
+pub enum WireForm { Ui(UiOperationT), Web(WebOperationT) }
 
 // props.rs
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -272,16 +295,15 @@ pub enum VocabError {
 }
 
 // version.rs
-pub const VOCABULARY_VERSION: u32 = 1;
+pub const VOCABULARY_VERSION: u32 = 2;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct VocabVersion {
     pub version: u32,
     pub max_node_kind: u16, pub max_prop_id: u16, pub max_event_id: u16,
-    pub max_tag_id: u16, pub max_attr_id: u16,
-    pub max_native_control: u16, pub max_native_command: u16,
-    pub max_op: u8,
+    pub max_tag_id: u16, pub max_attr_id: u16, pub max_native_command: u16,
+    pub max_behaviour: u16, pub max_web_behaviour: u16, pub max_mobile_behaviour: u16,
 }
-pub static VOCAB_VERSIONS: &[VocabVersion];          // one row for version 1
+pub static VOCAB_VERSIONS: &[VocabVersion];          // rows for versions 1 and 2
 #[must_use] pub fn vocab_version(version: u32) -> Option<&'static VocabVersion>;
 
 // tokens.rs
@@ -310,20 +332,29 @@ pub const CORE_CSS: &str;
 #[must_use] pub fn vocab_js() -> String;
 
 // dom_op.rs  (removed by feature 12 together with DomOp)
-#[must_use] pub fn web_form(op: &DomOp) -> OpT;
-#[must_use] pub fn dom_op(op: &OpT) -> Option<DomOp>;   // None for a form with no DomOp
+#[must_use] pub fn web_form(op: &DomOp) -> WireForm;
+#[must_use] pub fn dom_op(form: &WireForm) -> Option<DomOp>;   // None for a form with no DomOp
 ```
 
 `max_tag_id` is `TAG_NAMES.len()` and `max_attr_id` is `ATTR_NAMES.len()` at the time the
 row is written. Write them as numbers in the row; test I7 compares them with the tables.
+Version 1 is the row before the behaviour enums: its three behaviour maxima are 0 (D56).
+Version 2 is the current row.
 
-### 6.3 The form table and the prop table
+### 6.3 The groups
 
-| Forms | `FormPlatform` |
-|---|---|
-| `CreateNode`, `SetText`, `SetProp`, `AppendChild`, `InsertBefore`, `Remove`, `ReplaceSubtree`, `BindAction`, `UnbindAction`, `AttachState`, `LiveMount` (1 to 11) | `Cross` |
-| `HtmlMorph`, `ScriptNode`, `WebElement`, `WebText`, `WebAttr`, `WebProperty`, `WebStyle`, `WebClass`, `WebListener`, `WebRegistry`, `WebReplaceNode` (12 to 22) | `Web` |
-| `NativeControl`, `NativeCommand` (23, 24) | `Mobile` |
+The platform of a form is its union (D42, D59). There is no table to build or to test for a
+mapping.
+
+| Group | Union | Members |
+|---|---|---|
+| Shared: every runtime applies | `UiOperation` | `CreateNode`, `SetText`, `SetProp`, `AppendChild`, `InsertBefore`, `Remove`, `ReplaceSubtree`, `BindAction`, `UnbindAction`, `AttachState`, `LiveMount`, `UiBehaviour` (12) |
+| Web only | `WebOperation` | `WebElement`, `WebText`, `WebSetAttribute`, `WebRemoveAttribute`, `WebProperty`, `WebAddListener`, `WebRemoveListener`, `WebReplaceNode`, `WebStyle`, `WebAddClass`, `WebRemoveClass`, `HtmlMorph`, `WebRegisterNode`, `WebUnregisterNode`, `ScriptNode`, `WebBehaviour` (16) |
+| Mobile only | `MobileOperation` | `MountWebView`, `NativeCommand`, `MobileBehaviour` (3) |
+
+A unit can hold a `ui` and a `web` field for one step (D44). A `Native` mount never receives a
+`web` field: the server removes it before it sends (D42). The reader's rule "apply what you
+know, ignore the rest" is the second defence.
 
 | `PropId` | `PropKind` | Web rendering (feature 09 applies it) |
 |---|---|---|
@@ -353,30 +384,30 @@ A `Length` becomes CSS text like this: `Point` gives `"<value>px"`, `Percent` gi
 |---|---|---|
 | `CreateElement` (0) | `WebElement` | Known tag: `tag_id = id`, `custom_tag = None`. Custom tag: `tag_id = 0`, `custom_tag = Some(name)`. `class_name = Some(class)` |
 | `CreateTextNode` (1) | `WebText` | `content` |
-| `SetText` (2) | `SetText` (cross) | `text` |
-| `SetAttribute` (3) | `WebAttr` | `remove = false` |
-| `RemoveAttribute` (4) | `WebAttr` | `remove = true`, `value = None` |
+| `SetText` (2) | `SetText` (shared) | `text` |
+| `SetAttribute` (3) | `WebSetAttribute` | `value` |
+| `RemoveAttribute` (4) | `WebRemoveAttribute` | no `value` field: the type names the action |
 | `SetProperty` (5) | `WebProperty` | `name_id` or `custom_name` from the `AttrName` |
-| `AddEventListener` (6) | `WebListener` | `remove = false` |
-| `RemoveEventListener` (7) | `WebListener` | `remove = true` |
-| `AppendChild` (8) | `AppendChild` (cross) | — |
-| `RemoveChild` (9) | `Remove` (cross) | `node_id = child_id`. The parent is not needed: a node has one parent |
-| `RemoveNode` (10) | `Remove` (cross) | — |
-| `InsertBefore` (11) | `InsertBefore` (cross) | `before_id = ref_id` |
+| `AddEventListener` (6) | `WebAddListener` | — |
+| `RemoveEventListener` (7) | `WebRemoveListener` | — |
+| `AppendChild` (8) | `AppendChild` (shared) | — |
+| `RemoveChild` (9) | `Remove` (shared) | `node_id = child_id`. The parent is not needed: a node has one parent |
+| `RemoveNode` (10) | `Remove` (shared) | — |
+| `InsertBefore` (11) | `InsertBefore` (shared) | `before_id = ref_id` |
 | `ReplaceNode` (12) | `WebReplaceNode` | — |
 | `SetStyle` (13) | `WebStyle` | — |
-| `AddClass` (14) | `WebClass` | `remove = false` |
-| `RemoveClass` (15) | `WebClass` | `remove = true` |
+| `AddClass` (14) | `WebAddClass` | — |
+| `RemoveClass` (15) | `WebRemoveClass` | — |
 | `MorphNode` (16) | `HtmlMorph` | `TargetSelector` kind and `MorphAction` keep their numbers |
-| `RegisterNode` (17) | `WebRegistry` | `unregister = false` |
-| `UnregisterNode` (18) | `WebRegistry` | `unregister = true` |
+| `RegisterNode` (17) | `WebRegisterNode` | — |
+| `UnregisterNode` (18) | `WebUnregisterNode` | — |
 
 `RemoveChild` and `RemoveNode` both map to `Remove`. So `dom_op(Remove)` returns
 `RemoveNode`, and the round trip of I6 holds for `RemoveChild` only up to that rule. State
 this in the test: `dom_op(&web_form(&RemoveChild{p, c})) == Some(RemoveNode{c})`.
 
-**Registration rule.** A cross-platform `CreateNode` registers its node in the id table when
-it applies. `WebElement` and `WebText` do not; `WebRegistry` does it, as today.
+**Registration rule.** A shared `CreateNode` registers its node in the id table when it
+applies. `WebElement` and `WebText` do not; `WebRegisterNode` does it, as today.
 
 ### 6.5 The web mapping of the core names
 
@@ -416,15 +447,63 @@ The names in this section are renderer choices. They are not on the wire.
 ### 6.6 The generated JS file
 
 `vocab_js()` returns an ES module with these exports, in this order, each a frozen object or
-array: `VOCABULARY_VERSION`, `FORM_PLATFORM` (index is the `Op` number; values `0` none,
-`1` cross, `2` web, `3` mobile), `PROP_KIND` (index is the `PropId`), `WEB_KINDS` (index is
+array: `VOCABULARY_VERSION`, `PROP_KIND` (index is the `PropId`), `WEB_KINDS` (index is
 the `NodeKind`; each entry `{tag, cls, attrs}`), `WEB_EVENTS` (index is the `EventId`),
 `TAG_NAMES`, `ATTR_NAMES`, `CORE_CSS`. The first line is the comment
 `// Generated by foundation_ui_wire::vocab::vocab_js. Do not edit.`
 
+There is no `FORM_PLATFORM` export: the JS runtime learns the group from the union byte of
+each unit (D42).
+
 `tests/vocab_js_tests.rs` compares `vocab_js()` with
 `backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js` and writes the file when
 `UPDATE_FIXTURES=1`. Add the file to `embedded.rs` as `FOUNDATION_UI_VOCAB_JS`.
+
+### 6.7 The behaviour names (D56)
+
+The authoring enum `Behaviour` stays in `foundation_ui_components::behaviour` (feature 16).
+This module gives the wire names, so that the lowering of feature 08 and the web registry of
+feature 09 read one table.
+
+```rust
+// behaviour.rs
+/// The shared behaviours, with the `BehaviourId` that each one travels as (feature 01).
+pub const SHARED_BEHAVIOUR_NAMES: &[(&str, BehaviourId)] = &[
+    ("dialog", BehaviourId::DIALOG),
+    ("dismiss", BehaviourId::DISMISS),
+    ("scroll_lock", BehaviourId::SCROLL_LOCK),
+    ("transition", BehaviourId::TRANSITION),
+];
+
+/// The web-only behaviours, in this order.
+pub const WEB_BEHAVIOUR_NAMES: &[&str] = &[
+    "composite", "focus_trap", "gestures", "hover", "listbox", "measure", "position",
+];
+
+/// The shared id of a name, or `None` for a web-only name and for an unknown name.
+#[must_use] pub fn shared_behaviour(name: &str) -> Option<BehaviourId>;
+/// `true` for a web-only name; `false` for a shared name and for an unknown name.
+#[must_use] pub fn is_web_behaviour(name: &str) -> bool;
+```
+
+| Name | Set | Wire member |
+|---|---|---|
+| `dialog` | shared | `UiBehaviour { behaviour: DIALOG }` |
+| `dismiss` | shared | `UiBehaviour { behaviour: DISMISS }` |
+| `scroll_lock` | shared | `UiBehaviour { behaviour: SCROLL_LOCK }` |
+| `transition` | shared | `UiBehaviour { behaviour: TRANSITION }` |
+| `composite` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "composite" }` |
+| `focus_trap` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "focus_trap" }` |
+| `gestures` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "gestures" }` |
+| `hover` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "hover" }` |
+| `listbox` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "listbox" }` |
+| `measure` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "measure" }` |
+| `position` | web | `WebBehaviour { behaviour: UNKNOWN, custom: "position" }` |
+
+The shared set is the one of D56. `MobileBehaviourId` holds only `UNKNOWN = 0` in version 2,
+so no name travels as a mobile behaviour. A name outside the two tables gives
+`LowerError::BadProp` at lowering (feature 08). A shared name gives no `custom` text: a
+shared behaviour is one that every platform knows (D56).
 
 ## 7. Tests
 
@@ -432,15 +511,16 @@ All tests are in `backends/foundation_ui_wire/tests/`, registered in `tests/mod.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
-| I1; Scenario: An unknown form has no platform | `vocab_forms_tests.rs::every_form_has_one_platform` (loops 0 to 255) | property |
-| I2; Scenarios: cross-platform, HTML morph, native command | `vocab_forms_tests.rs::applies_on_follows_the_platform` (loops every form and both surfaces against the table of 6.3) | property |
+| I1; Scenario: A form is in one union only | `vocab_forms_tests.rs::each_form_is_in_one_union` (reads the three generated unions and compares the member lists with section 6.3) | property |
+| I2; Scenarios: shared form on both surfaces, HTML morph, native command | `vocab_forms_tests.rs::shared_forms_hold_no_platform_field` and `vocab_forms_tests.rs::platform_forms_hold_only_their_fields` | property |
 | I3 | `vocab_forms_tests.rs::markup_and_script_forms_are_web_only` | example |
 | I4 | `vocab_props_tests.rs::every_prop_has_a_kind` | property |
 | I5; Scenarios: padding takes a length, padding with text is rejected | `vocab_props_tests.rs::check_prop_accepts_only_the_table_kind` (every prop against every kind) | property |
-| I6; Scenarios: set-attribute, custom tag | `vocab_dom_op_tests.rs::each_dom_op_round_trips` (one value of each of the 19 variants, with a known and a custom name where the variant has a name) | example |
+| I6; Scenarios: set-attribute, remove-attribute, custom tag, set-text | `vocab_dom_op_tests.rs::each_dom_op_round_trips` (one value of each of the 19 variants, with a known and a custom name where the variant has a name) | example |
 | I7; Scenario: An unknown vocabulary version has no row | `vocab_version_tests.rs::last_row_matches_the_enums`, `::unknown_version_has_no_row`, `::rows_never_decrease` | example, property |
 | I8; Scenario: The JS vocabulary file matches | `vocab_js_tests.rs::js_file_matches_tables` | example |
-| I9 | `vocab_forms_tests.rs::cross_forms_have_no_custom_name` (packs each cross form object type and checks that it has no field named `custom_*`; done by a list of the field names in the test) | example |
+| I9 | `vocab_forms_tests.rs::shared_forms_have_no_custom_name` (reads the field lists of the generated shared types and checks that none has a field named `custom_*`) | example |
+| I10 | `vocab_behaviour_tests.rs::each_behaviour_name_is_in_one_set` (every `BehaviourId` value above `UNKNOWN` has exactly one shared name; the two tables share no name; every name is lower case) | property |
 | `TokenTable` ids start at 1 and `to_css_aliases` lists every token | `vocab_tokens_tests.rs::token_ids_and_css` | example |
 
 ## 8. Tasks
@@ -452,8 +532,9 @@ All tests are in `backends/foundation_ui_wire/tests/`, registered in `tests/mod.
 - [ ] 5. Write `tokens.rs` and its tests.
 - [ ] 6. Write `dom_op.rs` and its tests.
 - [ ] 7. Write `web.rs`, `vocab_js()` and the JS file test; generate the JS file; add it to `embedded.rs`.
-- [ ] 8. Bump `foundation_ui_wire` to `0.0.2` (new public API).
-- [ ] 9. Update `progress.md` and `learnings.md`.
+- [ ] 8. Write `behaviour.rs` and its tests; update the three behaviour maxima in `version.rs`.
+- [ ] 9. Bump `foundation_ui_wire` to `0.0.2` (new public API).
+- [ ] 10. Update `progress.md` and `learnings.md`.
 
 ## 9. Verify
 
@@ -471,7 +552,7 @@ node --check backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js
 
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The tables of sections 6.3 to 6.5 and the code agree, row for row.
+- [ ] The tables of sections 6.3 to 6.5 and 6.7 and the code agree, row for row.
 - [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
 - [ ] The check list of the `story-driven-specification` skill passes.
 

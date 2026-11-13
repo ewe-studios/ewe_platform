@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/69-foundation-ui-v2"
-feature_directory: "specifications/69-foundation-ui-v2/features/03-frame-writer-and-tiers"
-this_file: "specifications/69-foundation-ui-v2/features/03-frame-writer-and-tiers/start.md"
+feature_directory: "specifications/69-foundation-ui-v2/features/03-frame-writer"
+this_file: "specifications/69-foundation-ui-v2/features/03-frame-writer/start.md"
 created: 2026-11-13
 ---
 
-# Start: feature 03-frame-writer-and-tiers
+# Start: feature 03-frame-writer
 
 _Written in ASD-STE100 Simplified Technical English (STE)._
 

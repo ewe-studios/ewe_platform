@@ -4,14 +4,14 @@ description: "The ewe-ui Kotlin library: the generated reader, a node store with
 status: "pending"
 priority: "medium"
 model: "sonnet"
-depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer-and-tiers", "13-native-core-and-commands"]
+depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-13
+last_updated: 2026-11-14
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
-packages: ["native/android/ewe-ui", "examples/ui_counter_android"]
-decisions: ["D4", "D11", "D12", "D29", "D36", "D39", "A4"]
+packages: ["native/android/ewe-ui", "examples/ui_todo_android"]
+decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D58", "D59", "A4"]
 tasks:
   completed: 0
   uncompleted: 12
@@ -45,8 +45,8 @@ their tests run on Linux with no emulator.
 - **S2**: "A user taps a button, and the bound action runs."
 - **S3**: "A screen has a live region that follows a server stream."
 - **S4**: "A local action asks for a haptic pulse, and the phone gives it."
-- **S5**: "A screen mounts a WebView that renders the web runtime."
-- **S6**: "A frame holds a web form."
+- **S5**: "A screen holds a WebView mount row." (The control is later work, feature 18.)
+- **S6**: "A frame holds a web member."
 - **S7**: "A frame names a node that the store does not have."
 - **S8**: "A live channel drops, and the region resumes."
 
@@ -55,9 +55,9 @@ their tests run on Linux with no emulator.
 | U1 | Apply | Host | `store.receive(frame)` | The store changed; only the composables that read a changed record recompose |
 | U2 | Event | User | A click or a change | `core.trigger(reference, input)`; the answer frame is applied |
 | U3 | Live mount | Store | A `LiveMount` record is attached | `LiveMountHost` opens the channel |
-| U4 | Command | Store | A `NativeCommand` op | `CommandHost` runs the platform effect |
-| U5 | Report | Store | A form or id it cannot apply | A `Report`; the batch continues |
-| U6 | WebView | Store | `NativeControl(WEB_VIEW)` | An `android.webkit.WebView` that loads the given URL |
+| U4 | Command | Store | A `NativeCommand` member of `MobileOperation` | `CommandHost` runs the platform effect |
+| U5 | Report | Store | A member or id it cannot apply | A `Report`; the message list continues |
+| U6 | WebView mount | Store | A `MountWebView` member of `MobileOperation` | The store records the row; feature 18 mounts the control (D46) |
 
 ## 3. Bounded context
 
@@ -70,16 +70,17 @@ their tests run on Linux with no emulator.
 |---|---|
 | The schema, the generated Kotlin (`generated/kotlin`), the fixtures | Feature 01 |
 | The core vocabulary and the form table | Feature 02 |
-| The tier 2 column layout | Feature 03 section 6.4 |
+| The `ColumnarBatch` column layout | Feature 03 section 6.4 |
 | The apply rules, the snapshot format, the reference model and the conformance fixtures | Feature 14 sections 6.2 to 6.4. This feature implements them; it does not change them |
 | `NativeCore`, `EventInput`, `HostTransport`, `FrameListener`, the UniFFI Kotlin bindings | Feature 13 |
 | Compose, recomposition, focus, gestures, font scale, accessibility | Android platform. Do not rebuild it |
-| Behaviour bindings beyond what the control gives | Feature 16 |
+| The WebView control (`MountWebView`) | Feature 18, later work (D46) |
+| Behaviour bindings (`UiBehaviour` and `MobileBehaviour`) | Feature 16 |
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
 | `NodeStore` | node id to `NodeRecord`; reports; stream cursors | `FrameApplier`, on the main thread |
-| `NodeRecord` | One node, with each field as snapshot state | `FrameApplier` |
+| `NodeRecord` | One node, with each field as snapshot state: kind, props, text, children, actions, state bytes, live mount, behaviours, web view mount | `FrameApplier` |
 | Channel | One open connection of a live mount | `LiveMountHost` |
 
 | Verb | Kind | Trigger | Effect |
@@ -123,7 +124,7 @@ Links to other entities: none
 | # | Invariant |
 |---|---|
 | I1 | For each conformance fixture of feature 14, the JSON snapshot of the Kotlin store equals the checked-in expected snapshot. |
-| I2 | A `Web` form is never applied. It adds a report `UnsupportedPlatformOp` with the row index, and the next row applies. |
+| I2 | A `web` member of an `Operation` is never applied. It adds a report `UnsupportedPlatformOp` with the row index, and the next member applies. |
 | I3 | A row that names an unknown node changes nothing, adds a report `UnknownNode`, and the next row applies. |
 | I4 | A write to one field of one record invalidates only the snapshot readers of that field. |
 | I5 | `receive` returns after the store is edited. |
@@ -131,19 +132,28 @@ Links to other entities: none
 | I7 | The state bytes that the event bridge sends equal the bytes of the last `AttachState` of the nearest ancestor-or-self record that has state. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
-| I10 | The library holds no script engine and loads no code from the network. The WebView control is the only place that runs web content, and it runs the web runtime as a browser does (D11). |
+| I10 | The library holds no script engine and loads no code from the network. The WebView control is the only place that runs web content, and it is feature 18 (D46). |
+| I11 | A `UiBehaviour` or `MobileBehaviour` adds its id or custom name to the record's behaviour set. An id or name with no registered binding adds a report `UnknownBehaviour` and changes no record. |
 
 ### 4.3 Must have
 
-- `minSdk` 26 (owner answer Q13). Kotlin and the Android Gradle plugin at their latest
-  stable versions, written in one version catalog `gradle/libs.versions.toml`.
+- `minSdk` 26 (owner answer Q13). Gradle 9.9.1 and Kotlin 2.4.21 from the feature 17 pins,
+  written in one version catalog `gradle/libs.versions.toml`. The build runs with the pinned
+  JDK 25 (`temurin-25.0.5+8.0.LTS`). The Android Gradle plugin is at its latest stable
+  version.
 - The FlatBuffers Java runtime (`com.google.flatbuffers:flatbuffers-java`) at the version
   of the pinned `flatc`. The Kotlin code that `flatc --kotlin` generates uses it.
 - The `core` module is a Kotlin JVM library. It depends on `androidx.compose.runtime`
   (which has a JVM artifact) for snapshot state, and on no Android SDK class.
 
+The Android SDK packages come from `mise run toolchain:android` (feature 17, D58):
+platform-tools, platform 36, build-tools 36.0.0 and NDK 27.0.12077973. The feature does not
+install a package by hand.
+
 ### 4.4 Must do
 
+- Run `scripts/toolchain/check.sh` before the verify commands (feature 17). A check failure
+  is a setup error, not a test failure.
 - Verify every buffer before reading it: check the size limit, the length (8 bytes or
   more) and the identifier `EWF1`, then read through the generated accessors inside a
   `try`; an `IndexOutOfBoundsException` or `BufferUnderflowException` gives `BadFrame`.
@@ -157,6 +167,8 @@ Links to other entities: none
 - Do not add a tree compare.
 - Do not implement focus, gestures or font scaling by hand when the Compose control gives
   them.
+- Do not build the WebView control here. This feature stores the `MountWebView` row only;
+  feature 18 builds the control (D46).
 
 ## 5. Acceptance scenarios
 
@@ -173,7 +185,24 @@ Feature: Android renderer
     When one receives native_tree.bin and the other receives native_columnar.bin
     Then both snapshots are equal
 
-  Scenario: A web form is reported and skipped
+  Scenario: Behaviours change the record set
+    Given a store after native_tree.bin
+    When the store receives native_behaviour.bin
+    Then the snapshot equals native_behaviour.expected.json
+    And record 40 has the behaviour "SCROLL_LOCK"
+
+  Scenario: An unknown behaviour is reported
+    When the store receives a frame with UiBehaviour(40, behaviour 999)
+    Then the reports hold (code UnknownBehaviour, row 0, node 40, name "999")
+    And record 40 has no behaviour
+
+  Scenario: A WebView mount row is stored
+    Given an empty store with the screen root
+    When the store receives a frame with CreateNode(70, STACK), MountWebView(70, 1, "https://x/ui") and AppendChild(1, 70)
+    Then record 70 holds a web view mount for "https://x/ui"
+    And the store built no control
+
+  Scenario: A web member is reported and skipped
     Given a store after native_tree.bin
     When the store receives native_mixed.bin
     Then the snapshot equals native_mixed.expected.json
@@ -262,7 +291,8 @@ native/android/ewe-ui/
 │   │   └── CommandHost.kt
 │   └── src/test/kotlin/…                   JUnit 5; resources = the fixtures
 ├── ui/                                     Android library (Compose)
-│   ├── src/main/kotlin/ewe/ui/compose/     NodeView.kt, CoreViews.kt, FallbackView.kt, WebViewControl.kt, EweScreen.kt
+│   ├── src/main/kotlin/ewe/ui/compose/     NodeView.kt, CoreViews.kt, FallbackView.kt, EweScreen.kt
+│   ├── src/main/kotlin/ewe/ui/compose/behaviours/  BehaviourBinding.kt, BehaviourRegistry.kt, ScrollLockBinding.kt
 │   ├── src/main/kotlin/ewe/ui/android/     OkHttpChannelFactory.kt, SystemCommandHost.kt
 │   └── src/test/kotlin/…                   Robolectric-free JVM tests only (section 7)
 └── binding/                                Android library: UniFFI Kotlin + CoreBinding.kt
@@ -271,8 +301,13 @@ native/android/ewe-ui/
 `scripts/ui_native/sync-android.sh` copies the generated Kotlin and the fixtures;
 `--check` fails on a difference. `scripts/ui_native/build-android.sh` builds
 `foundation_ui_native` for `aarch64-linux-android` and `x86_64-linux-android` with
-`cargo ndk` (add `"cargo:cargo-ndk"` to `mise.toml` `[tools]`) and puts the `.so` files in
-`binding/src/main/jniLibs/`.
+`cargo ndk` and puts the `.so` files in `binding/src/main/jniLibs/`. `cargo-ndk` is a
+toolchain pin: feature 17 adds `"cargo:cargo-ndk"` to `mise.toml` `[tools]` when this
+feature needs it (D58).
+
+The Gradle wrapper uses the feature 17 Gradle 9.9.1 distribution. The version catalog takes
+Kotlin 2.4.21 from the same pin. The build runs with the pinned JDK 25: `JAVA_HOME` points at
+the mise `java` tool, and the project sets `jvmToolchain(25)`.
 
 ### 6.3 Key types (`core`)
 
@@ -285,9 +320,12 @@ class NodeRecord(val id: UInt) {
     val actions = mutableStateMapOf<UShort, String>()
     var state: ByteArray? = null                           // not observed; views do not read it
     var live by mutableStateOf<LiveMountSpec?>(null)
-    var control by mutableStateOf<NativeControlSpec?>(null)
+    var behaviours by mutableStateOf<Set<String>>(emptySet())   // shared ids and custom mobile names
+    var webView by mutableStateOf<WebViewMountSpec?>(null)      // the row only; feature 18 mounts the control
     var parent: UInt? = null
 }
+
+data class WebViewMountSpec(val parentId: UInt, val url: String)
 
 class NodeStore(
     private val gapTimeoutMs: Long = 1000,
@@ -328,10 +366,24 @@ interface CommandHost { fun run(command: UShort, args: Map<String, PropValue>): 
 ```
 
 The apply rules, the ordering and the snapshot format are those of feature 14 sections 6.3
-and 6.4, with no difference. The event bridge and the live mount host follow feature 14
-section 6.5: the same harvest rule, the same `EventInput` fields, the same open and close
-rule, the same resume parameters (`stream_id`, `resume_from`), and `Local` transport opens
-nothing.
+and 6.4, with no difference. A `Message` with `control.state_expired` or
+`control.update_required` is recorded in `errors` and calls `onError` with its own code
+(`StateExpired`, `UpdateRequired`); the nodes stay. The event bridge and the live mount host
+follow feature 14 section 6.5: the same harvest rule, the same `EventInput` fields, the
+same open and close rule, the same resume parameters (`stream_id`, `resume_from`), and
+`Local` transport opens nothing.
+
+`behaviours/` holds the interface `BehaviourBinding` and the registry
+`BehaviourRegistry.standard`, as feature 16 section 6.6 defines. `NodeView` folds the
+registered modifiers over its content. `ScrollLockBinding` sets `scrollEnabled = false`, and
+the `SCROLL` and `LIST` composables pass it to `verticalScroll(enabled = …)` and
+`LazyColumn(userScrollEnabled = …)`. A name in `record.behaviours` with no binding reports
+`UnknownBehaviour` and the node renders without it (I11).
+
+The shared set is `BehaviourId` (D56). A `MobileBehaviour` with `custom` names a behaviour
+that only the app knows. The registry is keyed by name, so the app registers that name with
+the same call that the standard registry uses for a shared behaviour (feature 16 section
+6.6).
 
 ### 6.4 Composables (`ui`)
 
@@ -350,7 +402,7 @@ nothing.
 | `SPACER` | `Spacer(Modifier.weight(1f))` inside a `Column` or `Row` | — |
 | `OVERLAY` | A `Box` that fills its parent, drawn after the parent's other children | `BACKGROUND` |
 | `UNKNOWN` | `FallbackView`: an empty `Box` with the content description "unsupported content" | — |
-| control `WEB_VIEW` | `WebViewControl`: `AndroidView` over `android.webkit.WebView`, loading the `url` text argument | — |
+| web view mount | No composable in this feature. The store holds `webView`; feature 18 mounts the `android.webkit.WebView` (D46) | `WIDTH`, `HEIGHT`, `HIDDEN` |
 
 Every kind applies `A11Y_LABEL` (`Modifier.semantics { contentDescription = … }`),
 `HIDDEN` (not composed), `WIDTH` and `HEIGHT` (`Modifier.width`, `.height`,
@@ -373,7 +425,7 @@ posts each frame to the main thread before `onFrame`. `SystemCommandHost`: `HAPT
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
 | Size, length or identifier check; an exception from the reader | Adds a report `TooLarge` or `BadFrame` | `false` | nothing for a header failure. For an exception inside a row: the rows before it are applied, the frame stops at that row, and the report holds the row index |
-| A row (other platform, unknown node, unknown op, unknown kind) | Adds a report; applies the next row | `true` | The other rows are applied |
+| A row (other platform, unknown node, unknown op, unknown kind, unknown behaviour) | Adds a report; applies the next row | `true` | The other members are applied |
 | The gap timer fires | Drops held frames of that stream; calls `onGap` | `onGap` | The cursor stays |
 
 **`send`**
@@ -382,24 +434,33 @@ posts each frame to the main thread before `onFrame`. `SystemCommandHost`: `HAPT
 |---|---|---|---|
 | No action bound | Returns | nothing | nothing |
 | `core.trigger` throws | Calls `onError` | `onError(ActionFailed, text)` | The store is unchanged |
-| The answer is an `Error` frame | `receive` records it; `onError` with its code | `onError` | The store is unchanged |
+| The answer holds a `control.error` message | `receive` records it in `errors`; `onError` with its code | `onError` | The store is unchanged |
+| The answer holds a `control.state_expired` message | `receive` records it in `errors` and calls `onError(StateExpired, …)` | `onError(StateExpired, …)` | The nodes stay. The app reloads the state of its roots |
+| The answer holds a `control.update_required` message | `receive` records it in `errors` and calls `onError(UpdateRequired, …)` | `onError(UpdateRequired, …)` | The nodes stay. The app tells the user to update |
 
 ### 6.6 The example and CI
 
-- `examples/ui_counter_android`: a Gradle app that depends on `:ui` and `:binding` by a
-  composite build, uses the same `examples/ui_counter/native` Rust crate as the iOS
-  example, and shows two counters. Its `README.md` gives the build and emulator commands.
+- `examples/ui_todo_android`: a Gradle app that depends on `:ui` and `:binding` by a
+  composite build, uses the same `examples/ui_todo/native` Rust crate as the iOS example,
+  and shows the D48 todo list: an "Add" button that opens a dialog with a text field, a long
+  scrolling list with scroll lock behind the dialog, a done toggle on each row, a delete
+  button that opens a confirm dialog and whose second delete the domain rejects, a
+  notification after an add or a delete, a filter (all, open, done) bound to a `host:`
+  action in the core, and a count of open items that follows a live mount. The dialog,
+  dismiss, scroll lock and transition behaviours come from feature 16. Its `README.md` gives
+  the build and emulator commands.
 - CI on the Linux job (every pull request that changes `native/android/**`,
   `backends/foundation_ui_wire/**` or `backends/foundation_ui_native/**`):
+  `scripts/toolchain/check.sh`, `mise run toolchain:android`,
   `scripts/ui_native/sync-android.sh --check` and
-  `./gradlew -p native/android/ewe-ui :core:test :ui:testDebugUnitTest`. The Linux CI
-  image needs a JDK and the Android SDK command-line tools: add them to
-  `ci/platform-images/images/linux/` and to `mise.toml` (`java`, and the SDK through the
-  image's setup script). If the image cannot hold the Android SDK within the free runner
-  disk, run `:core:test` only on pull requests and the `:ui` compile on the nightly full
-  run; record which case applies in `learnings.md`.
+  `./gradlew -p native/android/ewe-ui :core:test :ui:testDebugUnitTest`. The toolchain pins
+  and `mise install` give the JDK 25, Gradle 9.9.1, Kotlin 2.4.21 and the cmdline-tools
+  (feature 17, D58). Gradle runs with `JAVA_HOME` at the pinned JDK. If the Linux CI image
+  cannot hold the Android SDK within the free runner disk, run `:core:test` only on pull
+  requests and the `:ui` compile on the nightly full run; record which case applies in
+  `learnings.md`.
 - On full runs: `scripts/ui_native/build-android.sh` and
-  `./gradlew -p examples/ui_counter_android assembleDebug`.
+  `./gradlew -p examples/ui_todo_android assembleDebug`.
 
 ## 7. Tests
 
@@ -407,9 +468,9 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
-| I1; Scenarios: tree, mixed, replace | `ConformanceTest.nativeTree`, `.nativeMixed`, `.nativeReplace`, `.unknownKind` | stateful model (the reference snapshots of feature 14) |
-| I1 (tiers); Scenario: columns | `ConformanceTest.columnarEqualsOps` | metamorphic |
-| I2 | `ApplierTest.everyWebFormIsReported` with `frame_ops_all_forms.bin` | example |
+| I1; Scenarios: tree, mixed, replace, behaviour | `ConformanceTest.nativeTree`, `.nativeMixed`, `.nativeReplace`, `.unknownKind`, `.nativeUiBehaviour` | stateful model (the reference snapshots of feature 14) |
+| The columnar member; Scenario: columns | `ConformanceTest.columnarEqualsOps` | metamorphic |
+| I2 | `ApplierTest.everyWebMemberIsReported` with `frame_ops_all_forms.bin` | example |
 | I3 | `ApplierTest.unknownNodeIsReported` | example |
 | I4; Scenario: one record invalidated | `ObservationTest.textChangeInvalidatesOneRecord` (`Snapshot.observe` read observers, or `snapshotFlow` with a test dispatcher) | example |
 | I5 | `ApplierTest.receiveIsSynchronous` | example |
@@ -417,7 +478,9 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 | I7; Scenario: click | `EventBridgeTest.tapSendsRootState`, `.unboundEventSendsNothing`, `.triggerErrorGoesToOnError` (`runTest`) | example, fault |
 | I8; Scenario: live mount | `LiveMountTest.opensOnAttachAndClosesOnRemove`, `.localTransportOpensNothing`, `.resumeReopensWithCursor` | example |
 | I9; Scenario: unknown command | `ApplierTest.unknownCommandIsReported`, `.hapticReachesCommandHost` | example |
-| I10 | Review item: no script engine dependency in any `build.gradle.kts`; `WebView` appears only in `WebViewControl.kt` | expected outcome |
+| I10 | Review item: no script engine dependency in any `build.gradle.kts`; no `WebView` class appears in this feature, because feature 18 owns the control | expected outcome |
+| I11; Scenarios: behaviour, unknown behaviour | `ApplierTest.uiBehaviourIsStored`, `.unknownBehaviourIsReported`, `.mobileBehaviourUsesItsCustomName` | example |
+| U6; Scenario: WebView mount row | `ApplierTest.mountWebViewIsStored` (no control is built) | example |
 | Scenario: bad bytes | `ApplierTest.badBytesAreRejected`, `.everyPrefixIsRejectedOrApplied` (no exception escapes for any prefix of each fixture) | property |
 | I8 of feature 01 | `WireTest.fixturesReadTheSameAsRust` | example |
 | The `ui` module compiles and its prop mapping is right | `ui/src/test/kotlin/PropMappingTest`: pure functions `lengthToDp`, `alignmentOf`, `arrangementOf` | example |
@@ -426,25 +489,27 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 
 - [ ] 1. The Gradle project, the version catalog, the wrapper; `sync-android.sh`; `WireTest`.
 - [ ] 2. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
-- [ ] 3. `FrameApplier` tier 1 and the cross-platform rows; `ConformanceTest`.
-- [ ] 4. Tier 2, the mobile rows, the web-form reports, the read `try`.
+- [ ] 3. `FrameApplier` and the cross-platform rows; `ConformanceTest`.
+- [ ] 4. The columnar member, the mobile rows (`MountWebView`, `NativeCommand`, `MobileBehaviour`), the `UiBehaviour` rows, the web-member reports, the read `try`.
 - [ ] 5. Ordering and the gap timer.
 - [ ] 6. `ActionCore`, `EventBridge`.
 - [ ] 7. `LiveMountHost`; `OkHttpChannelFactory`.
 - [ ] 8. `CommandHost`; `SystemCommandHost`.
-- [ ] 9. The composables and `EweScreen`; `PropMappingTest`.
+- [ ] 9. The composables, the behaviour bindings and `EweScreen`; `PropMappingTest`.
 - [ ] 10. `binding`, `build-android.sh`, the example app.
-- [ ] 11. The CI steps and the image change.
+- [ ] 11. The CI steps; the toolchain pins come from feature 17.
 - [ ] 12. Update `progress.md` and `learnings.md`.
 
 ## 9. Verify
 
 ```bash
+scripts/toolchain/check.sh
+mise run toolchain:android
 scripts/ui_native/sync-android.sh --check
 ./gradlew -p native/android/ewe-ui :core:test
 ./gradlew -p native/android/ewe-ui :ui:testDebugUnitTest
 scripts/ui_native/build-android.sh
-./gradlew -p examples/ui_counter_android assembleDebug
+./gradlew -p examples/ui_todo_android assembleDebug
 cargo test -p foundation_ui_wire --profile uat --features reference
 ```
 
@@ -453,7 +518,8 @@ cargo test -p foundation_ui_wire --profile uat --features reference
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The Kotlin snapshots equal the reference snapshots for every conformance fixture.
-- [ ] The example app shows both counters working in an emulator; the run is recorded in
+- [ ] The example todo list runs in an emulator: an add, a done toggle, a delete with its
+      second-delete rejection, the filter and the live count; the run is recorded in
       `progress.md` with the date and the API level.
 - [ ] The check list of the `story-driven-specification` skill passes.
 

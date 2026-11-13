@@ -134,6 +134,43 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
   - Q31 covers the scope syntax and the origin registration. Q30 notes that the `server:`
     origin lowers the need for `#[remote_action]`.
 
+- 2026-11-14: the owner review of the 17 items ends, and all 17 are closed (D41 to D58).
+  - Item 16 was measured: `flatc` was downloaded and run; the pin is 25.9.23 (D57).
+  - New feature 17, `toolchain-and-ci`, owns every external tool: the pins in the root
+    `mise.toml`, the Android SDK task, the host check, the UniFFI proof and the CI steps
+    (D58). Feature 01 loses its `flatc` pin to it. The "WebView control" feature becomes 18.
+  - The tools are not installed yet. The feature installs and proves them when it starts.
+
+- 2026-11-14: the revision pass folds D41 to D59 into `requirements.md` and all 17 feature
+  files.
+  - One root frame (D47): `Frame { schema_version; stream_id; sequence_id; kind }`, with the
+    `FrameKind` union of `FrameRequest` and `FrameMessage`. One identifier, `EWF1`; one
+    content type, `application/primal-frame`. A reader of the wrong kind gives
+    `WireError::WrongKind`. Feature 01 writes the schema, the reader and `error_ext.rs`.
+  - `Operation`, `Data` and `Control` are tables, and `Message` holds the three (D41, D44,
+    D45). The shared set is twelve types, the web set sixteen, the mobile set three (D59).
+  - An action returns `Result<(), ErrorTrace<ActionErrorT>>` and writes to `ctx.receiver()`
+    (D49, D52). `Response` is removed. `ErrorTrace::new` needs an error type, so
+    `ActionErrorT` gains `Display` and `Error` impls in feature 01.
+  - The action reference text comes from `action_reference(origin, name)` (D50 (8)): a plain
+    action writes `host:name`. The web manager falls forward to `server:<name>` when
+    `ServerCaps.actions` holds the name. Feature 05 rejects one name under two origins.
+  - Behaviours split by owner (D56): the names and the shared/web sets are feature 02
+    (section 6.7), the marker lowering is feature 08, the web registry is feature 09
+    (section 6.9), and feature 16 keeps the authoring enum, the component lists, the matrix,
+    the build check and the four native bindings. This removes the cycle between features 08
+    and 16 and the web features' dependency on feature 16.
+  - The example is a cross-platform todo list (D48): `examples/ui_todo` in features 10 and
+    11, with server actions, host actions, a live open count and a web page script.
+  - Feature 17 gains the `cargo-ndk` 4.1.2 pin (six pins in total).
+  - Feature 03 renames to `03-frame-writer`; the "tiers" wording goes with D41.
+  - The state travels as a plain `[ubyte]` `EWS1` buffer, not a `nested_flatbuffer`
+    (requirements R2; feature 01). A `nested_flatbuffer` makes the frame verifier decode
+    attacker bytes before the tag check of feature 04. The reader calls
+    `read_signed_state` at the ordered point.
+  - The counts in requirements R5 and the feature 02 description are corrected to the D53
+    and D59 split: sixteen web forms and the behaviour name tables.
+
 - 2026-11-13: the design specification is written from the owner decisions D1 to D40.
   - `requirements.md`: glossary, the decisions adopted, the spec stories, the context map,
     the three layers, the limits table, the rules for every feature and the Feature Index.
@@ -156,7 +193,7 @@ Status key: pending, in progress, complete. Update this table when a feature cha
 |---|---|---|---|
 | 01 | wire-schema-and-codegen | Sonnet | pending |
 | 02 | vocabulary-and-platform-forms | Sonnet | pending |
-| 03 | frame-writer-and-tiers | Sonnet | pending |
+| 03 | frame-writer | Sonnet | pending |
 | 04 | signed-state | Sonnet | pending |
 | 05 | action-runtime | Sonnet | pending |
 | 06 | action-macro | Sonnet | pending |
@@ -170,6 +207,7 @@ Status key: pending, in progress, complete. Update this table when a feature cha
 | 14 | native-ios-renderer | Sonnet | pending |
 | 15 | native-android-renderer | Sonnet | pending |
 | 16 | behaviour-matrix | Sonnet | pending |
+| 17 | toolchain-and-ci | Sonnet | pending |
 
 **Phase gate for feature 13:** not open. It opens when the browser scenario of feature 10
 is recorded here as passed.
@@ -177,20 +215,39 @@ is recorded here as passed.
 ## In progress
 
 - The owner reviews the adopted items one at a time (17 items: A1 to A8, five design
-  choices, `WasmEnvelope`, `NativeBehaviour`, two known gaps).
-  - Item 1 (A1) is closed: D41 in `requirements.md` section 2.4. A frame is one list of
-    operations; the columnar batch is one operation type; no threshold.
-  - Item 2 (A2) is closed: D42. The ten elements are accepted. Operations are grouped by
-    type: `UiOperation` (shared), `WebOperation`, `MobileOperation`; a reader ignores a
-    type that it does not care about.
-  - The feature files are not yet revised for D41 and D42. Revise them one time, after the review
-    ends: features 01, 02, 03, 07, 09, 11, 14, 15 and `requirements.md` sections 2.2, 5.4
-    and 5.6.
+  choices, `WasmEnvelope`, `NativeBehaviour`, two known gaps). All 17 items are closed.
+  The decision for each one is in `requirements.md` section 2.4 (D41 to D59).
+  - Item 12 (R5) is closed by D53: four shared operations, and one web type for each of the
+    other operations, with no flag.
+  - Item 13 (R6) is closed by D54: the server sends a `ServerAction { hash, name }` list.
+    There is no registry hash table, no released-version state and no client list.
+  - Item 14 is closed by D55: `WasmEnvelope` goes away for UI operations only and stays
+    for the general WASM ABI.
+  - Item 15 is closed by D56: behaviours use the shared, web and mobile grouping, with an
+    app-defined `custom` string in the web and mobile sets. `NativeBehaviour` becomes
+    `UiBehaviour`, and the vocabulary version 2 adds the three enums and their maxima.
+  - Item 16 is closed by D57: `flatc` 25.9.23 was downloaded and run. The flags of feature 01
+    section 6.3 work, and the generated Rust and Swift writers ignore `force_align` on a
+    vector, so the `Aligned8` helper is required. The pin is 25.9.23 because the npm runtime
+    has no 25.12.19.
+  - Item 17 is closed by D58: feature 17 (`toolchain-and-ci`) owns the toolchain. It pins
+    `flatc`, the JDK, Gradle, Kotlin and the Android cmdline-tools in the root `mise.toml`,
+    adds the `toolchain:android` task, and adds `scripts/toolchain/check.sh` and
+    `scripts/toolchain/proof.sh`. Xcode stays host-managed. The tools are not installed
+    now; the feature does that work when it starts.
+- R4 is closed by D59: the shared set is twelve types (`CreateNode`, `SetText`, `SetProp`,
+  `AppendChild`, `InsertBefore`, `Remove`, `ReplaceSubtree`, `BindAction`, `UnbindAction`,
+  `AttachState`, `LiveMount`, `UiBehaviour`). D53 reads on top of it: five `DomOp` variants
+  map to four of them, and the other fourteen get one web type each. D59 supersedes any
+  earlier text that gives the shared set another size. R7 needs no decision: D50 states the
+  same rule.
+- The revision pass for D41 to D59 is complete: the 17 feature files and `requirements.md`
+  sections 2.2, 2.3, 5.3, 5.4 and 5.6 are updated. The owner reviews the result.
 
 ## Next
 
 1. The owner reads `requirements.md` sections 2.2 and 2.3 and confirms or changes A1 to A8
    and R1 to R9.
 2. The owner approves the acceptance scenarios of the features, or asks for changes.
-3. After approval: feature 01 starts. Features 02 and 04 can start when 01 is complete.
-   Follow the order of the Feature Index.
+3. After approval: feature 17 starts (the toolchain), then feature 01. Features 02 and 04
+   can start when 01 is complete. Follow the order of the Feature Index.
