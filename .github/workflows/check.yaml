@@ -35,13 +35,18 @@ name: "Audit: Checks & Tests"
 # do not stampede. GitHub allows 256 jobs per matrix; the workspace has about
 # 110 packages, so the full run fits in one matrix.
 
+# macOS and Windows tests run only on the full runs: a push to master or to
+# platform/release, a pull request into or from platform/release, the nightly
+# schedule and manual runs. Other pull requests run the Linux jobs only.
 on:
   pull_request:
     branches:
       - master
+      - platform/release
   push:
     branches:
       - master
+      - platform/release
   schedule:
     - cron: "17 2 * * *" # nightly full run, catches drift from dependencies
   workflow_dispatch:
@@ -406,6 +411,8 @@ jobs:
     # The matrix JSON holds each name in quotes, so this match is exact.
     if: >-
       needs.plan.result == 'success' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release') &&
       (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
       contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
     # Same GitHub-hosted Windows image as `windows-test`.
@@ -457,7 +464,11 @@ jobs:
     # with one target directory (`ci.py run-many`), so shared dependencies build
     # once. The plan job sets the shard count (`macos-shards`).
     # No container and no CI image: the job runs on the macOS runner itself.
-    if: needs.plan.outputs.macos-count != '0'
+    # Full runs only (see `on:`); a normal pull request skips it.
+    if: >-
+      needs.plan.outputs.macos-count != '0' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
     # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
     # DEVELOPER_DIR picks Xcode 26.2, the same as the `macos` job.
     runs-on: macos-26
@@ -520,7 +531,11 @@ jobs:
     # Runs the tests of every selected package that is not opted out of Windows
     # (ci/packages.toml), in shards like `macos-test`.
     # No container: the job runs on the Windows runner itself.
-    if: needs.plan.outputs.windows-count != '0'
+    # Full runs only (see `on:`); a normal pull request skips it.
+    if: >-
+      needs.plan.outputs.windows-count != '0' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
     # RUNNER LABEL: change it on this line only. The `env` context is not
     # available in `runs-on`, so a workflow-level variable cannot hold it.
     # GitHub-hosted Windows Server 2025: Visual Studio 2022 (MSVC), Windows SDK
