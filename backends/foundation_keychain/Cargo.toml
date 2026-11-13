@@ -77,7 +77,7 @@ foundation_db = { path = "../foundation_db", version = "0.0.8", default-features
 # `getrandom` gives ssh-key its own rand_core 0.6 `OsRng` (rand 0.9 implements
 # rand_core 0.9, which ssh-key 0.6's `CryptoRngCore` bound does not accept).
 ssh-key = { version = "0.6", features = ["ed25519", "rsa", "getrandom"] }
-age = { version = "0.10" }
+age = { version = "0.12" }
 secrecy = "0.8"
 
 [dev-dependencies]
