@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sshkit"
-version = "0.1.5"
+version = "0.1.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,7 +10,7 @@ description = "SSH orchestration — connection pooling, host abstraction, comma
 
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
-foundation_context = { path = "../foundation_context", version = "0.0.2" }
+foundation_context = { path = "../foundation_context", version = "0.0.3" }
 
 ssh2 = "0.9"
 
@@ -29,7 +29,7 @@ default = []
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.20"
+version = "0.0.21"
 features = ["test-clock"]
 
 [lints]

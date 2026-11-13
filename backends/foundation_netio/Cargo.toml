@@ -1,6 +1,6 @@
 [package]
 name = "foundation_netio"
-version = "0.0.13"
+version = "0.0.14"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,12 +16,12 @@ workspace = true
 [dependencies]
 # -- Workspace dependencies
 
-foundation_core = { path = "../foundation_core", version = "0.0.20" }
-foundation_context = { path = "../foundation_context", version = "0.0.2" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.8" }
+foundation_core = { path = "../foundation_core", version = "0.0.21" }
+foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
 # RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
 # → wasm-clean). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.5", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -68,7 +68,7 @@ web-sys = { version = "0.3", optional = true, features = [
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # The I/O reactor (poll readiness) is used only by the native `raw_stream`
 # path; it has no wasm32 poll backend, so keep it off the wasm build.
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.3" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.4" }
 # SSL/TLS backends — not available on wasm32 (require C compilation or OS APIs)
 ring = { version = "0.17.14", optional = true }
 aws-lc-rs = { version = "1.16.1", optional = true }
@@ -90,7 +90,7 @@ libc = "0.2"
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so the load-tracker tests move the
 # rate window by hand instead of sleeping.
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
 # F52: wasm-bindgen browser tests via foundation_testbed (wasm32-only).
 # All wasm-bindgen ecosystem re-exported by foundation_testbed.
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }

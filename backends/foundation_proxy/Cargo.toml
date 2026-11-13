@@ -10,19 +10,19 @@ description = "Reverse proxy — SSL termination, zero-downtime deploys, health-
 
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["multi"] }
-foundation_context = { path = "../foundation_context", version = "0.0.2" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
-foundation_http = { path = "../foundation_http", version = "0.0.11", features = ["multi", "ssl"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.13", features = ["ssl", "multi"] }
-foundation_iogate = { path = "../foundation_iogate", version = "0.0.4" }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.14", features = ["fd"] }
-foundation_db = { path = "../foundation_db", version = "0.0.7" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
+foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_http = { path = "../foundation_http", version = "0.0.12", features = ["multi", "ssl"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.14", features = ["ssl", "multi"] }
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.5" }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15", features = ["fd"] }
+foundation_db = { path = "../foundation_db", version = "0.0.8" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.21" }
 # T3/T4: the proxy's H2 upstream leg reuses connectrpc's streaming H2 client
 # (`H2Transport`) — the only H2 client in the tree with trailing-HEADERS support.
 # `default-features = false` keeps it lean: we only need the transport seam.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.12", default-features = false }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.13", default-features = false }
 
 serde.workspace = true
 serde_json.workspace = true
@@ -50,7 +50,7 @@ futures-util = "0.3"
 
 [dev-dependencies]
 # The clock injection test moves a `SimulatedClock`; `test-clock` exposes it.
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
 foundation_deployment_platform = { path = "../foundation_deployment_platform" }
 # The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
 # `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.

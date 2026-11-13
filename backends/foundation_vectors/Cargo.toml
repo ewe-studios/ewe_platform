@@ -1,6 +1,6 @@
 [package]
 name = "foundation_vectors"
-version = "0.0.5"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -15,10 +15,10 @@ serde_json = { version = "1", optional = true }
 libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["std"], optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["std"], optional = true }
 # Retry jitter reads the platform entropy source through foundation_compact's
 # vendored backend (rule 11), not through rand/getrandom.
-foundation_compact = { path = "../foundation_compact", version = "0.2.5", default-features = false, optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false, optional = true }
 futures-lite = { version = "2", optional = true }
 # The portable SQL store writes one scan-cost warning per namespace.
 tracing = { workspace = true, optional = true }
@@ -29,12 +29,12 @@ tracing = { workspace = true, optional = true }
 # the shared `QueryStore`/`DataValue` core, so the default features are off.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.7"
+version = "0.0.8"
 optional = true
 
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.7"
+version = "0.0.8"
 optional = true
 default-features = false
 
@@ -45,13 +45,13 @@ default-features = false
 # `foundation_core/multi`, which does not build for wasm32.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.13"
+version = "0.0.14"
 features = ["multi"]
 optional = true
 
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.13"
+version = "0.0.14"
 default-features = false
 features = ["wasm-fetch"]
 optional = true
