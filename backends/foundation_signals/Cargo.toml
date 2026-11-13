@@ -1,6 +1,6 @@
 [package]
 name = "foundation_signals"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,8 +16,8 @@ serde = { version = "1", default-features = false, features = ["alloc", "derive"
 serde_json = { version = "1.0.114", default-features = false, features = ["alloc"] }
 tracing = { version = "0.1", default-features = false }
 
-foundation_core = { path = "../foundation_core", version = "0.0.20", optional = true }
-foundation_context = { path = "../foundation_context", version = "0.0.2", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.21", optional = true }
+foundation_context = { path = "../foundation_context", version = "0.0.3", optional = true }
 
 [features]
 default = ["std", "single_threaded"]
