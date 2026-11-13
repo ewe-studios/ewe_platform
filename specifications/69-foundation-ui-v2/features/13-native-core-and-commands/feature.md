@@ -210,6 +210,29 @@ third case, an entry that a wrong registry made with another scope.
 
 ## 6. Technical breakdown
 
+```mermaid
+flowchart LR
+    subgraph HOST["Host app (Swift or Kotlin)"]
+        EB["Event bridge"]
+        ST["Node store"]
+        HT["HostTransport (network)"]
+    end
+    subgraph CORE["foundation_ui_native (Rust)"]
+        NC["NativeCore"] --> AM["ActionManager"]
+        AM -->|"native:"| LD["LocalDispatcher + registry"]
+        AM -->|"server:"| AD["transport adapter"]
+        LL["Local logic"] --> PO["push_ops"]
+    end
+    EB -->|"trigger(reference, event)"| NC
+    AD --> HT
+    LD -->|"frame bytes"| EB
+    PO -->|"FrameListener.on_frame"| ST
+    EB -->|"receive(frame)"| ST
+```
+
+_The diagram shows the two directions across the boundary. Each call carries one whole
+request or one whole frame._
+
 ### 6.1 Measured facts
 
 | Fact | Source |

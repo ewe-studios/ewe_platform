@@ -162,3 +162,57 @@ ASD-STE100.
   `foundation_auth` `TokenSigner::verify` compares tags in constant time with
   `Mac::verify_slice`, and the signer has a key ring with key ids (commits `25cab64fe` and
   `540611b30`). Cite the commits, not the deleted file.
+
+## Design specification (2026-11-13)
+
+- The research left two forms for the state on the wire: a `StateUpdate` body, and ops plus
+  state in one frame. A change has one form (D36), so the design has one: the
+  cross-platform op `AttachState`. The view and its state then travel in one frame and
+  cannot arrive apart.
+
+- The client must return the state bytes exactly. A table field would make each client
+  build the table again. A `[ubyte]` field with `nested_flatbuffer` keeps the bytes as the
+  server made them, on the root element (base64url) and in the request.
+
+- `html! { ctx, receiver, <…> }` is already the reactive form of spec 39. The source
+  document writes `html! { ctx, Some(&state), <…> }` for a view with state. The macro cannot
+  tell the two apart, so the view form is `html! { view(ctx, Some(&state)), <…> }`. Check an
+  idea from a document against the syntax that exists before you copy it.
+
+- `flatc` does not promise `force_align` on a vector in every language. Only Rust writes
+  frames with numeric columns, so one Rust helper (`Aligned8`) makes the 8-byte rule true
+  with no dependence on that promise. Readers check the offset and copy when it is wrong.
+  When a fact about a tool is not certain, design so that the result does not depend on it,
+  and test the result.
+
+- A hash of the action names cannot tell the server which names an old app has. The server
+  needs a table from the hash to the name set of each released version, or it must answer
+  `UpdateRequired`.
+
+- `foundation-wasm-ui.js` has no `import` line, and hosts serve it as one file. New runtime
+  code goes in separate modules, and the old file gets small static seams
+  (`ProtocolHandler.frameHook`, `EventDispatcher.actionHook`), like the existing
+  `ProtocolHandler.arrowIpcReader`.
+
+- The live `Broadcaster` keeps every frame so that a late joiner can build the page. A
+  plain backlog limit breaks a late joiner. The real fix is a snapshot frame (issue #548).
+  Do not add a limit with a default that silently breaks the join.
+
+- `WasmEnvelope` is also the frame of protocol byte 0, the general batch-instructions ABI
+  of `foundation_wasm`. Only its use for DOM ops retires. Read what a type is used for
+  before you list it for removal.
+
+- A browser WASM module has one thread. A `native:` action there is polled one time; a
+  pending future gives a typed error. Never spin on it (`CLAUDE.md` rule 6). On a device
+  the same dispatcher is awaited on the Rust executor.
+
+- The FlatBuffers Java runtime has no verifier. The Kotlin reader checks the size, the
+  length and the identifier, and reads inside a `try`.
+
+- The behaviour modules are eleven, not ten: the research list leaves out `composite`
+  (`machinery/mod.rs:27-37`).
+
+- Each native renderer needs the same oracle. A small reference model in Rust writes the
+  expected store as JSON for each fixture frame, and the Swift and Kotlin stores must give
+  the same JSON. This is cheaper than two hand-written sets of expected values, and it
+  keeps the two platforms from drifting apart.

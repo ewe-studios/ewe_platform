@@ -193,6 +193,20 @@ Feature: Retirement of the old wire
 
 ## 6. Technical breakdown
 
+```mermaid
+stateDiagram-v2
+    [*] --> Prove
+    Prove --> Stopped: a gate item fails
+    Prove --> SwitchDefaults: every gate item passes
+    SwitchDefaults --> MoveInternals: tests pass (commit A)
+    MoveInternals --> Remove: tests pass (commit B)
+    Remove --> [*]: tests pass (commit C)
+    Stopped --> [*]: report and GitHub issue
+```
+
+_The diagram shows the four steps in their fixed order. A failed gate item stops the
+feature before any change._
+
 ### 6.1 Measured facts (2026-11-13; measure again at the start of the feature)
 
 | Fact | Source |

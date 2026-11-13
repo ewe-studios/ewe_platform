@@ -248,6 +248,19 @@ Feature: html! in the core vocabulary
 
 ## 6. Technical breakdown
 
+```mermaid
+flowchart LR
+    T["html! template"] --> P["parser: core tags, on: bindings, checks"]
+    P --> H["Html tree"]
+    H -->|"lower / mount"| O["Vec&lt;OpT&gt;"]
+    H -->|"view(ctx, state) form: render"| V["ReplaceSubtree + AttachState"]
+    V -->|".into()"| R["Response::UIUpdate"]
+    H -->|"existing reactive form"| X["DomOp effects (unchanged)"]
+```
+
+_The diagram shows the two new ways from a template to ops, beside the existing reactive
+form, which does not change._
+
 ### 6.1 Measured facts
 
 | Fact | Source |

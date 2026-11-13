@@ -227,6 +227,21 @@ Feature: iOS renderer
 
 ## 6. Technical breakdown
 
+```mermaid
+flowchart LR
+    F["Frame bytes<br/>(server, core or live channel)"] --> A["FrameApplier<br/>generated Swift reader"]
+    A --> S[("NodeStore<br/>one @Observable record per node")]
+    S --> V["SwiftUI views"]
+    V -->|"tap, change"| E["EventBridge"]
+    E -->|"trigger"| C["ActionCore"]
+    C -->|"answer frame"| A
+    S --> L["LiveMountHost"] -->|"frames"| A
+    A --> K["CommandHost"]
+```
+
+_The diagram shows the path of a frame to the screen and the path of an event back to an
+action._
+
 ### 6.1 Measured facts
 
 | Fact | Source |

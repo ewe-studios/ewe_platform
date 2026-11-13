@@ -216,6 +216,20 @@ Feature: Wire schema and generated code
 
 ## 6. Technical breakdown
 
+```mermaid
+flowchart LR
+    S["schema/*.fbs"] -->|"flatc (pinned)"| R["src/generated (Rust)"]
+    S --> T["generated/ts"] -->|esbuild| B["foundation-ui-wire.js"]
+    S --> W["generated/swift"]
+    S --> K["generated/kotlin"]
+    R --> RD["read_frame, finish_frame"]
+    RD --> F["fixtures/*.bin"]
+    F --> TT["TS, Swift and Kotlin fixture tests"]
+```
+
+_The diagram shows that one schema gives the code of four languages, and that one set of
+fixture files proves that they read the same bytes._
+
 ### 6.1 Measured facts
 
 | Fact | Source |

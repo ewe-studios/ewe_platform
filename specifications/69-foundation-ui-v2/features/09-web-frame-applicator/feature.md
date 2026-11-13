@@ -280,7 +280,7 @@ Feature: Web frame applicator
 | `Hydrator.hydrate(root, doc)` runs each `script[primal:script]` one time with a scope and removes it | `foundation-wasm-ui.js:2162-2190` |
 | Content types `primal-arrow`, `primal-json`, `primal-html`; SSE event names `html`, `json`, `arrow`; mount attribute `protocol` | `foundation-wasm-ui.js:2076-2122`, `:1950-1975` |
 | The existing JS tests run with `node --test` and a mock DOM | `backends/foundation_wasm_ui/integration/package.json`, `integration/mock-dom.js` |
-| No CI step and no mise task runs these JS tests | `grep -n "node --test\|integration/test" scripts/ci/ci.py .github/workflows/check.yaml mise.toml` gives nothing (2026-11-13). Open a GitHub issue for this (rule 9) and add the task of section 6.8 |
+| No CI step and no mise task runs these JS tests | `grep -n "node --test\|integration/test" scripts/ci/ci.py .github/workflows/check.yaml mise.toml` gives nothing (2026-11-13). GitHub issue #547 records it; section 6.8 fixes it |
 
 ### 6.2 Files
 
@@ -494,7 +494,7 @@ Add the mise task `ui-web:test`:
 `node --test backends/foundation_wasm_ui/integration/test/`. Run it in the CI step that
 feature 01 added, when `backends/foundation_wasm_ui/runtimes/**` or
 `backends/foundation_wasm_ui/integration/**` changed. This also puts the existing JS suite
-in CI; name the new GitHub issue in the commit that adds the step and close it there.
+in CI. This closes issue #547; close it in the change that adds the step.
 
 ### 6.9 Fault table: `receive`
 
@@ -529,7 +529,7 @@ in CI; name the new GitHub issue in the commit that adds the step and close it t
 
 ## 8. Tasks
 
-- [ ] 1. Open the GitHub issue for the JS tests that CI does not run (severity medium); add `ui-web:test` and the CI step.
+- [ ] 1. Add `ui-web:test` and the CI step (issue #547).
 - [ ] 2. Write `frame_parity_fixtures_tests.rs`; create the fixtures.
 - [ ] 3. `isFrame`, `splitFrames`, base64url helpers, with tests.
 - [ ] 4. `FrameApplicator`: constructor, `receive`, ordering, `flush`, with the order tests.
@@ -561,7 +561,7 @@ grep -c "^import" backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js   #
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] `git diff` of `foundation-wasm-ui.js` shows only the six seams of section 6.6.
 - [ ] No existing JS test file changed.
-- [ ] The GitHub issue of task 1 is closed by this change.
+- [ ] Issue #547 is closed by this change.
 - [ ] The check list of the `story-driven-specification` skill passes.
 
 ---

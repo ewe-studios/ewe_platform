@@ -141,7 +141,7 @@ Links to other entities: none
 - `BacklogConfig { max_frames: Option<usize> }`. The default is `None`: keep every frame,
   which is what `Broadcaster` does today (`server/mod.rs:64-67`, `:151-155`). A page that
   is built only from the stream needs the whole history to join late.
-- A GitHub issue (severity medium) for the unbounded backlog of `Broadcaster` and of
+- GitHub issue #548 (severity medium) records the unbounded backlog of `Broadcaster` and of
   `LiveChannel` with the default config: the likely fix is a snapshot frame that replaces
   the dropped history. Do not build the snapshot in this feature (rule 9).
 
@@ -527,7 +527,7 @@ as the first statement inside the `try`:
 
 ## 8. Tasks
 
-- [ ] 1. Open the GitHub issue for the unbounded backlog (severity medium).
+- [ ] 1. Read issue #548; add a comment to it that names `LiveChannel` when this feature lands.
 - [ ] 2. `BacklogConfig`, `LiveError`, `LiveChannel::new`, `register`, `close` with tests.
 - [ ] 3. `LiveTx::push_ops` with tests, including the concurrent test of I4.
 - [ ] 4. `FrameBroadcastSink` with its test.
@@ -562,7 +562,7 @@ git diff --stat backends/foundation_wasm_ui/src/server/mod.rs   # two added line
 - [ ] `Broadcaster`, `BroadcastTx`, `BroadcastSink` and `FrameTransport` are unchanged.
 - [ ] No lock is held while user code runs, except the `send_binary` calls that the
       existing `Broadcaster` also makes under its lock.
-- [ ] The GitHub issue of task 1 exists and is linked in `learnings.md`.
+- [ ] Issue #548 is linked in `learnings.md`.
 - [ ] The check list of the `story-driven-specification` skill passes.
 
 ---

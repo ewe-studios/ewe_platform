@@ -256,7 +256,7 @@ Feature: Signed state
 |---|---|
 | `foundation_auth` has an HMAC-SHA256 signer with a key ring and a constant-time compare (`Mac::verify_slice`). It is private to that crate and signs text tokens | `backends/foundation_auth/src/shared/session.rs:553-605` |
 | `foundation_auth` declares `sha2 = "0.10"` and `hmac = "0.12"` itself; they are not in `[workspace.dependencies]` | `backends/foundation_auth/Cargo.toml:28-29`; root `Cargo.toml` |
-| `foundation_compact::crypto::chacha::encrypt` makes its nonce with `generate_nonce()`, a global entropy read | `backends/foundation_compact/src/crypto/chacha.rs:24-41` |
+| `foundation_compact::crypto::chacha::encrypt` makes its nonce with `generate_nonce()`, a global entropy read (GitHub issue #549) | `backends/foundation_compact/src/crypto/chacha.rs:24-41` |
 | `EncryptionKey<N>` zeroes on drop; `ChaChaKey = EncryptionKey<32>` | `backends/foundation_compact/src/crypto/key.rs:15`, `chacha.rs:15` |
 | `Clock::wall_now()` gives the wall time; `Ctx::clock()` and `Ctx::rng()` exist | `backends/foundation_context/src/lib.rs:73-89`, `:437`, `:468` |
 | `foundation_context` builds for `wasm32` | `backends/foundation_context/Cargo.toml` (`cfg(target_family = "wasm")` section) |
@@ -549,7 +549,7 @@ whose clock can move.
 ## 8. Tasks
 
 - [ ] 1. Move `hmac`, `sha2`, `subtle` (and `zeroize` if shared) to `[workspace.dependencies]`; update `foundation_auth`.
-- [ ] 2. Add `encrypt_with_nonce` to `foundation_compact` with its test; bump versions.
+- [ ] 2. Add `encrypt_with_nonce` to `foundation_compact` with its test; bump versions; close issue #549 in this change.
 - [ ] 3. Create the `foundation_ui_runtime` crate; add its `ci/packages.toml` section (`wasm = "enforce"`).
 - [ ] 4. `error.rs`, `config.rs`, `keys.rs`, `Session`.
 - [ ] 5. `mac_input.rs` with a test of the exact byte layout.

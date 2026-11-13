@@ -223,6 +223,17 @@ Feature: Vocabulary and platform forms
 
 ## 6. Technical breakdown
 
+```mermaid
+flowchart TD
+    OP["Op union number"] --> FP{"form_platform"}
+    FP -->|"1 to 11"| C["Cross: every platform applies it"]
+    FP -->|"12 to 22"| W["Web: only a Web mount applies it"]
+    FP -->|"23, 24"| M["Mobile: only a Native mount applies it"]
+    FP -->|"0 or above 24"| N["None: unknown form"]
+```
+
+_The diagram shows how the form table sorts each op into one platform set._
+
 ### 6.1 Measured facts
 
 | Fact | Source |

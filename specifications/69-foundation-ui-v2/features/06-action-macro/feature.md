@@ -170,6 +170,17 @@ Feature: The #[action] macro
 
 ## 6. Technical breakdown
 
+```mermaid
+flowchart LR
+    F["#[action(web)]<br/>async fn open_picker(ctx, event: Interaction&lt;Picker&gt;) -> Response"] --> M["action macro"]
+    M --> S["struct open_picker;"]
+    M --> I["impl Action for open_picker<br/>NAME, SCOPE = Web, State = Picker, call()"]
+    I --> B["blanket ErasedAction (feature 05)<br/>decodes Picker, then calls"]
+    S --> R["registry.register(Origin::Server, open_picker)"]
+```
+
+_The diagram shows what the macro makes from one function and where the result goes._
+
 ### 6.1 Measured facts
 
 | Fact | Source |

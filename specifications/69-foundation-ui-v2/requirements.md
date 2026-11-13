@@ -273,7 +273,7 @@ Op (cross)   = CreateNode | SetText | SetProp | AppendChild | InsertBefore | Rem
              | ReplaceSubtree | BindAction | UnbindAction | AttachState | LiveMount
 Op (web)     = HtmlMorph | ScriptNode | WebElement | WebText | WebAttr | WebProperty
              | WebStyle | WebClass | WebListener | WebRegistry | WebReplaceNode
-Op (mobile)  = NativeControl | NativeCommand
+Op (mobile)  = NativeControl | NativeCommand          (feature 16 appends NativeBehaviour)
 ActionRequest{ schema_version, stream_id, sequence_id, action, node_id, input, state }
 ClientHello  { schema_version, vocabulary_version, action_registry_hash, platform, mount,
                resume_from }
@@ -309,7 +309,7 @@ path.
 | Verification failures before a block | `FailureLimits::max_failures` | 5 | fail2ban default `maxretry` |
 | Failure window | `FailureLimits::window` | 600 s | fail2ban default `findtime` |
 | Block time | `FailureLimits::block_for` | 600 s | fail2ban default `bantime` |
-| Replay backlog | `BacklogConfig::max_frames` | No limit | The current behaviour of `Broadcaster`: a page that is built only from the stream needs the whole history to join late. No established server default exists. Feature 11 opens an issue for a snapshot frame |
+| Replay backlog | `BacklogConfig::max_frames` | No limit | The current behaviour of `Broadcaster`: a page that is built only from the stream needs the whole history to join late. No established server default exists. Issue #548 records the snapshot frame that a limit needs |
 | Gap wait before a resume | `LiveConfig::gap_timeout` | 1000 ms | No established default exists. One second is the first reconnect delay of the current JS runtime (`reconnectDelay`) |
 
 ## 6. Rules for every feature
