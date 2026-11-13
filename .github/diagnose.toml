@@ -1,0 +1,23 @@
+# One test to run with its full output on one operating system.
+# The workflow .github/workflows/diagnose.yaml reads this file. A push that
+# changes this file starts the workflow. It does not run on a pull request.
+#
+#   os       linux, macos or windows
+#   package  the cargo package
+#   args     the arguments after `cargo test -p <package>` and before `--`
+#   filter   the test name filter (after `--`)
+#   repeat   how many times to run the test; the run stops at the first failure
+#   env      extra environment for the test
+
+# Issue #520: a response body ends before its Content-Length on Windows.
+# Rerun with the fix: blocking body reads without a readiness source, and a
+# stall after data is an error.
+os = "windows"
+package = "foundation_deployment_huggingface"
+args = "--test offline_tests"
+filter = "hub_download_streams_to_file"
+repeat = 30
+
+[env]
+RUST_BACKTRACE = "1"
+RUST_LOG = "foundation_netio=trace,foundation_testing=trace,foundation_reactor=debug,info"

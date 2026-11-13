@@ -438,7 +438,7 @@ wasm-runs = ["--no-default-features --features wasm"]
 [packages.foundation_db]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
-windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123); #520: a response body ends before its Content-Length. Remove this opt-out when the issue is fixed."
+windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123). Remove this opt-out when the issue is fixed."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 runs = ["", "libsql"]
 clippy-runs = ["", "libsql"]
@@ -457,7 +457,7 @@ wasm-runs = [
 macos-tests = "none"
 macos-reason = "Known bug on macOS: #485: the blackhole connect test needs a full listen backlog to hang a connect, and macOS accepts it; #530: a quic poll parks after reading datagrams. Remove this opt-out when the issue is fixed."
 windows-tests = "none"
-windows-reason = "Known bug on Windows: #521: socket timeouts and DNS block a worker (os error 10060 and 10053); #520: a response body ends before its Content-Length. Remove this opt-out when the issue is fixed."
+windows-reason = "Known bug on Windows: #521: socket timeouts and DNS block a worker (os error 10060 and 10053). Remove this opt-out when the issue is fixed."
 # `quic` adds the QUIC, HTTP/3 and WebTransport suites (tests/quic, tests/http3,
 # tests/webtransport), which no run compiled before.
 runs = ["", "quic"]
@@ -683,10 +683,6 @@ clippy-deny-warnings = true
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 
-[packages.foundation_deployment_huggingface]
-# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
-windows-tests = "none"
-windows-reason = "Known bug on Windows: #520: a response body ends before its Content-Length. Remove this opt-out when the issue is fixed."
 
 [packages.foundation_packager]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
