@@ -4,8 +4,12 @@ name: Diagnose one test
 # .github/diagnose.toml names the OS, the package, the test and the repeat count.
 # The normal CI keeps only the failure lines; this job keeps the whole output
 # of the first failed attempt, at the end of the log, where the log API can read it.
+# Only work branches start it: a new branch (for example from Dependabot)
+# matches the path filter on its first push, and must not start it.
 on:
   push:
+    branches:
+      - "claude/**"
     paths:
       - .github/diagnose.toml
       - .github/workflows/diagnose.yaml

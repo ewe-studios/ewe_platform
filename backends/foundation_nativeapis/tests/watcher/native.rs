@@ -16,7 +16,15 @@ impl TempDir {
         let path = std::env::temp_dir().join(format!(
             "nativeapis_test_{}_{}_{}",
             std::process::id(),
-            std::thread::current().name().unwrap_or("anon"),
+            // The thread name is the test path (`native::poll_watcher_unwatch`).
+            // Windows does not allow `:` in a file name, so keep only letters,
+            // digits and `_`.
+            std::thread::current()
+                .name()
+                .unwrap_or("anon")
+                .chars()
+                .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+                .collect::<String>(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
