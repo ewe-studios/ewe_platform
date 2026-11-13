@@ -27,8 +27,8 @@ The existing proxy parts that the new code extends:
 
 ## Next steps
 
-1. Finish the move: add the nine-section story wrapper to both features and update the internal
-   feature references (old 02 → 78/79, old 07/11 → 81, old 08 → 80).
+1. Add the nine-section story wrapper to both features. The internal feature references now point
+   at the new homes (old 02 → 78/79, old 07/11 → 81, old 08 → 80).
 2. Run feature 00 T1 (the registration contract) against spec 78's `proxy` and `probes` blocks.
 3. Feature 01 can use a fake registration server until feature 00 lands. Its final end-to-end
    task needs spec 79.

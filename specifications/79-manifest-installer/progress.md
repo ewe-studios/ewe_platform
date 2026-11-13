@@ -18,8 +18,9 @@ _Last updated: 2026-11-14._
 
 ## Next steps
 
-1. Finish the move: remove the duplicated manifest tables from the feature and add the
-   nine-section story wrapper from `.agents/skills/story-driven-specification`.
+1. Add the nine-section story wrapper to the feature from
+   `.agents/skills/story-driven-specification`. The duplicated manifest tables are gone; the
+   feature points to spec 78.
 2. Add the feature to `ci/packages.toml` when the crate exists.
 3. Implement T1 (manifest types and validation) against the 78 fixtures.
 
