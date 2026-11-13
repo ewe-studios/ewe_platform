@@ -17,6 +17,27 @@ tasks:
 
 # WASM Lazy Streaming
 
+_Status note (2026-10-26): complete (5/5, PR #124). This file is the design record. New text is
+in ASD-STE100 Simplified Technical English (STE); older paragraphs keep their wording. Code and
+identifiers stay as they are._
+
+**Abbreviations in this file.** WebAssembly (wasm); server-sent events (SSE); JavaScript (JS);
+Hypertext Transfer Protocol (HTTP); application programming interface (API); input/output (I/O);
+AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
+ASD-STE100.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| `run_future` | The old helper that drove a future to completion in place. On wasm it blocks the only thread, so the Worker hangs. |
+| Park | To give the thread back to the JS event loop and wait for a wake call, instead of polling in a loop. |
+| `into_future_stream` | The valtron bridge that turns a valtron stream into a Rust `Stream` that parks when no item is ready. |
+| Lazy SSE (`LazySseIterator`) | An SSE reader that starts the `fetch` only when the consumer first asks for an item. |
+| `SseProgress::Failed` | The stream state that carries a transport error to the consumer, so it is not lost. |
+| `spawn_local` | Runs a future on the JS event loop of the current Worker. |
+
+
 ## Overview
 
 `00-foundation` made `foundation_ai` compile on wasm and shipped `cf-cloud-provider`.
@@ -201,6 +222,9 @@ sequenceDiagram
     P-->>W: ModelStreamBox (Messages; into_next_stream parks → yields)
     W-->>C: ReadableStream response (SSE)
 ```
+
+_The diagram shows the corrected path: nothing blocks, and each step parks and yields to the JS event loop._
+
 
 The decisive difference from the broken path: **no `run_future`, no `collect()`.**
 The fetch is driven by `spawn_local` and the consumer parks on `Wait`/`Pending`.

@@ -632,10 +632,12 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let config = self.config.clone();
-        // Use the client's own pool so a transport connector set with
-        // `with_connector` (WireGuard overlay, SSH `dial-stdio`) reaches the
-        // async exchange path, matching `send` and `send_async`. A fresh pool
-        // here would silently drop the connector and dial DNS+TCP instead.
+        // Use the client's own pool. It carries the TLS connector (custom
+        // roots, client certificates) and a transport connector set with
+        // `with_connector` (WireGuard overlay, SSH `dial-stdio`), so the async
+        // exchange path matches `send` and `send_async`. A fresh pool here
+        // silently dropped both and dialed DNS+TCP with the default TLS config.
+
         let pool = self.pool.clone().unwrap_or_else(|| {
             Arc::new(HttpConnectionPool::new(
                 ConnectionPool::default(),

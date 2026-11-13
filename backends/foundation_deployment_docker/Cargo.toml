@@ -25,6 +25,9 @@ version = "0.9.2"
 features = ["json"]
 optional = true
 
+# Must match the `buffa` runtime above: the generated code calls runtime APIs
+# (`::buffa::saturate_size`, `EncodeSink`, …) that differ between versions, and
+# a codegen/runtime skew fails the buildkit build.
 [build-dependencies.buffa-build]
 version = "0.9.2"
 optional = true

@@ -185,8 +185,15 @@ fn failed_to_transport_error(
 
 fn request_url_string(req: &RequestDescriptor) -> String {
     let query = req.request_uri.query().map_or_default(|q| format!("?{q}"));
+    // Keep the caller's scheme: rebuilding every URL as `http://` sent
+    // plaintext HTTP to TLS servers (an `https://` base URL never used TLS).
+    let scheme = if req.request_uri.scheme().is_https() {
+        "https"
+    } else {
+        "http"
+    };
     format!(
-        "http://{}:{}{}{}",
+        "{scheme}://{}:{}{}{}",
         req.request_uri
             .host_str()
             .unwrap_or_else(|| "localhost".to_string()),

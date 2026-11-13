@@ -1,307 +1,821 @@
 ---
 feature: "Proxy Registration Authority"
-description: "Extend foundation_proxy with an authenticated control plane (register/deregister/heartbeat) and a live backend routing table, so a registrar can tell the proxy 'this binary is here at host:port' and the proxy can forward to it via spec 63's per-endpoint protocol selection."
+description: "Extend foundation_proxy with a registration authority: a separate mutual-TLS listener where enrolled registrar sidecars register backends, report their health and metrics on a lease, and deregister them; plus a live backend registry that feeds the existing router with no dropped connections."
 status: "pending"
 priority: "high"
 depends_on: []
-estimated_effort: "medium"
+builds_on:
+  - "specifications/completed/63-connectrpc-proxy"
+  - "11-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in its auth.md)"
+estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-10-19
+last_updated: 2026-10-26
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 8
-  total: 8
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
 # Proxy Registration Authority
 
-## Overview
+_Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
+are._
 
-This feature gives `foundation_proxy` the one thing it is currently missing to
-front a dynamic fleet of agent-rpc (and other) backends: a way for a backend to
-**register itself** rather than be hand-listed in config. A registrar (spec 65
-F3) calls the proxy's authenticated control plane — `RegisterBackend`,
-`DeregisterBackend`, `Heartbeat` — and the proxy maintains a live **routing
-table** of `backend name → host/port/protocol/health`. Incoming requests then
-route to registered backends through the per-endpoint protocol selection already
-specified in `specifications/completed/63-connectrpc-proxy`.
+**Abbreviations in this file.** Transport Layer Security (TLS); mutual TLS (mTLS); remote
+procedure call (RPC); Certificate Authority (CA); certificate signing request (CSR); Hypertext
+Transfer Protocol (HTTP); Transmission Control Protocol (TCP); Internet Protocol (IP);
+time to live (TTL); identifier (ID); central processing unit (CPU); server-side request forgery
+(SSRF); Automatic Certificate Management Environment (ACME); Classless Inter-Domain Routing
+(CIDR); Domain Name System (DNS); Secure Hash Algorithm with 256 bits (SHA-256); AeroSpace and
+Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+Section 2 explains each term.
 
-The proxy remains protocol-opaque about the *payloads* it forwards; it does not
-interpret agent-rpc's RPCs and does not see agent-rpc's client auth. It only
-knows "this backend is here and healthy, forward to it."
+## 1. Overview
 
-## Language Stack
+### 1.1 The problem
 
-### Languages for This Feature
+`foundation_proxy` routes client traffic to **backends**. Today an operator lists every backend
+in the proxy configuration file (`ServiceConfig::backends`). When a program moves, restarts on
+a new port, or gets a new version, someone must edit the file and reload the proxy.
 
-| Language | Purpose | Skill Location |
-|----------|---------|----------------|
-| Rust | Registration control plane, routing table, health | `.agents/skills/rust-clean-code/skill.md` |
+This feature lets a **registrar sidecar** (feature 04) tell the proxy about backends while the
+proxy runs. The sidecar runs beside the programs. It knows what is installed, what runs, and
+whether it is healthy. The proxy knows how to route. The **registration authority** is the
+part of the proxy that receives what the sidecar says and keeps the routing table correct.
 
-### Pre-Implementation Checklist
+### 1.2 Who does what
 
-- [ ] Read `.agents/skills/rust-clean-code/skill.md`.
-- [ ] Read `.agents/skills/rust-valtron-usage/skill.md` (proxy is async; health
-      probes run as tasks/streams).
-- [ ] Read `specifications/completed/63-connectrpc-proxy/features/00-connectrpc-proxy/feature.md`
-      — this feature extends that one (per-endpoint `BackendProtocol` selection).
-- [ ] Confirm `.agents/AGENTS.md` streaming + generated-types rules.
+| Part | Does | Does not |
+|---|---|---|
+| Proxy, public listener | Ends client TLS (the proxy owns the public certificate, static or ACME). Routes each request to a backend in rotation. | Read the manifest. See how agent-rpc checks its own clients. |
+| Proxy, registration authority | Enrolls sidecars. Accepts `Register`, `Report` and `Deregister` from enrolled sidecars. Keeps one lease for each sidecar session. Puts backends in and out of rotation. | Probe the apps for the sidecar. Start or stop apps. |
+| Registrar sidecar (feature 04) | Reads the manifest. Finds what is installed and running. Runs startup, liveness and readiness probes. Reads CPU and memory use. Tells the proxy all of this. | End client TLS. Route client traffic. |
+| Backend (for example agent-rpc) | Serves requests. | Know that a proxy or a sidecar exists. |
 
----
+### 1.3 The one place where the sidecar authenticates
 
-## Requirements
+The sidecar proves who it is **only on the link from the sidecar to the proxy registration
+authority**. It does not take part in client TLS. The proxy ends client TLS on the public
+listener, as before.
 
-1. **Authenticated registration control plane.**
-   - `RegisterBackend`, `DeregisterBackend`, `Heartbeat` — typed, generated types,
-     served over the proxy's HTTP/2 front end (Connect unary, reusing
-     `foundation_connectrpc` where it is already embedded for spec 63's D leg).
-   - Auth: a **registration token** for the first contact, then **mTLS** ongoing.
-     This channel is independent of agent-rpc's client auth.
+Why this link needs authentication: a `Register` call changes where the proxy sends client
+traffic. If anyone could call it, an attacker could register their own address under
+`agents.example.com` and receive the users' requests. So the proxy must know that the caller is
+a sidecar that the operator trusts.
 
-2. **Live routing table.**
-   - `BackendRegistry` maps `backend name → BackendRegistration { host, port,
-     protocol, health_endpoint, tls }`. Registration is idempotent by name;
-     re-registering replaces the entry.
-   - Entries expire on missed heartbeats (a configured timeout); expiry marks the
-     backend `down`, and a subsequent register/heartbeat marks it `up`.
+How: the sidecar shows a one-time **enrollment token** one time, and gets a client certificate.
+After that, every call uses **mTLS** with that certificate. Section 5 gives the details. When
+the sidecar and the proxy are on the same machine, a Unix socket with file permissions can
+replace mTLS (section 5.5).
 
-3. **Routing integration (spec 63).**
-   - A registered backend participates in the proxy's existing per-endpoint
-     protocol selection: its declared `protocol` (`http`/`https`/`connect`/`grpc`/
-     `grpc-web`) chooses the B leg (transparent forward) or D leg (connectrpc
-     engine), exactly as config-declared backends do today.
-
-4. **Health.**
-   - The proxy probes each registered backend's `health_endpoint` on an interval
-     and marks it up/down; down backends are excluded from routing until they
-     recover (or re-register).
-
-5. **Zero-downtime updates.**
-   - Register/deregister/heartbeat update the routing table without dropping
-     unrelated live connections; only the changed backend's routing is affected.
-
----
-
-## Architecture (COMPREHENSIVE)
-
-### Technical Approach
-
-- **Control plane is a small typed service**, not a new server: it rides the
-  proxy's existing HTTP/2 listener on a dedicated control path/prefix, so there
-  is one listener and one auth boundary to operate.
-- **`BackendRegistry` is the single source of truth** for routing, replacing the
-  config-only backend list with "config backends + registered backends" unified
-  behind one lookup.
-- **Heartbeat expiry** turns the registry into an eventually-consistent live
-  view; a dead registrar's backends age out automatically.
-
-### Component Structure
+### 1.4 How the parts connect
 
 ```mermaid
-graph TD
-    REG[Registrar] -->|register/deregister/heartbeat| CP[Control plane]
-    CP --> AUTH[Registration auth<br/>token → mTLS]
-    AUTH --> REGISTRY[BackendRegistry<br/>name → host/port/protocol/health]
-    REGISTRY --> ROUTER[Router (spec 63)<br/>per-endpoint protocol selection]
-    ROUTER -->|http/https| B[Transparent forward]
-    ROUTER -->|connect/grpc/grpc-web| D[ConnectRPC engine]
-    HEALTH[Health prober] --> REGISTRY
+flowchart LR
+    C["Client<br/>(CLI, SDK, browser)"] -->|"1. HTTPS; proxy ends TLS<br/>(public certificate)"| PUB["Proxy public listener"]
+    PUB --> RT["Router<br/>(snapshot)"]
+    RT -->|"2. forward: B leg (http) or D leg (connect, grpc, grpc-web)<br/>private network"| BE["Backend<br/>(agent-rpc, other apps)"]
+    SC["Registrar sidecar"] -->|"3. Register, Report, Deregister<br/>mTLS with registration CA"| REGL["Proxy registration listener"]
+    REGL --> AUTHZ["Registration authority<br/>(BackendRegistry, leases)"]
+    AUTHZ -->|"4. publish new snapshot"| RT
+    SC -->|"5. probes and metrics<br/>(local: HTTP, TCP, gRPC, systemd, Docker)"| BE
+    OPS["Operator"] -->|"6. Unix control socket<br/>(file permissions)"| CTRL["Proxy control socket"]
+    CTRL --> AUTHZ
 ```
 
-**File Structure (additions to `backends/foundation_proxy`):**
+_The diagram shows the six links. Only link 3 carries the sidecar's identity. The proxy ends
+client TLS on link 1._
+
+| # | From → to | Transport | Auth | Defined in |
+|---|---|---|---|---|
+| 1 | Client → proxy public listener | HTTPS (HTTP/1.1, HTTP/2, HTTP/3) | TLS ended by the proxy; the client checks the proxy certificate. Request-level auth (for example agent-rpc's signed secret) passes through to the backend. | spec 63, `tls.rs` |
+| 2 | Proxy → backend | the backend URL scheme: `http`, `https`, `connect`, `grpc`, `grpc-web` | none added by the proxy; `https` checks the backend certificate | spec 63 |
+| 3 | Sidecar → registration listener | Connect unary over HTTPS (HTTP/2) | enrollment token one time, then mTLS | this feature, section 5 |
+| 4 | Registration authority → router | in-process | none | this feature, section 6 |
+| 5 | Sidecar → its apps | local probes, systemd and Docker | none (same machine or same pod) | feature 04 |
+| 6 | Operator → control socket | Unix socket, one JSON line | file permissions | existing `control.rs` |
+
+## 2. Glossary
+
+| Term | Meaning |
+|---|---|
+| Backend | One network address that serves one service. Example: `grpc://10.0.4.7:7443`. In code: `BackendTarget` (config) and `BackendRuntime` (live state). |
+| Backend ID (`backend_id`) | A name that the sidecar gives one backend, stable across restarts. Form: `<host_id>/<entry name>`, for example `host-17/agent-rpc`. |
+| B leg, D leg | The two forwarding paths of spec 63. The B leg forwards HTTP as is. The D leg runs the `foundation_connectrpc` engine for Connect, gRPC and gRPC-Web. |
+| Control socket | The existing Unix socket of the proxy for operator commands (`list`, `drain`, `pause`, ...). |
+| Deregister | The call that says "take this backend out of rotation and forget it". |
+| Drain | Send no new requests to a backend, but let running requests finish. |
+| Enrollment | The one step where a sidecar shows an enrollment token and a CSR and gets a client certificate. |
+| Enrollment token | A signed secret (`foundation_auth::secret::SignedSecret`, purpose `Enroll`) that the operator makes for one sidecar. It has a validity window and a use limit. |
+| Generation | A number that the proxy adds 1 to each time a backend's registration changes. It shows which registration is newer. |
+| Lease | The proxy's promise to keep one sidecar session's backends in the registry while reports arrive. It ends `lease_ttl` after the last report. |
+| Liveness, readiness, startup | Kubernetes probe kinds. Startup: the app finished starting. Liveness: the app is not stuck. Readiness: the app can take traffic now. The sidecar runs them (feature 04). |
+| Registrar, sidecar | The program of feature 04. "Sidecar" means it runs beside the apps: on the same machine, or in the same pod. |
+| Registration authority | The part of the proxy that this feature adds. |
+| Report | The periodic call from a sidecar: heartbeat, health and metrics for all its backends in one message. |
+| Rotation | The set of backends that the load balancer can pick for new requests. |
+| Router snapshot | An unchanging `Router` value. The proxy replaces the whole value when the registry changes. Running requests keep the old value. |
+| Service | A route (host and path prefix) and its backends. In code: `ServiceConfig` and `ServiceRuntime`. |
+| Session (`session_id`) | One run of a sidecar process. The sidecar makes a new random ID at each start. |
+| Stale | A backend whose lease ended. It is out of rotation. |
+
+### 2.1 What exists today in `foundation_proxy`
+
+This feature builds on code that exists. It does not replace it.
+
+| Item | File | Today |
+|---|---|---|
+| `ServiceConfig { name, host, path_prefix, backends, health_check }` | `config.rs` | A service from the config file. |
+| `BackendTarget { url, weight, max_connections }` | `config.rs` | A backend. The URL scheme picks the protocol (`BackendProtocol`). |
+| `BackendState { Active, Draining, Paused }` | `config.rs` | The operator's state for a backend. |
+| `BackendRuntime`, `ServiceRuntime` | `runtime.rs` | Live state: health flag, in-flight count, weights. |
+| `Router::route(host, path)` | `router.rs` | Picks a service. The list of services is fixed at start. |
+| Health probes, `ProbeState` | `health.rs` | The proxy probes HTTP, TCP and gRPC backends with thresholds. |
+| `ControlSocket` | `control.rs` | Operator commands over a Unix socket. |
+| `ProxyStateStore` | `persistence.rs` | Saves operator state across restarts. |
+| Static and ACME certificates | `tls.rs`, `acme.rs` | The public listener's TLS. |
+
+The router's service list is fixed today. Section 6 makes it change at run time.
+
+## 3. Requirements
+
+1. **A registration listener**, separate from the public listener, that requires mTLS with
+   certificates from the proxy's own registration CA (section 5).
+2. **Enrollment** of a sidecar with a one-time token, through `foundation_auth` (feature 11).
+3. **Three calls**: `Register`, `Report`, `Deregister`, with generated types (section 4).
+4. **Leases.** Each sidecar session has one lease. A lease ends when reports stop. Backends of
+   an ended lease leave rotation.
+5. **Rotation rules.** A registered backend gets new requests only when all are true: the
+   sidecar reports it `READY`, its lease is live, the operator state is `Active`, and (if the
+   service has a proxy health check) the proxy probe passes.
+6. **No dropped connections.** A change to the registry never stops a running request. A
+   replaced address drains.
+7. **Every failure path in section 7** has a defined result and a test.
+8. **Limits are configuration** (`CLAUDE.md` rule 8), section 8.
+9. **Address policy.** A sidecar can register only addresses and hosts that the policy allows
+   (section 5.4).
+
+## 4. The wire contract
+
+File: `backends/foundation_proxy/proto/ewe/proxy/registration/v1/registration.proto`. `build.rs`
+makes Rust types with `buffa-build` and the service code with
+`foundation_connectrpc_codegen`, as `foundation_agent_rpc` does. The sidecar (feature 04)
+generates its client from the same `.proto` file. It does not depend on the
+`foundation_proxy` crate.
+
+The first version of this spec named one reply type, `BackendAck { status }`, for all three
+calls, with no meaning for `status`. It is removed. Each call now has its own typed reply, below.
+
+```proto
+syntax = "proto3";
+
+package ewe.proxy.registration.v1;
+
+// Calls from an enrolled sidecar. Every call needs mTLS (or the local Unix
+// socket, section 5.5).
+service RegistrationService {
+  // Add or update backends. Starts a new session when session_id is new.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  // Heartbeat, health and metrics for every backend of this session.
+  rpc Report(ReportRequest) returns (ReportResponse);
+  // Take backends out of rotation and forget them, after a drain.
+  rpc Deregister(DeregisterRequest) returns (DeregisterResponse);
+  // Get a new client certificate before the current one expires.
+  rpc RenewCertificate(RenewCertificateRequest) returns (RenewCertificateResponse);
+}
+
+// Called with server-auth TLS only (no client certificate yet).
+service RegistrarEnrollmentService {
+  rpc Enroll(EnrollRequest) returns (EnrollResponse);
+}
+
+// ---------------------------------------------------------------------------
+
+// Who sends the call. The proxy also reads the identity from the client
+// certificate; these fields must agree with it.
+message SessionRef {
+  // A random ID that the sidecar makes at each process start (128 bits,
+  // lowercase hex). A new value means "the sidecar restarted".
+  string session_id = 1;
+  // A stable name of the machine or pod, for example "host-17". It is the
+  // first part of every backend_id of this sidecar.
+  string host_id = 2;
+}
+
+enum Protocol {
+  PROTOCOL_UNSPECIFIED = 0;
+  PROTOCOL_HTTP = 1;
+  PROTOCOL_HTTPS = 2;
+  PROTOCOL_CONNECT = 3;
+  PROTOCOL_GRPC = 4;
+  PROTOCOL_GRPC_WEB = 5;
+}
+
+// The route of a service: which client requests go to it.
+message Route {
+  // Exact host or "*.example.com".
+  string host = 1;
+  // "" or "/" = everything under the host.
+  string path_prefix = 2;
+}
+
+// One backend, as the sidecar sees it.
+message BackendSpec {
+  // "<host_id>/<entry name>", for example "host-17/agent-rpc".
+  string backend_id = 1;
+  // The proxy service name, for example "agents".
+  string service = 2;
+  Route route = 3;
+  Protocol protocol = 4;
+  // The address that the proxy dials: an IP literal or a DNS name, and a port.
+  string address = 5;
+  uint32 port = 6;
+  // Load-balancer weight. 0 = the default (1).
+  uint32 weight = 7;
+  // The software version that runs at this address (manifest entry version).
+  string version = 8;
+}
+
+message RegisterRequest {
+  SessionRef session = 1;
+  // At most RegistrationConfig::max_backends_per_session entries.
+  repeated BackendSpec backends = 2;
+}
+
+message RegisterResponse {
+  // One result for each BackendSpec, in the same order.
+  repeated RegisterResult results = 1;
+  // How often the sidecar must call Report. The proxy decides.
+  uint32 report_interval_ms = 2;
+  // A lease with no Report for this long ends.
+  uint32 lease_ttl_ms = 3;
+}
+
+message RegisterResult {
+  string backend_id = 1;
+  // Set when the registration was accepted. It goes up by 1 at each change.
+  uint64 generation = 2;
+  // Empty when accepted. Otherwise why not, for example
+  // "address 8.8.8.8 is outside allowed_networks".
+  string rejected_reason = 3;
+}
+
+// The health of one backend, from the sidecar's probes (feature 04).
+enum BackendHealth {
+  BACKEND_HEALTH_UNSPECIFIED = 0;
+  // Installed and running, startup probe not passed yet.
+  BACKEND_HEALTH_STARTING = 1;
+  // Readiness passes: may take traffic.
+  BACKEND_HEALTH_READY = 2;
+  // Alive, readiness fails: no new traffic.
+  BACKEND_HEALTH_NOT_READY = 3;
+  // Liveness fails: the app is stuck.
+  BACKEND_HEALTH_NOT_LIVE = 4;
+  // Startup did not pass within its threshold.
+  BACKEND_HEALTH_FAILED_TO_START = 5;
+  // Installed, not running (unit inactive, container stopped).
+  BACKEND_HEALTH_NOT_RUNNING = 6;
+}
+
+// Resource use of one backend. A field that the sidecar cannot read is not set.
+message BackendMetrics {
+  optional uint64 cpu_usage_micros = 1;  // CPU time used since the process started
+  optional uint64 memory_bytes = 2;      // resident memory now
+  optional uint64 memory_limit_bytes = 3;
+  optional uint32 restarts = 4;          // restarts seen by the sidecar
+  optional uint64 uptime_ms = 5;
+}
+
+message BackendReport {
+  string backend_id = 1;
+  BackendHealth health = 2;
+  BackendMetrics metrics = 3;
+  // The text of the last probe failure, at most 256 bytes. Empty when healthy.
+  string detail = 4;
+}
+
+message ReportRequest {
+  SessionRef session = 1;
+  // One entry for each registered backend of this session.
+  repeated BackendReport backends = 2;
+}
+
+enum ReportAction {
+  REPORT_ACTION_UNSPECIFIED = 0;
+  // Keep reporting.
+  REPORT_ACTION_CONTINUE = 1;
+  // The proxy does not know this session (for example it restarted).
+  // Call Register for every backend again, then keep reporting.
+  REPORT_ACTION_REREGISTER = 2;
+}
+
+message ReportResponse {
+  ReportAction action = 1;
+  // The backend_ids in the report that the proxy does not know. The sidecar
+  // registers them again.
+  repeated string unknown_backend_ids = 2;
+  uint32 lease_ttl_ms = 3;
+}
+
+message DeregisterRequest {
+  SessionRef session = 1;
+  repeated string backend_ids = 2;
+}
+
+message DeregisterResponse {
+  // The backend_ids that were found and are now draining.
+  repeated string draining = 1;
+}
+
+message EnrollRequest {
+  // A SignedSecret, purpose Enroll, domain "ewe.proxy.registrar_secret".
+  string token = 1;
+  // The host_id of this sidecar. It becomes the certificate common name.
+  string host_id = 2;
+  // PKCS#10 CSR. The private key stays on the sidecar.
+  string csr_pem = 3;
+  // 32 random bytes. The proxy signs them in server_proof.
+  bytes nonce = 4;
+}
+
+message EnrollResponse {
+  string client_cert_pem = 1;
+  // The registration CA. The sidecar uses it to check the proxy's
+  // registration listener certificate from now on.
+  string ca_cert_pem = 2;
+  // The proxy's signature with the token key over the nonce, the CSR hash
+  // and host_id (feature 11 auth.md section 9.1.1).
+  bytes server_proof = 3;
+}
+
+message RenewCertificateRequest {
+  string csr_pem = 1;
+}
+
+message RenewCertificateResponse {
+  string client_cert_pem = 1;
+}
 ```
-backends/foundation_proxy/
-├── src/
-│   ├── registration.rs     - NEW: control-plane service + BackendRegistry
-│   ├── config.rs           - MOD: registration auth config (token, mTLS, timeout)
-│   └── router.rs           - MOD: resolve backends via BackendRegistry
-└── tests/
-    └── registration_tests.rs - NEW: register/route/deregister/heartbeat
-```
 
-### Component Details
+**Field and type summary.** Who makes each message and who reads it:
 
-1. **`BackendRegistry`** (`src/registration.rs`)
-   - **Purpose**: live routing table + expiry.
-   - **Key methods**: `register(BackendRegistration)`, `deregister(name)`,
-     `heartbeat(name)`, `lookup(name) -> Option<BackendRegistration>`,
-     `list() -> Vec<BackendRegistration>`, `expire_stale(now)`.
-   - **State**: interior-mutable map (`RwLock`/async-lock), each entry carrying a
-     `last_seen` timestamp and an `up`/`down` flag.
+| Message | Made by | Read by | Purpose |
+|---|---|---|---|
+| `SessionRef` | sidecar, at start | proxy | Says which sidecar run sends the call. |
+| `BackendSpec` | sidecar, from the manifest `proxy` block plus the address it found | proxy | Says where one backend is and which route it serves. |
+| `RegisterResponse`, `RegisterResult` | proxy | sidecar | Accept or reject each backend; give the report timing. |
+| `BackendReport`, `BackendHealth`, `BackendMetrics` | sidecar, each report interval | proxy | Health decides rotation. Metrics are for operators (control socket `list`), not for routing in this feature. |
+| `ReportResponse`, `ReportAction` | proxy | sidecar | Tells the sidecar to keep going or to register again. |
+| `EnrollRequest`, `EnrollResponse` | sidecar, proxy | proxy, sidecar | One-time exchange of the token for a certificate. |
 
-2. **Control-plane service** (`src/registration.rs`)
-   - **Purpose**: the `RegisterBackend`/`DeregisterBackend`/`Heartbeat` handlers;
-     auth check first, then registry mutation.
-   - **Generated types**: `RegisterBackendRequest { name, host, port, protocol,
-     health_endpoint, tls }`, `BackendAck { status }`, etc.
+Status codes: an unauthenticated call gets `UNAUTHENTICATED`. A call that would change a
+backend that another sidecar owns gets `PERMISSION_DENIED`. A report from a session that a newer
+session of the same `host_id` replaced gets `ABORTED` with the message "session superseded".
+A request with more than `max_backends_per_session` backends gets `RESOURCE_EXHAUSTED`. One bad
+backend in a `Register` does not fail the call: its `RegisterResult` says why.
 
-3. **Registration auth** (`src/registration.rs` + `config.rs`)
-   - **Purpose**: token (bootstrap) → mTLS (ongoing). `RegistrationAuthConfig
-     { token, mtls, heartbeat_timeout }` lives in the proxy config.
+## 5. Authentication of the sidecar
 
-4. **Health prober** (`src/registration.rs`)
-   - **Purpose**: async task that probes `health_endpoint` per backend and flips
-     `up`/`down`; feeds the same registry.
+### 5.1 The parts
 
-5. **Router change** (`src/router.rs`)
-   - **Purpose**: `lookup_backend(name)` now consults `BackendRegistry` (config
-     backends seeded at startup, registered backends added/removed live), and
-     picks the B/D leg by `protocol`.
+All the security parts come from `foundation_auth` (feature 11, [auth.md](../11-foundation-auth/auth.md)).
+The proxy does not have its own copy.
 
-### Data Flow
+| Part | Type (feature 11) | Use here |
+|---|---|---|
+| Enrollment token | `SignedSecret`, `SecretIssuer`, `SecretVerifier`, domain `SecretDomain::PROXY_REGISTRATION` = `"ewe.proxy.registrar_secret"` | The operator makes one token for each sidecar. |
+| Registration CA | `CertificateAuthority::from_key` over an operator CA key (`KeySource`, architecture decision 11) | Signs the sidecar certificates and the registration listener certificate. It is **not** the public certificate of the proxy, and **not** agent-rpc's CA. |
+| Trusted sidecars | `TrustedClients` over a `TrustStore` | Records each enrolled sidecar, its certificate fingerprint, last-seen time and revocation. |
+| TLS checks | `mtls::server_config_mutual`, `TrustedClientVerifier` | The registration listener requires a client certificate that the registration CA signed and that is not revoked. |
+
+### 5.2 Enrollment and calls
 
 ```mermaid
 sequenceDiagram
-    participant R as Registrar
-    participant P as Proxy control plane
-    participant B as BackendRegistry
-    participant RT as Router
-    participant C as Client
-
-    R->>P: RegisterBackend{name,host,port,protocol,health}
-    P->>B: register() (idempotent)
-    Note over B: entry up, last_seen=now
-    C->>RT: request for <name>
-    RT->>B: lookup(name)
-    B-->>RT: host/port/protocol
-    RT-->>C: forward (B or D leg by protocol)
-    R-->>P: Heartbeat{name} (interval)
-    P->>B: heartbeat() refresh last_seen
+    autonumber
+    participant O as Operator
+    participant P as Proxy (registration authority)
+    participant S as Sidecar
+    O->>P: control socket: issue-registrar-token host-17 (window 1 h, 1 use)
+    P-->>O: token (SignedSecret, purpose Enroll)
+    O->>S: put token in the sidecar secret (file or env), one time
+    S->>S: make key pair and CSR (sealed at rest later, feature 15)
+    S->>P: Enroll(token, host_id, CSR) over server-auth TLS
+    P->>P: verify signature, purpose, window; spend one use; sign CSR; record sidecar
+    P-->>S: client certificate, registration CA certificate
+    S->>S: delete the token; keep certificate and key
+    S->>P: Register(...) over mTLS
+    P->>P: TrustedClientVerifier: certificate signed by registration CA, not revoked
+    P-->>S: RegisterResponse(report_interval, lease_ttl)
 ```
 
-### Interface Definitions
+_The diagram shows how a sidecar gets its certificate one time, and then uses mTLS for every
+call._
 
-**Generated types (illustrative):**
-```proto
-service RegistrationService {
-  rpc RegisterBackend(RegisterBackendRequest) returns (BackendAck);
-  rpc DeregisterBackend(DeregisterBackendRequest) returns (BackendAck);
-  rpc Heartbeat(HeartbeatRequest) returns (BackendAck);
-}
+At enrollment, the sidecar uses the same enrollment as an agent-rpc client (feature 11,
+[auth.md](../11-foundation-auth/auth.md) section 9.1), with the certificate credential kind:
 
-message RegisterBackendRequest {
-  string name = 1;
-  string host = 2;
-  uint32 port = 3;
-  BackendProtocol protocol = 4;  // http|https|connect|grpc|grpc-web
-  string health_endpoint = 5;
-  optional TlsInfo tls = 6;
+- The token's `aud` is the registration URL, inside the signature, so a changed address fails.
+- The sidecar sends a nonce. The proxy signs a server proof with the token's key, and the sidecar
+  checks it with the public key in the token. This proves the right proxy answered.
+- If the operator also gives the registration certificate fingerprint, the sidecar pins it as
+  extra protection. It is optional.
+
+After enrollment, the sidecar checks the registration listener against the registration CA.
+
+### 5.3 Certificate lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> NoCertificate
+    NoCertificate --> Enrolling: token present
+    NoCertificate --> NoCertificate: no token: log error, retry after backoff
+    Enrolling --> Valid: Enroll succeeds
+    Enrolling --> NoCertificate: token expired, used or revoked
+    Valid --> Renewing: two thirds of the lifetime passed
+    Renewing --> Valid: RenewCertificate succeeds
+    Renewing --> Valid: failure, retry with backoff while still valid
+    Valid --> Expired: lifetime ended
+    Valid --> Revoked: operator revokes
+    Expired --> NoCertificate: operator gives a new token
+    Revoked --> NoCertificate: operator gives a new token
+```
+
+_The diagram shows the states of a sidecar's certificate. Only an operator can recover an
+expired or revoked sidecar, with a new token._
+
+- Lifetime: `RegistrationConfig::client_cert_lifetime`, default 30 days.
+- Renewal uses the current certificate (mTLS) to sign a new CSR. No token is needed.
+- Revocation: control socket `revoke-registrar <host_id>`. The proxy marks the certificate
+  revoked in `TrustedClients`, closes the sidecar's connections, and moves all backends of that
+  sidecar to `Draining`.
+
+### 5.4 Address policy (prevents SSRF and traffic theft)
+
+A valid certificate is not enough. `RegistrationPolicy` also limits what a sidecar may register:
+
+```rust
+/// What sidecars may register. Part of `RegistrationConfig`.
+#[derive(Debug, Clone)]
+pub struct RegistrationPolicy {
+    /// Backend addresses must be inside one of these networks. Default:
+    /// loopback and the private ranges (127.0.0.0/8, ::1/128, 10.0.0.0/8,
+    /// 172.16.0.0/12, 192.168.0.0/16, fc00::/7). A DNS name is resolved
+    /// and every result must match.
+    pub allowed_networks: Vec<IpNet>,
+    /// Route hosts that a sidecar may create a new service for. Default
+    /// empty: a sidecar may join only services in the config file.
+    pub allowed_route_hosts: Vec<String>,
+    /// Optional: the services that each host_id may join. None = any.
+    pub services_by_host: Option<BTreeMap<String, Vec<String>>>,
 }
 ```
 
-**Internal contracts:**
-- The control plane mutates only `BackendRegistry`; the router reads only
-  `BackendRegistry`. No direct registry writes from the router.
-- `config.rs` holds auth + timeout settings; `registration.rs` consumes them.
+### 5.5 The same-machine case: a Unix socket
 
-### Error Handling Strategy
+When the sidecar runs on the same machine as the proxy, the proxy can also serve
+`RegistrationService` on a Unix socket (`RegistrationConfig::unix_socket`). File permissions
+(owner and group of the socket) then do the job of mTLS, as for the existing control socket.
+There is no token and no certificate. The `host_id` comes from the request. The address policy
+still applies. See open question 2.
 
-- `RegisterError` variants: `Unauthenticated`, `InvalidBackend`, `Conflict`
-  (re-register with changed identity), `Timeout`. Map to typed status codes; never
-  a bare string.
-- A backend whose health probe fails is marked `down` (and logged), not dropped;
-  it can recover or re-register.
+### 5.6 Why a separate listener
 
-### Security Considerations
+The public listener has the public certificate and does not ask clients for a certificate. The
+registration listener has a registration-CA certificate and requires one. In rustls, the
+"require a client certificate" choice belongs to the server configuration of a listener. A
+separate listener also lets the operator bind it to a private network only
+(`RegistrationConfig::bind`, for example `10.0.0.2:9443`).
 
-- Registration requires the token (first) and mTLS (ongoing); no unauthenticated
-  register/deregister.
-- Registration payload is validated: `host`/`port`/`protocol` bounded and
-  sanitized; no SSRF-able free-form URL without an allowlist check.
+## 6. The registry and the router
 
-### Performance Considerations
+### 6.1 Types
 
-- `lookup()` is a cheap map read on the hot path (no allocation beyond the clone
-  of a small registration struct).
-- Health probes run on the valtron/async task pool, off the request path; a slow
-  backend probe never blocks routing.
+```rust
+// backends/foundation_proxy/src/registration/registry.rs
 
-### Trade-offs and Decisions
+/// All registered backends and all sidecar sessions. Owned by the
+/// registration authority; the router never writes to it.
+pub struct BackendRegistry {
+    inner: Mutex<RegistryState>,
+    /// The current router. Requests clone the inner `Arc` and keep it.
+    router: RouterHandle,
+    env: Env,                         // clock for leases (feature 08, rule 11)
+    config: RegistrationConfig,
+}
 
-| Decision | Rationale | Alternatives Considered |
-|----------|-----------|------------------------|
-| Control plane on the existing listener | One listener, one auth boundary | Separate mgmt port (rejected: more surface) |
-| In-memory registry + heartbeat expiry | Simple, self-healing | Persistent store (rejected: overkill for first milestone) |
-| Registration as typed Connect unary | Reuses connectrpc, generated types | Raw HTTP+JSON (rejected: no generated types) |
-| `up`/`down` via probe + expiry | Eventually-consistent live view | Synchronous LB (rejected: complexity) |
+/// One registered backend.
+#[derive(Debug, Clone)]
+pub struct RegisteredBackend {
+    pub spec: BackendSpecOwned,       // the last accepted BackendSpec
+    pub owner_host_id: String,        // the sidecar that owns it
+    pub session_id: String,           // the session that last registered it
+    pub generation: u64,
+    pub health: BackendHealth,        // from the last report
+    pub metrics: Option<BackendMetricsOwned>,
+    pub state: RegistrationState,
+    pub last_report_at: Instant,
+}
 
----
+/// The registration state of one backend. Separate from the operator
+/// state (`BackendState`) and from the proxy's own probe result.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RegistrationState {
+    /// Registered, lease live. In rotation only when health is READY.
+    Live,
+    /// The lease ended. Out of rotation. Removed after `stale_remove_after`.
+    Stale { since: Instant },
+    /// Deregistered or replaced. Out of rotation. Removed when no request
+    /// runs on it, or after `drain_timeout`.
+    Draining { since: Instant },
+}
 
-## Implementation
+/// One sidecar run.
+#[derive(Debug, Clone)]
+pub struct Session {
+    pub host_id: String,
+    pub session_id: String,
+    pub started_at: Instant,
+    pub lease_expires_at: Instant,
+}
 
-### Files to Create/Modify
+/// A shared, swappable `Arc<Router>`. Readers take a read lock only to clone
+/// the `Arc`; the registry takes the write lock only to swap it.
+#[derive(Clone)]
+pub struct RouterHandle(Arc<RwLock<Arc<Router>>>);
 
-- `backends/foundation_proxy/src/registration.rs` (new).
-- `backends/foundation_proxy/src/config.rs` (extend `BackendProtocol` + add
-  `RegistrationAuthConfig`).
-- `backends/foundation_proxy/src/router.rs` (route via `BackendRegistry`).
-- `backends/foundation_proxy/tests/registration_tests.rs` (new).
-- `backends/foundation_proxy/Cargo.toml` (dev-deps if a connectrpc client is
-  needed in tests).
+impl RouterHandle {
+    pub fn load(&self) -> Arc<Router>;
+    pub fn store(&self, router: Arc<Router>);
+}
 
-## Tasks
+impl BackendRegistry {
+    pub fn register(&self, peer: &PeerIdentity, req: &RegisterRequest) -> Result<RegisterResponse, RegistrationError>;
+    pub fn report(&self, peer: &PeerIdentity, req: &ReportRequest) -> Result<ReportResponse, RegistrationError>;
+    pub fn deregister(&self, peer: &PeerIdentity, req: &DeregisterRequest) -> Result<DeregisterResponse, RegistrationError>;
+    /// Ends leases, removes old Stale and Draining entries, publishes a new
+    /// router if anything changed. Called by the sweeper task.
+    pub fn sweep(&self);
+    /// For the control socket `list` command.
+    pub fn snapshot(&self) -> Vec<RegisteredBackend>;
+}
+```
 
-- [ ] **T1 — Generated registration types.** Define + generate
-      `RegisterBackendRequest`/`BackendAck`/`HeartbeatRequest` and the
-      `RegistrationService`; compile-clean.
-- [ ] **T2 — `BackendRegistry`.** Register/deregister/heartbeat/lookup/list with
-      idempotent-by-name semantics; red test: re-register replaces the entry.
-- [ ] **T3 — Heartbeat expiry.** Entries age out past `heartbeat_timeout`; red
-      test: no heartbeat for N → `lookup` returns down/absent, heartbeat → up.
-- [ ] **T4 — Registration auth.** Token → mTLS enforced on the control plane;
-      red test: unauthenticated register is rejected.
-- [ ] **T5 — Control-plane handlers.** `RegisterBackend`/`DeregisterBackend`/
-      `Heartbeat` wired to the registry over HTTP/2; red test per handler.
-- [ ] **T6 — Routing integration.** `router.rs` resolves a registered backend and
-      selects the B/D leg by its `protocol`; red test: a `grpc` registration is
-      routed on the D leg.
-- [ ] **T7 — Health prober.** Probe `health_endpoint`, flip `up`/`down`; red test:
-      a failing endpoint → down → excluded from routing.
-- [ ] **T8 — End-to-end registration.** A registrar registers a backend over
-      loopback, a client's request is forwarded to it, deregister removes it; red
-      test is the whole chain.
+`PeerIdentity` is what the listener learned about the caller: the `host_id` from the client
+certificate common name and the certificate fingerprint, or "local Unix socket".
 
-## Testing
+### 6.2 How a change reaches the router
 
-### Test Cases
+1. A call changes `RegistryState` under its mutex.
+2. If the set of in-rotation backends changed, the registry builds a new `Router` from the
+   config services plus the registered services.
+3. For a backend whose address did not change, the new `Router` reuses the same
+   `Arc<BackendRuntime>`. So in-flight counts, weights and the proxy health state stay.
+4. `RouterHandle::store` swaps the pointer. New requests use the new router. Running requests
+   keep the old `Arc<Router>` until they end. No connection is dropped.
 
-1. **Register then route**
-   - Given: a live backend on loopback
-   - When: `RegisterBackend` then a client request for its name
-   - Then: the request is forwarded to the backend
+`ProxyState` holds a `RouterHandle` instead of a fixed `Arc<Router>`. This is the only change
+to the request path. The hot path cost is one read lock and one `Arc` clone per request.
 
-2. **Heartbeat keeps it alive**
-   - Given: a registered backend with a short timeout
-   - When: heartbeats stop
-   - Then: the entry ages out; a later heartbeat restores it
+### 6.3 Rotation rule
 
-3. **Auth is enforced**
-   - Given: token + mTLS required
-   - When: a register arrives without auth
-   - Then: `Unauthenticated`, no registry mutation
+A backend gets new requests only when **all** of these are true:
 
-4. **Protocol leg selection**
-   - Given: a `grpc` registration
-   - When: routed
-   - Then: the D leg (connectrpc engine) is used, not the transparent B leg
+| Check | Owner |
+|---|---|
+| `RegistrationState::Live` (lease live) | registration authority |
+| `health == BACKEND_HEALTH_READY` | sidecar (its readiness probe) |
+| `BackendState::Active` | operator (control socket) |
+| proxy health check passes, if the service has one | proxy (`health.rs`) |
 
-### Local run commands (loopback = real TCP on 127.0.0.1)
+The sidecar checks the app from inside the machine. The proxy check, when configured, checks
+the network path from the proxy to the app, which the sidecar cannot see. Config-file backends
+keep today's rules (operator state and proxy check only).
+
+### 6.4 Lifecycle of one registered backend
+
+```mermaid
+stateDiagram-v2
+    [*] --> Live: Register accepted
+    Live --> Live: Report (health updates rotation)
+    Live --> Live: Register with a changed spec (generation + 1)
+    Live --> Stale: no Report for lease_ttl
+    Stale --> Live: Register or Report from the owner
+    Stale --> [*]: stale_remove_after passed
+    Live --> Draining: Deregister, revoke, or address replaced
+    Draining --> [*]: no requests in flight, or drain_timeout passed
+```
+
+_The diagram shows how a registered backend enters rotation, leaves it, and is removed._
+
+### 6.5 Lifecycle of the registration authority
+
+| Phase | What happens |
+|---|---|
+| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, feature 11; a missing key stops the start; encryption at rest is the deferred feature 15). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
+| Run | Serve calls. The sweeper runs every `sweep_interval` and calls `BackendRegistry::sweep`. |
+| Config reload | The existing `reload` command re-reads the file. Config services are rebuilt. Registered services stay. Policy changes apply to the next call; a backend that the new policy forbids moves to `Draining`. |
+| Stop | Stop accepting registration calls. The public listener drains as today (`start_drain`). Registered backends are not deregistered: the apps still run. |
+
+## 7. Failure and edge paths
+
+Each row has a test (section 10).
+
+| # | Case | What happens | Recovery |
+|---|---|---|---|
+| 7.1 | **Missed reports** (sidecar slow, network partition) | After `lease_ttl` with no report, the sweeper moves every backend of the session to `Stale`: out of rotation. Config backends of the same service still serve. | The next `Report` returns `CONTINUE` and the backends return to `Live`. After `stale_remove_after`, they are removed; a later `Report` lists them in `unknown_backend_ids` and the sidecar registers them again. |
+| 7.2 | **Proxy restart** | The registry is in memory and starts empty. The first `Report` of each sidecar gets `REREGISTER`. | The sidecar sends `Register` for all its backends. Registered-only services have no backend for at most one `report_interval` (default 10 s); requests for them get 503 meanwhile. Open question 1 proposes to save the registry to remove this gap. |
+| 7.3 | **Sidecar restart** | The new process has a new `session_id`. Its `Register` replaces the old session of the same `host_id`: the old session's lease ends at once. Backends with the same `backend_id` keep their `BackendRuntime` (generation + 1). Backends that the new session does not register move to `Draining`. | A report that still arrives from the old session gets `ABORTED: session superseded`; that old process stops. |
+| 7.4 | **Sidecar stops for good** | Host mode: the sidecar does not deregister on stop, because the apps still run. Its backends go `Stale` after `lease_ttl`, then are removed. Container mode: the pod stops the app too, so the sidecar sends `Deregister` first (feature 04). | Start the sidecar again; see 7.3. |
+| 7.5 | **App (backend) restart** | The sidecar's probes see `NOT_RUNNING` or `STARTING`, then `READY`. Each report updates health, so the backend leaves and re-enters rotation. | Automatic. |
+| 7.6 | **Update or redeploy, same address** (systemd upgrade by the installer) | As 7.5. The sidecar sends `Register` with the new `version`; generation + 1. | Automatic. |
+| 7.7 | **Update or redeploy, new address** (Docker swap gives a new IP or port) | `Register` with the same `backend_id` and a new address. The proxy adds the new address and moves the old one to `Draining`. The new address joins rotation when it reports `READY`. | Zero downtime when the new container is ready before the old one stops (feature 02 starts the new one first). |
+| 7.8 | **Stale or conflicting registration** | A `Register` for a `backend_id` that another live sidecar owns gets `PERMISSION_DENIED` in its `RegisterResult`. If the owner's lease ended, the new sidecar takes ownership. | Operator: `drain` or `revoke-registrar` on the old owner. |
+| 7.9 | **Address outside the policy** | That `RegisterResult` has `rejected_reason`. Other backends in the call still register. | Fix the manifest or the policy. |
+| 7.10 | **Certificate expired or revoked** | The TLS handshake fails. The sidecar cannot report, so its backends go `Stale` (7.1). | Operator gives a new token (section 5.3). |
+| 7.11 | **Enrollment token expired or used up** | `Enroll` fails with `UNAUTHENTICATED`. The sidecar logs it and retries with backoff; it never logs the token. | Operator issues a new token. |
+| 7.12 | **Proxy probe and sidecar disagree** | Both must pass (section 6.3). The control socket `list` shows both results, so the operator sees which one fails. | Check the network between proxy and app. |
+| 7.13 | **Too many backends from one sidecar** | `RESOURCE_EXHAUSTED`. | Raise `max_backends_per_session`, or split hosts. |
+
+The diagram shows a redeploy with a new address (7.7).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant I as Installer
+    participant S as Sidecar
+    participant P as Proxy registry
+    participant R as Router
+    I->>I: start new container (agent-rpc-next), new IP
+    S->>S: discovery: entry agent-rpc now at 10.0.4.9:7443, STARTING
+    S->>P: Register(backend_id host-17/agent-rpc, address 10.0.4.9)
+    P->>R: publish: new address added (not in rotation yet), old address Draining
+    S->>P: Report(READY)
+    P->>R: publish: new address in rotation
+    I->>I: stop old container after it started the new one
+    R-->>P: old address has no requests in flight
+    P->>P: remove old address
+```
+
+_The diagram shows that the new address joins rotation before the old one leaves, so no request
+fails._
+
+## 8. Configuration
+
+```rust
+/// The registration authority's settings (`CLAUDE.md` rule 8).
+#[derive(Debug, Clone)]
+pub struct RegistrationConfig {
+    /// The mTLS listener, for example "10.0.0.2:9443". None = feature off.
+    pub bind: Option<String>,
+    /// Optional same-machine socket (section 5.5).
+    pub unix_socket: Option<PathBuf>,
+    /// How often sidecars report. Default 10 s: the default `periodSeconds`
+    /// of a Kubernetes probe.
+    pub report_interval: Duration,
+    /// A lease with no report for this long ends. Default 30 s: three missed
+    /// reports, as the default Kubernetes `failureThreshold` of 3.
+    pub lease_ttl: Duration,
+    /// Stale backends are removed after this. Default 300 s: the default
+    /// Kubernetes `pod-eviction-timeout`.
+    pub stale_remove_after: Duration,
+    /// Longest drain of a removed address. Default 30 s: the default
+    /// Kubernetes `terminationGracePeriodSeconds`.
+    pub drain_timeout: Duration,
+    /// How often the sweeper runs. Default 1 s.
+    pub sweep_interval: Duration,
+    /// Most backends in one session. Default 256.
+    pub max_backends_per_session: usize,
+    /// Largest registration request body. Default 64 KiB: 256 backends of
+    /// about 200 bytes each, with room.
+    pub max_request_bytes: usize,
+    /// Sidecar certificate lifetime. Default 30 days.
+    pub client_cert_lifetime: Duration,
+    pub policy: RegistrationPolicy,
+}
+```
+
+The defaults of 256 backends, 64 KiB and 1 s have no outside source. They are sized for one
+machine with many apps. The doc comment says so.
+
+## 9. Errors
+
+```rust
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum RegistrationError {
+    #[error("caller is not an enrolled sidecar")]
+    Unauthenticated,
+    #[error("backend {backend_id} belongs to sidecar {owner}")]
+    NotOwner { backend_id: String, owner: String },
+    #[error("session {session_id} was replaced by a newer session of {host_id}")]
+    SessionSuperseded { host_id: String, session_id: String },
+    #[error("{count} backends is more than the limit {limit}")]
+    TooManyBackends { count: usize, limit: usize },
+    #[error("invalid request: {0}")]
+    Invalid(String),
+}
+```
+
+Each variant maps to one Connect code (section 4). No variant is a bare string sent to the
+client without a code.
+
+## 10. Crate changes
+
+```text
+backends/foundation_proxy/
+├── proto/ewe/proxy/registration/v1/registration.proto   NEW
+├── build.rs                                             NEW or MOD: generate types and service
+├── src/
+│   ├── registration/                                    NEW
+│   │   ├── mod.rs        RegistrationAuthority: start, stop, listeners
+│   │   ├── config.rs     RegistrationConfig, RegistrationPolicy
+│   │   ├── registry.rs   BackendRegistry, RegisteredBackend, RegistrationState, Session, sweep
+│   │   ├── service.rs    RegistrationService and RegistrarEnrollmentService handlers
+│   │   ├── enroll.rs     sidecar enrollment over foundation_auth
+│   │   └── policy.rs     address and route checks
+│   ├── router.rs         MOD: RouterHandle; build from config plus registry
+│   ├── state.rs          MOD: ProxyState holds a RouterHandle
+│   ├── control.rs        MOD: issue-registrar-token, revoke-registrar, list shows registered backends
+│   └── config.rs         MOD: ProxyConfig gets `registration: Option<RegistrationConfig>`
+└── tests/
+    ├── registration_registry_tests.rs
+    ├── registration_auth_tests.rs
+    ├── registration_failure_tests.rs
+    └── registration_e2e_tests.rs
+```
+
+## 11. Tasks
+
+- [ ] **T1: Proto and generated types.** `registration.proto`, `build.rs`. Done when the crate
+      builds with the generated client and server.
+- [ ] **T2: `RouterHandle`.** `ProxyState` uses it; requests clone the snapshot. Test: a swap
+      during a long request does not end that request.
+- [ ] **T3: `BackendRegistry` and sessions.** Register, report, deregister, ownership,
+      generations. Tests 7.3, 7.8, 7.13.
+- [ ] **T4: Leases and the sweeper.** With a simulated clock (`Env`). Tests 7.1, 7.4.
+- [ ] **T5: Rotation rule.** All four checks of section 6.3. Test 7.12.
+- [ ] **T6: Address policy.** Test 7.9, and a DNS name that resolves outside the policy.
+- [ ] **T7: Enrollment and mTLS listener** over `foundation_auth`. Tests 7.10, 7.11; an
+      unauthenticated `Register` changes nothing.
+- [ ] **T8: Certificate renewal and revocation.** Test: a revoked sidecar's backends drain.
+- [ ] **T9: Unix socket transport** (section 5.5). Test: a socket with wrong permissions is
+      refused at start.
+- [ ] **T10: Control socket commands.** `issue-registrar-token`, `revoke-registrar`, `list`.
+- [ ] **T11: End to end.** A test sidecar client registers a loopback backend, a client request
+      reaches it through the proxy, a redeploy with a new address loses no request (7.7), and
+      a proxy restart recovers through `REREGISTER` (7.2).
+
+## 12. Tests
+
+| File | What it proves |
+|---|---|
+| `tests/registration_registry_tests.rs` | Register, replace, ownership, generations, rotation rule. |
+| `tests/registration_failure_tests.rs` | One test for each row of section 7, with a simulated clock. |
+| `tests/registration_auth_tests.rs` | Enrollment, mTLS, renewal, revocation, Unix socket permissions. |
+| `tests/registration_e2e_tests.rs` | Real TCP on loopback: section 11, T11. |
 
 ```bash
-cargo test -p foundation_proxy --test registration_tests
+cargo test -p foundation_proxy --test registration_registry_tests
+cargo test -p foundation_proxy --test registration_e2e_tests
 ```
 
-## Success Criteria
+## 13. Trade-offs
 
-- [ ] All 8 tasks completed with one red→green test each
-- [ ] Register/route/deregister/heartbeat round-trip on loopback
-- [ ] Registration auth (token → mTLS) enforced
-- [ ] Backend `protocol` drives the B/D leg selection from spec 63
-- [ ] Zero-downtime: unrelated live connections unaffected by register/deregister
-- [ ] No TODO/FIXME/stubs; no ignored `Result`s
+| Decision | Why | Other choice |
+|---|---|---|
+| Separate mTLS listener | The client-certificate rule is per listener; it can bind to a private network. | The public listener with optional client certificates (rejected: mixes two trust domains). |
+| One `Report` per sidecar for all backends | Few calls, one lease per sidecar. | One heartbeat per backend (rejected: N times more calls). |
+| The proxy sets the report timing | One place decides lease behavior. | The sidecar picks (rejected: sidecars could disagree with the lease). |
+| Sidecar health and proxy health both required | Each sees what the other cannot. | Only one of them (rejected: blind spots). |
+| In-memory registry first | Simple; sidecars rebuild it in one interval. | Saved registry (open question 1). |
+| Generated proto types | `CLAUDE.md` rule 5. | JSON over HTTP (rejected). |
+
+## 14. Open questions
+
+1. **Save the registry across proxy restarts?** Today a registered-only service has no backend
+   for up to one `report_interval` after a proxy restart (7.2).
+   - Option A: no. Accept the gap.
+   - Option B: save registrations with `ProxyStateStore`. At start, load them as `Live` with a
+     fresh lease, so they route until `lease_ttl` passes with no report.
+   - **Recommendation: B.** The store exists, and the lease limits the risk of a stale entry.
+2. **Ship the Unix socket transport (5.5) in this feature?**
+   - **Recommendation: yes.** Same-machine is the first milestone, and it removes the token
+     step there.
+3. **mTLS from a client to agent-rpc through the proxy.** The proxy ends client TLS, so agent-rpc
+   cannot see a client certificate on a TLS-ended route. Clients behind the proxy use
+   agent-rpc's signed-secret bearer auth (feature 11, `SignedSecretAuth`). End-to-end client mTLS
+   needs TLS passthrough, routed by the TLS server name (SNI). The `tcp` passthrough of today
+   uses one listener for each backend and cannot be registered at run time.
+   - **Recommendation:** signed-secret auth behind the proxy now; SNI passthrough as a later
+     feature.
+4. **Move the generic enrollment steps into `foundation_auth`.** agent-rpc (feature 12,
+   `core::enroll`) and the proxy run the same five steps.
+   - **Recommendation: yes**, as `foundation_auth::enroll::EnrollmentService`, used by both.
+5. **Use metrics for load balancing?** This feature stores and shows them only.
+   - **Recommendation:** not now; a later feature can weight by CPU or memory.
 
 ---
 
-_Created: 2026-10-19_
+_Created: 2026-10-19 · Rewritten for completeness and STE: 2026-10-26_

@@ -316,6 +316,12 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # the only tree to lint.
 clippy-deny-warnings = true
 
+[packages.foundation_agent_rpc]
+# Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
+# tests/gguf_share_tests.rs (one GGUF model shared by concurrent sessions)
+# against the CPU build of llama.cpp.
+runs = ["", "gguf"]
+
 [packages.foundation_jsonschema]
 # 14 pedantic warnings; clear them and delete this override (#441).
 clippy-deny-warnings = false
@@ -365,7 +371,9 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # never ran. Test that configuration as well. The real-daemon tests stay
 # behind `integration-tests`; that target is built (`--no-run`) so it cannot
 # silently rot, but never run — daemon-backed runs stay manual.
-runs = ["", "docker", "--no-run --features docker,integration-tests"]
+# `docker buildkit` also builds the generated BuildKit client (buffa-build
+# codegen must match the buffa runtime; a skew went unnoticed).
+runs = ["", "docker", "docker buildkit", "--no-run --features docker,integration-tests"]
 # Lint every feature set and fail on a warning, so the docker clippy debt
 # cannot return (spec 70 feature 49 E3).
 clippy-runs = ["", "--all-features"]

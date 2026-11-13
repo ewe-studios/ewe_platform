@@ -332,6 +332,18 @@ impl CandleBackend {
         }
     }
 
+    /// The context. Every message from this backend reads its clock from it.
+    #[must_use]
+    pub fn ctx(&self) -> Ctx {
+        match self {
+            CandleBackend::Cpu { ctx, .. } => ctx.clone(),
+            #[cfg(feature = "candle-cuda")]
+            CandleBackend::Cuda { ctx, .. } => ctx.clone(),
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
+            CandleBackend::Metal { ctx, .. } => ctx.clone(),
+        }
+    }
+
     fn config(&self) -> &CandleBackendConfig {
         match self {
             CandleBackend::Cpu { config, .. } => config,
@@ -360,18 +372,6 @@ impl CandleBackend {
             CandleBackend::Cuda { cache, .. } => cache,
             #[cfg(all(target_vendor = "apple", feature = "candle"))]
             CandleBackend::Metal { cache, .. } => cache,
-        }
-    }
-
-    /// The context. Every message from this backend reads its clock from it.
-    #[must_use]
-    pub fn ctx(&self) -> Ctx {
-        match self {
-            CandleBackend::Cpu { ctx, .. } => ctx.clone(),
-            #[cfg(feature = "candle-cuda")]
-            CandleBackend::Cuda { ctx, .. } => ctx.clone(),
-            #[cfg(all(target_vendor = "apple", feature = "candle"))]
-            CandleBackend::Metal { ctx, .. } => ctx.clone(),
         }
     }
 
@@ -664,14 +664,15 @@ fn build_llama_model(
         candle_llama::LlamaEosToks::Multiple(ids) => ids.first().copied().unwrap_or(0),
     });
 
-    let cache = candle_llama::Cache::new(false, dtype, &llama_config, device).map_err(|e| {
+    // KV state is per generation (`CandleWeights::start_generation`); probing
+    // one here surfaces a cache-construction failure at load time.
+    candle_llama::Cache::new(true, dtype, &llama_config, device).map_err(|e| {
         ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
             "Failed to create Llama KV cache: {e}"
         )))
     })?;
-    let inner = CandleModelInner::Llama {
+    let inner = CandleWeights::Llama {
         model,
-        cache: Box::new(cache),
         config: llama_config,
         dtype,
         device: device.clone(),
@@ -701,6 +702,7 @@ fn eos_from_config_json(config_path: &std::path::Path) -> Option<u32> {
     let raw = std::fs::read_to_string(config_path).ok()?;
     let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
     match json.get("eos_token_id")? {
+        // An id that does not fit in u32 is not a valid token id: ignore it.
         serde_json::Value::Number(n) => n.as_u64().and_then(|v| u32::try_from(v).ok()),
         serde_json::Value::Array(a) => a
             .first()
@@ -749,7 +751,7 @@ fn build_gemma2_model(
     let chat_template = ChatTemplate::load(tokenizer_path);
 
     Ok(CandleModels::new(
-        CandleModelInner::Gemma2(model),
+        CandleWeights::Gemma2(model),
         tokenizer,
         device.clone(),
         eos_token_id,
@@ -763,70 +765,104 @@ fn build_gemma2_model(
 // CandleModels
 // ==================================
 
-/// Architecture-specific model dispatch.
-/// A loaded model plus the per-architecture inference state it owns.
+/// A loaded model's read-only weights, shared by every generation.
 ///
-/// WHY (decision 06): architectures manage KV state differently — Llama takes
-/// an EXTERNAL `Cache`, Gemma2 keeps its cache INTERNAL and resets via
-/// `clear_kv_cache`. Forcing every architecture through a Llama-shaped external
-/// cache would break the moment a second one was added, so each variant owns
-/// whatever state it needs and the callers below drive a uniform interface
-/// (`forward`, `reset_cache`) without knowing which variant they hold.
-enum CandleModelInner {
+/// WHY (decision 06, spec 65 F1/T1): architectures manage KV state differently
+/// — Llama takes an EXTERNAL `Cache`, Gemma2 keeps its cache INTERNAL. That
+/// state used to live next to the weights inside one `Mutex`, so two
+/// generations on the same loaded model (two agent sessions sharing one model)
+/// reset and overwrote each other's KV cache between tokens. The weights are
+/// now shared and immutable; each generation owns its KV state
+/// ([`CandleGeneration`]).
+///
+/// WHAT: the weights plus whatever each architecture needs to start a fresh
+/// generation.
+///
+/// HOW: candle tensors are reference-counted, so the Gemma2 template model is
+/// cloned per generation without copying weights.
+enum CandleWeights {
     Llama {
         model: candle_llama::Llama,
-        cache: Box<candle_llama::Cache>,
         config: candle_llama::Config,
         dtype: DType,
         device: Device,
     },
+    /// Never run directly: the template each generation clones (with its KV
+    /// cache cleared).
     Gemma2(candle_transformers::models::gemma2::Model),
 }
 
-impl CandleModelInner {
-    /// One forward pass. `seq_start` is the KV offset (0 for the prompt).
-    fn forward(&mut self, input: &Tensor, seq_start: usize) -> Result<Tensor, candle_core::Error> {
+impl CandleWeights {
+    /// Fresh per-generation inference state over these weights.
+    fn start_generation(&self) -> Result<CandleGeneration, candle_core::Error> {
         match self {
-            CandleModelInner::Llama { model, cache, .. } => model.forward(input, seq_start, cache),
-            CandleModelInner::Gemma2(m) => m.forward(input, seq_start),
-        }
-    }
-
-    /// Reset the KV cache for a fresh generation.
-    fn reset_cache(&mut self) -> Result<(), candle_core::Error> {
-        match self {
-            CandleModelInner::Llama {
-                cache,
+            CandleWeights::Llama {
                 config,
                 dtype,
                 device,
                 ..
-            } => {
-                **cache = candle_llama::Cache::new(false, *dtype, config, device)?;
-                Ok(())
-            }
-            CandleModelInner::Gemma2(m) => {
-                m.clear_kv_cache();
-                Ok(())
+            } => Ok(CandleGeneration::Llama {
+                // The stream feeds one token per step after the prompt, so the
+                // KV cache must be on: without it every token after the first
+                // attends only to itself.
+                cache: candle_llama::Cache::new(true, *dtype, config, device)?,
+            }),
+            CandleWeights::Gemma2(template) => {
+                let mut model = template.clone();
+                model.clear_kv_cache();
+                Ok(CandleGeneration::Gemma2(Box::new(model)))
             }
         }
     }
 }
 
-struct CandleModelsState {
-    model: CandleModelInner,
+/// The inference state one generation owns: its KV cache.
+enum CandleGeneration {
+    Llama { cache: candle_llama::Cache },
+    Gemma2(Box<candle_transformers::models::gemma2::Model>),
+}
+
+impl CandleGeneration {
+    /// One forward pass. `seq_start` is the KV offset (0 for the prompt).
+    fn forward(
+        &mut self,
+        weights: &CandleWeights,
+        input: &Tensor,
+        seq_start: usize,
+    ) -> Result<Tensor, candle_core::Error> {
+        match (self, weights) {
+            (CandleGeneration::Llama { cache }, CandleWeights::Llama { model, .. }) => {
+                model.forward(input, seq_start, cache)
+            }
+            (CandleGeneration::Gemma2(model), CandleWeights::Gemma2(_)) => {
+                model.forward(input, seq_start)
+            }
+            _ => Err(candle_core::Error::msg(
+                "candle generation state does not match the loaded architecture",
+            )),
+        }
+    }
+}
+
+/// Everything about a loaded model that generations only read.
+struct CandleShared {
+    weights: CandleWeights,
     tokenizer: Tokenizer,
     device: Device,
     eos_token_id: Option<u32>,
     spec: ModelSpec,
-    last_usage: Option<UsageReport>,
-    tokens_generated: usize,
     pricing: ModelUsageCosting,
-    cumulative_cost: CostAccumulator,
     /// The model's own chat template (from `tokenizer_config.json`), if any.
     chat_template: Option<ChatTemplate>,
     /// The context. Every message this model emits reads its clock from it.
     ctx: Ctx,
+}
+
+/// Usage bookkeeping — the only mutable state shared between generations.
+struct CandleUsage {
+    last_usage: Option<UsageReport>,
+    tokens_generated: usize,
+    cumulative_cost: CostAccumulator,
 }
 
 /// A model's chat template plus the special-token strings it references.
@@ -922,18 +958,31 @@ impl ChatTemplate {
 
 /// Candle model wrapper implementing the [`Model`] trait.
 ///
-/// Uses interior mutability (`Mutex`) so that `&self` methods can mutate
-/// state during generation.
+/// WHY: one loaded model must serve many sessions at once (spec 65 F1) without
+/// a reload per session and without generations disturbing each other.
+///
+/// WHAT: a cheap-to-clone handle. Clones share the loaded weights, tokenizer
+/// and template (`Arc<CandleShared>`); each `generate`/`stream` call owns its
+/// own KV state, so concurrent generations on clones of one handle run in
+/// parallel and produce exactly what they would produce alone.
+///
+/// HOW: no lock is held across a forward pass; only usage bookkeeping sits
+/// behind a `Mutex`.
 pub struct CandleModels {
-    inner: Arc<Mutex<CandleModelsState>>,
+    shared: Arc<CandleShared>,
+    usage: Arc<Mutex<CandleUsage>>,
 }
 
 impl core::fmt::Debug for CandleModels {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let inner = self.inner.lock().unwrap();
+        let tokens_generated = self
+            .usage
+            .lock()
+            .map(|u| u.tokens_generated)
+            .unwrap_or_default();
         f.debug_struct("CandleModels")
-            .field("spec", &inner.spec)
-            .field("tokens_generated", &inner.tokens_generated)
+            .field("spec", &self.shared.spec)
+            .field("tokens_generated", &tokens_generated)
             .finish_non_exhaustive()
     }
 }
@@ -941,14 +990,15 @@ impl core::fmt::Debug for CandleModels {
 impl Clone for CandleModels {
     fn clone(&self) -> Self {
         Self {
-            inner: Arc::clone(&self.inner),
+            shared: Arc::clone(&self.shared),
+            usage: Arc::clone(&self.usage),
         }
     }
 }
 
 impl CandleModels {
     fn new(
-        model: CandleModelInner,
+        weights: CandleWeights,
         tokenizer: Tokenizer,
         device: Device,
         eos_token_id: Option<u32>,
@@ -957,20 +1007,39 @@ impl CandleModels {
         ctx: Ctx,
     ) -> Self {
         Self {
-            inner: Arc::new(Mutex::new(CandleModelsState {
-                model,
+            shared: Arc::new(CandleShared {
+                weights,
                 tokenizer,
                 device,
                 eos_token_id,
                 spec,
-                last_usage: None,
-                tokens_generated: 0,
                 pricing: ModelUsageCosting::default(),
-                cumulative_cost: CostAccumulator::new(),
                 chat_template,
                 ctx,
+            }),
+            usage: Arc::new(Mutex::new(CandleUsage {
+                last_usage: None,
+                tokens_generated: 0,
+                cumulative_cost: CostAccumulator::new(),
             })),
         }
+    }
+
+    /// True when `self` and `other` are handles to the same loaded weights —
+    /// i.e. one load, shared, rather than two copies in memory.
+    #[must_use]
+    pub fn shares_weights_with(&self, other: &CandleModels) -> bool {
+        Arc::ptr_eq(&self.shared, &other.shared)
+    }
+
+    fn encode_prompt(&self, interaction: &ModelInteraction) -> GenerationResult<Vec<u32>> {
+        let prompt = build_prompt(self.shared.chat_template.as_ref(), interaction);
+        let tokens = self
+            .shared
+            .tokenizer
+            .encode(prompt.as_str(), true)
+            .map_err(|e| GenerationError::Tokenizer(format!("{e}")))?;
+        Ok(tokens.get_ids().to_vec())
     }
 }
 
@@ -980,12 +1049,15 @@ impl Model for CandleModels {
     }
 
     fn spec(&self) -> ModelSpec {
-        self.inner.lock().unwrap().spec.clone()
+        self.shared.spec.clone()
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let inner = self.inner.lock().unwrap();
-        let cost = inner.cumulative_cost.result();
+        let usage = self
+            .usage
+            .lock()
+            .map_err(|_| GenerationError::Generic("candle usage lock poisoned".into()))?;
+        let cost = usage.cumulative_cost.result();
         Ok(UsageReport {
             input: 0.0,
             output: 0.0,
@@ -997,7 +1069,6 @@ impl Model for CandleModels {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        let inner = self.inner.lock().unwrap();
         Some(ModelProviderDescriptor {
             id: "candle",
             name: "Candle",
@@ -1006,7 +1077,7 @@ impl Model for CandleModels {
             provider: ModelProviders::CANDLE,
             base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
-            cost: inner.pricing,
+            cost: self.shared.pricing,
             context_window: 0,
             max_tokens: 0,
         })
@@ -1018,21 +1089,16 @@ impl Model for CandleModels {
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
         let params = specs.unwrap_or_default();
-        let mut inner = self.inner.lock().unwrap();
+        let shared = &self.shared;
 
-        let prompt = build_prompt(inner.chat_template.as_ref(), &interaction);
-
-        let tokens = inner
-            .tokenizer
-            .encode(prompt.as_str(), true)
-            .map_err(|e| GenerationError::Tokenizer(format!("{e}")))?;
-        let input_ids = tokens.get_ids().to_vec();
+        let input_ids = self.encode_prompt(&interaction)?;
         let input_len = input_ids.len();
 
-        // Reset cache for fresh generation (per-arch — decision 06).
-        inner.model.reset_cache().map_err(GenerationError::Candle)?;
-
-        let device = inner.device.clone();
+        // This generation's own KV state (per-arch — decision 06).
+        let mut generation = shared
+            .weights
+            .start_generation()
+            .map_err(GenerationError::Candle)?;
 
         let mut all_tokens = input_ids.clone();
         let mut next_tokens = input_ids;
@@ -1041,23 +1107,25 @@ impl Model for CandleModels {
 
         for index in 0..params.max_tokens {
             let input_tensor =
-                Tensor::new(&next_tokens[..], &device).map_err(GenerationError::Candle)?;
+                Tensor::new(&next_tokens[..], &shared.device).map_err(GenerationError::Candle)?;
             let input_tensor = input_tensor.unsqueeze(0).map_err(GenerationError::Candle)?;
 
             let seq_start = if index == 0 { 0 } else { all_tokens.len() - 1 };
-            let logits = forward(&mut inner, &input_tensor, seq_start)?;
+            let logits = generation
+                .forward(&shared.weights, &input_tensor, seq_start)
+                .map_err(GenerationError::Candle)?;
 
             let next_token = sample_next(&mut processor, &logits, &params, &all_tokens)
                 .map_err(GenerationError::Candle)?;
 
-            if inner.eos_token_id == Some(next_token) {
+            if shared.eos_token_id == Some(next_token) {
                 break;
             }
 
             all_tokens.push(next_token);
             next_tokens = vec![next_token];
 
-            let decoded = inner
+            let decoded = shared
                 .tokenizer
                 .decode(&[next_token], true)
                 .map_err(|e| GenerationError::Tokenizer(format!("{e}")))?;
@@ -1071,7 +1139,7 @@ impl Model for CandleModels {
         }
 
         let output_ids = &all_tokens[input_len..];
-        let output_text = inner
+        let output_text = shared
             .tokenizer
             .decode(output_ids, true)
             .map_err(|e| GenerationError::Tokenizer(format!("{e}")))?;
@@ -1094,12 +1162,15 @@ impl Model for CandleModels {
             },
         };
 
-        inner.last_usage = Some(usage.clone());
+        self.usage
+            .lock()
+            .map_err(|_| GenerationError::Generic("candle usage lock poisoned".into()))?
+            .last_usage = Some(usage.clone());
 
         Ok(vec![Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
-            model: inner.spec.id.clone(),
-            timestamp: inner.ctx.clock().wall_now(),
+            model: shared.spec.id.clone(),
+            timestamp: self.shared.ctx.clock().wall_now(),
             usage,
             content: ModelOutput::Text(TextContent {
                 content: output_text,
@@ -1118,7 +1189,7 @@ impl Model for CandleModels {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<ModelStreamBox> {
-        let stream = CandleStream::new(self.clone(), interaction, specs)?;
+        let stream = CandleStream::new(self.clone(), &interaction, specs)?;
         Ok(Box::new(stream))
     }
 }
@@ -1128,12 +1199,11 @@ impl Model for CandleModels {
 // ==================================
 
 /// Stream iterator for token-by-token Candle generation.
+///
+/// Owns its generation's KV state, so it never touches another stream's.
 pub struct CandleStream {
-    inner: Arc<Mutex<CandleStreamState>>,
-}
-
-struct CandleStreamState {
     model: CandleModels,
+    generation: CandleGeneration,
     params: ModelParams,
     all_tokens: Vec<u32>,
     input_len: usize,
@@ -1142,54 +1212,66 @@ struct CandleStreamState {
     initialized: bool,
     /// Persisted across polls so its rng advances token to token (spec-60/S3).
     processor: LogitsProcessor,
-    /// The context. Every streamed message reads its clock from it.
-    ctx: Ctx,
 }
 
 impl CandleStream {
-    #[allow(clippy::needless_pass_by_value)]
     fn new(
         model: CandleModels,
-        interaction: ModelInteraction,
+        interaction: &ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Self> {
         let params = specs.unwrap_or_default();
-
-        let (input_ids, _prompt) = {
-            let inner = model.inner.lock().unwrap();
-            let prompt = build_prompt(inner.chat_template.as_ref(), &interaction);
-            let tokens = inner
-                .tokenizer
-                .encode(prompt.as_str(), true)
-                .map_err(|e| GenerationError::Tokenizer(format!("{e}")))?;
-            (tokens.get_ids().to_vec(), prompt)
-        };
-
+        let input_ids = model.encode_prompt(interaction)?;
         let input_len = input_ids.len();
-
-        // Reset cache (per-arch — decision 06).
-        {
-            let mut inner = model.inner.lock().unwrap();
-            inner.model.reset_cache().map_err(GenerationError::Candle)?;
-        }
-
+        let generation = model
+            .shared
+            .weights
+            .start_generation()
+            .map_err(GenerationError::Candle)?;
         let processor = build_logits_processor(&params);
 
-        let ctx = model.inner.lock().unwrap().ctx.clone();
-
         Ok(Self {
-            inner: Arc::new(Mutex::new(CandleStreamState {
-                model,
-                params,
-                processor,
-                all_tokens: input_ids,
-                input_len,
-                tokens_generated: 0,
-                finished: false,
-                initialized: false,
-                ctx,
-            })),
+            model,
+            generation,
+            params,
+            processor,
+            all_tokens: input_ids,
+            input_len,
+            tokens_generated: 0,
+            finished: false,
+            initialized: false,
         })
+    }
+
+    /// One decoding step: forward the pending input, sample, decode.
+    /// Returns `(token, text, is_eos)`.
+    fn step(&mut self) -> Result<(u32, String, bool), String> {
+        let shared = Arc::clone(&self.model.shared);
+
+        let (next_input, seq_start) = if self.tokens_generated == 0 {
+            (self.all_tokens.clone(), 0)
+        } else {
+            let last = *self
+                .all_tokens
+                .last()
+                .ok_or_else(|| "candle stream has no tokens".to_string())?;
+            (vec![last], self.all_tokens.len() - 1)
+        };
+
+        let input = Tensor::new(&next_input[..], &shared.device)
+            .and_then(|t| t.unsqueeze(0))
+            .map_err(|e| format!("candle input tensor: {e}"))?;
+        let logits = self
+            .generation
+            .forward(&shared.weights, &input, seq_start)
+            .map_err(|e| format!("candle forward pass: {e}"))?;
+        let token = sample_next(&mut self.processor, &logits, &self.params, &self.all_tokens)
+            .map_err(|e| format!("candle sampling: {e}"))?;
+        let text = shared
+            .tokenizer
+            .decode(&[token], true)
+            .map_err(|e| format!("candle token decode: {e}"))?;
+        Ok((token, text, shared.eos_token_id == Some(token)))
     }
 }
 
@@ -1202,108 +1284,49 @@ impl Iterator for CandleStream {
 
     #[allow(clippy::cast_precision_loss)]
     fn next(&mut self) -> Option<Self::Item> {
-        let mut state = self.inner.lock().unwrap();
-
-        if state.finished {
+        if self.finished {
             return None;
         }
 
-        if !state.initialized {
-            state.initialized = true;
+        if !self.initialized {
+            self.initialized = true;
             return Some(Stream::Init);
         }
 
-        if state.tokens_generated >= state.params.max_tokens {
-            state.finished = true;
+        if self.tokens_generated >= self.params.max_tokens {
+            self.finished = true;
             return Some(Stream::Pending(ModelState::Finished));
         }
 
-        let next_input: Vec<u32> = if state.tokens_generated == 0 {
-            state.all_tokens.clone()
-        } else {
-            vec![*state.all_tokens.last().unwrap()]
-        };
-
-        let seq_start = if state.tokens_generated == 0 {
-            0
-        } else {
-            state.all_tokens.len() - 1
-        };
-
-        let model_rc = Arc::clone(&state.model.inner);
-        let params = state.params.clone();
-
-        // Scope the model borrow so it's dropped before we mutate state
-        let (next_token, token_str, eos_hit, spec) = {
-            let mut model_inner = model_rc.lock().unwrap();
-
-            let device = model_inner.device.clone();
-
-            #[allow(clippy::manual_let_else)]
-            let input_tensor = if let Ok(t) = Tensor::new(&next_input[..], &device) {
-                t
-            } else {
-                state.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
-            };
-            #[allow(clippy::manual_let_else)]
-            let input_tensor = if let Ok(t) = input_tensor.unsqueeze(0) {
-                t
-            } else {
-                state.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
-            };
-
-            #[allow(clippy::manual_let_else)]
-            let logits = if let Ok(l) = forward(&mut model_inner, &input_tensor, seq_start) {
-                l
-            } else {
-                state.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
-            };
-
-            let next_token = {
-                // Reborrow so `processor` (mut) and `all_tokens` (shared) are
-                // disjoint field borrows rather than two borrows of the guard.
-                let st = &mut *state;
-                if let Ok(t) = sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
-                    t
-                } else {
-                    st.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
-            };
-
-            let eos_hit = model_inner.eos_token_id == Some(next_token);
-
-            let token_str = model_inner
-                .tokenizer
-                .decode(&[next_token], true)
-                .unwrap_or_default();
-
-            let spec = model_inner.spec.clone();
-
-            (next_token, token_str, eos_hit, spec)
+        let (next_token, token_str, eos_hit) = match self.step() {
+            Ok(step) => step,
+            Err(msg) => {
+                // Surface the failure (the loop maps it to a FailedAction)
+                // instead of ending the stream as if generation had finished.
+                tracing::error!(error = %msg, "candle stream step failed");
+                self.finished = true;
+                return Some(Stream::Pending(ModelState::Error(msg)));
+            }
         };
 
         if eos_hit {
-            state.finished = true;
+            self.finished = true;
             return Some(Stream::Pending(ModelState::Finished));
         }
 
-        state.all_tokens.push(next_token);
-        state.tokens_generated += 1;
+        self.all_tokens.push(next_token);
+        self.tokens_generated += 1;
 
         Some(Stream::Next(Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
-            model: spec.id.clone(),
-            timestamp: state.ctx.clock().wall_now(),
+            model: self.model.shared.spec.id.clone(),
+            timestamp: self.model.shared.ctx.clock().wall_now(),
             usage: UsageReport {
-                input: state.input_len as f64,
-                output: state.tokens_generated as f64,
+                input: self.input_len as f64,
+                output: self.tokens_generated as f64,
                 cache_read: 0.0,
                 cache_write: 0.0,
-                total_tokens: (state.input_len + state.tokens_generated) as f64,
+                total_tokens: (self.input_len + self.tokens_generated) as f64,
                 cost: UsageCosting {
                     currency: "USD".to_string(),
                     input: 0.0,
@@ -1330,17 +1353,6 @@ impl Iterator for CandleStream {
 // ==================================
 // Helpers
 // ==================================
-
-fn forward(
-    state: &mut CandleModelsState,
-    input: &Tensor,
-    seq_start: usize,
-) -> GenerationResult<Tensor> {
-    state
-        .model
-        .forward(input, seq_start)
-        .map_err(GenerationError::Candle)
-}
 
 /// Convert an interaction to the `[{role, content}]` list HF chat templates
 /// expect, folding `system_prompt` + soul + tool definitions into a leading

@@ -1,21 +1,49 @@
 ---
 feature: "Agent RPC Model Server"
 description: "A long-lived per-machine RPC server (foundation_agent_rpc) that loads a model once, runs threaded inference, and exposes named agent instances over Connect/gRPC/gRPC-Web with its own client-facing secret-token → mTLS auth."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-10-19
+last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Agent RPC Model Server
+
+_Status note (2026-10-26): complete (10/10 tasks and the GGUF follow-up, PR #126). This file
+is the design record of what was built. **Feature 07 changes parts of it**; section "Changes
+made by later features" at the end lists each one. New text is in ASD-STE100 Simplified
+Technical English (STE); older paragraphs keep their wording. Code and identifiers stay as they
+are._
+
+**Abbreviations in this file.** remote procedure call (RPC); Transport Layer Security (TLS);
+mutual TLS (mTLS); Quick Response code (QR code); command-line interface (CLI); software
+development kit (SDK); GPT-Generated Unified Format (GGUF), the model file format of llama.cpp;
+key-value (KV); transmission control protocol (TCP); AeroSpace and Defence Industries
+Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| agent-rpc | This crate's server: one process for each machine that loads each model one time and serves many agent instances. |
+| `ModelHandle` | A cheap-to-clone handle (`Arc`) to one loaded model. Every instance on that model holds a clone. |
+| Instance | A named agent: one `foundation_ai::AgentSession` with its own history and settings, on a shared model. |
+| `InstanceRegistry` | The map from instance name to instance. Create, get, list and destroy never load a model. |
+| Connect, gRPC, gRPC-Web | Three RPC protocols that `foundation_connectrpc` serves on one router. |
+| Bootstrap secret | A signed, time-boxed secret that a client shows one time to get a client certificate (enrollment). |
+| Enrollment | The exchange of a bootstrap secret and a certificate signing request for a client certificate. |
+| Bootstrap payload | The base64 text (or QR code) that gives a client everything it needs to connect. Feature 07 changes its fields. |
+| `TurnEvent` | One streamed event of a chat turn: text, thinking, tool call, tool result, retract, failed or done. |
+| Valtron | The task engine in `foundation_core`. Inference runs on it; the RPC handlers are async. |
+
 
 ## Overview
 
@@ -136,6 +164,9 @@ graph TD
     MH --> L[candle_llama / gguf_provider]
 ```
 
+_The diagram shows the parts of the server: the router, the instance registry over shared model handles, client auth and the bootstrap payload._
+
+
 **File Structure:**
 ```
 backends/foundation_agent_rpc/
@@ -210,8 +241,14 @@ sequenceDiagram
     S-->>C: TurnEvent stream (server-streaming)
 ```
 
+_The diagram shows enrollment, then one streamed chat call through the proxy._
+
+
 1. Client authenticates to agent-rpc with the bootstrap token, receives a cert.
 2. Client calls `ChatStream` through the proxy (which forwards opaquely).
+   _Correction (2026-10-26):_ a proxy that ends TLS cannot pass a client certificate to
+   agent-rpc. Through the proxy, a client uses agent-rpc's signed-secret bearer auth (feature 11).
+   mTLS works on a direct connection, or through TLS passthrough (feature 03, open question 3).
 3. agent-rpc runs inference on the shared `ModelHandle` (threaded/valtron).
 4. Results stream back as `TurnEvent`s, unbuffered.
 
@@ -307,31 +344,31 @@ service AgentService {
 
 ## Tasks
 
-- [ ] **T1 — Shareability spike (gate).** Prove `foundation_ai`'s loaded backend
+- [x] **T1 — Shareability spike (gate).** Prove `foundation_ai`'s loaded backend
       (llamacpp GGUF and/or Candle) is `Send + Sync` and that one loaded model
       serves two+ `AgentSession`s concurrently. Red test: two sessions on one
       model complete interleaved chats without per-session reload.
-- [ ] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
+- [x] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
       `lib.rs` module map; compile-clean with zero deps beyond the allowed set.
-- [ ] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
+- [x] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
       `Send + Sync + 'static` bound; if the backend isn't `Sync`, apply the
       `Arc<Mutex<…>>` fallback and record it in LEARNINGS.
-- [ ] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
+- [x] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
       tests assert create is cheap and never reloads the model.
-- [ ] **T5 — Generated RPC service.** Define + generate the `AgentService` types
+- [x] **T5 — Generated RPC service.** Define + generate the `AgentService` types
       (CreateInstance/Chat/ChatStream/ListInstances/DestroyInstance/Health);
       wire into a connectrpc `Router`.
-- [ ] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
+- [x] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
       over Connect on loopback; error → status mapping asserted.
-- [ ] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
+- [x] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
       assert streaming (not buffered) with a slow producer.
-- [ ] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
+- [x] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
       without a valid cert after bootstrap; never log the token.
-- [ ] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
+- [x] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
       decode asserts address/fingerprint/token/capabilities survive.
-- [ ] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
+- [x] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
       streaming) round-trip on real loopback TCP; note gRPC `grpc-status` assertion
-      is gated on spec 63 T1 (see LEARNINGS).
+      is gated on spec 63 T1 (see LEARNINGS) — landed; asserted.
 
 ## Testing
 
@@ -367,11 +404,24 @@ cargo test -p foundation_agent_rpc --test rpc_e2e_tests
 
 ## Success Criteria
 
-- [ ] All 10 tasks completed with one red→green test each
-- [ ] One loaded model serves ≥2 concurrent instances (proven by T1)
-- [ ] Connect + gRPC + gRPC-Web round-trip unary and streaming
-- [ ] Client token→mTLS enforced; token never logged
-- [ ] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
+- [x] All 10 tasks completed with one red→green test each
+- [x] One loaded model serves ≥2 concurrent instances (proven by T1)
+- [x] Connect + gRPC + gRPC-Web round-trip unary and streaming
+- [x] Client token→mTLS enforced; token never logged
+- [x] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
+
+## Changes made by later features
+
+Features 07 to 14 ([agent-rpc-architecture.md](../../agent-rpc-architecture.md) section 7) change these parts. The
+code on branch `65-f01-agent-rpc` still has the feature 01 form until features 07 to 14 are built.
+
+| Here | After features 07 to 14 |
+|---|---|
+| File list above (`server.rs`, `auth.rs`, ...). The built crate also has `secret.rs`, `trust.rs`, `client.rs`, `error.rs`, `proto.rs`. | `core/`, `host/native/`, `host/worker/`, `client/`; auth moves to `foundation_auth` (feature 07 section 8). |
+| `with_bootstrap_token`, `with_mtls`, the `Auth` enum | One `ClientAuth` value (signed secret, mTLS, JWT, Cloudflare mTLS). |
+| `BootstrapPayload { addr, tls_fingerprint, token, capabilities }` | `url`, `enroll_url`, `tls_fingerprint_sha256`, `token`, `capabilities`; no version field ([proto.md](../12-agent-rpc-core/proto.md) section 6). |
+| The illustrative `AgentService` above (`returns (InstanceHandle)`, `returns (Empty)`) | The real contract is [proto.md](../12-agent-rpc-core/proto.md) section 3 (`InstanceInfo`, `DestroyInstanceResponse`, plus `GetCapabilities`). |
+| Start-up and shutdown of the server | The native host lifecycle in [hosts.md](../13-native-host-and-dst/hosts.md) section 4. |
 
 ---
 
