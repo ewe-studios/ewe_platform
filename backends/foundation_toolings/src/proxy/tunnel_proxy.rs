@@ -4,8 +4,8 @@
 use std::io::{Read, Write};
 use std::net::TcpStream;
 
-use foundation_http::shared::serve::ConnectionResult;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_http::shared::serve::ConnectionResult;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::HTTPStreams;
 

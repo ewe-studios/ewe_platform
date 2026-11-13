@@ -3,19 +3,20 @@ use std::sync::Arc;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::{collect_one, execute, from_future};
-use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeError};
-use foundation_http::{SimpleIncomingRequest, RawStream};
-use foundation_netio::shared::http::{
-    ChunkedData, Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody,
-    Status,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_http::native::serve::{Serve, ServeFactory};
+use foundation_http::shared::context::Ctx;
+use foundation_http::shared::serve::{ConnectionResult, ServeError};
+use foundation_http::{RawStream, SimpleIncomingRequest};
+use foundation_netio::shared::http::{
+    ChunkedData, Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleOutgoingResponse, Status,
+};
 
 use super::super::config::IdpConfig;
 use super::super::storage::HandlerStorage;
-use foundation_db::{KeyValueStore, MemoryStorage};
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
+use crate::shared::auth_session::memory::MemoryAuthSessionStore;
+use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// Write JSON response with optional extra headers.
 fn json_with_headers(
@@ -24,26 +25,40 @@ fn json_with_headers(
     body: &impl serde::Serialize,
     extra_headers: &[(String, String)],
 ) -> Result<(), ErrorTrace<ServeError>> {
-    let bytes = serde_json::to_vec(body)
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))?;
+    let bytes = serde_json::to_vec(body).map_err(|e| {
+        ErrorTrace::new(ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })
+    })?;
 
     let mut builder = SimpleOutgoingResponse::builder()
         .with_status(status_code(status))
         .add_header(SimpleHeader::CONTENT_TYPE, "application/json");
 
     for (name, value) in extra_headers {
-        builder = builder.add_header(name.to_string(), value.to_string());
+        builder = builder.add_header(name.clone(), value.clone());
     }
 
     let response = builder
         .with_body(SendSafeBody::Bytes(bytes))
         .build()
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))?;
+        .map_err(|e| {
+            ErrorTrace::new(ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })
+        })?;
 
     Http11::response(response)
         .http_render_to_writer(conn)
         .map(|_| ())
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))
+        .map_err(|e| {
+            ErrorTrace::new(ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })
+        })
 }
 
 fn status_code(code: u16) -> Status {
@@ -66,9 +81,9 @@ fn status_code(code: u16) -> Status {
     }
 }
 
-/// Serves the IdP routes over the handlers in [`IdpHandlerCore`].
+/// Serves the `IdP` routes over the handlers in [`IdpHandlerCore`].
 ///
-/// `KV` is the cache type of the [`HandlerStorage`] the app's `ContextBag`
+/// `KV` is the cache type of the [`HandlerStorage`] the app's `Ctx`
 /// holds (as `Arc<HandlerStorage<KV>>`, which is how [`IdpServer::http_app`]
 /// stores it).
 ///
@@ -78,9 +93,12 @@ pub struct ServeAdapter<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
 }
 
 impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
+    // One dispatch function: reading the body, routing and writing the response
+    // stay together so the flow is read top to bottom.
+    #[allow(clippy::too_many_lines)]
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         mut req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -96,7 +114,11 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
         };
 
         match result {
-            Ok(HandlerResponse { status, body, headers }) => {
+            Ok(HandlerResponse {
+                status,
+                body,
+                headers,
+            }) => {
                 let err_body: serde_json::Value = body;
                 match json_with_headers(&mut conn, status, &err_body, &headers) {
                     Ok(()) => ConnectionResult::Keep,
@@ -158,7 +180,10 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
                     "error": "account_locked",
                     "error_description": format!("Account locked until {retry_not_before}"),
                 });
-                let headers = vec![("x-retry-not-before".to_string(), retry_not_before.to_string())];
+                let headers = vec![(
+                    "x-retry-not-before".to_string(),
+                    retry_not_before.to_string(),
+                )];
                 match json_with_headers(&mut conn, 423, &err, &headers) {
                     Ok(()) => ConnectionResult::Keep,
                     Err(e) => ConnectionResult::Close(Some(e)),
@@ -169,7 +194,10 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
                     "error": "too_many_requests",
                     "error_description": format!("Retry after {retry_not_before}"),
                 });
-                let headers = vec![("x-retry-not-before".to_string(), retry_not_before.to_string())];
+                let headers = vec![(
+                    "x-retry-not-before".to_string(),
+                    retry_not_before.to_string(),
+                )];
                 match json_with_headers(&mut conn, 429, &err, &headers) {
                     Ok(()) => ConnectionResult::Keep,
                     Err(e) => ConnectionResult::Close(Some(e)),
@@ -202,21 +230,28 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
 impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
     /// # Panics
     ///
-    /// If the `ContextBag` holds no `IdpConfig` or no `Arc<HandlerStorage<KV>>`
-    /// (a misconfigured app; serving without storage would answer every
-    /// request as if the database were empty).
-    fn create(bag: &ContextBag) -> Self {
-        let config = bag
+    /// If the `Ctx` holds no `IdpConfig` or no
+    /// `Arc<HandlerStorage<KV>>` (a misconfigured app; serving without storage
+    /// would answer every request as if the database were empty).
+    fn create(ctx: &Ctx) -> Self {
+        let config = ctx
             .get::<IdpConfig>()
-            .expect("IdpConfig must be in ContextBag");
-        // The bag keys values by type and wraps each in its own `Arc`, so the
+            .expect("IdpConfig must be in the Ctx");
+        // The ctx keys values by type and wraps each in its own `Arc`, so the
         // stored `Arc<HandlerStorage<KV>>` comes back as `Arc<Arc<…>>`.
-        let storage = bag
+        let storage = ctx
             .get::<Arc<HandlerStorage<KV>>>()
             .map(|stored| Arc::clone(&*stored))
-            .expect("Arc<HandlerStorage<KV>> must be in ContextBag");
+            .expect("Arc<HandlerStorage<KV>> must be in the Ctx");
+        // The core keeps this ctx, so every `IdP` read uses the clock the host
+        // chose. Sessions live in the shared cache with the configured key, so
+        // every route sees the same sessions.
+        let mut core = IdpHandlerCore::new(config, storage, ctx.clone());
+        if let Some(social) = ctx.get::<Arc<MemoryAuthSessionStore>>() {
+            core = core.with_social_login(Arc::clone(&*social));
+        }
         Self {
-            core: Arc::new(IdpHandlerCore::new(config, storage)),
+            core: Arc::new(core),
         }
     }
 }
@@ -227,12 +262,10 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
     core: Arc<IdpHandlerCore<KV>>,
     req: SimpleIncomingRequest,
 ) -> Result<HandlerResponse, IdpError> {
-    let task = from_future(async move {
-        let bag = ContextBag::new();
-        core.dispatch(&bag, &req).await
-    });
-    let stream = execute(task, None)
-        .map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
+    // The dispatch ctx is the core's ctx, so it reads the same injected clock.
+    let ctx = core.ctx();
+    let task = from_future(async move { core.dispatch(&ctx, &req).await });
+    let stream = execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
     // The handler's own `IdpError` is the response; only a missing result is
     // an executor failure.
     collect_one(stream).ok_or_else(|| IdpError::Internal("future produced no result".into()))?
@@ -240,7 +273,7 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
 
 /// Read a request body into memory, refusing more than `limit` bytes.
 ///
-/// IdP bodies are small forms and JSON documents the handlers parse whole.
+/// `IdP` bodies are small forms and JSON documents the handlers parse whole.
 /// The streamed variants are read chunk by chunk and abandoned as soon as the
 /// limit is passed.
 fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>, IdpError> {
@@ -251,7 +284,9 @@ fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>
         buf.extend_from_slice(chunk);
         Ok(())
     }
-    let read_err = |e: &dyn std::fmt::Display| IdpError::BadRequest(format!("failed to read request body: {e}"));
+    let read_err = |e: &dyn std::fmt::Display| {
+        IdpError::BadRequest(format!("failed to read request body: {e}"))
+    };
 
     let mut buf = Vec::new();
     match body {
@@ -275,7 +310,9 @@ fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>
             }
         }
         Some(SendSafeBody::LineFeedStream(_) | SendSafeBody::SseStream(_)) => {
-            return Err(IdpError::BadRequest("unsupported request body encoding".into()));
+            return Err(IdpError::BadRequest(
+                "unsupported request body encoding".into(),
+            ));
         }
     }
     Ok(buf)

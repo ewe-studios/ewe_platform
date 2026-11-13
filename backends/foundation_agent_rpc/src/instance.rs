@@ -20,6 +20,7 @@ use std::sync::{Arc, RwLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use foundation_ai::agentic::{AgentConfig, AgentSession};
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 
 use crate::error::{AgentRpcError, AgentRpcResult};
@@ -216,6 +217,7 @@ pub struct InstanceRegistry {
     models: BTreeMap<String, ModelHandle>,
     instances: RwLock<BTreeMap<String, InstanceHandle>>,
     config: RegistryConfig,
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for InstanceRegistry {
@@ -228,7 +230,8 @@ impl std::fmt::Debug for InstanceRegistry {
 }
 
 impl InstanceRegistry {
-    /// A registry over `models` (each served under its own name).
+    /// A registry over `models` (each served under its own name). `ctx` is the
+    /// side-effect bundle every session it builds reads its clock from.
     ///
     /// # Errors
     /// [`AgentRpcError::Config`] for an empty model list or two models with
@@ -236,6 +239,7 @@ impl InstanceRegistry {
     pub fn new(
         models: impl IntoIterator<Item = ModelHandle>,
         config: RegistryConfig,
+        ctx: Ctx,
     ) -> AgentRpcResult<Self> {
         let mut table = BTreeMap::new();
         for model in models {
@@ -251,6 +255,7 @@ impl InstanceRegistry {
             models: table,
             instances: RwLock::new(BTreeMap::new()),
             config,
+            ctx,
         })
     }
 
@@ -265,13 +270,13 @@ impl InstanceRegistry {
     /// [`AgentRpcError::InvalidName`], [`AgentRpcError::ModelNotFound`],
     /// [`AgentRpcError::InstanceExists`], [`AgentRpcError::InstanceLimit`], or
     /// [`AgentRpcError::Inference`] when the session cannot be built.
-    pub fn create(&self, name: &str, cfg: &InstanceConfig) -> AgentRpcResult<InstanceHandle> {
+    pub async fn create(&self, name: &str, cfg: &InstanceConfig) -> AgentRpcResult<InstanceHandle> {
         self.validate_name(name)?;
         let model = self.resolve_model(&cfg.model)?.clone();
 
         // Build the session before taking the write lock: it is the only part
         // that does real work, and it never loads the model.
-        let session = build_session(&model, cfg)?;
+        let session = build_session(&model, cfg, &self.ctx).await?;
 
         let mut instances = self.write()?;
         if instances.contains_key(name) {
@@ -287,7 +292,7 @@ impl InstanceRegistry {
                 session,
                 busy: AtomicBool::new(false),
                 turns: AtomicU64::new(0),
-                created_unix_ms: unix_ms_now(),
+                created_unix_ms: unix_ms(self.ctx.clock().wall_now()),
             }),
         };
         instances.insert(name.to_string(), handle.clone());
@@ -307,10 +312,10 @@ impl InstanceRegistry {
     /// Every live instance, ordered by name.
     #[must_use]
     pub fn list(&self) -> Vec<InstanceMeta> {
-        self.instances
-            .read()
-            .map(|table| table.values().map(InstanceHandle::meta).collect())
-            .unwrap_or_default()
+        self.instances.read().map_or_else(
+            |_| Vec::new(),
+            |table| table.values().map(InstanceHandle::meta).collect(),
+        )
     }
 
     /// Destroy the instance `name`: abort any running turn, flush and end its
@@ -319,13 +324,13 @@ impl InstanceRegistry {
     /// # Errors
     /// [`AgentRpcError::InstanceNotFound`]; [`AgentRpcError::Inference`] when
     /// ending the session fails (the instance is removed either way).
-    pub fn destroy(&self, name: &str) -> AgentRpcResult<()> {
+    pub async fn destroy(&self, name: &str) -> AgentRpcResult<()> {
         let removed = self.write()?.remove(name);
         let Some(handle) = removed else {
             return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
         };
         handle.session().abort();
-        handle.session().end().map_err(|e| {
+        handle.session().end().await.map_err(|e| {
             ErrorTrace::new(AgentRpcError::Inference(format!(
                 "ending instance {name}: {e}"
             )))
@@ -383,7 +388,11 @@ impl InstanceRegistry {
     }
 }
 
-fn build_session(model: &ModelHandle, cfg: &InstanceConfig) -> AgentRpcResult<AgentSession> {
+async fn build_session(
+    model: &ModelHandle,
+    cfg: &InstanceConfig,
+    ctx: &Ctx,
+) -> AgentRpcResult<AgentSession> {
     let mut agent = AgentConfig::default();
     if let Some(max_tokens) = cfg.max_tokens {
         agent.model_params.max_tokens = max_tokens;
@@ -391,7 +400,7 @@ fn build_session(model: &ModelHandle, cfg: &InstanceConfig) -> AgentRpcResult<Ag
     if let Some(temperature) = cfg.temperature {
         agent.model_params.temperature = temperature;
     }
-    let mut builder = AgentSession::builder(model.router())
+    let mut builder = AgentSession::builder(model.router(), ctx.clone())
         .with_model(model.model_id().clone())
         .with_config(agent);
     if let Some(prompt) = &cfg.system_prompt {
@@ -399,11 +408,11 @@ fn build_session(model: &ModelHandle, cfg: &InstanceConfig) -> AgentRpcResult<Ag
     }
     builder
         .build()
+        .await
         .map_err(|e| AgentRpcError::Inference(format!("building session: {e}")).into())
 }
 
-fn unix_ms_now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
+fn unix_ms(now: SystemTime) -> u64 {
+    now.duration_since(UNIX_EPOCH)
         .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX))
 }

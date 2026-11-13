@@ -1,12 +1,27 @@
-//! MemoryJsonStore tests — the JSON key-value store over the async store
+//! `MemoryJsonStore` tests — the JSON key-value store over the async store
 //! traits. Its futures are ready at once, so the tests drive them with
 //! `futures_lite`'s `block_on`.
 
-use foundation_db::traits::{
-    BlobStore, KeyValueStore, QueryStore, RateLimiterStore,
-};
+use std::time::Duration;
+
+use std::sync::Arc;
+
+use foundation_core::valtron::SimulatedClock;
+
+use foundation_context::Ctx;
+use foundation_db::traits::{BlobStore, KeyValueStore, QueryStore, RateLimiterStore};
 use foundation_db::{MemoryJsonStore, StorageBackend, StorageError, StorageProvider};
 use futures_lite::future::block_on;
+
+/// A simulated clock parked one million seconds after the UNIX epoch.
+///
+/// The offset keeps a rate-limit window away from `0`, where saturating
+/// subtraction would treat every window as elapsed.
+fn sim_clock() -> SimulatedClock {
+    let clock = SimulatedClock::new(Duration::ZERO);
+    clock.advance_wall(Duration::from_secs(1_000_000));
+    clock
+}
 
 // ============================================================================
 // KeyValueStore tests
@@ -72,7 +87,13 @@ fn test_memory_json_list_keys() {
         store.set("user:2", "bob").await.unwrap();
         store.set("admin:1", "charlie").await.unwrap();
 
-        let all_keys = store.list_keys(None).await.unwrap().collect_all().await.unwrap();
+        let all_keys = store
+            .list_keys(None)
+            .await
+            .unwrap()
+            .collect_all()
+            .await
+            .unwrap();
         assert_eq!(all_keys.len(), 3);
 
         let user_keys = store
@@ -114,15 +135,16 @@ fn test_memory_json_struct_value() {
 fn test_memory_json_rate_limit_basic() {
     block_on(async {
         let store = MemoryJsonStore::new();
+        let ctx = Ctx::fixed(Arc::new(sim_clock()));
 
-        let allowed: bool = store.check_rate_limit("api", 3, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit(&ctx, "api", 3, 60).await.unwrap();
         assert!(allowed);
 
-        store.record_rate_limit("api", 60).await.unwrap();
-        store.record_rate_limit("api", 60).await.unwrap();
-        store.record_rate_limit("api", 60).await.unwrap();
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
 
-        let allowed: bool = store.check_rate_limit("api", 3, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit(&ctx, "api", 3, 60).await.unwrap();
         assert!(!allowed);
     });
 }
@@ -131,9 +153,10 @@ fn test_memory_json_rate_limit_basic() {
 fn test_memory_json_rate_limit_reset() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.record_rate_limit("api", 60).await.unwrap();
+        let ctx = Ctx::fixed(Arc::new(sim_clock()));
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
         store.reset_rate_limit("api").await.unwrap();
-        let allowed: bool = store.check_rate_limit("api", 1, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit(&ctx, "api", 1, 60).await.unwrap();
         assert!(allowed);
     });
 }
@@ -221,9 +244,18 @@ fn test_memory_json_query_not_supported() {
 fn test_memory_json_async_query_not_supported() {
     let store = MemoryJsonStore::new();
     block_on(async {
-        assert!(matches!(store.query("SELECT 1", &[]).await, Err(StorageError::Generic(_))));
-        assert!(matches!(store.execute("DELETE FROM t", &[]).await, Err(StorageError::Generic(_))));
-        assert!(matches!(store.execute_batch("SELECT 1").await, Err(StorageError::Generic(_))));
+        assert!(matches!(
+            store.query("SELECT 1", &[]).await,
+            Err(StorageError::Generic(_))
+        ));
+        assert!(matches!(
+            store.execute("DELETE FROM t", &[]).await,
+            Err(StorageError::Generic(_))
+        ));
+        assert!(matches!(
+            store.execute_batch("SELECT 1").await,
+            Err(StorageError::Generic(_))
+        ));
     });
 }
 
@@ -244,7 +276,9 @@ fn test_storage_provider_memory_json() {
 #[test]
 fn test_storage_provider_memory_json_via_new() {
     block_on(async {
-        let provider = StorageProvider::new(StorageBackend::MemoryJson).await.unwrap();
+        let provider = StorageProvider::new(StorageBackend::MemoryJson)
+            .await
+            .unwrap();
         provider.set("count", 99i64).await.unwrap();
         let count: Option<i64> = provider.get("count").await.unwrap();
         assert_eq!(count, Some(99));

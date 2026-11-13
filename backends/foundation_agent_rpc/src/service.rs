@@ -23,7 +23,7 @@ use std::task::{Context, Poll};
 
 use foundation_ai::agentic::{AgentProgress, Turn, TurnEvent, TurnStream};
 use foundation_ai::types::{SessionRecord, UserModelContent};
-use foundation_connectrpc::{ConnectResult, Ctx, Request, Response, Router};
+use foundation_connectrpc::{ConnectResult, Request, Response, Router, RpcCtx};
 use foundation_core::valtron::{
     Stream as ValtronStream, StreamIteratorExt, StreamParkingFutureStream,
 };
@@ -83,7 +83,7 @@ pub fn agent_router(service: Arc<AgentRpcService>) -> Router {
 impl AgentService for AgentRpcService {
     fn health(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _request: Request<HealthRequest>,
     ) -> impl std::future::Future<Output = ConnectResult<Response<HealthResponse>>> + Send {
         let registry = Arc::clone(&self.registry);
@@ -107,7 +107,7 @@ impl AgentService for AgentRpcService {
 
     fn create_instance(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         request: Request<CreateInstanceRequest>,
     ) -> impl std::future::Future<Output = ConnectResult<Response<InstanceInfo>>> + Send {
         let registry = Arc::clone(&self.registry);
@@ -121,6 +121,7 @@ impl AgentService for AgentRpcService {
             };
             let handle = registry
                 .create(&req.name, &cfg)
+                .await
                 .map_err(|e| rpc_error(e.current_context()))?;
             Ok(Response::new(instance_info(handle.meta())))
         }
@@ -128,7 +129,7 @@ impl AgentService for AgentRpcService {
 
     fn list_instances(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _request: Request<ListInstancesRequest>,
     ) -> impl std::future::Future<Output = ConnectResult<Response<ListInstancesResponse>>> + Send
     {
@@ -143,7 +144,7 @@ impl AgentService for AgentRpcService {
 
     fn destroy_instance(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         request: Request<DestroyInstanceRequest>,
     ) -> impl std::future::Future<Output = ConnectResult<Response<DestroyInstanceResponse>>> + Send
     {
@@ -151,6 +152,7 @@ impl AgentService for AgentRpcService {
         async move {
             registry
                 .destroy(&request.msg.name)
+                .await
                 .map_err(|e| rpc_error(e.current_context()))?;
             Ok(Response::new(DestroyInstanceResponse::default()))
         }
@@ -158,7 +160,7 @@ impl AgentService for AgentRpcService {
 
     fn chat(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         request: Request<ChatRequest>,
     ) -> impl std::future::Future<Output = ConnectResult<Response<ChatResponse>>> + Send {
         let registry = Arc::clone(&self.registry);
@@ -202,7 +204,7 @@ impl AgentService for AgentRpcService {
 
     fn chat_stream(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         request: Request<ChatRequest>,
     ) -> impl std::future::Future<Output = ConnectResult<TurnEventStream>> + Send {
         let registry = Arc::clone(&self.registry);
@@ -247,12 +249,12 @@ struct TurnEvents {
     pending: VecDeque<pb::TurnEvent>,
     finished: bool,
     instance: InstanceHandle,
-    ctx: Ctx,
+    ctx: RpcCtx,
     _guard: TurnGuard,
 }
 
 impl TurnEvents {
-    fn new(running: RunningTurn, ctx: Ctx) -> Self {
+    fn new(running: RunningTurn, ctx: RpcCtx) -> Self {
         Self {
             stream: running.turn.into_future_stream(),
             pending: VecDeque::new(),
@@ -345,8 +347,7 @@ fn wire_event(event: TurnEvent) -> Option<pb::TurnEvent> {
             id,
             name,
             arguments_json: arguments
-                .map(|a| serde_json::Value::Object(a).to_string())
-                .unwrap_or_default(),
+                .map_or_else(String::new, |a| serde_json::Value::Object(a).to_string()),
             ..Default::default()
         }),
         TurnEvent::ToolResult {

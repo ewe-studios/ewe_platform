@@ -6,21 +6,25 @@
 //!
 //! WHAT: schedule, lift, broadcast (`action()`), plus error paths.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::sync::Arc;
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    ExecutionAction, InlineAction, InlineActionBehaviour, NotificationItem,
-    NotifyRecvIterator, PriorityOrder, SharedTaskQueue, TaskStatus,
-    WrapTask, spawn_builder, spawn_broadcaster,
+    spawn_broadcaster, spawn_builder, ExecutionAction, InlineAction, InlineActionBehaviour,
+    NotificationItem, NotifyRecvIterator, PriorityOrder, SharedTaskQueue, TaskStatus, WrapTask,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
-    valtron::{
-        LocalThreadExecutor, ProcessController, ProgressIndicator,
-    },
+    valtron::{LocalThreadExecutor, ProcessController, ProgressIndicator},
 };
 
 // ── boilerplate ────────────────────────────────────────────────────────
@@ -41,7 +45,11 @@ fn new_executor() -> LocalThreadExecutor<NoYielder> {
         seed,
         "test".into(),
         global.clone(),
-        IdleMan::new(3, None, SleepyMan::new(3, ExponentialBackoffDecider::default())),
+        IdleMan::new(
+            3,
+            None,
+            SleepyMan::new(3, ExponentialBackoffDecider::default()),
+        ),
         PriorityOrder::Bottom,
         NoYielder,
         Duration::from_secs(10),
@@ -50,14 +58,11 @@ fn new_executor() -> LocalThreadExecutor<NoYielder> {
     )
 }
 
-fn drain_results<R, P>(
-    receiver: NotifyRecvIterator<TaskStatus<R, P>>,
-) -> Vec<TaskStatus<R, P>>
-{
+fn drain_results<R, P>(receiver: NotifyRecvIterator<TaskStatus<R, P>>) -> Vec<TaskStatus<R, P>> {
     receiver
         .filter_map(|item| match item {
             NotificationItem::Ready(v) => Some(v),
-            _ => None,
+            NotificationItem::None => None,
         })
         .collect()
 }
@@ -132,7 +137,11 @@ fn test_builder_action_broadcast() {
 
     assert_eq!(
         drain_results(receiver),
-        vec![TaskStatus::Ready(7), TaskStatus::Ready(8), TaskStatus::Ready(9)]
+        vec![
+            TaskStatus::Ready(7),
+            TaskStatus::Ready(8),
+            TaskStatus::Ready(9)
+        ]
     );
 }
 
@@ -146,14 +155,14 @@ fn test_from_parts_works() {
     let executor = new_executor();
     let task = WrapTask::new(vec![42].into_iter());
 
-    let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> =
-        Arc::new(NotifyQueue::unbounded());
-    let mut action = InlineAction::from_parts(
-        InlineActionBehaviour::Schedule,
-        task,
-        channel.clone(),
+    let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut action =
+        InlineAction::from_parts(InlineActionBehaviour::Schedule, task, channel.clone());
+    let receiver = NotifyRecvIterator::from_notify_queue(
+        channel,
+        Duration::from_millis(50),
+        crate::valtron::real_ctx(),
     );
-    let receiver = NotifyRecvIterator::from_notify_queue(channel, Duration::from_millis(50));
 
     action
         .apply(None, executor.boxed_engine())
@@ -198,13 +207,8 @@ fn test_sequenced_without_parent_errors() {
 
     let executor = new_executor();
     let task = WrapTask::new(vec![1].into_iter());
-    let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> =
-        Arc::new(NotifyQueue::unbounded());
-    let mut action = InlineAction::from_parts(
-        InlineActionBehaviour::Sequenced,
-        task,
-        channel,
-    );
+    let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut action = InlineAction::from_parts(InlineActionBehaviour::Sequenced, task, channel);
 
     let result = action.apply(None, executor.boxed_engine());
     assert!(result.is_err());

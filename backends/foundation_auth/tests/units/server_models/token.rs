@@ -1,12 +1,22 @@
-//! RefreshToken model tests.
+//! `RefreshToken` model tests.
 
 use chrono::Utc;
 use foundation_auth::server::models::token::RefreshToken;
+use foundation_context::{Ctx, MonotonicClock};
+use std::sync::Arc;
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 fn hex_sha256(s: &str) -> String {
     use sha2::{Digest, Sha256};
     let hash = Sha256::digest(s.as_bytes());
-    hash.iter().map(|b| format!("{:02x}", b)).collect()
+    hash.iter().fold(String::new(), |mut out, b| {
+        use std::fmt::Write;
+        write!(out, "{b:02x}").expect("write to String");
+        out
+    })
 }
 
 fn test_token(plaintext: &str) -> RefreshToken {
@@ -36,7 +46,7 @@ fn test_verify_wrong() {
 #[test]
 fn test_not_expired() {
     let rt = test_token("tok");
-    assert!(!rt.is_expired());
+    assert!(!rt.is_expired(&test_clock()));
 }
 
 #[test]

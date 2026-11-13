@@ -84,14 +84,34 @@ fn n_threads_setter() {
 
 #[test]
 fn use_mmap_setter_toggles_both_ways() {
-    assert!(LlamaBackendConfig::builder().use_mmap(true).build().use_mmap);
-    assert!(!LlamaBackendConfig::builder().use_mmap(false).build().use_mmap);
+    assert!(
+        LlamaBackendConfig::builder()
+            .use_mmap(true)
+            .build()
+            .use_mmap
+    );
+    assert!(
+        !LlamaBackendConfig::builder()
+            .use_mmap(false)
+            .build()
+            .use_mmap
+    );
 }
 
 #[test]
 fn use_mlock_setter_toggles_both_ways() {
-    assert!(LlamaBackendConfig::builder().use_mlock(true).build().use_mlock);
-    assert!(!LlamaBackendConfig::builder().use_mlock(false).build().use_mlock);
+    assert!(
+        LlamaBackendConfig::builder()
+            .use_mlock(true)
+            .build()
+            .use_mlock
+    );
+    assert!(
+        !LlamaBackendConfig::builder()
+            .use_mlock(false)
+            .build()
+            .use_mlock
+    );
 }
 
 #[test]

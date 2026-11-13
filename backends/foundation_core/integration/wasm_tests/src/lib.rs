@@ -81,10 +81,7 @@ impl TaskIterator for CountingTask {
     type Ready = usize;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }
@@ -104,10 +101,7 @@ impl TaskIterator for YieldingTask {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }
@@ -180,7 +174,7 @@ async fn concurrent_tasks_make_progress() {
                 }
             })))
             .as_scheduled()
-        .spawn()
+            .spawn()
             .expect("should schedule task");
     }
 
@@ -255,10 +249,7 @@ impl TaskIterator for ParkOnceTask {
     type Ready = usize;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.polls.fetch_add(1, Ordering::Relaxed);
         if self.done {
             return None;
@@ -307,7 +298,10 @@ async fn depends_task_parks_until_wake_signal_fires() {
     // instead of spinning on the never-ready signal.
     run_until_complete();
     assert_eq!(polls.load(Ordering::Relaxed), 1, "polled once, then parked");
-    assert!(callback_slot.borrow().is_some(), "the task registered its wake");
+    assert!(
+        callback_slot.borrow().is_some(),
+        "the task registered its wake"
+    );
 
     // Fire the wake from a host timer, after the event loop has turned.
     let polls_at_wake = Rc::new(AtomicUsize::new(usize::MAX));
@@ -423,4 +417,107 @@ fn host_abi_entropy_seeds_the_thread_rng() {
         draws.windows(2).any(|w| w[0] != w[1]),
         "seeded RNG should not repeat: {draws:?}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Spec 70 feature 80 E5: the per-task `ReadinessWaker` design at runtime on the
+// owned `js-foundation-wasm` backend. The scenarios are shared with the
+// wasm-bindgen suite (`foundation_core/tests/valtron/wasm_wake_support.rs`); this
+// file supplies the host timer (`register_schedule`) and the wait.
+
+#[path = "../../../tests/valtron/wasm_wake_support.rs"]
+mod wake;
+
+use wake::Scenario;
+
+/// Run `callback` after `delay_ms` on the host event loop, as a host event (a
+/// fetch completing, a message arriving) would.
+fn host_after(delay_ms: f64, callback: Box<dyn FnOnce()>) {
+    // `register_schedule` takes an `Fn`: the one-shot callback is taken on the
+    // first (and only) call.
+    let callback = RefCell::new(Some(callback));
+    register_schedule(delay_ms, move || {
+        if let Some(run) = callback.borrow_mut().take() {
+            run();
+        }
+    });
+}
+
+/// Wait for the scenario's task to end, or fail after a few seconds with its
+/// name: a lost wake leaves the task parked for ever, and the test must fail, not
+/// hang. Each `Pending` poll goes round the owned re-poll loop, so the host's
+/// timers and microtasks run between polls.
+async fn finish(scenario: Scenario) {
+    struct Ended<'a>(&'a Scenario, foundation_compact::Instant);
+    impl Future for Ended<'_> {
+        type Output = ();
+
+        fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<()> {
+            if self.0.is_done() {
+                return Poll::Ready(());
+            }
+            assert!(
+                self.1.elapsed() < Duration::from_secs(3),
+                "{}: the parked task never ran again (a lost wake)",
+                self.0.name()
+            );
+            Poll::Pending
+        }
+    }
+    Ended(&scenario, foundation_compact::Instant::now()).await;
+    scenario.verify();
+}
+
+/// A task parked on a `ResumeSignal` that a host timer sets 50 ms later resumes on
+/// time. See `wake::resume_signal_park`.
+#[wasm_test]
+async fn resume_signal_set_by_host_timer_wakes_parked_task() {
+    finish(wake::resume_signal_park(host_after)).await;
+}
+
+/// An `EventQueue` push from a host callback wakes a consumer parked on
+/// `queue.readiness()`. See `wake::queue_push_park`.
+#[wasm_test]
+async fn event_queue_push_from_host_wakes_parked_consumer() {
+    finish(wake::queue_push_park(host_after)).await;
+}
+
+/// An `EventQueue` close from a host callback wakes a parked consumer. See
+/// `wake::queue_close_park`.
+#[wasm_test]
+async fn event_queue_close_from_host_wakes_parked_consumer() {
+    finish(wake::queue_close_park(host_after)).await;
+}
+
+/// A deadline-only park resumes at its deadline without blocking the event loop.
+/// See `wake::deadline_only_park`.
+#[wasm_test]
+async fn deadline_only_park_resumes_at_its_deadline() {
+    finish(wake::deadline_only_park(host_after)).await;
+}
+
+/// An `AnyReadiness` over two children resumes when the first child is ready. See
+/// `wake::any_readiness_park`.
+#[wasm_test]
+async fn any_readiness_resumes_when_a_child_is_ready() {
+    finish(wake::any_readiness_park(host_after)).await;
+}
+
+/// A valtron `sleep` ends at its deadline. See `wake::sleep_task`.
+#[wasm_test]
+async fn sleep_task_ends_at_its_deadline() {
+    finish(wake::sleep_task(host_after)).await;
+}
+
+/// A `TimeoutTask` ends at its timeout. See `wake::timeout_task`.
+#[wasm_test]
+async fn timeout_task_ends_at_its_timeout() {
+    finish(wake::timeout_task(host_after)).await;
+}
+
+/// `WaitGroup::wait_timeout` on an idle group does not panic on the clock. See
+/// `wake::waitgroup_idle_wait_timeout`.
+#[wasm_test]
+fn waitgroup_idle_wait_timeout_reads_the_clock() {
+    wake::waitgroup_idle_wait_timeout();
 }

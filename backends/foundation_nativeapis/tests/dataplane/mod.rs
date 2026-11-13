@@ -1,4 +1,4 @@
-//! Integration tests for the WireGuard overlay data plane (spec-55, feature 00).
+//! Integration tests for the `WireGuard` overlay data plane (spec-55, feature 00).
 //!
 //! WHY: Prove that two smoltcp `NetStack`s can exchange application traffic **entirely
 //! in userspace** — no kernel socket for the overlay range, no privileges — with the
@@ -25,7 +25,12 @@ const CLIENT_IP: &str = "10.9.0.1";
 const SERVER_PORT: u16 = 8080;
 
 fn stack(ip: &str) -> NetStack {
-    NetStack::new(NetStackConfig::new(ip.parse().expect("ip"), 24))
+    NetStack::new(
+        NetStackConfig::new(ip.parse().expect("ip"), 24),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
 }
 
 fn server_addr() -> SocketAddr {
@@ -127,13 +132,19 @@ fn netstack_tcp_loopback_roundtrip() {
     let request = b"GET /overlay HTTP/1.0\r\n\r\n";
     write_all(&client_stream, request, &mut client, &mut server);
     let received = read_exact(&server_stream, request.len(), &mut server, &mut client);
-    assert_eq!(&received, request, "server received the client's bytes intact");
+    assert_eq!(
+        &received, request,
+        "server received the client's bytes intact"
+    );
 
     // server -> client (echo back reversed length so it differs)
     let response = b"HTTP/1.0 200 OK\r\ncontent-length: 2\r\n\r\nhi";
     write_all(&server_stream, response, &mut server, &mut client);
     let echoed = read_exact(&client_stream, response.len(), &mut client, &mut server);
-    assert_eq!(&echoed, response, "client received the server's bytes intact");
+    assert_eq!(
+        &echoed, response,
+        "client received the server's bytes intact"
+    );
 }
 
 #[test]
@@ -223,7 +234,11 @@ fn netstack_udp_loopback_datagram() {
             Err(e) => panic!("client recv failed: {e}"),
         }
     }
-    assert_eq!(got.as_deref(), Some(reply.as_slice()), "client received reply");
+    assert_eq!(
+        got.as_deref(),
+        Some(reply.as_slice()),
+        "client received reply"
+    );
 }
 
 #[test]
@@ -231,7 +246,11 @@ fn netstack_udp_loopback_datagram() {
 fn netstack_poll_reports_idle_when_no_sockets() {
     let mut idle = stack(CLIENT_IP);
     // With no sockets and no traffic there is nothing to schedule.
-    assert_eq!(idle.poll(Instant::now()), None, "idle stack has no deadline");
+    assert_eq!(
+        idle.poll(Instant::now()),
+        None,
+        "idle stack has no deadline"
+    );
     assert_eq!(idle.socket_count(), 0);
 }
 
@@ -275,7 +294,10 @@ fn netstack_listener_queues_connections_made_before_accept() {
     let second = client.tcp_connect(server_addr()).expect("connect 2");
     establish_all(&[&first, &second], &mut client, &mut server);
     assert!(first.may_send(), "first connection established");
-    assert!(second.may_send(), "second connection established, not reset");
+    assert!(
+        second.may_send(),
+        "second connection established, not reset"
+    );
 
     let accepted = accept_all(&mut listener);
     assert_eq!(accepted.len(), 2, "both connections were queued for accept");
@@ -283,7 +305,10 @@ fn netstack_listener_queues_connections_made_before_accept() {
     ports.sort_unstable();
     let mut expected = vec![first.local_addr().port(), second.local_addr().port()];
     expected.sort_unstable();
-    assert_eq!(ports, expected, "accepted streams are the two client connections");
+    assert_eq!(
+        ports, expected,
+        "accepted streams are the two client connections"
+    );
 
     // Data flows on the second (queued) connection.
     write_all(&second, b"queued", &mut client, &mut server);
@@ -302,6 +327,9 @@ fn netstack_listener_queues_connections_made_before_accept() {
 fn netstack_listener_backlog_limit_refuses_then_recovers() {
     let mut server = NetStack::new(
         NetStackConfig::new(SERVER_IP.parse().expect("ip"), 24).with_listen_backlog(1),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
     let mut client = stack(CLIENT_IP);
     let mut listener = server.tcp_listen(server_addr()).expect("listen");
@@ -315,15 +343,24 @@ fn netstack_listener_backlog_limit_refuses_then_recovers() {
     for _ in 0..50 {
         exchange(&mut client, &mut server);
     }
-    assert!(!refused.may_send(), "connection beyond the backlog is not established");
-    assert!(!refused.is_active(), "connection beyond the backlog was reset");
+    assert!(
+        !refused.may_send(),
+        "connection beyond the backlog is not established"
+    );
+    assert!(
+        !refused.is_active(),
+        "connection beyond the backlog was reset"
+    );
 
     // Accepting frees the slot and re-arms the listener.
     let accepted = accept_all(&mut listener);
     assert_eq!(accepted.len(), 1, "only the first connection was queued");
     let third = client.tcp_connect(server_addr()).expect("connect 3");
     establish_all(&[&third], &mut client, &mut server);
-    assert!(third.may_send(), "listener accepts again after accept frees the backlog");
+    assert!(
+        third.may_send(),
+        "listener accepts again after accept frees the backlog"
+    );
     assert_eq!(accept_all(&mut listener).len(), 1);
 }
 
@@ -338,7 +375,7 @@ fn netstack_listener_backlog_limit_refuses_then_recovers() {
 fn tun_device_opens_on_linux() {
     use foundation_nativeapis::dataplane::tun::{TunConfig, TunDevice};
 
-    let device = TunDevice::open(&TunConfig::new("ewe-test0")).expect("open tun");
+    let mut device = TunDevice::open(&TunConfig::new("ewe-test0")).expect("open tun");
     assert_eq!(device.name(), "ewe-test0");
     // A freshly opened device has nothing to read yet.
     let mut buf = [0u8; 2048];
@@ -346,6 +383,24 @@ fn tun_device_opens_on_linux() {
         Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
         other => panic!("expected WouldBlock on empty tun, got {other:?}"),
     }
+}
+
+/// The configured MTU reaches the kernel interface. The read buffer is sized from
+/// the same value, so this proves the buffer matches what the kernel delivers.
+#[cfg(all(feature = "tun", any(target_os = "linux", target_os = "macos")))]
+#[test]
+#[ignore = "requires privilege to create and configure a TUN interface"]
+fn tun_device_applies_the_configured_mtu() {
+    use foundation_nativeapis::dataplane::tun::{TunConfig, TunDevice};
+
+    let mut config = TunConfig::new("ewe-mtu-test0");
+    config.mtu = 1280;
+    let device = TunDevice::open(&config).expect("open tun");
+    assert_eq!(
+        device.mtu().expect("read mtu"),
+        1280,
+        "the kernel interface keeps the configured MTU"
+    );
 }
 
 /// WHY: a stream whose handshake has not finished has not ended. `read` used to

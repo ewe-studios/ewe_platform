@@ -16,6 +16,9 @@ use crate::config::{GuestOs, Result, TestbedError};
 /// Since the project is mounted, artifacts are already on the host.
 /// This function creates a structured view under `.testbed/artifacts/`
 /// using symlinks (instant, no copy).
+///
+/// # Errors
+/// Returns an error if a directory cannot be created or a symlink cannot be made.
 pub fn mirror_artifacts(
     project_dir: &Path,
     target_triple: &str,
@@ -38,7 +41,10 @@ pub fn mirror_artifacts(
     })?;
 
     // Scan for actual build outputs
-    let build_dir = project_dir.join("target").join(target_triple).join("release");
+    let build_dir = project_dir
+        .join("target")
+        .join(target_triple)
+        .join("release");
     if !build_dir.exists() {
         return Ok(Vec::new());
     }
@@ -49,8 +55,10 @@ pub fn mirror_artifacts(
             let link_path = platform_dir.join(file_name);
             // Create symlink to the actual artifact
             #[cfg(unix)]
-            std::os::unix::fs::symlink(artifact, &link_path).map_err(|e| TestbedError::Qcow2Error {
-                message: format!("creating symlink: {e}"),
+            std::os::unix::fs::symlink(artifact, &link_path).map_err(|e| {
+                TestbedError::Qcow2Error {
+                    message: format!("creating symlink: {e}"),
+                }
             })?;
         }
     }
@@ -59,6 +67,9 @@ pub fn mirror_artifacts(
 }
 
 /// Scan a build directory for artifact files (executables, shared libs).
+///
+/// # Errors
+/// Returns an error if the build directory cannot be read.
 pub fn scan_artifacts(dir: &Path, os: GuestOs) -> Result<Vec<PathBuf>> {
     let mut artifacts = Vec::new();
 
@@ -97,4 +108,3 @@ pub fn scan_artifacts(dir: &Path, os: GuestOs) -> Result<Vec<PathBuf>> {
 
     Ok(artifacts)
 }
-

@@ -1,9 +1,11 @@
 mod assembler_tests;
 mod batch_writer_tests;
+mod decoder_tests;
 mod echo_tests;
 mod error_tests;
 mod frame_tests;
 mod handshake_tests;
+mod idle_timeout_tests;
 mod message_tests;
 mod reconnecting_task_tests;
 mod reconnection_tests;
@@ -11,3 +13,4 @@ mod server_task_tests;
 mod server_tests;
 mod subprotocol_tests;
 mod task_tests;
+mod timer_readiness_tests;

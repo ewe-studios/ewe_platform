@@ -1,35 +1,117 @@
 //! Portable full-scan `VectorStore` over any async SQL store.
 //!
-//! Vectors are little-endian `f32` blobs in the `vectors` table; search scans
-//! the namespace and ranks rows as they stream in (O(k) memory).
+//! WHY: `SqlVectorStore` gives every async SQL backend a vector search without
+//! a native vector index. It is the fallback that works anywhere `QueryStore`
+//! works, including Cloudflare D1 (fetch-then-search).
+//!
+//! WHAT: vectors are little-endian `f32` blobs in the `vectors` table; `search`
+//! scans the namespace and ranks rows as they stream in. Memory stays at
+//! O(k) (the top-k heap), not the namespace size.
+//!
+//! HOW: a search reads every row of the namespace and scores each one, so its
+//! time is O(n·d) — the row count times the vector dimension. That is expected
+//! for a portable fallback. Large namespaces should use `LibsqlVectorStore`
+//! (a native index) or a dedicated vector backend instead. When one scan reads
+//! more rows than [`SqlVectorStoreConfig::scan_warning_threshold`] (default
+//! 100 000), the store writes one `tracing::warn!` per namespace, so a large
+//! namespace is loud once and quiet after that.
 
-use std::sync::Arc;
+use std::collections::HashSet;
+use std::sync::{Arc, Mutex};
 
-use foundation_db::{QueryStore, DataValue};
+use foundation_db::{DataValue, QueryStore};
 use futures_lite::StreamExt;
 
 use crate::flat::TopK;
 use crate::schema;
 use crate::store::{
-    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
-    VectorStoreError,
+    VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use crate::vector::Vector;
+
+/// Tuning for the portable full-scan SQL store.
+///
+/// Rule 8: the warning threshold is configuration, not a constant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SqlVectorStoreConfig {
+    /// The most rows in one namespace that are scanned without a warning. A
+    /// namespace larger than this gets one `tracing::warn!` per process.
+    ///
+    /// Default 100 000. The portable fallback scores every row of the
+    /// namespace (O(n·d)); a `LibsqlVectorStore` (native index) or a dedicated
+    /// vector backend is the right choice past this size.
+    pub scan_warning_threshold: usize,
+}
+
+impl Default for SqlVectorStoreConfig {
+    fn default() -> Self {
+        Self {
+            scan_warning_threshold: 100_000,
+        }
+    }
+}
+
+impl SqlVectorStoreConfig {
+    /// Warn once per namespace when a scan reads more than `rows` rows.
+    #[must_use]
+    pub fn with_scan_warning_threshold(mut self, rows: usize) -> Self {
+        self.scan_warning_threshold = rows;
+        self
+    }
+}
 
 pub struct SqlVectorStore<Q: QueryStore + 'static> {
     backend: Arc<Q>,
     config: VectorStoreConfig,
+    scan: SqlVectorStoreConfig,
+    warned: Mutex<HashSet<String>>,
 }
 
 impl<Q: QueryStore + 'static> SqlVectorStore<Q> {
-    /// Open a store over `backend`, running the vector migrations.
+    /// Open a store over `backend`, running the vector migrations. The scan
+    /// warning threshold is [`SqlVectorStoreConfig::default`].
     ///
     /// # Errors
     ///
     /// Returns [`VectorStoreError::Backend`] if the migrations fail.
     pub async fn new(backend: Arc<Q>, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
+        Self::with_scan_config(backend, config, SqlVectorStoreConfig::default()).await
+    }
+
+    /// Open a store over `backend` with the given scan tuning, running the
+    /// vector migrations.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`VectorStoreError::Backend`] if the migrations fail.
+    pub async fn with_scan_config(
+        backend: Arc<Q>,
+        config: VectorStoreConfig,
+        scan: SqlVectorStoreConfig,
+    ) -> Result<Self, VectorStoreError> {
         schema::run_migrations(backend.as_ref()).await?;
-        Ok(Self { backend, config })
+        Ok(Self {
+            backend,
+            config,
+            scan,
+            warned: Mutex::new(HashSet::new()),
+        })
+    }
+
+    /// Write one warning per namespace the first time a scan passes the
+    /// threshold. Later scans of the same namespace stay quiet.
+    fn warn_namespace(&self, namespace: &str) {
+        let mut warned = self
+            .warned
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if warned.insert(namespace.to_string()) {
+            tracing::warn!(
+                namespace = namespace,
+                scan_warning_threshold = self.scan.scan_warning_threshold,
+                "full namespace scan passed the warning threshold; use a native index for large namespaces"
+            );
+        }
     }
 
     fn validate(&self, entry: &VectorEntry) -> Result<(), VectorStoreError> {
@@ -57,7 +139,9 @@ fn vector_to_blob(v: &Vector) -> Vec<u8> {
 
 fn blob_to_vector(blob: &[u8]) -> Vector {
     let floats: Vec<f32> = blob
-        .chunks_exact(4)
+        .as_chunks::<4>()
+        .0
+        .iter()
         .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
         .collect();
     Vector::new(floats)
@@ -140,16 +224,25 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
             .map_err(backend_err("query failed"))?;
         // Rank rows as they arrive: memory stays at k, not the namespace size.
         let mut top = TopK::new(query, k, self.config.metric);
+        let mut scanned: usize = 0;
         while let Some(row) = rows.next().await {
             let row = row.map_err(backend_err("row error"))?;
             let id: String = row.get(0).map_err(backend_err("read id"))?;
             let blob: Vec<u8> = row.get(1).map_err(backend_err("read vector"))?;
             top.push(&id, &blob_to_vector(&blob).data);
+            scanned = scanned.saturating_add(1);
+        }
+        if scanned > self.scan.scan_warning_threshold {
+            self.warn_namespace(namespace);
         }
         Ok(top.finish())
     }
 
-    async fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+    async fn get(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<Option<VectorEntry>, VectorStoreError> {
         let mut rows = self
             .backend
             .query(
@@ -202,6 +295,9 @@ pub(crate) async fn count_rows<Q: QueryStore + ?Sized>(
     let Some(row) = rows.next().await else {
         return Ok(0);
     };
-    let n: i64 = row.map_err(backend_err("row error"))?.get(0).map_err(backend_err("read count"))?;
+    let n: i64 = row
+        .map_err(backend_err("row error"))?
+        .get(0)
+        .map_err(backend_err("read count"))?;
     usize::try_from(n).map_err(backend_err("count out of range"))
 }

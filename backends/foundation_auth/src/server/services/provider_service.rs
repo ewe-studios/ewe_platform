@@ -1,7 +1,7 @@
 //! Upstream provider management service.
 //!
 //! WHY: CRUD for `UpstreamProvider` rows plus encryption of the client secret
-//! at rest. The IdP admin API (feature 06) and the social login flow (feature
+//! at rest. The `IdP` admin API (feature 06) and the social login flow (feature
 //! 04) both go through this service.
 //!
 //! WHAT: `ProviderService<QS>` (storage-backed CRUD over `QueryStore`) and
@@ -9,7 +9,7 @@
 //! Argon2id).
 //!
 //! HOW: `QueryStore` is the persistence seam (matches the rest of the
-//! IdP server storage layer). Secrets are stored as `nonce || ciphertext` in a
+//! `IdP` server storage layer). Secrets are stored as `nonce || ciphertext` in a
 //! BLOB column. The 32-byte AEAD key is derived once from `PROVIDER_SECRET_KEY`
 //! (or an explicit passphrase) via Argon2id with a fixed context salt, so the
 //! same passphrase always yields the same key (decrypt must be deterministic).
@@ -20,10 +20,11 @@ use chacha20poly1305::{
     aead::{Aead, KeyInit},
     ChaCha20Poly1305, Key, Nonce,
 };
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_context::Ctx;
 
-use foundation_db::core::storage_provider::{QueryStore, AsyncQueryStream, DataValue, SqlRow};
+use crate::shared::clock::now_millis;
+use foundation_db::core::storage_provider::{AsyncQueryStream, DataValue, QueryStore, SqlRow};
 use futures_lite::StreamExt;
 
 use crate::shared::password_hash::argon2id_derive;
@@ -164,14 +165,16 @@ impl ProviderCrypto {
 pub struct ProviderService<QS: QueryStore + ?Sized + 'static> {
     query_store: Arc<QS>,
     crypto: ProviderCrypto,
+    ctx: Ctx,
 }
 
 impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// Create a service over a query store and a crypto wrapper.
-    pub fn new(query_store: Arc<QS>, crypto: ProviderCrypto) -> Self {
+    pub fn new(query_store: Arc<QS>, crypto: ProviderCrypto, ctx: Ctx) -> Self {
         Self {
             query_store,
             crypto,
+            ctx,
         }
     }
 
@@ -184,9 +187,9 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// - `Validation` if `id`/`client_id` is empty or endpoints are missing.
     /// - `Storage` on insert failure (including a duplicate id).
     pub async fn create(&self, mut provider: UpstreamProvider) -> Result<UpstreamProvider> {
-        self.validate(&provider)?;
+        Self::validate(&provider)?;
 
-        let now = Utc::now().timestamp_millis();
+        let now = now_millis(&self.ctx);
         provider.created_at = now;
         provider.updated_at = now;
         provider.encryption_key_id = self.crypto.key_id().to_string();
@@ -211,10 +214,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
                     DataValue::Text(provider.provider_type.as_str().to_string()),
                     DataValue::Text(provider.client_id.clone()),
                     DataValue::Text(provider.encryption_key_id.clone()),
-                    opt_text(&provider.authorization_url),
-                    opt_text(&provider.token_url),
-                    opt_text(&provider.userinfo_url),
-                    opt_text(&provider.discovery_url),
+                    opt_text(provider.authorization_url.as_deref()),
+                    opt_text(provider.token_url.as_deref()),
+                    opt_text(provider.userinfo_url.as_deref()),
+                    opt_text(provider.discovery_url.as_deref()),
                     DataValue::Text(scopes_json),
                     DataValue::Integer(i64::from(provider.is_active)),
                     DataValue::Text(mapping_json),
@@ -258,13 +261,16 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub async fn find_active(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self.query_store.query(
-            "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+        let stream = self
+            .query_store
+            .query(
+                "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
              FROM upstream_providers WHERE is_active = 1 ORDER BY id",
-            &[],
-        ).await;
+                &[],
+            )
+            .await;
         Self::drain_providers(stream).await
     }
 
@@ -274,13 +280,16 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub async fn list_all(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self.query_store.query(
-            "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+        let stream = self
+            .query_store
+            .query(
+                "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
              FROM upstream_providers ORDER BY id",
-            &[],
-        ).await;
+                &[],
+            )
+            .await;
         Self::drain_providers(stream).await
     }
 
@@ -305,7 +314,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// `NotFound` if the id doesn't exist; `Validation` if the result would be
     /// invalid; `Storage`/`Parse` on failure.
     pub async fn update(&self, id: &str, updates: ProviderUpdate) -> Result<UpstreamProvider> {
-        let mut provider = self.find_by_id(id).await?.ok_or(ProviderServiceError::NotFound)?;
+        let mut provider = self
+            .find_by_id(id)
+            .await?
+            .ok_or(ProviderServiceError::NotFound)?;
 
         if let Some(v) = updates.name {
             provider.name = v;
@@ -338,8 +350,8 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             provider.mapping_config = v;
         }
 
-        self.validate(&provider)?;
-        provider.updated_at = Utc::now().timestamp_millis();
+        Self::validate(&provider)?;
+        provider.updated_at = now_millis(&self.ctx);
 
         let scopes_json = serde_json::to_string(&provider.scopes)
             .map_err(|e| ProviderServiceError::Parse(e.to_string()))?;
@@ -355,10 +367,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
                     DataValue::Text(provider.name.clone()),
                     DataValue::Text(provider.provider_type.as_str().to_string()),
                     DataValue::Text(provider.client_id.clone()),
-                    opt_text(&provider.authorization_url),
-                    opt_text(&provider.token_url),
-                    opt_text(&provider.userinfo_url),
-                    opt_text(&provider.discovery_url),
+                    opt_text(provider.authorization_url.as_deref()),
+                    opt_text(provider.token_url.as_deref()),
+                    opt_text(provider.userinfo_url.as_deref()),
+                    opt_text(provider.discovery_url.as_deref()),
                     DataValue::Text(scopes_json),
                     DataValue::Integer(i64::from(provider.is_active)),
                     DataValue::Text(mapping_json),
@@ -407,7 +419,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
                 &[
                     DataValue::Blob(ciphertext),
                     DataValue::Text(self.crypto.key_id().to_string()),
-                    DataValue::Integer(Utc::now().timestamp_millis()),
+                    DataValue::Integer(now_millis(&self.ctx)),
                     DataValue::Text(id.to_string()),
                 ],
             )
@@ -424,7 +436,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// `NotFound` if the id doesn't exist; `Validation` if no secret is set;
     /// `Crypto` if decryption fails.
     pub async fn get_secret(&self, id: &str) -> Result<String> {
-        let provider = self.find_by_id(id).await?.ok_or(ProviderServiceError::NotFound)?;
+        let provider = self
+            .find_by_id(id)
+            .await?
+            .ok_or(ProviderServiceError::NotFound)?;
         let blob = provider
             .client_secret_ciphertext
             .ok_or_else(|| ProviderServiceError::Validation("no secret set".into()))?;
@@ -433,12 +448,14 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             .map_err(|e| ProviderServiceError::Crypto(format!("secret not utf8: {e}")))
     }
 
-    fn validate(&self, provider: &UpstreamProvider) -> Result<()> {
+    fn validate(provider: &UpstreamProvider) -> Result<()> {
         if provider.id.trim().is_empty() {
             return Err(ProviderServiceError::Validation("id is empty".into()));
         }
         if provider.client_id.trim().is_empty() {
-            return Err(ProviderServiceError::Validation("client_id is empty".into()));
+            return Err(ProviderServiceError::Validation(
+                "client_id is empty".into(),
+            ));
         }
         if !provider.has_endpoints() {
             return Err(ProviderServiceError::Validation(
@@ -450,9 +467,9 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
 }
 
 /// SQL `NULL` for `None`, else `Text`.
-fn opt_text(val: &Option<String>) -> DataValue {
+fn opt_text(val: Option<&str>) -> DataValue {
     match val {
-        Some(s) => DataValue::Text(s.clone()),
+        Some(s) => DataValue::Text(s.to_string()),
         None => DataValue::Null,
     }
 }

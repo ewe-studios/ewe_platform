@@ -9,12 +9,12 @@ use clap::Parser;
 use foundation_errstacks::ErrorTrace;
 use tracing::error;
 
+#[cfg(feature = "wasm-bindgen-test")]
+use foundation_testbed::wasm::bindgen_runner;
 use foundation_testbed::wasm::{
     browser, build, cli, deno, emscripten_runner, error, fwt_runner, init, server, wasi_runner,
     wasm, wasm_test, wrangler,
 };
-#[cfg(feature = "wasm-bindgen-test")]
-use foundation_testbed::wasm::bindgen_runner;
 
 use cli::{Cli, Command};
 use error::WasmTestbedError;
@@ -33,24 +33,10 @@ fn main() {
         Command::Init(args) => init::run(args),
         Command::Test(args) => run_test(&args),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
-        Command::Browser(args) => run_owned(fwt_runner::run_web(&args)),
-        Command::Bindgen(args) => {
-            #[cfg(feature = "wasm-bindgen-test")]
-            {
-                run_bindgen_outcome(bindgen_runner::run_bindgen(&args))
-            }
-            #[cfg(not(feature = "wasm-bindgen-test"))]
-            {
-                use error::ToTrace;
-                Err(WasmTestbedError::BrowserDriver(
-                    "the `bindgen` command requires the `wasm-bindgen-test` feature.\n\
-                     Re-run with: cargo run -p foundation_testbed \
-                     --features wasm,wasm-bindgen-test --bin wasm-testbed -- bindgen ..."
-                        .into(),
-                )
-                .trace())
-            }
+        Command::Browser(args) => {
+            run_owned(fwt_runner::run_web(&args, &foundation_context::Ctx::host()))
         }
+        Command::Bindgen(args) => run_bindgen_command(args),
         Command::Emscripten(args) => run_owned(emscripten_runner::run(&args)),
         Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
     };
@@ -94,6 +80,28 @@ fn run_bindgen_outcome(
     Ok(())
 }
 
+/// Run the bindgen command. The `args` binding lives behind the same feature
+/// gate as its use, so the other arm never warns about an unused argument.
+#[cfg(feature = "wasm-bindgen-test")]
+fn run_bindgen_command(args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    run_bindgen_outcome(bindgen_runner::run_bindgen(
+        &args,
+        &foundation_context::Ctx::host(),
+    ))
+}
+
+#[cfg(not(feature = "wasm-bindgen-test"))]
+fn run_bindgen_command(_args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    use error::ToTrace;
+    Err(WasmTestbedError::BrowserDriver(
+        "the `bindgen` command requires the `wasm-bindgen-test` feature.\n\
+         Re-run with: cargo run -p foundation_testbed \
+         --features wasm,wasm-bindgen-test --bin wasm-testbed -- bindgen ..."
+            .into(),
+    )
+    .trace())
+}
+
 fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use cli::Mode;
     use error::{ToTrace, WasmTestbedError};
@@ -118,7 +126,12 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     let server = server::start_serving(&integration_dir)?;
                     let url = server.url("index.html");
                     tracing::info!("Serving at {}", url);
-                    let output = browser::run(&url, &args.browser, args.headless)?;
+                    let output = browser::run(
+                        &url,
+                        &args.browser,
+                        args.headless,
+                        &foundation_context::Ctx::host(),
+                    )?;
                     tracing::info!("Test output: {}", output.test_result);
                     server.shutdown();
                     if output.exit_code != 0 {
@@ -144,7 +157,8 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     std::fs::copy(&build.wasm_path, &wasm_dest)
                         .map_err(|e| WasmTestbedError::Io(e).trace())?;
                     tracing::info!("Copied wasm to {}", wasm_dest.display());
-                    let output = wrangler::run(&integration_dir, None)?;
+                    let output =
+                        wrangler::run(&integration_dir, None, &foundation_context::Ctx::host())?;
                     if output.status_code >= 400 {
                         return Err(WasmTestbedError::WranglerHttpFailed(format!(
                             "status {}",
@@ -226,7 +240,7 @@ fn run_bindgen_web(
     let url = server.url("index.html");
     tracing::info!("Serving at {}", url);
 
-    let output = browser::run(&url, browser, headless)?;
+    let output = browser::run(&url, browser, headless, &foundation_context::Ctx::host())?;
     tracing::info!("Test output: {}", output.test_result);
 
     server.shutdown();
@@ -297,13 +311,41 @@ fn run_bindgen_wrangler(
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
 
-    tracing::info!("Running wasm-bindgen (esmodules)...");
+    // The wasm-bindgen CLI emits this call; a version that stops emitting it
+    // would leave the libtest `main` in place and skip the table setup, with
+    // no error at that point. Fail with the version rule instead.
+    const START_CALL: &str = "wasm.__wbindgen_start();";
+
+    tracing::info!("Running wasm-bindgen (module)...");
     wasm::run_wasm_bindgen_with_name(
         &build.wasm_path,
         integration_dir,
         BindgenTarget::EsModules,
         Some(&build.package_name),
     )?;
+
+    // The `module` target instantiates the wasm at import time and keeps the
+    // instance private. Export it as `wasm` so the worker can call the
+    // `__wbgt_` test shims (raw wasm exports). Drop the libtest `main` call:
+    // it would run the plain `#[test]`s, which abort on wasm. Keep its
+    // externref-table initialisation: without it a `JsValue` constant (for
+    // example the `true`/`false` that `run` resolves to) maps to a wrong
+    // table slot.
+    let js_file = integration_dir.join(format!("{}.js", build.package_name));
+    let content = std::fs::read_to_string(&js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
+    if !content.contains(START_CALL) {
+        return Err(WasmTestbedError::WasmParseFailed(format!(
+            "the wasm-bindgen `module` output has no `{START_CALL}`; update the \
+             testbed's shim for the installed wasm-bindgen version"
+        ))
+        .trace());
+    }
+    let content = content.replace(
+        START_CALL,
+        "const __initTable = Object.values(__wbg_get_imports())\n  .map((m) => m && m.__wbindgen_init_externref_table)\n  .find((f) => f);\nif (__initTable) __initTable();",
+    );
+    std::fs::write(&js_file, format!("{content}\nexport {{ wasm }};\n"))
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let tests = wasm_test::discover_tests(&bg_wasm)?;
@@ -322,11 +364,16 @@ fn run_bindgen_wrangler(
         integration_dir,
     )?;
 
-    let output = wrangler::run(integration_dir, None)?;
-    if output.status_code >= 400 {
-        return Err(
-            WasmTestbedError::WranglerHttpFailed(format!("status {}", output.status_code)).trace(),
-        );
+    let output = wrangler::run(integration_dir, None, &foundation_context::Ctx::host())?;
+    let passed = serde_json::from_str::<serde_json::Value>(&output.response_body)
+        .ok()
+        .and_then(|value| value.get("passed").and_then(serde_json::Value::as_bool));
+    if output.status_code >= 400 || passed != Some(true) {
+        return Err(WasmTestbedError::WranglerHttpFailed(format!(
+            "status {}: {} (wrangler: {})",
+            output.status_code, output.response_body, output.wrangler_stderr
+        ))
+        .trace());
     }
     println!("{}", output.response_body);
     Ok(())

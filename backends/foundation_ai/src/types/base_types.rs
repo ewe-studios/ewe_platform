@@ -1245,9 +1245,9 @@ pub struct ToolDefinition {
 ///
 /// Returned by [`Tool::function_spec`]. Providers map the four fields to their
 /// wire format:
-/// - **OpenAI Chat**: `function.name/description/parameters` + `strict: true`
+/// - **`OpenAI` Chat**: `function.name/description/parameters` + `strict: true`
 ///   when `returns` is present.
-/// - **OpenAI Responses**: `ResponseTool.name/description/parameters/strict`.
+/// - **`OpenAI` Responses**: `ResponseTool.name/description/parameters/strict`.
 /// - **Anthropic**: `name/description/input_schema` (no output-schema slot —
 ///   `returns` is ignored).
 /// - **Text-based** (llama.cpp / Candle): `name/description/parameters` +
@@ -1276,7 +1276,7 @@ pub struct ToolFunctionSpec {
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Tool {
     /// A leaf capability (e.g. `read`, `bash`).
-    SingleCommand(ToolDefinition),
+    SingleCommand(Box<ToolDefinition>),
     /// A capability exposing several commands under one logical tool.
     MultiCommands(String, Vec<ToolDefinition>),
 }
@@ -1302,7 +1302,7 @@ impl Tool {
     /// commands for `MultiCommands`. Convenience for providers rendering commands.
     pub fn definitions(&self) -> impl Iterator<Item = &ToolDefinition> {
         match self {
-            Tool::SingleCommand(d) => std::slice::from_ref(d).iter(),
+            Tool::SingleCommand(d) => std::slice::from_ref(d.as_ref()).iter(),
             Tool::MultiCommands(_, v) => v.iter(),
         }
     }
@@ -1323,7 +1323,10 @@ impl Tool {
             Tool::SingleCommand(d) => prop_keys(&d.arguments.schema),
             Tool::MultiCommands(_, cmds) => format!(
                 "command: {}",
-                cmds.iter().map(|c| c.name.as_str()).collect::<Vec<_>>().join("|")
+                cmds.iter()
+                    .map(|c| c.name.as_str())
+                    .collect::<Vec<_>>()
+                    .join("|")
             ),
         }
     }
@@ -1381,9 +1384,9 @@ impl Tool {
                 // For MultiCommands, the per-command `returns` schemas (if any)
                 // are collected; the first non-None wins as the tool-level
                 // return schema.
-                let returns = cmds.iter().find_map(|c| {
-                    c.returns.as_ref().map(|r| r.schema.clone())
-                });
+                let returns = cmds
+                    .iter()
+                    .find_map(|c| c.returns.as_ref().map(|r| r.schema.clone()));
 
                 ToolFunctionSpec {
                     name: name.clone(),
@@ -1450,14 +1453,14 @@ pub struct ToolDeclarations {
 impl Default for ToolDeclarations {
     fn default() -> Self {
         Self {
-            shed: Some(Tool::SingleCommand(ToolDefinition {
+            shed: Some(Tool::SingleCommand(Box::new(ToolDefinition {
                 name: "shed".into(),
                 category: "shed".into(),
                 description: "Query the tool registry for available tools by category or search."
                     .into(),
                 arguments: Args::empty(),
                 returns: None,
-            })),
+            }))),
             tools: Vec::new(),
         }
     }
@@ -1795,7 +1798,8 @@ pub type ModelStreamBox = Box<
     dyn WakeableStream<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send,
 >;
 
-pub trait Model {
+#[async_trait::async_trait]
+pub trait Model: Send + Sync {
     /// [`spec`] returns model specification information for this target model.
     fn spec(&self) -> ModelSpec;
 
@@ -1830,6 +1834,24 @@ pub trait Model {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>>;
+
+    /// [`generate_async`] runs inference without blocking the caller.
+    ///
+    /// HTTP-backed models implement this over [`HttpClient::send_async`] with
+    /// async retry back-off, so it works on wasm where a synchronous request
+    /// cannot wait for a `fetch`. Local models (llama.cpp, candle, mocks)
+    /// inherit the default, which runs the synchronous [`generate`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if inference fails.
+    async fn generate_async(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>> {
+        self.generate(interaction, specs)
+    }
 
     /// [`stream`] will returns a stream iterator which will represent the
     /// results of the prompt from the underlying model.

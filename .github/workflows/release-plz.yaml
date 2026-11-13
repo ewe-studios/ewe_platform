@@ -15,19 +15,28 @@ run-name: >-
 #   publish     ("Publish to crates.io") publishes every crate whose version is not on crates.io yet and
 #               tags it `<crate>-v<version>`. Ordinary merges change no
 #               versions, so this is a no-op until a release PR is merged.
+#               crates.io limits the publish rate. scripts/ci/publish_with_retry.py
+#               runs release-plz again after each failure: it waits until the
+#               retry time that crates.io gives, or backs off, and stops after
+#               a set number of failures or at a deadline. The next run (or a
+#               re-run of the job) continues where it stopped.
 #
 # Secrets:
 #   CARGO_REGISTRY_TOKEN  crates.io API token with publish rights (required to
 #                         publish).
 #   EWE_RUNNER_REGISTRA_CLIENT_ID / _PRIVATE_KEY
 #                         the repo's GitHub App (also used to register VM
-#                         runners). The job mints a short-lived token from it
-#                         with Contents and Pull requests write, so the app
-#                         must be granted those permissions. If minting fails
-#                         the job falls back to GITHUB_TOKEN, and GitHub runs
-#                         no workflows for events that token creates: the
-#                         release PR would get no CI, and the ewe_platform tag
-#                         would not trigger release.yaml.
+#                         runners). The release-pr job mints a short-lived
+#                         token from it with Contents and Pull requests write,
+#                         so the app must be granted those permissions. If
+#                         minting fails the job falls back to GITHUB_TOKEN,
+#                         and GitHub runs no workflows for events that token
+#                         creates: the release PR would get no CI.
+#                         The publish job uses GITHUB_TOKEN, because an app
+#                         token expires after one hour and a rate-limited
+#                         publish runs for hours. A tag pushed with
+#                         GITHUB_TOKEN starts no workflow, so the job starts
+#                         release.yaml itself for a new ewe_platform tag.
 
 on:
   workflow_run:
@@ -83,6 +92,10 @@ jobs:
   publish:
     name: Publish to crates.io
     needs: [gate, image]
+    # Stays on the GitHub-hosted runner. The job spends hours waiting out the
+    # crates.io rate limit (scripts/ci/publish_with_retry.py), so a paid
+    # runner would bill for idle time, and faster hardware does not shorten
+    # a rate-limit wait.
     runs-on: ubuntu-latest
     # Publishing builds every crate from its packaged tarball, llama.cpp
     # included, so it runs in the CI image with the baked submodules.
@@ -91,36 +104,20 @@ jobs:
       credentials:
         username: ${{ needs.image.outputs.registry-username }}
         password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
-    timeout-minutes: 240
+    # The GitHub-hosted maximum. The publish step stops starting new waits at
+    # its --deadline, which leaves time for the setup and the last attempt.
+    timeout-minutes: 360
     permissions:
       contents: write
+      # Start release.yaml for a new ewe_platform tag (see the last step).
+      actions: write
     steps:
-      - name: Mint a release token from the GitHub App
-        id: app
-        # Optional: without it the job still publishes, using GITHUB_TOKEN.
-        continue-on-error: true
-        uses: actions/create-github-app-token@v3.3.0
-        with:
-          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
-          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Pick the token
-        env:
-          APP_TOKEN: ${{ steps.app.outputs.token }}
-        run: |
-          if [ -z "$APP_TOKEN" ]; then
-            echo "::warning::Could not mint a GitHub App token (are Contents and Pull requests write granted to the app?). Using GITHUB_TOKEN: the release PR will get no CI and tags will not trigger release.yaml."
-          fi
-
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
           ref: ${{ needs.gate.outputs.sha }}
           fetch-depth: 0 # release-plz reads tags and history
           submodules: false
-          token: ${{ steps.app.outputs.token || github.token }}
 
       - name: Check out the baked submodules
         # Real submodule checkouts (not symlinks): cargo publish refuses a
@@ -156,16 +153,48 @@ jobs:
           git config --global user.name "ewe-platform release bot"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Record the ewe_platform tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-remote --tags origin 'refs/tags/ewe_platform-v*' | awk '{print $2}' | grep -v '\^{}$' | sort > /tmp/ewe-tags-before || true
+
       - name: Publish what is not on crates.io yet
+        shell: bash
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
             echo "::error::CARGO_REGISTRY_TOKEN is not set; cannot publish to crates.io"
             exit 1
           fi
-          release-plz release --git-token "$GITHUB_TOKEN"
+          # Defaults: 5 failures in a row with no new tag, backoff 30 s to
+          # 15 min. The deadline (300 min) stays below the job timeout.
+          python3 scripts/ci/publish_with_retry.py \
+            --deadline 18000 \
+            --progress-cmd "git ls-remote --tags origin" \
+            -- release-plz release --git-token "$GITHUB_TOKEN"
+
+      - name: Start the binary release for a new ewe_platform tag
+        # Also after a failed publish: the ewe_platform crate may be out.
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git ls-remote --tags origin 'refs/tags/ewe_platform-v*' | awk '{print $2}' | grep -v '\^{}$' | sort > /tmp/ewe-tags-after || true
+          comm -13 /tmp/ewe-tags-before /tmp/ewe-tags-after | while read -r ref; do
+            tag="${ref#refs/tags/}"
+            echo "starting release.yaml for $tag"
+            curl -fsS -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/workflows/release.yaml/dispatches" \
+              -d "{\"ref\": \"$tag\"}"
+          done
 
   release-pr:
     name: Open or update the release PR
@@ -221,13 +250,22 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the stable release toolchain
-        # Releases build on stable (ci/release-rust-toolchain); the pinned
-        # nightly in rust-toolchain.toml is for development only.
+      - name: Use the pinned nightly toolchain
+        # This job uses the pinned nightly from rust-toolchain.toml, not
+        # stable. release-plz copies the repository to a temporary directory
+        # and runs `cargo package` at the commit of each crate's last
+        # release. Commits before df86d7e6 (21 October 2026) have a root
+        # Cargo.toml with the nightly-only `codegen-backend` profile key.
+        # Stable cargo refuses to load those manifests ("feature
+        # `codegen-backend` is required"). This job only computes versions
+        # and changelogs and publishes nothing, so nightly is safe here.
+        # CARGO_UNSTABLE_CODEGEN_BACKEND enables the key on nightly for an
+        # old commit. The publish job stays on stable.
         run: |
-          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+          echo "CARGO_UNSTABLE_CODEGEN_BACKEND=true" >> "$GITHUB_ENV"
 
       - name: Cache release-plz
         uses: actions/cache@v6
@@ -236,9 +274,13 @@ jobs:
           key: release-plz-${{ env.RELEASE_PLZ_VERSION }}-${{ runner.os }}
 
       - name: Install release-plz
+        # Build release-plz with stable, so the cache key stays valid when
+        # the pinned nightly changes.
         run: |
           if [ ! -x /tmp/release-plz/bin/release-plz ]; then
-            cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
+            stable=$(tr -d '[:space:]' < ci/release-rust-toolchain)
+            rustup toolchain install "$stable" --profile minimal --no-self-update
+            RUSTUP_TOOLCHAIN="$stable" cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
           fi
           echo /tmp/release-plz/bin >> "$GITHUB_PATH"
 

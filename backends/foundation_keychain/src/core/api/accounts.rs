@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Accounts API — portable handlers (spec-57, F008 Stage 1).
 //!
 //! WHY: Bitwarden account lifecycle — prelogin (KDF params), registration
@@ -16,9 +20,8 @@
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use chrono::Utc;
-use uuid::Uuid;
 
+use crate::core::clock::wall_now_utc;
 use crate::core::context::KeychainContext;
 use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
@@ -71,6 +74,10 @@ fn to_profile(row: &UserRow) -> ProfileResponse {
 }
 
 /// `POST /identity/accounts/prelogin` — KDF params for the email, or defaults.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn prelogin(ctx: &KeychainContext, email: &str) -> AppResult<PreloginResponse> {
     let email = normalize_email(email);
     match store::find_by_email(ctx.db(), &email).await? {
@@ -92,19 +99,23 @@ pub async fn prelogin(ctx: &KeychainContext, email: &str) -> AppResult<PreloginR
 
 /// `POST /identity/accounts/register` — create an account with a server-side
 /// password verifier. Fails with `Conflict` if the email is taken.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<UserAccount> {
     let email = normalize_email(&req.email);
     if email.is_empty() || !email.contains('@') {
-        return Err(AppError::BadRequest("a valid email is required".into()));
+        return Err(AppError::BadRequest("a valid email is required".into()).into());
     }
     if req.master_password_hash.is_empty() {
-        return Err(AppError::BadRequest("master password hash is required".into()));
+        return Err(AppError::BadRequest("master password hash is required".into()).into());
     }
     if store::find_by_email(ctx.db(), &email).await?.is_some() {
-        return Err(AppError::Conflict("email already registered".into()));
+        return Err(AppError::Conflict("email already registered".into()).into());
     }
 
-    let salt = crypto::random_salt();
+    let salt = crypto::random_salt()?;
     let hash = crypto::derive_password_hash(
         req.master_password_hash.as_bytes(),
         &salt,
@@ -112,16 +123,16 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
     )
     .await?;
 
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.ctx());
     let kdf = req.kdf.unwrap_or(KdfType::Pbkdf2Sha256);
     let row = UserRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         email,
         name: req.name,
         password_hash: STANDARD.encode(&hash),
         salt: STANDARD.encode(&salt),
         password_iterations: i64::from(crypto::SERVER_ITERATIONS),
-        security_stamp: Uuid::new_v4().to_string(),
+        security_stamp: crypto::new_uuid_v4()?.to_string(),
         akey: req.key,
         client_kdf_type: kdf as i64,
         client_kdf_iter: i64::from(req.kdf_iterations.unwrap_or(DEFAULT_KDF_ITERATIONS)),
@@ -137,6 +148,10 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
 }
 
 /// `GET /api/accounts/profile` — the user's profile.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get_profile(ctx: &KeychainContext, user_uuid: &str) -> AppResult<ProfileResponse> {
     let user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
@@ -145,6 +160,10 @@ pub async fn get_profile(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Pr
 }
 
 /// The user's account summary (the `profile` block of a sync payload).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn account(ctx: &KeychainContext, user_uuid: &str) -> AppResult<UserAccount> {
     let user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
@@ -153,6 +172,10 @@ pub async fn account(ctx: &KeychainContext, user_uuid: &str) -> AppResult<UserAc
 }
 
 /// `PUT /api/accounts/profile` — update mutable profile fields.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update_profile(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -161,14 +184,21 @@ pub async fn update_profile(
     let mut user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
         .ok_or(AppError::Unauthorized)?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.ctx());
     if req.name.is_some() {
         user.name = req.name;
     }
     if req.master_password_hint.is_some() {
         user.master_password_hint = req.master_password_hint;
     }
-    store::update_profile(ctx.db(), user_uuid, &user.name, &user.master_password_hint, now).await?;
+    store::update_profile(
+        ctx.db(),
+        user_uuid,
+        &user.name,
+        &user.master_password_hint,
+        now,
+    )
+    .await?;
     user.updated_at = now;
     Ok(to_profile(&user))
 }
@@ -177,6 +207,10 @@ pub async fn update_profile(
 ///
 /// Used by `POST /api/accounts/verify-password` and the `connect/token` password
 /// grant. Returns `false` for a wrong password; `Unauthorized` for no such user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn verify_master_password(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -189,6 +223,10 @@ pub async fn verify_master_password(
 }
 
 /// Verify a password against an already-loaded user row.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn verify_user_password(user: &UserRow, master_password_hash: &str) -> AppResult<bool> {
     let expected = STANDARD
         .decode(&user.password_hash)

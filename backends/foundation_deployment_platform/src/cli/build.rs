@@ -7,41 +7,51 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use clap::ArgMatches;
+use foundation_context::Ctx;
 
 use crate::bootstrap::BootstrapLogger;
-use crate::config::{get_profile, DisplayMode, GuestOs};
-use crate::providers::{default_provider, ResolvedPorts};
+use crate::config::{DisplayMode, GuestOs, get_profile};
+use crate::providers::{ResolvedPorts, default_provider};
 use crate::state;
 use crate::winrm::WinRM;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, BoxedError> {
-    get_profile(name).map(|p| p.clone()).map_err(|e| Box::new(e) as BoxedError)
+    get_profile(name)
+        .map(|p| p.clone())
+        .map_err(|e| Box::new(e) as BoxedError)
 }
 
 /// Ensure the VM image is available in the cache.
-fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
+fn ensure_image(profile: &crate::config::VmProfile, ctx: &Ctx) -> Result<(), BoxedError> {
     let cache_path = profile.image_cache_path();
     if cache_path.exists() {
         return Ok(());
     }
 
     eprintln!("  Image not cached, importing...");
-    let provider = default_provider()?;
-    let path = provider.ensure_image(profile)
+    let provider = default_provider(ctx.clone())?;
+    let path = provider
+        .ensure_image(profile)
         .map_err(|e| format!("Failed to import image: {e}"))?;
     eprintln!("  Image imported at {}", path.display());
     Ok(())
 }
 
 /// Launch the VM if not already running. Returns resolved ports.
-fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts, BoxedError> {
+fn ensure_vm_running(
+    profile: &crate::config::VmProfile,
+    ctx: &Ctx,
+) -> Result<ResolvedPorts, BoxedError> {
     // Check if there's existing state with a live PID
     if state::is_running(&profile.name) {
-        let vm_state = state::load(&profile.name)
-            .expect("is_running returned true but load failed");
-        eprintln!("  VM '{}' already running (PID {:?})", profile.name, vm_state.pid);
+        let vm_state =
+            state::load(&profile.name).expect("is_running returned true but load failed");
+        eprintln!(
+            "  VM '{}' already running (PID {:?})",
+            profile.name, vm_state.pid
+        );
         return Ok(ResolvedPorts {
             ssh_port: vm_state.ssh_port,
             winrm_port: vm_state.winrm_port,
@@ -51,15 +61,18 @@ fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts
     }
 
     eprintln!("  VM '{}' not running, launching...", profile.name);
-    let provider = default_provider()?;
-    let handle = provider.launch(profile, DisplayMode::Headless)
+    let provider = default_provider(ctx.clone())?;
+    let handle = provider
+        .launch(profile, DisplayMode::Headless)
         .map_err(|e| format!("Failed to launch VM: {e}"))?;
 
     let ports = handle.resolved_ports.clone();
     drop(handle); // Provider saved state already
 
-    eprintln!("  VM launched: SSH={}, VNC={}, WinRM={:?}",
-        ports.ssh_port, ports.vnc_port, ports.winrm_port);
+    eprintln!(
+        "  VM launched: SSH={}, VNC={}, WinRM={:?}",
+        ports.ssh_port, ports.vnc_port, ports.winrm_port
+    );
     Ok(ports)
 }
 
@@ -67,22 +80,24 @@ fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts
 fn ensure_bootstrapped(
     profile: &crate::config::VmProfile,
     ports: &ResolvedPorts,
+    ctx: Ctx,
 ) -> Result<(), BoxedError> {
-    if crate::bootstrap::is_bootstrapped(profile) {
+    if crate::bootstrap::is_bootstrapped(profile, &ctx) {
         eprintln!("  VM already bootstrapped, skipping.");
         return Ok(());
     }
 
     eprintln!("  Bootstrapping VM...");
     let logger = Arc::new(
-        BootstrapLogger::new(&profile.name)
+        BootstrapLogger::new(&profile.name, ctx)
             .map_err(|e| format!("Failed to create bootstrap logger: {e}"))?,
     );
 
     match profile.os {
         GuestOs::Linux | GuestOs::MacOS => {
-            let mut session = crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
-                .map_err(|e| format!("SSH connection failed: {e}"))?;
+            let mut session =
+                crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
+                    .map_err(|e| format!("SSH connection failed: {e}"))?;
             crate::bootstrap::bootstrap(profile, &mut session, &logger, None)?;
         }
         GuestOs::Windows => {
@@ -107,19 +122,25 @@ fn bootstrap_windows(
     ports: &ResolvedPorts,
 ) -> Result<(), BoxedError> {
     use crate::winrm::elevated::ProgressCallback;
-    use std::time::Instant;
 
-    let winrm_port = ports.winrm_port
+    let winrm_port = ports
+        .winrm_port
         .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
 
     eprintln!("  Waiting for WinRM on port {winrm_port}...");
-    let start = Instant::now();
+    let start = logger.clock().now();
     let timeout = Duration::from_secs(300);
     loop {
-        if start.elapsed() > timeout {
+        if logger.clock().now().duration_since(start) > timeout {
             return Err(format!("Timed out waiting for WinRM after {:?}", timeout).into());
         }
-        let winrm = WinRM::new("127.0.0.1", winrm_port, profile.user, profile.pass);
+        let winrm = WinRM::new(
+            "127.0.0.1",
+            winrm_port,
+            profile.user,
+            profile.pass,
+            logger.ctx().clone(),
+        );
         if winrm.ping() {
             break;
         }
@@ -127,7 +148,13 @@ fn bootstrap_windows(
     }
     eprintln!("  WinRM ready");
 
-    let winrm = WinRM::new("127.0.0.1", winrm_port, profile.user, profile.pass);
+    let winrm = WinRM::new(
+        "127.0.0.1",
+        winrm_port,
+        profile.user,
+        profile.pass,
+        logger.ctx().clone(),
+    );
     let progress_cb: ProgressCallback<'_> = Some(&|msg: &str| {
         eprintln!("    {}", msg);
     });
@@ -137,10 +164,10 @@ fn bootstrap_windows(
 
     // Wait for SSH
     eprintln!("  Waiting for SSH on port {}...", ports.ssh_port);
-    let start = Instant::now();
+    let start = logger.clock().now();
     let timeout = Duration::from_secs(120);
     loop {
-        if start.elapsed() > timeout {
+        if logger.clock().now().duration_since(start) > timeout {
             return Err("Timed out waiting for SSH".into());
         }
         if crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os).is_ok() {
@@ -153,13 +180,20 @@ fn bootstrap_windows(
     // Phase 2: SSH
     let mut session = crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
         .map_err(|e| format!("SSH connection failed: {e}"))?;
-    crate::bootstrap::windows::bootstrap_windows_ssh_phase(profile, &winrm, &mut session, logger, progress_cb, false)?;
+    crate::bootstrap::windows::bootstrap_windows_ssh_phase(
+        profile,
+        &winrm,
+        &mut session,
+        logger,
+        progress_cb,
+        false,
+    )?;
 
     Ok(())
 }
 
 /// Build a project inside a VM and retrieve artifacts.
-pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_build(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let project_dir = args.get_one::<String>("project").unwrap();
     let _target_override = args.get_one::<String>("target");
@@ -169,20 +203,28 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     let project_path = PathBuf::from(project_dir);
     if !project_path.exists() {
-        return Err(format!("Project directory does not exist: {}", project_path.display()).into());
+        return Err(format!(
+            "Project directory does not exist: {}",
+            project_path.display()
+        )
+        .into());
     }
     if !project_path.is_dir() {
-        return Err(format!("Project path is not a directory: {}", project_path.display()).into());
+        return Err(format!(
+            "Project path is not a directory: {}",
+            project_path.display()
+        )
+        .into());
     }
 
     // Ensure image is imported
-    ensure_image(&profile)?;
+    ensure_image(&profile, ctx)?;
 
     // Ensure VM is running
-    let ports = ensure_vm_running(&profile)?;
+    let ports = ensure_vm_running(&profile, ctx)?;
 
     // Ensure VM is bootstrapped
-    ensure_bootstrapped(&profile, &ports)?;
+    ensure_bootstrapped(&profile, &ports, ctx.clone())?;
 
     // Connect via SSH
     eprintln!("Connecting to VM via SSH...");
@@ -208,7 +250,10 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     if no_artifacts {
         eprintln!("\nBuild complete. Artifacts left in VM (--no-artifacts specified).");
     } else {
-        eprintln!("\nBuild complete. Artifacts retrieved to: {}", artifact_dir.display());
+        eprintln!(
+            "\nBuild complete. Artifacts retrieved to: {}",
+            artifact_dir.display()
+        );
 
         // List artifacts
         if let Ok(entries) = std::fs::read_dir(&artifact_dir) {
@@ -216,7 +261,11 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
             for entry in entries.flatten() {
                 if let Ok(meta) = entry.metadata() {
                     let size_mb = meta.len() as f64 / 1_048_576.0;
-                    eprintln!("  {:.2} MB  {}", size_mb, entry.file_name().to_string_lossy());
+                    eprintln!(
+                        "  {:.2} MB  {}",
+                        size_mb,
+                        entry.file_name().to_string_lossy()
+                    );
                 }
             }
         }

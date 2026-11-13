@@ -17,6 +17,15 @@ use crate::config::{Result, TestbedError};
 /// atomically renames to `dest` on success. If a `.partial` file already
 /// exists, resume is attempted via HTTP Range. If the server doesn't support
 /// 206 Partial Content, the `.partial` is deleted and a fresh download starts.
+///
+/// # Errors
+///
+/// Returns an error if curl cannot be spawned, if the download fails, or if the
+/// partial file is smaller than the minimum expected size.
+///
+/// # Panics
+///
+/// Panics if the partial file path is not valid UTF-8.
 pub fn download(url: &str, dest: &Path) -> Result<()> {
     let partial = dest.with_extension(dest.extension().map_or_else(
         || "partial".to_string(),
@@ -32,7 +41,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     let start_byte = if partial.exists() {
         let metadata = std::fs::metadata(&partial).map_err(|e| TestbedError::DownloadFailed {
             status: 0,
-            url: format!("stat {partial:?}: {e}"),
+            url: format!("stat {}: {e}", partial.display()),
         })?;
         Some(metadata.len())
     } else {
@@ -42,7 +51,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     // Build curl command targeting the partial file
     let mut cmd = std::process::Command::new("curl");
     cmd.args([
-        "-L", // follow redirects
+        "-L",     // follow redirects
         "--fail", // exit non-zero on HTTP error
         "--create-dirs",
         "-o",
@@ -50,10 +59,11 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     ]);
 
     if let Some(offset) = start_byte
-        && offset > 0 {
-            // Resume: use Range header
-            cmd.args(["-C", "-"]);
-        }
+        && offset > 0
+    {
+        // Resume: use Range header
+        cmd.args(["-C", "-"]);
+    }
 
     cmd.args(["-s", "--show-error", url]);
     cmd.stdout(Stdio::piped());
@@ -80,7 +90,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
             return download(url, dest); // retry fresh
         }
         return Err(TestbedError::DownloadFailed {
-            status: code as u16,
+            status: u16::try_from(code).unwrap_or(u16::MAX),
             url: url.to_string(),
         });
     }
@@ -88,7 +98,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     // Validate download size — reject files < 100 MB as likely failed downloads
     let meta = std::fs::metadata(&partial).map_err(|e| TestbedError::DownloadFailed {
         status: 0,
-        url: format!("stat {partial:?}: {e}"),
+        url: format!("stat {}: {e}", partial.display()),
     })?;
     if meta.len() < 100 * 1024 * 1024 {
         let _ = std::fs::remove_file(&partial);
@@ -104,7 +114,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     // Atomic rename: partial → dest
     std::fs::rename(&partial, dest).map_err(|e| TestbedError::DownloadFailed {
         status: 0,
-        url: format!("rename {partial:?} → {dest:?}: {e}"),
+        url: format!("rename {} → {}: {e}", partial.display(), dest.display()),
     })?;
 
     // Show completion
@@ -124,10 +134,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
 }
 
 /// Check if a cached image exists and is valid (non-empty).
+#[must_use]
 pub fn is_cached(dest: &Path) -> bool {
-    dest.exists()
-        && std::fs::metadata(dest)
-            .map(|m| m.len() > 0)
-            .unwrap_or(false)
+    dest.exists() && std::fs::metadata(dest).is_ok_and(|m| m.len() > 0)
 }
-

@@ -60,7 +60,7 @@ impl core::fmt::Display for ConfidentialText {
 /// OAuth credential (post-authentication token set).
 #[derive(From, Debug, Clone)]
 pub struct OAuthCredential {
-    pub expires: f64,
+    pub expires: i64,
     pub access_token: ConfidentialText,
     pub refresh_token: Option<ConfidentialText>,
 }
@@ -68,14 +68,14 @@ pub struct OAuthCredential {
 /// JWT credential (post-authentication token).
 #[derive(From, Debug, Clone)]
 pub struct JwtCredential {
-    pub expires: f64,
+    pub expires: i64,
     pub token: ConfidentialText,
 }
 
 /// Session credential (post-authentication session data with cookie).
 #[derive(From, Debug, Clone)]
 pub struct SessionCredential {
-    pub expires: f64,
+    pub expires: i64,
     pub session_id: String,
     pub token: ConfidentialText,
     pub cookie: Option<Cookie>,

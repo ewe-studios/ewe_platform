@@ -1,6 +1,6 @@
 //! Public-API coverage for `ToolCallManager::build_workflow` — the F11 tool-call
 //! dependency DAG that groups calls into ordered parallel/sequential stages.
-//! Pure and deterministic; tool_impl.rs was 75% region coverage and this path
+//! Pure and deterministic; `tool_impl.rs` was 75% region coverage and this path
 //! (topo-sort, cycle + unknown-dep detection, stage grouping) was untested.
 
 use foundation_ai::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallStage};
@@ -73,7 +73,11 @@ fn diamond_dependency_groups_by_depth() {
     let wf = mgr().build_workflow(&calls).expect("valid");
     assert_eq!(wf.stages.len(), 3);
     assert_eq!(stage_ids(&wf.stages[0]), vec!["a"]);
-    assert_eq!(stage_ids(&wf.stages[1]), vec!["b", "c"], "b and c run together");
+    assert_eq!(
+        stage_ids(&wf.stages[1]),
+        vec!["b", "c"],
+        "b and c run together"
+    );
     assert_eq!(stage_ids(&wf.stages[2]), vec!["d"]);
 }
 

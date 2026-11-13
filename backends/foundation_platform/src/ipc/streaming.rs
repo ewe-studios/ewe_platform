@@ -93,13 +93,21 @@ impl IpcStreamChunk {
     /// Create a new chunk.
     #[must_use]
     pub fn new(data: Vec<u8>, sequence: u64) -> Self {
-        Self { data, sequence, progress: None }
+        Self {
+            data,
+            sequence,
+            progress: None,
+        }
     }
 
     /// Create a chunk with progress info.
     #[must_use]
     pub fn with_progress(data: Vec<u8>, sequence: u64, progress: u64) -> Self {
-        Self { data, sequence, progress: Some(progress) }
+        Self {
+            data,
+            sequence,
+            progress: Some(progress),
+        }
     }
 }
 
@@ -115,7 +123,9 @@ pub struct PlatformStreamRegistry {
 impl PlatformStreamRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self { handlers: RwLock::new(HashMap::new()) }
+        Self {
+            handlers: RwLock::new(HashMap::new()),
+        }
     }
 
     /// Register a streaming IPC handler.
@@ -124,7 +134,10 @@ impl PlatformStreamRegistry {
     ///
     /// Panics if the internal `RwLock` is poisoned.
     pub fn register<S: StreamingIpc + 'static>(&self, ipc: S) -> Option<Box<dyn StreamingIpc>> {
-        self.handlers.write().unwrap().insert(ipc.name().to_string(), Box::new(ipc))
+        self.handlers
+            .write()
+            .unwrap()
+            .insert(ipc.name().to_string(), Box::new(ipc))
     }
 
     /// Look up a streaming IPC by name.
@@ -135,9 +148,9 @@ impl PlatformStreamRegistry {
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn StreamingIpc> {
         let guard = self.handlers.read().unwrap();
-        guard.get(name).map(|b| {
-            unsafe { &*std::ptr::from_ref::<dyn StreamingIpc>(b.as_ref()) }
-        })
+        guard
+            .get(name)
+            .map(|b| unsafe { &*std::ptr::from_ref::<dyn StreamingIpc>(b.as_ref()) })
     }
 
     /// Return all registered streaming IPC names.
@@ -152,7 +165,9 @@ impl PlatformStreamRegistry {
 }
 
 impl Default for PlatformStreamRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // ── Tauri command: __ewe_ipc_stream ──────────────────────────────────
@@ -162,72 +177,3 @@ impl Default for PlatformStreamRegistry {
 // scope — builder.rs needs them for generate_handler!.
 
 // ── Tests ─────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use foundation_wasm::ipc::{IpcContentType, IpcKind};
-
-    struct TestStreamIpc;
-
-    impl Ipc for TestStreamIpc {
-        fn name(&self) -> &str { "test_stream" }
-        fn kind(&self) -> IpcKind { IpcKind::Query }
-        fn invoke(&self, _: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-            Err(IpcError::ExecutionFailed("use stream()".into()))
-        }
-    }
-
-    impl StreamingIpc for TestStreamIpc {
-        fn stream(&self, _: &PlatformSession, _: &IpcRequest<Vec<u8>>) -> Result<IpcStream, IpcError> {
-            let queue = concurrent_queue::ConcurrentQueue::unbounded();
-            let _ = queue.push(Ok(IpcStreamChunk::new(b"chunk1".to_vec(), 0)));
-            let _ = queue.push(Ok(IpcStreamChunk::new(b"chunk2".to_vec(), 1)));
-            queue.close();
-            Ok(IpcStream { receiver: IpcStreamReceiver::Sync(queue), total_hint: None })
-        }
-
-        fn accept_stream(&self, _: &PlatformSession, _: &IpcRequest<Vec<u8>>, _: IpcStreamReceiver) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-            Ok(IpcResponse { payload: b"accepted".to_vec(), content_type: IpcContentType::Json })
-        }
-    }
-
-    #[test]
-    fn registry_register_and_get() {
-        let reg = PlatformStreamRegistry::new();
-        reg.register(TestStreamIpc);
-        assert!(reg.get("test_stream").is_some());
-        assert!(reg.get("nonexistent").is_none());
-        assert_eq!(reg.names(), vec!["test_stream"]);
-    }
-
-    #[test]
-    fn stream_yields_chunks_in_order() {
-        let reg = PlatformStreamRegistry::new();
-        reg.register(TestStreamIpc);
-        let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-
-        let handler = reg.get("test_stream").unwrap();
-        let ipc_stream = handler.stream(&session, &IpcRequest {
-            ipc: "test_stream".into(),
-            action: "read".into(),
-            payload: vec![],
-            content_type: IpcContentType::Json,
-            target: None,
-        }).unwrap();
-
-        match ipc_stream.receiver {
-            IpcStreamReceiver::Sync(ref queue) => {
-                let c1 = queue.pop().unwrap().unwrap();
-                assert_eq!(c1.data, b"chunk1");
-                assert_eq!(c1.sequence, 0);
-
-                let c2 = queue.pop().unwrap().unwrap();
-                assert_eq!(c2.data, b"chunk2");
-                assert_eq!(c2.sequence, 1);
-
-                assert!(queue.pop().is_err());
-            }
-        }
-    }
-}

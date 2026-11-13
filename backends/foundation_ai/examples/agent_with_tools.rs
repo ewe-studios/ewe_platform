@@ -18,9 +18,11 @@ use foundation_ai::agentic::{
 };
 use foundation_ai::harness::RouterPreset;
 use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
+
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron;
-use futures_lite::StreamExt;
 use foundation_jsonschema::scheme;
+use futures_lite::StreamExt;
 
 // ---------------------------------------------------------------------------
 // A struct tool: greet
@@ -31,7 +33,7 @@ struct GreetTool;
 #[async_trait]
 impl ToolImpl for GreetTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "greet".into(),
             category: "custom".into(),
             description: "Greet someone by name.".into(),
@@ -45,7 +47,7 @@ impl ToolImpl for GreetTool {
                     .build(),
             ),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -62,8 +64,7 @@ impl ToolImpl for GreetTool {
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key =
-        std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+    let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // A closure tool: no struct, no `impl ToolImpl`.
     let count_letters = FnTool::new(
@@ -82,8 +83,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // 1. Build the model preset (Claude Opus main + Sonnet memory) and the
     //    session with its tools. The ToolShed is the one list of what the
     //    agent can call (add ToolPreset::files(fs) etc. the same way).
-    let agent = RouterPreset::claude(&api_key)?
-        .into_agent_builder()
+    let ctx = Ctx::host();
+    let agent = RouterPreset::claude(&api_key, ctx.clone())?
+        .into_agent_builder(ctx)
         .with_system_prompt("You are a helpful assistant with a few custom tools.")
         .with_toolshed(ToolShed::new().tool(GreetTool).tool(count_letters))
         .build()
@@ -108,7 +110,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // 3. Ask the agent to use the tools, watching the turn as it happens.
     println!("\nAsking the agent to greet Alice...");
-    let mut events = agent.run_turn_stream("Please greet Alice, then tell me how many letters her name has.")?.events();
+    let mut events = agent
+        .run_turn_stream("Please greet Alice, then tell me how many letters her name has.")?
+        .events();
     while let Some(event) = events.next().await {
         match event {
             TurnEvent::Text(delta) => print!("{delta}"),

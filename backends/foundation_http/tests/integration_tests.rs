@@ -1,5 +1,5 @@
 //! End-to-end integration tests exercising the full HTTP stack:
-//! real TcpListener → HttpServer → middleware → routing → handler → response.
+//! real `TcpListener` → `HttpServer` → middleware → routing → handler → response.
 //!
 //! Each test starts a real `HttpServer` on a random port, sends actual
 //! HTTP requests via the platform client (`HttpClientBuilder::resolve_to`),
@@ -14,28 +14,30 @@ use tracing_test::traced_test;
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::writer::{send_json, send_text};
+use foundation_http::ShutdownSignal;
 use foundation_netio::event_source::SseEvent;
+use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::SimpleResponse;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serial_test::serial;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::{
         server::{HttpServer, KeepAliveConfig, ServerConfig},
         upgrade::{accept_websocket, SseStream},
     },
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{respond, ConnectionResult, Serve, ServeError, ServeFactory},
+        serve::{ConnectionResult, ServeError, ServeOutcome},
     },
 };
 
@@ -45,7 +47,7 @@ use foundation_http::{
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -53,9 +55,9 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let method = match req.method {
             SimpleMethod::GET => "GET",
@@ -73,8 +75,7 @@ impl Serve for EchoHandler {
         let body = serde_json::json!({ "method": method, "path": path });
 
         tracing::info!("Writing json back to connection");
-        let value = respond::json(&mut conn, 200, &body)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+        let value = send_json(conn, 200, &body, &foundation_core::valtron::Ctx::host());
         tracing::info!("Written json back to connection");
 
         value
@@ -87,7 +88,7 @@ impl Serve for EchoHandler {
 struct BodyEchoHandler;
 
 impl ServeFactory for BodyEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -95,9 +96,9 @@ impl ServeFactory for BodyEchoHandler {
 impl Serve for BodyEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let body_bytes = match req.body {
             Some(body) => match try_collect_bytes(body) {
@@ -107,7 +108,7 @@ impl Serve for BodyEchoHandler {
                     return ConnectionResult::Close(Some(foundation_errstacks::ErrorTrace::new(
                         ServeError::InternalError {
                             status: 500,
-                            reason: format!("failed to read body: {}", e),
+                            reason: format!("failed to read body: {e}"),
                         },
                     )));
                 }
@@ -115,8 +116,12 @@ impl Serve for BodyEchoHandler {
             None => Vec::new(),
         };
         let body_text = String::from_utf8_lossy(&body_bytes);
-        respond::text(&mut conn, 200, &body_text)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -126,7 +131,7 @@ impl Serve for BodyEchoHandler {
 struct QueryHandler;
 
 impl ServeFactory for QueryHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -134,13 +139,12 @@ impl ServeFactory for QueryHandler {
 impl Serve for QueryHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let url = &req.request_url.url;
-        respond::text(&mut conn, 200, url)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, url, &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -152,7 +156,7 @@ struct CounterMiddleware {
 }
 
 impl RequestMiddleware for CounterMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.count.fetch_add(1, Ordering::SeqCst);
         MiddlewareResult::Continue
     }
@@ -164,7 +168,7 @@ impl RequestMiddleware for CounterMiddleware {
 struct BlockMiddleware;
 
 impl RequestMiddleware for BlockMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(
             foundation_netio::shared::http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Forbidden)
@@ -178,19 +182,18 @@ impl RequestMiddleware for BlockMiddleware {
 // ---------------------------------------------------------------------------
 // Test helpers.
 
-/// Start an HttpServer in a background thread. Returns (addr, shutdown_signal).
-/// Binds the TcpListener before spawning the server thread so the port is
+/// Start an `HttpServer` in a background thread. Returns (addr, `shutdown_signal`).
+/// Binds the `TcpListener` before spawning the server thread so the port is
 /// guaranteed to be in use by the time this function returns.
-fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     // Bind the listener first — the port is ours from this point on.
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
-    let config = ServerConfig::defaults().with_keep_alive(
-        KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)),
-    );
+    let config = ServerConfig::defaults()
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let server = HttpServer::with_config(app, &bind_addr, config);
@@ -225,7 +228,7 @@ impl IsSuccess for SimpleResponse<SendSafeBody> {
     }
 }
 
-/// Read body text by taking ownership — handles all SendSafeBody variants
+/// Read body text by taking ownership — handles all `SendSafeBody` variants
 /// including streams via the body reader.
 fn read_body(body: SendSafeBody) -> Result<String, BoxedError> {
     match body {
@@ -240,7 +243,7 @@ fn read_body(body: SendSafeBody) -> Result<String, BoxedError> {
 
 /// Extract status code as u16.
 fn status_code(status: &Status) -> u16 {
-    status.clone().into_usize() as u16
+    u16::try_from(status.clone().into_usize()).expect("a status code fits u16")
 }
 
 // ---------------------------------------------------------------------------
@@ -354,7 +357,7 @@ fn test_param_route() {
     shutdown.turn_on();
 }
 
-/// GET /users/:id/posts/:post_id — nested params.
+/// GET /`users/:id/posts/:post_id` — nested params.
 
 #[test]
 #[serial(http_test)]
@@ -427,7 +430,7 @@ fn test_wildcard_route() {
 // ---------------------------------------------------------------------------
 // Tests: route_any
 
-/// route_any matches all HTTP methods on the same path.
+/// `route_any` matches all HTTP methods on the same path.
 
 #[test]
 #[foundation_macros::timeout(60000)]
@@ -591,7 +594,7 @@ fn test_post_with_text_body() {
         .send(
             PreparedRequestBuilder::post("http://testserver/body-echo")
                 .unwrap()
-            .body_text("hello world")
+                .body_text("hello world")
                 .build(),
         )
         .unwrap();
@@ -621,8 +624,8 @@ fn test_post_with_json_body() {
         .send(
             PreparedRequestBuilder::post("http://testserver/json")
                 .unwrap()
-            .body_json(&payload)
-            .unwrap()
+                .body_json(&payload)
+                .unwrap()
                 .build(),
         )
         .unwrap();
@@ -825,7 +828,7 @@ fn test_multiple_routes_same_app() {
         .send(
             PreparedRequestBuilder::post("http://testserver/body")
                 .unwrap()
-            .body_text("hello")
+                .body_text("hello")
                 .build(),
         )
         .unwrap();
@@ -862,7 +865,7 @@ fn test_multiple_routes_same_app() {
 struct SlowHandler;
 
 impl ServeFactory for SlowHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -870,15 +873,14 @@ impl ServeFactory for SlowHandler {
 impl Serve for SlowHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         std::thread::sleep(Duration::from_millis(500));
         let path = &req.request_url.url;
         let body = serde_json::json!({ "path": path, "slept_ms": 500 });
-        respond::json(&mut conn, 200, &body)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_json(conn, 200, &body, &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -937,7 +939,6 @@ fn test_valtron_multiplex_concurrent_connections() {
 
     let handles: Vec<_> = (0..NUM_CONCURRENT)
         .map(|i| {
-            let addr = addr;
             std::thread::spawn(move || {
                 let client = make_client(addr);
                 let url = match i % 3 {
@@ -982,11 +983,7 @@ fn test_multiple_sequential_requests() {
     for i in 0..5 {
         let url = format!("http://testserver/echo?n={i}");
         let response = client
-            .send(
-                PreparedRequestBuilder::get(&url)
-                    .unwrap()
-                    .build(),
-            )
+            .send(PreparedRequestBuilder::get(&url).unwrap().build())
             .unwrap();
         assert!(response.is_success(), "Request {i} should succeed");
     }
@@ -1100,9 +1097,10 @@ fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
     assert_eq!(config.would_block_sleep(), Duration::from_millis(15)); // base sleep from calculator
     assert_eq!(config.accept_error_sleep(), Duration::from_millis(30)); // 2x base sleep
+    assert_eq!(config.accept_shutdown_poll, Duration::from_millis(10)); // Feature 05 shutdown poll
     assert_eq!(config.keep_alive.min_delay(), Duration::from_millis(15));
     assert_eq!(config.keep_alive.max_delay(), Duration::from_secs(300)); // max_read_timeout
-    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(120)); // min_read_timeout
+    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(75)); // nginx keepalive default
     assert_eq!(config.keep_alive.escalation_threshold, 50);
     assert_eq!(config.keep_alive.max_delay_cycles, 100);
     assert_eq!(config.max_body_bytes, 10 * 1024 * 1024);
@@ -1113,9 +1111,7 @@ fn test_server_config_builder() {
     let config = ServerConfig::defaults()
         .with_would_block_sleep(Duration::from_millis(50))
         .with_accept_error_sleep(Duration::from_millis(200))
-        .with_keep_alive(
-            KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)),
-        )
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)))
         .with_max_body_bytes(1024);
 
     // with_accept_error_sleep sets min_sleep_duration to dur/2 = 100ms
@@ -1150,7 +1146,7 @@ fn test_context_store_multiple_types() {
 struct WsEchoHandler;
 
 impl ServeFactory for WsEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1158,19 +1154,28 @@ impl ServeFactory for WsEchoHandler {
 impl Serve for WsEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        // Attempt WebSocket upgrade
-        if !accept_websocket(&mut conn, &req) {
-            // Not a valid upgrade request
-            let _ = respond::text(&mut conn, 400, "Invalid WebSocket upgrade request");
-            return ConnectionResult::Close(None);
-        }
+        ConnectionResult::Async(Box::pin(async move {
+            // Attempt WebSocket upgrade
+            if !accept_websocket(&conn, &req, &foundation_core::valtron::Ctx::host()).await {
+                // Not a valid upgrade request
+                if let ConnectionResult::Async(write) = send_text(
+                    conn,
+                    400,
+                    "Invalid WebSocket upgrade request",
+                    &foundation_core::valtron::Ctx::host(),
+                ) {
+                    let _ = write.await;
+                }
+                return ServeOutcome::Close(None);
+            }
 
-        // Upgrade successful - return Take to own the connection
-        ConnectionResult::Take
+            // Upgrade successful - return Take to own the connection
+            ServeOutcome::Take
+        }))
     }
 }
 
@@ -1234,9 +1239,9 @@ struct SseCounterHandler {
 }
 
 impl ServeFactory for SseCounterHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         // Get shared counter from context
-        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = bag.get();
+        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = ctx.get();
         let count = count.unwrap_or_else(|| Arc::new(std::sync::atomic::AtomicUsize::new(0)));
         Self { count }
     }
@@ -1245,43 +1250,48 @@ impl ServeFactory for SseCounterHandler {
 impl Serve for SseCounterHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        // Clone the connection for SSE stream
-        let mut conn_clone = conn.clone();
+        let count = Arc::clone(&self.count);
+        ConnectionResult::Async(Box::pin(async move {
+            // Create SSE stream - this writes headers
+            let mut sse = match SseStream::new(&conn, &foundation_core::valtron::Ctx::host()).await
+            {
+                Ok(s) => s,
+                Err(e) => {
+                    tracing::error!("Failed to create SSE stream: {:?}", e);
+                    return ServeOutcome::Close(None);
+                }
+            };
 
-        // Create SSE stream - this writes headers
-        let mut sse = match SseStream::new(&mut conn_clone) {
-            Ok(s) => s,
-            Err(e) => {
-                tracing::error!("Failed to create SSE stream: {:?}", e);
-                return ConnectionResult::Close(None);
+            // Send 3 counter events
+            for i in 0..3 {
+                let count = count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                let data = serde_json::json!({ "count": count });
+
+                let event = SseEvent::new()
+                    .event("counter")
+                    .data(data.to_string())
+                    .id(i.to_string())
+                    .build();
+
+                if let Err(e) = sse.send(&event).await {
+                    tracing::error!("Failed to send SSE event: {:?}", e);
+                    break;
+                }
+
+                // Small delay between events
+                foundation_core::valtron::timer::sleep_for(
+                    Duration::from_millis(10),
+                    &foundation_core::valtron::Ctx::host(),
+                )
+                .await;
             }
-        };
 
-        // Send 3 counter events
-        for i in 0..3 {
-            let count = self.count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            let data = serde_json::json!({ "count": count });
-
-            let event = SseEvent::new()
-                .event("counter")
-                .data(data.to_string())
-                .id(&i.to_string())
-                .build();
-
-            if let Err(e) = sse.send(&event) {
-                tracing::error!("Failed to send SSE event: {:?}", e);
-                break;
-            }
-
-            // Small delay between events
-            std::thread::sleep(Duration::from_millis(10));
-        }
-
-        ConnectionResult::Take
+            ServeOutcome::Take
+        }))
     }
 }
 
@@ -1325,8 +1335,7 @@ fn test_sse_streaming() {
     let ct_value = content_type.unwrap().1.first().cloned().unwrap_or_default();
     assert!(
         ct_value.contains("text/event-stream"),
-        "Expected text/event-stream, got: {}",
-        ct_value
+        "Expected text/event-stream, got: {ct_value}"
     );
 
     // Verify Cache-Control header
@@ -1341,7 +1350,7 @@ fn test_sse_streaming() {
         .first()
         .cloned()
         .unwrap_or_default();
-    assert_eq!(cc_value, "no-cache", "Expected no-cache, got: {}", cc_value);
+    assert_eq!(cc_value, "no-cache", "Expected no-cache, got: {cc_value}");
 
     shutdown.turn_on();
 }
@@ -1376,7 +1385,7 @@ fn test_sse_event_formatting() {
 struct ExpectContinueEchoHandler;
 
 impl ServeFactory for ExpectContinueEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1384,9 +1393,9 @@ impl ServeFactory for ExpectContinueEchoHandler {
 impl Serve for ExpectContinueEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         // Pull the body — if Expect: 100-continue worked, the body
         // should have been delivered after the interim 100 Continue.
@@ -1394,22 +1403,24 @@ impl Serve for ExpectContinueEchoHandler {
         // collect from it properly.
         tracing::trace!(
             "ExpectContinueEchoHandler: req.body variant = {:?}",
-            req.body.as_ref().map(|b| std::mem::discriminant(b))
+            req.body.as_ref().map(std::mem::discriminant)
         );
-        let body_text = match req.body {
-            Some(body) => {
-                let bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(body);
-                tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
-                String::from_utf8_lossy(&bytes).to_string()
-            }
-            None => {
-                tracing::trace!("ExpectContinueEchoHandler: no body present");
-                String::new()
-            }
+        let body_text = if let Some(body) = req.body {
+            let bytes =
+                foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(body);
+            tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
+            String::from_utf8_lossy(&bytes).to_string()
+        } else {
+            tracing::trace!("ExpectContinueEchoHandler: no body present");
+            String::new()
         };
         tracing::trace!("ExpectContinueEchoHandler: echoing body = {:?}", body_text);
-        respond::text(&mut conn, 200, &body_text)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -1435,8 +1446,8 @@ fn test_expect_100_continue_body_echo() {
         .send(
             PreparedRequestBuilder::post("http://testserver/echo-body")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
-            .body_text("hello via expect-continue")
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .body_text("hello via expect-continue")
                 .build(),
         )
         .unwrap();
@@ -1472,9 +1483,9 @@ fn test_expect_100_continue_json_body() {
         .send(
             PreparedRequestBuilder::post("http://testserver/json-echo")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
-            .body_json(&payload)
-            .unwrap()
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .body_json(&payload)
+                .unwrap()
                 .build(),
         )
         .unwrap();
@@ -1510,7 +1521,7 @@ fn test_expect_100_continue_get_no_body() {
         .send(
             PreparedRequestBuilder::get("http://testserver/echo")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
+                .header(SimpleHeader::EXPECT, "100-continue")
                 .build(),
         )
         .unwrap();
@@ -1523,7 +1534,7 @@ fn test_expect_100_continue_get_no_body() {
 }
 
 /// POST with Expect: 100-continue and explicit Content-Length: 0 — server
-/// should detect zero body and skip WaitingForBody, going straight to Processing.
+/// should detect zero body and skip `WaitingForBody`, going straight to Processing.
 #[test]
 #[traced_test]
 #[foundation_macros::timeout(60000)]
@@ -1542,8 +1553,8 @@ fn test_expect_100_continue_zero_content_length() {
         .send(
             PreparedRequestBuilder::post("http://testserver/echo-zero")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
-            .header(SimpleHeader::CONTENT_LENGTH, "0")
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .header(SimpleHeader::CONTENT_LENGTH, "0")
                 .build(),
         )
         .unwrap();
@@ -1569,7 +1580,7 @@ struct InterimMiddleware {
 }
 
 impl RequestMiddleware for InterimMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
@@ -1581,13 +1592,13 @@ impl RequestMiddleware for InterimMiddleware {
     }
 }
 
-/// BadInterim middleware — sends a 102 Processing response but adds a body which is wrong.
+/// `BadInterim` middleware — sends a 102 Processing response but adds a body which is wrong.
 struct BadInterimMiddleware {
     interim_sent: Arc<std::sync::atomic::AtomicBool>,
 }
 
 impl RequestMiddleware for BadInterimMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
@@ -1604,7 +1615,7 @@ impl RequestMiddleware for BadInterimMiddleware {
 struct AfterInterimHandler;
 
 impl ServeFactory for AfterInterimHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1612,17 +1623,21 @@ impl ServeFactory for AfterInterimHandler {
 impl Serve for AfterInterimHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let path = &req.request_url.url;
-        respond::text(&mut conn, 200, &format!("handler reached: {path}"))
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            &format!("handler reached: {path}"),
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
-/// InterimResponse middleware — sends 102 Processing but continues to handler.
+/// `InterimResponse` middleware — sends 102 Processing but continues to handler.
 /// The final response should still come from the handler.
 #[test]
 #[traced_test]
@@ -1674,8 +1689,8 @@ fn test_interim_response_continues_to_handler() {
     shutdown.turn_on();
 }
 
-/// Multiple middleware: first sends InterimResponse, second does Continue,
-/// handler runs — verifying InterimResponse doesn't break the chain.
+/// Multiple middleware: first sends `InterimResponse`, second does Continue,
+/// handler runs — verifying `InterimResponse` doesn't break the chain.
 #[test]
 #[traced_test]
 #[foundation_macros::timeout(60000)]
@@ -1723,7 +1738,7 @@ fn test_interim_response_with_subsequent_middleware() {
     shutdown.turn_on();
 }
 
-/// InterimResponse + blocking middleware: interim runs, then blocker
+/// `InterimResponse` + blocking middleware: interim runs, then blocker
 /// short-circuits — handler should NOT run.
 #[test]
 #[traced_test]
@@ -1808,14 +1823,13 @@ fn test_interim_response_with_body_does_not_leak_body_to_wire() {
     // Read until the final response's body arrives (or the peer stops talking).
     loop {
         match stream.read(&mut buf) {
-            Ok(0) => break,
+            Ok(0) | Err(_) => break,
             Ok(n) => {
                 raw.extend_from_slice(&buf[..n]);
                 if raw.windows(7).any(|w| w == b"handler") {
                     break;
                 }
             }
-            Err(_) => break,
         }
     }
     let wire = String::from_utf8_lossy(&raw).into_owned();

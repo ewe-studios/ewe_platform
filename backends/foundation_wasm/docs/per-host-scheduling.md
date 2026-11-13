@@ -43,19 +43,26 @@ Source: `src/host_runtime.rs` — `abi::web::schedule_timeout`, `schedule_microt
 ## WASI Host (timer-based polling) — `wasi` / `wasip2` features
 
 On `wasm32-wasip1` and `wasm32-wasip2`, there is no JS event loop. The `wasi_host`
-module provides a guest-driven polling model backed by `std::time`:
+module provides a guest-driven polling model. The host installs its monotonic clock
+as a `TimeSource` with `WasiHost::new().with_time_source(src).install()` before the
+module runs. The clock-reading functions return `WasiHostError::TimeSourceNotInstalled`
+when the host installs no source. The `*_at` variants take the instant from the
+caller and need no source. No direct clock read stays in the module (issue #219).
 
 ```
 Guest (wasm)                          WASI Host
 ────────────                          ─────────
+WasiHost::new().with_time_source(src).install()
+  → stores src in the module's TIME_SOURCE slot
+
 register_schedule(50ms, callback)
   → stores callback in SCHEDULED_CALLBACKS (same registry)
-  → stores TimeoutEntry { deadline: Instant::now() + 50ms } in TIMERS
+  → stores TimeoutEntry { deadline: src.now() + 50ms } in TIMERS
 
 // option A: guest drives the loop
 loop {
     tick()                            (no host involvement)
-      → checks Instant::now() >= deadline
+      → checks src.now() >= deadline
       → fires expired callbacks
       → returns STOP when idle
 }
@@ -81,8 +88,10 @@ Key properties:
   `loop { poll_blocking(); }`.
 - `time_until_next_event()` enables integration with external event loops (e.g. an
   embedder can sleep for that duration, then call `wasi_tick()`).
-- Timing uses `std::time::Instant` which maps to `clock_time_get` (wasip1) or
-  `wasi:clocks/monotonic-clock` (wasip2) — both provide monotonic nanosecond resolution.
+- Timing uses the host's `TimeSource`, which maps `std::time::Instant` to
+  `clock_time_get` (wasip1) or `wasi:clocks/monotonic-clock` (wasip2) — both
+  provide monotonic nanosecond resolution. A test supplies a source it moves by
+  hand instead.
 - Animation frames use a lazy-initialized `START_TIME` for monotonic seconds.
 
 Source: `src/wasi_host.rs`, `src/host_runtime.rs` (exposed_runtime wasi_* exports).

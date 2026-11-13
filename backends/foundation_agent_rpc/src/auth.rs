@@ -30,7 +30,7 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
-use foundation_connectrpc::{ConnectResult, Ctx, Request, Response};
+use foundation_connectrpc::{ConnectResult, Request, Response, RpcCtx};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use rcgen::{
@@ -156,7 +156,7 @@ impl CertificateAuthority {
             KeyUsagePurpose::CrlSign,
             KeyUsagePurpose::DigitalSignature,
         ];
-        let _ = validity(&mut params, Duration::from_secs(10 * 365 * 24 * 3600));
+        let _ = validity(&mut params, Duration::from_hours(10 * 365 * 24));
         let cert = params
             .self_signed(&key)
             .map_err(|e| tls_err("CA self-sign", e))?;
@@ -196,7 +196,10 @@ impl CertificateAuthority {
     /// # Errors
     /// [`AgentRpcError::Config`] when only one of the two files exists, a file
     /// cannot be read or written, or the PEM is invalid.
-    pub fn load_or_generate(state_dir: impl AsRef<Path>, common_name: &str) -> AgentRpcResult<Self> {
+    pub fn load_or_generate(
+        state_dir: impl AsRef<Path>,
+        common_name: &str,
+    ) -> AgentRpcResult<Self> {
         let dir = state_dir.as_ref();
         let (cert_path, key_path) = (dir.join(CA_CERT_FILE), dir.join(CA_KEY_FILE));
         let read = |p: &Path| {
@@ -365,8 +368,8 @@ impl MtlsConfig {
             secrets,
             trusted,
             server_names: vec!["localhost".into(), "127.0.0.1".into(), "::1".into()],
-            server_cert_lifetime: Duration::from_secs(90 * 24 * 3600),
-            client_cert_lifetime: Duration::from_secs(90 * 24 * 3600),
+            server_cert_lifetime: Duration::from_hours(90 * 24),
+            client_cert_lifetime: Duration::from_hours(90 * 24),
             max_enrollments: 1,
             bootstrap_bind: None,
         }
@@ -381,13 +384,19 @@ impl MtlsConfig {
     /// - the trusted-client store (SQLite,
     ///   [`TrustedClientStore::default_path`]).
     ///
+    /// `ctx` supplies the connection gate for the trusted-client store.
+    ///
     /// # Errors
     /// [`AgentRpcError::Config`] / [`AgentRpcError::Storage`] when any of the
     /// three cannot be loaded or created.
-    pub async fn from_state_dir(state_dir: impl AsRef<Path>) -> AgentRpcResult<Self> {
+    pub async fn from_state_dir(
+        state_dir: impl AsRef<Path>,
+        ctx: foundation_context::Ctx,
+    ) -> AgentRpcResult<Self> {
         Self::from_state_dir_with(
             state_dir.as_ref(),
             &SigningKeyConfig::in_state_dir(state_dir.as_ref()),
+            ctx,
         )
         .await
     }
@@ -400,12 +409,14 @@ impl MtlsConfig {
     pub async fn from_state_dir_with(
         state_dir: &Path,
         signing_key: &SigningKeyConfig,
+        ctx: foundation_context::Ctx,
     ) -> AgentRpcResult<Self> {
         let ca = CertificateAuthority::load_or_generate(state_dir, Self::DEFAULT_CA_NAME)?;
         let (key, origin) = SigningKey::load_or_generate(signing_key)?;
         tracing::debug!(?origin, "bootstrap signing key ready");
         let trusted =
-            TrustedClientStore::open_sqlite(TrustedClientStore::default_path(state_dir)).await?;
+            TrustedClientStore::open_sqlite(TrustedClientStore::default_path(state_dir), ctx)
+                .await?;
         Ok(Self::new(
             Arc::new(ca),
             Arc::new(BootstrapSecrets::new(key)),
@@ -543,7 +554,12 @@ impl EnrollmentService {
                 .sign_client_csr(&req.csr_pem, &req.client_name, self.client_cert_lifetime)?;
         if !self
             .trusted
-            .consume_secret_use(&verified.id, verified.valid_until, self.max_enrollments, now)
+            .consume_secret_use(
+                &verified.id,
+                verified.valid_until,
+                self.max_enrollments,
+                now,
+            )
             .await?
         {
             tracing::warn!(client = %req.client_name, "enrollment refused: bootstrap secret already used");
@@ -576,24 +592,22 @@ impl EnrollmentService {
 }
 
 impl BootstrapService for EnrollmentService {
-    fn enroll(
+    async fn enroll(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         request: Request<EnrollRequest>,
-    ) -> impl std::future::Future<Output = ConnectResult<Response<EnrollResponse>>> + Send {
-        async move {
-            self.enroll_client(&request.msg)
-                .await
-                .map(Response::new)
-                .map_err(|e| e.current_context().clone().into())
-        }
+    ) -> ConnectResult<Response<EnrollResponse>> {
+        self.enroll_client(&request.msg)
+            .await
+            .map(Response::new)
+            .map_err(|e| e.current_context().clone().into())
     }
 }
 
 // ---------------------------------------------------------------------------
 // Client-certificate verification
 
-/// WebPKI chain verification to the CA, then the trusted-client store: the
+/// `WebPKI` chain verification to the CA, then the trusted-client store: the
 /// certificate must have been issued here and be neither revoked nor expired.
 /// A successful handshake updates the client's last-seen time in the
 /// background (the verifier cannot await).
@@ -634,18 +648,24 @@ impl ClientCertVerifier for TrustedClientVerifier {
                         tracing::warn!(error = %e.current_context(), "recording a client handshake failed");
                     }
                 };
-                if let Err(e) = foundation_core::valtron::send(foundation_core::valtron::from_future(seen)) {
+                if let Err(e) =
+                    foundation_core::valtron::send(foundation_core::valtron::from_future(seen))
+                {
                     tracing::warn!(error = %e, "scheduling the last-seen update failed");
                 }
                 Ok(ClientCertVerified::assertion())
             }
             Some(client) if client.revoked_at.is_some() => {
                 tracing::warn!(client = %client.client_name, "mTLS refused: client revoked");
-                Err(rustls::Error::InvalidCertificate(rustls::CertificateError::Revoked))
+                Err(rustls::Error::InvalidCertificate(
+                    rustls::CertificateError::Revoked,
+                ))
             }
             Some(client) => {
                 tracing::warn!(client = %client.client_name, "mTLS refused: client certificate expired");
-                Err(rustls::Error::InvalidCertificate(rustls::CertificateError::Expired))
+                Err(rustls::Error::InvalidCertificate(
+                    rustls::CertificateError::Expired,
+                ))
             }
             None => {
                 tracing::warn!(%fingerprint, "mTLS refused: certificate not in the trusted-client store");

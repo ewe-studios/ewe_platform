@@ -17,7 +17,7 @@
 //! use foundation_netio::shared::http::latency_tracker::LatencyTracker;
 //! use std::time::Duration;
 //!
-//! let tracker = LatencyTracker::new();
+//! let tracker = LatencyTracker::new(foundation_context::Ctx::host());
 //!
 //! // Record a latency sample
 //! tracker.record("api.example.com/users", Duration::from_millis(150));
@@ -28,9 +28,12 @@
 //! }
 //! ```
 
+use foundation_context::Ctx;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// A single latency sample.
 #[derive(Debug, Clone, Copy)]
@@ -42,11 +45,11 @@ pub struct LatencySample {
 }
 
 impl LatencySample {
-    /// Create a new latency sample.
+    /// Create a new latency sample stamped with `clock`.
     #[must_use]
-    pub fn new(duration: Duration) -> Self {
+    pub fn new(duration: Duration, ctx: &Ctx) -> Self {
         Self {
-            timestamp: Instant::now(),
+            timestamp: ctx.clock().now(),
             duration,
         }
     }
@@ -66,7 +69,6 @@ pub struct LatencyStats {
 }
 
 /// Per-endpoint latency history with ring buffer.
-#[derive(Debug)]
 pub struct EndpointLatency {
     /// Ring buffer of samples (oldest at front).
     samples: VecDeque<LatencySample>,
@@ -76,17 +78,30 @@ pub struct EndpointLatency {
     cached_stats: Option<LatencyStats>,
     /// When cache was last updated.
     cache_timestamp: Instant,
+    /// The clock that measures the cache age and the sample TTL.
+    ctx: Ctx,
+}
+
+impl core::fmt::Debug for EndpointLatency {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("EndpointLatency")
+            .field("samples", &self.samples)
+            .field("max_samples", &self.max_samples)
+            .finish_non_exhaustive()
+    }
 }
 
 impl EndpointLatency {
     /// Create a new endpoint latency tracker.
     #[must_use]
-    pub fn new(max_samples: usize) -> Self {
+    pub fn new(max_samples: usize, ctx: Ctx) -> Self {
+        let cache_timestamp = ctx.clock().now();
         Self {
             samples: VecDeque::with_capacity(max_samples.min(100)),
             max_samples,
             cached_stats: None,
-            cache_timestamp: Instant::now(),
+            cache_timestamp,
+            ctx,
         }
     }
 
@@ -110,7 +125,13 @@ impl EndpointLatency {
     pub fn get_stats(&mut self, max_cache_age: Duration) -> Option<LatencyStats> {
         // Return cached if fresh
         if let Some(ref stats) = self.cached_stats {
-            if self.cache_timestamp.elapsed() < max_cache_age {
+            if self
+                .ctx
+                .clock()
+                .now()
+                .saturating_duration_since(self.cache_timestamp)
+                < max_cache_age
+            {
                 return Some(*stats);
             }
         }
@@ -122,11 +143,14 @@ impl EndpointLatency {
         // Calculate percentiles
         let stats = self.calculate_percentiles();
         self.cached_stats = Some(stats);
-        self.cache_timestamp = Instant::now();
+        self.cache_timestamp = self.ctx.clock().now();
         Some(stats)
     }
 
     /// Calculate P50 and P99 from samples.
+    // A u64 count of milliseconds spans ~584 million years, so the u128 ->
+    // u64 cast of `as_millis()` is lossless for any real sample.
+    #[allow(clippy::cast_possible_truncation)]
     fn calculate_percentiles(&self) -> LatencyStats {
         let durations: Vec<u64> = self
             .samples
@@ -141,13 +165,13 @@ impl EndpointLatency {
             p50: Duration::from_millis(p50),
             p99: Duration::from_millis(p99),
             sample_count: durations.len(),
-            calculated_at: Instant::now(),
+            calculated_at: self.ctx.clock().now(),
         }
     }
 
     /// Remove samples older than the given duration.
     pub fn expire_old_samples(&mut self, ttl: Duration) {
-        let now = Instant::now();
+        let now = self.ctx.clock().now();
         while let Some(sample) = self.samples.front() {
             if now.duration_since(sample.timestamp) > ttl {
                 self.samples.pop_front();
@@ -166,8 +190,9 @@ impl EndpointLatency {
     }
 }
 
-/// Calculate percentile from sorted data.
-fn percentile(data: &[u64], p: usize) -> u64 {
+/// Calculate a percentile value from data. Empty data returns 0.
+#[must_use]
+pub fn percentile(data: &[u64], p: usize) -> u64 {
     if data.is_empty() {
         return 0;
     }
@@ -209,7 +234,7 @@ impl Default for LatencyTrackerConfig {
 ///
 /// WHY: Multiple threads may record latencies for the same endpoint.
 /// WHAT: RwLock-protected `HashMap` of endpoint -> `EndpointLatency`.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct LatencyTracker {
     /// Per-endpoint latency history.
     endpoints: Arc<RwLock<HashMap<String, EndpointLatency>>>,
@@ -217,22 +242,34 @@ pub struct LatencyTracker {
     config: LatencyTrackerConfig,
     /// Last cleanup time.
     last_cleanup: Arc<RwLock<Instant>>,
+    /// The clock that measures cleanup age, cache age and sample times.
+    ctx: Ctx,
+}
+
+impl core::fmt::Debug for LatencyTracker {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("LatencyTracker")
+            .field("config", &self.config)
+            .finish_non_exhaustive()
+    }
 }
 
 impl LatencyTracker {
     /// Create a new latency tracker with default config.
     #[must_use]
-    pub fn new() -> Self {
-        Self::with_config(LatencyTrackerConfig::default())
+    pub fn new(ctx: Ctx) -> Self {
+        Self::with_config(LatencyTrackerConfig::default(), ctx)
     }
 
     /// Create a new latency tracker with custom config.
     #[must_use]
-    pub fn with_config(config: LatencyTrackerConfig) -> Self {
+    pub fn with_config(config: LatencyTrackerConfig, ctx: Ctx) -> Self {
+        let last_cleanup = ctx.clock().now();
         Self {
             endpoints: Arc::new(RwLock::new(HashMap::new())),
             config,
-            last_cleanup: Arc::new(RwLock::new(Instant::now())),
+            last_cleanup: Arc::new(RwLock::new(last_cleanup)),
+            ctx,
         }
     }
 
@@ -244,12 +281,12 @@ impl LatencyTracker {
     ///
     /// This function does not panic.
     pub fn record(&self, endpoint: &str, duration: Duration) {
-        let sample = LatencySample::new(duration);
+        let sample = LatencySample::new(duration, &self.ctx);
 
         let mut endpoints = self.endpoints.write().expect("poisoned lock");
-        let endpoint_latency = endpoints
-            .entry(endpoint.to_string())
-            .or_insert_with(|| EndpointLatency::new(self.config.max_samples_per_endpoint));
+        let endpoint_latency = endpoints.entry(endpoint.to_string()).or_insert_with(|| {
+            EndpointLatency::new(self.config.max_samples_per_endpoint, self.ctx.clone())
+        });
 
         endpoint_latency.record(sample);
     }
@@ -325,7 +362,7 @@ impl LatencyTracker {
 
         let should_cleanup = {
             let last = self.last_cleanup.read().expect("poisoned lock");
-            last.elapsed() > self.config.cleanup_interval
+            self.ctx.clock().now().saturating_duration_since(*last) > self.config.cleanup_interval
         };
 
         if should_cleanup {
@@ -338,7 +375,7 @@ impl LatencyTracker {
             endpoints.retain(|_, ep| ep.sample_count() > 0);
 
             let mut last = self.last_cleanup.write().expect("poisoned lock");
-            *last = Instant::now();
+            *last = self.ctx.clock().now();
         }
     }
 
@@ -357,154 +394,6 @@ impl LatencyTracker {
         endpoints.retain(|_, ep| ep.sample_count() > 0);
 
         let mut last = self.last_cleanup.write().expect("poisoned lock");
-        *last = Instant::now();
-    }
-}
-
-impl Default for LatencyTracker {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_latency_sample_new() {
-        let before = Instant::now();
-        let sample = LatencySample::new(Duration::from_millis(100));
-        let after = Instant::now();
-
-        assert_eq!(sample.duration, Duration::from_millis(100));
-        assert!(sample.timestamp >= before);
-        assert!(sample.timestamp <= after);
-    }
-
-    #[test]
-    fn test_endpoint_latency_record() {
-        let mut ep = EndpointLatency::new(3);
-
-        ep.record(LatencySample::new(Duration::from_millis(100)));
-        ep.record(LatencySample::new(Duration::from_millis(200)));
-        ep.record(LatencySample::new(Duration::from_millis(300)));
-
-        assert_eq!(ep.sample_count(), 3);
-
-        // Should evict oldest
-        ep.record(LatencySample::new(Duration::from_millis(400)));
-        assert_eq!(ep.sample_count(), 3);
-    }
-
-    #[test]
-    fn test_percentile_calculation() {
-        let data = vec![10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-
-        let p50 = percentile(&data, 50);
-        let p99 = percentile(&data, 99);
-
-        // P50 should be around the median
-        assert!(p50 >= 50 && p50 <= 60);
-        // P99 should be near the max
-        assert_eq!(p99, 100);
-    }
-
-    #[test]
-    fn test_endpoint_latency_stats() {
-        let mut ep = EndpointLatency::new(100);
-
-        // Add samples: 10, 20, 30, ..., 100
-        for i in 1..=10 {
-            ep.record(LatencySample::new(Duration::from_millis(i * 10)));
-        }
-
-        let stats = ep.get_stats(Duration::from_secs(60)).unwrap();
-
-        // P50 should be around 50-60ms
-        assert!(stats.p50.as_millis() >= 50 && stats.p50.as_millis() <= 60);
-        // P99 should be around 100ms
-        assert!(stats.p99.as_millis() >= 90 && stats.p99.as_millis() <= 100);
-        assert_eq!(stats.sample_count, 10);
-    }
-
-    #[test]
-    fn test_latency_tracker_record_and_get() {
-        let tracker = LatencyTracker::new();
-
-        tracker.record("api.example.com", Duration::from_millis(100));
-        tracker.record("api.example.com", Duration::from_millis(200));
-        tracker.record("api.example.com", Duration::from_millis(300));
-
-        let stats = tracker.get_stats("api.example.com").unwrap();
-        assert_eq!(stats.sample_count, 3);
-        assert!(stats.p50.as_millis() > 0);
-    }
-
-    #[test]
-    fn test_latency_tracker_multiple_endpoints() {
-        let tracker = LatencyTracker::new();
-
-        tracker.record("api1.example.com", Duration::from_millis(100));
-        tracker.record("api2.example.com", Duration::from_millis(200));
-
-        assert_eq!(tracker.endpoint_count(), 2);
-
-        let stats1 = tracker.get_stats("api1.example.com").unwrap();
-        let stats2 = tracker.get_stats("api2.example.com").unwrap();
-
-        assert_eq!(stats1.sample_count, 1);
-        assert_eq!(stats2.sample_count, 1);
-    }
-
-    #[test]
-    fn test_latency_tracker_unknown_endpoint() {
-        let tracker = LatencyTracker::new();
-
-        let stats = tracker.get_stats("unknown.example.com");
-        assert!(stats.is_none());
-    }
-
-    #[test]
-    fn test_latency_tracker_clear() {
-        let tracker = LatencyTracker::new();
-
-        tracker.record("api.example.com", Duration::from_millis(100));
-        assert_eq!(tracker.endpoint_count(), 1);
-
-        tracker.clear();
-        assert_eq!(tracker.endpoint_count(), 0);
-    }
-
-    #[test]
-    fn test_cache_invalidation() {
-        let mut ep = EndpointLatency::new(100);
-
-        ep.record(LatencySample::new(Duration::from_millis(100)));
-        let stats1 = ep.get_stats(Duration::from_secs(60)).unwrap();
-
-        // Add more samples - cache should be invalidated
-        ep.record(LatencySample::new(Duration::from_millis(500)));
-        ep.record(LatencySample::new(Duration::from_millis(500)));
-        let stats2 = ep.get_stats(Duration::from_secs(60)).unwrap();
-
-        // P50 should have increased
-        assert!(stats2.p50 > stats1.p50);
-    }
-
-    #[test]
-    fn test_empty_percentile() {
-        let data: Vec<u64> = vec![];
-        let p50 = percentile(&data, 50);
-        assert_eq!(p50, 0);
-    }
-
-    #[test]
-    fn test_single_sample_percentile() {
-        let data = vec![42];
-        let p50 = percentile(&data, 50);
-        let p99 = percentile(&data, 99);
-        assert_eq!(p50, 42);
-        assert_eq!(p99, 42);
+        *last = self.ctx.clock().now();
     }
 }

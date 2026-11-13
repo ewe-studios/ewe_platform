@@ -5,11 +5,10 @@
 //!
 //! Run with: `cargo test --package foundation_deployment_huggingface -- --ignored --nocapture`
 
-use foundation_core::valtron;
+use foundation_core::valtron::valtron_test;
 use foundation_deployment_huggingface::{
     client, repository, types, HFClientBuilder, HuggingFaceError,
 };
-use tracing_test::traced_test;
 
 fn get_token() -> Option<String> {
     let token = std::env::var("HF_TOKEN").ok();
@@ -22,21 +21,15 @@ fn get_token() -> Option<String> {
     token
 }
 
-fn init_valtron() -> valtron::PoolGuard {
-    valtron::initialize_pool(42, Some(4))
-}
-
-#[test]
+#[valtron_test]
 #[ignore = "requires HF_TOKEN environment variable"]
-#[traced_test]
-fn test_whoami() -> Result<(), HuggingFaceError> {
-    let _guard = init_valtron();
+async fn test_whoami() -> Result<(), HuggingFaceError> {
     let token =
         get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
     let client = HFClientBuilder::new().token(token).build()?;
 
-    let user = client::whoami(&client)?;
+    let user = client::whoami(&client).await?;
 
     tracing::info!("Authenticated as: {}", user.username);
     if let Some(fullname) = user.fullname {
@@ -48,31 +41,27 @@ fn test_whoami() -> Result<(), HuggingFaceError> {
     tracing::info!("User type: {:?}", user.user_type);
     tracing::info!("Is pro: {:?}", user.is_pro);
 
-    assert!(!user.username.is_empty());
+    assert_ne!(user.username, "");
     Ok(())
 }
 
-#[test]
+#[valtron_test]
 #[ignore = "requires HF_TOKEN environment variable"]
-#[traced_test]
-fn test_auth_check() -> Result<(), HuggingFaceError> {
-    let _guard = init_valtron();
+async fn test_auth_check() -> Result<(), HuggingFaceError> {
     let token =
         get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
     let client = HFClientBuilder::new().token(token).build()?;
 
-    client::auth_check(&client)?;
+    client::auth_check(&client).await?;
 
     tracing::info!("Authentication successful!");
     Ok(())
 }
 
-#[test]
+#[valtron_test]
 #[ignore = "requires HF_TOKEN environment variable"]
-#[traced_test]
-fn test_list_models() -> Result<(), Box<dyn std::error::Error>> {
-    let _guard = init_valtron();
+async fn test_list_models() -> Result<(), HuggingFaceError> {
     let token =
         get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
@@ -83,7 +72,7 @@ fn test_list_models() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    let stream = client::list_models(&client, &params)?;
+    let stream = client::list_models(&client, &params).await?;
 
     let models: Vec<_> = foundation_core::valtron::collect_result(stream);
 
@@ -104,11 +93,9 @@ fn test_list_models() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[test]
+#[valtron_test]
 #[ignore = "requires HF_TOKEN environment variable"]
-#[traced_test]
-fn test_list_datasets() -> Result<(), Box<dyn std::error::Error>> {
-    let _guard = init_valtron();
+async fn test_list_datasets() -> Result<(), HuggingFaceError> {
     let token =
         get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
@@ -119,7 +106,7 @@ fn test_list_datasets() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    let stream = client::list_datasets(&client, &params)?;
+    let stream = client::list_datasets(&client, &params).await?;
 
     let datasets: Vec<_> = foundation_core::valtron::collect_result(stream);
 
@@ -140,11 +127,9 @@ fn test_list_datasets() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[test]
+#[valtron_test]
 #[ignore = "requires HF_TOKEN environment variable"]
-#[traced_test]
-fn test_repository_info() -> Result<(), Box<dyn std::error::Error>> {
-    let _guard = init_valtron();
+async fn test_repository_info() -> Result<(), HuggingFaceError> {
     let token =
         get_token().expect("HF_TOKEN environment variable must be set for integration tests");
 
@@ -154,7 +139,7 @@ fn test_repository_info() -> Result<(), Box<dyn std::error::Error>> {
     let repo = client.model("google-bert".to_string(), "bert-base-uncased".to_string());
 
     // This should work even without auth for public repos
-    match repository::repo_info(&repo, &types::RepoInfoParams::default()) {
+    match repository::repo_info(&repo, &types::RepoInfoParams::default()).await {
         Ok(info) => {
             tracing::info!("Repository info retrieved successfully");
             if let types::RepoInfo::Model(model) = info {

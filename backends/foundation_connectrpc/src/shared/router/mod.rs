@@ -2,7 +2,7 @@
 //!
 //! WHY: The server spine. One [`Router`] holds every procedure keyed by its
 //! full leading-slash path (R1) and serves all three protocols (Connect, gRPC,
-//! gRPC-Web) from a **single** foundation_http prefix route — protocol is
+//! gRPC-Web) from a **single** `foundation_http` prefix route — protocol is
 //! detected per request from `Content-Type`, never per registration. Type
 //! erasure at the byte boundary (see [`erased`]) keeps the map generic-free.
 //!
@@ -28,13 +28,15 @@ use std::collections::HashMap;
 
 use crate::shared::codec::ProcedureCodecs;
 use crate::shared::compression::{CompressionRegistry, Compressor, SizeLimits};
-use crate::shared::context::{Ctx, IdempotencyLevel, Spec, StreamType};
+use crate::shared::context::{IdempotencyLevel, RpcCtx, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamingHandlerFunc, UnaryFunc,
 };
 use crate::shared::message::{Request, Response};
-use crate::shared::protocol::{connect::ConnectHandler, grpc::GrpcHandler, grpc_web::GrpcWebHandler, ProtocolHandler};
+use crate::shared::protocol::{
+    connect::ConnectHandler, grpc::GrpcHandler, grpc_web::GrpcWebHandler, ProtocolHandler,
+};
 use crate::shared::transport::DEFAULT_PIPE_DEPTH;
 
 use erased::{
@@ -46,10 +48,10 @@ pub use dispatch::{
     in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, RequestBody,
     ResponseSink,
 };
-pub use erased::RequestStream;
 pub(crate) use erased::ProcedureMeta;
+pub use erased::RequestStream;
 
-/// Per-procedure (and global) handler configuration (Decision 08 §HandlerOptions).
+/// Per-procedure (and global) handler configuration (Decision 08 §`HandlerOptions`).
 /// Codecs are **not** here — they are installed only through the registration
 /// `ProcedureCodecs` parameter (Decision 02); the client picks per request.
 pub struct HandlerOptions {
@@ -147,7 +149,7 @@ impl HandlerOptions {
     #[must_use]
     pub fn with_recover<F>(mut self, handler: F) -> Self
     where
-        F: Fn(&Ctx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError
+        F: Fn(&RpcCtx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError
             + Clone
             + Send
             + Sync
@@ -230,13 +232,13 @@ impl Router {
     ) where
         Req: Send + 'static,
         Res: Send + 'static,
-        F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, Request<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
         let inner = unary_handler(codecs.clone(), handler);
         let func = self.compose_unary(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::Unary,
             HandlerKind::Unary(Arc::new(UnaryHandlerImpl::new(func))),
@@ -257,13 +259,13 @@ impl Router {
         Req: Send + 'static,
         Res: Send + 'static,
         S: futures::Stream<Item = ConnectResult<Res>> + Send + 'static,
-        F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, Request<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<S>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
         let inner = server_stream_handler(codecs.clone(), handler);
         let func = self.compose_streaming(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::ServerStream,
             HandlerKind::ServerStream(Arc::new(StreamHandlerImpl::new(func))),
@@ -283,13 +285,13 @@ impl Router {
     ) where
         Req: Send + 'static,
         Res: Send + 'static,
-        F: Fn(Ctx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
         let inner = client_stream_handler(codecs.clone(), handler);
         let func = self.compose_streaming(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::ClientStream,
             HandlerKind::ClientStream(Arc::new(StreamHandlerImpl::new(func))),
@@ -310,13 +312,13 @@ impl Router {
         Req: Send + 'static,
         Res: Send + 'static,
         S: futures::Stream<Item = ConnectResult<Res>> + Send + 'static,
-        F: Fn(Ctx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<S>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
         let inner = bidi_stream_handler(codecs.clone(), handler);
         let func = self.compose_streaming(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::BidiStream,
             HandlerKind::BidiStream(Arc::new(StreamHandlerImpl::new(func))),
@@ -326,7 +328,7 @@ impl Router {
         self.handlers.insert(procedure.to_string(), entry);
     }
 
-    /// Consume the router, producing the frozen foundation_http prefix handler
+    /// Consume the router, producing the frozen `foundation_http` prefix handler
     /// (Q10 — no post-build mutation).
     #[must_use]
     pub fn into_handler(self) -> ConnectRpcHandler {
@@ -376,7 +378,6 @@ impl Router {
     }
 
     fn build_entry(
-        &self,
         procedure: &str,
         stream_type: StreamType,
         handler: HandlerKind,

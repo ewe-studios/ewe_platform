@@ -4,6 +4,6 @@
 //! `native` feature flag.
 
 #[cfg(feature = "native")]
-pub mod input;
-#[cfg(feature = "native")]
 pub mod display;
+#[cfg(feature = "native")]
+pub mod input;

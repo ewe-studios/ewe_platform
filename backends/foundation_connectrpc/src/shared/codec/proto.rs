@@ -10,8 +10,8 @@
 //! `marshal_append` writes into the caller's buffer. buffa encodes fields in tag
 //! order deterministically, so `marshal_stable` reuses `marshal` (Decision 02).
 
-use bytes::Bytes;
 use buffa::{Message, MessageView, OwnedView};
+use bytes::Bytes;
 
 use super::{Codec, CodecError, CodecFor};
 

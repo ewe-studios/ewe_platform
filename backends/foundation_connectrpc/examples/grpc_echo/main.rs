@@ -17,17 +17,18 @@ use std::time::Duration;
 
 use futures::StreamExt;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
-use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
+use foundation_http::native::server::HttpServer;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, RequestStream, Response, Router, RpcCtx,
 };
 
 // ── Message type — plain serde, JSON-only ─────────────────────────────────────
@@ -60,7 +61,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -69,7 +70,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -81,7 +82,7 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(msg) = reqs.next().await {
                 parts.push(msg?.text);
@@ -94,7 +95,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
         HandlerOptions::new(),
@@ -105,9 +106,8 @@ fn build_router() -> Router {
 
 // ── Server — identical to h2_echo ────────────────────────────────────────────
 
-fn start_server() -> (String, Arc<OnSignal>) {
-    let rpc: Arc<dyn H2Serve> =
-        Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
+fn start_server() -> (String, Arc<ShutdownSignal>) {
+    let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
     app.route_any_h2(UNARY, rpc.clone());
@@ -117,7 +117,7 @@ fn start_server() -> (String, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
@@ -146,8 +146,8 @@ fn grpc_client_for(addr: &str, procedure: &str) -> Client<Msg, Msg> {
     .expect("build client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 // ── Entry point — all four modes, gRPC framing ───────────────────────────────
@@ -209,10 +209,7 @@ async fn main() {
     // exposes `.send()` and `.receive()`.
 
     let client = grpc_client_for(&addr, BIDI);
-    let mut stream = client
-        .bidi_stream(ctx(), futures::stream::iter(Vec::<Msg>::new()))
-        .await
-        .expect("open bidi");
+    let mut stream = client.bidi_stream(ctx()).await.expect("open bidi");
 
     for text in ["x", "y", "z"] {
         stream.send(&Msg::of(text)).await.expect("send");

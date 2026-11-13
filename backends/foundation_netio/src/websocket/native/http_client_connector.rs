@@ -18,7 +18,9 @@
 //! HOW: Delegates to [`WebSocketClient::connect_with_config`] for the client
 //! and [`WebSocketClient::connect_parts`] for the task path.
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskSpread, TaskStatus};
+
+use foundation_context::Ctx;
 
 use crate::http::NativeHttpClient;
 use crate::shared::client::DnsResolver;
@@ -41,10 +43,7 @@ struct PendingMapWsTask<I> {
 
 impl<I> TaskIterator for PendingMapWsTask<I>
 where
-    I: TaskIterator<
-        Ready = Result<WebSocketMessage, WebSocketError>,
-        Pending = WsPending,
-    >,
+    I: TaskIterator<Ready = Result<WebSocketMessage, WebSocketError>, Pending = WsPending>,
 {
     type Ready = Result<WebSocketMessage, WebSocketError>;
     type Pending = WsProgress;
@@ -63,9 +62,7 @@ where
                     .into_iter()
                     .map(|spread| match spread {
                         TaskSpread::Ready(d) => TaskSpread::Ready(d),
-                        TaskSpread::Pending(p) => {
-                            TaskSpread::Pending(native_progress(p))
-                        }
+                        TaskSpread::Pending(p) => TaskSpread::Pending(native_progress(p)),
                     })
                     .collect();
                 Some(TaskStatus::Spread(mapped))

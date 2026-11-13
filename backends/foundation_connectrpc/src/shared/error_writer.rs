@@ -2,10 +2,10 @@
 //!
 //! WHY: Middleware that runs **before** handler dispatch (e.g. auth) must be able
 //! to write an error in the correct protocol format without owning the handler
-//! machinery. The rendering differs per protocol: Connect unary is an HTTP status
-//! + JSON body; Connect streaming is a `200` with an `EndStreamResponse` envelope
-//! (`0x02`); gRPC-Web is a `200` with a `0x80` trailer frame carrying the gRPC
-//! status.
+//! machinery. The rendering differs per protocol: Connect unary is an HTTP
+//! status with a JSON body; Connect streaming is a `200` with an
+//! `EndStreamResponse` envelope (`0x02`); gRPC-Web is a `200` with a `0x80`
+//! trailer frame carrying the gRPC status.
 //!
 //! WHAT: [`ErrorWriter`] with [`is_supported`](ErrorWriter::is_supported) and
 //! [`write`](ErrorWriter::write), plus the GET-only `304 Not Modified` rendering.
@@ -24,8 +24,8 @@ use foundation_netio::shared::http::{
     SimpleOutgoingResponse, Status,
 };
 
-use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::EnvelopeWriter;
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::protocol::grpc_web::{
     self, build_status_trailers, render_trailer_frame_body, Base64StreamEncoder,
 };
@@ -68,21 +68,26 @@ impl ErrorWriter {
         }
 
         match request_kind(request) {
-            Some(RequestKind::ConnectUnary) => self.write_connect_unary(response, error),
+            Some(RequestKind::ConnectUnary) | None => {
+                // A request that is not a recognized RPC gets a Connect-JSON
+                // error as a safe default.
+                Self::write_connect_unary(response, error)
+            }
             Some(RequestKind::ConnectStreaming { codec }) => {
-                self.write_connect_streaming(response, &codec, error)
+                Self::write_connect_streaming(response, &codec, error)
             }
             Some(RequestKind::GrpcWeb { codec, text }) => {
-                self.write_grpc_web(response, &codec, text, error)
+                Self::write_grpc_web(response, &codec, text, error);
+                Ok(())
             }
-            Some(RequestKind::Grpc { codec }) => self.write_grpc(response, &codec, error),
-            // Not a recognized RPC request — render a Connect-JSON error as a safe default.
-            None => self.write_connect_unary(response, error),
+            Some(RequestKind::Grpc { codec }) => {
+                Self::write_grpc(response, &codec, error);
+                Ok(())
+            }
         }
     }
 
     fn write_connect_unary(
-        &self,
         response: &mut SimpleOutgoingResponse,
         error: &ErrorTrace<ConnectError>,
     ) -> ConnectResult<()> {
@@ -93,7 +98,6 @@ impl ErrorWriter {
     }
 
     fn write_connect_streaming(
-        &self,
         response: &mut SimpleOutgoingResponse,
         codec: &str,
         error: &ErrorTrace<ConnectError>,
@@ -106,13 +110,16 @@ impl ErrorWriter {
         Ok(())
     }
 
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "a gRPC-Web frame body is far below u32::MAX"
+    )]
     fn write_grpc_web(
-        &self,
         response: &mut SimpleOutgoingResponse,
         codec: &str,
         text: bool,
         error: &ErrorTrace<ConnectError>,
-    ) -> ConnectResult<()> {
+    ) {
         response.status = Status::OK; // gRPC-Web status is in the trailer frame.
         set_content_type(response, &grpc_web::content_type(codec, text));
 
@@ -132,21 +139,18 @@ impl ErrorWriter {
             frame
         };
         response.body = Some(SendSafeBody::Bytes(out));
-        Ok(())
     }
 
     fn write_grpc(
-        &self,
         response: &mut SimpleOutgoingResponse,
         codec: &str,
         error: &ErrorTrace<ConnectError>,
-    ) -> ConnectResult<()> {
+    ) {
         // gRPC: HTTP 200 always, error in grpc-status trailers, no body.
         response.status = Status::OK;
         set_content_type(response, &grpc::content_type(codec));
         response.trailers = build_status_trailers(Some(error), &SimpleHeaders::new());
         response.body = None;
-        Ok(())
     }
 }
 
@@ -189,8 +193,10 @@ fn set_content_type(response: &mut SimpleOutgoingResponse, value: &str) {
 #[must_use]
 pub fn status_from_code(code: Code) -> Status {
     match code {
-        Code::Canceled => Status::InternalServerError, // 499 has no Status variant
-        Code::Unknown | Code::DataLoss | Code::Internal => Status::InternalServerError,
+        // 499 has no `Status` variant, so `Canceled` groups with the 500 codes.
+        Code::Canceled | Code::Unknown | Code::DataLoss | Code::Internal => {
+            Status::InternalServerError
+        }
         Code::InvalidArgument | Code::FailedPrecondition | Code::OutOfRange => Status::BadRequest,
         Code::DeadlineExceeded => Status::GatewayTimeout,
         Code::NotFound => Status::NotFound,
@@ -202,4 +208,3 @@ pub fn status_from_code(code: Code) -> Status {
         Code::Unauthenticated => Status::Unauthorized,
     }
 }
-

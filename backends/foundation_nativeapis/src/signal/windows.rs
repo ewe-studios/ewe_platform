@@ -1,9 +1,9 @@
 // Windows signal handling — SetConsoleCtrlHandler + event object.
 
-use crate::signal::deliver_signal;
 use crate::signal::error::SignalError;
 use crate::signal::event::SignalKind;
 use crate::signal::handle::SignalHandle;
+use crate::signal::note_signal;
 
 /// Register console control handler.
 ///
@@ -17,8 +17,8 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
     let event = unsafe {
         CreateEventW(
             std::ptr::null_mut(),
-            0,            // auto-reset
-            0,            // initial state nonsignaled
+            0, // auto-reset
+            0, // initial state nonsignaled
             std::ptr::null(),
         )
     };
@@ -42,7 +42,7 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
 }
 
 use windows_sys::Win32::System::Console::{
-    CTRL_C_EVENT, CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, CTRL_SHUTDOWN_EVENT,
+    CTRL_CLOSE_EVENT, CTRL_C_EVENT, CTRL_LOGOFF_EVENT, CTRL_SHUTDOWN_EVENT,
 };
 use windows_sys::Win32::System::Threading::SetEvent;
 
@@ -51,21 +51,23 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static GLOBAL_EVENT: AtomicU64 = AtomicU64::new(0);
 
 /// Console control handler.
+///
+/// The handler records the signal and wakes the readiness poll. It does not
+/// deliver to the bus, so the handler never locks or allocates.
 unsafe extern "system" fn console_handler(ctrl_type: u32) -> i32 {
     let kind = match ctrl_type {
         CTRL_C_EVENT => SignalKind::Interrupt,
-        CTRL_CLOSE_EVENT => SignalKind::Terminate,
-        CTRL_LOGOFF_EVENT | CTRL_SHUTDOWN_EVENT => SignalKind::Terminate,
+        CTRL_CLOSE_EVENT | CTRL_LOGOFF_EVENT | CTRL_SHUTDOWN_EVENT => SignalKind::Terminate,
         _ => return 0,
     };
+
+    // Record first: a poll that sees the event must find a set bit.
+    note_signal(kind);
 
     let event = GLOBAL_EVENT.load(Ordering::Relaxed);
     if event != 0 {
         SetEvent(event as _);
     }
-
-    // Deliver to the bus (safe here — the console handler runs on its own thread).
-    deliver_signal(kind);
 
     1
 }

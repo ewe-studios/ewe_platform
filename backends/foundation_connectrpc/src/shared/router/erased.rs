@@ -3,7 +3,7 @@
 //!
 //! WHY: The router stores handlers of many `Req`/`Res` types in one map, so it
 //! must hold them **generic-free**. Unary erases to a bytes function
-//! `(Ctx, codec name, Bytes) -> (Bytes, headers, trailers)`; the three streaming
+//! `(RpcCtx, codec name, Bytes) -> (Bytes, headers, trailers)`; the three streaming
 //! kinds erase to the byte-level [`HandlerConn`] seam (Decision 11). The concrete
 //! `ProcedureCodecs<Req, Res>` table (Decision 02) lives **inside** each wrapper's
 //! closures — it resolves the typed `CodecFor` pair from the per-request codec
@@ -24,13 +24,15 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures::stream::{Stream, StreamExt};
 use foundation_netio::shared::http::SimpleHeaders;
+use futures::stream::{Stream, StreamExt};
 
 use crate::shared::codec::ProcedureCodecs;
-use crate::shared::context::Ctx;
+use crate::shared::context::RpcCtx;
 use crate::shared::error::{ConnectError, ConnectResult};
-use crate::shared::interceptor::{StreamCall, StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryReply};
+use crate::shared::interceptor::{
+    StreamCall, StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryReply,
+};
 use crate::shared::message::{Request, Response};
 use crate::shared::transport::{BoxFuture, HandlerConn, MessageSink, MessageSource};
 
@@ -76,7 +78,7 @@ impl<Req: 'static, Res: 'static> ProcedureMeta for CodecMeta<Req, Res> {
 pub(crate) trait ErasedUnaryHandler: Send + Sync {
     fn handle(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         codec_name: &str,
         body: Bytes,
     ) -> BoxFuture<'static, ConnectResult<(Bytes, SimpleHeaders, SimpleHeaders)>>;
@@ -87,7 +89,7 @@ pub(crate) trait ErasedUnaryHandler: Send + Sync {
 pub(crate) trait ErasedStreamHandler: Send + Sync {
     fn handle(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         codec_name: &str,
         conn: Box<dyn HandlerConn>,
     ) -> BoxFuture<'static, ConnectResult<()>>;
@@ -102,7 +104,7 @@ pub(crate) struct UnaryHandlerImpl {
 impl ErasedUnaryHandler for UnaryHandlerImpl {
     fn handle(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         codec_name: &str,
         body: Bytes,
     ) -> BoxFuture<'static, ConnectResult<(Bytes, SimpleHeaders, SimpleHeaders)>> {
@@ -133,7 +135,7 @@ pub(crate) struct StreamHandlerImpl {
 impl ErasedStreamHandler for StreamHandlerImpl {
     fn handle(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         codec_name: &str,
         conn: Box<dyn HandlerConn>,
     ) -> BoxFuture<'static, ConnectResult<()>> {
@@ -164,21 +166,21 @@ pub(crate) fn unary_handler<Req, Res, F, Fut>(
 where
     Req: Send + 'static,
     Res: Send + 'static,
-    F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+    F: Fn(RpcCtx, Request<Req>) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static,
 {
     let handler = Arc::new(handler);
-    Arc::new(move |ctx: Ctx, call: UnaryCall| {
+    Arc::new(move |ctx: RpcCtx, call: UnaryCall| {
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
-            let msg = req_codec.unmarshal(call.frame)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
+            let msg = request_codec.unmarshal(call.frame)?;
             let request =
                 Request::with_parts(msg, ctx.spec().clone(), ctx.peer().clone(), call.headers);
             let (out, headers, trailers) = handler(ctx.clone(), request).await?.into_parts();
-            let frame = res_codec.marshal(&out)?;
+            let frame = response_codec.marshal(&out)?;
             Ok(UnaryReply {
                 headers,
                 trailers,
@@ -198,30 +200,27 @@ where
     Req: Send + 'static,
     Res: Send + 'static,
     S: Stream<Item = ConnectResult<Res>> + Send + 'static,
-    F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+    F: Fn(RpcCtx, Request<Req>) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = ConnectResult<S>> + Send + 'static,
 {
     let handler = Arc::new(handler);
-    Arc::new(move |ctx: Ctx, call: StreamCall| {
+    Arc::new(move |ctx: RpcCtx, call: StreamCall| {
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
             let headers = call.conn.request_headers().clone();
             let (receiver, sender) = call.conn.split();
 
-            let mut source = MessageSource::new(receiver, req_codec, headers.clone());
+            let mut source = MessageSource::new(receiver, request_codec, headers.clone());
             let req = source.receive().await?.ok_or_else(|| {
-                ConnectError::invalid_argument(
-                    "server-stream requires exactly one request message",
-                )
+                ConnectError::invalid_argument("server-stream requires exactly one request message")
             })?;
-            let request =
-                Request::with_parts(req, ctx.spec().clone(), ctx.peer().clone(), headers);
+            let request = Request::with_parts(req, ctx.spec().clone(), ctx.peer().clone(), headers);
 
             let stream = handler(ctx.clone(), request).await?;
-            let mut sink = MessageSink::new(sender, res_codec);
+            let mut sink = MessageSink::new(sender, response_codec);
             let mut stream = Box::pin(stream);
             while let Some(item) = stream.next().await {
                 match item {
@@ -243,25 +242,25 @@ pub(crate) fn client_stream_handler<Req, Res, F, Fut>(
 where
     Req: Send + 'static,
     Res: Send + 'static,
-    F: Fn(Ctx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
+    F: Fn(RpcCtx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static,
 {
     let handler = Arc::new(handler);
-    Arc::new(move |ctx: Ctx, call: StreamCall| {
+    Arc::new(move |ctx: RpcCtx, call: StreamCall| {
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
             let headers = call.conn.request_headers().clone();
             let (receiver, sender) = call.conn.split();
 
-            let source = MessageSource::new(receiver, req_codec, headers);
+            let source = MessageSource::new(receiver, request_codec, headers);
             let req_stream = source_into_stream(source);
             let (out, resp_headers, trailers) =
                 handler(ctx.clone(), req_stream).await?.into_parts();
 
-            let mut sink = MessageSink::new(sender, res_codec);
+            let mut sink = MessageSink::new(sender, response_codec);
             sink.set_headers(resp_headers).await?;
             sink.send(out).await?;
             sink.close(trailers).await
@@ -279,24 +278,24 @@ where
     Req: Send + 'static,
     Res: Send + 'static,
     S: Stream<Item = ConnectResult<Res>> + Send + 'static,
-    F: Fn(Ctx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
+    F: Fn(RpcCtx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = ConnectResult<S>> + Send + 'static,
 {
     let handler = Arc::new(handler);
-    Arc::new(move |ctx: Ctx, call: StreamCall| {
+    Arc::new(move |ctx: RpcCtx, call: StreamCall| {
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
             let headers = call.conn.request_headers().clone();
             let (receiver, sender) = call.conn.split();
 
-            let source = MessageSource::new(receiver, req_codec, headers);
+            let source = MessageSource::new(receiver, request_codec, headers);
             let req_stream = source_into_stream(source);
             let out_stream = handler(ctx.clone(), req_stream).await?;
 
-            let mut sink = MessageSink::new(sender, res_codec);
+            let mut sink = MessageSink::new(sender, response_codec);
             let mut out_stream = Box::pin(out_stream);
             while let Some(item) = out_stream.next().await {
                 match item {

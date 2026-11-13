@@ -16,13 +16,14 @@ use crate::http::HttpClientConnection;
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, PipeReceiver, TaskIterator, TaskStatus};
+use foundation_core::valtron::{PipeReceiver, TaskIterator, TaskStatus};
 
 use std::io::Write;
 use std::sync::Arc;
@@ -52,6 +53,12 @@ pub struct WebSocketConnectInfo {
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     /// Dynamic timeout calculator - provides all timeout values
     pub timeout_calculator: TimeoutCalculator,
+    /// How long one read on an open connection may block before it reports
+    /// `WouldBlock` or `TimedOut`.
+    ///
+    /// The default is 75 s, the nginx `keepalive_timeout` default. This is an
+    /// idle wait, not the size-based read timeout from `timeout_calculator`.
+    pub idle_timeout: Duration,
 }
 
 /// Open state data for WebSocket connection.
@@ -64,6 +71,8 @@ pub struct WebSocketOpenState {
     pub stream: foundation_core::io::ioutils::SharedByteBufferStream<RawStream>,
     pub outbound_rx: PipeReceiver<WebSocketMessage>,
     pub timeout_calculator: TimeoutCalculator,
+    /// Read wait for the next frame, carried from the connect config.
+    pub idle_timeout: Duration,
     pub assembler: crate::websocket::shared::assembler::MessageAssembler,
     /// Buffer pool for zero-copy frame reading
     pub buffer_pool: Arc<foundation_core::io::buffer_pool::BytesPool>,
@@ -79,6 +88,8 @@ pub struct WebSocketConnectingState {
     pub extra_headers: SimpleHeaders,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
+    /// Read wait for the next frame, carried from the connect config.
+    pub idle_timeout: Duration,
 }
 
 /// `HandshakeSending` state data.
@@ -90,6 +101,8 @@ pub struct WebSocketHandshakeSendingState {
     pub subprotocols: Option<String>,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
+    /// Read wait for the next frame, carried from the connect config.
+    pub idle_timeout: Duration,
 }
 
 /// `HandshakeReading` state data.
@@ -100,6 +113,8 @@ pub struct WebSocketHandshakeReadingState {
     pub subprotocols: Option<String>,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
+    /// Read wait for the next frame, carried from the connect config.
+    pub idle_timeout: Duration,
 }
 
 /// `HandshakeValidating` state data.
@@ -110,6 +125,8 @@ pub struct WebSocketHandshakeValidatingState {
     pub subprotocols: Option<String>,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
+    /// Read wait for the next frame, carried from the connect config.
+    pub idle_timeout: Duration,
 }
 
 /// [`WebSocketState`] represents the state machine states.
@@ -187,6 +204,8 @@ where
                 extra_headers: SimpleHeaders::new(),
                 outbound_rx: None,
                 timeout_calculator: TimeoutCalculator::new(),
+                // 75 s is the nginx `keepalive_timeout` default.
+                idle_timeout: Duration::from_secs(75),
             })))),
             pool,
         })
@@ -226,6 +245,8 @@ where
                 extra_headers: SimpleHeaders::new(),
                 outbound_rx: None,
                 timeout_calculator: TimeoutCalculator::new(),
+                // 75 s is the nginx `keepalive_timeout` default.
+                idle_timeout: Duration::from_secs(75),
             })))),
             pool,
         })
@@ -240,7 +261,8 @@ where
     /// * `subprotocols` - Optional comma-separated subprotocols
     /// * `extra_headers` - Additional headers for handshake
     /// * `delivery` - `MessageDelivery` queue for sending messages
-    /// * `read_timeout` - Timeout for read operations
+    /// * `read_timeout` - How long one read may block before it reports a timeout
+    /// * `sleep_between` - Delay before retrying a read that reported a timeout
     ///
     /// # Errors
     ///
@@ -283,7 +305,15 @@ where
                 subprotocols,
                 extra_headers,
                 outbound_rx: Some(outbound_rx),
-                timeout_calculator: TimeoutCalculator::new(),
+                // A streaming sleep returns `max_sleep_duration`, so the
+                // caller's idle poll interval configures it.
+                timeout_calculator: TimeoutCalculator::with_config(TimeoutConfig {
+                    max_sleep_duration: sleep_between,
+                    ..TimeoutConfig::default()
+                }),
+                // The caller's read timeout is the read wait: a quiet
+                // WebSocket has no body size to scale it from.
+                idle_timeout: read_timeout,
             })))),
             pool,
         })
@@ -294,9 +324,9 @@ where
     /// # Errors
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
-    #[instrument(skip(pool, extra_headers, outbound_rx, _url), err, fields(url = %_url))]
+    #[instrument(skip(pool, extra_headers, outbound_rx, url), err, fields(url = %url))]
     pub fn connect_with_pool_and_delivery(
-        _url: String,
+        url: String,
         pool: Arc<HttpConnectionPool<R>>,
         subprotocols: Option<String>,
         extra_headers: SimpleHeaders,
@@ -304,7 +334,7 @@ where
         read_timeout: Duration,
         sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
-        let url_str = _url;
+        let url_str = url;
         info!(url = %url_str, "Connecting to WebSocket endpoint with pool and delivery queue");
 
         let uri = Uri::parse(&url_str).map_err(|e| {
@@ -327,7 +357,15 @@ where
                 subprotocols,
                 extra_headers,
                 outbound_rx: Some(outbound_rx),
-                timeout_calculator: TimeoutCalculator::new(),
+                // A streaming sleep returns `max_sleep_duration`, so the
+                // caller's idle poll interval configures it.
+                timeout_calculator: TimeoutCalculator::with_config(TimeoutConfig {
+                    max_sleep_duration: sleep_between,
+                    ..TimeoutConfig::default()
+                }),
+                // The caller's read timeout is the read wait: a quiet
+                // WebSocket has no body size to scale it from.
+                idle_timeout: read_timeout,
             })))),
             pool,
         })
@@ -363,9 +401,43 @@ where
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!(?name, "Adding custom header");
         if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
-            info.extra_headers.entry(name).or_default().push(value.into());
+            info.extra_headers
+                .entry(name)
+                .or_default()
+                .push(value.into());
         }
         self
+    }
+
+    /// Set the read wait for the next frame on an open connection.
+    ///
+    /// One read on a quiet connection may block this long before it reports a
+    /// timeout and the task yields. The default is 75 s, the nginx
+    /// `keepalive_timeout` default.
+    #[must_use]
+    pub fn with_idle_timeout(mut self, idle_timeout: Duration) -> Self {
+        debug!(?idle_timeout, "Setting the WebSocket idle timeout");
+        if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
+            info.idle_timeout = idle_timeout;
+        }
+        self
+    }
+
+    /// The read wait for the next frame, when the task still holds it.
+    ///
+    /// Returns `None` after the task closes.
+    #[must_use]
+    pub fn idle_timeout(&self) -> Option<Duration> {
+        match self.state.as_ref()? {
+            WebSocketState::Init(Some(info)) => Some(info.idle_timeout),
+            WebSocketState::Connecting(Some(state)) => Some(state.idle_timeout),
+            WebSocketState::HandshakeSending(Some(state)) => Some(state.idle_timeout),
+            WebSocketState::HandshakeReading(Some(state)) => Some(state.idle_timeout),
+            WebSocketState::HandshakeValidating(Some(state)) => Some(state.idle_timeout),
+            WebSocketState::Open(Some(state)) => Some(state.idle_timeout),
+            // Closed, or a state slot already taken: the task no longer holds it.
+            _ => None,
+        }
     }
 }
 
@@ -377,7 +449,7 @@ where
     type Pending = WebSocketProgress;
 
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {
@@ -401,6 +473,7 @@ where
                         extra_headers: info.extra_headers,
                         outbound_rx: info.outbound_rx,
                         timeout_calculator: info.timeout_calculator,
+                        idle_timeout: info.idle_timeout,
                     },
                 ))));
                 Some(TaskStatus::Pending(WebSocketProgress::Connecting))
@@ -415,7 +488,8 @@ where
                 );
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) = self.pool.create_http_connection(&state.url, None) else {
+                let Ok(connection) = self.pool.create_http_connection(&state.url, None, &ctx)
+                else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(WebSocketState::Closed(Some(
                         WebSocketError::ConnectionClosed,
@@ -480,6 +554,7 @@ where
                         subprotocols: state.subprotocols,
                         outbound_rx: state.outbound_rx,
                         timeout_calculator: state.timeout_calculator,
+                        idle_timeout: state.idle_timeout,
                     },
                 ))));
                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
@@ -514,6 +589,7 @@ where
                         subprotocols: state.subprotocols,
                         outbound_rx: state.outbound_rx,
                         timeout_calculator: state.timeout_calculator,
+                        idle_timeout: state.idle_timeout,
                     },
                 ))));
                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
@@ -533,10 +609,12 @@ where
                                 trace!(?status, "Received response status");
                                 if status != Status::SwitchingProtocols {
                                     error!(?status, "Upgrade failed - not 101 Switching Protocols");
+                                    // HTTP status codes never exceed 599, so
+                                    // usize -> u16 is lossless.
+                                    #[allow(clippy::cast_possible_truncation)]
+                                    let code = status.into_usize() as u16;
                                     self.state = Some(WebSocketState::Closed(Some(
-                                        WebSocketError::UpgradeFailed(
-                                            status.into_usize() as u16
-                                        ),
+                                        WebSocketError::UpgradeFailed(code),
                                     )));
                                     return None;
                                 }
@@ -554,6 +632,7 @@ where
                                         subprotocols: state.subprotocols,
                                         outbound_rx: state.outbound_rx,
                                         timeout_calculator: state.timeout_calculator,
+                                        idle_timeout: state.idle_timeout,
                                     }),
                                 )));
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
@@ -629,6 +708,7 @@ where
                                         stream,
                                         outbound_rx: queue,
                                         timeout_calculator: state.timeout_calculator,
+                                        idle_timeout: state.idle_timeout,
                                         assembler: crate::websocket::shared::assembler::MessageAssembler::default(),
                                         buffer_pool,
                                         frame_buffer: bytes::BytesMut::new(),
@@ -749,11 +829,14 @@ where
                 // Read ONE frame per next() call
                 debug!("Attempting to decode WebSocket frame from stream");
 
-                // Set read timeout before reading - get from calculator
-                let ctx = TimeoutContext::default();
-                let read_timeout = open_state.timeout_calculator.calculate_read_timeout(&ctx);
+                // Set read timeout before reading: a quiet WebSocket waits the
+                // configured idle timeout, not a size-based read timeout.
+                let read_timeout = open_state.idle_timeout;
                 let _ = open_state.stream.set_read_timeout_as(read_timeout);
-                debug!("Read timeout set to {:?} from calculator", read_timeout,);
+                debug!(
+                    "Read timeout set to {:?} from the idle timeout",
+                    read_timeout,
+                );
 
                 // Use pooled buffer for zero-copy frame reading
                 match WebSocketFrame::decode_with_buffer(
@@ -869,11 +952,12 @@ where
                         if e.kind() == std::io::ErrorKind::WouldBlock
                             || e.kind() == std::io::ErrorKind::TimedOut =>
                     {
-                        // Read timeout - not an error, just no data available yet
-                        // Stay in Open state and delay before retrying to avoid busy-spinning
-                        // Calculate sleep duration from TimeoutCalculator for streaming context
+                        // Read timeout - not an error, just no data available yet.
+                        // Stay in Open state and delay before retrying to avoid
+                        // busy-spinning. For a streaming context the calculator
+                        // returns `max_sleep_duration`, which the connect call
+                        // sets from the caller's `sleep_timeout`.
                         debug!("Read timeout - no data available yet, will retry after delay");
-                        // Calculate sleep BEFORE moving open_state
                         let ctx = TimeoutContext::default().streaming();
                         let sleep_duration =
                             open_state.timeout_calculator.calculate_sleep_duration(&ctx);

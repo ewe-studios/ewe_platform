@@ -28,6 +28,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
+use foundation_context::MonotonicClock;
 use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
@@ -128,7 +129,12 @@ fn json(status: u16, body: &str) -> HttpResponse {
 async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore> {
     let store = FileStateStore::new(dir, "ewe-test", "dev");
     store.init().await.expect("init state store");
-    ProviderClient::new("ewe-test", "dev", store)
+    ProviderClient::new(
+        "ewe-test",
+        "dev",
+        store,
+        foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
+    )
 }
 
 fn tmpdir(name: &str) -> std::path::PathBuf {
@@ -139,7 +145,9 @@ fn tmpdir(name: &str) -> std::path::PathBuf {
 }
 
 /// A mock that records each call and answers from `responder`.
-fn mock(responder: impl Fn(&str, usize) -> HttpResponse + Send + 'static) -> (TestHttpServer, Calls) {
+fn mock(
+    responder: impl Fn(&str, usize) -> HttpResponse + Send + 'static,
+) -> (TestHttpServer, Calls) {
     let calls: Calls = Arc::new(Mutex::new(Vec::new()));
     let recorded = Arc::clone(&calls);
     let n = AtomicUsize::new(0);
@@ -164,16 +172,18 @@ fn is_list_query(call: &str) -> bool {
 
 fn server_for(mock: &TestHttpServer, name: &str) -> HetznerServer {
     HetznerServer::new(
-        HetznerClient::new("test-token").with_base_url(mock.base_url().to_string()),
+        HetznerClient::new(
+            "test-token",
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .with_base_url(mock.base_url().to_string()),
         name,
     )
 }
 
 // ── create-or-find ───────────────────────────────────────────────────────────
-
-
-
-
 
 #[valtron_test]
 async fn a_dying_server_does_not_count_as_alive() {
@@ -182,7 +192,10 @@ async fn a_dying_server_does_not_count_as_alive() {
     let dir = tmpdir("dying");
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
-            json(201, &create_server_json(43, "web-1", "initializing", "5.6.7.8"))
+            json(
+                201,
+                &create_server_json(43, "web-1", "initializing", "5.6.7.8"),
+            )
         } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("/servers/42") {
@@ -207,18 +220,26 @@ async fn a_dying_server_does_not_count_as_alive() {
                 // What a previous deploy of this same declaration would have
                 // written. Omitting it would make deploy call the record stale —
                 // correctly, which is the point of the field.
-                declared: Some(foundation_deployment_hetzner::deployable::ServerDeclaration {
-                    name: "web-1".to_string(),
-                    server_type: "cx23".to_string(),
-                    image: "ubuntu-24.04".to_string(),
-                    location: None,
-                }),
+                declared: Some(
+                    foundation_deployment_hetzner::deployable::ServerDeclaration {
+                        name: "web-1".to_string(),
+                        server_type: "cx23".to_string(),
+                        image: "ubuntu-24.04".to_string(),
+                        location: None,
+                    },
+                ),
             },
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
         )
         .await
         .expect("seeds state");
 
-    let out = deployable.deploy(0, client.clone()).await.expect("replaces the corpse");
+    let out = deployable
+        .deploy(0, client.clone())
+        .await
+        .expect("replaces the corpse");
     assert_eq!(out.id, 43, "did not return the deleting server");
     assert!(
         calls.lock().unwrap().iter().any(|c| c.contains("POST")),
@@ -237,7 +258,10 @@ async fn a_failure_after_create_destroys_the_server_rather_than_stranding_a_bill
     let dir = tmpdir("unwind");
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
-            json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
+            json(
+                201,
+                &create_server_json(42, "web-1", "initializing", "1.2.3.4"),
+            )
         } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("DELETE") {
@@ -268,7 +292,10 @@ async fn keep_on_failure_leaves_the_server_for_inspection() {
     let dir = tmpdir("keep");
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
-            json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
+            json(
+                201,
+                &create_server_json(42, "web-1", "initializing", "1.2.3.4"),
+            )
         } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("DELETE") {
@@ -320,14 +347,9 @@ async fn a_server_with_no_public_ip_is_refused_rather_than_returned() {
 
 // ── destroy ──────────────────────────────────────────────────────────────────
 
-
-
 // ── instances are independent ────────────────────────────────────────────────
 
-
 // ── the leak that actually happened ──────────────────────────────────────────
-
-
 
 #[valtron_test]
 async fn a_create_whose_response_we_cannot_read_still_yields_the_server() {
@@ -357,7 +379,10 @@ async fn a_create_whose_response_we_cannot_read_still_yields_the_server() {
             json(200, "{}")
         } else if is_list_query(call) {
             if *state.lock().unwrap() {
-                json(200, &list_servers_json(&[(42, "web-1", "running", "1.2.3.4")]))
+                json(
+                    200,
+                    &list_servers_json(&[(42, "web-1", "running", "1.2.3.4")]),
+                )
             } else {
                 json(200, &list_servers_json(&[]))
             }
@@ -372,7 +397,10 @@ async fn a_create_whose_response_we_cannot_read_still_yields_the_server() {
         .expect("the server exists and carries our label — deploy must adopt it");
 
     assert_eq!(out.id, 42, "adopted the server the create actually made");
-    assert_eq!(out.public_ip, "1.2.3.4", "and read its details back from Hetzner");
+    assert_eq!(
+        out.public_ip, "1.2.3.4",
+        "and read its details back from Hetzner"
+    );
     assert!(
         deleted.lock().unwrap().is_empty(),
         "it must NOT destroy a server the caller asked for just because the receipt was \

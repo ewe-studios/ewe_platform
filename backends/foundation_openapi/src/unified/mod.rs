@@ -1,20 +1,21 @@
-//! Unified generator for OpenAPI specs.
+//! Unified generator for `OpenAPI` specs.
 //!
 //! WHY: Single generator that produces cohesive per-endpoint units.
 //!
 //! WHAT: For each endpoint, generates:
 //! 1. Resource types (response types, Args types)
 //! 2. Client functions (builder, task, execute, convenience)
-//! 3. ProviderClient impl block with wrapper method
+//! 3. `ProviderClient` impl block with wrapper method
 //!
 //! HOW: Groups endpoints (10-200 per group), then generates one module per group
 //! where each endpoint's artifacts are colocated.
 
-mod analyzer;
-mod emit;
+pub mod analyzer;
+pub mod emit;
 mod generator;
 
 pub use analyzer::{analyze_spec, AnalysisOptions, AnalysisResult, ApiGroup};
 pub use generator::{
-    rewrite_features_for_groups, FeatureRewriteError, GenError, UnifiedGenerator,
+    group_crate_manifest, rewrite_features_for_groups, rewrite_umbrella_for_split_str,
+    FeatureRewriteError, GenError, UnifiedGenerator, NATIVE_ONLY_CFG,
 };

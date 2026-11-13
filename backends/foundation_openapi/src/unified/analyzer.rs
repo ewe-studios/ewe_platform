@@ -1,4 +1,4 @@
-//! Analyzer for OpenAPI specs with provider-specific grouping logic.
+//! Analyzer for `OpenAPI` specs with provider-specific grouping logic.
 //!
 //! WHY: Analyzes specs to determine optimal grouping and detect shared resources.
 //!
@@ -754,6 +754,15 @@ pub struct ApiGroup {
 pub struct AnalysisOptions {
     pub min_group_size: usize,
     pub max_group_size: usize,
+    /// Spec schema names (`d1_batch_query`) that are emitted into the shared
+    /// types module even when only one group uses them.
+    ///
+    /// WHY: a leaf crate such as `foundation_cloudflare_types` must own the
+    /// wire types that a storage crate needs (D1 queries), without a dependency
+    /// on the whole group crate. Types that reach several groups are shared
+    /// already; this is the way to name the ones that do not. Everything the
+    /// named schemas reference follows them.
+    pub hoist_to_shared: Vec<String>,
 }
 
 impl Default for AnalysisOptions {
@@ -761,11 +770,15 @@ impl Default for AnalysisOptions {
         Self {
             min_group_size: 10,
             max_group_size: 150,
+            hoist_to_shared: Vec::new(),
         }
     }
 }
 
-/// Analyze an OpenAPI spec and return grouping information.
+/// Analyze an `OpenAPI` spec and return grouping information.
+///
+/// # Errors
+/// [`crate::ProcessError`] when the spec cannot be parsed or processed.
 pub fn analyze_spec(
     spec_content: &str,
     provider: &str,
@@ -785,7 +798,11 @@ pub fn analyze_spec(
     if groups_map.is_empty() {
         if provider.contains('/') {
             // Multi-spec sub-provider: one group per spec
-            let spec_group = provider.split('/').last().unwrap_or(provider).to_string();
+            let spec_group = provider
+                .split('/')
+                .next_back()
+                .unwrap_or(provider)
+                .to_string();
             let all_endpoints = processor.endpoints();
             groups_map.insert(spec_group, all_endpoints);
         } else {
@@ -831,7 +848,14 @@ pub fn analyze_spec(
 
     groups.sort_by(|a, b| a.name.cmp(&b.name));
     groups = apply_grouping_constraints(groups, options);
-    let shared_resources = detect_shared_resources(&groups);
+    let mut shared_resources = detect_shared_resources(&groups);
+    for name in &options.hoist_to_shared {
+        let pascal = crate::to_pascal_case(name);
+        if !shared_resources.contains(&pascal) {
+            shared_resources.push(pascal);
+        }
+    }
+    shared_resources.sort();
 
     // Get schemas from processor
     let schemas = processor.schemas();
@@ -844,7 +868,10 @@ pub fn analyze_spec(
     })
 }
 
-fn extract_group_name(path: &str) -> String {
+/// The group name a path belongs to: its last non-parameter segment, or
+/// `default` for a path with none.
+#[must_use]
+pub fn extract_group_name(path: &str) -> String {
     let path = path.trim_start_matches('/');
     let segments: Vec<&str> = path.split('/').collect();
     let non_param_segments: Vec<&&str> = segments
@@ -896,23 +923,4 @@ fn detect_shared_resources(groups: &[ApiGroup]) -> Vec<String> {
 
     shared.sort();
     shared
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_extract_group_name() {
-        assert_eq!(
-            extract_group_name("/v1/projects/{project}/instances/{instance}"),
-            "instances"
-        );
-        assert_eq!(
-            extract_group_name("/v1/run/projects/{project}/locations/{location}/instances"),
-            "instances"
-        );
-        assert_eq!(extract_group_name("/projects"), "projects");
-        assert_eq!(extract_group_name("/"), "default");
-    }
 }

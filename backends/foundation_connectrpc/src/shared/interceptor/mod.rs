@@ -25,7 +25,7 @@ use std::task::{Context, Poll};
 use bytes::Bytes;
 use foundation_netio::shared::http::SimpleHeaders;
 
-use crate::shared::context::{Ctx, Spec};
+use crate::shared::context::{RpcCtx, Spec};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::transport::{BoxFuture, ClientConn, HandlerConn};
 
@@ -61,15 +61,16 @@ pub struct StreamCall {
 
 /// Async unary RPC function — the innermost is the handler invocation.
 pub type UnaryFunc =
-    Arc<dyn Fn(Ctx, UnaryCall) -> BoxFuture<'static, ConnectResult<UnaryReply>> + Send + Sync>;
+    Arc<dyn Fn(RpcCtx, UnaryCall) -> BoxFuture<'static, ConnectResult<UnaryReply>> + Send + Sync>;
 
 /// Async streaming-handler RPC function.
 pub type StreamingHandlerFunc =
-    Arc<dyn Fn(Ctx, StreamCall) -> BoxFuture<'static, ConnectResult<()>> + Send + Sync>;
+    Arc<dyn Fn(RpcCtx, StreamCall) -> BoxFuture<'static, ConnectResult<()>> + Send + Sync>;
 
 /// Async streaming-client RPC function (opening a conn does I/O via the transport).
-pub type StreamingClientFunc =
-    Arc<dyn Fn(Ctx, Spec) -> BoxFuture<'static, ConnectResult<Box<dyn ClientConn>>> + Send + Sync>;
+pub type StreamingClientFunc = Arc<
+    dyn Fn(RpcCtx, Spec) -> BoxFuture<'static, ConnectResult<Box<dyn ClientConn>>> + Send + Sync,
+>;
 
 /// Seam interceptor — wraps RPC execution for cross-cutting concerns (bytes +
 /// metadata). Mirrors connect-go's `Interceptor`.
@@ -159,7 +160,11 @@ pub struct RecoverInterceptor<F> {
 
 impl<F> RecoverInterceptor<F>
 where
-    F: Fn(&Ctx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError + Clone + Send + Sync + 'static,
+    F: Fn(&RpcCtx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError
+        + Clone
+        + Send
+        + Sync
+        + 'static,
 {
     /// Create a recover interceptor from a panic handler.
     pub fn new(handler: F) -> Self {
@@ -169,11 +174,15 @@ where
 
 impl<F> Interceptor for RecoverInterceptor<F>
 where
-    F: Fn(&Ctx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError + Clone + Send + Sync + 'static,
+    F: Fn(&RpcCtx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError
+        + Clone
+        + Send
+        + Sync
+        + 'static,
 {
     fn wrap_unary(&self, next: UnaryFunc) -> UnaryFunc {
         let handler = self.handler.clone();
-        Arc::new(move |ctx: Ctx, call: UnaryCall| {
+        Arc::new(move |ctx: RpcCtx, call: UnaryCall| {
             let handler = handler.clone();
             let next = next.clone();
             let inner = next(ctx.clone(), call);
@@ -197,7 +206,7 @@ where
 
     fn wrap_streaming_handler(&self, next: StreamingHandlerFunc) -> StreamingHandlerFunc {
         let handler = self.handler.clone();
-        Arc::new(move |ctx: Ctx, call: StreamCall| {
+        Arc::new(move |ctx: RpcCtx, call: StreamCall| {
             let handler = handler.clone();
             let next = next.clone();
             let inner = next(ctx.clone(), call);

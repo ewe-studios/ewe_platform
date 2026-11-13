@@ -3,11 +3,17 @@
 //! get-authenticator → enable (with a real generated code) → verify at login →
 //! recovery-code path → disable, over a real Turso store.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
 use base32::Alphabet;
 use foundation_auth::shared::two_factor::TOTPSecret;
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::two_factor;
@@ -33,19 +39,31 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 /// The current valid TOTP code for a base32 secret (mirrors what an authenticator app shows).
 fn current_code(key_base32: &str) -> String {
     let bytes = base32::decode(ALPHABET, key_base32).expect("decode secret");
-    TOTPSecret::from_bytes(bytes).now()
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ));
+    TOTPSecret::from_bytes(bytes).now(&ctx)
 }
 
 #[valtron_test]
@@ -56,7 +74,7 @@ fn full_totp_lifecycle() {
     let c = ctx.clone();
     let auth = drive(async move { two_factor::get_authenticator(&c, USER).await }).expect("get");
     assert!(!auth.enabled);
-    assert!(!auth.key.is_empty());
+    assert_ne!(auth.key, "");
     let key = auth.key.clone();
 
     // Fetching again returns the SAME secret (idempotent).
@@ -67,15 +85,17 @@ fn full_totp_lifecycle() {
     // A wrong code cannot enable.
     let c = ctx.clone();
     let bad = drive(async move { two_factor::enable_authenticator(&c, USER, "000000").await });
-    assert!(matches!(bad, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(bad, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 
     // The current code enables it and yields a recovery code.
     let code = current_code(&key);
     let c = ctx.clone();
-    let enabled =
-        drive(async move { two_factor::enable_authenticator(&c, USER, &code).await }).expect("enable");
+    let enabled = drive(async move { two_factor::enable_authenticator(&c, USER, &code).await })
+        .expect("enable");
     assert!(enabled.enabled);
-    assert!(!enabled.recovery_code.is_empty());
+    assert_ne!(enabled.recovery_code, "");
     let recovery = enabled.recovery_code.clone();
 
     // Now it is enabled and a fresh code verifies at login.
@@ -88,14 +108,20 @@ fn full_totp_lifecycle() {
     // The recovery code also verifies; a random one does not.
     let c = ctx.clone();
     let rec = recovery.clone();
-    assert!(drive(async move { two_factor::verify(&c, USER, &rec).await }).expect("verify recovery"));
+    assert!(
+        drive(async move { two_factor::verify(&c, USER, &rec).await }).expect("verify recovery")
+    );
     let c = ctx.clone();
-    assert!(!drive(async move { two_factor::verify(&c, USER, "not-a-code").await }).expect("verify bad"));
+    assert!(
+        !drive(async move { two_factor::verify(&c, USER, "not-a-code").await })
+            .expect("verify bad")
+    );
 
     // Disable with a current code; afterwards it is off.
     let code = current_code(&key);
     let c = ctx.clone();
-    drive(async move { two_factor::disable_authenticator(&c, USER, &code).await }).expect("disable");
+    drive(async move { two_factor::disable_authenticator(&c, USER, &code).await })
+        .expect("disable");
     let c = ctx.clone();
     assert!(!drive(async move { two_factor::is_enabled(&c, USER).await }).expect("disabled?"));
 }

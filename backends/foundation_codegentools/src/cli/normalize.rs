@@ -1,6 +1,6 @@
 //! `genapi normalize <provider>` — raw vendor spec → canonical artefact.
 //!
-//! **WHY:** the generators need a canonical OpenAPI document (schemas in
+//! **WHY:** the generators need a canonical `OpenAPI` document (schemas in
 //! `components/schemas`, `servers` present, `$ref`s rather than inline schemas),
 //! and vendors do not ship one. Measured 2026-07-17: Linode (9.3 MB) and Hetzner
 //! (3.4 MB) publish **fully bundled** specs — zero `$ref`s — and our extractor
@@ -27,12 +27,13 @@ use foundation_openapi::{
     strip_doc_only, validate_canonical,
 };
 use serde_json::Value;
+use std::fmt::Write as _;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 /// Which transforms a provider's spec needs.
 ///
-/// Named for **what runs**, not for what the spec looks like: "DigitalOcean is
+/// Named for **what runs**, not for what the spec looks like: "`DigitalOcean` is
 /// ref-based so it needs nothing" was exactly the assumption that turned out
 /// false — it has 7814 refs *and* 58 inline schemas. The validator caught it; the
 /// naming should not invite the guess again.
@@ -47,10 +48,10 @@ pub enum Normalizer {
     /// Hoist inline operation schemas into `components/schemas`.
     ///
     /// Safe on any spec: it only touches schemas that are written in place, so a
-    /// mostly-ref-based spec (DigitalOcean) keeps its refs and gets its stragglers
+    /// mostly-ref-based spec (`DigitalOcean`) keeps its refs and gets its stragglers
     /// named.
     HoistInline,
-    /// [`Self::HoistInline`], preceded by flattening OpenAPI 3.1's
+    /// [`Self::HoistInline`], preceded by flattening `OpenAPI` 3.1's
     /// `"type": ["string", "null"]` arrays, which the generator does not model.
     HoistInlineFrom31,
 }
@@ -140,12 +141,15 @@ pub fn normalize_provider(
     spec: &ProviderSpec,
     workspace_root: &Path,
     out_dir: &Path,
+    clock: &dyn foundation_context::Clock,
 ) -> Result<NormalizeReport, BoxedError> {
     let raw_path = workspace_root.join(spec.raw);
-    let raw = std::fs::read_to_string(&raw_path)
-        .map_err(|e| -> BoxedError { format!("cannot read raw spec {}: {e}", raw_path.display()).into() })?;
-    let mut doc: Value = serde_json::from_str(&raw)
-        .map_err(|e| -> BoxedError { format!("raw spec {} is not JSON: {e}", raw_path.display()).into() })?;
+    let raw = std::fs::read_to_string(&raw_path).map_err(|e| -> BoxedError {
+        format!("cannot read raw spec {}: {e}", raw_path.display()).into()
+    })?;
+    let mut doc: Value = serde_json::from_str(&raw).map_err(|e| -> BoxedError {
+        format!("raw spec {} is not JSON: {e}", raw_path.display()).into()
+    })?;
 
     let mut report = NormalizeReport {
         inline_before: inline_count(&doc),
@@ -153,7 +157,10 @@ pub fn normalize_provider(
             .pointer("/info/version")
             .and_then(Value::as_str)
             .map(ToString::to_string),
-        openapi_version: doc.get("openapi").and_then(Value::as_str).map(ToString::to_string),
+        openapi_version: doc
+            .get("openapi")
+            .and_then(Value::as_str)
+            .map(ToString::to_string),
         ..Default::default()
     };
 
@@ -173,15 +180,21 @@ pub fn normalize_provider(
             let stats = canonicalize_operations(&mut doc);
             report.hoisted = stats.hoisted;
             report.renamed = stats.renamed;
-            report.transforms.push("canonicalize_operations".to_string());
+            report
+                .transforms
+                .push("canonicalize_operations".to_string());
         }
         Normalizer::HoistInlineFrom31 => {
             normalize_nullable_types(&mut doc);
-            report.transforms.push("normalize_nullable_types".to_string());
+            report
+                .transforms
+                .push("normalize_nullable_types".to_string());
             let stats = canonicalize_operations(&mut doc);
             report.hoisted = stats.hoisted;
             report.renamed = stats.renamed;
-            report.transforms.push("canonicalize_operations".to_string());
+            report
+                .transforms
+                .push("canonicalize_operations".to_string());
         }
     }
 
@@ -194,10 +207,11 @@ pub fn normalize_provider(
             issues.len()
         );
         for issue in issues.iter().take(5) {
-            msg.push_str(&format!("  - {issue}\n"));
+            writeln!(msg, "  - {issue}").expect("writing to a String cannot fail");
         }
         if issues.len() > 5 {
-            msg.push_str(&format!("  … and {} more\n", issues.len() - 5));
+            writeln!(msg, "  … and {} more", issues.len() - 5)
+                .expect("writing to a String cannot fail");
         }
         return Err(msg.into());
     }
@@ -215,16 +229,18 @@ pub fn normalize_provider(
     report.schemas_after = foundation_openapi::component_count(&doc, "schemas");
 
     let provider_dir = out_dir.join(spec.name);
-    std::fs::create_dir_all(&provider_dir)
-        .map_err(|e| -> BoxedError { format!("cannot create {}: {e}", provider_dir.display()).into() })?;
+    std::fs::create_dir_all(&provider_dir).map_err(|e| -> BoxedError {
+        format!("cannot create {}: {e}", provider_dir.display()).into()
+    })?;
 
     let canonical_path = provider_dir.join("openapi.json");
     let body = serde_json::to_string_pretty(&doc)
         .map_err(|e| -> BoxedError { format!("cannot serialize canonical spec: {e}").into() })?;
-    std::fs::write(&canonical_path, &body)
-        .map_err(|e| -> BoxedError { format!("cannot write {}: {e}", canonical_path.display()).into() })?;
+    std::fs::write(&canonical_path, &body).map_err(|e| -> BoxedError {
+        format!("cannot write {}: {e}", canonical_path.display()).into()
+    })?;
 
-    write_manifest(spec, &provider_dir, &report, &raw, &body)?;
+    write_manifest(spec, &provider_dir, &report, &raw, &body, clock)?;
 
     Ok(report)
 }
@@ -236,12 +252,13 @@ fn write_manifest(
     report: &NormalizeReport,
     raw: &str,
     canonical: &str,
+    clock: &dyn foundation_context::Clock,
 ) -> Result<(), BoxedError> {
     let manifest = serde_json::json!({
         "provider": spec.name,
         "source": spec.source,
         "raw": spec.raw,
-        "normalized_at": now_rfc3339(),
+        "normalized_at": now_unix_seconds(clock),
         // What feature 00's pin validates against — read from here rather than
         // re-parsing a 9.3 MB document.
         "spec_version": report.spec_version,
@@ -275,12 +292,9 @@ fn inline_count(doc: &Value) -> usize {
     })
 }
 
-fn now_rfc3339() -> String {
-    // Seconds since the epoch is enough provenance and costs no dependency.
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |d| d.as_secs());
-    format!("{secs}")
+fn now_unix_seconds(clock: &dyn foundation_context::Clock) -> String {
+    // Seconds since the epoch is enough provenance.
+    foundation_compact::time::unix_seconds(clock.wall_now()).to_string()
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -323,10 +337,11 @@ pub fn command() -> clap::Command {
 /// Returns an error for an unknown provider, or any failure from
 /// [`normalize_provider`].
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
+    // The CLI is the host entry point: build the one real clock here.
+    let clock = foundation_context::MonotonicClock::new();
     let provider = matches
         .get_one::<String>("provider")
-        .map(String::as_str)
-        .unwrap_or("all");
+        .map_or("all", String::as_str);
     let workspace_root = matches
         .get_one::<String>("workspace-root")
         .map_or_else(|| PathBuf::from("."), PathBuf::from);
@@ -352,7 +367,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     };
 
     for spec in targets {
-        let report = normalize_provider(spec, &workspace_root, &out_dir)?;
+        let report = normalize_provider(spec, &workspace_root, &out_dir, &clock)?;
         println!(
             "{}: inline {} -> 0 | hoisted {} (renamed {}) | schemas {} | spec_version {} | {:?}",
             spec.name,

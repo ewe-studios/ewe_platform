@@ -1,43 +1,57 @@
-//! WireGuard mesh + HTTP over the overlay — proof that `Connection::Overlay`
+//! `WireGuard` mesh + HTTP over the overlay — proof that `Connection::Overlay`
 //! carries real HTTP traffic through the encrypted tunnel (spec-55, F11).
 //!
 //! ```bash
 //! cargo run -p foundation_connectrpc --example wireguard_echo
 //! ```
 //!
-//! This example proves the bridge: two WgNodes form a mesh, B listens on its
+//! This example proves the bridge: two `WgNodes` form a mesh, B listens on its
 //! overlay IP, A opens a `Connection::Overlay` via `WgHandle::overlay_connect()`,
 //! and raw HTTP flows through the tunnel. The `Connection::Overlay` type IS the
-//! integration point — the same `Read + Write` stream that H1Transport wraps.
+//! integration point — the same `Read + Write` stream that `H1Transport` wraps.
 //!
-//! To use ConnectRPC over the mesh: call `WgHandle::overlay_connect(peer_ip, port)`
-//! when constructing the H1Transport's HttpClient. The transport sees a
+//! To use `ConnectRPC` over the mesh: call `WgHandle::overlay_connect(peer_ip, port)`
+//! when constructing the `H1Transport`'s `HttpClient`. The transport sees a
 //! `Connection::Overlay` — identical to `Connection::Tcp` from its perspective.
 
 use std::io::{Read, Write};
 use std::time::Duration;
 
-use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 use foundation_wireguard::native::WgNode;
+use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 
 fn main() {
     let seed = WgSeed::generate(SeedBits::Bits256).expect("random seed");
     let net = seed.derive_network_id();
 
     // ── Two nodes, one mesh ──────────────────────────────────────────
-    let a = WgNode::from_config(WgConfig::seed(seed.clone(), net))
-        .join().expect("A");
+    let a = WgNode::from_config(
+        WgConfig::seed(seed.clone(), net),
+        foundation_context::Ctx::host(),
+    )
+    .join()
+    .expect("A");
     let a_boot = a.bootstrap_addr();
-    let b = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot]))
-        .join().expect("B");
+    let b = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), net, vec![a_boot]),
+        foundation_context::Ctx::host(),
+    )
+    .join()
+    .expect("B");
 
     let dl = std::time::Instant::now() + Duration::from_secs(10);
     while std::time::Instant::now() < dl {
         if a.wait_for_peer(b.overlay_ip(), Duration::from_millis(100))
-            && b.wait_for_peer(a.overlay_ip(), Duration::from_millis(100)) { break; }
+            && b.wait_for_peer(a.overlay_ip(), Duration::from_millis(100))
+        {
+            break;
+        }
     }
     assert!(a.wait_for_peer(b.overlay_ip(), Duration::from_millis(10)));
-    println!("🟢 mesh formed — {} members via SWIM gossip", a.members().len());
+    println!(
+        "🟢 mesh formed — {} members via SWIM gossip",
+        a.members().len()
+    );
 
     // ── B: listen on overlay IP ──────────────────────────────────────
     let b_ip = b.overlay_ip();
@@ -46,7 +60,7 @@ fn main() {
 
     let t_b = std::thread::spawn(move || {
         let mut buf = [0u8; 4096];
-        if let Ok(mut c) = listener.accept() {
+        if let Ok(c) = listener.accept() {
             let n = c.read(&mut buf).expect("B read");
             let req = String::from_utf8_lossy(&buf[..n]);
             println!("📨 B received:\n{req}");
@@ -68,7 +82,10 @@ fn main() {
     let mut conn = None;
     for _ in 0..40 {
         match a.overlay_connect(b_ip, b_port) {
-            Ok(c) => { conn = Some(c); break; }
+            Ok(c) => {
+                conn = Some(c);
+                break;
+            }
             Err(_) => std::thread::sleep(Duration::from_millis(100)),
         }
     }

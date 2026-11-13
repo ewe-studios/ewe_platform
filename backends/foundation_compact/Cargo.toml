@@ -1,6 +1,6 @@
 [package]
 name = "foundation_compact"
-version = "0.2.2"
+version = "0.2.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,16 +13,33 @@ keywords = ["wasm", "time", "entropy", "rng", "scru128"]
 cfg-if = "1"
 fstr = { version = "0.2.20", default-features = false }
 rand_core = { version = "0.10", default-features = false }
-rand_chacha = { version = "0.10", default-features = false }
+rand_chacha = { workspace = true }
 foldhash = { version = "0.2", default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 forkguard = { version = "0.1", optional = true }
 chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"], optional = true }
 zeroize = { version = "1.8", features = ["derive"] }
+# `default-features = false` keeps `uuid` as a pure no_std value/formatting type:
+# entropy comes from `crate::entropy`, not from `uuid`'s `rng`/`js`/`getrandom` path.
+uuid = { version = "1", default-features = false }
 
 # Platforms using libc-based entropy backends (getentropy, getrandom(2), /dev/urandom)
-[target.'cfg(any(target_os = "macos", target_os = "emscripten", target_os = "openbsd", target_os = "vita", target_os = "android", target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "hurd", target_os = "illumos", target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix", target_os = "netbsd", target_os = "cygwin", target_os = "horizon", target_os = "solaris"))'.dependencies]
+# The Apple mobile and TV platforms use `CCRandomGenerateBytes` in `apple_other.rs`,
+# which also comes from `libc`.
+[target.'cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos", target_os = "emscripten", target_os = "openbsd", target_os = "vita", target_os = "android", target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "hurd", target_os = "illumos", target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix", target_os = "netbsd", target_os = "cygwin", target_os = "horizon", target_os = "solaris"))'.dependencies]
 libc = { version = "0.2", default-features = false }
+
+# WASI preview 2: the generated bindings crate that the `wasi_p2_3` entropy
+# backend calls. `default-features = false` keeps the crate `no_std`; the
+# `random` module needs no `std` or `bitflags` feature.
+[target.'cfg(all(target_family = "wasm", target_os = "wasi", target_env = "p2"))'.dependencies]
+wasip2 = { version = "1.0.4", default-features = false }
+
+# WASI preview 3: the same wiring for the preview 3 world. The bindings crate
+# is 0.9 and it is not a dependency of another crate in this workspace, so it
+# resolves as a direct dependency only for this target.
+[target.'cfg(all(target_family = "wasm", target_os = "wasi", target_env = "p3"))'.dependencies]
+wasip3 = { version = "0.9", default-features = false }
 
 # Native-only: tracing subscriber for test diagnostics (trace module)
 [target.'cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))'.dependencies]

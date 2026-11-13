@@ -4,9 +4,9 @@
 
 #![allow(unused_must_use)]
 
+use std::task::{Context, Poll, Waker};
 use std::thread;
 
-use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::internals::{MessageApi, MessageApiConfig, MessageEvent};
 use foundation_ai::types::{
     MemoryFact, MessageRole, Messages, ObservationEntry, ObservationKind, SessionId, SessionRecord,
@@ -14,7 +14,10 @@ use foundation_ai::types::{
 };
 use foundation_compact::ids::new_scru128;
 use foundation_compact::SystemTime;
+use foundation_core::valtron::valtron_test;
 use foundation_db::MemoryDocumentStore;
+use futures_lite::future::block_on;
+use futures_lite::Future;
 
 fn threshold(flush_threshold: usize) -> MessageApiConfig {
     MessageApiConfig::default().with_flush_threshold(flush_threshold)
@@ -161,6 +164,50 @@ async fn memory_records_use_promotable_columns() {
 }
 
 #[valtron_test]
+async fn memory_record_flush_is_idempotent() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));
+
+    // The same record is appended twice (same id). The flush writes it once.
+    let rec = working_record("idempotent memory");
+    api.append(rec.clone());
+    api.append(rec.clone());
+    api.flush().await.unwrap();
+
+    let all = api.all().await.unwrap();
+    assert_eq!(
+        all.len(),
+        1,
+        "the same memory record is stored once, not twice"
+    );
+}
+
+#[test]
+fn pub_sub_event_id_matches_memory_record_id() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));
+    let rx = api.subscribe();
+
+    let rec = working_record("event id matches");
+    let rec_id = match &rec {
+        SessionRecord::WorkingMemory { id, .. } => id.to_string(),
+        _ => unreachable!("working_record returns a WorkingMemory record"),
+    };
+
+    // The returned id and the pub/sub event id must both be the record's own
+    // id, which `write` also stores as the doc_id (append_promotable_with_id).
+    let returned = api.append(rec);
+
+    let events: Vec<_> = rx.try_iter().collect();
+    assert_eq!(events.len(), 1);
+    let event_id = match &events[0] {
+        MessageEvent::Appended { id, .. } => id.clone(),
+        _ => unreachable!("expected an Appended event"),
+    };
+
+    assert_eq!(returned, rec_id);
+    assert_eq!(event_id, rec_id);
+}
+
+#[valtron_test]
 async fn all_returns_oldest_first() {
     let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));
 
@@ -189,7 +236,11 @@ async fn all_returns_oldest_first() {
 
 #[valtron_test]
 async fn flush_on_end_loses_nothing() {
-    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(1000));
+    let api = MessageApi::with_config(
+        SessionId::new(),
+        MemoryDocumentStore::new(),
+        threshold(1000),
+    );
 
     for i in 0..20 {
         api.append(user_record(&format!("msg-{i}")));
@@ -267,4 +318,203 @@ async fn mixed_record_types_roundtrip() {
     assert!(matches!(&all[0], SessionRecord::Conversation { .. }));
     assert!(matches!(&all[1], SessionRecord::WorkingMemory { .. }));
     assert!(matches!(&all[2], SessionRecord::Observation { .. }));
+}
+
+// ---------------------------------------------------------------------------
+// second_flush_waits_for_running_flush
+
+mod blocking_store {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, Condvar, Mutex};
+    use std::time::Duration;
+
+    use async_trait::async_trait;
+    use foundation_db::traits::{
+        AsyncStorageItemStream, Document, DocumentStore, PromotableDocument,
+    };
+    use foundation_db::{MemoryDocumentStore, StorageError, StorageResult};
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
+
+    /// A `MemoryDocumentStore` whose first `append_with_id` blocks until
+    /// released, so a test can hold a running flush open while a second
+    /// flush arrives.
+    #[derive(Clone)]
+    pub struct BlockingStore {
+        inner: Arc<MemoryDocumentStore>,
+        gate: Arc<(Mutex<bool>, Condvar)>,
+        armed: Arc<AtomicBool>,
+    }
+
+    impl BlockingStore {
+        pub fn new() -> Self {
+            Self {
+                inner: Arc::new(MemoryDocumentStore::new()),
+                gate: Arc::new((Mutex::new(false), Condvar::new())),
+                armed: Arc::new(AtomicBool::new(true)),
+            }
+        }
+
+        /// Whether the first write has been entered and is now blocked.
+        pub fn first_write_started(&self) -> bool {
+            !self.armed.load(Ordering::SeqCst)
+        }
+
+        /// Unblock the first write.
+        pub fn release(&self) {
+            let (lock, cvar) = &*self.gate;
+            *lock.lock().unwrap() = true;
+            cvar.notify_all();
+        }
+
+        fn hold_first_write(&self) -> StorageResult<()> {
+            if !self.armed.swap(false, Ordering::SeqCst) {
+                return Ok(());
+            }
+            let (lock, cvar) = &*self.gate;
+            let mut open = lock.lock().unwrap();
+            while !*open {
+                let (next, timed_out) = cvar
+                    .wait_timeout(open, Duration::from_secs(10))
+                    .unwrap_or_else(|e| e.into_inner());
+                open = next;
+                if timed_out.timed_out() {
+                    return Err(StorageError::Backend("blocking store timed out".into()));
+                }
+            }
+            Ok(())
+        }
+    }
+
+    #[async_trait]
+    impl DocumentStore for BlockingStore {
+        async fn append<V: Serialize + Send + 'static>(
+            &self,
+            key: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.inner.append(key, content).await
+        }
+        async fn append_with_id<V: Serialize + Send + 'static>(
+            &self,
+            key: &str,
+            doc_id: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.hold_first_write()?;
+            self.inner.append_with_id(key, doc_id, content).await
+        }
+        async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+            &self,
+            key: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.inner.append_promotable(key, content).await
+        }
+        async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+            &self,
+            key: &str,
+            doc_id: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.inner
+                .append_promotable_with_id(key, doc_id, content)
+                .await
+        }
+        async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+            self.inner.scan_documents(key, limit).await
+        }
+        async fn scan_documents_from(
+            &self,
+            key: &str,
+            from_id: &str,
+            limit: usize,
+        ) -> StorageResult<Vec<Document>> {
+            self.inner.scan_documents_from(key, from_id, limit).await
+        }
+        async fn scan<V: DeserializeOwned + Send + 'static>(
+            &self,
+            key: &str,
+            limit: usize,
+        ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
+            self.inner.scan(key, limit).await
+        }
+        async fn scan_all<V: DeserializeOwned + Send + 'static>(
+            &self,
+            key: &str,
+        ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
+            self.inner.scan_all(key).await
+        }
+        async fn scan_from<V: DeserializeOwned + Send + 'static>(
+            &self,
+            key: &str,
+            from_id: &str,
+            limit: usize,
+        ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
+            self.inner.scan_from(key, from_id, limit).await
+        }
+        async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+            self.inner.delete(key, doc_id).await
+        }
+        async fn delete_all(&self, key: &str) -> StorageResult<u64> {
+            self.inner.delete_all(key).await
+        }
+        async fn count(&self, key: &str) -> StorageResult<u64> {
+            self.inner.count(key).await
+        }
+    }
+}
+
+use blocking_store::BlockingStore;
+
+/// A flush that finds another flush already running must await its completion,
+/// not return `Ok(0)` at once (which would make the agent loop re-enter
+/// `Flushing` in a tight loop while the store is slow).
+#[test]
+fn second_flush_waits_for_running_flush() {
+    let store = BlockingStore::new();
+    let api = MessageApi::with_config(SessionId::new(), store.clone(), threshold(100));
+
+    api.append(user_record("one"));
+
+    // The first flush runs on its own thread and blocks on the store's first
+    // write.
+    let api1 = api.clone();
+    let flush1 = thread::spawn(move || block_on(api1.flush()).unwrap());
+
+    // Wait until the first flush has entered the blocked write.
+    while !store.first_write_started() {
+        thread::yield_now();
+    }
+
+    // The second flush must park while the first holds the store open. Poll it
+    // many times with a noop waker: a wrong `Ok(0)` fast-path would resolve.
+    let waker = Waker::noop();
+    let mut cx = Context::from_waker(&waker);
+    let mut second = Box::pin(api.flush());
+    for _ in 0..2_000 {
+        assert!(
+            second.as_mut().poll(&mut cx).is_pending(),
+            "second flush returned while the first flush was still running"
+        );
+    }
+
+    store.release();
+    assert_eq!(
+        flush1.join().unwrap(),
+        1,
+        "the first flush wrote the record"
+    );
+
+    // Now the running flush has finished and drained the buffer, so the
+    // waiting caller reports nothing left to write.
+    match second.as_mut().poll(&mut cx) {
+        Poll::Ready(Ok(0)) => {}
+        Poll::Ready(Ok(n)) => panic!("waiter should report 0, got {n}"),
+        Poll::Ready(Err(_)) => panic!("waiter should not fail"),
+        Poll::Pending => panic!("second flush should complete once the first finishes"),
+    }
+
+    let all = block_on(api.all()).unwrap();
+    assert_eq!(all.len(), 1, "the record is persisted exactly once");
 }

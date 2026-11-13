@@ -50,6 +50,18 @@ fn closed_error(state: &SharedConn) -> Option<QuicStreamError> {
     })
 }
 
+/// Park `waker` on the connection behind `state` (see
+/// [`QuicConnection::register_waker`]). A poisoned lock cannot park.
+fn park_on(state: &SharedConn, waker: &std::task::Waker) -> bool {
+    match lock(state) {
+        Ok(mut guard) => {
+            guard.park(waker);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
 /// A live QUIC connection over `quinn-proto`.
 pub struct QuinnConnection {
     state: SharedConn,
@@ -177,19 +189,21 @@ impl QuicConnection for QuinnConnection {
             return;
         };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
-        guard
-            .conn
-            .close(std::time::Instant::now(), code, reason.to_vec().into());
+        // A close stamp is required by the sans-IO protocol. The connection keeps
+        // the context it was created with, so the stamp uses that clock.
+        let now = guard.ctx.clock().now();
+        guard.conn.close(now, code, reason.to_vec().into());
         guard.closed = Some(QuicConnError::ApplicationClose {
             code: code.into_inner(),
         });
+        guard.wake_driver();
     }
 
     fn send_datagram(&mut self, data: &[u8]) -> Stream<Result<(), QuicStreamError>, ()> {
         let Ok(mut guard) = lock(&self.state) else {
-            return Stream::Next(Err(QuicStreamError::ConnClosed(
-                QuicConnError::Internal("state poisoned".into()),
-            )));
+            return Stream::Next(Err(QuicStreamError::ConnClosed(QuicConnError::Internal(
+                "state poisoned".into(),
+            ))));
         };
         let max_size = guard.max_datagram_size;
         if let Some(max) = max_size {
@@ -200,6 +214,9 @@ impl QuicConnection for QuinnConnection {
             }
             let dgram = bytes::Bytes::copy_from_slice(data);
             let result = guard.conn.datagrams().send(dgram, true);
+            if result.is_ok() {
+                guard.wake_driver();
+            }
             drop(guard);
             match result {
                 Ok(()) => Stream::Next(Ok(())),
@@ -226,7 +243,7 @@ impl QuicConnection for QuinnConnection {
         let Ok(mut guard) = lock(&self.state) else {
             return Stream::Next(Err(QuicConnError::Internal("state poisoned".into())));
         };
-        let closed = guard.closed.as_ref().map(|e| clone_conn_error(e));
+        let closed = guard.closed.as_ref().map(clone_conn_error);
         if let Some(err) = closed {
             return Stream::Next(Err(err));
         }
@@ -243,6 +260,10 @@ impl QuicConnection for QuinnConnection {
         };
         guard.max_datagram_size
     }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        park_on(&self.state, waker)
+    }
 }
 
 /// The write half of a `quinn-proto` stream.
@@ -255,7 +276,7 @@ impl std::fmt::Debug for QuinnSendStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("QuinnSendStream")
             .field("id", &self.id)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -285,6 +306,9 @@ impl QuicSendStream for QuinnSendStream {
         // `Buf::chunk` gives the next contiguous run; a partial write is normal.
         let chunk_len = buf.chunk().len();
         let result = guard.conn.send_stream(qid).write(buf.chunk());
+        if matches!(&result, Ok(n) if *n > 0) {
+            guard.wake_driver();
+        }
         drop(guard);
 
         match result {
@@ -316,11 +340,16 @@ impl QuicSendStream for QuinnSendStream {
             return Stream::Next(Err(QuicStreamError::Terminated { code: 0 }));
         };
 
-        match guard.conn.send_stream(qid).finish() {
-            Ok(()) => Stream::Next(Ok(())),
+        let result = guard.conn.send_stream(qid).finish();
+        if result.is_ok() {
+            guard.wake_driver();
+        }
+        drop(guard);
+
+        match result {
             // Already finished: the FIN is on the wire, which is what the caller
             // asked for.
-            Err(quinn_proto::FinishError::ClosedStream) => Stream::Next(Ok(())),
+            Ok(()) | Err(quinn_proto::FinishError::ClosedStream) => Stream::Next(Ok(())),
             Err(quinn_proto::FinishError::Stopped(code)) => {
                 Stream::Next(Err(QuicStreamError::Terminated {
                     code: code.into_inner(),
@@ -337,11 +366,33 @@ impl QuicSendStream for QuinnSendStream {
             return;
         };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
-        let _ = guard.conn.send_stream(qid).reset(code);
+        if guard.conn.send_stream(qid).reset(code).is_ok() {
+            guard.wake_driver();
+        }
     }
 
     fn id(&self) -> StreamId {
         self.id
+    }
+
+    fn stopped(&self) -> Option<u64> {
+        let Ok(mut guard) = lock(&self.state) else {
+            return None;
+        };
+        let Ok(qid) = quinn_proto::StreamId::try_from(self.id) else {
+            return None;
+        };
+        guard
+            .conn
+            .send_stream(qid)
+            .stopped()
+            .ok()
+            .flatten()
+            .map(quinn_proto::VarInt::into_inner)
+    }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        park_on(&self.state, waker)
     }
 }
 
@@ -359,7 +410,7 @@ impl std::fmt::Debug for QuinnRecvStream {
         f.debug_struct("QuinnRecvStream")
             .field("id", &self.id)
             .field("finished", &self.finished)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -387,6 +438,11 @@ impl QuicRecvStream for QuinnRecvStream {
             return Stream::Next(Err(QuicStreamError::Terminated { code: 0 }));
         };
 
+        // Clone the driver self-wake before borrowing `guard.conn`: the finalize
+        // below may queue a flow-control transmit, and the wake must fire after
+        // the lock is dropped.
+        let driver_wake = guard.driver_wake.clone();
+
         let mut recv = guard.conn.recv_stream(qid);
         let mut chunks = match recv.read(true) {
             Ok(c) => c,
@@ -405,10 +461,13 @@ impl QuicRecvStream for QuinnRecvStream {
         let outcome = chunks.next(usize::MAX);
 
         // `finalize` reports whether quinn wants a transmit (flow-control update).
-        // It must run before the connection borrow ends, and the driver will pick
-        // up any resulting transmit on its next pass.
-        let _ = chunks.finalize();
+        // It must run before the connection borrow ends; wake the driver for it.
+        let transmit = chunks.finalize();
         drop(guard);
+
+        if transmit.should_transmit() {
+            driver_wake.set(true);
+        }
 
         match outcome {
             Ok(Some(chunk)) => Stream::Next(Ok(Some(chunk.bytes))),
@@ -436,11 +495,17 @@ impl QuicRecvStream for QuinnRecvStream {
             return;
         };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
-        let _ = guard.conn.recv_stream(qid).stop(code);
+        if guard.conn.recv_stream(qid).stop(code).is_ok() {
+            guard.wake_driver();
+        }
     }
 
     fn id(&self) -> StreamId {
         self.id
+    }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        park_on(&self.state, waker)
     }
 }
 
@@ -454,7 +519,7 @@ impl std::fmt::Debug for QuinnBidiStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("QuinnBidiStream")
             .field("id", &self.send.id)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -495,6 +560,14 @@ impl QuicSendStream for QuinnBidiStream {
     fn id(&self) -> StreamId {
         self.send.id()
     }
+
+    fn stopped(&self) -> Option<u64> {
+        QuicSendStream::stopped(&self.send)
+    }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        QuicSendStream::register_waker(&self.send, waker)
+    }
 }
 
 impl QuicRecvStream for QuinnBidiStream {
@@ -506,6 +579,10 @@ impl QuicRecvStream for QuinnBidiStream {
     }
     fn id(&self) -> StreamId {
         self.recv.id()
+    }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        QuicRecvStream::register_waker(&self.recv, waker)
     }
 }
 

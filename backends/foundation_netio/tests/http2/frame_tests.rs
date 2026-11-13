@@ -198,7 +198,7 @@ fn continuation_roundtrip() {
 
 #[test]
 fn all_ten_kinds_roundtrip() {
-    let frames: Vec<(Kind, usize)> = vec![
+    let frames: Vec<(Kind, u32)> = vec![
         (Kind::Data, 5),
         (Kind::Headers, 1),
         (Kind::Priority, 5),
@@ -217,15 +217,14 @@ fn all_ten_kinds_roundtrip() {
             stream_id: 1,
         };
         let mut buf = BytesMut::new();
-        head.encode(*payload_len as u32, &mut buf);
-        buf.put_bytes(0xAA, *payload_len);
+        head.encode(*payload_len, &mut buf);
+        // `payload_len` is a small u32 from the table above, so u32 -> usize is
+        // lossless on every target.
+        buf.put_bytes(0xAA, *payload_len as usize);
         let mut hdr = [0u8; 9];
         hdr.copy_from_slice(&buf[..9]);
         let (parsed, plen) = Head::parse_with_len(&hdr);
         assert_eq!(parsed.kind, *kind, "kind mismatch for {kind:?}");
-        assert_eq!(
-            plen, *payload_len as u32,
-            "payload len mismatch for {kind:?}"
-        );
+        assert_eq!(plen, *payload_len, "payload len mismatch for {kind:?}");
     }
 }

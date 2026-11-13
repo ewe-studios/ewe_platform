@@ -946,9 +946,6 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
     8 * 1024
 };
 
-/// `SharedPointerReader` defines a shared buffer reader pointer that allows reading through
-/// a underlying buffered stream.
-
 /// Marker trait for transport types that can report whether they are
 /// Unix-domain sockets (and thus non-poolable after a single HTTP exchange).
 pub trait IsUnixTransport {
@@ -1031,7 +1028,7 @@ impl<T: Read> SharedByteBufferStream<T> {
     /// Otherwise calls `fill_up()` to try pulling more bytes from the underlying reader.
     ///
     /// # Errors
-    /// Returns the underlying `io::Error` if the fill fails (e.g. WouldBlock,
+    /// Returns the underlying `io::Error` if the fill fails (e.g. `WouldBlock`,
     /// connection reset, etc.).
     pub fn probe(&mut self) -> std::io::Result<usize> {
         self.0.do_once_mut(|inner| {
@@ -1051,7 +1048,8 @@ impl<T: Read> SharedByteBufferStream<T> {
     where
         T: IsUnixTransport,
     {
-        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.is_unix()))
+        self.0
+            .do_ref(|bbp| bbp.with_inner(IsUnixTransport::is_unix))
     }
 
     /// Whether an HTTP connection over this stream may be returned to the pool.
@@ -1063,7 +1061,8 @@ impl<T: Read> SharedByteBufferStream<T> {
     where
         T: IsUnixTransport,
     {
-        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.should_pool()))
+        self.0
+            .do_ref(|bbp| bbp.with_inner(IsUnixTransport::should_pool))
     }
 
     /// Run `f` against the innermost reader `T` by shared reference.
@@ -1515,9 +1514,8 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let buffer_length = self.buffer.len();
-        #[allow(clippy::cast_precision_loss)]
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        percentage > 0.4
+        // 0.4 is 2/5: compare the cross-products exactly, without floats.
+        buffer_length as u128 * 5 > self.pos as u128 * 2
     }
 
     #[inline]
@@ -1529,18 +1527,15 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let distance = self.peek_pos - self.pos;
         let buffer_length = self.buffer.len();
-        #[allow(clippy::cast_precision_loss)]
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        let should_truncate = percentage > 0.7 || force;
+        // 0.7 is 7/10: compare the cross-products exactly, without floats.
+        let should_truncate = buffer_length as u128 * 10 > self.pos as u128 * 7 || force;
 
         if !should_truncate {
             return;
         }
 
         let slice = &self.buffer[self.pos..buffer_length];
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
+        let slice_copy = slice.to_vec();
         let slice_length = slice_copy.len();
 
         // move the slice to the start of the buffer.
@@ -1701,11 +1696,7 @@ impl<T: Read> ByteBufferPointer<T> {
         let slice_string = String::from_utf8(slice.to_vec());
         self.pos = self.peek_pos;
 
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
-
-        Some(slice_copy)
+        Some(slice.to_vec())
     }
 
     /// [`Self::consume`] consumes the amount of data that has been peeked over-so far, returning

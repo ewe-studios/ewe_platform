@@ -39,6 +39,9 @@ pub struct VmSession {
 /// Connect to a VM's SSH server using auth fallback chain.
 ///
 /// Authentication priority: SSH agent → key files → password.
+///
+/// # Errors
+/// Returns an error if the SSH connection or authentication fails.
 pub fn connect(profile: &VmProfile) -> Result<VmSession> {
     let port = profile.ssh_port;
     connect_raw(port, profile.user, profile.os)
@@ -46,14 +49,17 @@ pub fn connect(profile: &VmProfile) -> Result<VmSession> {
 
 /// Connect to a VM's SSH server given just a port and user.
 ///
-/// Used by the script runner which doesn't have a full VmProfile.
+/// Used by the script runner which doesn't have a full `VmProfile`.
+///
+/// # Errors
+/// Returns an error if the SSH connection or authentication fails.
 pub fn connect_from_port(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
     connect_raw(port, user, os)
 }
 
 fn connect_raw(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
-    let tcp = std::net::TcpStream::connect(("127.0.0.1", port))
-        .map_err(|e| TestbedError::SshFailed {
+    let tcp =
+        std::net::TcpStream::connect(("127.0.0.1", port)).map_err(|e| TestbedError::SshFailed {
             port,
             source: anyhow::anyhow!(e),
         })?;
@@ -70,10 +76,8 @@ fn connect_raw(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
     })?;
 
     // Auth fallback chain: agent → keys → password
-    authenticate_raw(&mut session, user).map_err(|e| TestbedError::SshFailed {
-        port,
-        source: e,
-    })?;
+    authenticate_raw(&mut session, user)
+        .map_err(|e| TestbedError::SshFailed { port, source: e })?;
 
     Ok(VmSession {
         session,
@@ -100,9 +104,9 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
                 && session
                     .userauth_pubkey_file(user, None, &key_path, None)
                     .is_ok()
-                {
-                    return Ok(());
-                }
+            {
+                return Ok(());
+            }
         }
     }
 
@@ -113,9 +117,9 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
             && session
                 .userauth_pubkey_file(user, None, &vagrant_key, None)
                 .is_ok()
-            {
-                return Ok(());
-            }
+        {
+            return Ok(());
+        }
     }
 
     // 3. Password (not available without profile — skip)
@@ -125,14 +129,20 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
 /// Execute a command on the guest and return stdout.
 ///
 /// Commands are wrapped in `bash -c` (Linux) or `cmd /c` (Windows).
+///
+/// # Errors
+/// Returns an error if the command fails.
 pub fn exec(session: &mut VmSession, cmd: &str) -> Result<String> {
     let (output, _code) = exec_with_exit(session, cmd)?;
     Ok(output)
 }
 
-/// Execute a command and return (stdout, exit_code).
+/// Execute a command and return (stdout, `exit_code`).
 ///
 /// Uses `bash -c` (Linux) or `cmd /c` (Windows) for guest command execution.
+///
+/// # Errors
+/// Returns an error if the SSH channel cannot run or read the command.
 pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32)> {
     let wrapped = wrap_command(cmd, session.os);
     let mut channel = session
@@ -158,12 +168,10 @@ pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32
             source: anyhow::anyhow!(e),
         })?;
 
-    let exit_code = channel
-        .exit_status()
-        .map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!(e),
-        })?;
+    let exit_code = channel.exit_status().map_err(|e| TestbedError::SshFailed {
+        port: session.port,
+        source: anyhow::anyhow!(e),
+    })?;
 
     Ok((output, exit_code))
 }
@@ -175,12 +183,12 @@ pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32
 /// This function encodes the script as UTF-16LE + Base64, runs it via
 /// `powershell -NoProfile -EncodedCommand`, and strips the CLIXML noise so
 /// callers get clean stdout + exit code.
+///
+/// # Errors
+/// Returns an error if the PowerShell command fails.
 pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String, i32)> {
     // Encode script as UTF-16LE + Base64 for -EncodedCommand
-    let utf16le: Vec<u8> = script
-        .encode_utf16()
-        .flat_map(|c| c.to_le_bytes())
-        .collect();
+    let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
     let encoded =
         base64::engine::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
@@ -199,8 +207,11 @@ pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String,
 
 /// Upload a file to the guest via `scp` CLI with key-based auth.
 ///
-/// Uses the same key files as `authenticate_raw`: ~/.ssh/id_ed25519, ~/.ssh/id_rsa,
-/// ~/.ssh/id_ecdsa, or the Vagrant insecure key.
+/// Uses the same key files as `authenticate_raw`: ~/.`ssh/id_ed25519`, ~/.`ssh/id_rsa`,
+/// ~/.`ssh/id_ecdsa`, or the Vagrant insecure key.
+///
+/// # Errors
+/// Returns an error if no SSH key is found or the upload fails.
 pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
     let key_path = find_ssh_key().ok_or_else(|| TestbedError::SshFailed {
         port: session.port,
@@ -209,14 +220,19 @@ pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()>
 
     let status = Command::new("scp")
         .args([
-            "-P", &session.port.to_string(),
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=quiet",
-            "-i", &key_path,
+            "-P",
+            &session.port.to_string(),
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=quiet",
+            "-i",
+            &key_path,
             local.to_str().ok_or_else(|| TestbedError::SshFailed {
                 port: session.port,
-                source: anyhow::anyhow!("local path {local:?} is not valid UTF-8"),
+                source: anyhow::anyhow!("local path {} is not valid UTF-8", local.display()),
             })?,
             &format!("{}@127.0.0.1:{remote}", session.user),
         ])
@@ -265,6 +281,9 @@ fn find_ssh_key() -> Option<String> {
 /// Download a file from the guest via `scp` CLI with key-based auth.
 ///
 /// Uses the same key files as `authenticate_raw`.
+///
+/// # Errors
+/// Returns an error if no SSH key is found or the download fails.
 pub fn download(session: &mut VmSession, remote: &str, local: &Path) -> Result<()> {
     let key_path = find_ssh_key().ok_or_else(|| TestbedError::SshFailed {
         port: session.port,
@@ -273,15 +292,20 @@ pub fn download(session: &mut VmSession, remote: &str, local: &Path) -> Result<(
 
     let status = Command::new("scp")
         .args([
-            "-P", &session.port.to_string(),
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=quiet",
-            "-i", &key_path,
+            "-P",
+            &session.port.to_string(),
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=quiet",
+            "-i",
+            &key_path,
             &format!("{}@127.0.0.1:{remote}", session.user),
             local.to_str().ok_or_else(|| TestbedError::SshFailed {
                 port: session.port,
-                source: anyhow::anyhow!("local path {local:?} is not valid UTF-8"),
+                source: anyhow::anyhow!("local path {} is not valid UTF-8", local.display()),
             })?,
         ])
         .status()
@@ -301,6 +325,9 @@ pub fn download(session: &mut VmSession, remote: &str, local: &Path) -> Result<(
 }
 
 /// Health probe: connect + echo test.
+///
+/// # Errors
+/// Returns an error if the probe cannot connect or the echo output is wrong.
 pub fn check(profile: &VmProfile) -> Result<()> {
     let mut session = connect(profile)?;
     let output = exec(&mut session, "echo testbed-ping")?;
@@ -328,6 +355,9 @@ pub fn check(profile: &VmProfile) -> Result<()> {
 /// this allocates a pty for Linux guests. When the SSH connection closes,
 /// the pty's process group receives SIGHUP — this is expected behaviour for
 /// interactive sessions. Do NOT use this for launching background daemons.
+///
+/// # Errors
+/// Returns an error if the ssh command fails to run or exits with an error.
 pub fn shell(profile: &VmProfile) -> Result<()> {
     let mut args = vec![
         "-p".to_string(),
@@ -370,6 +400,7 @@ pub fn shell(profile: &VmProfile) -> Result<()> {
 ///
 /// Linux: `bash -c "..."`
 /// Windows: `cmd /c "..."`
+#[must_use]
 pub fn wrap_command(cmd: &str, os: GuestOs) -> String {
     match os {
         GuestOs::Linux | GuestOs::MacOS => wrap_command_bash(cmd),
@@ -378,12 +409,13 @@ pub fn wrap_command(cmd: &str, os: GuestOs) -> String {
 }
 
 /// For Windows guests that haven't been bootstrapped yet, use cmd.
+#[must_use]
 pub fn wrap_command_cmd(cmd: &str) -> String {
     format!("cmd /c {cmd:?}")
 }
 
 /// For Linux guests that haven't been bootstrapped yet, use bash.
+#[must_use]
 pub fn wrap_command_bash(cmd: &str) -> String {
     format!("bash -c {cmd:?}")
 }
-

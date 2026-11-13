@@ -104,7 +104,7 @@ fn arrow_round_trips_with_nulls_and_all_types() {
 
 #[test]
 fn columnar_analytics_over_rows() {
-    let records = vec![
+    let records = [
         assistant_record(100.0, 40.0),
         assistant_record(20.0, 10.0),
         observation_record(),

@@ -119,8 +119,14 @@ fn display_roundtrips() {
 
 #[test]
 fn extract_path_from_ewe_url() {
-    assert_eq!(extract_path("ewe://localhost/app/items?proto=arrow"), "/app/items");
-    assert_eq!(extract_path("ewe://localhost/remote/dashboard"), "/remote/dashboard");
+    assert_eq!(
+        extract_path("ewe://localhost/app/items?proto=arrow"),
+        "/app/items"
+    );
+    assert_eq!(
+        extract_path("ewe://localhost/remote/dashboard"),
+        "/remote/dashboard"
+    );
     assert_eq!(extract_path("ewe://localhost/"), "/");
 }
 
@@ -172,19 +178,27 @@ fn router_multiple_patterns() {
     let mut router = PatternRouter::new();
     router.route("/app/*", webview_app());
     router.route("/remote/*", remote_fetch());
-    router.route("/cached/*", remote_fetch()
-        .with_cache_policy(CachePolicy::CacheFirst));
+    router.route(
+        "/cached/*",
+        remote_fetch().with_cache_policy(CachePolicy::CacheFirst),
+    );
 
     assert_eq!(
         router.resolve_intent(&intent("/app/items")).unwrap().source,
         RouteSource::WebviewApp
     );
     assert_eq!(
-        router.resolve_intent(&intent("/remote/dashboard")).unwrap().source,
+        router
+            .resolve_intent(&intent("/remote/dashboard"))
+            .unwrap()
+            .source,
         RouteSource::RemoteServer
     );
     assert_eq!(
-        router.resolve_intent(&intent("/cached/data")).unwrap().cache_policy,
+        router
+            .resolve_intent(&intent("/cached/data"))
+            .unwrap()
+            .cache_policy,
         CachePolicy::CacheFirst
     );
 }
@@ -196,7 +210,12 @@ fn router_as_route_handler() {
     let mut router = PatternRouter::new();
     router.route("/app/*", webview_app());
 
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     let d = router.resolve(&intent("/app/dashboard"), &session).unwrap();
     assert_eq!(d.source, RouteSource::WebviewApp);
 }

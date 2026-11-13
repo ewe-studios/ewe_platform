@@ -13,8 +13,10 @@
 //! consume a backpressured broadcast.
 
 use foundation_core::valtron::{
-    Ctx, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+    Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 /// A finite task source yielding a scripted list of `TaskStatus` values.
 struct BroadcastTestTask {
@@ -33,10 +35,7 @@ impl TaskIterator for BroadcastTestTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }
@@ -59,7 +58,7 @@ where
     C: TaskIterator<Ready = u32, Pending = String>,
     O: Iterator<Item = Stream<u32, String>>,
 {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let n = observers.len();
     let mut branches: Vec<Vec<u32>> = vec![Vec::new(); n];
     let mut forwarded: Vec<u32> = Vec::new();
@@ -71,7 +70,7 @@ where
             if !drain.get(i).copied().unwrap_or(true) {
                 continue;
             }
-            while let Some(stream) = obs.next() {
+            for stream in obs.by_ref() {
                 match stream {
                     Stream::Next(v) => branches[i].push(v),
                     _ => break, // Wait (empty-open) or exhausted for now
@@ -88,7 +87,7 @@ where
 
     // Final drain after the continuation closed the branch queues.
     for (i, obs) in observers.iter_mut().enumerate() {
-        while let Some(stream) = obs.next() {
+        for stream in obs.by_ref() {
             match stream {
                 Stream::Next(v) => branches[i].push(v),
                 _ => break,
@@ -100,7 +99,7 @@ where
 }
 
 /// `broadcast` delivers every matched value to all N branches (zero loss), with
-/// slack (queue_size > 1) so no parking is required.
+/// slack (`queue_size` > 1) so no parking is required.
 #[test]
 fn test_broadcast_fans_to_all_branches() {
     let task = BroadcastTestTask::new(vec![
@@ -135,9 +134,17 @@ fn test_broadcast_predicate_filters() {
     let (observers, cont) = task.broadcast(2, |v| *v % 2 == 0, 10);
     let (forwarded, branches, _) = drive_lockstep(cont, observers, &[true, true]);
 
-    assert_eq!(forwarded, vec![1, 2, 3, 4], "all values forwarded downstream");
+    assert_eq!(
+        forwarded,
+        vec![1, 2, 3, 4],
+        "all values forwarded downstream"
+    );
     for b in &branches {
-        assert_eq!(b, &vec![2, 4], "branches only receive matched (even) values");
+        assert_eq!(
+            b,
+            &vec![2, 4],
+            "branches only receive matched (even) values"
+        );
     }
 }
 
@@ -179,7 +186,7 @@ fn pop_next<O: Iterator<Item = Stream<u32, String>>>(obs: &mut O) -> Option<u32>
 /// branch is full, then resume and deliver once both branches drain — zero loss.
 #[test]
 fn test_broadcast_parks_on_full_branch_and_resumes() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = BroadcastTestTask::new(vec![TaskStatus::Ready(10), TaskStatus::Ready(20)]);
     let (mut observers, mut cont) = task.broadcast(2, |_v| true, 1);
 
@@ -191,10 +198,7 @@ fn test_broadcast_parks_on_full_branch_and_resumes() {
 
     // Step 2: both branches now full → the source parks (does NOT drop 20).
     assert!(
-        matches!(
-            cont.next_status(ctx.clone()),
-            Some(TaskStatus::Depends(_))
-        ),
+        matches!(cont.next_status(ctx.clone()), Some(TaskStatus::Depends(_))),
         "a full branch must park the source, not drop the value"
     );
     // Stepping again while still full re-parks (idempotent, no double-delivery).
@@ -313,17 +317,14 @@ fn test_broadcast_latest_keeps_latest() {
 /// still forwarded, no panic.
 #[test]
 fn test_broadcast_zero_branches_passthrough() {
-    let task = BroadcastTestTask::new(vec![
-        TaskStatus::Ready(7),
-        TaskStatus::Ready(8),
-    ]);
+    let task = BroadcastTestTask::new(vec![TaskStatus::Ready(7), TaskStatus::Ready(8)]);
 
     let (observers, cont) = task.broadcast(0, |_v| true, 4);
     assert_eq!(observers.len(), 0);
     let (forwarded, branches, parked) = drive_lockstep(cont, observers, &[]);
 
     assert_eq!(forwarded, vec![7, 8]);
-    assert!(branches.is_empty());
+    assert_eq!(branches, [] as [std::vec::Vec<u32>; 0]);
     assert!(!parked, "no branches means nothing can ever be full");
 }
 
@@ -398,7 +399,7 @@ where
             if !drain.get(i).copied().unwrap_or(true) {
                 continue;
             }
-            while let Some(stream) = obs.next() {
+            for stream in obs.by_ref() {
                 match stream {
                     Stream::Next(v) => branches[i].push(v),
                     _ => break,
@@ -414,7 +415,7 @@ where
     }
 
     for (i, obs) in observers.iter_mut().enumerate() {
-        while let Some(stream) = obs.next() {
+        for stream in obs.by_ref() {
             match stream {
                 Stream::Next(v) => branches[i].push(v),
                 _ => break,
@@ -428,29 +429,26 @@ where
 /// Stream `broadcast` delivers every matched item to all N branches (zero loss).
 #[test]
 fn test_stream_broadcast_fans_to_all_branches() {
-    let stream = BroadcastTestStream::new(vec![
-        Stream::Next(1),
-        Stream::Next(2),
-        Stream::Next(3),
-    ]);
+    let stream = BroadcastTestStream::new(vec![Stream::Next(1), Stream::Next(2), Stream::Next(3)]);
 
     let (observers, cont) = stream.broadcast(3, |s| matches!(s, Stream::Next(_)), 10);
     let (forwarded, branches, _) = drive_stream_lockstep(cont, observers, &[true, true, true]);
 
     assert_eq!(forwarded, vec![1, 2, 3]);
     for (i, b) in branches.iter().enumerate() {
-        assert_eq!(b, &vec![1, 2, 3], "stream branch {i} must receive all values");
+        assert_eq!(
+            b,
+            &vec![1, 2, 3],
+            "stream branch {i} must receive all values"
+        );
     }
 }
 
 /// Stream `broadcast` with `queue_size = 1` is zero-loss under lockstep drive.
 #[test]
 fn test_stream_broadcast_backpressure_lockstep_zero_loss() {
-    let stream = BroadcastTestStream::new(vec![
-        Stream::Next(10),
-        Stream::Next(20),
-        Stream::Next(30),
-    ]);
+    let stream =
+        BroadcastTestStream::new(vec![Stream::Next(10), Stream::Next(20), Stream::Next(30)]);
 
     let (observers, cont) = stream.broadcast(2, |s| matches!(s, Stream::Next(_)), 1);
     let (forwarded, branches, _) = drive_stream_lockstep(cont, observers, &[true, true]);
@@ -476,7 +474,10 @@ fn test_stream_broadcast_waits_on_full_branch_and_resumes() {
         matches!(cont.next(), Some(Stream::Wait)),
         "a full branch must yield Stream::Wait, not drop"
     );
-    assert!(matches!(cont.next(), Some(Stream::Wait)), "re-waits while full");
+    assert!(
+        matches!(cont.next(), Some(Stream::Wait)),
+        "re-waits while full"
+    );
 
     // Drain both branches.
     assert_eq!(pop_next(&mut observers[0]), Some(10));
@@ -532,11 +533,7 @@ fn test_stream_broadcast_latest_keeps_latest() {
 /// delivering to survivors (never a deadlock), even at depth 1.
 #[test]
 fn test_stream_broadcast_dropped_observer_keeps_forwarding() {
-    let stream = BroadcastTestStream::new(vec![
-        Stream::Next(1),
-        Stream::Next(2),
-        Stream::Next(3),
-    ]);
+    let stream = BroadcastTestStream::new(vec![Stream::Next(1), Stream::Next(2), Stream::Next(3)]);
 
     let (mut observers, cont) = stream.broadcast(3, |s| matches!(s, Stream::Next(_)), 1);
     let dropped = observers.remove(1);

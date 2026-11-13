@@ -1,13 +1,13 @@
 //! Cipher persistence (spec-57, F008 Stage 1).
 //!
-//! Ported from OrangeVault `db/queries.rs` (ciphers). The client-encrypted cipher
+//! Ported from `OrangeVault` `db/queries.rs` (ciphers). The client-encrypted cipher
 //! content is stored opaquely in `data` (JSON); the other columns are the
 //! server-authoritative metadata used for listing, sync, folder assignment,
 //! favorites, and soft-delete.
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -31,6 +31,8 @@ pub struct CipherRow {
 const COLUMNS: &str = "uuid, user_uuid, organization_uuid, atype, folder_uuid, favorite, \
      name, data, deleted_at, created_at, updated_at";
 
+// Callers hold the row fields by reference; `&Option` avoids a clone.
+#[allow(clippy::ref_option)]
 fn opt_text(o: &Option<String>) -> DataValue {
     match o {
         Some(s) => DataValue::Text(s.clone()),
@@ -59,6 +61,10 @@ fn map_row(row: &SqlRow) -> AppResult<CipherRow> {
 }
 
 /// Insert a new cipher.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &CipherRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO ciphers \
@@ -88,6 +94,10 @@ pub async fn insert(db: &dyn QueryStore, row: &CipherRow) -> AppResult<()> {
 }
 
 /// All ciphers owned by a user (including soft-deleted — the sync/list layer decides).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<CipherRow>> {
     let rows = db
         .query(
@@ -103,6 +113,10 @@ pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec
 }
 
 /// A single cipher by uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<CipherRow>> {
     let rows = db
         .query(
@@ -118,6 +132,10 @@ pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<CipherRow
 }
 
 /// Update the mutable content + metadata of a cipher.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(db: &dyn QueryStore, row: &CipherRow) -> AppResult<()> {
     db.execute(
         "UPDATE ciphers SET atype = ?, folder_uuid = ?, favorite = ?, name = ?, data = ?, \
@@ -138,6 +156,10 @@ pub async fn update(db: &dyn QueryStore, row: &CipherRow) -> AppResult<()> {
 }
 
 /// Soft-delete: set `deleted_at` (moves the cipher to trash).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn soft_delete(db: &dyn QueryStore, uuid: &str, when: DateTime<Utc>) -> AppResult<()> {
     db.execute(
         "UPDATE ciphers SET deleted_at = ?, updated_at = ? WHERE uuid = ?",
@@ -153,6 +175,10 @@ pub async fn soft_delete(db: &dyn QueryStore, uuid: &str, when: DateTime<Utc>) -
 }
 
 /// Restore a soft-deleted cipher (clears `deleted_at`).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn restore(db: &dyn QueryStore, uuid: &str, when: DateTime<Utc>) -> AppResult<()> {
     db.execute(
         "UPDATE ciphers SET deleted_at = NULL, updated_at = ? WHERE uuid = ?",
@@ -167,6 +193,10 @@ pub async fn restore(db: &dyn QueryStore, uuid: &str, when: DateTime<Utc>) -> Ap
 }
 
 /// Hard-delete a cipher.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute(
         "DELETE FROM ciphers WHERE uuid = ?",

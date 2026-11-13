@@ -12,8 +12,8 @@ use std::net::SocketAddr;
 
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, ModelState,
-    StopReason, TextContent, ToolDeclarations, UserModelContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider,
+    ModelState, StopReason, TextContent, ToolDeclarations, UserModelContent,
 };
 
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -57,11 +57,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 }
 
 fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
-    let addr: SocketAddr = base_url
-        .strip_prefix("http://")
-        .unwrap()
-        .parse()
-        .unwrap();
+    let addr: SocketAddr = base_url.strip_prefix("http://").unwrap().parse().unwrap();
     let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = WorkersAiConfig::new()
         .with_account_id("test-account")
@@ -70,23 +66,29 @@ fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
             "test-token".to_string(),
         )));
 
-    let provider = WorkersAiProvider::with_http_client_and_config(http_client, config)
-        .create(Some(
-            WorkersAiConfig::new()
-                .with_account_id("test-account")
-                .with_base_url(base_url),
-        ))
-        .unwrap();
+    let provider =
+        WorkersAiProvider::with_http_client_and_config(http_client, config, test_clock())
+            .create(Some(
+                WorkersAiConfig::new()
+                    .with_account_id("test-account")
+                    .with_base_url(base_url),
+            ))
+            .unwrap();
 
     provider
-        .get_model(ModelId::Name(
-            "@cf/meta/llama-3.1-8b-instruct".into(),
-            None,
-        ))
+        .get_model(ModelId::Name("@cf/meta/llama-3.1-8b-instruct".into(), None))
         .unwrap()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 /// Verify non-streaming generation parses `{"result":{"response":"..."}}`.
+
 #[valtron_test]
 fn test_workers_ai_generate() {
     let chat_response = br#"{"result":{"response":"Hello from Workers AI!"}}"#;

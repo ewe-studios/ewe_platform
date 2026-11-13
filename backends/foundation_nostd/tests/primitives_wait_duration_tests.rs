@@ -1,19 +1,34 @@
-use foundation_nostd::primitives::wait_duration::*;
-
 #[cfg(feature = "std")]
 mod when_std {
     extern crate std;
 
-    use foundation_nostd::primitives::wait_duration::*;
     use core::time::Duration;
+    use foundation_nostd::primitives::wait_duration::*;
     use std::time::Instant;
+
+    /// The real monotonic source a production caller injects.
+    struct RealTimeSource;
+
+    impl TimeSource for RealTimeSource {
+        fn now(&self) -> Instant {
+            Instant::now()
+        }
+    }
+
+    /// Upper bound for a zero-duration wait.
+    ///
+    /// A zero-duration wait returns before it parks. The elapsed time is then
+    /// only the cost of two clock reads. An emulated amd64 kernel measures
+    /// about 34 µs. One millisecond catches a real park and tolerates a slow
+    /// kernel.
+    const ZERO_DURATION_UPPER_BOUND: Duration = Duration::from_millis(1);
 
     /// Test that `wait_duration` waits for the correct duration
     #[test]
     fn test_wait_duration_correct_duration() {
         // Test with a 100ms duration
         let start = Instant::now();
-        wait_duration(Duration::from_millis(100));
+        wait_duration(Duration::from_millis(100), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 100ms
@@ -28,12 +43,13 @@ mod when_std {
     #[test]
     fn test_wait_duration_zero_duration() {
         let start = Instant::now();
-        wait_duration(Duration::from_nanos(0));
+        wait_duration(Duration::from_nanos(0), &RealTimeSource);
         let elapsed = start.elapsed();
 
-        // Zero duration should result in immediate return
+        // Zero duration returns before it parks: the elapsed time is only the
+        // cost of two injected clock reads.
         assert!(
-            elapsed.as_nanos() < 1000,
+            elapsed < ZERO_DURATION_UPPER_BOUND,
             "Zero duration wait took too long: {elapsed:?}"
         );
     }
@@ -43,7 +59,7 @@ mod when_std {
     fn test_wait_duration_short_duration() {
         // Test with a very short duration
         let start = Instant::now();
-        wait_duration(Duration::from_micros(10));
+        wait_duration(Duration::from_micros(10), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 10us
@@ -59,7 +75,7 @@ mod when_std {
     fn test_wait_duration_long_duration() {
         // Test with a 1 second duration
         let start = Instant::now();
-        wait_duration(Duration::from_secs(1));
+        wait_duration(Duration::from_secs(1), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 1 second
@@ -75,7 +91,7 @@ mod when_std {
     fn test_wait_duration_non_multiple_duration() {
         // Test with a duration that is not a multiple of the system timer resolution
         let start = Instant::now();
-        wait_duration(Duration::from_millis(123));
+        wait_duration(Duration::from_millis(123), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 123ms
@@ -91,7 +107,7 @@ mod when_std {
     fn test_wait_duration_very_small_duration() {
         // Test with a very small duration
         let start = Instant::now();
-        wait_duration(Duration::from_nanos(1));
+        wait_duration(Duration::from_nanos(1), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 1ns
@@ -107,7 +123,7 @@ mod when_std {
     fn test_wait_duration_very_large_duration() {
         // Test with a very large duration
         let start = Instant::now();
-        wait_duration(Duration::from_secs(5));
+        wait_duration(Duration::from_secs(5), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 5 seconds
@@ -123,7 +139,7 @@ mod when_std {
     fn test_wait_duration_exact_timer_resolution() {
         // Test with a duration that is exactly the system timer resolution
         let start = Instant::now();
-        wait_duration(Duration::from_millis(1));
+        wait_duration(Duration::from_millis(1), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 1ms
@@ -139,7 +155,7 @@ mod when_std {
     fn test_wait_duration_fraction_timer_resolution() {
         // Test with a duration that is a fraction of the system timer resolution
         let start = Instant::now();
-        wait_duration(Duration::from_micros(500));
+        wait_duration(Duration::from_micros(500), &RealTimeSource);
         let elapsed = start.elapsed();
 
         // The actual elapsed time should be at least 500us
@@ -151,9 +167,10 @@ mod when_std {
     }
 }
 
+#[cfg(not(feature = "std"))]
 mod when_nostd {
-    use foundation_nostd::primitives::wait_duration::*;
     use core::time::Duration;
+    use foundation_nostd::primitives::wait_duration::*;
 
     /// Test that `wait_duration` waits for the correct duration
     #[test]

@@ -48,7 +48,7 @@ impl CrateMetadata {
             })?;
 
         if !cargo_toml_path.exists() {
-            return Err(CodegenError::MissingCargoToml(cargo_toml_path));
+            return Err(CodegenError::MissingCargoToml(cargo_toml_path).into());
         }
 
         let contents = std::fs::read_to_string(&cargo_toml_path).map_err(|e| CodegenError::Io {
@@ -80,7 +80,7 @@ impl CrateMetadata {
 
         let src_dir = root_dir.join("src");
         if !src_dir.exists() {
-            return Err(CodegenError::MissingSrcDir(root_dir));
+            return Err(CodegenError::MissingSrcDir(root_dir).into());
         }
 
         // Determine entry point: custom [lib] path, or default lib.rs/main.rs
@@ -116,8 +116,6 @@ fn default_entry_point(src_dir: &Path) -> Result<(std::path::PathBuf, bool)> {
     } else if main_rs.exists() {
         Ok((main_rs, false))
     } else {
-        Err(CodegenError::MissingSrcDir(
-            src_dir.parent().unwrap_or(src_dir).to_path_buf(),
-        ))
+        Err(CodegenError::MissingSrcDir(src_dir.parent().unwrap_or(src_dir).to_path_buf()).into())
     }
 }

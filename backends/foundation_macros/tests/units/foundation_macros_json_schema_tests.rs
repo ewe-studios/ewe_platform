@@ -83,5 +83,5 @@ struct AllOptional {
 fn test_derive_json_schema_all_optional_empty_required() {
     let schema = AllOptional::json_schema();
     let required = schema["required"].as_array().unwrap();
-    assert!(required.is_empty());
+    assert_eq!(required.len(), 0);
 }

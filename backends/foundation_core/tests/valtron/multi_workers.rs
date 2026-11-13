@@ -5,14 +5,14 @@ use std::{
     thread,
 };
 
+use foundation_context::Ctx;
 use foundation_core::synca::mpp;
-use foundation_core::valtron::{Ctx,
-    block_on, get_pool, valtron_test, FnReady, NotificationItem, Stream, TaskIterator,
-    TaskStatus,
+use foundation_core::valtron::{
+    block_on, get_pool, valtron_test, FnReady, NotificationItem, Stream, TaskIterator, TaskStatus,
 };
 
 use foundation_core::synca::WaitGroup;
-use foundation_core::valtron::multi::{PoolGuard, ThreadRegistry};
+use foundation_core::valtron::multi::{is_pool_initialized, PoolGuard, ThreadRegistry};
 
 struct DCounter(usize, Arc<Mutex<Vec<usize>>>);
 
@@ -109,16 +109,15 @@ fn can_queue_and_complete_task_with_iterator() {
         .schedule_iter(Duration::from_nanos(50))
         .expect("should deliver task");
 
+    // `NotificationItem::None` means "nothing yet" (the 50 ns wait ended before the
+    // worker produced the next item), not the end of the stream: the iterator
+    // ends when the task finishes. Stopping at the first `None` made this test
+    // fail about one run in ten.
     let complete: Vec<usize> = iter
-        .map(|item| match item {
-            NotificationItem::Ready(inner) => match inner {
-                TaskStatus::Ready(value) => Some(value),
-                _ => None,
-            },
-            NotificationItem::None => None,
+        .filter_map(|item| match item {
+            NotificationItem::Ready(TaskStatus::Ready(value)) => Some(value),
+            _ => None,
         })
-        .take_while(|t: &Option<usize>| t.is_some())
-        .map(|t: Option<usize>| t.unwrap())
         .collect();
 
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
@@ -138,13 +137,13 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
         )
         .expect("should deliver task");
 
+    // `Stream::Wait` means "nothing yet", not the end: the iterator ends when the
+    // task finishes (see the test above).
     let complete: Vec<usize> = iter
-        .map(|item| match item {
+        .filter_map(|item| match item {
             Stream::Next(value) => Some(value),
             _ => None,
         })
-        .take_while(|t| t.is_some())
-        .map(|t| t.unwrap())
         .collect();
 
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
@@ -204,7 +203,12 @@ fn can_queue_and_complete_task() {
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
             receiver
-                .recv_timeout(Duration::from_secs(2))
+                .recv_timeout(
+                    Duration::from_secs(2),
+                    &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                        foundation_context::MonotonicClock::new(),
+                    )),
+                )
                 .expect("receive signal");
             tracing::debug!("Got kill signal");
             pool_clone.kill();
@@ -231,7 +235,7 @@ fn can_queue_and_complete_task() {
 // Tests for WaitGroup and PoolGuard
 // ============================================================================
 
-/// Test 1: WaitGroup add/done/wait basic functionality
+/// Test 1: `WaitGroup` add/done/wait basic functionality
 #[test]
 fn test_waitgroup_add_done_unblocks_wait() {
     let wg = WaitGroup::new();
@@ -255,7 +259,7 @@ fn test_waitgroup_add_done_unblocks_wait() {
     handle.join().expect("thread should complete");
 }
 
-/// Test 2: WaitGroup with zero count returns immediately
+/// Test 2: `WaitGroup` with zero count returns immediately
 #[test]
 fn test_waitgroup_zero_count_returns_immediately() {
     let wg = WaitGroup::new();
@@ -263,7 +267,7 @@ fn test_waitgroup_zero_count_returns_immediately() {
     wg.wait(); // Should return immediately
 }
 
-/// Test 3: WaitGroupGuard calls done() on drop
+/// Test 3: `WaitGroupGuard` calls `done()` on drop
 #[test]
 fn test_waitgroup_guard_calls_done_on_drop() {
     let wg = WaitGroup::new();
@@ -278,7 +282,7 @@ fn test_waitgroup_guard_calls_done_on_drop() {
     wg.wait(); // Should return immediately since count is 0
 }
 
-/// Test 4: WaitGroupGuard calls done() even during panic
+/// Test 4: `WaitGroupGuard` calls `done()` even during panic
 #[test]
 #[cfg_attr(
     cranelift_backend,
@@ -298,7 +302,7 @@ fn test_waitgroup_guard_calls_done_during_panic() {
     wg.wait(); // Should return immediately
 }
 
-/// Test 5: Multiple WaitGroupGuards
+/// Test 5: Multiple `WaitGroupGuards`
 #[test]
 fn test_waitgroup_multiple_guards() {
     let wg = WaitGroup::new();
@@ -317,7 +321,7 @@ fn test_waitgroup_multiple_guards() {
     wg.wait(); // Should return immediately
 }
 
-/// Test 6: PoolGuard shutdown is idempotent
+/// Test 6: `PoolGuard` shutdown is idempotent
 #[test]
 fn test_poolguard_shutdown_idempotent() {
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
@@ -333,7 +337,7 @@ fn test_poolguard_shutdown_idempotent() {
     guard.shutdown();
 }
 
-/// Test 7: PoolGuard drop triggers shutdown
+/// Test 7: `PoolGuard` drop triggers shutdown
 #[test]
 fn test_poolguard_drop_triggers_shutdown() {
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
@@ -348,7 +352,35 @@ fn test_poolguard_drop_triggers_shutdown() {
     // If we get here, shutdown completed
 }
 
-/// Test 8: WaitGroup across multiple threads
+/// A private `PoolGuard` (from [`PoolGuard::new`]) owns a registry that was
+/// never installed in the global slots, and it takes no lifecycle gate. Its
+/// shutdown must therefore leave the pool of another test alone: clearing the
+/// global registries unconditionally made a concurrent `block_on` panic with
+/// "Thread pool not initialized" between `initialize_pool` and `get_pool`.
+#[valtron_test(threads = 2)]
+fn private_pool_guard_drop_keeps_the_global_pool() {
+    assert!(
+        is_pool_initialized(),
+        "the test harness must have installed the global pool"
+    );
+
+    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
+    registry.spawn_worker().expect("should spawn worker");
+    drop(PoolGuard::new(registry));
+
+    assert!(
+        is_pool_initialized(),
+        "dropping a private `PoolGuard` must not clear the global pool"
+    );
+    // Still usable: the handle resolves the global registry.
+    get_pool()
+        .spawn()
+        .with_task(DCounter::new(3, Arc::new(Mutex::new(Vec::new()))))
+        .schedule()
+        .expect("the global pool must still accept tasks");
+}
+
+/// Test 8: `WaitGroup` across multiple threads
 #[test]
 fn test_waitgroup_multiple_threads() {
     let wg = WaitGroup::new();

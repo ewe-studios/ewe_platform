@@ -39,10 +39,15 @@ impl Rect {
         let n = |i: usize| arr.get(i).and_then(Value::as_f64);
         let xs = [n(0)?, n(2)?, n(4)?, n(6)?];
         let ys = [n(1)?, n(3)?, n(5)?, n(7)?];
-        let min_x = xs.iter().cloned().fold(f64::INFINITY, f64::min);
-        let max_x = xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        let min_y = ys.iter().cloned().fold(f64::INFINITY, f64::min);
-        let max_y = ys.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        Some(Self { x: min_x, y: min_y, width: max_x - min_x, height: max_y - min_y })
+        let min_x = xs.iter().copied().fold(f64::INFINITY, f64::min);
+        let max_x = xs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let min_y = ys.iter().copied().fold(f64::INFINITY, f64::min);
+        let max_y = ys.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        Some(Self {
+            x: min_x,
+            y: min_y,
+            width: max_x - min_x,
+            height: max_y - min_y,
+        })
     }
 }

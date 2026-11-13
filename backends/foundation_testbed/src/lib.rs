@@ -1,4 +1,4 @@
-//! foundation_testbed — a holistic test harness. Feature-gated capabilities:
+//! `foundation_testbed` — a holistic test harness. Feature-gated capabilities:
 //! `wasm` (a CLI-driven `wasm32-unknown-unknown` harness: browser via the
 //! pure-Rust CDP/BiDi driver, Deno, and Cloudflare Workers).
 //!
@@ -31,5 +31,6 @@ pub mod docker;
 
 // F32: QEMU Monitor control — universal agentic keyboard/mouse/screenshot (Tier 1).
 // Supports both HMP (text) and QMP (JSON) protocols — auto-detected.
-// Always available (not feature-gated) — uses Unix sockets + serde_json.
+// Unix only: it speaks over a Unix socket, which wasm32 and Windows do not have.
+#[cfg(unix)]
 pub mod qemu_control;

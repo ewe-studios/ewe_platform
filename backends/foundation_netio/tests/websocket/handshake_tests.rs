@@ -46,8 +46,8 @@ fn first_header_value(
 #[test]
 fn test_build_upgrade_request_headers() {
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
-    let request =
-        build_upgrade_request("example.com", "/chat", key, None, &SimpleHeaders::new()).expect("should build request");
+    let request = build_upgrade_request("example.com", "/chat", key, None, &SimpleHeaders::new())
+        .expect("should build request");
 
     let headers = &request.headers;
 
@@ -84,8 +84,14 @@ fn test_build_upgrade_request_headers() {
 #[test]
 fn test_build_upgrade_request_with_subprotocols() {
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
-    let request = build_upgrade_request("example.com", "/chat", key, Some("chat, superchat"), &SimpleHeaders::new())
-        .expect("should build request");
+    let request = build_upgrade_request(
+        "example.com",
+        "/chat",
+        key,
+        Some("chat, superchat"),
+        &SimpleHeaders::new(),
+    )
+    .expect("should build request");
 
     let headers = &request.headers;
 
@@ -103,7 +109,10 @@ fn test_build_upgrade_request_extra_headers() {
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
 
     let mut extra = SimpleHeaders::new();
-    extra.insert(SimpleHeader::AUTHORIZATION, vec!["Bearer token123".to_string()]);
+    extra.insert(
+        SimpleHeader::AUTHORIZATION,
+        vec!["Bearer token123".to_string()],
+    );
     // Multi-value header — both values must survive.
     extra.insert(
         SimpleHeader::from("x-trace".to_string()),

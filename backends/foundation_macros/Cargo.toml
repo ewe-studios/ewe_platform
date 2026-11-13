@@ -1,6 +1,6 @@
 [package]
 name = "foundation_macros"
-version = "0.0.6"
+version = "0.0.21"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -8,15 +8,16 @@ authors.workspace = true
 repository.workspace = true
 description = "Macros for the foundations_jsnostd crate providing suitable support to simplify usage"
 keywords = ["foundations_macros"]
+readme = "README.md"
 
 [lib]
 proc-macro = true
 
 [dependencies]
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
 # Shared theme CSS generator — called at macro-expansion time so theme!{} and
 # #[derive(ThemeTokens)] embed identical, runtime-generated CSS.
-foundation_theme = { path = "../foundation_theme", version = "0.0.3" }
+foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
 
 syn = { version = ">=2.0, <3.0", features = ["full", "parsing", "extra-traits"] }
 quote = ">=1.0"
@@ -38,9 +39,6 @@ sha2 = "0.10.8"
 
 # Encode hash & etag
 base85rs = "0.1"
-
-# Compute last-modified timestamps
-chrono = { version = "0.4", default-features = false, features = ["std"] }
 
 # Compute the mime types
 new_mime_guess = "4.0"

@@ -4,11 +4,12 @@
 //! file, waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
+//! use foundation_context::Ctx;
 //! use foundation_toolings::harness::Workerd;
 //!
 //! let wd = Workerd::builder()
 //!     .config_file("worker.capnp")
-//!     .build()
+//!     .build(Ctx::host())
 //!     .expect("failed to start workerd");
 //!
 //! println!("Worker at {}", wd.base_url());
@@ -18,9 +19,11 @@
 use std::io::Read as IoRead;
 use std::io::Write as IoWrite;
 use std::net::TcpStream;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_context::Ctx;
 
 pub struct Workerd {
     child: Option<Child>,
@@ -28,11 +31,11 @@ pub struct Workerd {
 }
 
 impl Workerd {
-    pub fn start() -> Result<Self, WorkerdError> {
-        Self::start_with(WorkerdConfig::default())
+    pub fn start(ctx: Ctx) -> Result<Self, WorkerdError> {
+        Self::start_with(WorkerdConfig::default(), ctx)
     }
 
-    pub fn start_with(config: WorkerdConfig) -> Result<Self, WorkerdError> {
+    pub fn start_with(config: WorkerdConfig, ctx: Ctx) -> Result<Self, WorkerdError> {
         let config_file = config
             .config_file
             .as_ref()
@@ -45,9 +48,9 @@ impl Workerd {
         }
 
         let bin = resolve_bin(&config.binary)?;
-        let port = config.port.unwrap_or_else(|| {
-            super::pick_unused_port().expect("no free port available")
-        });
+        let port = config
+            .port
+            .unwrap_or_else(|| super::pick_unused_port().expect("no free port available"));
 
         tracing::info!(
             port,
@@ -89,7 +92,7 @@ impl Workerd {
             port,
         };
 
-        if !wait_for_ready(port, config.startup_timeout) {
+        if !wait_for_ready(port, config.startup_timeout, &ctx) {
             let stderr = server.collect_stderr();
             server.stop();
             return Err(WorkerdError::ReadyTimeout {
@@ -210,8 +213,8 @@ impl WorkerdConfig {
         self
     }
 
-    pub fn build(self) -> Result<Workerd, WorkerdError> {
-        Workerd::start_with(self)
+    pub fn build(self, ctx: Ctx) -> Result<Workerd, WorkerdError> {
+        Workerd::start_with(self, ctx)
     }
 }
 
@@ -232,9 +235,7 @@ pub enum WorkerdError {
     #[display("failed to spawn workerd: {_0}")]
     SpawnFailed(std::io::Error),
 
-    #[display(
-        "workerd did not become ready within {seconds} seconds\nstderr:\n{stderr}"
-    )]
+    #[display("workerd did not become ready within {seconds} seconds\nstderr:\n{stderr}")]
     #[error(ignore)]
     ReadyTimeout { seconds: u64, stderr: String },
 
@@ -250,9 +251,10 @@ fn resolve_bin(explicit: &Option<PathBuf>) -> Result<PathBuf, WorkerdError> {
     which::which("workerd").map_err(|_| WorkerdError::BinaryNotFound)
 }
 
-fn wait_for_ready(port: u16, timeout: Duration) -> bool {
-    let start = Instant::now();
-    while start.elapsed() < timeout {
+fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
+    let deadline = clock.now() + timeout;
+    while clock.now() < deadline {
         if http_get("127.0.0.1", port, "/").is_ok() {
             return true;
         }
@@ -270,9 +272,8 @@ fn http_get(host: &str, port: u16, path: &str) -> Result<(u16, String), WorkerdE
         .set_read_timeout(Some(Duration::from_secs(2)))
         .map_err(|e| WorkerdError::HttpFailed(format!("set timeout: {e}")))?;
 
-    let request = format!(
-        "GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\r\n"
-    );
+    let request =
+        format!("GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\r\n");
     stream
         .write_all(request.as_bytes())
         .map_err(|e| WorkerdError::HttpFailed(format!("write: {e}")))?;

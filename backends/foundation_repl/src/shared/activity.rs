@@ -24,8 +24,8 @@ use core::time::Duration;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread::JoinHandle;
-#[cfg(not(target_arch = "wasm32"))]
-use std::time::Instant;
+
+use foundation_context::Ctx;
 
 use crate::shared::theme::ActivityStyle;
 use crate::shared::traits::SharedDisplay;
@@ -86,9 +86,10 @@ struct ActivityState {
 /// Streaming a reply as it is generated:
 ///
 /// ```no_run
+/// use foundation_context::Ctx;
 /// use foundation_repl::Repl;
 ///
-/// let repl = Repl::new();
+/// let repl = Repl::new(Ctx::host());
 /// for input in repl.messages() {
 ///     let stream = repl.animation("thinking");
 ///     for token in generate(&input) {
@@ -102,9 +103,10 @@ struct ActivityState {
 /// Reporting real progress turns the spinner into a bar:
 ///
 /// ```no_run
+/// use foundation_context::Ctx;
 /// use foundation_repl::Repl;
 ///
-/// let repl = Repl::new();
+/// let repl = Repl::new(Ctx::host());
 /// let work = repl.animation("downloading");
 /// for step in 0..=10 {
 ///     work.set_progress(Some(f64::from(step) / 10.0));
@@ -125,7 +127,7 @@ impl Activity {
     /// It is public so a caller driving the renderer itself — a browser, where
     /// there is no blocking message loop — can still show one.
     #[must_use]
-    pub fn start(display: SharedDisplay, style: ActivityStyle, label: String) -> Self {
+    pub fn start(display: SharedDisplay, style: ActivityStyle, label: String, ctx: Ctx) -> Self {
         let state = Arc::new(Mutex::new(ActivityState {
             label,
             progress: None,
@@ -137,6 +139,7 @@ impl Activity {
             style,
             Arc::clone(&state),
             Arc::clone(&stop),
+            ctx,
         );
 
         Self {
@@ -239,8 +242,9 @@ fn spawn_animation(
     style: ActivityStyle,
     state: Arc<Mutex<ActivityState>>,
     stop: Arc<AtomicBool>,
+    ctx: Ctx,
 ) -> Option<JoinHandle<()>> {
-    let started = Instant::now();
+    let started = ctx.clock().now();
 
     let worker = std::thread::Builder::new()
         .name("repl-activity".into())
@@ -258,7 +262,9 @@ fn spawn_animation(
                     lock(&display).render_activity(&ActivityView {
                         frame,
                         label: &current.label,
-                        elapsed: style.show_elapsed.then(|| started.elapsed()),
+                        elapsed: style
+                            .show_elapsed
+                            .then(|| ctx.clock().now().saturating_duration_since(started)),
                         progress: current.progress,
                     });
                 }
@@ -284,6 +290,7 @@ fn spawn_animation(
     style: ActivityStyle,
     state: Arc<Mutex<ActivityState>>,
     _stop: Arc<AtomicBool>,
+    _ctx: Ctx,
 ) -> Option<JoinHandle<()>> {
     let current = lock(&state);
     lock(&display).render_activity(&ActivityView {
@@ -301,5 +308,7 @@ fn spawn_animation(
 /// cannot leave any of them in a state that makes the next writer wrong, so the
 /// data is worth more than the poison flag.
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
-    mutex.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+    mutex
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }

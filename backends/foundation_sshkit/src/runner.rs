@@ -2,6 +2,7 @@
 
 use crate::backends::Backend;
 use crate::command::{Command, CommandResult};
+use crate::error::SshKitResult;
 use crate::host::Host;
 use std::time::Duration;
 
@@ -18,7 +19,9 @@ pub enum Runner {
 impl Runner {
     /// Parallel execution (default).
     #[must_use]
-    pub fn parallel() -> Self { Self::Parallel }
+    pub fn parallel() -> Self {
+        Self::Parallel
+    }
 
     /// Sequential execution with delay.
     #[must_use]
@@ -38,14 +41,17 @@ impl Runner {
         hosts: &[Host],
         backend: &dyn Backend,
         command_builder: F,
-    ) -> Vec<Result<CommandResult, String>>
+    ) -> Vec<SshKitResult<CommandResult>>
     where
         F: Fn(&Host) -> Command,
     {
         match self {
             Self::Parallel => {
                 // Sequential for now — proper parallel needs threads/tokio
-                hosts.iter().map(|h| backend.execute(h, &command_builder(h))).collect()
+                hosts
+                    .iter()
+                    .map(|h| backend.execute(h, &command_builder(h)))
+                    .collect()
             }
             Self::Sequential { wait_interval } => {
                 let mut results = Vec::new();

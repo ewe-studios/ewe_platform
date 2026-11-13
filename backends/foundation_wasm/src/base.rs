@@ -1570,8 +1570,6 @@ pub mod value_quantitization {
     #[must_use]
     // value_msb/value_lsb are the most/least significant halves of a split 128-bit value.
     #[allow(clippy::similar_names)]
-    // value_msb/value_lsb are most/least significant halves of a 128-bit split.
-    #[allow(clippy::similar_names)]
     pub fn qi128(value: i128) -> (Vec<u8>, TypeOptimization) {
         match value {
             -128..=127 => {
@@ -1746,8 +1744,6 @@ pub mod value_quantitization {
     /// applied to the value.
     #[must_use]
     // value_msb/value_lsb are the most/least significant halves of a split 128-bit value.
-    #[allow(clippy::similar_names)]
-    // value_msb/value_lsb are most/least significant halves of a 128-bit split.
     #[allow(clippy::similar_names)]
     pub fn qu128(value: u128) -> (Vec<u8>, TypeOptimization) {
         match value {

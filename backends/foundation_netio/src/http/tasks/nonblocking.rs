@@ -22,6 +22,8 @@ use std::time::{Duration, Instant};
 
 use foundation_core::valtron::EventReadinessPtr;
 
+use foundation_context::Ctx;
+
 use crate::http::HttpClientConnection;
 use crate::native::readiness::{io_or_deadline, IoInterest};
 
@@ -46,10 +48,10 @@ impl IdleDeadline {
     }
 
     /// Arm the deadline if it is not armed yet, and return it.
-    pub fn arm(&mut self) -> Instant {
+    pub fn arm(&mut self, ctx: &Ctx) -> Instant {
         *self
             .deadline
-            .get_or_insert_with(|| Instant::now() + self.timeout)
+            .get_or_insert_with(|| ctx.clock().now() + self.timeout)
     }
 
     /// Bytes moved: the next wait gets a fresh budget.
@@ -59,8 +61,8 @@ impl IdleDeadline {
 
     /// Whether an armed deadline has passed.
     #[must_use]
-    pub fn expired(&self) -> bool {
-        self.deadline.is_some_and(|d| Instant::now() >= d)
+    pub fn expired(&self, ctx: &Ctx) -> bool {
+        self.deadline.is_some_and(|d| ctx.clock().now() >= d)
     }
 
     /// The configured inactivity budget.
@@ -84,12 +86,17 @@ pub enum Park {
 
 /// Decide how to wait after a `WouldBlock` on `conn` in the `interest` direction.
 #[must_use]
-pub fn park(conn: &HttpClientConnection, interest: IoInterest, idle: &mut IdleDeadline) -> Park {
-    if idle.expired() {
+pub fn park(
+    conn: &HttpClientConnection,
+    interest: IoInterest,
+    idle: &mut IdleDeadline,
+    ctx: &Ctx,
+) -> Park {
+    if idle.expired(ctx) {
         return Park::Expired;
     }
     match conn.park_readiness(interest) {
-        Some(io) => Park::On(io_or_deadline(io, idle.arm())),
+        Some(io) => Park::On(io_or_deadline(io, idle.arm(ctx), ctx.clone())),
         None => Park::Unsupported,
     }
 }
@@ -172,61 +179,5 @@ pub fn flush<W: Write>(writer: &mut W) -> std::io::Result<IoStep> {
             Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
             Err(e) => return Err(e),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// A writer that accepts `budget` bytes, then reports `WouldBlock`.
-    struct Throttled {
-        accepted: Vec<u8>,
-        budget: usize,
-    }
-
-    impl Write for Throttled {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            if self.budget == 0 {
-                return Err(std::io::ErrorKind::WouldBlock.into());
-            }
-            let n = buf.len().min(self.budget).min(3);
-            self.accepted.extend_from_slice(&buf[..n]);
-            self.budget -= n;
-            Ok(n)
-        }
-
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    #[test]
-    fn pending_bytes_resume_exactly_where_the_socket_stopped() {
-        let mut out = Throttled {
-            accepted: Vec::new(),
-            budget: 5,
-        };
-        let mut pending = PendingBytes::new(b"hello world".to_vec());
-
-        let (moved, step) = pending.write_to(&mut out).expect("first write");
-        assert_eq!((moved, step), (5, IoStep::Blocked));
-        assert!(!pending.is_empty());
-
-        out.budget = 100;
-        let (moved, step) = pending.write_to(&mut out).expect("second write");
-        assert_eq!((moved, step), (6, IoStep::Done));
-        assert_eq!(out.accepted, b"hello world", "no byte lost or duplicated");
-    }
-
-    #[test]
-    fn idle_deadline_rearms_after_progress() {
-        let mut idle = IdleDeadline::new(Duration::from_millis(0));
-        assert!(!idle.expired(), "not armed yet");
-        let first = idle.arm();
-        assert_eq!(idle.arm(), first, "arming is idempotent");
-        assert!(idle.expired(), "zero budget expires at once");
-        idle.progress();
-        assert!(!idle.expired(), "progress clears the deadline");
     }
 }

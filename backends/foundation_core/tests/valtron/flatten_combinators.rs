@@ -10,8 +10,10 @@
 //! 3. Pass-through of non-target states unchanged
 
 use foundation_core::valtron::{
-    Ctx, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+    Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use std::time::Duration;
 
 // ============================================================================
@@ -39,10 +41,7 @@ where
     type Ready = R;
     type Pending = P;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }
@@ -88,7 +87,7 @@ where
 /// Test: `flatten_ready()` flattens Vec<Ready> into individual Ready values
 #[test]
 fn test_task_flatten_ready_basic() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items: Vec<TaskStatus<Vec<u32>, String>> = vec![
         TaskStatus::Ready(vec![1u32, 2u32]),
         TaskStatus::Pending("wait".to_string()),
@@ -143,7 +142,7 @@ fn test_task_flatten_ready_basic() {
 /// Test: `flatten_ready()` with empty inner vectors
 #[test]
 fn test_task_flatten_ready_empty_inner() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items: Vec<TaskStatus<Vec<u32>, String>> = vec![
         TaskStatus::Ready(vec![1u32]),
         TaskStatus::Ready(vec![]), // Empty - should skip to next
@@ -184,7 +183,7 @@ fn test_task_flatten_ready_empty_inner() {
 /// Test: `flatten_ready()` preserves all non-Ready states
 #[test]
 fn test_task_flatten_ready_preserves_states() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items: Vec<TaskStatus<Vec<u32>, String>> = vec![
         TaskStatus::Ready(vec![1u32]),
         TaskStatus::Pending("p1".to_string()),
@@ -245,7 +244,7 @@ fn test_task_flatten_ready_preserves_states() {
 /// Test: `flatten_pending()` flattens Vec<Pending> into individual Pending values
 #[test]
 fn test_task_flatten_pending_basic() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items: Vec<TaskStatus<u32, Vec<String>>> = vec![
         TaskStatus::Pending(vec!["a".to_string(), "b".to_string()]),
         TaskStatus::Ready(42u32),
@@ -295,7 +294,7 @@ fn test_task_flatten_pending_basic() {
 /// Test: `flat_map_ready()` transforms and flattens Ready values
 #[test]
 fn test_task_flat_map_ready_basic() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items: Vec<TaskStatus<u32, String>> = vec![
         TaskStatus::Ready(2u32),
         TaskStatus::Pending("wait".to_string()),
@@ -354,7 +353,7 @@ fn test_task_flat_map_ready_basic() {
 /// Test: `flat_map_pending()` transforms and flattens Pending values
 #[test]
 fn test_task_flat_map_pending_basic() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items: Vec<TaskStatus<u32, u32>> = vec![
         TaskStatus::Pending(2u32),
         TaskStatus::Ready(99u32),
@@ -729,39 +728,73 @@ fn test_stream_flat_map_pending_basic() {
 /// Test: All states exhausted correctly for `TaskIterator`
 #[test]
 fn test_task_all_combinators_exhaust() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // flatten_ready
-    let items: Vec<TaskStatus<Vec<u32>, String>> =
-        vec![TaskStatus::Ready(vec![1u32, 2u32])];
+    let items: Vec<TaskStatus<Vec<u32>, String>> = vec![TaskStatus::Ready(vec![1u32, 2u32])];
     let mut iter = TestTaskIterator::new(items).flatten_ready();
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ready(1))));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ready(2))));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ignore)
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(1))
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(2))
+    ));
     assert_eq!(iter.next_status(ctx.clone()), None);
 
     // flatten_pending
-    let items: Vec<TaskStatus<u32, Vec<u32>>> =
-        vec![TaskStatus::Pending(vec![1u32, 2u32])];
+    let items: Vec<TaskStatus<u32, Vec<u32>>> = vec![TaskStatus::Pending(vec![1u32, 2u32])];
     let mut iter = TestTaskIterator::new(items).flatten_pending();
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Pending(1))));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Pending(2))));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ignore)
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(1))
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(2))
+    ));
     assert_eq!(iter.next_status(ctx.clone()), None);
 
     // flat_map_ready
     let items: Vec<TaskStatus<u32, String>> = vec![TaskStatus::Ready(2u32)];
     let mut iter = TestTaskIterator::new(items).flat_map_ready(|n| 0..n);
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ready(0))));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ready(1))));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ignore)
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(0))
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(1))
+    ));
     assert_eq!(iter.next_status(ctx.clone()), None);
 
     // flat_map_pending
     let items: Vec<TaskStatus<u32, u32>> = vec![TaskStatus::Pending(2u32)];
     let mut iter = TestTaskIterator::new(items).flat_map_pending(|n| 0..n);
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Pending(0))));
-    assert!(matches!(iter.next_status(ctx.clone()), Some(TaskStatus::Pending(1))));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ignore)
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(0))
+    ));
+    assert!(matches!(
+        iter.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(1))
+    ));
     assert_eq!(iter.next_status(ctx.clone()), None);
 }
 
@@ -804,7 +837,7 @@ fn test_stream_all_combinators_exhaust() {
 /// Test: Empty outer iterator produces no output
 #[test]
 fn test_flatten_empty_outer() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // TaskIterator
     let items: Vec<TaskStatus<Vec<u32>, String>> = vec![];
     let mut iter = TestTaskIterator::new(items).flatten_ready();

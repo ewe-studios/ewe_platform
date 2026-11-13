@@ -1,13 +1,15 @@
-//! CloudflareClient — wraps the auto-generated async `*_request` functions
+//! `CloudflareClient` — wraps the auto-generated async `*_request` functions
 //! with auth injection and typed domain structs.
 
+use foundation_context::Ctx;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
-use crate::types::*;
+
+use crate::types::CloudflareError;
 
 /// Cloudflare's API base URL, from the spec's `servers[]`.
 ///
 /// The generated `*_request` functions take this per call rather than hardcoding
-/// it, so a test can point the client at a mock (spec-54's configurable base_url).
+/// it, so a test can point the client at a mock (spec-54's configurable `base_url`).
 pub const DEFAULT_BASE_URL: &str = "https://api.cloudflare.com/client/v4";
 
 /// Central client for Cloudflare API operations.
@@ -17,12 +19,18 @@ pub struct CloudflareClient {
     zone_id: String,
     domain: String,
     base_url: String,
+    /// The context whose clock stamps a DNS record this client creates.
+    ctx: Ctx,
 }
 
 impl CloudflareClient {
-    /// Create from env: CLOUDFLARE_API_TOKEN + CLOUDFLARE_ZONE_ID.
-    /// Optional: CLOUDFLARE_DOMAIN for bootstrap_domain().
-    pub fn from_env() -> Result<Self, CloudflareError> {
+    /// Create from env: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ZONE_ID`.
+    /// Optional: `CLOUDFLARE_DOMAIN` for `bootstrap_domain()`.
+    ///
+    /// # Errors
+    /// Returns [`CloudflareError::Auth`] when `CLOUDFLARE_API_TOKEN` or
+    /// `CLOUDFLARE_ZONE_ID` is absent.
+    pub fn from_env(ctx: Ctx) -> Result<Self, CloudflareError> {
         let token = std::env::var("CLOUDFLARE_API_TOKEN")
             .map_err(|_| CloudflareError::Auth("CLOUDFLARE_API_TOKEN not set".into()))?;
         let zone_id = std::env::var("CLOUDFLARE_ZONE_ID")
@@ -34,28 +42,32 @@ impl CloudflareClient {
             zone_id,
             domain,
             base_url: DEFAULT_BASE_URL.to_string(),
+            ctx,
         })
     }
 
-    /// Create with explicit credentials.
-    pub fn new(token: String, zone_id: String) -> Self {
+    /// Create with explicit credentials and the injected context.
+    #[must_use]
+    pub fn new(token: String, zone_id: String, ctx: Ctx) -> Self {
         Self {
             http: HttpClientBuilder::new().build(),
             token,
             zone_id,
             domain: String::new(),
             base_url: DEFAULT_BASE_URL.to_string(),
+            ctx,
         }
     }
 
     /// Create with an externally-provided client (for testing or custom config).
-    pub fn with_client(http: DynNetClient, token: String, zone_id: String) -> Self {
+    pub fn with_client(http: DynNetClient, token: String, zone_id: String, ctx: Ctx) -> Self {
         Self {
             http,
             token,
             zone_id,
             domain: String::new(),
             base_url: DEFAULT_BASE_URL.to_string(),
+            ctx,
         }
     }
 
@@ -66,13 +78,34 @@ impl CloudflareClient {
         self
     }
 
-    #[must_use] pub fn zone_id(&self) -> &str { &self.zone_id }
+    #[must_use]
+    pub fn zone_id(&self) -> &str {
+        &self.zone_id
+    }
     /// The cross-platform HTTP client handle (cheap `Arc` clone).
-    #[must_use] pub fn http(&self) -> DynNetClient { self.http.clone() }
-    #[must_use] pub fn token(&self) -> String { self.token.clone() }
-    #[must_use] pub fn domain(&self) -> &str { &self.domain }
+    #[must_use]
+    pub fn http(&self) -> DynNetClient {
+        self.http.clone()
+    }
+    #[must_use]
+    pub fn token(&self) -> String {
+        self.token.clone()
+    }
+    #[must_use]
+    pub fn domain(&self) -> &str {
+        &self.domain
+    }
     /// The API base URL the generated calls are pointed at.
-    #[must_use] pub fn base_url(&self) -> &str { &self.base_url }
+    #[must_use]
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    /// The context whose clock stamps a DNS record this client creates.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
+    }
 
     /// Point the client at a different base URL — a mock server, in practice.
     #[must_use]

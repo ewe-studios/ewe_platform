@@ -1,0 +1,24 @@
+[package]
+name = "foundation_cloudflare_types"
+version = "0.1.2"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Shared Cloudflare D1/R2 wire types for foundation_db and foundation_deployment_cloudflare"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+# The generated shared types derive `foundation_macros::JsonHash`, whose
+# expansion uses `sha2` for the digest and `base85rs` for the encoding.
+base85rs = "0.1"
+sha2 = "0.10"
+
+[dependencies.foundation_macros]
+path = "../foundation_macros"
+version = "0.0.21"
+
+[lints]
+workspace = true

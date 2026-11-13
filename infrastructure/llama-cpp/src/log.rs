@@ -71,9 +71,12 @@ log_cs!(
     ErrorCallsite
 );
 
+/// The native library that produced a log line.
 #[derive(Clone, Copy)]
-pub(super) enum Module {
+pub enum Module {
+    /// The `ggml` tensor library.
     GGML,
+    /// The `llama.cpp` model library.
     LlamaCpp,
 }
 
@@ -105,7 +108,8 @@ impl Module {
 /// about it even under a quiet filter.
 ///
 /// WHAT: ggml DEBUG → TRACE, ggml INFO/WARN → DEBUG, ggml ERROR → ERROR.
-pub(super) const fn tracing_level_for(
+#[must_use]
+pub const fn tracing_level_for(
     level: infrastructure_llama_bindings::ggml_log_level,
 ) -> tracing_core::Level {
     match level {
@@ -133,42 +137,8 @@ fn meta_for_level(
     }
 }
 
-#[cfg(test)]
-mod level_mapping_tests {
-    use super::tracing_level_for;
-    use infrastructure_llama_bindings as bindings;
-    use tracing_core::Level;
-
-    #[test]
-    fn native_info_is_demoted_so_a_plain_info_filter_stays_quiet() {
-        // The model-loader dump arrives at ggml INFO. If this ever maps back to
-        // tracing INFO, `RUST_LOG=info` floods again.
-        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_INFO), Level::DEBUG);
-        assert_eq!(
-            tracing_level_for(bindings::GGML_LOG_LEVEL_DEBUG),
-            Level::TRACE
-        );
-    }
-
-    #[test]
-    fn native_errors_are_never_demoted() {
-        // A caller that quietens this crate must still hear about real faults.
-        assert_eq!(
-            tracing_level_for(bindings::GGML_LOG_LEVEL_ERROR),
-            Level::ERROR
-        );
-    }
-
-    #[test]
-    fn native_warn_is_demoted_to_debug() {
-        // Token-type warnings and similar model-metadata quirks are not
-        // actionable for the end user. They must not survive a plain `info`
-        // filter.
-        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_WARN), Level::DEBUG);
-    }
-}
-
-pub(super) struct State {
+/// Buffered state that `logs_to_trace` reads for one native module.
+pub struct State {
     pub(super) options: LogOptions,
     module: Module,
     buffered: std::sync::Mutex<Option<(infrastructure_llama_bindings::ggml_log_level, String)>>,
@@ -177,7 +147,9 @@ pub(super) struct State {
 }
 
 impl State {
-    pub(super) fn new(module: Module, options: LogOptions) -> Self {
+    /// Create the buffering state for one native module.
+    #[must_use]
+    pub fn new(module: Module, options: LogOptions) -> Self {
         Self {
             options,
             module,
@@ -367,120 +339,3 @@ impl State {
 
 pub(super) static LLAMA_STATE: OnceLock<Box<State>> = OnceLock::new();
 pub(super) static GGML_STATE: OnceLock<Box<State>> = OnceLock::new();
-
-#[cfg(test)]
-mod tests {
-    use crate::logs_to_trace;
-    use std::sync::{Arc, Mutex};
-    use tracing::subscriber::DefaultGuard;
-    use tracing_subscriber::util::SubscriberInitExt;
-
-    use super::*;
-
-    struct Logger {
-        #[allow(unused)]
-        guard: DefaultGuard,
-        logs: Arc<Mutex<Vec<String>>>,
-    }
-
-    #[derive(Clone)]
-    struct VecWriter(Arc<Mutex<Vec<String>>>);
-
-    impl std::io::Write for VecWriter {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            let log_line = String::from_utf8(buf.to_vec()).map_err(|_| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid UTF-8")
-            })?;
-            self.0.lock().unwrap().push(log_line);
-            Ok(buf.len())
-        }
-
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    fn create_logger(max_level: tracing::Level) -> Logger {
-        let logs = Arc::new(Mutex::new(vec![]));
-        let writer = VecWriter(logs.clone());
-
-        Logger {
-            guard: tracing_subscriber::fmt()
-                .with_max_level(max_level)
-                .with_ansi(false)
-                .without_time()
-                .with_file(false)
-                .with_line_number(false)
-                .with_level(false)
-                .with_target(false)
-                .with_writer(move || writer.clone())
-                .finish()
-                .set_default(),
-            logs,
-        }
-    }
-
-    #[test]
-    fn cont_disabled_log() {
-        // Feeds ggml DEBUG (emitted at tracing TRACE) into an INFO subscriber,
-        // so nothing should be captured.
-        let logger = create_logger(tracing::Level::INFO);
-        let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
-        let log_ptr =
-            std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();
-
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG,
-            c"Hello ".as_ptr(),
-            log_ptr,
-        );
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT,
-            c"world\n".as_ptr(),
-            log_ptr,
-        );
-
-        assert!(logger.logs.lock().unwrap().is_empty());
-
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG,
-            c"Hello ".as_ptr(),
-            log_ptr,
-        );
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT,
-            c"world".as_ptr(),
-            log_ptr,
-        );
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT,
-            c"\n".as_ptr(),
-            log_ptr,
-        );
-    }
-
-    #[test]
-    fn cont_enabled_log() {
-        // DEBUG, not INFO: ggml INFO is emitted at tracing DEBUG (see
-        // `tracing_level_for`), so a subscriber at INFO would filter the very
-        // events this test is about and assert on an empty log.
-        let logger = create_logger(tracing::Level::DEBUG);
-        let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
-        let log_ptr =
-            std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();
-
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO,
-            c"Hello ".as_ptr(),
-            log_ptr,
-        );
-        logs_to_trace(
-            infrastructure_llama_bindings::GGML_LOG_LEVEL_CONT,
-            c"world\n".as_ptr(),
-            log_ptr,
-        );
-
-        // Not sure where the extra \n comes from.
-        assert_eq!(*logger.logs.lock().unwrap(), vec!["Hello world\n\n"]);
-    }
-}

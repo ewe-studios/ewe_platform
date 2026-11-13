@@ -19,14 +19,14 @@ use std::time::Duration;
 
 use futures::Stream;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    service, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Router,
+    service, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, Request, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -45,7 +45,7 @@ pub struct Tick {
 pub trait TickService {
     async fn subscribe(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _req: Request<TickRequest>,
     ) -> ConnectResult<impl futures::Stream<Item = ConnectResult<Tick>>>;
 }
@@ -54,9 +54,11 @@ struct Ticker;
 
 impl TickService for Ticker {
     // The generated trait method returns a boxed stream, so the impl does too.
+    // The generated trait declares an async method; this example does not await.
+    #[allow(clippy::unused_async_trait_impl)]
     async fn subscribe(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         req: Request<TickRequest>,
     ) -> ConnectResult<Pin<Box<dyn Stream<Item = ConnectResult<Tick>> + Send>>> {
         let n = req.msg.count.max(0);
@@ -65,10 +67,10 @@ impl TickService for Ticker {
     }
 }
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut router = Router::new();
     register_tick_service(&mut router, Arc::new(Ticker));
-    let serve: Arc<dyn foundation_http::shared::serve::Serve> =
+    let serve: Arc<dyn foundation_http::native::serve::Serve> =
         Arc::new(ConnectRpcServe::new(router.into_handler()));
 
     let mut app = HttpApp::new_serve();
@@ -76,10 +78,13 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}
@@ -91,13 +96,17 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 async fn main() {
     let (addr, shutdown) = start_server();
 
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let base_url = format!("http://127.0.0.1:{}", addr.port());
-    let client =
-        TickServiceClient::new(transport, &base_url, ClientOptions::new().with_codec("json"))
-            .expect("build client");
+    let client = TickServiceClient::new(
+        transport,
+        &base_url,
+        ClientOptions::new().with_codec("json"),
+    )
+    .expect("build client");
 
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let mut stream = client
         .subscribe(ctx, Request::new(TickRequest { count: 3 }))
         .await
@@ -111,7 +120,10 @@ async fn main() {
 
     assert_eq!(ticks.len(), 3);
     assert_eq!(ticks[2].seq, 2);
-    println!("code-first server-streaming round-trip verified ✓ ({} ticks)", ticks.len());
+    println!(
+        "code-first server-streaming round-trip verified ✓ ({} ticks)",
+        ticks.len()
+    );
 
     shutdown.turn_on();
 }

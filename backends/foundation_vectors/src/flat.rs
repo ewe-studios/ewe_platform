@@ -2,8 +2,8 @@
 
 use crate::metric::{DistanceMetric, OrderedScore};
 use crate::store::VectorMatch;
-use std::collections::BinaryHeap;
 use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 
 struct HeapEntry {
     score: OrderedScore,
@@ -26,7 +26,8 @@ impl PartialOrd for HeapEntry {
 
 impl Ord for HeapEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.score.cmp(&other.score)
+        self.score
+            .cmp(&other.score)
             .then_with(|| other.id.cmp(&self.id))
     }
 }
@@ -68,11 +69,17 @@ impl<'q> TopK<'q> {
         }
         let score = OrderedScore(score);
         if self.heap.len() < self.k {
-            self.heap.push(Reverse(HeapEntry { score, id: id.to_string() }));
+            self.heap.push(Reverse(HeapEntry {
+                score,
+                id: id.to_string(),
+            }));
         } else if let Some(min) = self.heap.peek() {
             if score > min.0.score || (score == min.0.score && id < min.0.id.as_str()) {
                 self.heap.pop();
-                self.heap.push(Reverse(HeapEntry { score, id: id.to_string() }));
+                self.heap.push(Reverse(HeapEntry {
+                    score,
+                    id: id.to_string(),
+                }));
             }
         }
     }

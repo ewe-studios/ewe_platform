@@ -495,3 +495,17 @@ impl<I: TaskIterator> TaskIterator for GoodWrapper<I> {
 ```
 
 **Bottom Line:** Never implement both `Iterator<Item = TaskStatus<...>>` and `TaskIterator` on the same type. The blanket impl makes them mutually exclusive. Use `Box<dyn TaskIterator>` or explicit delegation to break the cycle.
+
+## Publishing
+
+`foundation_core` and `foundation_macros` must be published together, at the same version.
+
+The macros expand to code that calls `foundation_core::valtron` symbols directly
+(`initialize_pool`, `initialize_current_thread`, `DEFAULT_TEST_SHUTDOWN_GRACE`,
+`__private::block_on_future`, and the `valtron::trace` writers). A change to any of
+those symbols breaks the macro output for every consumer, so a `foundation_core`
+release that touches the `valtron` surface must be released with the matching
+`foundation_macros` bump.
+
+release-plz enforces this with a shared `version_group` in `release-plz.toml`. Do not
+bump one crate by hand without the other.

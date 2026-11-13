@@ -18,6 +18,11 @@ struct SerializedEdge {
 }
 
 impl CodeGraph {
+    /// Serialize the graph to a JSON string.
+    ///
+    /// # Errors
+    ///
+    /// Returns `GraphError::ParseError` when serialization fails.
     pub fn to_json(&self) -> Result<String, GraphError> {
         let nodes: Vec<GraphNode> = self
             .graph
@@ -44,6 +49,11 @@ impl CodeGraph {
             .map_err(|e| GraphError::ParseError(format!("serialize: {e}")))
     }
 
+    /// Rebuild a (query-only) graph from [`Self::to_json`] output.
+    ///
+    /// # Errors
+    ///
+    /// Returns `GraphError::ParseError` when `json` is not a serialized graph.
     pub fn from_json(json: &str) -> Result<Self, GraphError> {
         let sg: SerializedGraph = serde_json::from_str(json)
             .map_err(|e| GraphError::ParseError(format!("deserialize: {e}")))?;
@@ -63,11 +73,19 @@ impl CodeGraph {
     /// Graph metadata is not columnar, so this is plain serde/JSON (the
     /// human-inspectable `graph.json` parity), just as bytes. A wasm deployment
     /// loads these bytes and queries — it never rebuilds.
+    ///
+    /// # Errors
+    ///
+    /// Returns `GraphError::ParseError` when serialization fails.
     pub fn to_bytes(&self) -> Result<Vec<u8>, GraphError> {
         Ok(self.to_json()?.into_bytes())
     }
 
     /// Reconstruct a (query-only) graph from [`Self::to_bytes`] output.
+    ///
+    /// # Errors
+    ///
+    /// Returns `GraphError::ParseError` when `bytes` is not UTF-8 or not a serialized graph.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, GraphError> {
         let json = core::str::from_utf8(bytes)
             .map_err(|e| GraphError::ParseError(format!("graph bytes not UTF-8: {e}")))?;
@@ -84,17 +102,33 @@ impl CodeGraph {
 /// deployment can share the same persisted artifact.
 pub trait GraphStore {
     /// Persist `bytes` under `key`, replacing any previous value.
+    ///
+    /// # Errors
+    ///
+    /// Returns `GraphError::IoError` when the backend can not write.
     fn save(&mut self, key: &str, bytes: &[u8]) -> Result<(), GraphError>;
     /// Load the bytes stored under `key`, or `None` if absent.
+    ///
+    /// # Errors
+    ///
+    /// Returns `GraphError::IoError` when the backend can not read.
     fn load(&self, key: &str) -> Result<Option<Vec<u8>>, GraphError>;
 
     /// Convenience: persist a graph under `key`.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error of [`Self::save`] or of serialization.
     fn save_graph(&mut self, key: &str, graph: &CodeGraph) -> Result<(), GraphError> {
         let bytes = graph.to_bytes()?;
         self.save(key, &bytes)
     }
 
     /// Convenience: load and rebuild a graph stored under `key`.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error of [`Self::load`] or of rebuilding the graph.
     fn load_graph(&self, key: &str) -> Result<Option<CodeGraph>, GraphError> {
         match self.load(key)? {
             Some(bytes) => Ok(Some(CodeGraph::from_bytes(&bytes)?)),

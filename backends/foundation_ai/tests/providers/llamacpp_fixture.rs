@@ -11,11 +11,11 @@
 //! produced, the stream advances past its first token, the two APIs agree.
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+use foundation_ai::types::ModelState;
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
     TextContent, ToolDeclarations, UserModelContent,
 };
-use foundation_ai::types::ModelState;
 use foundation_core::valtron::{valtron_test, Stream};
 
 fn fixture_gguf() -> std::path::PathBuf {
@@ -25,7 +25,11 @@ fn fixture_gguf() -> std::path::PathBuf {
 
 fn load() -> foundation_ai::backends::llamacpp::LlamaModels {
     let path = fixture_gguf();
-    assert!(path.exists(), "committed GGUF fixture missing: {path:?}");
+    assert!(
+        path.exists(),
+        "committed GGUF fixture missing: {}",
+        path.display()
+    );
     let config = LlamaBackendConfig::builder()
         .n_gpu_layers(0)
         .context_length(256)
@@ -38,7 +42,7 @@ fn load() -> foundation_ai::backends::llamacpp::LlamaModels {
         model_location: Some(path.to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    LlamaBackends::LLamaCPU
+    LlamaBackends::cpu(test_clock())
         .load_model(spec, &config)
         .expect("committed tiny GGUF should load in-process")
 }
@@ -69,6 +73,13 @@ fn params() -> ModelParams {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 #[valtron_test]
 fn tiny_gguf_loads_offline() {
     let _model = load();
@@ -77,7 +88,9 @@ fn tiny_gguf_loads_offline() {
 #[valtron_test]
 fn tiny_gguf_generate_produces_output() {
     let model = load();
-    let out = model.generate(interaction(), Some(params())).expect("generate");
+    let out = model
+        .generate(interaction(), Some(params()))
+        .expect("generate");
     assert!(!out.is_empty(), "generate() must produce a message");
 }
 
@@ -103,11 +116,11 @@ fn tiny_gguf_stream_advances() {
     assert!(text >= 1, "stream must produce at least one text token");
 }
 
-/// Full AgentSession::run_turn through the committed llama.cpp GGUF, offline.
+/// Full `AgentSession::run_turn` through the committed llama.cpp GGUF, offline.
 ///
 /// The most direct regression guard for docs/fixes/006 and 007: those bugs were
-/// in the llama.cpp STREAM, driven by the AgentLoop. This runs that exact path
-/// end to end on every `cargo test` — the loop pumping the real LlamaCppStream.
+/// in the llama.cpp STREAM, driven by the `AgentLoop`. This runs that exact path
+/// end to end on every `cargo test` — the loop pumping the real `LlamaCppStream`.
 #[valtron_test]
 async fn agent_session_run_turn_through_gguf() {
     use foundation_ai::agentic::{
@@ -121,7 +134,7 @@ async fn agent_session_run_turn_through_gguf() {
     let router = PreloadedProvider::new(model, model_id.clone()).into_router();
 
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        AgentSession::builder(router)
+        AgentSession::builder(router, test_clock())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id)
             .with_config(AgentConfig {
@@ -144,7 +157,8 @@ async fn agent_session_run_turn_through_gguf() {
                 signature: None,
             }),
             signature: None,
-        }).await
+        })
+        .await
         .expect("a real llama.cpp turn must complete, not error");
 
     assert!(

@@ -6,7 +6,7 @@
 //! builds that acceptor from the proxy's `SslConfig`.
 //!
 //! WHAT: [`CertManager`] trait (pluggable cert provisioning), [`StaticCertManager`]
-//! (reads PEM cert+key from disk, stage 2), [`build_acceptor`] (SslConfig →
+//! (reads PEM cert+key from disk, stage 2), [`build_acceptor`] (`SslConfig` →
 //! Arc<SSLAcceptor>).
 //!
 //! HOW: `RustlsAcceptor::from_pem` handles PEM parsing and rustls config.
@@ -15,11 +15,12 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use foundation_netio::DynNetClient;
+use foundation_context::Ctx;
 use foundation_netio::netcap::ssl::SSLAcceptor;
+use foundation_netio::DynNetClient;
 
 use crate::acme::{AcmeClient, Dns01Setter, ACME_PRODUCTION};
-use crate::config::{ProxyConfig, ProxyError, SslConfig, SslProvider};
+use crate::config::{ProxyConfig, ProxyError, ProxyResult, SslConfig, SslProvider};
 
 /// A loaded cert + key pair.
 #[derive(Debug, Clone)]
@@ -33,9 +34,17 @@ pub struct CertPair {
 /// Pluggable certificate provisioning interface.
 pub trait CertManager: Send + Sync {
     /// Return the current cert pair, provisioning if needed.
-    fn get_cert(&self) -> Result<CertPair, ProxyError>;
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
+    fn get_cert(&self) -> ProxyResult<CertPair>;
     /// Force renewal. For `StaticCertManager`, re-reads from disk.
-    fn renew_cert(&self) -> Result<CertPair, ProxyError>;
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
+    fn renew_cert(&self) -> ProxyResult<CertPair>;
 }
 
 // ── StaticCertManager ──
@@ -49,20 +58,27 @@ pub struct StaticCertManager {
 
 impl StaticCertManager {
     pub fn new(cert: impl Into<PathBuf>, key: impl Into<PathBuf>) -> Self {
-        Self { cert_path: cert.into(), key_path: key.into(), cached: Mutex::new(None) }
+        Self {
+            cert_path: cert.into(),
+            key_path: key.into(),
+            cached: Mutex::new(None),
+        }
     }
 
-    fn load_from_disk(&self) -> Result<CertPair, ProxyError> {
+    fn load_from_disk(&self) -> ProxyResult<CertPair> {
         let cert_chain = std::fs::read(&self.cert_path)
             .map_err(|e| ProxyError::Ssl(format!("read cert {}: {e}", self.cert_path.display())))?;
         let private_key = std::fs::read(&self.key_path)
             .map_err(|e| ProxyError::Ssl(format!("read key {}: {e}", self.key_path.display())))?;
-        Ok(CertPair { cert_chain, private_key })
+        Ok(CertPair {
+            cert_chain,
+            private_key,
+        })
     }
 }
 
 impl CertManager for StaticCertManager {
-    fn get_cert(&self) -> Result<CertPair, ProxyError> {
+    fn get_cert(&self) -> ProxyResult<CertPair> {
         let mut cache = self.cached.lock().unwrap();
         if let Some(ref pair) = *cache {
             return Ok(pair.clone());
@@ -72,7 +88,7 @@ impl CertManager for StaticCertManager {
         Ok(pair)
     }
 
-    fn renew_cert(&self) -> Result<CertPair, ProxyError> {
+    fn renew_cert(&self) -> ProxyResult<CertPair> {
         let mut cache = self.cached.lock().unwrap();
         let pair = self.load_from_disk()?;
         *cache = Some(pair.clone());
@@ -91,26 +107,29 @@ impl CertManager for StaticCertManager {
 /// key + CSR, then drives the full [`AcmeClient`] flow (account → order →
 /// DNS-01 challenge → finalize → download). The provisioned PEM chain plus the
 /// generated private key become the [`CertPair`] the acceptor is built from. The
-/// DNS-01 TXT records are published through a caller-supplied setter (typically
-/// `foundation_deployment_cloudflare`).
+/// DNS-01 TXT records are published through a caller-supplied setter.
 pub struct AcmeCertManager {
     domains: Vec<String>,
     email: String,
     directory_url: String,
     client: DynNetClient,
     dns_setter: Dns01Setter,
+    /// The context whose clock the ACME DNS wait reads.
+    ctx: Ctx,
     cached: Mutex<Option<CertPair>>,
 }
 
 impl AcmeCertManager {
     /// Build a manager for `domains`, authenticating to the CA at
     /// `directory_url` (`AcmeClient::PRODUCTION`/`STAGING`, or a private CA).
+    /// `ctx` supplies the clock that times the DNS-01 propagation wait.
     pub fn new(
         domains: Vec<String>,
         email: impl Into<String>,
         directory_url: impl Into<String>,
         client: DynNetClient,
         dns_setter: Dns01Setter,
+        ctx: Ctx,
     ) -> Self {
         Self {
             domains,
@@ -118,12 +137,13 @@ impl AcmeCertManager {
             directory_url: directory_url.into(),
             client,
             dns_setter,
+            ctx,
             cached: Mutex::new(None),
         }
     }
 
     /// Run one full ACME provisioning round and return the resulting cert+key.
-    fn provision(&self) -> Result<CertPair, ProxyError> {
+    fn provision(&self) -> ProxyResult<CertPair> {
         use base64::Engine;
         use p256::ecdsa::{signature::Signer, Signature, SigningKey};
 
@@ -145,13 +165,17 @@ impl AcmeCertManager {
             .serialize_request(&cert_key)
             .map_err(|e| ProxyError::Ssl(format!("serialize CSR: {e}")))?;
 
-        // Drive the ACME flow. Its I/O is the shared client's blocking send, so
-        // the future resolves in a single poll.
+        // Drive the ACME flow. Its client I/O and the DNS wait are async; the
+        // flow yields during the DNS wait and block_on polls it again on wake.
         let dns_setter = Arc::clone(&self.dns_setter);
-        let acme = AcmeClient::with_directory(DynNetClient::clone(&self.client), self.directory_url.clone())
-            .with_jwk(jwk)
-            .with_signer(signer)
-            .with_dns_setter(move |name, value| dns_setter(name, value));
+        let acme = AcmeClient::with_directory(
+            DynNetClient::clone(&self.client),
+            self.directory_url.clone(),
+            self.ctx.clone(),
+        )
+        .with_jwk(jwk)
+        .with_signer(signer)
+        .with_dns_setter(move |name, value| dns_setter(name, value));
 
         let (cert_pem, _raw) = futures_lite::future::block_on(acme.provision(
             &self.domains,
@@ -168,7 +192,7 @@ impl AcmeCertManager {
 }
 
 impl CertManager for AcmeCertManager {
-    fn get_cert(&self) -> Result<CertPair, ProxyError> {
+    fn get_cert(&self) -> ProxyResult<CertPair> {
         let mut cache = self.cached.lock().unwrap();
         if let Some(pair) = &*cache {
             return Ok(pair.clone());
@@ -178,7 +202,7 @@ impl CertManager for AcmeCertManager {
         Ok(pair)
     }
 
-    fn renew_cert(&self) -> Result<CertPair, ProxyError> {
+    fn renew_cert(&self) -> ProxyResult<CertPair> {
         let pair = self.provision()?;
         *self.cached.lock().unwrap() = Some(pair.clone());
         Ok(pair)
@@ -193,8 +217,8 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
     serde_json::json!({
         "kty": "EC",
         "crv": "P-256",
-        "x": b64(point.x().map(|x| x.as_slice()).unwrap_or_default()),
-        "y": b64(point.y().map(|y| y.as_slice()).unwrap_or_default()),
+        "x": b64(point.x().map_or_default(sha2::digest::generic_array::GenericArray::as_slice)),
+        "y": b64(point.y().map_or_default(sha2::digest::generic_array::GenericArray::as_slice)),
     })
 }
 
@@ -204,10 +228,15 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
 ///
 /// `Static` reads PEM from disk; `LetsEncrypt` provisions over ACME (needs the
 /// ACME runtime hooks on the config — a DNS-01 setter, optional directory URL).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn build_cert_manager(
     config: &ProxyConfig,
     client: DynNetClient,
-) -> Result<Arc<dyn CertManager>, ProxyError> {
+    ctx: Ctx,
+) -> ProxyResult<Arc<dyn CertManager>> {
     match &config.ssl.provider {
         SslProvider::Static { cert, key } => {
             Ok(Arc::new(StaticCertManager::new(cert.clone(), key.clone())))
@@ -230,26 +259,36 @@ pub fn build_cert_manager(
                 directory,
                 client,
                 Arc::clone(&acme.dns01_setter),
+                ctx,
             )))
         }
         SslProvider::Cloudflare { zone_id } => Err(ProxyError::Ssl(format!(
             "Cloudflare Origin CA (zone {zone_id}) not yet supported; provision \
              an Origin CA cert and configure it via the Static provider."
-        ))),
-        SslProvider::None => Err(ProxyError::Ssl(
-            "TLS requested but no SSL provider configured".into(),
-        )),
+        ))
+        .into()),
+        SslProvider::None => {
+            Err(ProxyError::Ssl("TLS requested but no SSL provider configured".into()).into())
+        }
     }
 }
 
 /// Build an `Arc<SSLAcceptor>` from a cert manager's current cert pair.
-pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> Result<Arc<SSLAcceptor>, ProxyError> {
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> ProxyResult<Arc<SSLAcceptor>> {
     acceptor_from_pair(&mgr.get_cert()?)
 }
 
 /// Build an `Arc<SSLAcceptor>` from an already-obtained cert pair. Useful when
 /// the same cert also feeds the HTTP/3 (QUIC) server.
-pub fn acceptor_from_pair(pair: &CertPair) -> Result<Arc<SSLAcceptor>, ProxyError> {
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+pub fn acceptor_from_pair(pair: &CertPair) -> ProxyResult<Arc<SSLAcceptor>> {
     let acceptor = SSLAcceptor::from_pem(pair.cert_chain.clone(), pair.private_key.clone().into())
         .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
     Ok(Arc::new(acceptor))
@@ -270,7 +309,11 @@ fn acme_domains(config: &ProxyConfig) -> Vec<String> {
 // ── Acceptor builder ──
 
 /// Build an `Arc<SSLAcceptor>` from the proxy's `SslConfig`.
-pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError> {
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+pub fn build_acceptor(config: &SslConfig) -> ProxyResult<Arc<SSLAcceptor>> {
     match &config.provider {
         SslProvider::Static { cert, key } => {
             let manager = StaticCertManager::new(cert.clone(), key.clone());
@@ -279,22 +322,20 @@ pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError
                 .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
             Ok(Arc::new(acceptor))
         }
-        SslProvider::LetsEncrypt { email } => {
-            Err(ProxyError::Ssl(format!(
-                "Let's Encrypt ACME configured for {email}. \
+        SslProvider::LetsEncrypt { email } => Err(ProxyError::Ssl(format!(
+            "Let's Encrypt ACME configured for {email}. \
                  Set ACME_SIGNER_KEY_PATH to your account private key (PEM) \
                  or ACME_SIGNER_CMD to a JWS-signing subprocess."
-            )))
-        }
-        SslProvider::Cloudflare { zone_id } => {
-            Err(ProxyError::Ssl(format!(
-                "Cloudflare Origin CA configured for zone {zone_id}. \
+        ))
+        .into()),
+        SslProvider::Cloudflare { zone_id } => Err(ProxyError::Ssl(format!(
+            "Cloudflare Origin CA configured for zone {zone_id}. \
                  Use the cloudflare API to provision an Origin CA certificate \
                  and configure it via the Static provider."
-            )))
+        ))
+        .into()),
+        SslProvider::None => {
+            Err(ProxyError::Ssl("TLS requested but no SSL provider configured".into()).into())
         }
-        SslProvider::None => Err(ProxyError::Ssl(
-            "TLS requested but no SSL provider configured".into(),
-        )),
     }
 }

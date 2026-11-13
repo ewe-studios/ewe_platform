@@ -12,10 +12,11 @@
 
 use std::collections::HashMap;
 use std::sync::RwLock;
-use std::time::{SystemTime, UNIX_EPOCH};
 
-use foundation_ui_traits::{Profile, RouteDecision, CachePolicy};
+use foundation_context::Ctx;
+use foundation_ui_traits::{CachePolicy, Profile, RouteDecision};
 
+use crate::clock::wall_seconds;
 use crate::session::PlatformSession;
 
 // ── Storage trait ────────────────────────────────────────────────────
@@ -38,7 +39,9 @@ pub struct MemoryCacheStorage {
 impl MemoryCacheStorage {
     #[must_use]
     pub fn new() -> Self {
-        Self { data: RwLock::new(HashMap::new()) }
+        Self {
+            data: RwLock::new(HashMap::new()),
+        }
     }
 }
 
@@ -63,18 +66,21 @@ impl CacheStorage for MemoryCacheStorage {
 pub struct CachedEntry {
     pub body: Vec<u8>,
     pub content_type: String,
-    pub cached_at: u64,       // Unix timestamp (seconds)
+    pub cached_at: u64, // Unix timestamp (seconds)
     pub profile: Profile,
 }
 
 impl CachedEntry {
+    /// A cache entry stamped with the wall time of the clock of `ctx`.
     #[must_use]
-    pub fn new(body: Vec<u8>, content_type: &str, profile: Profile) -> Self {
-        let cached_at = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-        Self { body, content_type: content_type.to_string(), cached_at, profile }
+    pub fn new(body: Vec<u8>, content_type: &str, profile: Profile, ctx: &Ctx) -> Self {
+        let cached_at = wall_seconds(ctx);
+        Self {
+            body,
+            content_type: content_type.to_string(),
+            cached_at,
+            profile,
+        }
     }
 }
 
@@ -84,16 +90,23 @@ impl CachedEntry {
 /// Profile-scoped — entries are keyed by `{profile}:{route}`.
 pub struct CacheManager {
     storage: Box<dyn CacheStorage>,
+    /// The context whose clock stamps every entry; set by the host at build time.
+    ctx: Ctx,
 }
 
 impl CacheManager {
-    pub fn new(storage: impl CacheStorage) -> Self {
-        Self { storage: Box::new(storage) }
+    /// A manager over `storage` that stamps entries with the clock of `ctx`.
+    pub fn new(storage: impl CacheStorage, ctx: Ctx) -> Self {
+        Self {
+            storage: Box::new(storage),
+            ctx,
+        }
     }
 
+    /// An in-memory manager that stamps entries with the clock of `ctx`.
     #[must_use]
-    pub fn in_memory() -> Self {
-        Self::new(MemoryCacheStorage::new())
+    pub fn in_memory(ctx: Ctx) -> Self {
+        Self::new(MemoryCacheStorage::new(), ctx)
     }
 
     fn scoped_key(profile: Profile, route: &str) -> String {
@@ -102,7 +115,10 @@ impl CacheManager {
 
     pub fn store(&self, profile: Profile, route: &str, body: &[u8], content_type: &str) {
         let key = Self::scoped_key(profile, route);
-        self.storage.set(&key, CachedEntry::new(body.to_vec(), content_type, profile));
+        self.storage.set(
+            &key,
+            CachedEntry::new(body.to_vec(), content_type, profile, &self.ctx),
+        );
     }
 
     #[must_use]
@@ -183,7 +199,9 @@ impl PlatformSession {
         decision: &RouteDecision,
         route: &str,
     ) -> bool {
-        if self.is_online() { return false; }
+        if self.is_online() {
+            return false;
+        }
         cache.can_serve_offline(decision, route)
     }
 }

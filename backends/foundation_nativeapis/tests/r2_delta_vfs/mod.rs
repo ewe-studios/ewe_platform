@@ -2,8 +2,8 @@
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::native::vfs::r2_delta::R2Delta;
-use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
+use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::{DeltaStore, VfsFileSystem};
 
 fn init_pool() -> PoolGuard {
@@ -15,15 +15,23 @@ fn is_local_cf_available() -> bool {
     if std::env::var("CF_INTEGRATION_TEST").ok().as_deref() != Some("1") {
         return false;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
+    let base = std::env::var("LOCAL_CF_API_BASE")
+        .unwrap_or_else(|_| "http://localhost:8789/cdn-cgi/local/explorer/api".to_string());
     let response = std::process::Command::new("curl")
-        .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &base])
+        .args([
+            "-s",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            &format!("{base}/d1/database"),
+        ])
         .output();
     match response {
         Ok(output) => {
             let status = String::from_utf8_lossy(&output.stdout);
             let status = status.trim();
-            status == "200" || status == "404"
+            status == "200"
         }
         Err(_) => false,
     }
@@ -34,9 +42,20 @@ fn make_sync_r2() -> Option<SyncFs<R2Delta>> {
     if !is_local_cf_available() {
         return None;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
-    let bucket = std::env::var("LOCAL_R2_BUCKET").unwrap_or_else(|_| "test-bucket".to_string());
-    let delta = R2Delta::new_with_base_url("test-token", "test-account", &bucket, Some(&base)).ok()?;
+    let base = std::env::var("LOCAL_CF_API_BASE")
+        .unwrap_or_else(|_| "http://localhost:8789/cdn-cgi/local/explorer/api".to_string());
+    let bucket =
+        std::env::var("LOCAL_R2_BUCKET").unwrap_or_else(|_| "test-bucket-preview".to_string());
+    let delta = R2Delta::new_with_base_url(
+        "test-token",
+        "test-account",
+        &bucket,
+        Some(&base),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .ok()?;
     Some(SyncFs::new(delta))
 }
 
@@ -44,13 +63,22 @@ fn make_sync_r2() -> Option<SyncFs<R2Delta>> {
 
 #[test]
 fn test_r2_delta_new_with_credentials() {
-    let result = R2Delta::new("test-token", "test-account", "test-bucket");
+    let result = R2Delta::new(
+        "test-token",
+        "test-account",
+        "test-bucket",
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_r2_delta_from_env_no_creds() {
-    let result = R2Delta::from_env();
+    let result = R2Delta::from_env(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     assert!(result.is_err());
 }
 

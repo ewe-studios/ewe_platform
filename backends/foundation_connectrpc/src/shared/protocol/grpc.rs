@@ -17,7 +17,7 @@
 //! `application/grpc+` content-type prefix. The capability floor enforces
 //! `h2_trailers` (Decision 11).
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
@@ -30,13 +30,15 @@ use foundation_netio::shared::http::{
 use futures::StreamExt;
 
 use crate::shared::client::code_from_http_status;
-use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
+use crate::shared::compression::{
+    negotiate_compression, response_decompressor, CompressionRegistry, Compressor,
+};
 use crate::shared::context::{Peer, Spec, StreamType};
-use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
-    body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, HeadStream,
-    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, HeadPublisher,
+    HeadStream, PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::grpc_web::build_status_trailers;
@@ -137,11 +139,7 @@ async fn write_frames(
                     return Ok(());
                 }
             }
-            Some(Frame::EndStream { error: _, trailers: _ }) => {
-                sink.close();
-                return Ok(());
-            }
-            None => {
+            Some(Frame::EndStream { .. }) | None => {
                 sink.close();
                 return Ok(());
             }
@@ -149,6 +147,8 @@ async fn write_frames(
     }
 }
 
+// The caller keeps the `Arc` and passes a borrowed option through the loop.
+#[allow(clippy::ref_option)]
 fn decompress_if(
     flags: u8,
     payload: Bytes,
@@ -167,7 +167,6 @@ fn decompress_if(
         Ok(payload)
     }
 }
-
 
 /// The payload of a unary request's single envelope (gRPC, gRPC-Web).
 ///
@@ -263,8 +262,7 @@ impl ProtocolHandler for GrpcHandler {
                 .connection
                 .peer_addr
                 .as_ref()
-                .map(|a| format!("{a:?}"))
-                .unwrap_or_default(),
+                .map_or_default(|a| format!("{a:?}")),
             protocol: "grpc".to_string(),
         };
 
@@ -293,7 +291,7 @@ impl ProtocolHandler for GrpcHandler {
             // error when the read failed, so it cannot pass for a clean end.
             match &result {
                 Ok(()) => {
-                    request_tx.close();
+                    let _ = request_tx.close();
                 }
                 Err(e) => fail_stream(&request_tx, e, &cancel).await,
             }
@@ -315,6 +313,7 @@ impl ProtocolHandler for GrpcHandler {
             conn: Box::new(conn),
             reader_task: reader,
             writer_task: writer,
+            response_headers: ends.response_headers,
         })
     }
 
@@ -425,10 +424,7 @@ impl ProtocolClient for GrpcClient {
         codec_name: &str,
         compression: Option<&str>,
     ) {
-        headers.insert(
-            SimpleHeader::CONTENT_TYPE,
-            vec![content_type(codec_name)],
-        );
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![content_type(codec_name)]);
         headers.insert(
             SimpleHeader::from("te".to_string()),
             vec![constants::TE_TRAILERS.to_string()],
@@ -445,6 +441,8 @@ impl ProtocolClient for GrpcClient {
         }
     }
 
+    // A unary request body is capped by `send_max_bytes`, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes {
         // gRPC unary: single envelope frame. flags bit 0x01 marks compression;
         // the payload is the (optionally compressed) marshaled message bytes.
@@ -461,12 +459,16 @@ impl ProtocolClient for GrpcClient {
         Bytes::from(envelope)
     }
 
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
-        // gRPC unary response: single envelope frame. Strip the 5-byte header,
-        // return the payload. Compression is negotiated via grpc-encoding; if a
-        // response arrives compressed, the caller must decompress separately
-        // (or thread the CompressionRegistry through — the streaming path
-        // handles this in the reader task).
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // gRPC unary response: single envelope frame. Strip the 5-byte header
+        // and decode the payload. Compression is negotiated via grpc-encoding;
+        // the decompressor comes from the response head.
         if body.is_empty() {
             return Ok(Bytes::new());
         }
@@ -477,15 +479,8 @@ impl ProtocolClient for GrpcClient {
         let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
         let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
         let payload = body.slice(ENVELOPE_HEADER_LEN..end);
-        if flags & Envelope::FLAG_COMPRESSED != 0 {
-            return Err(ConnectError::internal(
-                "compressed gRPC unary response — decode_unary_response does not yet thread the \
-                 CompressionRegistry (streaming handles this in the reader task); \
-                 set response_compression: None on the server or add registry threading here",
-            )
-            .into());
-        }
-        Ok(payload)
+        let decompressor = response_decompressor(head, &[constants::HEADER_ENCODING], compression)?;
+        decompress_if(flags, payload, &decompressor, read_max_bytes)
     }
 
     fn new_conn(
@@ -493,24 +488,47 @@ impl ProtocolClient for GrpcClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
+        let cancel = config.cancel.clone();
         let (conn, ends) =
             PipeClientConn::new(spec.clone(), headers, config.cancel, DEFAULT_PIPE_DEPTH);
 
-        let writer: BoxedTask = Box::pin(write_frames(
+        let publish = ends.head_publisher();
+        let head_wake = ends.response_head_wake;
+        // The reader task is `'static`; the registry is cloned into it rather
+        // than borrowing `config`.
+        let compression = config.compression.clone();
+        let read_max_bytes = config.read_max_bytes;
+        // Keep a response-pipe handle so a writer failure reaches the caller as
+        // the stream's terminal error instead of dying with the task.
+        let writer_tx = ends.response_tx.clone();
+        let writer_task = write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
-            EnvelopeWriter::new(None, 0, 0),
-        ));
-        let reader: BoxedTask = Box::pin(read_grpc_response(
-            stream.head,
-            stream.recv_body,
-            stream.trailers,
-            ends.response_tx,
-            ends.response_headers,
-            config.read_max_bytes,
-        ));
+            EnvelopeWriter::new(
+                config.send_compressor,
+                config.compress_min_bytes,
+                config.send_max_bytes,
+            ),
+        );
+        let writer: BoxedTask =
+            Box::pin(async move { super::write_or_report(writer_task, &writer_tx, &cancel).await });
+        let reader: BoxedTask = Box::pin(async move {
+            // One sender keeps the wake pipe open until the reader ends; the
+            // publisher holds the other.
+            let _head_wake = head_wake;
+            read_grpc_response(
+                stream.head,
+                stream.recv_body,
+                stream.trailers,
+                ends.response_tx,
+                publish,
+                &compression,
+                read_max_bytes,
+            )
+            .await
+        });
 
         Ok(ClientExchange {
             conn: Box::new(conn),
@@ -523,7 +541,7 @@ impl ProtocolClient for GrpcClient {
 /// Client-side gRPC response reader: response head → envelopes → status trailers.
 ///
 /// gRPC delivers its outcome in trailing metadata, in one of two shapes:
-/// - **Trailers-Only**: a single HEADERS frame (END_STREAM) carrying
+/// - **Trailers-Only**: a single HEADERS frame (`END_STREAM`) carrying
 ///   `grpc-status` alongside the response headers — used for errors that occur
 ///   before any message is sent.
 /// - **Normal**: response HEADERS, DATA envelopes, then trailing HEADERS with
@@ -537,7 +555,8 @@ async fn read_grpc_response(
     body: BodyStream,
     trailers: PipeReceiver<SimpleHeaders>,
     tx: PipeSender<Frame>,
-    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    publish: HeadPublisher,
+    compression: &CompressionRegistry,
     read_max: usize,
 ) -> ConnectResult<()> {
     // 1. Response head. Publish the headers so `response_headers()` works.
@@ -548,30 +567,39 @@ async fn read_grpc_response(
         Some(Err(e)) => {
             let err: ErrorTrace<ConnectError> = ConnectError::from(e).into();
             let _ = tx
-                .send(Frame::EndStream { error: Some(err), trailers: SimpleHeaders::new() })
+                .send(Frame::EndStream {
+                    error: Some(err),
+                    trailers: SimpleHeaders::new(),
+                })
                 .await;
-            tx.close();
+            let _ = tx.close();
             return Ok(());
         }
         None => {
             let err: ErrorTrace<ConnectError> =
                 ConnectError::unavailable("transport closed without response head").into();
             let _ = tx
-                .send(Frame::EndStream { error: Some(err), trailers: SimpleHeaders::new() })
+                .send(Frame::EndStream {
+                    error: Some(err),
+                    trailers: SimpleHeaders::new(),
+                })
                 .await;
-            tx.close();
+            let _ = tx.close();
             return Ok(());
         }
     };
-    *response_headers.lock().unwrap_or_else(|e| e.into_inner()) = Some(resp_headers.clone());
+    publish.publish(resp_headers.clone());
 
     if status != Status::OK {
         let err: ErrorTrace<ConnectError> =
             ConnectError::new(code_from_http_status(&status), format!("HTTP {status}")).into();
         let _ = tx
-            .send(Frame::EndStream { error: Some(err), trailers: resp_headers })
+            .send(Frame::EndStream {
+                error: Some(err),
+                trailers: resp_headers,
+            })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -579,28 +607,56 @@ async fn read_grpc_response(
     if grpc_status_of(&resp_headers).is_some() {
         let error = parse_grpc_error_trailer(&resp_headers);
         let _ = tx
-            .send(Frame::EndStream { error, trailers: resp_headers })
+            .send(Frame::EndStream {
+                error,
+                trailers: resp_headers,
+            })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
-    // 3. Message envelopes until body EOF. A mid-stream failure (truncated
+    // 3. Select the decompressor from the response head before the first frame.
+    //    An unregistered encoding ends the stream with a typed error.
+    let decompressor =
+        match response_decompressor(&resp_headers, &[constants::HEADER_ENCODING], compression) {
+            Ok(decompressor) => decompressor,
+            Err(e) => {
+                let _ = tx
+                    .send(Frame::EndStream {
+                        error: Some(e),
+                        trailers: SimpleHeaders::new(),
+                    })
+                    .await;
+                let _ = tx.close();
+                return Ok(());
+            }
+        };
+
+    // 4. Message envelopes until body EOF. A mid-stream failure (truncated
     //    envelope, body error, oversized frame) must reach the receiver as a
     //    terminal error, not vanish into a clean-looking EOF.
-    if let Err(e) = read_frames(body, &tx, None, read_max).await {
+    if let Err(e) = read_frames(body, &tx, decompressor, read_max).await {
         let _ = tx
-            .send(Frame::EndStream { error: Some(e), trailers: SimpleHeaders::new() })
+            .send(Frame::EndStream {
+                error: Some(e),
+                trailers: SimpleHeaders::new(),
+            })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
-    // 4. Trailing HEADERS carry the call's outcome.
+    // 5. Trailing HEADERS carry the call's outcome.
     let trls = trailers.receive().await.unwrap_or_default();
     let error = parse_grpc_error_trailer(&trls);
-    let _ = tx.send(Frame::EndStream { error, trailers: trls }).await;
-    tx.close();
+    let _ = tx
+        .send(Frame::EndStream {
+            error,
+            trailers: trls,
+        })
+        .await;
+    let _ = tx.close();
     Ok(())
 }
 
@@ -614,9 +670,13 @@ fn grpc_status_of(headers: &SimpleHeaders) -> Option<u32> {
 
 /// Parse `grpc-status`/`grpc-message` metadata into an error (`None` when the
 /// status is 0/absent). The message is percent-decoded per the gRPC spec.
-pub(crate) fn parse_grpc_error_trailer(
-    trailers: &SimpleHeaders,
-) -> Option<ErrorTrace<ConnectError>> {
+///
+/// `#[doc(hidden)]`: this is a test hook. It lets the status conversion test
+/// call the parser from `tests/`, as the parser itself stays internal to the
+/// crate.
+#[doc(hidden)]
+#[must_use]
+pub fn parse_grpc_error_trailer(trailers: &SimpleHeaders) -> Option<ErrorTrace<ConnectError>> {
     let status = grpc_status_of(trailers)?;
     if status == 0 {
         return None;
@@ -628,30 +688,39 @@ pub(crate) fn parse_grpc_error_trailer(
         .unwrap_or_default();
     let decoded = percent_decode(&message);
     // The status came from the peer: a wire error, like the Connect and
-    // gRPC-Web decoders produce. Out-of-range codes map to Unknown.
+    // gRPC-Web decoders produce. Use the checked conversion; a value outside
+    // 1..=16 becomes Unknown, per the gRPC status code specification.
     let code = Code::from_u32(status).unwrap_or(Code::Unknown);
     Some(ErrorTrace::new(ConnectError::wire(code, decoded)))
 }
 
 /// Percent-decode a `grpc-message` value (spec: space and non-ASCII are
 /// %HH-escaped).
+///
+/// The decoded bytes may hold a multibyte UTF-8 sequence. Collect bytes and
+/// decode them as UTF-8 at the end. Pushing each byte as a `char` turns a
+/// non-ASCII byte into a Latin-1 code point and garbles the message.
 fn percent_decode(message: &str) -> String {
-    let mut out = String::new();
+    let mut out = Vec::with_capacity(message.len());
     let bytes = message.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let Ok(hex) = u8::from_str_radix(&String::from_utf8_lossy(&bytes[i + 1..i + 3]), 16)
-            {
-                out.push(hex as char);
+            // Both characters must be hex digits. `u8::from_str_radix` would
+            // also accept a leading `+` or `-`, which the escape does not.
+            let high = (bytes[i + 1] as char).to_digit(16);
+            let low = (bytes[i + 2] as char).to_digit(16);
+            if let (Some(high), Some(low)) = (high, low) {
+                // Both digits are at most 15, so the byte is at most 255.
+                out.push(u8::try_from((high << 4) | low).unwrap_or_default());
                 i += 3;
                 continue;
             }
         }
-        out.push(bytes[i] as char);
+        out.push(bytes[i]);
         i += 1;
     }
-    out
+    String::from_utf8_lossy(&out).into_owned()
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────
@@ -664,4 +733,3 @@ fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
 }
 
 // ── tests ───────────────────────────────────────────────────────────────────
-

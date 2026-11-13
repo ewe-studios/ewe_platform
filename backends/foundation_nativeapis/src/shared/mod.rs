@@ -1,3 +1,4 @@
+pub mod api;
 /// Cross-platform shared module — always compiled, no platform-specific dependencies.
 ///
 /// Contains:
@@ -5,12 +6,10 @@
 /// - `event` — `WatchEvent` and `WatchEventKind`
 /// - `watcher` — `NativeWatcher` trait, `PollWatcher` (stdlib-only), `SharedNativeWatcher<T>`, `SharedWatcher`
 /// - `api` — `WatcherBuilder`, `NativeAPI`, `native_watcher()`
-
 pub mod error;
 pub mod event;
-pub mod watcher;
-pub mod api;
 pub mod fd_state;
+pub mod watcher;
 
 /// Virtual filesystem abstraction — traits, types, error, in-memory impls.
 #[cfg(feature = "vfs")]

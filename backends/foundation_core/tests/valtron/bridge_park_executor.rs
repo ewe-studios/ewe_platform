@@ -17,8 +17,10 @@ use std::pin::Pin;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, StreamIteratorExt, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// One status a producer emits.
@@ -51,10 +53,7 @@ impl TaskIterator for Producer {
     type Ready = u32;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if !self.gap.is_zero() {
             std::thread::sleep(self.gap);
         }

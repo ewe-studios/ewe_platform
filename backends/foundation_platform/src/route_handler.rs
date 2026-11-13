@@ -4,8 +4,8 @@
 //! Three API surfaces compose together (trait impl, closure, `PatternRouter`),
 //! all implementing this single trait.
 
-use foundation_ui_traits::{NavigationIntent, RouteDecision};
 use crate::session::PlatformSession;
+use foundation_ui_traits::{NavigationIntent, RouteDecision};
 
 /// Route policy is code. Handlers return `Some(decision)` to claim
 /// a navigation, or `None` to fall through.
@@ -36,13 +36,11 @@ pub trait RouteResponder: Send + Sync + 'static {
 /// Wraps a closure as a `RouteHandler`. Use when the policy is simple.
 pub struct FnRouteHandler<F>(pub F)
 where
-    F: Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision>
-        + Send + Sync + 'static;
+    F: Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision> + Send + Sync + 'static;
 
 impl<F> FnRouteHandler<F>
 where
-    F: Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision>
-        + Send + Sync + 'static,
+    F: Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision> + Send + Sync + 'static,
 {
     pub fn new(f: F) -> Self {
         FnRouteHandler(f)
@@ -51,8 +49,7 @@ where
 
 impl<F> RouteHandler for FnRouteHandler<F>
 where
-    F: Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision>
-        + Send + Sync + 'static,
+    F: Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision> + Send + Sync + 'static,
 {
     fn resolve(
         &self,

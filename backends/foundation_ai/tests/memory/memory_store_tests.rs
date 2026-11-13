@@ -108,11 +108,7 @@ fn kv_memory_store_set_get_hydrate_clear() {
         let rec = working_record("test fact");
         store.set(&sid, &rec).await.unwrap();
 
-        let got = store
-            .get(&sid, MemoryTier::Working)
-            .await
-            .unwrap()
-            .unwrap();
+        let got = store.get(&sid, MemoryTier::Working).await.unwrap().unwrap();
         assert_eq!(got, rec);
 
         let conv = Messages::User {
@@ -127,10 +123,7 @@ fn kv_memory_store_set_get_hydrate_clear() {
         let non_mem = SessionRecord::Conversation { message: conv };
         assert!(store.set(&sid, &non_mem).await.is_err());
 
-        store
-            .set(&sid, &observation_record("obs"))
-            .await
-            .unwrap();
+        store.set(&sid, &observation_record("obs")).await.unwrap();
         let mem = store.hydrate(&sid).await.unwrap();
         assert!(mem.working.is_some());
         assert!(mem.observation.is_some());
@@ -138,16 +131,12 @@ fn kv_memory_store_set_get_hydrate_clear() {
 
         let updated = working_record("updated");
         store.set(&sid, &updated).await.unwrap();
-        let got = store
-            .get(&sid, MemoryTier::Working)
-            .await
-            .unwrap()
-            .unwrap();
+        let got = store.get(&sid, MemoryTier::Working).await.unwrap().unwrap();
         assert_eq!(got, updated);
 
         store.clear(&sid).await.unwrap();
         assert!(store.hydrate(&sid).await.unwrap().working.is_none());
-    })
+    });
 }
 
 #[test]

@@ -124,7 +124,10 @@ impl StreamState {
 
     /// We are sending a `PUSH_PROMISE` on an associated stream.
     /// Creates a new promised stream in `ReservedLocal`.
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns a copy of the stream state if the transition is not allowed.
     pub fn send_push_promise(&self) -> Result<Self, Self> {
         match *self {
             Self::Open | Self::HalfClosedRemote => Ok(Self::ReservedLocal),
@@ -209,7 +212,10 @@ impl StreamState {
     }
 
     /// We received a `PUSH_PROMISE`. The new promised stream enters `ReservedRemote`.
-    #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns a copy of the stream state if the transition is not allowed.
     pub fn recv_push_promise(&self) -> Result<Self, Self> {
         match *self {
             Self::Open | Self::HalfClosedLocal => Ok(Self::ReservedRemote),

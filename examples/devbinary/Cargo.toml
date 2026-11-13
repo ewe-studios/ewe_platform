@@ -11,17 +11,19 @@ keywords = [
 ]
 
 [dependencies]
-ewe_watch_utils = { workspace = true }
-ewe_devserver = { workspace = true  }
-
-# -- tokio, axum and tower
-tokio = { version = "1.36", features = ["full"] }
+# The dev server runtime (replaces the retired ewe_devserver).
+foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.10" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
 
-[lints]
-
 [lints.rust]
 unsafe_code = "forbid"
+
+# Opt out of the parent workspace — this crate is self-contained.
+[workspace]
+
+# Mirror the root workspace's `uat` profile so `--profile uat` works here too.
+[profile.uat]
+inherits = "dev"

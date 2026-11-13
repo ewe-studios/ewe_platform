@@ -5,7 +5,7 @@
 //! and private keys are `age`-encrypted at rest.
 //!
 //! WHAT: [`keygen`] (Ed25519/RSA generation + age encrypt/decrypt), [`store`]
-//! (apps + ssh_keys persistence), [`apps`]/[`ssh_keys`] (handlers).
+//! (apps + `ssh_keys` persistence), [`apps`]/[`ssh_keys`] (handlers).
 
 pub mod apps;
 pub mod keygen;

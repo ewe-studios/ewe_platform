@@ -1,8 +1,7 @@
-#![allow(clippy::type_complexity)]
-
-use crate::valtron::{Ctx, Stream};
+use crate::valtron::{ReadinessNotifier, ReadinessWaker, Stream};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
+use foundation_context::Ctx;
 
 use std::{
     any::Any,
@@ -37,6 +36,116 @@ pub trait EventReadiness {
     ///
     /// Returns `true` if ready, `false` otherwise.
     fn is_ready(&self, dur: Option<time::Duration>) -> bool;
+
+    /// Forget any latched readiness so the next edge is observed fresh.
+    ///
+    /// Defaults to a no-op: most signals (queues, atomics, deadlines) have
+    /// nothing to clear. An edge-triggered readiness source overrides this to
+    /// clear its latch before the next read, so an edge that arrives after a
+    /// `WouldBlock` still wakes the parked task (see
+    /// `foundation_reactor::FdReadiness`).
+    fn clear(&self) {}
+
+    /// The instant after which this signal becomes ready on its own, if it has
+    /// one.
+    ///
+    /// WHY: an executor that parks with nothing runnable must wake at the
+    /// nearest deadline of its sleepers. A signal such as "socket ready OR
+    /// timer passed" is only re-checked when something else wakes the
+    /// executor, so without this hint the task sleeps past its timer.
+    ///
+    /// Defaults to `None`: most signals (queues, atomics, sockets) become ready
+    /// only by an outside event and have no instant of their own. A time-based
+    /// signal returns its instant; a signal that combines others returns the
+    /// earliest of theirs.
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
+        None
+    }
+
+    /// Register the waker of the task that parks on this readiness.
+    ///
+    /// WHY: the executor must run the task again when the readiness becomes ready.
+    /// Instead of every source calling an executor function, the executor hands the
+    /// readiness a waker that belongs to **that task**, and the source only calls
+    /// [`ReadinessWaker::wake`] (the `core::task::Waker` pattern).
+    ///
+    /// WHAT: the readiness keeps `waker` (a [`ReadinessNotifier`] does this for
+    /// it) and wakes it when it becomes ready or closes. A second `register` for the
+    /// same task must not add a second waker, and one for a new park replaces the
+    /// old. The wake reaches only the executor that owns the task.
+    ///
+    /// Returns `true` when the readiness wakes the waker on **every** change to
+    /// ready (or is ready only at its [`Self::deadline`]). The executor then does not
+    /// re-check it on a timer and sleeps until the wake or the deadline.
+    ///
+    /// Returns `false` by default (safe): a readiness that cannot wake is still
+    /// re-checked on the executor's readiness quantum (1 ms), so a custom
+    /// implementation outside valtron keeps working until it opts in. A readiness
+    /// that combines others returns `true` only if all of them do.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let _ = waker;
+        false
+    }
+}
+
+/// A readiness flag that wakes the tasks parked on it when it is set.
+///
+/// WHY: unlike [`BoolSignal`], it has no raw access to its flag, so every change
+/// wakes the parked tasks (through the wakers they registered). The executor
+/// then never has to re-check it on a timer ([`EventReadiness::register`] returns
+/// `true`).
+#[derive(Clone, Default)]
+pub struct ResumeSignal(Arc<ResumeSignalInner>);
+
+#[derive(Default)]
+struct ResumeSignalInner {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
+
+impl ResumeSignal {
+    /// A new signal with the given value.
+    #[must_use]
+    pub fn new(value: bool) -> Self {
+        Self(Arc::new(ResumeSignalInner {
+            flag: AtomicBool::new(value),
+            notifier: ReadinessNotifier::new(),
+        }))
+    }
+
+    /// Set the value. Setting it to `true` wakes the tasks parked on it.
+    pub fn set(&self, value: bool) {
+        self.0.flag.store(value, Ordering::SeqCst);
+        if value {
+            self.0.notifier.notify();
+        }
+    }
+
+    /// The current value.
+    #[must_use]
+    pub fn get(&self) -> bool {
+        self.0.flag.load(Ordering::SeqCst)
+    }
+
+    /// The number of wakers registered on this signal.
+    ///
+    /// This is a test hook: a test proves that finished waits do not pile up
+    /// wakers. It is not part of the stable API.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn waiter_count(&self) -> usize {
+        self.0.notifier.waiter_count()
+    }
+}
+
+impl EventReadiness for ResumeSignal {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.get()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.notifier.register(waker)
+    }
 }
 
 /// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.
@@ -54,46 +163,79 @@ pub type EventReadinessPtr = Arc<dyn EventReadiness>;
 /// A simple readiness signal backed by an `Arc<AtomicBool>`.
 ///
 /// The task considers itself ready when the atomic bool is `true`.
+///
+/// [`BoolSignal::set`] wakes the tasks parked on the signal, so a signal that is only
+/// changed through `set` is not re-checked on a timer. A signal built from a raw
+/// atomic ([`BoolSignal::from_atomic`], [`BoolSignal::clone_inner`]) may be stored to
+/// by code that wakes nobody, so it stays on the timed re-check.
 #[derive(Clone)]
-pub struct BoolSignal(Arc<AtomicBool>);
+pub struct BoolSignal(Arc<BoolSignalInner>);
+
+struct BoolSignalInner {
+    flag: Arc<AtomicBool>,
+    notifier: ReadinessNotifier,
+    /// A raw writer exists: a store may not wake the tasks parked on the signal.
+    raw: AtomicBool,
+}
 
 impl BoolSignal {
     /// Create a new `BoolSignal` with the given initial value.
+    #[must_use]
     pub fn new(value: bool) -> Self {
-        Self(Arc::new(AtomicBool::new(value)))
+        Self(Arc::new(BoolSignalInner {
+            flag: Arc::new(AtomicBool::new(value)),
+            notifier: ReadinessNotifier::new(),
+            raw: AtomicBool::new(false),
+        }))
     }
 
     /// Create a `BoolSignal` from an existing `Arc<AtomicBool>`.
+    ///
+    /// Whoever holds the atomic can store to it without waking a parked task, so
+    /// the signal is re-checked on a timer.
     pub fn from_atomic(inner: Arc<AtomicBool>) -> Self {
-        Self(inner)
+        Self(Arc::new(BoolSignalInner {
+            flag: inner,
+            notifier: ReadinessNotifier::new(),
+            raw: AtomicBool::new(true),
+        }))
     }
 
     /// Get a clone of the underlying `Arc<AtomicBool>` for external mutation.
     ///
-    /// Prefer [`BoolSignal::set`]: a raw store does not ask the executor to
-    /// run again, so on a JS wasm build (which hands control back to the event
-    /// loop while every task is parked) a task parked on this signal is never
-    /// re-polled unless the writer also calls
-    /// [`request_executor_resume`](crate::valtron::request_executor_resume).
+    /// Prefer [`BoolSignal::set`]: a raw store wakes nobody. Taking the atomic
+    /// puts the signal on the timed re-check, so a raw store is still seen.
+    #[must_use]
     pub fn clone_inner(&self) -> Arc<AtomicBool> {
-        self.0.clone()
+        self.0.raw.store(true, Ordering::SeqCst);
+        self.0.flag.clone()
     }
 
-    /// Set the signal. Turning it on asks the executor's host to run again
-    /// ([`request_executor_resume`](crate::valtron::request_executor_resume)),
-    /// so a task parked on it is re-polled even when the writer is JS-side async
-    /// work on a wasm build, and at once on native.
+    /// Set the signal. Turning it on wakes the tasks parked on it, and on a JS wasm
+    /// build asks the host to run the executor again, so a task parked on it is
+    /// re-polled even when the writer is JS-side async work.
     pub fn set(&self, value: bool) {
-        self.0.store(value, Ordering::SeqCst);
+        self.0.flag.store(value, Ordering::SeqCst);
         if value {
-            crate::valtron::request_executor_resume();
+            self.0.notifier.notify();
+            if self.0.raw.load(Ordering::SeqCst) {
+                // A timed re-check task (no waker) parked on a raw signal: nudge
+                // the executors of the process.
+                crate::valtron::request_executor_resume();
+            }
         }
     }
 }
 
 impl EventReadiness for BoolSignal {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
+    }
+
+    /// Takes the waker only while no raw writer exists (see the type docs).
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let registered = self.0.notifier.register(waker);
+        registered && !self.0.raw.load(Ordering::SeqCst)
     }
 }
 
@@ -104,16 +246,21 @@ impl EventReadiness for BoolSignal {
 /// stream has data. This ties the two together.
 ///
 /// HOW: [`WakeSignal::callback`] builds a one-shot [`WakeCallback`] that sets the
-/// flag and calls [`request_executor_resume`] (so a JS wasm executor that has
+/// flag and wakes the task parked on the signal (so a JS wasm executor that has
 /// handed control back to the event loop is run again). Register it with
 /// `stream.wake(signal.callback())`; if that returns `WakeResult::Successful`,
 /// return `TaskStatus::Depends(Arc::new(signal))`.
 ///
 /// [`WakeableStream`]: crate::valtron::WakeableStream
 /// [`WakeCallback`]: crate::valtron::WakeCallback
-/// [`request_executor_resume`]: crate::valtron::request_executor_resume
 #[derive(Clone, Default)]
-pub struct WakeSignal(Arc<AtomicBool>);
+pub struct WakeSignal(Arc<WakeSignalInner>);
+
+#[derive(Default)]
+struct WakeSignalInner {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
 
 impl WakeSignal {
     /// A new, not-yet-ready signal.
@@ -123,20 +270,23 @@ impl WakeSignal {
     }
 
     /// The wake callback to register on the stream: marks the signal ready and
-    /// asks the executor host to run again.
-    #[must_use]
+    /// wakes the task parked on it.
     pub fn callback(&self) -> crate::valtron::WakeCallback {
-        let flag = Arc::clone(&self.0);
+        let inner = Arc::clone(&self.0);
         Box::new(move || {
-            flag.store(true, Ordering::SeqCst);
-            crate::valtron::request_executor_resume();
+            inner.flag.store(true, Ordering::SeqCst);
+            inner.notifier.notify();
         })
     }
 }
 
 impl EventReadiness for WakeSignal {
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.notifier.register(waker)
+    }
+
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
     }
 }
 
@@ -149,11 +299,29 @@ impl EventReadiness for WakeSignal {
 /// cannot signal readiness ([`WakeResult::NotSupported`]) gets
 /// [`TaskStatus::Wait`], the plain re-poll.
 ///
-/// ```ignore
-/// match stream.next() {
-///     Some(Stream::Wait) => park_on(&mut stream),
-///     // ...
-/// }
+/// ```
+/// use std::sync::Arc;
+/// use std::time::Duration;
+///
+/// use foundation_core::valtron::{
+///     park_on, EventReadiness, NotifyQueue, NotifyQueueStreamIterator, Stream, TaskStatus,
+/// };
+///
+/// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
+/// let ctx = foundation_core::valtron::Ctx::host();
+/// let mut stream =
+///     NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1), ctx);
+///
+/// // An empty stream parks the task on a signal instead of re-polling it.
+/// let status: TaskStatus<u32, ()> = park_on(&mut stream);
+/// let TaskStatus::Depends(signal) = status else {
+///     panic!("a waking stream parks on Depends");
+/// };
+/// assert!(!signal.is_ready(None));
+///
+/// // A push flips the signal, so the executor resumes the task.
+/// queue.push(Stream::Next(7)).expect("push");
+/// assert!(signal.is_ready(None));
 /// ```
 ///
 /// [`WakeResult::NotSupported`]: crate::valtron::WakeResult::NotSupported
@@ -185,16 +353,44 @@ impl<D, P> TaskStatus<D, P> {
     /// A task that needs the value handles `Ready` and returns everything
     /// else as-is:
     ///
-    /// ```ignore
-    /// match TaskStatus::from_stream(&mut self.stream)? {
-    ///     TaskStatus::Ready(chunk) => { self.collected.push(chunk); Some(TaskStatus::Ignore) }
-    ///     other => Some(other),
-    /// }
+    /// ```
+    /// use std::sync::Arc;
+    /// use std::time::Duration;
+    ///
+    /// use foundation_core::valtron::{
+    ///     EventReadiness, NotifyQueue, NotifyQueueStreamIterator, Stream, TaskStatus,
+    /// };
+    ///
+    /// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
+    /// let ctx = foundation_core::valtron::Ctx::host();
+    /// let mut stream =
+    ///     NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1), ctx);
+    ///
+    /// // With no item yet, the task parks on the stream's wake signal.
+    /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
+    /// let Some(TaskStatus::Depends(signal)) = status else {
+    ///     panic!("an empty, open stream parks on Depends");
+    /// };
+    /// assert!(!signal.is_ready(None));
+    ///
+    /// // An item turns the next pull into Ready.
+    /// queue.push(Stream::Next(7)).expect("push");
+    /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
+    /// assert!(matches!(status, Some(TaskStatus::Ready(7))));
+    ///
+    /// // A closed, drained stream ends with None.
+    /// queue.close();
+    /// assert!(TaskStatus::<u32, ()>::from_stream(&mut stream).is_none());
     /// ```
     pub fn from_stream<S>(stream: &mut S) -> Option<Self>
     where
         S: crate::valtron::WakeableStream<D = D, P = P> + ?Sized,
     {
+        // Announce the parking consumer before pulling, so a queue-backed
+        // stream answers an empty pull with `Wait` instead of blocking the
+        // executor thread for a timed wait first. `announce` is idempotent and
+        // registers no callback, so it cannot leak on repeated polls.
+        stream.announce();
         Some(match stream.next()? {
             Stream::Next(value) => TaskStatus::Ready(value),
             Stream::Pending(progress) => TaskStatus::Pending(progress),
@@ -227,56 +423,76 @@ impl<D, P> TaskStatus<D, P> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// let queue = Arc::new(ConcurrentQueue::unbounded());
-/// let readiness = QueueReadiness::new(queue.clone());
-///
-/// // In TaskIterator::next_status():
-/// if let Ok(msg) = queue.pop() {
-///     return Some(TaskStatus::Ready(msg));
-/// }
-/// Some(TaskStatus::Depends(Arc::new(readiness)))
 /// ```
-pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>);
+/// use foundation_core::valtron::{EventQueue, EventReadiness};
+///
+/// let queue = EventQueue::<u32>::unbounded();
+/// let readiness = queue.readiness();
+///
+/// // Empty: the task parks on the readiness instead of taking a message.
+/// assert!(!readiness.is_ready(None));
+///
+/// // Non-empty: the task can take the message now.
+/// queue.push(7).expect("push");
+/// assert!(readiness.is_ready(None));
+/// assert_eq!(queue.pop().expect("item"), 7);
+/// assert!(!readiness.is_ready(None));
+/// ```
+pub struct QueueReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken after a push and on close, so the parked task runs again at once.
+    notifier: Arc<ReadinessNotifier>,
+}
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
     }
 }
 
 impl<T> QueueReadiness<T> {
-    /// Create a `QueueReadiness` that watches the given queue for messages.
-    pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue)
+    /// A readiness over a queue whose pushes and close call `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self { queue, notifier }
     }
 
-    /// Get a clone of the underlying queue for external mutation (pushing messages).
+    /// Get a clone of the underlying queue.
     ///
-    /// A producer outside the executor (JS-side async work on wasm) should
-    /// push with [`QueueReadiness::push`] instead, which asks the executor to
-    /// run again; a raw push leaves a parked consumer asleep on a JS wasm build.
+    /// Push with [`QueueReadiness::push`] (or through the [`EventQueue`] that
+    /// made this readiness) so the parked consumer is woken. A raw push wakes
+    /// nobody.
+    #[must_use]
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
-        self.0.clone()
+        self.queue.clone()
     }
 
-    /// Push `item` and ask the executor's host to run again, so a consumer
-    /// parked on this readiness is re-polled.
+    fn changed(&self) {
+        self.notifier.notify();
+    }
+
+    /// Push `item` and wake the consumer parked on this readiness.
     ///
     /// # Errors
     /// The queue is full or closed; the item is handed back.
     pub fn push(&self, item: T) -> Result<(), concurrent_queue::PushError<T>> {
-        self.0.push(item)?;
-        crate::valtron::request_executor_resume();
+        self.queue.push(item)?;
+        self.changed();
         Ok(())
     }
 
-    /// Close the queue and ask the executor to run again, so a parked consumer
-    /// observes the end. Returns `true` if this call closed it.
+    /// Close the queue and wake the parked consumer, so it observes the end.
+    /// Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
-        let closed = self.0.close();
-        crate::valtron::request_executor_resume();
+        let closed = self.queue.close();
+        self.changed();
         closed
     }
 }
@@ -287,14 +503,22 @@ impl<T: Send> EventReadiness for QueueReadiness<T> {
         // Closed-aware: a closed queue is "ready" so a parked consumer unparks to
         // observe end-of-stream (its next `pop` drains any backlog then returns
         // `Closed`) instead of sleeping forever.
-        !self.0.is_empty() || self.0.is_closed()
+        !self.queue.is_empty() || self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
     }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        !self.0.is_empty() || self.0.is_closed()
+        !self.queue.is_empty() || self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
     }
 }
 
@@ -316,55 +540,77 @@ impl<T> EventReadiness for QueueReadiness<T> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// // In a producer TaskIterator::next_status():
-/// match queue.push(item) {
-///     Ok(()) => Some(TaskStatus::Ready(())),
-///     Err(PushError::Full(_)) =>
-///         Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(queue.clone())))),
-///     Err(PushError::Closed(_)) => None,
-/// }
 /// ```
-pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>);
+/// use foundation_core::valtron::{EventReadiness, Pipe};
+///
+/// let (tx, rx) = Pipe::<u32>::with_depth(1);
+/// let vacancy = tx.vacancy();
+///
+/// // An empty pipe has room for the producer.
+/// assert!(vacancy.is_ready(None));
+///
+/// // A full pipe has none: the producer parks until a pop frees a slot.
+/// tx.try_send(1).expect("fill the pipe");
+/// assert!(!vacancy.is_ready(None));
+///
+/// assert_eq!(rx.try_recv().expect("item"), 1);
+/// assert!(vacancy.is_ready(None));
+/// ```
+pub struct QueueVacancyReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken after a pop and on close, so the parked producer runs again at once.
+    notifier: Arc<ReadinessNotifier>,
+}
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueVacancyReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
     }
 }
 
 impl<T> QueueVacancyReadiness<T> {
-    /// Create a `QueueVacancyReadiness` that watches the given queue for capacity.
-    pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue)
+    /// A readiness over a queue whose pops and close call `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self { queue, notifier }
     }
 
-    /// Get a clone of the underlying queue for external mutation (popping messages).
+    /// Get a clone of the underlying queue.
     ///
-    /// A consumer outside the executor should pop with
-    /// [`QueueVacancyReadiness::pop`] instead, which asks the executor to run
-    /// again; a raw pop leaves a parked producer asleep on a JS wasm build.
+    /// Pop with [`QueueVacancyReadiness::pop`] (or through the [`EventQueue`] that
+    /// made this readiness) so the parked producer is woken. A raw pop wakes
+    /// nobody.
+    #[must_use]
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
-        self.0.clone()
+        self.queue.clone()
     }
 
-    /// Pop an item and ask the executor's host to run again, so a producer
-    /// parked on the full queue is re-polled.
+    fn changed(&self) {
+        self.notifier.notify();
+    }
+
+    /// Pop an item and wake the producer parked on the full queue.
     ///
     /// # Errors
     /// The queue is empty or closed.
     pub fn pop(&self) -> Result<T, concurrent_queue::PopError> {
-        let item = self.0.pop()?;
-        crate::valtron::request_executor_resume();
+        let item = self.queue.pop()?;
+        self.changed();
         Ok(item)
     }
 
-    /// Close the queue and ask the executor to run again, so a parked producer
-    /// observes the close. Returns `true` if this call closed it.
+    /// Close the queue and wake the parked producer, so it observes the close.
+    /// Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
-        let closed = self.0.close();
-        crate::valtron::request_executor_resume();
+        let closed = self.queue.close();
+        self.changed();
         closed
     }
 }
@@ -374,14 +620,107 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: report ready when the queue closes so a producer parked on
         // a full-then-closed pipe unparks to observe the close on its next push.
-        self.0.is_closed() || !self.0.is_full()
+        self.queue.is_closed() || !self.queue.is_full()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
     }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.is_closed() || !self.0.is_full()
+        self.queue.is_closed() || !self.queue.is_full()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
+/// The **close-only** readiness signal for a bounded `ConcurrentQueue<T>`.
+///
+/// WHY: a producer that must learn "the consumer dropped the queue" has no
+/// exact signal. [`QueueVacancyReadiness`] reports "not full", which is true for
+/// every queue with room, so a producer parked on it wakes on each consumer pop.
+/// This signal is ready only after the queue closes, and its notifier fires only
+/// on the close.
+///
+/// WHAT: An [`EventReadiness`] that is ready when the queue **is closed**, so a
+/// producer parks on it with `TaskStatus::Depends` and runs again once the
+/// consumer goes away.
+///
+/// HOW: Wraps the same `Arc<ConcurrentQueue<T>>` the pipe owns and reports
+/// `queue.is_closed()`. The notifier is fired by the pipe's close funnel
+/// (`PipeInner::close_queue`), never by a push or a pop, and only on the first
+/// close.
+///
+/// # Example
+///
+/// ```
+/// use foundation_core::valtron::{EventReadiness, Pipe};
+///
+/// let (tx, rx) = Pipe::<u32>::with_depth(1);
+/// let closed = tx.closed_readiness();
+///
+/// // The receiver is alive: the close has not happened, even with room.
+/// assert!(!closed.is_ready(None));
+///
+/// drop(rx);
+/// assert!(closed.is_ready(None));
+/// ```
+pub struct QueueClosedReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken only when the queue closes, never by a push or a pop.
+    notifier: Arc<ReadinessNotifier>,
+}
+
+// Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
+impl<T> Clone for QueueClosedReadiness<T> {
+    fn clone(&self) -> Self {
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
+    }
+}
+
+impl<T> QueueClosedReadiness<T> {
+    /// A readiness over a queue whose close calls `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self { queue, notifier }
+    }
+
+    /// Get a clone of the underlying queue.
+    #[must_use]
+    pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
+        self.queue.clone()
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<T: Send> EventReadiness for QueueClosedReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueClosedReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
     }
 }
 
@@ -403,18 +742,35 @@ impl<T> EventReadiness for QueueVacancyReadiness<T> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// // Park on "pipe has vacancy OR the call was cancelled":
+/// ```
+/// use std::sync::Arc;
+///
+/// use foundation_core::valtron::{
+///     AnyReadiness, EventReadiness, EventReadinessPtr, Pipe, ResumeSignal,
+/// };
+///
+/// // Park on "the pipe has vacancy OR the call was cancelled".
+/// let (tx, _rx) = Pipe::<u32>::with_depth(1);
+/// tx.try_send(1).expect("fill the pipe");
+/// let vacancy: EventReadinessPtr = Arc::new(tx.vacancy());
+/// let cancelled = ResumeSignal::new(false);
 /// let signal = AnyReadiness::new(vec![
-///     Arc::new(pipe.vacancy()) as Arc<dyn EventReadiness>,
-///     cancel_signal,
+///     vacancy,
+///     Arc::new(cancelled.clone()) as EventReadinessPtr,
 /// ]);
-/// Some(TaskStatus::Depends(Arc::new(signal)))
+///
+/// // The pipe is full and the call is not cancelled: neither child is ready.
+/// assert!(!signal.is_ready(None));
+///
+/// // One ready child is enough.
+/// cancelled.set(true);
+/// assert!(signal.is_ready(None));
 /// ```
 pub struct AnyReadiness(Vec<EventReadinessPtr>);
 
 impl AnyReadiness {
     /// Create an `AnyReadiness` over the given child signals.
+    #[must_use]
     pub fn new(children: Vec<EventReadinessPtr>) -> Self {
         Self(children)
     }
@@ -435,6 +791,24 @@ impl AnyReadiness {
 impl EventReadiness for AnyReadiness {
     fn is_ready(&self, dur: Option<time::Duration>) -> bool {
         self.0.iter().any(|child| child.is_ready(dur))
+    }
+
+    /// The earliest deadline of the children: the signal is ready as soon as
+    /// any child is, so it can be ready at the first of their instants. `None`
+    /// when no child has one.
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
+        self.0.iter().filter_map(|child| child.deadline()).min()
+    }
+
+    /// Registers `waker` with every child (no short-circuit: each child must
+    /// hold it). Returns `true` only if every child wakes on change, so a child
+    /// that cannot wake keeps the whole signal on the timed re-check.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let mut all = true;
+        for child in &self.0 {
+            all &= child.register(waker);
+        }
+        all
     }
 }
 
@@ -585,11 +959,10 @@ impl<D, P> From<TaskStatus<D, P>> for Stream<D, P> {
     fn from(val: TaskStatus<D, P>) -> Self {
         match val {
             TaskStatus::Init => Stream::Init,
-            TaskStatus::Spawn(_) => Stream::Ignore,
+            TaskStatus::Spawn(_) | TaskStatus::Ignore | TaskStatus::Depends(_) => Stream::Ignore,
             TaskStatus::Ready(inner) => Stream::Next(inner),
             TaskStatus::Delayed(inner) => Stream::Delayed(inner),
             TaskStatus::Pending(inner) => Stream::Pending(inner),
-            TaskStatus::Ignore => Stream::Ignore,
             TaskStatus::Wait => Stream::Wait,
             TaskStatus::Spread(items) => Stream::Spread(
                 items
@@ -600,7 +973,6 @@ impl<D, P> From<TaskStatus<D, P>> for Stream<D, P> {
                     })
                     .collect(),
             ),
-            TaskStatus::Depends(_) => Stream::Ignore,
         }
     }
 }
@@ -827,9 +1199,10 @@ impl<D: 'static, P: 'static> Iterator for TaskAsIterator<D, P> {
 /// Terminal (draining) methods for the contextual orchestrator.
 ///
 /// These drive the wrapped task to completion, always threading the `ctx` this
-/// orchestrator was seeded with — never minting a fresh `Ctx::new()`.
+/// orchestrator was seeded with — never minting a fresh `Ctx::host()`.
 impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     /// Drives the task, returning the first `Ready` value (if any).
+    #[must_use]
     pub fn first_ready(mut self) -> Option<D> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
             if let TaskStatus::Ready(value) = status {
@@ -840,6 +1213,7 @@ impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     }
 
     /// Drives the task, returning the first `Pending` value (if any).
+    #[must_use]
     pub fn first_pending(mut self) -> Option<P> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
             if let TaskStatus::Pending(value) = status {
@@ -850,6 +1224,7 @@ impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     }
 
     /// Drains the task, collecting every `Ready` value into a `Vec`.
+    #[must_use]
     pub fn collect_ready(mut self) -> Vec<D> {
         let mut out = Vec::new();
         while let Some(status) = self.0.next_status(self.1.clone()) {
@@ -861,6 +1236,7 @@ impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     }
 
     /// Drains the task, returning the first `Ready` value (if any).
+    #[must_use]
     pub fn collect_one_ready(mut self) -> Option<D> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
             if let TaskStatus::Ready(value) = status {
@@ -944,15 +1320,15 @@ impl PartialEq for State {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Pending(a), Self::Pending(b)) => a == b,
-            (Self::Panicked, Self::Panicked) => true,
-            (Self::SpawnFailed(a), Self::SpawnFailed(b)) => a == b,
-            (Self::SpawnFinished(_), Self::SpawnFinished(_)) => true,
-            (Self::Reschedule, Self::Reschedule) => true,
-            (Self::Progressed, Self::Progressed) => true,
-            (Self::ReadyValue(a), Self::ReadyValue(b)) => a == b,
-            (Self::Done, Self::Done) => true,
-            (Self::Wait, Self::Wait) => true,
-            (Self::Depends(_), Self::Depends(_)) => true,
+            (Self::SpawnFailed(a), Self::SpawnFailed(b))
+            | (Self::ReadyValue(a), Self::ReadyValue(b)) => a == b,
+            (Self::Panicked, Self::Panicked)
+            | (Self::SpawnFinished(_), Self::SpawnFinished(_))
+            | (Self::Reschedule, Self::Reschedule)
+            | (Self::Progressed, Self::Progressed)
+            | (Self::Done, Self::Done)
+            | (Self::Wait, Self::Wait)
+            | (Self::Depends(_), Self::Depends(_)) => true,
             _ => false,
         }
     }
@@ -992,6 +1368,15 @@ pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 /// the underlying state information it returns.
 pub trait ExecutionIterator {
     fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State>;
+
+    /// A short name for this task, used by executor diagnostics.
+    ///
+    /// WHY: the slow-poll watchdog (feature 139) names the task that blocked a
+    /// worker in its warning. The default returns the concrete type's name,
+    /// which is a compile-time constant, so it costs nothing to produce.
+    fn name(&self) -> &'static str {
+        core::any::type_name::<Self>()
+    }
 }
 
 pub trait IntoBoxedExecutionIterator {
@@ -1073,15 +1458,22 @@ impl ExecutionIterator for CanCloneExecutionIterator {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.0.next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.0.name()
+    }
 }
 
-#[allow(clippy::needless_lifetimes)]
-impl<'a, M> ExecutionIterator for &'a mut M
+impl<M> ExecutionIterator for &mut M
 where
     M: ExecutionIterator,
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         (**self).next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        (**self).name()
     }
 }
 
@@ -1092,6 +1484,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.get_mut().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.borrow().name()
+    }
 }
 
 impl<M> ExecutionIterator for Rc<RefCell<Box<M>>>
@@ -1100,6 +1496,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.borrow_mut().next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        self.borrow().name()
     }
 }
 
@@ -1110,6 +1510,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.get_mut().unwrap().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.lock().unwrap().name()
+    }
 }
 
 impl<M> ExecutionIterator for Arc<Mutex<Box<M>>>
@@ -1119,6 +1523,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.lock().unwrap().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.lock().unwrap().name()
+    }
 }
 
 impl<M> ExecutionIterator for Box<M>
@@ -1127,6 +1535,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         (**self).next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        (**self).name()
     }
 }
 
@@ -1192,6 +1604,9 @@ pub trait ExecutionEngine {
     ///
     /// If `parent` is provided then a dependency connection is made
     /// with the relevant parent's identified by the `Entry` key.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     fn sequenced(
         &self,
         task: BoxedExecutionIterator,
@@ -1209,6 +1624,8 @@ pub trait ExecutionEngine {
     /// to completion before the parent is scheduled immediately
     /// to process the result or continue its opration.
     ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     fn lift(
         &self,
         task: BoxedExecutionIterator,
@@ -1219,17 +1636,28 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the `ExecutionEngine`).
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// `broadcast` allows you to deliver a task to the global execution queue
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::QueueFull` or `ExecutorError::QueueClosed` from
+    /// the global queue.
     fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// `broadcast_or_lift` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts the task to the global queue so another worker picks it up
     /// - `multi=off`: lifts the task to the top of the local queue for priority execution
+    ///
+    /// # Errors
+    /// Returns the error from the chosen dispatch call: [`Self::broadcast`] in
+    /// multi mode, [`Self::lift`] otherwise.
     fn broadcast_or_lift(
         &self,
         task: GlobalTask,
@@ -1249,6 +1677,10 @@ pub trait ExecutionEngine {
     /// `broadcast_or_sequence` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts the task to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
+    ///
+    /// # Errors
+    /// Returns the error from the chosen dispatch call: [`Self::broadcast`] in
+    /// multi mode, [`Self::sequenced`] otherwise.
     fn broadcast_or_sequence(
         &self,
         task: GlobalTask,
@@ -1274,6 +1706,13 @@ pub trait ExecutionEngine {
     /// rng returns a shared thread-safe `ChaCha8Rng` random generation
     /// managed by the executor.
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>>;
+
+    /// `fork_ctx` returns a fresh [`Ctx`] forked from the engine root.
+    ///
+    /// A blocking consumer that the engine builds (a receive iterator or a
+    /// stream iterator) keeps this `Ctx`. It then reads its clock from the
+    /// engine and never from the real operating-system clock.
+    fn fork_ctx(&self) -> Ctx;
 }
 
 pub type BoxedExecutionAction = Box<dyn ExecutionAction>;
@@ -1285,6 +1724,10 @@ pub type BoxedSendExecutionAction = Box<dyn ExecutionAction + Send + 'static>;
 /// Returns:
 ///     A result indicating success or failure with the error that caused said failure.
 pub trait ExecutionAction {
+    /// Applies the action through `engine`, with `key` as the parent entry.
+    ///
+    /// # Errors
+    /// Returns the error from the engine call that cannot accept the task.
     fn apply(
         &mut self,
         key: Option<Entry>,
@@ -1363,14 +1806,17 @@ pub trait TaskReadyResolver<D, P> {
 }
 
 pub trait IntoBoxedSendTaskReadyResolver<D, P> {
-    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
+    fn into_box_send_task_ready_resolver(self)
+        -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
 }
 
 impl<F, D, P> IntoBoxedSendTaskReadyResolver<D, P> for F
 where
     F: TaskReadyResolver<D, P> + Send + 'static,
 {
-    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
+    fn into_box_send_task_ready_resolver(
+        self,
+    ) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
         Box::new(self)
     }
 }
@@ -1411,8 +1857,7 @@ impl<Done, Pending> TaskReadyResolver<Done, Pending> for NoResolving<Done, Pendi
     }
 }
 
-#[allow(clippy::needless_lifetimes)]
-impl<'a, F, D, P> TaskReadyResolver<D, P> for &'a mut F
+impl<F, D, P> TaskReadyResolver<D, P> for &mut F
 where
     F: TaskReadyResolver<D, P>,
 {
@@ -1534,7 +1979,6 @@ where
     }
 }
 
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReadyValue<P> {
     Skip,
@@ -1578,9 +2022,9 @@ where
                 | TaskStatus::Pending(_)
                 | TaskStatus::Ignore
                 | TaskStatus::Wait
-                | TaskStatus::Depends(_) => Some(ReadyValue::Skip),
+                | TaskStatus::Depends(_)
+                | TaskStatus::Spread(_) => Some(ReadyValue::Skip),
                 TaskStatus::Ready(item) => Some(ReadyValue::Inner(item)),
-                TaskStatus::Spread(_) => Some(ReadyValue::Skip),
             },
             None => None,
         }
@@ -1729,19 +2173,61 @@ where
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let task = my_task
-///     .map_circuit(|status| {
-///         match status {
-///             TaskStatus::Ready(err) if err.is_error() => {
-///                 TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(err))
-///             }
-///             TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
-///                 TaskShortCircuit::Continue(status)
-///             }
-///             _ => TaskShortCircuit::Stop,
-///         }
-///     });
+/// ```
+/// use foundation_core::valtron::{
+///     Ctx, TaskIterator, TaskIteratorExt, TaskShortCircuit, TaskStatus,
+/// };
+///
+/// # #[derive(Clone, Copy, PartialEq, Debug)]
+/// # enum Outcome {
+/// #     Ok(u32),
+/// #     Err(&'static str),
+/// # }
+/// #
+/// # struct Steps {
+/// #     items: Vec<Outcome>,
+/// #     index: usize,
+/// # }
+/// #
+/// # impl TaskIterator for Steps {
+/// #     type Ready = Outcome;
+/// #     type Pending = ();
+/// #
+/// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Outcome, ()>> {
+/// #         let item = self.items.get(self.index).copied();
+/// #         self.index += 1;
+/// #         item.map(TaskStatus::Ready)
+/// #     }
+/// # }
+/// #
+/// # let ctx = Ctx::host();
+/// # let task = Steps {
+/// #     items: vec![
+/// #         Outcome::Ok(1),
+/// #         Outcome::Ok(2),
+/// #         Outcome::Err("boom"),
+/// #         Outcome::Ok(3),
+/// #     ],
+/// #     index: 0,
+/// # };
+/// let mut task = task.map_circuit(|status| match status {
+///     TaskStatus::Ready(Outcome::Err(err)) => {
+///         TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(Outcome::Err(err)))
+///     }
+///     TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
+///         TaskShortCircuit::Continue(status)
+///     }
+///     _ => TaskShortCircuit::Stop,
+/// });
+///
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(Outcome::Ok(1))));
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(Outcome::Ok(2))));
+/// // The error is returned, then iteration stops; Ok(3) is never reached.
+/// assert_eq!(
+///     task.next_status(ctx.clone()),
+///     Some(TaskStatus::Ready(Outcome::Err("boom")))
+/// );
+/// assert_eq!(task.next_status(ctx), None);
 /// ```
 pub enum TaskShortCircuit<D, P> {
     /// Continue iteration with the wrapped item

@@ -56,12 +56,12 @@ struct FragmentState {
 ///
 /// # Examples
 ///
-/// ```no_run
+/// ```rust
 /// use foundation_netio::websocket::MessageAssembler;
-/// use foundation_netio::websocket::WebSocketFrame;
 ///
-/// let mut assembler = MessageAssembler::new(1024 * 1024); // 1 MiB limit
-/// // Process frames as they arrive...
+/// let assembler = MessageAssembler::new(1024 * 1024); // 1 MiB limit
+/// assert!(!assembler.is_assembling());
+/// assert_eq!(assembler.accumulated_size(), 0);
 /// ```
 #[derive(Clone)]
 pub struct MessageAssembler {

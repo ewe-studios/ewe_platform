@@ -12,6 +12,7 @@
 //! `BackendTarget` that accepts either a bare string or a table.
 
 use derive_more::Display;
+use foundation_context::Ctx;
 use foundation_iogate::ServerIo;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
@@ -20,7 +21,7 @@ use std::time::Duration;
 /// Runtime hooks for ACME provisioning (Decision 18, F15).
 ///
 /// Not part of the serialisable config: the DNS-01 setter is a callback (publish
-/// a TXT record for a domain), typically backed by `foundation_deployment_cloudflare`.
+/// a TXT record for a domain), for example one that calls the Cloudflare DNS API.
 #[derive(Clone)]
 pub struct AcmeRuntime {
     /// Override the CA directory URL (defaults to Let's Encrypt production). A
@@ -77,13 +78,54 @@ pub struct ProxyConfig {
     /// with an ephemeral port.
     #[serde(default)]
     pub redirect_bind: Option<String>,
+    /// The most head bytes the redirect listener reads before it answers. A head
+    /// that passes this limit without its blank line gets a 431. Defaults to
+    /// 4096 bytes (the same head limit nginx uses for its default
+    /// `large_client_header_buffers`).
+    #[serde(default = "default_redirect_head_limit")]
+    pub redirect_head_limit: usize,
+    /// How long the redirect listener waits for a client to finish sending the
+    /// head. Defaults to 2 seconds (the `client_header_timeout` Caddy uses).
+    #[serde(default = "default_redirect_read_timeout", with = "duration_millis")]
+    pub redirect_read_timeout: Duration,
+    /// The bound on how long the redirect accept loop parks when no connection
+    /// is ready. Defaults to 10 milliseconds (the `accept_shutdown_poll` the
+    /// proxy's own HTTP front end uses).
+    #[serde(default = "default_redirect_accept_poll", with = "duration_millis")]
+    pub redirect_accept_poll: Duration,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
-    /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
+    /// the `io_uring` inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
     /// (today's `read(2)`/`write(2)`), so nothing changes unless asked. Not
     /// serialised — set it via the programmatic builder.
     #[serde(skip)]
     pub io_mode: ServerIo,
+    /// The longest a proxied client may take no byte of a relayed response
+    /// before the relay closes the connection. The timer restarts after every
+    /// write that takes at least one byte, so a long download to a slow but
+    /// live client is not cut. Defaults to 60 seconds (nginx `send_timeout`).
+    #[serde(default = "default_relay_send_timeout", with = "duration_millis")]
+    pub relay_send_timeout: Duration,
+    /// The longest an HTTP/3 client may take no byte of the request head or body
+    /// before the proxy gives up on the request. The wait parks the task. Defaults
+    /// to 60 seconds (nginx `client_header_timeout` / `client_body_timeout`).
+    #[serde(default = "default_client_read_timeout", with = "duration_millis")]
+    pub client_read_timeout: Duration,
+    /// The longest the proxy waits for a TCP connect to a backend (the tunnel
+    /// and upgrade relays) to finish. The wait parks the task; it holds no
+    /// thread. Defaults to 60 seconds (nginx `proxy_connect_timeout`).
+    #[serde(default = "default_connect_timeout", with = "duration_millis")]
+    pub connect_timeout: Duration,
+    /// The largest request body, in bytes, the proxy relays to a backend. A
+    /// larger declared `Content-Length`, or a streamed body that passes the
+    /// limit, is answered `413 Payload Too Large`. `0` turns the limit off, for
+    /// streaming uploads. Defaults to 1 MiB (nginx `client_max_body_size`).
+    #[serde(default = "default_max_request_body")]
+    pub max_request_body: usize,
+    /// How often [`crate::ProxyServer::drain_complete`] re-checks the in-flight
+    /// count. Defaults to 50 ms.
+    #[serde(default = "default_drain_poll", with = "duration_millis")]
+    pub drain_poll: Duration,
 }
 
 impl ProxyConfig {
@@ -100,8 +142,55 @@ impl ProxyConfig {
             acme: None,
             h3_bind: None,
             redirect_bind: None,
+            redirect_head_limit: default_redirect_head_limit(),
+            redirect_read_timeout: default_redirect_read_timeout(),
+            redirect_accept_poll: default_redirect_accept_poll(),
             io_mode: ServerIo::default(),
+            relay_send_timeout: default_relay_send_timeout(),
+            connect_timeout: default_connect_timeout(),
+            client_read_timeout: default_client_read_timeout(),
+            max_request_body: default_max_request_body(),
+            drain_poll: default_drain_poll(),
         }
+    }
+
+    /// Set [`Self::drain_poll`]. Default 50 ms.
+    #[must_use]
+    pub fn drain_poll(mut self, poll: Duration) -> Self {
+        self.drain_poll = poll;
+        self
+    }
+
+    /// Set [`Self::max_request_body`]. `0` means no limit. Default 1 MiB (nginx
+    /// `client_max_body_size`).
+    #[must_use]
+    pub fn max_request_body(mut self, limit: usize) -> Self {
+        self.max_request_body = limit;
+        self
+    }
+
+    /// Set [`Self::relay_send_timeout`]. Default 60 seconds (nginx
+    /// `send_timeout`).
+    #[must_use]
+    pub fn relay_send_timeout(mut self, timeout: Duration) -> Self {
+        self.relay_send_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::client_read_timeout`]. Default 60 seconds (nginx
+    /// `client_body_timeout`).
+    #[must_use]
+    pub fn client_read_timeout(mut self, timeout: Duration) -> Self {
+        self.client_read_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::connect_timeout`]. Default 60 seconds (nginx
+    /// `proxy_connect_timeout`).
+    #[must_use]
+    pub fn connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = timeout;
+        self
     }
 
     /// Set the I/O mode for the front end and the dialed upstream legs (F50).
@@ -149,6 +238,30 @@ impl ProxyConfig {
         self
     }
 
+    /// Set the most head bytes the redirect listener reads before it answers.
+    /// A head past this limit without its blank line gets a 431. Default 4096.
+    #[must_use]
+    pub fn redirect_head_limit(mut self, limit: usize) -> Self {
+        self.redirect_head_limit = limit;
+        self
+    }
+
+    /// Set how long the redirect listener waits for a client to finish the
+    /// head. Default 2 seconds.
+    #[must_use]
+    pub fn redirect_read_timeout(mut self, timeout: Duration) -> Self {
+        self.redirect_read_timeout = timeout;
+        self
+    }
+
+    /// Set the bound on how long the redirect accept loop parks when no
+    /// connection is ready. Default 10 milliseconds.
+    #[must_use]
+    pub fn redirect_accept_poll(mut self, poll: Duration) -> Self {
+        self.redirect_accept_poll = poll;
+        self
+    }
+
     /// Attach the ACME runtime hooks (Decision 18, F15) — required when the SSL
     /// provider is `LetsEncrypt`. `dns01_setter` publishes DNS-01 TXT records;
     /// `directory_url` overrides the CA (defaults to Let's Encrypt production).
@@ -158,7 +271,10 @@ impl ProxyConfig {
         dns01_setter: crate::acme::Dns01Setter,
         directory_url: Option<String>,
     ) -> Self {
-        self.acme = Some(AcmeRuntime { directory_url, dns01_setter });
+        self.acme = Some(AcmeRuntime {
+            directory_url,
+            dns01_setter,
+        });
         self
     }
 
@@ -183,19 +299,65 @@ impl ProxyConfig {
     ///
     /// # Errors
     /// Returns `ProxyError::Config` if the file cannot be read or parsed.
-    pub fn load_file(path: &str) -> Result<Self, ProxyError> {
+    pub fn load_file(path: &str) -> ProxyResult<Self> {
         let contents = std::fs::read_to_string(path)
-            .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))?;
-        toml::from_str(&contents).map_err(|e| ProxyError::Config(format!("parse {path}: {e}")))
+            .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))
+            .map_err(foundation_errstacks::ErrorTrace::new)?;
+        toml::from_str(&contents)
+            .map_err(|e| ProxyError::Config(format!("parse {path}: {e}")).into())
     }
 
-    /// Start the proxy from this configuration.
+    /// Start the proxy from this configuration, with `ctx` as the host context.
     ///
     /// # Errors
     /// Returns `ProxyError` if validation fails or the listener cannot bind.
-    pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
-        crate::server::ProxyServer::start(self).await
+    pub async fn start(self, ctx: Ctx) -> ProxyResult<crate::server::ProxyServer> {
+        crate::server::ProxyServer::start(self, ctx).await
     }
+}
+
+/// The default redirect head limit: 4096 bytes (the nginx default for
+/// `large_client_header_buffers`).
+const fn default_redirect_head_limit() -> usize {
+    4096
+}
+
+/// The default redirect read timeout: 2 seconds (the `client_header_timeout`
+/// Caddy uses).
+fn default_redirect_read_timeout() -> Duration {
+    Duration::from_secs(2)
+}
+
+/// The default drain poll: 50 milliseconds.
+fn default_drain_poll() -> Duration {
+    Duration::from_millis(50)
+}
+
+/// The default request body limit: 1 MiB (nginx `client_max_body_size`).
+const fn default_max_request_body() -> usize {
+    1024 * 1024
+}
+
+/// The default relay send timeout: 60 seconds (nginx `send_timeout`).
+fn default_relay_send_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default client read timeout: 60 seconds (nginx `client_body_timeout`).
+fn default_client_read_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default backend connect timeout: 60 seconds (nginx
+/// `proxy_connect_timeout`).
+fn default_connect_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default redirect accept poll: 10 milliseconds (the `accept_shutdown_poll`
+/// the proxy's own HTTP front end uses).
+fn default_redirect_accept_poll() -> Duration {
+    Duration::from_millis(10)
 }
 
 /// SSL configuration.
@@ -469,19 +631,15 @@ impl<'de> Deserialize<'de> for BackendTarget {
 /// `Paused` are excluded from new traffic while in-flight requests finish.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum BackendState {
     #[display("active")]
+    #[default]
     Active,
     #[display("draining")]
     Draining,
     #[display("paused")]
     Paused,
-}
-
-impl Default for BackendState {
-    fn default() -> Self {
-        Self::Active
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -493,6 +651,15 @@ pub struct HealthCheckConfig {
     pub timeout: Duration,
     pub healthy_threshold: u32,
     pub unhealthy_threshold: u32,
+    /// How often a probe thread that is waiting out its `interval` wakes to
+    /// check for shutdown, in milliseconds. Defaults to 100 ms.
+    #[serde(default = "default_shutdown_check_millis")]
+    pub shutdown_check_millis: u64,
+}
+
+/// The default shutdown check of an idle probe thread: 100 milliseconds.
+const fn default_shutdown_check_millis() -> u64 {
+    100
 }
 
 impl Default for HealthCheckConfig {
@@ -503,6 +670,7 @@ impl Default for HealthCheckConfig {
             timeout: Duration::from_secs(2),
             healthy_threshold: 2,
             unhealthy_threshold: 3,
+            shutdown_check_millis: default_shutdown_check_millis(),
         }
     }
 }
@@ -525,6 +693,26 @@ mod duration_secs {
     }
 }
 
+/// Serialise a `Duration` as whole milliseconds (the redirect limits are
+/// sub-second, so the seconds-only `duration_secs` does not fit).
+mod duration_millis {
+    use serde::{Deserialize, Deserializer, Serializer};
+    use std::time::Duration;
+    pub fn serialize<S>(d: &Duration, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        s.serialize_u128(d.as_millis())
+    }
+    pub fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let ms: u64 = Deserialize::deserialize(d)?;
+        Ok(Duration::from_millis(ms))
+    }
+}
+
 #[derive(Debug, Display)]
 pub enum ProxyError {
     #[display("Configuration error: {_0}")]
@@ -538,3 +726,12 @@ pub enum ProxyError {
 }
 
 impl std::error::Error for ProxyError {}
+
+impl From<ProxyError> for foundation_errstacks::ErrorTrace<ProxyError> {
+    fn from(err: ProxyError) -> Self {
+        foundation_errstacks::ErrorTrace::new(err)
+    }
+}
+
+/// Result type of the crate's public fallible API.
+pub type ProxyResult<T> = Result<T, foundation_errstacks::ErrorTrace<ProxyError>>;

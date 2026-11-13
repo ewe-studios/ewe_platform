@@ -54,7 +54,11 @@ pub struct ItemConfig {
 
 impl Default for ItemConfig {
     fn default() -> Self {
-        Self { label: None, disabled: false, close_on_click: true }
+        Self {
+            label: None,
+            disabled: false,
+            close_on_click: true,
+        }
     }
 }
 
@@ -180,7 +184,14 @@ pub fn menu(
     };
 
     let popup = menu_popup(
-        ctx, rcv, &config, open, &set_open, &trigger_id, &popup_id, items,
+        ctx,
+        rcv,
+        &config,
+        open,
+        &set_open,
+        &trigger_id,
+        &popup_id,
+        items,
     );
 
     let trigger_id_attr: Cow<'static, str> = Cow::Owned(trigger_id);
@@ -296,7 +307,11 @@ fn render_entry(
         MenuEntry::Separator => html! { ctx, rcv,
             <div class="menu-separator" role="separator"></div>
         },
-        MenuEntry::Item { cfg, label, on_select } => {
+        MenuEntry::Item {
+            cfg,
+            label,
+            on_select,
+        } => {
             let id: Cow<'static, str> = Cow::Owned(next_id(prefix, counter));
             let label_html = label.render(ctx, rcv);
             let label_text = cfg.label.clone();
@@ -323,7 +338,12 @@ fn render_entry(
                 </div>
             }
         }
-        MenuEntry::Checkbox { cfg, label, checked, set_checked } => {
+        MenuEntry::Checkbox {
+            cfg,
+            label,
+            checked,
+            set_checked,
+        } => {
             let id: Cow<'static, str> = Cow::Owned(next_id(prefix, counter));
             let label_html = label.render(ctx, rcv);
             let label_text = cfg.label.clone();
@@ -351,7 +371,11 @@ fn render_entry(
                 </div>
             }
         }
-        MenuEntry::Radio { value, set_value, items } => {
+        MenuEntry::Radio {
+            value,
+            set_value,
+            items,
+        } => {
             let mut children = Vec::new();
             for opt in items {
                 let id: Cow<'static, str> = Cow::Owned(next_id(prefix, counter));
@@ -420,7 +444,11 @@ fn render_entry(
                 </div>
             }
         }
-        MenuEntry::Submenu { cfg, label, entries } => {
+        MenuEntry::Submenu {
+            cfg,
+            label,
+            entries,
+        } => {
             // A submenu is a nested menu opened from a trigger item (click / →).
             let (sub_open, set_sub_open) = ctx.signal(false);
             let trigger_id = next_id(prefix, counter);
@@ -526,7 +554,16 @@ pub fn context_menu(
         let set_open = set_open.clone();
         ctx.callback(move |_| set_open.set(true))
     };
-    let popup = menu_popup(ctx, rcv, &config, open, &set_open, &surface_id, &popup_id, items);
+    let popup = menu_popup(
+        ctx,
+        rcv,
+        &config,
+        open,
+        &set_open,
+        &surface_id,
+        &popup_id,
+        items,
+    );
     let surface_id_attr: Cow<'static, str> = Cow::Owned(surface_id);
 
     html! { ctx, rcv,
@@ -555,9 +592,16 @@ pub fn menubar(
         .map(|(trigger, entries)| {
             let (open, set_open) = ctx.signal(false);
             menu(
-                ctx, rcv,
-                MenuConfig { menubar_item: true, ..MenuConfig::default() },
-                &open, set_open, vec![trigger], entries,
+                ctx,
+                rcv,
+                MenuConfig {
+                    menubar_item: true,
+                    ..MenuConfig::default()
+                },
+                &open,
+                set_open,
+                vec![trigger],
+                entries,
             )
         })
         .collect();

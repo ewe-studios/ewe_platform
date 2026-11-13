@@ -1,4 +1,4 @@
-//! `Code` — the 16 ConnectRPC / gRPC status codes and their mappings.
+//! `Code` — the 16 `ConnectRPC` / gRPC status codes and their mappings.
 //!
 //! WHY: Every RPC error carries one of these codes; they are shared across all
 //! three wire protocols (Connect, gRPC, gRPC-Web) and map deterministically to
@@ -11,7 +11,7 @@
 //! HOW: Hand-written match arms — a table small enough that a lookup array would
 //! be less readable and no faster.
 
-/// A ConnectRPC status code (identical numbering to gRPC status codes).
+/// A `ConnectRPC` status code (identical numbering to gRPC status codes).
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Code {
@@ -51,7 +51,7 @@ pub enum Code {
 }
 
 impl Code {
-    /// The Connect wire name (lowercase snake_case), e.g. `"invalid_argument"`.
+    /// The Connect wire name (lowercase `snake_case`), e.g. `"invalid_argument"`.
     #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -75,6 +75,9 @@ impl Code {
     }
 
     /// Parse a Connect wire name (`"canceled"` → [`Code::Canceled`]).
+    // A `FromStr` impl would be a new public trait impl; the version bump that
+    // allows it is a separate change.
+    #[allow(clippy::should_implement_trait)]
     #[must_use]
     pub fn from_str(s: &str) -> Option<Self> {
         Some(match s {
@@ -128,20 +131,15 @@ impl Code {
     pub fn http_status(&self) -> u16 {
         match self {
             Code::Canceled => 499,
-            Code::Unknown => 500,
-            Code::InvalidArgument => 400,
+            Code::Unknown | Code::Internal | Code::DataLoss => 500,
+            Code::InvalidArgument | Code::FailedPrecondition | Code::OutOfRange => 400,
             Code::DeadlineExceeded => 504,
             Code::NotFound => 404,
-            Code::AlreadyExists => 409,
+            Code::AlreadyExists | Code::Aborted => 409,
             Code::PermissionDenied => 403,
             Code::ResourceExhausted => 429,
-            Code::FailedPrecondition => 400,
-            Code::Aborted => 409,
-            Code::OutOfRange => 400,
             Code::Unimplemented => 501,
-            Code::Internal => 500,
             Code::Unavailable => 503,
-            Code::DataLoss => 500,
             Code::Unauthenticated => 401,
         }
     }

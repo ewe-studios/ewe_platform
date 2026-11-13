@@ -10,10 +10,11 @@ use std::sync::Arc;
 use core::future::Future;
 use core::task::{Context, Poll};
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
-use foundation_core::valtron::{queue_waker, BoxedSendableDataIterator, TrySendError, WakeToken};
+use foundation_core::valtron::{
+    queue_waker, BoxedSendableDataIterator, EventQueue, TrySendError, WakeToken,
+};
 use foundation_netio::shared::http::{pushable_request_body_with_depth, SendSafeBody};
 
 /// Extract the backing stream iterator from a `SendSafeBody::Stream`.
@@ -92,7 +93,7 @@ fn async_push_parks_on_full_and_wakes_on_drain() {
 
     producer.try_push(Bytes::from_static(b"x")).unwrap(); // fill depth-1 pipe
 
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = queue_waker(obs.clone(), 0);
     let mut cx = Context::from_waker(&waker);
 

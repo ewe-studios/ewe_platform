@@ -69,8 +69,8 @@ pub async fn container_unpause_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/unpause", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}/unpause", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

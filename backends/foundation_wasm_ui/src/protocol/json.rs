@@ -11,7 +11,9 @@ use alloc::vec::Vec;
 use foundation_ui_traits::{DomOp, JsonEncoder, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
-use super::{decode_payload, encode_and_write_framed, ship, HandleResult, ProtocolMethods, SendResult};
+use super::{
+    decode_payload, encode_and_write_framed, ship, HandleResult, ProtocolMethods, SendResult,
+};
 
 /// JSON v1 protocol (protocol byte `2`).
 #[derive(Clone, Copy, Debug, Default)]
@@ -59,5 +61,4 @@ impl ProtocolMethods<Vec<DomOp>> for JsonV1 {
     fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
         decode_payload(&self.encoder, ptr, len)
     }
-
 }

@@ -7,9 +7,9 @@ use super::event::WatchEvent;
 /// A pluggable native file watcher for a specific platform.
 ///
 /// Implementors use the native OS mechanism:
-/// - Linux: inotify (via epoll or io_uring) — `crate::native::watcher::InotifyWatcher`
-/// - macOS/BSD: kqueue with EVFILT_VNODE — `crate::native::watcher::KqueueWatcher`
-/// - Windows: IOCP with ReadDirectoryChangesW — `crate::native::watcher::WinWatcher`
+/// - Linux: inotify (via epoll or `io_uring`) — `crate::native::watcher::InotifyWatcher`
+/// - macOS/BSD: kqueue with `EVFILT_VNODE` — `crate::native::watcher::KqueueWatcher`
+/// - Windows: IOCP with `ReadDirectoryChangesW` — `crate::native::watcher::WinWatcher`
 /// - Fallback: polling via metadata stat — `PollWatcher`
 pub trait NativeWatcher: Send + Sync {
     /// Add a path to watch (file or directory).
@@ -18,18 +18,30 @@ pub trait NativeWatcher: Send + Sync {
     /// recursively watch all subdirectories. On platforms that don't
     /// support recursive watching natively (e.g., Linux inotify), this
     /// walks the directory tree and registers each subdirectory.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be watched.
     fn watch(&mut self, path: &Path, recursive: bool) -> Result<()>;
 
     /// Remove a previously watched path.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be unwatched.
     fn unwatch(&mut self, path: &Path) -> Result<()>;
 
     /// Poll for events with an optional timeout.
     ///
     /// Returns immediately if events are available, or blocks up to `timeout`.
     /// Returns an empty Vec on timeout.
+    ///
+    /// # Errors
+    /// Returns a watcher error if polling fails.
     fn poll(&mut self, timeout: Duration) -> Result<Vec<WatchEvent>>;
 
     /// Remove all watches and release resources.
+    ///
+    /// # Errors
+    /// Returns a watcher error if a watch cannot be released.
     fn clear(&mut self) -> Result<()>;
 
     /// Check if events are available without consuming them.
@@ -53,11 +65,11 @@ pub trait NativeWatcher: Send + Sync {
     }
 }
 
-/// PollWatcher — stdlib-only metadata polling fallback.
+/// `PollWatcher` — stdlib-only metadata polling fallback.
 pub mod poll_watcher;
 
-/// SharedNativeWatcher — thread-safe Arc<RwLock<T>> wrapper + type-erased SharedWatcher.
+/// `SharedNativeWatcher` — thread-safe Arc<`RwLock`<T>> wrapper + type-erased `SharedWatcher`.
 pub mod shared;
 
-pub use shared::{SharedNativeWatcher, SharedWatcher};
 pub use poll_watcher::PollWatcher;
+pub use shared::{SharedNativeWatcher, SharedWatcher};

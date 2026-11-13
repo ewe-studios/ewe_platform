@@ -20,21 +20,22 @@ use std::os::unix::io::AsRawFd;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use boringtun::x25519::{PublicKey, StaticSecret};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
-use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
-use foundation_nativeapis::native::poll::{Interest, Token};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
+use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;
+use foundation_nativeapis::native::poll::{Interest, Token};
 use foundation_netio::native::connection::Connection;
 
 use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
 use super::dataplane::MeshDataPlane;
-use super::overlay_connection::OverlayConnection;
 use super::driver::{TimedReadiness, TunnelDriver};
+use super::overlay_connection::OverlayConnection;
 use super::relay::{HolePuncher, RelayClient, RelayServer};
 use super::transport::GossipTransport;
 use crate::shared::bootstrap::Admission;
@@ -47,12 +48,12 @@ use crate::shared::tunnel::WgTunnel;
 
 /// Reserved overlay service port for in-tunnel SWIM gossip (decision 06).
 const GOSSIP_PORT: u16 = 51999;
-/// WireGuard persistent-keepalive interval (seconds) for mesh tunnels.
+/// `WireGuard` persistent-keepalive interval (seconds) for mesh tunnels.
 const WG_KEEPALIVE: u16 = 25;
 /// Overlay subnet prefix — a `/8` so every derived `10.x.y.z` address is on-link.
 const OVERLAY_PREFIX: u8 = 8;
 /// Maximum interval between mesh task ticks. The valtron scheduler parks on
-/// the reactor (epoll/io_uring) for this duration; if any registered fd fires,
+/// the reactor (`epoll/io_uring`) for this duration; if any registered fd fires,
 /// the task is woken immediately. 50ms is the fallback when the link is idle.
 /// When the UDP socket fd is registered with the reactor, incoming WG packets
 /// trigger instant wake — no blind polling, no wasted CPU.
@@ -98,6 +99,8 @@ struct AdmissionPolicy {
     revoked: AtomicBool,
     /// Optional seed TTL (unix seconds).
     expires_at: Option<u64>,
+    /// The injected context: the TTL check reads the wall clock from its clock.
+    ctx: Ctx,
 }
 
 impl AdmissionPolicy {
@@ -106,7 +109,7 @@ impl AdmissionPolicy {
             return Admission::Reject;
         }
         if let Some(expiry) = self.expires_at {
-            if now_unix() > expiry {
+            if now_unix(&self.ctx) > expiry {
                 return Admission::Reject;
             }
         }
@@ -114,28 +117,40 @@ impl AdmissionPolicy {
     }
 }
 
-fn now_unix() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+/// The current wall-clock time in whole UNIX seconds, read from the clock of `ctx`.
+fn now_unix(ctx: &Ctx) -> u64 {
+    u64::try_from(foundation_compact::time::unix_seconds(
+        ctx.clock().wall_now(),
+    ))
+    .unwrap_or(0)
 }
 
 /// A configured (but not yet running) mesh node.
-#[derive(Debug)]
 pub struct WgNode {
     config: WgConfig,
+    ctx: Ctx,
+}
+
+impl std::fmt::Debug for WgNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The context is not `Debug`; print the config and skip the context.
+        f.debug_struct("WgNode")
+            .field("config", &self.config)
+            .finish_non_exhaustive()
+    }
 }
 
 impl WgNode {
     /// WHY: Build a node from configuration before joining.
     ///
-    /// WHAT: Wrap a [`WgConfig`].
+    /// WHAT: Wrap a [`WgConfig`] with the context that every timer and timestamp reads.
     ///
-    /// HOW: Stores it; all work happens in [`Self::join`].
+    /// HOW: Stores both; all work happens in [`Self::join`]. The context must come
+    /// from the host's `Ctx` (or a test's `Ctx::fixed`); there is no fallback
+    /// to the real clock.
     #[must_use]
-    pub fn from_config(config: WgConfig) -> Self {
-        Self { config }
+    pub fn from_config(config: WgConfig, ctx: Ctx) -> Self {
+        Self { config, ctx }
     }
 
     /// WHY: Bring the node onto the mesh.
@@ -150,7 +165,13 @@ impl WgNode {
     ///
     /// # Panics
     /// Never panics.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "one assembly routine wires the driver, SWIM, relay and threads; \
+                  splitting it spreads the shared arcs across helpers"
+    )]
     pub fn join(self) -> WgResult<WgHandle> {
+        let ctx = self.ctx.clone();
         let network_id = self.config.network_id();
         let boot = self.config.wg_seed().derive_bootstrap(&network_id);
         // Load a persisted identity if configured (F09 persistence), otherwise
@@ -165,7 +186,7 @@ impl WgNode {
             IdentityKeypair::generate()?
         };
         let my_id = PeerId(*identity.public().as_bytes());
-        let my_ip = derive_tunnel_ip(&my_id);
+        let local_ip = derive_tunnel_ip(&my_id);
 
         // Propagate relay config into advertised capabilities (F05).
         let mut caps = self.config.caps();
@@ -176,15 +197,15 @@ impl WgNode {
         // ── Data plane: from config (smoltcp or kernel TUN) ────────────
         let dp = MeshDataPlane::from_config(
             &self.config.dataplane.mode,
-            my_ip,
+            local_ip,
             OVERLAY_PREFIX,
+            &ctx,
         )?;
 
-        let udp = UdpSocket::bind(self.config.udp_listen())?;
-        let udp_addr = udp.get_ref().local_addr()?;
+        let udp = UdpSocket::bind(self.config.udp_listen()).map_err(WgError::from)?;
+        let udp_addr = udp.get_ref().local_addr().map_err(WgError::from)?;
 
-        let my_record =
-            PeerRecord::new(my_id, my_ip, vec![udp_addr], caps);
+        let my_record = PeerRecord::new(my_id, local_ip, vec![udp_addr], caps);
         let mut swim = Swim::new(my_record.clone(), mesh_swim_config(), seed_from_id(&my_id));
 
         let seed_endpoints = self.config.seed_endpoints();
@@ -204,15 +225,15 @@ impl WgNode {
                         break;
                     }
                     Admission::Reject => {
-                        return Err(WgError::Protocol("join rejected by seed".into()))
+                        return Err(WgError::Protocol("join rejected by seed".into()).into())
                     }
                     Admission::Pending => {
-                        return Err(WgError::Protocol("join pending approval".into()))
+                        return Err(WgError::Protocol("join pending approval".into()).into())
                     }
                 }
             }
             if !joined {
-                return Err(WgError::Protocol("no reachable seed endpoint".into()));
+                return Err(WgError::Protocol("no reachable seed endpoint".into()).into());
             }
         }
 
@@ -220,6 +241,7 @@ impl WgNode {
         let policy = Arc::new(AdmissionPolicy {
             revoked: AtomicBool::new(false),
             expires_at: self.config.seed_expires_at(),
+            ctx: ctx.clone(),
         });
 
         // Keep our own bootstrap door open (masterless — anyone can join through us).
@@ -227,7 +249,8 @@ impl WgNode {
             swim: Arc::clone(&swim),
             policy: Arc::clone(&policy),
         });
-        let server = BootstrapServer::bind(self.config.bootstrap_listen(), boot.channel_psk, handler)?;
+        let server =
+            BootstrapServer::bind(self.config.bootstrap_listen(), boot.channel_psk, handler)?;
         let bootstrap_addr = server.local_addr()?;
 
         let relay_enabled = self.config.relay.advertise;
@@ -240,7 +263,7 @@ impl WgNode {
         }
         let shared = Arc::new(MeshShared {
             members: Mutex::new(swim.lock().expect("swim lock").snapshot()),
-            my_ip,
+            my_ip: local_ip,
             my_id,
             bootstrap_addr,
             udp_addr,
@@ -254,36 +277,40 @@ impl WgNode {
         // listener fd with the reactor for edge-triggered wake; sleep only
         // when the reactor signals data or the poll timeout expires.
         let server_stop = Arc::clone(&stop);
+        let bootstrap_ctx = ctx.clone();
         let bootstrap_thread = thread::spawn(move || {
-            if let Err(err) = server.serve_until(&server_stop) {
+            if let Err(err) = server.serve_until(&server_stop, &bootstrap_ctx) {
                 tracing::debug!(error = %err, "bootstrap server stopped");
             }
         });
 
         // Relay server thread (if this node advertises relay capability, F05).
         let mut relay_thread = None;
-        let relay_client = Arc::new(Mutex::new(RelayClient::new(
-            RelaySelector::new(RelayStrategy::LowestLoad),
-        )));
+        let relay_client = Arc::new(Mutex::new(RelayClient::new(RelaySelector::new(
+            RelayStrategy::LowestLoad,
+        ))));
         if relay_enabled {
             let relay_stop = Arc::clone(&stop);
             let relay_shared = Arc::clone(&shared);
             // Bind an ephemeral UDP socket for relay forwarding. WireGuard
             // Noise identifies the source by the inner key, not the UDP port.
-            let relay_udp = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0,0,0,0)), 0)).expect("relay udp");
+            let relay_udp = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0))
+                .expect("relay udp");
             let relay_server = Arc::new(Mutex::new(RelayServer::new(
                 self.config.relay.max_sessions,
                 self.config.relay.rate_limit_pps,
                 self.config.relay.idle_timeout_secs,
+                ctx.clone(),
             )));
             let relay_server_clone = Arc::clone(&relay_server);
             let relay_client_for_thread = Arc::clone(&relay_client);
+            let relay_ctx = ctx.clone();
             relay_thread = Some(thread::spawn(move || {
-                let mut last_rate_reset = Instant::now();
+                let mut last_rate_reset = relay_ctx.clock().now();
                 let mut puncher = HolePuncher::new(30); // 30s punch timeout
                 let mut punch_buf = [0u8; 256];
                 while !relay_stop.load(Ordering::Relaxed) {
-                    let now = Instant::now();
+                    let now = relay_ctx.clock().now();
                     // Drain relay_out frames and forward each to the destination
                     // peer's real UDP endpoint (looked up from membership).
                     {
@@ -316,12 +343,13 @@ impl WgNode {
                                         let peer_bytes: [u8; 32] =
                                             pkt[5..37].try_into().unwrap_or([0; 32]);
                                         let peer = PeerId(peer_bytes);
-                                        if let Some(ep) =
-                                            puncher.on_punch_packet(peer, from, pkt)
-                                        {
+                                        if let Some(ep) = puncher.on_punch_packet(peer, from, pkt) {
                                             // Punch succeeded — add endpoint to peer record.
-                                            let mut members = relay_shared.members.lock().expect("members lock");
-                                            if let Some(rec) = members.iter_mut().find(|r| r.id == peer) {
+                                            let mut members =
+                                                relay_shared.members.lock().expect("members lock");
+                                            if let Some(rec) =
+                                                members.iter_mut().find(|r| r.id == peer)
+                                            {
                                                 if !rec.endpoints.contains(&ep) {
                                                     rec.endpoints.push(ep);
                                                 }
@@ -346,12 +374,15 @@ impl WgNode {
                     }
                     // Reset rate counters every second.
                     if now.duration_since(last_rate_reset).as_secs() >= 1 {
-                        relay_server_clone.lock().expect("relay lock").reset_rate_limits();
+                        relay_server_clone
+                            .lock()
+                            .expect("relay lock")
+                            .reset_rate_limits();
                         last_rate_reset = now;
                     }
                     // Park until the relay UDP socket is readable or a
                     // short timeout passes — no blind sleep.
-                    wait_readable(relay_udp.as_raw_fd(), 10);
+                    wait_readable(relay_udp.as_raw_fd(), 10, &relay_ctx);
                 }
             }));
         }
@@ -363,25 +394,27 @@ impl WgNode {
         //   routes through TUN), WgHandle overlay methods error (apps use
         //   OS sockets directly).
         let netstack = dp.netstack().cloned();
-        let driver = TunnelDriver::new(udp, dp);
+        let driver = TunnelDriver::new(udp, dp, ctx.clone());
         let gossip = if let Some(ref ns) = netstack {
             GossipTransport::overlay(
-                ns.clone().udp_bind(SocketAddr::new(my_ip, GOSSIP_PORT))
-                    .map_err(WgError::Io)?
+                ns.clone()
+                    .udp_bind(SocketAddr::new(local_ip, GOSSIP_PORT))
+                    .map_err(WgError::Io)?,
             )
         } else {
             // TUN mode — bind a kernel UDP socket. The kernel routes
             // 10.x.y.z through the TUN device (add_tun_route).
             GossipTransport::kernel(
                 UdpSocket::bind(SocketAddr::new(
-                    IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                    IpAddr::V4(Ipv4Addr::UNSPECIFIED),
                     GOSSIP_PORT,
                 ))
-                .map_err(WgError::Io)?
+                .map_err(WgError::Io)?,
             )
         };
         let mesh_task = WgMeshTask {
             driver,
+            ctx: ctx.clone(),
             swim: Arc::clone(&swim),
             gossip,
             relay_client: Arc::clone(&relay_client),
@@ -399,6 +432,8 @@ impl WgNode {
         // WG timer deadlines. Fall back to a thread when no pool exists.
         let mesh_stop = Arc::clone(&stop);
         let mesh_wrapper = MeshTask::new(mesh_task, mesh_stop);
+        // The mesh task runs on the node's own context, so it uses the host clock and RNG.
+        let mesh_ctx = ctx.clone();
         let mesh_thread: JoinHandle<()> = thread::spawn(move || {
             // Drive the TaskIterator until stop is set. When the task returns
             // Depends(signal), poll the signal with 1ms reactor cache checks
@@ -406,7 +441,7 @@ impl WgNode {
             // the atomic readiness cache asynchronously.
             let mut task = mesh_wrapper;
             while !task.stop.load(Ordering::Relaxed) {
-                match task.next_status(Ctx::new()) {
+                match task.next_status(mesh_ctx.clone()) {
                     // Task completed.
                     None => break,
                     // Ready/Ready work done — re-tick immediately.
@@ -414,8 +449,8 @@ impl WgNode {
                     // Parked on reactor + timer. Poll the signal until it
                     // fires or a short deadline passes (WG timers).
                     Some(TaskStatus::Depends(ref signal)) => {
-                        let deadline = Instant::now() + Duration::from_millis(200);
-                        while Instant::now() < deadline
+                        let deadline = mesh_ctx.clock().now() + Duration::from_millis(200);
+                        while mesh_ctx.clock().now() < deadline
                             && !task.stop.load(Ordering::Relaxed)
                             && !signal.is_ready(None)
                         {
@@ -425,8 +460,8 @@ impl WgNode {
                     }
                     // Delayed fallback (no reactor).
                     Some(TaskStatus::Delayed(d)) => {
-                        let deadline = Instant::now() + d.min(Duration::from_millis(200));
-                        while Instant::now() < deadline
+                        let deadline = mesh_ctx.clock().now() + d.min(Duration::from_millis(200));
+                        while mesh_ctx.clock().now() < deadline
                             && !task.stop.load(Ordering::Relaxed)
                         {
                             std::hint::spin_loop();
@@ -452,6 +487,7 @@ impl WgNode {
             policy,
             stop,
             threads,
+            ctx,
         })
     }
 }
@@ -464,6 +500,8 @@ pub struct WgHandle {
     policy: Arc<AdmissionPolicy>,
     stop: Arc<AtomicBool>,
     threads: Vec<JoinHandle<()>>,
+    /// The injected context the node runs on; handle-level waits read its clock.
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for WgHandle {
@@ -488,7 +526,7 @@ impl WgHandle {
         self.shared.bootstrap_addr
     }
 
-    /// This node's outer WireGuard UDP address.
+    /// This node's outer `WireGuard` UDP address.
     #[must_use]
     pub fn udp_addr(&self) -> SocketAddr {
         self.shared.udp_addr
@@ -512,9 +550,14 @@ impl WgHandle {
     /// [`std::io::Error`] if the listen fails or TUN mode is active
     /// (kernel owns TCP/IP — use `std::net::TcpListener` instead).
     pub fn tcp_listen(&self, port: u16) -> std::io::Result<OverlayListener> {
-        let ns = self.netstack.as_ref()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::TcpListener"))?;
-        ns.clone().tcp_listen(SocketAddr::new(self.shared.my_ip, port))
+        let ns = self.netstack.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Unsupported,
+                "TUN mode: use std::net::TcpListener",
+            )
+        })?;
+        ns.clone()
+            .tcp_listen(SocketAddr::new(self.shared.my_ip, port))
     }
 
     /// Open an overlay TCP connection to a peer's overlay IP.
@@ -522,8 +565,12 @@ impl WgHandle {
     /// # Errors
     /// [`std::io::Error`] if the connect fails or TUN mode is active.
     pub fn tcp_connect(&self, peer_ip: IpAddr, port: u16) -> std::io::Result<OverlayStream> {
-        let ns = self.netstack.as_ref()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::TcpStream"))?;
+        let ns = self.netstack.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Unsupported,
+                "TUN mode: use std::net::TcpStream",
+            )
+        })?;
         ns.clone().tcp_connect(SocketAddr::new(peer_ip, port))
     }
 
@@ -532,12 +579,20 @@ impl WgHandle {
     /// # Errors
     /// [`std::io::Error`] if the bind fails or TUN mode is active.
     pub fn udp_bind(&self, port: u16) -> std::io::Result<OverlayUdp> {
-        let ns = self.netstack.as_ref()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::UdpSocket"))?;
-        ns.clone().udp_bind(SocketAddr::new(self.shared.my_ip, port))
+        let ns = self.netstack.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Unsupported,
+                "TUN mode: use std::net::UdpSocket",
+            )
+        })?;
+        ns.clone()
+            .udp_bind(SocketAddr::new(self.shared.my_ip, port))
     }
 
     /// The current membership view (including self).
+    ///
+    /// # Panics
+    /// Panics if the members lock is poisoned.
     #[must_use]
     pub fn members(&self) -> Vec<PeerInfo> {
         self.shared
@@ -555,11 +610,11 @@ impl WgHandle {
             .collect()
     }
 
-    /// Open an overlay `Connection` to a peer over the WireGuard mesh (F11).
+    /// Open an overlay `Connection` to a peer over the `WireGuard` mesh (F11).
     ///
     /// The returned `Connection::Overlay(...)` plugs into every netio HTTP
     /// consumer — `HttpServer`, the HTTP client (`HttpClientBuilder::with_connector`),
-    /// ConnectRPC, gRPC — with
+    /// `ConnectRPC`, gRPC — with
     /// zero transport changes.
     ///
     /// # Errors
@@ -593,23 +648,21 @@ impl WgHandle {
         port: u16,
         timeout: Duration,
     ) -> std::io::Result<Connection> {
-        let deadline = Instant::now() + timeout;
+        let deadline = self.ctx.clock().now() + timeout;
         let mut last_err = std::io::Error::new(
             std::io::ErrorKind::TimedOut,
             "overlay connect: handshake did not complete before timeout",
         );
-        while Instant::now() < deadline {
+        while self.ctx.clock().now() < deadline {
             match self.tcp_connect(peer_ip, port) {
                 Ok(stream) => {
                     // Drive the handshake until the socket is writable (established)
                     // or the deadline passes, bounded so a stalled SYN re-connects.
                     for _ in 0..400 {
                         if stream.may_send() {
-                            return Ok(Connection::Overlay(Box::new(OverlayConnection {
-                                stream,
-                            })));
+                            return Ok(Connection::Overlay(Box::new(OverlayConnection { stream })));
                         }
-                        if Instant::now() >= deadline {
+                        if self.ctx.clock().now() >= deadline {
                             break;
                         }
                         std::thread::sleep(Duration::from_millis(10));
@@ -630,12 +683,15 @@ impl WgHandle {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub fn wait_for_peer(&self, tunnel_ip: IpAddr, timeout: Duration) -> bool {
-        let deadline = Instant::now() + timeout;
-        while Instant::now() < deadline {
-            if self.members().iter().any(|p| {
-                p.tunnel_ip == tunnel_ip && p.state == MemberState::Alive
-            }) {
+        let deadline = self.ctx.clock().now() + timeout;
+        while self.ctx.clock().now() < deadline {
+            if self
+                .members()
+                .iter()
+                .any(|p| p.tunnel_ip == tunnel_ip && p.state == MemberState::Alive)
+            {
                 return true;
             }
             thread::sleep(Duration::from_millis(10));
@@ -683,6 +739,8 @@ impl Drop for WgHandle {
 /// `thread::sleep(50ms)` is the sans-I/O fallback.
 pub struct WgMeshTask {
     driver: TunnelDriver<MeshDataPlane>,
+    /// The injected context: every mesh timer reads its clock, including the SWIM `now`.
+    ctx: Ctx,
     swim: Arc<Mutex<Swim>>,
     gossip: GossipTransport,
     relay_client: Arc<Mutex<RelayClient>>,
@@ -696,7 +754,7 @@ pub struct WgMeshTask {
 
 impl WgMeshTask {
     fn tick(&mut self) {
-        let now = Instant::now();
+        let now = self.ctx.clock().now();
         self.driver.drive_once(now);
 
         let buf = &mut self.recv_buf;
@@ -728,10 +786,10 @@ impl WgMeshTask {
         if let Some(mut rec) = my_gossiped {
             // Union our known endpoints with whatever the membership has
             // (which includes what other peers observed).
-            let known: Vec<SocketAddr> = swim.membership()
+            let known: Vec<SocketAddr> = swim
+                .membership()
                 .get(&self.my_id)
-                .map(|r| r.endpoints.clone())
-                .unwrap_or_default();
+                .map_or_default(|r| r.endpoints.clone());
             if rec.endpoints != known {
                 tracing::debug!(
                     old = ?known,
@@ -739,7 +797,7 @@ impl WgMeshTask {
                     "reflexive endpoint discovery: merging observed endpoints"
                 );
                 rec.endpoints.extend(known);
-                rec.endpoints.sort_by_key(|a| a.to_string());
+                rec.endpoints.sort_by_key(std::string::ToString::to_string);
                 rec.endpoints.dedup_by_key(|a| a.to_string());
                 swim.merge(&[rec]);
             }
@@ -764,19 +822,29 @@ impl WgMeshTask {
         {
             let mut client = self.relay_client.lock().expect("relay client lock");
             let driver_ips = self.driver.peer_ips();
-            for record in snapshot.iter() {
+            for record in &snapshot {
                 if record.id == self.my_id || record.state != MemberState::Alive {
                     continue;
                 }
                 if driver_ips.contains(&record.tunnel_ip) {
                     client.on_direct_probe_success(record.id);
-                } else {
-                    client.on_direct_probe_failure(record.id);
+                } else if let Err(err) = client.on_direct_probe_failure(record.id) {
+                    // The hole punch failed and no relay is available, so the
+                    // peer has no path. Log it; the next tick can retry.
+                    tracing::warn!(
+                        peer = %record.id,
+                        error = %err,
+                        "connectivity ladder: hole punch failed with no relay"
+                    );
                 }
             }
         }
 
-        *self.shared.members.lock().expect("members lock") = snapshot.clone();
+        self.shared
+            .members
+            .lock()
+            .expect("members lock")
+            .clone_from(&snapshot);
 
         // Persist membership snapshot for fast restart (F09).
         if let Some(ref path) = self.shared.membership_path {
@@ -819,16 +887,18 @@ impl MeshTask {
     /// on data arrival instead of polling.
     #[must_use]
     pub fn new(inner: WgMeshTask, stop: Arc<AtomicBool>) -> Self {
-        let readiness = Reactor::get()
-            .ok()
-            .and_then(|reactor| {
-                let fd = inner.driver.udp_fd();
-                // Token 1 for mesh (0 is used by TunnelDriverTask when run standalone).
-                SharedReadiness::new(fd, reactor, Token(1), Interest::READABLE)
-                    .ok()
-                    .map(Arc::new)
-            });
-        Self { inner, stop, readiness }
+        let readiness = Reactor::get().ok().and_then(|reactor| {
+            let fd = inner.driver.udp_fd();
+            // Token 1 for mesh (0 is used by TunnelDriverTask when run standalone).
+            SharedReadiness::new(fd, reactor, Token(1), Interest::READABLE)
+                .ok()
+                .map(Arc::new)
+        });
+        Self {
+            inner,
+            stop,
+            readiness,
+        }
     }
 
     /// Convenience: create a `MeshTask` with a fresh stop signal.
@@ -839,7 +909,6 @@ impl MeshTask {
         (Self::new(inner, Arc::clone(&stop)), stop)
     }
 }
-
 
 impl TaskIterator for MeshTask {
     type Ready = ();
@@ -860,11 +929,12 @@ impl TaskIterator for MeshTask {
         // wakes on either a datagram arrival (reactor latch) or the
         // fallback deadline (for WG timer + SWIM tick servicing).
         if let Some(ref readiness) = self.readiness {
-            let now = Instant::now();
+            let now = self.inner.ctx.clock().now();
             let deadline = now + Duration::from_millis(MESH_TASK_INTERVAL_MS);
             let composite = TimedReadiness {
                 fd: Arc::clone(readiness),
                 deadline,
+                ctx: self.inner.ctx.clone(),
             };
             Some(TaskStatus::Depends(Arc::new(composite)))
         } else {
@@ -993,7 +1063,7 @@ fn save_identity_to_file(path: &str, keypair: &IdentityKeypair) {
     if let Some(parent) = std::path::Path::new(path).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    let _ = std::fs::write(path, &bytes);
+    let _ = std::fs::write(path, bytes);
 }
 
 /// Load a membership snapshot from a file (F09 — fast restart).
@@ -1022,30 +1092,31 @@ fn save_membership_snapshot(path: &str, members: &[PeerRecord]) {
 /// intervals yields sub-ms wake latency with near-zero CPU when idle.
 ///
 /// Falls back to `thread::sleep(timeout_ms)` when no reactor is running.
-fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64) {
+fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64, ctx: &Ctx) {
     use foundation_nativeapis::native::fd::Reactor;
-    use foundation_nativeapis::native::poll::{Interest, Token};
     use foundation_nativeapis::native::fd::Ready;
+    use foundation_nativeapis::native::poll::{Interest, Token};
 
     // Use a unique token for this transient registration request.
     // The fd is the same across all callers (e.g. the UDP socket),
     // so use distinct tokens for each polling site.
     static TOKEN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0x10000);
-    let token = Token(TOKEN_COUNTER.fetch_add(1, Ordering::Relaxed) as usize);
+    let token =
+        Token(usize::try_from(TOKEN_COUNTER.fetch_add(1, Ordering::Relaxed)).unwrap_or(usize::MAX));
 
     if let Ok(reactor) = Reactor::get() {
         // Register for READABLE edge-triggered events. This is idempotent
         // for the same fd+token — subsequent calls just update interest.
         reactor.register(fd, token, Interest::READABLE).ok();
 
-        let start = Instant::now();
+        let start = ctx.clock().now();
         let deadline = Duration::from_millis(timeout_ms);
         loop {
             if reactor.is_ready(token) {
                 reactor.clear(token, Ready::READABLE);
                 return;
             }
-            if start.elapsed() >= deadline {
+            if ctx.clock().now().duration_since(start) >= deadline {
                 return;
             }
             // The reactor drain thread processes epoll/kqueue events in
@@ -1055,9 +1126,8 @@ fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64) {
             std::hint::spin_loop();
             thread::sleep(Duration::from_millis(1));
         }
-    } else {
-        thread::sleep(Duration::from_millis(timeout_ms));
     }
+    thread::sleep(Duration::from_millis(timeout_ms));
 }
 
 // ---------------------------------------------------------------------------

@@ -351,6 +351,10 @@ fn read_line_keeps_a_non_utf8_last_line_valid() {
     let mut last = String::new();
     let n = ptr.read_line(&mut last).unwrap();
     assert_eq!(n, 3);
-    assert!(std::str::from_utf8(last.as_bytes()).is_ok(), "{:?}", last.as_bytes());
+    assert!(
+        std::str::from_utf8(last.as_bytes()).is_ok(),
+        "{:?}",
+        last.as_bytes()
+    );
     assert_eq!(last, "ab\u{ff}");
 }

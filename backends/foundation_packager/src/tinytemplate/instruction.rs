@@ -5,13 +5,12 @@ pub(crate) enum PathStep<'template> {
     Name(&'template str),
     Index(&'template str, usize),
 }
-impl<'template> Deref for PathStep<'template> {
+impl Deref for PathStep<'_> {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
         match self {
-            PathStep::Name(s) => s,
-            PathStep::Index(s, _) => s,
+            PathStep::Name(s) | PathStep::Index(s, _) => s,
         }
     }
 }
@@ -34,7 +33,7 @@ pub(crate) enum Instruction<'template> {
 }
 
 pub(crate) fn path_to_str(path: PathSlice) -> String {
-    let mut path_str = "".to_string();
+    let mut path_str = String::new();
     for (i, step) in path.iter().enumerate() {
         if i > 0 {
             path_str.push('.');

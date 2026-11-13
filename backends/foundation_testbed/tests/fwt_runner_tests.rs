@@ -41,12 +41,21 @@ fn full_run_is_red_with_the_deliberate_failure_named() {
     assert_eq!(outcome.cases.len(), 5);
     assert!(outcome.output.contains("FAILED  fails_with_assertion"));
     assert!(outcome.output.contains("ok      passes_simple"));
-    assert!(outcome.output.contains("ok      panics_as_expected"), "should_panic inverted");
-    assert!(outcome.output.contains("ok      async_completes_after_yield"));
+    assert!(
+        outcome.output.contains("ok      panics_as_expected"),
+        "should_panic inverted"
+    );
+    assert!(
+        outcome
+            .output
+            .contains("ok      async_completes_after_yield")
+    );
     assert!(outcome.output.contains("ignored ignored_case"));
-    assert!(outcome
-        .output
-        .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored"));
+    assert!(
+        outcome
+            .output
+            .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored")
+    );
 }
 
 #[cfg(feature = "wasm-embedded-js")]
@@ -56,9 +65,11 @@ fn filtered_run_is_green_with_exit_zero() {
     let outcome = run_deno(&args(Some("passes"))).expect("embedded runner executes");
     assert_eq!(outcome.exit_code, 0);
     assert_eq!(outcome.cases.len(), 1);
-    assert!(outcome
-        .output
-        .contains("test result: ok. 1 passed; 0 failed; 0 ignored"));
+    assert!(
+        outcome
+            .output
+            .contains("test result: ok. 1 passed; 0 failed; 0 ignored")
+    );
 }
 
 #[test]

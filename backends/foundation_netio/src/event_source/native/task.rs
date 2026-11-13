@@ -22,14 +22,15 @@ use crate::http::HttpClientConnection;
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::timeout::TimeoutCalculator;
 use crate::shared::http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
@@ -352,7 +353,9 @@ where
     type Ready = ParseResult;
     type Pending = EventSourceProgress;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    // Long by design: one match over every event-source state.
+    #[allow(clippy::too_many_lines)]
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {
@@ -432,7 +435,7 @@ where
                 debug!(state = "Connecting", host = %url.host_str().unwrap_or_else(|| "unknown".to_string()), "Establishing connection via pool");
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) = self.pool.create_http_connection(&url, None) else {
+                let Ok(connection) = self.pool.create_http_connection(&url, None, &ctx) else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(EventSourceState::Closed(
                         EventSourceCloseReason::ConnectionError,
@@ -464,10 +467,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::shared::http::HttpResponseReader::new(
-                        stream,
-                        SimpleHttpBody::default(),
-                    ),
+                    crate::shared::http::HttpResponseReader::new(stream, SimpleHttpBody::default()),
                 );
 
                 self.state = Some(EventSourceState::AwaitingHeaders {
@@ -540,7 +540,7 @@ where
                                 self.state = Some(EventSourceState::ReadingStream {
                                     conn,
                                     iterator,
-                                    last_activity: Instant::now(),
+                                    last_activity: ctx.clock().now(),
                                 });
                                 return Some(TaskStatus::Pending(EventSourceProgress::Reading));
                             }
@@ -612,12 +612,14 @@ where
                 conn,
             } => {
                 // Calculate idle timeout from calculator for streaming context
-                let ctx = TimeoutContext::default().streaming();
-                let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
+                // An open stream is silent between events: use the stream idle
+                // timeout, not the size-based read timeout (100 ms when unsized).
+                let idle_timeout = self.timeout_calculator.streaming_idle_timeout();
 
-                if last_activity.elapsed() > idle_timeout {
+                let idle = ctx.clock().now().saturating_duration_since(last_activity);
+                if idle > idle_timeout {
                     warn!(
-                        elapsed_secs = ?last_activity.elapsed().as_secs(),
+                        elapsed_secs = ?idle.as_secs(),
                         timeout_secs = ?idle_timeout.as_secs(),
                         "Idle timeout exceeded"
                     );
@@ -634,13 +636,13 @@ where
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
-                            self.last_event_id = parse_result.last_known_id.clone();
+                            self.last_event_id.clone_from(&parse_result.last_known_id);
                         }
                         // Reset activity timestamp on successful event
                         self.state = Some(EventSourceState::Reading {
                             conn,
                             parser,
-                            last_activity: Instant::now(),
+                            last_activity: ctx.clock().now(),
                         });
                         Some(TaskStatus::Ready(parse_result))
                     }
@@ -668,12 +670,14 @@ where
                 conn,
             } => {
                 // Calculate idle timeout from calculator for streaming context
-                let ctx = TimeoutContext::default().streaming();
-                let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
+                // An open stream is silent between events: use the stream idle
+                // timeout, not the size-based read timeout (100 ms when unsized).
+                let idle_timeout = self.timeout_calculator.streaming_idle_timeout();
 
-                if last_activity.elapsed() > idle_timeout {
+                let idle = ctx.clock().now().saturating_duration_since(last_activity);
+                if idle > idle_timeout {
                     warn!(
-                        elapsed_secs = ?last_activity.elapsed().as_secs(),
+                        elapsed_secs = ?idle.as_secs(),
                         timeout_secs = ?idle_timeout.as_secs(),
                         "Idle timeout exceeded"
                     );
@@ -690,13 +694,13 @@ where
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
-                            self.last_event_id = parse_result.last_known_id.clone();
+                            self.last_event_id.clone_from(&parse_result.last_known_id);
                         }
                         // Reset activity timestamp on successful event
                         self.state = Some(EventSourceState::ReadingStream {
                             conn,
                             iterator,
-                            last_activity: Instant::now(),
+                            last_activity: ctx.clock().now(),
                         });
                         Some(TaskStatus::Ready(parse_result))
                     }

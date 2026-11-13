@@ -1,6 +1,6 @@
 //! Compression system + buffer pools (Decision 06).
 //!
-//! WHY: ConnectRPC compresses per message (each streaming envelope independently)
+//! WHY: `ConnectRPC` compresses per message (each streaming envelope independently)
 //! and negotiates the algorithm via `Accept-Encoding` / `Content-Encoding`.
 //! Decompression is size-bounded to stop compression bombs. The write path uses
 //! per-worker buffer pools to cut allocation pressure without a `Mutex`.
@@ -33,6 +33,7 @@ use std::io::Read;
 use std::sync::Arc;
 
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 
@@ -41,10 +42,18 @@ pub trait Compressor: Send + Sync + 'static {
     /// Algorithm name used in headers (`"gzip"`, `"zstd"`, `"br"`).
     fn name(&self) -> &str;
     /// Compress `input`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn compress(&self, input: &[u8]) -> Result<Vec<u8>, CompressionError>;
     /// Decompress `input`, rejecting output larger than `max_bytes`
     /// (`0` = unlimited — the connect-go-parity default). Guards against
     /// compression bombs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn decompress(&self, input: &[u8], max_bytes: usize) -> Result<Vec<u8>, CompressionError>;
 }
 
@@ -108,10 +117,19 @@ impl core::fmt::Display for CompressionError {
                 write!(f, "{algorithm}: decompress failed: {message}")
             }
             CompressionError::TooLarge { algorithm, limit } => {
-                write!(f, "{algorithm}: decompressed size exceeds limit of {limit} bytes")
+                write!(
+                    f,
+                    "{algorithm}: decompressed size exceeds limit of {limit} bytes"
+                )
             }
-            CompressionError::Unsupported { requested, supported } => {
-                write!(f, "unsupported encoding {requested:?}, supported: [{supported}]")
+            CompressionError::Unsupported {
+                requested,
+                supported,
+            } => {
+                write!(
+                    f,
+                    "unsupported encoding {requested:?}, supported: [{supported}]"
+                )
             }
         }
     }
@@ -143,10 +161,12 @@ pub(crate) fn read_to_limit<R: Read>(
     let mut out = Vec::new();
     let mut chunk = [0u8; 8192];
     loop {
-        let n = reader.read(&mut chunk).map_err(|e| CompressionError::Decompress {
-            algorithm,
-            message: e.to_string(),
-        })?;
+        let n = reader
+            .read(&mut chunk)
+            .map_err(|e| CompressionError::Decompress {
+                algorithm,
+                message: e.to_string(),
+            })?;
         if n == 0 {
             break;
         }
@@ -323,6 +343,45 @@ impl CompressionRegistry {
 impl Default for CompressionRegistry {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Choose the decompressor for a response from its head.
+///
+/// `header_names` are the protocol's encoding header names, most specific first
+/// (gRPC: `grpc-encoding`; Connect unary: `content-encoding`; Connect streaming:
+/// `connect-content-encoding`). A missing or `identity` value returns `None`
+/// (no decompressor). A name the registry does not hold returns
+/// [`Code::Unimplemented`] and names it.
+///
+/// # Errors
+/// Returns [`Code::Unimplemented`] for an unregistered non-identity encoding.
+pub fn response_decompressor(
+    head: &SimpleHeaders,
+    header_names: &[&str],
+    registry: &CompressionRegistry,
+) -> ConnectResult<Option<Arc<dyn Compressor>>> {
+    let name = header_names.iter().find_map(|name| {
+        head.get(&SimpleHeader::from((*name).to_string()))
+            .and_then(|values| values.first())
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+    });
+    let Some(name) = name else {
+        return Ok(None);
+    };
+    // `content-encoding` may hold a list; the first token is the one applied.
+    let name = name.split(',').next().unwrap_or(name).trim();
+    if name.is_empty() || name.eq_ignore_ascii_case("identity") {
+        return Ok(None);
+    }
+    match registry.get(name) {
+        Some(compressor) => Ok(Some(Arc::clone(compressor))),
+        None => Err(CompressionError::Unsupported {
+            requested: name.to_string(),
+            supported: registry.accept_encoding_header().to_string(),
+        }
+        .into()),
     }
 }
 

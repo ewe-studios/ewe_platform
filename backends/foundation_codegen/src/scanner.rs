@@ -87,10 +87,12 @@ impl SourceScanner {
         for file in files {
             match self.scan_file(&file) {
                 Ok(found) => all_found.extend(found),
-                Err(CodegenError::ParseError { path, message }) => {
-                    eprintln!("Warning: failed to parse {}: {message}", path.display());
-                }
-                Err(e) => return Err(e),
+                Err(trace) => match trace.current_context() {
+                    CodegenError::ParseError { path, message } => {
+                        eprintln!("Warning: failed to parse {}: {message}", path.display());
+                    }
+                    _ => return Err(trace),
+                },
             }
         }
 

@@ -1,6 +1,6 @@
 //! Background Job Registry — fixed thread pool for blocking, fire-and-forget closures.
 //!
-//! WHY: ThreadedFuture and other code spawns unbounded OS threads for blocking work.
+//! WHY: `ThreadedFuture` and other code spawns unbounded OS threads for blocking work.
 //! A fixed pool prevents thread explosion and reuses threads across jobs.
 //!
 //! WHAT: `BackgroundJobRegistry` owns N worker threads that take jobs from a
@@ -13,13 +13,15 @@
 //! `shutdown()` closes the queue: workers finish every job that was accepted
 //! before the close, then exit.
 
+use foundation_context::Ctx;
 use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 
+use foundation_compact::Instant;
 use foundation_nostd::comp::condvar_comp::{CondVar, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crate::synca::WaitGroup;
 use crate::valtron::GenericResult;
@@ -40,14 +42,24 @@ struct JobQueue {
 struct QueueState {
     jobs: VecDeque<BackgroundJob>,
     closed: bool,
+    capacity: usize,
+}
+
+/// Why a push failed.
+enum JobPushError {
+    /// The queue is closed; the job will never run.
+    Closed,
+    /// The queue is at its configured capacity.
+    Full,
 }
 
 impl JobQueue {
-    fn new() -> Self {
+    fn new(capacity: usize) -> Self {
         Self {
             state: Mutex::new(QueueState {
                 jobs: VecDeque::new(),
                 closed: false,
+                capacity,
             }),
             available: CondVar::new(),
         }
@@ -58,14 +70,19 @@ impl JobQueue {
     /// this module's own bookkeeping; the state is still consistent, so keep
     /// going rather than cascading the panic into every worker.
     fn lock(&self) -> MutexGuard<'_, QueueState> {
-        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+        self.state
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
     }
 
-    fn push(&self, job: BackgroundJob) -> Result<(), BackgroundJob> {
+    fn push(&self, job: BackgroundJob) -> Result<(), JobPushError> {
         {
             let mut state = self.lock();
             if state.closed {
-                return Err(job);
+                return Err(JobPushError::Closed);
+            }
+            if state.jobs.len() >= state.capacity {
+                return Err(JobPushError::Full);
             }
             state.jobs.push_back(job);
         }
@@ -87,7 +104,7 @@ impl JobQueue {
             state = self
                 .available
                 .wait(state)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(crate::compati::recover_poison);
         }
     }
 
@@ -120,6 +137,7 @@ fn run_job(job: BackgroundJob, runner: &str) {
 pub struct BackgroundJobConfig {
     num_threads: usize,
     shutdown_timeout: Duration,
+    capacity: usize,
 }
 
 impl BackgroundJobConfig {
@@ -129,12 +147,20 @@ impl BackgroundJobConfig {
     /// `DefaultTimeoutStopSec` is a laxer 90 s.)
     pub const DEFAULT_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
 
-    /// A config for `num_threads` workers with the default shutdown timeout.
+    /// Default for [`Self::capacity`]: 1024 pending jobs. Large enough that a
+    /// healthy caller never hits it, small enough to bound memory under a
+    /// stalled worker (each queued job is a heap closure of tens of bytes, so
+    /// 1024 is on the order of tens of KiB).
+    pub const DEFAULT_CAPACITY: usize = 1024;
+
+    /// A config for `num_threads` workers with the default shutdown timeout and
+    /// queue capacity.
     #[must_use]
     pub fn new(num_threads: usize) -> Self {
         Self {
             num_threads,
             shutdown_timeout: Self::DEFAULT_SHUTDOWN_TIMEOUT,
+            capacity: Self::DEFAULT_CAPACITY,
         }
     }
 
@@ -144,6 +170,14 @@ impl BackgroundJobConfig {
     #[must_use]
     pub fn with_shutdown_timeout(mut self, timeout: Duration) -> Self {
         self.shutdown_timeout = timeout;
+        self
+    }
+
+    /// The bounded queue capacity. A `submit` that would exceed it returns an
+    /// error instead of buffering without limit.
+    #[must_use]
+    pub fn with_capacity(mut self, capacity: usize) -> Self {
+        self.capacity = capacity;
         self
     }
 
@@ -157,6 +191,12 @@ impl BackgroundJobConfig {
     #[must_use]
     pub fn shutdown_timeout(&self) -> Duration {
         self.shutdown_timeout
+    }
+
+    /// The configured queue capacity.
+    #[must_use]
+    pub fn capacity(&self) -> usize {
+        self.capacity
     }
 }
 
@@ -174,6 +214,13 @@ pub enum ShutdownOutcome {
         /// exit on their own once that job returns.
         busy_workers: usize,
     },
+}
+
+/// Why a [`BackgroundJobRegistry`] could not be created.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BackgroundJobError {
+    /// The operating system refused to spawn a worker thread.
+    SpawnFailed,
 }
 
 /// Fixed-size thread pool for executing blocking, fire-and-forget closures.
@@ -216,7 +263,7 @@ impl BackgroundJobRegistry {
     /// Create a new `BackgroundJobRegistry` and spawn worker threads.
     ///
     /// WHY: Initializes the background job pool with the given thread count
-    /// WHAT: Creates an unbounded job queue, spawns `num_threads` workers
+    /// WHAT: Creates a bounded job queue, spawns `num_threads` workers
     /// HOW: Each worker gets a `WaitGroupGuard` and blocks on the shared queue
     ///
     /// The registry's lifetime is its own: workers run until `shutdown()` (or
@@ -227,23 +274,29 @@ impl BackgroundJobRegistry {
     ///
     /// * `num_threads` - Number of worker threads to spawn (must be >= 1)
     ///
+    /// # Errors
+    ///
+    /// Returns [`BackgroundJobError::SpawnFailed`] if the OS refuses to spawn a
+    /// worker thread.
+    ///
     /// # Panics
     ///
-    /// Panics if `num_threads` is 0, or if the OS refuses to spawn a worker
-    /// thread.
-    #[must_use]
-    pub fn new(num_threads: usize) -> Arc<Self> {
+    /// Panics if `num_threads` is 0.
+    pub fn new(num_threads: usize) -> Result<Arc<Self>, BackgroundJobError> {
         Self::with_config(BackgroundJobConfig::new(num_threads))
     }
 
     /// Create a registry from a [`BackgroundJobConfig`] and spawn its workers.
     ///
+    /// # Errors
+    ///
+    /// Returns [`BackgroundJobError::SpawnFailed`] if the OS refuses to spawn a
+    /// worker thread.
+    ///
     /// # Panics
     ///
-    /// Panics if `config.num_threads()` is 0, or if the OS refuses to spawn a
-    /// worker thread.
-    #[must_use]
-    pub fn with_config(config: BackgroundJobConfig) -> Arc<Self> {
+    /// Panics if `config.num_threads()` is 0.
+    pub fn with_config(config: BackgroundJobConfig) -> Result<Arc<Self>, BackgroundJobError> {
         let num_threads = config.num_threads;
         assert!(
             num_threads >= 1,
@@ -251,43 +304,55 @@ impl BackgroundJobRegistry {
         );
 
         let registry = Arc::new(Self {
-            queue: Arc::new(JobQueue::new()),
+            queue: Arc::new(JobQueue::new(config.capacity)),
             waitgroup: WaitGroup::new(),
             thread_handles: Mutex::new(Vec::with_capacity(num_threads)),
             num_threads,
             shutdown_timeout: config.shutdown_timeout,
         });
 
-        let mut handles = Vec::with_capacity(num_threads);
+        let mut handles: Vec<JoinHandle<()>> = Vec::with_capacity(num_threads);
         for i in 0..num_threads {
             let queue = registry.queue.clone();
             let wg = registry.waitgroup.clone();
             wg.add(1);
 
-            let handle = thread::Builder::new()
+            let spawn = thread::Builder::new()
                 .name(format!("bg-worker-{i}"))
                 .spawn(move || {
                     let _guard = wg.guard();
                     tracing::debug!("Background worker {i} started");
                     Self::worker_loop(&queue, i);
                     tracing::debug!("Background worker {i} exiting");
-                })
-                .expect("Failed to spawn background worker thread");
+                });
+            let handle = match spawn {
+                Ok(handle) => handle,
+                Err(e) => {
+                    // Close the queue so any already-spawned workers drain and
+                    // exit, then join them before returning the error.
+                    registry.queue.close();
+                    for h in handles.drain(..) {
+                        let _ = h.join();
+                    }
+                    tracing::error!("BackgroundJobRegistry: failed to spawn worker {i}: {e}");
+                    return Err(BackgroundJobError::SpawnFailed);
+                }
+            };
             handles.push(handle);
         }
         *registry
             .thread_handles
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner()) = handles;
+            .unwrap_or_else(crate::compati::recover_poison) = handles;
 
-        registry
+        Ok(registry)
     }
 
     /// Worker thread main loop.
     ///
     /// WHY: Core execution loop for background workers
     /// WHAT: Takes jobs from the queue and executes them with panic protection
-    /// HOW: Block until a job arrives -> catch_unwind(job) -> repeat; exit once
+    /// HOW: Block until a job arrives -> `catch_unwind(job)` -> repeat; exit once
     /// the queue is closed and empty
     fn worker_loop(queue: &JobQueue, worker_id: usize) {
         let runner = format!("worker {worker_id}");
@@ -303,12 +368,13 @@ impl BackgroundJobRegistry {
     ///
     /// # Errors
     ///
-    /// Returns an error if the queue is closed (registry is shutting down).
-    /// The job is not run in that case.
+    /// Returns an error if the queue is closed (the registry is shutting down)
+    /// or full (at its configured capacity). The job is not run in that case.
     pub fn submit(&self, job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
-        self.queue
-            .push(Box::new(job))
-            .map_err(|_| "BackgroundJobRegistry: queue closed, cannot submit job".into())
+        self.queue.push(Box::new(job)).map_err(|e| match e {
+            JobPushError::Closed => "BackgroundJobRegistry: queue closed, cannot submit job".into(),
+            JobPushError::Full => "BackgroundJobRegistry: queue full, cannot submit job".into(),
+        })
     }
 
     /// Shut down the registry: stop intake, run the queued jobs, join workers —
@@ -318,7 +384,7 @@ impl BackgroundJobRegistry {
     /// threads, and that can never hang on a job that does not return.
     /// WHAT: Closes the queue and waits, up to the shutdown timeout, for the
     /// workers to drain it and exit. See the type-level "Shutdown semantics".
-    /// HOW: close + notify_all -> `waitgroup.wait_timeout(deadline)`.
+    /// HOW: close + `notify_all` -> `waitgroup.wait_timeout(deadline)`.
     /// - In time: join every worker. Jobs still queued (only possible if every
     ///   worker died outside a job) run on the calling thread while the
     ///   deadline allows; the rest are dropped.
@@ -329,15 +395,39 @@ impl BackgroundJobRegistry {
     /// Idempotent; concurrent callers each wait at most the timeout. Must not
     /// be called from inside a background job (it would wait for itself until
     /// the timeout).
-    pub fn shutdown(&self) -> ShutdownOutcome {
-        let deadline = Instant::now() + self.shutdown_timeout;
+    ///
+    /// This is the unbounded-budget path: it computes the deadline as
+    /// [`Self::shutdown_timeout`] from the call. A caller with its own shutdown
+    /// budget passes that deadline to [`Self::shutdown_until`] instead.
+    pub fn shutdown(&self, ctx: &Ctx) -> ShutdownOutcome {
+        self.shutdown_until(ctx, ctx.clock().now() + self.shutdown_timeout)
+    }
+
+    /// Shut down the registry, waiting no later than `deadline`.
+    ///
+    /// WHY: a caller can already hold a shutdown budget of its own (for example
+    /// [`PoolGuard::shutdown_within`](crate::valtron::executors::multi::PoolGuard::shutdown_within)).
+    /// A job stuck inside a closure must not overrun that budget, so the caller
+    /// passes the effective deadline instead of letting the registry apply its
+    /// own configured timeout (issue #233).
+    /// WHAT: behaves as [`Self::shutdown`], but the deadline is the absolute
+    /// instant `deadline`, measured on `clock`. Every job that has not started
+    /// when the deadline passes is dropped.
+    /// HOW: close the queue, wait for the workers with the remaining budget, and
+    /// run leftover jobs on the caller only while `clock.now() < deadline`. The
+    /// deadline is checked between jobs, so a later job never starts after it.
+    pub fn shutdown_until(&self, ctx: &Ctx, deadline: Instant) -> ShutdownOutcome {
+        // The budget at entry, used for the wait and for the timeout log. A
+        // deadline that already passed gives a zero budget, so the wait below
+        // returns at once and no leftover job runs.
+        let budget = deadline.saturating_duration_since(ctx.clock().now());
         self.queue.close();
-        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout);
+        let drained_in_time = self.waitgroup.wait_timeout(budget, ctx);
 
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .unwrap_or_else(crate::compati::recover_poison)
             .drain(..)
             .collect();
         let mut busy_workers = 0;
@@ -362,7 +452,7 @@ impl BackgroundJobRegistry {
             );
         }
         for job in leftover {
-            if drained_in_time && Instant::now() < deadline {
+            if drained_in_time && ctx.clock().now() < deadline {
                 run_job(job, "the shutdown caller");
             } else {
                 abandoned_jobs += 1;
@@ -374,7 +464,7 @@ impl BackgroundJobRegistry {
         }
         tracing::error!(
             "BackgroundJobRegistry::shutdown: timed out after {:?}; dropped {abandoned_jobs} unstarted job(s), detached {busy_workers} worker(s) still inside a job",
-            self.shutdown_timeout
+            budget
         );
         ShutdownOutcome::TimedOut {
             abandoned_jobs,
@@ -386,6 +476,18 @@ impl BackgroundJobRegistry {
     #[must_use]
     pub fn num_threads(&self) -> usize {
         self.num_threads
+    }
+
+    /// The configured deadline that [`Self::shutdown`] waits, set by
+    /// [`BackgroundJobConfig::with_shutdown_timeout`].
+    ///
+    /// WHY: a caller that bounds shutdown itself must not let this registry
+    /// overrun the caller's budget, so it computes
+    /// `min(own_timeout, shutdown_timeout())` and passes the result to
+    /// [`Self::shutdown_until`] (issue #233).
+    #[must_use]
+    pub fn shutdown_timeout(&self) -> Duration {
+        self.shutdown_timeout
     }
 }
 
@@ -408,7 +510,7 @@ impl Drop for BackgroundJobRegistry {
 /// `task_threads = total / 2`. The bg pool gets burst capacity; the task pool
 /// still gets enough threads to multiplex since idle tasks park.
 ///
-/// HOW: task_threads = max(2, total / 2), bg_threads = total.
+/// HOW: `task_threads` = max(2, total / 2), `bg_threads` = total.
 ///
 /// # Panics
 ///

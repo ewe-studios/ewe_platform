@@ -100,9 +100,36 @@ jobs:
       storage: ${{ inputs.macos-storage }}
       ssh-key-path: ${{ inputs.macos-ssh-key }}
       runner-label: ewe-macos-${{ github.run_id }}-${{ github.run_attempt }}
+      timeout-minutes: 360
       run: |
         nu ci/platform-images/scripts/link-submodules.nu
         python3 scripts/ci/ci.py run foundation_jsonschema --profile uat
+        # Install the pinned toolchain and the std libraries of the two mobile targets.
+        toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+        rustup toolchain install "$toolchain" --no-self-update
+        rustup target add --toolchain "$toolchain" aarch64-apple-ios aarch64-linux-android
+        export RUSTUP_TOOLCHAIN="$toolchain"
+        # provision.sh installed the pinned iOS SDK and recorded where it is.
+        . ci/platform-images/images/macos/guest/components.env
+        [ -n "${IOS_SDK_VERSION:-}" ] || { echo "error: components.env has no IOS_SDK_VERSION" >&2; exit 1; }
+        status=/usr/local/platform-images/status/ios-sdk.txt
+        [ -f "$status" ] || { echo "error: $status is missing; provision.sh did not install the iOS SDK" >&2; exit 1; }
+        sdk_version="$(sed -n 's/^version=//p' "$status")"
+        [ "$sdk_version" = "$IOS_SDK_VERSION" ] || { echo "error: the VM has iOS SDK $sdk_version, the pin is $IOS_SDK_VERSION" >&2; exit 1; }
+        export DEVELOPER_DIR="$(sed -n 's/^developer_dir=//p' "$status")"
+        [ -n "$DEVELOPER_DIR" ] || { echo "error: $status has no developer_dir line" >&2; exit 1; }
+        # Check the declared iOS module. LLVM is required: Cranelift cannot build ring for iOS.
+        cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
+        # Prove the feature 09 gating: foundation_platform must build for iOS.
+        cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
+        # The macOS watcher compiles only under `watcher-macos`, and no other job
+        # names that feature. Without this check the backend rotted against a
+        # private reactor method (issue #428).
+        cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
+        # Install the Android NDK that cc-rs needs, then check the declared Android module.
+        bash scripts/setup/android-ndk.sh
+        env CC_aarch64-linux-android="$PWD/scripts/android-ndk/aarch64-linux-android" \
+          cargo check -p foundation_wireguard --target aarch64-linux-android --features spec55-complete --profile uat
         cargo build --profile uat -p infrastructure_llama_cpp --examples
     secrets: inherit
 

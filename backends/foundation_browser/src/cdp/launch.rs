@@ -1,14 +1,19 @@
 //! Chromium launch configuration (spec-43 phase-1 §4).
 
 use std::borrow::Cow;
+use std::fmt;
 
-/// Which browser to drive: Chromium over CDP, or Firefox over WebDriver BiDi.
+use foundation_context::Ctx;
+
+use crate::pause::WaitConfig;
+
+/// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Browser {
     /// Chromium / Chrome (CDP).
     #[default]
     Chromium,
-    /// Firefox (WebDriver BiDi).
+    /// Firefox (`WebDriver` `BiDi`).
     Firefox,
 }
 
@@ -39,7 +44,7 @@ impl Browser {
 }
 
 /// How to launch the browser.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct LaunchConfig {
     /// Which browser.
     pub browser: Browser,
@@ -47,11 +52,36 @@ pub struct LaunchConfig {
     pub headless: bool,
     /// Extra command-line args appended after our defaults.
     pub extra_args: Vec<Cow<'static, str>>,
+    /// The context for launch and retry deadlines.
+    ///
+    /// [`BrowserDriver::launch`](crate::BrowserDriver::launch) panics when it is
+    /// absent. Set it with [`LaunchConfig::ctx`].
+    pub ctx: Option<Ctx>,
+    /// The intervals of every launch wait loop. See [`WaitConfig`].
+    pub wait: WaitConfig,
+}
+
+impl fmt::Debug for LaunchConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("LaunchConfig")
+            .field("browser", &self.browser)
+            .field("headless", &self.headless)
+            .field("extra_args", &self.extra_args)
+            .field("ctx", &self.ctx.is_some())
+            .field("wait", &self.wait)
+            .finish()
+    }
 }
 
 impl Default for LaunchConfig {
     fn default() -> Self {
-        Self { browser: Browser::Chromium, headless: true, extra_args: Vec::new() }
+        Self {
+            browser: Browser::Chromium,
+            headless: true,
+            extra_args: Vec::new(),
+            ctx: None,
+            wait: WaitConfig::default(),
+        }
     }
 }
 
@@ -62,10 +92,30 @@ impl LaunchConfig {
         Self::default()
     }
 
-    /// Firefox (WebDriver BiDi) with defaults.
+    /// Firefox (`WebDriver` `BiDi`) with defaults.
     #[must_use]
     pub fn firefox() -> Self {
-        Self { browser: Browser::Firefox, headless: true, extra_args: Vec::new() }
+        Self {
+            browser: Browser::Firefox,
+            headless: true,
+            extra_args: Vec::new(),
+            ctx: None,
+            wait: WaitConfig::default(),
+        }
+    }
+
+    /// Set the context every launch and retry deadline reads.
+    #[must_use]
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
+        self
+    }
+
+    /// Set the intervals of the launch wait loops.
+    #[must_use]
+    pub fn wait(mut self, wait: WaitConfig) -> Self {
+        self.wait = wait;
+        self
     }
 
     /// Toggle headless.

@@ -48,7 +48,11 @@ async fn take_turn() -> Turn {
         .compare_exchange(IDLE, BUSY, Ordering::Acquire, Ordering::Relaxed)
         .is_err()
     {
-        sleep_async(Duration::from_millis(100)).await;
+        sleep_async(
+            Duration::from_millis(100),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     Turn
 }

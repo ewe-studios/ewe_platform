@@ -193,7 +193,7 @@ fn test_struct_hash_is_stable_across_runs() {
     assert_eq!(hash2, hash3);
 
     // Hash should be non-empty
-    assert!(!hash1.is_empty());
+    assert_ne!(hash1, "");
 }
 
 #[test]
@@ -234,13 +234,25 @@ fn test_struct_hash_on_a_generic_struct() {
         result: T,
     }
 
-    let a = Envelope { success: true, result: vec![1, 2] };
-    let b = Envelope { success: true, result: vec![1, 2] };
-    let c = Envelope { success: true, result: vec![1, 3] };
+    let a = Envelope {
+        success: true,
+        result: vec![1, 2],
+    };
+    let b = Envelope {
+        success: true,
+        result: vec![1, 2],
+    };
+    let c = Envelope {
+        success: true,
+        result: vec![1, 3],
+    };
 
     assert_eq!(a.struct_hash(), b.struct_hash());
     assert_ne!(a.struct_hash(), c.struct_hash());
 
-    let text = Envelope { success: true, result: "x".to_string() };
-    assert!(!text.struct_hash().is_empty());
+    let text = Envelope {
+        success: true,
+        result: "x".to_string(),
+    };
+    assert_ne!(text.struct_hash(), "");
 }

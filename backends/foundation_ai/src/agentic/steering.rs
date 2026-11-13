@@ -3,16 +3,16 @@
 //! WHY: The agent loop must be interruptible — the user can inject high-priority
 //! messages (stop, pause, redirect) that should preempt current tool execution.
 //!
-//! WHAT: Two `Arc<ConcurrentQueue<Messages>>` queues (priority for immediate
+//! WHAT: Two `EventQueue<Messages>` queues (priority for immediate
 //! interrupt, follow-up for deferred injection) and an `Arc<AtomicU32>` cancel
 //! signal carrying `CancelCode as u32`. Queue waits use `TaskStatus::Depends`
-//! with `QueueReadiness` so the loop never spins on Pending/Delayed.
+//! with the queue's readiness, so the loop never spins on Pending/Delayed. A
+//! push wakes the parked task by itself.
 
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 
-use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{EventReadiness, QueueReadiness};
+use foundation_core::valtron::{EventQueue, EventReadinessPtr};
 
 use crate::types::Messages;
 
@@ -65,9 +65,11 @@ impl CancelCode {
 /// The two steering queues used to inject messages into the agent loop.
 pub struct SteeringQueues {
     /// High-priority queue — messages here should interrupt current work.
-    pub priority: Arc<ConcurrentQueue<Messages>>,
+    /// A push wakes the task parked on [`Self::priority_readiness`].
+    pub priority: EventQueue<Messages>,
     /// Follow-up queue — messages here are appended after current work completes.
-    pub follow_up: Arc<ConcurrentQueue<Messages>>,
+    /// A push wakes the task parked on [`Self::followup_readiness`].
+    pub follow_up: EventQueue<Messages>,
     /// Atomic cancel signal read by the agent loop.
     pub cancel_signal: Arc<AtomicU32>,
 }
@@ -77,18 +79,21 @@ impl SteeringQueues {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            priority: Arc::new(ConcurrentQueue::unbounded()),
-            follow_up: Arc::new(ConcurrentQueue::unbounded()),
+            priority: EventQueue::unbounded(),
+            follow_up: EventQueue::unbounded(),
             cancel_signal: Arc::new(AtomicU32::new(CancelCode::None as u32)),
         }
     }
 
-    /// Wrap existing shared handles — used when the session holds Arc handles
+    /// Wrap existing shared handles — used when the session holds the queues
     /// and the `AgentLoop` needs its own `SteeringQueues` view.
+    ///
+    /// Clones of an [`EventQueue`] share one queue and one wake source, so both
+    /// views wake the same parked tasks.
     #[must_use]
     pub fn from_shared(
-        priority: Arc<ConcurrentQueue<Messages>>,
-        follow_up: Arc<ConcurrentQueue<Messages>>,
+        priority: EventQueue<Messages>,
+        follow_up: EventQueue<Messages>,
         cancel_signal: Arc<AtomicU32>,
     ) -> Self {
         Self {
@@ -163,17 +168,17 @@ impl SteeringQueues {
     }
 
     /// Readiness signal for `TaskStatus::Depends` — parks the agent task
-    /// until a priority message arrives. Zero CPU spin.
+    /// until a priority message arrives. The push wakes it; zero CPU spin.
     #[must_use]
-    pub fn priority_readiness(&self) -> Arc<dyn EventReadiness> {
-        Arc::new(QueueReadiness::new(self.priority.clone()))
+    pub fn priority_readiness(&self) -> EventReadinessPtr {
+        Arc::new(self.priority.readiness())
     }
 
     /// Readiness signal for `TaskStatus::Depends` — parks the agent task
-    /// until a follow-up message arrives.
+    /// until a follow-up message arrives. The push wakes it.
     #[must_use]
-    pub fn followup_readiness(&self) -> Arc<dyn EventReadiness> {
-        Arc::new(QueueReadiness::new(self.follow_up.clone()))
+    pub fn followup_readiness(&self) -> EventReadinessPtr {
+        Arc::new(self.follow_up.readiness())
     }
 
     /// Drain all priority messages (session end: caller persists, then clears).

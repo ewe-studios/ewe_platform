@@ -20,17 +20,21 @@
 //! [`StatsStream`] (one stats sample per line; a single sample is the first
 //! line of a `stream=false` answer).
 
-use foundation_netio::shared::http::SimpleHeader;
-use foundation_netio::PreparedRequestBuilder;
+use foundation_netio::shared::http::SendSafeBody;
 
 use crate::client::body::{ByteBody, LogStream, StatsStream};
 use crate::error::DockerError;
-use crate::generated::archive::{container_archive_request, ContainerArchiveArgs};
+use crate::generated::archive::{
+    container_archive_info_request, container_archive_request, put_container_archive_request,
+    ContainerArchiveArgs, ContainerArchiveInfoArgs, PutContainerArchiveArgs,
+};
 use crate::generated::attach::{container_attach_request, ContainerAttachArgs};
 use crate::generated::export::{container_export_request, ContainerExportArgs};
 use crate::generated::logs::{container_logs_request, ContainerLogsArgs};
 use crate::generated::shared::ApiError;
-use crate::generated::update::{container_update_request, ContainerUpdateArgs, ContainerUpdateResponse};
+use crate::generated::update::{
+    container_update_request, ContainerUpdateArgs, ContainerUpdateResponse,
+};
 
 use crate::generated::changes::{container_changes_request, ContainerChangesArgs};
 use crate::generated::json::{container_list_request, ContainerListArgs};
@@ -39,7 +43,9 @@ use crate::generated::prune::{container_prune_request, ContainerPruneArgs};
 use crate::generated::rename::{container_rename_request, ContainerRenameArgs};
 use crate::generated::resize::{container_resize_request, ContainerResizeArgs};
 use crate::generated::restart::{container_restart_request, ContainerRestartArgs};
-use crate::generated::stats::{container_stats_request, ContainerStatsArgs, ContainerStatsResponse};
+use crate::generated::stats::{
+    container_stats_request, ContainerStatsArgs, ContainerStatsResponse,
+};
 use crate::generated::top::{container_top_request, ContainerTopArgs, ContainerTopResponse};
 
 use super::DockerClient;
@@ -161,11 +167,7 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn kill_container(
-        &self,
-        id: &str,
-        signal: Option<&str>,
-    ) -> Result<(), DockerError> {
+    pub async fn kill_container(&self, id: &str, signal: Option<&str>) -> Result<(), DockerError> {
         let args = ContainerKillArgs {
             id: id.to_string(),
             signal: signal.map(str::to_string),
@@ -228,7 +230,8 @@ impl DockerClient {
             id: id.to_string(),
             ps_args: ps_args.map(str::to_string),
         };
-        let response = container_top_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_top_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -239,14 +242,11 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_changes(
-        &self,
-        id: &str,
-    ) -> Result<serde_json::Value, DockerError> {
-        let args = ContainerChangesArgs {
-            id: id.to_string(),
-        };
-        let response = container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+    pub async fn container_changes(&self, id: &str) -> Result<serde_json::Value, DockerError> {
+        let args = ContainerChangesArgs { id: id.to_string() };
+        let response =
+            container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -274,16 +274,17 @@ impl DockerClient {
     ) -> Result<LogStream, DockerError> {
         let args = ContainerLogsArgs {
             id: id.to_string(),
-            follow: Some(opts.follow.to_string()),
-            stdout: Some(opts.stdout.to_string()),
-            stderr: Some(opts.stderr.to_string()),
+            follow: Some(opts.follow),
+            stdout: Some(opts.stdout),
+            stderr: Some(opts.stderr),
             since: opts.since.clone(),
             until: opts.until.clone(),
-            timestamps: Some(opts.timestamps.to_string()),
+            timestamps: Some(opts.timestamps),
             tail: opts.tail.clone(),
         };
         let response =
-            container_logs_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_logs_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
@@ -349,11 +350,12 @@ impl DockerClient {
     ) -> Result<StatsStream, DockerError> {
         let args = ContainerStatsArgs {
             id: id.to_string(),
-            stream: Some(stream.to_string()),
-            one_shot: Some(one_shot.to_string()),
+            stream: Some(stream),
+            one_shot: Some(one_shot),
         };
         let response =
-            container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(StatsStream::new(response.body))
     }
 
@@ -372,7 +374,8 @@ impl DockerClient {
     pub async fn container_export(&self, id: &str) -> Result<ByteBody, DockerError> {
         let args = ContainerExportArgs { id: id.to_string() };
         let response =
-            container_export_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_export_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -393,7 +396,8 @@ impl DockerClient {
             path: Some(path.to_string()),
         };
         let response =
-            container_archive_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_archive_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -423,14 +427,15 @@ impl DockerClient {
         let args = ContainerAttachArgs {
             id: id.to_string(),
             detach_keys: opts.detach_keys.clone(),
-            logs: Some(opts.logs.to_string()),
-            stream: Some(opts.stream.to_string()),
-            stdin: Some(opts.stdin.to_string()),
-            stdout: Some(opts.stdout.to_string()),
-            stderr: Some(opts.stderr.to_string()),
+            logs: Some(opts.logs),
+            stream: Some(opts.stream),
+            stdin: Some(opts.stdin),
+            stdout: Some(opts.stdout),
+            stderr: Some(opts.stderr),
         };
         let response =
-            container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
@@ -449,12 +454,14 @@ impl DockerClient {
         filters: Option<&str>,
     ) -> Result<serde_json::Value, DockerError> {
         let args = ContainerListArgs {
-            all: Some(all.to_string()),
+            all: Some(all),
             limit: limit.map(|v| v.to_string()),
-            size: Some(size.to_string()),
+            size: Some(size),
             filters: filters.map(str::to_string),
         };
-        let response = container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -469,10 +476,7 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_prune(
-        &self,
-        filters: Option<&str>,
-    ) -> Result<(), DockerError> {
+    pub async fn container_prune(&self, filters: Option<&str>) -> Result<(), DockerError> {
         let args = ContainerPruneArgs {
             filters: filters.map(str::to_string),
         };
@@ -509,7 +513,8 @@ impl DockerClient {
             body: super::generated_body("container update", config)?,
         };
         let response =
-            container_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -519,16 +524,16 @@ impl DockerClient {
     /// /containers/{id}/archive`).
     ///
     /// WHY: Matches bollard's `upload_to_container` — the inverse of
-    /// [`Self::container_archive`]. The generated `put_container_archive`
-    /// function only wires query parameters (it never sets the request body),
-    /// so we build the request directly to attach the raw tar bytes with the
-    /// `application/x-tar` content type Docker requires.
+    /// [`Self::container_archive`].
     ///
-    /// WHAT: `tar` is a raw (optionally gzip/bzip2/xz-compressed) tar stream.
-    /// `path` is the destination directory inside the container. When
+    /// WHAT: `tar` is a raw (optionally gzip/bzip2/xz-compressed) tar body
+    /// stream. `path` is the destination directory inside the container. When
     /// `no_overwrite_dir_non_dir` is set, Docker refuses to replace a
     /// directory with a non-directory (and vice-versa); `copy_uidgid` copies
     /// the archive's UID/GID instead of remapping to the container user.
+    ///
+    /// HOW: Calls the generated `put_container_archive_request`, which sends
+    /// the body as `application/x-tar` without buffering it whole.
     ///
     /// # Errors
     ///
@@ -537,32 +542,24 @@ impl DockerClient {
         &self,
         id: &str,
         path: &str,
-        tar: Vec<u8>,
+        tar: SendSafeBody,
         no_overwrite_dir_non_dir: Option<bool>,
         copy_uidgid: Option<bool>,
     ) -> Result<(), DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/archive", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::put(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-        builder = builder.query("path", Some(path));
-        builder = builder.query(
-            "noOverwriteDirNonDir",
-            no_overwrite_dir_non_dir.map(|v| v.to_string()).as_deref(),
-        );
-        builder = builder.query("copyUIDGID", copy_uidgid.map(|v| v.to_string()).as_deref());
-        builder = builder.header(SimpleHeader::custom("Content-Type"), "application/x-tar");
-        builder = builder.body_bytes(tar);
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
+        let args = PutContainerArchiveArgs {
+            id: id.to_string(),
+            path: Some(path.to_string()),
+            no_overwrite_dir_non_dir: no_overwrite_dir_non_dir.map(|v| v.to_string()),
+            copy_uidgid: copy_uidgid.map(|v| v.to_string()),
+        };
+        put_container_archive_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            tar,
+            None::<NoMod>,
+        )
+        .await?;
         Ok(())
     }
 
@@ -580,6 +577,9 @@ impl DockerClient {
     /// if the path does not exist. Callers decode it into a `FileInfo`
     /// (`name`, `size`, `mode`, `mtime`, `linkTarget`).
     ///
+    /// HOW: Calls the generated `container_archive_info_request` and reads the
+    /// stat header from its response.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure, non-2xx status, or a
@@ -589,32 +589,35 @@ impl DockerClient {
         id: &str,
         path: &str,
     ) -> Result<String, DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/archive", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::head(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-        builder = builder.query("path", Some(path));
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
+        let args = ContainerArchiveInfoArgs {
+            id: id.to_string(),
+            path: Some(path.to_string()),
+        };
+        let response = container_archive_info_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<NoMod>,
+        )
+        .await?;
         // Docker returns the stat blob in `X-Docker-Container-Path-Stat`.
         // HTTP header names are case-insensitive and the transport preserves
         // the daemon's original casing, so scan case-insensitively rather than
         // assuming an exact key.
-        let stat = headers
+        response
+            .headers
             .iter()
-            .find(|(k, _)| k.to_string().eq_ignore_ascii_case("x-docker-container-path-stat"))
+            .find(|(k, _)| {
+                k.to_string()
+                    .eq_ignore_ascii_case("x-docker-container-path-stat")
+            })
             .and_then(|(_, v)| v.first())
-            .cloned();
-        stat.ok_or_else(|| {
-            ApiError::RequestSendFailed("missing X-Docker-Container-Path-Stat header".to_string())
+            .cloned()
+            .ok_or_else(|| {
+                ApiError::RequestSendFailed(
+                    "missing X-Docker-Container-Path-Stat header".to_string(),
+                )
                 .into()
-        })
+            })
     }
 }

@@ -7,7 +7,7 @@ use foundation_nativeapis::shared::vfs::{
 fn main() {
     println!("=== MemoryFs Example ===\n");
 
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::host());
 
     // Create directories
     fs.mkdir("/docs").unwrap();
@@ -24,7 +24,9 @@ fn main() {
     println!("Read: {:?}", String::from_utf8_lossy(&data));
 
     // Seekable file I/O
-    let mut seekable = fs.open_seekable("/docs/hello.txt", OpenMode::ReadWrite).unwrap();
+    let mut seekable = fs
+        .open_seekable("/docs/hello.txt", OpenMode::ReadWrite)
+        .unwrap();
     seekable.seek(SeekFrom::Start(6)).unwrap();
     let mut buf = [0u8; 4];
     seekable.read(&mut buf).unwrap();
@@ -40,14 +42,17 @@ fn main() {
     // Inode queries
     let ino = fs.inode("/docs/hello.txt").unwrap();
     let path = fs.path_by_inode(ino).unwrap();
-    println!("inode {} → path {:?}", ino, path);
+    println!("inode {ino} → path {path:?}");
 
     // Directory listing
     let dir = fs.open_directory("/docs").unwrap();
     let entries = dir.list().unwrap();
     println!("\n/docs contains:");
     for entry in &entries {
-        println!("  {:?} {:?} (inode {})", entry.file_type, entry.name, entry.inode);
+        println!(
+            "  {:?} {:?} (inode {})",
+            entry.file_type, entry.name, entry.inode
+        );
     }
 
     // Rename
@@ -58,7 +63,7 @@ fn main() {
 
     // Rename preserves inode
     let ino_after = fs.inode("/docs/greeting.txt").unwrap();
-    println!("Inode preserved after rename: {} == {}", ino, ino_after);
+    println!("Inode preserved after rename: {ino} == {ino_after}");
     assert_eq!(ino, ino_after);
 
     // Write another file, then remove it
@@ -69,7 +74,7 @@ fn main() {
     // Symlinks
     fs.symlink("/docs/greeting.txt", "/docs/link.txt").unwrap();
     let target = fs.readlink("/docs/link.txt").unwrap();
-    println!("Symlink /docs/link.txt → {}", target);
+    println!("Symlink /docs/link.txt → {target}");
     let link_data = fs.read_file("/docs/link.txt").unwrap();
     assert_eq!(link_data, fs.read_file("/docs/greeting.txt").unwrap());
     println!("Symlink read matches original");

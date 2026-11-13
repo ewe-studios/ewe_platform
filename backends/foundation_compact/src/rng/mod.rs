@@ -2,10 +2,10 @@
 // Uses rand_core + rand_chacha from crates.io (pure computation, wasm-safe).
 // Vendors only the glue: SysRng, ThreadRng, StdRng, SmallRng.
 
+mod small;
+mod std_rng;
 #[cfg(feature = "std")]
 mod thread;
-mod std_rng;
-mod small;
 mod xoshiro128plusplus;
 mod xoshiro256plusplus;
 
@@ -15,12 +15,12 @@ pub mod sys_rng;
 pub use rand_core::{self, CryptoRng, Rng, SeedableRng, TryCryptoRng, TryRng};
 
 // Re-export rand_chacha types
-pub use rand_chacha::{self, ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
+pub use rand_chacha::{self, ChaCha12Rng, ChaCha20Rng, ChaCha8Rng};
 
 // Our types
-pub use sys_rng::{SysError, SysRng};
-pub use std_rng::StdRng;
 pub use small::SmallRng;
+pub use std_rng::StdRng;
+pub use sys_rng::{SysError, SysRng};
 pub use xoshiro128plusplus::Xoshiro128PlusPlus;
 pub use xoshiro256plusplus::Xoshiro256PlusPlus;
 

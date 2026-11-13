@@ -1,7 +1,7 @@
-//! BuildKit gRPC client — communicates with `buildkitd` over a Unix socket.
+//! `BuildKit` gRPC client — communicates with `buildkitd` over a Unix socket.
 //!
-//! WHY: BuildKit is Docker's next-gen build engine. Unlike the classic Docker
-//! API, BuildKit uses gRPC (`moby.buildkit.v1.Control`) on a Unix socket
+//! WHY: `BuildKit` is Docker's next-gen build engine. Unlike the classic Docker
+//! API, `BuildKit` uses gRPC (`moby.buildkit.v1.Control`) on a Unix socket
 //! (`/run/buildkit/buildkitd.sock`). This module wraps our own
 //! `foundation_connectrpc::Client<Req, Res>` per service method — no tokio, no
 //! bollard.
@@ -16,7 +16,7 @@
 //! buildkitd Unix socket (h2c prior-knowledge — gRPC requires HTTP/2), then
 //! constructs each `Client<Req, Res>` with `ProcedureCodecs::defaults()`
 //! (proto + json) — the request/response types are real `buffa::Message`
-//! types generated from the vendored BuildKit protos (see [`generated`] and
+//! types generated from the vendored `BuildKit` protos (see [`generated`] and
 //! `build.rs`). [`connect_tcp`](BuildKitClient::connect_tcp) does the same
 //! over TCP (`--addr tcp://…`).
 //!
@@ -34,8 +34,7 @@ pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request,
-    ServerStream, Transport,
+    Client, ClientOptions, H2Transport, ProcedureCodecs, Request, RpcCtx, ServerStream, Transport,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -47,7 +46,7 @@ use crate::buildkit::types::{
     UpdateBuildHistoryResponse, UsageRecord,
 };
 
-/// BuildKit daemon client — gRPC over a Unix socket or TCP.
+/// `BuildKit` daemon client — gRPC over a Unix socket or TCP.
 ///
 /// Holds one [`Client<Req, Res>`] per gRPC method — all sharing the same
 /// h2c [`Transport`] (Unix socket via [`connect`](Self::connect), TCP via
@@ -99,7 +98,9 @@ impl BuildKitClient {
     ///
     /// Returns an error if a client cannot be constructed. (The socket is
     /// dialed lazily, per call.)
-    pub fn connect(socket_path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn connect(
+        socket_path: impl AsRef<Path>,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let transport: Arc<dyn Transport> = Arc::new(H2Transport::unix(socket_path.as_ref()));
         Self::from_transport(transport, "localhost")
     }
@@ -228,8 +229,7 @@ impl BuildKitClient {
     pub fn gateway_for_build(
         &self,
         build_ref: impl Into<String>,
-    ) -> Result<services::gateway::LLBBridgeClient, Box<dyn std::error::Error + Send + Sync>>
-    {
+    ) -> Result<services::gateway::LLBBridgeClient, Box<dyn std::error::Error + Send + Sync>> {
         let client = services::gateway::LLBBridgeClient::new(
             Arc::clone(&self.transport),
             &format!("http://{}", self.authority),
@@ -247,8 +247,11 @@ impl BuildKitClient {
     /// Returns a [`ConnectError`](foundation_connectrpc) trace on transport
     /// failure or non-OK gRPC status.
     pub async fn info(&self) -> Result<InfoResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
-        let response = self.info.unary(ctx, Request::new(InfoRequest::default())).await?;
+        let ctx = RpcCtx::background();
+        let response = self
+            .info
+            .unary(ctx, Request::new(InfoRequest::default()))
+            .await?;
         Ok(response.msg)
     }
 
@@ -270,7 +273,7 @@ impl BuildKitClient {
         if request.Ref.is_empty() {
             request.Ref = new_build_ref();
         }
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let response = self.solve.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
     }
@@ -288,15 +291,21 @@ impl BuildKitClient {
         &self,
         build_ref: impl Into<String>,
     ) -> Result<ServerStream<StatusResponse>, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
-        let request = StatusRequest { Ref: build_ref.into(), ..Default::default() };
-        let stream = self.status.server_stream(ctx, Request::new(request)).await?;
+        let ctx = RpcCtx::background();
+        let request = StatusRequest {
+            Ref: build_ref.into(),
+            ..Default::default()
+        };
+        let stream = self
+            .status
+            .server_stream(ctx, Request::new(request))
+            .await?;
         Ok(stream)
     }
 
     /// Report build-cache disk usage (unary `DiskUsage`).
     ///
-    /// `filters` are BuildKit cache filters (e.g. `type==regular`); empty for
+    /// `filters` are `BuildKit` cache filters (e.g. `type==regular`); empty for
     /// everything. Matches bollard's buildkit `DiskUsage`.
     ///
     /// # Errors
@@ -306,8 +315,11 @@ impl BuildKitClient {
         &self,
         filters: Vec<String>,
     ) -> Result<DiskUsageResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
-        let request = DiskUsageRequest { filter: filters, ..Default::default() };
+        let ctx = RpcCtx::background();
+        let request = DiskUsageRequest {
+            filter: filters,
+            ..Default::default()
+        };
         let response = self.disk_usage.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
     }
@@ -321,8 +333,11 @@ impl BuildKitClient {
         &self,
         filters: Vec<String>,
     ) -> Result<ListWorkersResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
-        let request = ListWorkersRequest { filter: filters, ..Default::default() };
+        let ctx = RpcCtx::background();
+        let request = ListWorkersRequest {
+            filter: filters,
+            ..Default::default()
+        };
         let response = self.list_workers.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
     }
@@ -342,7 +357,7 @@ impl BuildKitClient {
         keep_bytes: i64,
         filters: Vec<String>,
     ) -> Result<ServerStream<UsageRecord>, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = PruneRequest {
             all,
             reservedSpace: keep_bytes,
@@ -367,7 +382,7 @@ impl BuildKitClient {
         build_ref: impl Into<String>,
         early_exit: bool,
     ) -> Result<ServerStream<BuildHistoryEvent>, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = BuildHistoryRequest {
             Ref: build_ref.into(),
             EarlyExit: early_exit,
@@ -392,7 +407,7 @@ impl BuildKitClient {
         pinned: bool,
         delete: bool,
     ) -> Result<UpdateBuildHistoryResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = UpdateBuildHistoryRequest {
             Ref: build_ref.into(),
             Pinned: pinned,

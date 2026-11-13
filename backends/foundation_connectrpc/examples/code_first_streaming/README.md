@@ -24,11 +24,11 @@ code-first server-streaming round-trip verified ✓ (3 ticks)
 You *author* the streaming method the natural way:
 
 ```rust
-use foundation_connectrpc::{service, Ctx, Request, ConnectResult};
+use foundation_connectrpc::{service, RpcCtx, Request, ConnectResult};
 
 #[service(package = "demo.tick.v1", codecs(json))]
 pub trait TickService {
-    async fn subscribe(&self, _ctx: Ctx, _req: Request<TickRequest>)
+    async fn subscribe(&self, _ctx: RpcCtx, _req: Request<TickRequest>)
         -> ConnectResult<impl futures::Stream<Item = ConnectResult<Tick>>>;
 }
 ```
@@ -46,7 +46,7 @@ future:
 
 ```rust
 // generated trait method (conceptually):
-fn subscribe(&self, ctx: Ctx, req: Request<TickRequest>)
+fn subscribe(&self, ctx: RpcCtx, req: Request<TickRequest>)
     -> impl Future<
         Output = ConnectResult<Pin<Box<dyn Stream<Item = ConnectResult<Tick>> + Send>>>
     > + Send;
@@ -63,7 +63,7 @@ Because the generated trait returns a boxed stream, your implementation returns
 ```rust
 struct Ticker;
 impl TickService for Ticker {
-    async fn subscribe(&self, _ctx: Ctx, req: Request<TickRequest>)
+    async fn subscribe(&self, _ctx: RpcCtx, req: Request<TickRequest>)
         -> ConnectResult<Pin<Box<dyn Stream<Item = ConnectResult<Tick>> + Send>>> {
         let n = req.msg.count.max(0);
         let items: Vec<ConnectResult<Tick>> = (0..n).map(|i| Ok(Tick { seq: i })).collect();

@@ -1,8 +1,8 @@
 //! Example: Build a Claude agent manually — no harness helpers.
 //!
 //! Demonstrates the full manual path: create providers, box them with
-//! identities, register routing rules, build the ProviderRouter, and wire
-//! into AgentSession — all without any `harness::*` functions.
+//! identities, register routing rules, build the `ProviderRouter`, and wire
+//! into `AgentSession` — all without any `harness::*` functions.
 //!
 //! Run with:
 //! ```bash
@@ -15,18 +15,21 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
+
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("ANTHROPIC_API_KEY")
-        .expect("ANTHROPIC_API_KEY must be set");
+    let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // --- Step 1: Create providers ---
     // (`api_key(..)` is `with_config(AnthropicConfig::api_key(..))`, i.e. an
     // `AuthCredential::SecretOnly` credential.)
-    let main_provider = AnthropicMessagesProvider::api_key(api_key.clone());
-    let memory_provider = AnthropicMessagesProvider::with_config(AnthropicConfig::api_key(api_key));
+    let ctx = Ctx::host();
+    let main_provider = AnthropicMessagesProvider::api_key(api_key.clone(), ctx.clone());
+    let memory_provider =
+        AnthropicMessagesProvider::with_config(AnthropicConfig::api_key(api_key), ctx.clone());
 
     // --- Step 2: Box with explicit routing identities ---
     // name = model id string (must be distinct per role)
@@ -60,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .build();
 
     // --- Step 4: Build the session ---
-    let agent = AgentSession::builder(router)
+    let agent = AgentSession::builder(router, ctx)
         .with_model("claude-opus-4-8")
         .with_memory_model("claude-sonnet-4-6")
         .with_config(AgentConfig {
@@ -75,7 +78,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // --- Step 5: Run a turn ---
     println!("Sending hello prompt...");
-    let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
+    let turn = agent
+        .run_turn("Hello! Please say hi back in one sentence.")
+        .await?;
 
     for record in &turn {
         println!("{record:?}");

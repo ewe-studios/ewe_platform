@@ -24,6 +24,9 @@ fn setup() -> Arc<Hierarchy> {
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     ))
 }
 
@@ -46,7 +49,7 @@ fn cmd(command: &str, pairs: &[(&str, &str)]) -> ToolArguments {
 async fn facts_of(h: &Hierarchy) -> Vec<String> {
     let mem = h
         .coordinator()
-        .hydrate_async(h.session_id())
+        .hydrate(h.session_id())
         .await
         .expect("hydrate");
     match mem.working {
@@ -98,8 +101,12 @@ fn memory_remove_deletes_matching_fact() {
     futures_lite::future::block_on(async {
         let h = setup();
         let tool = MemoryTool::new(h.clone());
-        tool.execute(cmd("add", &[("fact", "keep me")])).await.unwrap();
-        tool.execute(cmd("add", &[("fact", "delete me")])).await.unwrap();
+        tool.execute(cmd("add", &[("fact", "keep me")]))
+            .await
+            .unwrap();
+        tool.execute(cmd("add", &[("fact", "delete me")]))
+            .await
+            .unwrap();
         tool.execute(cmd("remove", &[("fact", "delete me")]))
             .await
             .expect("remove");
@@ -112,7 +119,9 @@ fn memory_remove_deletes_matching_fact() {
 fn memory_remove_absent_fact_errors() {
     futures_lite::future::block_on(async {
         let tool = MemoryTool::new(setup());
-        tool.execute(cmd("add", &[("fact", "present")])).await.unwrap();
+        tool.execute(cmd("add", &[("fact", "present")]))
+            .await
+            .unwrap();
         let err = tool
             .execute(cmd("remove", &[("fact", "not there")]))
             .await
@@ -126,10 +135,15 @@ fn memory_replace_updates_fact_text() {
     futures_lite::future::block_on(async {
         let h = setup();
         let tool = MemoryTool::new(h.clone());
-        tool.execute(cmd("add", &[("fact", "user likes tea")])).await.unwrap();
-        tool.execute(cmd("replace", &[("old", "user likes tea"), ("new", "user likes coffee")]))
+        tool.execute(cmd("add", &[("fact", "user likes tea")]))
             .await
-            .expect("replace");
+            .unwrap();
+        tool.execute(cmd(
+            "replace",
+            &[("old", "user likes tea"), ("new", "user likes coffee")],
+        ))
+        .await
+        .expect("replace");
 
         assert_eq!(facts_of(&h).await, vec!["user likes coffee".to_string()]);
     });

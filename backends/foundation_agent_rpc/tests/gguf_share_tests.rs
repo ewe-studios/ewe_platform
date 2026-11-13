@@ -15,6 +15,7 @@ use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
     TextContent, ToolDeclarations, UserModelContent,
 };
+use foundation_context::Ctx;
 use foundation_core::valtron::{valtron_test, Stream};
 
 fn fixture() -> std::path::PathBuf {
@@ -90,7 +91,7 @@ fn run_alone(model: &LlamaModels, prompt: &str) -> Vec<String> {
 fn gguf_source_loads_once_into_a_shared_handle() {
     let source = ModelSource::gguf_on("tiny-llama-gguf", fixture(), GgufDevice::Cpu);
     assert_eq!(source, ModelSource::gguf("tiny-llama-gguf", fixture()));
-    let handle = ModelHandle::load(&source).expect("loads");
+    let handle = ModelHandle::load(&source, Ctx::host()).expect("loads");
     assert_eq!(handle.name(), "tiny-llama-gguf");
     assert!(handle.same_model(&handle.clone()));
 }
@@ -98,8 +99,11 @@ fn gguf_source_loads_once_into_a_shared_handle() {
 /// A missing file is a load error, not a panic.
 #[valtron_test]
 fn missing_gguf_is_a_model_load_error() {
-    let err = ModelHandle::load(&ModelSource::gguf("nope", "/no/such/model.gguf"))
-        .expect_err("missing file must not load");
+    let err = ModelHandle::load(
+        &ModelSource::gguf("nope", "/no/such/model.gguf"),
+        Ctx::host(),
+    )
+    .expect_err("missing file must not load");
     assert!(
         err.to_string().contains("nope"),
         "error names the model: {err}"

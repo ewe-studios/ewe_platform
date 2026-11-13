@@ -11,12 +11,12 @@ keywords.workspace = true
 
 [dependencies]
 foundation_ai = {
-    path="../../backends/foundation_ai",
-    version="0.0.2",
+    path="../../backends/foundation_ai", version = "0.0.9",
     features=["multi"],
 }
 foundation_compact = { path = "../../backends/foundation_compact" }
 foundation_core = { path = "../../backends/foundation_core" }
+foundation_context = { path = "../../backends/foundation_context" }
 foundation_errstacks = { path = "../../backends/foundation_errstacks" }
 foundation_repl = { path = "../../backends/foundation_repl" }
 clap = { version = "4", features = ["derive"] }

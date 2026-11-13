@@ -128,5 +128,4 @@ impl ProtocolMethods<Vec<DomOp>> for ColumnarV1 {
     fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
         decode_payload(&self.encoder, ptr, len)
     }
-
 }

@@ -1,8 +1,8 @@
-//! Documentation of TinyTemplate's template syntax.
+//! Documentation of `TinyTemplate`'s template syntax.
 //!
 //! ### Context Types
 //!
-//! TinyTemplate uses `serde_json`'s Value structure to represent the context. Therefore, any
+//! `TinyTemplate` uses `serde_json`'s Value structure to represent the context. Therefore, any
 //! `Serializable` structure can be used as a context. All values in such structures are mapped to
 //! their JSON representations - booleans, numbers, strings, arrays, objects and nulls.
 //!
@@ -19,7 +19,7 @@
 //! default. Any other formatters must be registered with the
 //! [`TinyTemplate.add_formatter`](../struct.TinyTemplate.html#method.add_formatter)
 //! function prior to rendering or an error will be generated. This will call the formatter function
-//! registered as "percent_formatter" with the value of the "percentage" field:
+//! registered as "`percent_formatter`" with the value of the "percentage" field:
 //!
 //! ```text
 //! Give it {percentage | percent_formatter}!
@@ -34,12 +34,12 @@
 //! ```
 //!
 //! Additionally, you may use the `@root` keyword to refer to the root object of your context.
-//! Since TinyTemplate can't normally print complex context objects, this is only useful if the
+//! Since `TinyTemplate` can't normally print complex context objects, this is only useful if the
 //! context is a simple object like an integer or string.
 //!
 //! ### Conditionals
 //!
-//! TinyTemplate blocks are marked with `{{...}}` - double-braces where values are single-braces.
+//! `TinyTemplate` blocks are marked with `{{...}}` - double-braces where values are single-braces.
 //!
 //! Conditionals are denoted by "{{ if path }}...{{ else }}...{{ endif }}". The Else block is
 //! optional. Else-if is not currently supported. If "path" evaluates to a truthy expression
@@ -69,8 +69,8 @@
 //!
 //! ### Loops
 //!
-//! TinyTemplate supports iterating over the values of arrays. Only arrays are supported. Loops
-//! are denoted by "{{ for value_name in value.path }}...{{ endfor }}". The section of the template between
+//! `TinyTemplate` supports iterating over the values of arrays. Only arrays are supported. Loops
+//! are denoted by "{{ for `value_name` in value.path }}...{{ endfor }}". The section of the template between
 //! the two tags will be executed once for each value in the array denoted by "value.path".
 //!
 //! ```text
@@ -146,10 +146,10 @@
 //! the [`TinyTemplate.add_template`](../struct.TinyTemplate.html#method.add_template) function
 //! before rendering or an error will be generated. This is done with the "call" tag:
 //!
-//! "{{ call template_name with path.to.context }}"
+//! "{{ call `template_name` with path.to.context }}"
 //!
 //! The call tag has no closing tag. This will look up the "path.to.context" path in the current
-//! context, then render the "template_name" template using the value at that path as the context
+//! context, then render the "`template_name`" template using the value at that path as the context
 //! for the other template. The string produced by the called template is then inserted into the
 //! output from the calling template. This can be used for a limited form of template code reuse.
 //!

@@ -1,81 +1,80 @@
 /// Error types for the IPC bus.
-
-use thiserror::Error;
+use derive_more::{Display, Error, From};
 
 use super::version::Version;
 
 /// Internal error — used throughout the IPC layer.
-#[derive(Debug, Error)]
+#[derive(Debug, Display, Error, From)]
 pub enum Error {
-    #[error("encode error: {0}")]
+    #[display("encode error: {_0}")]
     Encode(#[from] bincode::error::EncodeError),
 
-    #[error("decode error: {0}")]
+    #[display("decode error: {_0}")]
     Decode(#[from] bincode::error::DecodeError),
 
-    #[error("type uuid not found")]
+    #[display("type uuid not found")]
     TypeUuidNotFound,
 
-    #[error("timeout")]
+    #[display("timeout")]
     Timeout,
 
-    #[error("disconnected")]
+    #[display("disconnected")]
     Disconnect,
 
-    #[error("version mismatch: {0}")]
+    #[display("version mismatch: {_0}")]
     VersionMismatch(Version, Option<String>),
 
-    #[error("token mismatch")]
+    #[display("token mismatch")]
     TokenMismatch,
 
-    #[error("identifier in use")]
+    #[display("identifier in use")]
     IdentifierInUse,
 
-    #[error("identifier not in use")]
+    #[display("identifier not in use")]
     IdentifierNotInUse,
 
-    #[error("I/O error: {0}")]
+    #[display("I/O error: {_0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("memory region mapping error")]
+    #[display("memory region mapping error")]
     MemoryRegionMapping,
 
-    #[error("permission denied")]
+    #[display("permission denied")]
     PermissionDenied,
 
-    #[error("unknown error")]
+    #[display("unknown error")]
     Unknown,
 }
 
 /// Error from `join()` — endpoint couldn't connect to bus.
-#[derive(Debug, Error)]
+#[derive(Debug, Display, Error, From)]
 pub enum JoinError {
-    #[error("version mismatch: {0}")]
-    VersionMismatch(Version),
+    #[display("version mismatch: {_0}")]
+    VersionMismatch(#[error(not(source))] Version),
 
-    #[error("token mismatch")]
+    #[display("token mismatch")]
     TokenMismatch,
 
-    #[error("timeout")]
+    #[display("timeout")]
     Timeout,
 
-    #[error("permission denied")]
+    #[display("permission denied")]
     PermissionDenied,
 }
 
 /// Error from `send()` — message couldn't be sent.
-#[derive(Debug, Error)]
+#[derive(Debug, Display, Error, From)]
 pub enum SendError {
-    #[error("timeout")]
+    #[display("timeout")]
     Timeout,
 
-    #[error("version mismatch: {0}")]
-    VersionMismatch(Version),
+    #[display("version mismatch: {_0}")]
+    VersionMismatch(#[error(not(source))] Version),
 
-    #[error("token mismatch")]
+    #[display("token mismatch")]
     TokenMismatch,
 
-    #[error("permission denied")]
+    #[display("permission denied")]
     PermissionDenied,
 }
 
@@ -91,21 +90,21 @@ impl From<JoinError> for SendError {
 }
 
 /// Error from `recv()` — message couldn't be received.
-#[derive(Debug, Error)]
+#[derive(Debug, Display, Error, From)]
 pub enum RecvError {
-    #[error("decode error: {0}")]
+    #[display("decode error: {_0}")]
     Decode(#[from] bincode::error::DecodeError),
 
-    #[error("timeout")]
+    #[display("timeout")]
     Timeout,
 
-    #[error("version mismatch: {0}")]
-    VersionMismatch(Version),
+    #[display("version mismatch: {_0}")]
+    VersionMismatch(#[error(not(source))] Version),
 
-    #[error("token mismatch")]
+    #[display("token mismatch")]
     TokenMismatch,
 
-    #[error("permission denied")]
+    #[display("permission denied")]
     PermissionDenied,
 }
 
@@ -119,4 +118,3 @@ impl From<JoinError> for RecvError {
         }
     }
 }
-

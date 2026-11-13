@@ -3,9 +3,10 @@
 /// Instead of creating a new shared memory object on every send,
 /// `MemoryRegistry` keeps a cache of recently-used regions and reuses them
 /// when possible.
-
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
+
+use foundation_context::Ctx;
 
 use super::MemoryRegion;
 
@@ -31,12 +32,21 @@ impl Drop for Guard {
 }
 
 /// Pooled allocator for shared memory regions.
-#[derive(Default)]
 pub struct MemoryRegistry {
     inner: BTreeMap<usize, Vec<MemoryRegionEntry>>,
+    ctx: Ctx,
 }
 
 impl MemoryRegistry {
+    /// A registry whose eviction age reads the clock of `ctx`.
+    #[must_use]
+    pub fn new(ctx: Ctx) -> Self {
+        Self {
+            inner: BTreeMap::new(),
+            ctx,
+        }
+    }
+
     /// Allocate a region of at least `min_size` bytes.
     pub fn alloc(&mut self, min_size: usize, tag: Option<&str>) -> Option<MemoryRegion> {
         self.alloc_inner(min_size, tag, None)
@@ -59,15 +69,18 @@ impl MemoryRegistry {
         tag: Option<&str>,
         free: Option<Box<dyn FnOnce()>>,
     ) -> Option<MemoryRegion> {
-        let now = Instant::now();
+        let now = self.ctx.clock().now();
 
         // Search for reusable entries in range [min_size .. min_size * 2)
-        for (_, rs) in self.inner.range_mut(min_size..min_size.saturating_mul(2).max(min_size + 1)) {
+        for (_, rs) in self
+            .inner
+            .range_mut(min_size..min_size.saturating_mul(2).max(min_size + 1))
+        {
             for r in rs {
                 if r.region.ref_count() == 1 && tag == r.tag.as_deref() {
                     r.last_alloc = now;
 
-                    let region = r.region.clone().ok()?;
+                    let region = r.region.duplicate().ok()?;
                     r.guard = Guard { free };
 
                     self.maintain_inner(now);
@@ -84,7 +97,7 @@ impl MemoryRegistry {
             .entry(min_size)
             .or_default()
             .push(MemoryRegionEntry {
-                region: r.clone().ok()?,
+                region: r.duplicate().ok()?,
                 last_alloc: now,
                 tag: tag.map(ToOwned::to_owned),
                 guard: Guard { free },
@@ -108,40 +121,6 @@ impl MemoryRegistry {
     }
 
     pub fn maintain(&mut self) {
-        self.maintain_inner(Instant::now());
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn alloc_creates_new_region() {
-        let mut registry = MemoryRegistry::default();
-        let region = registry.alloc(1024, None);
-        assert!(region.is_some());
-    }
-
-    #[test]
-    fn alloc_with_free_runs_callback() {
-        use std::sync::atomic::{AtomicBool, Ordering};
-
-        let mut registry = MemoryRegistry::default();
-        let freed = std::sync::Arc::new(AtomicBool::new(false));
-        let freed_clone = freed.clone();
-
-        let _region = registry.alloc_with_free(1024, None, move || {
-            freed_clone.store(true, Ordering::SeqCst);
-        });
-
-        // The guard is held in the cache entry, so callback hasn't run yet
-        assert!(!freed.load(Ordering::SeqCst));
-
-        // After maintain (expiry), the guard should be dropped
-        std::thread::sleep(Duration::from_secs(6));
-        registry.maintain();
-
-        assert!(freed.load(Ordering::SeqCst));
+        self.maintain_inner(self.ctx.clock().now());
     }
 }

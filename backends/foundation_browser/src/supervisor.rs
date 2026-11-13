@@ -16,10 +16,15 @@ use std::io::Read;
 use std::net::TcpListener;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
+
+use foundation_compact::time::unix_millis;
+use foundation_context::Ctx;
 
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};
+use crate::pause::{pause, WaitConfig};
 
 /// A launched browser process + its discovered CDP/BiDi endpoint.
 pub struct BrowserProcess {
@@ -29,25 +34,30 @@ pub struct BrowserProcess {
 }
 
 impl BrowserProcess {
-    /// Launch the browser and discover its `webSocketDebuggerUrl` (CDP) or BiDi
+    /// Launch the browser and discover its `webSocketDebuggerUrl` (CDP) or `BiDi`
     /// session endpoint.
     ///
     /// # Errors
     /// [`BrowserError::BrowserNotInstalled`] if the binary is missing,
     /// [`BrowserError::Launch`] on spawn/discovery failure.
-    pub fn launch(config: &LaunchConfig) -> Result<Self> {
+    pub fn launch(config: &LaunchConfig, ctx: &Ctx) -> Result<Self> {
         let binary = resolve_binary(config)?;
-        let profile_dir = unique_profile_dir();
+        let profile_dir = unique_profile_dir(ctx);
         std::fs::create_dir_all(&profile_dir)?;
         match config.browser {
-            Browser::Chromium => Self::launch_chromium(&binary, config, profile_dir),
-            Browser::Firefox => Self::launch_firefox(&binary, config, profile_dir),
+            Browser::Chromium => Self::launch_chromium(&binary, config, profile_dir, ctx),
+            Browser::Firefox => Self::launch_firefox(&binary, config, profile_dir, ctx),
         }
     }
 
     /// Chromium: `--remote-debugging-port=0` + temp profile; discover the CDP WS
     /// from the `DevToolsActivePort` file Chromium writes when ready.
-    fn launch_chromium(binary: &str, config: &LaunchConfig, profile_dir: PathBuf) -> Result<Self> {
+    fn launch_chromium(
+        binary: &str,
+        config: &LaunchConfig,
+        profile_dir: PathBuf,
+        ctx: &Ctx,
+    ) -> Result<Self> {
         let mut args = config.base_args();
         args.push(format!("--user-data-dir={}", profile_dir.display()));
         args.push("--remote-debugging-port=0".to_string());
@@ -56,18 +66,28 @@ impl BrowserProcess {
         tracing::debug!(?binary, ?args, "launching chromium");
         let child = spawn(binary, &args)?;
 
-        let ws_url = match discover_ws_url(&profile_dir, Duration::from_secs(20)) {
+        let ws_url = match discover_ws_url(&profile_dir, Duration::from_secs(20), &config.wait, ctx)
+        {
             Ok(url) => url,
             Err(e) => return Err(reap(child, &profile_dir, e)),
         };
-        Ok(Self { child, profile_dir, ws_url })
+        Ok(Self {
+            child,
+            profile_dir,
+            ws_url,
+        })
     }
 
-    /// Firefox: pick a free port for the Remote Agent, launch with BiDi enabled,
+    /// Firefox: pick a free port for the Remote Agent, launch with `BiDi` enabled,
     /// and target the BiDi-direct endpoint `ws://127.0.0.1:<port>/session`. (The
     /// engine connect retries while Firefox starts listening.) Chromium-shaped
     /// `extra_args` are not applied to Firefox.
-    fn launch_firefox(binary: &str, config: &LaunchConfig, profile_dir: PathBuf) -> Result<Self> {
+    fn launch_firefox(
+        binary: &str,
+        config: &LaunchConfig,
+        profile_dir: PathBuf,
+        ctx: &Ctx,
+    ) -> Result<Self> {
         let port = match free_port() {
             Ok(p) => p,
             Err(e) => return Err(reap_dir(&profile_dir, e)),
@@ -87,13 +107,17 @@ impl BrowserProcess {
         // TCP connection BEFORE handing back the URL — the engine's connect is
         // lazy and would otherwise fail permanently against a not-yet-listening
         // port (Chromium avoids this: it writes DevToolsActivePort only once ready).
-        if let Err(e) = wait_for_port(port, Duration::from_secs(20)) {
+        if let Err(e) = wait_for_port(port, Duration::from_secs(20), &config.wait, ctx) {
             return Err(reap(child, &profile_dir, e));
         }
         // Firefox's BiDi-direct endpoint is `/session` (the root path returns 200
         // and is not a BiDi socket). `session.new` opens a session over it.
         let ws_url = format!("ws://127.0.0.1:{port}/session");
-        Ok(Self { child, profile_dir, ws_url })
+        Ok(Self {
+            child,
+            profile_dir,
+            ws_url,
+        })
     }
 
     /// The browser-level CDP WebSocket URL to connect the engine to.
@@ -140,20 +164,26 @@ fn reap_dir(profile_dir: &std::path::Path, err: BrowserError) -> BrowserError {
 
 /// Poll until `127.0.0.1:port` accepts a TCP connection (the browser's remote
 /// agent is listening), or the deadline elapses.
-fn wait_for_port(port: u16, deadline: Duration) -> Result<()> {
-    let start = Instant::now();
+///
+/// The deadline and the pause between attempts both follow the `ctx` clock.
+///
+/// # Errors
+/// [`BrowserError::Launch`] when the deadline passes first.
+#[doc(hidden)]
+pub fn wait_for_port(port: u16, deadline: Duration, wait: &WaitConfig, ctx: &Ctx) -> Result<()> {
+    let end = ctx.clock().now() + deadline;
     let addr = format!("127.0.0.1:{port}");
     loop {
         if std::net::TcpStream::connect(&addr).is_ok() {
             return Ok(());
         }
-        if start.elapsed() >= deadline {
+        if ctx.clock().now() >= end {
             return Err(BrowserError::Launch(format!(
                 "browser did not open its remote-debugging port {port} within {}s",
                 deadline.as_secs()
             )));
         }
-        std::thread::sleep(Duration::from_millis(50));
+        pause(ctx, wait.poll_interval, wait);
     }
 }
 
@@ -200,20 +230,41 @@ fn which(name: &str) -> Option<PathBuf> {
     None
 }
 
-/// A unique throwaway profile directory under the system temp dir.
-fn unique_profile_dir() -> PathBuf {
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
-    std::env::temp_dir().join(format!("primal-browser-{}-{nanos}", std::process::id()))
+/// A counter that keeps two names from the same millisecond different.
+static PROFILE_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+/// A unique temporary profile directory under the system temp dir.
+///
+/// The wall-clock part comes from `ctx`, through
+/// [`foundation_compact::time::unix_millis`]. The sequence part makes a name
+/// unique even when two calls read the same millisecond.
+#[doc(hidden)]
+#[must_use]
+pub fn unique_profile_dir(ctx: &Ctx) -> PathBuf {
+    let millis = unix_millis(ctx.clock().wall_now());
+    let sequence = PROFILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!(
+        "primal-browser-{}-{millis}-{sequence}",
+        std::process::id()
+    ))
 }
 
 /// Poll the `DevToolsActivePort` file Chromium writes into the profile dir;
 /// build `ws://127.0.0.1:<port><path>` from its two lines.
-fn discover_ws_url(profile_dir: &std::path::Path, deadline: Duration) -> Result<String> {
+///
+/// The deadline and the pause between reads both follow the `ctx` clock.
+///
+/// # Errors
+/// [`BrowserError::Launch`] when the deadline passes first.
+#[doc(hidden)]
+pub fn discover_ws_url(
+    profile_dir: &std::path::Path,
+    deadline: Duration,
+    wait: &WaitConfig,
+    ctx: &Ctx,
+) -> Result<String> {
     let port_file = profile_dir.join("DevToolsActivePort");
-    let start = Instant::now();
+    let end = ctx.clock().now() + deadline;
     loop {
         if let Ok(mut f) = std::fs::File::open(&port_file) {
             let mut contents = String::new();
@@ -226,12 +277,12 @@ fn discover_ws_url(profile_dir: &std::path::Path, deadline: Duration) -> Result<
                 }
             }
         }
-        if start.elapsed() >= deadline {
+        if ctx.clock().now() >= end {
             return Err(BrowserError::Launch(format!(
                 "browser did not expose a CDP endpoint within {}s (no DevToolsActivePort)",
                 deadline.as_secs()
             )));
         }
-        std::thread::sleep(Duration::from_millis(20));
+        pause(ctx, wait.poll_interval, wait);
     }
 }

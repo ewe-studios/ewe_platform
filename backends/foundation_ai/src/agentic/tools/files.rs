@@ -49,7 +49,7 @@ impl<F: AsyncVfsFileSystem + 'static> ReadTool<F> {
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "read".into(),
             description: "Read a text file. Args: path (required), optional offset (1-indexed \
                           start line) and limit (max lines)."
@@ -63,7 +63,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
             ),
             category: "read".into(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -114,7 +114,7 @@ impl<F: AsyncVfsFileSystem + 'static> WriteTool<F> {
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> ToolImpl for WriteTool<F> {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "write".into(),
             description: "Create or overwrite a text file. Args: path (required), content \
                           (required). Returns the number of bytes written."
@@ -127,7 +127,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for WriteTool<F> {
             ),
             category: "write".into(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -184,7 +184,7 @@ impl<F: AsyncVfsFileSystem + 'static> EditTool<F> {
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "edit".into(),
             description: "Replace an exact string in a file. Args: path, old_string, new_string, \
                           optional replace_all (default false). old_string must be unique unless \
@@ -200,7 +200,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
             ),
             category: "edit".into(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -221,7 +221,10 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
 
         let count = text.matches(&old).count();
         if count == 0 {
-            return Err(exec_err("edit", format!("old_string not found in '{path}'")));
+            return Err(exec_err(
+                "edit",
+                format!("old_string not found in '{path}'"),
+            ));
         }
         if count > 1 && !replace_all {
             return Err(exec_err(
@@ -284,20 +287,23 @@ impl BashTool {
 #[async_trait]
 impl ToolImpl for BashTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "bash".into(),
             description: "Run a shell command. Args: command (required), optional cwd. Returns \
                           stdout, stderr and the exit code."
                 .into(),
             arguments: Args::new(
                 foundation_jsonschema::scheme::object()
-                    .required("command", foundation_jsonschema::scheme::string().min_len(1))
+                    .required(
+                        "command",
+                        foundation_jsonschema::scheme::string().min_len(1),
+                    )
                     .optional("cwd", foundation_jsonschema::scheme::string())
                     .build(),
             ),
             category: "shell".into(),
             returns: None,
-        })
+        }))
     }
 
     #[cfg(not(target_family = "wasm"))]

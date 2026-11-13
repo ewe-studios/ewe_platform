@@ -11,14 +11,19 @@ use foundation_agent_rpc::{
     agent_router, AgentRpcService, InstanceRegistry, ModelHandle, RegistryConfig,
 };
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
-use foundation_connectrpc::{Code, Ctx, Request};
+use foundation_connectrpc::{Code, Request, RpcCtx};
 use foundation_core::valtron::valtron_test;
 
 fn service(reply: &str) -> Arc<AgentRpcService> {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text(reply)]);
     let model = ModelHandle::from_router("mock", "mock", mock.into_router());
-    let registry = InstanceRegistry::new(vec![model], RegistryConfig::default()).expect("registry");
+    let registry = InstanceRegistry::new(
+        vec![model],
+        RegistryConfig::default(),
+        foundation_context::Ctx::host(),
+    )
+    .expect("registry");
     Arc::new(AgentRpcService::new(Arc::new(registry)))
 }
 
@@ -43,11 +48,11 @@ fn every_agent_service_procedure_is_registered() {
 #[valtron_test]
 async fn health_reports_models_and_instances() {
     let svc = service("hi");
-    svc.create_instance(Ctx::background(), Request::new(create("a")))
+    svc.create_instance(RpcCtx::background(), Request::new(create("a")))
         .await
         .expect("create");
     let health = svc
-        .health(Ctx::background(), Request::new(HealthRequest::default()))
+        .health(RpcCtx::background(), Request::new(HealthRequest::default()))
         .await
         .expect("health")
         .msg;
@@ -61,7 +66,7 @@ async fn health_reports_models_and_instances() {
 async fn instance_lifecycle_through_the_service() {
     let svc = service("hi");
     let info = svc
-        .create_instance(Ctx::background(), Request::new(create("alpha")))
+        .create_instance(RpcCtx::background(), Request::new(create("alpha")))
         .await
         .expect("create")
         .msg;
@@ -69,7 +74,7 @@ async fn instance_lifecycle_through_the_service() {
 
     let listed = svc
         .list_instances(
-            Ctx::background(),
+            RpcCtx::background(),
             Request::new(ListInstancesRequest::default()),
         )
         .await
@@ -78,7 +83,7 @@ async fn instance_lifecycle_through_the_service() {
     assert_eq!(listed.instances.len(), 1);
 
     svc.destroy_instance(
-        Ctx::background(),
+        RpcCtx::background(),
         Request::new(DestroyInstanceRequest {
             name: "alpha".into(),
             ..Default::default()
@@ -89,7 +94,7 @@ async fn instance_lifecycle_through_the_service() {
 
     let err = svc
         .destroy_instance(
-            Ctx::background(),
+            RpcCtx::background(),
             Request::new(DestroyInstanceRequest {
                 name: "alpha".into(),
                 ..Default::default()
@@ -106,13 +111,13 @@ async fn instance_lifecycle_through_the_service() {
 fn chat_completes_under_a_waker_driven_executor() {
     let svc = service("woken");
     futures::executor::block_on(async {
-        svc.create_instance(Ctx::background(), Request::new(create("alpha")))
+        svc.create_instance(RpcCtx::background(), Request::new(create("alpha")))
             .await
             .expect("create");
     });
     let reply = std::thread::spawn(move || {
         futures::executor::block_on(svc.chat(
-            Ctx::background(),
+            RpcCtx::background(),
             Request::new(ChatRequest {
                 instance: "alpha".into(),
                 prompt: "hi".into(),
@@ -130,12 +135,12 @@ fn chat_completes_under_a_waker_driven_executor() {
 #[valtron_test]
 async fn chat_runs_a_turn_on_the_instance() {
     let svc = service("hello from the model");
-    svc.create_instance(Ctx::background(), Request::new(create("alpha")))
+    svc.create_instance(RpcCtx::background(), Request::new(create("alpha")))
         .await
         .expect("create");
     let reply = svc
         .chat(
-            Ctx::background(),
+            RpcCtx::background(),
             Request::new(ChatRequest {
                 instance: "alpha".into(),
                 prompt: "hi".into(),

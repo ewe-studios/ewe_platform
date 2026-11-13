@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Every codec combination, over one server (requires the `arrow` feature — on
 //! by default via `rpc`).
 //!
@@ -15,7 +23,7 @@
 //! |---------------|----------------------------------------------|--------------------|
 //! | proto + json  | `ProcedureCodecs::defaults()`                | Message + serde    |
 //! | json          | `of((JsonCodec,))`                           | serde only         |
-//! | arrow         | `only(ArrowCodec)`                           | ToArrow + FromArrow|
+//! | arrow         | `only(ArrowCodec)`                           | `ToArrow` + `FromArrow`|
 //! | arrow + json  | `of((JsonCodec, ArrowCodec))`                | serde + Arrow      |
 //! | proto+json+arrow | `of((ProtoCodec, JsonCodec, ArrowCodec))` | all three          |
 //!
@@ -26,24 +34,28 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_connectrpc::buffa::bytes::{Buf, BufMut};
-use foundation_connectrpc::buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
+use foundation_connectrpc::buffa::bytes::Buf;
+use foundation_connectrpc::buffa::encoding::{
+    decode_varint, encode_varint, skip_field, Tag, WireType,
+};
+use foundation_connectrpc::buffa::{
+    DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache,
+};
 
 use foundation_arrow::arrow_array::{Array, Int32Array, RecordBatch};
 use foundation_arrow::arrow_schema::{DataType, Field, Schema};
-use foundation_arrow::{ArrowSchema, FromArrow, IpcResult, ToArrow};
+use foundation_arrow::{arrow_err, ArrowSchema, FromArrow, IpcResult, ToArrow};
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    ArrowCodec, Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport,
-    HandlerOptions, JsonCodec, ProcedureCodecs, ProtoCodec, Request, Response, Router,
+    ArrowCodec, Client, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, HandlerOptions,
+    JsonCodec, ProcedureCodecs, ProtoCodec, Request, Response, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -73,13 +85,18 @@ impl DefaultInstance for Sample {
 }
 impl Message for Sample {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        (1 + foundation_connectrpc::buffa::types::int32_encoded_len(self.value)) as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.value as u64, buf);
     }
-    fn merge_field(&mut self, tag: Tag, buf: &mut impl Buf, _c: DecodeContext<'_>) -> Result<(), DecodeError> {
+    fn merge_field(
+        &mut self,
+        tag: Tag,
+        buf: &mut impl Buf,
+        _c: DecodeContext<'_>,
+    ) -> Result<(), DecodeError> {
         if tag.field_number() == 1 {
             self.value = decode_varint(buf)? as i32;
             Ok(())
@@ -103,27 +120,45 @@ impl ArrowSchema for Sample {
 }
 impl ToArrow for Sample {
     fn to_arrow(&self) -> IpcResult<RecordBatch> {
-        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(Int32Array::from(vec![self.value]))])
+        RecordBatch::try_new(
+            Self::schema_ref(),
+            vec![Arc::new(Int32Array::from(vec![self.value]))],
+        )
+        .map_err(arrow_err)
     }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let col = Int32Array::from(values.iter().map(|s| s.value).collect::<Vec<_>>());
-        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(col)])
+        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(col)]).map_err(arrow_err)
     }
 }
 impl FromArrow for Sample {
     fn from_arrow(batch: &RecordBatch) -> IpcResult<Self> {
-        let col = batch.column(0).as_any().downcast_ref::<Int32Array>().expect("int32 column");
-        Ok(Self { value: col.value(0) })
+        let col = batch
+            .column(0)
+            .as_any()
+            .downcast_ref::<Int32Array>()
+            .expect("int32 column");
+        Ok(Self {
+            value: col.value(0),
+        })
     }
     fn from_arrow_batch(batch: &RecordBatch) -> IpcResult<Vec<Self>> {
-        let col = batch.column(0).as_any().downcast_ref::<Int32Array>().expect("int32 column");
-        Ok((0..col.len()).map(|i| Self { value: col.value(i) }).collect())
+        let col = batch
+            .column(0)
+            .as_any()
+            .downcast_ref::<Int32Array>()
+            .expect("int32 column");
+        Ok((0..col.len())
+            .map(|i| Self {
+                value: col.value(i),
+            })
+            .collect())
     }
 }
 
 // ── Server: one echo handler, five codec tables ─────────────────────────────
 
-async fn echo(_ctx: Ctx, req: Request<Sample>) -> ConnectResult<Response<Sample>> {
+async fn echo(_ctx: RpcCtx, req: Request<Sample>) -> ConnectResult<Response<Sample>> {
     Ok(Response::new(req.msg))
 }
 
@@ -132,20 +167,45 @@ fn echo_serve() -> Arc<dyn Serve> {
     let opts = || HandlerOptions::new();
 
     // proto + json (the codegen default)
-    router.unary(P_PROTO_JSON, ProcedureCodecs::<Sample, Sample>::defaults(), echo, opts());
+    router.unary(
+        P_PROTO_JSON,
+        ProcedureCodecs::<Sample, Sample>::defaults(),
+        echo,
+        opts(),
+    );
     // json only (serde, no protobuf)
-    router.unary(P_JSON, ProcedureCodecs::<Sample, Sample>::of((JsonCodec,)), echo, opts());
+    router.unary(
+        P_JSON,
+        ProcedureCodecs::<Sample, Sample>::of((JsonCodec,)),
+        echo,
+        opts(),
+    );
     // arrow only (columnar)
-    router.unary(P_ARROW, ProcedureCodecs::<Sample, Sample>::only(ArrowCodec), echo, opts());
+    router.unary(
+        P_ARROW,
+        ProcedureCodecs::<Sample, Sample>::only(ArrowCodec),
+        echo,
+        opts(),
+    );
     // arrow + json
-    router.unary(P_ARROW_JSON, ProcedureCodecs::<Sample, Sample>::of((JsonCodec, ArrowCodec)), echo, opts());
+    router.unary(
+        P_ARROW_JSON,
+        ProcedureCodecs::<Sample, Sample>::of((JsonCodec, ArrowCodec)),
+        echo,
+        opts(),
+    );
     // proto + json + arrow (tri-family)
-    router.unary(P_ALL, ProcedureCodecs::<Sample, Sample>::of((ProtoCodec, JsonCodec, ArrowCodec)), echo, opts());
+    router.unary(
+        P_ALL,
+        ProcedureCodecs::<Sample, Sample>::of((ProtoCodec, JsonCodec, ArrowCodec)),
+        echo,
+        opts(),
+    );
 
     Arc::new(ConnectRpcServe::new(router.into_handler()))
 }
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     let serve = echo_serve();
     for proc in ALL_PROCEDURES {
@@ -154,10 +214,13 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}
@@ -176,9 +239,14 @@ async fn round_trip(
     wire: &str,
     value: i32,
 ) {
-    let client = Client::new(transport, &url, codecs, ClientOptions::new().with_codec(wire))
-        .expect("build client");
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let client = Client::new(
+        transport,
+        &url,
+        codecs,
+        ClientOptions::new().with_codec(wire),
+    )
+    .expect("build client");
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let out = client
         .unary(ctx, Request::new(Sample { value }))
         .await
@@ -191,22 +259,72 @@ async fn round_trip(
 async fn main() {
     let (addr, shutdown) = start_server();
     let base = format!("http://127.0.0.1:{}", addr.port());
-    let t = || -> Arc<dyn Transport> { Arc::new(H1Transport::new(HttpClientBuilder::new().build())) };
+    let t =
+        || -> Arc<dyn Transport> { Arc::new(H1Transport::new(HttpClientBuilder::new().build())) };
 
     println!("codec combinations, each verified over a real socket:");
 
     // proto+json → exercise proto on the wire
-    round_trip(t(), format!("{base}{P_PROTO_JSON}"), ProcedureCodecs::defaults(), "proto", 1).await;
+    round_trip(
+        t(),
+        format!("{base}{P_PROTO_JSON}"),
+        ProcedureCodecs::defaults(),
+        "proto",
+        1,
+    )
+    .await;
     // json → serde only
-    round_trip(t(), format!("{base}{P_JSON}"), ProcedureCodecs::of((JsonCodec,)), "json", 2).await;
+    round_trip(
+        t(),
+        format!("{base}{P_JSON}"),
+        ProcedureCodecs::of((JsonCodec,)),
+        "json",
+        2,
+    )
+    .await;
     // arrow → columnar
-    round_trip(t(), format!("{base}{P_ARROW}"), ProcedureCodecs::only(ArrowCodec), "arrow", 3).await;
+    round_trip(
+        t(),
+        format!("{base}{P_ARROW}"),
+        ProcedureCodecs::only(ArrowCodec),
+        "arrow",
+        3,
+    )
+    .await;
     // arrow+json → exercise arrow (json also available)
-    round_trip(t(), format!("{base}{P_ARROW_JSON}"), ProcedureCodecs::of((JsonCodec, ArrowCodec)), "arrow", 4).await;
+    round_trip(
+        t(),
+        format!("{base}{P_ARROW_JSON}"),
+        ProcedureCodecs::of((JsonCodec, ArrowCodec)),
+        "arrow",
+        4,
+    )
+    .await;
     // proto+json+arrow → exercise all three by codec name
-    round_trip(t(), format!("{base}{P_ALL}"), ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec)), "proto", 5).await;
-    round_trip(t(), format!("{base}{P_ALL}"), ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec)), "json", 6).await;
-    round_trip(t(), format!("{base}{P_ALL}"), ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec)), "arrow", 7).await;
+    round_trip(
+        t(),
+        format!("{base}{P_ALL}"),
+        ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec)),
+        "proto",
+        5,
+    )
+    .await;
+    round_trip(
+        t(),
+        format!("{base}{P_ALL}"),
+        ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec)),
+        "json",
+        6,
+    )
+    .await;
+    round_trip(
+        t(),
+        format!("{base}{P_ALL}"),
+        ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec)),
+        "arrow",
+        7,
+    )
+    .await;
 
     println!("all codec combinations verified ✓");
     shutdown.turn_on();

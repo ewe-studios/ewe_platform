@@ -16,6 +16,8 @@
 //! So: keep the blanket, make `WakeableStream` opt-in, implement it explicitly on the
 //! handful of types that matter.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use crate::compati::Mutex;
 use crate::valtron::streams::StreamIterator;
 
@@ -36,6 +38,13 @@ pub type WakeCallback = Box<dyn Fn() + Send + 'static>;
 #[cfg(not(feature = "multi"))]
 pub type WakeCallback = Box<dyn Fn() + 'static>;
 
+/// One-shot wake callback that can cross threads.
+///
+/// [`WakeCallback`] is not `Send` without `multi`, so it cannot be handed to a
+/// foreign thread. A consumer whose wake is a `Waker` (which is `Send`) uses
+/// this type through [`WakeableStream::wake_send`].
+pub type SendWakeCallback = Box<dyn FnOnce() + Send + 'static>;
+
 /// Opt-in readiness side-channel for [`StreamIterator`]s.
 ///
 /// The default implementation returns [`WakeResult::NotSupported`]; only types that
@@ -49,6 +58,38 @@ pub trait WakeableStream: StreamIterator {
         let _ = cb; // default: cannot deliver the signal
         WakeResult::NotSupported
     }
+
+    /// Like [`Self::wake`], but the callback may be run from any thread.
+    ///
+    /// A stream whose readiness changes on a foreign thread without touching its
+    /// queue (`DrivenStreamIterator`, see its impl) overrides this to register the
+    /// callback where that thread will find it. The default adapts `cb` to
+    /// [`Self::wake`], so every stream keeps its old behaviour; a wrapper must
+    /// forward both methods to its inner stream.
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        let cell = std::sync::Mutex::new(Some(cb));
+        self.wake(Box::new(move || {
+            let cb = cell
+                .lock()
+                .unwrap_or_else(crate::compati::recover_poison)
+                .take();
+            if let Some(cb) = cb {
+                cb();
+            }
+        }))
+    }
+
+    /// Idempotently announce that an async consumer will pull this stream,
+    /// before the first pull, so a blocking terminal answers an empty pull with
+    /// `Wait` instead of blocking the polling thread. Cheap and safe to call on
+    /// every poll; it must not register a wake callback (that is what
+    /// [`Self::wake`] is for).
+    ///
+    /// Defaults to a no-op: a stream that cannot signal readiness has nothing
+    /// to announce. A wrapper that forwards [`Self::wake`] to an inner waking
+    /// terminal must also forward `announce` to it, or the inner first empty
+    /// pull blocks again.
+    fn announce(&mut self) {}
 }
 
 /// Fire-all-then-clear registry.
@@ -58,24 +99,64 @@ pub trait WakeableStream: StreamIterator {
 /// registry must not deadlock).
 pub struct WakeRegistry {
     callbacks: Mutex<Vec<WakeCallback>>,
+    /// Number of callbacks currently held. Mirrors `callbacks.len()` but is an
+    /// `AtomicUsize` so a fast path can gate a `fire()` without taking the lock
+    /// (see [`Self::has_waiters`]). Maintained under the same lock as the vec in
+    /// `register`, `replace` and `fire`, so it never disagrees with the list.
+    pending: AtomicUsize,
 }
 
 impl WakeRegistry {
     /// Creates an empty registry.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             callbacks: Mutex::new(Vec::new()),
+            pending: AtomicUsize::new(0),
         }
     }
 
     /// Registers a one-shot readiness callback.
+    ///
+    /// # Panics
+    /// Panics if the internal callback lock is poisoned.
     pub fn register(&self, cb: WakeCallback) {
-        self.callbacks.lock().unwrap().push(cb);
+        let mut callbacks = self.callbacks.lock().unwrap();
+        callbacks.push(cb);
+        self.pending.store(callbacks.len(), Ordering::SeqCst);
+    }
+
+    /// Replaces every registered callback with a single one. A producer parking
+    /// on a full queue re-registers on each retry; keeping only the latest avoids
+    /// unbounded growth of stale callbacks while the queue stays full.
+    ///
+    /// # Panics
+    /// Panics if the internal callback lock is poisoned.
+    pub fn replace(&self, cb: WakeCallback) {
+        let mut callbacks = self.callbacks.lock().unwrap();
+        callbacks.clear();
+        callbacks.push(cb);
+        self.pending.store(callbacks.len(), Ordering::SeqCst);
+    }
+
+    /// True when at least one callback is registered. A `fire()` can be skipped
+    /// when false, since there is nothing to wake.
+    pub fn has_waiters(&self) -> bool {
+        self.pending.load(Ordering::SeqCst) > 0
+    }
+
+    /// Number of callbacks currently registered (tests use it to pin no growth).
+    pub fn pending_len(&self) -> usize {
+        self.pending.load(Ordering::SeqCst)
     }
 
     /// Fires every registered callback exactly once, then clears the list.
+    ///
+    /// # Panics
+    /// Panics if the internal callback lock is poisoned.
     pub fn fire(&self) {
         let callbacks = std::mem::take(&mut *self.callbacks.lock().unwrap());
+        self.pending.store(0, Ordering::SeqCst);
         for cb in callbacks {
             cb();
         }
@@ -91,7 +172,7 @@ impl Default for WakeRegistry {
 impl std::fmt::Debug for WakeRegistry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("WakeRegistry")
-            .field("pending", &self.callbacks.lock().unwrap().len())
+            .field("pending", &self.pending_len())
             .finish()
     }
 }

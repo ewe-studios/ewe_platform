@@ -15,20 +15,21 @@ use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest};
 use foundation_agent_rpc::{AgentRpcError, AgentRpcServer, ModelHandle, RunningServer};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{
-    ClientOptions, Code, Ctx, H1Transport, H2Transport, Request, Transport,
+    ClientOptions, Code, H1Transport, H2Transport, Request, RpcCtx, Transport,
 };
 use foundation_core::valtron::valtron_test;
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::SimpleHeader;
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(60))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(60))
 }
 
 fn mock_server(chunks: &[&str]) -> RunningServer {
     let mut mock = MockModelProvider::new();
     mock.on_any(chunks.iter().map(|c| mock_text(c)).collect());
     AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
         .insecure_plaintext()
         .build()
@@ -163,7 +164,7 @@ async fn two_instances_chat_concurrently_on_one_loaded_model() {
         use foundation_ai::backends::candle::CandleBackend;
         use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
         counter.fetch_add(1, Ordering::SeqCst);
-        CandleBackend::cpu()
+        CandleBackend::cpu(foundation_context::Ctx::host())
             .get_model_by_spec(ModelSpec {
                 name: "tiny-llama".into(),
                 id: ModelId::Name("tiny-llama".into(), None),
@@ -176,6 +177,7 @@ async fn two_instances_chat_concurrently_on_one_loaded_model() {
     .expect("model loads");
 
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(model)
         .insecure_plaintext()
         .build()

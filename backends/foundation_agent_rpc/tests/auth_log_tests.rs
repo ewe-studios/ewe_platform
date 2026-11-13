@@ -12,11 +12,13 @@ use std::time::Duration;
 
 use foundation_agent_rpc::auth::MtlsConfig;
 use foundation_agent_rpc::client::{connect_mtls, enroll};
-use foundation_agent_rpc::secret::{BootstrapSecrets, SigningKey, SigningKeyConfig, SIGNING_KEY_FILE};
 use foundation_agent_rpc::proto::v1::HealthRequest;
+use foundation_agent_rpc::secret::{
+    BootstrapSecrets, SigningKey, SigningKeyConfig, SIGNING_KEY_FILE,
+};
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
-use foundation_connectrpc::{Ctx, Request};
+use foundation_connectrpc::{Request, RpcCtx};
 
 #[derive(Clone, Default)]
 struct Captured(Arc<Mutex<Vec<u8>>>);
@@ -53,10 +55,12 @@ fn the_bootstrap_secret_is_never_logged() {
         let config = MtlsConfig::from_state_dir_with(
             &state,
             &SigningKeyConfig::in_state_dir(&state).without_env_var(),
+            foundation_context::Ctx::host(),
         )
         .await
         .expect("state");
         let server = AgentRpcServer::builder()
+            .with_ctx(foundation_context::Ctx::host())
             .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
             .with_mtls(config)
             .build()
@@ -87,7 +91,7 @@ fn the_bootstrap_secret_is_never_logged() {
         connect_mtls(&server.base_url(), &identity)
             .expect("client")
             .health(
-                Ctx::background().with_deadline(Duration::from_secs(20)),
+                RpcCtx::background().with_deadline(Duration::from_secs(20)),
                 Request::new(HealthRequest::default()),
             )
             .await
@@ -104,7 +108,7 @@ fn the_bootstrap_secret_is_never_logged() {
         "the capture saw the enrollment events"
     );
     let secret = secret_seen.lock().expect("secret slot").clone();
-    assert!(!secret.is_empty());
+    assert_ne!(secret, "");
     assert!(
         !captured.contains(&secret),
         "the bootstrap secret leaked into the logs"
@@ -118,5 +122,8 @@ fn the_bootstrap_secret_is_never_logged() {
     assert!(!captured.contains(json["secret"].as_str().expect("str")));
     let key_pem = std::fs::read_to_string(dir.path().join(SIGNING_KEY_FILE)).expect("key file");
     let key_body: String = key_pem.lines().nth(1).expect("pem body").to_string();
-    assert!(!captured.contains(&key_body), "the signing key leaked into the logs");
+    assert!(
+        !captured.contains(&key_body),
+        "the signing key leaked into the logs"
+    );
 }

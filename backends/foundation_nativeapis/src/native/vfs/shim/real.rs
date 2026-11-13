@@ -9,21 +9,57 @@ macro_rules! real_fn {
     };
 }
 
-real_fn!(REAL_OPEN, unsafe extern "C" fn(*const c_char, c_int, mode_t) -> c_int);
-real_fn!(REAL_OPEN64, unsafe extern "C" fn(*const c_char, c_int, mode_t) -> c_int);
+real_fn!(
+    REAL_OPEN,
+    unsafe extern "C" fn(*const c_char, c_int, mode_t) -> c_int
+);
+real_fn!(
+    REAL_OPEN64,
+    unsafe extern "C" fn(*const c_char, c_int, mode_t) -> c_int
+);
 real_fn!(REAL_CLOSE, unsafe extern "C" fn(c_int) -> c_int);
-real_fn!(REAL_READ, unsafe extern "C" fn(c_int, *mut c_void, size_t) -> ssize_t);
-real_fn!(REAL_WRITE, unsafe extern "C" fn(c_int, *const c_void, size_t) -> ssize_t);
-real_fn!(REAL_STAT, unsafe extern "C" fn(*const c_char, *mut libc::stat) -> c_int);
-real_fn!(REAL_LSTAT, unsafe extern "C" fn(*const c_char, *mut libc::stat) -> c_int);
-real_fn!(REAL_FSTAT, unsafe extern "C" fn(c_int, *mut libc::stat) -> c_int);
-real_fn!(REAL_ACCESS, unsafe extern "C" fn(*const c_char, c_int) -> c_int);
-real_fn!(REAL_LSEEK, unsafe extern "C" fn(c_int, off_t, c_int) -> off_t);
-real_fn!(REAL_MKDIR, unsafe extern "C" fn(*const c_char, mode_t) -> c_int);
+real_fn!(
+    REAL_READ,
+    unsafe extern "C" fn(c_int, *mut c_void, size_t) -> ssize_t
+);
+real_fn!(
+    REAL_WRITE,
+    unsafe extern "C" fn(c_int, *const c_void, size_t) -> ssize_t
+);
+real_fn!(
+    REAL_STAT,
+    unsafe extern "C" fn(*const c_char, *mut libc::stat) -> c_int
+);
+real_fn!(
+    REAL_LSTAT,
+    unsafe extern "C" fn(*const c_char, *mut libc::stat) -> c_int
+);
+real_fn!(
+    REAL_FSTAT,
+    unsafe extern "C" fn(c_int, *mut libc::stat) -> c_int
+);
+real_fn!(
+    REAL_ACCESS,
+    unsafe extern "C" fn(*const c_char, c_int) -> c_int
+);
+real_fn!(
+    REAL_LSEEK,
+    unsafe extern "C" fn(c_int, off_t, c_int) -> off_t
+);
+real_fn!(
+    REAL_MKDIR,
+    unsafe extern "C" fn(*const c_char, mode_t) -> c_int
+);
 real_fn!(REAL_UNLINK, unsafe extern "C" fn(*const c_char) -> c_int);
-real_fn!(REAL_RENAME, unsafe extern "C" fn(*const c_char, *const c_char) -> c_int);
+real_fn!(
+    REAL_RENAME,
+    unsafe extern "C" fn(*const c_char, *const c_char) -> c_int
+);
 real_fn!(REAL_RMDIR, unsafe extern "C" fn(*const c_char) -> c_int);
-real_fn!(REAL_OPENAT, unsafe extern "C" fn(c_int, *const c_char, c_int, mode_t) -> c_int);
+real_fn!(
+    REAL_OPENAT,
+    unsafe extern "C" fn(c_int, *const c_char, c_int, mode_t) -> c_int
+);
 
 pub unsafe fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, mode: mode_t) -> c_int {
     let f = REAL_OPENAT.get_or_init(|| unsafe { resolve(b"openat\0") });
@@ -31,8 +67,12 @@ pub unsafe fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, mode: 
 }
 
 unsafe fn resolve<T: Copy>(name: &[u8]) -> T {
-    let ptr = unsafe { libc::dlsym(libc::RTLD_NEXT, name.as_ptr() as *const c_char) };
-    assert!(!ptr.is_null(), "dlsym failed to resolve {:?}", std::str::from_utf8(name));
+    let ptr = unsafe { libc::dlsym(libc::RTLD_NEXT, name.as_ptr().cast::<c_char>()) };
+    assert!(
+        !ptr.is_null(),
+        "dlsym failed to resolve {:?}",
+        std::str::from_utf8(name)
+    );
     unsafe { std::mem::transmute_copy(&ptr) }
 }
 
@@ -116,8 +156,14 @@ pub unsafe fn rmdir(pathname: *const c_char) -> c_int {
 // opened. Every interposed symbol must reach the real implementation through
 // `RTLD_NEXT`, never through `libc::`.
 
-real_fn!(REAL_OPENDIR, unsafe extern "C" fn(*const c_char) -> *mut libc::DIR);
-real_fn!(REAL_READDIR, unsafe extern "C" fn(*mut libc::DIR) -> *mut libc::dirent);
+real_fn!(
+    REAL_OPENDIR,
+    unsafe extern "C" fn(*const c_char) -> *mut libc::DIR
+);
+real_fn!(
+    REAL_READDIR,
+    unsafe extern "C" fn(*mut libc::DIR) -> *mut libc::dirent
+);
 real_fn!(REAL_CLOSEDIR, unsafe extern "C" fn(*mut libc::DIR) -> c_int);
 
 /// # Safety
@@ -148,15 +194,33 @@ pub unsafe fn closedir(dirp: *mut libc::DIR) -> c_int {
 // `LD_PRELOAD` a preloaded definition interposes on itself just as it does when
 // statically linked, so this recursed in production, not only in tests.
 
-real_fn!(REAL_CHMOD, unsafe extern "C" fn(*const c_char, mode_t) -> c_int);
+real_fn!(
+    REAL_CHMOD,
+    unsafe extern "C" fn(*const c_char, mode_t) -> c_int
+);
 real_fn!(REAL_FCHMOD, unsafe extern "C" fn(c_int, mode_t) -> c_int);
 real_fn!(REAL_FSYNC, unsafe extern "C" fn(c_int) -> c_int);
 real_fn!(REAL_FTRUNCATE, unsafe extern "C" fn(c_int, off_t) -> c_int);
-real_fn!(REAL_TRUNCATE, unsafe extern "C" fn(*const c_char, off_t) -> c_int);
-real_fn!(REAL_PREAD, unsafe extern "C" fn(c_int, *mut c_void, size_t, off_t) -> ssize_t);
-real_fn!(REAL_PWRITE, unsafe extern "C" fn(c_int, *const c_void, size_t, off_t) -> ssize_t);
-real_fn!(REAL_READLINK, unsafe extern "C" fn(*const c_char, *mut c_char, size_t) -> ssize_t);
-real_fn!(REAL_SYMLINK, unsafe extern "C" fn(*const c_char, *const c_char) -> c_int);
+real_fn!(
+    REAL_TRUNCATE,
+    unsafe extern "C" fn(*const c_char, off_t) -> c_int
+);
+real_fn!(
+    REAL_PREAD,
+    unsafe extern "C" fn(c_int, *mut c_void, size_t, off_t) -> ssize_t
+);
+real_fn!(
+    REAL_PWRITE,
+    unsafe extern "C" fn(c_int, *const c_void, size_t, off_t) -> ssize_t
+);
+real_fn!(
+    REAL_READLINK,
+    unsafe extern "C" fn(*const c_char, *mut c_char, size_t) -> ssize_t
+);
+real_fn!(
+    REAL_SYMLINK,
+    unsafe extern "C" fn(*const c_char, *const c_char) -> c_int
+);
 
 /// # Safety
 /// `pathname` must be a valid NUL-terminated C string.

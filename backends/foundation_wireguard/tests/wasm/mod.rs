@@ -20,7 +20,8 @@
 
 use std::net::{IpAddr, Ipv4Addr};
 
-use foundation_core::valtron::{self, Stream};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_core::valtron;
 use foundation_macros::valtron_bindgen;
 use foundation_wireguard::shared::membership::PeerId;
 use foundation_wireguard::shared::tunnel::WgTunnel;
@@ -28,10 +29,8 @@ use foundation_wireguard::shared::webrtc::{OffererState, WebRtcSignal};
 use foundation_wireguard::wasm::browser::BrowserWgNode;
 use foundation_wireguard::wasm::device::JsDevice;
 use foundation_wireguard::wasm::webrtc::WebRtcOfferer;
-use boringtun::x25519::{PublicKey, StaticSecret};
+use smoltcp::phy::{Device, RxToken};
 use wasm_bindgen_test::wasm_bindgen_test;
-
-use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
 
 /// The browser peer's smoltcp Device bridge compiles to wasm32 and
 /// processes IP packets without panicking. This is the data plane
@@ -43,13 +42,21 @@ fn js_device_wasm32_inject_and_drain() {
 
     // Minimal IPv4 packet: 20 bytes, TCP, 10.0.0.1 → 10.0.0.2
     let pkt = vec![
-        0x45, 0x00, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00,
-        0x40, 0x06, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x01,
-        0x0A, 0x00, 0x00, 0x02,
+        0x45, 0x00, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x40, 0x06, 0x00, 0x00, 0x0A, 0x00, 0x00,
+        0x01, 0x0A, 0x00, 0x00, 0x02,
     ];
-    device.inject(pkt);
+    device.inject(pkt.clone());
 
-    let _ = device.poll(std::time::Instant::now());
+    // Pull the injected packet back out through the smoltcp Device trait —
+    // the same path the browser peer's data plane uses.
+    let (rx, tx) = device
+        .receive(smoltcp::time::Instant::ZERO)
+        .expect("injected packet is receivable");
+    let mut received = None;
+    rx.consume(|bytes| received = Some(bytes.to_vec()));
+    drop(tx);
+    assert_eq!(received.as_deref(), Some(pkt.as_slice()));
+
     let _out = device.drain_outbound();
 }
 
@@ -66,16 +73,13 @@ fn browser_wg_node_wasm32_tick() {
 
     // Register the relay peer (native relay node) — in a live browser
     // this mapping comes from SWIM membership received via wss join.
-    node.add_peer(
-        IpAddr::V4(Ipv4Addr::new(10, 0, 0, 2)),
-        PeerId([0x42; 32]),
-    );
+    node.add_peer(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 2)), PeerId([0x42; 32]));
 
     // Drive one tick — tunnel timers, device poll, encapsulation.
     node.tick();
 
     // The valtron pool is initialized by valtron_bindgen.
-    assert!(valtron::is_pool_initialized());
+    assert!(valtron::single::is_initialized());
 }
 
 /// WebRTC offerer state machine compiles to wasm32 and processes the
@@ -140,7 +144,9 @@ fn ws_relay_client_wasm32_frame_round_trip() {
 /// is what carries SDP/ICE over SWIM gossip in both native and wasm.
 #[wasm_bindgen_test]
 fn webrtc_signal_codec_wasm32_round_trip() {
-    let sig = WebRtcSignal::Offer { sdp: "v=0\r\no=- 0 0".into() };
+    let sig = WebRtcSignal::Offer {
+        sdp: "v=0\r\no=- 0 0".into(),
+    };
     let bytes = sig.to_bytes();
     let decoded = WebRtcSignal::from_bytes(&bytes).expect("decode");
     assert_eq!(sig, decoded);

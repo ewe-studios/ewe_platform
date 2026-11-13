@@ -9,26 +9,13 @@ repository = "{{GITHUB_NAMESPACE}}/{{PROJECT_NAME}}"
 keywords = ["static-html-app", "static html app"]
 
 [dependencies]
-# dev-server
-ewe_devserver = { version = "0.0.1" }
+
+# -- ewe platform dependencies
+foundation_http = { version = "0.0.12", features = ["multi"] }
+foundation_core = { version = "0.0.21", features = ["multi"] }
 
 # directory embedding
 rust-embed = "8.5.0"
-
-# -- tokio, axum and tower
-tokio = { version = "1.36", default-features = true, features=["io-util", "rt"] }
-http = { version = "1.1.0" }
-tower = { version = "0.4.13" }
-axum = { version = "0.7.5", default-features = true }
-
-# -- serve# -- serve
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = { version = "1.0.114" }
-serde_with = { version = "3.6.1" }
-
-# -- error crates
-anyhow = { version = "1.0.80" }
-thiserror = { version = "1.0.57" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
@@ -36,6 +23,3 @@ tracing-subscriber = { version = "0.3.18" }
 
 [features]
 default = []
-
-[lints]
-workspace = true

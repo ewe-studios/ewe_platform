@@ -14,26 +14,26 @@
 
 use super::io::DecodeError;
 use super::Module;
-use thiserror::Error;
+use derive_more::{Display, Error, From};
 
 /// WAT conversion error.
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error, From)]
 pub enum WatError {
     /// The WAT text failed to parse (syntax or validation).
-    #[error(transparent)]
+    #[display("{_0}")]
     Parse(#[from] wat::Error),
 
     /// The binary form failed to decode into the typed model.
-    #[error(transparent)]
+    #[display("{_0}")]
     Decode(#[from] DecodeError),
 
     /// The typed model failed to re-encode to binary.
-    #[error(transparent)]
+    #[display("{_0}")]
     Encode(#[from] std::io::Error),
 
     /// The binary form failed to print as WAT.
-    #[error("printing WAT: {0}")]
-    Print(#[source] anyhow_to_io::PrintError),
+    #[display("printing WAT: {_0}")]
+    Print(anyhow_to_io::PrintError),
 }
 
 /// `wasmprinter` reports errors through `anyhow`; capture them as a plain

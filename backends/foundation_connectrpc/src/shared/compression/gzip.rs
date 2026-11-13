@@ -37,7 +37,9 @@ impl GzipCompressor {
 
 impl Default for GzipCompressor {
     fn default() -> Self {
-        Self { level: DEFAULT_LEVEL }
+        Self {
+            level: DEFAULT_LEVEL,
+        }
     }
 }
 
@@ -87,10 +89,12 @@ impl GzipStreamCompressor {
     /// # Errors
     /// Returns [`CompressionError::Compress`] on an underlying I/O error.
     pub fn write(&mut self, data: &[u8]) -> Result<(), CompressionError> {
-        self.encoder.write_all(data).map_err(|e| CompressionError::Compress {
-            algorithm: NAME,
-            message: e.to_string(),
-        })
+        self.encoder
+            .write_all(data)
+            .map_err(|e| CompressionError::Compress {
+                algorithm: NAME,
+                message: e.to_string(),
+            })
     }
 
     /// Finish the current message and reset for the next, returning the
@@ -100,10 +104,7 @@ impl GzipStreamCompressor {
     /// # Errors
     /// Returns [`CompressionError::Compress`] on an underlying I/O error.
     pub fn finish_message(&mut self) -> Result<Vec<u8>, CompressionError> {
-        let finished = std::mem::replace(
-            &mut self.encoder,
-            GzEncoder::new(Vec::new(), self.level),
-        );
+        let finished = std::mem::replace(&mut self.encoder, GzEncoder::new(Vec::new(), self.level));
         finished.finish().map_err(|e| CompressionError::Compress {
             algorithm: NAME,
             message: e.to_string(),

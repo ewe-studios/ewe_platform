@@ -13,14 +13,13 @@ use std::sync::Arc;
 use core::future::Future;
 use core::task::{Context, Poll};
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, BoolSignal, EventReadiness, EventReadinessPtr, Pipe, TryRecvError,
-    TrySendError, WakeToken,
+    queue_waker, AnyReadiness, BoolSignal, EventQueue, EventReadiness, EventReadinessPtr, Pipe,
+    TryRecvError, TrySendError, WakeToken,
 };
 
 /// Build a `Context` whose waker pushes an observable `WakeToken` onto `obs`.
-fn observing_cx(obs: &Arc<ConcurrentQueue<WakeToken>>) -> core::task::Waker {
+fn observing_cx(obs: &EventQueue<WakeToken>) -> core::task::Waker {
     queue_waker(obs.clone(), 0)
 }
 
@@ -41,7 +40,7 @@ fn send_and_receive_roundtrip() {
     assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
 
     // Async surface (ready immediately — no parking needed here).
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
@@ -67,14 +66,17 @@ fn producer_parks_on_full_and_wakes_on_pop() {
     tx.try_send(2).expect("send 2");
     assert!(tx.is_full(), "pipe filled to depth");
 
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
     // Full pipe -> the send future parks.
     let mut send = Box::pin(tx.send(3));
     assert!(matches!(send.as_mut().poll(&mut cx), Poll::Pending));
-    assert!(obs.is_empty(), "turn count flat: no wake while the pipe stays full");
+    assert!(
+        obs.is_empty(),
+        "turn count flat: no wake while the pipe stays full"
+    );
 
     // Consumer pops -> fires the stashed producer waker.
     assert_eq!(rx.try_recv(), Ok(1));
@@ -83,7 +85,11 @@ fn producer_parks_on_full_and_wakes_on_pop() {
     // The unparked producer completes its send.
     assert!(matches!(send.as_mut().poll(&mut cx), Poll::Ready(Ok(()))));
     assert_eq!(rx.try_recv(), Ok(2));
-    assert_eq!(rx.try_recv(), Ok(3), "the once-parked item is delivered in FIFO order");
+    assert_eq!(
+        rx.try_recv(),
+        Ok(3),
+        "the once-parked item is delivered in FIFO order"
+    );
 }
 
 /// WHY: The consumer/empty case must be symmetric — park on empty, woken by push.
@@ -93,13 +99,16 @@ fn producer_parks_on_full_and_wakes_on_pop() {
 fn consumer_parks_on_empty_and_wakes_on_push() {
     let (tx, rx) = Pipe::<u32>::with_depth(2);
 
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
     let mut recv = Box::pin(rx.receive());
     assert!(matches!(recv.as_mut().poll(&mut cx), Poll::Pending));
-    assert!(obs.is_empty(), "turn count flat: no wake while the pipe stays empty");
+    assert!(
+        obs.is_empty(),
+        "turn count flat: no wake while the pipe stays empty"
+    );
 
     tx.try_send(42).expect("send");
     assert!(!obs.is_empty(), "push woke the parked consumer");
@@ -121,7 +130,7 @@ fn sender_drop_signals_end_of_stream() {
     tx.try_send(2).expect("send 2");
 
     // A parked consumer must wake on close: park first, then drop the sender.
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let (tx2, rx2) = Pipe::<u32>::with_depth(4);
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
@@ -129,11 +138,17 @@ fn sender_drop_signals_end_of_stream() {
     assert!(matches!(recv.as_mut().poll(&mut cx), Poll::Pending));
     drop(tx2);
     assert!(!obs.is_empty(), "sender drop woke the parked consumer");
-    assert!(matches!(recv.as_mut().poll(&mut cx), Poll::Ready(None)), "clean EOS");
+    assert!(
+        matches!(recv.as_mut().poll(&mut cx), Poll::Ready(None)),
+        "clean EOS"
+    );
 
     // Backlog drains before EOS is reported.
     drop(tx);
-    assert!(rx.readiness().is_ready(None), "closed pipe is readiness-ready");
+    assert!(
+        rx.readiness().is_ready(None),
+        "closed pipe is readiness-ready"
+    );
     assert_eq!(rx.try_recv(), Ok(1));
     assert_eq!(rx.try_recv(), Ok(2));
     assert_eq!(rx.try_recv(), Err(TryRecvError::Closed));
@@ -147,7 +162,7 @@ fn sender_drop_signals_end_of_stream() {
 #[test]
 fn sender_closed_wakes_when_receiver_goes_away() {
     let (tx, rx) = Pipe::<u32>::with_depth(1);
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
@@ -158,7 +173,7 @@ fn sender_closed_wakes_when_receiver_goes_away() {
 
     // A send parked on the full pipe at the same time.
     tx.try_send(1).expect("fill the pipe");
-    let send_obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let send_obs = EventQueue::<WakeToken>::unbounded();
     let send_waker = observing_cx(&send_obs);
     let mut send_cx = Context::from_waker(&send_waker);
     let mut send = Box::pin(tx.send(2));
@@ -167,13 +182,19 @@ fn sender_closed_wakes_when_receiver_goes_away() {
     assert!(obs.is_empty(), "nothing closed yet");
     drop(rx);
     assert!(!obs.is_empty(), "receiver drop woke the closed() waiter");
-    assert!(!send_obs.is_empty(), "receiver drop woke the parked send too");
+    assert!(
+        !send_obs.is_empty(),
+        "receiver drop woke the parked send too"
+    );
     assert!(matches!(closed.as_mut().poll(&mut cx), Poll::Ready(())));
-    assert!(matches!(send.as_mut().poll(&mut send_cx), Poll::Ready(Err(_))));
+    assert!(matches!(
+        send.as_mut().poll(&mut send_cx),
+        Poll::Ready(Err(_))
+    ));
 
     // Already closed: resolves at once.
     let (tx2, rx2) = Pipe::<u32>::with_depth(1);
-    rx2.close();
+    let _ = rx2.close();
     let mut closed2 = Box::pin(tx2.closed());
     assert!(matches!(closed2.as_mut().poll(&mut cx), Poll::Ready(())));
 }
@@ -233,7 +254,7 @@ fn vacancy_readiness_tracks_capacity_and_close() {
     // A full-then-closed pipe reports ready so a parked producer unparks.
     tx.try_send(2).expect("send");
     assert!(tx.is_full());
-    tx.close();
+    let _ = tx.close();
     assert!(vacancy.is_ready(None), "closed pipe reports vacancy-ready");
 }
 
@@ -251,11 +272,17 @@ fn any_readiness_fires_when_any_child_ready() {
         Arc::new(tx.vacancy()) as EventReadinessPtr,
         Arc::new(cancel) as EventReadinessPtr,
     );
-    assert!(!any.is_ready(None), "full pipe + not cancelled -> not ready");
+    assert!(
+        !any.is_ready(None),
+        "full pipe + not cancelled -> not ready"
+    );
 
     // Firing the cancel child alone makes the composite ready.
     cancel_flag.store(true, Ordering::SeqCst);
-    assert!(any.is_ready(None), "AnyReadiness fires when the cancel child is ready");
+    assert!(
+        any.is_ready(None),
+        "AnyReadiness fires when the cancel child is ready"
+    );
 }
 
 // ============================================================================
@@ -271,7 +298,7 @@ fn send_recheck_closes_wake_before_park_race() {
         let (tx, rx) = Pipe::<u32>::with_depth(1);
         tx.try_send(1).expect("fill");
 
-        let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+        let obs = EventQueue::<WakeToken>::unbounded();
         let waker = observing_cx(&obs);
         let mut cx = Context::from_waker(&waker);
 
@@ -343,5 +370,8 @@ fn pipe_backpressure_roundtrip_on_pool() {
 
     let got = result.expect("consumer produced a result");
     let expected: Vec<u32> = (0..N).collect();
-    assert_eq!(got, expected, "all items delivered in FIFO order across the bounded pipe");
+    assert_eq!(
+        got, expected,
+        "all items delivered in FIFO order across the bounded pipe"
+    );
 }

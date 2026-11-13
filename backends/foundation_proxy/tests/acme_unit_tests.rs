@@ -28,7 +28,7 @@ fn dns01_different_inputs_yield_different_outputs() {
 #[test]
 fn base64_url_encodes_correctly() {
     let encoded = base64_url("test");
-    assert!(!encoded.is_empty());
+    assert_ne!(encoded, "");
     assert!(!encoded.contains('='));
 }
 
@@ -37,7 +37,10 @@ fn base64_url_no_padding() {
     // Base64 URL-safe with no padding: every output should be padding-free
     for input in &["a", "ab", "abc", "abcd", "abcde"] {
         let encoded = base64_url(input);
-        assert!(!encoded.contains('='), "input '{input}' produced '{encoded}' with padding");
+        assert!(
+            !encoded.contains('='),
+            "input '{input}' produced '{encoded}' with padding"
+        );
     }
 }
 
@@ -54,10 +57,16 @@ fn build_jws_protected_payload() {
     let protected = jws["protected"].as_str().unwrap();
     let payload = jws["payload"].as_str().unwrap();
     let sig = jws["signature"].as_str().unwrap();
-    assert!(!protected.is_empty(), "protected should be non-empty base64url");
+    assert!(
+        !protected.is_empty(),
+        "protected should be non-empty base64url"
+    );
     assert!(!payload.is_empty(), "payload should be non-empty base64url");
     assert!(sig.is_empty(), "signature should be empty before signing");
-    assert!(!protected.contains('='), "base64url should not have padding");
+    assert!(
+        !protected.contains('='),
+        "base64url should not have padding"
+    );
     assert!(!payload.contains('='), "base64url should not have padding");
 }
 

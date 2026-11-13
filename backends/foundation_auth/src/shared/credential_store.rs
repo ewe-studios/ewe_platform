@@ -12,11 +12,13 @@
 
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
 use foundation_db::{core::KeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
+use crate::shared::clock::now_seconds;
 use crate::shared::oauth_token::OAuthToken;
 
 /// Credential storage API.
@@ -105,9 +107,13 @@ impl CredentialStorage {
     /// Returns [`CredentialStoreError`] if the Turso backend cannot be
     /// initialized.
     #[cfg(feature = "turso")]
-    pub async fn turso(url: &str) -> Result<Self, CredentialStoreError> {
+    pub async fn turso(
+        url: &str,
+        ctx: foundation_context::Ctx,
+    ) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
+            ctx: ctx.into(),
         })
         .await?;
         Ok(Self::new(storage))
@@ -127,19 +133,31 @@ impl CredentialStorage {
     }
 }
 
+/// Credential storage over any [`foundation_db::KeyValueStore`]: the `IdP`
+/// keeps sessions in the same store it uses for its other short-lived state.
+pub struct KvCredentialStore<KV> {
+    kv: KV,
+}
+
+impl<KV> KvCredentialStore<KV> {
+    /// Wrap a key-value store.
+    #[must_use]
+    pub fn new(kv: KV) -> Self {
+        Self { kv }
+    }
+}
+
 #[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
-impl CredentialStore for CredentialStorage {
+impl<KV: foundation_db::KeyValueStore> CredentialStore for KvCredentialStore<KV> {
     async fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        self.storage.get(key)
+        self.kv
+            .get(key)
             .await
-            .map_err(|e| match e {
-                StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-                other => CredentialStoreError::Storage(other),
-            })
+            .map_err(CredentialStoreError::Storage)
     }
 
     async fn set<V: Serialize + Send + 'static>(
@@ -147,25 +165,78 @@ impl CredentialStore for CredentialStorage {
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        self.storage.set(key, value)
+        self.kv
+            .set(key, value)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage.delete(key)
+        self.kv
+            .delete(key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage.exists(key)
+        self.kv
+            .exists(key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        self.storage.list_keys(prefix)
+        self.kv
+            .list_keys(prefix)
+            .await
+            .map_err(CredentialStoreError::Storage)?
+            .collect_all()
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+}
+
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
+impl CredentialStore for CredentialStorage {
+    async fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
+        self.storage.get(key).await.map_err(|e| match e {
+            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
+            other => CredentialStoreError::Storage(other),
+        })
+    }
+
+    async fn set<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError> {
+        self.storage
+            .set(key, value)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+        self.storage
+            .delete(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        self.storage
+            .exists(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        self.storage
+            .list_keys(prefix)
             .await
             .map_err(CredentialStoreError::Storage)?
             .collect_all()
@@ -198,7 +269,10 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// Returns [`CredentialStoreError`] if the storage operation or
     /// deserialization fails.
-    async fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
+    async fn get_oauth_token(
+        &self,
+        provider: &str,
+    ) -> Result<Option<OAuthToken>, CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
         self.get(&key).await
     }
@@ -238,7 +312,10 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// Returns [`CredentialStoreError`] if the storage operation or
     /// deserialization fails.
-    async fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
+    async fn get_oauth_state(
+        &self,
+        state: &str,
+    ) -> Result<Option<OAuthState>, CredentialStoreError> {
         let key = format!("oauth:state:{state}");
         self.get(&key).await
     }
@@ -266,9 +343,8 @@ pub struct OAuthState {
 impl OAuthState {
     /// Check if the state is expired.
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        let now = chrono::Utc::now().timestamp();
-        now >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_seconds(ctx) >= self.expires_at
     }
 }
 
@@ -291,18 +367,17 @@ pub struct StoredCredential<T> {
 impl<T> StoredCredential<T> {
     /// Create a new stored credential.
     #[must_use]
-    pub fn new(data: T) -> Self {
-        let now = chrono::Utc::now().timestamp();
+    pub fn new(data: T, ctx: &Ctx) -> Self {
         Self {
             data,
-            created_at: now,
+            created_at: now_seconds(ctx),
             last_accessed_at: None,
             metadata: None,
         }
     }
 
     /// Mark the credential as accessed.
-    pub fn mark_accessed(&mut self) {
-        self.last_accessed_at = Some(chrono::Utc::now().timestamp());
+    pub fn mark_accessed(&mut self, ctx: &Ctx) {
+        self.last_accessed_at = Some(now_seconds(ctx));
     }
 }

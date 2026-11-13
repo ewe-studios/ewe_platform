@@ -1,4 +1,4 @@
-//! io_uring completion-mode write path — `IORING_OP_SEND` (F49 — Decision 14 F4).
+//! `io_uring` completion-mode write path — `IORING_OP_SEND` (F49 — Decision 14 F4).
 //!
 //! WHY: the SEND half of completion mode. A transport hands the kernel an owned
 //! buffer and the bytes go on the wire with no `write(2)`; the completion returns
@@ -20,25 +20,19 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::poll::probe;
 use foundation_nativeapis::native::poll::sys::unix::selector::uring_completion::{
-    SendCompletion, Selector,
+    Selector, SendCompletion,
 };
 use foundation_nativeapis::{Events, Token};
 
-/// Skip when the running kernel lacks the completion tier (documented fallback).
+mod common;
+
+/// Skip when the running kernel lacks the completion tier (documented
+/// fallback), or fail when `EWE_REQUIRE_IO_URING=1` promises it (CI).
 macro_rules! require_completion_tier {
     () => {
-        match probe::probe() {
-            Ok(caps) if caps.supports_completion() => {}
-            Ok(caps) => {
-                eprintln!("skipping: kernel lacks the completion tier ({caps})");
-                return;
-            }
-            Err(e) => {
-                eprintln!("skipping: io_uring unavailable ({e})");
-                return;
-            }
+        if common::io_uring_missing("completion tier", common::Requires::Completion) {
+            return;
         }
     };
 }
@@ -100,7 +94,8 @@ fn poll_sends(sel: &Selector, token: Token, budget: Duration) -> Vec<SendComplet
     let mut events = Events::with_capacity(16);
     loop {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         let sends = sel.take_send_completions(token);
         if !sends.is_empty() {
             return sends;
@@ -151,7 +146,10 @@ fn a_write_larger_than_the_pool_buffer_is_a_short_send() {
     let payload = b"0123456789ABCDEF"; // 16 bytes
 
     let taken = sel.submit_send(token, a, payload).expect("submit_send");
-    assert_eq!(taken, 8, "capped at the pool buffer size — caller resubmits the rest");
+    assert_eq!(
+        taken, 8,
+        "capped at the pool buffer size — caller resubmits the rest"
+    );
 
     let sends = poll_sends(&sel, token, Duration::from_secs(2));
     assert!(matches!(sends.as_slice(), [SendCompletion::Written(8)]));
@@ -180,7 +178,11 @@ fn successive_sends_deliver_in_order() {
 
     let mut buf = [0u8; 64];
     let got = read_available(b, &mut buf);
-    assert_eq!(&buf[..got], b"onetwothree", "bytes arrive in submission order");
+    assert_eq!(
+        &buf[..got],
+        b"onetwothree",
+        "bytes arrive in submission order"
+    );
 
     close(a);
     close(b);
@@ -195,7 +197,9 @@ fn send_zc_delivers_bytes_and_releases_the_buffer_on_the_notif() {
     let token = Token(11);
     let payload = b"zero-copy send via IORING_OP_SEND_ZC";
 
-    let taken = sel.submit_send_zc(token, a, payload).expect("submit_send_zc");
+    let taken = sel
+        .submit_send_zc(token, a, payload)
+        .expect("submit_send_zc");
     assert_eq!(taken, payload.len());
 
     // First CQE: bytes are on the wire.
@@ -213,7 +217,8 @@ fn send_zc_delivers_bytes_and_releases_the_buffer_on_the_notif() {
     let mut events = Events::with_capacity(16);
     while sel.has_pending_sends(token) && Instant::now() < deadline {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
     }
     assert!(
         !sel.has_pending_sends(token),
@@ -260,7 +265,11 @@ fn a_small_pool_recycles_across_many_sends() {
     let got = read_available(b, &mut buf);
     received.extend_from_slice(&buf[..got]);
 
-    assert_eq!(received.len(), 30 * 4, "every submitted byte reached the peer");
+    assert_eq!(
+        received.len(),
+        30 * 4,
+        "every submitted byte reached the peer"
+    );
 
     close(a);
     close(b);

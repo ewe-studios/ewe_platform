@@ -3,7 +3,7 @@ use super::use_file;
 use crate::entropy::Error;
 use core::{
     ffi::c_void,
-    mem::{MaybeUninit, transmute},
+    mem::{transmute, MaybeUninit},
     ptr::{self, NonNull},
 };
 use use_file::utils;

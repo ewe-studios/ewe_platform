@@ -3,6 +3,14 @@
 _Last updated: 2026-10-26 (spec review round 3: features 02 to 07 completed and clarified). Read this first, then `LEARNINGS.md` ("Handoff guide"
 at the top) before touching code._
 
+**Design input (2026-10-30):** the [Durable Streams research
+note](../research/edge-data/durable-streams.md) and [spec
+71](../71-durable-streams-in-valtron) now feed the streaming operations. The
+turn/progress streams of `01-agent-rpc` and the SSE tail of `05-cloudflare` will
+consume the `DurableStream` reader/writer and `DurableStreamStore` trait that
+spec 71 builds. No feature in this spec is added for it; see `requirements.md`
+"Durable streams and the streaming operations".
+
 ## Status at a glance
 
 | Feature                                         | State                                                            | Where                         |
@@ -426,3 +434,39 @@ focused on 1 thing"). Feature 07 is only task T0. The shared overview, glossary,
 open questions and the workflow moved to `agent-rpc-architecture.md` at the root of spec 65.
 `hosts.md` was split: the native part is in feature 13, the Worker and web client part is
 `worker-and-web.md` in feature 14. Section numbers did not change.
+
+## 2026-11-13: master merged into `65-f01-agent-rpc`
+
+The in-progress merge of `master` (spec 76 `RpcCtx` and `Ctx` injection, the
+async `AgentSession` API, the `QueryStore` rename, the `foundation_http`
+native/shared split, the `ShutdownSignal` switch) into `65-f01-agent-rpc` is
+resolved. All nine textual conflicts take both sides' intent. The semantic
+conflicts are fixed too:
+
+- `foundation_agent_rpc` uses `RpcCtx` for request contexts and threads
+  `foundation_context::Ctx` into the trusted-client store, the model loader and
+  the server builder (`with_ctx`).
+- `TursoStorage::open(url, ctx)` now sets the connection gate.
+- `InstanceRegistry::create`/`destroy` are `async`, and the session build takes
+  the registry's `Ctx`; `created_unix_ms` reads the injected clock.
+- `foundation_deployment_docker` pins `buffa-build` to the runtime's 0.9.2.
+- `turn.rs` regained the `WakeableStream` import the merge dropped.
+
+Verified with `--profile uat`: `cargo check --workspace --all-targets` passes,
+`cargo fmt --all --check` is clean, and the tests of `foundation_agent_rpc` and
+`foundation_db` pass. `foundation_ai` tests run after the merge. The merge is
+ready to commit; CI on all three operating systems follows the push.
+
+Same day, before the commit:
+
+- The merge left two `[packages.foundation_agent_rpc]` tables in
+  `ci/packages.toml`. A second table for one key is a TOML error, so the config
+  did not parse. The duplicate is gone and `ci.py plan` selects the package.
+- `foundation_agent_rpc` had eight clippy warnings and four test warnings. CI
+  denies clippy warnings for every package by default (`--no-deps --
+  -D warnings`), so all twelve are fixed.
+- `foundation_connectrpc` had one `too_many_lines` warning on master in
+  `call_unary_post_inner`. The pre-decode protocol checks moved into
+  `run_unary_interceptors`, and the build is clean under `-D warnings`.
+- #550 records three `[workspace.dependencies]` entries that no workspace
+  member uses (severity low).

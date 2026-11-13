@@ -1,10 +1,9 @@
 #![allow(deprecated)]
 
-use super::error::Error::*;
 use super::error::{get_offset, Error, Result};
 use super::instruction::{Instruction, Path, PathStep};
 
-const UNKNOWN: usize = ::std::usize::MAX;
+const UNKNOWN: usize = usize::MAX;
 
 enum Block {
     Branch(usize),
@@ -35,117 +34,13 @@ impl<'template> TemplateCompiler<'template> {
     pub fn compile(mut self) -> Result<Vec<Instruction<'template>>> {
         while !self.remaining_text.is_empty() {
             if self.remaining_text.starts_with("{#") {
-                self.trim_next = false;
-                let tag = self.consume_tag("#}")?;
-                let comment = tag[2..(tag.len() - 2)].trim();
-                if comment.starts_with('-') {
-                    self.trim_last_whitespace();
-                }
-                if comment.ends_with('-') {
-                    self.trim_next_whitespace();
-                }
+                self.consume_comment()?;
             } else if self.remaining_text.starts_with("{{") {
-                self.trim_next = false;
-                let (discriminant, rest) = self.consume_block()?;
-                match discriminant {
-                    "if" => {
-                        let (path, negated) = if rest.starts_with("not") {
-                            (self.parse_path(&rest[4..])?, true)
-                        } else {
-                            (self.parse_path(rest)?, false)
-                        };
-                        self.block_stack
-                            .push((discriminant, Block::Branch(self.instructions.len())));
-                        self.instructions
-                            .push(Instruction::Branch(path, !negated, UNKNOWN));
-                    }
-                    "else" => {
-                        self.expect_empty(rest)?;
-                        let num_instructions = self.instructions.len() + 1;
-                        self.close_branch(num_instructions, discriminant)?;
-                        self.block_stack
-                            .push((discriminant, Block::Branch(self.instructions.len())));
-                        self.instructions.push(Instruction::Goto(UNKNOWN))
-                    }
-                    "endif" => {
-                        self.expect_empty(rest)?;
-                        let num_instructions = self.instructions.len();
-                        self.close_branch(num_instructions, discriminant)?;
-                    }
-                    "with" => {
-                        let (path, name) = self.parse_with(rest)?;
-                        let instruction = Instruction::PushNamedContext(path, name);
-                        self.instructions.push(instruction);
-                        self.block_stack.push((discriminant, Block::With));
-                    }
-                    "endwith" => {
-                        self.expect_empty(rest)?;
-                        if let Some((_, Block::With)) = self.block_stack.pop() {
-                            self.instructions.push(Instruction::PopContext)
-                        } else {
-                            return Err(self.parse_error(
-                                discriminant,
-                                "Found a closing endwith that doesn't match with a preceeding with.".to_string()
-                            ));
-                        }
-                    }
-                    "for" => {
-                        let (path, name) = self.parse_for(rest)?;
-                        self.instructions
-                            .push(Instruction::PushIterationContext(path, name));
-                        self.block_stack
-                            .push((discriminant, Block::For(self.instructions.len())));
-                        self.instructions.push(Instruction::Iterate(UNKNOWN));
-                    }
-                    "endfor" => {
-                        self.expect_empty(rest)?;
-                        let num_instructions = self.instructions.len() + 1;
-                        let goto_target = self.close_for(num_instructions, discriminant)?;
-                        self.instructions.push(Instruction::Goto(goto_target));
-                        self.instructions.push(Instruction::PopContext);
-                    }
-                    "call" => {
-                        let (name, path) = self.parse_call(rest)?;
-                        self.instructions.push(Instruction::Call(name, path));
-                    }
-                    _ => {
-                        return Err(self.parse_error(
-                            discriminant,
-                            format!("Unknown block type '{}'", discriminant),
-                        ));
-                    }
-                }
+                self.consume_block_instruction()?;
             } else if self.remaining_text.starts_with('{') {
-                self.trim_next = false;
-                let (path, name) = self.consume_value()?;
-                let instruction = match name {
-                    Some(name) => Instruction::FormattedValue(path, name),
-                    None => Instruction::Value(path),
-                };
-                self.instructions.push(instruction);
+                self.consume_value_instruction()?;
             } else {
-                let mut escaped = false;
-                loop {
-                    let mut text = self.consume_text(escaped);
-                    if self.trim_next {
-                        text = text.trim_left();
-                        self.trim_next = false;
-                    }
-                    escaped = text.ends_with('\\');
-                    if escaped {
-                        text = &text[..text.len() - 1];
-                    }
-                    self.instructions.push(Instruction::Literal(text));
-                    if !escaped {
-                        break;
-                    }
-                    if escaped && self.remaining_text.is_empty() {
-                        return Err(self.parse_error(
-                            text,
-                            "Found an escape that doesn't escape any character.".to_string(),
-                        ));
-                    }
-                }
+                self.consume_literal()?;
             }
         }
 
@@ -159,6 +54,130 @@ impl<'template> TemplateCompiler<'template> {
         Ok(self.instructions)
     }
 
+    fn consume_comment(&mut self) -> Result<()> {
+        self.trim_next = false;
+        let tag = self.consume_tag("#}")?;
+        let comment = tag[2..(tag.len() - 2)].trim();
+        if comment.starts_with('-') {
+            self.trim_last_whitespace();
+        }
+        if comment.ends_with('-') {
+            self.trim_next_whitespace();
+        }
+        Ok(())
+    }
+
+    fn consume_block_instruction(&mut self) -> Result<()> {
+        self.trim_next = false;
+        let (discriminant, rest) = self.consume_block()?;
+        match discriminant {
+            "if" => {
+                let (path, negated) = if rest.starts_with("not") {
+                    (self.parse_path(&rest[4..])?, true)
+                } else {
+                    (self.parse_path(rest)?, false)
+                };
+                self.block_stack
+                    .push((discriminant, Block::Branch(self.instructions.len())));
+                self.instructions
+                    .push(Instruction::Branch(path, !negated, UNKNOWN));
+            }
+            "else" => {
+                self.expect_empty(rest)?;
+                let num_instructions = self.instructions.len() + 1;
+                self.close_branch(num_instructions, discriminant)?;
+                self.block_stack
+                    .push((discriminant, Block::Branch(self.instructions.len())));
+                self.instructions.push(Instruction::Goto(UNKNOWN));
+            }
+            "endif" => {
+                self.expect_empty(rest)?;
+                let num_instructions = self.instructions.len();
+                self.close_branch(num_instructions, discriminant)?;
+            }
+            "with" => {
+                let (path, name) = self.parse_with(rest)?;
+                let instruction = Instruction::PushNamedContext(path, name);
+                self.instructions.push(instruction);
+                self.block_stack.push((discriminant, Block::With));
+            }
+            "endwith" => {
+                self.expect_empty(rest)?;
+                if let Some((_, Block::With)) = self.block_stack.pop() {
+                    self.instructions.push(Instruction::PopContext);
+                } else {
+                    return Err(self.parse_error(
+                        discriminant,
+                        "Found a closing endwith that doesn't match with a preceeding with."
+                            .to_string(),
+                    ));
+                }
+            }
+            "for" => {
+                let (path, name) = self.parse_for(rest)?;
+                self.instructions
+                    .push(Instruction::PushIterationContext(path, name));
+                self.block_stack
+                    .push((discriminant, Block::For(self.instructions.len())));
+                self.instructions.push(Instruction::Iterate(UNKNOWN));
+            }
+            "endfor" => {
+                self.expect_empty(rest)?;
+                let num_instructions = self.instructions.len() + 1;
+                let goto_target = self.close_for(num_instructions, discriminant)?;
+                self.instructions.push(Instruction::Goto(goto_target));
+                self.instructions.push(Instruction::PopContext);
+            }
+            "call" => {
+                let (name, path) = self.parse_call(rest)?;
+                self.instructions.push(Instruction::Call(name, path));
+            }
+            _ => {
+                return Err(
+                    self.parse_error(discriminant, format!("Unknown block type '{discriminant}'"))
+                );
+            }
+        }
+        Ok(())
+    }
+
+    fn consume_value_instruction(&mut self) -> Result<()> {
+        self.trim_next = false;
+        let (path, name) = self.consume_value()?;
+        let instruction = match name {
+            Some(name) => Instruction::FormattedValue(path, name),
+            None => Instruction::Value(path),
+        };
+        self.instructions.push(instruction);
+        Ok(())
+    }
+
+    fn consume_literal(&mut self) -> Result<()> {
+        let mut escaped = false;
+        loop {
+            let mut text = self.consume_text(escaped);
+            if self.trim_next {
+                text = text.trim_left();
+                self.trim_next = false;
+            }
+            escaped = text.ends_with('\\');
+            if escaped {
+                text = &text[..text.len() - 1];
+            }
+            self.instructions.push(Instruction::Literal(text));
+            if !escaped {
+                break;
+            }
+            if escaped && self.remaining_text.is_empty() {
+                return Err(self.parse_error(
+                    text,
+                    "Found an escape that doesn't escape any character.".to_string(),
+                ));
+            }
+        }
+        Ok(())
+    }
+
     fn parse_path(&self, text: &'template str) -> Result<Path<'template>> {
         if !text.starts_with('@') {
             Ok(text
@@ -168,23 +187,23 @@ impl<'template> TemplateCompiler<'template> {
                     Err(_) => PathStep::Name(s),
                 })
                 .collect::<Vec<_>>())
-        } else if KNOWN_KEYWORDS.iter().any(|k| *k == text) {
+        } else if KNOWN_KEYWORDS.contains(&text) {
             Ok(vec![PathStep::Name(text)])
         } else {
-            Err(self.parse_error(text, format!("Invalid keyword name '{}'", text)))
+            Err(self.parse_error(text, format!("Invalid keyword name '{text}'")))
         }
     }
 
     fn parse_error(&self, location: &str, msg: String) -> Error {
         let (line, column) = get_offset(self.original_text, location);
-        ParseError { msg, line, column }
+        Error::ParseError { msg, line, column }
     }
 
     fn expect_empty(&self, text: &str) -> Result<()> {
         if text.is_empty() {
             Ok(())
         } else {
-            Err(self.parse_error(text, format!("Unexpected text '{}'", text)))
+            Err(self.parse_error(text, format!("Unexpected text '{text}'")))
         }
     }
 
@@ -192,11 +211,7 @@ impl<'template> TemplateCompiler<'template> {
         let branch_block = self.block_stack.pop();
         if let Some((_, Block::Branch(index))) = branch_block {
             match &mut self.instructions[index] {
-                Instruction::Branch(_, _, target) => {
-                    *target = new_target;
-                    Ok(())
-                }
-                Instruction::Goto(target) => {
+                Instruction::Branch(_, _, target) | Instruction::Goto(target) => {
                     *target = new_target;
                     Ok(())
                 }
@@ -235,9 +250,7 @@ impl<'template> TemplateCompiler<'template> {
         } else {
             self.remaining_text
         };
-        let mut position = search_substr
-            .find('{')
-            .unwrap_or_else(|| search_substr.len());
+        let mut position = search_substr.find('{').unwrap_or(search_substr.len());
         if escaped {
             position += 1;
         }
@@ -304,19 +317,13 @@ impl<'template> TemplateCompiler<'template> {
             } else {
                 Err(self.parse_error(
                     line,
-                    format!(
-                        "Expected a closing '{}' but found end-of-line instead.",
-                        expected_close
-                    ),
+                    format!("Expected a closing '{expected_close}' but found end-of-line instead."),
                 ))
             }
         } else {
             Err(self.parse_error(
                 self.remaining_text,
-                format!(
-                    "Expected a closing '{}' but found end-of-text instead.",
-                    expected_close
-                ),
+                format!("Expected a closing '{expected_close}' but found end-of-text instead."),
             ))
         }
     }
@@ -330,10 +337,7 @@ impl<'template> TemplateCompiler<'template> {
         } else {
             Err(self.parse_error(
                 with_text,
-                format!(
-                    "Expected 'as <path>' in with block, but found \"{}\" instead",
-                    with_text
-                ),
+                format!("Expected 'as <path>' in with block, but found \"{with_text}\" instead"),
             ))
         }
     }
@@ -347,7 +351,7 @@ impl<'template> TemplateCompiler<'template> {
         } else {
             Err(self.parse_error(
                 for_text,
-                format!("Unable to parse for block text '{}'", for_text),
+                format!("Unable to parse for block text '{for_text}'"),
             ))
         }
     }
@@ -361,7 +365,7 @@ impl<'template> TemplateCompiler<'template> {
         } else {
             Err(self.parse_error(
                 call_text,
-                format!("Unable to parse call block text '{}'", call_text),
+                format!("Unable to parse call block text '{call_text}'"),
             ))
         }
     }

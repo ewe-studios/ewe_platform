@@ -121,13 +121,10 @@ async fn exec_inspect() {
         .await
         .expect("exec create");
 
-    let inspected = c
-        .exec_inspect(&exec_id.id)
-        .await
-        .expect("exec inspect");
+    let inspected = c.exec_inspect(&exec_id.id).await.expect("exec inspect");
 
     assert!(
-        inspected.get("ID").is_some(),
+        inspected.id.is_some(),
         "exec inspect response should contain an ID field"
     );
 
@@ -191,6 +188,9 @@ async fn system_events() {
     // Every replayed event must parse as the generated `EventMessage`.
     while let Some(event) = events.next().await {
         let event = event.expect("a typed event");
-        assert!(event.r#type.is_some() || event.action.is_some(), "{event:?}");
+        assert!(
+            event.r#type.is_some() || event.action.is_some(),
+            "{event:?}"
+        );
     }
 }

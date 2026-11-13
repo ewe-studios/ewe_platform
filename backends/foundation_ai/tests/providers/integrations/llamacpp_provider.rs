@@ -12,9 +12,16 @@ use foundation_core::valtron::valtron_test;
 use foundation_testing::huggingface::TestHarness;
 use std::os::unix::fs::MetadataExt;
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 #[valtron_test]
 fn test_llama_backend_creation() {
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let config = LlamaBackendConfig::builder()
         .n_gpu_layers(0)
         .context_length(512)
@@ -47,7 +54,7 @@ fn test_llama_model_loading() {
         .expect("Failed to download model");
 
     // Create backend
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let config = LlamaBackendConfig::builder()
         .n_gpu_layers(0)
         .context_length(512)
@@ -124,7 +131,7 @@ fn test_llama_with_smollm_model() {
         .expect("Failed to download model");
 
     // Create backend
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let config = LlamaBackendConfig::builder()
         .n_gpu_layers(0)
         .context_length(512)

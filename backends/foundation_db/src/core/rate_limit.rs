@@ -8,17 +8,56 @@
 //! `window_start = now`). Inside the window a record only increments the count
 //! and keeps `window_start`, so a busy key still resets on schedule.
 
-use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
 
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
+use foundation_context::Ctx;
+
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
+use futures_lite::StreamExt;
+
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 use crate::core::backends::unix_now_secs;
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{QueryStore, DataValue};
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
+use crate::core::storage_provider::{DataValue, QueryStore};
 
 /// The `rate_limits` table every SQL backend uses: the same shape as core
 /// migration 014, so a store that wasn't migrated creates the table the
 /// migrated ones have. `id` is the key; `window_end` is
 /// `window_start + window_seconds`.
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 pub(crate) const CREATE_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS rate_limits (\
      id TEXT PRIMARY KEY, \
      key TEXT UNIQUE NOT NULL, \
@@ -26,17 +65,34 @@ pub(crate) const CREATE_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS rate_limit
      window_start INTEGER NOT NULL, \
      window_end INTEGER NOT NULL)";
 
-/// Record one hit. Parameters: id (the key), key, now, `now + window`,
-/// cutoff, cutoff, cutoff (`cutoff = window_cutoff(now, window_seconds)`).
-/// A row whose window started at or before the cutoff restarts at count 1
-/// with a new window; any other row is incremented and keeps its window.
+/// Record one hit in a single atomic statement and return the count it produced.
+///
+/// Parameters: id (the key), key, now, `now + window`, cutoff, cutoff, cutoff
+/// (`cutoff = window_cutoff(now, window_seconds)`). A row whose window started
+/// at or before the cutoff restarts at count 1 with a new window; any other row
+/// is incremented and keeps its window. `RETURNING count` reads back the count
+/// this statement set, so concurrent records never lose or skew updates —
+/// SQLite (Turso/libsql) and D1 run one statement at a time.
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 pub(crate) const RECORD_SQL: &str = "INSERT INTO rate_limits (id, key, count, window_start, window_end) VALUES (?, ?, 1, ?, ?) \
      ON CONFLICT(key) DO UPDATE SET \
      count = CASE WHEN rate_limits.window_start <= ? THEN 1 ELSE rate_limits.count + 1 END, \
      window_start = CASE WHEN rate_limits.window_start <= ? THEN excluded.window_start ELSE rate_limits.window_start END, \
-     window_end = CASE WHEN rate_limits.window_start <= ? THEN excluded.window_end ELSE rate_limits.window_end END";
+     window_end = CASE WHEN rate_limits.window_start <= ? THEN excluded.window_end ELSE rate_limits.window_end END \
+     RETURNING count";
 
 /// Read a key's current count and window start.
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 pub(crate) const SELECT_SQL: &str = "SELECT count, window_start FROM rate_limits WHERE key = ?";
 
 /// The latest `window_start` that counts as elapsed at `now`.
@@ -83,38 +139,53 @@ impl RateLimitEntry {
 /// # Errors
 ///
 /// Returns an error if the clock can't be read or a query fails.
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
     store: &Q,
+    ctx: &Ctx,
     key: &str,
     max_count: u32,
     window_seconds: u64,
 ) -> StorageResult<bool> {
     store.execute_batch(CREATE_TABLE_SQL).await?;
-    let now = unix_now_secs()?;
+    let now = unix_now_secs(ctx)?;
     match sql_entry(store, key).await? {
         Some(entry) => Ok(entry.allows(max_count, now, window_seconds)),
         None => Ok(true),
     }
 }
 
-/// `record_rate_limit` for any SQL store: one upsert, then a read of
-/// the resulting count.
+/// `record_rate_limit` for any SQL store: one upsert with `RETURNING`, so the
+/// returned count is the one this statement produced (atomic under concurrent
+/// records).
 ///
 /// # Errors
 ///
 /// Returns an error if the clock can't be read or a query fails.
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
     store: &Q,
+    ctx: &Ctx,
     key: &str,
     window_seconds: u64,
 ) -> StorageResult<u32> {
     store.execute_batch(CREATE_TABLE_SQL).await?;
-    let now = unix_now_secs()?;
+    let now = unix_now_secs(ctx)?;
     let cutoff = to_i64(window_cutoff(now, window_seconds))?;
     let window_end = to_i64(now.saturating_add(window_seconds))?;
     let now = to_i64(now)?;
-    store
-        .execute(
+    let mut rows = store
+        .query(
             RECORD_SQL,
             &[
                 DataValue::Text(key.to_string()),
@@ -127,10 +198,12 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
             ],
         )
         .await?;
-    let entry = sql_entry(store, key)
-        .await?
-        .ok_or_else(|| StorageError::Backend(format!("rate limit row for {key:?} missing after upsert")))?;
-    Ok(entry.count)
+    let row = rows.next().await.ok_or_else(|| {
+        StorageError::Backend(format!("rate limit row for {key:?} missing after upsert"))
+    })??;
+    let count: i64 = row.get(0)?;
+    u32::try_from(count)
+        .map_err(|_| StorageError::SqlConversion(format!("rate limit count out of range: {count}")))
 }
 
 /// `reset_rate_limit` for any SQL store.
@@ -138,16 +211,36 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
 /// # Errors
 ///
 /// Returns an error if the query fails.
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 pub(crate) async fn sql_reset<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<()> {
     store.execute_batch(CREATE_TABLE_SQL).await?;
     store
-        .execute("DELETE FROM rate_limits WHERE key = ?", &[DataValue::Text(key.to_string())])
+        .execute(
+            "DELETE FROM rate_limits WHERE key = ?",
+            &[DataValue::Text(key.to_string())],
+        )
         .await?;
     Ok(())
 }
 
-async fn sql_entry<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<Option<RateLimitEntry>> {
-    let mut rows = store.query(SELECT_SQL, &[DataValue::Text(key.to_string())]).await?;
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
+async fn sql_entry<Q: QueryStore + ?Sized>(
+    store: &Q,
+    key: &str,
+) -> StorageResult<Option<RateLimitEntry>> {
+    let mut rows = store
+        .query(SELECT_SQL, &[DataValue::Text(key.to_string())])
+        .await?;
     let Some(row) = rows.next().await else {
         return Ok(None);
     };
@@ -155,13 +248,24 @@ async fn sql_entry<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResul
     let count: i64 = row.get(0)?;
     let window_start: i64 = row.get(1)?;
     Ok(Some(RateLimitEntry {
-        count: u32::try_from(count)
-            .map_err(|_| StorageError::SqlConversion(format!("rate limit count out of range: {count}")))?,
-        window_start: u64::try_from(window_start)
-            .map_err(|_| StorageError::SqlConversion(format!("rate limit window_start out of range: {window_start}")))?,
+        count: u32::try_from(count).map_err(|_| {
+            StorageError::SqlConversion(format!("rate limit count out of range: {count}"))
+        })?,
+        window_start: u64::try_from(window_start).map_err(|_| {
+            StorageError::SqlConversion(format!(
+                "rate limit window_start out of range: {window_start}"
+            ))
+        })?,
     }))
 }
 
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
 fn to_i64(secs: u64) -> StorageResult<i64> {
-    i64::try_from(secs).map_err(|_| StorageError::Backend(format!("timestamp out of range: {secs}")))
+    i64::try_from(secs)
+        .map_err(|_| StorageError::Backend(format!("timestamp out of range: {secs}")))
 }

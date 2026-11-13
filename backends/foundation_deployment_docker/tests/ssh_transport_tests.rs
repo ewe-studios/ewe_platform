@@ -7,16 +7,21 @@
 //!
 //!   docker run -d --privileged --name ewe-dind-tls docker:dind
 //!   docker exec ewe-dind-tls sh -c 'apk add openssh && ssh-keygen -A && \
-//!     mkdir -p /root/.ssh && echo "<pubkey>" > /root/.ssh/authorized_keys && \
+//!     mkdir -p /root/.ssh && echo "<pubkey>" > /`root/.ssh/authorized_keys` && \
 //!     /usr/sbin/sshd'
 //!
 //! then run with the key loaded into an ssh-agent (sshkit falls back to the
 //! agent when the `ssh://` URL carries no key) and:
-//!   EWE_DOCKER_SSH_HOST=root@<container-ip>
+//!   `EWE_DOCKER_SSH_HOST=root`@<container-ip>
 //!
 //! Skips cleanly when the host is unset or unreachable.
 
-#![cfg(all(unix, feature = "docker", feature = "ssh", feature = "integration-tests"))]
+#![cfg(all(
+    unix,
+    feature = "docker",
+    feature = "ssh",
+    feature = "integration-tests"
+))]
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
@@ -54,7 +59,7 @@ async fn info_over_ssh() {
     );
 
     let info = client.system_info().await.expect("Info over SSH");
-    assert!(!info.is_null(), "SystemInfo should be valid JSON");
+    assert!(info.containers.is_some(), "SystemInfo should be valid JSON");
     eprintln!("SSH INFO OK — {}", client.base_url());
 }
 
@@ -77,6 +82,8 @@ async fn container_round_trip_over_ssh() {
         inspect.state.and_then(|s| s.running).unwrap_or(false),
         "container should be running"
     );
-    c.remove_container(&id.id, true).await.expect("remove over SSH");
+    c.remove_container(&id.id, true)
+        .await
+        .expect("remove over SSH");
     eprintln!("SSH CONTAINER ROUND-TRIP OK");
 }

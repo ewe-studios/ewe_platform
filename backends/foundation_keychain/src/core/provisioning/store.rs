@@ -2,7 +2,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -19,6 +19,8 @@ pub struct AppRow {
     pub created_at: DateTime<Utc>,
 }
 
+// Callers hold the row fields by reference; `&Option` avoids a clone.
+#[allow(clippy::ref_option)]
 fn opt_text(o: &Option<String>) -> DataValue {
     match o {
         Some(s) => DataValue::Text(s.clone()),
@@ -38,6 +40,10 @@ fn map_app(row: &SqlRow) -> AppResult<AppRow> {
     })
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert_app(db: &dyn QueryStore, row: &AppRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_apps (uuid, name, description, secret_hash, secret_salt, created_at) \
@@ -56,6 +62,10 @@ pub async fn insert_app(db: &dyn QueryStore, row: &AppRow) -> AppResult<()> {
     Ok(())
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_app(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<AppRow>> {
     let rows = db
         .query(
@@ -71,6 +81,10 @@ pub async fn find_app(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<AppRo
     rows.first().map(map_app).transpose()
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete_app(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     for sql in [
         "DELETE FROM vault_ssh_keys WHERE app_uuid = ?",
@@ -110,13 +124,19 @@ fn map_key(row: &SqlRow) -> AppResult<SshKeyRow> {
         name: row.get_by_name("name").map_err(store_err)?,
         key_type: row.get_by_name("key_type").map_err(store_err)?,
         public_key: row.get_by_name("public_key").map_err(store_err)?,
-        private_key_encrypted: row.get_by_name("private_key_encrypted").map_err(store_err)?,
+        private_key_encrypted: row
+            .get_by_name("private_key_encrypted")
+            .map_err(store_err)?,
         comment: row.get_by_name("comment").map_err(store_err)?,
         expires_at: expires_at.as_deref().map(parse_ts).transpose()?,
         created_at: parse_ts(&created_at)?,
     })
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert_key(db: &dyn QueryStore, row: &SshKeyRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_ssh_keys \
@@ -142,10 +162,16 @@ pub async fn insert_key(db: &dyn QueryStore, row: &SshKeyRow) -> AppResult<()> {
     Ok(())
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_keys_by_app(db: &dyn QueryStore, app_uuid: &str) -> AppResult<Vec<SshKeyRow>> {
     let rows = db
         .query(
-            &format!("SELECT {KEY_COLS} FROM vault_ssh_keys WHERE app_uuid = ? ORDER BY created_at"),
+            &format!(
+                "SELECT {KEY_COLS} FROM vault_ssh_keys WHERE app_uuid = ? ORDER BY created_at"
+            ),
             &[DataValue::Text(app_uuid.to_string())],
         )
         .await
@@ -156,6 +182,10 @@ pub async fn find_keys_by_app(db: &dyn QueryStore, app_uuid: &str) -> AppResult<
     rows.iter().map(map_key).collect()
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_key(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SshKeyRow>> {
     let rows = db
         .query(
@@ -170,6 +200,10 @@ pub async fn find_key(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SshKe
     rows.first().map(map_key).transpose()
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete_key(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute(
         "DELETE FROM vault_ssh_keys WHERE uuid = ?",

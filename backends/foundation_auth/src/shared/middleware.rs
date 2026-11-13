@@ -8,6 +8,7 @@
 //! middleware — provides composable guard functions instead.
 
 use crate::shared::auth_token::AuthToken;
+use foundation_context::Ctx;
 
 /// Request context carrying authentication info.
 #[derive(Debug, Clone)]
@@ -20,7 +21,7 @@ pub struct AuthContext {
     pub ip_address: Option<String>,
     /// User agent string.
     pub user_agent: Option<String>,
-    /// Principal identifier (from JWT sub, session user_id).
+    /// Principal identifier (from JWT sub, session `user_id`).
     pub sub: Option<String>,
     /// RBAC roles from the credential.
     pub roles: Vec<String>,
@@ -49,8 +50,8 @@ impl AuthContext {
 
     /// Whether the request is authenticated.
     #[must_use]
-    pub fn is_authenticated(&self) -> bool {
-        self.token.as_ref().is_some_and(|t| !t.is_expired())
+    pub fn is_authenticated(&self, ctx: &Ctx) -> bool {
+        self.token.as_ref().is_some_and(|t| !t.is_expired(ctx))
     }
 }
 
@@ -71,13 +72,13 @@ pub enum GuardResult {
 /// `GuardResult::TokenExpired` if the token exists but is expired, or
 /// `GuardResult::Unauthorized` if no token is present.
 #[must_use]
-pub fn require_auth(ctx: AuthContext) -> GuardResult {
-    match ctx.token {
+pub fn require_auth(auth: AuthContext, ctx: &Ctx) -> GuardResult {
+    match auth.token {
         Some(ref token) => {
-            if token.is_expired() {
+            if token.is_expired(ctx) {
                 GuardResult::TokenExpired
             } else {
-                GuardResult::Authorized(Box::new(ctx))
+                GuardResult::Authorized(Box::new(auth))
             }
         }
         None => GuardResult::Unauthorized,
@@ -88,13 +89,13 @@ pub fn require_auth(ctx: AuthContext) -> GuardResult {
 ///
 /// Useful for endpoints that work differently for authenticated vs anonymous users.
 #[must_use]
-pub fn optional_auth(mut ctx: AuthContext) -> GuardResult {
-    if let Some(ref token) = ctx.token {
-        if token.is_expired() {
-            ctx.token = None;
+pub fn optional_auth(mut auth: AuthContext, ctx: &Ctx) -> GuardResult {
+    if let Some(ref token) = auth.token {
+        if token.is_expired(ctx) {
+            auth.token = None;
         }
     }
-    GuardResult::Authorized(Box::new(ctx))
+    GuardResult::Authorized(Box::new(auth))
 }
 
 /// Check whether a session cookie is present and extract the token value.
@@ -120,8 +121,8 @@ pub fn extract_session_token(cookies: &[&str], cookie_name: &str) -> Option<Stri
 /// Per RFC 9110, the scheme matching is case-insensitive.
 #[must_use]
 pub fn extract_bearer_token(auth_header: Option<&str>) -> Option<String> {
-    let header = auth_header?;
     const PREFIX: &[u8] = b"Bearer ";
+    let header = auth_header?;
     let bytes = header.as_bytes();
     if bytes.len() >= PREFIX.len() && bytes[..PREFIX.len()].eq_ignore_ascii_case(PREFIX) {
         header.get(PREFIX.len()..).map(String::from)
@@ -156,4 +157,3 @@ pub fn has_scope(ctx: &AuthContext, required: &[&str]) -> bool {
     let scopes: Vec<&str> = scope_str.split_whitespace().collect();
     required.iter().any(|r| scopes.contains(r))
 }
-

@@ -2,7 +2,9 @@
 
 #![cfg(feature = "vms")]
 
-use foundation_deployment_platform::state::{from_qemu, is_process_alive, state_dir, VmState};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_deployment_platform::state::{VmState, from_qemu, is_process_alive, state_dir};
+use std::sync::Arc;
 
 #[test]
 fn test_is_process_alive_check() {
@@ -34,12 +36,13 @@ fn test_from_qemu_creates_valid_state() {
         Some(3389),
         5900,
         false,
+        &Ctx::fixed(Arc::new(MonotonicClock::new())),
     );
     assert_eq!(state.profile_name, "test-vm");
     assert_eq!(state.pid, Some(12345));
     assert_eq!(state.ssh_port, 2222);
     assert!(!state.bootstrapped);
-    assert!(!state.created_at.is_empty());
+    assert_ne!(state.created_at, "");
 }
 
 #[test]
@@ -54,6 +57,7 @@ fn test_state_serialization_roundtrip() {
         None,
         5900,
         true,
+        &Ctx::fixed(Arc::new(MonotonicClock::new())),
     );
     let json = serde_json::to_string(&state).unwrap();
     let restored: VmState = serde_json::from_str(&json).unwrap();

@@ -8,8 +8,8 @@ use std::rc::Rc;
 use std::thread_local;
 
 use super::sys_rng::{SysError, SysRng};
-use rand_core::SeedableRng;
 use rand_core::block::{BlockRng, Generator};
+use rand_core::SeedableRng;
 use rand_core::{TryCryptoRng, TryRng};
 
 // Reseed after 1024 blocks = 64 KiB of output (16 words/block × 4 bytes × 1024).

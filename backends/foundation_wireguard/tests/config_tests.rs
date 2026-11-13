@@ -1,4 +1,4 @@
-//! Integration tests for WgConfig — macro, builder, and TOML convergence (spec-55, F09).
+//! Integration tests for `WgConfig` — macro, builder, and TOML convergence (spec-55, F09).
 //!
 //! Tests that the same network expressed via macro, builder, and TOML all produce
 //! equivalent configurations and working nodes.
@@ -7,11 +7,18 @@
 
 use std::io::Write;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed};
 use std::sync::Mutex;
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test.
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 /// Helper: generate a fresh 256-bit seed + its network id.
 fn fresh_seed() -> (WgSeed, NetworkId) {
@@ -62,7 +69,10 @@ fn builder_full_config_round_trips() {
     assert_eq!(cfg.dataplane.keepalive_secs, 30);
     assert!(cfg.relay.advertise);
     assert_eq!(cfg.relay.max_sessions, 512);
-    assert_eq!(cfg.node.identity_path.as_deref(), Some("/ewe/wg/identity.key"));
+    assert_eq!(
+        cfg.node.identity_path.as_deref(),
+        Some("/ewe/wg/identity.key")
+    );
 }
 
 #[traced_test]
@@ -70,7 +80,10 @@ fn builder_full_config_round_trips() {
 fn builder_requires_seed_no_silent_default() {
     let err = WgConfig::builder().build().unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("seed"), "expected seed-related error, got: {msg}");
+    assert!(
+        msg.contains("seed"),
+        "expected seed-related error, got: {msg}"
+    );
 }
 
 #[traced_test]
@@ -80,7 +93,7 @@ fn seed_and_joiner_constructors_preserved() {
 
     // Seed constructor: no join targets.
     let cfg = WgConfig::seed(seed.clone(), net);
-    assert!(cfg.seed_endpoints().is_empty());
+    assert_eq!(cfg.seed_endpoints(), []);
 
     // Joiner constructor: has join targets.
     let ep = "10.0.0.1:51820".parse().expect("addr");
@@ -127,7 +140,10 @@ fn load_file_succeeds_on_valid_toml() {
 fn load_file_fails_on_missing_file() {
     let err = WgConfig::load_file("/nonexistent/wireguard.toml").unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("cannot read"), "expected file error, got: {msg}");
+    assert!(
+        msg.contains("cannot read"),
+        "expected file error, got: {msg}"
+    );
 }
 
 #[traced_test]
@@ -139,7 +155,10 @@ fn load_file_fails_on_malformed_toml() {
 
     let err = WgConfig::load_file(tmp.path()).unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("invalid TOML"), "expected TOML error, got: {msg}");
+    assert!(
+        msg.contains("invalid TOML"),
+        "expected TOML error, got: {msg}"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -283,7 +302,9 @@ fn two_nodes_join_from_config() {
         .build()
         .expect("build A");
 
-    let handle_a = WgNode::from_config(cfg_a).join().expect("join A");
+    let handle_a = WgNode::from_config(cfg_a, test_ctx())
+        .join()
+        .expect("join A");
     let a_boot = handle_a.bootstrap_addr();
 
     // Same config via TOML round-trip (verify equivalence).
@@ -297,7 +318,9 @@ fn two_nodes_join_from_config() {
         .expect("build B");
 
     // Node B: joiner from A.
-    let handle_b = WgNode::from_config(cfg_b).join().expect("join B");
+    let handle_b = WgNode::from_config(cfg_b, test_ctx())
+        .join()
+        .expect("join B");
 
     // Verify mutual gossip discovery (this is what F09 is about: nodes formed from config join).
     assert!(

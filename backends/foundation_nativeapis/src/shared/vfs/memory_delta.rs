@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 
 use async_trait::async_trait;
+use foundation_context::Ctx;
 
 use super::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use super::error::VfsResult;
@@ -15,17 +16,13 @@ pub struct MemoryDelta {
 }
 
 impl MemoryDelta {
-    pub fn new() -> Self {
+    /// An empty delta store whose timestamps come from the clock of `ctx`.
+    #[must_use]
+    pub fn new(ctx: Ctx) -> Self {
         Self {
-            fs: MemoryFs::new(),
+            fs: MemoryFs::new(ctx),
             whiteouts: RwLock::new(HashMap::new()),
         }
-    }
-}
-
-impl Default for MemoryDelta {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -233,7 +230,11 @@ impl AsyncVfsFileSystem for MemoryDelta {
         VfsFileSystem::open(self, &path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         VfsFileSystem::open_seekable(self, &path, mode)
     }
 

@@ -1,6 +1,4 @@
-use foundation_netio::shared::client::{
-    Cookie, CookieJar, CookieParseError, SameSite,
-};
+use foundation_netio::shared::client::{Cookie, CookieJar, CookieParseError, SameSite};
 use std::time::{Duration, SystemTime};
 
 /// WHY: Basic cookie creation is the foundation - must work correctly
@@ -94,7 +92,9 @@ fn test_cookie_parse_invalid_format() {
 /// WHAT: Should add cookie and allow retrieval by domain/path/name
 #[test]
 fn test_cookie_jar_add_basic() {
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let cookie = Cookie::new("session", "abc123")
         .domain("example.com")
         .path("/");
@@ -109,7 +109,9 @@ fn test_cookie_jar_add_basic() {
 /// WHAT: Adding cookie with same key should replace existing
 #[test]
 fn test_cookie_jar_add_replaces() {
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
 
     let cookie1 = Cookie::new("session", "old_value")
         .domain("example.com")
@@ -133,7 +135,9 @@ fn test_domain_matches_exact() {
     // For now, let's create a helper test using the URL module
     use foundation_core::url::Uri;
 
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let cookie = Cookie::new("session", "abc")
         .domain("example.com")
         .path("/");
@@ -152,7 +156,9 @@ fn test_domain_matches_exact() {
 fn test_domain_matches_subdomain() {
     use foundation_core::url::Uri;
 
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let cookie = Cookie::new("session", "abc")
         .domain(".example.com")
         .path("/");
@@ -185,7 +191,9 @@ fn test_domain_matches_subdomain() {
 fn test_path_matches() {
     use foundation_core::url::Uri;
 
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let cookie = Cookie::new("api_token", "xyz")
         .domain("example.com")
         .path("/api");
@@ -218,7 +226,9 @@ fn test_path_matches() {
 fn test_secure_cookie_filtering() {
     use foundation_core::url::Uri;
 
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let cookie = Cookie::new("secure_token", "abc")
         .domain("example.com")
         .path("/")
@@ -240,7 +250,9 @@ fn test_secure_cookie_filtering() {
 /// WHAT: `clear()` should remove all cookies, `remove()` should remove specific cookie
 #[test]
 fn test_cookie_jar_clear_and_remove() {
-    let mut jar = CookieJar::new();
+    let mut jar = CookieJar::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
 
     let cookie1 = Cookie::new("session", "abc")
         .domain("example.com")

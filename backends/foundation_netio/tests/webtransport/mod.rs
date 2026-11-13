@@ -3,52 +3,102 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, Stream};
-use foundation_netio::quic::{QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError, StreamId};
+use foundation_context::Ctx;
+use foundation_core::valtron::Stream;
+use foundation_netio::quic::{
+    QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
+    StreamId,
+};
 use foundation_netio::webtransport::proto::*;
-use foundation_netio::webtransport::session::{NoIoSession, WtAcceptor, WtConnector, WtSession, WtSessionState};
+use foundation_netio::webtransport::session::{
+    NoIoSession, WtAcceptor, WtConnector, WtSession, WtSessionState,
+};
 
-#[test] fn decode_datagram_capsule() { let e = encode_datagram_capsule(b"h"); let (c,_) = decode_capsule(&e).unwrap(); assert!(matches!(c, CapsuleType::Datagram(ref d) if d == b"h")); }
-#[test] fn decode_close_session() { let e = encode_close_session(42,"g"); let (c,_) = decode_capsule(&e).unwrap(); assert!(matches!(c, CapsuleType::CloseWebTransportSession{code:42,..})); }
-#[test] fn decode_truncated() { assert!(matches!(decode_capsule(&[]), Err(WtProtocolError::Truncated))); }
+#[test]
+fn decode_datagram_capsule() {
+    let e = encode_datagram_capsule(b"h");
+    let (c, _) = decode_capsule(&e).unwrap();
+    assert!(matches!(c, CapsuleType::Datagram(ref d) if d == b"h"));
+}
+#[test]
+fn decode_close_session() {
+    let e = encode_close_session(42, "g");
+    let (c, _) = decode_capsule(&e).unwrap();
+    assert!(matches!(
+        c,
+        CapsuleType::CloseWebTransportSession { code: 42, .. }
+    ));
+}
+#[test]
+fn decode_truncated() {
+    assert!(matches!(
+        decode_capsule(&[]),
+        Err(WtProtocolError::Truncated)
+    ));
+}
 
-#[test] fn incremental_decoder() {
+#[test]
+fn incremental_decoder() {
     let mut d = CapsuleDecoder::new();
     let e = encode_datagram_capsule(b"incremental");
-    d.push(&e[..3]); assert!(matches!(d.decode(), Ok(None)));
-    d.push(&e[3..]); let c = d.decode().unwrap().unwrap();
+    d.push(&e[..3]);
+    assert!(matches!(d.decode(), Ok(None)));
+    d.push(&e[3..]);
+    let c = d.decode().unwrap().unwrap();
     assert!(matches!(c, CapsuleType::Datagram(ref b) if b == b"incremental"));
-    assert!(matches!(d.decode(), Ok(None))); assert!(!d.has_partial());
+    assert!(matches!(d.decode(), Ok(None)));
+    assert!(!d.has_partial());
 }
 
-#[test] fn session_lifecycle() {
-    let mut s = NoIoSession::new(true,true); assert!(!s.is_open());
-    s.on_connected(); assert!(s.is_open());
-    s.on_capsule(CapsuleType::CloseWebTransportSession{code:0,reason:"d".into()}); assert!(s.is_closed());
+#[test]
+fn session_lifecycle() {
+    let mut s = NoIoSession::new(true, true);
+    assert!(!s.is_open());
+    s.on_connected();
+    assert!(s.is_open());
+    s.on_capsule(CapsuleType::CloseWebTransportSession {
+        code: 0,
+        reason: "d".into(),
+    });
+    assert!(s.is_closed());
 }
-#[test] fn session_datagrams() {
-    let mut s = NoIoSession::new(true,true); s.on_connected();
+#[test]
+fn session_datagrams() {
+    let mut s = NoIoSession::new(true, true);
+    s.on_connected();
     s.queue_datagram(Bytes::from("d1")).unwrap();
     s.queue_datagram(Bytes::from("d2")).unwrap();
-    assert_eq!(s.drain_send_datagrams().len(),2);
+    assert_eq!(s.drain_send_datagrams().len(), 2);
 }
-#[test] fn session_datagrams_disabled() {
-    let mut s = NoIoSession::new(true,false); s.on_connected();
+#[test]
+fn session_datagrams_disabled() {
+    let mut s = NoIoSession::new(true, false);
+    s.on_connected();
     assert!(s.queue_datagram(Bytes::from("x")).is_err());
 }
-#[test] fn session_drain() {
-    let mut s = NoIoSession::new(true,true); s.on_connected();
-    s.on_capsule(CapsuleType::Drain); assert_eq!(s.state, WtSessionState::Draining);
+#[test]
+fn session_drain() {
+    let mut s = NoIoSession::new(true, true);
+    s.on_connected();
+    s.on_capsule(CapsuleType::Drain);
+    assert_eq!(s.state, WtSessionState::Draining);
 }
 
-#[test] fn connector_headers() {
-    let h = WtConnector::build_connect_headers("ex.com","/wt");
-    assert!(h.iter().any(|(k,v)| k==b":method" && v==b"CONNECT"));
-    assert!(h.iter().any(|(k,v)| k==b":protocol" && v==b"webtransport"));
+#[test]
+fn connector_headers() {
+    let h = WtConnector::build_connect_headers("ex.com", "/wt");
+    assert!(h.iter().any(|(k, v)| k == b":method" && v == b"CONNECT"));
+    assert!(h
+        .iter()
+        .any(|(k, v)| k == b":protocol" && v == b"webtransport"));
 }
-#[test] fn response_headers() {
-    let h: Vec<(Vec<u8>,Vec<u8>)> = vec![(b":status".into(),b"200".into()),(b"sec-webtransport-http3-draft".into(),b"draft-07".into())];
-    let has200 = h.iter().any(|(k,v)| k==b":status" && v==b"200");
+#[test]
+fn response_headers() {
+    let h: Vec<(Vec<u8>, Vec<u8>)> = vec![
+        (b":status".into(), b"200".into()),
+        (b"sec-webtransport-http3-draft".into(), b"draft-07".into()),
+    ];
+    let has200 = h.iter().any(|(k, v)| k == b":status" && v == b"200");
     assert!(has200);
 }
 
@@ -56,7 +106,6 @@ use foundation_netio::webtransport::session::{NoIoSession, WtAcceptor, WtConnect
 // Proves WtSession<C: QuicConnection> compiles and works with a concrete
 // stream type beyond NoIoSession. The mock has in-memory datagram queues
 // and a close latch — enough to exercise the full session lifecycle.
-
 
 /// Shared state for the mock: datagram queues and a closed flag.
 struct MockShared {
@@ -73,11 +122,13 @@ struct MockQuicConn {
 
 impl MockQuicConn {
     fn new() -> Self {
-        Self { shared: Arc::new(Mutex::new(MockShared {
-            send_dgrams: VecDeque::new(),
-            recv_dgrams: VecDeque::new(),
-            closed: false,
-        }))}
+        Self {
+            shared: Arc::new(Mutex::new(MockShared {
+                send_dgrams: VecDeque::new(),
+                recv_dgrams: VecDeque::new(),
+                closed: false,
+            })),
+        }
     }
     /// Feed a datagram into the mock's receive queue (simulates network arrival).
     fn inject_datagram(&self, data: Bytes) {
@@ -98,32 +149,51 @@ impl QuicSendStream for MockSendStream {
     fn send(&mut self, _buf: &mut impl bytes::Buf) -> Stream<Result<usize, QuicStreamError>, ()> {
         Stream::Pending(())
     }
-    fn finish(&mut self) -> Stream<Result<(), QuicStreamError>, ()> { Stream::Pending(()) }
+    fn finish(&mut self) -> Stream<Result<(), QuicStreamError>, ()> {
+        Stream::Pending(())
+    }
     fn reset(&mut self, _code: u64) {}
-    fn id(&self) -> StreamId { StreamId::new(0) }
+    fn id(&self) -> StreamId {
+        StreamId::new(0)
+    }
 }
 
 impl QuicRecvStream for MockRecvStream {
-    fn read(&mut self) -> Stream<Result<Option<Bytes>, QuicStreamError>, ()> { Stream::Pending(()) }
+    fn read(&mut self) -> Stream<Result<Option<Bytes>, QuicStreamError>, ()> {
+        Stream::Pending(())
+    }
     fn stop_sending(&mut self, _code: u64) {}
-    fn id(&self) -> StreamId { StreamId::new(0) }
+    fn id(&self) -> StreamId {
+        StreamId::new(0)
+    }
 }
 
 impl QuicSendStream for MockBidiStream {
     fn send(&mut self, _buf: &mut impl bytes::Buf) -> Stream<Result<usize, QuicStreamError>, ()> {
         Stream::Pending(())
     }
-    fn finish(&mut self) -> Stream<Result<(), QuicStreamError>, ()> { Stream::Pending(()) }
+    fn finish(&mut self) -> Stream<Result<(), QuicStreamError>, ()> {
+        Stream::Pending(())
+    }
     fn reset(&mut self, _code: u64) {}
-    fn id(&self) -> StreamId { StreamId::new(0) }
+    fn id(&self) -> StreamId {
+        StreamId::new(0)
+    }
 }
 impl QuicRecvStream for MockBidiStream {
-    fn read(&mut self) -> Stream<Result<Option<Bytes>, QuicStreamError>, ()> { Stream::Pending(()) }
+    fn read(&mut self) -> Stream<Result<Option<Bytes>, QuicStreamError>, ()> {
+        Stream::Pending(())
+    }
     fn stop_sending(&mut self, _code: u64) {}
-    fn id(&self) -> StreamId { StreamId::new(0) }
+    fn id(&self) -> StreamId {
+        StreamId::new(0)
+    }
 }
 impl QuicBidiStream for MockBidiStream {
-    fn split(self) -> (impl QuicSendStream, impl QuicRecvStream) where Self: Sized {
+    fn split(self) -> (impl QuicSendStream, impl QuicRecvStream)
+    where
+        Self: Sized,
+    {
         (MockSendStream, MockRecvStream)
     }
 }
@@ -133,10 +203,18 @@ impl QuicConnection for MockQuicConn {
     type SendStream = MockSendStream;
     type BidiStream = MockBidiStream;
 
-    fn accept_recv(&mut self) -> Stream<Result<Self::RecvStream, QuicConnError>, ()> { Stream::Pending(()) }
-    fn accept_bidi(&mut self) -> Stream<Result<Self::BidiStream, QuicConnError>, ()> { Stream::Pending(()) }
-    fn open_bidi(&mut self) -> Stream<Result<Self::BidiStream, QuicStreamError>, ()> { Stream::Pending(()) }
-    fn open_send(&mut self) -> Stream<Result<Self::SendStream, QuicStreamError>, ()> { Stream::Pending(()) }
+    fn accept_recv(&mut self) -> Stream<Result<Self::RecvStream, QuicConnError>, ()> {
+        Stream::Pending(())
+    }
+    fn accept_bidi(&mut self) -> Stream<Result<Self::BidiStream, QuicConnError>, ()> {
+        Stream::Pending(())
+    }
+    fn open_bidi(&mut self) -> Stream<Result<Self::BidiStream, QuicStreamError>, ()> {
+        Stream::Pending(())
+    }
+    fn open_send(&mut self) -> Stream<Result<Self::SendStream, QuicStreamError>, ()> {
+        Stream::Pending(())
+    }
 
     fn close(&mut self, _code: u64, _reason: &[u8]) {
         self.shared.lock().unwrap().closed = true;
@@ -144,14 +222,20 @@ impl QuicConnection for MockQuicConn {
 
     fn send_datagram(&mut self, data: &[u8]) -> Stream<Result<(), QuicStreamError>, ()> {
         let mut s = self.shared.lock().unwrap();
-        if s.closed { return Stream::Next(Err(QuicStreamError::ConnClosed(QuicConnError::ApplicationClose { code: 0 }))); }
+        if s.closed {
+            return Stream::Next(Err(QuicStreamError::ConnClosed(
+                QuicConnError::ApplicationClose { code: 0 },
+            )));
+        }
         s.send_dgrams.push_back(Bytes::copy_from_slice(data));
         Stream::Next(Ok(()))
     }
 
     fn recv_datagram(&mut self) -> Stream<Result<Option<Bytes>, QuicConnError>, ()> {
         let mut s = self.shared.lock().unwrap();
-        if s.closed { return Stream::Next(Err(QuicConnError::ApplicationClose { code: 0 })); }
+        if s.closed {
+            return Stream::Next(Err(QuicConnError::ApplicationClose { code: 0 }));
+        }
         if let Some(d) = s.recv_dgrams.pop_front() {
             Stream::Next(Ok(Some(d)))
         } else {
@@ -159,13 +243,16 @@ impl QuicConnection for MockQuicConn {
         }
     }
 
-    fn max_datagram_size(&self) -> Option<usize> { Some(1200) }
+    fn max_datagram_size(&self) -> Option<usize> {
+        Some(1200)
+    }
 }
 
 // ── End-to-end WtSession<MockQuicConn> tests ───────────────────────────
 // Exercises the full session lifecycle with a concrete QuicConnection impl.
 
-#[test] fn wt_session_with_mock_quic_datagram_roundtrip() {
+#[test]
+fn wt_session_with_mock_quic_datagram_roundtrip() {
     let mqc = MockQuicConn::new();
     let mut session: WtSession<MockQuicConn> = WtSession::new(mqc, true);
     assert!(!session.is_open());
@@ -192,12 +279,16 @@ impl QuicConnection for MockQuicConn {
     assert!(matches!(session.try_recv_datagram(), Stream::Pending(())));
 }
 
-#[test] fn wt_session_close_notifies_datagrams() {
+#[test]
+fn wt_session_close_notifies_datagrams() {
     let mqc = MockQuicConn::new();
     let mut session: WtSession<MockQuicConn> = WtSession::new(mqc, true);
     session.on_connected();
 
-    session.on_capsule(CapsuleType::CloseWebTransportSession { code: 42, reason: "bye".into() });
+    session.on_capsule(CapsuleType::CloseWebTransportSession {
+        code: 42,
+        reason: "bye".into(),
+    });
     assert!(session.is_closed());
     assert_eq!(session.close_info(), Some((42, "bye")));
 
@@ -205,14 +296,16 @@ impl QuicConnection for MockQuicConn {
     assert!(session.queue_datagram(Bytes::from("x")).is_err());
 }
 
-#[test] fn wt_session_datagrams_disabled() {
+#[test]
+fn wt_session_datagrams_disabled() {
     let mqc = MockQuicConn::new();
     let mut session: WtSession<MockQuicConn> = WtSession::new(mqc, false);
     assert!(!session.datagrams_enabled());
     assert!(session.queue_datagram(Bytes::from("x")).is_err());
 }
 
-#[test] fn wt_session_drain_capsule() {
+#[test]
+fn wt_session_drain_capsule() {
     let mqc = MockQuicConn::new();
     let mut session: WtSession<MockQuicConn> = WtSession::new(mqc, true);
     session.on_connected();
@@ -220,7 +313,8 @@ impl QuicConnection for MockQuicConn {
     assert_eq!(session.state, WtSessionState::Draining);
 }
 
-#[test] fn wt_acceptor_queue_and_accept() {
+#[test]
+fn wt_acceptor_queue_and_accept() {
     let mqc = MockQuicConn::new();
     let mut acceptor: WtAcceptor<MockQuicConn> = WtAcceptor::new();
     assert_eq!(acceptor.pending(), 0);
@@ -245,17 +339,15 @@ impl QuicConnection for MockQuicConn {
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::TaskIterator;
-use foundation_netio::quic::{
-    client_config_trusting_pem, server_config_from_pem, QuicDriver,
-};
+use foundation_netio::quic::{client_config_trusting_pem, server_config_from_pem, QuicDriver};
 
 const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
 const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status(Ctx::new());
-    let _ = client.next_status(Ctx::new());
+    let _ = server.next_status(Ctx::host());
+    let _ = client.next_status(Ctx::host());
 }
 
 fn drive_until<T>(
@@ -278,15 +370,14 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
     let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
     let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
 
-    let mut srv_driver = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg)
-        .expect("bind");
+    let mut srv_driver =
+        QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = srv_driver.local_addr().expect("addr");
     let (mut cli_driver, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
-    let server_conn =
-        drive_until(&mut srv_driver, &mut cli_driver, QuicDriver::take_accepted)
-            .expect("server accepted connection");
+    let server_conn = drive_until(&mut srv_driver, &mut cli_driver, QuicDriver::take_accepted)
+        .expect("server accepted connection");
 
     // Both sides: create WtSessions wrapping the real QUIC connections.
     let mut server_session: WtSession<foundation_netio::quic::QuinnConnection> =
@@ -302,8 +393,8 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
     // Pump the QUIC drivers so reordered packets don't starve either side.
     let deadline = Instant::now() + Duration::from_secs(5);
     while Instant::now() < deadline {
-        let _ = srv_driver.next_status(Ctx::new());
-        let _ = cli_driver.next_status(Ctx::new());
+        let _ = srv_driver.next_status(Ctx::host());
+        let _ = cli_driver.next_status(Ctx::host());
 
         // Client sends a datagram.
         let _ = client_session.queue_datagram(Bytes::from("hello-quic"));
@@ -311,14 +402,14 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
             // Datagram sent — now try to receive on the server side.
             server_session.pump_recv_datagrams();
             match server_session.try_recv_datagram() {
-                Stream::Next(Ok(Some(data))) if data == Bytes::from("hello-quic") => {
+                Stream::Next(Ok(Some(data))) if data == "hello-quic" => {
                     // Round-trip worked! Send response back.
                     let _ = server_session.queue_datagram(Bytes::from("hello-back"));
                     if let Stream::Next(Ok(())) = server_session.flush_datagrams() {
                         // Now client receives response.
                         client_session.pump_recv_datagrams();
                         match client_session.try_recv_datagram() {
-                            Stream::Next(Ok(Some(data))) if data == Bytes::from("hello-back") => {
+                            Stream::Next(Ok(Some(data))) if data == "hello-back" => {
                                 return; // Full round-trip — success!
                             }
                             _ => {}
@@ -333,6 +424,14 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
     // If we get here, the pumps haven't delivered the datagrams yet.
     // The QUIC layer may need more ticks. Check that at least the sessions
     // are still open (not an error).
-    assert!(server_session.is_open() || client_session.is_open(),
-        "sessions should be open; QUIC may need more pump ticks");
+    assert!(
+        server_session.is_open() || client_session.is_open(),
+        "sessions should be open; QUIC may need more pump ticks"
+    );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

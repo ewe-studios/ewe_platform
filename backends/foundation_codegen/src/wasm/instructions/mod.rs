@@ -18,23 +18,25 @@
 // for ewe_platform (feature 15); modifications are listed in src/wasm/README.md.
 
 use crate::wasm::builtins::FloatConst;
-use crate::wasm::indices::{DataId, ElemId, FuncId, GlobalId, LabelId, LocalId, MemId, TableId, TypeId};
+use crate::wasm::indices::{
+    DataId, ElemId, FuncId, GlobalId, LabelId, LocalId, MemId, TableId, TypeId,
+};
 use crate::wasm::io::{
-    Decode, DecodeError, DecodeWithDiscriminant, Encode, PathItem, Wasmbin, encode_decode_as,
+    encode_decode_as, Decode, DecodeError, DecodeWithDiscriminant, Encode, PathItem, Wasmbin,
 };
 use crate::wasm::types::{BlockType, HeapType, ValueType};
 use crate::wasm::visit::Visit;
+use derive_more::{Display, Error};
 #[cfg(feature = "wasm-serde")]
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 const OP_CODE_BLOCK_START: u8 = 0x02;
 const OP_CODE_LOOP_START: u8 = 0x03;
 const OP_CODE_IF_START: u8 = 0x04;
 const OP_CODE_END: u8 = 0x0B;
 
-#[derive(Debug, Error)]
-#[error("Mismatched block depth")]
+#[derive(Debug, Display, Error)]
+#[display("Mismatched block depth")]
 struct DepthError;
 
 impl From<DepthError> for std::io::Error {

@@ -31,20 +31,21 @@ use std::net::{TcpStream, UdpSocket};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use foundation_context::MonotonicClock;
 use foundation_core::valtron::{block_on_future, valtron_test};
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
+use foundation_deployment_platform::testing::docker_available;
 use foundation_proxy::config::HealthCheckConfig;
 use foundation_proxy::{ProxyConfig, ProxyServer, ServiceConfig, TcpPassthrough, UdpPassthrough};
 
 const ECHO_PORT: u16 = 5678;
 
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
-
 /// An `http-echo` container that returns `text` for every request.
 fn echo_config(text: &str) -> ContainerConfig {
     ContainerConfig::new("hashicorp/http-echo:latest")
+        .ctx(foundation_context::Ctx::fixed(std::sync::Arc::new(
+            MonotonicClock::new(),
+        )))
         .command(vec![
             format!("-text={text}"),
             format!("-listen=:{ECHO_PORT}"),
@@ -116,7 +117,7 @@ fn parse_response(raw: &[u8]) -> RawResponse {
 fn start_proxy(services: Vec<ServiceConfig>) -> ProxyServer {
     let mut config = ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0");
     config.services = services;
-    block_on_future(config.start()).expect("start proxy")
+    block_on_future(config.start(foundation_context::Ctx::host())).expect("start proxy")
 }
 
 fn backend_url(handle: &ContainerHandle, container_port: u16) -> String {
@@ -132,6 +133,7 @@ fn backend_url(handle: &ContainerHandle, container_port: u16) -> String {
 #[ignore = "requires Docker daemon"]
 fn test_forward_roundtrips_to_backend() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let backend = ContainerHandle::start(echo_config("backend-solo")).expect("start echo");
@@ -158,16 +160,15 @@ fn test_forward_roundtrips_to_backend() {
 #[ignore = "requires Docker daemon"]
 fn test_round_robin_spreads_across_backends() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let a = ContainerHandle::start(echo_config("backend-A")).expect("start A");
     let b = ContainerHandle::start(echo_config("backend-B")).expect("start B");
 
-    let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local")
-            .backend(&backend_url(&a, ECHO_PORT))
-            .backend(&backend_url(&b, ECHO_PORT)),
-    ]);
+    let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
+        .backend(&backend_url(&a, ECHO_PORT))
+        .backend(&backend_url(&b, ECHO_PORT))]);
     let addr = proxy.local_addr();
 
     let mut saw_a = false;
@@ -198,6 +199,7 @@ fn test_round_robin_spreads_across_backends() {
 #[ignore = "requires Docker daemon"]
 fn test_host_routing_and_unknown_host_404() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let a = ContainerHandle::start(echo_config("host-A")).expect("start A");
@@ -237,6 +239,7 @@ fn test_host_routing_and_unknown_host_404() {
 #[ignore = "requires Docker daemon"]
 fn test_path_prefix_longest_wins() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let root = ContainerHandle::start(echo_config("root-backend")).expect("start root");
@@ -274,6 +277,7 @@ fn test_path_prefix_longest_wins() {
 #[ignore = "requires Docker daemon"]
 fn test_no_healthy_backend_returns_503() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     // A backend that is up, then stopped, with a fast health check so it
@@ -287,12 +291,11 @@ fn test_no_healthy_backend_returns_503() {
         timeout: Duration::from_secs(1),
         healthy_threshold: 1,
         unhealthy_threshold: 2,
+        ..HealthCheckConfig::default()
     };
-    let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local")
-            .backend(&url)
-            .health_check_config(hc),
-    ]);
+    let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
+        .backend(&url)
+        .health_check_config(hc)]);
     let addr = proxy.local_addr();
 
     // Kill the backend and wait for the probes to eject it.
@@ -327,13 +330,14 @@ fn test_no_healthy_backend_returns_503() {
 #[ignore = "requires Docker daemon"]
 fn test_hop_by_hop_stripped_and_xff_added() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     // Backend A proves the proxy forwards at all (200, body matches).
     let a = ContainerHandle::start(echo_config("hop-backend")).expect("start echo A");
 
     let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local").backend(&backend_url(&a, ECHO_PORT)),
+        ServiceConfig::new("app", "app.local").backend(&backend_url(&a, ECHO_PORT))
     ]);
     let addr = proxy.local_addr();
 
@@ -367,13 +371,19 @@ fn test_hop_by_hop_stripped_and_xff_added() {
 #[ignore = "requires Docker daemon"]
 fn test_tcp_passthrough_roundtrips_raw_bytes() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let backend = ContainerHandle::start(echo_config("tcp-backend")).expect("start backend");
     let port = backend.host_port(ECHO_PORT).expect("mapped");
     let authority = format!("127.0.0.1:{port}");
 
-    let passthrough = TcpPassthrough::start("127.0.0.1:0", &authority).expect("start passthrough");
+    let passthrough = TcpPassthrough::start(
+        "127.0.0.1:0",
+        &authority,
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("start passthrough");
     let addr = passthrough.local_addr();
 
     // Speak raw HTTP through the passthrough; the bytes reach http-echo and
@@ -400,6 +410,7 @@ fn test_tcp_passthrough_roundtrips_raw_bytes() {
 #[ignore = "requires Docker daemon"]
 fn test_health_ejects_and_readmits_backend() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let backend = ContainerHandle::start(echo_config("health-me")).expect("start backend");
@@ -411,12 +422,11 @@ fn test_health_ejects_and_readmits_backend() {
         timeout: Duration::from_secs(1),
         healthy_threshold: 1,
         unhealthy_threshold: 2,
+        ..HealthCheckConfig::default()
     };
-    let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local")
-            .backend(&url)
-            .health_check_config(hc),
-    ]);
+    let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
+        .backend(&url)
+        .health_check_config(hc)]);
     let addr = proxy.local_addr();
 
     // Verify the backend is reachable via the proxy while healthy.
@@ -462,10 +472,14 @@ fn test_health_ejects_and_readmits_backend() {
 #[ignore = "requires Docker daemon"]
 fn test_udp_passthrough_roundtrips_bytes() {
     if !docker_available() {
+        eprintln!("SKIP: Docker not available");
         return;
     }
     let backend = ContainerHandle::start(
         ContainerConfig::new("alpine/socat:latest")
+            .ctx(foundation_context::Ctx::fixed(std::sync::Arc::new(
+                MonotonicClock::new(),
+            )))
             .command(vec![
                 "UDP-LISTEN:9000,fork".to_string(),
                 "EXEC:cat".to_string(),
@@ -478,7 +492,9 @@ fn test_udp_passthrough_roundtrips_bytes() {
     let port = backend.host_port_udp(9000).expect("mapped UDP port");
     let authority = format!("127.0.0.1:{port}");
 
-    let passthrough = UdpPassthrough::start("127.0.0.1:0", &authority).expect("start passthrough");
+    let passthrough =
+        UdpPassthrough::start("127.0.0.1:0", &authority, foundation_context::Ctx::host())
+            .expect("start passthrough");
     let addr = passthrough.local_addr();
 
     // Send a UDP datagram through the passthrough. The relay runs on its own

@@ -10,7 +10,8 @@ use crate::backends::candle::{
 };
 use crate::errors::{ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
-use foundation_core::valtron::Stream;
+use foundation_context::Ctx;
+use foundation_core::valtron::{block_on_future, Stream};
 use foundation_deployment_huggingface::repository;
 use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,
@@ -174,7 +175,7 @@ impl HuggingFaceCandleProvider {
     /// Initialises the HF client and underlying [`CandleBackend`] (CPU).
     /// # Errors
     /// Returns [`GenerationError`] if the model cannot be loaded.
-    pub fn new(config: HuggingFaceCandleConfig) -> ModelProviderResult<Self> {
+    pub fn new(config: HuggingFaceCandleConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
             .token(
                 config
@@ -188,9 +189,9 @@ impl HuggingFaceCandleProvider {
             )
             .build()
             .map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                    format!("Failed to create HFClient: {e}"),
-                )))
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                    "Failed to create HFClient: {e}"
+                ))))
             })?;
 
         std::fs::create_dir_all(&config.cache_dir).map_err(|e| {
@@ -207,7 +208,7 @@ impl HuggingFaceCandleProvider {
             .cache_dir(&config.cache_dir)
             .build();
 
-        let backend = CandleBackend::cpu().create(Some(backend_config))?;
+        let backend = CandleBackend::cpu(ctx).create(Some(backend_config))?;
 
         Ok(Self {
             hf_client,
@@ -274,10 +275,15 @@ impl HuggingFaceCandleProvider {
                 revision: Some("main".to_string()),
                 directory: dest_dir.clone(),
             };
-            repository::repo_download_file(&repo, &params).map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                    format!("Failed to download {filename}: {e}"),
-                )))
+            block_on_future({
+                let repo = repo.clone();
+                let params = params.clone();
+                async move { repository::repo_download_file(&repo, &params).await }
+            })
+            .map_err(|e| {
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                    "Failed to download {filename}: {e}"
+                ))))
             })?;
         }
 
@@ -288,7 +294,12 @@ impl HuggingFaceCandleProvider {
                 revision: Some("main".to_string()),
                 directory: dest_dir.clone(),
             };
-            repository::repo_download_file(&repo, &params).is_ok()
+            block_on_future({
+                let repo = repo.clone();
+                let params = params.clone();
+                async move { repository::repo_download_file(&repo, &params).await }
+            })
+            .is_ok()
         };
 
         if single_ok {
@@ -300,7 +311,12 @@ impl HuggingFaceCandleProvider {
                 revision: Some("main".to_string()),
                 directory: dest_dir.clone(),
             };
-            let index_path = repository::repo_download_file(&repo, &index_params).map_err(|e| {
+            let index_path = block_on_future({
+                let repo = repo.clone();
+                let params = index_params.clone();
+                async move { repository::repo_download_file(&repo, &params).await }
+            })
+            .map_err(|e| {
                 ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
                     "No model.safetensors or index found in {repo_id}: {e}"
                 )))
@@ -331,7 +347,12 @@ impl HuggingFaceCandleProvider {
                         revision: Some("main".to_string()),
                         directory: dest_dir.clone(),
                     };
-                    repository::repo_download_file(&repo, &params).map_err(|e| {
+                    block_on_future({
+                        let repo = repo.clone();
+                        let params = params.clone();
+                        async move { repository::repo_download_file(&repo, &params).await }
+                    })
+                    .map_err(|e| {
                         ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                             format!("Failed to download shard {filename}: {e}"),
                         )))
@@ -361,10 +382,15 @@ impl HuggingFaceCandleProvider {
             limit: None,
         };
 
-        let tree = repository::repo_list_tree(&repo, &params).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                format!("Failed to list repository files: {e}"),
-            )))
+        let tree = block_on_future({
+            let repo = repo.clone();
+            let params = params.clone();
+            async move { repository::repo_list_tree(&repo, &params).await }
+        })
+        .map_err(|e| {
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                "Failed to list repository files: {e}"
+            ))))
         })?;
 
         #[allow(clippy::match_same_arms)]
@@ -405,7 +431,7 @@ impl ModelProvider for HuggingFaceCandleProvider {
         Self: Sized,
     {
         if let Some(config) = config {
-            HuggingFaceCandleProvider::new(config)
+            HuggingFaceCandleProvider::new(config, self.backend.ctx())
         } else {
             Ok(self)
         }
@@ -486,12 +512,9 @@ impl ModelProvider for HuggingFaceCandleProvider {
 }
 
 fn has_safetensors(dir: &std::path::Path) -> bool {
-    std::fs::read_dir(dir)
-        .is_ok_and(|entries| {
-            entries.filter_map(std::result::Result::ok).any(|e| {
-                e.path()
-                    .extension()
-                    .is_some_and(|ext| ext == "safetensors")
-            })
-        })
+    std::fs::read_dir(dir).is_ok_and(|entries| {
+        entries
+            .filter_map(std::result::Result::ok)
+            .any(|e| e.path().extension().is_some_and(|ext| ext == "safetensors"))
+    })
 }

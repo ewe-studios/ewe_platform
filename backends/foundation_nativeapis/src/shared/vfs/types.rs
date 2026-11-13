@@ -1,4 +1,5 @@
-use std::time::SystemTime;
+use foundation_compact::SystemTime;
+use foundation_context::Ctx;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum OpenMode {
@@ -28,13 +29,19 @@ enum ChecksumSerde {
 }
 
 fn to_hex(b: &[u8]) -> String {
-    b.iter().map(|b| format!("{:02x}", b)).collect()
+    use std::fmt::Write as _;
+
+    let mut out = String::with_capacity(b.len() * 2);
+    for byte in b {
+        write!(out, "{byte:02x}").expect("writing to a String cannot fail");
+    }
+    out
 }
 
 fn from_hex(s: &str) -> [u8; 32] {
     let bytes: Vec<u8> = (0..s.len())
         .step_by(2)
-        .filter_map(|i| u8::from_str_radix(&s[i..i+2], 16).ok())
+        .filter_map(|i| u8::from_str_radix(&s[i..i + 2], 16).ok())
         .collect();
     let mut arr = [0u8; 32];
     arr.copy_from_slice(&bytes[..bytes.len().min(32)]);
@@ -65,16 +72,18 @@ pub enum VfsEntryState {
     Pending,
 }
 
-/// Serializes SystemTime as seconds since UNIX epoch.
+/// Serializes `SystemTime` as seconds since UNIX epoch.
 mod system_time_serde {
+    use foundation_compact::SystemTime;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
-    use std::time::SystemTime;
 
+    // Serde `with` callbacks must take `&Option<T>`; `Option<&T>` does not fit.
+    #[allow(clippy::ref_option)]
     pub fn serialize<S: Serializer>(v: &Option<SystemTime>, s: S) -> Result<S::Ok, S::Error> {
         match v {
-            Some(t) => t.duration_since(SystemTime::UNIX_EPOCH)
-                .map(|d| d.as_secs())
-                .unwrap_or(0)
+            Some(t) => t
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .map_or(0, |d| d.as_secs())
                 .serialize(s),
             None => Option::<u64>::None.serialize(s),
         }
@@ -105,8 +114,10 @@ pub struct VfsMetadata {
 }
 
 impl VfsMetadata {
-    pub fn new_file(inode: u64, size: u64, permissions: u32) -> Self {
-        let now = Some(SystemTime::now());
+    /// A regular-file entry whose three times come from the clock of `ctx`.
+    #[must_use]
+    pub fn new_file(inode: u64, size: u64, permissions: u32, ctx: &Ctx) -> Self {
+        let now = Some(ctx.clock().wall_now());
         Self {
             inode,
             size,
@@ -122,8 +133,10 @@ impl VfsMetadata {
         }
     }
 
-    pub fn new_directory(inode: u64, permissions: u32) -> Self {
-        let now = Some(SystemTime::now());
+    /// A directory entry whose three times come from the clock of `ctx`.
+    #[must_use]
+    pub fn new_directory(inode: u64, permissions: u32, ctx: &Ctx) -> Self {
+        let now = Some(ctx.clock().wall_now());
         Self {
             inode,
             size: 0,
@@ -139,8 +152,10 @@ impl VfsMetadata {
         }
     }
 
-    pub fn new_symlink(inode: u64) -> Self {
-        let now = Some(SystemTime::now());
+    /// A symlink entry whose three times come from the clock of `ctx`.
+    #[must_use]
+    pub fn new_symlink(inode: u64, ctx: &Ctx) -> Self {
+        let now = Some(ctx.clock().wall_now());
         Self {
             inode,
             size: 0,
@@ -164,6 +179,8 @@ pub struct VfsDirEntry {
     pub file_type: VfsFileType,
 }
 
+// A capability report is a set of independent flags; bools are the domain type.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VfsCapabilities {
     pub seekable: bool,

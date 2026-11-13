@@ -17,7 +17,11 @@ fn nothreadcontroller_waits_for_the_requested_time() {
     let controller = NoThreadController::new();
     let start = Instant::now();
     controller.yield_for(Duration::from_millis(10));
-    assert!(start.elapsed() >= Duration::from_millis(5), "returned after {:?}", start.elapsed());
+    assert!(
+        start.elapsed() >= Duration::from_millis(5),
+        "returned after {:?}",
+        start.elapsed()
+    );
 }
 
 #[test]
@@ -25,5 +29,9 @@ fn nothreadcontroller_has_default_and_waits() {
     let controller = NoThreadController::default();
     let start = Instant::now();
     controller.yield_for(Duration::from_millis(5));
-    assert!(start.elapsed() >= Duration::from_millis(2), "returned after {:?}", start.elapsed());
+    assert!(
+        start.elapsed() >= Duration::from_millis(2),
+        "returned after {:?}",
+        start.elapsed()
+    );
 }

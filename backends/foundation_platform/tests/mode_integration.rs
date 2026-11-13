@@ -1,8 +1,8 @@
 //! Mode integration tests — WASM, IPC, and Remote via per-route responders.
 
-use std::sync::{Arc, Mutex};
-use foundation_platform::*;
 use foundation_platform::route_handler::RouteResponder;
+use foundation_platform::*;
+use std::sync::{Arc, Mutex};
 use tauri::http::{header, Response, StatusCode};
 
 struct TestResponder {
@@ -13,27 +13,55 @@ struct TestResponder {
 
 impl TestResponder {
     fn new(body: &[u8], content_type: &'static str) -> Self {
-        Self { body: body.to_vec(), content_type, calls: Mutex::new(Vec::new()) }
+        Self {
+            body: body.to_vec(),
+            content_type,
+            calls: Mutex::new(Vec::new()),
+        }
     }
 }
 
 impl RouteResponder for TestResponder {
-    fn respond(&self, intent: &NavigationIntent, _decision: &RouteDecision, _session: &PlatformSession) -> Response<Vec<u8>> {
+    fn respond(
+        &self,
+        intent: &NavigationIntent,
+        _decision: &RouteDecision,
+        _session: &PlatformSession,
+    ) -> Response<Vec<u8>> {
         let route = foundation_platform::pattern::extract_path(&intent.url);
         self.calls.lock().unwrap().push(route);
         Response::builder()
             .status(StatusCode::OK)
             .header(header::CONTENT_TYPE, self.content_type)
-            .body(self.body.clone()).unwrap()
+            .body(self.body.clone())
+            .unwrap()
     }
 }
 
-fn session() -> Arc<PlatformSession> { PlatformSession::new_test(std::path::PathBuf::from(".")) }
+fn session() -> Arc<PlatformSession> {
+    PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+}
 fn intent(url: &str) -> NavigationIntent {
-    NavigationIntent { url: url.to_string(), method: Method::Get, source: IntentSource::LinkClick, referrer: None }
+    NavigationIntent {
+        url: url.to_string(),
+        method: Method::Get,
+        source: IntentSource::LinkClick,
+        referrer: None,
+    }
 }
 
-fn register(s: &PlatformSession, id: &str, pattern: &str, src: RouteSource, responder: impl RouteResponder) {
+fn register(
+    s: &PlatformSession,
+    id: &str,
+    pattern: &str,
+    src: RouteSource,
+    responder: impl RouteResponder,
+) {
     let d = match src {
         RouteSource::WebviewApp => webview_app(),
         RouteSource::IpcShell => ipc_shell(),
@@ -88,8 +116,16 @@ fn remote_mode_responder_called() {
 #[test]
 fn cache_hit_returns_without_responder() {
     let s = session();
-    s.cache().store(Profile::TrustedRemote, "/cached/data", b"cached-data", "text/plain");
-    let d = remote_fetch().with_cache_policy(CachePolicy::CacheFirst).with_profile(Profile::TrustedRemote).with_handler("cache-test");
+    s.cache().store(
+        Profile::TrustedRemote,
+        "/cached/data",
+        b"cached-data",
+        "text/plain",
+    );
+    let d = remote_fetch()
+        .with_cache_policy(CachePolicy::CacheFirst)
+        .with_profile(Profile::TrustedRemote)
+        .with_handler("cache-test");
     s.route("/cached/*", d.clone());
     // Cached response should return even without a registered responder
     let resp = s.execute_decision(&d, &intent("ewe://localhost/cached/data"));
@@ -109,9 +145,20 @@ fn cross_mode_all_three_in_one_session() {
     register(&s, "i", "/api/*", RouteSource::IpcShell, i);
     register(&s, "r", "/remote/*", RouteSource::RemoteServer, r2);
 
-    assert_eq!(s.resolve_route(&intent("ewe://localhost/app/home")).source, RouteSource::WebviewApp);
-    assert_eq!(s.resolve_route(&intent("ewe://localhost/api/status")).source, RouteSource::IpcShell);
-    assert_eq!(s.resolve_route(&intent("ewe://localhost/remote/news")).source, RouteSource::RemoteServer);
+    assert_eq!(
+        s.resolve_route(&intent("ewe://localhost/app/home")).source,
+        RouteSource::WebviewApp
+    );
+    assert_eq!(
+        s.resolve_route(&intent("ewe://localhost/api/status"))
+            .source,
+        RouteSource::IpcShell
+    );
+    assert_eq!(
+        s.resolve_route(&intent("ewe://localhost/remote/news"))
+            .source,
+        RouteSource::RemoteServer
+    );
 }
 
 // ── No-responder fallback ─────────────────────────────────────────────
@@ -130,8 +177,16 @@ fn no_handler_returns_500() {
 fn offline_serves_stale_cache() {
     let s = session();
     s.set_online(false);
-    s.cache().store(Profile::TrustedRemote, "/remote/old", b"stale", "text/plain");
-    let d = remote_fetch().with_cache_policy(CachePolicy::NetworkFirst).with_profile(Profile::TrustedRemote).with_handler("offline");
+    s.cache().store(
+        Profile::TrustedRemote,
+        "/remote/old",
+        b"stale",
+        "text/plain",
+    );
+    let d = remote_fetch()
+        .with_cache_policy(CachePolicy::NetworkFirst)
+        .with_profile(Profile::TrustedRemote)
+        .with_handler("offline");
     s.route("/remote/*", d.clone());
     let resp = s.execute_decision(&d, &intent("ewe://localhost/remote/old"));
     assert_eq!(resp.status().as_u16(), 200);

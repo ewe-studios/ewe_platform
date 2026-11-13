@@ -6,14 +6,14 @@ use foundation_cedar::{load_from_store, PolicyStore, SqlPolicyStore};
 use foundation_core::valtron::valtron_test;
 use foundation_db::{DataValue, QueryStore, TursoStorage};
 
-const SCHEMA: &str = r#"
+const SCHEMA: &str = r"
 entity User;
 entity Album;
 action view appliesTo {
   principal: [User],
   resource: [Album]
 };
-"#;
+";
 
 const POLICIES: &str = r#"
 permit(
@@ -26,7 +26,9 @@ permit(
 async fn turso() -> (TursoStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let url = dir.path().join("cedar.db").to_string_lossy().into_owned();
-    let store = TursoStorage::new(&url).await.expect("open turso");
+    let store = TursoStorage::new(&url, foundation_core::valtron::Ctx::host())
+        .await
+        .expect("open turso");
     (store, dir)
 }
 

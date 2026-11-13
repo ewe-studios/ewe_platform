@@ -30,7 +30,7 @@ use foundation_ai::types::{
     ModelState, ModelStreamBox, TextBasedFormatter, ToolFormatter, UsageReport,
 };
 use foundation_connectrpc::{
-    ClientOptions, Code, Ctx, H1Transport, H2Transport, Request, Transport,
+    ClientOptions, Code, H1Transport, H2Transport, Request, RpcCtx, Transport,
 };
 use foundation_core::valtron::{valtron_test, Stream, WakeableStream};
 use foundation_netio::http::NativeHttpClient;
@@ -163,8 +163,8 @@ fn h2_client(base_url: &str) -> AgentServiceClient {
         .expect("client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(30))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(30))
 }
 
 #[valtron_test(threads = 12)]
@@ -177,6 +177,7 @@ async fn chat_stream_delivers_each_token_before_the_next_is_produced() {
         },
     );
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(model)
         .insecure_plaintext()
         .build()
@@ -239,6 +240,7 @@ async fn chat_stream_round_trips_over_http1() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("one "), mock_text("two")]);
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
         .insecure_plaintext()
         .build()
@@ -291,6 +293,7 @@ async fn the_service_stream_is_unbuffered_in_process() {
 
     let gate = Arc::new(Gate::default());
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(ModelHandle::from_model(
             "gated",
             GatedModel {
@@ -339,6 +342,7 @@ async fn the_service_stream_is_unbuffered_in_process() {
 async fn chat_stream_on_a_missing_instance_is_not_found() {
     let gate = Arc::new(Gate::default());
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(ModelHandle::from_model("gated", GatedModel { gate }))
         .insecure_plaintext()
         .build()

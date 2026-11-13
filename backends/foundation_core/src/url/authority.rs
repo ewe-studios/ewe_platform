@@ -76,6 +76,9 @@ impl Authority {
     }
 
     /// Parses just the authority component.
+    ///
+    /// # Errors
+    /// Returns `InvalidUri` when the host or the port is invalid.
     pub fn parse(s: &str) -> Result<Self, InvalidUri> {
         // Split off userinfo if present (before last @)
         let (userinfo, host_port) = if let Some(at_pos) = s.rfind('@') {
@@ -101,6 +104,10 @@ impl Authority {
     }
 
     /// Parses host:port component.
+    ///
+    /// # Errors
+    /// Returns `InvalidUri` when the IPv6 address, the IPv4 address or the
+    /// reg-name is invalid.
     pub fn parse_host_port(s: &str) -> Result<(Host, Option<u16>), InvalidUri> {
         // Check for IPv6 (enclosed in brackets)
         if s.starts_with('[') {
@@ -163,6 +170,9 @@ impl Authority {
     }
 
     /// Parses a port string.
+    ///
+    /// # Errors
+    /// Returns `InvalidUri` when the text is not a valid `u16` port.
     pub fn parse_port(s: &str) -> Result<u16, InvalidUri> {
         s.parse::<u16>()
             .map_err(|_| InvalidUri::new(format!("invalid port: {s}")))
@@ -239,8 +249,7 @@ impl Host {
     #[must_use]
     pub fn as_str(&self) -> Option<&str> {
         match self {
-            Host::Ipv4(_) => None,
-            Host::Ipv6(_) => None,
+            Host::Ipv4(_) | Host::Ipv6(_) => None,
             Host::RegName(name) => Some(name),
         }
     }

@@ -1,11 +1,11 @@
-//! Tests for generic Router<S> — covers ServeWriter, RouteMethod<S>, and cross-type routing.
+//! Tests for generic `Router<S>` — covers `ServeWriter`, `RouteMethod<S>`, and cross-type routing.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::router::Router;
 use foundation_http::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory};
-use foundation_http::shared::context::ContextBag;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 // -----------------------------------------------------------------------
@@ -18,7 +18,7 @@ struct TestWriter {
 }
 
 impl ServeWriterFactory for TestWriter {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         panic!("TestWriter must be created with new()");
     }
 }
@@ -32,7 +32,7 @@ impl TestWriter {
 impl ServeWriter for TestWriter {
     fn serve_writer(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: SimpleIncomingRequest,
         conn: &mut dyn std::io::Write,
     ) -> ConnectionResult {
@@ -67,7 +67,10 @@ fn test_router_writer_dispatch() {
     assert!(handler.is_some());
 
     let mut buf = Vec::new();
-    let result = handler.unwrap().serve_writer(&ContextBag::new(), dummy_request(), &mut buf);
+    let result =
+        handler
+            .unwrap()
+            .serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert!(matches!(result, ConnectionResult::Keep));
     assert_eq!(count.load(Ordering::SeqCst), 1);
     assert_eq!(buf, b"writer response");
@@ -103,7 +106,11 @@ fn test_router_writer_param_route() {
     let mut router: Router<Arc<dyn ServeWriter>> = Router::new();
     let count = Arc::new(AtomicUsize::new(0));
 
-    router.add_route_writer(SimpleMethod::GET, "/items/:id", make_writer(4, count.clone()));
+    router.add_route_writer(
+        SimpleMethod::GET,
+        "/items/:id",
+        make_writer(4, count.clone()),
+    );
 
     assert!(router.dispatch(&SimpleMethod::GET, "/items/42").is_some());
     assert!(router.dispatch(&SimpleMethod::GET, "/items/abc").is_some());
@@ -117,7 +124,9 @@ fn test_router_writer_wildcard() {
 
     router.add_route_writer(SimpleMethod::GET, "/*", make_writer(5, count.clone()));
 
-    assert!(router.dispatch(&SimpleMethod::GET, "/anything/goes").is_some());
+    assert!(router
+        .dispatch(&SimpleMethod::GET, "/anything/goes")
+        .is_some());
 }
 
 #[test]
@@ -126,17 +135,25 @@ fn test_router_multiple_writers_same_path() {
     let get_count = Arc::new(AtomicUsize::new(0));
     let post_count = Arc::new(AtomicUsize::new(0));
 
-    router.add_route_writer(SimpleMethod::GET, "/resource", make_writer(10, get_count.clone()));
-    router.add_route_writer(SimpleMethod::POST, "/resource", make_writer(11, post_count.clone()));
+    router.add_route_writer(
+        SimpleMethod::GET,
+        "/resource",
+        make_writer(10, get_count.clone()),
+    );
+    router.add_route_writer(
+        SimpleMethod::POST,
+        "/resource",
+        make_writer(11, post_count.clone()),
+    );
 
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
     let mut buf = Vec::new();
-    let _ = handler.serve_writer(&ContextBag::new(), dummy_request(), &mut buf);
+    let _ = handler.serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert_eq!(get_count.load(Ordering::SeqCst), 1);
     assert_eq!(post_count.load(Ordering::SeqCst), 0);
 
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
     let mut buf = Vec::new();
-    let _ = handler.serve_writer(&ContextBag::new(), dummy_request(), &mut buf);
+    let _ = handler.serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert_eq!(post_count.load(Ordering::SeqCst), 1);
 }

@@ -16,6 +16,13 @@
 
 use std::sync::Arc;
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 use foundation_ai::agentic::memory::{MemoryConfig, MemoryHierarchy};
 use foundation_ai::agentic::memory_coordinator::MemoryCoordinator;
 use foundation_ai::agentic::memory_store::KvMemoryStore;
@@ -37,7 +44,9 @@ type Hierarchy = MemoryHierarchy<Mem, Doc>;
 // ---------------------------------------------------------------------------
 
 fn fs() -> Arc<MemoryFs> {
-    Arc::new(MemoryFs::new())
+    Arc::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )))
 }
 
 fn hierarchy() -> Arc<Hierarchy> {
@@ -50,6 +59,9 @@ fn hierarchy() -> Arc<Hierarchy> {
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     ))
 }
 
@@ -115,6 +127,7 @@ fn agent_preset_provides_the_six_command_agent_tool() {
         "/tmp/test-delegation",
         UserId("test".into()),
         vec![],
+        test_clock(),
     );
     assert_eq!(names(&p), vec!["agent"]);
 
@@ -273,8 +286,7 @@ fn preset_tools_survive_into_a_toolshed() {
         .expect("ready-made tools register");
     let shed = mgr.all_declarations();
 
-    let mut shed_names: Vec<String> =
-        shed.tools.iter().map(|t| t.name().to_string()).collect();
+    let mut shed_names: Vec<String> = shed.tools.iter().map(|t| t.name().to_string()).collect();
     shed_names.sort();
     assert_eq!(shed_names, vec!["bash", "edit", "read", "write"]);
 }

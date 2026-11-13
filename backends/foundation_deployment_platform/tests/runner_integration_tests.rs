@@ -23,18 +23,18 @@ use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
+use foundation_deployment_platform::testing::docker_available;
 use foundation_sshkit::{Command, ConnectionPool, Host, Runner, Ssh2Backend};
 
 const SSH_USER: &str = "testuser";
 const SSH_PASSWORD: &str = "testpass";
 const SSH_PORT: u16 = 2222;
 
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
-
 fn sshd_config() -> ContainerConfig {
     ContainerConfig::new("lscr.io/linuxserver/openssh-server:latest")
+        .ctx(foundation_context::Ctx::fixed(Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )))
         .port(SSH_PORT)
         .env("PUID", "1000")
         .env("PGID", "1000")
@@ -53,7 +53,10 @@ fn sshd_config() -> ContainerConfig {
 /// container, and check that each host reports success. Blocking libssh2 calls
 /// run here, on the test thread, not on a valtron pool worker.
 fn run_all_strategies(port: u16) -> Result<(), String> {
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(30)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(30),
+        foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
+    ));
     let backend = Ssh2Backend::new(pool);
     let hosts: Vec<Host> = (0..3)
         .map(|_| Host::parse(&format!("{SSH_USER}@127.0.0.1:{port}")).with_password(SSH_PASSWORD))

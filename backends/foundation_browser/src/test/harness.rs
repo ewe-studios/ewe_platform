@@ -15,6 +15,8 @@
 
 use std::path::PathBuf;
 
+use foundation_context::Ctx;
+
 use crate::browser::{BrowserDriver, Page};
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::Result;
@@ -50,6 +52,11 @@ pub struct TestConfig {
     /// (secure cookies, service workers, clipboard) are testable. The browser is
     /// launched trusting the cert (`--ignore-certificate-errors`).
     pub https: bool,
+    /// The context every launch and assertion deadline reads.
+    ///
+    /// The default is `Ctx::host()`, which reads the real clock: the harness is a test host, so
+    /// it supplies the real clock unless the test sets this field.
+    pub ctx: Ctx,
 }
 
 impl Default for TestConfig {
@@ -57,7 +64,8 @@ impl Default for TestConfig {
         Self {
             host: "127.0.0.1".into(),
             port: 0,
-            html: "<!doctype html><html><head><meta charset=utf-8></head><body></body></html>".into(),
+            html: "<!doctype html><html><head><meta charset=utf-8></head><body></body></html>"
+                .into(),
             file: None,
             static_dir: None,
             static_mount: "/assets".into(),
@@ -67,6 +75,7 @@ impl Default for TestConfig {
             headless: true,
             window_size: None,
             https: false,
+            ctx: Ctx::host(),
         }
     }
 }
@@ -86,7 +95,13 @@ impl TestConfig {
             extra_args.push("--ignore-certificate-errors".into());
             extra_args.push("--allow-insecure-localhost".into());
         }
-        LaunchConfig { browser: self.browser, headless: self.headless, extra_args }
+        LaunchConfig {
+            browser: self.browser,
+            headless: self.headless,
+            extra_args,
+            ctx: Some(self.ctx.clone()),
+            wait: crate::pause::WaitConfig::default(),
+        }
     }
 
     fn page(&self) -> PageSource {
@@ -97,10 +112,12 @@ impl TestConfig {
     }
 
     fn statics(&self) -> Vec<StaticMount> {
-        self.static_dir
-            .as_ref()
-            .map(|dir| vec![StaticMount { mount: self.static_mount.clone(), dir: dir.clone() }])
-            .unwrap_or_default()
+        self.static_dir.as_ref().map_or_default(|dir| {
+            vec![StaticMount {
+                mount: self.static_mount.clone(),
+                dir: dir.clone(),
+            }]
+        })
     }
 }
 
@@ -108,7 +125,7 @@ impl TestConfig {
 ///
 /// Field order is the teardown order: `driver` (stop browser) before `server`.
 pub struct Harness {
-    driver: BrowserDriver,
+    driver: BrowserDriver<'static>,
     server: TestServer,
 }
 
@@ -117,6 +134,10 @@ impl Harness {
     ///
     /// # Errors
     /// [`crate::BrowserError`] if the server can't bind or the browser can't launch.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "public API takes TestConfig by value; a reference would break every caller"
+    )]
     pub fn setup(config: TestConfig) -> Result<Self> {
         let server = TestServer::start(
             &config.bind(),

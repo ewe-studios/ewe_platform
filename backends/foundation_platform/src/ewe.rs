@@ -5,9 +5,11 @@
 
 use std::collections::HashMap;
 
-use foundation_ui_traits::{NavigationIntent, IntentSource, Method, RouteDecision, RouteSource, ProtocolHint, Protocol};
 #[allow(unused_imports)]
-use foundation_ui_traits::{Presentation, ViewKind, CachePolicy, Profile};
+use foundation_ui_traits::{CachePolicy, Presentation, Profile, ViewKind};
+use foundation_ui_traits::{
+    IntentSource, Method, NavigationIntent, Protocol, ProtocolHint, RouteDecision, RouteSource,
+};
 use tauri::{
     http::{header, Request, Response, StatusCode},
     Manager, UriSchemeContext,
@@ -19,9 +21,7 @@ use crate::session::PlatformSession;
 
 /// Register `ewe://` with Tauri. One scheme, no sub-schemes.
 #[allow(clippy::needless_pass_by_value)]
-pub fn register_ewe_protocol<R: tauri::Runtime>(
-    builder: tauri::Builder<R>,
-) -> tauri::Builder<R> {
+pub fn register_ewe_protocol<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
     builder.register_uri_scheme_protocol("ewe", ewe_handler::<R>)
 }
 
@@ -71,26 +71,30 @@ fn ewe_handler<R: tauri::Runtime>(
 
 fn serve_platform_asset(path: &str) -> Response<Vec<u8>> {
     let file = path.strip_prefix("/__platform__/").unwrap_or(path);
-    let ct = match std::path::Path::new(file).extension().and_then(|e| e.to_str()) {
+    let ct = match std::path::Path::new(file)
+        .extension()
+        .and_then(|e| e.to_str())
+    {
         Some("js") => "application/javascript; charset=utf-8",
         Some("wasm") => "application/wasm",
         Some("html") => "text/html; charset=utf-8",
         Some("css") => "text/css; charset=utf-8",
         _ => "application/octet-stream",
     };
-    let public = std::path::PathBuf::from(
-        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default(),
-    ).join("public");
+    let public = std::path::PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default())
+        .join("public");
     match std::fs::read(public.join(file)) {
         Ok(data) => Response::builder()
             .status(StatusCode::OK)
             .header(header::CONTENT_TYPE, ct)
             .header("Access-Control-Allow-Origin", "*")
-            .body(data).unwrap(),
+            .body(data)
+            .unwrap(),
         Err(_) => Response::builder()
             .status(StatusCode::NOT_FOUND)
             .header(header::CONTENT_TYPE, "text/plain")
-            .body(format!("not found: {file}").into_bytes()).unwrap(),
+            .body(format!("not found: {file}").into_bytes())
+            .unwrap(),
     }
 }
 
@@ -117,7 +121,11 @@ impl EweUrl {
         // Find the first '/' after the host — that's where the path starts.
         let path_start = without_scheme.find('/').unwrap_or(without_scheme.len());
         let host_and_path = &without_scheme[path_start..];
-        let path_and_query = if host_and_path.is_empty() { "/" } else { host_and_path };
+        let path_and_query = if host_and_path.is_empty() {
+            "/"
+        } else {
+            host_and_path
+        };
 
         let (path, query) = match path_and_query.split_once('?') {
             Some((p, q)) => (p.to_string(), q.to_string()),
@@ -148,8 +156,8 @@ pub fn method_from_request(request: &Request<Vec<u8>>) -> Method {
 // ── Mode page rendering ─────────────────────────────────────────────────
 
 /// Return a CSS class + label for the route's source.
-#[allow(dead_code)]
-fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
+#[must_use]
+pub fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
     match decision.source {
         RouteSource::WebviewApp => ("wasm", "🟢 App — WASM in WebView"),
         RouteSource::IpcShell => ("ipc", "🟠 IPC — Native Shell"),
@@ -159,8 +167,8 @@ fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
 
 /// Build a self-contained HTML page showing which mode was activated,
 /// the route, and the raw response payload.
-#[allow(dead_code)]
-fn build_mode_page(
+#[must_use]
+pub fn build_mode_page(
     path: &str,
     (cls, label): &(&str, &str),
     decision: &RouteDecision,
@@ -234,57 +242,6 @@ fn html_escape(s: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&#39;")
-}
-
-#[cfg(test)]
-mod mode_page_tests {
-    use super::*;
-
-    #[test]
-    fn build_mode_page_works_with_json_body() {
-        let d = RouteDecision {
-            source: RouteSource::WebviewApp,
-            presentation: Presentation::Morph,
-            view_kind: ViewKind::WebView,
-            protocol: ProtocolHint::Default,
-            cache_policy: CachePolicy::CacheFirst,
-            profile: Profile::App,
-            native_view_id: None,
-            target: None,
-            capabilities: vec![],
-            auth_origin: None,
-            handler_id: None,
-            sub_path: None,
-        };
-        let (cls, label) = mode_badge_for(&d);
-        let html = build_mode_page("/app/home", &(cls, label), &d, r#"{"type":"wasm_signal"}"#);
-        assert!(html.contains("ewe:///app/home"));
-        assert!(html.contains("wasm_signal"));
-        assert!(html.contains("App"));
-        assert!(!html.contains("panic"));
-    }
-
-    #[test]
-    fn build_mode_page_escapes_html_in_body() {
-        let d = RouteDecision {
-            source: RouteSource::RemoteServer,
-            presentation: Presentation::Morph,
-            view_kind: ViewKind::WebView,
-            protocol: ProtocolHint::Default,
-            cache_policy: CachePolicy::NetworkFirst,
-            profile: Profile::TrustedRemote,
-            native_view_id: None,
-            target: None,
-            capabilities: vec![],
-            auth_origin: None,
-            handler_id: None,
-            sub_path: None,
-        };
-        let (cls, label) = mode_badge_for(&d);
-        let html = build_mode_page("/remote/data", &(cls, label), &d, "<script>alert('xss')</script>");
-        assert!(html.contains("&lt;script&gt;"));
-        assert!(!html.contains("<script>alert"));
-    }
 }
 
 // ── Protocol selection ────────────────────────────────────────────────

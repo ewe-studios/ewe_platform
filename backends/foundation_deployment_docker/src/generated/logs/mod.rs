@@ -34,18 +34,18 @@ use super::shared::ApiResponse;
 pub struct ContainerLogsArgs {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `follow`.
-    pub follow: Option<String>,
-    /// Query parameter: `stdout`.
-    pub stdout: Option<String>,
-    /// Query parameter: `stderr`.
-    pub stderr: Option<String>,
+    /// Query parameter: `follow` (true/false).
+    pub follow: Option<bool>,
+    /// Query parameter: `stdout` (true/false).
+    pub stdout: Option<bool>,
+    /// Query parameter: `stderr` (true/false).
+    pub stderr: Option<bool>,
     /// Query parameter: `since`.
     pub since: Option<String>,
     /// Query parameter: `until`.
     pub until: Option<String>,
-    /// Query parameter: `timestamps`.
-    pub timestamps: Option<String>,
+    /// Query parameter: `timestamps` (true/false).
+    pub timestamps: Option<bool>,
     /// Query parameter: `tail`.
     pub tail: Option<String>,
 }
@@ -100,18 +100,30 @@ pub async fn container_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/logs", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}/logs", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("follow", args.follow.as_deref());
-    builder = builder.query("stdout", args.stdout.as_deref());
-    builder = builder.query("stderr", args.stderr.as_deref());
+    builder = builder.query(
+        "follow",
+        args.follow.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stdout",
+        args.stdout.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stderr",
+        args.stderr.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("since", args.since.as_deref());
     builder = builder.query("until", args.until.as_deref());
-    builder = builder.query("timestamps", args.timestamps.as_deref());
+    builder = builder.query(
+        "timestamps",
+        args.timestamps.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("tail", args.tail.as_deref());
 
     if let Some(f) = builder_mod {
@@ -157,18 +169,33 @@ pub async fn service_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/services/{}/logs", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/services/{}/logs", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("details", args.details.as_deref());
-    builder = builder.query("follow", args.follow.as_deref());
-    builder = builder.query("stdout", args.stdout.as_deref());
-    builder = builder.query("stderr", args.stderr.as_deref());
+    builder = builder.query(
+        "details",
+        args.details.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "follow",
+        args.follow.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stdout",
+        args.stdout.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stderr",
+        args.stderr.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("since", args.since.as_deref());
-    builder = builder.query("timestamps", args.timestamps.as_deref());
+    builder = builder.query(
+        "timestamps",
+        args.timestamps.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("tail", args.tail.as_deref());
 
     if let Some(f) = builder_mod {
@@ -214,18 +241,33 @@ pub async fn task_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/tasks/{}/logs", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/tasks/{}/logs", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("details", args.details.as_deref());
-    builder = builder.query("follow", args.follow.as_deref());
-    builder = builder.query("stdout", args.stdout.as_deref());
-    builder = builder.query("stderr", args.stderr.as_deref());
+    builder = builder.query(
+        "details",
+        args.details.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "follow",
+        args.follow.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stdout",
+        args.stdout.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stderr",
+        args.stderr.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("since", args.since.as_deref());
-    builder = builder.query("timestamps", args.timestamps.as_deref());
+    builder = builder.query(
+        "timestamps",
+        args.timestamps.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("tail", args.tail.as_deref());
 
     if let Some(f) = builder_mod {

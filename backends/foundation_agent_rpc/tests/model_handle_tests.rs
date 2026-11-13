@@ -4,6 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_agent_rpc::{AgentRpcError, ModelHandle, ModelSource};
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron_test;
 
 fn fixture_dir(name: &str) -> std::path::PathBuf {
@@ -20,10 +21,10 @@ fn model_handle_is_clone_send_sync_static() {
 
 #[valtron_test]
 fn loads_a_candle_model_once_and_clones_share_it() {
-    let handle = ModelHandle::load(&ModelSource::candle(
-        "tiny-llama",
-        fixture_dir("tiny-random-LlamaForCausalLM"),
-    ))
+    let handle = ModelHandle::load(
+        &ModelSource::candle("tiny-llama", fixture_dir("tiny-random-LlamaForCausalLM")),
+        Ctx::host(),
+    )
     .expect("fixture loads");
     assert_eq!(handle.name(), "tiny-llama");
 
@@ -50,7 +51,7 @@ fn the_loader_runs_exactly_once() {
         use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
         counter.fetch_add(1, Ordering::SeqCst);
         let dir = fixture_dir("tiny-random-LlamaForCausalLM");
-        CandleBackend::cpu()
+        CandleBackend::cpu(Ctx::host())
             .get_model_by_spec(ModelSpec {
                 name: "counted".into(),
                 id: ModelId::Name("counted".into(), None),
@@ -77,8 +78,11 @@ fn the_loader_runs_exactly_once() {
 
 #[valtron_test]
 fn a_missing_model_directory_is_a_model_load_error() {
-    let err = ModelHandle::load(&ModelSource::candle("ghost", "/nonexistent/model/dir"))
-        .expect_err("must fail");
+    let err = ModelHandle::load(
+        &ModelSource::candle("ghost", "/nonexistent/model/dir"),
+        Ctx::host(),
+    )
+    .expect_err("must fail");
     assert!(
         matches!(err.current_context(), AgentRpcError::ModelLoad(_)),
         "got {err:?}"

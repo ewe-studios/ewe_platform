@@ -1,4 +1,4 @@
-//! Shared test fixtures for foundation_testbed integration tests.
+//! Shared test fixtures for `foundation_testbed` integration tests.
 //!
 //! Provides `TestVm` — an RAII guard that starts a VM on construction
 //! and stops it on drop, ensuring cleanup even on test panic.
@@ -10,8 +10,8 @@ use std::time::{Duration, Instant};
 
 use foundation_testbed::platform::bootstrap::BootstrapLogger;
 use foundation_testbed::platform::config::{DisplayMode, GuestOs, Result, VmProfile, get_profile};
-use foundation_testbed::platform::qemu::{QemuConfig, QemuVm};
 use foundation_testbed::platform::qemu::mount;
+use foundation_testbed::platform::qemu::{QemuConfig, QemuVm};
 use foundation_testbed::platform::ssh;
 use foundation_testbed::platform::state;
 
@@ -53,14 +53,23 @@ impl TestVm {
     }
 
     /// Start a VM with explicit display mode.
-    pub fn new_with_mode(profile_name: &str, display: DisplayMode, mount_project: bool) -> Result<Self> {
-        let profile = get_profile(profile_name).map(|p| p.clone())?;
-        println!("[{}] Starting VM '{}' ({:?})...", std::any::type_name::<Self>(), profile_name, display);
+    pub fn new_with_mode(
+        profile_name: &str,
+        display: DisplayMode,
+        mount_project: bool,
+    ) -> Result<Self> {
+        let profile = get_profile(profile_name).cloned()?;
+        println!(
+            "[{}] Starting VM '{}' ({:?})...",
+            std::any::type_name::<Self>(),
+            profile_name,
+            display
+        );
 
         // Ensure image is available
         let _disk = foundation_testbed::platform::import::ensure_image(&profile)?;
 
-        let mut config = QemuConfig::new(profile.clone(), display);
+        let mut config = QemuConfig::new(profile.clone(), display, foundation_context::Ctx::host());
         if mount_project {
             let guest_path = match profile.os {
                 GuestOs::Windows => "C:/Users/vagrant/project",
@@ -69,8 +78,8 @@ impl TestVm {
             };
             // Find workspace root (from backends/foundation_testbed/tests/common/mod.rs)
             let workspace_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()  // backends
-                .and_then(|p| p.parent())  // workspace root
+                .parent() // backends
+                .and_then(|p| p.parent()) // workspace root
                 .unwrap_or_else(|| Path::new("."))
                 .to_path_buf();
             config = config.with_project_mount(workspace_root, guest_path, false);
@@ -80,10 +89,10 @@ impl TestVm {
         let ssh_port = qemu.resolved_ports.ssh_port;
 
         // Save state
-        let monitor_path = foundation_testbed::platform::config::monitor_dir(&profile.name)
+        let monitor_path = foundation_testbed::platform::config::monitor_dir(profile.name)
             .join(format!("{}.monitor", profile.name));
         let vm_state = state::from_qemu(
-            &profile.name,
+            profile.name,
             &qemu.disk_path,
             qemu.pid,
             &monitor_path,
@@ -92,6 +101,7 @@ impl TestVm {
             qemu.resolved_ports.rdp_port,
             qemu.resolved_ports.vnc_port,
             false,
+            &foundation_context::Ctx::host(),
         );
         state::save(&vm_state).ok();
 
@@ -104,24 +114,32 @@ impl TestVm {
         })
     }
 
-    /// Wait for SSH (Linux/macOS) or WinRM (Windows) to become reachable.
+    /// Wait for SSH (Linux/macOS) or `WinRM` (Windows) to become reachable.
     /// Mounts the project directory inside the guest if requested.
     pub fn wait_for_ready(&mut self, timeout: Duration) -> Result<()> {
         let start = Instant::now();
 
         match self.profile.os {
             GuestOs::Linux | GuestOs::MacOS => {
-                println!("[{}] Waiting for SSH connectivity on port {} (timeout: {:?})...",
-                    &self.profile_name, self.ssh_port, timeout);
+                println!(
+                    "[{}] Waiting for SSH connectivity on port {} (timeout: {:?})...",
+                    self.profile_name, self.ssh_port, timeout
+                );
                 loop {
                     if start.elapsed() > timeout {
-                        return Err(foundation_testbed::platform::config::TestbedError::SshFailed {
-                            port: self.ssh_port,
-                            source: anyhow::anyhow!("timed out waiting for VM connectivity after {:?}", timeout),
-                        });
+                        return Err(
+                            foundation_testbed::platform::config::TestbedError::SshFailed {
+                                port: self.ssh_port,
+                                source: anyhow::anyhow!(
+                                    "timed out waiting for VM connectivity after {timeout:?}"
+                                ),
+                            },
+                        );
                     }
-                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
-                        println!("[{}] SSH ready", &self.profile_name);
+                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)
+                        .is_ok()
+                    {
+                        println!("[{}] SSH ready", self.profile_name);
                         if self.mount_project {
                             self.mount_project_in_guest()?;
                         }
@@ -131,20 +149,28 @@ impl TestVm {
                 }
             }
             GuestOs::Windows => {
-                println!("[{}] Waiting for WinRM connectivity (timeout: {:?})...",
-                    &self.profile_name, timeout);
+                println!(
+                    "[{}] Waiting for WinRM connectivity (timeout: {:?})...",
+                    self.profile_name, timeout
+                );
                 loop {
                     if start.elapsed() > timeout {
-                        return Err(foundation_testbed::platform::config::TestbedError::SshFailed {
-                            port: self.ssh_port,
-                            source: anyhow::anyhow!("timed out waiting for WinRM after {:?}", timeout),
-                        });
+                        return Err(
+                            foundation_testbed::platform::config::TestbedError::SshFailed {
+                                port: self.ssh_port,
+                                source: anyhow::anyhow!(
+                                    "timed out waiting for WinRM after {timeout:?}"
+                                ),
+                            },
+                        );
                     }
-                    if let Ok(winrm) = foundation_testbed::platform::winrm::WinRM::from_profile(&self.profile) {
-                        if winrm.ping() {
-                            println!("[{}] WinRM ready", &self.profile_name);
-                            return Ok(());
-                        }
+                    if let Ok(winrm) = foundation_testbed::platform::winrm::WinRM::from_profile(
+                        &self.profile,
+                        foundation_context::Ctx::host(),
+                    ) && winrm.ping()
+                    {
+                        println!("[{}] WinRM ready", self.profile_name);
+                        return Ok(());
                     }
                     std::thread::sleep(Duration::from_secs(5));
                 }
@@ -154,37 +180,55 @@ impl TestVm {
 
     /// Run the bootstrap flow (installs OpenSSH + dev tools).
     ///
-    /// For Windows: two-phase — WinRM installs OpenSSH, then SSH installs tools.
+    /// For Windows: two-phase — `WinRM` installs OpenSSH, then SSH installs tools.
     /// For Linux/macOS: SSH-only bootstrap.
     ///
     /// Logs are written to `$PWD/.testbed/<profile-name>/bootstrap.log`.
     pub fn bootstrap(&mut self) -> Result<()> {
-        if foundation_testbed::platform::bootstrap::is_bootstrapped(&self.profile) {
-            println!("[{}] Already bootstrapped, skipping", &self.profile_name);
+        if foundation_testbed::platform::bootstrap::is_bootstrapped(
+            &self.profile,
+            &foundation_context::Ctx::host(),
+        ) {
+            println!("[{}] Already bootstrapped, skipping", self.profile_name);
             return Ok(());
         }
 
         // Create logger for test output
-        let logger = BootstrapLogger::new(&self.profile_name)
-            .map_err(|e| foundation_testbed::platform::config::TestbedError::BootstrapFailed {
-                step: "create logger".to_string(),
-                message: e.to_string(),
-            })?;
+        let logger = BootstrapLogger::new(&self.profile_name, foundation_context::Ctx::host())
+            .map_err(
+                |e| foundation_testbed::platform::config::TestbedError::BootstrapFailed {
+                    step: "create logger".to_string(),
+                    message: e.to_string(),
+                },
+            )?;
 
         match self.profile.os {
             GuestOs::Linux | GuestOs::MacOS => {
-                let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
-                foundation_testbed::platform::bootstrap::bootstrap(&self.profile, &mut session, &logger, None)?;
+                let mut session =
+                    ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
+                foundation_testbed::platform::bootstrap::bootstrap(
+                    &self.profile,
+                    &mut session,
+                    &logger,
+                    None,
+                )?;
             }
             GuestOs::Windows => {
                 let winrm_port = self.profile.winrm_port.unwrap_or(5985);
                 let winrm = foundation_testbed::platform::winrm::WinRM::new(
-                    "127.0.0.1", winrm_port, self.profile.user, self.profile.pass,
+                    "127.0.0.1",
+                    winrm_port,
+                    self.profile.user,
+                    self.profile.pass,
+                    foundation_context::Ctx::host(),
                 );
 
                 // Phase 1: WinRM-only (installs OpenSSH, configures SSH)
                 foundation_testbed::platform::bootstrap::windows::bootstrap_windows_winrm_phase(
-                    &self.profile, &winrm, &logger, None,
+                    &self.profile,
+                    &winrm,
+                    &logger,
+                    None,
                 )?;
 
                 // Wait for SSH to come up
@@ -192,26 +236,37 @@ impl TestVm {
                 let deadline = Instant::now() + Duration::from_secs(120);
                 loop {
                     if Instant::now() > deadline {
-                        return Err(foundation_testbed::platform::config::TestbedError::BootstrapFailed {
-                            step: "wait for SSH".to_string(),
-                            message: "timed out waiting for SSH after WinRM bootstrap".to_string(),
-                        });
+                        return Err(
+                            foundation_testbed::platform::config::TestbedError::BootstrapFailed {
+                                step: "wait for SSH".to_string(),
+                                message: "timed out waiting for SSH after WinRM bootstrap"
+                                    .to_string(),
+                            },
+                        );
                     }
-                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os).is_ok() {
+                    if ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)
+                        .is_ok()
+                    {
                         break;
                     }
                     thread::sleep(Duration::from_secs(5));
                 }
 
                 // Phase 2: SSH-required (installs dev tools)
-                let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
+                let mut session =
+                    ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
                 foundation_testbed::platform::bootstrap::windows::bootstrap_windows_ssh_phase(
-                    &self.profile, &winrm, &mut session, &logger, None, false,
+                    &self.profile,
+                    &winrm,
+                    &mut session,
+                    &logger,
+                    None,
+                    false,
                 )?;
             }
         }
 
-        logger.message(&format!("✓ {} bootstrap complete", &self.profile_name));
+        logger.message(&format!("✓ {} bootstrap complete", self.profile_name));
         Ok(())
     }
 
@@ -219,29 +274,37 @@ impl TestVm {
     /// Linux only — Windows and macOS guests need virtio drivers or SCP transfer.
     fn mount_project_in_guest(&mut self) -> Result<()> {
         if self.profile.os != GuestOs::Linux {
-            println!("[{}] Skipping 9p mount ({:?} requires virtio drivers or SCP)", &self.profile_name, self.profile.os);
+            println!(
+                "[{}] Skipping 9p mount ({:?} requires virtio drivers or SCP)",
+                self.profile_name, self.profile.os
+            );
             return Ok(());
         }
-        println!("[{}] Mounting project directory in guest...", &self.profile_name);
+        println!(
+            "[{}] Mounting project directory in guest...",
+            self.profile_name
+        );
         let mount_cmd = mount::guest_mount_command(mount::DEFAULT_TAG, mount::DEFAULT_GUEST_PATH);
         let output = self.ssh_exec(&mount_cmd)?;
-        println!("[{}] Mount result: {}", &self.profile_name, output.trim());
+        println!("[{}] Mount result: {}", self.profile_name, output.trim());
         Ok(())
     }
 
     /// Execute a command via SSH on the VM.
     pub fn ssh_exec(&self, cmd: &str) -> Result<String> {
-        let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
+        let mut session =
+            ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
         ssh::exec(&mut session, cmd)
     }
 
     /// Execute a PowerShell script via SSH on the VM (CLIXML-stripped).
     pub fn ps_exec(&self, script: &str) -> Result<(String, i32)> {
-        let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
+        let mut session =
+            ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
         ssh::exec_ps_windows(&mut session, script)
     }
 
-    /// Get a reference to the QemuVm for advanced operations.
+    /// Get a reference to the `QemuVm` for advanced operations.
     pub fn qemu(&self) -> Option<&QemuVm> {
         self.qemu.as_ref()
     }
@@ -271,7 +334,7 @@ impl Drop for TestVm {
 
 /// Ensure a VM image is cached (downloads if needed).
 pub fn ensure_image(profile_name: &str) -> Result<PathBuf> {
-    let profile = get_profile(profile_name).map(|p| p.clone())?;
+    let profile = get_profile(profile_name).cloned()?;
     foundation_testbed::platform::import::ensure_image(&profile)
 }
 
@@ -298,10 +361,12 @@ pub fn assert_elf_binary(path_on_host: &Path) -> Result<bool> {
         return Ok(false);
     }
     let mut magic = [0u8; 4];
-    let mut file = std::fs::File::open(path_on_host)
-        .map_err(|e| TestbedError::Qcow2Error { message: format!("opening file: {e}") })?;
-    std::io::Read::read_exact(&mut file, &mut magic)
-        .map_err(|e| TestbedError::Qcow2Error { message: format!("reading file: {e}") })?;
+    let mut file = std::fs::File::open(path_on_host).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("opening file: {e}"),
+    })?;
+    std::io::Read::read_exact(&mut file, &mut magic).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("reading file: {e}"),
+    })?;
     Ok(&magic == b"\x7fELF")
 }
 
@@ -312,10 +377,12 @@ pub fn assert_pe_binary(path_on_host: &Path) -> Result<bool> {
         return Ok(false);
     }
     let mut magic = [0u8; 2];
-    let mut file = std::fs::File::open(path_on_host)
-        .map_err(|e| TestbedError::Qcow2Error { message: format!("opening file: {e}") })?;
-    std::io::Read::read_exact(&mut file, &mut magic)
-        .map_err(|e| TestbedError::Qcow2Error { message: format!("reading file: {e}") })?;
+    let mut file = std::fs::File::open(path_on_host).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("opening file: {e}"),
+    })?;
+    std::io::Read::read_exact(&mut file, &mut magic).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("reading file: {e}"),
+    })?;
     Ok(&magic == b"MZ")
 }
 
@@ -334,11 +401,15 @@ pub fn assert_macho_binary(path_on_host: &Path) -> Result<bool> {
         return Ok(false);
     }
     let mut magic = [0u8; 4];
-    let mut file = std::fs::File::open(path_on_host)
-        .map_err(|e| TestbedError::Qcow2Error { message: format!("opening file: {e}") })?;
-    std::io::Read::read_exact(&mut file, &mut magic)
-        .map_err(|e| TestbedError::Qcow2Error { message: format!("reading file: {e}") })?;
+    let mut file = std::fs::File::open(path_on_host).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("opening file: {e}"),
+    })?;
+    std::io::Read::read_exact(&mut file, &mut magic).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("reading file: {e}"),
+    })?;
     // Mach-O magic: 0xfeedface (32-bit) or 0xfeedfacf (64-bit), plus CFEDEEDF for reverse
-    Ok(magic == [0xcf, 0xfa, 0xed, 0xfe] || magic == [0xce, 0xfa, 0xed, 0xfe]
-       || magic == [0xfe, 0xed, 0xfa, 0xcf] || magic == [0xfe, 0xed, 0xfa, 0xce])
+    Ok(magic == [0xcf, 0xfa, 0xed, 0xfe]
+        || magic == [0xce, 0xfa, 0xed, 0xfe]
+        || magic == [0xfe, 0xed, 0xfa, 0xcf]
+        || magic == [0xfe, 0xed, 0xfa, 0xce])
 }

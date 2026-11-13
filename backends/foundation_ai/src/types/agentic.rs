@@ -294,4 +294,3 @@ pub struct TimeRange {
 fn fresh_record_id() -> Id {
     foundation_compact::ids::new_scru128()
 }
-

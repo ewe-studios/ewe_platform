@@ -1,6 +1,6 @@
-//! `foundation_connectrpc_codegen` — build-time ConnectRPC code generation.
+//! `foundation_connectrpc_codegen` — build-time `ConnectRPC` code generation.
 //!
-//! WHY: `.proto` files are one source of truth for a ConnectRPC service. This
+//! WHY: `.proto` files are one source of truth for a `ConnectRPC` service. This
 //! crate turns proto file descriptors into the same artifacts the code-first
 //! `#[service]` macro emits — procedure constants, service traits,
 //! registration functions, and typed clients — so proto-first and code-first
@@ -26,4 +26,4 @@
 pub mod build;
 mod generator;
 
-pub use generator::generate_services;
+pub use generator::{extract_idempotency, generate_services, to_snake_case};

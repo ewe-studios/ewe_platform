@@ -5,9 +5,7 @@
 //! functionality in a fast, deterministic manner suitable for unit test execution
 //! under `tests/backends/foundation_core/units/simple_http/`.
 
-use foundation_netio::shared::client::{
-    CompressionConfig, ContentEncoding, DecompressingReader,
-};
+use foundation_netio::shared::client::{CompressionConfig, ContentEncoding, DecompressingReader};
 use foundation_netio::shared::http::HttpClientError;
 use std::io;
 use std::io::Read;
@@ -155,7 +153,7 @@ fn test_decompressing_reader_identity() {
 }
 
 /// WHY: Gzip is common HTTP compression format
-/// WHAT: Verify DecompressingReader correctly decompresses gzip data
+/// WHAT: Verify `DecompressingReader` correctly decompresses gzip data
 #[test]
 #[cfg(feature = "gzip")]
 fn test_decompressing_reader_gzip() {
@@ -183,7 +181,7 @@ fn test_decompressing_reader_gzip() {
 }
 
 /// WHY: Deflate is another common HTTP compression format
-/// WHAT: Verify DecompressingReader correctly decompresses deflate data
+/// WHAT: Verify `DecompressingReader` correctly decompresses deflate data
 #[test]
 #[cfg(any(feature = "gzip", feature = "deflate"))]
 fn test_decompressing_reader_deflate() {
@@ -259,7 +257,7 @@ fn test_decompressing_reader_unknown_encoding() {
 }
 
 /// WHY: Streaming decompression must work incrementally (not buffer entire response)
-/// WHAT: Verify DecompressingReader works with small buffer reads (streaming)
+/// WHAT: Verify `DecompressingReader` works with small buffer reads (streaming)
 #[test]
 #[cfg(feature = "gzip")]
 fn test_decompressing_reader_streaming() {
@@ -287,7 +285,7 @@ fn test_decompressing_reader_streaming() {
         match reader.read(&mut buffer) {
             Ok(0) => break, // EOF
             Ok(n) => output.extend_from_slice(&buffer[..n]),
-            Err(e) => panic!("Read error: {}", e),
+            Err(e) => panic!("Read error: {e}"),
         }
     }
 

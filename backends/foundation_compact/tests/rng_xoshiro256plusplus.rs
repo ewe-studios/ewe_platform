@@ -3,8 +3,8 @@ use foundation_compact::rng::{Rng, SeedableRng, Xoshiro256PlusPlus};
 #[test]
 fn reference() {
     let mut rng = Xoshiro256PlusPlus::from_seed([
-        1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0,
-        0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
+        0, 0,
     ]);
     let expected = [
         41_943_041,

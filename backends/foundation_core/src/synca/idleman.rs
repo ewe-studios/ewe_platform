@@ -110,6 +110,11 @@ impl IdleMan {
         )
     }
 
+    /// Records one idle step and returns the duration to sleep.
+    ///
+    /// # Panics
+    /// Panics if the idle counter cannot reset when the backoff expires, and if
+    /// the backoff state is `Init`.
     pub fn increment(&mut self) -> Option<time::Duration> {
         let current_count = self.counter.load(atomic::Ordering::SeqCst);
 

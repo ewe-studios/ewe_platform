@@ -19,6 +19,7 @@
 //! Everything here is **read-only**. Creating a server bills real money, so that
 //! is a separate, explicitly-named test below.
 
+use foundation_context::MonotonicClock;
 use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
@@ -30,10 +31,15 @@ use foundation_deployment_hetzner::{
 
 /// A client from the environment, or `None` when nobody exported a token.
 fn live_client() -> Option<HetznerClient> {
-    match HetznerClient::from_env() {
+    match HetznerClient::from_env(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))) {
         Ok(client) => Some(client),
         Err(HetznerError::NoCredentials { looked_for }) => {
-            eprintln!("SKIP: no Hetzner token — set one of {}", looked_for.join(" or "));
+            eprintln!(
+                "SKIP: no Hetzner token — set one of {}",
+                looked_for.join(" or ")
+            );
             None
         }
         Err(e) => panic!("unexpected: {e}"),
@@ -89,7 +95,10 @@ async fn a_missing_server_id_is_none_rather_than_an_error() {
 
     // Proves the 404-is-an-answer mapping against Hetzner's real 404, not our
     // mock's idea of one. `destroy` depends on this.
-    let found = client.get_server(1).await.expect("404 is an answer, not a failure");
+    let found = client
+        .get_server(1)
+        .await
+        .expect("404 is an answer, not a failure");
     assert_eq!(found, None, "server id 1 should not exist in this project");
 }
 
@@ -103,8 +112,16 @@ async fn a_bad_token_is_unauthorized_against_the_real_api() {
     if live_client().is_none() {
         return; // no account to point at
     }
-    let client = HetznerClient::new("definitely-not-a-real-token");
-    let err = client.list_servers(None).await.expect_err("Hetzner rejects it");
+    let client = HetznerClient::new(
+        "definitely-not-a-real-token",
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
+    let err = client
+        .list_servers(None)
+        .await
+        .expect_err("Hetzner rejects it");
     assert_eq!(err, HetznerError::Unauthorized, "got {err}");
     eprintln!("  live: a bad token maps to {err}");
 }
@@ -130,7 +147,10 @@ const LIVE_PREFIX: &str = "ewe-live-test-";
 async fn sweep_leftovers(client: &HetznerClient) {
     let servers = client.list_servers(None).await.unwrap_or_default();
     for server in servers.iter().filter(|s| s.name.starts_with(LIVE_PREFIX)) {
-        eprintln!("  sweeping a leftover: {} {:?} — it has been billing", server.id, server.name);
+        eprintln!(
+            "  sweeping a leftover: {} {:?} — it has been billing",
+            server.id, server.name
+        );
         if let Err(e) = client.delete_server(server.id).await {
             eprintln!("  !! could not sweep {}: {e}", server.id);
         }
@@ -175,7 +195,12 @@ async fn the_server_lifecycle_against_the_real_api() {
     std::fs::create_dir_all(&dir).expect("scratch dir");
     let store = FileStateStore::new(&dir, "ewe-live", "test");
     store.init().await.expect("init state store");
-    let provider = ProviderClient::new("ewe-live", "test", store);
+    let provider = ProviderClient::new(
+        "ewe-live",
+        "test",
+        store,
+        foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
+    );
 
     let deployable = HetznerServer::new(client.clone(), &name)
         .server_type(LIVE_TYPE)
@@ -215,7 +240,9 @@ async fn the_server_lifecycle_against_the_real_api() {
         match &recorded.identity {
             Some(identity) => {
                 // The label is what lets us find this machine again without the id.
-                let (key, value) = identity.split_once('=').ok_or("identity is not key=value")?;
+                let (key, value) = identity
+                    .split_once('=')
+                    .ok_or("identity is not key=value")?;
                 let by_label = client
                     .find_servers_by_label(key, value)
                     .await
@@ -226,13 +253,19 @@ async fn the_server_lifecycle_against_the_real_api() {
                          the state cannot zero in on its own instance: {by_label:?}"
                     ));
                 }
-                eprintln!("  live: state's identity {identity:?} enumerates the server from Hetzner");
+                eprintln!(
+                    "  live: state's identity {identity:?} enumerates the server from Hetzner"
+                );
             }
             None => return Err("state records no identity — an id alone is not findable".into()),
         }
         match &recorded.declared {
             Some(declared) if declared.name == name && declared.server_type == LIVE_TYPE => {}
-            other => return Err(format!("state does not record what was asked for: {other:?}")),
+            other => {
+                return Err(format!(
+                    "state does not record what was asked for: {other:?}"
+                ))
+            }
         }
 
         // 2. A second deploy must not bill again.
@@ -246,7 +279,10 @@ async fn the_server_lifecycle_against_the_real_api() {
                 second.id, first.id
             ));
         }
-        eprintln!("  live: a second deploy returned {} — no second bill", second.id);
+        eprintln!(
+            "  live: a second deploy returned {} — no second bill",
+            second.id
+        );
 
         // 3. The code changes under the record: refuse, do not serve the old box.
         let changed = HetznerServer::new(client.clone(), &renamed)
@@ -261,13 +297,17 @@ async fn the_server_lifecycle_against_the_real_api() {
                     out.id, out.name
                 ))
             }
-            Err(HetznerError::Api { ref code, ref message, .. })
-                if code == "state_declaration_mismatch" =>
-            {
+            Err(HetznerError::Api {
+                ref code,
+                ref message,
+                ..
+            }) if code == "state_declaration_mismatch" => {
                 if !message.contains("Destroy instance 0") {
                     return Err(format!("the refusal must say what to do: {message}"));
                 }
-                eprintln!("  live: a changed declaration was refused rather than served the old server");
+                eprintln!(
+                    "  live: a changed declaration was refused rather than served the old server"
+                );
             }
             Err(e) => return Err(format!("wrong error for stale state: {e}")),
         }
@@ -288,7 +328,10 @@ async fn the_server_lifecycle_against_the_real_api() {
             .remove("0")
             .await
             .map_err(|e| format!("drop state: {e}"))?;
-        eprintln!("  live: dropped the state record — Hetzner has {} and we have nothing", first.id);
+        eprintln!(
+            "  live: dropped the state record — Hetzner has {} and we have nothing",
+            first.id
+        );
 
         Ok(())
     }
@@ -305,7 +348,10 @@ async fn the_server_lifecycle_against_the_real_api() {
     let mut leaked = Vec::new();
     for n in [&name, &renamed] {
         for server in client.list_servers(Some(n)).await.unwrap_or_default() {
-            eprintln!("  !! {} ({}) survived — deleting directly", server.id, server.name);
+            eprintln!(
+                "  !! {} ({}) survived — deleting directly",
+                server.id, server.name
+            );
             leaked.push(server.id);
             let _ = client.delete_server(server.id).await;
         }

@@ -1,19 +1,19 @@
-//! Tests for NoThreadController with SpinWaiter
+//! Tests for `NoThreadController` with `SpinWaiter`
 //!
-//! These tests verify that NoThreadController properly uses SpinWaiter
+//! These tests verify that `NoThreadController` properly uses `SpinWaiter`
 //! for iteration-based waiting in single-threaded/WASM environments.
 
 #![cfg(not(feature = "multi"))]
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::time::Duration;
-use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn, NoThreadController},
-    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
+    FnReady, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 /// Task that returns Ready a limited number of times then completes
 struct FiniteTask {
@@ -143,11 +143,9 @@ fn single_threaded_runs_counter_to_completion() {
     assert_eq!(results.borrow()[..], [1, 2, 3, 4, 5]);
 }
 
-
 #[test]
 fn nothreadcontroller_is_cloneable() {
     let controller = NoThreadController::new();
     let _cloned = controller.clone();
     // Should compile and not panic
 }
-

@@ -6,7 +6,7 @@
 //! secrets that survives a restart.
 //!
 //! WHAT: [`TrustedClientStore`] over any `foundation_db` SQL backend
-//! ([`AsyncQueryStore`]: Turso/SQLite by default via
+//! ([`QueryStore`]: Turso/SQLite by default via
 //! [`TrustedClientStore::open_sqlite`], libsql, D1). Two tables:
 //! - `agent_rpc_trusted_clients` — one row per issued client certificate
 //!   (fingerprint, name, enrolled/expiry/last-seen/revoked times);
@@ -22,7 +22,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 
-use foundation_db::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::{DataValue, QueryStore, SqlRow};
 use foundation_errstacks::ErrorTrace;
 use futures::StreamExt;
 
@@ -93,7 +93,7 @@ fn opt_uint(row: &SqlRow, index: usize, what: &str) -> AgentRpcResult<Option<u64
 
 /// Durable record of enrolled clients and spent bootstrap secrets.
 pub struct TrustedClientStore {
-    storage: Arc<dyn AsyncQueryStore>,
+    storage: Arc<dyn QueryStore>,
     index: RwLock<HashMap<String, TrustedClient>>,
 }
 
@@ -111,14 +111,14 @@ impl TrustedClientStore {
     ///
     /// # Errors
     /// [`AgentRpcError::Storage`] when the schema or the load fails.
-    pub async fn open(storage: Arc<dyn AsyncQueryStore>) -> AgentRpcResult<Arc<Self>> {
+    pub async fn open(storage: Arc<dyn QueryStore>) -> AgentRpcResult<Arc<Self>> {
         storage
-            .execute_batch_async(SCHEMA)
+            .execute_batch(SCHEMA)
             .await
             .map_err(|e| storage_err("creating the trusted-client tables", e))?;
         let mut index = HashMap::new();
         let mut rows = storage
-            .query_async(
+            .query(
                 "SELECT fingerprint, client_name, enrolled_at, expires_at, last_seen_at, revoked_at \
                  FROM agent_rpc_trusted_clients",
                 &[],
@@ -144,12 +144,16 @@ impl TrustedClientStore {
     }
 
     /// Open (creating if needed) a SQLite database at `path` through
-    /// `foundation_db`'s Turso backend, creating parent directories.
+    /// `foundation_db`'s Turso backend, creating parent directories. `ctx`
+    /// supplies the connection gate, as for every `foundation_db` backend.
     ///
     /// # Errors
     /// [`AgentRpcError::Storage`] when the directory or database cannot be
     /// created or opened.
-    pub async fn open_sqlite(path: impl AsRef<Path>) -> AgentRpcResult<Arc<Self>> {
+    pub async fn open_sqlite(
+        path: impl AsRef<Path>,
+        ctx: foundation_context::Ctx,
+    ) -> AgentRpcResult<Arc<Self>> {
         let path = path.as_ref();
         if let Some(dir) = path.parent().filter(|d| !d.as_os_str().is_empty()) {
             std::fs::create_dir_all(dir)
@@ -158,7 +162,7 @@ impl TrustedClientStore {
         let url = path
             .to_str()
             .ok_or_else(|| storage_err("database path", "not valid UTF-8"))?;
-        let db = foundation_db::TursoStorage::open(url)
+        let db = foundation_db::TursoStorage::open(url, ctx)
             .await
             .map_err(|e| storage_err(&format!("opening {}", path.display()), e))?;
         Self::open(Arc::new(db)).await
@@ -187,9 +191,13 @@ impl TrustedClientStore {
     /// # Errors
     /// [`AgentRpcError::Storage`] when the insert fails (including a
     /// duplicate fingerprint).
-    pub async fn record_enrollment(&self, client: TrustedClient, cert_pem: &str) -> AgentRpcResult<()> {
+    pub async fn record_enrollment(
+        &self,
+        client: TrustedClient,
+        cert_pem: &str,
+    ) -> AgentRpcResult<()> {
         self.storage
-            .execute_async(
+            .execute(
                 "INSERT INTO agent_rpc_trusted_clients \
                  (fingerprint, client_name, cert_pem, enrolled_at, expires_at, last_seen_at, revoked_at) \
                  VALUES (?, ?, ?, ?, ?, NULL, NULL)",
@@ -242,7 +250,7 @@ impl TrustedClientStore {
     pub async fn revoke(&self, fingerprint_sha256: &str, now: u64) -> AgentRpcResult<bool> {
         let changed = self
             .storage
-            .execute_async(
+            .execute(
                 "UPDATE agent_rpc_trusted_clients SET revoked_at = ? \
                  WHERE fingerprint = ? AND revoked_at IS NULL",
                 &[int(now), DataValue::Text(fingerprint_sha256.to_string())],
@@ -266,7 +274,7 @@ impl TrustedClientStore {
             client.last_seen_at = Some(now);
         }
         self.storage
-            .execute_async(
+            .execute(
                 "UPDATE agent_rpc_trusted_clients SET last_seen_at = ? WHERE fingerprint = ?",
                 &[int(now), DataValue::Text(fingerprint_sha256.to_string())],
             )
@@ -292,7 +300,7 @@ impl TrustedClientStore {
             return Ok(false);
         }
         self.storage
-            .execute_async(
+            .execute(
                 "DELETE FROM agent_rpc_bootstrap_secret_uses WHERE valid_until <= ?",
                 &[int(now)],
             )
@@ -302,7 +310,7 @@ impl TrustedClientStore {
         // cannot both take the last use.
         let changed = self
             .storage
-            .execute_async(
+            .execute(
                 "INSERT INTO agent_rpc_bootstrap_secret_uses (secret_id, uses, valid_until) \
                  VALUES (?, 1, ?) \
                  ON CONFLICT(secret_id) DO UPDATE SET uses = uses + 1 WHERE uses < ?",

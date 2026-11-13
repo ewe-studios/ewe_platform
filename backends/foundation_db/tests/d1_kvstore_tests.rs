@@ -6,7 +6,7 @@ mod common;
 
 use common::make_d1_store;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{KeyValueStore, QueryStore, D1Store, DataValue};
+use foundation_db::{D1Store, DataValue, KeyValueStore, QueryStore};
 use futures_lite::StreamExt;
 
 /// A KV-initialised store on the local worker, or `None` to skip.
@@ -38,7 +38,9 @@ async fn keys(storage: &D1Store, prefix: Option<&str>) -> Vec<String> {
 
 #[valtron_test]
 async fn test_d1_kvstore_put_get() {
-    let Some(storage) = kv_store().await else { return };
+    let Some(storage) = kv_store().await else {
+        return;
+    };
     let key = format!("test_put_get_{}", stamp());
 
     storage.set(&key, "Hello, D1!").await.unwrap();
@@ -50,7 +52,9 @@ async fn test_d1_kvstore_put_get() {
 
 #[valtron_test]
 async fn test_d1_kvstore_delete() {
-    let Some(storage) = kv_store().await else { return };
+    let Some(storage) = kv_store().await else {
+        return;
+    };
     let key = format!("test_delete_{}", stamp());
 
     storage.set(&key, "To be deleted").await.unwrap();
@@ -62,7 +66,9 @@ async fn test_d1_kvstore_delete() {
 
 #[valtron_test]
 async fn test_d1_kvstore_exists() {
-    let Some(storage) = kv_store().await else { return };
+    let Some(storage) = kv_store().await else {
+        return;
+    };
     let key = format!("test_exists_{}", stamp());
 
     assert!(!storage.exists(&key).await.unwrap());
@@ -74,7 +80,9 @@ async fn test_d1_kvstore_exists() {
 
 #[valtron_test]
 async fn test_d1_kvstore_list_keys() {
-    let Some(storage) = kv_store().await else { return };
+    let Some(storage) = kv_store().await else {
+        return;
+    };
 
     storage.set("prefix:a", "1").await.unwrap();
     storage.set("prefix:b", "2").await.unwrap();

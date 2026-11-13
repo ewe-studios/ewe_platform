@@ -3,32 +3,31 @@
 //! Implements the `/v1/responses` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
-use foundation_compact::SystemTime;
+use foundation_compact::SendWrapper;
 use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_context::Ctx;
+use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
-    body_reader::collect_strings_from_send_safe,
+    body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::BoxedSseIterator,
     request::PreparedRequest,
 };
-use foundation_netio::shared::http::{
-    SimpleHeader, SimpleHeaders, SimpleMethod,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
+use crate::backends::backend_utils::{
+    capped_error_body, empty_usage_report, flatten_tools, model_id_to_string, prepared_request,
+    sleep, tool_arguments_from_str,
+};
 use crate::backends::model_info::{self, ModelInfoCache};
 use crate::backends::openai_provider::{parse_openai_error, OpenAIModelInfo, OpenAIModelResponse};
-use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, prepared_request, sleep,
-    tool_arguments_from_str,
-};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
     AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
@@ -48,6 +47,10 @@ pub struct ResponsesConfig {
     pub api_version: String,
     pub timeout_secs: u64,
     pub max_retries: u32,
+    /// At most this many bytes of a non-2xx response body are read to form the
+    /// error message. Default is 64 KiB, the error-drain limit Go `net/http`
+    /// uses before it closes a response body it will not use.
+    pub max_error_body: usize,
     pub proxy_url: Option<String>,
     pub streaming: bool,
     pub auth: Option<AuthCredential>,
@@ -60,6 +63,7 @@ impl Default for ResponsesConfig {
             api_version: String::from("v1"),
             timeout_secs: 120,
             max_retries: 3,
+            max_error_body: 64 * 1024,
             proxy_url: None,
             streaming: true,
             auth: None,
@@ -114,6 +118,12 @@ impl ResponsesConfig {
     }
 
     #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
+    }
+
+    #[must_use]
     pub fn with_streaming(mut self, enabled: bool) -> Self {
         self.streaming = enabled;
         self
@@ -143,6 +153,7 @@ impl Clone for ResponsesConfig {
             api_version: self.api_version.clone(),
             timeout_secs: self.timeout_secs,
             max_retries: self.max_retries,
+            max_error_body: self.max_error_body,
             proxy_url: self.proxy_url.clone(),
             streaming: self.streaming,
             auth: None,
@@ -355,39 +366,37 @@ pub struct ResponsesProvider {
     api_key: Option<ConfidentialText>,
     http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
-}
-
-impl Default for ResponsesProvider {
-    fn default() -> Self {
-        Self::new()
-    }
+    /// The context. Every message this provider emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl ResponsesProvider {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
+            ctx,
         }
     }
 
     /// A provider authenticated with an API key: shorthand for
     /// `with_config(ResponsesConfig::api_key(key))`.
     #[must_use]
-    pub fn api_key(key: impl Into<String>) -> Self {
-        Self::with_config(ResponsesConfig::api_key(key))
+    pub fn api_key(key: impl Into<String>, ctx: Ctx) -> Self {
+        Self::with_config(ResponsesConfig::api_key(key), ctx)
     }
 
     #[must_use]
-    pub fn with_config(config: ResponsesConfig) -> Self {
+    pub fn with_config(config: ResponsesConfig, ctx: Ctx) -> Self {
         Self {
             config,
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
+            ctx,
         }
     }
 
@@ -396,12 +405,13 @@ impl ResponsesProvider {
     /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
     /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: DynNetClient) -> Self {
+    pub fn with_http_client(client: DynNetClient, ctx: Ctx) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
+            ctx,
         }
     }
 
@@ -410,12 +420,14 @@ impl ResponsesProvider {
     pub fn with_http_client_and_config(
         client: DynNetClient,
         config: ResponsesConfig,
+        ctx: Ctx,
     ) -> Self {
         Self {
             config,
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
+            ctx,
         }
     }
 
@@ -467,7 +479,14 @@ impl ResponsesProvider {
             .clone()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
         let req = self.model_info_request(model_name)?;
-        let info = model_info::fetch(client, req, parse_openai_error, model_from_response).await?;
+        let info = model_info::fetch(
+            client,
+            req,
+            parse_openai_error,
+            model_from_response,
+            self.config.max_error_body,
+        )
+        .await?;
         model_info::store(&self.models_cache, model_name, info.clone());
         Ok(info)
     }
@@ -481,7 +500,13 @@ impl ResponsesProvider {
             model_info::spawn_lookup(
                 Arc::clone(&self.models_cache),
                 model_name.to_string(),
-                model_info::fetch(Arc::clone(client), req, parse_openai_error, model_from_response),
+                model_info::fetch(
+                    Arc::clone(client),
+                    req,
+                    parse_openai_error,
+                    model_from_response,
+                    self.config.max_error_body,
+                ),
             );
         }
         model_info::placeholder(model_name, "")
@@ -533,14 +558,17 @@ impl ResponsesProvider {
 
         let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_strings_from_send_safe(body)
-            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let body_text = capped_error_body(body, self.config.max_error_body);
             let retry_after = extract_retry_after(&headers);
             let msg = format!("HTTP {status_code}: {body_text}");
             return Ok(Err((status_code as u16, retry_after, msg)));
         }
+
+        let body_text = collect_strings_from_send_safe(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         serde_json::from_str(&body_text)
             .map(|v| Ok(v))
@@ -622,9 +650,10 @@ impl ModelProvider for ResponsesProvider {
             http_client: self.http_client.clone(),
             models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-            cumulative_cost: Arc::new(std::sync::Mutex::new(
-                crate::costing::CostAccumulator::new(),
-            )),
+            cumulative_cost: Arc::new(
+                std::sync::Mutex::new(crate::costing::CostAccumulator::new()),
+            ),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -688,6 +717,8 @@ pub struct ResponsesModel {
     /// `costing()` cannot report a cumulative figure even though each response
     /// already carries the vendor's token counts.
     cumulative_cost: Arc<std::sync::Mutex<crate::costing::CostAccumulator>>,
+    /// The context. Every message this model emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl ResponsesModel {
@@ -845,20 +876,90 @@ impl ResponsesModel {
 
         let (status, _headers, body) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_strings_from_send_safe(body)
-            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let body_text = capped_error_body(body, self.config.max_error_body);
             let msg = format!("HTTP {status_code}: {body_text}");
             return Ok(Err((status_code as u16, None, msg)));
         }
+
+        let body_text = collect_strings_from_send_safe(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         serde_json::from_str(&body_text)
             .map(|v| Ok(v))
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
     }
+
+    /// Async single attempt over [`HttpClient::send_async`]; yields on wasm.
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
+    async fn do_request_async<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
+
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send_async(req)
+            .await
+            .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
+
+        let (status, _headers, body) = response.into_async_parts();
+        let status_code: usize = status.into();
+
+        if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let bytes = collect_bytes_bounded(body, self.config.max_error_body).await;
+            let body_text = String::from_utf8_lossy(&bytes);
+            let msg = format!("HTTP {status_code}: {body_text}");
+            return Ok(Err((status_code as u16, None, msg)));
+        }
+
+        let body_text = collect_string_async(body)
+            .await
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+
+        serde_json::from_str(&body_text)
+            .map(|v| Ok(v))
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
+    }
+
+    /// Async retry loop over [`Self::do_request_async`]; back-off yields on
+    /// wasm via valtron's [`sleep_async`] timer.
+    async fn execute_request_async<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<T> {
+        let mut attempt = 0;
+        let max_retries = self.config.max_retries;
+
+        loop {
+            let result = self.do_request_async::<T>(url, body).await?;
+            match result {
+                Ok(value) => return Ok(value),
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
+                        return Err(GenerationError::Backend(msg));
+                    }
+                    let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
+                    attempt += 1;
+                    // `sleep_async` is `!Send` on wasm (single-threaded valtron
+                    // executor); wrap it so this async-trait future stays `Send`.
+                    SendWrapper::new(sleep_async(Duration::from_secs(delay), &self.ctx)).await;
+                }
+            }
+        }
+    }
 }
 
+#[async_trait::async_trait]
 impl Model for ResponsesModel {
     fn spec(&self) -> ModelSpec {
         ModelSpec {
@@ -921,11 +1022,34 @@ impl Model for ResponsesModel {
         let url = self.build_url("responses");
         let response: Response = self.execute_request(&url, &body)?;
 
-        let message = parse_response(&response, &self.model_id);
+        let message = parse_response(&response, &self.model_id, &self.ctx);
 
         // Accrue this call's usage so `costing()` can report a running total.
         // `parse_response` has already converted the vendor's token counts into
         // the message's UsageReport, so this only sums what is already there.
+        if let Messages::Assistant { ref usage, .. } = message {
+            self.cumulative_cost.lock().unwrap().add(&usage.cost);
+        }
+
+        Ok(vec![message])
+    }
+
+    async fn generate_async(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>> {
+        let params = specs.unwrap_or_default();
+        let request = self.build_request(&interaction, &params, false);
+
+        let body = serde_json::to_string(&request)
+            .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
+
+        let url = self.build_url("responses");
+        let response: Response = self.execute_request_async(&url, &body).await?;
+
+        let message = parse_response(&response, &self.model_id, &self.ctx);
+
         if let Messages::Assistant { ref usage, .. } = message {
             self.cumulative_cost.lock().unwrap().add(&usage.cost);
         }
@@ -962,6 +1086,7 @@ impl Model for ResponsesModel {
             accumulated_text: String::new(),
             response: None,
             done: false,
+            ctx: self.ctx.clone(),
         }))
     }
 }
@@ -976,6 +1101,7 @@ struct ResponsesStream {
     accumulated_text: String,
     response: Option<Response>,
     done: bool,
+    ctx: Ctx,
 }
 
 /// Readiness comes from the underlying SSE stream: a consumer parked on this
@@ -1046,7 +1172,7 @@ impl ResponsesStream {
             return Stream::Next(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: SystemTime::now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: empty_usage_report(),
                 content: ModelOutput::Text(TextContent {
                     content: self.accumulated_text.clone(),
@@ -1066,7 +1192,7 @@ impl ResponsesStream {
                 Stream::Next(Messages::Assistant {
                     id: foundation_compact::ids::new_scru128(),
                     model: self.model_id.clone(),
-                    timestamp: SystemTime::now(),
+                    timestamp: self.ctx.clock().wall_now(),
                     usage: empty_usage_report(),
                     content: ModelOutput::Text(TextContent {
                         content: self.accumulated_text.clone(),
@@ -1094,7 +1220,7 @@ impl ResponsesStream {
             return Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: SystemTime::now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: empty_usage_report(),
                 content: ModelOutput::Text(TextContent {
                     content: self.accumulated_text.clone(),
@@ -1141,7 +1267,7 @@ impl ResponsesStream {
         Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: self.ctx.clock().wall_now(),
             usage,
             content,
             stop_reason,
@@ -1300,7 +1426,7 @@ fn build_response_metadata(output: &[ResponseOutputItem]) -> Option<Vec<Generati
     }
 }
 
-fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
+fn parse_response(response: &Response, model_id: &ModelId, ctx: &Ctx) -> Messages {
     #[allow(clippy::cast_precision_loss)]
     let usage = response
         .usage
@@ -1334,7 +1460,7 @@ fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: model_id.clone(),
-        timestamp: SystemTime::now(),
+        timestamp: ctx.clock().wall_now(),
         usage,
         content,
         stop_reason,

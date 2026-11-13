@@ -20,6 +20,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use foundation_ai::types::{Model, ModelId, PreloadedProvider, ProviderRouter};
+use foundation_context::Ctx;
 
 use crate::error::{AgentRpcError, AgentRpcResult};
 
@@ -120,17 +121,18 @@ impl std::fmt::Display for ModelHandle {
 }
 
 impl ModelHandle {
-    /// Load the model described by `source`.
+    /// Load the model described by `source`. `ctx` is the side-effect bundle
+    /// the backend reads its clock from.
     ///
     /// # Errors
     /// [`AgentRpcError::ModelLoad`] when the backend cannot load the model.
-    pub fn load(source: &ModelSource) -> AgentRpcResult<Self> {
+    pub fn load(source: &ModelSource, ctx: Ctx) -> AgentRpcResult<Self> {
         match source {
             #[cfg(feature = "candle")]
             ModelSource::Candle { name, dir } => {
                 let name = name.clone();
                 let dir = dir.clone();
-                Self::load_with(name.clone(), move || load_candle(&name, &dir))
+                Self::load_with(name.clone(), move || load_candle(&name, &dir, ctx))
             }
             #[cfg(feature = "gguf")]
             ModelSource::Gguf { name, path, device } => {
@@ -221,6 +223,7 @@ impl ModelHandle {
 fn load_candle(
     name: &str,
     dir: &std::path::Path,
+    ctx: Ctx,
 ) -> AgentRpcResult<foundation_ai::backends::candle::CandleModels> {
     use foundation_ai::backends::candle::CandleBackend;
     use foundation_ai::types::{ModelProvider, ModelSpec};
@@ -232,7 +235,7 @@ fn load_candle(
         model_location: Some(dir.to_path_buf()),
         lora_location: None,
     };
-    CandleBackend::cpu()
+    CandleBackend::cpu(ctx)
         .get_model_by_spec(spec)
         .map_err(|e| AgentRpcError::ModelLoad(format!("{name} from {}: {e}", dir.display())).into())
 }

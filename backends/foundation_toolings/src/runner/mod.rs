@@ -2,49 +2,56 @@
 // Spawns to background, uses Depends to park between state transitions.
 
 use std::process::{Command, Stdio};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, EventReadiness, QueueReadiness, TaskIterator, TaskStatus};
+use foundation_compact::Instant;
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventQueue, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::types::ProjectDefinition;
 
 // -- DurationSleeper: EventReadiness for time-based waits
 
+/// A deadline wait that reads the injected [`Ctx`] clock.
+///
+/// `None` means the wait has not started. `start` stores the deadline, and
+/// `is_done` compares the clock to it, so a simulated clock drives the wait.
 #[derive(Clone)]
 pub struct DurationSleeper {
-    deadline: Arc<AtomicU64>, // epoch millis, 0 = not started
+    ctx: Ctx,
+    deadline: Arc<Mutex<Option<Instant>>>,
 }
 
 impl DurationSleeper {
-    pub fn new() -> Self {
+    /// A sleeper that reads the clock carried by `ctx`.
+    #[must_use]
+    pub fn new(ctx: Ctx) -> Self {
         Self {
-            deadline: Arc::new(AtomicU64::new(0)),
+            ctx,
+            deadline: Arc::new(Mutex::new(None)),
         }
     }
 
+    /// Start a wait of `duration` from the current clock instant.
     pub fn start(&mut self, duration: Duration) {
-        // Store deadline as epoch millis
-        let epoch = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64
-            + duration.as_millis() as u64;
-        self.deadline.store(epoch, Ordering::SeqCst);
+        let deadline = self.ctx.clock().now() + duration;
+        let mut slot = self
+            .deadline
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *slot = Some(deadline);
     }
 
+    /// Whether the clock has reached the deadline.
+    #[must_use]
     pub fn is_done(&self) -> bool {
-        let deadline = self.deadline.load(Ordering::SeqCst);
-        if deadline == 0 {
-            return false;
-        }
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64;
-        now >= deadline
+        let deadline = *self
+            .deadline
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        deadline.is_some_and(|deadline| self.ctx.clock().now() >= deadline)
     }
 }
 
@@ -58,8 +65,8 @@ impl EventReadiness for DurationSleeper {
 
 pub struct BinaryRunnerTask {
     project: ProjectDefinition,
-    build_queue: Arc<ConcurrentQueue<()>>,
-    build_ready: QueueReadiness<()>,
+    /// Build-complete signals. A push wakes the task parked on it.
+    build_queue: EventQueue<()>,
     running_tx: Arc<ConcurrentQueue<()>>,
     child: Option<std::process::Child>,
     wait_before_reload: Duration,
@@ -77,18 +84,17 @@ enum RunnerState {
 impl BinaryRunnerTask {
     pub fn new(
         project: ProjectDefinition,
-        build_queue: Arc<ConcurrentQueue<()>>,
+        build_queue: EventQueue<()>,
         running_tx: Arc<ConcurrentQueue<()>>,
+        ctx: Ctx,
     ) -> Self {
-        let build_ready = QueueReadiness::new(build_queue.clone());
         Self {
             project: project.clone(),
             build_queue,
-            build_ready,
             running_tx,
             child: None,
             wait_before_reload: project.wait_before_reload,
-            reload_sleeper: DurationSleeper::new(),
+            reload_sleeper: DurationSleeper::new(ctx),
             state: RunnerState::Idle,
         }
     }
@@ -112,9 +118,8 @@ impl BinaryRunnerTask {
 
     pub fn readiness(&self) -> Arc<dyn EventReadiness + Send + Sync> {
         match self.state {
-            RunnerState::Idle => Arc::new(self.build_ready.clone()),
+            RunnerState::Idle | RunnerState::Running => Arc::new(self.build_queue.readiness()),
             RunnerState::ReloadDelay => Arc::new(self.reload_sleeper.clone()),
-            RunnerState::Running => Arc::new(self.build_ready.clone()),
         }
     }
 }
@@ -146,7 +151,7 @@ impl TaskIterator for BinaryRunnerTask {
                         }
                     }
                 }
-                Some(TaskStatus::Depends(Arc::new(self.build_ready.clone())))
+                Some(TaskStatus::Depends(self.readiness()))
             }
             RunnerState::ReloadDelay => {
                 if self.reload_sleeper.is_done() {
@@ -166,7 +171,7 @@ impl TaskIterator for BinaryRunnerTask {
                 }
                 // Back to waiting for next build
                 self.state = RunnerState::Idle;
-                Some(TaskStatus::Depends(Arc::new(self.build_ready.clone())))
+                Some(TaskStatus::Depends(self.readiness()))
             }
         }
     }

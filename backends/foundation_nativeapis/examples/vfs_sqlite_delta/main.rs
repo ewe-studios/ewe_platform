@@ -6,7 +6,6 @@
 /// ```bash
 /// cargo run -p foundation_nativeapis --features "vfs-preload,vfs-sqlite" --example vfs_sqlite_delta
 /// ```
-
 use std::process::Command;
 
 const TEST_C: &str = r#"

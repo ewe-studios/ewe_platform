@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! gRPC protocol tests over HTTP/2 cleartext (spec-41 F31).
 //!
 //! WHY: Feature 31 gRPC is implemented (handler, client, wire tasks) but has zero
@@ -29,17 +37,18 @@ use std::time::Duration;
 use bytes::Bytes;
 use futures::StreamExt;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
+use foundation_http::native::server::HttpServer;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, RequestStream, Response, Router, RpcCtx,
 };
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
@@ -65,8 +74,8 @@ const BIDI: &str = "/t.Svc/Bidi";
 /// Sends one message, then nothing until the call is cancelled.
 const ENDLESS: &str = "/t.Svc/Endless";
 
-/// The server-side `Ctx` of the last `ENDLESS` call.
-static ENDLESS_CTX: std::sync::Mutex<Option<Ctx>> = std::sync::Mutex::new(None);
+/// The server-side `RpcCtx` of the last `ENDLESS` call.
+static ENDLESS_CTX: std::sync::Mutex<Option<RpcCtx>> = std::sync::Mutex::new(None);
 
 fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
@@ -78,7 +87,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -87,7 +96,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -99,7 +108,7 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(msg) = reqs.next().await {
                 parts.push(msg?.text);
@@ -112,7 +121,7 @@ fn build_router() -> Router {
     router.server_stream(
         ENDLESS,
         codecs(),
-        |ctx: Ctx, _req: Request<Msg>| async move {
+        |ctx: RpcCtx, _req: Request<Msg>| async move {
             *ENDLESS_CTX.lock().unwrap() = Some(ctx);
             let first: Vec<ConnectResult<Msg>> = vec![Ok(Msg::of("first"))];
             Ok(futures::stream::iter(first).chain(futures::stream::pending()))
@@ -123,7 +132,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
         HandlerOptions::new(),
@@ -134,7 +143,7 @@ fn build_router() -> Router {
 
 /// Start an HTTP/2 server with Connect and gRPC handlers both wired.
 /// The router's protocol-agnostic dispatch picks gRPC based on `Content-Type`.
-fn start_h2_server() -> (String, Arc<OnSignal>) {
+fn start_h2_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
@@ -146,7 +155,7 @@ fn start_h2_server() -> (String, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
@@ -157,8 +166,8 @@ fn start_h2_server() -> (String, Arc<OnSignal>) {
     (addr.to_string(), shutdown)
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 // ── gRPC envelope helpers ────────────────────────────────────────────────────
@@ -170,8 +179,7 @@ const ENVELOPE_HEADER_LEN: usize = 5;
 fn grpc_envelope(payload: &[u8]) -> Vec<u8> {
     let mut envelope = vec![0u8; ENVELOPE_HEADER_LEN];
     envelope[0] = 0x00; // flags: none
-    envelope[1..ENVELOPE_HEADER_LEN]
-        .copy_from_slice(&(payload.len() as u32).to_be_bytes());
+    envelope[1..ENVELOPE_HEADER_LEN].copy_from_slice(&(payload.len() as u32).to_be_bytes());
     envelope.extend_from_slice(payload);
     envelope
 }
@@ -276,7 +284,11 @@ async fn grpc_unary_over_h2c_transport() {
     }
 
     let messages = parse_envelope_messages(&body_bytes);
-    assert_eq!(messages.len(), 1, "gRPC unary response is exactly one envelope");
+    assert_eq!(
+        messages.len(),
+        1,
+        "gRPC unary response is exactly one envelope"
+    );
 
     let echoed: Msg =
         serde_json::from_slice(&messages[0]).expect("decode gRPC unary response message");
@@ -465,10 +477,7 @@ async fn grpc_bidi_stream_via_typed_client() {
     let (addr, shutdown) = start_h2_server();
 
     let client = grpc_client_for(&addr, BIDI);
-    let mut stream = client
-        .bidi_stream(ctx(), futures::stream::iter(Vec::<Msg>::new()))
-        .await
-        .expect("open bidi");
+    let mut stream = client.bidi_stream(ctx()).await.expect("open bidi");
 
     for text in ["x", "y", "z"] {
         stream.send(&Msg::of(text)).await.expect("send");
@@ -499,8 +508,13 @@ async fn grpc_handler_error_returns_http_200() {
     router.unary(
         ERR_PATH,
         codecs(),
-        |_ctx: Ctx, _req: Request<Msg>| async move {
-            Err(foundation_connectrpc::shared::error::ConnectError::permission_denied("not allowed").into())
+        |_ctx: RpcCtx, _req: Request<Msg>| async move {
+            Err(
+                foundation_connectrpc::shared::error::ConnectError::permission_denied(
+                    "not allowed",
+                )
+                .into(),
+            )
         },
         HandlerOptions::new(),
     );
@@ -511,7 +525,7 @@ async fn grpc_handler_error_returns_http_200() {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
     thread::spawn(move || {
@@ -608,7 +622,7 @@ async fn grpc_timeout_header_is_accepted() {
 }
 
 /// WHY: h2 trailing HEADERS carry `grpc-status` after the response body.
-/// F31 plumbs them through `TransportStream::trailers` — the H2Pump decodes
+/// F31 plumbs them through `TransportStream::trailers` — the `H2Pump` decodes
 /// trailing headers and pushes them into a dedicated pipe.
 ///
 /// WHAT: Open a gRPC unary call, drain the body, then read `stream.trailers`.
@@ -710,10 +724,12 @@ async fn grpc_error_trailers_readable_from_response() {
     router.unary(
         ERR_PATH,
         codecs(),
-        |_ctx: Ctx, _req: Request<Msg>| async move {
+        |_ctx: RpcCtx, _req: Request<Msg>| async move {
             Err(
-                foundation_connectrpc::shared::error::ConnectError::permission_denied("not allowed")
-                    .into(),
+                foundation_connectrpc::shared::error::ConnectError::permission_denied(
+                    "not allowed",
+                )
+                .into(),
             )
         },
         HandlerOptions::new(),
@@ -725,7 +741,7 @@ async fn grpc_error_trailers_readable_from_response() {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
     std::thread::spawn(move || {
@@ -757,9 +773,9 @@ async fn grpc_error_trailers_readable_from_response() {
     shutdown.turn_on();
 }
 
-/// Cancelling a call's `Ctx` on the client tells the server: the client's
+/// Cancelling a call's `RpcCtx` on the client tells the server: the client's
 /// stream tasks end, the transport resets the h2 stream, and the server
-/// cancels the handler's `Ctx`. Before, `cancel()` only stopped the local
+/// cancels the handler's `RpcCtx`. Before, `cancel()` only stopped the local
 /// receiver and kept the stream open, so the server streamed on into a peer
 /// that had given up, until the caller dropped the stream.
 #[valtron_test]
@@ -773,7 +789,11 @@ async fn client_cancel_resets_the_stream_on_the_server() {
         .server_stream(call.clone(), Request::new(Msg::of("go")))
         .await
         .expect("open server stream");
-    let first = stream.receive().await.expect("receive").expect("one message");
+    let first = stream
+        .receive()
+        .await
+        .expect("receive")
+        .expect("one message");
     assert_eq!(first.text, "first");
 
     let server_ctx = ENDLESS_CTX
@@ -791,9 +811,12 @@ async fn client_cancel_resets_the_stream_on_the_server() {
             started.elapsed() < Duration::from_secs(5),
             "the server never learned the client cancelled"
         );
-        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(10),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     drop(stream);
     shutdown.turn_on();
 }
-

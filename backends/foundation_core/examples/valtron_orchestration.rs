@@ -8,10 +8,11 @@
 //! cargo run -p foundation_core --example valtron_orchestration
 //! ```
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
+use foundation_core::valtron::{execute, task, valtron, StreamIteratorExt, TaskStatus};
 
-/// --- Parallel fan-out: three enum-state cooks -----------------------------
+// --- Parallel fan-out: three enum-state cooks -----------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EggStage {
@@ -25,6 +26,10 @@ struct Eggs {
     fried: bool,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn fry_eggs(ctx: Ctx, stage: EggStage) -> Option<(EggStage, TaskStatus<Eggs, ()>)> {
     let _ = ctx;
@@ -47,6 +52,10 @@ struct Coffee {
     cups: u32,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn brew_coffee(ctx: Ctx, stage: CoffeeStage) -> Option<(CoffeeStage, TaskStatus<Coffee, ()>)> {
     let _ = ctx;
@@ -69,6 +78,10 @@ struct Toast {
     slices: u32,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn toast_bread(ctx: Ctx, stage: ToastStage) -> Option<(ToastStage, TaskStatus<Toast, ()>)> {
     let _ = ctx;
@@ -79,7 +92,7 @@ fn toast_bread(ctx: Ctx, stage: ToastStage) -> Option<(ToastStage, TaskStatus<To
     }
 }
 
-/// --- Sequential pipeline: enum states feeding stage to stage --------------
+// --- Sequential pipeline: enum states feeding stage to stage --------------
 
 /// A struct state: the order to cook, and how many steps of cooking remain.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -102,6 +115,10 @@ enum Ordering {
 
 /// A one-shot task: take the order, emit it as the single `Ready` value, then
 /// move to `Taken`, whose arm (`Taken => None`) terminates.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn take_order(ctx: Ctx, state: Ordering) -> Option<(Ordering, TaskStatus<Order, ()>)> {
     let _ = ctx;
@@ -109,7 +126,10 @@ fn take_order(ctx: Ctx, state: Ordering) -> Option<(Ordering, TaskStatus<Order, 
         Ordering::Taken => None,
         Ordering::New => Some((
             Ordering::Taken,
-            TaskStatus::Ready(Order { dish: "pancakes".to_string(), steps_left: 2 }),
+            TaskStatus::Ready(Order {
+                dish: "pancakes".to_string(),
+                steps_left: 2,
+            }),
         )),
     }
 }
@@ -121,6 +141,10 @@ enum Cooking {
     Done,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn cook(ctx: Ctx, state: Cooking) -> Option<(Cooking, TaskStatus<Meal, ()>)> {
     let _ = ctx;
@@ -131,7 +155,10 @@ fn cook(ctx: Ctx, state: Cooking) -> Option<(Cooking, TaskStatus<Meal, ()>)> {
                 Some((Cooking::Done, TaskStatus::Ready(Meal { dish: order.dish })))
             } else {
                 Some((
-                    Cooking::Cooking(Order { steps_left: order.steps_left - 1, ..order }),
+                    Cooking::Cooking(Order {
+                        steps_left: order.steps_left - 1,
+                        ..order
+                    }),
                     TaskStatus::Ignore,
                 ))
             }
@@ -146,14 +173,19 @@ enum Serving {
     Done,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn serve(ctx: Ctx, state: Serving) -> Option<(Serving, TaskStatus<String, ()>)> {
     let _ = ctx;
     match state {
         Serving::Done => None,
-        Serving::ToServe(meal) => {
-            Some((Serving::Done, TaskStatus::Ready(format!("served {}", meal.dish))))
-        }
+        Serving::ToServe(meal) => Some((
+            Serving::Done,
+            TaskStatus::Ready(format!("served {}", meal.dish)),
+        )),
     }
 }
 

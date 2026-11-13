@@ -21,7 +21,7 @@ fn fails_read_all_the_data_when_limit_is_reached() {
     let mut read_data = Vec::new();
 
     let read_length = binding.read_all(&mut read_data, Some(2));
-    assert!(read_length.is_err())
+    assert!(read_length.is_err());
 }
 
 #[test]

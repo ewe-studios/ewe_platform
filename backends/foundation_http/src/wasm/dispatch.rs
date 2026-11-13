@@ -14,7 +14,7 @@ use std::sync::Arc;
 use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::MiddlewareResult;
 use crate::shared::serve::ServeError;
 use crate::shared::serve_web::WebServe;
@@ -27,15 +27,17 @@ pub trait HttpAppCfDispatch {
     /// Dispatch a request through middleware and router, returning a `web_sys::Response`.
     fn dispatch_cf(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
-    ) -> impl std::future::Future<Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>> + '_;
+    ) -> impl std::future::Future<
+        Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>,
+    > + '_;
 }
 
 impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
     async fn dispatch_cf(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
         let method = req.method.clone();
@@ -44,7 +46,7 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
         // Run middleware
         let mut req = req;
         for mw in self.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
+            match mw.handle(&ctx, &mut req) {
                 MiddlewareResult::Continue => {}
                 MiddlewareResult::Response(response) => {
                     let status_code: usize = response.status.clone().into();
@@ -60,7 +62,11 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
                     }
                     conn.set_body(body_bytes);
                     return conn.into_response().map_err(|e| {
-                        ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
+                        ServeError::InternalError {
+                            status: 500,
+                            reason: format!("{e:?}"),
+                        }
+                        .into()
                     });
                 }
                 MiddlewareResult::InterimResponse(_) => {}
@@ -68,27 +74,32 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
         }
 
         // Dispatch to router
-        let handler = self.router().dispatch(&method, &path)
-            .ok_or_else(|| ServeError::BadRequest {
-                status: 404,
-                reason: format!("no route for {method:?} {path}"),
-            })?;
+        let handler =
+            self.router()
+                .dispatch(&method, &path)
+                .ok_or_else(|| ServeError::BadRequest {
+                    status: 404,
+                    reason: format!("no route for {method:?} {path}"),
+                })?;
 
         // Execute handler (async)
         let mut conn = CfConn::new();
-        let result = handler.serve_cf(bag, req, &mut conn).await;
+        let result = handler.serve_cf(ctx, req, &mut conn).await;
 
         match result {
-            CfConnectionResult::Ok => {
-                conn.into_response().map_err(|e| {
-                    ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
-                })
-            }
+            CfConnectionResult::Ok => conn.into_response().map_err(|e| {
+                ServeError::InternalError {
+                    status: 500,
+                    reason: format!("{e:?}"),
+                }
+                .into()
+            }),
             CfConnectionResult::Close(err) => Err(err.unwrap_or_else(|| {
                 ServeError::InternalError {
                     status: 500,
                     reason: "handler closed connection".into(),
-                }.into()
+                }
+                .into()
             })),
         }
     }
@@ -99,15 +110,17 @@ pub trait HttpAppWebDispatch {
     /// Dispatch a request through middleware and router, returning a `web_sys::Response`.
     fn dispatch_web(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
-    ) -> impl std::future::Future<Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>> + '_;
+    ) -> impl std::future::Future<
+        Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>,
+    > + '_;
 }
 
 impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
     async fn dispatch_web(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
         let method = req.method.clone();
@@ -116,7 +129,7 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
         // Run middleware
         let mut req = req;
         for mw in self.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
+            match mw.handle(&ctx, &mut req) {
                 MiddlewareResult::Continue => {}
                 MiddlewareResult::Response(response) => {
                     let status_code: usize = response.status.clone().into();
@@ -132,7 +145,11 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
                     }
                     conn.set_body(body_bytes);
                     return conn.into_response().map_err(|e| {
-                        ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
+                        ServeError::InternalError {
+                            status: 500,
+                            reason: format!("{e:?}"),
+                        }
+                        .into()
                     });
                 }
                 MiddlewareResult::InterimResponse(_) => {}
@@ -140,27 +157,32 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
         }
 
         // Dispatch to router
-        let handler = self.router().dispatch(&method, &path)
-            .ok_or_else(|| ServeError::BadRequest {
-                status: 404,
-                reason: format!("no route for {method:?} {path}"),
-            })?;
+        let handler =
+            self.router()
+                .dispatch(&method, &path)
+                .ok_or_else(|| ServeError::BadRequest {
+                    status: 404,
+                    reason: format!("no route for {method:?} {path}"),
+                })?;
 
         // Execute handler (async)
         let mut conn = WebConn::new();
-        let result = handler.serve_web(bag, req, &mut conn).await;
+        let result = handler.serve_web(ctx, req, &mut conn).await;
 
         match result {
-            WebConnectionResult::Ok => {
-                conn.into_response().map_err(|e| {
-                    ServeError::InternalError { status: 500, reason: format!("{e:?}") }.into()
-                })
-            }
+            WebConnectionResult::Ok => conn.into_response().map_err(|e| {
+                ServeError::InternalError {
+                    status: 500,
+                    reason: format!("{e:?}"),
+                }
+                .into()
+            }),
             WebConnectionResult::Close(err) => Err(err.unwrap_or_else(|| {
                 ServeError::InternalError {
                     status: 500,
                     reason: "handler closed connection".into(),
-                }.into()
+                }
+                .into()
             })),
         }
     }

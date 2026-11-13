@@ -11,8 +11,8 @@
 //! the `abi` host module) with a non-WASM stub, and reuses `foundation_wasm`'s public
 //! `abi::web::invoke` for the typed call. Moved from `foundation_wasm` (feature 00).
 
-use foundation_wasm::raw_parts::RawParts;
 use foundation_wasm::abi::web::HostFunction;
+use foundation_wasm::raw_parts::RawParts;
 use foundation_wasm::{ExternalPointer, Params, ToBinary};
 
 // ─── DOM-specific host FFI ─────────────────────────────────────────────────────

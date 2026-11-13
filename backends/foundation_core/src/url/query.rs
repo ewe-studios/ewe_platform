@@ -44,7 +44,7 @@ pub struct Query {
     /// **lossless** rendering. `None` once the query is constructed empty or
     /// mutated — in which case [`Display`] regenerates canonically from `pairs`.
     ///
-    /// WHY: proxying and signed URLs (AWS SigV4, OAuth) require the query to
+    /// WHY: proxying and signed URLs (AWS `SigV4`, OAuth) require the query to
     /// round-trip byte-for-byte; re-encoding `,` → `%2C` or adding `=` to a bare
     /// key would break a signature. Preserving the raw source keeps parse→render
     /// lossless while still exposing structured access via `pairs`.
@@ -78,6 +78,12 @@ impl Query {
             pairs: Vec::new(),
             raw: None,
         }
+    }
+
+    /// Consumes the query and renders it as a query string.
+    #[must_use]
+    pub fn into_string(self) -> String {
+        self.to_string()
     }
 
     /// Parses a query string into key-value pairs.
@@ -300,6 +306,10 @@ impl std::error::Error for QueryError {}
 /// # Panics
 ///
 /// This function does not panic. Invalid encoding returns `Err(QueryError)`.
+///
+/// # Errors
+/// Returns `QueryError` when a percent escape is incomplete or is not valid
+/// hexadecimal.
 pub fn percent_decode(s: &str) -> Result<String, QueryError> {
     let mut result = String::with_capacity(s.len());
     let mut chars = s.chars();
@@ -352,8 +362,12 @@ pub fn percent_encode(s: &str) -> String {
             }
             b' ' => result.push('+'),
             _ => {
+                // Two upper-case hexadecimal digits, written without a format
+                // allocation.
+                const HEX: &[u8; 16] = b"0123456789ABCDEF";
                 result.push('%');
-                result.push_str(&format!("{byte:02X}"));
+                result.push(char::from(HEX[usize::from(byte >> 4)]));
+                result.push(char::from(HEX[usize::from(byte & 0x0F)]));
             }
         }
     }

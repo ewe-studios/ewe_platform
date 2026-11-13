@@ -25,12 +25,12 @@ use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{valtron_test, Ctx as VCtx, Stream as VStream, TaskIterator};
+use foundation_context::Ctx as VCtx;
+use foundation_core::valtron::{valtron_test, Stream as VStream, TaskIterator};
 use foundation_http::native::serve::H3Serve;
 use foundation_http::native::server::serve_h3;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Connection, H3Error, H3Request};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -43,8 +43,8 @@ use foundation_connectrpc::native::h3_serve::{dispatch_h3, ConnectRpcServeH3};
 use foundation_connectrpc::shared::context::CancelSignal;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H3Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request,
-    RequestStream, Response, Router,
+    Client, ClientOptions, H3Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request,
+    RequestStream, Response, Router, RpcCtx,
 };
 use futures::StreamExt;
 
@@ -56,6 +56,11 @@ const BUDGET: Duration = Duration::from_secs(10);
 const UNARY: &str = "/t.Svc/Unary";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const BIDI: &str = "/t.Svc/Bidi";
+/// A unary call that runs until the call's `RpcCtx` is cancelled.
+const SLOW_UNARY: &str = "/t.Svc/SlowUnary";
+/// A client-stream call that answers only after its request ends and the call's
+/// `RpcCtx` is cancelled.
+const SLOW_CLIENT_STREAM: &str = "/t.Svc/SlowClientStream";
 
 /// Connect envelope flag marking the end-of-stream message.
 const END_STREAM_FLAG: u8 = 0x02;
@@ -99,7 +104,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(msg(&format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new().with_read_max_bytes(unary_read_max_bytes),
@@ -110,7 +115,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        move |ctx: Ctx, mut reqs: RequestStream<Msg>| {
+        move |ctx: RpcCtx, mut reqs: RequestStream<Msg>| {
             let seen = Arc::clone(&cs_seen);
             async move {
                 *seen.cancel.lock().unwrap() = Some(ctx.cancel_signal().clone());
@@ -129,8 +134,46 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|m| m.map(|m| msg(&format!("re:{}", m.text)))))
+        },
+        HandlerOptions::new(),
+    );
+
+    // Holds the unary call open until something cancels it. A peer that stops
+    // reading after its body ends must be able to end this call (issue #257).
+    let su_seen = Arc::clone(seen);
+    router.unary(
+        SLOW_UNARY,
+        codecs(),
+        move |ctx: RpcCtx, _req: Request<Msg>| {
+            let seen = Arc::clone(&su_seen);
+            async move {
+                let cancel = ctx.cancel_signal().clone();
+                *seen.cancel.lock().unwrap() = Some(cancel.clone());
+                cancel.cancelled().await;
+                Ok(Response::new(msg("late")))
+            }
+        },
+        HandlerOptions::new().with_read_max_bytes(1024),
+    );
+
+    // Reads the whole request, then holds the call open until it is cancelled.
+    let scs_seen = Arc::clone(seen);
+    router.client_stream(
+        SLOW_CLIENT_STREAM,
+        codecs(),
+        move |ctx: RpcCtx, mut reqs: RequestStream<Msg>| {
+            let seen = Arc::clone(&scs_seen);
+            async move {
+                let cancel = ctx.cancel_signal().clone();
+                *seen.cancel.lock().unwrap() = Some(cancel.clone());
+                while let Some(m) = reqs.next().await {
+                    seen.messages.lock().unwrap().push(m?.text);
+                }
+                cancel.cancelled().await;
+                Ok(Response::new(msg("late")))
+            }
         },
         HandlerOptions::new(),
     );
@@ -160,8 +203,15 @@ impl Harness {
         let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
         let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
         let addr = sq.local_addr().expect("addr");
-        let (mut cq, client_conn) =
-            QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        let (mut cq, client_conn) = QuicDriver::connect(
+            addr,
+            client_cfg,
+            "localhost",
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("connect");
         let dl = Instant::now() + BUDGET;
         let server_conn = loop {
             if let Some(c) = QuicDriver::take_accepted(&sq) {
@@ -192,7 +242,7 @@ impl Harness {
         let inbound = wire(&mut sq, &mut cq, || server_h3.poll_accept());
         let call: DispatchFuture = Box::pin(dispatch_h3(
             Arc::new(router.into_handler()),
-            Arc::new(ContextBag::default()),
+            foundation_context::Ctx::host(),
             Arc::new(ConnectionContext::default()),
             inbound,
         ));
@@ -283,8 +333,8 @@ impl Harness {
 }
 
 fn pump(sq: &mut QuicDriver, cq: &mut QuicDriver) {
-    let _ = sq.next_status(VCtx::new());
-    let _ = cq.next_status(VCtx::new());
+    let _ = sq.next_status(VCtx::host());
+    let _ = cq.next_status(VCtx::host());
 }
 
 /// Drive a connection-level step until it completes, pumping only the wire.
@@ -527,7 +577,11 @@ fn grpc_unary_over_h3_ends_with_grpc_status() {
     let (_, payload) = h.next_envelope(&mut buf);
     assert_eq!(decode(&payload), msg("echo:hi"));
     assert_eq!(h.response_end(), None, "no more DATA after the message");
-    assert_eq!(grpc_status(&h).as_deref(), Some("0"), "unary gRPC must end in grpc-status");
+    assert_eq!(
+        grpc_status(&h).as_deref(),
+        Some("0"),
+        "unary gRPC must end in grpc-status"
+    );
 }
 
 /// A streaming gRPC call over HTTP/3 ends with a `grpc-status` trailer, not a
@@ -545,7 +599,11 @@ fn grpc_stream_over_h3_ends_with_grpc_status() {
     let (_, payload) = h.next_envelope(&mut buf);
     assert_eq!(decode(&payload), msg("re:x"));
     assert_eq!(h.response_end(), None, "no more DATA after the message");
-    assert_eq!(grpc_status(&h).as_deref(), Some("0"), "streaming gRPC must end in grpc-status");
+    assert_eq!(
+        grpc_status(&h).as_deref(),
+        Some("0"),
+        "streaming gRPC must end in grpc-status"
+    );
 }
 
 /// The client resets its request mid-stream. That is not a clean end of the
@@ -574,7 +632,7 @@ fn peer_reset_mid_client_stream_cancels_the_call() {
         .expect("handler stored its cancel signal");
     assert!(
         cancel.is_canceled(),
-        "the call's Ctx is cancelled on a peer reset"
+        "the call's RpcCtx is cancelled on a peer reset"
     );
 
     // The server reset its response half: the client sees an error, never a
@@ -598,16 +656,131 @@ fn peer_reset_mid_client_stream_cancels_the_call() {
     }
 }
 
+/// The request body ends, then the client stops reading the response. That
+/// `STOP_SENDING` is the only signal left — a later `RESET_STREAM` is dropped
+/// once the stream's receive state is freed — so the unary call must cancel
+/// and reset its response half (issue #257).
+#[test]
+fn peer_stop_sending_after_unary_body_cancels_the_call() {
+    let seen = Arc::new(Seen::default());
+    let mut h = Harness::open(router(&seen, 0), SLOW_UNARY, "application/json");
+
+    h.send_data(Bytes::from(serde_json::to_vec(&msg("hi")).unwrap()));
+    h.finish_request();
+
+    // Step until the handler is running: the call is now parked on its RpcCtx.
+    let dl = Instant::now() + BUDGET;
+    while seen.cancel_signal().is_none() {
+        h.step();
+        assert!(Instant::now() < dl, "the unary handler never started");
+    }
+
+    h.client.stop_sending(error_code::H3_REQUEST_CANCELLED);
+    h.finish_call()
+        .expect("a peer stop finishes the call instead of waiting for the handler");
+
+    let cancel = seen
+        .cancel_signal()
+        .expect("handler stored its cancel signal");
+    assert!(
+        cancel.is_canceled(),
+        "a peer stop must cancel the call's RpcCtx"
+    );
+
+    // The server reset its response half (RFC 9114 section 4.1.2).
+    let dl = Instant::now() + BUDGET;
+    let res = loop {
+        if let VStream::Next(res) = h.client.poll_headers() {
+            break res;
+        }
+        h.step();
+        assert!(
+            Instant::now() < dl,
+            "timed out waiting for the server reset"
+        );
+    };
+    // No response may start after the peer stopped reading. The server reset
+    // the stream; a client that already sent `STOP_SENDING` has freed its
+    // receive state, so it reads the end of the stream as an error rather than
+    // as `Terminated`.
+    assert!(
+        res.is_err(),
+        "the peer stopped reading, so no response may start; got {res:?}"
+    );
+}
+
+/// The same signal on a streaming call: after the request body ends, the
+/// handler still parks until the client stops reading the response. The
+/// `STOP_SENDING` must end the stream and cancel the call (issue #257).
+#[test]
+fn peer_stop_sending_after_request_end_cancels_a_stream() {
+    let seen = Arc::new(Seen::default());
+    let mut h = Harness::open(
+        router(&seen, 0),
+        SLOW_CLIENT_STREAM,
+        "application/connect+json",
+    );
+
+    h.send_data(envelope(&msg("a")));
+    h.finish_request();
+
+    // The handler is parked on its RpcCtx once it has seen the message and the
+    // close of the request stream.
+    let dl = Instant::now() + BUDGET;
+    while seen.cancel_signal().is_none() {
+        h.step();
+        assert!(Instant::now() < dl, "the stream handler never started");
+    }
+
+    h.client.stop_sending(error_code::H3_REQUEST_CANCELLED);
+    h.finish_call()
+        .expect("a peer stop finishes the stream instead of waiting for the handler");
+
+    assert_eq!(
+        seen.messages(),
+        vec!["a"],
+        "the request body still reaches the handler before the stop"
+    );
+    let cancel = seen
+        .cancel_signal()
+        .expect("handler stored its cancel signal");
+    assert!(
+        cancel.is_canceled(),
+        "a peer stop must cancel the call's RpcCtx"
+    );
+
+    // The server reset its response half (RFC 9114 section 4.1.2).
+    let dl = Instant::now() + BUDGET;
+    let res = loop {
+        if let VStream::Next(res) = h.client.poll_headers() {
+            break res;
+        }
+        h.step();
+        assert!(
+            Instant::now() < dl,
+            "timed out waiting for the server reset"
+        );
+    };
+    // No response may start after the peer stopped reading. The server reset
+    // the stream; a client that already sent `STOP_SENDING` has freed its
+    // receive state, so it reads the end of the stream as an error rather than
+    // as `Terminated`.
+    assert!(
+        res.is_err(),
+        "the peer stopped reading, so no response may start; got {res:?}"
+    );
+}
+
 // ── Production path: the real H3 server on the valtron pool ──────────────
 
 /// Serve the test router with `foundation_http`'s real HTTP/3 server — the
 /// QUIC driver and accept tasks on the valtron pool, `dispatch_h3` spawned as a
 /// `FutureTask` per request — and return its address and shutdown signal.
-fn start_h3_server(seen: &Arc<Seen>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_h3_server(seen: &Arc<Seen>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H3Serve> = Arc::new(ConnectRpcServeH3::new(router(seen, 0).into_handler()));
     let mut app = HttpApp::new_h3_serve();
     app.route_any_h3("/*", rpc);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT_PEM,
@@ -621,8 +794,15 @@ fn start_h3_server(seen: &Arc<Seen>) -> (std::net::SocketAddr, Arc<OnSignal>) {
 
 fn h3_client(addr: std::net::SocketAddr, procedure: &str) -> Client<Msg, Msg> {
     let cfg = client_config_trusting_pem(CA_PEM).expect("client config");
-    let transport: Arc<dyn Transport> =
-        Arc::new(H3Transport::new(cfg).with_server_name("localhost"));
+    let transport: Arc<dyn Transport> = Arc::new(
+        H3Transport::new(
+            cfg,
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .with_server_name("localhost"),
+    );
     Client::new(
         transport,
         &format!("https://{addr}{procedure}"),
@@ -632,8 +812,8 @@ fn h3_client(addr: std::net::SocketAddr, procedure: &str) -> Client<Msg, Msg> {
     .expect("build client")
 }
 
-fn call_ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn call_ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// Unary and client-stream through the production server. `dispatch_h3` runs
@@ -668,7 +848,7 @@ async fn bidi_interleaves_over_real_h3_server() {
     let (addr, shutdown) = start_h3_server(&seen);
 
     let mut stream = h3_client(addr, BIDI)
-        .bidi_stream(call_ctx(), futures::stream::iter(Vec::<Msg>::new()))
+        .bidi_stream(call_ctx())
         .await
         .expect("open bidi over h3");
     for text in ["x", "y", "z"] {

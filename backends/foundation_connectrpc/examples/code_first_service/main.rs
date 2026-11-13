@@ -21,15 +21,15 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    service, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Response,
-    Router,
+    service, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, Request, Response, Router,
+    RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -61,7 +61,7 @@ pub trait GreetService {
     // (`unimplemented`) body ignores them; an implementor names them freely.
     async fn greet(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>>;
 }
@@ -70,23 +70,27 @@ pub trait GreetService {
 struct Greeter;
 
 impl GreetService for Greeter {
+    // The generated trait declares an async method; this example does not await.
+    #[allow(clippy::unused_async_trait_impl)]
     async fn greet(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>> {
-        Ok(Response::new(GreetResponse { message: format!("Hello, {}!", req.msg.name) }))
+        Ok(Response::new(GreetResponse {
+            message: format!("Hello, {}!", req.msg.name),
+        }))
     }
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     // Server registration: the generated `register_greet_service` installs every
     // procedure onto the router.
     let mut router = Router::new();
     register_greet_service(&mut router, Arc::new(Greeter));
-    let serve: Arc<dyn foundation_http::shared::serve::Serve> =
+    let serve: Arc<dyn foundation_http::native::serve::Serve> =
         Arc::new(ConnectRpcServe::new(router.into_handler()));
 
     let mut app = HttpApp::new_serve();
@@ -94,10 +98,13 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}
@@ -111,14 +118,24 @@ async fn main() {
 
     // Client: the generated typed `GreetServiceClient`. `new` takes a base URL;
     // it appends each procedure path internally. Code-first JSON → select "json".
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let base_url = format!("http://127.0.0.1:{}", addr.port());
-    let client = GreetServiceClient::new(transport, &base_url, ClientOptions::new().with_codec("json"))
-        .expect("build client");
+    let client = GreetServiceClient::new(
+        transport,
+        &base_url,
+        ClientOptions::new().with_codec("json"),
+    )
+    .expect("build client");
 
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let resp = client
-        .greet(ctx, Request::new(GreetRequest { name: "code-first".into() }))
+        .greet(
+            ctx,
+            Request::new(GreetRequest {
+                name: "code-first".into(),
+            }),
+        )
         .await
         .expect("greet call");
 

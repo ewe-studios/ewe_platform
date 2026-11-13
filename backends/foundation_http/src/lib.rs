@@ -6,10 +6,14 @@
 //! - **`native/`** — TCP server, HTTP reader, protocol upgrades (non-wasm only)
 //! - **`wasm/`** — request dispatch with memory-backed streams (wasm32 only)
 //!
-//! # No async/await
+//! # Async responses
 //!
-//! This crate uses synchronous blocking I/O on worker threads managed by
-//! `BackgroundJobRunner`. No `tokio`, no `tower`, no `async-trait`.
+//! Handlers that write to a connection return [`shared::serve::ConnectionResult::Async`]
+//! and write through `native::writer::ResponseWriter`, which parks on socket
+//! readiness instead of blocking a worker. The synchronous helpers in
+//! [`shared::serve::respond_to_buffer`] are only for in-memory writers (tests,
+//! wasm); they cannot truncate a `Vec<u8>`, but they can truncate a
+//! non-blocking socket.
 
 // Shared modules — always compiled
 pub mod shared;
@@ -23,13 +27,13 @@ pub mod native;
 pub mod wasm;
 
 // Re-exported from foundation_core for convenience
-pub use foundation_netio::shared::http::{
-    SimpleIncomingRequest, SimpleMethod, SimpleHeader, SimpleHeaders, SimpleUrl,
-    SimpleOutgoingResponse, SendSafeBody, Proto, Status,
-};
 pub use foundation_core::io::ioutils::SharedByteBufferStream;
+pub use foundation_netio::shared::http::{
+    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleOutgoingResponse, SimpleUrl, Status,
+};
 
 #[cfg(not(target_family = "wasm"))]
-pub use foundation_netio::netcap::RawStream;
+pub use foundation_iogate::ShutdownSignal;
 #[cfg(not(target_family = "wasm"))]
-pub use foundation_core::synca::OnSignal;
+pub use foundation_netio::netcap::RawStream;

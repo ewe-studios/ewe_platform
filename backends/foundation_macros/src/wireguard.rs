@@ -1,4 +1,4 @@
-//! `wireguard!` — compile-time WireGuard mesh configuration macro (spec-55, feature 09).
+//! `wireguard!` — compile-time `WireGuard` mesh configuration macro (spec-55, feature 09).
 //!
 //! Function-like proc macro that desugars a custom block syntax into a
 //! `WgConfig` builder chain. Unknown keys and missing required fields
@@ -61,10 +61,7 @@ impl Parse for WireguardInput {
                 "mtu" => mtu = Some(input.parse()?),
                 "keepalive" => keepalive = Some(input.parse()?),
                 other => {
-                    return Err(syn::Error::new(
-                        key.span(),
-                        format!("unknown key: {other}"),
-                    ));
+                    return Err(syn::Error::new(key.span(), format!("unknown key: {other}")));
                 }
             }
             // Optional trailing comma between fields.
@@ -74,9 +71,9 @@ impl Parse for WireguardInput {
         }
 
         if seed.is_none() && seed_env.is_none() {
-            return Err(input.error(
-                "missing required field: `seed` or `seed_env` (no silent default)",
-            ));
+            return Err(
+                input.error("missing required field: `seed` or `seed_env` (no silent default)")
+            );
         }
 
         Ok(Self {
@@ -196,9 +193,10 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
     // relay
     let relay_call = match &config.relay {
         Some(relay) => {
-            let advertise = match &relay.advertise {
-                Some(b) => quote! { .relay_advertise(#b) },
-                None => quote! { .relay_advertise(true) },
+            let advertise = if let Some(b) = &relay.advertise {
+                quote! { .relay_advertise(#b) }
+            } else {
+                quote! { .relay_advertise(true) }
             };
             let sessions = match &relay.max_sessions {
                 Some(n) => quote! { .relay_max_sessions(#n as u32) },
@@ -261,8 +259,8 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
 /// HOW: Follows the `valtron_entry` pattern: move the body into an inner fn, set up the
 /// engine + mesh around it, drop them after the body returns.
 ///
-/// Attribute args: `config = "path/to/wireguard.toml"` (optional; defaults to from_env).
-pub fn wireguard_main_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+/// Attribute args: `config = "path/to/wireguard.toml"` (optional; defaults to `from_env`).
+pub fn wireguard_main_impl(attr: &TokenStream, item: TokenStream) -> TokenStream {
     let func = match syn::parse::<syn::ItemFn>(item) {
         Ok(f) => f,
         Err(e) => return e.to_compile_error().into(),
@@ -314,9 +312,13 @@ pub fn wireguard_main_impl(attr: TokenStream, item: TokenStream) -> TokenStream 
                 ::core::option::Option::None,
             );
 
-            // Load config + join the mesh.
+            // Load config + join the mesh. The generated main is a host entry point,
+            // so it builds the host context once and passes it down.
             let __wg_config = #config_load;
-            let __wg_node = foundation_wireguard::native::WgNode::from_config(__wg_config);
+            let __wg_node = foundation_wireguard::native::WgNode::from_config(
+                __wg_config,
+                ::foundation_core::valtron::Ctx::host(),
+            );
             let __wg_handle = __wg_node.join().expect("wireguard mesh join failed");
 
             // Run the user body.
@@ -333,7 +335,7 @@ pub fn wireguard_main_impl(attr: TokenStream, item: TokenStream) -> TokenStream 
 }
 
 /// Parse `config = "path"` from the attribute tokens, if present.
-fn parse_config_arg(attr: TokenStream) -> Option<String> {
+fn parse_config_arg(attr: &TokenStream) -> Option<String> {
     if attr.is_empty() {
         return None;
     }

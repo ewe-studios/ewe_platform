@@ -33,8 +33,14 @@ fn format_f64_separates_the_integer_part_only() {
     // and leave the fraction untouched — separating the fraction would emit
     // invalid Rust into the generated descriptors.
     let out = format_f64(12_345.75);
-    assert!(out.contains('_'), "the integer part must be separated: {out}");
-    assert!(out.ends_with(".75"), "the fraction must survive intact: {out}");
+    assert!(
+        out.contains('_'),
+        "the integer part must be separated: {out}"
+    );
+    assert!(
+        out.ends_with(".75"),
+        "the fraction must survive intact: {out}"
+    );
     assert!(
         !out.split('.').nth(1).unwrap_or("").contains('_'),
         "the fraction must not be separated: {out}"
@@ -155,17 +161,29 @@ fn generated_file_emits_some_for_a_present_base_url() {
 
 #[test]
 fn api_variant_mapping_known_and_custom() {
-    assert_eq!(api_to_variant("anthropic-messages"), "ModelAPI::AnthropicMessages");
-    assert_eq!(api_to_variant("openai-completions"), "ModelAPI::OpenAICompletions");
+    assert_eq!(
+        api_to_variant("anthropic-messages"),
+        "ModelAPI::AnthropicMessages"
+    );
+    assert_eq!(
+        api_to_variant("openai-completions"),
+        "ModelAPI::OpenAICompletions"
+    );
     assert!(api_to_variant("something-else").contains("Custom"));
 }
 
 #[test]
 fn provider_variant_and_filename_mapping() {
     assert_eq!(provider_to_variant("openai"), "ModelProviders::OPENAI");
-    assert_eq!(provider_to_variant("anthropic"), "ModelProviders::ANTHROPIC");
+    assert_eq!(
+        provider_to_variant("anthropic"),
+        "ModelProviders::ANTHROPIC"
+    );
     assert!(provider_to_variant("brand-new").contains("Custom"));
-    assert_eq!(provider_to_filename("vercel-ai-gateway"), "vercel_ai_gateway");
+    assert_eq!(
+        provider_to_filename("vercel-ai-gateway"),
+        "vercel_ai_gateway"
+    );
 }
 
 #[test]
@@ -332,10 +350,7 @@ fn apply_overrides_widens_opencode_sonnet_context_windows() {
 fn apply_overrides_patches_bedrock_by_substring() {
     // The bedrock id carries a region prefix, so the rule matches on a
     // substring rather than equality.
-    let mut models = vec![model(
-        "amazon-bedrock",
-        "us.anthropic.claude-opus-4-6-v1:0",
-    )];
+    let mut models = vec![model("amazon-bedrock", "us.anthropic.claude-opus-4-6-v1:0")];
     apply_overrides(&mut models);
     assert_eq!(models[0].context_window, 200_000);
     assert!((models[0].cost_cache_read - 0.5).abs() < 1e-9);
@@ -366,7 +381,10 @@ fn apply_overrides_matches_on_provider_not_just_id() {
 fn has_finds_by_provider_and_id_together() {
     let models = vec![model("anthropic", "claude-opus-4-5")];
     assert!(has(&models, "anthropic", "claude-opus-4-5"));
-    assert!(!has(&models, "openai", "claude-opus-4-5"), "provider must match");
+    assert!(
+        !has(&models, "openai", "claude-opus-4-5"),
+        "provider must match"
+    );
     assert!(!has(&models, "anthropic", "other"), "id must match");
 }
 
@@ -479,7 +497,10 @@ fn parse_ai_gateway_empty_data_is_empty() {
 fn deduplicate_groups_by_provider_and_id() {
     let models = static_codex_models();
     let grouped = deduplicate(models);
-    assert!(!grouped.is_empty(), "grouping must produce provider buckets");
+    assert!(
+        !grouped.is_empty(),
+        "grouping must produce provider buckets"
+    );
     // Every bucket is non-empty.
     for (_provider, by_id) in &grouped {
         assert!(!by_id.is_empty());
@@ -533,7 +554,15 @@ fn from_dev_builds_entry_from_models_dev_shape() {
     }))
     .expect("models.dev model parses");
 
-    let e = from_dev("vendor/test", &m, "anthropic-messages", "anthropic", "https://x", 1, 1);
+    let e = from_dev(
+        "vendor/test",
+        &m,
+        "anthropic-messages",
+        "anthropic",
+        "https://x",
+        1,
+        1,
+    );
     assert_eq!(e.id, "vendor/test");
     assert_eq!(e.name, "Test Model");
     assert!(e.reasoning);
@@ -549,7 +578,10 @@ fn apply_overrides_adds_known_fallbacks() {
     // hard-coded fallback entries (e.g. Claude Opus 4.6).
     let mut models: Vec<ModelEntry> = Vec::new();
     apply_overrides(&mut models);
-    assert!(has(&models, "anthropic", "claude-opus-4-6"), "fallback injected");
+    assert!(
+        has(&models, "anthropic", "claude-opus-4-6"),
+        "fallback injected"
+    );
     assert!(!models.is_empty());
 
     // The `has()`-guarded fallback push is not duplicated on a second pass
@@ -585,7 +617,10 @@ fn generate_provider_file_emits_descriptor_rust() {
     assert!(src.contains("pub static MODELS"), "emits the MODELS slice");
     assert!(src.contains("ModelProviderDescriptor"));
     assert!(src.contains("\"m1\""), "includes the model id");
-    assert!(src.contains("MessageType::TextAndImages"), "image input rendered");
+    assert!(
+        src.contains("MessageType::TextAndImages"),
+        "image input rendered"
+    );
     assert!(src.contains("ModelAPI::AnthropicMessages"));
 }
 
@@ -595,8 +630,18 @@ fn generate_providers_mod_lists_each_provider() {
     let mut anthropic: BTreeMap<String, ModelEntry> = BTreeMap::new();
     anthropic.insert(
         "m1".to_string(),
-        entry("m1", "M1", "anthropic-messages", "anthropic", "", false, false,
-              (0.0, 0.0, 0.0, 0.0), 1000, 500),
+        entry(
+            "m1",
+            "M1",
+            "anthropic-messages",
+            "anthropic",
+            "",
+            false,
+            false,
+            (0.0, 0.0, 0.0, 0.0),
+            1000,
+            500,
+        ),
     );
     providers.insert("anthropic".to_string(), anthropic);
 

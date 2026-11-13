@@ -1,7 +1,7 @@
 //! Persisted job state records (spec-57, decision 05).
 
-use serde::{Deserialize, Serialize};
 use crate::scheduler::CronJob;
+use serde::{Deserialize, Serialize};
 
 /// Runtime and persisted state for a single cron job.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

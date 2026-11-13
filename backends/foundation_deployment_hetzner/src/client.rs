@@ -15,6 +15,8 @@
 //! §4): a derived `Debug` on a struct holding a bearer token is one
 //! `tracing::debug!` away from putting it in a log.
 
+use std::sync::Arc;
+
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 use crate::types::HetznerError;
@@ -82,6 +84,8 @@ pub struct HetznerClient {
     http: DynNetClient,
     token: String,
     base_url: String,
+    /// The context whose clock measures rate-limit resets and poll deadlines.
+    ctx: foundation_context::Ctx,
 }
 
 impl std::fmt::Debug for HetznerClient {
@@ -111,11 +115,11 @@ impl HetznerClient {
     /// `export HCLOUD_TOKEN=` is a mistake, and an anonymous client that fails at
     /// the first request would report it as a 401 — blaming the token rather than
     /// the setup (decision 02 §2).
-    pub fn from_env() -> Result<Self, HetznerError> {
+    pub fn from_env(ctx: &foundation_context::Ctx) -> Result<Self, HetznerError> {
         let vars = credential_vars();
         for name in &vars {
             match std::env::var(name) {
-                Ok(token) if !token.trim().is_empty() => return Ok(Self::new(token)),
+                Ok(token) if !token.trim().is_empty() => return Ok(Self::new(token, ctx.clone())),
                 _ => {}
             }
         }
@@ -124,11 +128,12 @@ impl HetznerClient {
 
     /// Build with an explicit token.
     #[must_use]
-    pub fn new(token: impl Into<String>) -> Self {
+    pub fn new(token: impl Into<String>, ctx: foundation_context::Ctx) -> Self {
         Self {
             http: HttpClientBuilder::new().build(),
             token: token.into(),
             base_url: DEFAULT_BASE_URL.to_string(),
+            ctx,
         }
     }
 
@@ -138,12 +143,29 @@ impl HetznerClient {
     /// mutating the process environment, which is global and would race under
     /// `--test-threads` (decision 02 §5).
     #[must_use]
-    pub fn with_client(http: DynNetClient, token: impl Into<String>) -> Self {
+    pub fn with_client(
+        http: DynNetClient,
+        token: impl Into<String>,
+        ctx: foundation_context::Ctx,
+    ) -> Self {
         Self {
             http,
             token: token.into(),
             base_url: DEFAULT_BASE_URL.to_string(),
+            ctx,
         }
+    }
+
+    /// The clock that measures rate-limit resets and poll deadlines.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn foundation_context::Clock> {
+        self.ctx.clock()
+    }
+
+    /// The context that carries the clock.
+    #[must_use]
+    pub fn ctx(&self) -> &foundation_context::Ctx {
+        &self.ctx
     }
 
     /// Point the client at a different base URL — a mock server, in practice.

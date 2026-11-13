@@ -1,0 +1,30 @@
+//! Wall-clock conversions from the clock of the injected [`Ctx`].
+//!
+//! WHY: the proxy stamps persisted state with a `chrono` date and, for a
+//! renewed certificate, a UNIX second. A direct wall-clock read made a
+//! deterministic simulation test impossible, so every stored value comes from
+//! the context the host passed to [`ProxyServer::start`](crate::ProxyServer::start).
+//!
+//! WHAT: the conversions are the `foundation_compact::time` functions; no module
+//! repeats the epoch arithmetic, and a time before the epoch is handled instead
+//! of panicking.
+
+use chrono::{DateTime, Utc};
+use foundation_compact::time;
+use foundation_context::Ctx;
+
+/// The wall time of `ctx`'s clock as a UTC date and time.
+///
+/// A value outside the `chrono` range (never produced by a real clock) maps to
+/// the UNIX epoch.
+pub(crate) fn wall_now_utc(ctx: &Ctx) -> DateTime<Utc> {
+    DateTime::from_timestamp_millis(time::unix_millis(ctx.clock().wall_now()))
+        .unwrap_or(DateTime::UNIX_EPOCH)
+}
+
+/// The wall time of `ctx`'s clock as whole seconds since the UNIX epoch.
+///
+/// A time before the epoch maps to `0`; a real clock never produces one.
+pub(crate) fn wall_seconds(ctx: &Ctx) -> u64 {
+    u64::try_from(time::unix_seconds(ctx.clock().wall_now())).unwrap_or_default()
+}

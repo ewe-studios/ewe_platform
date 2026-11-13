@@ -52,7 +52,8 @@ where
                 };
                 match std::future::poll_fn(|cx| body.as_mut().poll_next(cx)).await {
                     Some(chunk) if !cancelled.get() => {
-                        controller.enqueue_with_chunk(&js_sys::Uint8Array::from(chunk.as_slice()))?;
+                        controller
+                            .enqueue_with_chunk(&js_sys::Uint8Array::from(chunk.as_slice()))?;
                         *source.borrow_mut() = Some(body);
                     }
                     Some(_) => {}
@@ -91,7 +92,10 @@ pub fn sse_response<S>(events: S) -> Result<web_sys::Response, JsValue>
 where
     S: Stream<Item = String> + 'static,
 {
-    streaming_response(SseFrames(Box::pin(events)), "text/event-stream; charset=utf-8")
+    streaming_response(
+        SseFrames(Box::pin(events)),
+        "text/event-stream; charset=utf-8",
+    )
 }
 
 /// The SSE wire form of one event's data.

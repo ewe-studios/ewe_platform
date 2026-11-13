@@ -1,8 +1,50 @@
-//! Tests extracted from simple_http/shared/load_tracker.rs
+//! Tests extracted from `simple_http/shared/load_tracker.rs`
 mod tests {
+    use foundation_core::valtron::SimulatedClock;
     use foundation_netio::shared::http::load_tracker::*;
+    use std::sync::Arc;
     use std::thread;
     use std::time::Duration;
+
+    /// A tracker on a real clock, for the tests that do not care about time.
+    fn tracker() -> LoadTracker {
+        LoadTracker::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )))
+    }
+
+    #[test]
+    fn the_connection_rate_is_not_always_zero() {
+        let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+        let tracker = LoadTracker::new(foundation_context::Ctx::fixed(clock.clone()));
+
+        let _g1 = tracker.track_connection();
+        let _g2 = tracker.track_connection();
+        clock.advance(Duration::from_secs(1));
+
+        // Two connections inside one second is 2 connections/sec.
+        assert_eq!(tracker.connection_rate(), 2);
+    }
+
+    #[test]
+    fn a_zero_elapsed_window_returns_the_previous_rate() {
+        let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+        let tracker = LoadTracker::new(foundation_context::Ctx::fixed(clock.clone()));
+
+        // A fresh tracker with no elapsed time keeps its initial rate.
+        assert_eq!(tracker.connection_rate(), 0);
+
+        let _g1 = tracker.track_connection();
+        let _g2 = tracker.track_connection();
+        clock.advance(Duration::from_secs(1));
+        assert_eq!(tracker.connection_rate(), 2);
+
+        // Two more connections but no clock advance: the rate stays at the
+        // previous value and the read does not divide by zero.
+        let _g3 = tracker.track_connection();
+        let _g4 = tracker.track_connection();
+        assert_eq!(tracker.connection_rate(), 2);
+    }
 
     #[test]
     fn test_load_level_factors() {
@@ -14,13 +56,13 @@ mod tests {
 
     #[test]
     fn test_load_tracker_new() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
         assert_eq!(tracker.active_connections(), 0);
     }
 
     #[test]
     fn test_track_connection() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
 
         let guard = tracker.track_connection();
         assert_eq!(tracker.active_connections(), 1);
@@ -32,7 +74,7 @@ mod tests {
 
     #[test]
     fn test_connection_guard_drop() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
 
         {
             let _guard = tracker.track_connection();
@@ -47,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_multiple_connections() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
 
         let guard1 = tracker.track_connection();
         let guard2 = tracker.track_connection();
@@ -66,9 +108,14 @@ mod tests {
             medium_threshold: 100,
             high_threshold: 1000,
             critical_threshold: 10000,
-            calculation_interval: Duration::from_secs(10),
+            calculation_interval: Duration::ZERO,
         };
-        let tracker = LoadTracker::with_config(config);
+        let tracker = LoadTracker::with_config(
+            config,
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        );
 
         // Initially should be low
         assert_eq!(tracker.current_load_level(), LoadLevel::Low);
@@ -76,14 +123,14 @@ mod tests {
 
     #[test]
     fn test_timeout_factor() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
         let factor = tracker.timeout_factor();
         assert!(factor > 0.0 && factor <= 1.0);
     }
 
     #[test]
     fn test_reset() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
 
         let guard = tracker.track_connection();
         assert_eq!(tracker.active_connections(), 1);
@@ -96,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_concurrent_connections() {
-        let tracker = LoadTracker::new();
+        let tracker = tracker();
         let tracker = std::sync::Arc::new(tracker);
 
         let mut handles = vec![];

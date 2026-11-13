@@ -16,8 +16,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 fn setup_responses_provider(
     guard: &foundation_ai::toolbox::llama_server_harness::LlamaServerGuard,
@@ -35,7 +35,7 @@ fn setup_responses_provider(
         .with_base_url(base_url)
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
 
-    let provider = ResponsesProvider::with_http_client(http_client)
+    let provider = ResponsesProvider::with_http_client(http_client, test_clock())
         .create(Some(config))
         .unwrap();
 
@@ -44,10 +44,18 @@ fn setup_responses_provider(
         .unwrap()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 /// Test: generate a response via the Responses API.
+
 #[valtron_test]
 fn test_llama_server_responses_generate() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_responses_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
@@ -91,7 +99,7 @@ fn test_llama_server_responses_generate() {
 /// Test: streaming via the Responses API.
 #[valtron_test]
 fn test_llama_server_responses_stream() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_responses_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {

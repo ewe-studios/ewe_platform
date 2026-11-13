@@ -4,11 +4,12 @@
 //! endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
+//! use foundation_context::Ctx;
 //! use foundation_toolings::harness::LlamaServer;
 //!
 //! let server = LlamaServer::builder()
 //!     .model_file("path/to/model.gguf")
-//!     .build()
+//!     .build(Ctx::host())
 //!     .expect("failed to start llama-server");
 //!
 //! println!("Server at {}", server.base_url());
@@ -19,7 +20,9 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_context::Ctx;
 
 fn project_root() -> PathBuf {
     let manifest_dir =
@@ -39,11 +42,11 @@ pub struct LlamaServer {
 }
 
 impl LlamaServer {
-    pub fn start() -> Result<Self, LlamaServerError> {
-        Self::start_with(LlamaServerConfig::default())
+    pub fn start(ctx: Ctx) -> Result<Self, LlamaServerError> {
+        Self::start_with(LlamaServerConfig::default(), ctx)
     }
 
-    pub fn start_with(config: LlamaServerConfig) -> Result<Self, LlamaServerError> {
+    pub fn start_with(config: LlamaServerConfig, ctx: Ctx) -> Result<Self, LlamaServerError> {
         if !config.server_bin.exists() {
             return Err(LlamaServerError::BinaryNotFound(
                 config.server_bin.display().to_string(),
@@ -55,9 +58,9 @@ impl LlamaServer {
             ));
         }
 
-        let port = config.port.unwrap_or_else(|| {
-            super::pick_unused_port().expect("no free port available")
-        });
+        let port = config
+            .port
+            .unwrap_or_else(|| super::pick_unused_port().expect("no free port available"));
 
         kill_existing(port);
 
@@ -96,7 +99,7 @@ impl LlamaServer {
         let pid = child.id();
         tracing::info!(pid, "llama-server spawned, waiting for health check");
 
-        if !wait_for_health(port, config.startup_timeout) {
+        if !wait_for_health(port, config.startup_timeout, &ctx) {
             let guard = Self {
                 child: Some(child),
                 port,
@@ -231,8 +234,8 @@ impl LlamaServerConfig {
         self
     }
 
-    pub fn build(self) -> Result<LlamaServer, LlamaServerError> {
-        LlamaServer::start_with(self)
+    pub fn build(self, ctx: Ctx) -> Result<LlamaServer, LlamaServerError> {
+        LlamaServer::start_with(self, ctx)
     }
 }
 
@@ -263,9 +266,10 @@ fn kill_existing(port: u16) {
     std::thread::sleep(Duration::from_millis(500));
 }
 
-fn wait_for_health(port: u16, timeout: Duration) -> bool {
-    let start = Instant::now();
-    while start.elapsed() < timeout {
+fn wait_for_health(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
+    let deadline = clock.now() + timeout;
+    while clock.now() < deadline {
         if let Ok(stream) = TcpStream::connect_timeout(
             &format!("127.0.0.1:{port}").parse().unwrap(),
             Duration::from_secs(1),

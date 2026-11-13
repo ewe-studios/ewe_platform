@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_db::D1WasmStorage;
+use foundation_db::{D1WasmStorage, KeyValueStore};
 
 use crate::shared::credential_store::{CredentialStore, CredentialStoreError};
 
@@ -17,7 +17,7 @@ impl CredentialStore for D1WasmStorage {
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        D1WasmStorage::get_async::<V>(self, key)
+        KeyValueStore::get::<V>(self, key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
@@ -27,25 +27,28 @@ impl CredentialStore for D1WasmStorage {
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        D1WasmStorage::set_async(self, key, value)
+        KeyValueStore::set(self, key, value)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        D1WasmStorage::delete_async(self, key)
+        KeyValueStore::delete(self, key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        D1WasmStorage::exists_async(self, key)
+        KeyValueStore::exists(self, key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        D1WasmStorage::list_keys_async(self, prefix)
+        KeyValueStore::list_keys(self, prefix)
+            .await
+            .map_err(CredentialStoreError::Storage)?
+            .collect_all()
             .await
             .map_err(CredentialStoreError::Storage)
     }

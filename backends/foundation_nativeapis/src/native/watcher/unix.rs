@@ -1,9 +1,8 @@
 /// macOS/BSD kqueue-based file watcher.
 ///
-/// Uses EVFILT_VNODE to track file system changes: WRITE, DELETE, EXTEND, RENAME, REVOKE.
-/// The kqueue fd is shared with our poll selector — EVFILT_VNODE events are distinguished
-/// by their filter field from EVFILT_READ/WRITE events.
-
+/// Uses `EVFILT_VNODE` to track file system changes: WRITE, DELETE, EXTEND, RENAME, REVOKE.
+/// The kqueue fd is shared with our poll selector — `EVFILT_VNODE` events are distinguished
+/// by their filter field from `EVFILT_READ/WRITE` events.
 use std::collections::HashMap;
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
@@ -11,16 +10,16 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{fs, mem};
 
+use crate::native::poll::{Poll, Token};
 use crate::shared::error::{Result, WatchError};
 use crate::shared::event::{WatchEvent, WatchEventKind};
-use crate::native::poll::{Poll, Registry, Token};
 use crate::shared::watcher::NativeWatcher;
 
 /// macOS/BSD kqueue-based file watcher.
 ///
-/// Each watched path is opened as an fd and registered with EVFILT_VNODE.
-/// The kqueue selector handles both socket readiness (EVFILT_READ/WRITE) and
-/// file watching (EVFILT_VNODE).
+/// Each watched path is opened as an fd and registered with `EVFILT_VNODE`.
+/// The kqueue selector handles both socket readiness (`EVFILT_READ/WRITE`) and
+/// file watching (`EVFILT_VNODE`).
 pub struct KqueueWatcher {
     /// The poll selector (owns the kqueue fd).
     poll: Poll,
@@ -30,12 +29,15 @@ pub struct KqueueWatcher {
     fd_to_path: HashMap<i32, PathBuf>,
     /// Map from path to fd.
     path_to_fd: HashMap<PathBuf, i32>,
-    /// Counter for generating unique tokens.
-    next_token: usize,
 }
 
 impl KqueueWatcher {
-    /// Create a new KqueueWatcher.
+    /// Create a new `KqueueWatcher`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WatchError::Io`] when the kqueue file descriptor cannot be
+    /// created.
     pub fn new() -> Result<Self> {
         let poll = Poll::new()?;
 
@@ -44,14 +46,12 @@ impl KqueueWatcher {
             vnode_token: Token(usize::MAX), // Use a unique token for vnode events
             fd_to_path: HashMap::new(),
             path_to_fd: HashMap::new(),
-            next_token: 1,
         })
     }
 
-    /// Open a file for EVFILT_VNODE monitoring.
+    /// Open a file for `EVFILT_VNODE` monitoring.
     fn open_vnode(path: &Path) -> io::Result<OwnedFd> {
         use std::ffi::CString;
-        use std::os::unix::io::{FromRawFd, OwnedFd};
 
         let path_cstr = CString::new(path.to_string_lossy().as_bytes())
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid path"))?;
@@ -71,10 +71,10 @@ impl KqueueWatcher {
         let fd = Self::open_vnode(path).map_err(WatchError::Io)?;
         let raw_fd = fd.as_raw_fd();
 
-        // Register with the kqueue selector via EVFILT_VNODE
+        // Register with the kqueue selector via EVFILT_VNODE. `Registry` exposes
+        // the vnode methods directly, so the selector stays private to the reactor.
         self.poll
             .registry()
-            .selector()
             .register_vnode(raw_fd, self.vnode_token)
             .map_err(WatchError::Io)?;
 
@@ -106,11 +106,7 @@ impl KqueueWatcher {
 
     /// Close an fd and remove it from tracking.
     fn close_fd(&mut self, fd: i32, path: &Path) {
-        let _ = self
-            .poll
-            .registry()
-            .selector()
-            .deregister_vnode(fd);
+        let _ = self.poll.registry().deregister_vnode(fd);
         unsafe { libc::close(fd) };
         self.fd_to_path.remove(&fd);
         self.path_to_fd.remove(path);
@@ -162,45 +158,34 @@ impl NativeWatcher for KqueueWatcher {
 
             // Extract fd from the event
             // On kqueue, the ident field is the fd
-            let fd = event.ident() as i32;
-
-            let path = match self.fd_to_path.get(&fd) {
-                Some(p) => p.clone(),
-                None => {
-                    // Got a vnode event for an fd we don't know about — this shouldn't
-                    // happen unless there's a bug or the fd was closed without cleanup.
-                    tracing::warn!("KqueueWatcher: vnode event for unknown fd {}", fd);
-                    continue;
-                }
+            let Ok(fd) = i32::try_from(event.ident()) else {
+                tracing::warn!(
+                    ident = event.ident(),
+                    "KqueueWatcher: vnode ident does not fit a file descriptor"
+                );
+                continue;
             };
+
+            let Some(path) = self.fd_to_path.get(&fd) else {
+                // Got a vnode event for an fd we don't know about — this shouldn't
+                // happen unless there's a bug or the fd was closed without cleanup.
+                tracing::warn!("KqueueWatcher: vnode event for unknown fd {}", fd);
+                continue;
+            };
+            let path = path.clone();
 
             // Decode EVFILT_VNODE fflags
             let fflags = event.fflags();
 
-            if fflags & libc::NOTE_DELETE != 0 {
+            // A rename reports the old path only, so it is a removal here.
+            if fflags & (libc::NOTE_DELETE | libc::NOTE_RENAME | libc::NOTE_REVOKE) != 0 {
                 watch_events.push(WatchEvent {
                     kind: WatchEventKind::Removed,
                     path,
                 });
-            } else if fflags & libc::NOTE_WRITE != 0 {
+            } else if fflags & (libc::NOTE_WRITE | libc::NOTE_EXTEND) != 0 {
                 watch_events.push(WatchEvent {
                     kind: WatchEventKind::Modified,
-                    path,
-                });
-            } else if fflags & libc::NOTE_EXTEND != 0 {
-                watch_events.push(WatchEvent {
-                    kind: WatchEventKind::Modified,
-                    path,
-                });
-            } else if fflags & libc::NOTE_RENAME != 0 {
-                // kqueue doesn't give us the target path for renames
-                watch_events.push(WatchEvent {
-                    kind: WatchEventKind::Removed,
-                    path,
-                });
-            } else if fflags & libc::NOTE_REVOKE != 0 {
-                watch_events.push(WatchEvent {
-                    kind: WatchEventKind::Removed,
                     path,
                 });
             }

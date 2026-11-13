@@ -39,7 +39,11 @@ pub struct CollapsibleConfig {
 
 impl Default for CollapsibleConfig {
     fn default() -> Self {
-        Self { disabled: false, hidden_until_found: false, class: None }
+        Self {
+            disabled: false,
+            hidden_until_found: false,
+            class: None,
+        }
     }
 }
 
@@ -53,7 +57,10 @@ pub struct CollapsibleSlots {
 
 impl Default for CollapsibleSlots {
     fn default() -> Self {
-        Self { trigger: Vec::new(), children: Vec::new() }
+        Self {
+            trigger: Vec::new(),
+            children: Vec::new(),
+        }
     }
 }
 
@@ -76,8 +83,16 @@ pub fn collapsible(
     let panel_id_attr: Cow<'static, str> = Cow::Owned(panel_id.clone());
     let controls: Cow<'static, str> = Cow::Owned(panel_id);
 
-    let trigger_html: Vec<Html> = slots.trigger.into_iter().map(|s| s.render(ctx, rcv)).collect();
-    let panel_html: Vec<Html> = slots.children.into_iter().map(|s| s.render(ctx, rcv)).collect();
+    let trigger_html: Vec<Html> = slots
+        .trigger
+        .into_iter()
+        .map(|s| s.render(ctx, rcv))
+        .collect();
+    let panel_html: Vec<Html> = slots
+        .children
+        .into_iter()
+        .map(|s| s.render(ctx, rcv))
+        .collect();
 
     let toggle = {
         let open = open.clone();
@@ -85,8 +100,11 @@ pub fn collapsible(
     };
 
     // hidden: when closed, native `hidden` (or `until-found`); presence attr.
-    let hidden_value: Cow<'static, str> =
-        if config.hidden_until_found { Cow::Borrowed("until-found") } else { Cow::Borrowed("") };
+    let hidden_value: Cow<'static, str> = if config.hidden_until_found {
+        Cow::Borrowed("until-found")
+    } else {
+        Cow::Borrowed("")
+    };
 
     // One getter clone per reactive attribute (each `{…}` is its own closure).
     let r_open = open.clone();

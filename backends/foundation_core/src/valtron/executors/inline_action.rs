@@ -1,6 +1,6 @@
 //! Shared `InlineActionBehaviour` enum — no trait bounds, so it compiles under
 //! both `multi` and `not(multi)`. The dispatch logic lives in the per-build
-//! `InlineAction` impls (sendables / non_sendables).
+//! `InlineAction` impls (sendables / `non_sendables`).
 
 /// Which verb a [`super::InlineAction`] should use when its [`ExecutionAction`]
 /// fires. The `Broadcast` variant is only valid under `multi`; under

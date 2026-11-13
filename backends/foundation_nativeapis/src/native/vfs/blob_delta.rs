@@ -9,24 +9,27 @@
 //! boundary.
 //!
 //! WHAT — storage layout (one blob per key):
-//! - `vfs/data/{path}`: the file's content;
+//! - `vfs/data/{path}/{chunk}`: the file's content, split into fixed-size
+//!   chunks;
 //! - `vfs/meta/{path}`: its `VfsMetadata` as JSON;
 //! - `vfs/whiteout/{path}`: a whiteout tombstone (the version, little-endian
 //!   `u64`).
 //!
-//! HOW: a file is one blob, so a write reads the blob, splices the bytes in at
-//! the offset and writes it back. Blob stores can't list keys, so directory
-//! listing and `list_whiteouts` return nothing (backlog §13).
+//! HOW: a write splices the bytes in at the offset and writes back only the
+//! chunks it touched (their bytes changed or their range appeared/disappeared).
+//! Directory listing, whiteout listing and reset walk the store through
+//! [`BlobStore::list_blobs_after`].
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::io::SeekFrom;
 use std::sync::Arc;
-use std::time::SystemTime;
 
 use async_trait::async_trait;
+use foundation_context::Ctx;
 use foundation_db::{BlobStore, StorageError};
 use foundation_errstacks::ErrorTrace;
+use futures_lite::StreamExt;
 
 use crate::shared::vfs::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
@@ -67,6 +70,24 @@ fn to_usize(n: u64) -> VfsResult<usize> {
     })
 }
 
+/// Decode the little-endian `u64` version stored in a whiteout blob.
+fn whiteout_version(bytes: &[u8]) -> u64 {
+    bytes
+        .get(..8)
+        .and_then(|b| <[u8; 8]>::try_from(b).ok())
+        .map_or(0, u64::from_le_bytes)
+}
+
+/// The bytes of the chunk that starts at `start` (at most `chunk_size` bytes,
+/// fewer past the end of `content`, and none before it).
+fn chunk_slice(content: &[u8], start: usize, chunk_size: usize) -> &[u8] {
+    if start >= content.len() {
+        return &[];
+    }
+    let end = (start + chunk_size).min(content.len());
+    &content[start..end]
+}
+
 fn join(dir: &str, name: &str) -> String {
     if name.starts_with('/') {
         name.to_string()
@@ -83,8 +104,14 @@ fn path_hash(path: &str) -> u64 {
     h.finish()
 }
 
-fn new_meta(path: &str, size: u64, file_type: VfsFileType, permissions: u32) -> VfsMetadata {
-    let now = SystemTime::now();
+fn new_meta(
+    path: &str,
+    size: u64,
+    file_type: VfsFileType,
+    permissions: u32,
+    ctx: &Ctx,
+) -> VfsMetadata {
+    let now = ctx.clock().wall_now();
     VfsMetadata {
         inode: path_hash(path),
         size,
@@ -100,10 +127,47 @@ fn new_meta(path: &str, size: u64, file_type: VfsFileType, permissions: u32) -> 
     }
 }
 
+/// Configuration for [`BlobDelta`].
+#[derive(Debug, Clone, Copy)]
+pub struct BlobDeltaConfig {
+    /// Bytes per stored chunk. A write rewrites only the chunks it touches, so
+    /// this bounds the amount rewritten for a small write.
+    ///
+    /// Default: 64 KiB. Go's `net/http` copies buffers in 32 KiB chunks; 64 KiB
+    /// is twice that chunk, which keeps a 4 KiB write to at most two chunks
+    /// (one round trip) while a 1 MiB file stays at 16 chunks.
+    pub chunk_size: usize,
+}
+
+impl Default for BlobDeltaConfig {
+    fn default() -> Self {
+        Self {
+            chunk_size: 64 * 1024,
+        }
+    }
+}
+
+impl BlobDeltaConfig {
+    /// The default configuration.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the chunk size. A value of zero becomes one byte.
+    #[must_use]
+    pub fn with_chunk_size(mut self, chunk_size: usize) -> Self {
+        self.chunk_size = chunk_size.max(1);
+        self
+    }
+}
+
 /// A delta store over an async blob store. See the module docs.
 pub struct BlobDelta<S: BlobStore + 'static> {
     store: Arc<S>,
     capabilities: VfsCapabilities,
+    chunk_size: usize,
+    ctx: Ctx,
 }
 
 impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
@@ -111,14 +175,22 @@ impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
         Self {
             store: Arc::clone(&self.store),
             capabilities: self.capabilities,
+            chunk_size: self.chunk_size,
+            ctx: self.ctx.clone(),
         }
     }
 }
 
 impl<S: BlobStore + 'static> BlobDelta<S> {
-    /// A delta over `store`.
+    /// A delta over `store` with the default configuration.
     #[must_use]
-    pub fn from_store(store: S) -> Self {
+    pub fn from_store(store: S, ctx: Ctx) -> Self {
+        Self::from_store_with_config(store, BlobDeltaConfig::default(), ctx)
+    }
+
+    /// A delta over `store` with `config`.
+    #[must_use]
+    pub fn from_store_with_config(store: S, config: BlobDeltaConfig, ctx: Ctx) -> Self {
         Self {
             store: Arc::new(store),
             capabilities: VfsCapabilities {
@@ -128,6 +200,8 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
                 event_emission: false,
                 persistent: true,
             },
+            chunk_size: config.chunk_size.max(1),
+            ctx,
         }
     }
 
@@ -137,8 +211,12 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         &self.store
     }
 
-    fn data_key(path: &str) -> String {
-        format!("vfs/data/{}", path.trim_start_matches('/'))
+    fn data_prefix(path: &str) -> String {
+        format!("vfs/data/{}/", path.trim_start_matches('/'))
+    }
+
+    fn chunk_key(path: &str, index: u64) -> String {
+        format!("vfs/data/{}/{index:016x}", path.trim_start_matches('/'))
     }
 
     fn meta_key(path: &str) -> String {
@@ -149,12 +227,74 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         format!("vfs/whiteout/{}", path.trim_start_matches('/'))
     }
 
+    /// The meta-key prefix for every direct child of `path`.
+    fn meta_dir_prefix(path: &str) -> String {
+        let trimmed = path.trim_start_matches('/');
+        if trimmed.is_empty() {
+            "vfs/meta/".to_string()
+        } else if trimmed.ends_with('/') {
+            format!("vfs/meta/{trimmed}")
+        } else {
+            format!("vfs/meta/{trimmed}/")
+        }
+    }
+
+    /// The whiteout-key prefix for every path under `dir`.
+    fn whiteout_dir_prefix(dir: &str) -> String {
+        let trimmed = dir.trim_start_matches('/');
+        if trimmed.is_empty() {
+            "vfs/whiteout/".to_string()
+        } else if trimmed.ends_with('/') {
+            format!("vfs/whiteout/{trimmed}")
+        } else {
+            format!("vfs/whiteout/{trimmed}/")
+        }
+    }
+
+    /// All blob keys that start with `prefix`, in sorted order.
+    async fn list_keys_after(&self, prefix: &str) -> VfsResult<Vec<String>> {
+        let stream = self
+            .store
+            .list_blobs_after(prefix, None, None)
+            .await
+            .map_err(serr)?;
+        stream
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(serr)
+    }
+
     async fn read_data(&self, path: &str) -> VfsResult<Option<Vec<u8>>> {
-        self.store.get_blob(&Self::data_key(path)).await.map_err(serr)
+        let mut out = Vec::new();
+        let mut index = 0u64;
+        let mut found = false;
+        loop {
+            match self
+                .store
+                .get_blob(&Self::chunk_key(path, index))
+                .await
+                .map_err(serr)?
+            {
+                Some(bytes) => {
+                    found = true;
+                    out.extend_from_slice(&bytes);
+                    index += 1;
+                }
+                None => break,
+            }
+        }
+        Ok(found.then_some(out))
     }
 
     async fn get_meta(&self, path: &str) -> VfsResult<Option<VfsMetadata>> {
-        match self.store.get_blob(&Self::meta_key(path)).await.map_err(serr)? {
+        match self
+            .store
+            .get_blob(&Self::meta_key(path))
+            .await
+            .map_err(serr)?
+        {
             Some(bytes) => serde_json::from_slice(&bytes).map(Some).map_err(|e| {
                 ErrorTrace::new(VfsError::Backend {
                     message: format!("meta deserialize: {e}"),
@@ -176,18 +316,43 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             .map_err(serr)
     }
 
-    /// Replace a file's content and bring its metadata (size, mtime) in line.
-    async fn write_data(&self, path: &str, data: &[u8]) -> VfsResult<()> {
-        self.store
-            .put_blob(&Self::data_key(path), data)
-            .await
-            .map_err(serr)?;
+    /// Rewrite only the chunks whose bytes differ between `old_content` and
+    /// `new_content`; delete chunks that `new_content` no longer spans.
+    async fn replace_chunks(
+        &self,
+        path: &str,
+        old_content: &[u8],
+        new_content: &[u8],
+    ) -> VfsResult<()> {
+        let chunk_size = self.chunk_size.max(1);
+        let old_chunks = old_content.len().div_ceil(chunk_size);
+        let new_chunks = new_content.len().div_ceil(chunk_size);
+        for index in 0..old_chunks.max(new_chunks) {
+            let start = index * chunk_size;
+            let old_slice = chunk_slice(old_content, start, chunk_size);
+            let new_slice = chunk_slice(new_content, start, chunk_size);
+            if old_slice == new_slice {
+                continue;
+            }
+            let key = Self::chunk_key(path, index as u64);
+            if new_slice.is_empty() {
+                self.store.delete_blob(&key).await.map_err(serr)?;
+            } else {
+                self.store.put_blob(&key, new_slice).await.map_err(serr)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Update the stored size and mtime for `path`, creating a regular-file
+    /// metadata record if none exists.
+    async fn touch_meta(&self, path: &str, size: u64) -> VfsResult<()> {
         let mut meta = self
             .get_meta(path)
             .await?
-            .unwrap_or_else(|| new_meta(path, 0, VfsFileType::Regular, 0o644));
-        meta.size = data.len() as u64;
-        meta.modified = Some(SystemTime::now());
+            .unwrap_or_else(|| new_meta(path, 0, VfsFileType::Regular, 0o644, &self.ctx));
+        meta.size = size;
+        meta.modified = Some(self.ctx.clock().wall_now());
         self.store_meta(path, &meta).await
     }
 
@@ -198,13 +363,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             .await
             .map_err(serr)?
         {
-            Some(bytes) => {
-                let version = bytes
-                    .get(..8)
-                    .and_then(|b| <[u8; 8]>::try_from(b).ok())
-                    .map_or(0, u64::from_le_bytes);
-                Ok(Some(version))
-            }
+            Some(bytes) => Ok(Some(whiteout_version(&bytes))),
             None => Ok(None),
         }
     }
@@ -217,7 +376,13 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             return Ok(meta);
         }
         match self.read_data(path).await? {
-            Some(data) => Ok(new_meta(path, data.len() as u64, VfsFileType::Regular, 0o644)),
+            Some(data) => Ok(new_meta(
+                path,
+                data.len() as u64,
+                VfsFileType::Regular,
+                0o644,
+                &self.ctx,
+            )),
             None => Err(not_found(path)),
         }
     }
@@ -235,18 +400,21 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             return Ok(true);
         }
         self.store
-            .blob_exists(&Self::data_key(path))
+            .blob_exists(&Self::chunk_key(path, 0))
             .await
             .map_err(serr)
     }
 
     async fn create(&self, path: &str, mode: u32) -> VfsResult<BlobFile<S>> {
-        self.store
-            .put_blob(&Self::data_key(path), &[])
-            .await
-            .map_err(serr)?;
-        self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular, mode))
-            .await?;
+        // A re-created path starts empty: drop any chunks it still has.
+        for key in self.list_keys_after(&Self::data_prefix(path)).await? {
+            self.store.delete_blob(&key).await.map_err(serr)?;
+        }
+        self.store_meta(
+            path,
+            &new_meta(path, 0, VfsFileType::Regular, mode, &self.ctx),
+        )
+        .await?;
         // A path created again is no longer whited out.
         self.store
             .delete_blob(&Self::whiteout_key(path))
@@ -256,8 +424,11 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     }
 
     async fn mkdir(&self, path: &str) -> VfsResult<()> {
-        self.store_meta(path, &new_meta(path, 0, VfsFileType::Directory, 0o755))
-            .await?;
+        self.store_meta(
+            path,
+            &new_meta(path, 0, VfsFileType::Directory, 0o755, &self.ctx),
+        )
+        .await?;
         self.store
             .delete_blob(&Self::whiteout_key(path))
             .await
@@ -291,20 +462,21 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             return Err(not_found(from));
         }
         if let Some(data) = data {
-            self.store
-                .put_blob(&Self::data_key(to), &data)
-                .await
-                .map_err(serr)?;
+            let to_old = self.read_data(to).await?.unwrap_or_default();
+            self.replace_chunks(to, &to_old, &data).await?;
         }
         if let Some(meta) = meta {
             self.store_meta(to, &meta).await?;
         }
+        for key in self.list_keys_after(&Self::data_prefix(from)).await? {
+            self.store.delete_blob(&key).await.map_err(serr)?;
+        }
         self.store
-            .delete_blob(&Self::data_key(from))
+            .delete_blob(&Self::meta_key(from))
             .await
             .map_err(serr)?;
         self.store
-            .delete_blob(&Self::meta_key(from))
+            .delete_blob(&Self::whiteout_key(from))
             .await
             .map_err(serr)
     }
@@ -362,14 +534,20 @@ impl<S: BlobStore + 'static> AsyncVfsFile for BlobFile<S> {
 
     async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
         self.check_writable()?;
-        let mut content = self.content().await?;
+        let old = self.content().await?;
         let start = to_usize(offset)?;
         let end = start.saturating_add(data.len());
+        let mut content = old.clone();
         if end > content.len() {
             content.resize(end, 0);
         }
         content[start..end].copy_from_slice(&data);
-        self.delta.write_data(&self.path, &content).await?;
+        self.delta
+            .replace_chunks(&self.path, &old, &content)
+            .await?;
+        self.delta
+            .touch_meta(&self.path, content.len() as u64)
+            .await?;
         Ok(data.len())
     }
 
@@ -384,9 +562,15 @@ impl<S: BlobStore + 'static> AsyncVfsFile for BlobFile<S> {
 
     async fn truncate_async(&self, size: u64) -> VfsResult<()> {
         self.check_writable()?;
-        let mut content = self.content().await?;
+        let old = self.content().await?;
+        let mut content = old.clone();
         content.resize(to_usize(size)?, 0);
-        self.delta.write_data(&self.path, &content).await
+        self.delta
+            .replace_chunks(&self.path, &old, &content)
+            .await?;
+        self.delta
+            .touch_meta(&self.path, content.len() as u64)
+            .await
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
@@ -451,8 +635,26 @@ impl<S: BlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
     }
 
     async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
-        // Blob stores can't list keys (backlog §13).
-        Ok(Vec::new())
+        let prefix = BlobDelta::<S>::meta_dir_prefix(&self.path);
+        let mut entries = Vec::new();
+        for key in self.delta.list_keys_after(&prefix).await? {
+            let Some(name) = key.strip_prefix(&prefix) else {
+                continue;
+            };
+            // Only direct children; nested names carry a `/`.
+            if name.is_empty() || name.contains('/') {
+                continue;
+            }
+            let child = join(&self.path, name);
+            if let Ok(meta) = self.delta.stat(&child).await {
+                entries.push(VfsDirEntry {
+                    inode: meta.inode,
+                    name: name.to_string(),
+                    file_type: meta.file_type,
+                });
+            }
+        }
+        Ok(entries)
     }
 
     async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
@@ -495,7 +697,11 @@ impl<S: BlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
         self.delta.open(&join(&self.path, &path), mode).await
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         self.delta.open(&join(&self.path, &path), mode).await
     }
 
@@ -561,7 +767,11 @@ impl<S: BlobStore + 'static> AsyncVfsFileSystem for BlobDelta<S> {
         self.open(&path, mode).await
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         self.open(&path, mode).await
     }
 
@@ -595,9 +805,21 @@ impl<S: BlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
             .map_err(serr)
     }
 
-    async fn list_whiteouts_async(&self, _dir: String) -> VfsResult<Vec<(String, u64)>> {
-        // Blob stores can't list keys (backlog §13).
-        Ok(Vec::new())
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> {
+        let prefix = Self::whiteout_dir_prefix(&dir);
+        let mut out = Vec::new();
+        for key in self.list_keys_after(&prefix).await? {
+            let Some(rel) = key.strip_prefix("vfs/whiteout/") else {
+                continue;
+            };
+            let path = format!("/{rel}");
+            let version = match self.store.get_blob(&key).await.map_err(serr)? {
+                Some(bytes) => whiteout_version(&bytes),
+                None => 0,
+            };
+            out.push((path, version));
+        }
+        Ok(out)
     }
 
     async fn flush_async(&self) -> VfsResult<()> {
@@ -606,6 +828,9 @@ impl<S: BlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
     }
 
     async fn reset_async(&self) -> VfsResult<()> {
-        Err(unsupported("reset (blob stores can't list keys to delete)"))
+        for key in self.list_keys_after("vfs/").await? {
+            self.store.delete_blob(&key).await.map_err(serr)?;
+        }
+        Ok(())
     }
 }

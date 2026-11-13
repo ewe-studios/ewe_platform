@@ -79,10 +79,7 @@ impl ReplHistory {
         let entries: Vec<String> = serde_json::from_str(&data)?;
         let max_len = entries.len().max(1000);
         let mut deque = VecDeque::with_capacity(max_len);
-        for entry in entries
-            .iter()
-            .skip(entries.len().saturating_sub(max_len))
-        {
+        for entry in entries.iter().skip(entries.len().saturating_sub(max_len)) {
             deque.push_back(entry.clone());
         }
         Ok(Self {
@@ -100,49 +97,5 @@ impl ReplHistory {
     pub fn save_to_file(&self, path: &std::path::Path) -> std::io::Result<()> {
         let data = serde_json::to_string(&self.entries)?;
         std::fs::write(path, data)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn push_and_recall() {
-        let mut h = ReplHistory::new(100);
-        h.push("hello".into());
-        h.push("world".into());
-        assert_eq!(h.up(), Some("world"));
-        assert_eq!(h.up(), Some("hello"));
-        assert_eq!(h.up(), Some("hello")); // stuck at bottom
-    }
-
-    #[test]
-    fn down_returns_to_bottom() {
-        let mut h = ReplHistory::new(100);
-        h.push("a".into());
-        h.push("b".into());
-        h.up();
-        h.up();
-        assert_eq!(h.down(), Some("b"));
-        assert_eq!(h.down(), None);
-    }
-
-    #[test]
-    fn empty_not_stored() {
-        let mut h = ReplHistory::new(100);
-        h.push("   ".into());
-        assert_eq!(h.up(), None);
-    }
-
-    #[test]
-    fn duplicate_moves_to_end() {
-        let mut h = ReplHistory::new(100);
-        h.push("x".into());
-        h.push("y".into());
-        h.push("x".into());
-        assert_eq!(h.up(), Some("x"));
-        assert_eq!(h.up(), Some("y"));
-        assert_eq!(h.up(), Some("y")); // x was removed from earlier position
     }
 }

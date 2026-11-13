@@ -14,20 +14,29 @@
 //! HOW: Each poll performs the h2 handshake (once), reads at most one frame,
 //! routes it, then drains every active stream's response pipe into `H2Conn`.
 //! Nothing here blocks: request bodies stream through pipes rather than being
-//! collected, and handler futures run elsewhere. `WouldBlock` parks the task on
-//! a timer (see the reactor-parking gap tracked as feature 47b).
+//! collected, and handler futures run elsewhere. When nothing is ready the task
+//! parks (`Depends`) until the socket is readable or writable (watched through
+//! the shared reactor, or the overlay's own read waker), a handler pushes a
+//! response frame, a body pipe frees a slot, the idle deadline passes, or the
+//! server shuts down. Only a transport that can be watched none of these ways
+//! falls back to polling on a timer.
 
 use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::sync::Arc;
+use std::task::{Wake, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{Ctx, 
-    FutureTask, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
-    TryRecvError,
+use foundation_context::Ctx;
+use foundation_core::synca::WaitGroupGuard;
+use foundation_core::valtron::{
+    AnyReadiness, BoolSignal, EventReadiness, EventReadinessPtr, FutureTask, Pipe, PipeReceiver,
+    PipeSender, ReadinessWaker, TaskIterator, TaskStatus, TryRecvError,
 };
+#[cfg(unix)]
+use foundation_iogate::FdReadiness as SocketReadiness;
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::frame::{
     data_flags, headers_flags, ErrorCode, Head, HeadersFrame, Kind, ResetFrame,
@@ -35,8 +44,8 @@ use foundation_netio::http2::frame::{
 use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame};
 use foundation_netio::netcap::ConnectionContext;
 
-use crate::shared::app::HttpApp;
 use crate::native::serve::H2Serve;
+use crate::shared::app::HttpApp;
 
 const POLL_DELAY: Duration = Duration::from_millis(10);
 /// Aggressive poll delay during the H2 handshake — grpc-go may fire GOAWAY
@@ -91,11 +100,12 @@ impl ActiveStream {
     /// already ended by `END_STREAM`, and the closed response pipe covers every
     /// other case (see `PipeSender::closed`).
     fn cancel(&self, code: ErrorCode) {
-        self.resp_rx.close();
+        // Close is idempotent, so the "this call closed it" flag needs no action.
+        let _resp_closed = self.resp_rx.close();
         if !self.body_tx.is_closed() {
             let _ = self.body_tx.try_send(H2IncomingFrame::Reset(code));
         }
-        self.body_tx.close();
+        let _body_closed = self.body_tx.close();
     }
 }
 
@@ -115,7 +125,7 @@ pub struct H2ConnectionHandler {
     conn: H2Conn,
     app: Arc<HttpApp<Arc<dyn H2Serve>>>,
     connection: Arc<ConnectionContext>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     _drain_guard: WaitGroupGuard,
     idle_since: Option<Instant>,
     handshaked: bool,
@@ -123,6 +133,112 @@ pub struct H2ConnectionHandler {
     /// Consumed bytes not yet credited back on the connection window —
     /// flushed as one `WINDOW_UPDATE` at [`CREDIT_FLUSH_THRESHOLD`].
     uncredited_conn: u32,
+    /// How the task parks when nothing is ready; see [`Parker`].
+    parker: Parker,
+    /// The transport took our read waker (the overlay has no fd to watch).
+    overlay_waker: bool,
+    /// The engine context, seeded from the pool root `Ctx`.
+    ctx: Ctx,
+}
+
+/// What wakes a parked h2 connection task.
+struct Parker {
+    /// Set by `waker`: a handler pushed a response frame, a body pipe freed a
+    /// slot, or the overlay transport became readable.
+    woken: BoolSignal,
+    waker: Waker,
+    /// The socket on the shared reactor; `None` until first needed, or when it
+    /// cannot be watched that way.
+    fd: Option<Arc<SocketReadiness>>,
+    /// Registration was tried (and `fd` holds its outcome).
+    fd_tried: bool,
+}
+
+impl Parker {
+    fn new() -> Self {
+        let woken = BoolSignal::new(false);
+        Self {
+            waker: Waker::from(Arc::new(SignalWaker(woken.clone()))),
+            woken,
+            fd: None,
+            fd_tried: false,
+        }
+    }
+}
+
+/// A `Waker` that sets a [`BoolSignal`] (which asks the executor to run).
+struct SignalWaker(BoolSignal);
+
+impl Wake for SignalWaker {
+    fn wake(self: Arc<Self>) {
+        self.0.set(true);
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.0.set(true);
+    }
+}
+
+/// No reactor off unix: the socket cannot be watched, so the task polls.
+#[cfg(not(unix))]
+struct SocketReadiness;
+
+#[cfg(not(unix))]
+impl SocketReadiness {
+    fn register(_fd: i32) -> io::Result<Self> {
+        Err(io::ErrorKind::Unsupported.into())
+    }
+
+    fn clear(&self) {}
+}
+
+#[cfg(not(unix))]
+impl EventReadiness for SocketReadiness {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        false
+    }
+}
+
+/// The connection's socket fd, or `-1` when it has none to watch.
+#[cfg(unix)]
+fn socket_fd(conn: &H2Conn) -> i32 {
+    conn.raw_fd()
+}
+
+#[cfg(not(unix))]
+fn socket_fd(_conn: &H2Conn) -> i32 {
+    -1
+}
+
+/// Ready once a deadline has passed on the connection's clock.
+struct DeadlinePassed(Instant, Ctx);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.1.clock().now() >= self.0
+    }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
+}
+
+/// Ready once the server is shutting down.
+struct ShutdownRequested(Arc<ShutdownSignal>);
+
+impl EventReadiness for ShutdownRequested {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
+    }
 }
 
 impl H2ConnectionHandler {
@@ -131,8 +247,9 @@ impl H2ConnectionHandler {
         conn: H2Conn,
         app: Arc<HttpApp<Arc<dyn H2Serve>>>,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
+        ctx: Ctx,
     ) -> Self {
         Self {
             conn,
@@ -144,6 +261,9 @@ impl H2ConnectionHandler {
             handshaked: false,
             streams: BTreeMap::new(),
             uncredited_conn: 0,
+            parker: Parker::new(),
+            overlay_waker: false,
+            ctx,
         }
     }
 }
@@ -157,6 +277,10 @@ impl TaskIterator for H2ConnectionHandler {
             tracing::debug!("h2 server: shutdown signaled, closing connection");
             return None;
         }
+
+        // Arm every wake source before looking for work, so whatever becomes
+        // ready while we look still wakes us.
+        self.arm_wakers();
 
         // The socket is non-blocking, so the handshake — which reads the client
         // preface — may not complete on the first poll.
@@ -174,15 +298,20 @@ impl TaskIterator for H2ConnectionHandler {
                     // default so bulk uploads aren't paced by credit round
                     // trips (see CONNECTION_WINDOW_EXTRA).
                     self.conn.send_window_update(0, CONNECTION_WINDOW_EXTRA);
-                    self.conn.flush().ok();
-                    tracing::debug!("h2 server: handshake done, keepalive PING + window raise sent");
+                    if !self.flush() {
+                        return None;
+                    }
+                    tracing::debug!(
+                        "h2 server: handshake done, keepalive PING + window raise sent"
+                    );
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    // Handshake in progress — 1ms poll to minimise response latency.
-                    // grpc-go's transport may fire GOAWAY within 10ms of completing
-                    // its side of the handshake. Our SETTINGS + PING must arrive
-                    // before that window closes.
-                    return Some(TaskStatus::Delayed(HANDSHAKE_POLL_DELAY));
+                    // Handshake in progress: wait for the rest of the preface.
+                    // Parked on the socket we resume as soon as it arrives;
+                    // without a watchable socket, poll at 1 ms — grpc-go's
+                    // transport may fire GOAWAY within 10 ms of completing its
+                    // side, and our SETTINGS + PING must arrive before that.
+                    return Some(self.park_or(HANDSHAKE_POLL_DELAY, None));
                 }
                 Err(e) => {
                     tracing::debug!(err = %e, "h2 server handshake failed");
@@ -198,15 +327,27 @@ impl TaskIterator for H2ConnectionHandler {
                 self.idle_since = None;
                 match head.kind {
                     Kind::Headers => {
-                        tracing::debug!(stream = head.stream_id, kind = "HEADERS", "h2 frame received");
+                        tracing::debug!(
+                            stream = head.stream_id,
+                            kind = "HEADERS",
+                            "h2 frame received"
+                        );
                         self.on_headers(head, &payload);
                     }
                     Kind::Data => {
-                        tracing::debug!(stream = head.stream_id, kind = "DATA", "h2 frame received");
+                        tracing::debug!(
+                            stream = head.stream_id,
+                            kind = "DATA",
+                            "h2 frame received"
+                        );
                         self.on_data(head, &payload);
                     }
                     Kind::Reset => {
-                        tracing::debug!(stream = head.stream_id, kind = "RST_STREAM", "h2 frame received");
+                        tracing::debug!(
+                            stream = head.stream_id,
+                            kind = "RST_STREAM",
+                            "h2 frame received"
+                        );
                         self.on_reset(head, &payload);
                     }
                     _ => {}
@@ -219,7 +360,9 @@ impl TaskIterator for H2ConnectionHandler {
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                 self.drain_pending_bodies();
-                self.pump_responses();
+                if !self.pump_responses() {
+                    return None;
+                }
                 // Log the first WouldBlock to confirm the server is alive and waiting.
                 if self.idle_since.is_none() {
                     tracing::trace!("h2 server: idle — waiting for frames");
@@ -233,7 +376,9 @@ impl TaskIterator for H2ConnectionHandler {
         }
 
         self.drain_pending_bodies();
-        self.pump_responses();
+        if !self.pump_responses() {
+            return None;
+        }
         Some(TaskStatus::Pending(()))
     }
 }
@@ -244,16 +389,83 @@ impl H2ConnectionHandler {
     fn park(&mut self) -> Option<TaskStatus<(), ()>> {
         if !self.streams.is_empty() {
             self.idle_since = None;
-            return Some(TaskStatus::Delayed(POLL_DELAY));
+            return Some(self.park_or(POLL_DELAY, None));
         }
-        match self.idle_since {
-            None => {
-                self.idle_since = Some(Instant::now());
-                Some(TaskStatus::Delayed(POLL_DELAY))
+        let now = self.ctx.clock().now();
+        let since = *self.idle_since.get_or_insert(now);
+        if now.saturating_duration_since(since) >= IDLE_TIMEOUT {
+            return None;
+        }
+        Some(self.park_or(POLL_DELAY, Some(since + IDLE_TIMEOUT)))
+    }
+
+    /// Start a turn: forget earlier wakes and readiness, so only what happens
+    /// from now on wakes the parked task, and arm the socket (on the reactor,
+    /// or the overlay's read waker). The pipes are armed when parking.
+    fn arm_wakers(&mut self) {
+        self.parker.woken.set(false);
+        if !self.parker.fd_tried {
+            self.parker.fd_tried = true;
+            let fd = socket_fd(&self.conn);
+            if fd >= 0 {
+                match SocketReadiness::register(fd) {
+                    Ok(readiness) => self.parker.fd = Some(Arc::new(readiness)),
+                    Err(e) => tracing::debug!(
+                        error = %e,
+                        "h2 server: cannot watch the socket on the reactor; polling instead"
+                    ),
+                }
             }
-            Some(since) if since.elapsed() < IDLE_TIMEOUT => Some(TaskStatus::Delayed(POLL_DELAY)),
-            Some(_) => None,
         }
+        if let Some(fd) = &self.parker.fd {
+            fd.clear();
+        } else {
+            let woken = self.parker.woken.clone();
+            let overlay: foundation_netio::native::connection::ConnWaker =
+                Arc::new(move || woken.set(true));
+            self.overlay_waker = self.conn.register_read_waker(overlay);
+        }
+    }
+
+    /// Park until something wakes the task (see [`Self::arm_wakers`]), the
+    /// `deadline` passes, or the server shuts down. Falls back to polling every
+    /// `fallback` when the socket cannot be watched at all.
+    fn park_or(&self, fallback: Duration, deadline: Option<Instant>) -> TaskStatus<(), ()> {
+        let socket: Option<EventReadinessPtr> = match &self.parker.fd {
+            Some(fd) => {
+                // Watch WRITABLE only while output is queued to flush. An idle
+                // socket is always writable, so watching it constantly would
+                // make the reactor report the fd ready forever and spin the
+                // drain thread instead of parking.
+                let pw = self.conn.has_pending_writes();
+                let _ = fd.set_writable(pw);
+                Some(Arc::clone(fd) as EventReadinessPtr)
+            }
+            None if self.overlay_waker => None,
+            None => return TaskStatus::Delayed(fallback),
+        };
+        let mut ready = AnyReadiness::either(
+            Arc::new(self.parker.woken.clone()),
+            Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),
+        );
+        // Streams opened, or bodies held back, during this turn were not armed
+        // at its start: arm them now, and let their pipes' own readiness cover
+        // a push or pop that lands before the waker is in place.
+        for stream in self.streams.values() {
+            stream.resp_rx.register_waker(&self.parker.waker);
+            ready = ready.with(Arc::new(stream.resp_rx.readiness()));
+            if !stream.pending_body.is_empty() {
+                stream.body_tx.register_waker(&self.parker.waker);
+                ready = ready.with(Arc::new(stream.body_tx.vacancy()));
+            }
+        }
+        if let Some(socket) = socket {
+            ready = ready.with(socket);
+        }
+        if let Some(deadline) = deadline {
+            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.ctx.clone())));
+        }
+        TaskStatus::Depends(Arc::new(ready))
     }
 
     /// A new stream: decode headers, route it, and spawn its handler future.
@@ -295,7 +507,7 @@ impl H2ConnectionHandler {
 
         // HEADERS carrying END_STREAM means the request has no body at all.
         if hf.flags & headers_flags::END_STREAM != 0 {
-            body_tx.close();
+            let _closed = body_tx.close();
         }
 
         let fut = handler.serve_h2(self.app.context().clone(), header, body_rx, resp_tx);
@@ -338,7 +550,10 @@ impl H2ConnectionHandler {
         if !payload.is_empty() {
             let data = Bytes::copy_from_slice(payload);
             if stream.pending_body.is_empty()
-                && stream.body_tx.try_send(H2IncomingFrame::Data(data.clone())).is_ok()
+                && stream
+                    .body_tx
+                    .try_send(H2IncomingFrame::Data(data.clone()))
+                    .is_ok()
             {
                 stream.uncredited += payload_len_u32(payload.len());
                 if stream.uncredited >= CREDIT_FLUSH_THRESHOLD {
@@ -358,7 +573,7 @@ impl H2ConnectionHandler {
 
         if end_stream {
             if stream.pending_body.is_empty() {
-                stream.body_tx.close();
+                let _closed = stream.body_tx.close();
             } else {
                 stream.body_ended = true;
             }
@@ -387,7 +602,7 @@ impl H2ConnectionHandler {
                 conn.send_window_update(*sid, credit);
             }
             if stream.body_ended && stream.pending_body.is_empty() {
-                stream.body_tx.close();
+                let _closed = stream.body_tx.close();
             }
         }
         if *uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
@@ -418,7 +633,7 @@ impl H2ConnectionHandler {
     /// Drain every live stream's response pipe onto the shared write buffer, then
     /// reap finished streams. This is the only place `H2Conn` is written, so
     /// frames from different streams never interleave mid-frame.
-    fn pump_responses(&mut self) {
+    fn pump_responses(&mut self) -> bool {
         let mut finished: Vec<u32> = Vec::new();
 
         for (&sid, stream) in &mut self.streams {
@@ -452,22 +667,36 @@ impl H2ConnectionHandler {
 
         for sid in finished {
             if let Some(stream) = self.streams.remove(&sid) {
-                stream.body_tx.close();
+                let _closed = stream.body_tx.close();
             }
         }
 
-        self.conn.flush().ok();
+        self.flush()
+    }
+
+    /// Write out queued frames. A `WouldBlock` keeps the rest queued for the
+    /// next turn (the socket's writability wakes us); any other failure means
+    /// the connection is gone. Returns `false` then.
+    fn flush(&mut self) -> bool {
+        match self.conn.flush() {
+            Ok(()) => true,
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => true,
+            Err(e) => {
+                tracing::debug!(err = %e, "h2 server: write failed — closing connection");
+                false
+            }
+        }
     }
 }
 
 /// Generate 8 opaque bytes for a keepalive PING.
 fn new_ping_opaque_h2srv() -> [u8; 8] {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    // Opaque 8-byte PING nonce — any value works. Fold the full nanos into a
-    // u64 (truncation is fine and intended for a nonce).
-    let dur = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
-    let nonce = (u64::from(dur.subsec_nanos())) ^ dur.as_secs().rotate_left(32);
-    nonce.to_be_bytes()
+    // Opaque 8-byte PING nonce — any value works, so a counter is enough and
+    // needs no clock read.
+    static NEXT_NONCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    NEXT_NONCE
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+        .to_be_bytes()
 }
 
 /// A payload length as `u32`. HTTP/2 DATA payloads are bounded by the frame

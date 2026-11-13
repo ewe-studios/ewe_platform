@@ -236,19 +236,27 @@ where
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let stream = execute(my_task)?
-///     .map_circuit(|item| {
-///         match item {
-///             Stream::Next(err_result) if err_result.is_error() => {
-///                 ShortCircuit::ReturnAndStop(Stream::Next(err_result))
-///             }
-///             Stream::Pending(_) | Stream::Next(_) => {
-///                 ShortCircuit::Continue(item)
-///             }
-///             _ => ShortCircuit::Stop,
-///         }
-///     });
+/// ```
+/// use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
+///
+/// // Stop at the first error, and return it.
+/// let items: Vec<Stream<Result<u32, &'static str>, ()>> = vec![
+///     Stream::Next(Ok(1)),
+///     Stream::Next(Ok(2)),
+///     Stream::Next(Err("boom")),
+///     Stream::Next(Ok(3)),
+/// ];
+/// let mut stream = items.into_iter().map_circuit(|item| match item {
+///     Stream::Next(Err(err)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(err))),
+///     Stream::Next(Ok(value)) => ShortCircuit::Continue(Stream::Next(Ok(value))),
+///     _ => ShortCircuit::Stop,
+/// });
+///
+/// assert_eq!(stream.next(), Some(Stream::Next(Ok(1))));
+/// assert_eq!(stream.next(), Some(Stream::Next(Ok(2))));
+/// assert_eq!(stream.next(), Some(Stream::Next(Err("boom"))));
+/// // The error was returned; the remaining Ok(3) is never yielded.
+/// assert_eq!(stream.next(), None);
 /// ```
 pub enum ShortCircuit<D, P> {
     /// Continue iteration with the wrapped item

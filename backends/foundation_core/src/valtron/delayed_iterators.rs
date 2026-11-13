@@ -27,7 +27,11 @@ pub enum Delayed<T> {
     ///    (this is more of a bonus).
     ///
     /// This allows more communication about an operation still awaiting completion.
-    Pending(std::time::Instant, std::time::Duration, std::time::Duration),
+    Pending(
+        foundation_compact::Instant,
+        std::time::Duration,
+        std::time::Duration,
+    ),
 
     /// Ready is the final state where we consider the delay
     /// finished/ended with relevant result.
@@ -120,17 +124,60 @@ impl<T> Iterator for DelayedAsIterator<T> {
 /// It will keep responding with a `Delayed::Pending` till the time marked
 /// for sleeping to end which indicates to the caller to perform whatever
 /// task they were waiting for.
-#[derive(Clone, Debug)]
-pub struct SleepIterator<T>(std::time::Instant, std::time::Duration, Option<T>);
+pub struct SleepIterator<T>(
+    foundation_compact::Instant,
+    std::time::Duration,
+    Option<T>,
+    foundation_context::Ctx,
+);
+
+impl<T: core::fmt::Debug> core::fmt::Debug for SleepIterator<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_tuple("SleepIterator")
+            .field(&self.0)
+            .field(&self.1)
+            .field(&self.2)
+            .finish()
+    }
+}
+
+impl<T: Clone> Clone for SleepIterator<T> {
+    fn clone(&self) -> Self {
+        Self(self.0, self.1, self.2.clone(), self.3.clone())
+    }
+}
 
 impl<T> SleepIterator<T> {
-    pub fn new(from: std::time::Instant, until: std::time::Duration, value: T) -> Self {
-        Self(from, until, Some(value))
+    pub fn new(
+        from: foundation_compact::Instant,
+        until: std::time::Duration,
+        value: T,
+        ctx: foundation_context::Ctx,
+    ) -> Self {
+        Self(from, until, Some(value), ctx)
     }
 
-    pub fn until(duration: std::time::Duration, value: T) -> Self {
-        let from = std::time::Instant::now();
-        Self(from, duration, Some(value))
+    pub fn until(duration: std::time::Duration, value: T, ctx: foundation_context::Ctx) -> Self {
+        let from = ctx.clock().now();
+        Self(from, duration, Some(value), ctx)
+    }
+}
+
+/// Classify a sleep deadline against `now`.
+///
+/// Returns the time left as `Some(diff)` only when `diff` is strictly positive.
+/// Returns `None` when the deadline is in the past, is exactly `now`, or overflowed
+/// (`completed_at` is `None`). `None` means the sleep is done.
+#[must_use]
+pub fn remaining(
+    completed_at: Option<foundation_compact::Instant>,
+    now: foundation_compact::Instant,
+) -> Option<std::time::Duration> {
+    let diff = completed_at?.checked_duration_since(now)?;
+    if diff > std::time::Duration::ZERO {
+        Some(diff)
+    } else {
+        None
     }
 }
 
@@ -140,13 +187,11 @@ impl<T> DelayedIterator for SleepIterator<T> {
     fn next(&mut self) -> Option<Delayed<Self::Item>> {
         self.2.as_ref()?;
 
-        let now = std::time::Instant::now();
-        let result = match self.0.checked_add(self.1) {
-            Some(completed_at) => match completed_at.checked_duration_since(now) {
-                Some(diff) => Delayed::Pending(self.0, self.1, diff),
-                _ => Delayed::Done(self.2.take().expect("item should not be taken yet")),
-            },
-            _ => Delayed::Done(self.2.take().expect("item should not be taken yet")),
+        let now = self.3.clock().now();
+        let completed_at = self.0.checked_add(self.1);
+        let result = match remaining(completed_at, now) {
+            Some(diff) => Delayed::Pending(self.0, self.1, diff),
+            None => Delayed::Done(self.2.take().expect("item should not be taken yet")),
         };
 
         Some(result)

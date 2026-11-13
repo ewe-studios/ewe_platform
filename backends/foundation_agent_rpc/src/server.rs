@@ -23,11 +23,12 @@ use std::thread::JoinHandle;
 use std::time::Duration;
 
 use foundation_connectrpc::{ConnectRpcServe, ConnectRpcServeH2, Router};
-use foundation_core::synca::OnSignal;
-use foundation_http::native::serve::H2Serve;
+use foundation_context::Ctx;
+use foundation_http::native::app::ServerApp;
+use foundation_http::native::serve::{H2Serve, Serve};
 use foundation_http::native::server::{HttpServer, ServerConfig};
-use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::shared::serve::Serve;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use crate::auth::{tls_listeners, EnrollmentService, MtlsConfig};
 use crate::bootstrap::{BootstrapPayload, PAYLOAD_VERSION};
@@ -71,6 +72,7 @@ pub struct AgentRpcServerBuilder {
     http: Option<ServerConfig>,
     insecure: bool,
     mtls: Option<MtlsConfig>,
+    ctx: Option<Ctx>,
 }
 
 impl std::fmt::Debug for AgentRpcServerBuilder {
@@ -80,6 +82,7 @@ impl std::fmt::Debug for AgentRpcServerBuilder {
             .field("registry", &self.registry)
             .field("insecure", &self.insecure)
             .field("mtls", &self.mtls.is_some())
+            .field("ctx", &self.ctx.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -124,11 +127,20 @@ impl AgentRpcServerBuilder {
         self
     }
 
+    /// The side-effect bundle every agent session reads its clock, entropy
+    /// and connection gate from. A host builds it once with [`Ctx::host`].
+    #[must_use]
+    pub fn with_ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
+        self
+    }
+
     /// Validate and assemble the server.
     ///
     /// # Errors
     /// [`AgentRpcError::Config`] when auth is not chosen (or both secure and
-    /// insecure), no model was added, or two models share a name.
+    /// insecure), no [`Ctx`] was supplied, no model was added, or two models
+    /// share a name.
     pub fn build(self) -> AgentRpcResult<AgentRpcServer> {
         let auth = match (self.insecure, self.mtls) {
             (true, None) => Auth::InsecurePlaintext,
@@ -142,15 +154,19 @@ impl AgentRpcServerBuilder {
                 )
                 .into())
             }
-            (false, None) => {
-                return Err(AgentRpcError::Config(
-                    "choose client auth explicitly (with_mtls, or insecure_plaintext for local use)"
-                        .into(),
-                )
-                .into())
-            }
+            (false, None) => return Err(AgentRpcError::Config(
+                "choose client auth explicitly (with_mtls, or insecure_plaintext for local use)"
+                    .into(),
+            )
+            .into()),
         };
-        let registry = InstanceRegistry::new(self.models, self.registry)?;
+        let Some(ctx) = self.ctx else {
+            return Err(AgentRpcError::Config(
+                "no side-effect bundle: call with_ctx (Ctx::host at the entry point)".into(),
+            )
+            .into());
+        };
+        let registry = InstanceRegistry::new(self.models, self.registry, ctx)?;
         Ok(AgentRpcServer {
             service: Arc::new(AgentRpcService::new(Arc::new(registry))),
             http: self.http,
@@ -185,6 +201,7 @@ impl AgentRpcServer {
             http: None,
             insecure: false,
             mtls: None,
+            ctx: None,
         }
     }
 
@@ -213,7 +230,7 @@ impl AgentRpcServer {
     /// [`AgentRpcError::Transport`] when an address cannot be bound;
     /// [`AgentRpcError::Config`] when TLS cannot be set up.
     pub fn serve(self, addr: &str) -> AgentRpcResult<RunningServer> {
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
         let agent_listener = bind(addr)?;
         let agent_addr = local_addr(&agent_listener, addr)?;
         let agent_app = agent_app(&self.service);
@@ -297,7 +314,7 @@ pub struct RunningServer {
     bootstrap_addr: Option<SocketAddr>,
     tls: Option<TlsInfo>,
     enrollment: Option<Arc<EnrollmentService>>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     threads: Vec<JoinHandle<()>>,
 }
 
@@ -475,7 +492,7 @@ fn spawn_plain(
     listener: TcpListener,
     addr: SocketAddr,
     config: ServerConfig,
-    shutdown: &Arc<OnSignal>,
+    shutdown: &Arc<ShutdownSignal>,
 ) -> AgentRpcResult<JoinHandle<()>> {
     let server = HttpServer::from_app_with_config(app, &addr.to_string(), config);
     let signal = Arc::clone(shutdown);
@@ -487,7 +504,7 @@ fn spawn_tls(
     listener: TcpListener,
     addr: SocketAddr,
     config: ServerConfig,
-    shutdown: &Arc<OnSignal>,
+    shutdown: &Arc<ShutdownSignal>,
 ) -> AgentRpcResult<JoinHandle<()>> {
     let server = HttpServer::from_app_with_config(app, &addr.to_string(), config);
     let signal = Arc::clone(shutdown);

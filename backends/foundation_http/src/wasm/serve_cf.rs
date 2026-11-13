@@ -8,7 +8,7 @@ use std::sync::Arc;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::wasm::cf_conn::{CfConn, CfConnectionResult};
 
 /// Cloudflare Workers handler — receives a typed `CfConn` for building
@@ -18,7 +18,7 @@ pub trait CfServe: Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
     async fn serve_cf(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: &mut CfConn,
     ) -> CfConnectionResult;
@@ -27,7 +27,7 @@ pub trait CfServe: Sync + 'static {
 /// Factory trait for creating `CfServe` handler instances.
 pub trait CfServeFactory: CfServe + Sized {
     /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
+    fn create(ctx: &Ctx) -> Self;
 }
 
 // ---------------------------------------------------------------------------
@@ -35,14 +35,12 @@ pub trait CfServeFactory: CfServe + Sized {
 
 impl HttpApp<Arc<dyn CfServe>> {
     /// Create a new empty `HttpApp` for CfServe handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_cf() -> Self {
-        use crate::shared::router::Router;
-        Self {
-            ctx: Arc::new(ContextBag::new()),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(foundation_context::Ctx::host())
     }
 
     /// Register a CF handler for a specific HTTP method and path.

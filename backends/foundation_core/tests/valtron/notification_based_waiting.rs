@@ -9,19 +9,27 @@
 //! Tests that hand a `NotifyQueue` to a producer thread are `multi`-only:
 //! `NotifyQueue` is only `Send` under `multi`.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{
-    Ctx, ExecutionAction, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask,
-};
-use foundation_core::valtron::{
-    InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
-    NotifyQueueStreamIterator, NotifyRecvIterator, PriorityOrder, NotificationItem,
-};
+use foundation_context::Ctx;
 #[cfg(feature = "multi")]
 use foundation_core::valtron::NotifyRecvIter;
+use foundation_core::valtron::{
+    ExecutionAction, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask,
+};
+use foundation_core::valtron::{
+    InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotificationItem, NotifyQueue,
+    NotifyQueueStreamIterator, NotifyRecvIterator, PriorityOrder,
+};
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
@@ -60,10 +68,13 @@ fn test_notify_queue_blocks_until_item_available() {
     let start = Instant::now();
     let mut result = None;
     loop {
-        match queue.wait_for_item(Duration::from_micros(100)) {
-            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+        match queue.wait_for_item(Duration::from_micros(100), &crate::valtron::real_ctx()) {
+            Some(NotificationItem::Ready(val)) => {
+                result = Some(val);
+                break;
+            }
             Some(NotificationItem::None) => {} // Yield signal, retry
-            None => break, // Queue closed
+            None => break,                     // Queue closed
         }
     }
     let elapsed = start.elapsed();
@@ -87,7 +98,7 @@ fn test_notify_queue_returns_none_when_closed() {
     queue.close();
 
     // Should return None immediately since queue is closed
-    let result = queue.wait_for_item(Duration::from_millis(100));
+    let result = queue.wait_for_item(Duration::from_millis(100), &crate::valtron::real_ctx());
     assert!(result.is_none());
 }
 
@@ -100,7 +111,7 @@ fn test_notify_queue_receives_item_with_notification() {
     queue.push(42).expect("push should succeed");
 
     // Should receive immediately with short timeout
-    let result = queue.wait_for_item(Duration::from_micros(100));
+    let result = queue.wait_for_item(Duration::from_micros(100), &crate::valtron::real_ctx());
     assert_eq!(result, Some(NotificationItem::Ready(42)));
 }
 
@@ -124,8 +135,11 @@ fn test_notify_queue_multiple_items_blocking() {
     let mut received = Vec::new();
     for _ in 0..5 {
         loop {
-            match queue.wait_for_item(Duration::from_micros(100)) {
-                Some(NotificationItem::Ready(item)) => { received.push(item); break; }
+            match queue.wait_for_item(Duration::from_micros(100), &crate::valtron::real_ctx()) {
+                Some(NotificationItem::Ready(item)) => {
+                    received.push(item);
+                    break;
+                }
                 Some(NotificationItem::None) => {} // Yield signal, retry
                 None => break,
             }
@@ -149,7 +163,7 @@ fn test_notify_queue_race_condition_handling() {
     // Wait with timeout should return immediately with the item
     // This tests the race condition where item is added before lock
     let start = Instant::now();
-    let result = queue.wait_for_item(Duration::from_millis(100));
+    let result = queue.wait_for_item(Duration::from_millis(100), &crate::valtron::real_ctx());
     let elapsed = start.elapsed();
 
     assert_eq!(result, Some(NotificationItem::Ready(100)));
@@ -201,8 +215,11 @@ fn test_notify_queue_timeout_is_recheck_interval() {
     let start = Instant::now();
     let mut result = None;
     loop {
-        match queue.wait_for_item(Duration::from_micros(1)) {
-            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+        match queue.wait_for_item(Duration::from_micros(1), &crate::valtron::real_ctx()) {
+            Some(NotificationItem::Ready(val)) => {
+                result = Some(val);
+                break;
+            }
             Some(NotificationItem::None) => {} // Yield signal, retry
             None => break,
         }
@@ -228,7 +245,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
 #[test]
 fn test_notify_recv_iterator_blocks_until_item() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
-    let recv_iter = NotifyRecvIter::new(queue.clone());
+    let recv_iter = NotifyRecvIter::new(queue.clone(), crate::valtron::real_ctx());
     let queue_clone = queue.clone();
 
     // Producer pushes item after delay
@@ -242,7 +259,10 @@ fn test_notify_recv_iterator_blocks_until_item() {
     let mut result = None;
     loop {
         match recv_iter.block_recv(Duration::from_micros(100)) {
-            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::Ready(val)) => {
+                result = Some(val);
+                break;
+            }
             Some(NotificationItem::None) => {} // Yield signal, retry
             None => break,
         }
@@ -263,7 +283,11 @@ fn test_notify_recv_iterator_blocks_until_item() {
 #[test]
 fn test_notify_recv_iterator_iterates_with_notification() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyRecvIterator::from_notify_queue(queue.clone(), Duration::from_micros(100));
+    let iterator = NotifyRecvIterator::from_notify_queue(
+        queue.clone(),
+        Duration::from_micros(100),
+        crate::valtron::real_ctx(),
+    );
 
     // Push items
     queue.push(1).unwrap();
@@ -292,7 +316,12 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let queue_clone = queue.clone();
 
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     // Producer pushes values after delay
     let producer = std::thread::spawn(move || {
@@ -308,8 +337,14 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     while results.len() < 2 {
         match iterator.next() {
             Some(Stream::Next(v)) => results.push(v),
-            Some(Stream::Wait | Stream::Ignore | Stream::Init | Stream::Pending(()) |
-Stream::Delayed(_) | Stream::Spread(_)) => {} // Not a value — keep polling
+            Some(
+                Stream::Wait
+                | Stream::Ignore
+                | Stream::Init
+                | Stream::Pending(())
+                | Stream::Delayed(_)
+                | Stream::Spread(_),
+            ) => {} // Not a value — keep polling
             None => break,
         }
     }
@@ -330,7 +365,12 @@ Stream::Delayed(_) | Stream::Spread(_)) => {} // Not a value — keep polling
 fn test_notify_queue_stream_iterator_returns_none_when_closed() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
 
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     // Push a value then close
     queue.push(Stream::Next(42)).unwrap();
@@ -347,7 +387,12 @@ fn test_notify_queue_stream_iterator_returns_none_when_closed() {
 fn test_notify_queue_stream_iterator_receives_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
 
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     // Push values
     queue.push(Stream::Next(1)).unwrap();
@@ -368,8 +413,7 @@ fn test_notify_queue_stream_iterator_receives_values() {
 /// Verifies that tasks using NotifyQueue-based receivers don't block progress.
 #[test]
 fn test_single_threaded_executor_with_notification_tasks() {
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<usize>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -399,6 +443,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
         task,
         // CRITICAL: Very short timeout for single-threaded mode
         Duration::from_micros(50),
+        crate::valtron::real_ctx(),
     );
 
     // Wrap receiver in Arc<Mutex<>> to allow access from closure
@@ -427,8 +472,24 @@ fn test_single_threaded_executor_with_notification_tasks() {
 /// without blocking indefinitely. Uses very short wait timeouts.
 #[test]
 fn test_single_threaded_executor_pends_without_blocking() {
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    // Task that counts and returns Delayed state
+    struct CountingTask(Arc<Mutex<usize>>);
+    impl TaskIterator for CountingTask {
+        type Ready = ();
+        type Pending = Duration;
+
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+            let mut count = self.0.lock().unwrap();
+            *count += 1;
+            if *count >= 5 {
+                return None; // Done
+            }
+            // Return Delayed to test pending state handling
+            Some(TaskStatus::Delayed(Duration::from_micros(1)))
+        }
+    }
+
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let counter: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
@@ -449,23 +510,6 @@ fn test_single_threaded_executor_pends_without_blocking() {
         None,
     );
 
-    // Task that counts and returns Delayed state
-    struct CountingTask(Arc<Mutex<usize>>);
-    impl TaskIterator for CountingTask {
-        type Ready = ();
-        type Pending = Duration;
-
-        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-            let mut count = self.0.lock().unwrap();
-            *count += 1;
-            if *count >= 5 {
-                return None; // Done
-            }
-            // Return Delayed to test pending state handling
-            Some(TaskStatus::Delayed(Duration::from_micros(1)))
-        }
-    }
-
     let counter_clone = Arc::clone(&counter);
     let task = CountingTask(counter_clone);
 
@@ -474,6 +518,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
         task,
         // Very short timeout for single-threaded
         Duration::from_micros(10),
+        crate::valtron::real_ctx(),
     );
 
     // Wrap receiver in Arc<Mutex<>> for closure access
@@ -524,7 +569,9 @@ fn test_single_threaded_producer_consumer_interleaved() {
         produced += 1;
 
         // Consume with short timeout
-        if let Some(NotificationItem::Ready(val)) = queue.wait_for_item(short_timeout) {
+        if let Some(NotificationItem::Ready(val)) =
+            queue.wait_for_item(short_timeout, &crate::valtron::real_ctx())
+        {
             assert_eq!(val, i);
             consumed += 1;
         }

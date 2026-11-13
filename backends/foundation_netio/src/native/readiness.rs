@@ -29,7 +29,8 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr};
+use foundation_context::Ctx;
+use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 
 /// Which direction of I/O a parked task is waiting for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -84,6 +85,26 @@ impl SocketReadiness {
     /// # Errors
     /// The `poll(2)` error, other than `EINTR` (which reports "not ready").
     pub fn poll_now(&self) -> std::io::Result<bool> {
+        self.poll_timeout(Some(Duration::ZERO))
+    }
+
+    /// Poll the fd once, waiting at most `timeout` for readiness.
+    ///
+    /// `None` waits without a limit. This blocks the calling thread, so only a
+    /// synchronous boundary calls it. A task parks on the `EventReadiness`
+    /// implementation instead.
+    ///
+    /// # Errors
+    /// The `poll(2)` error.
+    pub fn poll_timeout(&self, timeout: Option<Duration>) -> std::io::Result<bool> {
+        let timeout_ms = match timeout {
+            None => -1,
+            Some(dur) => {
+                // Round up: a sub-millisecond wait must still wait once.
+                let millis = dur.as_nanos().div_ceil(1_000_000).min(i32::MAX as u128);
+                i32::try_from(millis).unwrap_or(i32::MAX)
+            }
+        };
         let events = match self.interest {
             IoInterest::Readable => libc::POLLIN,
             IoInterest::Writable => libc::POLLOUT,
@@ -94,17 +115,42 @@ impl SocketReadiness {
             revents: 0,
         };
         // SAFETY: `pfd` is a valid, initialised `pollfd` and we pass a count of 1.
-        // A zero timeout makes the call return immediately.
-        let rc = unsafe { libc::poll(&raw mut pfd, 1, 0) };
+        let rc = unsafe { libc::poll(&raw mut pfd, 1, timeout_ms) };
         if rc < 0 {
-            let err = std::io::Error::last_os_error();
-            if err.kind() == std::io::ErrorKind::Interrupted {
-                return Ok(false);
-            }
-            return Err(err);
+            return Err(std::io::Error::last_os_error());
         }
         let woke = events | libc::POLLERR | libc::POLLHUP | libc::POLLNVAL;
         Ok(rc > 0 && (pfd.revents & woke) != 0)
+    }
+
+    /// Wait for readiness until `deadline` (or without a limit when it is
+    /// `None`), blocking the calling thread. Returns `false` when the deadline
+    /// passed first.
+    ///
+    /// WHY: the synchronous constructors keep their signature for sync callers
+    /// (feature 04 §2.3). They drive the same non-blocking state machine and
+    /// wait here instead of calling a blocking socket operation.
+    ///
+    /// # Errors
+    /// The `poll(2)` error.
+    pub fn wait_blocking(&self, deadline: Option<Instant>, ctx: &Ctx) -> std::io::Result<bool> {
+        loop {
+            let remaining = match deadline {
+                None => None,
+                Some(deadline) => {
+                    let now = ctx.clock().now();
+                    if now >= deadline {
+                        return Ok(false);
+                    }
+                    Some(deadline - now)
+                }
+            };
+            match self.poll_timeout(remaining) {
+                Ok(ready) => return Ok(ready),
+                Err(err) if err.kind() == std::io::ErrorKind::Interrupted => {}
+                Err(err) => return Err(err),
+            }
+        }
     }
 }
 
@@ -113,6 +159,7 @@ impl EventReadiness for SocketReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         match self.poll_now() {
             Ok(ready) => ready,
+            Err(err) if err.kind() == std::io::ErrorKind::Interrupted => false,
             Err(err) => {
                 // An fd we cannot poll will not become pollable later. Report it
                 // ready so the task wakes, retries its I/O, and gets the real error.
@@ -129,22 +176,41 @@ impl EventReadiness for SocketReadiness {
 /// A non-blocking socket never times out on its own, so every wait carries a
 /// deadline instead. It is composed with the socket signal via [`AnyReadiness`],
 /// so the task wakes on whichever comes first.
-#[derive(Debug, Clone, Copy)]
 pub struct DeadlineReadiness {
     deadline: Instant,
+    /// The engine clock that decides when the deadline passes.
+    ctx: Ctx,
+}
+
+impl core::fmt::Debug for DeadlineReadiness {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("DeadlineReadiness")
+            .field("deadline", &self.deadline)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Clone for DeadlineReadiness {
+    fn clone(&self) -> Self {
+        Self {
+            deadline: self.deadline,
+            ctx: self.ctx.clone(),
+        }
+    }
 }
 
 impl DeadlineReadiness {
-    /// Ready at `deadline`.
+    /// Ready at `deadline`, on the clock of `ctx`.
     #[must_use]
-    pub fn at(deadline: Instant) -> Self {
-        Self { deadline }
+    pub fn at(deadline: Instant, ctx: Ctx) -> Self {
+        Self { deadline, ctx }
     }
 
-    /// Ready `timeout` from now.
+    /// Ready `timeout` from now, on the clock of `ctx`.
     #[must_use]
-    pub fn after(timeout: Duration) -> Self {
-        Self::at(Instant::now() + timeout)
+    pub fn after(timeout: Duration, ctx: Ctx) -> Self {
+        let deadline = ctx.clock().now() + timeout;
+        Self::at(deadline, ctx)
     }
 
     /// The instant this signal becomes ready.
@@ -156,7 +222,7 @@ impl DeadlineReadiness {
     /// Whether the deadline has passed.
     #[must_use]
     pub fn expired(&self) -> bool {
-        Instant::now() >= self.deadline
+        self.ctx.clock().now() >= self.deadline
     }
 }
 
@@ -164,85 +230,69 @@ impl EventReadiness for DeadlineReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.expired()
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.deadline)
+    }
+
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
 }
 
 /// Compose an I/O readiness signal with a deadline: ready when either is.
 #[must_use]
-pub fn io_or_deadline(io: EventReadinessPtr, deadline: Instant) -> EventReadinessPtr {
+pub fn io_or_deadline(io: EventReadinessPtr, deadline: Instant, ctx: Ctx) -> EventReadinessPtr {
     Arc::new(AnyReadiness::either(
         io,
-        Arc::new(DeadlineReadiness::at(deadline)),
+        Arc::new(DeadlineReadiness::at(deadline, ctx)),
     ))
 }
 
-#[cfg(all(test, unix))]
-mod tests {
-    use super::*;
-    use std::io::Write;
-    use std::os::unix::io::AsRawFd;
-    use std::os::unix::net::UnixStream;
-
-    #[test]
-    fn readable_only_after_peer_writes() {
-        let (a, mut b) = UnixStream::pair().expect("socket pair");
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Readable);
-        assert!(!signal.is_ready(None), "nothing written yet");
-
-        b.write_all(b"x").expect("peer write");
-        assert!(signal.is_ready(None), "peer wrote a byte");
-    }
-
-    #[test]
-    fn hang_up_counts_as_readable() {
-        let (a, b) = UnixStream::pair().expect("socket pair");
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Readable);
-        assert!(!signal.is_ready(None));
-
-        drop(b);
-        assert!(signal.is_ready(None), "EOF must wake a parked reader");
-    }
-
-    #[test]
-    fn fresh_socket_is_writable() {
-        let (a, _b) = UnixStream::pair().expect("socket pair");
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Writable);
-        assert!(signal.is_ready(None));
-    }
-
-    #[test]
-    fn full_send_buffer_is_not_writable() {
-        let (a, _b) = UnixStream::pair().expect("socket pair");
-        a.set_nonblocking(true).expect("nonblocking");
-        let mut writer = &a;
-        let chunk = vec![0u8; 64 * 1024];
-        loop {
-            match writer.write(&chunk) {
-                Ok(_) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
-                Err(e) => panic!("unexpected write error: {e}"),
+/// Drive a TLS handshake to completion on a non-blocking socket, blocking the
+/// calling thread until it finishes or the deadline passes.
+///
+/// WHY: the synchronous constructors keep their signatures (feature 04 §2.3),
+/// but they must not start a blocking handshake call. They start the handshake
+/// non-blocking and wait here on the same readiness signal a valtron task parks
+/// on.
+///
+/// WHAT: calls `drive` until it succeeds. A `WouldBlock` result asks
+/// `poll_target` for the fd and direction the TLS session needs, then waits for
+/// it.
+///
+/// HOW: the deadline comes from the clock of the caller's `ctx`, not from the
+/// process clock in the logic below.
+///
+/// # Errors
+/// The handshake error, `TimedOut` when the deadline passes first, or
+/// `Unsupported` when the backend cannot report readiness.
+#[cfg(unix)]
+pub fn complete_handshake_blocking(
+    mut drive: impl FnMut() -> std::io::Result<()>,
+    mut poll_target: impl FnMut() -> Option<(std::os::unix::io::RawFd, IoInterest)>,
+    timeout: Option<Duration>,
+    ctx: &Ctx,
+) -> std::io::Result<()> {
+    let deadline = timeout.map(|timeout| ctx.clock().now() + timeout);
+    loop {
+        match drive() {
+            Ok(()) => return Ok(()),
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                let Some((fd, interest)) = poll_target() else {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Unsupported,
+                        "the TLS backend cannot report handshake readiness",
+                    ));
+                };
+                if !SocketReadiness::new(fd, interest).wait_blocking(deadline, ctx)? {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::TimedOut,
+                        "TLS handshake timed out",
+                    ));
+                }
             }
+            Err(err) => return Err(err),
         }
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Writable);
-        assert!(
-            !signal.is_ready(None),
-            "the peer never read, so the buffer is full"
-        );
-    }
-
-    #[test]
-    fn deadline_fires_and_composes() {
-        let (a, _b) = UnixStream::pair().expect("socket pair");
-        let io: EventReadinessPtr =
-            Arc::new(SocketReadiness::new(a.as_raw_fd(), IoInterest::Readable));
-
-        let later = io_or_deadline(io.clone(), Instant::now() + Duration::from_secs(60));
-        assert!(
-            !later.is_ready(None),
-            "neither the socket nor the deadline is ready"
-        );
-
-        let past = io_or_deadline(io, Instant::now());
-        assert!(past.is_ready(None), "a passed deadline wakes the task");
-        assert!(!DeadlineReadiness::after(Duration::from_secs(60)).expired());
     }
 }

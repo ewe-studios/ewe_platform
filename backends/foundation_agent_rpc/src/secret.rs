@@ -228,7 +228,8 @@ impl SigningKey {
     /// The key as PKCS#8 PEM, for persisting. Treat as a secret.
     #[must_use]
     pub fn to_pkcs8_pem(&self) -> Zeroizing<String> {
-        let encoded = Zeroizing::new(base64::engine::general_purpose::STANDARD.encode(&*self.pkcs8));
+        let encoded =
+            Zeroizing::new(base64::engine::general_purpose::STANDARD.encode(&*self.pkcs8));
         let mut pem = Zeroizing::new(String::with_capacity(encoded.len() + 64));
         pem.push_str(PEM_BEGIN);
         pem.push('\n');
@@ -625,7 +626,7 @@ pub struct BootstrapSecrets {
 impl BootstrapSecrets {
     /// Default validity of an issued secret: 24 hours, the default TTL of a
     /// kubeadm bootstrap token (`kubeadm token create --ttl`).
-    pub const DEFAULT_VALIDITY: Duration = Duration::from_secs(24 * 3600);
+    pub const DEFAULT_VALIDITY: Duration = Duration::from_hours(24);
 
     /// Sign with `key`; secrets last [`Self::DEFAULT_VALIDITY`].
     #[must_use]
@@ -684,7 +685,9 @@ impl BootstrapSecrets {
     ) -> AgentRpcResult<SignedSecret> {
         let (from, until) = (unix_secs(valid_from), unix_secs(valid_until));
         if until <= from {
-            return Err(config_err("a bootstrap secret needs a non-empty validity window"));
+            return Err(config_err(
+                "a bootstrap secret needs a non-empty validity window",
+            ));
         }
         let mut secret = Zeroizing::new(vec![0u8; SECRET_BYTES]);
         foundation_compact::entropy::fill(&mut secret)
@@ -718,8 +721,12 @@ impl BootstrapSecrets {
     /// (including this server's previous key), a bad signature, or a time
     /// outside the window.
     pub fn verify_at(&self, presented: &str, now: u64) -> AgentRpcResult<VerifiedSecret> {
-        let secret = SignedSecret::decode(presented)
-            .map_err(|e| auth_err(format!("malformed bootstrap secret ({})", e.current_context())))?;
+        let secret = SignedSecret::decode(presented).map_err(|e| {
+            auth_err(format!(
+                "malformed bootstrap secret ({})",
+                e.current_context()
+            ))
+        })?;
         if secret.alg != self.key.alg || secret.public_key != self.key.public_key {
             return Err(auth_err(
                 "bootstrap secret was issued under a different signing key",

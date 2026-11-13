@@ -9,7 +9,7 @@ use chacha20poly1305::{
     ChaCha20Poly1305, Nonce,
 };
 
-use super::key::{EncryptionKey, SecureBytes, generate_nonce};
+use super::key::{generate_nonce, EncryptionKey, SecureBytes};
 
 /// 256-bit key for ChaCha20-Poly1305.
 pub type ChaChaKey = EncryptionKey<32>;

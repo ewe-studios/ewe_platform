@@ -1,7 +1,7 @@
-//! `foundation_wireguard` — a userspace WireGuard® mesh (spec-55).
+//! `foundation_wireguard` — a userspace `WireGuard`® mesh (spec-55).
 //!
 //! WHY: Let any EWE service stand up a private, encrypted mesh from a single bootstrap
-//! secret and let other services join it — over WireGuard, entirely in userspace (no
+//! secret and let other services join it — over `WireGuard`, entirely in userspace (no
 //! kernel module, no privileges in the default mode), across native/wasm/mobile.
 //!
 //! WHAT: This crate is the **top combiner**. It wraps `boringtun`'s Noise state machine
@@ -12,9 +12,26 @@
 //! HOW: Sans-I/O cores (`Tunn`, smoltcp, SWIM) are *driven*, never self-running — a
 //! single valtron task couples `Tunn` timers with the data-plane poll loop. No tokio.
 
+// The project error standard. Feature 67 adopts it in this crate; this import
+// keeps the native-only dependency and tells the unused-dependency lint why.
+#[cfg(not(target_family = "wasm"))]
+use foundation_errstacks as _;
+
 /// Cross-platform building blocks (keys, tunnel, membership, mesh, config). No
 /// platform-specific re-exports live here (see `feedback_shared_module_purpose`).
 pub mod shared;
+
+/// Android JNI bridge for the `VpnService` integration (decision 08).
+///
+/// The module was not declared before, so its code and tests never compiled.
+#[cfg(any(target_os = "android", feature = "spec55-complete"))]
+pub mod android;
+
+/// iOS C FFI bridge for `NEPacketTunnelProvider` (decision 08).
+///
+/// The module was not declared before, so its code and tests never compiled.
+#[cfg(any(target_os = "ios", feature = "spec55-complete"))]
+pub mod ios;
 
 /// Completeness gate — emits `compile_error!` for every known spec-55 gap
 /// when `feature = "spec55-complete"` is enabled. Delete the corresponding
@@ -37,8 +54,8 @@ pub use foundation_macros::wireguard_main;
 
 pub use shared::bootstrap::{BootstrapFlags, BootstrapToken, TokenSecret, WgBootstrap};
 pub use shared::config::{
-    DataPlaneConfig, DataPlaneMode, NetworkConfig, NodeConfig, RelayConfig,
-    WgConfig, WgConfigBuilder,
+    DataPlaneConfig, DataPlaneMode, NetworkConfig, NodeConfig, RelayConfig, WgConfig,
+    WgConfigBuilder,
 };
 pub use shared::error::{WgError, WgResult};
 pub use shared::keys::{

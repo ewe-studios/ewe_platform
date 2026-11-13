@@ -14,16 +14,18 @@
 #![cfg(target_family = "wasm")]
 #![cfg(feature = "js-wasmbindgen")]
 
+use foundation_compact::Instant;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
     wasm::{JSThreadYielder, WaitStatus},
-    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
+    FnReady, ProcessController, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::wasm_bindgen_test;
 
@@ -184,7 +186,7 @@ fn concurrent_d1_queries_make_progress() {
                 }
             })))
             .as_scheduled()
-        .spawn()
+            .spawn()
             .expect("should schedule task");
         let _ = i; // suppress unused variable warning
     }
@@ -193,7 +195,11 @@ fn concurrent_d1_queries_make_progress() {
 
     let elapsed = start.elapsed();
 
-    assert_eq!(done_count.load(Ordering::Relaxed), 2, "Both tasks should complete");
+    assert_eq!(
+        done_count.load(Ordering::Relaxed),
+        2,
+        "Both tasks should complete"
+    );
     // With concurrent yields, wall time should be ~10ms (one yield period),
     // not ~20ms (sequential). Allow generous margin for JS timer variance.
     assert!(
@@ -373,7 +379,10 @@ async fn depends_task_parks_until_wake_signal_fires() {
     let slot = Rc::clone(&callback_slot);
     wasm_bindgen_futures::spawn_local(async move {
         sleep_ms(5).await;
-        let wake = slot.borrow_mut().take().expect("the task registered its wake");
+        let wake = slot
+            .borrow_mut()
+            .take()
+            .expect("the task registered its wake");
         wake();
     });
 
@@ -383,9 +392,12 @@ async fn depends_task_parks_until_wake_signal_fires() {
         }
         sleep_ms(1).await;
     }
-    assert_eq!(value.load(Ordering::Relaxed), 7, "resumed and completed after the wake");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        7,
+        "resumed and completed after the wake"
+    );
 }
-
 
 /// Parks on a [`BoolSignal`](foundation_core::valtron::BoolSignal) until it is
 /// set, then emits one value.
@@ -401,7 +413,9 @@ impl TaskIterator for ParkOnBoolTask {
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         use foundation_core::valtron::EventReadiness;
         match self.step {
-            0 if !self.signal.is_ready(None) => Some(TaskStatus::Depends(Arc::new(self.signal.clone()))),
+            0 if !self.signal.is_ready(None) => {
+                Some(TaskStatus::Depends(Arc::new(self.signal.clone())))
+            }
             0 => {
                 self.step = 1;
                 Some(TaskStatus::Ready(9))
@@ -437,7 +451,11 @@ async fn bool_signal_set_from_js_resumes_a_parked_task() {
         .expect("should schedule");
 
     run_until_complete();
-    assert_eq!(value.load(Ordering::Relaxed), 0, "parked until the signal is set");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        0,
+        "parked until the signal is set"
+    );
 
     wasm_bindgen_futures::spawn_local(async move {
         sleep_ms(5).await;
@@ -450,7 +468,11 @@ async fn bool_signal_set_from_js_resumes_a_parked_task() {
         }
         sleep_ms(1).await;
     }
-    assert_eq!(value.load(Ordering::Relaxed), 9, "resumed after BoolSignal::set");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        9,
+        "resumed after BoolSignal::set"
+    );
 }
 
 /// Calls `run_until_complete` from inside its own `next_status` — what a sync
@@ -498,5 +520,95 @@ fn nested_run_until_returns_instead_of_spinning() {
         .expect("should schedule");
 
     run_until_complete();
-    assert_eq!(value.load(Ordering::Relaxed), 11, "the nested run returned and the task finished");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        11,
+        "the nested run returned and the task finished"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Spec 70 feature 80 E5: the per-task `ReadinessWaker` design at runtime on the
+// wasm-bindgen backend. The scenarios live in `wasm_wake_support`; this file
+// supplies the host timer (a JS `setTimeout`) and the wait.
+
+use super::wasm_wake_support::{self as wake, Scenario};
+
+/// Run `callback` after `delay_ms` on the JS event loop, as a host event (a fetch
+/// completing, a message arriving) would.
+fn host_after(delay_ms: f64, callback: Box<dyn FnOnce()>) {
+    wasm_bindgen_futures::spawn_local(async move {
+        sleep_ms(delay_ms as i32).await;
+        callback();
+    });
+}
+
+/// Wait for the scenario's task to end, or fail after a few seconds with its
+/// name: a lost wake leaves the task parked for ever, and the test must fail,
+/// not hang.
+async fn finish(scenario: Scenario) {
+    let start = Instant::now();
+    while !scenario.is_done() {
+        assert!(
+            start.elapsed() < Duration::from_secs(3),
+            "{}: the parked task never ran again (a lost wake)",
+            scenario.name()
+        );
+        sleep_ms(1).await;
+    }
+    scenario.verify();
+}
+
+/// A task parked on a `ResumeSignal` that a JS timer sets 50 ms later resumes on
+/// time. See `wasm_wake_support::resume_signal_park`.
+#[wasm_bindgen_test]
+async fn resume_signal_set_by_host_timer_wakes_parked_task() {
+    finish(wake::resume_signal_park(host_after)).await;
+}
+
+/// An `EventQueue` push from a JS callback wakes a consumer parked on
+/// `queue.readiness()`. See `wasm_wake_support::queue_push_park`.
+#[wasm_bindgen_test]
+async fn event_queue_push_from_host_wakes_parked_consumer() {
+    finish(wake::queue_push_park(host_after)).await;
+}
+
+/// An `EventQueue` close from a JS callback wakes a parked consumer. See
+/// `wasm_wake_support::queue_close_park`.
+#[wasm_bindgen_test]
+async fn event_queue_close_from_host_wakes_parked_consumer() {
+    finish(wake::queue_close_park(host_after)).await;
+}
+
+/// A deadline-only park resumes at its deadline without blocking the event loop.
+/// See `wasm_wake_support::deadline_only_park`.
+#[wasm_bindgen_test]
+async fn deadline_only_park_resumes_at_its_deadline() {
+    finish(wake::deadline_only_park(host_after)).await;
+}
+
+/// An `AnyReadiness` over two children resumes when the first child is ready.
+/// See `wasm_wake_support::any_readiness_park`.
+#[wasm_bindgen_test]
+async fn any_readiness_resumes_when_a_child_is_ready() {
+    finish(wake::any_readiness_park(host_after)).await;
+}
+
+/// A valtron `sleep` ends at its deadline. See `wasm_wake_support::sleep_task`.
+#[wasm_bindgen_test]
+async fn sleep_task_ends_at_its_deadline() {
+    finish(wake::sleep_task(host_after)).await;
+}
+
+/// A `TimeoutTask` ends at its timeout. See `wasm_wake_support::timeout_task`.
+#[wasm_bindgen_test]
+async fn timeout_task_ends_at_its_timeout() {
+    finish(wake::timeout_task(host_after)).await;
+}
+
+/// `WaitGroup::wait_timeout` on an idle group does not panic on the clock. See
+/// `wasm_wake_support::waitgroup_idle_wait_timeout`.
+#[wasm_bindgen_test]
+fn waitgroup_idle_wait_timeout_reads_the_clock() {
+    wake::waitgroup_idle_wait_timeout();
 }

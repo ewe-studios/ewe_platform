@@ -23,20 +23,21 @@
 #[macro_use]
 mod contract;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
-use foundation_netio::{DynNetClient, HttpClientBuilder};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
     VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
-use foundation_vectors::{TurboPufferLimits, TurboPufferVectorStore};
+use foundation_vectors::{TurboPufferConfig, TurboPufferLimits, TurboPufferVectorStore};
 use serde_json::{json, Value};
 
 /// One request the mock received.
@@ -46,10 +47,20 @@ struct Seen {
     path: String,
     auth: Option<String>,
     body: Value,
+    arrived: Instant,
 }
 
 /// A stored row: vector, metadata attribute.
 type Rows = BTreeMap<String, (Vec<f32>, Option<String>)>;
+
+/// One scripted reply: the mock pops the front of the script for each request
+/// until it is empty, then answers normally. Used for retry tests.
+#[derive(Clone, Debug)]
+struct ScriptedReply {
+    status: u16,
+    retry_after: Option<u64>,
+    body: String,
+}
 
 #[derive(Default)]
 struct MockState {
@@ -57,6 +68,9 @@ struct MockState {
     seen: Vec<Seen>,
     /// When set, every request gets this status and body.
     fail_with: Option<(u16, String)>,
+    /// A queue of scripted replies, drained one per request before `fail_with`
+    /// or a normal answer.
+    script: VecDeque<ScriptedReply>,
 }
 
 type Shared = Arc<Mutex<MockState>>;
@@ -72,9 +86,10 @@ impl Mock {
     }
 }
 
-fn respond(stream: &mut TcpStream, status: u16, body: &str) {
+fn respond(stream: &mut TcpStream, status: u16, body: &str, retry_after: Option<u64>) {
+    let retry = retry_after.map_or_else(String::new, |s| format!("Retry-After: {s}\r\n"));
     let head = format!(
-        "HTTP/1.1 {status} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        "HTTP/1.1 {status} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n{retry}\r\n",
         body.len()
     );
     stream.write_all(head.as_bytes()).unwrap();
@@ -149,11 +164,15 @@ fn answer(state: &mut MockState, path: &str, body: &Value) -> (u16, String) {
     }
 
     let Some((metric, rows)) = state.namespaces.get(&ns) else {
-        return (404, json!({"status": "error", "error": "namespace not found"}).to_string());
+        return (
+            404,
+            json!({"status": "error", "error": "namespace not found"}).to_string(),
+        );
     };
 
     if body.get("aggregate_by").is_some() {
-        let reply = json!({ "aggregations": { "count": rows.len() }, "billing": {}, "performance": {} });
+        let reply =
+            json!({ "aggregations": { "count": rows.len() }, "billing": {}, "performance": {} });
         return (200, reply.to_string());
     }
 
@@ -256,20 +275,25 @@ fn handle(mut stream: TcpStream, state: &Shared) {
     let method = parts.next().unwrap().to_string();
     let path = parts.next().unwrap().to_string();
 
-    let (status, reply) = {
+    let (status, reply, retry_after) = {
         let mut state = state.lock().unwrap();
         state.seen.push(Seen {
             method,
             path: path.clone(),
             auth,
             body: body.clone(),
+            arrived: Instant::now(),
         });
-        match state.fail_with.clone() {
-            Some(fail) => fail,
-            None => answer(&mut state, &path, &body),
+        if let Some(scripted) = state.script.pop_front() {
+            (scripted.status, scripted.body, scripted.retry_after)
+        } else if let Some((status, body)) = state.fail_with.clone() {
+            (status, body, None)
+        } else {
+            let (status, body) = answer(&mut state, &path, &body);
+            (status, body, None)
         }
     };
-    respond(&mut stream, status, &reply);
+    respond(&mut stream, status, &reply, retry_after);
 }
 
 fn start_mock() -> Mock {
@@ -289,9 +313,14 @@ fn start_mock() -> Mock {
 
 fn store_for(mock: &Mock, metric: DistanceMetric) -> TurboPufferVectorStore {
     let client: DynNetClient = HttpClientBuilder::new().build();
-    TurboPufferVectorStore::with_client(client, "test-key".into(), VectorStoreConfig::new(3, metric))
-        .unwrap()
-        .with_base_url(format!("http://{}", mock.addr))
+    TurboPufferVectorStore::with_client(
+        client,
+        "test-key".into(),
+        VectorStoreConfig::new(3, metric),
+        foundation_core::valtron::Ctx::host(),
+    )
+    .unwrap()
+    .with_base_url(format!("http://{}", mock.addr))
 }
 
 async fn make_store() -> (Mock, TurboPufferVectorStore) {
@@ -313,7 +342,10 @@ fn entry(id: &str, v: [f32; 3]) -> VectorEntry {
 #[valtron_test]
 async fn insert_sends_v2_upsert_with_auth_and_metric() {
     let (mock, store) = make_store().await;
-    store.insert("ns1", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns1", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
 
     let seen = mock.seen();
     assert_eq!(seen.len(), 1);
@@ -330,10 +362,16 @@ async fn insert_sends_v2_upsert_with_auth_and_metric() {
 #[valtron_test]
 async fn validation_errors_send_nothing() {
     let (mock, store) = make_store().await;
-    assert!(store.insert("ns", entry("a", [0.0, 0.0, 0.0])).await.is_err());
+    assert!(store
+        .insert("ns", entry("a", [0.0, 0.0, 0.0]))
+        .await
+        .is_err());
     assert!(store.search("ns", &[1.0], 1).await.is_err());
     assert!(matches!(
-        store.insert("bad/ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap_err(),
+        store
+            .insert("bad/ns", entry("a", [1.0, 0.0, 0.0]))
+            .await
+            .unwrap_err(),
         VectorStoreError::Unsupported(_)
     ));
     assert!(mock.seen().is_empty(), "no HTTP on a validation failure");
@@ -342,7 +380,10 @@ async fn validation_errors_send_nothing() {
 #[valtron_test]
 async fn search_get_and_len_use_v2_queries() {
     let (mock, store) = make_store().await;
-    store.insert("ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     store.search("ns", &[1.0, 0.0, 0.0], 2).await.unwrap();
     store.get("ns", "a").await.unwrap();
     store.len("ns").await.unwrap();
@@ -350,10 +391,16 @@ async fn search_get_and_len_use_v2_queries() {
     let seen = mock.seen();
     let (search, get, len) = (&seen[1], &seen[2], &seen[3]);
     assert_eq!(search.path, "/v2/namespaces/ns/query");
-    assert_eq!(search.body["rank_by"], json!(["vector", "ANN", [1.0, 0.0, 0.0]]));
+    assert_eq!(
+        search.body["rank_by"],
+        json!(["vector", "ANN", [1.0, 0.0, 0.0]])
+    );
     assert_eq!(search.body["top_k"], json!(2));
     assert_eq!(get.body["filters"], json!(["id", "Eq", "a"]));
-    assert_eq!(get.body["include_attributes"], json!(["vector", "metadata"]));
+    assert_eq!(
+        get.body["include_attributes"],
+        json!(["vector", "metadata"])
+    );
     assert_eq!(len.body["aggregate_by"], json!({"count": ["Count"]}));
 }
 
@@ -361,13 +408,22 @@ async fn search_get_and_len_use_v2_queries() {
 async fn l2_uses_euclidean_squared_and_negative_scores() {
     let mock = start_mock();
     let store = store_for(&mock, DistanceMetric::L2);
-    store.insert("ns", entry("near", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("ns", entry("far", [3.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns", entry("near", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns", entry("far", [3.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     let m = store.search("ns", &[0.0, 0.0, 1.0], 2).await.unwrap();
     assert_eq!(m[0].id, "near");
     assert!((m[0].score - -2.0).abs() < 1e-5, "score {}", m[0].score);
     assert!((m[1].score - -10.0).abs() < 1e-5, "score {}", m[1].score);
-    assert_eq!(mock.seen()[0].body["distance_metric"], json!("euclidean_squared"));
+    assert_eq!(
+        mock.seen()[0].body["distance_metric"],
+        json!("euclidean_squared")
+    );
 }
 
 #[valtron_test]
@@ -377,6 +433,7 @@ async fn dot_metric_is_unsupported() {
         client,
         "k".into(),
         VectorStoreConfig::new(3, DistanceMetric::Dot),
+        foundation_core::valtron::Ctx::host(),
     )
     .err()
     .expect("dot is refused");
@@ -385,14 +442,21 @@ async fn dot_metric_is_unsupported() {
 
 #[valtron_test]
 async fn new_builds_the_default_client() {
-    let store =
-        TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::L2))
-            .expect("cosine and L2 are accepted");
+    let store = TurboPufferVectorStore::new(
+        "k".into(),
+        VectorStoreConfig::new(3, DistanceMetric::L2),
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("cosine and L2 are accepted");
     assert_eq!(store.config().metric, DistanceMetric::L2);
 
-    let err = TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::Dot))
-        .err()
-        .expect("dot is refused");
+    let err = TurboPufferVectorStore::new(
+        "k".into(),
+        VectorStoreConfig::new(3, DistanceMetric::Dot),
+        foundation_core::valtron::Ctx::host(),
+    )
+    .err()
+    .expect("dot is refused");
     assert!(matches!(err, VectorStoreError::Unsupported(_)));
 }
 
@@ -407,7 +471,11 @@ async fn error_status_is_an_error_with_a_bounded_message() {
         panic!("expected a backend error, got {err:?}");
     };
     assert!(msg.starts_with("HTTP 500: "), "{msg}");
-    assert_eq!(msg.len(), "HTTP 500: ".len() + 10, "only 10 bytes read: {msg}");
+    assert_eq!(
+        msg.len(),
+        "HTTP 500: ".len() + 10,
+        "only 10 bytes read: {msg}"
+    );
 }
 
 #[valtron_test]
@@ -422,5 +490,152 @@ async fn oversized_response_is_an_error() {
     assert!(
         matches!(&err, VectorStoreError::Backend(m) if m.contains("max_response_body")),
         "{err:?}"
+    );
+}
+
+fn fast_retry_config(attempts: u32) -> TurboPufferConfig {
+    TurboPufferConfig::default()
+        .with_retry_attempts(attempts)
+        .with_retry_base_delay(Duration::from_millis(5))
+        .with_retry_max_delay(Duration::from_millis(20))
+}
+
+#[valtron_test]
+async fn turbopuffer_retries_429_then_succeeds() {
+    let (mock, store) = make_store().await;
+    let store = store.with_retry_config(fast_retry_config(3));
+    mock.state.lock().unwrap().script.push_back(ScriptedReply {
+        status: 429,
+        retry_after: None,
+        body: "rate limited".into(),
+    });
+
+    store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+
+    let seen = mock.seen();
+    assert_eq!(seen.len(), 2, "one rate limit, then the retry");
+    assert_eq!(seen[0].body, seen[1].body, "the retry repeats the request");
+}
+
+#[valtron_test]
+async fn turbopuffer_gives_up_after_max_attempts() {
+    let (mock, store) = make_store().await;
+    let store = store.with_retry_config(fast_retry_config(3));
+    mock.state.lock().unwrap().fail_with = Some((429, "rate limited".into()));
+
+    let err = store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap_err();
+    let VectorStoreError::Backend(msg) = err else {
+        panic!("expected a backend error, got {err:?}");
+    };
+    assert!(msg.starts_with("HTTP 429: "), "{msg}");
+    assert_eq!(mock.seen().len(), 3, "exactly retry_attempts requests");
+}
+
+#[valtron_test]
+async fn turbopuffer_honours_retry_after() {
+    let (mock, store) = make_store().await;
+    let store = store.with_retry_config(fast_retry_config(2));
+    mock.state.lock().unwrap().script.push_back(ScriptedReply {
+        status: 429,
+        retry_after: Some(1),
+        body: "slow down".into(),
+    });
+
+    store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+
+    let seen = mock.seen();
+    assert_eq!(seen.len(), 2);
+    let gap = seen[1].arrived.duration_since(seen[0].arrived);
+    assert!(
+        gap >= Duration::from_millis(900),
+        "Retry-After: 1s honoured, waited {gap:?}"
+    );
+}
+
+/// A live check against the real `TurboPuffer` service, opt-in through
+/// `TURBOPUFFER_API_KEY`. It skips with a message when the key is not set.
+///
+/// It proves two details the mock cannot: `deleted_ids` lists only ids that
+/// existed (so `delete` reports `NotFound`), and `include_attributes:
+/// ["vector"]` returns the vector (so `get` reads it). The test uses a
+/// namespace with a unique suffix and deletes the namespace at the end.
+#[valtron_test]
+async fn live_service_deleted_ids_and_vector() {
+    let Ok(key) = std::env::var("TURBOPUFFER_API_KEY") else {
+        eprintln!("skipped: set TURBOPUFFER_API_KEY to run the live TurboPuffer test");
+        return;
+    };
+
+    let cfg = VectorStoreConfig::new(3, DistanceMetric::Cosine);
+    let store =
+        TurboPufferVectorStore::new(key.clone(), cfg, foundation_core::valtron::Ctx::host())
+            .expect("cosine builds");
+
+    let suffix = format!(
+        "{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock after the epoch")
+            .as_nanos()
+    );
+    let ns = format!("ewe_foundation_vectors_{suffix}");
+
+    store
+        .insert(&ns, entry("a", [1.0, 2.0, 3.0]))
+        .await
+        .unwrap();
+    store
+        .insert(&ns, entry("b", [4.0, 5.0, 6.0]))
+        .await
+        .unwrap();
+
+    // A delete of an id that never existed reports NotFound, because the live
+    // `deleted_ids` does not list it. A delete of an existing id succeeds, and
+    // a second delete of the same id reports NotFound.
+    assert!(matches!(
+        store.delete(&ns, "missing").await.unwrap_err(),
+        VectorStoreError::NotFound { .. }
+    ));
+    store.delete(&ns, "a").await.unwrap();
+    assert!(matches!(
+        store.delete(&ns, "a").await.unwrap_err(),
+        VectorStoreError::NotFound { .. }
+    ));
+
+    // `get` asks for `include_attributes: ["vector"]` and reads the vector.
+    let got = store.get(&ns, "b").await.unwrap().expect("row present");
+    assert_eq!(got.id, "b");
+    assert_eq!(got.vector.data, vec![4.0, 5.0, 6.0]);
+
+    // The surviving row still ranks first for its own vector.
+    let m = store.search(&ns, &[4.0, 5.0, 6.0], 10).await.unwrap();
+    assert_eq!(m[0].id, "b");
+
+    // Delete the namespace so the account does not keep the test data.
+    let client: DynNetClient = HttpClientBuilder::new().build();
+    let url = format!("https://api.turbopuffer.com/v2/namespaces/{ns}");
+    let req = PreparedRequestBuilder::delete(&url)
+        .expect("namespace URL parses")
+        .bearer_token(&key)
+        .build();
+    let response = client
+        .send_async(req)
+        .await
+        .expect("delete namespace request");
+    let (status, _headers, _body) = response.into_async_parts();
+    let code: usize = status.into();
+    assert!(
+        (200..=299).contains(&code),
+        "namespace delete status {code}"
     );
 }

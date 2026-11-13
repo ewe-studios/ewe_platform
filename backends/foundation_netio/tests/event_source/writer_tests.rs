@@ -2,7 +2,7 @@
 //!
 //! Tests `EventWriter` functionality for SSE event formatting.
 
-use foundation_netio::event_source::{EventWriter, SseEvent};
+use foundation_netio::event_source::{render_comment, EventWriter, SseEvent};
 
 /// WHY: `EventWriter` must format simple messages correctly.
 /// WHAT: Verify `message()` writes "data: <text>" followed by empty line.
@@ -82,4 +82,57 @@ fn test_writer_retry() {
 
     let output = String::from_utf8(buffer).unwrap();
     assert_eq!(output, "retry: 5000\n\n");
+}
+
+/// WHY: One renderer must produce the wire format for both the synchronous
+/// writer and the async native writer.
+/// WHAT: `SseEvent::render` and `EventWriter::send` write identical bytes for
+/// every field combination.
+#[test]
+fn test_render_matches_event_writer_bytes() {
+    let events = [
+        SseEvent::message("Hello"),
+        SseEvent::retry(0),
+        SseEvent::retry(u64::MAX),
+        SseEvent::new()
+            .id("123")
+            .event("user_joined")
+            .data(r#"{"user": "alice"}"#)
+            .build(),
+        SseEvent::new().data("Line 1").data("Line 2").build(),
+        SseEvent::default(),
+    ];
+
+    for event in events {
+        let mut written = Vec::new();
+        EventWriter::new(&mut written)
+            .send(&event)
+            .expect("in-memory writer");
+        assert_eq!(
+            event.rendered(),
+            written,
+            "rendered bytes differ for {event:?}"
+        );
+
+        let mut rendered = Vec::new();
+        event.render(&mut rendered);
+        assert_eq!(rendered, written, "render output differs for {event:?}");
+    }
+}
+
+/// WHY: Comments are part of the wire format and the async writer renders them
+/// with the same helper.
+/// WHAT: `render_comment` and `EventWriter::comment` write identical bytes.
+#[test]
+fn test_render_comment_matches_event_writer_bytes() {
+    let mut written = Vec::new();
+    EventWriter::new(&mut written)
+        .comment("keep-alive")
+        .expect("in-memory writer");
+
+    let mut rendered = Vec::new();
+    render_comment("keep-alive", &mut rendered);
+
+    assert_eq!(written, rendered);
+    assert_eq!(written, b": keep-alive\n");
 }

@@ -4,41 +4,49 @@
 //! for public API errors, structured `ErrorModel` for validation failures,
 //! and internal variants for storage/crypto.
 
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 use serde::Serialize;
 
 /// Typed result alias used throughout the crate.
-pub type AppResult<T> = Result<T, AppError>;
+pub type AppResult<T> = Result<T, ErrorTrace<AppError>>;
 
 /// The canonical error type. Every handler returns `AppResult<T>`.
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Display, Error)]
 pub enum AppError {
     /// 400 — validation failure, missing field, bad input.
-    #[error("bad request: {0}")]
-    BadRequest(String),
+    #[display("bad request: {_0}")]
+    BadRequest(#[error(not(source))] String),
 
     /// 401 — missing or invalid auth token.
-    #[error("unauthorized")]
+    #[display("unauthorized")]
     Unauthorized,
 
     /// 403 — authenticated but not permitted.
-    #[error("forbidden")]
+    #[display("forbidden")]
     Forbidden,
 
     /// 404 — resource not found.
-    #[error("not found: {0}")]
-    NotFound(String),
+    #[display("not found: {_0}")]
+    NotFound(#[error(not(source))] String),
 
     /// 409 — conflict (duplicate name, etc.).
-    #[error("conflict: {0}")]
-    Conflict(String),
+    #[display("conflict: {_0}")]
+    Conflict(#[error(not(source))] String),
 
     /// 429 — rate limited.
-    #[error("too many requests")]
+    #[display("too many requests")]
     RateLimited,
 
     /// 500 — internal error (storage, crypto, unexpected).
-    #[error("internal: {0}")]
-    Internal(String),
+    #[display("internal: {_0}")]
+    Internal(#[error(not(source))] String),
+}
+
+impl From<AppError> for ErrorTrace<AppError> {
+    fn from(err: AppError) -> Self {
+        ErrorTrace::new(err)
+    }
 }
 
 impl AppError {
@@ -90,6 +98,9 @@ pub struct ValidationError {
 impl ValidationError {
     #[must_use]
     pub fn new(message: impl Into<String>, object: impl Into<String>) -> Self {
-        Self { message: message.into(), object: object.into() }
+        Self {
+            message: message.into(),
+            object: object.into(),
+        }
     }
 }

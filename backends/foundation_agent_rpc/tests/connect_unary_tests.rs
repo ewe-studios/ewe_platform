@@ -13,7 +13,7 @@ use foundation_agent_rpc::proto::v1::agent_service::AgentServiceClient;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest, HealthRequest};
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
-use foundation_connectrpc::{ClientOptions, Code, Ctx, H1Transport, Request, Transport};
+use foundation_connectrpc::{ClientOptions, Code, H1Transport, Request, RpcCtx, Transport};
 use foundation_core::valtron::valtron_test;
 use foundation_netio::http::NativeHttpClient;
 
@@ -30,8 +30,8 @@ fn client(base_url: &str) -> AgentServiceClient {
         .expect("client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(20))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(20))
 }
 
 fn create(name: &str) -> CreateInstanceRequest {
@@ -45,6 +45,7 @@ fn create(name: &str) -> CreateInstanceRequest {
 #[valtron_test(threads = 8)]
 async fn create_instance_and_chat_round_trip_over_connect() {
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model("hello over the wire"))
         .insecure_plaintext()
         .build()
@@ -87,6 +88,7 @@ async fn create_instance_and_chat_round_trip_over_connect() {
 #[valtron_test(threads = 8)]
 async fn errors_reach_the_client_as_typed_status_codes() {
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model("x"))
         .insecure_plaintext()
         .build()
@@ -138,6 +140,7 @@ async fn errors_reach_the_client_as_typed_status_codes() {
 #[valtron_test(threads = 8)]
 async fn many_calls_do_not_starve_a_later_turn() {
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model("still answering"))
         .insecure_plaintext()
         .build()
@@ -174,6 +177,7 @@ async fn many_calls_do_not_starve_a_later_turn() {
 #[test]
 fn a_server_without_an_auth_choice_does_not_build() {
     let err = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model("x"))
         .build()
         .expect_err("auth must be chosen explicitly");

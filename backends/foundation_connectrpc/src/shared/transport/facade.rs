@@ -102,7 +102,15 @@ impl<T: Send + 'static> MessageSink<T> {
         self
     }
 
-    /// Set outbound headers (idempotent until the first frame).
+    /// Set the response headers.
+    ///
+    /// Call this once, before the first message. Then the map becomes the
+    /// response head. The transport keeps its own content type and encoding: it
+    /// discards a handler value for either header and logs the discard.
+    ///
+    /// The head can go out only once. A second call, or a call after the first
+    /// message, cannot reach the wire. It fails with `Code::FailedPrecondition`
+    /// and the message "response headers must be set before the first message".
     ///
     /// # Errors
     /// A [`ConnectError`]-carrying trace if the seam rejects the headers.

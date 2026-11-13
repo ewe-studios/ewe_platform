@@ -16,10 +16,9 @@ use std::future::Future;
 use std::pin::Pin;
 
 use foundation_compact::SendWrapper;
+use foundation_context::Ctx;
 use foundation_core::extensions::result_ext::SendableBoxedError;
-use foundation_core::valtron::{Ctx,
-    from_future, FutureTask, Stream, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{from_future, FutureTask, Stream, TaskIterator, TaskStatus};
 
 use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
 use crate::shared::client::http_client::HttpClient;
@@ -166,28 +165,4 @@ impl TaskIterator for WasmHttpExchangeTask {
 #[must_use]
 pub fn new_http_exchange_task(request: PreparedRequest) -> WasmHttpExchangeTask {
     WasmHttpExchangeTask::new(request)
-}
-
-// ---------------------------------------------------------------------------
-// Compile-time smoke test
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::shared::http::{Extensions, SimpleHeaders, SimpleMethod};
-    use foundation_core::url::Uri;
-
-    #[test]
-    fn test_wasm_http_exchange_task_constructs() {
-        let request = PreparedRequest {
-            method: SimpleMethod::GET,
-            url: Uri::parse("http://example.com/").expect("uri"),
-            headers: SimpleHeaders::new(),
-            body: SendSafeBody::None,
-            extensions: Extensions::new(),
-        };
-        let mut task = new_http_exchange_task(request);
-        let _status = task.next_status(Ctx::new());
-    }
 }

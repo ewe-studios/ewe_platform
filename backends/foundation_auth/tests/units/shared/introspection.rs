@@ -1,6 +1,12 @@
 //! Shared introspection tests.
 
 use foundation_auth::shared::introspection::IntrospectionResult;
+use foundation_context::{Ctx, MonotonicClock};
+use std::sync::Arc;
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 #[test]
 fn test_parse_active_token() {
@@ -20,7 +26,7 @@ fn test_parse_active_token() {
     assert!(result.active);
     assert_eq!(result.scope.as_deref(), Some("openid profile email"));
     assert_eq!(result.sub.as_deref(), Some("user-123"));
-    assert!(result.is_valid());
+    assert!(result.is_valid(&test_clock()));
 }
 
 #[test]
@@ -28,5 +34,5 @@ fn test_parse_inactive_token() {
     let json = r#"{"active": false}"#;
     let result: IntrospectionResult = serde_json::from_str(json).unwrap();
     assert!(!result.active);
-    assert!(!result.is_valid());
+    assert!(!result.is_valid(&test_clock()));
 }

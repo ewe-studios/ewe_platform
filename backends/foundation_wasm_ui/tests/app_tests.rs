@@ -176,9 +176,10 @@ fn successive_mounts_append_in_order() {
         .iter()
         .flatten()
         .filter_map(|op| match op {
-            DomOp::AppendChild { parent_id, child_id } if *parent_id == BODY_NODE_ID => {
-                Some(*child_id)
-            }
+            DomOp::AppendChild {
+                parent_id,
+                child_id,
+            } if *parent_id == BODY_NODE_ID => Some(*child_id),
             _ => None,
         })
         .collect();

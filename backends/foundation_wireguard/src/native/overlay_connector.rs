@@ -1,8 +1,8 @@
-//! `Connector` impl — opens HTTP connections through the WireGuard mesh (spec-55, F11).
+//! `Connector` impl — opens HTTP connections through the `WireGuard` mesh (spec-55, F11).
 //!
 //! WHY: `HttpConnectionPool` has a `Connector` trait with `connect(host, port, timeout)`.
 //! `OverlayConnector` implements it by calling `WgHandle::overlay_connect()` — so every
-//! netio HTTP consumer (ConnectRPC, gRPC, the HTTP client from `HttpClientBuilder`)
+//! netio HTTP consumer (`ConnectRPC`, gRPC, the HTTP client from `HttpClientBuilder`)
 //! works over the mesh with one `.with_connector(Arc::new(OverlayConnector::new(handle)))`
 //! call.
 //!
@@ -19,7 +19,7 @@ use foundation_netio::netcap::Connection;
 
 use super::WgHandle;
 
-/// Connector that opens connections through the WireGuard mesh.
+/// Connector that opens connections through the `WireGuard` mesh.
 ///
 /// Usage:
 /// ```ignore
@@ -39,17 +39,15 @@ impl OverlayConnector {
 }
 
 impl Connector for OverlayConnector {
-    fn connect(
-        &self,
-        host: &str,
-        port: u16,
-        timeout: Option<Duration>,
-    ) -> io::Result<Connection> {
+    fn connect(&self, host: &str, port: u16, timeout: Option<Duration>) -> io::Result<Connection> {
         // Parse the host as an overlay IP. WireGuard overlay addresses
         // are in the 10.0.0.0/8 range.
-        let ip: IpAddr = host
-            .parse()
-            .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, format!("not an overlay IP: {host}")))?;
+        let ip: IpAddr = host.parse().map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("not an overlay IP: {host}"),
+            )
+        })?;
         // The Connector contract returns an established connection, so drive the
         // overlay handshake to completion (default 8s when the caller sets none).
         let timeout = timeout.unwrap_or_else(|| Duration::from_secs(8));

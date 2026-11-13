@@ -21,9 +21,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx,
+use foundation_core::valtron::{
     sync_collect_one, sync_one, valtron, valtron_test, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 /// Produces `max` ready values, one per executor iteration.
 struct CountingTask {
@@ -47,8 +49,7 @@ impl TaskIterator for CountingTask {
 /// Drive a 3-iteration task to completion on whatever engine the surrounding
 /// macro initialized; returns the Ready values the executor produced.
 fn run_counting_task() -> Vec<usize> {
-    sync_one(CountingTask { max: 3, current: 0 })
-        .expect("engine must be initialized by the macro")
+    sync_one(CountingTask { max: 3, current: 0 }).expect("engine must be initialized by the macro")
 }
 
 #[valtron_test]
@@ -60,6 +61,14 @@ fn engine_is_live_for_the_whole_body() {
 
 #[valtron_test(seed = 42, threads = 4)]
 fn explicit_seed_and_threads_are_accepted() {
+    assert_eq!(run_counting_task(), vec![1, 2, 3]);
+}
+
+/// WHY: the macro turns the slow-poll watchdog on by default and accepts
+/// `slow_poll = ms` to override the 100 ms default (feature 139). The key must
+/// parse and the resulting engine must still run tasks in every build.
+#[valtron_test(slow_poll = 500)]
+fn slow_poll_argument_is_accepted() {
     assert_eq!(run_counting_task(), vec![1, 2, 3]);
 }
 
@@ -198,12 +207,11 @@ fn panicking_task_closes_channel_and_unblocks_caller() {
 
     std::thread::spawn(move || {
         std::thread::sleep(Duration::from_secs(10));
-        if !done_clone.load(Ordering::SeqCst) {
-            panic!(
-                "WATCHDOG: panicking task hung for 10s — \
-                 valtron may have regressed the panic-channel-close fix in task_iters.rs"
-            );
-        }
+        assert!(
+            done_clone.load(Ordering::SeqCst),
+            "WATCHDOG: panicking task hung for 10s — \
+             valtron may have regressed the panic-channel-close fix in task_iters.rs"
+        );
     });
 
     let result = sync_collect_one(PanickingTask);
@@ -228,7 +236,7 @@ fn panicking_task_closes_channel_and_unblocks_caller() {
 /// and a 200 ms shutdown grace the test must panic with the timeout message
 /// (the stuck worker is detached), not hang.
 #[valtron_test(threads = 3, timeout = 300, shutdown_grace = 200)]
-#[should_panic(expected = "timeout: the test took")]
+#[should_panic(expected = "timeout: the test did not finish within")]
 #[cfg_attr(
     cranelift_backend,
     ignore = "cranelift does not support panic unwinding: should_panic cannot be observed"

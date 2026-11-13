@@ -4,9 +4,15 @@
 //! real Turso store, including the server-side PBKDF2 verifier (`foundation_auth`
 //! crypto per decision 01) and user-enumeration-safe prelogin defaults.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::accounts;
@@ -30,13 +36,22 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 fn register_req(email: &str, password_hash: &str) -> RegisterRequest {
@@ -63,12 +78,13 @@ fn register_creates_user_and_prelogin_echoes_kdf() {
     })
     .expect("register");
     assert_eq!(account.email, "alice@example.com"); // normalized
-    assert!(!account.id.is_empty());
-    assert!(!account.security_stamp.is_empty());
+    assert_ne!(account.id, "");
+    assert_ne!(account.security_stamp, "");
 
     // Prelogin for a known user echoes their KDF params.
     let c = ctx.clone();
-    let pre = drive(async move { accounts::prelogin(&c, "alice@example.com").await }).expect("prelogin");
+    let pre =
+        drive(async move { accounts::prelogin(&c, "alice@example.com").await }).expect("prelogin");
     assert_eq!(pre.kdf, KdfType::Pbkdf2Sha256);
     assert_eq!(pre.kdf_iterations, 600_000);
 }
@@ -83,8 +99,12 @@ fn duplicate_email_conflicts() {
 
     // Same email (different case) must conflict.
     let c = ctx.clone();
-    let dup = drive(async move { accounts::register(&c, register_req("BOB@example.com", "h2")).await });
-    assert!(matches!(dup, Err(AppError::Conflict(_))), "duplicate email must conflict");
+    let dup =
+        drive(async move { accounts::register(&c, register_req("BOB@example.com", "h2")).await });
+    assert!(
+        matches!(dup, Err(trace) if matches!(trace.current_context(), AppError::Conflict(_))),
+        "duplicate email must conflict"
+    );
 }
 
 #[valtron_test]
@@ -116,7 +136,8 @@ fn master_password_verifies() {
 fn prelogin_unknown_email_returns_defaults() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
-    let pre = drive(async move { accounts::prelogin(&c, "nobody@example.com").await }).expect("prelogin");
+    let pre =
+        drive(async move { accounts::prelogin(&c, "nobody@example.com").await }).expect("prelogin");
     // Defaults leak nothing about existence.
     assert_eq!(pre.kdf, KdfType::Pbkdf2Sha256);
     assert_eq!(pre.kdf_iterations, 600_000);
@@ -127,10 +148,9 @@ fn profile_read_and_update() {
     let (ctx, _dir) = fresh_ctx();
 
     let c = ctx.clone();
-    let account = drive(async move {
-        accounts::register(&c, register_req("dave@example.com", "h")).await
-    })
-    .expect("register");
+    let account =
+        drive(async move { accounts::register(&c, register_req("dave@example.com", "h")).await })
+            .expect("register");
     let id = account.id.clone();
 
     let c = ctx.clone();
@@ -145,7 +165,10 @@ fn profile_read_and_update() {
         accounts::update_profile(
             &c,
             &id3,
-            UpdateProfileRequest { name: Some("Renamed".into()), master_password_hint: None },
+            UpdateProfileRequest {
+                name: Some("Renamed".into()),
+                master_password_hint: None,
+            },
         )
         .await
     })
@@ -163,7 +186,9 @@ fn register_rejects_invalid_email() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { accounts::register(&c, register_req("not-an-email", "h")).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }
 
 #[valtron_test]
@@ -171,5 +196,5 @@ fn verify_unknown_user_is_unauthorized() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { accounts::verify_master_password(&c, "ghost", "h").await });
-    assert!(matches!(res, Err(AppError::Unauthorized)));
+    assert!(matches!(res, Err(trace) if matches!(trace.current_context(), AppError::Unauthorized)));
 }

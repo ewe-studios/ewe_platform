@@ -16,6 +16,9 @@ use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
 
+use foundation_context::Ctx;
+
+use crate::shared::error::WgResult;
 use crate::shared::membership::PeerId;
 use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelaySession};
 
@@ -52,6 +55,8 @@ pub struct RelayServer {
     idle_timeout_secs: u64,
     /// Maximum concurrent sessions.
     max_sessions: u32,
+    /// The injected context: session idle times and the GC window read its clock.
+    ctx: Ctx,
 }
 
 /// A frame received and ready to be forwarded to the destination peer.
@@ -69,16 +74,17 @@ impl RelayServer {
     /// WHY: A relay needs an upper bound on resource usage.
     ///
     /// WHAT: Create a new relay server with rate limiting and session caps.
-    pub fn new(
-        max_sessions: u32,
-        rate_limit_pps: u32,
-        idle_timeout_secs: u64,
-    ) -> Self {
+    ///
+    /// HOW: Stores the limits and the injected `ctx`; every session idle time
+    /// and the garbage-collection window come from its clock.
+    #[must_use]
+    pub fn new(max_sessions: u32, rate_limit_pps: u32, idle_timeout_secs: u64, ctx: Ctx) -> Self {
         Self {
             sessions: HashMap::new(),
             rate_limit_pps,
             idle_timeout_secs,
             max_sessions,
+            ctx,
         }
     }
 
@@ -90,7 +96,7 @@ impl RelayServer {
     /// reject the oldest idle session.
     pub fn attach(&mut self, peer_id: PeerId) -> bool {
         if let Some(entry) = self.sessions.get_mut(&peer_id) {
-            entry.last_active = Instant::now();
+            entry.last_active = self.ctx.clock().now();
             return true;
         }
         if self.sessions.len() >= self.max_sessions as usize {
@@ -103,7 +109,7 @@ impl RelayServer {
         self.sessions.insert(
             peer_id,
             RelaySessionEntry {
-                last_active: Instant::now(),
+                last_active: self.ctx.clock().now(),
                 byte_count: AtomicU64::new(0),
                 packet_count: AtomicU64::new(0),
             },
@@ -123,18 +129,19 @@ impl RelayServer {
         let frame = RelayFrame::decode(raw)?;
 
         // Rate-limit the source.
-        if let Some(entry) = self.sessions.get(&src) {
+        {
+            let entry = self.sessions.get(&src)?;
             let count = entry.packet_count.fetch_add(1, Ordering::Relaxed) + 1;
-            if count > self.rate_limit_pps as u64 {
+            if count > u64::from(self.rate_limit_pps) {
                 return None;
             }
-        } else {
-            return None; // not attached
         }
 
         // Lookup destination.
         let dst_entry = self.sessions.get(&frame.dst_peer_id)?;
-        dst_entry.byte_count.fetch_add(frame.ciphertext.len() as u64, Ordering::Relaxed);
+        dst_entry
+            .byte_count
+            .fetch_add(frame.ciphertext.len() as u64, Ordering::Relaxed);
 
         Some(ForwardedFrame {
             ciphertext: frame.ciphertext,
@@ -150,19 +157,14 @@ impl RelayServer {
     /// HOW: Called every tick; iterates once, removing stale entries.
     pub fn gc(&mut self) {
         let timeout = self.idle_timeout_secs;
-        let now = Instant::now();
-        self.sessions.retain(|_, e| {
-            now.duration_since(e.last_active).as_secs() < timeout
-        });
+        let now = self.ctx.clock().now();
+        self.sessions
+            .retain(|_, e| now.duration_since(e.last_active).as_secs() < timeout);
     }
 
     /// Evict the single oldest idle session (for capacity management).
     fn gc_one(&mut self) {
-        if let Some((&id, _)) = self
-            .sessions
-            .iter()
-            .min_by_key(|(_, e)| e.last_active)
-        {
+        if let Some((&id, _)) = self.sessions.iter().min_by_key(|(_, e)| e.last_active) {
             self.sessions.remove(&id);
         }
     }
@@ -217,10 +219,7 @@ impl RelayClient {
     }
 
     /// WHY: The SWIM membership changed; refresh relay candidates.
-    pub fn on_membership_update(
-        &mut self,
-        members: &[crate::shared::membership::PeerRecord],
-    ) {
+    pub fn on_membership_update(&mut self, members: &[crate::shared::membership::PeerRecord]) {
         self.selector.update(members);
     }
 
@@ -246,9 +245,15 @@ impl RelayClient {
     }
 
     /// Direct connectivity to `peer` failed; step down the ladder.
-    pub fn on_direct_probe_failure(&mut self, peer: PeerId) {
+    ///
+    /// # Errors
+    /// Returns [`crate::shared::error::WgError::NoRelayForPunchedSession`] when
+    /// the peer's hole punch failed and the selector has no relay. The peer's
+    /// session then holds no path. The caller must log the error and stop
+    /// using the peer until connectivity returns.
+    pub fn on_direct_probe_failure(&mut self, peer: PeerId) -> WgResult<()> {
         let relay = self.selected_relay();
-        self.peers.entry(peer).or_default().on_direct_failure(relay);
+        self.peers.entry(peer).or_default().on_direct_failure(relay)
     }
 
     /// Hole-punch succeeded; upgrade to direct.
@@ -376,7 +381,8 @@ impl HolePuncher {
             }
         }
         // Remove failed attempts.
-        self.pending.retain(|_, a| a.stage != HolePunchStage::Failed);
+        self.pending
+            .retain(|_, a| a.stage != HolePunchStage::Failed);
         out
     }
 
@@ -445,9 +451,7 @@ impl HolePuncher {
                 confirmed.push(a.peer);
                 false // remove confirmed
             }
-            HolePunchStage::SynSent(sent) => {
-                now.duration_since(sent).as_secs() < timeout
-            }
+            HolePunchStage::SynSent(sent) => now.duration_since(sent).as_secs() < timeout,
             _ => true,
         });
         confirmed

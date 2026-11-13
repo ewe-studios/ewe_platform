@@ -1,4 +1,4 @@
-use foundation_vectors::index::{VectorError, VectorIndex, load_index};
+use foundation_vectors::index::{load_index, VectorError, VectorIndex};
 use foundation_vectors::ivf::IvfIndex;
 use foundation_vectors::metric::DistanceMetric;
 
@@ -14,7 +14,7 @@ fn ivf_insert_and_search() {
     index.insert("c", &[0.9, 0.1, 0.0]).unwrap();
 
     let results = index.search(&[1.0, 0.0, 0.0], 2).unwrap();
-    assert!(!results.is_empty());
+    assert_ne!(results, [] as [foundation_vectors::VectorMatch; 0]);
     assert_eq!(results[0].id, "a");
 }
 
@@ -22,7 +22,13 @@ fn ivf_insert_and_search() {
 fn ivf_dimension_mismatch() {
     let index = make_ivf();
     let err = index.insert("a", &[1.0]).unwrap_err();
-    assert!(matches!(err, VectorError::DimensionMismatch { expected: 3, got: 1 }));
+    assert!(matches!(
+        err,
+        VectorError::DimensionMismatch {
+            expected: 3,
+            got: 1
+        }
+    ));
 }
 
 #[test]
@@ -45,22 +51,22 @@ fn ivf_remove_not_found() {
 #[test]
 fn ivf_builds_centroids_on_threshold() {
     let index = IvfIndex::new(DistanceMetric::Cosine, 2, 2, 2);
-    for i in 0..10 {
-        let angle = (i as f32) * 0.628;
+    for i in 0..10_u16 {
+        let angle = (f32::from(i)) * 0.628;
         index
             .insert(&format!("v{i}"), &[libm::cosf(angle), libm::sinf(angle)])
             .unwrap();
     }
     assert_eq!(index.len(), 10);
     let results = index.search(&[1.0, 0.0], 3).unwrap();
-    assert!(!results.is_empty());
+    assert_ne!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
 fn ivf_serialize_roundtrip() {
     let index = IvfIndex::with_seed(DistanceMetric::Cosine, 2, 2, 2, 42);
-    for i in 0..8 {
-        let angle = (i as f32) * 0.785;
+    for i in 0..8_u16 {
+        let angle = (f32::from(i)) * 0.785;
         index
             .insert(&format!("v{i}"), &[libm::cosf(angle), libm::sinf(angle)])
             .unwrap();
@@ -80,11 +86,11 @@ fn ivf_serialize_roundtrip() {
 fn ivf_deterministic_with_seed() {
     let build = |seed: u64| {
         let index = IvfIndex::with_seed(DistanceMetric::Cosine, 3, 3, 2, seed);
-        for i in 0..12 {
+        for i in 0..12_u16 {
             let v = [
-                (i as f32 * 0.3).cos(),
-                (i as f32 * 0.5).sin(),
-                (i as f32 * 0.7).cos(),
+                (f32::from(i) * 0.3).cos(),
+                (f32::from(i) * 0.5).sin(),
+                (f32::from(i) * 0.7).cos(),
             ];
             index.insert(&format!("d{i}"), &v).unwrap();
         }
@@ -114,5 +120,5 @@ fn ivf_overwrite_existing() {
 fn ivf_empty_search() {
     let index = make_ivf();
     let results = index.search(&[1.0, 0.0, 0.0], 5).unwrap();
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }

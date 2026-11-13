@@ -26,11 +26,11 @@ code-first #[service] round-trip verified ✓  (service = demo.greet.v1.GreetSer
 ### The macro input
 
 ```rust
-use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+use foundation_connectrpc::{service, RpcCtx, Request, Response, ConnectResult};
 
 #[service(package = "demo.greet.v1", codecs(json))]
 pub trait GreetService {
-    async fn greet(&self, _ctx: Ctx, _req: Request<GreetRequest>)
+    async fn greet(&self, _ctx: RpcCtx, _req: Request<GreetRequest>)
         -> ConnectResult<Response<GreetResponse>>;
 }
 ```
@@ -66,7 +66,7 @@ to `-> impl Future<Output = ...> + Send`, making every implementation's future
 ```rust
 struct Greeter;
 impl GreetService for Greeter {
-    async fn greet(&self, _ctx: Ctx, req: Request<GreetRequest>)
+    async fn greet(&self, _ctx: RpcCtx, req: Request<GreetRequest>)
         -> ConnectResult<Response<GreetResponse>> {
         Ok(Response::new(GreetResponse { message: format!("Hello, {}!", req.msg.name) }))
     }

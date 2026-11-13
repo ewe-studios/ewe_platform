@@ -53,12 +53,20 @@ impl VectorStoreConfig {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum VectorStoreError {
-    DimensionMismatch { expected: usize, got: usize },
+    DimensionMismatch {
+        expected: usize,
+        got: usize,
+    },
     ZeroVector,
-    NotFound { id: String },
+    NotFound {
+        id: String,
+    },
     /// The backend cannot do this operation or use this configuration (for
     /// example, a distance metric that the service does not have).
     Unsupported(String),
+    /// The on-disk schema does not match what this store expects, and the
+    /// store could not migrate it. The message names the table.
+    SchemaMismatch(String),
     Backend(String),
 }
 
@@ -71,6 +79,7 @@ impl core::fmt::Display for VectorStoreError {
             Self::ZeroVector => write!(f, "zero-magnitude vector rejected"),
             Self::NotFound { id } => write!(f, "vector not found: {id}"),
             Self::Unsupported(msg) => write!(f, "unsupported: {msg}"),
+            Self::SchemaMismatch(msg) => write!(f, "schema mismatch: {msg}"),
             Self::Backend(msg) => write!(f, "backend error: {msg}"),
         }
     }
@@ -103,17 +112,9 @@ impl std::error::Error for VectorStoreError {}
 /// - Namespaces are isolated: one namespace never sees another's entries.
 #[async_trait::async_trait]
 pub trait VectorStore: Send + Sync {
-    async fn insert(
-        &self,
-        namespace: &str,
-        entry: VectorEntry,
-    ) -> Result<(), VectorStoreError>;
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError>;
 
-    async fn delete(
-        &self,
-        namespace: &str,
-        id: &str,
-    ) -> Result<(), VectorStoreError>;
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError>;
 
     async fn search(
         &self,
@@ -122,11 +123,8 @@ pub trait VectorStore: Send + Sync {
         k: usize,
     ) -> Result<Vec<VectorMatch>, VectorStoreError>;
 
-    async fn get(
-        &self,
-        namespace: &str,
-        id: &str,
-    ) -> Result<Option<VectorEntry>, VectorStoreError>;
+    async fn get(&self, namespace: &str, id: &str)
+        -> Result<Option<VectorEntry>, VectorStoreError>;
 
     async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError>;
 
@@ -156,7 +154,10 @@ impl InMemoryVectorStore {
         }
     }
 
-    fn validate_and_prepare(&self, mut entry: VectorEntry) -> Result<VectorEntry, VectorStoreError> {
+    fn validate_and_prepare(
+        &self,
+        mut entry: VectorEntry,
+    ) -> Result<VectorEntry, VectorStoreError> {
         if entry.vector.dimension() != self.config.dimension {
             return Err(VectorStoreError::DimensionMismatch {
                 expected: self.config.dimension,
@@ -167,7 +168,10 @@ impl InMemoryVectorStore {
             return Err(VectorStoreError::ZeroVector);
         }
         if self.config.sqrt_strategy == SqrtStrategy::NormalizedVectors {
-            entry.vector = entry.vector.normalize().ok_or(VectorStoreError::ZeroVector)?;
+            entry.vector = entry
+                .vector
+                .normalize()
+                .ok_or(VectorStoreError::ZeroVector)?;
         }
         Ok(entry)
     }
@@ -180,11 +184,7 @@ fn poisoned<T>(_: std::sync::PoisonError<T>) -> VectorStoreError {
 
 #[async_trait::async_trait]
 impl VectorStore for InMemoryVectorStore {
-    async fn insert(
-        &self,
-        namespace: &str,
-        entry: VectorEntry,
-    ) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         let entry = self.validate_and_prepare(entry)?;
         let mut ns_map = self.namespaces.write().map_err(poisoned)?;
         ns_map
@@ -221,7 +221,9 @@ impl VectorStore for InMemoryVectorStore {
         let Some(entries) = ns_map.get(namespace) else {
             return Ok(Vec::new());
         };
-        let iter = entries.values().map(|e| (e.id.as_str(), e.vector.as_slice()));
+        let iter = entries
+            .values()
+            .map(|e| (e.id.as_str(), e.vector.as_slice()));
         Ok(flat_top_k(query, iter, k, self.config.metric))
     }
 

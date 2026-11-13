@@ -10,7 +10,7 @@
 use std::{sync::Arc, time};
 
 use crate::synca::Entry;
-use crate::valtron::executors::{DEFAULT_DELIVERY_CAPACITY, DEFAULT_MAX_TURNS};
+use crate::valtron::executors::DEFAULT_MAX_TURNS;
 use crate::valtron::AnyResult;
 use crate::valtron::{
     BoxedExecutionEngine, ConsumingIter, DoNext, ExecutorError, NotifyQueue,
@@ -49,7 +49,13 @@ where
         None => NotifyQueue::unbounded(),
     });
     let iter = ConsumingIter::new(task, iter_chan.clone());
-    dispatch(&config.engine, iter, parent).map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait))
+    let iter = match config.panic_handler {
+        Some(handler) => iter.with_panic_handler(handler),
+        None => iter,
+    };
+    let ctx = config.engine.fork_ctx();
+    dispatch(&config.engine, iter, parent)
+        .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait, ctx))
 }
 
 /// Build a `StreamConsumingIter` delivery and dispatch it, returning a `stream`.
@@ -82,15 +88,20 @@ where
         None => NotifyQueue::unbounded(),
     });
     let iter = StreamConsumingIter::new(task, iter_chan.clone());
+    let iter = match config.panic_handler {
+        Some(handler) => iter.with_panic_handler(handler),
+        None => iter,
+    };
+    let ctx = config.engine.fork_ctx();
     dispatch(&config.engine, iter, parent)
-        .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait))
+        .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait, ctx))
 }
 
 /// Emit the uniform `recv`/`stream`/`stream_with_config` terminals for a verb
 /// builder. `$capacity` bounds the delivery queue; `$recv`/`$stream` are the
 /// per-verb engine dispatch closures.
 macro_rules! delivery_terminals {
-    ($builder:ident, $capacity:expr, $recv:expr, $stream:expr) => {
+    ($builder:ident, $bounded:literal, $recv:expr, $stream:expr) => {
         impl<Done, Pending, Resolver, Task> $builder<Done, Pending, Resolver, Task>
         where
             Done: Send + 'static,
@@ -99,16 +110,26 @@ macro_rules! delivery_terminals {
             Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
         {
             /// Receive produced `TaskStatus` values via a `NotifyRecvIterator`.
+            ///
+            /// # Errors
+            /// Returns `ExecutorError` when the engine cannot accept the task.
             pub fn recv(
                 self,
                 wait: time::Duration,
-            ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError>
-            {
-                recv_via(self.config, wait, $capacity, $recv)
+            ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
+                let capacity = if $bounded {
+                    self.config.delivery_capacity
+                } else {
+                    None
+                };
+                recv_via(self.config, wait, capacity, $recv)
             }
 
             /// Receive produced `Stream` values via a `NotifyQueueStreamIterator`
             /// using the default max-turns.
+            ///
+            /// # Errors
+            /// Returns `ExecutorError` when the engine cannot accept the task.
             pub fn stream(
                 self,
                 wait: time::Duration,
@@ -117,12 +138,20 @@ macro_rules! delivery_terminals {
             }
 
             /// Receive produced `Stream` values with a configurable max-turns.
+            ///
+            /// # Errors
+            /// Returns `ExecutorError` when the engine cannot accept the task.
             pub fn stream_with_config(
                 self,
                 wait: time::Duration,
                 max_turns: usize,
             ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
-                stream_via(self.config, wait, max_turns, $capacity, $stream)
+                let capacity = if $bounded {
+                    self.config.delivery_capacity
+                } else {
+                    None
+                };
+                stream_via(self.config, wait, max_turns, capacity, $stream)
             }
         }
     };
@@ -130,19 +159,19 @@ macro_rules! delivery_terminals {
 
 delivery_terminals!(
     ScheduleBuilder,
-    None,
+    false,
     |e: &BoxedExecutionEngine, it, _parent| e.schedule(it.into()),
     |e: &BoxedExecutionEngine, it, _parent| e.schedule(it.into())
 );
 delivery_terminals!(
     LiftBuilder,
-    None,
+    false,
     |e: &BoxedExecutionEngine, it, parent| e.lift(it.into(), parent),
     |e: &BoxedExecutionEngine, it, parent| e.lift(it.into(), parent)
 );
 delivery_terminals!(
     SequenceBuilder,
-    Some(DEFAULT_DELIVERY_CAPACITY),
+    true,
     |e: &BoxedExecutionEngine, it, parent: Option<Entry>| e.sequenced(
         it.into(),
         parent.ok_or(ExecutorError::ParentMustBeSupplied)?
@@ -176,12 +205,16 @@ macro_rules! action_terminal {
                 let task = self.config.task.expect("task required");
                 let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
                     Arc::new(NotifyQueue::unbounded());
-                let action = crate::valtron::InlineAction::from_parts(
-                    $behaviour,
-                    task,
-                    channel.clone(),
+                let mut action =
+                    crate::valtron::InlineAction::from_parts($behaviour, task, channel.clone());
+                if let Some(handler) = self.config.panic_handler {
+                    action = action.with_panic_handler(handler);
+                }
+                let receiver = NotifyRecvIterator::from_notify_queue(
+                    channel,
+                    wait,
+                    self.config.engine.fork_ctx(),
                 );
-                let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
                 (action, receiver)
             }
         }
@@ -192,10 +225,7 @@ action_terminal!(
     ScheduleBuilder,
     crate::valtron::InlineActionBehaviour::Schedule
 );
-action_terminal!(
-    LiftBuilder,
-    crate::valtron::InlineActionBehaviour::Lift
-);
+action_terminal!(LiftBuilder, crate::valtron::InlineActionBehaviour::Lift);
 action_terminal!(
     SequenceBuilder,
     crate::valtron::InlineActionBehaviour::Sequenced
@@ -208,15 +238,26 @@ where
     Resolver: TaskReadyResolver<Done, Pending> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
+    /// Receives produced `TaskStatus` values through the global queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn recv(
         self,
         wait: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
-        recv_via(self.config, wait, None, |e: &BoxedExecutionEngine, it, _parent| {
-            e.broadcast(it.into())
-        })
+        recv_via(
+            self.config,
+            wait,
+            None,
+            |e: &BoxedExecutionEngine, it, _parent| e.broadcast(it.into()),
+        )
     }
 
+    /// Receives produced `Stream` values through the global queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream(
         self,
         wait: time::Duration,
@@ -224,29 +265,55 @@ where
         self.stream_with_config(wait, DEFAULT_MAX_TURNS)
     }
 
+    /// Receives produced `Stream` values with a configurable max-turns.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream_with_config(
         self,
         wait: time::Duration,
         max_turns: usize,
     ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
-        stream_via(self.config, wait, max_turns, None, |e: &BoxedExecutionEngine, it, _parent| {
-            e.broadcast(it.into())
-        })
+        stream_via(
+            self.config,
+            wait,
+            max_turns,
+            None,
+            |e: &BoxedExecutionEngine, it, _parent| e.broadcast(it.into()),
+        )
     }
 
+    /// Broadcasts the task to the global queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::TaskRequired` when the builder holds no task,
+    /// and the global-queue error when the broadcast cannot accept it.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let _ = self.fallback;
         let c = self.config;
         let Some(task) = c.task else {
             return Err(ExecutorError::TaskRequired);
         };
-        let boxed: crate::valtron::GlobalTask = match c.resolver {
-            Some(resolver) => OnNext::new(task, resolver).into(),
-            None => DoNext::new(task).into(),
+        let boxed: crate::valtron::GlobalTask = if let Some(resolver) = c.resolver {
+            let iter = OnNext::new(task, resolver);
+            match c.panic_handler {
+                Some(handler) => iter.with_panic_handler(handler).into(),
+                None => iter.into(),
+            }
+        } else {
+            let iter = DoNext::new(task);
+            match c.panic_handler {
+                Some(handler) => iter.with_panic_handler(handler).into(),
+                None => iter.into(),
+            }
         };
         c.engine.broadcast(boxed)
     }
 
+    /// Builds the inline action and its result iterator.
+    ///
+    /// # Panics
+    /// Panics if the builder holds no task.
     pub fn action(
         self,
         wait: time::Duration,
@@ -258,12 +325,16 @@ where
         let task = self.config.task.expect("task required");
         let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             Arc::new(NotifyQueue::unbounded());
-        let action = crate::valtron::InlineAction::from_parts(
+        let mut action = crate::valtron::InlineAction::from_parts(
             crate::valtron::InlineActionBehaviour::Broadcast,
             task,
             channel.clone(),
         );
-        let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
+        if let Some(handler) = self.config.panic_handler {
+            action = action.with_panic_handler(handler);
+        }
+        let receiver =
+            NotifyRecvIterator::from_notify_queue(channel, wait, self.config.engine.fork_ctx());
         (action, receiver)
     }
 }

@@ -110,7 +110,10 @@ impl From<ApiError> for DockerError {
                     })
                     .or(body)
                     .unwrap_or_else(|| "(no body)".to_string());
-                DockerError::Api { status: code, message }
+                DockerError::Api {
+                    status: code,
+                    message,
+                }
             }
             ApiError::RequestBuildFailed(m) | ApiError::RequestSendFailed(m) => {
                 DockerError::Transport(m)

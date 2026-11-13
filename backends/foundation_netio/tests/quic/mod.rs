@@ -25,7 +25,8 @@ use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
 use bytes::{Buf, Bytes};
-use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
 
 use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicBidiStream, QuicConnection, QuicDriver,
@@ -43,10 +44,10 @@ const BUDGET: Duration = Duration::from_secs(5);
 
 /// Step both drivers once. Returns `true` if either made progress.
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) -> bool {
-    let s = server.next_status(Ctx::new());
-    let c = client.next_status(Ctx::new());
-    matches!(s, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
-        || matches!(c, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
+    let s = server.next_status(Ctx::host());
+    let c = client.next_status(Ctx::host());
+    matches!(s, Some(TaskStatus::Ready(_) | TaskStatus::Pending(())))
+        || matches!(c, Some(TaskStatus::Ready(_) | TaskStatus::Pending(())))
 }
 
 /// Drive both sides until `done` returns `Some`, or the budget expires.
@@ -75,7 +76,7 @@ fn connected_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection
     let addr: SocketAddr = server.local_addr().expect("local addr");
 
     let (mut client, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     // The server's connection appears only once its handshake completes — that is
     // the accept point.
@@ -117,13 +118,10 @@ fn write_all(
         if !buf.has_remaining() {
             return Some(());
         }
-        match stream.send(&mut buf) {
-            Stream::Next(Ok(_)) => {}
-            Stream::Next(Err(e)) => panic!("stream send failed: {e}"),
-            // Flow-control window full. This is the back-pressure signal, and the
-            // reason h3's `poll_ready` is unnecessary here.
-            Stream::Pending(()) => {}
-            _ => {}
+        // Written bytes, back-pressure (a full flow-control window) and a delay
+        // all mean the loop should try again on the next drive.
+        if let Stream::Next(Err(e)) = stream.send(&mut buf) {
+            panic!("stream send failed: {e}");
         }
         None
     })
@@ -351,6 +349,43 @@ fn peer_reset_surfaces_as_terminated() {
 }
 
 #[test]
+fn peer_stop_sending_surfaces_on_the_send_half() {
+    let (mut server, mut client, mut server_conn, mut client_conn) = connected_pair();
+
+    let mut client_stream = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            _ => None,
+        }
+    })
+    .expect("open_bidi");
+
+    write_all(&mut server, &mut client, &mut client_stream, b"x");
+
+    let server_stream = drive_until(&mut server, &mut client, |_, _| {
+        match server_conn.accept_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            _ => None,
+        }
+    })
+    .expect("accept_bidi");
+
+    // The client has all it wants and tells the server to stop writing. After a
+    // request body ends, this is the only cancellation signal left (issue #257).
+    QuicRecvStream::stop_sending(&mut client_stream, 77);
+
+    let code = drive_until(&mut server, &mut client, |_, _| server_stream.stopped())
+        .expect("the peer stop never reached the server");
+
+    assert_eq!(code, 77, "the STOP_SENDING error code must survive");
+    assert_eq!(
+        server_stream.stopped(),
+        Some(77),
+        "the stop must latch until the stream closes"
+    );
+}
+
+#[test]
 fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
     use foundation_core::valtron::EventReadiness;
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -373,7 +408,9 @@ fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
 
     // No datagrams, no connections: the driver has nothing to do. It must park on
     // the reactor, not burn a worker with `Delayed`.
-    let status = server.next_status(Ctx::new()).expect("server driver keeps running");
+    let status = server
+        .next_status(Ctx::host())
+        .expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Depends(_)),
         "an idle driver with an injected readiness signal must park via Depends, \
@@ -386,10 +423,183 @@ fn idle_driver_without_readiness_falls_back_to_delayed() {
     let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
     let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
 
-    let status = server.next_status(Ctx::new()).expect("server driver keeps running");
+    let status = server
+        .next_status(Ctx::host())
+        .expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Delayed(_)),
         "without a readiness signal the driver must yield with Delayed rather than \
          spin the executor"
     );
+}
+
+#[test]
+fn queued_reset_wakes_a_driver_parked_on_readiness() {
+    use foundation_core::valtron::EventReadiness;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
+    /// A readiness signal we control, standing in for `RegisteredFd`.
+    struct Never(AtomicBool);
+    impl EventReadiness for Never {
+        fn is_ready(&self, _dur: Option<Duration>) -> bool {
+            self.0.load(Ordering::Acquire)
+        }
+    }
+
+    let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
+    let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
+    let readiness = Arc::new(Never(AtomicBool::new(false)));
+
+    let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg)
+        .expect("bind server")
+        .with_fd_readiness(readiness);
+    let addr: SocketAddr = server.local_addr().expect("local addr");
+    let (mut client, mut client_conn) =
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
+
+    let mut server_conn = drive_until(&mut server, &mut client, |s, _| s.take_accepted())
+        .expect("server never accepted the connection");
+
+    // Give the server a bidirectional stream, so it has a write half to reset.
+    let mut client_stream = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_bidi failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("open_bidi");
+    write_all(&mut server, &mut client, &mut client_stream, b"x");
+
+    let mut server_stream = drive_until(&mut server, &mut client, |_, _| {
+        match server_conn.accept_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("accept_bidi failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("accept_bidi");
+    let _ = read_chunk(&mut server, &mut client, &mut server_stream);
+
+    // Drain the server until it has no work and parks. Each `next_status` clears
+    // the self-wake latch, so the captured park is genuinely idle.
+    let parked = loop {
+        match server.next_status(Ctx::host()) {
+            Some(TaskStatus::Depends(r)) => break r,
+            Some(_) => {}
+            None => panic!("server driver ended unexpectedly"),
+        }
+    };
+    assert!(
+        !parked.is_ready(None),
+        "an idle server must be parked, not runnable"
+    );
+
+    // Queue a reset. Before the fix this left the driver parked: the RESET_STREAM
+    // was queued but nothing woke the driver, so it was never transmitted.
+    server_stream.reset(42);
+
+    assert!(
+        parked.is_ready(None),
+        "a queued reset must make the parked driver runnable"
+    );
+}
+
+/// Write `data` on one send stream and transmit it in its own datagram.
+///
+/// One client poll per write keeps each payload in a separate UDP datagram: the
+/// caller writes, transmits, then writes again, so the server's socket queues
+/// two datagrams before it polls.
+fn write_one_datagram(client: &mut QuicDriver, stream: &mut impl QuicSendStream, data: &[u8]) {
+    let mut buf = Bytes::copy_from_slice(data);
+    let deadline = Instant::now() + BUDGET;
+    while buf.has_remaining() {
+        assert!(
+            Instant::now() < deadline,
+            "the write never drained within the budget"
+        );
+        if let Stream::Next(Err(e)) = stream.send(&mut buf) {
+            panic!("stream send failed: {e}");
+        }
+        // Transmit what `send` queued before the caller writes the next payload.
+        client.next_status(Ctx::host());
+    }
+}
+
+/// Take the next byte chunk a stream has buffered, without driving the drivers.
+fn buffered_chunk(stream: &mut impl QuicRecvStream) -> Option<Bytes> {
+    match stream.read() {
+        Stream::Next(Ok(Some(bytes))) => Some(bytes),
+        Stream::Next(Err(e)) => panic!("stream read failed: {e}"),
+        _ => None,
+    }
+}
+
+#[test]
+fn one_poll_reads_every_queued_datagram() {
+    // Regression for #290. The driver read one datagram per poll and cleared the
+    // edge-triggered socket readiness first. A second datagram that arrived with
+    // the first then stayed unread until a new packet made a fresh edge. Over
+    // HTTP/3 that stalled a whole request: the headers were read, and the body
+    // waited for the peer's idle timeout.
+    let (mut server, mut client, mut server_conn, mut client_conn) = connected_pair();
+
+    let mut send_a = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_send() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_send failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("client never opened the first send stream");
+    let mut send_b = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_send() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_send failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("client never opened the second send stream");
+
+    // Two datagrams reach the server's socket before it polls.
+    write_one_datagram(&mut client, &mut send_a, b"first datagram");
+    write_one_datagram(&mut client, &mut send_b, b"second datagram");
+
+    // One server poll only.
+    let status = server.next_status(Ctx::host());
+    assert!(
+        matches!(status, Some(TaskStatus::Pending(()))),
+        "a poll that read datagrams must report progress, not park"
+    );
+
+    // Both streams arrived in that one poll: accepting and reading them must not
+    // need a second poll.
+    let Stream::Next(Ok(mut recv_a)) = server_conn.accept_recv() else {
+        panic!("the single poll did not deliver the first stream");
+    };
+    let Stream::Next(Ok(mut recv_b)) = server_conn.accept_recv() else {
+        panic!("the single poll did not deliver the second stream");
+    };
+
+    let mut got = Vec::new();
+    for chunk in [buffered_chunk(&mut recv_a), buffered_chunk(&mut recv_b)] {
+        let chunk = chunk.expect("a delivered stream must have its bytes buffered");
+        got.push(chunk);
+    }
+    got.sort();
+    assert_eq!(
+        got,
+        vec![
+            Bytes::from_static(b"first datagram"),
+            Bytes::from_static(b"second datagram")
+        ],
+        "both payloads must be readable after the single poll"
+    );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

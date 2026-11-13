@@ -41,6 +41,10 @@ pub trait PlatformCapability: foundation_wasm::WasmCapability {
     /// before this is called.
     /// The registry passes session to the handler AFTER security checks.
     /// Override to access IPCs, state, or other registries at invoke time.
+    ///
+    /// # Errors
+    ///
+    /// Returns the capability's [`CapabilityError`] when the invocation fails.
     fn invoke_with_session(
         &self,
         session: &PlatformSession,
@@ -64,7 +68,9 @@ pub struct CapabilityRegistry {
 impl CapabilityRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self { handlers: RwLock::new(HashMap::new()) }
+        Self {
+            handlers: RwLock::new(HashMap::new()),
+        }
     }
 
     /// Register a platform capability.
@@ -78,6 +84,12 @@ impl CapabilityRegistry {
     }
 
     /// Invoke a capability through the full five-layer defense chain.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError::PermissionDenied`] when a defense layer
+    /// rejects the call, and [`CapabilityError::UnknownCapability`] when no
+    /// handler has the requested name.
     ///
     /// # Panics
     ///
@@ -104,9 +116,7 @@ impl CapabilityRegistry {
             .ok_or_else(|| CapabilityError::UnknownCapability(request.capability.clone()))?;
 
         // Layer 3: Profile-level gate
-        let profile = current_route
-            .map(|r| r.profile)
-            .unwrap_or(Profile::UntrustedRemote);
+        let profile = current_route.map_or(Profile::UntrustedRemote, |r| r.profile);
         let gate = ProfileGate::new(profile);
         if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
             return Err(CapabilityError::PermissionDenied(e.to_string()));
@@ -122,7 +132,10 @@ impl CapabilityRegistry {
         // Layer 4: Per-route allowlist gate
         if let Some(route) = current_route {
             if !route.capabilities.is_empty()
-                && !route.capabilities.iter().any(|c| c == handler.capability_id())
+                && !route
+                    .capabilities
+                    .iter()
+                    .any(|c| c == handler.capability_id())
             {
                 return Err(CapabilityError::PermissionDenied(format!(
                     "capability '{}' not allowed on this route",
@@ -137,6 +150,12 @@ impl CapabilityRegistry {
 
     /// Invoke a capability through the security layer with a JSON payload.
     /// Convenience method that serializes JSON → wire bytes → invoke → deserialize.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error from [`Self::invoke`], or
+    /// [`CapabilityError::InvalidPayload`] when the JSON does not encode or
+    /// decode.
     pub fn invoke_json(
         &self,
         session: &PlatformSession,
@@ -163,12 +182,23 @@ impl CapabilityRegistry {
     }
 
     /// Look up a capability by name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn PlatformCapability> {
         let guard = self.handlers.read().unwrap();
-        guard.get(name).map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformCapability) })
+        guard
+            .get(name)
+            .map(|b| unsafe { &*std::ptr::from_ref::<dyn PlatformCapability>(b.as_ref()) })
     }
 
+    /// The registered capability names.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.handlers.read().unwrap().keys().cloned().collect()
@@ -176,7 +206,9 @@ impl CapabilityRegistry {
 }
 
 impl Default for CapabilityRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Check if a profile meets or exceeds a minimum required profile.
@@ -193,8 +225,7 @@ fn profile_satisfies(actual: Profile, required: Profile) -> bool {
     if matches!(actual, Profile::Auth | Profile::Devtools)
         || matches!(required, Profile::Auth | Profile::Devtools)
     {
-        return actual == required
-            || (actual == Profile::Devtools && cfg!(debug_assertions));
+        return actual == required || (actual == Profile::Devtools && cfg!(debug_assertions));
     }
     rank(actual) >= rank(required)
 }
@@ -208,7 +239,9 @@ pub struct TestPlatformCap {
 }
 
 impl foundation_wasm::WasmCapability for TestPlatformCap {
-    fn name(&self) -> &str { &self.id.0 }
+    fn name(&self) -> &str {
+        &self.id.0
+    }
 
     fn invoke_capability(
         &self,
@@ -224,8 +257,12 @@ impl foundation_wasm::WasmCapability for TestPlatformCap {
 }
 
 impl PlatformCapability for TestPlatformCap {
-    fn capability_id(&self) -> &CapabilityId { &self.id }
-    fn min_profile(&self) -> Profile { self.min_profile }
+    fn capability_id(&self) -> &CapabilityId {
+        &self.id
+    }
+    fn min_profile(&self) -> Profile {
+        self.min_profile
+    }
 }
 
 /// Create a test registry with a camera capability registered.

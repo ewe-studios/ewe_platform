@@ -21,15 +21,17 @@ use foundation_core::valtron::{execute, StreamIteratorExt};
 use crate::event_source::{ReconnectingEventSourceTask, ReconnectingProgress};
 use crate::http::pool::ConnectionPool;
 use crate::http::tasks::HttpExchangeTask;
+use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::{ClientConfig, DnsResolver, SystemDnsResolver};
-use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::http::timeout::TimeoutCalculator;
-use crate::shared::http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse};
+use crate::shared::http::{
+    HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse,
+};
 
 /// The native HTTP client — owns the connection pool, configuration, and resolver.
 ///
@@ -261,7 +263,7 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
-    /// Route requests over a custom transport connector (WireGuard overlay, SSH
+    /// Route requests over a custom transport connector (`WireGuard` overlay, SSH
     /// `docker system dial-stdio`) instead of dialing DNS+TCP.
     #[must_use]
     pub fn with_connector(
@@ -544,10 +546,41 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         }
 
         let request = self.request(builder)?;
-        let response = request.send_async().await?;
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (response, conn, _pool) = request.send_detached_async().await?;
+        let conn = Some(conn);
+        let (status, headers, body) = {
+            let status = response.get_status();
+            let headers = response.get_headers_ref().clone();
+            (status, headers, response.take_body())
+        };
+        // This method is asynchronous, so its caller reads the body with an
+        // async reader. `ClientRequest::send_async` hands the socket back in
+        // blocking mode; a blocking body read would hold the valtron worker
+        // that polls it. Set the mode the read wake source needs (spec 70
+        // feature 121).
+        if let Some(conn) = conn.as_ref() {
+            if let Err(e) = conn.set_nonblocking(true) {
+                tracing::debug!(error = %e, "cannot set response socket non-blocking");
+            }
+        }
+        let source = conn.as_ref().and_then(|c| c.read_wake_source());
+        // Without a readiness source (Windows today: the reactor's fd readiness
+        // is Unix-only), a non-blocking body read can only poll in a loop. A
+        // short gap in the data (for example a full 64 KiB receive window on
+        // Windows) then looks like a stalled peer, and the body ended early
+        // (#520). Read in blocking mode instead, bounded by the body read
+        // timeout that the request already set on the socket.
+        if source.is_none() {
+            if let Some(conn) = conn.as_ref() {
+                if let Err(e) = conn.set_nonblocking(false) {
+                    tracing::debug!(error = %e, "cannot set response socket blocking");
+                }
+            }
+        }
 
-        Ok(SimpleResponse::new(status, headers, body))
+        Ok(SimpleResponse::with_read_wake(
+            status, headers, body, source,
+        ))
     }
 
     async fn send_sse_async(
@@ -576,10 +609,11 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         }
 
         let request = self.request(builder)?;
-        let response = request.send()?;
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        // The caller owns the response body. No guard returns the connection
+        // to the pool, so no `Ctx` is needed here.
+        let (response, _conn, _pool) = request.send_detached()?;
 
-        Ok(SimpleResponse::new(status, headers, body))
+        Ok(response)
     }
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
@@ -598,9 +632,12 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let config = self.config.clone();
-        // The client's own pool carries its TLS connector (custom roots, client
-        // certificates) and custom `Connector`; a fresh pool here silently
-        // dropped both, so every exchange used the default TLS config.
+        // Use the client's own pool. It carries the TLS connector (custom
+        // roots, client certificates) and a transport connector set with
+        // `with_connector` (WireGuard overlay, SSH `dial-stdio`), so the async
+        // exchange path matches `send` and `send_async`. A fresh pool here
+        // silently dropped both and dialed DNS+TCP with the default TLS config.
+
         let pool = self.pool.clone().unwrap_or_else(|| {
             Arc::new(HttpConnectionPool::new(
                 ConnectionPool::default(),

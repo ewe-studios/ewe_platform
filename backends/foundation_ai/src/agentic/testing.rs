@@ -95,28 +95,40 @@ impl MockModelProvider {
         matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
         reply: Vec<Messages>,
     ) -> &mut Self {
-        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
-            matcher: Box::new(move |mi, _| matcher(mi)),
-            replies: reply,
-        });
+        self.inner
+            .scripts
+            .write()
+            .expect("mock scripts poisoned")
+            .push(Script {
+                matcher: Box::new(move |mi, _| matcher(mi)),
+                replies: reply,
+            });
         self
     }
 
     /// Respond with `reply` on the `n`th call (0-indexed).
     pub fn on_nth_call(&mut self, n: usize, reply: Vec<Messages>) -> &mut Self {
-        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
-            matcher: Box::new(move |_, call| call == n),
-            replies: reply,
-        });
+        self.inner
+            .scripts
+            .write()
+            .expect("mock scripts poisoned")
+            .push(Script {
+                matcher: Box::new(move |_, call| call == n),
+                replies: reply,
+            });
         self
     }
 
     /// Respond with `reply` for any interaction (catch-all, add last).
     pub fn on_any(&mut self, reply: Vec<Messages>) -> &mut Self {
-        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
-            matcher: Box::new(|_, _| true),
-            replies: reply,
-        });
+        self.inner
+            .scripts
+            .write()
+            .expect("mock scripts poisoned")
+            .push(Script {
+                matcher: Box::new(|_, _| true),
+                replies: reply,
+            });
         self
     }
 
@@ -126,10 +138,14 @@ impl MockModelProvider {
         matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
         error: impl Into<String>,
     ) -> &mut Self {
-        self.inner.failures.write().expect("mock failures poisoned").push(Failure {
-            matcher: Box::new(move |mi, _| matcher(mi)),
-            error: error.into(),
-        });
+        self.inner
+            .failures
+            .write()
+            .expect("mock failures poisoned")
+            .push(Failure {
+                matcher: Box::new(move |mi, _| matcher(mi)),
+                error: error.into(),
+            });
         self
     }
 
@@ -158,6 +174,7 @@ impl MockModelProvider {
     }
 
     /// Number of generate/stream calls so far.
+    #[must_use]
     pub fn call_count(&self) -> usize {
         self.inner.call_count.load(Ordering::Relaxed)
     }
@@ -615,13 +632,13 @@ impl MockTool {
 #[async_trait]
 impl ToolImpl for MockTool {
     fn definition(&self) -> crate::types::Tool {
-        crate::types::Tool::SingleCommand(ToolDefinition {
+        crate::types::Tool::SingleCommand(Box::new(ToolDefinition {
             name: self.name.clone(),
             category: self.category.clone(),
             description: self.description.clone(),
             arguments: crate::types::Args::from_value(serde_json::json!({})),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(
@@ -650,4 +667,3 @@ impl ToolImpl for MockTool {
 // ---------------------------------------------------------------------------
 // Tests for the mock substrate itself
 // ---------------------------------------------------------------------------
-

@@ -1,5 +1,6 @@
 //! QEMU provider — Linux host, QEMU/KVM backend.
 
+use foundation_context::Ctx;
 use std::path::PathBuf;
 
 use crate::config::{DisplayMode, Result, TestbedError, VmProfile};
@@ -8,11 +9,17 @@ use crate::providers::{Provider, ProviderId, ResolvedPorts, VmHandle, VmProvider
 /// QEMU provider — launches and manages QEMU/KVM VMs on Linux.
 pub struct QemuProvider {
     display: DisplayMode,
+    /// The host's context, for every launch and shutdown deadline.
+    ctx: Ctx,
 }
 
 impl QemuProvider {
-    pub fn new() -> Self {
-        QemuProvider { display: DisplayMode::Headless }
+    #[must_use]
+    pub fn new(ctx: Ctx) -> Self {
+        QemuProvider {
+            display: DisplayMode::Headless,
+            ctx,
+        }
     }
 
     #[must_use]
@@ -23,8 +30,8 @@ impl QemuProvider {
 
     // ── Shared helpers ──
 
-    fn launch_vm(profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle> {
-        let mut config = crate::qemu::QemuConfig::new(profile.clone(), mode);
+    fn launch_vm(profile: &VmProfile, mode: DisplayMode, ctx: Ctx) -> Result<VmHandle> {
+        let mut config = crate::qemu::QemuConfig::new(profile.clone(), mode, ctx);
 
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         if let Some((host_path, guest_path, readonly, _methods)) =
@@ -49,29 +56,24 @@ impl QemuProvider {
         })
     }
 
-    fn stop_vm(handle: &VmHandle) -> Result<()> {
+    fn stop_vm(handle: &VmHandle) {
         run_shutdown_scripts(handle);
         if let Some(pid) = handle.pid() {
             unsafe { libc::kill(pid, libc::SIGTERM) };
             for _ in 0..20 {
                 std::thread::sleep(std::time::Duration::from_millis(500));
                 if unsafe { libc::kill(pid, 0) } != 0 {
-                    return Ok(());
+                    return;
                 }
             }
             unsafe { libc::kill(pid, libc::SIGKILL) };
         }
-        Ok(())
     }
 
     fn is_vm_running(handle: &VmHandle) -> bool {
-        handle.pid().map_or(false, |pid| unsafe { libc::kill(pid, 0) == 0 })
-    }
-}
-
-impl Default for QemuProvider {
-    fn default() -> Self {
-        Self::new()
+        handle
+            .pid()
+            .is_some_and(|pid| unsafe { libc::kill(pid, 0) == 0 })
     }
 }
 
@@ -82,15 +84,20 @@ impl Provider for QemuProvider {
     type Config = VmProfile;
     type Error = TestbedError;
 
-    fn name(&self) -> &'static str { "qemu" }
-    fn id(&self) -> ProviderId { ProviderId::Qemu }
+    fn name(&self) -> &'static str {
+        "qemu"
+    }
+    fn id(&self) -> ProviderId {
+        ProviderId::Qemu
+    }
 
     fn launch(&self, config: &VmProfile) -> Result<VmHandle> {
-        Self::launch_vm(config, self.display)
+        Self::launch_vm(config, self.display, self.ctx.clone())
     }
 
     fn stop(&self, handle: &VmHandle) -> Result<()> {
-        Self::stop_vm(handle)
+        Self::stop_vm(handle);
+        Ok(())
     }
 
     fn is_running(&self, handle: &VmHandle) -> bool {
@@ -113,15 +120,25 @@ impl Provider for QemuProvider {
 // ── VmProvider (compatibility — delegates to Provider) ──────────────────
 
 impl VmProvider for QemuProvider {
-    fn name(&self) -> &'static str { <Self as Provider>::name(self) }
-    fn id(&self) -> ProviderId { <Self as Provider>::id(self) }
+    fn name(&self) -> &'static str {
+        <Self as Provider>::name(self)
+    }
+    fn id(&self) -> ProviderId {
+        <Self as Provider>::id(self)
+    }
     fn launch(&self, profile: &VmProfile, _mode: DisplayMode) -> Result<VmHandle> {
         // mode is ignored — caller should use QemuProvider::with_display() instead
         <Self as Provider>::launch(self, profile)
     }
-    fn stop(&self, handle: &VmHandle) -> Result<()> { <Self as Provider>::stop(self, handle) }
-    fn is_running(&self, handle: &VmHandle) -> bool { <Self as Provider>::is_running(self, handle) }
-    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> { <Self as Provider>::resolved_ports(self, handle) }
+    fn stop(&self, handle: &VmHandle) -> Result<()> {
+        <Self as Provider>::stop(self, handle)
+    }
+    fn is_running(&self, handle: &VmHandle) -> bool {
+        <Self as Provider>::is_running(self, handle)
+    }
+    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> {
+        <Self as Provider>::resolved_ports(self, handle)
+    }
     fn monitor_command(&self, _handle: &VmHandle, _cmd: &str) -> Result<String> {
         Err(TestbedError::MonitorFailed {
             source: anyhow::anyhow!("monitor commands require a live QemuVm instance"),
@@ -130,12 +147,17 @@ impl VmProvider for QemuProvider {
     fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf> {
         crate::import::ensure_image(profile)
     }
-    fn host_health(&self) -> crate::doctor::HostHealth { crate::doctor::check_host() }
+    fn host_health(&self) -> crate::doctor::HostHealth {
+        crate::doctor::check_host()
+    }
 }
 
 // ── Public API ──────────────────────────────────────────────────────────
 
 /// Run startup scripts after the VM is booted and bootstrapped.
+///
+/// # Errors
+/// Returns an error if the startup scripts fail.
 pub fn run_startup_scripts_for(handle: &VmHandle) -> Result<()> {
     crate::init::run_startup_scripts(
         handle.profile.name,

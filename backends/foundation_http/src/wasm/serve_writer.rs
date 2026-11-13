@@ -3,13 +3,11 @@
 
 use std::sync::Arc;
 
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleIncomingRequest,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::MiddlewareResult;
 use crate::shared::serve::{ConnectionResult, ServeError, ServeWriter};
 use crate::wasm::response::WasmResponse;
@@ -24,9 +22,9 @@ pub fn handle_request(
     handle_request_with_bag(app.context().clone(), app, req)
 }
 
-/// Dispatch a request with a custom context bag.
+/// Dispatch a request with a custom context ctx.
 pub fn handle_request_with_bag(
-    bag: Arc<ContextBag>,
+    ctx: Ctx,
     app: &HttpApp<Arc<dyn ServeWriter>>,
     req: SimpleIncomingRequest,
 ) -> Result<WasmResponse, ErrorTrace<ServeError>> {
@@ -34,13 +32,15 @@ pub fn handle_request_with_bag(
     let path = req.request_url.url.clone();
 
     // Run middleware chain
-    let (req, short_circuit) = run_middleware_writer(app, bag.clone(), req);
+    let (req, short_circuit) = run_middleware_writer(app, ctx.clone(), req);
     if let Some(response) = short_circuit {
         return Ok(response);
     }
 
     // Dispatch to router
-    let handler = app.router().dispatch(&method, &path)
+    let handler = app
+        .router()
+        .dispatch(&method, &path)
         .ok_or_else(|| ServeError::BadRequest {
             status: 404,
             reason: format!("no route for {method:?} {path}"),
@@ -48,7 +48,7 @@ pub fn handle_request_with_bag(
 
     // Execute handler via serve_writer
     let mut stream = WasmStream::new();
-    let result = handler.serve_writer(&bag, req, &mut stream);
+    let result = handler.serve_writer(&ctx, req, &mut stream);
 
     match result {
         ConnectionResult::Keep | ConnectionResult::Take => Ok(stream.into_wasm_response()),
@@ -58,6 +58,11 @@ pub fn handle_request_with_bag(
                 reason: "handler closed connection".into(),
             }.into()
         })),
+        // The wasm path is synchronous: it cannot drive an async continuation.
+        ConnectionResult::Async(_) => Err(ServeError::InternalError {
+            status: 500,
+            reason: "a handler returned ConnectionResult::Async, which the synchronous wasm path cannot drive".into(),
+        }.into()),
     }
 }
 
@@ -65,11 +70,11 @@ pub fn handle_request_with_bag(
 /// short-circuit response. If `Some(WasmResponse)`, the caller should return it immediately.
 pub fn run_middleware_writer(
     app: &HttpApp<Arc<dyn ServeWriter>>,
-    bag: Arc<ContextBag>,
+    ctx: Ctx,
     mut req: SimpleIncomingRequest,
 ) -> (SimpleIncomingRequest, Option<WasmResponse>) {
     for mw in app.middleware_chain() {
-        match mw.handle(&bag, &mut req) {
+        match mw.handle(&ctx, &mut req) {
             MiddlewareResult::Continue => {}
             MiddlewareResult::Response(response) => {
                 let status_code: usize = response.status.clone().into();
@@ -78,13 +83,18 @@ pub fn run_middleware_writer(
                     Some(SendSafeBody::Bytes(b)) => b.clone(),
                     _ => Vec::new(),
                 };
-                return (req, Some(WasmResponse {
-                    status: status_code as u16,
-                    body: Some(body_bytes),
-                    headers: response.headers.iter().map(|(k, v)| {
-                        (k.to_string(), v.join(", "))
-                    }).collect(),
-                }));
+                return (
+                    req,
+                    Some(WasmResponse {
+                        status: status_code as u16,
+                        body: Some(body_bytes),
+                        headers: response
+                            .headers
+                            .iter()
+                            .map(|(k, v)| (k.to_string(), v.join(", ")))
+                            .collect(),
+                    }),
+                );
             }
             MiddlewareResult::InterimResponse(_) => {}
         }

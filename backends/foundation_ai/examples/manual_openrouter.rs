@@ -1,10 +1,10 @@
-//! Example: Build an OpenRouter agent manually — no harness helpers.
+//! Example: Build an `OpenRouter` agent manually — no harness helpers.
 //!
 //! Demonstrates:
-//!   - Creating an OpenAI provider pointed at OpenRouter's base_url
+//!   - Creating an `OpenAI` provider pointed at `OpenRouter`'s `base_url`
 //!   - Boxing providers with routing identities
-//!   - Building a ProviderRouter with explicit RoutingRules
-//!   - Wiring into AgentSession and validating the response
+//!   - Building a `ProviderRouter` with explicit `RoutingRule`s
+//!   - Wiring into `AgentSession` and validating the response
 //!
 //! Run with:
 //! ```bash
@@ -15,18 +15,22 @@
 use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
+
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron;
 
-/// Build a ProviderRouter that talks to OpenRouter.
+/// Build a `ProviderRouter` that talks to `OpenRouter`.
 /// No harness helpers — explicit provider creation, boxing, and routing rules.
 fn build_openrouter_router(
     api_key: &str,
     primary_model: &str,
     memory_model: Option<&str>,
+    ctx: &Ctx,
 ) -> ProviderRouter {
     // `OpenAIConfig::openrouter(key)` = an API-key credential plus the
     // OpenRouter base URL.
-    let make_provider = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key));
+    let make_provider =
+        || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key), ctx.clone());
 
     let mut builder = ProviderRouter::builder()
         .add_provider(Box::new(RoutableProviderBox::with_identity(
@@ -57,16 +61,15 @@ fn build_openrouter_router(
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("OPENROUTER_API_KEY")
-        .expect("OPENROUTER_API_KEY must be set");
-
     // Use a free model to avoid charges.
     const PRIMARY: &str = "google/gemma-4-26b-a4b-it:free";
+    let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
 
     println!("Building manual OpenRouter router for model: {PRIMARY}");
-    let router = build_openrouter_router(&api_key, PRIMARY, None);
+    let ctx = Ctx::host();
+    let router = build_openrouter_router(&api_key, PRIMARY, None, &ctx);
 
-    let agent = AgentSession::builder(router)
+    let agent = AgentSession::builder(router, ctx)
         .with_model(PRIMARY)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
@@ -79,7 +82,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Manual OpenRouter agent built successfully!");
 
     println!("Sending hello prompt via OpenRouter to {PRIMARY}...");
-    let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
+    let turn = agent
+        .run_turn("Hello! Please say hi back in one sentence.")
+        .await?;
 
     for record in &turn {
         println!("{record:?}");

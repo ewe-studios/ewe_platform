@@ -63,10 +63,19 @@ fn thinking_levels_unknown_value_is_preserved_as_custom() {
 
 #[test]
 fn model_providers_known_values_map_to_variants() {
-    assert_eq!(ModelProviders::from("huggingface"), ModelProviders::HUGGINGFACE);
+    assert_eq!(
+        ModelProviders::from("huggingface"),
+        ModelProviders::HUGGINGFACE
+    );
     assert_eq!(ModelProviders::from("opencode"), ModelProviders::OPENCODE);
-    assert_eq!(ModelProviders::from("kimi-coding"), ModelProviders::KIMICODING);
-    assert_eq!(ModelProviders::from("minimax-cn"), ModelProviders::MINIMAXCN);
+    assert_eq!(
+        ModelProviders::from("kimi-coding"),
+        ModelProviders::KIMICODING
+    );
+    assert_eq!(
+        ModelProviders::from("minimax-cn"),
+        ModelProviders::MINIMAXCN
+    );
 }
 
 #[test]
@@ -94,13 +103,19 @@ fn model_providers_lookup_is_case_sensitive() {
 
 #[test]
 fn model_api_known_values_map_to_variants() {
-    assert_eq!(ModelAPI::from("anthropic-messages"), ModelAPI::AnthropicMessages);
+    assert_eq!(
+        ModelAPI::from("anthropic-messages"),
+        ModelAPI::AnthropicMessages
+    );
     assert_eq!(ModelAPI::from("google-vertex"), ModelAPI::GoogleVertex);
     assert_eq!(
         ModelAPI::from("google-generative-ai"),
         ModelAPI::GoogleGenerativeAi
     );
-    assert_eq!(ModelAPI::from("google-gemini-cli"), ModelAPI::GoogleGeminiCli);
+    assert_eq!(
+        ModelAPI::from("google-gemini-cli"),
+        ModelAPI::GoogleGeminiCli
+    );
     assert_eq!(
         ModelAPI::from("bedrock-converse-stream"),
         ModelAPI::BedrockConverseStream

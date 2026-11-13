@@ -34,12 +34,12 @@ use super::shared::ApiResponse;
 pub struct ContainerDeleteArgs {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `v`.
-    pub v: Option<String>,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
-    /// Query parameter: `link`.
-    pub link: Option<String>,
+    /// Query parameter: `v` (true/false).
+    pub v: Option<bool>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
+    /// Query parameter: `link` (true/false).
+    pub link: Option<bool>,
 }
 
 // =============================================================================
@@ -77,15 +77,18 @@ pub async fn container_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("v", args.v.as_deref());
-    builder = builder.query("force", args.force.as_deref());
-    builder = builder.query("link", args.link.as_deref());
+    builder = builder.query("v", args.v.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query("link", args.link.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);

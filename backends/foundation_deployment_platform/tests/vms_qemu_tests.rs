@@ -2,18 +2,18 @@
 
 #![cfg(feature = "vms")]
 
-use std::path::Path;
 use std::net::TcpListener;
+use std::path::Path;
 
+use foundation_deployment_platform::config::DisplayMode;
 use foundation_deployment_platform::config::{get_profile, list_profiles};
-use foundation_deployment_platform::qemu::{build_qemu_args, display, ResolvedPorts};
 use foundation_deployment_platform::qemu::disk::{find_qemu_img, parse_disk_info};
-use foundation_deployment_platform::qemu::display::{connection_info, DisplayBackend};
+use foundation_deployment_platform::qemu::display::{DisplayBackend, connection_info};
 use foundation_deployment_platform::qemu::download::is_cached;
 use foundation_deployment_platform::qemu::mount::{fstab_entry, guest_mount_command, mount_args};
 use foundation_deployment_platform::qemu::net::{allocate_port, is_port_free};
 use foundation_deployment_platform::qemu::snapshot::parse_size_string;
-use foundation_deployment_platform::config::DisplayMode;
+use foundation_deployment_platform::qemu::{ResolvedPorts, build_qemu_args, display};
 
 // From qemu/mod.rs
 #[test]
@@ -29,7 +29,18 @@ fn test_build_qemu_args_headless() {
     let disk = std::path::PathBuf::from("/tmp/test.qcow2");
     let display_args = display::DisplayBackend::Vnc.qemu_args(0);
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
+    let args = build_qemu_args(
+        profile,
+        &disk,
+        &ports,
+        &monitor,
+        display_args,
+        false,
+        None,
+        false,
+        None,
+        None,
+    );
 
     // KVM acceleration is used exactly when the host exposes a usable /dev/kvm.
     assert_eq!(
@@ -39,7 +50,10 @@ fn test_build_qemu_args_headless() {
     assert!(args.iter().any(|a| a.contains("12288"))); // RAM
     assert!(args.iter().any(|a| a.contains("virtio-net-pci,netdev=net")));
     assert!(args.iter().any(|a| a.contains("vnc=:0")));
-    assert!(args.iter().any(|a| a.contains("hostfwd=tcp:127.0.0.1:2222-:22")));
+    assert!(
+        args.iter()
+            .any(|a| a.contains("hostfwd=tcp:127.0.0.1:2222-:22"))
+    );
     assert!(args.iter().any(|a| a.contains("usb-tablet"))); // mouse tracking fix
 }
 
@@ -56,7 +70,18 @@ fn test_build_qemu_args_headful() {
     let disk = std::path::PathBuf::from("/tmp/test.qcow2");
     let display_args = display::DisplayBackend::Vnc.qemu_args(2);
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
+    let args = build_qemu_args(
+        profile,
+        &disk,
+        &ports,
+        &monitor,
+        display_args,
+        false,
+        None,
+        false,
+        None,
+        None,
+    );
 
     assert!(args.iter().any(|a| a.contains("vnc=:2")));
     assert!(args.iter().any(|a| a.contains("usb-tablet")));
@@ -76,7 +101,18 @@ fn test_build_qemu_args_with_mount() {
     let display_args = display::DisplayBackend::Vnc.qemu_args(2);
     let project_mount = std::path::PathBuf::from("/home/user/project");
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), false, None, None);
+    let args = build_qemu_args(
+        profile,
+        &disk,
+        &ports,
+        &monitor,
+        display_args,
+        false,
+        Some(&project_mount),
+        false,
+        None,
+        None,
+    );
 
     assert!(args.iter().any(|a| a.contains("-virtfs")));
     assert!(args.iter().any(|a| a.contains("path=/home/user/project")));
@@ -97,7 +133,18 @@ fn test_build_qemu_args_with_cdrom() {
     let display_args = display::DisplayBackend::Vnc.qemu_args(0);
     let cdrom = std::path::PathBuf::from("/tmp/virtio-win.iso");
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, Some(&cdrom), None);
+    let args = build_qemu_args(
+        profile,
+        &disk,
+        &ports,
+        &monitor,
+        display_args,
+        false,
+        None,
+        false,
+        Some(&cdrom),
+        None,
+    );
 
     assert!(args.iter().any(|a| a.contains("media=cdrom")));
     assert!(args.iter().any(|a| a.contains("/tmp/virtio-win.iso")));
@@ -108,7 +155,7 @@ fn test_all_profiles_parseable() {
     let profiles = list_profiles();
     assert!(!profiles.is_empty());
     for p in profiles {
-        assert!(!p.name.is_empty());
+        assert_ne!(p.name, "");
         assert!(p.memory_mib > 0);
         assert!(p.cpu_cores > 0);
         assert!(p.disk_gb > 0);
@@ -135,8 +182,8 @@ fn test_qemu_img_not_found_error() {
     let err = find_qemu_img();
     // Should either find qemu-img or return the right error type
     match err {
-        Ok(_) => {} // qemu-img is installed, fine
-        Err(TestbedError::QemuImgNotFound { .. }) => {} // expected error
+        // qemu-img is installed, or the expected error type; both are fine.
+        Ok(_) | Err(TestbedError::QemuImgNotFound { .. }) => {}
         Err(e) => panic!("unexpected error variant: {e}"),
     }
 }

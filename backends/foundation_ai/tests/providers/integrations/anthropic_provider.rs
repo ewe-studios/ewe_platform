@@ -21,8 +21,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -55,7 +55,7 @@ fn setup_llama_server_provider() -> impl Model {
             api_key.to_string(),
         )));
 
-    let provider = AnthropicMessagesProvider::with_http_client(http_client)
+    let provider = AnthropicMessagesProvider::with_http_client(http_client, test_clock())
         .create(Some(config))
         .unwrap();
 
@@ -64,10 +64,18 @@ fn setup_llama_server_provider() -> impl Model {
         .unwrap()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 /// Test: generate a short response against the real llama-server.
+
 #[valtron_test]
 fn test_llama_server_anthropic_generate() {
-    let _llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -123,7 +131,7 @@ fn test_llama_server_anthropic_generate() {
 /// Test: streaming text generation against the real llama-server.
 #[valtron_test]
 fn test_llama_server_anthropic_streaming() {
-    let _llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -181,7 +189,7 @@ fn test_llama_server_anthropic_streaming() {
 /// Test: multi-turn conversation with conversation history.
 #[valtron_test]
 fn test_llama_server_anthropic_multi_turn() {
-    let _llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -261,7 +269,7 @@ fn test_llama_server_anthropic_multi_turn() {
 /// Test: max_tokens constraint truncates output.
 #[valtron_test]
 fn test_llama_server_anthropic_max_tokens() {
-    let _llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -299,7 +307,7 @@ fn test_llama_server_anthropic_max_tokens() {
 /// Test: provider can resolve and connect to the running llama-server.
 #[valtron_test]
 fn test_llama_server_anthropic_resolve_model() {
-    let _llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {

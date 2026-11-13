@@ -2,6 +2,14 @@
 //! `src/shared/auth_manager.rs`). They use only the public API and the
 //! in-memory credential store.
 
+// The `#[valtron_test]` bodies build an `AuthManager` over a `TursoStorage`
+// and await its methods, forcing a `Send` check through the `turso` crate's
+// deep async chain. That overflows the default recursion limit (128); raise it
+// here (the depth is in the external `turso` dependency).
+#![recursion_limit = "256"]
+
+use std::sync::Arc;
+
 use foundation_auth::shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
 use foundation_auth::shared::auth_state::AuthState;
 use foundation_auth::shared::credential_store::{CredentialStorage, OAuthTokenStore};
@@ -11,14 +19,19 @@ use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_auth::shared::session::{SessionConfig, SessionManager};
 use foundation_auth::shared::types::{AuthCredential, ConfidentialText};
 use foundation_auth::OAuthCredential;
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::valtron_test;
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 fn test_config() -> AuthManagerConfig {
     AuthManagerConfig::new().with_refresh_buffer(300)
 }
 
 fn test_manager() -> AuthManager {
-    AuthManager::new(CredentialStorage::memory(), test_config())
+    AuthManager::new(CredentialStorage::memory(), test_config(), test_clock())
 }
 
 async fn store_valid_oauth_token(store: &CredentialStorage) {
@@ -49,12 +62,9 @@ async fn store_expired_oauth_token(store: &CredentialStorage, with_refresh: bool
     store.store_oauth_token("default", &token).await.unwrap();
 }
 
-// `OAuthCredential::expires` is an `f64` of Unix seconds; those are far below
-// 2^52, so the cast is exact.
-#[allow(clippy::cast_precision_loss)]
 fn oauth_credential(expires_in_secs: i64) -> AuthCredential {
     AuthCredential::OAuth(OAuthCredential {
-        expires: (chrono::Utc::now().timestamp() + expires_in_secs) as f64,
+        expires: chrono::Utc::now().timestamp() + expires_in_secs,
         access_token: ConfidentialText::new("oauth_access".to_string()),
         refresh_token: Some(ConfidentialText::new("oauth_refresh".to_string())),
     })
@@ -80,7 +90,7 @@ async fn test_init_from_store_valid_token() {
     assert!(result.is_some());
     assert!(mgr.is_authenticated());
     assert_eq!(mgr.state(), AuthState::Authenticated);
-    assert!(!result.unwrap().is_expired());
+    assert!(!result.unwrap().is_expired(&test_clock()));
 }
 
 #[valtron_test]
@@ -103,7 +113,12 @@ async fn test_init_from_store_expired_no_refresh() {
     assert!(result.is_none());
     assert_eq!(mgr.state(), AuthState::Unauthenticated);
     // The expired token is cleared from the store.
-    assert!(mgr.store().get_oauth_token("default").await.unwrap().is_none());
+    assert!(mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .is_none());
 }
 
 #[valtron_test]
@@ -151,7 +166,7 @@ async fn test_get_valid_token_authenticated() {
     mgr.init_from_store().await.unwrap();
 
     let token = mgr.get_valid_token().unwrap();
-    assert!(!token.is_expired());
+    assert!(!token.is_expired(&test_clock()));
 }
 
 #[test]
@@ -200,15 +215,24 @@ async fn test_refresh_success() {
                 None,
                 None,
                 None,
+                &test_clock(),
             ))
         })
         .await;
 
     assert!(result.is_ok());
     assert!(mgr.is_authenticated());
-    assert_eq!(mgr.jwt_manager().get_token().unwrap().access_token(), "new_access");
+    assert_eq!(
+        mgr.jwt_manager().get_token().unwrap().access_token(),
+        "new_access"
+    );
     // The new token is persisted.
-    let stored = mgr.store().get_oauth_token("default").await.unwrap().unwrap();
+    let stored = mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(stored.access_token, "new_access");
 }
 
@@ -229,7 +253,12 @@ async fn test_refresh_failure() {
     assert!(result.is_err());
     assert_eq!(mgr.state(), AuthState::Failed);
     assert!(mgr.jwt_manager().get_token().is_none());
-    assert!(mgr.store().get_oauth_token("default").await.unwrap().is_none());
+    assert!(mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .is_none());
 }
 
 #[valtron_test]
@@ -257,6 +286,7 @@ async fn test_refresh_from_token_expired_state() {
                 None,
                 None,
                 None,
+                &test_clock(),
             ))
         })
         .await;
@@ -279,15 +309,24 @@ async fn test_logout() {
     assert!(!mgr.is_authenticated());
     assert_eq!(mgr.state(), AuthState::Unauthenticated);
     assert!(mgr.jwt_manager().get_token().is_none());
-    assert!(mgr.store().get_oauth_token("default").await.unwrap().is_none());
+    assert!(mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .is_none());
 }
 
 #[valtron_test]
 async fn test_logout_with_session_manager() {
     let signing_key = vec![0xAB; 32];
-    let session_mgr =
-        SessionManager::new(CredentialStorage::memory(), SessionConfig::default(), &signing_key)
-            .unwrap();
+    let session_mgr = SessionManager::new(
+        CredentialStorage::memory(),
+        SessionConfig::default(),
+        &signing_key,
+        test_clock(),
+    )
+    .unwrap();
 
     let mut mgr = test_manager().with_session_manager(session_mgr);
 
@@ -350,6 +389,7 @@ fn test_with_jwks_manager() {
     let mgr = test_manager().with_jwks_manager(JwksManager::new(
         "https://example.com/.well-known/jwks.json".to_string(),
         None,
+        test_clock(),
     ));
     assert!(mgr.jwks_manager().is_some());
 }

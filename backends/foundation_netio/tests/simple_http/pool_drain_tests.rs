@@ -16,6 +16,13 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
         .base_url()
@@ -62,7 +69,7 @@ fn test_pool_204_then_get_succeeds() {
     });
 
     let addr = server_addr(&server);
-    let base_url = format!("http://{}", addr);
+    let base_url = format!("http://{addr}");
 
     let client = NativeHttpClient::from_system();
 
@@ -72,7 +79,7 @@ fn test_pool_204_then_get_succeeds() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("DELETE should succeed");
 
     assert_eq!(resp.get_status().into_usize(), 204);
@@ -83,7 +90,7 @@ fn test_pool_204_then_get_succeeds() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("GET after 204 should succeed (pooled connection drained)");
 
     assert_eq!(resp2.get_status().into_usize(), 200);
@@ -121,7 +128,7 @@ fn test_pool_sequential_head_requests() {
     .blocking_read(Some(std::time::Duration::from_secs(5)));
 
     let addr = server_addr(&server);
-    let base_url = format!("http://{}", addr);
+    let base_url = format!("http://{addr}");
 
     tracing::trace!("[TEST] Creating http client");
     let client = NativeHttpClient::from_system();
@@ -133,7 +140,7 @@ fn test_pool_sequential_head_requests() {
             .unwrap()
             .build_client()
             .unwrap()
-            .send()
+            .send(&call_ctx())
             .unwrap_or_else(|e| panic!("HEAD request {} should succeed: {e}", i + 1));
 
         tracing::trace!("[TEST] Received response for request: {}", i);
@@ -187,7 +194,7 @@ fn test_pool_put_head_delete_head_sequence() {
     .blocking_read(Some(std::time::Duration::from_secs(5)));
 
     let addr = server_addr(&server);
-    let base_url = format!("http://{}", addr);
+    let base_url = format!("http://{addr}");
 
     tracing::trace!("[TEST] Creating http client");
     let client = NativeHttpClient::from_system();
@@ -199,7 +206,7 @@ fn test_pool_put_head_delete_head_sequence() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("PUT should succeed");
     assert_eq!(resp.get_status().into_usize(), 200);
 
@@ -210,7 +217,7 @@ fn test_pool_put_head_delete_head_sequence() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("First HEAD should succeed");
     assert_eq!(resp.get_status().into_usize(), 200);
 
@@ -221,7 +228,7 @@ fn test_pool_put_head_delete_head_sequence() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("DELETE should succeed");
     assert_eq!(resp.get_status().into_usize(), 200);
 
@@ -232,7 +239,7 @@ fn test_pool_put_head_delete_head_sequence() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Second HEAD should succeed (pool drain fix)");
     assert_eq!(resp.get_status().into_usize(), 200);
 
@@ -241,4 +248,60 @@ fn test_pool_put_head_delete_head_sequence() {
     tracing::trace!("[TEST] Finished tests");
     server.stop();
     tracing::trace!("[TEST] Updated test server to stop");
+}
+
+/// WHY: `FinalizedResponse` returns the connection to the pool when it drops.
+/// The pool stamps the connection with the time of the `Ctx` that `send`
+/// receives. The sync client once used the root `Ctx` of the executor. A caller
+/// with a simulated clock then got a real-clock stamp on its connection.
+///
+/// WHAT: the simulated clock starts one hour after its base instant. The pool
+/// keeps a connection idle for 60 seconds. After the response drops, a checkout
+/// with the same simulated `Ctx` must find the connection. If the pool stamped
+/// the connection with the real clock, the connection would look one hour old
+/// and the checkout would find nothing.
+#[test]
+#[serial(valtron_pool)]
+fn test_pool_stamps_returned_connection_with_the_caller_clock() {
+    use foundation_context::Ctx;
+    use foundation_core::valtron::SimulatedClock;
+    use foundation_netio::http::{ConnectionPool, HttpConnectionPool};
+    use foundation_netio::shared::client::SystemDnsResolver;
+
+    let _guard = initialize_pool(45, None);
+
+    let server = TestHttpServer::with_response(|_req| HttpResponse {
+        status: 200,
+        status_text: "OK".to_string(),
+        headers: vec![("Content-Type".to_string(), "text/plain".to_string())],
+        body: b"stamp".to_vec(),
+    });
+    let addr = server_addr(&server);
+    let base_url = format!("http://{addr}");
+
+    let pool = Arc::new(HttpConnectionPool::new(
+        ConnectionPool::new(4, Duration::from_secs(60)),
+        SystemDnsResolver,
+    ));
+    let client = NativeHttpClient::with_pool(pool.clone());
+
+    let clock = Arc::new(SimulatedClock::new(Duration::from_secs(3600)));
+    let ctx = Ctx::fixed(clock);
+
+    let resp = client
+        .get(&base_url)
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send(&ctx)
+        .expect("GET should succeed");
+    assert_eq!(resp.get_status().into_usize(), 200);
+    drop(resp);
+
+    let host = addr.ip().to_string();
+    let pooled = pool.checkout_connection(&host, addr.port(), &ctx);
+    assert!(
+        pooled.is_some(),
+        "the pool must stamp the returned connection with the caller clock"
+    );
 }

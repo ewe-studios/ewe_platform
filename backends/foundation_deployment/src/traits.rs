@@ -146,7 +146,7 @@ pub trait Deployable {
     /// # Arguments
     ///
     /// * `instance_id` - Which instance of this resource to deploy (supports multiple instances)
-    /// * `client` - ProviderClient with access to state store and HTTP client
+    /// * `client` - `ProviderClient` with access to state store and HTTP client
     fn deploy(
         &self,
         instance_id: usize,
@@ -161,7 +161,7 @@ pub trait Deployable {
     /// # Arguments
     ///
     /// * `instance_id` - Which instance of this resource to destroy
-    /// * `client` - ProviderClient with access to state store and HTTP client
+    /// * `client` - `ProviderClient` with access to state store and HTTP client
     fn destroy(
         &self,
         instance_id: usize,
@@ -175,10 +175,7 @@ pub trait Deployable {
     /// All `get()`, `list()`, `delete()` operations on the returned wrapper
     /// are automatically prefixed with `NAMESPACE`. Call it in `deploy`/`destroy`
     /// to persist and read back what was deployed (the id to tear down, etc.).
-    fn store(
-        &self,
-        client: &ProviderClient<Self::Store>,
-    ) -> NamespacedStore<Self::Store> {
+    fn store(&self, client: &ProviderClient<Self::Store>) -> NamespacedStore<Self::Store> {
         NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE)
     }
 }

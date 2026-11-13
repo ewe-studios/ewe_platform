@@ -15,5 +15,5 @@ fn pick_unused_port() -> Option<u16> {
 }
 
 pub use llama_server::{LlamaServer, LlamaServerConfig, LlamaServerError};
-pub use miniflare::{Miniflare, MiniflareConfig, MiniflareError, MinflareTool};
+pub use miniflare::{MinflareTool, Miniflare, MiniflareConfig, MiniflareError};
 pub use workerd::{Workerd, WorkerdConfig, WorkerdError};

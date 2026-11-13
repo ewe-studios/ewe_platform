@@ -4,23 +4,30 @@ use std::sync::{self, Arc};
 
 use async_channel;
 use crossbeam::atomic;
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
-pub type ChannelResult<T> = anyhow::Result<T, ChannelError>;
+pub type ChannelResult<T> = Result<T, ErrorTrace<ChannelError>>;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum ChannelError {
-    #[error("Channel has being closed or not initialized")]
+    #[display("Channel has being closed or not initialized")]
     Closed,
 
-    #[error("Failed to send message due to: {0}")]
-    SendFailed(String),
+    #[display("Failed to send message due to: {_0}")]
+    SendFailed(#[error(not(source))] String),
 
-    #[error("Failed to receive message due to: {0}")]
-    ReceiveFailed(async_channel::TryRecvError),
+    #[display("Failed to receive message due to: {_0}")]
+    ReceiveFailed(#[error(not(source))] async_channel::TryRecvError),
 
-    #[error("Channel sent nothing, possibly closed")]
+    #[display("Channel sent nothing, possibly closed")]
     ReceivedNoData,
+}
+
+impl From<ChannelError> for ErrorTrace<ChannelError> {
+    fn from(err: ChannelError) -> Self {
+        ErrorTrace::new(err)
+    }
 }
 
 #[must_use]
@@ -109,7 +116,7 @@ impl<T> SendChannel<T> {
     pub fn pending_message_count(&mut self) -> ChannelResult<usize> {
         match &mut self.src {
             Some(src) => Ok(src.len()),
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
         }
     }
 
@@ -121,7 +128,7 @@ impl<T> SendChannel<T> {
             drop(channel);
             Ok(())
         } else {
-            Err(ChannelError::Closed)
+            Err(ChannelError::Closed.into())
         }
     }
 
@@ -132,9 +139,9 @@ impl<T> SendChannel<T> {
         match &mut self.src {
             Some(src) => match src.send(t).await {
                 Ok(()) => Ok(()),
-                Err(err) => Err(ChannelError::SendFailed(err.to_string())),
+                Err(err) => Err(ChannelError::SendFailed(err.to_string()).into()),
             },
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
         }
     }
 
@@ -149,9 +156,9 @@ impl<T> SendChannel<T> {
         match &mut self.src {
             Some(src) => match src.send_blocking(t) {
                 Ok(()) => Ok(()),
-                Err(err) => Err(ChannelError::SendFailed(err.to_string())),
+                Err(err) => Err(ChannelError::SendFailed(err.to_string()).into()),
             },
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
         }
     }
 
@@ -162,9 +169,9 @@ impl<T> SendChannel<T> {
         match &mut self.src {
             Some(src) => match src.try_send(t) {
                 Ok(()) => Ok(()),
-                Err(err) => Err(ChannelError::SendFailed(err.to_string())),
+                Err(err) => Err(ChannelError::SendFailed(err.to_string()).into()),
             },
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
         }
     }
 }
@@ -210,7 +217,7 @@ impl<T> ReceiveChannel<T> {
     /// Returns an error if the channel is closed.
     pub fn is_empty(&mut self) -> ChannelResult<bool> {
         match &self.src {
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
             Some(src) => Ok(src.is_empty()),
         }
     }
@@ -220,7 +227,7 @@ impl<T> ReceiveChannel<T> {
     /// Returns an error if the channel is closed.
     pub fn is_closed(&mut self) -> ChannelResult<bool> {
         match &self.src {
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
             Some(_) => Ok(false),
         }
     }
@@ -234,7 +241,7 @@ impl<T> ReceiveChannel<T> {
     /// Returns an error if the channel is closed or the receive operation fails.
     pub fn block_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
             Some(src) => match src.recv_blocking() {
                 Ok(maybe_item) => {
                     self.read_flag.store(true);
@@ -250,7 +257,7 @@ impl<T> ReceiveChannel<T> {
     /// Returns an error if the channel is closed or no data is available.
     pub async fn async_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
             Some(src) => {
                 if let Ok(maybe_item) = src.recv().await {
                     self.read_flag.store(true);
@@ -259,7 +266,7 @@ impl<T> ReceiveChannel<T> {
                     if src.is_closed() {
                         return self.close_channel();
                     }
-                    Err(ChannelError::ReceivedNoData)
+                    Err(ChannelError::ReceivedNoData.into())
                 }
             }
         }
@@ -270,7 +277,7 @@ impl<T> ReceiveChannel<T> {
     /// Returns an error if the channel is closed or no data is available.
     pub fn try_receive(&mut self) -> ChannelResult<T> {
         match &mut self.src {
-            None => Err(ChannelError::Closed),
+            None => Err(ChannelError::Closed.into()),
             Some(src) => match src.try_recv() {
                 Ok(maybe_item) => {
                     self.read_flag.store(true);
@@ -278,7 +285,7 @@ impl<T> ReceiveChannel<T> {
                 }
                 Err(err) => match err {
                     async_channel::TryRecvError::Closed => self.close_channel(),
-                    async_channel::TryRecvError::Empty => Err(ChannelError::ReceivedNoData),
+                    async_channel::TryRecvError::Empty => Err(ChannelError::ReceivedNoData.into()),
                 },
             },
         }
@@ -287,10 +294,11 @@ impl<T> ReceiveChannel<T> {
     fn close_channel(&mut self) -> ChannelResult<T> {
         // remove the channel from the underlying slot
         _ = self.src.take();
-        Err(ChannelError::Closed)
+        Err(ChannelError::Closed.into())
     }
 
-    #[cfg(test)]
+    /// Close the receive side of the channel. Messages sent after this call
+    /// cannot be received.
     pub fn close(&mut self) {
         _ = self.src.take();
     }
@@ -306,84 +314,10 @@ impl<T> Iterator for Drain<'_, T> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.receiver.try_receive() {
             Ok(item) => Some(item),
-            Err(ChannelError::Closed) => panic!("should not happen, channel was closed"),
-            Err(_) => None,
+            Err(trace) => match trace.current_context() {
+                ChannelError::Closed => panic!("should not happen, channel was closed"),
+                _ => None,
+            },
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use crate::mspc::{create, ChannelError};
-    use std::time::Duration;
-
-    #[test]
-    fn should_be_able_to_close_a_send_channel() {
-        let (mut sender, mut receiver) = create::<String>();
-
-        sender.close().expect("should have closed");
-
-        let err = receiver.try_receive();
-        assert!(matches!(err, Err(ChannelError::Closed)));
-    }
-
-    #[test]
-    fn should_be_able_to_create_and_send_string_with_channel() {
-        let (mut sender, mut receiver) = create::<String>();
-
-        let message = String::from("new text");
-
-        sender.try_send(message.clone()).unwrap();
-
-        let recv_message = receiver.try_receive().unwrap();
-        assert_eq!(message, recv_message);
-    }
-
-    #[tokio::test]
-    async fn should_be_able_to_block_send_and_receive_with_channel() {
-        let (mut sender, mut receiver) = create::<String>();
-
-        sender
-            .block_send(String::from("new text"))
-            .expect("should be able to block send");
-
-        let recv_message = receiver
-            .block_receive()
-            .expect("should have received response");
-
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test]
-    async fn should_be_able_to_send_and_receive_async_with_channel() {
-        let (mut sender, mut receiver) = create::<String>();
-
-        sender
-            .async_send(String::from("new text"))
-            .await
-            .expect("should have completed");
-
-        let recv_message = receiver
-            .async_receive()
-            .await
-            .expect("should have received response");
-
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test]
-    async fn should_be_able_to_send_channel_into_another_thread() {
-        let (mut sender, mut receiver) = create::<String>();
-
-        tokio::spawn(async move {
-            sender.try_send(String::from("new text")).unwrap();
-            tokio::time::sleep(Duration::from_millis(100)).await;
-        })
-        .await
-        .expect("should have completed");
-
-        let recv_message = receiver.try_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
     }
 }

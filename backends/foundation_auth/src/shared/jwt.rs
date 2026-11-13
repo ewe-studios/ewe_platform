@@ -1,13 +1,15 @@
 //! JWT management module for token lifecycle handling.
 
 use chrono::{DateTime, Utc};
+use foundation_compact::time;
+use foundation_context::Ctx;
 use jwt_simple::prelude::{
-    EdDSAKeyPairLike, EdDSAPublicKeyLike,
+    ECDSAP256KeyPairLike, ECDSAP256PublicKeyLike, EdDSAKeyPairLike, EdDSAPublicKeyLike,
     RSAKeyPairLike, RSAPublicKeyLike,
-    ECDSAP256KeyPairLike, ECDSAP256PublicKeyLike,
 };
 use serde::{Deserialize, Serialize};
 
+use crate::shared::clock::now_seconds;
 use crate::ConfidentialText;
 
 // ===========================================================================
@@ -17,7 +19,7 @@ use crate::ConfidentialText;
 /// Supported JWT signature algorithms.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum JwtAlgorithm {
-    /// EdDSA (Ed25519)
+    /// `EdDSA` (Ed25519)
     EdDSA,
     /// RS256 (RSA with SHA-256)
     RS256,
@@ -138,9 +140,7 @@ impl VerifiedClaims {
     /// Check if the nonce in the claims matches the expected nonce (Feature 07).
     #[must_use]
     pub fn verify_nonce(&self, expected_nonce: &str) -> bool {
-        self.nonce
-            .as_ref()
-            .is_some_and(|n| n == expected_nonce)
+        self.nonce.as_ref().is_some_and(|n| n == expected_nonce)
     }
 }
 
@@ -163,7 +163,7 @@ impl JwtVerifier {
         Ok(Self { config, public_key })
     }
 
-    /// Build VerificationOptions from the config.
+    /// Build `VerificationOptions` from the config.
     fn build_options(&self) -> jwt_simple::prelude::VerificationOptions {
         let mut opts = jwt_simple::prelude::VerificationOptions::default();
 
@@ -257,19 +257,24 @@ impl JwtSigningKey {
     /// # Errors
     ///
     /// Returns `JwtError::GenerationError` if signing fails.
-    pub fn sign_claims(&self, claims: &serde_json::Value) -> Result<String, JwtError> {
+    pub fn sign_claims(&self, claims: &serde_json::Value, ctx: &Ctx) -> Result<String, JwtError> {
         use jwt_simple::prelude::{Claims, Duration};
 
         // Token lifetime: derive from an absolute `exp` (epoch seconds) when the
-        // caller supplies one, otherwise default to 1 hour.
+        // caller supplies one, otherwise default to 1 hour. `exp` and the
+        // current time come from the same injected clock, so a simulated clock
+        // keeps the lifetime it asks for.
         let duration = claims
             .get("exp")
             .and_then(serde_json::Value::as_u64)
-            .map(|exp| {
-                let now = jwt_simple::prelude::Clock::now_since_epoch().as_secs();
-                Duration::from_secs(exp.saturating_sub(now).max(1))
-            })
-            .unwrap_or_else(|| Duration::from_secs(3600));
+            .map_or_else(
+                || Duration::from_secs(3600),
+                |exp| {
+                    let now =
+                        u64::try_from(time::unix_seconds(ctx.clock().wall_now())).unwrap_or(0);
+                    Duration::from_secs(exp.saturating_sub(now).max(1))
+                },
+            );
 
         // Application (custom) claims = everything except the registered claims
         // jwt-simple manages itself — otherwise those keys would appear twice in
@@ -316,9 +321,13 @@ impl JwtSigningKey {
     pub fn public_key_pem(&self) -> Result<String, JwtError> {
         match self {
             Self::Ed25519(kp) => Ok(kp.public_key().to_pem()),
-            Self::RS256(kp) => kp.public_key().to_pem()
+            Self::RS256(kp) => kp
+                .public_key()
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
-            Self::ES256(kp) => kp.public_key().to_pem()
+            Self::ES256(kp) => kp
+                .public_key()
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
     }
@@ -332,9 +341,11 @@ impl JwtSigningKey {
     pub fn to_pem(&self) -> Result<String, JwtError> {
         match self {
             Self::Ed25519(kp) => Ok(kp.to_pem()),
-            Self::RS256(kp) => kp.to_pem()
+            Self::RS256(kp) => kp
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
-            Self::ES256(kp) => kp.to_pem()
+            Self::ES256(kp) => kp
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
     }
@@ -369,8 +380,7 @@ fn decode_header_algorithm(token: &str) -> Result<String, JwtError> {
         return Err(JwtError::InvalidTokenFormat);
     }
     let payload = base64_decode(parts[0])?;
-    let header: serde_json::Value =
-        serde_json::from_slice(&payload).map_err(|e| JwtError::Json(e))?;
+    let header: serde_json::Value = serde_json::from_slice(&payload).map_err(JwtError::Json)?;
     header
         .get("alg")
         .and_then(|v| v.as_str())
@@ -378,29 +388,20 @@ fn decode_header_algorithm(token: &str) -> Result<String, JwtError> {
         .ok_or_else(|| JwtError::AlgorithmNotAllowed("missing alg in header".into()))
 }
 
-/// Convert jwt-simple JWTClaims to our VerifiedClaims.
+/// Convert jwt-simple `JWTClaims` to our `VerifiedClaims`.
 fn to_verified_claims(
     claims: &jwt_simple::prelude::JWTClaims<serde_json::Value>,
 ) -> Result<VerifiedClaims, JwtError> {
-    let sub = claims
-        .subject
-        .clone()
-        .ok_or(JwtError::InvalidSubject)?;
+    let sub = claims.subject.clone().ok_or(JwtError::InvalidSubject)?;
 
     // Build custom claims map, stripping standard claims
-    let raw: serde_json::Value =
-        serde_json::to_value(claims).map_err(|e| JwtError::Json(e))?;
+    let raw: serde_json::Value = serde_json::to_value(claims).map_err(JwtError::Json)?;
 
     // Extract scope before consuming raw
-    let scope = raw
-        .get("scope")
-        .and_then(|v| v.as_str())
-        .map(String::from);
+    let scope = raw.get("scope").and_then(|v| v.as_str()).map(String::from);
 
     let custom = if let serde_json::Value::Object(map) = raw {
-        let standard_keys = [
-            "sub", "iss", "aud", "exp", "iat", "nbf", "jti", "nonce",
-        ];
+        let standard_keys = ["sub", "iss", "aud", "exp", "iat", "nbf", "jti", "nonce"];
         map.into_iter()
             .filter(|(k, _)| !standard_keys.contains(&k.as_str()))
             .collect()
@@ -409,8 +410,7 @@ fn to_verified_claims(
     };
 
     let unix_ts_to_datetime = |ts: Option<jwt_simple::prelude::UnixTimeStamp>| {
-        ts.map(|t| DateTime::from_timestamp(t.as_secs() as i64, 0))
-            .flatten()
+        ts.and_then(|t| DateTime::from_timestamp(i64::try_from(t.as_secs()).unwrap_or(i64::MAX), 0))
     };
 
     Ok(VerifiedClaims {
@@ -423,8 +423,10 @@ fn to_verified_claims(
             }
             None => String::new(),
         },
-        exp: unix_ts_to_datetime(claims.expires_at).unwrap_or_else(Utc::now),
-        iat: unix_ts_to_datetime(claims.issued_at).unwrap_or_else(Utc::now),
+        // A claim with no value, or one outside the `chrono` range, maps to the
+        // UNIX epoch. That fails closed: the token reads as expired.
+        exp: unix_ts_to_datetime(claims.expires_at).unwrap_or(DateTime::UNIX_EPOCH),
+        iat: unix_ts_to_datetime(claims.issued_at).unwrap_or(DateTime::UNIX_EPOCH),
         nbf: unix_ts_to_datetime(claims.invalid_before),
         jti: claims.jwt_id.clone(),
         scope,
@@ -466,8 +468,8 @@ impl JwtToken {
         scope: Option<String>,
         audience: Option<String>,
         issuer: Option<String>,
+        ctx: &Ctx,
     ) -> Self {
-        let now = Utc::now().timestamp();
         Self {
             token: ConfidentialText::new(token),
             refresh_token: refresh_token.map(ConfidentialText::new),
@@ -475,7 +477,7 @@ impl JwtToken {
             scope,
             audience,
             issuer,
-            created_at: now,
+            created_at: now_seconds(ctx),
         }
     }
 
@@ -484,7 +486,7 @@ impl JwtToken {
     /// # Errors
     ///
     /// Returns a `JwtError` if the token cannot be parsed or is missing required claims.
-    pub fn from_token(token: String) -> Result<Self, JwtError> {
+    pub fn from_token(token: String, ctx: &Ctx) -> Result<Self, JwtError> {
         // Parse the JWT payload to extract claims
         let claims = decode_claims(&token)?;
 
@@ -506,7 +508,7 @@ impl JwtToken {
                 .custom
                 .get("iss")
                 .and_then(|v| v.as_str().map(String::from)),
-            created_at: Utc::now().timestamp(),
+            created_at: now_seconds(ctx),
         })
     }
 
@@ -519,23 +521,20 @@ impl JwtToken {
 
     /// Check if the token is expired.
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        let now = Utc::now().timestamp();
-        now >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_seconds(ctx) >= self.expires_at
     }
 
     /// Check if the token expires within the given buffer (in seconds).
     #[must_use]
-    pub fn expires_within(&self, buffer_seconds: i64) -> bool {
-        let now = Utc::now().timestamp();
-        now + buffer_seconds >= self.expires_at
+    pub fn expires_within(&self, buffer_seconds: i64, ctx: &Ctx) -> bool {
+        now_seconds(ctx) + buffer_seconds >= self.expires_at
     }
 
     /// Get seconds until expiration.
     #[must_use]
-    pub fn expires_in(&self) -> i64 {
-        let now = Utc::now().timestamp();
-        (self.expires_at - now).max(0)
+    pub fn expires_in(&self, ctx: &Ctx) -> i64 {
+        (self.expires_at - now_seconds(ctx)).max(0)
     }
 
     /// Get the refresh token if available.
@@ -559,22 +558,19 @@ pub struct JwtManager {
     refresh_buffer: i64,
     /// Token storage key.
     storage_key: String,
-}
-
-impl Default for JwtManager {
-    fn default() -> Self {
-        Self::new()
-    }
+    /// The injected clock every expiry check reads.
+    ctx: Ctx,
 }
 
 impl JwtManager {
     /// Create a new JWT manager with default settings.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             token: None,
             refresh_buffer: 300, // 5 minutes
             storage_key: String::from("jwt:token"),
+            ctx,
         }
     }
 
@@ -625,7 +621,7 @@ impl JwtManager {
         };
 
         // Check if token needs refresh (expired or within buffer)
-        if token.is_expired() || token.expires_within(self.refresh_buffer) {
+        if token.is_expired(&self.ctx) || token.expires_within(self.refresh_buffer, &self.ctx) {
             // Need to refresh
             let Some(refresh_token) = token.refresh_token() else {
                 return Err(JwtError::NoRefreshToken);
@@ -656,7 +652,7 @@ impl JwtManager {
             return Ok(false);
         };
 
-        if !token.is_expired() && !token.expires_within(self.refresh_buffer) {
+        if !token.is_expired(&self.ctx) && !token.expires_within(self.refresh_buffer, &self.ctx) {
             return Ok(false); // No refresh needed
         }
 
@@ -672,9 +668,9 @@ impl JwtManager {
     /// Check if the manager has a valid (non-expired) token.
     #[must_use]
     pub fn has_valid_token(&self) -> bool {
-        self.token
-            .as_ref()
-            .is_some_and(|t| !t.is_expired() && !t.expires_within(self.refresh_buffer))
+        self.token.as_ref().is_some_and(|t| {
+            !t.is_expired(&self.ctx) && !t.expires_within(self.refresh_buffer, &self.ctx)
+        })
     }
 
     /// Get the storage key for persistence.
@@ -826,4 +822,3 @@ impl core::fmt::Display for JwtError {
 }
 
 impl std::error::Error for JwtError {}
-

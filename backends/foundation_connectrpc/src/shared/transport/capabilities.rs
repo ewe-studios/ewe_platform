@@ -26,6 +26,8 @@ pub enum ProtocolKind {
 
 /// What a transport can do (Decision 11 — the *actual* transport abilities).
 #[derive(Debug, Clone)]
+// The bools are independent capability flags, not one enum's states.
+#[allow(clippy::struct_excessive_bools)]
 pub struct TransportCapabilities {
     /// Can it keep pushing request-body frames after sending has begun?
     /// (HTTP/1.1 chunked / HTTP/2/3 / WebSocket = yes; WASM Fetch = no.)
@@ -58,7 +60,10 @@ pub struct CallRequirements {
 /// Compute the requirements for a `(protocol, stream_type)` pair.
 #[must_use]
 pub fn requirements(protocol: ProtocolKind, stream_type: StreamType) -> CallRequirements {
-    let request_streaming = matches!(stream_type, StreamType::ClientStream | StreamType::BidiStream);
+    let request_streaming = matches!(
+        stream_type,
+        StreamType::ClientStream | StreamType::BidiStream
+    );
     let full_duplex = matches!(stream_type, StreamType::BidiStream);
     let h2_trailers = matches!(protocol, ProtocolKind::Grpc);
     let min_http_version = if matches!(protocol, ProtocolKind::Grpc) {
@@ -80,10 +85,7 @@ pub fn requirements(protocol: ProtocolKind, stream_type: StreamType) -> CallRequ
 /// A [`ConnectError`]-carrying trace ([`Code::Unimplemented`](crate::Code::Unimplemented))
 /// naming the missing ability. `full_duplex` mismatch corresponds to the HTTP/1.1
 /// bidi `505` rejection.
-pub fn check_compatible(
-    req: &CallRequirements,
-    cap: &TransportCapabilities,
-) -> ConnectResult<()> {
+pub fn check_compatible(req: &CallRequirements, cap: &TransportCapabilities) -> ConnectResult<()> {
     if req.request_streaming && !cap.request_streaming {
         return Err(ConnectError::unimplemented(
             "this transport cannot stream the request body (client/bidi streaming unsupported)",
@@ -102,11 +104,7 @@ pub fn check_compatible(
         )
         .into());
     }
-    if !cap
-        .http_versions
-        .iter()
-        .any(|v| *v >= req.min_http_version)
-    {
+    if !cap.http_versions.iter().any(|v| *v >= req.min_http_version) {
         return Err(ConnectError::unimplemented(format!(
             "this transport does not offer HTTP version >= {:?} required by the protocol",
             req.min_http_version

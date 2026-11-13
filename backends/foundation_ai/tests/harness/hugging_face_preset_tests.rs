@@ -15,7 +15,7 @@ use std::path::PathBuf;
 
 use foundation_ai::agentic::AgentSession;
 use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
-use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackendKind};
 use foundation_ai::harness::{gguf_provider, Gemma4E2b, Gemma4_26b, Glm52, RouterPreset};
 use foundation_ai::types::ModelId;
 
@@ -38,21 +38,28 @@ fn custom_config(test: &str) -> HuggingFaceGGUFConfig {
         .context_length(2048)
         .n_threads(3)
         .default_quantization("q5_k_m")
-        .llama_backend(LlamaBackends::LLamaMetal)
+        .llama_backend(LlamaBackendKind::LLamaMetal)
         .n_gpu_layers(7)
         .build()
 }
 
-fn is_gpu_backend(backend: LlamaBackends) -> bool {
+fn is_gpu_backend(backend: LlamaBackendKind) -> bool {
     if cfg!(target_vendor = "apple") {
-        matches!(backend, LlamaBackends::LLamaMetal)
+        matches!(backend, LlamaBackendKind::LLamaMetal)
     } else {
-        matches!(backend, LlamaBackends::LLamaGPU)
+        matches!(backend, LlamaBackendKind::LLamaGPU)
     }
 }
 
 // ---------------------------------------------------------------------------
 // Config shortcut
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 #[test]
 fn with_cache_dir_sets_the_dir_and_defaults_the_rest() {
@@ -63,7 +70,7 @@ fn with_cache_dir_sets_the_dir_and_defaults_the_rest() {
     assert_eq!(config.cache_dir, PathBuf::from("/models/here"));
     assert!(config.auth.is_none());
     assert_eq!(config.default_quantization, default.default_quantization);
-    assert!(matches!(config.llama_backend, LlamaBackends::LLamaCPU));
+    assert!(matches!(config.llama_backend, LlamaBackendKind::LLamaCPU));
     assert_eq!(config.llama_config.n_gpu_layers, 0);
     assert_eq!(config.llama_config.context_length, 4096);
     assert_eq!(config.llama_config.batch_size, 512);
@@ -74,7 +81,7 @@ fn with_cache_dir_sets_the_dir_and_defaults_the_rest() {
 fn on_cpu_forces_the_backend_and_keeps_the_rest() {
     let config = custom_config("on-cpu").on_cpu();
 
-    assert!(matches!(config.llama_backend, LlamaBackends::LLamaCPU));
+    assert!(matches!(config.llama_backend, LlamaBackendKind::LLamaCPU));
     assert_eq!(config.llama_config.n_gpu_layers, 0);
     assert_eq!(config.cache_dir, temp_cache("on-cpu"));
     assert_eq!(config.llama_config.context_length, 2048);
@@ -99,7 +106,7 @@ fn on_gpu_offloads_every_layer_and_keeps_the_rest() {
 
 #[test]
 fn gguf_provider_with_none_uses_the_default_config() {
-    let provider = gguf_provider(None).expect("default provider builds");
+    let provider = gguf_provider(None, test_clock()).expect("default provider builds");
     let default = HuggingFaceGGUFConfig::default();
 
     assert_eq!(provider.cache_dir(), default.cache_dir.as_path());
@@ -107,21 +114,25 @@ fn gguf_provider_with_none_uses_the_default_config() {
         provider.default_quantization(),
         default.default_quantization.as_deref()
     );
-    assert!(matches!(provider.llama_backend(), LlamaBackends::LLamaCPU));
+    assert!(matches!(
+        provider.llama_backend(),
+        LlamaBackendKind::LLamaCPU
+    ));
     assert_eq!(provider.llama_config().n_gpu_layers, 0);
     assert_eq!(provider.llama_config().context_length, 4096);
 }
 
 #[test]
 fn gguf_provider_respects_a_supplied_config() {
-    let provider = gguf_provider(Some(custom_config("provider"))).expect("custom provider builds");
+    let provider = gguf_provider(Some(custom_config("provider")), test_clock())
+        .expect("custom provider builds");
 
     assert_eq!(provider.cache_dir(), temp_cache("provider").as_path());
     assert!(temp_cache("provider").is_dir(), "the cache dir is created");
     assert_eq!(provider.default_quantization(), Some("q5_k_m"));
     assert!(matches!(
         provider.llama_backend(),
-        LlamaBackends::LLamaMetal
+        LlamaBackendKind::LLamaMetal
     ));
     assert_eq!(provider.llama_config().n_gpu_layers, 7);
     assert_eq!(provider.llama_config().context_length, 2048);
@@ -130,9 +141,12 @@ fn gguf_provider_respects_a_supplied_config() {
 #[test]
 fn family_quantization_constructor_overrides_the_config_quantization() {
     // `q3_k_m(Some(cfg))` used to load cfg's `q4_k_m` default instead.
-    let provider = Glm52::q3_k_m(Some(HuggingFaceGGUFConfig::with_cache_dir(temp_cache(
-        "family-quant",
-    ))))
+    let provider = Glm52::q3_k_m(
+        Some(HuggingFaceGGUFConfig::with_cache_dir(temp_cache(
+            "family-quant",
+        ))),
+        test_clock(),
+    )
     .expect("provider builds");
 
     assert_eq!(provider.default_quantization(), Some("Q3_K_M"));
@@ -144,7 +158,7 @@ fn family_quantization_constructor_overrides_the_config_quantization() {
 
 #[test]
 fn hugging_face_with_none_builds_a_single_model_preset() {
-    let preset = RouterPreset::hugging_face("example-org/some-model-GGUF", None)
+    let preset = RouterPreset::hugging_face("example-org/some-model-GGUF", None, test_clock())
         .expect("preset builds with the default config");
 
     assert_eq!(
@@ -161,16 +175,24 @@ fn hugging_face_with_none_builds_a_single_model_preset() {
 
 #[test]
 fn huggingface_cpu_and_gpu_build_with_a_supplied_config() {
-    let cpu = RouterPreset::huggingface_cpu(Gemma4E2b::MODEL_ID, Some(custom_config("preset-cpu")))
-        .expect("cpu preset builds");
+    let cpu = RouterPreset::huggingface_cpu(
+        Gemma4E2b::MODEL_ID,
+        Some(custom_config("preset-cpu")),
+        test_clock(),
+    )
+    .expect("cpu preset builds");
     assert_eq!(cpu.primary_model, Some(named(Gemma4E2b::MODEL_ID)));
     assert!(
         temp_cache("preset-cpu").is_dir(),
         "the supplied cache dir is used"
     );
 
-    let gpu = RouterPreset::huggingface_gpu(Gemma4E2b::MODEL_ID, Some(custom_config("preset-gpu")))
-        .expect("gpu preset builds");
+    let gpu = RouterPreset::huggingface_gpu(
+        Gemma4E2b::MODEL_ID,
+        Some(custom_config("preset-gpu")),
+        test_clock(),
+    )
+    .expect("gpu preset builds");
     assert_eq!(gpu.primary_model, Some(named(Gemma4E2b::MODEL_ID)));
     assert!(
         temp_cache("preset-gpu").is_dir(),
@@ -180,8 +202,10 @@ fn huggingface_cpu_and_gpu_build_with_a_supplied_config() {
 
 #[test]
 fn huggingface_cpu_and_gpu_build_with_none() {
-    RouterPreset::huggingface_cpu(Gemma4E2b::MODEL_ID, None).expect("cpu preset builds");
-    RouterPreset::huggingface_gpu(Gemma4E2b::MODEL_ID, None).expect("gpu preset builds");
+    RouterPreset::huggingface_cpu(Gemma4E2b::MODEL_ID, None, test_clock())
+        .expect("cpu preset builds");
+    RouterPreset::huggingface_gpu(Gemma4E2b::MODEL_ID, None, test_clock())
+        .expect("gpu preset builds");
 }
 
 #[valtron_test]
@@ -189,10 +213,11 @@ async fn hugging_face_preset_model_reaches_the_session() {
     let preset = RouterPreset::huggingface_cpu(
         Gemma4E2b::MODEL_ID,
         Some(HuggingFaceGGUFConfig::with_cache_dir(temp_cache("session"))),
+        test_clock(),
     )
     .expect("preset builds");
 
-    let session = AgentSession::builder(preset)
+    let session = AgentSession::builder(preset, test_clock())
         .with_system_prompt("You are a helpful assistant.")
         .build()
         .await
@@ -211,7 +236,7 @@ fn named_local_pairs_build_on_the_shared_base() {
     let main = HuggingFaceGGUFConfig::with_cache_dir(temp_cache("pair-main"));
     let memory = HuggingFaceGGUFConfig::with_cache_dir(temp_cache("pair-memory"));
 
-    let preset = RouterPreset::gemma(Some(main), Some(memory)).expect("pair builds");
+    let preset = RouterPreset::gemma(Some(main), Some(memory), test_clock()).expect("pair builds");
 
     assert_eq!(preset.primary_model, Some(named(Gemma4_26b::MODEL_ID)));
     assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));

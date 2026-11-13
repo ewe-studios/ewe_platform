@@ -1,6 +1,6 @@
 use crate::index::{
-    IndexKind, Reader, VectorError, VectorIndex, validate_insert, write_common_header, write_f32,
-    write_str, write_u32, write_u64,
+    validate_insert, write_common_header, write_f32, write_str, write_u32, write_u64, IndexKind,
+    Reader, VectorError, VectorIndex,
 };
 use crate::metric::{DistanceMetric, OrderedScore};
 use crate::store::VectorMatch;
@@ -93,7 +93,8 @@ impl HnswIndex {
         level: usize,
     ) -> Vec<(usize, f32)> {
         let mut visited = HashSet::new();
-        let mut candidates: BinaryHeap<std::cmp::Reverse<(OrderedScore, usize)>> = BinaryHeap::new();
+        let mut candidates: BinaryHeap<std::cmp::Reverse<(OrderedScore, usize)>> =
+            BinaryHeap::new();
         let mut results: BinaryHeap<(OrderedScore, usize)> = BinaryHeap::new();
 
         let d = self.distance(query, &inner.nodes[entry].vector);
@@ -136,13 +137,7 @@ impl HnswIndex {
         results.into_iter().map(|(s, idx)| (idx, s.0)).collect()
     }
 
-    fn greedy_search(
-        &self,
-        inner: &HnswInner,
-        query: &[f32],
-        entry: usize,
-        level: usize,
-    ) -> usize {
+    fn greedy_search(&self, inner: &HnswInner, query: &[f32], entry: usize, level: usize) -> usize {
         let mut current = entry;
         let mut current_dist = self.distance(query, &inner.nodes[current].vector);
 
@@ -167,19 +162,13 @@ impl HnswIndex {
         current
     }
 
-    fn select_neighbors(
-        inner: &HnswInner,
-        candidates: &[(usize, f32)],
-        m: usize,
-    ) -> Vec<usize> {
+    fn select_neighbors(inner: &HnswInner, candidates: &[(usize, f32)], m: usize) -> Vec<usize> {
         let mut sorted: Vec<(usize, f32)> = candidates
             .iter()
             .filter(|(idx, _)| !inner.nodes[*idx].deleted)
             .copied()
             .collect();
-        sorted.sort_by(|a, b| {
-            b.1.partial_cmp(&a.1).unwrap_or(core::cmp::Ordering::Equal)
-        });
+        sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(core::cmp::Ordering::Equal));
         sorted.truncate(m);
         sorted.iter().map(|(idx, _)| *idx).collect()
     }
@@ -229,7 +218,8 @@ impl VectorIndex for HnswIndex {
 
         let insert_level = level.min(inner.max_level);
         for lev in (0..=insert_level).rev() {
-            let candidates = self.search_layer(&inner, vector, current_ep, self.ef_construction, lev);
+            let candidates =
+                self.search_layer(&inner, vector, current_ep, self.ef_construction, lev);
 
             let max_connections = if lev == 0 { self.m_max0 } else { self.m };
             let selected = Self::select_neighbors(&inner, &candidates, max_connections);
@@ -273,9 +263,7 @@ impl VectorIndex for HnswIndex {
         let &idx = inner
             .id_map
             .get(id)
-            .ok_or_else(|| VectorError::NotFound {
-                id: id.to_string(),
-            })?;
+            .ok_or_else(|| VectorError::NotFound { id: id.to_string() })?;
 
         if !inner.nodes[idx].deleted {
             inner.nodes[idx].deleted = true;
@@ -316,7 +304,11 @@ impl VectorIndex for HnswIndex {
             })
             .collect();
 
-        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(core::cmp::Ordering::Equal));
+        results.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(core::cmp::Ordering::Equal)
+        });
         results.truncate(k);
         Ok(results)
     }
@@ -329,7 +321,12 @@ impl VectorIndex for HnswIndex {
     fn to_bytes(&self) -> Vec<u8> {
         let inner = self.inner.read().unwrap();
         let mut buf = Vec::new();
-        write_common_header(&mut buf, IndexKind::Hnsw, self.metric, self.dimension as u32);
+        write_common_header(
+            &mut buf,
+            IndexKind::Hnsw,
+            self.metric,
+            self.dimension as u32,
+        );
 
         write_u32(&mut buf, self.m as u32);
         write_u32(&mut buf, self.ef_construction as u32);

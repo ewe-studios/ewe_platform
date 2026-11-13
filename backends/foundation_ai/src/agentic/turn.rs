@@ -22,14 +22,17 @@
 //! turn. `Err` from the session methods means the turn never started.
 
 use std::collections::VecDeque;
-use std::future::poll_fn;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamIteratorExt, StreamSpread};
+use foundation_core::valtron::{
+    DrivenStreamIterator, Stream, StreamIteratorExt, StreamSpread, WakeCallback, WakeResult,
+    WakeableStream,
+};
 use foundation_db::traits::DocumentStore;
 use foundation_errstacks::{ErrorTrace, StructuredErrorTrace};
 use futures_lite::Stream as AsyncStream;
+use futures_lite::StreamExt;
 
 use crate::agentic::agent_loop::{join_text_chunks, AgentLoop};
 use crate::agentic::errors::AgenticError;
@@ -81,12 +84,14 @@ pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
 >;
 
 /// The next raw item of `items`.
-async fn next_item<D, M>(items: &mut RawTurnItems<D, M>) -> Option<Stream<SessionRecord, AgentProgress>>
+async fn next_item<D, M>(
+    items: &mut RawTurnItems<D, M>,
+) -> Option<Stream<SessionRecord, AgentProgress>>
 where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    poll_fn(|cx| AsyncStream::poll_next(Pin::new(&mut **items), cx)).await
+    (**items).next().await
 }
 
 // ---------------------------------------------------------------------------
@@ -344,8 +349,7 @@ impl TurnText {
 
     fn flush(&mut self) {
         let pieces: Vec<&str> = self.run.iter().map(String::as_str).collect();
-        self.done
-            .push_str(&join_text_chunks(&pieces));
+        self.done.push_str(&join_text_chunks(&pieces));
         self.run.clear();
     }
 
@@ -676,7 +680,7 @@ where
     M: MemoryStore + 'static,
 {
     /// The [`TurnTextEvent`] `event` maps to, if any.
-    fn from_event(&mut self, event: TurnEvent) -> Option<TurnTextEvent> {
+    fn map_event(&mut self, event: TurnEvent) -> Option<TurnTextEvent> {
         match event {
             TurnEvent::Text(chunk) => {
                 let new = if !self.shown.is_empty() && chunk.starts_with(self.shown.as_str()) {
@@ -709,15 +713,12 @@ where
 {
     type Item = TurnTextEvent;
 
-    fn poll_next(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<TurnTextEvent>> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<TurnTextEvent>> {
         let this = self.get_mut();
         loop {
             match Pin::new(&mut this.events).poll_next(cx) {
                 Poll::Ready(Some(event)) => {
-                    if let Some(text) = this.from_event(event) {
+                    if let Some(text) = this.map_event(event) {
                         return Poll::Ready(Some(text));
                     }
                 }
@@ -764,15 +765,10 @@ where
     finished: bool,
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AsyncStream
-    for TurnEvents<D, M>
-{
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AsyncStream for TurnEvents<D, M> {
     type Item = TurnEvent;
 
-    fn poll_next(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<TurnEvent>> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<TurnEvent>> {
         let this = self.get_mut();
         loop {
             if this.finished {

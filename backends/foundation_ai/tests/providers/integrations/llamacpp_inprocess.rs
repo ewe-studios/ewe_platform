@@ -45,7 +45,7 @@ fn load_qwen() -> Option<impl Model> {
         lora_location: None,
     };
     Some(
-        LlamaBackends::LLamaCPU
+        LlamaBackends::cpu(test_clock())
             .load_model(spec, &config)
             .expect("local qwen GGUF should load in-process"),
     )
@@ -90,15 +90,25 @@ fn text_of(msgs: &[Messages]) -> String {
         .collect()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 /// generate() produces coherent multi-token output — the docs/fixes/007
 /// regression guard: a degenerate single "." would fail the length check.
+
 #[valtron_test]
 fn qwen_generate_is_coherent() {
     let Some(model) = load_qwen() else {
         eprintln!("[skip] local qwen GGUF not present");
         return;
     };
-    let out = model.generate(greeting(), Some(params())).expect("generate");
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("generate");
     let text = text_of(&out);
     assert!(
         text.trim().chars().filter(|c| c.is_alphanumeric()).count() >= 2,
@@ -142,7 +152,8 @@ fn qwen_generate_and_stream_agree() {
         eprintln!("[skip] local qwen GGUF not present");
         return;
     };
-    let gen_has_text = !text_of(&model.generate(greeting(), Some(params())).expect("gen")).is_empty();
+    let gen_has_text =
+        !text_of(&model.generate(greeting(), Some(params())).expect("gen")).is_empty();
     let stream = model.stream(greeting(), Some(params())).expect("stream");
     let stream_has_text = stream.into_iter().any(|i| {
         matches!(
@@ -153,6 +164,9 @@ fn qwen_generate_and_stream_agree() {
             })
         )
     });
-    assert_eq!(gen_has_text, stream_has_text, "both APIs must agree on text");
+    assert_eq!(
+        gen_has_text, stream_has_text,
+        "both APIs must agree on text"
+    );
     assert!(gen_has_text);
 }

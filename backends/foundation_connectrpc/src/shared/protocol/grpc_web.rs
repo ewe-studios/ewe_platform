@@ -21,21 +21,23 @@ use std::time::Duration;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
-use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
+use futures::StreamExt;
 
-use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
-use crate::shared::context::{Peer, Spec, StreamType};
-use crate::shared::error::{Code, ConnectError, ConnectResult};
+use crate::shared::compression::{
+    negotiate_compression, response_decompressor, CompressionRegistry, Compressor,
+};
+use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
-    body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
-    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame,
+    HeadPublisher, PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
@@ -69,6 +71,10 @@ pub mod constants {
 
 /// Percent-encode a `grpc-message` (bytes outside printable ASCII, and `%`).
 #[must_use]
+#[allow(
+    clippy::format_push_string,
+    reason = "a grpc-message is short; `format!` reads clearer than `write!`"
+)]
 pub fn percent_encode_message(msg: &str) -> String {
     let mut out = String::with_capacity(msg.len());
     for &b in msg.as_bytes() {
@@ -105,6 +111,8 @@ pub fn percent_decode_message(msg: &str) -> String {
 
 /// Encode a minimal `google.rpc.Status` (`code` field 1, `message` field 2).
 #[must_use]
+// A status code is non-negative at this point.
+#[allow(clippy::cast_sign_loss)]
 pub fn encode_status_proto(code: i32, message: &str) -> Vec<u8> {
     let mut out = Vec::new();
     if code != 0 {
@@ -121,6 +129,8 @@ pub fn encode_status_proto(code: i32, message: &str) -> Vec<u8> {
 
 /// Decode the `code`/`message` from a minimal `google.rpc.Status`.
 #[must_use]
+// The `code` field is a varint that fits a gRPC status code.
+#[allow(clippy::cast_possible_truncation)]
 pub fn decode_status_proto(bytes: &[u8]) -> (i32, String) {
     let mut code = 0i32;
     let mut message = String::new();
@@ -212,7 +222,7 @@ pub fn build_status_trailers(
             vec![percent_encode_message(&message)],
         );
         // Also emit the binary details (google.rpc.Status) for P9 clients.
-        let details = encode_status_proto(status as i32, &message);
+        let details = encode_status_proto(status.cast_signed(), &message);
         trailers.insert(
             SimpleHeader::from(constants::TRAILER_STATUS_DETAILS.to_string()),
             vec![STANDARD.encode(details)],
@@ -225,6 +235,8 @@ pub fn build_status_trailers(
 /// `grpc-status-details-bin` over `grpc-status`/`grpc-message` when both are
 /// present (Decision 05 P9).
 #[must_use]
+// The decoded status code is non-negative and fits in u32.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn parse_status_trailers(trailers: &SimpleHeaders) -> Option<ErrorTrace<ConnectError>> {
     let get = |name: &str| {
         trailers
@@ -249,15 +261,15 @@ pub fn parse_status_trailers(trailers: &SimpleHeaders) -> Option<ErrorTrace<Conn
     if status == 0 {
         return None;
     }
-    let message = get(constants::TRAILER_MESSAGE)
-        .map(|m| percent_decode_message(&m))
-        .unwrap_or_default();
+    let message = get(constants::TRAILER_MESSAGE).map_or_default(|m| percent_decode_message(&m));
     let code = Code::from_u32(status).unwrap_or(Code::Unknown);
     Some(ConnectError::wire(code, message).into())
 }
 
 /// Render trailers as the `0x80` trailer-frame body (HTTP header block).
 #[must_use]
+// A trailer frame body is capped by the envelope limits, which fit in u32.
+#[allow(clippy::cast_possible_truncation)]
 pub fn render_trailer_frame_body(trailers: &SimpleHeaders) -> Vec<u8> {
     let mut body = Vec::new();
     for (name, values) in trailers {
@@ -313,6 +325,7 @@ impl Base64StreamEncoder {
     }
 
     /// Flush the trailing partial group (with padding).
+    #[must_use]
     pub fn finish(self) -> Vec<u8> {
         if self.pending.is_empty() {
             Vec::new()
@@ -342,9 +355,9 @@ impl Base64StreamDecoder {
             return Ok(Vec::new());
         }
         let head: Vec<u8> = self.pending.drain(..complete).collect();
-        STANDARD
-            .decode(head)
-            .map_err(|e| ConnectError::invalid_argument(format!("invalid grpc-web-text base64: {e}")).into())
+        STANDARD.decode(head).map_err(|e| {
+            ConnectError::invalid_argument(format!("invalid grpc-web-text base64: {e}")).into()
+        })
     }
 }
 
@@ -423,7 +436,7 @@ async fn read_frames(
                     None
                 };
                 let _ = tx.send(Frame::EndStream { error, trailers }).await;
-                tx.close();
+                let _ = tx.close();
                 return Ok(true);
             }
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
@@ -443,7 +456,7 @@ async fn read_frames(
             Some(Err(err)) => return Err(err.into()),
             None => {
                 if !client {
-                    tx.close();
+                    let _ = tx.close();
                 }
                 return Ok(false);
             }
@@ -451,6 +464,73 @@ async fn read_frames(
     }
 }
 
+/// Text-mode base64 state for a streaming writer.
+///
+/// The encoder holds a partial 3-byte group between frames. The writer must
+/// flush that tail when it ends. The writer also ends by being dropped when a
+/// deadline aborts the call, and a drop cannot await: `Drop` then flushes the
+/// tail with a non-blocking send. A full pipe can lose the tail there, but the
+/// stream still ends with its error frame.
+struct TextTail {
+    encoder: Base64StreamEncoder,
+    sink: Arc<dyn SendBody>,
+    text: bool,
+    armed: bool,
+}
+
+impl TextTail {
+    fn new(sink: Arc<dyn SendBody>, text: bool) -> Self {
+        Self {
+            encoder: Base64StreamEncoder::default(),
+            sink,
+            text,
+            armed: text,
+        }
+    }
+
+    /// Base64-encode `bytes` in text mode; pass them through otherwise.
+    fn feed(&mut self, bytes: Vec<u8>) -> Vec<u8> {
+        if self.text {
+            self.encoder.feed(&bytes)
+        } else {
+            bytes
+        }
+    }
+
+    /// Flush the pending tail and disarm the drop flush.
+    async fn flush(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let tail = std::mem::take(&mut self.encoder).finish();
+        self.armed = false;
+        if !tail.is_empty() {
+            let _ = self.sink.send_async(Bytes::from(tail)).await;
+        }
+    }
+
+    /// Flush the tail without waiting for pipe room. The error path uses this
+    /// so a stalled body pipe cannot delay the error report.
+    fn flush_best_effort(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let tail = std::mem::take(&mut self.encoder).finish();
+        self.armed = false;
+        if !tail.is_empty() {
+            let _ = self.sink.try_send(Bytes::from(tail));
+        }
+    }
+}
+
+impl Drop for TextTail {
+    fn drop(&mut self) {
+        self.flush_best_effort();
+    }
+}
+
+// A trailer frame body is capped by the envelope limits, which fit in u32.
+#[allow(clippy::cast_possible_truncation)]
 async fn write_frames(
     resp_rx: PipeReceiver<Frame>,
     sink: Arc<dyn SendBody>,
@@ -458,20 +538,39 @@ async fn write_frames(
     text: bool,
     server: bool,
 ) -> ConnectResult<()> {
-    let mut encoder = Base64StreamEncoder::default();
-    let emit = |bytes: Vec<u8>, enc: &mut Base64StreamEncoder| {
-        if text {
-            enc.feed(&bytes)
-        } else {
-            bytes
+    let mut tail = TextTail::new(sink, text);
+    let result = write_frames_loop(resp_rx, &mut tail, writer, server).await;
+    match &result {
+        Ok(()) => {
+            // Flush on a clean end, then close the body.
+            tail.flush().await;
+            tail.sink.close();
         }
-    };
+        // Flush on the `writer.write` error path too: a frame that left a
+        // partial base64 group must not lose its last bytes when the stream
+        // ends with an error. Do not wait for pipe room here, so a stalled
+        // body pipe cannot delay the error report.
+        Err(_) => tail.flush_best_effort(),
+    }
+    result
+}
+
+/// The writer loop. The caller flushes the base64 tail and closes the sink on
+/// every exit, so this loop does neither.
+#[allow(clippy::cast_possible_truncation)]
+async fn write_frames_loop(
+    resp_rx: PipeReceiver<Frame>,
+    tail: &mut TextTail,
+    writer: EnvelopeWriter,
+    server: bool,
+) -> ConnectResult<()> {
     loop {
         match resp_rx.receive().await {
             Some(Frame::Message(frame)) => {
                 let enveloped = writer.write(frame)?;
-                let out = emit(enveloped, &mut encoder);
-                if !out.is_empty() && sink.send_async(Bytes::from(out)).await.is_err() {
+                let out = tail.feed(enveloped);
+                let sent = out.is_empty() || tail.sink.send_async(Bytes::from(out)).await.is_ok();
+                if !sent {
                     return Ok(());
                 }
             }
@@ -483,26 +582,14 @@ async fn write_frames(
                     frame.push(constants::TRAILER_FLAG);
                     frame.extend_from_slice(&(body.len() as u32).to_be_bytes());
                     frame.extend_from_slice(&body);
-                    let out = emit(frame, &mut encoder);
+                    let out = tail.feed(frame);
                     if !out.is_empty() {
-                        let _ = sink.send_async(Bytes::from(out)).await;
+                        let _ = tail.sink.send_async(Bytes::from(out)).await;
                     }
                 }
-                let tail = encoder.finish();
-                if !tail.is_empty() {
-                    let _ = sink.send_async(Bytes::from(tail)).await;
-                }
-                sink.close();
                 return Ok(());
             }
-            None => {
-                let tail = encoder.finish();
-                if !tail.is_empty() {
-                    let _ = sink.send_async(Bytes::from(tail)).await;
-                }
-                sink.close();
-                return Ok(());
-            }
+            None => return Ok(()),
         }
     }
 }
@@ -515,27 +602,25 @@ async fn write_frames(
 async fn read_grpc_web_response(
     mut stream: TransportStream,
     tx: PipeSender<Frame>,
-    response_headers: Arc<std::sync::Mutex<Option<SimpleHeaders>>>,
-    config: ClientExchangeConfig,
+    publish: HeadPublisher,
+    cancel: CancelSignal,
+    compression: &CompressionRegistry,
+    read_max_bytes: usize,
     text: bool,
 ) -> ConnectResult<()> {
-    let cancel = config.cancel;
     let Some(headers) = open_response_stream(
         &mut stream.head,
         &mut stream.recv_body,
         &tx,
-        &response_headers,
+        &publish,
         &cancel,
-        config.read_max_bytes,
+        read_max_bytes,
     )
     .await
     else {
         return Ok(());
     };
-    if headers
-        .get(&SimpleHeader::from(constants::TRAILER_STATUS.to_string()))
-        .is_some()
-    {
+    if headers.contains_key(&SimpleHeader::from(constants::TRAILER_STATUS.to_string())) {
         let error = parse_status_trailers(&headers);
         let _ = race(
             tx.send(Frame::EndStream {
@@ -545,14 +630,23 @@ async fn read_grpc_web_response(
             cancel.cancelled(),
         )
         .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
+    // Select the decompressor from the response head before the first frame.
+    let decompressor =
+        match response_decompressor(&headers, &[constants::HEADER_ENCODING], compression) {
+            Ok(decompressor) => decompressor,
+            Err(e) => {
+                fail_stream(&tx, &e, &cancel).await;
+                return Err(e);
+            }
+        };
     match read_frames(
         stream.recv_body,
         &tx,
-        None,
-        config.read_max_bytes,
+        decompressor,
+        read_max_bytes,
         text,
         true,
     )
@@ -560,23 +654,24 @@ async fn read_grpc_web_response(
     {
         Ok(true) => Ok(()),
         Ok(false) if tx.is_closed() => Ok(()), // consumer gone
-        Ok(false) => match stream.trailers.receive().await {
-            Some(trailers) => {
+        Ok(false) => {
+            if let Some(trailers) = stream.trailers.receive().await {
                 let error = parse_status_trailers(&trailers);
-                let _ = race(tx.send(Frame::EndStream { error, trailers }), cancel.cancelled())
-                    .await;
-                tx.close();
-                Ok(())
-            }
-            None => {
-                let e = ConnectError::internal(
-                    "the gRPC-Web response ended without a status trailer",
+                let _ = race(
+                    tx.send(Frame::EndStream { error, trailers }),
+                    cancel.cancelled(),
                 )
-                .into();
+                .await;
+                let _ = tx.close();
+                Ok(())
+            } else {
+                let e =
+                    ConnectError::internal("the gRPC-Web response ended without a status trailer")
+                        .into();
                 fail_stream(&tx, &e, &cancel).await;
                 Err(e)
             }
-        },
+        }
         Err(e) => {
             fail_stream(&tx, &e, &cancel).await;
             Err(e)
@@ -584,6 +679,8 @@ async fn read_grpc_web_response(
     }
 }
 
+// The caller keeps the `Arc` and passes a borrowed option through the loop.
+#[allow(clippy::ref_option)]
 fn decompress_if(
     flags: u8,
     payload: Bytes,
@@ -670,8 +767,7 @@ impl ProtocolHandler for GrpcWebHandler {
                 .connection
                 .peer_addr
                 .as_ref()
-                .map(|a| format!("{a:?}"))
-                .unwrap_or_default(),
+                .map_or_default(|a| format!("{a:?}")),
             protocol: "grpc-web".to_string(),
         };
 
@@ -719,6 +815,7 @@ impl ProtocolHandler for GrpcWebHandler {
             conn: Box::new(conn),
             reader_task: reader,
             writer_task: writer,
+            response_headers: ends.response_headers,
         })
     }
 
@@ -801,6 +898,8 @@ impl ProtocolHandler for GrpcWebHandler {
         }
     }
 
+    // A trailer frame body is capped by the envelope limits, which fit in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn encode_unary_response(
         &self,
         response: &mut SimpleOutgoingResponse,
@@ -841,7 +940,10 @@ impl ProtocolHandler for GrpcWebHandler {
         };
 
         let mut headers = outcome.headers;
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![content_type(codec_name, text)]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![content_type(codec_name, text)],
+        );
         if let Some(enc) = response_encoding {
             headers.insert(
                 SimpleHeader::from(constants::HEADER_ENCODING.to_string()),
@@ -869,14 +971,16 @@ fn is_text(request: &SimpleIncomingRequest) -> bool {
         .get(&SimpleHeader::CONTENT_TYPE)
         .and_then(|v| v.first())
         .and_then(|ct| parse_content_type(ct))
-        .map(|(_, t)| t)
-        .unwrap_or(false)
+        .is_some_and(|(_, t)| t)
 }
 
 /// Trim ASCII whitespace from both ends of a byte slice (base64 bodies may carry
 /// trailing newlines).
 fn trim_ascii(bytes: &[u8]) -> &[u8] {
-    let start = bytes.iter().position(|b| !b.is_ascii_whitespace()).unwrap_or(bytes.len());
+    let start = bytes
+        .iter()
+        .position(|b| !b.is_ascii_whitespace())
+        .unwrap_or(bytes.len());
     let end = bytes
         .iter()
         .rposition(|b| !b.is_ascii_whitespace())
@@ -915,6 +1019,8 @@ impl ProtocolClient for GrpcWebClient {
         }
     }
 
+    // A unary request body is capped by `send_max_bytes`, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes {
         // gRPC-Web unary: single envelope frame, same as gRPC.
         let flags: u8 = if is_compressed {
@@ -930,9 +1036,15 @@ impl ProtocolClient for GrpcWebClient {
         Bytes::from(envelope)
     }
 
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
-        // gRPC-Web unary response: single envelope frame. Strip the header;
-        // same contract as gRPC — compressed responses are not yet handled.
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // gRPC-Web unary response: single envelope frame. Strip the header and
+        // decode the payload; the decompressor comes from `grpc-encoding`.
         if body.is_empty() {
             return Ok(Bytes::new());
         }
@@ -943,13 +1055,8 @@ impl ProtocolClient for GrpcWebClient {
         let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
         let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
         let payload = body.slice(ENVELOPE_HEADER_LEN..end);
-        if flags & Envelope::FLAG_COMPRESSED != 0 {
-            return Err(ConnectError::internal(
-                "compressed gRPC-Web unary response — see gRPC decode_unary_response",
-            )
-            .into());
-        }
-        Ok(payload)
+        let decompressor = response_decompressor(head, &[constants::HEADER_ENCODING], compression)?;
+        decompress_if(flags, payload, &decompressor, read_max_bytes)
     }
 
     fn new_conn(
@@ -957,7 +1064,7 @@ impl ProtocolClient for GrpcWebClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) = PipeClientConn::new(
             spec.clone(),
@@ -966,20 +1073,47 @@ impl ProtocolClient for GrpcWebClient {
             DEFAULT_PIPE_DEPTH,
         );
 
-        let writer: BoxedTask = Box::pin(write_frames(
+        let publish = ends.head_publisher();
+        let head_wake = ends.response_head_wake;
+        let text = self.text;
+        // The reader task is `'static`; the registry is cloned into it rather
+        // than borrowing `config`.
+        let compression = config.compression.clone();
+        let read_max_bytes = config.read_max_bytes;
+        let cancel = config.cancel;
+        // Keep a response-pipe handle so a writer failure reaches the caller as
+        // the stream's terminal error instead of dying with the task.
+        let writer_tx = ends.response_tx.clone();
+        let writer_cancel = cancel.clone();
+        let writer_task = write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
-            EnvelopeWriter::new(None, 0, 0),
-            self.text,
+            EnvelopeWriter::new(
+                config.send_compressor,
+                config.compress_min_bytes,
+                config.send_max_bytes,
+            ),
+            text,
             false,
-        ));
-        let reader: BoxedTask = Box::pin(read_grpc_web_response(
-            stream,
-            ends.response_tx,
-            ends.response_headers,
-            config,
-            self.text,
-        ));
+        );
+        let writer: BoxedTask = Box::pin(async move {
+            super::write_or_report(writer_task, &writer_tx, &writer_cancel).await
+        });
+        let reader: BoxedTask = Box::pin(async move {
+            // One sender keeps the wake pipe open until the reader ends; the
+            // publisher holds the other.
+            let _head_wake = head_wake;
+            read_grpc_web_response(
+                stream,
+                ends.response_tx,
+                publish,
+                cancel,
+                &compression,
+                read_max_bytes,
+                text,
+            )
+            .await
+        });
 
         Ok(ClientExchange {
             conn: Box::new(conn),

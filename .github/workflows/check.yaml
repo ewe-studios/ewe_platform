@@ -15,16 +15,38 @@ name: "Audit: Checks & Tests"
 # only when it is missing) before the package jobs start; see
 # ci/platform-images/README.md.
 #
-# Pull requests test only what they affect. Pushes to master, the nightly
-# schedule and manual runs test the whole workspace (or the packages you name).
+# A `macos-test` job and a `windows-test` job run the tests of every selected
+# package on a macOS and a Windows runner. A package opts out with
+# `macos-tests = "none"` / `windows-tests = "none"` and a reason in
+# ci/packages.toml. The plan step fails when an opt-out has no reason.
+#
+# Pull requests test only what they affect, on all three operating systems. A
+# push to master tests what the merge affected (against the commit before the
+# push). The nightly schedule and a manual "all" run test every package on
+# Linux, macOS and Windows. The macOS and Windows jobs are shards of several
+# packages each (`ci.py run-many`).
+#
+# On a pull request every package job also passes `--if-affected` to ci.py. The
+# runner then decides from the change and the dependency graph whether the
+# package must run, with the same rule as the plan job (`ci.py affected`).
+#
+# Each matrix sets `max-parallel` from ci/packages.toml ([defaults]
+# `max-parallel-*`), so jobs queue within the free GitHub plan and
+# do not stampede. GitHub allows 256 jobs per matrix; the workspace has about
+# 110 packages, so the full run fits in one matrix.
 
+# macOS and Windows tests run only on the full runs: a push to master or to
+# platform/release, a pull request into or from platform/release, the nightly
+# schedule and manual runs. Other pull requests run the Linux jobs only.
 on:
   pull_request:
     branches:
       - master
+      - platform/release
   push:
     branches:
       - master
+      - platform/release
   schedule:
     - cron: "17 2 * * *" # nightly full run, catches drift from dependencies
   workflow_dispatch:
@@ -34,9 +56,11 @@ on:
         required: false
         default: "all"
 
+# A new push to a pull request cancels the old run of that pull request. Runs on
+# master, the nightly schedule and manual runs queue and never cancel each other.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -50,6 +74,10 @@ env:
   # `dev` on Cranelift, which CI does not install and which can't do
   # catch_unwind.)
   CI_PROFILE: uat
+  # The pull request base commit. `ci.py run --if-affected` diffs against it, so
+  # a package job skips itself when the change does not affect the package. It
+  # is empty on master, nightly and manual runs, which test everything.
+  CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
 jobs:
   image:
@@ -68,6 +96,18 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
+      # Every selected package that is not opted out of macOS in ci/packages.toml.
+      macos-matrix: ${{ steps.plan.outputs.macos-matrix }}
+      macos-count: ${{ steps.plan.outputs.macos-count }}
+      macos-shard-count: ${{ steps.plan.outputs.macos-shard-count }}
+      # Every selected package that is not opted out of Windows.
+      windows-matrix: ${{ steps.plan.outputs.windows-matrix }}
+      windows-count: ${{ steps.plan.outputs.windows-count }}
+      windows-shard-count: ${{ steps.plan.outputs.windows-shard-count }}
+      # Most jobs of one matrix that run at once (ci/packages.toml [defaults]).
+      max-parallel-linux: ${{ steps.plan.outputs.max-parallel-linux }}
+      max-parallel-macos: ${{ steps.plan.outputs.max-parallel-macos }}
+      max-parallel-windows: ${{ steps.plan.outputs.max-parallel-windows }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.4.0
@@ -76,18 +116,46 @@ jobs:
           submodules: false
 
       - name: Install the pinned toolchain
+        # Skip the install when rustup already has the channel. The runner keeps
+        # a Rust toolchain. An install contacts static.rust-lang.org; a runner
+        # that lost the network failed there (issue #402).
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Select packages
         id: plan
         env:
-          CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+          # A pull request diffs against its base. A push to master diffs against
+          # the commit before the push; ci.py tests everything when that commit
+          # is missing or all zeros. The schedule and a manual run leave it empty.
+          CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || '' }}
           CI_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
           CI_PACKAGES: ${{ github.event.inputs.packages }}
         run: python3 scripts/ci/ci.py plan
+
+      # Every nested lockfile is checked, not only the examples. A nested
+      # workspace sits outside the root workspace, so no package job builds it.
+      # Its lockfile drifts behind the crate versions, and `cargo build --locked`
+      # then fails there (issue #245, issue #481). `--locked` alone does not
+      # check a lockfile without dependency resolution, so this reads full
+      # metadata, not `--no-deps`. The root `Cargo.lock` is covered by the
+      # package jobs and is skipped here.
+      - name: Check the nested lockfiles
+        run: |
+          locks=$(git ls-files '*Cargo.lock')
+          for lock in $locks; do
+            if [ "$lock" = "Cargo.lock" ]; then
+              continue
+            fi
+            dir=$(dirname "$lock")
+            echo "checking $dir"
+            # A failing `cargo metadata` stops the step (set -e).
+            cargo metadata --locked --format-version 1 --manifest-path "$dir/Cargo.toml" > /dev/null
+          done
 
   package:
     name: ${{ matrix.package }}
@@ -102,27 +170,73 @@ jobs:
       credentials:
         username: ${{ needs.image.outputs.registry-username }}
         password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+      # The runner's preinstalled .NET, Android, Haskell and Boost trees are
+      # mounted in so the first step can delete them: a container job cannot
+      # reach the host disk otherwise, and large packages (foundation_ai,
+      # the publish dry-run) ran out of space on the ~14 GB free by default.
+      options: >-
+        -v /usr/share/dotnet:/runner-free/dotnet
+        -v /usr/local/lib/android:/runner-free/android
+        -v /opt/ghc:/runner-free/ghc
+        -v /usr/local/.ghcup:/runner-free/ghcup
+        -v /usr/local/share/boost:/runner-free/boost
+        ${{ matrix.container-options }}
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
+      # From ci/packages.toml, so free-plan runners queue instead of stampede.
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-linux) }}
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
+      - name: Free runner disk
+        # Delete the contents of the five host trees this job mounts. The find
+        # reads only these paths, not all of /runner-free. This step runs before
+        # checkout, so the job owns no other directory yet: the cargo target dir
+        # and the cache are inside the checkout. A timeout fails this step.
+        timeout-minutes: 10
+        # The container job's default shell is `sh`, which has no `pipefail`
+        # and no arrays. The step needs both, so it names bash.
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(/runner-free/dotnet /runner-free/android /runner-free/ghc /runner-free/ghcup /runner-free/boost)
+          du -sh "${paths[@]}" || true
+          timeout 480 find "${paths[@]}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          du -sh "${paths[@]}" || true
+
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
 
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        # The job container runs as a different user than the checkout's owner,
+        # so git refuses the repository ("dubious ownership"). Trust it for the
+        # whole job: ci.py --if-affected also calls git in a later step.
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
       - name: Link the baked submodules
         uses: ./ci/platform-images/actions/link-submodules
 
       - name: Use the pinned toolchain
-        # Already in the image (its hash covers rust-toolchain.toml), so this
-        # installs nothing; it pins RUSTUP_TOOLCHAIN for the steps below.
+        # The image has the channel, its components and the wasm target (its
+        # hash covers rust-toolchain.toml). Skip the install when rustup lists
+        # the channel: an install contacts static.rust-lang.org, and a runner
+        # that lost the network failed the whole package job there (issue
+        # #402). The step still pins RUSTUP_TOOLCHAIN for the steps below.
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update \
-            --component clippy,rustfmt,rust-src --target wasm32-unknown-unknown
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update \
+              --component clippy,rustfmt,rust-src --target wasm32-unknown-unknown
+          fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Cache cargo registry and target dir
@@ -137,19 +251,66 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: rustfmt
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: build
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step build
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: clippy
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+
+      - name: io_uring probe
+        # Record whether the kernel and the container's seccomp profile allow
+        # `io_uring_setup` before the package tests fail with EWE_REQUIRE_IO_URING=1.
+        if: matrix.package == 'foundation_iogate'
+        run: cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
+
+      - name: io_uring kernel probe
+        # foundation_nativeapis and foundation_proxy also run with
+        # EWE_REQUIRE_IO_URING=1 but have no probe target. Print the kernel
+        # setting, the seccomp mode and the raw `io_uring_setup` result, so a
+        # failed `fd,uring` run names its cause. The step never fails.
+        if: matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy'
+        run: |
+          {
+          echo "kernel: $(uname -r)"
+          echo "kernel.io_uring_disabled: $(cat /proc/sys/kernel/io_uring_disabled 2>&1)"
+          grep -E '^Seccomp' /proc/self/status || true
+          python3 - <<'PY'
+          import ctypes, os
+          libc = ctypes.CDLL(None, use_errno=True)
+          params = ctypes.create_string_buffer(120)
+          fd = libc.syscall(425, 4, params)  # io_uring_setup(entries, params)
+          if fd >= 0:
+              print("io_uring_setup: ok")
+              os.close(fd)
+          else:
+              e = ctypes.get_errno()
+              print(f"io_uring_setup: failed errno={e} ({os.strerror(e)})")
+          PY
+          } 2>&1 | tee /tmp/io_uring_probe.txt
+
+      - name: ptrace probe
+        # Record whether this kernel lets a tracer read its child's registers
+        # before the ptrace spawn tests run. EWE_REQUIRE_PTRACE makes a missing
+        # kernel fail here with the cause, not as 8 spawn-test failures below.
+        if: matrix.package == 'foundation_nativeapis'
+        env:
+          EWE_REQUIRE_PTRACE: "1"
+        run: cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
       - name: test
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+
+      - name: io_uring probe result
+        # Print the probe result again at the end of the job. The test step
+        # prints thousands of lines, and the log API returns only the last
+        # 5000, so the first copy is often out of reach.
+        if: always() && (matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy')
+        run: cat /tmp/io_uring_probe.txt || echo "the io_uring probe did not run"
 
   package-artifact:
     name: ${{ matrix.package }}
@@ -163,6 +324,8 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
+      # From ci/packages.toml, so free-plan runners queue instead of stampede.
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-linux) }}
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
       IMAGE: ${{ needs.image.outputs.image-ref }}
@@ -172,6 +335,18 @@ jobs:
         with:
           fetch-depth: 1
           submodules: false
+
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        # The job container runs as a different user than the checkout's owner,
+        # so git refuses the repository ("dubious ownership"). Trust it for the
+        # whole job: ci.py --if-affected also calls git in a later step.
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
 
       - name: Download the image
         uses: actions/download-artifact@v8.0.2
@@ -192,6 +367,7 @@ jobs:
           docker run --detach --name ci \
             --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
             --volume /var/run/docker.sock:/var/run/docker.sock \
+            ${{ matrix.container-options }} \
             --env GITHUB_ACTIONS --env CI --env CARGO_TERM_COLOR --env CARGO_INCREMENTAL \
             --env CARGO_PROFILE_UAT_DEBUG --env CI_PROFILE --env RUSTUP_TOOLCHAIN="$toolchain" \
             "$IMAGE" sleep infinity
@@ -200,25 +376,246 @@ jobs:
         run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
 
       - name: rustfmt
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: build
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step build
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: clippy
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+
+      - name: io_uring probe
+        if: matrix.package == 'foundation_iogate'
+        run: docker exec ci cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
+
+      - name: ptrace probe
+        # Same probe as the `package` job. `docker exec` does not inherit the
+        # step environment, so pass the variable into the container.
+        if: matrix.package == 'foundation_nativeapis'
+        run: docker exec --env EWE_REQUIRE_PTRACE=1 ci cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
       - name: test
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+
+  windows:
+    name: Windows check
+    needs: plan
+    # The Windows branches of foundation_netio and foundation_nativeapis are
+    # compiled nowhere else on a pull request: the Linux image cannot build
+    # them, and the Windows virtual machine run is nightly only (issue #484).
+    # The job runs when the plan selected either package. Master, nightly and
+    # manual runs select every package, so it always runs there.
+    # The matrix JSON holds each name in quotes, so this match is exact.
+    if: >-
+      needs.plan.result == 'success' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release') &&
+      (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
+      contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
+    # Same GitHub-hosted Windows image as `windows-test`.
+    runs-on: windows-2025
+    # Limit, not a measurement: a cold build of both packages takes about 15 to
+    # 20 minutes on this runner, and a warm cache cuts that to a few minutes.
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Same pin as the other jobs. The environment variable also stops
+        # rustup from installing every target and component that
+        # rust-toolchain.toml lists. rustfmt is here because the build scripts
+        # of some generated crates run it.
+        shell: bash
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: windows-check
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Check foundation_netio
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_netio
+
+      - name: Check foundation_netio with QUIC
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_netio --features quic
+
+      - name: Check foundation_nativeapis with IPC
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_nativeapis --features ipc
+
+  macos-test:
+    name: macOS ${{ matrix.shard }}
+    needs: plan
+    # Runs the tests of every selected package that is not opted out of macOS
+    # (ci/packages.toml). One job is a shard: it tests several packages in a row
+    # with one target directory (`ci.py run-many`), so shared dependencies build
+    # once. The plan job sets the shard count (`macos-shards`).
+    # No container and no CI image: the job runs on the macOS runner itself.
+    # Full runs only (see `on:`); a normal pull request skips it.
+    if: >-
+      needs.plan.outputs.macos-count != '0' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
+    # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
+    # DEVELOPER_DIR picks Xcode 26.2, the same as the `macos` job.
+    runs-on: macos-26
+    timeout-minutes: ${{ matrix.timeout }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-macos) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.macos-matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        # The job container runs as a different user than the checkout's owner,
+        # so git refuses the repository ("dubious ownership"). Trust it for the
+        # whole job: ci.py --if-affected also calls git in a later step.
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
+      - name: Fetch llama.cpp
+        if: matrix.llama
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402). rustfmt is there because the
+        # generated provider crates' build scripts run it.
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: macos-test-${{ matrix.index }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: test
+        # On a macOS host, ci.py runs only the test step, with the macOS runs.
+        run: python3 scripts/ci/ci.py run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
+
+  windows-test:
+    name: Windows ${{ matrix.shard }}
+    needs: plan
+    # Runs the tests of every selected package that is not opted out of Windows
+    # (ci/packages.toml), in shards like `macos-test`.
+    # No container: the job runs on the Windows runner itself.
+    # Full runs only (see `on:`); a normal pull request skips it.
+    if: >-
+      needs.plan.outputs.windows-count != '0' &&
+      (github.event_name != 'pull_request' ||
+      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
+    # RUNNER LABEL: change it on this line only. The `env` context is not
+    # available in `runs-on`, so a workflow-level variable cannot hold it.
+    # GitHub-hosted Windows Server 2025: Visual Studio 2022 (MSVC), Windows SDK
+    # and Git. The repository is public, so GitHub-hosted runners cost nothing.
+    # It has less free disk than the Blacksmith image had (about 30 GB, not 67 GB).
+    runs-on: windows-2025
+    timeout-minutes: ${{ matrix.timeout }}
+    env:
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-windows) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.windows-matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        # The job container runs as a different user than the checkout's owner,
+        # so git refuses the repository ("dubious ownership"). Trust it for the
+        # whole job: ci.py --if-affected also calls git in a later step.
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
+      - name: Fetch llama.cpp
+        if: matrix.llama
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      # The cmake crate (llama.cpp, whisper and other C++ builds) needs a cmake
+      # binary. Visual Studio 2022 ships one, but not on the PATH (#526).
+      - name: Put CMake on the PATH
+        run: |
+          if command -v cmake >/dev/null 2>&1; then cmake --version; exit 0; fi
+          vswhere="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"
+          vs="$("$vswhere" -latest -products '*' -property installationPath | tr -d '\r')"
+          dir="$(cygpath -u "$vs")/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin"
+          if [ ! -x "$dir/cmake.exe" ]; then
+            echo "::error::no cmake.exe under $vs"
+            exit 1
+          fi
+          cygpath -w "$dir" >> "$GITHUB_PATH"
+          "$dir/cmake.exe" --version
+
+      - name: Install the pinned toolchain
+        # Same logic as `macos-test`. `python` is the Windows interpreter name.
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: windows-test-${{ matrix.index }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: test
+        # On a Windows host, ci.py runs only the test step, with the Windows runs.
+        run: python scripts/ci/ci.py run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact]
+    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -228,10 +625,13 @@ jobs:
           PLAN: ${{ needs.plan.result }}
           PACKAGES: ${{ needs.package.result }}
           PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
+          WINDOWS: ${{ needs.windows.result }}
+          MACOS_TESTS: ${{ needs.macos-test.result }}
+          WINDOWS_TESTS: ${{ needs.windows-test.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;
@@ -250,8 +650,34 @@ jobs:
       credentials:
         username: ${{ needs.image.outputs.registry-username }}
         password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+      # The runner's preinstalled .NET, Android, Haskell and Boost trees are
+      # mounted in so the first step can delete them: a container job cannot
+      # reach the host disk otherwise, and large packages (foundation_ai,
+      # the publish dry-run) ran out of space on the ~14 GB free by default.
+      options: >-
+        -v /usr/share/dotnet:/runner-free/dotnet
+        -v /usr/local/lib/android:/runner-free/android
+        -v /opt/ghc:/runner-free/ghc
+        -v /usr/local/.ghcup:/runner-free/ghcup
+        -v /usr/local/share/boost:/runner-free/boost
     timeout-minutes: 120
     steps:
+      - name: Free runner disk
+        # Delete the contents of the five host trees this job mounts. The find
+        # reads only these paths, not all of /runner-free. This step runs before
+        # checkout, so the job owns no other directory yet: the cargo target dir
+        # and the cache are inside the checkout. A timeout fails this step.
+        timeout-minutes: 10
+        # The container job's default shell is `sh`, which has no `pipefail`
+        # and no arrays. The step needs both, so it names bash.
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(/runner-free/dotnet /runner-free/android /runner-free/ghc /runner-free/ghcup /runner-free/boost)
+          du -sh "${paths[@]}" || true
+          timeout 480 find "${paths[@]}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          du -sh "${paths[@]}" || true
+
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
@@ -269,21 +695,35 @@ jobs:
       - name: Use the stable release toolchain
         # The dry-run packages and builds what a release publishes, so it uses
         # the release toolchain (stable, ci/release-rust-toolchain). This also
-        # keeps the workspace loadable and buildable on stable.
+        # keeps the workspace loadable and buildable on stable. Skip the
+        # install when rustup lists the channel; an install contacts the
+        # network (issue #402).
         run: |
           toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
-      - name: cargo publish --dry-run
-        run: cargo publish --workspace --dry-run
+      - name: Package every publishable crate
+        # `cargo publish --dry-run` resolves each dependency on crates.io. The
+        # workspace versions stay ahead of crates.io until release-plz
+        # publishes them, so that command fails between releases. This step
+        # packages against a local patch table instead; the per-package build,
+        # clippy and test jobs build the same sources.
+        run: python3 scripts/ci/package_workspace.py
 
   macos:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
     if: github.event_name != 'pull_request'
-    runs-on: macos-latest
+    # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
+    # DEVELOPER_DIR picks Xcode 26.2, which ships the iPhoneOS 26.2 SDK. The
+    # macOS VM image pins the same SDK (components.env IOS_SDK_VERSION).
+    runs-on: macos-26
     timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -297,10 +737,14 @@ jobs:
       - name: Install the pinned toolchain
         # `--profile minimal` leaves out rustfmt, but the generated provider
         # crates' build scripts (hetzner, cloudflare, ...) run it to check
-        # their committed `src/generated/` against the spec.
+        # their committed `src/generated/` against the spec. Skip the install
+        # when rustup lists the channel, so a missing network cannot fail the
+        # build (issue #402).
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
-          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Cache
@@ -310,3 +754,18 @@ jobs:
 
       - name: Build
         run: cargo build --profile uat --workspace
+
+      - name: Check the iOS target
+        # The job uses Xcode 26.2, so the check runs against the iPhoneOS 26.2
+        # SDK, the same SDK as the VM pin. The step fails if the SDK is
+        # different. The VM job `macos-ssh` (platform-vms.yaml) runs the same
+        # checks inside the VM (#355, #464). LLVM is required: Cranelift
+        # cannot build ring for iOS.
+        run: |
+          rustup target add aarch64-apple-ios
+          sdk=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "iPhoneOS SDK: $sdk"
+          test "$sdk" = "26.2" || { echo "::error::expected the iPhoneOS 26.2 SDK, got $sdk"; exit 1; }
+          cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
+          cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
+          cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat

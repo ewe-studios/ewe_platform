@@ -2,8 +2,8 @@
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::native::vfs::d1_delta::D1Delta;
-use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
+use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::{DeltaStore, VfsFileSystem};
 
 fn init_pool() -> PoolGuard {
@@ -15,18 +15,43 @@ fn is_local_cf_available() -> bool {
     if std::env::var("CF_INTEGRATION_TEST").ok().as_deref() != Some("1") {
         return false;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
+    let base = std::env::var("LOCAL_CF_API_BASE")
+        .unwrap_or_else(|_| "http://localhost:8789/cdn-cgi/local/explorer/api".to_string());
     let response = std::process::Command::new("curl")
-        .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &base])
+        .args([
+            "-s",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            &format!("{base}/d1/database"),
+        ])
         .output();
     match response {
         Ok(output) => {
             let status = String::from_utf8_lossy(&output.stdout);
             let status = status.trim();
-            status == "200" || status == "404"
+            status == "200"
         }
         Err(_) => false,
     }
+}
+
+/// Create the `vfs_kv` table the D1 delta stores its files in. A real D1
+/// database (here: wrangler's local one) does not create it on demand.
+fn ensure_vfs_table(base: &str, db_id: &str) {
+    let body = r#"{"sql":"CREATE TABLE IF NOT EXISTS vfs_kv (key TEXT PRIMARY KEY, value TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"}"#;
+    let status = std::process::Command::new("curl")
+        .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", "-X", "POST"])
+        .args(["-H", "Content-Type: application/json", "-d", body])
+        .arg(format!("{base}/d1/database/{db_id}/raw"))
+        .output()
+        .expect("curl");
+    assert_eq!(
+        String::from_utf8_lossy(&status.stdout).trim(),
+        "200",
+        "create vfs_kv"
+    );
 }
 
 /// Create a SyncFs<D1Delta> pointed at local emulator, or None if unavailable
@@ -34,9 +59,21 @@ fn make_sync_d1() -> Option<SyncFs<D1Delta>> {
     if !is_local_cf_available() {
         return None;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
-    let db_id = std::env::var("LOCAL_D1_DATABASE_ID").unwrap_or_else(|_| "test-db".to_string());
-    let delta = D1Delta::new_with_base_url("test-token", "test-account", &db_id, Some(&base)).ok()?;
+    let base = std::env::var("LOCAL_CF_API_BASE")
+        .unwrap_or_else(|_| "http://localhost:8789/cdn-cgi/local/explorer/api".to_string());
+    let db_id =
+        std::env::var("LOCAL_D1_DATABASE_ID").unwrap_or_else(|_| "test-db-preview".to_string());
+    ensure_vfs_table(&base, &db_id);
+    let delta = D1Delta::new_with_base_url(
+        "test-token",
+        "test-account",
+        &db_id,
+        Some(&base),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .ok()?;
     Some(SyncFs::new(delta))
 }
 
@@ -44,13 +81,22 @@ fn make_sync_d1() -> Option<SyncFs<D1Delta>> {
 
 #[test]
 fn test_d1_delta_new_with_credentials() {
-    let result = D1Delta::new("test-token", "test-account", "test-db");
+    let result = D1Delta::new(
+        "test-token",
+        "test-account",
+        "test-db",
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_d1_delta_from_env_no_creds() {
-    let result = D1Delta::from_env();
+    let result = D1Delta::from_env(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     assert!(result.is_err());
 }
 

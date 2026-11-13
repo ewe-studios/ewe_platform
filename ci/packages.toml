@@ -11,6 +11,10 @@
 #                             feature flags for that run: "" (defaults),
 #                             "a b" (--features a,b), or raw flags starting
 #                             with "-" (e.g. "--no-default-features")
+#   clippy-runs     = [...]   one `cargo clippy --all-targets` per entry, same
+#                             feature-flag syntax as `runs`. Default: only the
+#                             first entry of `runs`. Set it when a feature tree
+#                             (e.g. a server module) is not in the default build.
 #   wasm            = "enforce"|"report"|"off"  run the wasm32-unknown-unknown
 #                             compile gate (`cargo check --target wasm32`) for
 #                             this package; "off" (the default) skips it — most
@@ -18,8 +22,68 @@
 #   wasm-runs       = [...]   one `cargo check --target wasm32` per entry, same
 #                             feature-flag syntax as `runs`. Only the wasm-
 #                             relevant crates set this.
+#   wasm-deny-warnings = true  run every wasm check of this package with
+#                             `RUSTFLAGS=-D warnings`, so a warning fails CI.
+#                             Default false. `cargo check` takes no trailing
+#                             rustc arguments, so the flag cannot use `--`.
+#                             Set it only for packages at zero warnings (with
+#                             every feature tree in `wasm-runs`).
+#   clippy-deny-warnings = true  pass `--no-deps -- -D warnings` to every clippy run of this
+#                             package, so a clippy warning fails CI. Default
+#                             true. A package that still carries warnings sets
+#                             it to false with a `reason` until its list is
+#                             empty, and must keep every feature tree in
+#                             `clippy-runs` so the list stays complete.
+#   linux-only-features (in [defaults]) = [...]  feature names that build only on
+#                             Linux. macOS and Windows test every package with
+#                             the entries of `runs`, minus each entry that
+#                             turns on one of these features.
+#   macos-runs      = [...]   one `cargo test` per entry on the macOS runner (job
+#                             `macos-test` in check.yaml), same feature-flag
+#                             syntax as `runs`. Optional: it replaces the
+#                             default (the `runs` entries without a Linux-only
+#                             feature). Use it when macOS needs a feature set
+#                             that Linux does not run (for example `watcher-macos`).
+#                             Every name must be a feature of the package; the
+#                             guard in `plan` checks it. ci.py uses it on a macOS host.
+#   macos-env       = { K = "v" }  environment for the macOS test commands. It
+#                             replaces `env` on macOS. Without it, macOS uses
+#                             `env` minus the Linux-only `EWE_REQUIRE_*` variables.
+#   windows-runs    = [...]   one `cargo test` per entry on the Windows runner
+#                             (job `windows-test` in check.yaml). Same rules as
+#                             `macos-runs`. Leave out Unix-only sets such as `fd`.
+#   windows-env     = { K = "v" }  environment for the Windows test commands.
+#                             It replaces `env` on Windows, like `macos-env`.
+#   macos-tests / windows-tests = "none"  opt the package out of the tests on
+#                             that OS. Every package is tested on Linux, macOS and
+#                             Windows by default, so an opt-out needs a reason:
+#                             `macos-reason` / `windows-reason`, or `reason` when
+#                             one text fits all. The reason names the missing
+#                             tool, library or service, or the open GitHub issue
+#                             of a known bug (for example "#519: ..."). The fix
+#                             of that issue removes the opt-out. It excludes `macos-runs` /
+#                             `windows-runs`. The guard (run by `plan`) fails
+#                             for an opt-out without a reason.
+#   macos-shards / windows-shards / shard-timeout-minutes (in [defaults])
+#                             how many shard jobs test the packages on each OS
+#                             (default 4), and the longest shard job. A shard
+#                             tests several packages in a row with one target
+#                             directory, so shared dependencies build once. The
+#                             count trades wall time for runner minutes.
+#   When CI runs: a pull request tests the packages the change affects; a push
+#                             to master tests the packages the merge affected;
+#                             the nightly schedule and a manual "all" run test
+#                             every package on Linux, macOS and Windows.
+#   max-parallel-linux / max-parallel-macos / max-parallel-windows (in [defaults])
+#                             the most jobs of one matrix (shards, on macOS and Windows) that run at once
+#                             (`strategy.max-parallel` in check.yaml). Free
+#                             GitHub plans run about 20 jobs at once, with at
+#                             most 5 macOS jobs. The defaults (8, 2, 2) stay well below
+#                             that, so jobs queue and do not stampede.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
+#   failure-lines = N         failed-test lines kept per command for the end-of-run
+#                             summary (default 200)
 #   reason          = "why"   shown next to report-only failures
 #   env             = { K = "v" }  environment for every cargo command of the
 #                             package (e.g. CARGO_BUILD_JOBS to bound memory).
@@ -35,17 +99,57 @@
 fmt = "report"
 build = "enforce"
 clippy = "enforce"
+# A clippy warning fails CI for every package. Without this, a crate kept its
+# warnings for as long as nobody touched it (issue #436, and #434 for
+# `foundation_reactor`). A package that still carries warnings sets this to
+# false with a `reason` until its list is empty.
+clippy-deny-warnings = true
 test = "enforce"
 # Most crates are not wasm32 targets; only the foundation crates that must
 # compile for Cloudflare Workers opt in below.
 wasm = "off"
 runs = [""]
 timeout-minutes = 60
+# Features that build only on Linux. Every package is also tested on macOS and
+# Windows; those jobs skip each `runs` entry that turns on one of these.
+#   uring                         io_uring (Linux kernel interface)
+#   native-linux                  bundle that includes `uring`
+#   watcher-linux                 inotify file watcher
+#   vfs-ptrace, vfs-ptrace-nix    ptrace (Linux process tracing) VFS spawn
+#   vfs-fuse                      FUSE (needs /dev/fuse and libfuse)
+#   vfs-preload                   LD_PRELOAD shim (a Linux shared object)
+#   vms                           QEMU/KVM virtual machines
+linux-only-features = [
+  "uring",
+  "native-linux",
+  "watcher-linux",
+  "vfs-ptrace",
+  "vfs-ptrace-nix",
+  "vfs-fuse",
+  "vfs-preload",
+  "vms",
+]
+# macOS and Windows jobs are shards: one job tests several packages in a row with
+# one target directory, so dependencies that packages share build once. More
+# shards finish sooner but use more runner minutes. A shard has at least one
+# package, so a small selection makes fewer shards than this.
+macos-shards = 4
+windows-shards = 4
+# The most minutes one shard job may run: the sum of its packages' timeouts,
+# capped at this value.
+shard-timeout-minutes = 300
+# Most jobs of one matrix that run at once. See the header for the reason.
+max-parallel-linux = 8
+max-parallel-macos = 2
+max-parallel-windows = 2
 
 # ---------------------------------------------------------------------------
 # Already rustfmt-clean: keep them that way.
 
 [packages.answerme-agent]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 fmt = "enforce"
 
 [packages.ewe_platform_benches]
@@ -76,12 +180,73 @@ fmt = "enforce"
 fmt = "enforce"
 
 [packages.infrastructure_llama_bindings]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 fmt = "enforce"
+# Generated bindings and their tests still carry pedantic warnings (issue #441).
+clippy-deny-warnings = false
+reason = "52 pedantic warnings in generated bindings; clear them and delete this override (#441)"
+
+# ---------------------------------------------------------------------------
+# Packages that still carry pedantic warnings from before the deny default.
+# Clear a list, then delete its override (issue #441).
+
+[packages.foundation_deployment_digitalocean]
+clippy-deny-warnings = false
+reason = "5 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_deployment_hetzner]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #528: the deploy state file name fails (os error 123). Remove this opt-out when the issue is fixed."
+clippy-deny-warnings = false
+reason = "6 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_repl]
+clippy-deny-warnings = false
+reason = "4 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_ui_components]
+clippy-deny-warnings = false
+reason = "68 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_sshkit]
+clippy-deny-warnings = false
+reason = "17 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.infrastructure_llama_cpp]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
+clippy-deny-warnings = false
+reason = "2 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_wasm_ui]
+clippy-deny-warnings = false
+reason = "20 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_ui_traits]
+clippy-deny-warnings = false
+reason = "2 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.platform_demo]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #525: icons/icon.ico is missing for tauri-build. Remove this opt-out when the issue is fixed."
+clippy-deny-warnings = false
+reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
 # ---------------------------------------------------------------------------
 # Packages that need specific features for their tests.
 
 [packages.foundation_ai]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
+# 67 pedantic warnings in test targets; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "67 pedantic warnings; clear them and delete this override (#441)"
 # Every test target needs `testing` (mocks); defaults bring llamacpp + candle.
 # The second run drops the local backends: cloud providers + the agent layer
 # only (what a wasm or cloud-only consumer builds). `testing` stays on because
@@ -90,6 +255,10 @@ fmt = "enforce"
 # tests inside the model suite are gated on those features. This keeps the
 # harness and backends compiling without llama.cpp or candle.
 runs = ["testing", "--no-default-features --features testing"]
+# The `target_vendor = "apple"` code is the Candle Metal backend and the llama.cpp
+# Metal choice. Both need an Apple GPU, which the macOS runner does not give.
+macos-tests = "none"
+macos-reason = "Apple-vendor code is the Candle Metal and llama.cpp Metal backends; they need an Apple GPU and model downloads."
 timeout-minutes = 90
 # Wasm gate (spec 65 00-foundation): the agentic layer + cloud providers must
 # compile to wasm32 with no local (llamacpp/candle) backends.
@@ -97,12 +266,26 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features"]
 
 [packages.foundation_core]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #522: timing tests fail on the slower runner (waits return early or late). Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #522: timing tests fail on the slower runner (waits return early or late). Remove this opt-out when the issue is fixed."
 # valtron has two executors chosen at compile time: the single-threaded one
 # (default features) and the thread pool (`multi`). Many tests are gated on
-# `multi` or `not(multi)`, so test both. The default run used to get `multi`
-# anyway through a dev-dependency (foundation_testing -> foundation_netio's
-# default `multi`), which meant the single-threaded executor was never tested.
-runs = ["", "multi"]
+# `multi` or `not(multi)`, so test both executors. The `test-clock` run enables
+# the `SimulatedClock` and its six clock-injection tests. The default run used
+# to get `multi` anyway through a dev-dependency (foundation_testing ->
+# foundation_netio's default `multi`), which meant the single-threaded executor
+# was never tested.
+runs = ["", "multi", "test-clock"]
+# The executors differ by feature, so lint both trees: the `multi` tree compiles
+# `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
+# the single-threaded executor. `test-clock` compiles `SimulatedClock`, which
+# exists in no other tree.
+clippy-runs = ["", "multi", "test-clock"]
+# At zero clippy warnings in both trees: a new one fails CI (spec 70 feature 116).
+clippy-deny-warnings = true
 wasm = "enforce"
 # The plain wasm build plus both JS backends: `js-foundation-wasm` is the owned
 # path (foundation_compact's `host-abi` time/entropy, no wasm-bindgen glue),
@@ -112,6 +295,26 @@ wasm-runs = [
   "--no-default-features --features std,js-foundation-wasm",
   "--no-default-features --features std,js-wasmbindgen",
 ]
+# The bare build (neither `std` nor `alloc`) is unsupported: `valtron::Ctx` and
+# its executors need `std`, and `alloc`-only support is deferred. The crate
+# refuses it with a `compile_error!`; keep that refusal checked so the message
+# and the documented minimum cannot drift.
+wasm-expect-error = { run = "--no-default-features", contains = "foundation_core needs the `std` feature" }
+
+[packages.foundation_nostd]
+# The crate had no clippy runs of its own; its lints were only seen through the
+# crates that depend on it. Lint it directly and fail on a warning (spec 70
+# feature 49 E10).
+clippy-deny-warnings = true
+
+[packages.foundation_macros]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+# At zero clippy warnings across its one feature tree (spec 70 feature 120):
+# a new warning fails CI. The crate has no features, so the default run is
+# the only tree to lint.
+clippy-deny-warnings = true
 
 [packages.foundation_agent_rpc]
 # Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
@@ -120,6 +323,9 @@ wasm-runs = [
 runs = ["", "gguf"]
 
 [packages.foundation_jsonschema]
+# 14 pedantic warnings; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "14 pedantic warnings; clear them and delete this override (#441)"
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
 # (ewe-studios/ewe_platform#49).
@@ -131,12 +337,24 @@ runs = ["", "--no-default-features"]
 runs = ["", "--no-default-features --features single_threaded"]
 
 [packages.foundation_deployment_platform]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # VM orchestration (QEMU/UTM) is behind the non-default `vms` feature; its
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
 runs = ["", "vms"]
+# The `vms` run is in `linux-only-features`: macOS and Windows run the default set.
+# Lint both feature trees: a warning in `vms` code must fail CI too
+# (spec 70 feature 79).
+clippy-runs = ["", "vms"]
+# At zero clippy warnings in both feature trees: a new one fails CI.
+clippy-deny-warnings = true
 
 [packages.foundation_testbed]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `vms` re-exports foundation_deployment_platform (with its `vms` feature) as
 # `foundation_testbed::platform`; the VM e2e target (tests/e2e_tauri.rs, its
 # tests `#[ignore]`d — they need KVM and VM images) only compiles with it.
@@ -144,14 +362,22 @@ runs = ["", "vms"]
 runs = ["", "vms"]
 
 [packages.foundation_deployment_docker]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # The Docker client (`client`, `error`, `streaming`) is behind the `docker`
 # feature; with default features none of it compiles, so its mock-daemon tests
 # (API version negotiation, error classification, every endpoint wrapper)
 # never ran. Test that configuration as well. The real-daemon tests stay
-# behind `integration-tests`.
+# behind `integration-tests`; that target is built (`--no-run`) so it cannot
+# silently rot, but never run — daemon-backed runs stay manual.
 # `docker buildkit` also builds the generated BuildKit client (buffa-build
-# codegen must match the buffa runtime; a 0.9/0.8 skew went unnoticed).
-runs = ["", "docker", "docker buildkit"]
+# codegen must match the buffa runtime; a skew went unnoticed).
+runs = ["", "docker", "docker buildkit", "--no-run --features docker,integration-tests"]
+# Lint every feature set and fail on a warning, so the docker clippy debt
+# cannot return (spec 70 feature 49 E3).
+clippy-runs = ["", "--all-features"]
+clippy-deny-warnings = true
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 
@@ -164,6 +390,12 @@ runs = ["", "docker", "docker buildkit"]
 # at a time. Splitting the generated groups into their own crates is what
 # would remove this.
 env = { CARGO_BUILD_JOBS = "1" }
+# The default-feature wasm32 build (Workers consumers get default features). It
+# broke unnoticed when the generated group crates pulled `foundation_core/multi`
+# into wasm32 (fixed 2026-11-03: group crates are native-only dependencies).
+# `workers` is the wasm-only feature set Workers code uses.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features --features workers"]
 
 # ---------------------------------------------------------------------------
 # Wasm32 compile gates (spec 65 00-foundation / spec 28 feature 07).
@@ -182,22 +414,45 @@ env = { CARGO_BUILD_JOBS = "1" }
 # [packages.foundation_core]).
 
 [packages.foundation_auth]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `server-test` runs the IdP server suite (handlers, storage, services).
 runs = ["", "server-test"]
+# Clippy covers the server tree too, so its lint count stays at zero.
+clippy-runs = ["", "server-test"]
+# At zero clippy warnings: a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #546: the SSE writer to a slow client never finishes (a lost wakeup). Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # tests/integration_tests.rs (and the other server suites) are gated on
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
 runs = ["", "multi quic"]
+# Clippy covers the default tree, the multi/quic server tests and the TLS
+# server feature consumers enable; all are at zero warnings (spec 70 feature
+# 63), so a new one fails CI.
+clippy-runs = ["", "multi quic ssl"]
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_db]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123). Remove this opt-out when the issue is fixed."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 runs = ["", "libsql"]
+clippy-runs = ["", "libsql"]
+# At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 # Plain wasm (no JS host), and with the Cloudflare bindings
 # (`wasm-bindgen-storage` turns on valtron's JS mode).
@@ -207,20 +462,45 @@ wasm-runs = [
 ]
 
 [packages.foundation_netio]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #485: the blackhole connect test needs a full listen backlog to hang a connect, and macOS accepts it; #530: a quic poll parks after reading datagrams. Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #521: socket timeouts and DNS block a worker (os error 10060 and 10053). Remove this opt-out when the issue is fixed."
 # `quic` adds the QUIC, HTTP/3 and WebTransport suites (tests/quic, tests/http3,
 # tests/webtransport), which no run compiled before.
 runs = ["", "quic"]
+# Clippy must cover the quic-gated code, not only the default features.
+clippy-runs = ["", "quic"]
+# Both runs are at zero clippy warnings under `--all-targets`: a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
+[packages.foundation_browser]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+# At zero clippy warnings under `--all-targets` (spec 70 feature 109): a new one
+# fails CI.
+clippy-deny-warnings = true
+
 [packages.foundation_vectors]
-# `sql-store` adds the SQL / libsql vector stores and their tests.
-runs = ["", "sql-store"]
+# `sql-store` adds the SQL / libsql vector stores and their tests; `code-graph`
+# adds the tree-sitter code-graph module and its tests.
+runs = ["", "sql-store", "code-graph"]
+clippy-runs = ["", "sql-store", "code-graph"]
+# At zero clippy warnings (spec 70 feature 56): a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 # `turbopuffer` takes the fetch client on wasm32 (foundation_netio `wasm-fetch`).
-wasm-runs = ["", "turbopuffer"]
+# `sql-store` is the portable full-scan store over foundation_db's shared core.
+wasm-runs = ["", "turbopuffer", "sql-store"]
 
 [packages.foundation_keychain]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # Runs on Cloudflare Workers (D1 + the fetch client for the icon proxy, #140);
 # the wasm32 target pulls its own backend features, so the default set is the
 # wasm build.
@@ -229,22 +509,201 @@ wasm-runs = [""]
 
 [packages.foundation_nativeapis]
 # The D1/R2 delta VFS tests skip without the local Cloudflare emulator; the
-# blob-delta and native VFS tests always run. `netstack` adds the WireGuard
+# blob-delta and native VFS tests always run. `fd` adds the shared-reactor
+# readiness suite (tests/reactor_shared_selector_tests.rs), which is gated on
+# `feature = "fd"` and so runs in no other run. `netstack` adds the WireGuard
 # overlay data-plane suite (tests/dataplane), which no run compiled before.
-runs = ["", "vfs-native,vfs-d1,vfs-r2", "netstack"]
+# `vfs-fuse` builds and runs the FUSE adapter tests (mount tests skip without
+# /dev/fuse). `vfs-preload` builds the `LD_PRELOAD` shim and its `vfs_shim_vfs`
+# suite (Linux); it did not compile for a while, so it gets its own run.
+# `fd,uring` compiles and runs the io_uring suites (`uring_completion_*` and
+# `completion_source_seam`); their code is Linux-only, and the run compiles to
+# empty test binaries elsewhere. `vfs-native,vfs-ptrace` is the ptrace spawn
+# suite (`tests/ptrace_vfs`), named on its own so a failure says "ptrace",
+# not "the full VFS set". It needs a native amd64 kernel: under emulation
+# `PTRACE_GETREGS` returns `EIO`. The last run compiles every remaining VFS
+# backend together so a backend that only breaks under a specific feature set is
+# caught in CI.
+runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
+# At zero clippy warnings in the default build, the `vfs-preload` shim tree
+# (spec 70 feature 113) and the `ipc` message bus (issue #487): a new one fails CI.
+clippy-runs = ["", "vfs-preload", "ipc"]
+clippy-deny-warnings = true
+# The crate builds for wasm32 (issue #411): the native and signal modules are
+# gated at the crate root, and only the shared VFS tree compiles. The default
+# set and the `vfs,vfs-search` set that foundation_ai's wasm build enables are
+# both checked.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
+# `uring_completion_*` and `completion_source_seam` skip on a kernel without
+# io_uring. Set the variable so CI fails instead of silently losing the suite.
+# The ptrace spawn tests must likewise fail on a kernel that cannot trace a
+# child, not pass as an empty or skipping binary.
+# `container-options` is read by `scripts/ci/ci.py` and added to this job's
+# container, because Docker's default seccomp profile blocks `io_uring_setup`
+# and `ptrace`.
+env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
+container-options = "--security-opt seccomp=unconfined"
+# macOS runs (job `macos-test`): the kqueue reactor (`fd`), the macOS signal
+# handler (default `signal`), the polling watcher (`watcher-macos`), the Mach
+# port IPC transport (`vfs-ipc`) and the userspace data plane (`netstack`). The
+# `tun` (needs root), `uring`, `ptrace`, FUSE and preload sets are Linux-only.
+macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc"]
+# Windows runs (job `windows-test`): the Windows signal handler (default
+# `signal`), the polling watcher (`watcher-windows`) and the named-pipe IPC
+# transport (`ipc`). `fd`, `uring`, `ptrace`, FUSE and preload are Unix-only.
+windows-runs = ["", "watcher-windows", "ipc"]
+
+[packages.foundation_iogate]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+# 3 pedantic warnings; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "3 pedantic warnings; clear them and delete this override (#441)"
+# Its io_uring tests fail when `EWE_REQUIRE_IO_URING=1` and io_uring is missing.
+# Docker's default seccomp profile blocks `io_uring_setup`, so this job's
+# container runs with `seccomp=unconfined`. This is the io_uring exception only;
+# every other package keeps the default profile. The `io_uring_probe` target
+# prints whether the kernel allows it before the package tests run.
+env = { EWE_REQUIRE_IO_URING = "1" }
+container-options = "--security-opt seccomp=unconfined"
+
+[packages.foundation_proxy]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #523: the h3 CPU test reads /proc/self/task, which macOS does not have. Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+# `quic` adds the HTTP/3 front end (F19) and its suites (tests/h3_*). No run
+# compiled them before, so the H3 code was never built or linted in CI.
+runs = ["", "quic"]
+# Clippy covers the quic tree too, at zero warnings (clippy-deny-warnings is
+# the default), so a new H3 warning fails CI.
+clippy-runs = ["", "quic"]
+# The completion dial and splice tests need io_uring; fail instead of skipping.
+env = { EWE_REQUIRE_IO_URING = "1" }
+container-options = "--security-opt seccomp=unconfined"
+
+[packages.foundation_reactor]
+# The macOS reactor uses kqueue and the Windows reactor uses an I/O completion
+# port (IOCP) selector; both run the default set.
+# At zero clippy warnings under `--all-targets`: a new one fails CI. Without
+# this, a warning here blocked the clippy gate of every crate that depends on it.
+clippy-deny-warnings = true
+# The poll module compiles on wasm32 (the reactor module is Unix-only), so keep
+# it warning-free there. This is the check that caught the dead `rearm_readable`.
+wasm = "enforce"
+wasm-runs = [""]
 
 [packages.foundation_compact]
+# The default run covers the macOS entropy and errno backends and the Windows
+# entropy backend (`BCryptGenRandom`).
 wasm = "enforce"
 # Defaults use the wasm-bindgen time/entropy backend; the second run is the
 # owned path's `host-abi` backend.
 wasm-runs = ["", "--no-default-features --features std,host-abi"]
+
+[packages.foundation_context]
+wasm = "enforce"
+# The plain wasm build plus both time and entropy backends of foundation_compact.
+wasm-runs = [
+  "",
+  "--no-default-features --features host-abi",
+  "--no-default-features --features wasm-bindgen",
+]
 
 [packages.foundation_arrow]
 wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_connectrpc]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #466: the blackhole dial test needs a full listen backlog to hang a connect, and macOS accepts it. Remove this opt-out when the issue is fixed."
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `h3` adds the HTTP/3 suites (tests/h3_*), which no run compiled before.
 runs = ["", "h3"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
+# Spec 70 feature 128: the rpc wasm build is at zero warnings, and the gate
+# keeps it there. The native-dep items in `dispatch.rs` are gated to non-wasm.
+wasm-deny-warnings = true
+
+[packages.foundation_boringtun]
+# The `device` feature builds the kqueue poller and the utun device that only
+# exist on macOS. Without `device`, the macOS code is not compiled.
+macos-runs = ["", "device"]
+# The default run covers the Windows `sleepyinstant` clock backend. `device`
+# builds the Unix tun and poller code only, so Windows runs the default set.
+
+# ---------------------------------------------------------------------------
+# Example workspaces
+
+[packages.examples]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The wasm32 example workspaces need the wasm32-unknown-unknown target and wrangler, which only the Linux CI image has."
+# The `examples/cf-*` directories are self-contained wasm32 workspaces excluded
+# from the main workspace, so cargo metadata never lists them. The synthetic
+# `examples` package (see `examples_commands` in scripts/ci/ci.py) compiles each
+# of them for wasm32-unknown-unknown and builds the native `answerme-agent` app.
+fmt = "off"
+build = "enforce"
+clippy = "off"
+test = "off"
+wasm = "off"
+
+# ---------------------------------------------------------------------------
+# Wasm runtime test suites (feature 22 E4).
+
+[packages.wasm-tests]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The suites run in Deno with the wasm32 target and wasm-bindgen, which only the Linux CI image provides."
+# The wasm `wasm_bindgen_test` / `#[wasm_test]` suites are wasm32-only test
+# targets, and the standalone wasm_tests crate sits outside the root workspace,
+# so cargo metadata's library-only wasm gate never compiled them. This synthetic
+# package (see `wasm_tests_commands` in scripts/ci/ci.py) compile-checks those
+# tests with `--tests --target wasm32-unknown-unknown` and then runs the two
+# embedded-Deno harnesses. The env selects mise.wasm.toml, which pins only
+# deno + wasm-bindgen and turns off auto_install (E6).
+fmt = "off"
+build = "enforce"
+clippy = "off"
+test = "enforce"
+wasm = "off"
+timeout-minutes = 90
+env = { MISE_ENV = "wasm" }
+
+# At zero clippy warnings (spec 70 feature 55): a new one fails CI.
+[packages.foundation_openapi]
+clippy-deny-warnings = true
+
+[packages.foundation_codegentools]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #524: the generated Cloudflare types compare as stale. Remove this opt-out when the issue is fixed."
+clippy-deny-warnings = true
+
+[packages.ewe_platform]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
+
+
+[packages.foundation_packager]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #527: tests compare paths with '/' separators. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_toolings]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_wireguard]
+# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does not compile. Remove this opt-out when the issue is fixed."

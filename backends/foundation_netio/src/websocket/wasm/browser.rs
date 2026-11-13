@@ -34,8 +34,10 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use foundation_core::valtron::{
-    Ctx, Pipe, PipeReceiver, Stream, TaskIterator, TaskSpread, TaskStatus, TryRecvError,
+    Pipe, PipeReceiver, Stream, TaskIterator, TaskSpread, TaskStatus, TryRecvError,
 };
+
+use foundation_context::Ctx;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{BinaryType, CloseEvent, Event, MessageEvent, WebSocket};
@@ -121,7 +123,7 @@ pub fn connect(
         let inbound_tx = inbound_tx.clone();
         Closure::<dyn FnMut(CloseEvent)>::wrap(Box::new(move |evt: CloseEvent| {
             let _ = inbound_tx.try_send(Ok(WebSocketMessage::Close(evt.code(), evt.reason())));
-            inbound_tx.close();
+            let _ = inbound_tx.close();
         }))
     };
 
@@ -194,8 +196,7 @@ impl WasmWebSocketBridge {
                     });
             }
         };
-        result
-            .map_err(|e| WebSocketError::ProtocolError(format!("WebSocket send failed: {e:?}")))
+        result.map_err(|e| WebSocketError::ProtocolError(format!("WebSocket send failed: {e:?}")))
     }
 }
 
@@ -259,10 +260,7 @@ pub(super) struct StreamToTaskAdapter {
 }
 
 impl Iterator for StreamToTaskAdapter {
-    type Item = TaskStatus<
-        Result<WebSocketMessage, WebSocketError>,
-        WsProgress,
-    >;
+    type Item = TaskStatus<Result<WebSocketMessage, WebSocketError>, WsProgress>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next()? {
@@ -277,7 +275,9 @@ impl Iterator for StreamToTaskAdapter {
                     .into_iter()
                     .map(|spread| match spread {
                         foundation_core::valtron::StreamSpread::Done(d) => TaskSpread::Ready(d),
-                        foundation_core::valtron::StreamSpread::Pending(p) => TaskSpread::Pending(p),
+                        foundation_core::valtron::StreamSpread::Pending(p) => {
+                            TaskSpread::Pending(p)
+                        }
                     })
                     .collect();
                 Some(TaskStatus::Spread(mapped))

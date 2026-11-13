@@ -1,8 +1,7 @@
 /// Error types for FD registration.
-
 use std::io;
 
-/// Error when FdRegistration fails.
+/// Error when `FdRegistration` fails.
 pub enum FdRegistrationError<T: std::os::unix::io::AsRawFd> {
     /// The fd could not be registered with the poll selector.
     Registration(io::Error),
@@ -13,9 +12,7 @@ pub enum FdRegistrationError<T: std::os::unix::io::AsRawFd> {
 impl<T: std::os::unix::io::AsRawFd> std::fmt::Debug for FdRegistrationError<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FdRegistrationError::Registration(e) => {
-                f.debug_tuple("Registration").field(e).finish()
-            }
+            FdRegistrationError::Registration(e) => f.debug_tuple("Registration").field(e).finish(),
             FdRegistrationError::Failed { error, .. } => {
                 f.debug_struct("Failed").field("error", error).finish()
             }
@@ -27,10 +24,10 @@ impl<T: std::os::unix::io::AsRawFd> std::fmt::Display for FdRegistrationError<T>
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             FdRegistrationError::Registration(e) => {
-                write!(f, "failed to register fd with poll selector: {}", e)
+                write!(f, "failed to register fd with poll selector: {e}")
             }
             FdRegistrationError::Failed { error, .. } => {
-                write!(f, "failed to register fd with poll selector: {}", error)
+                write!(f, "failed to register fd with poll selector: {error}")
             }
         }
     }
@@ -46,10 +43,10 @@ impl<T: std::os::unix::io::AsRawFd> std::error::Error for FdRegistrationError<T>
 }
 
 /// Generic registration error (without the inner type).
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, derive_more::Display, derive_more::Error, derive_more::From)]
 pub enum RegistrationError {
-    #[error("failed to register fd with poll selector: {0}")]
+    #[display("failed to register fd with poll selector: {_0}")]
     Registration(#[from] io::Error),
-    #[error("fd is already registered with this selector")]
+    #[display("fd is already registered with this selector")]
     AlreadyRegistered,
 }

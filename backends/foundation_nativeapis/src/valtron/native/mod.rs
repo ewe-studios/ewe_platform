@@ -2,6 +2,5 @@
 ///
 /// Only types that depend on `native::` (e.g., `native::fd::RegisteredFd`)
 /// live here.
-
 mod fd_monitor;
 pub use fd_monitor::FdMonitorTask;

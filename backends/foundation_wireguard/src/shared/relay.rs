@@ -16,6 +16,7 @@ use std::net::SocketAddr;
 
 use serde::{Deserialize, Serialize};
 
+use super::error::{WgError, WgResult};
 use super::membership::{PeerId, PeerRecord};
 
 /// Wire version for relay frames. Must be bumped if the format changes.
@@ -28,9 +29,9 @@ pub const RELAY_MAX_PAYLOAD: usize = 2048;
 // RelayFrame — what the relay forwards
 // ---------------------------------------------------------------------------
 
-/// A frame sent through a relay: destination peer id + opaque WireGuard bytes.
+/// A frame sent through a relay: destination peer id + opaque `WireGuard` bytes.
 ///
-/// WHY: The relay **never decrypts** — WireGuard crypto is end-to-end between the
+/// WHY: The relay **never decrypts** — `WireGuard` crypto is end-to-end between the
 /// real peers. The relay only needs the destination id to do a table lookup
 /// (decision 07, trustless).
 ///
@@ -43,7 +44,7 @@ pub struct RelayFrame {
     pub version: u8,
     /// The destination peer (the peer the relay must forward this to).
     pub dst_peer_id: PeerId,
-    /// Opaque WireGuard transport data — **never** decrypted by the relay.
+    /// Opaque `WireGuard` transport data — **never** decrypted by the relay.
     pub ciphertext: Vec<u8>,
 }
 
@@ -72,12 +73,17 @@ impl RelayFrame {
     }
 
     /// Encode to wire format: `version (1) + dst (32) + len (2, big-endian) + payload`.
+    ///
+    /// # Panics
+    /// Panics if `ciphertext.len() > RELAY_MAX_PAYLOAD`, which the wire length
+    /// field cannot represent. [`RelayFrame::new`] already enforces the limit.
     #[must_use]
     pub fn encode(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(1 + 32 + 2 + self.ciphertext.len());
         buf.push(self.version);
         buf.extend_from_slice(self.dst_peer_id.as_bytes());
-        let len = self.ciphertext.len() as u16;
+        let len = u16::try_from(self.ciphertext.len())
+            .expect("RELAY_MAX_PAYLOAD is enforced by RelayFrame::new and fits in u16");
         buf.extend_from_slice(&len.to_be_bytes());
         buf.extend_from_slice(&self.ciphertext);
         buf
@@ -157,7 +163,9 @@ impl RelaySelector {
 
     /// Threshold multiplier: if the current relay's avg RTT exceeds the best
     /// candidate's by this factor, trigger failover.
-    const FAILOVER_RTT_FACTOR: f64 = 3.0;
+    /// The integer failover ratio: a candidate must have an RTT more than this
+    /// many times the best candidate's RTT before we switch to the best one.
+    const FAILOVER_RTT_FACTOR: u64 = 3;
 
     /// WHY: Select a relay strategy: lowest load, lowest RTT, or random.
     ///
@@ -197,10 +205,15 @@ impl RelaySelector {
         // Sort: by strategy (load ascending, RTT ascending, or shuffle).
         match self.strategy {
             RelayStrategy::LowestLoad => {
-                self.candidates.sort_by(|a, b| a.load.partial_cmp(&b.load).unwrap_or(std::cmp::Ordering::Equal));
+                self.candidates.sort_by(|a, b| {
+                    a.load
+                        .partial_cmp(&b.load)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
             }
             RelayStrategy::LowestRtt => {
-                self.candidates.sort_by_key(|c| c.rtt_us.unwrap_or(u64::MAX));
+                self.candidates
+                    .sort_by_key(|c| c.rtt_us.unwrap_or(u64::MAX));
             }
             RelayStrategy::Random => {
                 // Deterministic-ish shuffle: sort by peer_id bytes for reproducibility.
@@ -225,7 +238,9 @@ impl RelaySelector {
                     if let (Some(best_rtt), Some(cur_rtt)) =
                         (self.candidates[0].rtt_us, self.candidates[pos].rtt_us)
                     {
-                        if cur_rtt as f64 > best_rtt as f64 * Self::FAILOVER_RTT_FACTOR {
+                        let threshold = u128::from(best_rtt)
+                            .saturating_mul(u128::from(Self::FAILOVER_RTT_FACTOR));
+                        if u128::from(cur_rtt) > threshold {
                             self.current = Some(self.candidates[0].peer_id);
                             return self.candidates.first();
                         }
@@ -269,8 +284,8 @@ impl RelaySelector {
             }
             // Update the candidate's RTT.
             if let Some(c) = self.candidates.iter_mut().find(|c| c.peer_id == peer) {
-                let avg: u64 = self.recent_rtts.iter().sum::<u64>()
-                    / self.recent_rtts.len().max(1) as u64;
+                let avg: u64 =
+                    self.recent_rtts.iter().sum::<u64>() / self.recent_rtts.len().max(1) as u64;
                 c.rtt_us = Some(avg);
             }
         }
@@ -302,7 +317,7 @@ impl RelaySelector {
 /// The current connectivity path to a peer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConnectivityPath {
-    /// Direct WireGuard tunnel over the peer's advertised UDP endpoint.
+    /// Direct `WireGuard` tunnel over the peer's advertised UDP endpoint.
     Direct,
     /// Attempting UDP hole-punch; waiting for the simultaneous-open to complete.
     HolePunching,
@@ -352,18 +367,35 @@ impl RelaySession {
     ///
     /// WHAT: Transition from `Direct` → `HolePunching` if endpoints are available,
     /// otherwise → `Relayed`. If already `Relayed`, stay there.
-    pub fn on_direct_failure(&mut self, relay: Option<PeerId>) {
+    ///
+    /// When the current path is `HolePunching` and no relay is provided, the
+    /// ladder has no next step. The session then falls back to `Disconnected`
+    /// (its documented terminal state for this case) and the call returns
+    /// [`WgError::NoRelayForPunchedSession`]. The caller decides what happens
+    /// next, for example logging the failure and no longer using the peer.
+    ///
+    /// # Errors
+    /// Returns [`WgError::NoRelayForPunchedSession`] when the current path is
+    /// `HolePunching` and `relay` is `None`.
+    pub fn on_direct_failure(&mut self, relay: Option<PeerId>) -> WgResult<()> {
         match self.path {
             ConnectivityPath::Direct => {
                 // Try hole-punch next; if we have a relay, pre-select it.
                 self.path = ConnectivityPath::HolePunching;
                 self.relay = relay;
+                Ok(())
             }
             ConnectivityPath::HolePunching => {
-                // Hole-punch failed; fall back to relay.
-                let r = relay.expect("relay peer id required for relay fallback");
-                self.path = ConnectivityPath::Relayed(r);
-                self.relay = Some(r);
+                // Hole-punch failed; fall back to relay when one exists.
+                if let Some(r) = relay {
+                    self.path = ConnectivityPath::Relayed(r);
+                    self.relay = Some(r);
+                    Ok(())
+                } else {
+                    self.path = ConnectivityPath::Disconnected;
+                    self.relay = None;
+                    Err(WgError::NoRelayForPunchedSession.into())
+                }
             }
             ConnectivityPath::Disconnected => {
                 // Not yet connected — go straight to relay if we have one.
@@ -371,6 +403,7 @@ impl RelaySession {
                     self.path = ConnectivityPath::Relayed(r);
                     self.relay = Some(r);
                 }
+                Ok(())
             }
             ConnectivityPath::Relayed(_) => {
                 // Already relayed; update the relay if a new one is provided.
@@ -378,6 +411,7 @@ impl RelaySession {
                     self.path = ConnectivityPath::Relayed(r);
                     self.relay = Some(r);
                 }
+                Ok(())
             }
         }
     }

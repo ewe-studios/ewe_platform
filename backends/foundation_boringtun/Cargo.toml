@@ -1,0 +1,181 @@
+# Fork of boringtun 0.7.1 (Cloudflare, BSD-3-Clause), published as
+# `foundation_boringtun`. It adds a wasm32 clock backend (see NOTICE) so
+# `foundation_wireguard` builds for wasm32 for users of the published crate too.
+# A `[patch.crates-io]` entry only applies inside this workspace; a renamed fork
+# reaches every user. The library name matches the package name, so source code that
+# says `use foundation_boringtun::...` is the same name as the crate.
+
+[package]
+name = "foundation_boringtun"
+version = "0.7.2"
+edition = "2018"
+rust-version.workspace = true
+authors = [
+    "Noah Kennedy <nkennedy@cloudflare.com>",
+    "Andy Grover <agrover@cloudflare.com>",
+    "Jeff Hiner <jhiner@cloudflare.com>",
+    "EweStudios Consulting Limited",
+]
+description = "Fork of boringtun (userspace WireGuard protocol) with a wasm32 clock backend, for foundation_wireguard"
+documentation = "https://docs.rs/foundation_boringtun"
+readme = "README.md"
+license = "BSD-3-Clause"
+repository.workspace = true
+keywords = ["wireguard", "boringtun", "vpn", "wasm"]
+include = [
+    "src/**",
+    "benches/**",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "Cargo.toml",
+]
+
+[features]
+default = []
+device = [
+    "socket2",
+    "thiserror",
+    "hex",
+    "ip_network",
+    "ip_network_table",
+]
+ffi-bindings = ["tracing-subscriber", "hex"]
+jni-bindings = [
+    "ffi-bindings",
+    "jni",
+]
+mock-instant = ["mock_instant"]
+
+[lib]
+name = "foundation_boringtun"
+crate-type = [
+    "staticlib",
+    "cdylib",
+    "rlib",
+]
+path = "src/lib.rs"
+
+[[bench]]
+name = "crypto_benches"
+path = "benches/crypto_benches/main.rs"
+harness = false
+
+[dependencies.aead]
+version = "0.5.0-pre.2"
+
+[dependencies.base64]
+version = "0.22"
+
+[dependencies.blake2]
+version = "0.10"
+
+[dependencies.chacha20poly1305]
+version = "0.10.0-pre.1"
+
+[dependencies.hex]
+version = "0.4"
+optional = true
+
+[dependencies.hmac]
+version = "0.12"
+
+[dependencies.ip_network]
+version = "0.4.1"
+optional = true
+
+[dependencies.ip_network_table]
+version = "0.2.0"
+optional = true
+
+[dependencies.jni]
+version = "0.19.0"
+optional = true
+
+
+[dependencies.mock_instant]
+version = "0.3"
+optional = true
+
+[dependencies.parking_lot]
+version = "0.12"
+
+[dependencies.portable-atomic]
+version = "1.13.1"
+features = ["fallback"]
+
+[dependencies.rand_core]
+version = "0.6.4"
+features = ["getrandom"]
+
+[dependencies.ring]
+version = "0.17"
+
+[dependencies.socket2]
+version = "0.4.7"
+features = ["all"]
+optional = true
+
+[dependencies.thiserror]
+version = "1"
+optional = true
+
+[dependencies.tracing]
+version = "0.1.40"
+
+[dependencies.tracing-subscriber]
+version = "0.3"
+features = ["fmt"]
+optional = true
+
+[dependencies.untrusted]
+version = "0.9.0"
+
+[dependencies.x25519-dalek]
+version = "2.0.1"
+features = [
+    "reusable_secrets",
+    "static_secrets",
+]
+
+[dev-dependencies.criterion]
+version = "0.8.2"
+features = ["html_reports"]
+
+[dev-dependencies.etherparse]
+version = "0.13"
+
+[dev-dependencies.tracing-subscriber]
+version = "0.3"
+
+[target."cfg(unix)".dependencies.nix]
+version = "0.31"
+features = [
+    "time",
+    "user",
+]
+default-features = false
+
+# Vendored patch: boringtun 0.7.1 upstream ships only unix/windows backends for
+# its sleepyinstant clock, so `Instant` fails to compile on wasm32-unknown-unknown.
+# This patch adds a wasm32 backend (src/sleepyinstant/wasm.rs) built on js_sys::Date.
+[target.'cfg(target_arch = "wasm32")'.dependencies.js-sys]
+version = "0.3"
+
+# `libc` is used by the unix clock, the `device` module and the FFI; wasm32 uses none.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.libc]
+version = "0.2"
+
+# `rand_core` asks for `getrandom`, which has no randomness source on
+# wasm32-unknown-unknown without `js`. Set it here so the crate builds alone.
+[target.'cfg(target_arch = "wasm32")'.dependencies.getrandom]
+version = "0.2"
+features = ["js"]
+
+# boringtun 0.7.1 upstream triggers current-rustc lints (deprecated ring/base64
+# calls, an unused KeyBytes, an elided-lifetime style nit). They are upstream's
+# code, not ours, so keep them from polluting the workspace's warning output.
+[lints.rust]
+deprecated = "allow"
+dead_code = "allow"
+mismatched_lifetime_syntaxes = "allow"

@@ -19,7 +19,8 @@ impl WasmFlavor {
             Self::Emscripten
         } else if triple.contains("wasip2") {
             Self::Wasip2
-        } else if triple.contains("wasip1") || triple.contains("wasi") && !triple.contains("wasip") {
+        } else if triple.contains("wasip1") || triple.contains("wasi") && !triple.contains("wasip")
+        {
             Self::Wasip1
         } else {
             Self::UnknownUnknown
@@ -61,4 +62,3 @@ impl WasmFlavor {
         matches!(self, Self::Emscripten)
     }
 }
-

@@ -1,5 +1,6 @@
 // Integration tests for TaskIterator combinators
-use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{Stream, TaskIterator, TaskIteratorExt, TaskStatus};
 
 // Simple test task iterator for unit tests
 struct TestTask {
@@ -16,17 +17,14 @@ impl TaskIterator for TestTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.pop()
     }
 }
 
 #[test]
 fn test_map_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(10),
@@ -47,7 +45,7 @@ fn test_map_ready() {
 
 #[test]
 fn test_map_pending() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(5),
@@ -56,12 +54,15 @@ fn test_map_pending() {
     let mut mapped = task.map_pending(|s| s.len());
 
     assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(5)));
-    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Pending(4)));
+    assert_eq!(
+        mapped.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(4))
+    );
 }
 
 #[test]
 fn test_filter_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Ready(3),
         TaskStatus::Ready(10),
@@ -73,14 +74,17 @@ fn test_filter_ready() {
     // pop() returns: Ready(5), Ready(10), Ready(3)
     // filter: 5 > 5 = false → Ignore, 10 > 5 = true → Ready(10), 3 > 5 = false → Ignore
     assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // 5 was filtered out
-    assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ready(10)));
+    assert_eq!(
+        filtered.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(10))
+    );
     assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // 3 was filtered out
     assert_eq!(filtered.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_split_collector_map_sends_transformed_items() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(10),
@@ -111,7 +115,7 @@ fn test_split_collector_map_sends_transformed_items() {
 
 #[test]
 fn test_split_collector_map_transform_returns_none_skips() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![TaskStatus::Ready(10), TaskStatus::Ready(5)];
     let task = TestTask::new(items);
 
@@ -142,13 +146,13 @@ fn test_split_collector_map_transform_returns_none_skips() {
     assert_eq!(collected, vec![10u64]);
 }
 
-/// `split_collect_one_map` uses a depth-1 (queue_size = 1) observer queue. Since
+/// `split_collect_one_map` uses a depth-1 (`queue_size` = 1) observer queue. Since
 /// F45 Part C1 replaced `force_push` (drop-oldest) with a vacancy-park, a full
 /// queue backpressures the source instead of dropping — so the continuation and
 /// observer must be driven in lockstep, and every match is delivered (zero loss).
 #[test]
 fn test_split_collect_one_map() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // TestTask pops in reverse, so this yields 20, 10, 3.
     let items = vec![
         TaskStatus::Ready(3),
@@ -187,7 +191,7 @@ fn test_split_collect_one_map() {
 
 #[test]
 fn test_stream_collect() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Ready(2),
         TaskStatus::Pending("wait".to_string()),
@@ -224,7 +228,6 @@ fn test_stream_collect() {
 
 #[test]
 fn test_map_iter_flattens_nested_iterators() {
-    let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
         items: std::vec::IntoIter<TaskStatus<Vec<u32>, String>>,
@@ -234,13 +237,11 @@ fn test_map_iter_flattens_nested_iterators() {
         type Ready = Vec<u32>;
         type Pending = String;
 
-        fn next_status(
-            &mut self,
-            _ctx: Ctx,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             self.items.next()
         }
     }
+    let ctx = Ctx::host();
 
     let items = vec![
         TaskStatus::Ready(vec![1u32, 2u32]),
@@ -250,20 +251,13 @@ fn test_map_iter_flattens_nested_iterators() {
         items: items.into_iter(),
     };
 
-    let mut flattened: foundation_core::valtron::TMapIter<
-        _,
-        _,
-        _,
-        u32,
-        String,
-        Vec<u32>,
-        String,
-    > = task.map_iter(|vec| {
-        vec.into_iter()
-            .map(TaskStatus::Ready)
-            .collect::<Vec<_>>()
-            .into_iter()
-    });
+    let mut flattened: foundation_core::valtron::TMapIter<_, _, _, u32, String, Vec<u32>, String> =
+        task.map_iter(|vec| {
+            vec.into_iter()
+                .map(TaskStatus::Ready)
+                .collect::<Vec<_>>()
+                .into_iter()
+        });
 
     // Should flatten: 1, 2, 3, 4, 5
     assert!(matches!(
@@ -291,7 +285,6 @@ fn test_map_iter_flattens_nested_iterators() {
 
 #[test]
 fn test_map_iter_passes_through_pending() {
-    let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
         items: std::vec::IntoIter<TaskStatus<Vec<u32>, String>>,
@@ -301,13 +294,11 @@ fn test_map_iter_passes_through_pending() {
         type Ready = Vec<u32>;
         type Pending = String;
 
-        fn next_status(
-            &mut self,
-            _ctx: Ctx,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             self.items.next()
         }
     }
+    let ctx = Ctx::host();
 
     let items = vec![
         TaskStatus::Ready(vec![1u32]),
@@ -318,20 +309,13 @@ fn test_map_iter_passes_through_pending() {
         items: items.into_iter(),
     };
 
-    let mut flattened: foundation_core::valtron::TMapIter<
-        _,
-        _,
-        _,
-        u32,
-        String,
-        Vec<u32>,
-        String,
-    > = task.map_iter(|vec| {
-        vec.into_iter()
-            .map(TaskStatus::Ready)
-            .collect::<Vec<_>>()
-            .into_iter()
-    });
+    let mut flattened: foundation_core::valtron::TMapIter<_, _, _, u32, String, Vec<u32>, String> =
+        task.map_iter(|vec| {
+            vec.into_iter()
+                .map(TaskStatus::Ready)
+                .collect::<Vec<_>>()
+                .into_iter()
+        });
 
     // Should flatten with pending passed through
     assert!(matches!(
@@ -371,7 +355,7 @@ fn test_map_iter_passes_through_pending() {
 fn test_split_collect_until_map_never_loses_the_closing_item() {
     use foundation_core::valtron::CollectionState;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     for round in 0..2_000u32 {
         let task = TestTask::new(vec![TaskStatus::Ready(round)]);
         let (observer, mut continuation) =

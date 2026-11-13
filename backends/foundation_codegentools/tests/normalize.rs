@@ -2,7 +2,7 @@
 //! (spec-56 decision 05, feature 00 §0).
 //!
 //! The registry's own classification is the thing most likely to be wrong: it is a
-//! human judgement about a vendor's spec ("DigitalOcean is ref-based, so it needs
+//! human judgement about a vendor's spec ("`DigitalOcean` is ref-based, so it needs
 //! nothing") and it was in fact wrong — DO has 7814 refs *and* 58 inline schemas.
 //! The validator caught it, which is why these tests care most about the failure
 //! paths.
@@ -12,6 +12,7 @@
 use foundation_codegentools::cli::normalize::{
     normalize_provider, provider_spec, Normalizer, ProviderSpec, PROVIDER_SPECS,
 };
+use foundation_context::MonotonicClock;
 use serde_json::json;
 
 fn tmpdir(name: &str) -> std::path::PathBuf {
@@ -49,7 +50,11 @@ fn every_registered_raw_path_lives_under_the_raw_directory() {
             spec.name,
             spec.raw
         );
-        assert!(!spec.source.is_empty(), "{}: provenance is not optional", spec.name);
+        assert!(
+            !spec.source.is_empty(),
+            "{}: provenance is not optional",
+            spec.name
+        );
     }
 }
 
@@ -62,6 +67,11 @@ fn digitalocean_hoists_rather_than_passing_through() {
         provider_spec("digitalocean").unwrap().normalizer,
         Normalizer::HoistInline
     );
+}
+
+/// The real clock the CLI host injects.
+fn clock() -> MonotonicClock {
+    MonotonicClock::new()
 }
 
 // ── normalize_provider ───────────────────────────────────────────────────────
@@ -95,9 +105,13 @@ fn test_provider() -> ProviderSpec {
 fn normalizes_a_bundled_spec_and_writes_artefact_plus_manifest() {
     let root = tmpdir("bundled");
     let out = root.join("artefacts/cloud_providers");
-    write_raw(&root, "artefacts/cloud_providers/raw/testprov.json", &bundled_spec());
+    write_raw(
+        &root,
+        "artefacts/cloud_providers/raw/testprov.json",
+        &bundled_spec(),
+    );
 
-    let report = normalize_provider(&test_provider(), &root, &out).expect("normalizes");
+    let report = normalize_provider(&test_provider(), &root, &out, &clock()).expect("normalizes");
 
     assert_eq!(report.inline_before, 2, "request + response were inline");
     assert_eq!(report.hoisted, 2);
@@ -115,10 +129,14 @@ fn normalizes_a_bundled_spec_and_writes_artefact_plus_manifest() {
     );
 
     // The manifest carries what the pin and provenance need.
-    let manifest: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(out.join("testprov/_manifest.json")).unwrap())
-            .unwrap();
-    assert_eq!(manifest["spec_version"], "9.9.9", "what feature 00's pin checks");
+    let manifest: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(out.join("testprov/_manifest.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        manifest["spec_version"], "9.9.9",
+        "what feature 00's pin checks"
+    );
     assert_eq!(manifest["openapi"], "3.0.1");
     assert_eq!(manifest["source"], "https://example.com/spec.json");
     assert_eq!(manifest["hoisted"], 2);
@@ -129,8 +147,14 @@ fn normalizes_a_bundled_spec_and_writes_artefact_plus_manifest() {
             .contains(&json!("canonicalize_operations")),
         "otherwise 'why does this differ from the vendor's?' is unanswerable"
     );
-    assert!(manifest["raw_sha256"].as_str().unwrap().len() == 64, "detects a moved vendor spec");
-    assert!(manifest["canonical_sha256"].as_str().unwrap().len() == 64, "detects hand-editing");
+    assert!(
+        manifest["raw_sha256"].as_str().unwrap().len() == 64,
+        "detects a moved vendor spec"
+    );
+    assert!(
+        manifest["canonical_sha256"].as_str().unwrap().len() == 64,
+        "detects hand-editing"
+    );
 
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -142,15 +166,22 @@ fn a_wrong_classification_fails_loudly_rather_than_writing_a_broken_artefact() {
     // that generates anonymous blobs — quietly.
     let root = tmpdir("misclassified");
     let out = root.join("artefacts/cloud_providers");
-    write_raw(&root, "artefacts/cloud_providers/raw/testprov.json", &bundled_spec());
+    write_raw(
+        &root,
+        "artefacts/cloud_providers/raw/testprov.json",
+        &bundled_spec(),
+    );
 
     let mut wrong = test_provider();
     wrong.normalizer = Normalizer::ValidateOnly;
 
-    let err = normalize_provider(&wrong, &root, &out).expect_err("must not pass");
+    let err = normalize_provider(&wrong, &root, &out, &clock()).expect_err("must not pass");
     let msg = err.to_string();
     assert!(msg.contains("not canonical"), "{msg}");
-    assert!(msg.contains("inline object schema"), "says what is wrong: {msg}");
+    assert!(
+        msg.contains("inline object schema"),
+        "says what is wrong: {msg}"
+    );
     assert!(
         !out.join("testprov/openapi.json").exists(),
         "a failed normalize must not leave an artefact behind"
@@ -163,7 +194,7 @@ fn a_wrong_classification_fails_loudly_rather_than_writing_a_broken_artefact() {
 fn a_missing_raw_spec_names_the_file() {
     let root = tmpdir("missing");
     let out = root.join("artefacts/cloud_providers");
-    let err = normalize_provider(&test_provider(), &root, &out).expect_err("no raw spec");
+    let err = normalize_provider(&test_provider(), &root, &out, &clock()).expect_err("no raw spec");
     assert!(err.to_string().contains("raw/testprov.json"), "{err}");
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -176,7 +207,7 @@ fn a_spec_that_is_not_json_says_so() {
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     std::fs::write(&path, "openapi: 3.0.1\npaths: {}\n").unwrap(); // YAML, not JSON
 
-    let err = normalize_provider(&test_provider(), &root, &out).expect_err("not JSON");
+    let err = normalize_provider(&test_provider(), &root, &out, &clock()).expect_err("not JSON");
     assert!(err.to_string().contains("not JSON"), "{err}");
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -187,11 +218,15 @@ fn normalizing_is_deterministic() {
     // same input must give a byte-identical artefact, or `check()` would flap.
     let root = tmpdir("deterministic");
     let out = root.join("artefacts/cloud_providers");
-    write_raw(&root, "artefacts/cloud_providers/raw/testprov.json", &bundled_spec());
+    write_raw(
+        &root,
+        "artefacts/cloud_providers/raw/testprov.json",
+        &bundled_spec(),
+    );
 
-    let first = normalize_provider(&test_provider(), &root, &out).expect("first");
+    let first = normalize_provider(&test_provider(), &root, &out, &clock()).expect("first");
     let a = std::fs::read_to_string(out.join("testprov/openapi.json")).unwrap();
-    let second = normalize_provider(&test_provider(), &root, &out).expect("second");
+    let second = normalize_provider(&test_provider(), &root, &out, &clock()).expect("second");
     let b = std::fs::read_to_string(out.join("testprov/openapi.json")).unwrap();
 
     assert_eq!(a, b, "same input, same artefact");

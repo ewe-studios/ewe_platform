@@ -1,6 +1,6 @@
 //! ewe:// handler integration — exercises full request → response pipeline.
 //!
-//! Proves that EweUrl parsing, session route resolution, backend query,
+//! Proves that `EweUrl` parsing, session route resolution, backend query,
 //! protocol selection, and content encoding all compose through the handler.
 //! Does NOT require a running Tauri app — tests the handler logic directly.
 
@@ -10,7 +10,12 @@ use foundation_platform::*;
 /// Parse URI → resolve route → query backend → select protocol → encode
 #[test]
 fn full_ewe_pipeline_webview_app() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     session.route("/app/*", webview_app().with_profile(Profile::App));
 
     // Step 1-2: Parse URI, resolve route
@@ -30,7 +35,7 @@ fn full_ewe_pipeline_webview_app() {
 
     // Step 5: Backend query
     let content = query_backend(&DefaultTransport, &decision, "/app/items");
-    assert!(!content.is_empty());
+    assert_ne!(content, [] as [u8; 0]);
 
     // Step 6: Protocol selection (query param = json)
     let proto = select_protocol(&ProtocolHint::Default, Some(&"json".to_string()), &content);
@@ -47,10 +52,18 @@ fn full_ewe_pipeline_webview_app() {
 
 #[test]
 fn full_ewe_pipeline_remote_server() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/remote/*", remote_fetch()
-        .with_profile(Profile::TrustedRemote)
-        .with_cache_policy(CachePolicy::NetworkFirst));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
+    session.route(
+        "/remote/*",
+        remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::NetworkFirst),
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/remote/dashboard?proto=arrow".into(),
@@ -75,7 +88,12 @@ fn full_ewe_pipeline_remote_server() {
 
 #[test]
 fn full_ewe_pipeline_ipc_shell_with_target() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     // Route that explicitly targets a wasm_app
     session.route("/api/*", ipc_shell_with("business_logic"));
 
@@ -96,12 +114,24 @@ fn full_ewe_pipeline_ipc_shell_with_target() {
 
 #[test]
 fn cache_intercepts_before_backend_query() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/cached/*", remote_fetch()
-        .with_cache_policy(CachePolicy::CacheFirst));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
+    session.route(
+        "/cached/*",
+        remote_fetch().with_cache_policy(CachePolicy::CacheFirst),
+    );
 
     // Pre-populate cache
-    session.cache().store(Profile::TrustedRemote, "/cached/data", b"cached-content", "text/html");
+    session.cache().store(
+        Profile::TrustedRemote,
+        "/cached/data",
+        b"cached-content",
+        "text/html",
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/cached/data".into(),
@@ -112,20 +142,33 @@ fn cache_intercepts_before_backend_query() {
     let decision = session.resolve_route(&intent);
 
     // Cache check should return true — skip backend query
-    assert!(session.cache().should_serve_cached(&decision, "/cached/data"));
+    assert!(session
+        .cache()
+        .should_serve_cached(&decision, "/cached/data"));
 
     // The actual cached entry is available
-    let entry = session.cache().get(Profile::TrustedRemote, "/cached/data").unwrap();
+    let entry = session
+        .cache()
+        .get(Profile::TrustedRemote, "/cached/data")
+        .unwrap();
     assert_eq!(entry.body, b"cached-content");
     assert_eq!(entry.content_type, "text/html");
 }
 
 #[test]
 fn capability_gating_in_full_pipeline() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/camera/*", webview_app()
-        .with_profile(Profile::App)
-        .with_allowed_capabilities(&[CapabilityId("camera".into())]));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
+    session.route(
+        "/camera/*",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_allowed_capabilities(&[CapabilityId("camera".into())]),
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/camera/viewfinder".into(),
@@ -140,9 +183,16 @@ fn capability_gating_in_full_pipeline() {
 
 #[test]
 fn offline_route_fails_with_online_only() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/live/*", remote_fetch()
-        .with_cache_policy(CachePolicy::OnlineOnly));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
+    session.route(
+        "/live/*",
+        remote_fetch().with_cache_policy(CachePolicy::OnlineOnly),
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/live/scores".into(),
@@ -153,7 +203,10 @@ fn offline_route_fails_with_online_only() {
     let decision = session.resolve_route(&intent);
 
     // OnlineOnly never caches — no cache entry exists
-    let has_cache = session.cache().get(decision.profile, "/live/scores").is_some();
+    let has_cache = session
+        .cache()
+        .get(decision.profile, "/live/scores")
+        .is_some();
     assert!(!has_cache);
 
     // OnlineOnly fails offline
@@ -164,12 +217,21 @@ fn offline_route_fails_with_online_only() {
 
 #[test]
 fn mutation_queue_integrates_with_connectivity() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     // Go offline, enqueue
     session.set_online(false);
-    session.mutation_queue().enqueue("create", serde_json::json!({"item": "x"}));
-    session.mutation_queue().enqueue("update", serde_json::json!({"id": 1}));
+    let _ = session
+        .mutation_queue()
+        .enqueue("create", serde_json::json!({"item": "x"}));
+    let _ = session
+        .mutation_queue()
+        .enqueue("update", serde_json::json!({"id": 1}));
     assert_eq!(session.mutation_queue().pending_count(), 2);
 
     // Come online, replay

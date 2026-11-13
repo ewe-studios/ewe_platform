@@ -1,9 +1,13 @@
 //! Error types for `foundation_wireguard`.
 
 use derive_more::{Display, Error, From};
+use foundation_errstacks::ErrorTrace;
 
 /// Convenience alias for results in this crate.
-pub type WgResult<T> = Result<T, WgError>;
+///
+/// The error is an errstacks trace that carries [`WgError`] as its
+/// current context and keeps the history of the layers it crossed.
+pub type WgResult<T> = Result<T, ErrorTrace<WgError>>;
 
 /// WHY: One error type spanning key parsing, tunnel crypto, and transport so callers
 /// handle a single `Result`.
@@ -40,7 +44,7 @@ pub enum WgError {
     #[display("randomness unavailable: {_0}")]
     Random(getrandom::Error),
 
-    /// The WireGuard Noise layer reported an error.
+    /// The `WireGuard` Noise layer reported an error.
     #[display("wireguard protocol error: {_0}")]
     #[from(ignore)]
     Protocol(#[error(not(source))] String),
@@ -53,4 +57,14 @@ pub enum WgError {
     #[display("config error: {_0}")]
     #[from(ignore)]
     Config(#[error(not(source))] String),
+
+    /// A hole punch failed and the session has no relay to fall back to.
+    #[display("hole punching failed and no relay is configured")]
+    NoRelayForPunchedSession,
+}
+
+impl From<WgError> for ErrorTrace<WgError> {
+    fn from(err: WgError) -> Self {
+        ErrorTrace::new(err)
+    }
 }

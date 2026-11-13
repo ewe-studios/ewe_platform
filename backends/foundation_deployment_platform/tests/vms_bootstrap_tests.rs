@@ -44,10 +44,16 @@ fn test_windows_bootstrap_mise_toml_has_required_tools() {
 // From bootstrap/logger.rs
 #[test]
 fn test_logger_creates_directory() {
+    use foundation_context::MonotonicClock;
     use foundation_deployment_platform::bootstrap::logger::BootstrapLogger;
     use std::path::PathBuf;
+    use std::sync::Arc;
 
-    let logger = BootstrapLogger::new("test-logger-tmp").unwrap();
+    let logger = BootstrapLogger::new(
+        "test-logger-tmp",
+        foundation_context::Ctx::fixed(Arc::new(MonotonicClock::new())),
+    )
+    .unwrap();
     assert!(PathBuf::from(".testbed/test-logger-tmp").exists());
     assert!(logger.log_path().exists());
     let _ = std::fs::remove_dir_all(".testbed/test-logger-tmp");
@@ -56,6 +62,7 @@ fn test_logger_creates_directory() {
 // From bootstrap/boot_wait.rs
 #[test]
 fn test_wait_for_ssh_times_out_on_unreachable_port() {
+    use foundation_context::MonotonicClock;
     use foundation_deployment_platform::bootstrap::boot_wait::wait_for_ssh;
     use foundation_deployment_platform::config::get_profile;
 
@@ -63,6 +70,7 @@ fn test_wait_for_ssh_times_out_on_unreachable_port() {
     // Use a different port for this test
     let mut test_profile = profile.clone();
     test_profile.ssh_port = 64000;
-    let result = wait_for_ssh(&test_profile, 1);
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
+    let result = wait_for_ssh(&test_profile, 1, &ctx);
     assert!(result.is_err());
 }

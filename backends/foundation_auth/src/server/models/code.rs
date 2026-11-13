@@ -1,8 +1,9 @@
 //! Authorization code and device code entities.
 
+use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
@@ -22,6 +23,12 @@ pub struct AuthorizationCode {
 
 impl AuthorizationCode {
     #[must_use]
+    // An authorization code names each OAuth field explicitly, so the
+    // constructor stays in one place with the stored row.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "one explicit constructor for the OAuth code row"
+    )]
     pub fn new(
         user_id: String,
         client_id: String,
@@ -30,8 +37,9 @@ impl AuthorizationCode {
         scope: String,
         nonce: Option<String>,
         ttl: Duration,
+        ctx: &Ctx,
     ) -> Self {
-        let now = Utc::now().timestamp_millis();
+        let now = now_millis(ctx);
         Self {
             code: generate_random_code(64),
             user_id,
@@ -40,14 +48,14 @@ impl AuthorizationCode {
             code_challenge,
             scope,
             nonce,
-            expires_at: now + ttl.as_millis() as i64,
+            expires_at: now.saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
             created_at: now,
         }
     }
 
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp_millis() >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_millis(ctx) >= self.expires_at
     }
 
     #[must_use]
@@ -76,14 +84,14 @@ pub struct DeviceCode {
 
 impl DeviceCode {
     #[must_use]
-    pub fn new(client_id: String, scope: String, ttl: Duration, interval: u32) -> Self {
-        let now = Utc::now().timestamp_millis();
+    pub fn new(client_id: String, scope: String, ttl: Duration, interval: u32, ctx: &Ctx) -> Self {
+        let now = now_millis(ctx);
         Self {
             device_code: generate_random_code(64),
             user_code: generate_user_code(),
             client_id,
             scope,
-            expires_at: now + ttl.as_millis() as i64,
+            expires_at: now.saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
             interval,
             user_id: None,
             created_at: now,
@@ -91,8 +99,8 @@ impl DeviceCode {
     }
 
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp_millis() >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_millis(ctx) >= self.expires_at
     }
 
     #[must_use]
@@ -120,4 +128,3 @@ fn generate_user_code() -> String {
     }
     code
 }
-

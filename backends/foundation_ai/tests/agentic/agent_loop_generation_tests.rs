@@ -29,7 +29,8 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, ToolArguments, UserModelContent,
 };
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventQueue, TaskIterator, TaskSpread, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestMemStore = KvMemoryStore<MemoryStorage>;
@@ -40,8 +41,8 @@ type TestDocStore = MemoryDocumentStore;
 
 struct Harness {
     agent: AgentLoop<TestDocStore, TestMemStore>,
-    follow_up: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
-    priority: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
+    follow_up: EventQueue<Messages>,
+    priority: EventQueue<Messages>,
     cancel: Arc<std::sync::atomic::AtomicU32>,
     ledger: TokenLedger,
 }
@@ -89,8 +90,8 @@ fn harness_with_models(
     );
 
     let queues = SteeringQueues::new();
-    let follow_up = Arc::clone(&queues.follow_up);
-    let priority = Arc::clone(&queues.priority);
+    let follow_up = queues.follow_up.clone();
+    let priority = queues.priority.clone();
     let cancel = Arc::clone(&queues.cancel_signal);
 
     let memory = MemoryHierarchy::new(
@@ -101,6 +102,9 @@ fn harness_with_models(
         ),
         ledger.clone(),
         MemoryConfig::default(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     let tool_manager = ToolCallManager::new(session_id.clone());
@@ -151,7 +155,7 @@ fn user_msg(text: &str) -> Messages {
 fn drive(h: &mut Harness) -> Vec<SessionRecord> {
     let mut records = Vec::new();
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::new()) {
+        match h.agent.next_status(Ctx::host()) {
             None => return records,
             Some(TaskStatus::Ready(record)) => records.push(record),
             Some(TaskStatus::Spread(items)) => {
@@ -248,7 +252,7 @@ fn loop_terminates_and_yields_none() {
 
     drive(&mut h);
     assert!(
-        h.agent.next_status(Ctx::new()).is_none(),
+        h.agent.next_status(Ctx::host()).is_none(),
         "a completed loop must keep yielding None"
     );
 }
@@ -676,9 +680,18 @@ fn assembled_interaction_carries_system_message_and_tools() {
     let _ = h.follow_up.push(user_msg("find me something"));
     drive(&mut h);
 
-    assert!(saw_system.load(Ordering::SeqCst), "interaction must carry the system prompt");
-    assert!(saw_user.load(Ordering::SeqCst), "interaction must carry the user message text");
-    assert!(saw_tool.load(Ordering::SeqCst), "interaction must carry the registered tools");
+    assert!(
+        saw_system.load(Ordering::SeqCst),
+        "interaction must carry the system prompt"
+    );
+    assert!(
+        saw_user.load(Ordering::SeqCst),
+        "interaction must carry the user message text"
+    );
+    assert!(
+        saw_tool.load(Ordering::SeqCst),
+        "interaction must carry the registered tools"
+    );
 }
 
 /// Matrix 4.5 — a tool's result is fed back into the model on the next inner
@@ -771,7 +784,12 @@ fn context_pressure_note_injected_when_over_threshold() {
     let mut mock = MockModelProvider::new();
     mock.on(
         move |mi| {
-            if mi.system_prompt.as_deref().unwrap_or("").contains("capacity") {
+            if mi
+                .system_prompt
+                .as_deref()
+                .unwrap_or("")
+                .contains("capacity")
+            {
                 flag.store(true, Ordering::SeqCst);
             }
             true
@@ -830,7 +848,9 @@ fn preflight_compression_drops_oldest_when_over_budget() {
     // Persist several history messages (each ~a few tokens) so the assembled
     // context far exceeds 0.85 * 5 tokens.
     for i in 0..8 {
-        let _ = h.follow_up.push(user_msg(&format!("history message number {i} with some words")));
+        let _ = h.follow_up.push(user_msg(&format!(
+            "history message number {i} with some words"
+        )));
     }
 
     drive(&mut h);
@@ -841,7 +861,10 @@ fn preflight_compression_drops_oldest_when_over_budget() {
         n < 8,
         "an over-budget context must be compressed below the full history (sent {n} of 8)"
     );
-    assert!(n >= 1, "compression must keep at least the newest message (sent {n})");
+    assert!(
+        n >= 1,
+        "compression must keep at least the newest message (sent {n})"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -854,11 +877,7 @@ fn preflight_compression_drops_oldest_when_over_budget() {
 // dependent tool before the tool it needs.
 
 /// An assistant tool-call message whose call carries explicit `depends_on` ids.
-fn tool_call_with_deps(
-    call_id: &str,
-    name: &str,
-    depends_on: Vec<String>,
-) -> Messages {
+fn tool_call_with_deps(call_id: &str, name: &str, depends_on: Vec<String>) -> Messages {
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("mock".into(), None),
@@ -1125,7 +1144,7 @@ fn a_priority_message_during_generation_discards_and_reassembles() {
     let mut saw_mid_gen_steering = false;
 
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::new()) {
+        match h.agent.next_status(Ctx::host()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 // The loop is now inside InnerGenerate. Inject here so the
@@ -1168,7 +1187,7 @@ fn mid_generation_steering_drains_the_priority_queue() {
 
     let mut injected = false;
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::new()) {
+        match h.agent.next_status(Ctx::host()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 if !injected {

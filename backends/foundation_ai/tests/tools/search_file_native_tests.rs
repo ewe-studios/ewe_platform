@@ -29,7 +29,12 @@ fn native_search_file_finds_repo_content_via_cascade() {
     futures_lite::future::block_on(async {
         // Empty in-memory FS as the fallback tier; the native cascade searches
         // the REAL filesystem rooted at the crate dir (cwd during `cargo test`).
-        let tool = SearchFileTool::native(Arc::new(MemoryFs::new()), ".".to_string());
+        let tool = SearchFileTool::native(
+            Arc::new(MemoryFs::new(foundation_context::Ctx::fixed(
+                std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+            ))),
+            ".".to_string(),
+        );
 
         // A token that exists in this crate's committed source (the F18 method).
         let mut args = ToolArguments::new();
@@ -49,6 +54,10 @@ fn native_search_file_finds_repo_content_via_cascade() {
             "the native cascade must find the committed token in the crate source; got: {json}"
         );
         // A pure in-code searcher over the empty MemoryFs would return "[]".
-        assert_ne!(json.trim(), "[]", "native cascade should not be empty over the real repo");
+        assert_ne!(
+            json.trim(),
+            "[]",
+            "native cascade should not be empty over the real repo"
+        );
     });
 }

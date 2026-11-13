@@ -15,7 +15,11 @@ use foundation_db::{DocumentStore, LibsqlStore, SqlDocumentStore};
 use futures_lite::StreamExt;
 
 async fn store() -> SqlDocumentStore<LibsqlStore> {
-    SqlDocumentStore::new(LibsqlStore::in_memory().await.unwrap())
+    SqlDocumentStore::new(
+        LibsqlStore::in_memory(foundation_context::Ctx::host())
+            .await
+            .unwrap(),
+    )
 }
 
 #[valtron_test]
@@ -24,7 +28,13 @@ async fn append_scan_count_and_delete_over_libsql() {
 
     let mut ids = Vec::new();
     for n in 0..3 {
-        ids.push(store.append("k", serde_json::json!({ "n": n })).await.unwrap().id);
+        ids.push(
+            store
+                .append("k", serde_json::json!({ "n": n }))
+                .await
+                .unwrap()
+                .id,
+        );
     }
     assert_eq!(store.count("k").await.unwrap(), 3);
 
@@ -41,7 +51,10 @@ async fn append_scan_count_and_delete_over_libsql() {
         .map(Result::unwrap)
         .collect()
         .await;
-    assert_eq!(from_second, vec![serde_json::json!({"n": 1}), serde_json::json!({"n": 2})]);
+    assert_eq!(
+        from_second,
+        vec![serde_json::json!({"n": 1}), serde_json::json!({"n": 2})]
+    );
 
     store.delete("k", &ids[0]).await.unwrap();
     assert_eq!(store.count("k").await.unwrap(), 2);

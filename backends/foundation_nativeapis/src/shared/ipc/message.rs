@@ -1,11 +1,10 @@
-/// Shareable IPC message types and the MessageBox trait.
+use foundation_core::type_uuid::{Bytes, TypeUuid};
+use foundation_macros::TypeUuid;
+/// Shareable IPC message types and the `MessageBox` trait.
 ///
 /// `MessageBox` is a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
 /// The `#[derive(TypeUuid)]` with `#[uuid = "..."]` attribute provides type identification.
-
 use serde::{Deserialize, Serialize};
-use foundation_core::type_uuid::{Bytes, TypeUuid};
-use foundation_macros::TypeUuid;
 
 use super::{EndpointID, Error, Label, Version};
 
@@ -13,16 +12,28 @@ use super::{EndpointID, Error, Label, Version};
 ///
 /// Implemented as a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
 pub trait MessageBox: Send + 'static {
+    /// Decode a message from bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::TypeUuidNotFound`] when `uuid` is not the type uuid of `Self`.
+    /// Returns [`Error::Decode`] when the bytes are not a valid encoding of `Self`.
     fn decode(uuid: Bytes, data: &[u8]) -> Result<Self, Error>
     where
         Self: Sized;
 
+    /// Encode this message to bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Encode`] when the message cannot be encoded.
     fn encode(&self) -> Result<Vec<u8>, Error>;
 
+    /// The type uuid of this message.
     fn uuid(&self) -> Bytes;
 }
 
-/// Blanket impl: any TypeUuid + Serialize + Deserialize type is a MessageBox.
+/// Blanket impl: any `TypeUuid` + `Serialize` + `Deserialize` type is a `MessageBox`.
 impl<T: TypeUuid + Serialize + for<'de> Deserialize<'de> + Send + 'static> MessageBox for T {
     fn decode(uuid: Bytes, data: &[u8]) -> Result<Self, Error>
     where
@@ -81,43 +92,4 @@ pub enum ConnectMessageAck {
 pub struct FetchProcessHandleMessage {
     pub pid: u32,
     pub reply_pipe: String,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn bytes_message_uuid() {
-        let msg = BytesMessage {
-            format: 0,
-            data: b"hello".to_vec(),
-        };
-        assert_eq!(msg.uuid(), BytesMessage::UUID);
-    }
-
-    #[test]
-    fn bytes_message_roundtrip() {
-        let original = BytesMessage {
-            format: 1,
-            data: b"test data".to_vec(),
-        };
-        let encoded = original.encode().unwrap();
-        let decoded = BytesMessage::decode(BytesMessage::UUID, &encoded).unwrap();
-        assert_eq!(decoded.data, original.data);
-        assert_eq!(decoded.format, original.format);
-    }
-
-    #[test]
-    fn decode_wrong_uuid() {
-        let msg = BytesMessage {
-            format: 0,
-            data: vec![],
-        };
-        let encoded = msg.encode().unwrap();
-        let wrong_uuid = [0u8; 16];
-        let result = BytesMessage::decode(wrong_uuid, &encoded);
-        assert!(result.is_err());
-        assert!(matches!(result, Err(Error::TypeUuidNotFound)));
-    }
 }

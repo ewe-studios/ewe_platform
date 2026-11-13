@@ -3,8 +3,10 @@
 //! Allows a resource server to validate an access token by querying the
 //! authorization server's introspection endpoint.
 
+use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
+use crate::shared::clock::now_seconds;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_context::Ctx;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -52,16 +54,12 @@ pub struct IntrospectionResult {
 impl IntrospectionResult {
     /// Check if the token is active and not expired.
     #[must_use]
-    pub fn is_valid(&self) -> bool {
+    pub fn is_valid(&self, ctx: &Ctx) -> bool {
         if !self.active {
             return false;
         }
         if let Some(exp) = self.exp {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_secs() as i64)
-                .unwrap_or(0);
-            if exp < now {
+            if exp < now_seconds(ctx) {
                 return false;
             }
         }
@@ -72,6 +70,7 @@ impl IntrospectionResult {
 /// Token introspection client.
 pub struct IntrospectionClient {
     http: DynNetClient,
+    max_error_body: usize,
 }
 
 impl Default for IntrospectionClient {
@@ -92,7 +91,17 @@ impl IntrospectionClient {
     /// test client).
     #[must_use]
     pub fn with_client(http: DynNetClient) -> Self {
-        Self { http }
+        Self {
+            http,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
+        }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Introspect a token at the given endpoint.
@@ -111,10 +120,16 @@ impl IntrospectionClient {
         client_id: &str,
         client_secret: &str,
     ) -> Result<IntrospectionResult, IntrospectionError> {
-        let body =
-            do_introspect(&self.http, introspection_url, token, client_id, client_secret).await?;
-        serde_json::from_str(&body)
-            .map_err(|e| IntrospectionError::ParseError(e.to_string()))
+        let body = do_introspect(
+            &self.http,
+            introspection_url,
+            token,
+            client_id,
+            client_secret,
+            self.max_error_body,
+        )
+        .await?;
+        serde_json::from_str(&body).map_err(|e| IntrospectionError::ParseError(e.to_string()))
     }
 }
 
@@ -167,12 +182,19 @@ async fn do_introspect(
     token: &str,
     client_id: &str,
     client_secret: &str,
+    max_error_body: usize,
 ) -> Result<String, IntrospectionError> {
     let body_text = format!("token={}", urlencoding::encode(token));
     let req = PreparedRequestBuilder::post(url)
         .map_err(|e| IntrospectionError::ConnectionFailed(format!("invalid URL: {e}")))?
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .header(SimpleHeader::AUTHORIZATION, basic_auth_header(client_id, client_secret))
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
+        .header(
+            SimpleHeader::AUTHORIZATION,
+            basic_auth_header(client_id, client_secret),
+        )
         .body_text(body_text)
         .build();
 
@@ -182,20 +204,19 @@ async fn do_introspect(
         .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
-    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
-    let body = try_collect_bytes(resp.take_body())
-        .map(|b| String::from_utf8_lossy(&b).to_string())
-        .map_err(|e| IntrospectionError::ConnectionFailed(format!("read body: {e}")))?;
-
     if status == 401 {
-        return Err(IntrospectionError::Unauthorized(body));
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
+        return Err(IntrospectionError::Unauthorized(text));
     }
     if !(200..300).contains(&status) {
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(IntrospectionError::ServerError {
-            status: status as u16,
-            message: body,
+            status: u16::try_from(status).unwrap_or(0),
+            message: text,
         });
     }
+    let body = read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| IntrospectionError::ConnectionFailed(format!("read body: {e}")))?;
     Ok(body)
 }

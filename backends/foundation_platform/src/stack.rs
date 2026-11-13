@@ -1,7 +1,7 @@
-//! WebView stack manager with multi-WebView pool (F29 Stage 3).
+//! `WebView` stack manager with multi-WebView pool (F29 Stage 3).
 //!
 //! v1: Basecamp single-WebView + screenshot model.
-//! v2 (F29): Multi-WebView pool — named WebViews for `ViewKind::WebView`
+//! v2 (F29): Multi-WebView pool — named `WebViews` for `ViewKind::WebView`
 //! routing, background preload, and three presentation modes (Morph,
 //! Replace, New).
 //!
@@ -83,22 +83,22 @@ impl WebViewSlot {
 
 // ── WebView pool (F29 Stage 3) ──────────────────────────────────────
 
-/// State of a WebView in the pool.
+/// State of a `WebView` in the pool.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WebViewState {
-    /// WebView exists but has no content loaded.
+    /// `WebView` exists but has no content loaded.
     Idle,
-    /// WebView is loading content in the background.
+    /// `WebView` is loading content in the background.
     Loading,
-    /// WebView has content loaded and is ready (but not visible).
+    /// `WebView` has content loaded and is ready (but not visible).
     Ready,
-    /// WebView is currently visible and active.
+    /// `WebView` is currently visible and active.
     Active,
-    /// WebView is being destroyed.
+    /// `WebView` is being destroyed.
     Destroying,
 }
 
-/// A handle to a WebView in the pool.
+/// A handle to a `WebView` in the pool.
 #[derive(Debug, Clone)]
 pub struct PooledWebView {
     pub label: String,
@@ -117,14 +117,14 @@ impl PooledWebView {
     }
 }
 
-/// Manages a pool of named WebViews for multi-WebView navigation.
+/// Manages a pool of named `WebViews` for multi-WebView navigation.
 ///
-/// The "main" WebView always exists. Additional WebViews are created
+/// The "main" `WebView` always exists. Additional `WebViews` are created
 /// on demand when `Presentation::New` or `ViewKind::WebView` directs
-/// navigation to a labeled WebView.
+/// navigation to a labeled `WebView`.
 #[derive(Debug, Default)]
 pub struct WebViewPool {
-    /// Label → WebView handle. "main" is always present.
+    /// Label → `WebView` handle. "main" is always present.
     views: HashMap<String, PooledWebView>,
 }
 
@@ -136,20 +136,20 @@ impl WebViewPool {
         Self { views }
     }
 
-    /// Get or create a WebView by label.
+    /// Get or create a `WebView` by label.
     pub fn get_or_create(&mut self, label: &str) -> &mut PooledWebView {
         self.views
             .entry(label.to_string())
             .or_insert_with(|| PooledWebView::new(label))
     }
 
-    /// Get a WebView by label. Returns `None` if not found.
+    /// Get a `WebView` by label. Returns `None` if not found.
     #[must_use]
     pub fn get(&self, label: &str) -> Option<&PooledWebView> {
         self.views.get(label)
     }
 
-    /// Return the first idle WebView (for reuse). Excludes "main".
+    /// Return the first idle `WebView` (for reuse). Excludes "main".
     #[must_use]
     pub fn find_idle(&self) -> Option<&PooledWebView> {
         self.views
@@ -157,21 +157,21 @@ impl WebViewPool {
             .find(|v| v.label != "main" && v.state == WebViewState::Idle)
     }
 
-    /// Mark a WebView's state.
+    /// Mark a `WebView`'s state.
     pub fn set_state(&mut self, label: &str, state: WebViewState) {
         if let Some(view) = self.views.get_mut(label) {
             view.state = state;
         }
     }
 
-    /// Mark a WebView's current route.
+    /// Mark a `WebView`'s current route.
     pub fn set_route(&mut self, label: &str, route: &str) {
         if let Some(view) = self.views.get_mut(label) {
             view.current_route = Some(route.to_string());
         }
     }
 
-    /// Number of WebViews in the pool.
+    /// Number of `WebViews` in the pool.
     #[must_use]
     pub fn len(&self) -> usize {
         self.views.len()
@@ -183,12 +183,12 @@ impl WebViewPool {
         self.views.is_empty()
     }
 
-    /// Remove a WebView from the pool by label (F35).
+    /// Remove a `WebView` from the pool by label (F35).
     pub fn remove(&mut self, label: &str) {
         self.views.remove(label);
     }
 
-    /// All WebView labels currently in the pool (F35 — Hotwire Native).
+    /// All `WebView` labels currently in the pool (F35 — Hotwire Native).
     #[must_use]
     pub fn labels(&self) -> Vec<String> {
         self.views.keys().cloned().collect()
@@ -201,7 +201,7 @@ impl WebViewPool {
 #[derive(Debug, Clone)]
 pub struct PreloadEntry {
     pub route: String,
-    /// Target WebView label for the preload.
+    /// Target `WebView` label for the preload.
     pub target_label: Option<String>,
 }
 
@@ -275,13 +275,13 @@ impl WebViewStack {
         }
     }
 
-    /// Access the WebView pool, if enabled.
+    /// Access the `WebView` pool, if enabled.
     #[must_use]
     pub fn pool(&self) -> Option<&WebViewPool> {
         self.pool.as_ref()
     }
 
-    /// Mutably access the WebView pool.
+    /// Mutably access the `WebView` pool.
     pub fn pool_mut(&mut self) -> Option<&mut WebViewPool> {
         self.pool.as_mut()
     }
@@ -317,11 +317,7 @@ impl WebViewStack {
     /// 2. Deactivate current: state → Screenshot
     /// 3. Create new slot, set Active
     /// 4. Navigate shared `WebView` to new route
-    pub fn push(
-        &mut self,
-        route: &str,
-        webview: &dyn WebViewOps,
-    ) {
+    pub fn push(&mut self, route: &str, webview: &dyn WebViewOps) {
         // 1. Capture screenshot of current active
         if let Some(slot) = self.slots.get_mut(self.active_index) {
             let ss = webview.screenshot();
@@ -358,9 +354,9 @@ impl WebViewStack {
 
         // Drop top slot, free its screenshot memory
         if let Some(top) = self.slots.get(self.active_index) {
-            self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                top.screenshot.as_ref().map_or(0, std::vec::Vec::len),
-            );
+            self.screenshot_bytes = self
+                .screenshot_bytes
+                .saturating_sub(top.screenshot.as_ref().map_or(0, std::vec::Vec::len));
         }
         self.slots.pop();
         self.active_index = self.slots.len() - 1;
@@ -426,13 +422,13 @@ impl WebViewStack {
 
     // ── Pool-aware push (F29 Stage 3) ─────────────────────────────
 
-    /// Push a new screen using a named WebView from the pool.
+    /// Push a new screen using a named `WebView` from the pool.
     ///
-    /// `Presentation::Push` creates a new WebView from the pool (or reuses
-    /// an idle one), pushes a new slot, and navigates. The old WebView stays
+    /// `Presentation::Push` creates a new `WebView` from the pool (or reuses
+    /// an idle one), pushes a new slot, and navigates. The old `WebView` stays
     /// alive in the background.
     ///
-    /// `Presentation::Replace` reuses the current WebView (same as `replace()`).
+    /// `Presentation::Replace` reuses the current `WebView` (same as `replace()`).
     /// `Presentation::Morph` updates in-place without stack change.
     pub fn push_with_presentation(
         &mut self,
@@ -450,9 +446,8 @@ impl WebViewStack {
             }
             foundation_ui_traits::Presentation::Push
             | foundation_ui_traits::Presentation::Modal => {
-                let label = target_label
-                    .map(String::from)
-                    .unwrap_or_else(|| format!("wv_{}", self.slots.len()));
+                let label =
+                    target_label.map_or_else(|| format!("wv_{}", self.slots.len()), String::from);
 
                 // Ensure pool exists
                 if self.pool.is_none() {
@@ -493,7 +488,7 @@ impl WebViewStack {
 
     // ── Background preload (F29 Stage 3) ───────────────────────────
 
-    /// Enqueue a route for background preload into an idle WebView.
+    /// Enqueue a route for background preload into an idle `WebView`.
     ///
     /// The preload is drained by calling `drain_preloads()` with a
     /// `WebViewOps` that supports navigation. Preloaded pages are
@@ -505,7 +500,7 @@ impl WebViewStack {
         });
     }
 
-    /// Drain the preload queue, navigating idle WebViews to preloaded
+    /// Drain the preload queue, navigating idle `WebViews` to preloaded
     /// routes. Returns the number of preloads processed.
     ///
     /// Call this after each navigation to keep the preload pipeline full.
@@ -559,9 +554,9 @@ impl WebViewStack {
     /// Mark a specific screenshot as stale — clear it.
     pub fn mark_screenshot_stale(&mut self, index: usize) {
         if let Some(slot) = self.slots.get_mut(index) {
-            self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                slot.screenshot.as_ref().map_or(0, std::vec::Vec::len),
-            );
+            self.screenshot_bytes = self
+                .screenshot_bytes
+                .saturating_sub(slot.screenshot.as_ref().map_or(0, std::vec::Vec::len));
             slot.clear_screenshot();
         }
     }
@@ -573,12 +568,11 @@ impl WebViewStack {
             || self.slot_with_screenshots() > self.config.max_screenshots
         {
             // Evict oldest screenshot (LRU: first slot with a screenshot)
-            let evicted = self.slots.iter_mut()
-                .find(|s| s.screenshot.is_some());
+            let evicted = self.slots.iter_mut().find(|s| s.screenshot.is_some());
             if let Some(slot) = evicted {
-                self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                    slot.screenshot.as_ref().map_or(0, std::vec::Vec::len),
-                );
+                self.screenshot_bytes = self
+                    .screenshot_bytes
+                    .saturating_sub(slot.screenshot.as_ref().map_or(0, std::vec::Vec::len));
                 slot.clear_screenshot();
             } else {
                 break;
@@ -615,7 +609,7 @@ impl WebViewStack {
         self.active_index = self.slots.len() - 1;
     }
 
-    /// Clear stack and set a new root route (no WebView ops).
+    /// Clear stack and set a new root route (no `WebView` ops).
     /// Used by `execute_decision` when `Presentation::Root`.
     pub fn set_root_slot(&mut self, route: &str) {
         self.screenshot_bytes = 0;

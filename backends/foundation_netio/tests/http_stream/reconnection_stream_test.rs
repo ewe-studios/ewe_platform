@@ -6,7 +6,6 @@ use foundation_netio::http_stream::ReconnectionError;
 use foundation_netio::http_stream::ReconnectionStatus;
 use foundation_netio::netcap::connection::Endpoint;
 use std::{net::TcpListener, result::Result, thread};
-use tracing;
 
 #[test]
 fn successfully_connects_on_first_try() {
@@ -25,6 +24,9 @@ fn successfully_connects_on_first_try() {
         endpoint,
         std::time::Duration::from_millis(500),
         SameBackoffDecider::new(std::time::Duration::from_millis(200)),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     let collected: Option<Result<ReconnectionStatus, ReconnectionError>> = stream.next();
@@ -46,16 +48,16 @@ fn fails_reconnection_after_max_retries() {
         endpoint,
         std::time::Duration::from_millis(50),
         SameBackoffDecider::new(std::time::Duration::from_millis(200)),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     let collected: Vec<Result<ReconnectionStatus, ReconnectionError>> = stream
         .filter(|item| match item {
             Ok(inner) => match inner {
                 ReconnectionStatus::Waiting(duration) => {
-                    if duration == &std::time::Duration::from_millis(200) {
-                        return true;
-                    }
-                    false
+                    duration == &std::time::Duration::from_millis(200)
                 }
                 _ => true,
             },

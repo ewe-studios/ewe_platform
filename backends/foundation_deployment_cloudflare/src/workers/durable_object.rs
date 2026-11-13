@@ -21,7 +21,7 @@
 //! `get_websockets_with_tag`), so idle sockets can hibernate and wake on
 //! message/alarm without a live Rust future.
 
-use worker::{Error, Result as WorkerResult, State, WebSocket};
+use worker::{Result as WorkerResult, State, WebSocket};
 
 /// Accept a WebSocket server socket on the DO state with the given tags,
 /// returning the client socket wrapped in a 101 Switching Protocols response.
@@ -186,9 +186,8 @@ mod tests {
         assert_eq!(reg.len(), 0);
 
         // Push a dummy entry to exercise the container logic.
-        reg.sockets.push(("dev1".into(), unsafe {
-            std::mem::zeroed()
-        }));
+        reg.sockets
+            .push(("dev1".into(), unsafe { std::mem::zeroed() }));
         assert_eq!(reg.len(), 1);
 
         reg.unregister("dev1");

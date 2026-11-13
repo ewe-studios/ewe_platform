@@ -6,7 +6,9 @@
 //!
 //! Types do not derive `PartialEq`, so we compare individual fields.
 
-use foundation_proxy::{proxy, BackendTarget, HealthCheckConfig, ProxyConfig, ServiceConfig, SslConfig, SslProvider};
+use foundation_proxy::{
+    proxy, BackendTarget, HealthCheckConfig, ProxyConfig, ServiceConfig, SslConfig, SslProvider,
+};
 use std::time::Duration;
 
 // ── Helpers ──
@@ -14,7 +16,11 @@ use std::time::Duration;
 fn assert_backend_eq(a: &BackendTarget, b: &BackendTarget) {
     assert_eq!(a.url, b.url, "backend url mismatch");
     assert_eq!(a.weight, b.weight, "backend weight mismatch for {}", a.url);
-    assert_eq!(a.max_connections, b.max_connections, "backend max_connections mismatch for {}", a.url);
+    assert_eq!(
+        a.max_connections, b.max_connections,
+        "backend max_connections mismatch for {}",
+        a.url
+    );
 }
 
 fn assert_health_check_eq(a: &HealthCheckConfig, b: &HealthCheckConfig) {
@@ -38,16 +44,38 @@ fn assert_ssl_provider_eq(a: &SslProvider, b: &SslProvider) {
             assert_eq!(k1, k2);
         }
         (SslProvider::None, SslProvider::None) => {}
-        _ => panic!("SslProvider mismatch: {a:?} vs {b:?}"),
+        // Name the variants, not their contents: the `Static` arm carries a
+        // certificate and its private key, and a panic message is written to the
+        // test log.
+        (a, b) => panic!("SslProvider mismatch: {} vs {}", kind(a), kind(b)),
+    }
+}
+
+/// The variant name of an [`SslProvider`], with none of its data.
+fn kind(provider: &SslProvider) -> &'static str {
+    match provider {
+        SslProvider::LetsEncrypt { .. } => "LetsEncrypt",
+        SslProvider::Cloudflare { .. } => "Cloudflare",
+        SslProvider::Static { .. } => "Static",
+        SslProvider::None => "None",
     }
 }
 
 fn assert_service_eq(a: &ServiceConfig, b: &ServiceConfig) {
     assert_eq!(a.name, b.name, "service name mismatch");
     assert_eq!(a.host, b.host, "service host mismatch for {}", a.name);
-    assert_eq!(a.path_prefix, b.path_prefix, "service path_prefix mismatch for {}", a.name);
-    assert_eq!(a.backends.len(), b.backends.len(), "service backends count mismatch for {}", a.name);
-    for (_i, (ab, bb)) in a.backends.iter().zip(b.backends.iter()).enumerate() {
+    assert_eq!(
+        a.path_prefix, b.path_prefix,
+        "service path_prefix mismatch for {}",
+        a.name
+    );
+    assert_eq!(
+        a.backends.len(),
+        b.backends.len(),
+        "service backends count mismatch for {}",
+        a.name
+    );
+    for (ab, bb) in a.backends.iter().zip(b.backends.iter()) {
         assert_backend_eq(ab, bb);
     }
     match (&a.health_check, &b.health_check) {
@@ -58,12 +86,29 @@ fn assert_service_eq(a: &ServiceConfig, b: &ServiceConfig) {
 }
 
 fn assert_configs_eq(macro_config: &ProxyConfig, builder_config: &ProxyConfig) {
-    assert_eq!(macro_config.domain, builder_config.domain, "domain mismatch");
-    assert_eq!(macro_config.public_ip, builder_config.public_ip, "public_ip mismatch");
-    assert_eq!(macro_config.bind_addr, builder_config.bind_addr, "bind_addr mismatch");
+    assert_eq!(
+        macro_config.domain, builder_config.domain,
+        "domain mismatch"
+    );
+    assert_eq!(
+        macro_config.public_ip, builder_config.public_ip,
+        "public_ip mismatch"
+    );
+    assert_eq!(
+        macro_config.bind_addr, builder_config.bind_addr,
+        "bind_addr mismatch"
+    );
     assert_ssl_provider_eq(&macro_config.ssl.provider, &builder_config.ssl.provider);
-    assert_eq!(macro_config.services.len(), builder_config.services.len(), "services count mismatch");
-    for (_i, (ms, bs)) in macro_config.services.iter().zip(builder_config.services.iter()).enumerate() {
+    assert_eq!(
+        macro_config.services.len(),
+        builder_config.services.len(),
+        "services count mismatch"
+    );
+    for (ms, bs) in macro_config
+        .services
+        .iter()
+        .zip(builder_config.services.iter())
+    {
         assert_service_eq(ms, bs);
     }
 }
@@ -140,7 +185,10 @@ fn test_proxy_macro_static_cert_ssl() {
         services: {},
     };
     let expected = ProxyConfig::new("example.com", "10.0.0.1")
-        .ssl(SslConfig::static_cert("/etc/ssl/cert.pem", "/etc/ssl/key.pem"))
+        .ssl(SslConfig::static_cert(
+            "/etc/ssl/cert.pem",
+            "/etc/ssl/key.pem",
+        ))
         .build();
     assert_configs_eq(&config, &expected);
 }
@@ -189,7 +237,10 @@ fn test_proxy_macro_service_no_backends() {
     assert_eq!(config.services.len(), 1);
     assert_eq!(config.services[0].name, "empty_svc");
     assert_eq!(config.services[0].host, "empty.example.com");
-    assert!(config.services[0].backends.is_empty());
+    assert_eq!(
+        config.services[0].backends,
+        [] as [foundation_proxy::BackendTarget; 0]
+    );
 }
 
 #[test]
@@ -248,10 +299,7 @@ fn test_proxy_macro_multiple_services() {
                 .backend("http://localhost:3000")
                 .health_check("/up", Duration::from_secs(5)),
         )
-        .service(
-            ServiceConfig::new("admin", "admin.example.com")
-                .backend("http://localhost:3001"),
-        )
+        .service(ServiceConfig::new("admin", "admin.example.com").backend("http://localhost:3001"))
         .build();
     assert_configs_eq(&config, &expected);
 }
@@ -310,6 +358,7 @@ fn test_proxy_macro_health_check_all_fields() {
                     timeout: Duration::from_secs(3),
                     healthy_threshold: 3,
                     unhealthy_threshold: 2,
+                    ..HealthCheckConfig::default()
                 }),
         )
         .build();

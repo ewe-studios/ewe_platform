@@ -24,7 +24,10 @@ fn is_auth(err: &foundation_errstacks::ErrorTrace<AgentRpcError>) -> bool {
 }
 
 /// base64url → JSON → re-encode, applying `edit` to the JSON object.
-fn tamper(encoded: &str, edit: impl FnOnce(&mut serde_json::Map<String, serde_json::Value>)) -> String {
+fn tamper(
+    encoded: &str,
+    edit: impl FnOnce(&mut serde_json::Map<String, serde_json::Value>),
+) -> String {
     let b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD;
     let mut json: serde_json::Value =
         serde_json::from_slice(&b64.decode(encoded).expect("base64")).expect("json");
@@ -47,7 +50,15 @@ fn the_shared_form_is_base64url_json_with_the_documented_fields() {
             .expect("base64"),
     )
     .expect("json");
-    for field in ["v", "alg", "public_key", "secret", "valid_from", "valid_until", "signature"] {
+    for field in [
+        "v",
+        "alg",
+        "public_key",
+        "secret",
+        "valid_from",
+        "valid_until",
+        "signature",
+    ] {
         assert!(json.get(field).is_some(), "missing {field}: {json}");
     }
     assert_eq!(json["alg"], "ed25519");
@@ -79,16 +90,27 @@ fn secrets_outside_their_window_are_refused() {
     let issued = secrets.issue_for(Duration::from_secs(60)).expect("issue");
     let t = issued.valid_from();
 
-    let err = secrets.verify_at(&issued.encode(), t + 60).expect_err("expired");
-    assert!(is_auth(&err) && err.current_context().to_string().contains("expired"), "{err:?}");
-    assert!(secrets.verify_at(&issued.encode(), t + 59).is_ok(), "last valid second");
+    let err = secrets
+        .verify_at(&issued.encode(), t + 60)
+        .expect_err("expired");
+    assert!(
+        is_auth(&err) && err.current_context().to_string().contains("expired"),
+        "{err:?}"
+    );
+    assert!(
+        secrets.verify_at(&issued.encode(), t + 59).is_ok(),
+        "last valid second"
+    );
 
     let later = SystemTime::now() + Duration::from_secs(3600);
     let future = secrets
         .issue_window(later, later + Duration::from_secs(60))
         .expect("issue");
     let err = secrets.verify(&future.encode()).expect_err("not yet valid");
-    assert!(err.current_context().to_string().contains("not valid yet"), "{err:?}");
+    assert!(
+        err.current_context().to_string().contains("not valid yet"),
+        "{err:?}"
+    );
 
     let past = SystemTime::now() - Duration::from_secs(120);
     let stale = secrets
@@ -132,7 +154,11 @@ fn tampering_with_any_signed_field_is_refused() {
         sig[0] ^= 1;
         o.insert("signature".into(), b64.encode(sig).into());
     });
-    for (what, bad) in [("window", stretched), ("secret", swapped), ("signature", forged)] {
+    for (what, bad) in [
+        ("window", stretched),
+        ("secret", swapped),
+        ("signature", forged),
+    ] {
         let err = secrets.verify(&bad).expect_err(what);
         assert!(is_auth(&err), "{what}: {err:?}");
         assert!(
@@ -140,7 +166,9 @@ fn tampering_with_any_signed_field_is_refused() {
             "{what}: {err:?}"
         );
         assert!(
-            !SignedSecret::decode(&bad).expect("well formed").verify_self_signed(),
+            !SignedSecret::decode(&bad)
+                .expect("well formed")
+                .verify_self_signed(),
             "{what}: the client-side check catches it too"
         );
     }
@@ -149,7 +177,9 @@ fn tampering_with_any_signed_field_is_refused() {
         assert!(is_auth(&secrets.verify(garbage).expect_err(garbage)));
     }
     assert!(matches!(
-        SignedSecret::decode("e30").expect_err("{}").current_context(),
+        SignedSecret::decode("e30")
+            .expect_err("{}")
+            .current_context(),
         AgentRpcError::Codec(_)
     ));
 }
@@ -159,17 +189,22 @@ fn secrets_from_another_key_are_refused() {
     let ours = signer();
     let theirs = signer();
     let foreign = theirs.issue().expect("issue");
-    assert!(foreign.verify_self_signed(), "validly signed — by someone else");
+    assert!(
+        foreign.verify_self_signed(),
+        "validly signed — by someone else"
+    );
     let err = ours.verify(&foreign.encode()).expect_err("foreign key");
     assert!(
-        err.current_context().to_string().contains("different signing key"),
+        err.current_context()
+            .to_string()
+            .contains("different signing key"),
         "{err:?}"
     );
 
     // Claiming our public key with their signature does not help either.
     let encoded = foreign.encode().to_string();
-    let ours_pk = base64::engine::general_purpose::URL_SAFE_NO_PAD
-        .encode(ours.signing_key().public_key());
+    let ours_pk =
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(ours.signing_key().public_key());
     let relabelled = tamper(&encoded, |o| {
         o.insert("public_key".into(), ours_pk.into());
     });
@@ -190,11 +225,17 @@ fn secrets_and_keys_are_never_printed() {
     .expect("json");
     let inner = json["secret"].as_str().expect("str").to_string();
     for shown in [format!("{secret:?}"), format!("{secret}")] {
-        assert!(!shown.contains(&inner) && !shown.contains(&encoded), "{shown}");
+        assert!(
+            !shown.contains(&inner) && !shown.contains(&encoded),
+            "{shown}"
+        );
     }
     let key_pem = secrets.signing_key().to_pkcs8_pem();
     let shown = format!("{:?}", secrets.signing_key());
-    assert!(!shown.contains("PRIVATE KEY") && !shown.contains(&key_pem[30..60]), "{shown}");
+    assert!(
+        !shown.contains("PRIVATE KEY") && !shown.contains(&key_pem[30..60]),
+        "{shown}"
+    );
 }
 
 #[test]
@@ -219,7 +260,9 @@ fn the_key_is_generated_on_first_start_and_reloaded_after() {
 
     // A secret signed before the restart still verifies with the reloaded key.
     let before = BootstrapSecrets::new(first).issue().expect("issue");
-    assert!(BootstrapSecrets::new(again).verify(&before.encode()).is_ok());
+    assert!(BootstrapSecrets::new(again)
+        .verify(&before.encode())
+        .is_ok());
 }
 
 #[test]
@@ -236,7 +279,9 @@ fn a_lost_key_is_regenerated_and_old_secrets_die_with_it() {
         .verify(&outstanding.encode())
         .expect_err("old secret");
     assert!(
-        err.current_context().to_string().contains("different signing key"),
+        err.current_context()
+            .to_string()
+            .contains("different signing key"),
         "{err:?}"
     );
 }
@@ -269,7 +314,10 @@ fn the_environment_variable_names_the_key() {
     let (key, origin) = SigningKey::load_or_generate(&config).expect("from env path");
     assert_eq!(origin, SigningKeyOrigin::Environment);
     assert_eq!(key.public_key(), operator_key.public_key());
-    assert!(!config.path().exists(), "nothing generated when the env names a key");
+    assert!(
+        !config.path().exists(),
+        "nothing generated when the env names a key"
+    );
 
     let inline = "EWE_AGENT_RPC_TEST_SIGNING_KEY_INLINE";
     std::env::set_var(inline, operator_key.to_pkcs8_pem().as_str());

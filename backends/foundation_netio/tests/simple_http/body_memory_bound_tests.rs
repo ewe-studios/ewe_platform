@@ -76,7 +76,7 @@ impl Read for Generated {
 }
 
 fn buffered<T: Read>(stream: &SharedByteBufferStream<T>) -> usize {
-    stream.do_once(|pointer| pointer.len())
+    stream.do_once(foundation_core::io::ioutils::ByteBufferPointer::len)
 }
 
 fn too_large(err: &(dyn std::error::Error + 'static)) -> Option<FrameTooLarge> {

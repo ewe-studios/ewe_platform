@@ -2,6 +2,7 @@
 
 use std::sync::{Arc, Mutex, Weak};
 
+use foundation_context::Ctx;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
@@ -11,7 +12,6 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
 use crate::wasm::dispatch::HttpAppCfDispatch;
 use crate::wasm::serve_cf::CfServe;
 use foundation_db::wasm::bindgen::cf::{D1Database, KVNamespace, R2Bucket};
@@ -32,12 +32,12 @@ async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError
         }
     }
 
-    let text_promise = req.text().map_err(|e| {
-        JsError::new(&format!("failed to get request text: {e:?}"))
-    })?;
-    let body_js = JsFuture::from(text_promise).await.map_err(|e| {
-        JsError::new(&format!("failed to read request body: {e:?}"))
-    })?;
+    let text_promise = req
+        .text()
+        .map_err(|e| JsError::new(&format!("failed to get request text: {e:?}")))?;
+    let body_js = JsFuture::from(text_promise)
+        .await
+        .map_err(|e| JsError::new(&format!("failed to read request body: {e:?}")))?;
     let body_text = body_js.as_string().unwrap_or_default();
     let body = if body_text.is_empty() {
         None
@@ -57,10 +57,10 @@ async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError
     Ok(simple_req)
 }
 
-/// Extract typed bindings from the CF env object and store them in the context bag.
-fn extract_cf_bindings(env: &JsValue, bag: &ContextBag) {
+/// Extract typed bindings from the CF env object and store them in the context.
+fn extract_cf_bindings(env: &JsValue, app_ctx: &Ctx) {
     if let Ok(db) = D1Database::from_env(env, "DB") {
-        bag.store(db);
+        app_ctx.store(db);
     }
 }
 
@@ -68,49 +68,71 @@ fn extract_cf_bindings(env: &JsValue, bag: &ContextBag) {
 #[wasm_bindgen]
 pub struct CfHttpApp {
     inner: Arc<HttpApp<Arc<dyn CfServe>>>,
+    /// The app's context. Each request forks it. The singleton sets it to
+    /// its own context, so init-time bindings survive every request.
+    app_ctx: Ctx,
 }
 
 #[wasm_bindgen]
 impl CfHttpApp {
     /// Create a new empty `CfHttpApp`.
+    ///
+    /// This is a host entry point: it uses the real host clock. A
+    /// deterministic host uses [`CfHttpApp::with_ctx`].
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            inner: Arc::new(HttpApp::new_cf()),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Dispatch a `Request` with CF `env` bindings through the app.
+    ///
+    /// Each request forks the app's context. The bindings stored at init, the
+    /// injected clock and the RNG stream reach the handler. The `env` bindings
+    /// and any inserts made during the request stay private to that request.
     #[wasm_bindgen(js_name = handleRequest)]
-    pub async fn handle_request(
-        &self,
-        req: Request,
-        env: JsValue,
-    ) -> Result<Response, JsError> {
+    pub async fn handle_request(&self, req: Request, env: JsValue) -> Result<Response, JsError> {
         let simple_req = request_from_cf(&req).await?;
-        let bag = Arc::new(ContextBag::new());
-        extract_cf_bindings(&env, &bag);
-        Ok(self.inner.dispatch_cf(bag, simple_req).await.map_err(|e| {
-            JsError::new(&format!("dispatch failed: {e:?}"))
-        })?)
+        let app_ctx = self.app_ctx.fork();
+        extract_cf_bindings(&env, &app_ctx);
+        Ok(self
+            .inner
+            .dispatch_cf(app_ctx, simple_req)
+            .await
+            .map_err(|e| JsError::new(&format!("dispatch failed: {e:?}")))?)
     }
 }
 
 impl CfHttpApp {
-    /// Create a `CfHttpApp` from an existing `HttpApp<Arc<dyn CfServe>>`.
-    pub fn from_app(app: HttpApp<Arc<dyn CfServe>>) -> Self {
+    /// Create an empty `CfHttpApp` from an explicit valtron [`Ctx`].
+    ///
+    /// This is the deterministic-test entry point: the app and every request
+    /// it dispatches read the injected clock and RNG stream.
+    pub fn with_ctx(ctx: Ctx) -> Self {
+        let app_ctx = ctx.with_empty_map();
         Self {
-            inner: Arc::new(app),
+            inner: Arc::new(HttpApp::with_context(app_ctx.clone())),
+            app_ctx,
         }
     }
 
-    /// Dispatch a `SimpleIncomingRequest` through the app with the given context bag.
+    /// Create a `CfHttpApp` from an existing `HttpApp<Arc<dyn CfServe>>`.
+    ///
+    /// The wrapper shares the app's own context.
+    pub fn from_app(app: HttpApp<Arc<dyn CfServe>>) -> Self {
+        let app_ctx = app.context().clone();
+        Self {
+            inner: Arc::new(app),
+            app_ctx,
+        }
+    }
+
+    /// Dispatch a `SimpleIncomingRequest` through the app with the given context.
     pub async fn dispatch(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> Result<Response, foundation_errstacks::ErrorTrace<crate::shared::serve::ServeError>> {
-        self.inner.dispatch_cf(bag, req).await
+        self.inner.dispatch_cf(app_ctx, req).await
     }
 
     /// Get the inner `HttpApp` reference for Rust-side route registration.
@@ -130,9 +152,6 @@ impl Default for CfHttpApp {
 /// Internal app state shared between all guards.
 struct AppState {
     app: Arc<CfHttpApp>,
-    /// Kept alive so bindings stored during init survive for the app lifetime.
-    #[allow(dead_code)]
-    bag: Arc<ContextBag>,
 }
 
 // Safety: wasm32 is single-threaded with no shared memory.
@@ -193,18 +212,41 @@ impl CfHttpAppSingleton {
 
     /// Initialize the app if not already initialized.
     ///
-    /// The closure receives an `Arc<ContextBag>` so you can store typed
-    /// bindings (D1, R2, KV, secrets) before building the `CfHttpApp`.
+    /// The closure receives a `Ctx` so you can store typed
+    /// bindings (D1, R2, KV, secrets) before building the `CfHttpApp`. The app
+    /// uses that context for every request.
     ///
     /// If already initialized, returns the existing guard and ignores the closure.
-    pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(builder: F) -> CfHttpAppGuard {
+    ///
+    /// This is a host entry point: it uses the real host clock. A deterministic
+    /// host uses [`CfHttpAppSingleton::get_or_init_with_ctx`].
+    pub fn get_or_init<F: FnOnce(Ctx) -> CfHttpApp>(builder: F) -> CfHttpAppGuard {
+        Self::get_or_init_with_ctx(Ctx::host(), builder)
+    }
+
+    /// Initialize the app from an explicit valtron [`Ctx`] if not initialized.
+    ///
+    /// The closure receives a `Ctx` built from `ctx`. Store typed
+    /// bindings in that context. Build the app with `HttpApp::with_context`, so
+    /// route factories also see the bindings. The singleton gives the context to
+    /// the app that the closure returns, so the bindings, the clock and the
+    /// RNG reach every request.
+    ///
+    /// If already initialized, returns the existing guard and ignores `ctx`
+    /// and the closure.
+    pub fn get_or_init_with_ctx<F: FnOnce(Ctx) -> CfHttpApp>(
+        ctx: Ctx,
+        builder: F,
+    ) -> CfHttpAppGuard {
         let mut weak = STATE.lock().unwrap();
         if let Some(arc) = weak.upgrade() {
             return CfHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::new());
-        let app = Arc::new(builder(bag.clone()));
-        let state = Arc::new(AppState { app, bag });
+        let app_ctx = ctx.with_empty_map();
+        let mut app = builder(app_ctx.clone());
+        app.app_ctx = app_ctx.clone();
+        let app = Arc::new(app);
+        let state = Arc::new(AppState { app });
         *weak = Arc::downgrade(&state);
         CfHttpAppGuard { state }
     }
@@ -216,28 +258,50 @@ impl CfHttpAppSingleton {
     /// - `BUCKET` → `R2Bucket`
     /// - `KV` → `KVNamespace`
     ///
-    /// The closure can store additional bindings before building the app.
+    /// The closure can store additional bindings before building the app. The
+    /// app uses the shared context for every request.
     /// If already initialized, returns the existing guard and ignores the closure.
-    pub fn get_or_init_with_env<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(
+    ///
+    /// This is a host entry point: it uses the real host clock. A deterministic
+    /// host uses [`CfHttpAppSingleton::get_or_init_with_env_and_ctx`].
+    pub fn get_or_init_with_env<F: FnOnce(Ctx) -> CfHttpApp>(
         env: &JsValue,
+        builder: F,
+    ) -> CfHttpAppGuard {
+        Self::get_or_init_with_env_and_ctx(env, Ctx::host(), builder)
+    }
+
+    /// Initialize the app from a raw CF env `JsValue` and an explicit valtron
+    /// [`Ctx`].
+    ///
+    /// Same binding extraction as [`CfHttpAppSingleton::get_or_init_with_env`],
+    /// but the context's clock and RNG come from `ctx`.
+    ///
+    /// If already initialized, returns the existing guard and ignores `ctx`
+    /// and the closure.
+    pub fn get_or_init_with_env_and_ctx<F: FnOnce(Ctx) -> CfHttpApp>(
+        env: &JsValue,
+        ctx: Ctx,
         builder: F,
     ) -> CfHttpAppGuard {
         let mut weak = STATE.lock().unwrap();
         if let Some(arc) = weak.upgrade() {
             return CfHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::new());
+        let app_ctx = ctx.with_empty_map();
         if let Ok(db) = D1Database::from_env(env, "DB") {
-            bag.store(db);
+            app_ctx.store(db);
         }
         if let Ok(bucket) = R2Bucket::from_env(env, "BUCKET") {
-            bag.store(bucket);
+            app_ctx.store(bucket);
         }
         if let Ok(kv) = KVNamespace::from_env(env, "KV") {
-            bag.store(kv);
+            app_ctx.store(kv);
         }
-        let app = Arc::new(builder(bag.clone()));
-        let state = Arc::new(AppState { app, bag });
+        let mut app = builder(app_ctx.clone());
+        app.app_ctx = app_ctx.clone();
+        let app = Arc::new(app);
+        let state = Arc::new(AppState { app });
         *weak = Arc::downgrade(&state);
         CfHttpAppGuard { state }
     }
@@ -245,12 +309,5 @@ impl CfHttpAppSingleton {
     /// Check if the app has been initialized.
     pub fn is_initialized() -> bool {
         STATE.lock().unwrap().upgrade().is_some()
-    }
-
-    /// Force-reset the singleton state. cfg-gated to `#[cfg(test)]`.
-    #[cfg(test)]
-    pub fn reset() {
-        let mut weak = STATE.lock().unwrap();
-        *weak = Weak::new();
     }
 }

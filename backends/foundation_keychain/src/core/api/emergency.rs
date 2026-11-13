@@ -20,6 +20,12 @@ pub struct EmergencyAccess {
 }
 
 /// `GET /api/emergency-access/{trusted,granted}` — currently always empty.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+// The handler API is async for every route, even when this one does no I/O.
+#[allow(clippy::unused_async)]
 pub async fn list(_ctx: &KeychainContext, _user_uuid: &str) -> AppResult<Vec<EmergencyAccess>> {
     Ok(Vec::new())
 }

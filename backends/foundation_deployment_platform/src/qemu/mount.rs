@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 /// The `guest_tag` is the name used inside the VM to identify the mount.
 ///
 /// Inside the VM: `mount -t 9p -o trans=virtio,version=9p2000.L <tag> /mnt/project`
+#[must_use]
 pub fn mount_args(host_path: &Path, guest_tag: &str, readonly: bool) -> Vec<String> {
     let security = if readonly {
         "mapped,readonly"
@@ -31,6 +32,7 @@ pub fn mount_args(host_path: &Path, guest_tag: &str, readonly: bool) -> Vec<Stri
 /// Returns:
 /// - QEMU args: `-chardev socket,...` + `-device vhost-user-fs-pci,...`
 /// - virtiofsd command to spawn before QEMU
+#[must_use]
 pub fn virtiofs_args(
     host_path: &Path,
     guest_tag: &str,
@@ -49,7 +51,7 @@ pub fn virtiofs_args(
 
     // vhost-user-fs PCI device with the mount tag
     qemu_args.push("-device".to_string());
-    let mut dev = format!("vhost-user-fs-pci,chardev={}_char,tag={}", guest_tag, guest_tag);
+    let mut dev = format!("vhost-user-fs-pci,chardev={guest_tag}_char,tag={guest_tag}");
     if readonly {
         dev.push_str(",readonly=on");
     }
@@ -74,7 +76,8 @@ impl VirtiofsdConfig {
     /// Build the command to spawn virtiofsd.
     ///
     /// Uses `--sandbox=none --seccomp=none` since we run as unprivileged user.
-    /// `--inode-file-handles=never` avoids CAP_DAC_READ_SEARCH requirement.
+    /// `--inode-file-handles=never` avoids `CAP_DAC_READ_SEARCH` requirement.
+    #[must_use]
     pub fn command(&self) -> std::process::Command {
         let mut cmd = std::process::Command::new("/usr/lib/virtiofsd");
         cmd.args([
@@ -97,6 +100,7 @@ pub const DEFAULT_GUEST_PATH: &str = "/mnt/project";
 pub const DEFAULT_TAG: &str = "project";
 
 /// Generate the mount command to run inside the guest.
+#[must_use]
 pub fn guest_mount_command(tag: &str, guest_path: &str) -> String {
     format!(
         "sudo mkdir -p {guest_path} && \
@@ -105,12 +109,13 @@ pub fn guest_mount_command(tag: &str, guest_path: &str) -> String {
 }
 
 /// Generate an fstab entry for persistent mounts across VM reboots.
+#[must_use]
 pub fn fstab_entry(tag: &str, guest_path: &str) -> String {
     format!("{tag} {guest_path} 9p trans=virtio,version=9p2000.L 0 0")
 }
 
 /// Verify mount is active inside the guest (returns a command to run).
+#[must_use]
 pub fn verify_mount_command(guest_path: &str) -> String {
     format!("mount | grep -q {guest_path} && echo OK || echo MISSING")
 }
-

@@ -1,8 +1,10 @@
 //! Tests for `BackgroundJobRegistry` and `split_thread_count`.
 
 use foundation_core::valtron::{
-    split_thread_count, BackgroundJobConfig, BackgroundJobRegistry, ShutdownOutcome,
+    split_thread_count, BackgroundJobConfig, BackgroundJobError, BackgroundJobRegistry,
+    ShutdownOutcome,
 };
+
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
@@ -44,7 +46,7 @@ fn test_split_thread_count_panics_below_3() {
 /// WHAT: Submit a job that signals a channel, verify it ran
 #[test]
 fn test_submit_and_execute_job() {
-    let registry = BackgroundJobRegistry::new(2);
+    let registry = BackgroundJobRegistry::new(2).expect("spawn workers");
 
     let (done_tx, done_rx) = mpsc::channel();
     registry
@@ -58,7 +60,12 @@ fn test_submit_and_execute_job() {
         "job should have executed"
     );
 
-    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
 }
 
 /// WHY: Workers must survive panicking jobs
@@ -71,7 +78,7 @@ fn test_submit_and_execute_job() {
 fn test_panic_recovery() {
     // One worker: the job after the panic can only run if that same worker
     // survived the panic.
-    let registry = BackgroundJobRegistry::new(1);
+    let registry = BackgroundJobRegistry::new(1).expect("spawn workers");
 
     registry
         .submit(|| {
@@ -91,7 +98,12 @@ fn test_panic_recovery() {
         "worker should recover from panic and execute next job"
     );
 
-    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
 }
 
 /// WHY: shutdown must run every accepted job, then let workers exit cleanly
@@ -99,7 +111,7 @@ fn test_panic_recovery() {
 /// shutdown returns
 #[test]
 fn test_shutdown() {
-    let registry = BackgroundJobRegistry::new(2);
+    let registry = BackgroundJobRegistry::new(2).expect("spawn workers");
 
     let counter = Arc::new(AtomicUsize::new(0));
     for _ in 0..10 {
@@ -111,7 +123,12 @@ fn test_shutdown() {
             .expect("submit should succeed");
     }
 
-    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
 
     assert_eq!(
         counter.load(Ordering::SeqCst),
@@ -124,9 +141,14 @@ fn test_shutdown() {
 /// WHAT: Shut down registry, try to submit — should return Err
 #[test]
 fn test_submit_after_shutdown_fails() {
-    let registry = BackgroundJobRegistry::new(1);
+    let registry = BackgroundJobRegistry::new(1).expect("spawn workers");
 
-    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
 
     let result = registry.submit(|| {});
     assert!(result.is_err(), "submit after shutdown should fail");
@@ -146,7 +168,7 @@ fn registry_with_blocked_worker_config(
     config: BackgroundJobConfig,
     on_release: impl FnOnce() + Send + 'static,
 ) -> (Arc<BackgroundJobRegistry>, mpsc::Sender<()>) {
-    let registry = BackgroundJobRegistry::with_config(config);
+    let registry = BackgroundJobRegistry::with_config(config).expect("spawn workers");
     let (started_tx, started_rx) = mpsc::channel();
     let (release_tx, release_rx) = mpsc::channel::<()>();
     registry
@@ -168,7 +190,11 @@ fn registry_with_blocked_worker_config(
 fn begin_shutdown(registry: &Arc<BackgroundJobRegistry>) -> thread::JoinHandle<ShutdownOutcome> {
     let shutdown = {
         let registry = registry.clone();
-        thread::spawn(move || registry.shutdown())
+        thread::spawn(move || {
+            registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )))
+        })
     };
     let deadline = Instant::now() + JOB_DEADLINE;
     while registry.submit(|| {}).is_ok() {
@@ -258,7 +284,7 @@ fn test_submit_from_draining_job_is_rejected() {
 /// leaves a wide margin for a loaded machine.
 #[test]
 fn test_idle_worker_is_woken_by_submit() {
-    let registry = BackgroundJobRegistry::new(1);
+    let registry = BackgroundJobRegistry::new(1).expect("spawn workers");
 
     let start = Instant::now();
     for _ in 0..20 {
@@ -269,7 +295,12 @@ fn test_idle_worker_is_woken_by_submit() {
         done_rx.recv_timeout(JOB_DEADLINE).expect("job should run");
     }
     let elapsed = start.elapsed();
-    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
 
     assert!(
         elapsed < Duration::from_millis(500),
@@ -281,9 +312,14 @@ fn test_idle_worker_is_woken_by_submit() {
 /// WHAT: Shutdown of a pool whose workers are all idle returns promptly
 #[test]
 fn test_idle_shutdown_is_prompt() {
-    let registry = BackgroundJobRegistry::new(4);
+    let registry = BackgroundJobRegistry::new(4).expect("spawn workers");
     let start = Instant::now();
-    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
     let elapsed = start.elapsed();
     assert!(
         elapsed < Duration::from_millis(500),
@@ -317,7 +353,9 @@ fn test_shutdown_gives_up_at_the_timeout() {
     let shutdown_registry = registry.clone();
     thread::spawn(move || {
         let start = Instant::now();
-        let outcome = shutdown_registry.shutdown();
+        let outcome = shutdown_registry.shutdown(&foundation_context::Ctx::fixed(
+            std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+        ));
         outcome_tx
             .send((outcome, start.elapsed()))
             .expect("test alive");
@@ -383,4 +421,69 @@ fn test_default_shutdown_timeout() {
         config.shutdown_timeout(),
         BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT
     );
+}
+
+/// WHY: Feature 09 bounds the background queue. A `submit` that would exceed the
+/// configured capacity must return an error instead of buffering without limit.
+/// WHAT: One busy worker, a capacity-1 queue: the first queued job fills the
+/// slot, the second is rejected.
+#[test]
+fn background_registry_full_queue_returns_error() {
+    let (registry, release) =
+        registry_with_blocked_worker_config(BackgroundJobConfig::new(1).with_capacity(1), || {});
+
+    // The worker is busy on the blocker, so the single queue slot is free.
+    let (ran_tx, ran_rx) = mpsc::channel();
+    registry
+        .submit(move || ran_tx.send(()).expect("test alive"))
+        .expect("first queued job fits");
+
+    // The queue is now full. The next submit must fail, not block or grow.
+    let result = registry.submit(|| {});
+    assert!(result.is_err(), "submit past capacity must return an error");
+
+    release.send(()).expect("blocker alive");
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
+    ran_rx
+        .recv_timeout(JOB_DEADLINE)
+        .expect("queued job should run");
+}
+
+/// WHY: Feature 09 makes `BackgroundJobRegistry::new` return a `Result`, so a
+/// spawn failure is a value, not a panic. A real OS spawn failure needs a
+/// resource limit (or a broken thread name), which a test cannot inject without
+/// unsafe tricks. This pins the error type and the success path end to end.
+#[test]
+fn background_registry_spawn_failure_is_an_error() {
+    let err: BackgroundJobError = BackgroundJobError::SpawnFailed;
+    assert_eq!(err, BackgroundJobError::SpawnFailed);
+
+    let registry: Result<Arc<BackgroundJobRegistry>, BackgroundJobError> =
+        BackgroundJobRegistry::new(1);
+    let registry = registry.expect("one worker must spawn");
+    assert_eq!(registry.num_threads(), 1);
+    assert_eq!(
+        registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))),
+        ShutdownOutcome::Completed
+    );
+}
+
+/// WHY: the documented panic boundary for a zero-sized pool is the *other* side
+/// of the spawn-failure contract: construction errors are values, but a zero
+/// worker count is a programming error.
+#[test]
+#[should_panic(expected = "at least 1 thread")]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding"
+)]
+fn background_registry_new_panics_on_zero_threads() {
+    let _ = BackgroundJobRegistry::new(0);
 }

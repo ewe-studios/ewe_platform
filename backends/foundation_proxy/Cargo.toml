@@ -1,6 +1,6 @@
 [package]
 name = "foundation_proxy"
-version = "0.1.2"
+version = "0.1.9"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -9,19 +9,20 @@ repository.workspace = true
 description = "Reverse proxy — SSL termination, zero-downtime deploys, health-check routing"
 
 [dependencies]
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
-foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
-foundation_http = { path = "../foundation_http", version = "0.0.3", features = ["multi", "ssl"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
-foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3", features = ["fd"] }
-foundation_db = { path = "../foundation_db", version = "0.0.4" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
-foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.3", optional = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
+foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_http = { path = "../foundation_http", version = "0.0.12", features = ["multi", "ssl"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.14", features = ["ssl", "multi"] }
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.5" }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15", features = ["fd"] }
+foundation_db = { path = "../foundation_db", version = "0.0.8" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.21" }
 # T3/T4: the proxy's H2 upstream leg reuses connectrpc's streaming H2 client
 # (`H2Transport`) — the only H2 client in the tree with trailing-HEADERS support.
 # `default-features = false` keeps it lean: we only need the transport seam.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3", default-features = false }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.13", default-features = false }
 
 serde.workspace = true
 serde_json.workspace = true
@@ -29,6 +30,9 @@ toml.workspace = true
 sha2 = "0.10"
 base64 = "0.22"
 bytes = "1"
+# `flock` for the cross-process state lock (`File::try_lock` needs Rust 1.89;
+# the workspace MSRV is 1.87).
+libc = "0.2"
 derive_more.workspace = true
 tracing.workspace = true
 chrono.workspace = true
@@ -38,13 +42,15 @@ chrono.workspace = true
 p256 = { version = "0.13", features = ["ecdsa", "pem"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
-# Drive the ACME provisioning future to completion at startup (its I/O is the
-# shared client's blocking send, so it resolves in a single poll).
+# Drive the ACME provisioning future to completion at startup (its client I/O
+# and DNS wait are async, and block_on re-polls after each yield).
 futures-lite = "2"
 # Stream combinators (`StreamExt`) and `join` for the async H2 forward relays.
 futures-util = "0.3"
 
 [dev-dependencies]
+# The clock injection test moves a `SimulatedClock`; `test-clock` exposes it.
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
 foundation_deployment_platform = { path = "../foundation_deployment_platform" }
 # The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
 # `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.
@@ -54,7 +60,10 @@ serial_test = "3"
 
 [features]
 default = []
-cloudflare = ["foundation_deployment_cloudflare"]
+# Kept as a name only: `SslConfig::cloudflare` and the `proxy!` macro do not need
+# it. The proxy has no Cloudflare DNS-01 code (the ACME flow takes a caller-made
+# DNS setter), so the feature pulls in no dependency.
+cloudflare = []
 docker-tests = []
 # HTTP/3 (QUIC) proxy front end (F19): enables the H3 serving layer and handler.
 quic = ["foundation_http/quic", "foundation_netio/quic"]
@@ -71,4 +80,22 @@ workspace = true
 [[test]]
 name = "h3_integration_tests"
 path = "tests/h3_integration_tests.rs"
+required-features = ["quic"]
+
+# HTTP/3 streaming test (F70 E3) — real QUIC front end, quic-gated.
+[[test]]
+name = "h3_streaming_tests"
+path = "tests/h3_streaming_tests.rs"
+required-features = ["quic"]
+
+# HTTP/3 request-body tests (F72 E1) — real QUIC front end, quic-gated.
+[[test]]
+name = "h3_request_body_tests"
+path = "tests/h3_request_body_tests.rs"
+required-features = ["quic"]
+
+# Idle QUIC listener CPU test (F75 E2) — quic-gated.
+[[test]]
+name = "idle_quic_listener_tests"
+path = "tests/idle_quic_listener_tests.rs"
 required-features = ["quic"]

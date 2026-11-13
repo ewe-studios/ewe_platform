@@ -9,16 +9,27 @@
 use std::sync::Arc;
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
-use foundation_nativeapis::shared::vfs::{OpenMode, SeekableVfsFile, VfsFileSystem};
 use foundation_nativeapis::native::vfs::libsql_delta::LibsqlDelta;
 use foundation_nativeapis::shared::vfs::exec_async::exec_async;
 use foundation_nativeapis::shared::vfs::SyncFs;
+use foundation_nativeapis::shared::vfs::{OpenMode, SeekableVfsFile, VfsFileSystem};
 
 /// Opens a `LibsqlDelta` and wraps it in `SyncFs`, the sync face of an
 /// I/O-backed store.
 fn open_sync(path: &std::path::Path) -> SyncFs<LibsqlDelta> {
     let path = path.to_path_buf();
-    SyncFs::new(exec_async(async move { LibsqlDelta::new(path).await }).unwrap())
+    SyncFs::new(
+        exec_async(async move {
+            LibsqlDelta::new(
+                path,
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .await
+        })
+        .unwrap(),
+    )
 }
 
 fn init_pool() -> PoolGuard {
@@ -118,8 +129,13 @@ fn seekable_concurrent_reads() {
             assert_eq!(n, 10);
 
             for (i, &b) in buf.iter().enumerate() {
-                assert_eq!(b, data[offset as usize + i],
-                    "byte mismatch at offset {}+{}", offset, i);
+                assert_eq!(
+                    b,
+                    data[offset as usize + i],
+                    "byte mismatch at offset {}+{}",
+                    offset,
+                    i
+                );
             }
         }));
     }
@@ -140,7 +156,9 @@ fn seekable_write_position_tracking() {
 
     sync.write_file("/write.txt", b"initial").unwrap();
 
-    let mut seekable = sync.open_seekable("/write.txt", OpenMode::ReadWrite).unwrap();
+    let mut seekable = sync
+        .open_seekable("/write.txt", OpenMode::ReadWrite)
+        .unwrap();
 
     // Seek to end and append
     let size = seekable.seek(std::io::SeekFrom::End(0)).unwrap();
@@ -194,7 +212,9 @@ fn seekable_no_panic_under_concurrency() {
 
     // Sequential writes verify correctness without contention
     for i in 0..5usize {
-        let mut seekable = sync.open_seekable("/concurrent.bin", OpenMode::ReadWrite).unwrap();
+        let mut seekable = sync
+            .open_seekable("/concurrent.bin", OpenMode::ReadWrite)
+            .unwrap();
         let offset = (i * 100) as u64;
         seekable.seek(std::io::SeekFrom::Start(offset)).unwrap();
         let write_data: Vec<u8> = (0..50).map(|j| (j + i) as u8).collect();

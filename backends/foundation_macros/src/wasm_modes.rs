@@ -30,6 +30,10 @@ pub(crate) fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream 
     expand_mode("wasm_service", true, attr, item, true)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear expansion shared by the wasm worker and service modes"
+)]
 fn expand_mode(
     mode: &str,
     requires_routes: bool,
@@ -77,7 +81,10 @@ fn expand_mode(
             } else if meta.path.is_ident("extern") {
                 let value: syn::LitStr = meta.value()?.parse()?;
                 match value.value().as_str() {
-                    "true" => { extern_c = true; Ok(()) }
+                    "true" => {
+                        extern_c = true;
+                        Ok(())
+                    }
                     "false" => Ok(()),
                     other => Err(meta.error(format!(
                         "extern = \"{other}\" — expected \"true\" or \"false\""
@@ -94,8 +101,8 @@ fn expand_mode(
                 let value = meta.value()?;
                 let content;
                 syn::bracketed!(content in value);
-                let _routes =
-                    content.parse_terminated(<syn::LitStr as syn::parse::Parse>::parse, syn::Token![,])?;
+                let _routes = content
+                    .parse_terminated(<syn::LitStr as syn::parse::Parse>::parse, syn::Token![,])?;
                 Ok(())
             } else if meta.path.is_ident("target") {
                 let _: syn::LitStr = meta.value()?.parse()?;
@@ -103,14 +110,22 @@ fn expand_mode(
             } else if meta.path.is_ident("jsruntime_single") {
                 let value: syn::LitStr = meta.value()?.parse()?;
                 match value.value().as_str() {
-                    "true" => { jsruntime_single = true; Ok(()) }
-                    "false" => { jsruntime_single = false; Ok(()) }
+                    "true" => {
+                        jsruntime_single = true;
+                        Ok(())
+                    }
+                    "false" => {
+                        jsruntime_single = false;
+                        Ok(())
+                    }
                     other => Err(meta.error(format!(
                         "jsruntime_single = \"{other}\" — expected \"true\" or \"false\""
                     ))),
                 }
             } else {
-                Err(meta.error("expected js / encoded / extern / desc / routes / target / jsruntime_single"))
+                Err(meta.error(
+                    "expected js / encoded / extern / desc / routes / target / jsruntime_single",
+                ))
             }
         });
         if let Err(err) = syn::parse::Parser::parse2(parser, attr) {
@@ -191,7 +206,10 @@ mod tests {
     fn bad_values_rejected() {
         let out = err(&wasm_bin(quote! { js = "inline" }, quote! { fn f() {} }));
         assert!(out.contains("single-file"));
-        let out = err(&wasm_worker(quote! { routes = ["/x"] }, quote! { fn f() {} }));
+        let out = err(&wasm_worker(
+            quote! { routes = ["/x"] },
+            quote! { fn f() {} },
+        ));
         assert!(out.contains("only valid on"));
     }
 }

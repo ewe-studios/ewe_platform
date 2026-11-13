@@ -1,15 +1,15 @@
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, AgentSessionBuilder, AgenticError, KvMemoryStore,
-    MessageApiConfig, ModelSelection, SessionAccessProvider, TokenBudget, Turn,
+    AgentConfig, AgentSession, AgentSessionBuilder, AgenticError, KvMemoryStore, MessageApiConfig,
+    ModelSelection, SessionAccessProvider, TokenBudget, Turn,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
     UserModelContent,
 };
+use foundation_core::valtron::valtron_test;
 use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
@@ -44,11 +44,18 @@ fn empty_router() -> ProviderRouter {
 /// A builder over the in-memory stores with a primary model set — `build()`
 /// refuses a session without one.
 fn builder() -> AgentSessionBuilder {
-    AgentSession::builder(empty_router()).with_model("test-model")
+    AgentSession::builder(empty_router(), test_clock()).with_model("test-model")
 }
 
 // ---------------------------------------------------------------------------
 // Builder + preflight tests
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 #[valtron_test]
 async fn builder_creates_session_with_named_id() {
@@ -153,7 +160,8 @@ async fn preflight_denies_session_access() {
     let result: Result<TestSession, _> = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_access(Arc::new(DenySessionAccess))
-        .build().await;
+        .build()
+        .await;
 
     match result {
         Ok(_) => panic!("expected preflight to deny session access"),
@@ -169,7 +177,8 @@ async fn preflight_denies_model_access() {
     let result: Result<TestSession, _> = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_access(Arc::new(DenyModelAccess))
-        .build().await;
+        .build()
+        .await;
 
     match result {
         Ok(_) => panic!("expected preflight to deny model access"),
@@ -411,7 +420,7 @@ async fn builder_takes_model_names_as_strings() {
 
 #[valtron_test]
 async fn build_fails_when_no_model_was_set() {
-    let err = AgentSession::builder(empty_router())
+    let err = AgentSession::builder(empty_router(), test_clock())
         .build()
         .await
         .err()
@@ -426,7 +435,7 @@ async fn build_fails_when_no_model_was_set() {
 async fn config_without_models_does_not_satisfy_build() {
     // AgentConfig no longer carries a model, so passing one cannot stand in
     // for `with_model`.
-    let err = AgentSession::builder(empty_router())
+    let err = AgentSession::builder(empty_router(), test_clock())
         .with_config(AgentConfig::default())
         .build()
         .await
@@ -440,7 +449,7 @@ async fn config_without_models_does_not_satisfy_build() {
 
 #[valtron_test]
 async fn builder_fills_the_model_selection() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = AgentSession::builder(empty_router(), test_clock())
         .with_model("primary")
         .with_fallback_models(["first-fallback", "second-fallback"])
         .with_memory_model("memory")
@@ -501,7 +510,7 @@ async fn an_application_needs_only_the_agentic_root() {
         AgentSession, Answer, ModelSelection, ToolPreset, ToolShed, TurnEvent, TurnSummary,
     };
 
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = AgentSession::builder(empty_router(), test_clock())
         .with_model("test-model")
         .with_toolshed(ToolShed::new().tools(ToolPreset::shell()))
         .build()
@@ -521,7 +530,7 @@ mod failing_store {
 
     use async_trait::async_trait;
     use foundation_db::traits::{
-        DocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
+        AsyncStorageItemStream, Document, DocumentStore, PromotableDocument,
     };
     use foundation_db::{MemoryDocumentStore, StorageError, StorageResult};
     use serde::de::DeserializeOwned;
@@ -578,9 +587,7 @@ mod failing_store {
             self.check()?;
             self.inner.append_promotable(key, content).await
         }
-        async fn append_promotable_with_id<
-            V: Serialize + PromotableDocument + Send + 'static,
-        >(
+        async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
             &self,
             key: &str,
             doc_id: &str,
@@ -591,11 +598,7 @@ mod failing_store {
                 .append_promotable_with_id(key, doc_id, content)
                 .await
         }
-        async fn scan_documents(
-            &self,
-            key: &str,
-            limit: usize,
-        ) -> StorageResult<Vec<Document>> {
+        async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
             self.inner.scan_documents(key, limit).await
         }
         async fn scan_documents_from(
@@ -604,9 +607,7 @@ mod failing_store {
             from_id: &str,
             limit: usize,
         ) -> StorageResult<Vec<Document>> {
-            self.inner
-                .scan_documents_from(key, from_id, limit)
-                .await
+            self.inner.scan_documents_from(key, from_id, limit).await
         }
         async fn scan<V: DeserializeOwned + Send + 'static>(
             &self,
@@ -658,9 +659,7 @@ async fn end_returns_the_store_error_when_persisting_queued_messages_fails() {
     let session = session_over(&store).await;
 
     session.follow_up(user_msg("queued before end"));
-    store
-        .failing
-        .store(true, Ordering::SeqCst);
+    store.failing.store(true, Ordering::SeqCst);
 
     let err = session
         .end()
@@ -690,18 +689,17 @@ async fn end_retries_a_refused_record_once_the_store_recovers() {
 
     session.steer(user_msg("first"));
     session.follow_up(user_msg("second"));
-    store
-        .failing
-        .store(true, Ordering::SeqCst);
+    store.failing.store(true, Ordering::SeqCst);
     assert!(
         session.end().await.is_err(),
         "the flush fails while the store does"
     );
 
-    store
-        .failing
-        .store(false, Ordering::SeqCst);
-    session.end().await.expect("end succeeds once the store recovers");
+    store.failing.store(false, Ordering::SeqCst);
+    session
+        .end()
+        .await
+        .expect("end succeeds once the store recovers");
     assert_eq!(session.message_api().unflushed(), 0);
 
     // Both records reached the store, in order.
@@ -739,9 +737,7 @@ async fn reads_report_a_failed_flush_instead_of_returning_stale_records() {
     let _id = session
         .message_api()
         .append(SessionRecord::Conversation { message: msg });
-    store
-        .failing
-        .store(true, Ordering::SeqCst);
+    store.failing.store(true, Ordering::SeqCst);
 
     assert!(session.message_api().recent(10).await.is_err());
     assert!(session.message_api().all().await.is_err());
@@ -756,7 +752,10 @@ fn assert_message_store_failure(turn: &Turn, step: &str) {
     match turn.failure() {
         Some(AgenticError::MessageStore(msg)) => {
             assert!(msg.contains(step), "expected '{step}' in: {msg}");
-            assert!(msg.contains("disk full"), "the store's cause is kept: {msg}");
+            assert!(
+                msg.contains("disk full"),
+                "the store's cause is kept: {msg}"
+            );
         }
         other => panic!("expected a MessageStore failure, got {other:?}"),
     }

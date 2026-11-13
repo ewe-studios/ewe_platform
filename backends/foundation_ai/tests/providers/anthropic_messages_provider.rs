@@ -81,14 +81,24 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
             "test-key".to_string(),
         )));
 
-    let provider =
-        AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
-            .create(Some(config))
-            .unwrap();
+    let provider = AnthropicMessagesProvider::with_http_client_and_config(
+        http_client,
+        config.clone(),
+        test_clock(),
+    )
+    .create(Some(config))
+    .unwrap();
 
     provider
         .get_model(ModelId::Name("claude-3-5-sonnet".into(), None))
         .unwrap()
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }
 
 #[valtron_test]
@@ -234,13 +244,16 @@ event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\"
 
     match &spread[1] {
         StreamSpread::Pending(ModelState::Error(msg)) => {
-            assert!(msg.contains("Overloaded"), "unexpected error message: {msg}");
+            assert!(
+                msg.contains("Overloaded"),
+                "unexpected error message: {msg}"
+            );
         }
         other => panic!("expected Pending(ModelState::Error), got {other:?}"),
     }
 }
 
-/// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
+/// Verify SSE streaming accumulates tool call deltas into a final `ToolCall` message.
 #[valtron_test]
 fn test_provider_streaming_tool_calls() {
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":50,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
@@ -728,8 +741,13 @@ fn test_parse_response_text() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let (msgs, _report) =
-        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) = parse_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &test_clock(),
+    )
+    .unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -774,8 +792,13 @@ fn test_parse_response_tool_use() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let (msgs, _report) =
-        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) = parse_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &test_clock(),
+    )
+    .unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -823,8 +846,13 @@ fn test_parse_response_thinking() {
     };
 
     let model_id = ModelId::Name("claude-3-7-sonnet".into(), None);
-    let (msgs, _report) =
-        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) = parse_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &test_clock(),
+    )
+    .unwrap();
 
     assert_eq!(msgs.len(), 2);
 
@@ -892,7 +920,7 @@ fn test_build_anthropic_request_basic() {
 
 #[test]
 fn test_build_anthropic_request_with_tools() {
-    let test_tool = Tool::SingleCommand(ToolDefinition {
+    let test_tool = Tool::SingleCommand(Box::new(ToolDefinition {
         name: "get_weather".into(),
         category: "search".into(),
         description: "Get weather info".into(),
@@ -904,7 +932,7 @@ fn test_build_anthropic_request_with_tools() {
             "required": ["location"],
         })),
         returns: None,
-    });
+    }));
     let interaction = ModelInteraction {
         system_prompt: None,
         soul: None,

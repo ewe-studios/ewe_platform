@@ -7,7 +7,7 @@ fn main() {
     println!("=== OverlayFileSystem Example ===\n");
 
     // Base layer: read-only MemoryFs with some initial files
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(foundation_context::Ctx::host());
     base.mkdir("/src").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
     base.write_file("/src/lib.rs", b"pub mod utils;").unwrap();
@@ -15,7 +15,7 @@ fn main() {
     println!("Base layer: 3 files in /src + /README.md");
 
     // Delta layer: writable MemoryDelta
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(foundation_context::Ctx::host());
 
     // Compose the overlay. It implements the async VFS traits; `main` is a
     // sync boundary, so the example uses it through `SyncFs`.
@@ -26,14 +26,21 @@ fn main() {
     println!("Read base file: {:?}", String::from_utf8_lossy(&data));
 
     // Write to overlay — copy-on-write
-    overlay.write_file("/src/main.rs", b"fn main() { println!(\"Hello!\"); }").unwrap();
+    overlay
+        .write_file("/src/main.rs", b"fn main() { println!(\"Hello!\"); }")
+        .unwrap();
     let modified = overlay.read_file("/src/main.rs").unwrap();
     println!("After CoW write: {:?}", String::from_utf8_lossy(&modified));
     println!("Overlay version: {}", overlay.version());
 
     // Create a new file in the overlay
     overlay.mkdir("/tests").unwrap();
-    overlay.write_file("/tests/test_main.rs", b"#[test] fn it_works() { assert!(true); }").unwrap();
+    overlay
+        .write_file(
+            "/tests/test_main.rs",
+            b"#[test] fn it_works() { assert!(true); }",
+        )
+        .unwrap();
     println!("Created /tests/test_main.rs in delta layer");
 
     // Whiteout: delete a base file
@@ -43,7 +50,7 @@ fn main() {
 
     // Base still has lib.rs — overlay hides it
     let base_has_it = overlay.base().exists("/src/lib.rs").unwrap();
-    println!("Base still has lib.rs: {}", base_has_it);
+    println!("Base still has lib.rs: {base_has_it}");
 
     // List merged directory — base + delta entries minus whiteouts
     let dir = overlay.open_directory("/src").unwrap();
@@ -55,7 +62,10 @@ fn main() {
 
     // Delta inspection
     let delta = overlay.delta();
-    println!("\nDelta has whiteout for /src/lib.rs: {:?}", delta.is_whiteout("/src/lib.rs").unwrap());
+    println!(
+        "\nDelta has whiteout for /src/lib.rs: {:?}",
+        delta.is_whiteout("/src/lib.rs").unwrap()
+    );
 
     // Flush + reset cycle
     delta.flush().unwrap();

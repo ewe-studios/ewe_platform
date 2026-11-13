@@ -8,14 +8,16 @@
 //! fixture; export-section enumeration; a custom-section injection edit.
 //!
 //! HOW: `Module::decode_from` on the raw bytes, `encode_into` a fresh buffer,
-//! compare. Fixtures: the foundation_wasm/foundation_wasm_ui e2e modules and the
+//! compare. Fixtures: the `foundation_wasm/foundation_wasm_ui` e2e modules and the
 //! megatron-era integration modules (21 real compiled binaries). Missing fixtures
 //! skip (they are built by their own crates' build scripts).
 
 use std::path::{Path, PathBuf};
 
 use foundation_codegen::wasm::builtins::UnparsedBytes;
-use foundation_codegen::wasm::sections::{payload, CustomSection, ExportDesc, RawCustomSection, Section};
+use foundation_codegen::wasm::sections::{
+    payload, CustomSection, ExportDesc, RawCustomSection, Section,
+};
 use foundation_codegen::wasm::Module;
 
 fn workspace_root() -> PathBuf {

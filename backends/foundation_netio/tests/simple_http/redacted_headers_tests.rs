@@ -28,7 +28,10 @@ fn authorization_value_is_redacted() {
         !rendered.contains("hf_secretTOKENvalue123"),
         "the token must not appear: {rendered}"
     );
-    assert!(rendered.contains("[REDACTED]"), "value must be redacted: {rendered}");
+    assert!(
+        rendered.contains("[REDACTED]"),
+        "value must be redacted: {rendered}"
+    );
     // Non-sensitive headers still render their value.
     assert!(
         rendered.contains("application/json"),
@@ -45,7 +48,10 @@ fn cookies_and_proxy_auth_are_redacted() {
     ]);
     let rendered = format!("{:?}", RedactedHeaders(&h));
     for secret in ["abc123", "dXNlcjpwYXNz"] {
-        assert!(!rendered.contains(secret), "secret '{secret}' leaked: {rendered}");
+        assert!(
+            !rendered.contains(secret),
+            "secret '{secret}' leaked: {rendered}"
+        );
     }
 }
 
@@ -54,11 +60,20 @@ fn custom_credential_headers_are_redacted() {
     let h = headers(vec![
         (SimpleHeader::Custom("x-api-key".into()), "sk-live-SECRET"),
         (SimpleHeader::Custom("x-auth-token".into()), "tok_SECRET"),
-        (SimpleHeader::Custom("x-request-id".into()), "req-123-visible"),
+        (
+            SimpleHeader::Custom("x-request-id".into()),
+            "req-123-visible",
+        ),
     ]);
     let rendered = format!("{:?}", RedactedHeaders(&h));
-    assert!(!rendered.contains("sk-live-SECRET"), "api key leaked: {rendered}");
-    assert!(!rendered.contains("tok_SECRET"), "auth token leaked: {rendered}");
+    assert!(
+        !rendered.contains("sk-live-SECRET"),
+        "api key leaked: {rendered}"
+    );
+    assert!(
+        !rendered.contains("tok_SECRET"),
+        "auth token leaked: {rendered}"
+    );
     // A non-credential custom header stays visible.
     assert!(
         rendered.contains("req-123-visible"),

@@ -1,8 +1,12 @@
 //! Integration tests: File watching.
 //!
 //! Sub-modules:
-//! - `native` — InotifyWatcher + PollWatcher direct tests
-//! - `direct` — FileWatcherTask + EventBroadcaster via direct TaskIterator::next_status()
+//! - `native` — `InotifyWatcher` + `PollWatcher` direct tests
+//! - `windows` — `WinWatcher` (I/O completion port) tests, Windows only
+//! - `direct` — `FileWatcherTask` + `EventBroadcaster` via direct `TaskIterator::next_status()`
 
-mod native;
 mod direct;
+mod native;
+
+#[cfg(all(windows, feature = "watcher-windows"))]
+mod windows;

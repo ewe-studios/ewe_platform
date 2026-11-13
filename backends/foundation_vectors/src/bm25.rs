@@ -46,10 +46,7 @@ impl Bm25Inner {
 
     fn idf(&self, term: &str) -> f32 {
         let n = self.docs.len() as f32;
-        let df = self
-            .postings
-            .get(term)
-            .map_or(0, Vec::len) as f32;
+        let df = self.postings.get(term).map_or(0, Vec::len) as f32;
         if df == 0.0 {
             return 0.0;
         }
@@ -100,7 +97,9 @@ impl Bm25Index {
             }
         }
 
-        inner.docs.insert(id.to_string(), DocInfo { length: doc_len });
+        inner
+            .docs
+            .insert(id.to_string(), DocInfo { length: doc_len });
         inner.total_length += u64::from(doc_len);
 
         for (term, tf) in tf_map {
@@ -141,8 +140,7 @@ impl Bm25Index {
                         let tf = p.tf as f32;
                         let dl = doc.length as f32;
                         let numerator = tf * (inner.k1 + 1.0);
-                        let denominator =
-                            tf + inner.k1 * (1.0 - inner.b + inner.b * dl / avgdl);
+                        let denominator = tf + inner.k1 * (1.0 - inner.b + inner.b * dl / avgdl);
                         let bm25 = idf * numerator / denominator;
                         *scores.entry(&p.doc_id).or_insert(0.0) += bm25;
                     }
@@ -158,7 +156,11 @@ impl Bm25Index {
             })
             .collect();
 
-        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        results.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         results.truncate(k);
         results
     }

@@ -80,7 +80,9 @@ impl WebSocketConnector for ModelInfoClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 
     fn open_websocket_task(
@@ -88,16 +90,25 @@ impl WebSocketConnector for ModelInfoClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 }
 
 fn provider(status: Status, body: &'static str) -> OpenAIProvider {
-    OpenAIProvider::with_http_client(Arc::new(ModelInfoClient { status, body }))
+    OpenAIProvider::with_http_client(Arc::new(ModelInfoClient { status, body }), test_clock())
 }
 
 const MODEL_JSON: &str =
     r#"{"id":"gpt-test","object":"model","owned_by":"acme","created":1700000000}"#;
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 #[test]
 fn fetch_model_info_parses_the_vendor_model() {

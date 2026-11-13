@@ -16,8 +16,8 @@
 use alloc::borrow::Cow;
 use alloc::vec::Vec;
 
-use foundation_ui_traits::{AttrName, Html};
 use foundation_signals::Context;
+use foundation_ui_traits::{AttrName, Html};
 use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 use crate::machinery::composite::composite_behavior;
@@ -66,7 +66,10 @@ pub fn toolbar(
         .into_iter()
         .map(|slot| {
             let mut h = slot.render(ctx, rcv);
-            h.attributes.push((AttrName::from_static("data-composite-item"), Cow::Borrowed("true")));
+            h.attributes.push((
+                AttrName::from_static("data-composite-item"),
+                Cow::Borrowed("true"),
+            ));
             h
         })
         .collect();

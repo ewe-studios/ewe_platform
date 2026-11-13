@@ -1,12 +1,11 @@
-/// Valtron task: FdMonitorTask — wraps a RegisteredFd and invokes a callback
+/// Valtron task: `FdMonitorTask` — wraps a `RegisteredFd` and invokes a callback
 /// when the fd becomes readable/writable.
 use std::io;
 use std::os::unix::io::AsRawFd;
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx,
-    EventReadiness, TaskIterator, TaskStatus,
-};
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventReadiness, TaskIterator, TaskStatus};
 
 use super::super::stop_signal::CompositeReadiness;
 use super::super::FdState;
@@ -14,7 +13,7 @@ use super::super::StopSignal;
 use crate::native::fd::{PollResult, Ready, RegisteredFd};
 use crate::native::poll::Interest;
 
-/// A valtron task that monitors a RegisteredFd for readiness.
+/// A valtron task that monitors a `RegisteredFd` for readiness.
 ///
 /// When the fd is ready, invokes the user-provided callback with a reference
 /// to the inner IO object. Uses `TaskStatus::Depends` so the executor parks
@@ -22,13 +21,16 @@ use crate::native::poll::Interest;
 /// avoiding wasteful periodic polling.
 pub struct FdMonitorTask<T: AsRawFd> {
     fd: Arc<RegisteredFd<T>>,
-    callback: Option<Box<dyn FnMut(&T) -> io::Result<()> + Send>>,
+    callback: Option<MonitorCallback<T>>,
     interest: Interest,
     stop: StopSignal,
 }
 
+/// The fd-ready callback held by [`FdMonitorTask`].
+type MonitorCallback<T> = Box<dyn FnMut(&T) -> io::Result<()> + Send>;
+
 impl<T: AsRawFd> FdMonitorTask<T> {
-    /// Create a new FdMonitorTask wrapping the given RegisteredFd.
+    /// Create a new `FdMonitorTask` wrapping the given `RegisteredFd`.
     pub fn new(fd: RegisteredFd<T>) -> Self {
         Self {
             fd: Arc::new(fd),
@@ -39,6 +41,7 @@ impl<T: AsRawFd> FdMonitorTask<T> {
     }
 
     /// Set the callback to invoke when the fd becomes readable.
+    #[must_use]
     pub fn with_callback(
         mut self,
         callback: impl FnMut(&T) -> io::Result<()> + Send + 'static,
@@ -47,23 +50,29 @@ impl<T: AsRawFd> FdMonitorTask<T> {
         self
     }
 
-    /// Set the interest to poll for. Default: Interest::READABLE.
+    /// Set the interest to poll for. Default: `Interest::READABLE`.
+    #[must_use]
     pub fn with_interest(mut self, interest: Interest) -> Self {
         self.interest = interest;
         self
     }
 
     /// Get a `StopSignal` that can terminate this task when signaled.
+    #[must_use]
     pub fn stop_signal(&self) -> StopSignal {
         self.stop.clone()
     }
 
-    /// Get a reference to the inner RegisteredFd.
+    /// Get a reference to the inner `RegisteredFd`.
+    #[must_use]
     pub fn fd(&self) -> &RegisteredFd<T> {
         &self.fd
     }
 
-    /// Get a mutable reference to the inner RegisteredFd.
+    /// Get a mutable reference to the inner `RegisteredFd`.
+    ///
+    /// # Panics
+    /// Panics if another handle to the fd still exists.
     pub fn fd_mut(&mut self) -> &mut RegisteredFd<T> {
         Arc::get_mut(&mut self.fd).expect("FdMonitorTask: fd_mut called while shared handle exists")
     }

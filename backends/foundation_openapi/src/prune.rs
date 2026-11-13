@@ -3,13 +3,13 @@
 //! **WHY:** selecting six endpoints out of Linode's 334 is only half the job —
 //! the components they *don't* use have to go too, or the crate still carries
 //! them. Linode alone ships 77 `components/schemas` that **nothing references**
-//! (its spec has zero `$ref`s), and DigitalOcean's 7814 refs reach far beyond the
+//! (its spec has zero `$ref`s), and `DigitalOcean`'s 7814 refs reach far beyond the
 //! handful of paths a VPS crate calls.
 //!
 //! **WHAT:** [`prune_to_selection`] drops unselected operations, then removes
 //! every component nothing kept can reach.
 //!
-//! **HOW:** on raw JSON, not the typed spec. DigitalOcean refs into
+//! **HOW:** on raw JSON, not the typed spec. `DigitalOcean` refs into
 //! `components/responses` (3758), `headers` (1372) and `parameters` (833), and
 //! only `schemas` is modelled — walking the JSON follows all of them for free.
 //! Reachability is a fixed-point walk from the surviving paths, following `$ref`
@@ -70,7 +70,9 @@ fn prune_paths(spec: &mut Value, selection: &Selection, stats: &mut PruneStats) 
     let doomed: Vec<String> = paths
         .iter()
         .filter(|(path, item)| {
-            let Some(item) = item.as_object() else { return false };
+            let Some(item) = item.as_object() else {
+                return false;
+            };
             !item
                 .iter()
                 .any(|(key, op)| is_http_method(key) && selection.includes_value(path, op))
@@ -85,7 +87,9 @@ fn prune_paths(spec: &mut Value, selection: &Selection, stats: &mut PruneStats) 
 
     // 2. Unselected operations on the paths that survived.
     for (path, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         let drop: Vec<String> = item
             .iter()
             .filter(|(key, op)| is_http_method(key) && !selection.includes_value(path, op))
@@ -172,7 +176,9 @@ fn prune_components(spec: &mut Value, reachable: &BTreeSet<String>, stats: &mut 
     };
 
     for (kind, entries) in components.iter_mut() {
-        let Some(entries) = entries.as_object_mut() else { continue };
+        let Some(entries) = entries.as_object_mut() else {
+            continue;
+        };
         let drop: Vec<String> = entries
             .keys()
             .filter(|name| !reachable.contains(&format!("#/components/{kind}/{name}")))
@@ -238,7 +244,9 @@ pub fn unreachable_components(spec: &Value) -> Vec<String> {
     let mut orphans = Vec::new();
     if let Some(components) = spec.get("components").and_then(Value::as_object) {
         for (kind, entries) in components {
-            let Some(entries) = entries.as_object() else { continue };
+            let Some(entries) = entries.as_object() else {
+                continue;
+            };
             for name in entries.keys() {
                 let pointer = format!("#/components/{kind}/{name}");
                 if !reachable.contains(&pointer) {

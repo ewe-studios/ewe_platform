@@ -11,16 +11,22 @@ use foundation_deployment_platform::docker::WaitFor;
 #[test]
 fn test_port_wait_constructors() {
     let w = WaitFor::port(6379);
-    assert!(matches!(w, WaitFor::Port { port: 6379, timeout } if timeout == Duration::from_secs(30)));
+    assert!(
+        matches!(w, WaitFor::Port { port: 6379, timeout } if timeout == Duration::from_secs(30))
+    );
 
     let w = WaitFor::port_with_timeout(5432, Duration::from_secs(60));
-    assert!(matches!(w, WaitFor::Port { port: 5432, timeout } if timeout == Duration::from_secs(60)));
+    assert!(
+        matches!(w, WaitFor::Port { port: 5432, timeout } if timeout == Duration::from_secs(60))
+    );
 }
 
 #[test]
 fn test_stdout_wait() {
     let w = WaitFor::stdout("Ready to accept connections");
-    assert!(matches!(w, WaitFor::Stdout { ref message, .. } if message == "Ready to accept connections"));
+    assert!(
+        matches!(w, WaitFor::Stdout { ref message, .. } if message == "Ready to accept connections")
+    );
 }
 
 #[test]
@@ -31,10 +37,7 @@ fn test_http_wait() {
 
 #[test]
 fn test_composite_wait() {
-    let w = WaitFor::all(vec![
-        WaitFor::port(6379),
-        WaitFor::stdout("Ready"),
-    ]);
+    let w = WaitFor::all(vec![WaitFor::port(6379), WaitFor::stdout("Ready")]);
     assert!(matches!(w, WaitFor::Composite { ref strategies } if strategies.len() == 2));
 }
 
@@ -65,6 +68,7 @@ fn test_timeout_composite_sums() {
 
 // ── Live readiness loops (exercises valtron sleep_async via wait_for_port) ──
 
+use foundation_context::MonotonicClock;
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::wait_for_port;
 
@@ -78,11 +82,16 @@ async fn port_wait_succeeds_on_open_port() {
     let mut ports = HashMap::new();
     ports.insert(format!("{port}/tcp"), port);
 
+    let clock = foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
     let start = Instant::now();
-    wait_for_port(port, Duration::from_secs(5), &ports)
+    wait_for_port(port, Duration::from_secs(5), &ports, &clock)
         .await
         .expect("open port should connect immediately");
-    assert!(start.elapsed() < Duration::from_millis(500), "took too long: {:?}", start.elapsed());
+    assert!(
+        start.elapsed() < Duration::from_millis(500),
+        "took too long: {:?}",
+        start.elapsed()
+    );
 
     drop(listener);
 }
@@ -94,8 +103,13 @@ async fn port_wait_times_out_on_closed_port() {
     let mut ports = HashMap::new();
     ports.insert(format!("{bogus_port}/tcp"), bogus_port);
 
+    let clock = foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
     let start = Instant::now();
-    let result = wait_for_port(bogus_port, Duration::from_millis(200), &ports).await;
+    let result = wait_for_port(bogus_port, Duration::from_millis(200), &ports, &clock).await;
     assert!(result.is_err(), "should time out");
-    assert!(start.elapsed() >= Duration::from_millis(150), "timed out too fast: {start:?} elapsed {elapsed:?}", elapsed = start.elapsed());
+    assert!(
+        start.elapsed() >= Duration::from_millis(150),
+        "timed out too fast: {start:?} elapsed {elapsed:?}",
+        elapsed = start.elapsed()
+    );
 }

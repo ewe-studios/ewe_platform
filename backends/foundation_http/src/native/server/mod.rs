@@ -9,8 +9,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::{OnSignal, WaitGroup};
-use foundation_iogate::ServerIo;
+use foundation_core::synca::WaitGroup;
+#[cfg(unix)]
+use foundation_iogate::FdReadiness;
+use foundation_iogate::{ServerIo, ShutdownSignal};
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
@@ -27,8 +29,9 @@ use foundation_netio::shared::http::timeout::{
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::Connection;
 
-use crate::shared::app::{HttpApp, ServerApp};
-use crate::shared::serve::{respond, Serve};
+use crate::native::app::ServerApp;
+use crate::native::serve::Serve;
+use crate::shared::app::HttpApp;
 
 // ---------------------------------------------------------------------------
 // KeepAliveConfig
@@ -39,13 +42,18 @@ use crate::shared::serve::{respond, Serve};
 /// controls how long idle connections are kept alive and how aggressively
 /// the executor polls them.
 ///
-/// NOTE: Now uses `TimeoutCalculator` as the single source of truth for
-/// timeout values. The calculator provides dynamic timeout calculation
-/// based on context.
+/// NOTE: `TimeoutCalculator` gives the poll delay and the 100-continue
+/// timing. The idle timeout is its own field, because a size-based read
+/// timeout is not a keep-alive wait.
 #[derive(Clone)]
 pub struct KeepAliveConfig {
     /// Timeout calculator for dynamic timeout calculation.
     pub timeout_calculator: TimeoutCalculator,
+    /// How long an idle keep-alive connection waits for its next request
+    /// before it closes.
+    ///
+    /// The default is 75 s, the nginx `keepalive_timeout` default.
+    pub idle_timeout: Duration,
     /// Number of consecutive polls with no data before switching from
     /// `Pending` to `Delayed` (default: 200).
     pub escalation_threshold: u32,
@@ -60,13 +68,15 @@ impl KeepAliveConfig {
     pub fn defaults() -> Self {
         // Server-specific timeout config with longer timeouts for connections
         let timeout_config = TimeoutConfig {
-            min_read_timeout: Duration::from_secs(120), // 3 mins idle timeout
+            min_read_timeout: Duration::from_secs(120), // read floor for the calculator
             max_read_timeout: Duration::from_secs(300), // 5 mins max read
             ..TimeoutConfig::default()
         };
 
         Self {
             timeout_calculator: TimeoutCalculator::with_config(timeout_config),
+            // 75 s is the nginx `keepalive_timeout` default.
+            idle_timeout: Duration::from_secs(75),
             escalation_threshold: 50,
             max_delay_cycles: 100,
         }
@@ -79,18 +89,15 @@ impl KeepAliveConfig {
         self
     }
 
-    /// Set the idle timeout (convenience method that updates calculator config).
+    /// Set the idle timeout, the wait for the next request on an open
+    /// keep-alive connection.
     ///
-    /// WHY: Backward compatibility - users can still call `with_idle_timeout()`
-    /// but now it updates the underlying calculator.
+    /// This value is separate from the read timeout in
+    /// [`Self::timeout_calculator`]. A size-based read timeout is not a
+    /// keep-alive wait.
     #[must_use]
     pub fn with_idle_timeout(mut self, dur: Duration) -> Self {
-        // Create new config with updated idle timeout
-        let new_config = TimeoutConfig {
-            min_read_timeout: dur,
-            ..*self.timeout_calculator.config()
-        };
-        self.timeout_calculator = TimeoutCalculator::with_config(new_config);
+        self.idle_timeout = dur;
         self
     }
 
@@ -109,12 +116,10 @@ impl KeepAliveConfig {
         self.timeout_calculator.config().max_read_timeout
     }
 
-    /// Get the idle timeout from calculator.
+    /// Get the idle timeout.
     #[must_use]
     pub fn idle_timeout(&self) -> Duration {
-        // Idle timeout is the read timeout for default context
-        self.timeout_calculator
-            .calculate_read_timeout(&TimeoutContext::default())
+        self.idle_timeout
     }
 
     /// Set the 100-continue expect delay configuration.
@@ -140,6 +145,9 @@ impl KeepAliveConfig {
                 max_read_timeout: Duration::from_secs(1),
                 ..TimeoutConfig::default()
             }),
+            // A disabled keep-alive closes at once; the value stays non-zero so
+            // a caller that reads it sees a defined wait.
+            idle_timeout: Duration::from_secs(1),
             escalation_threshold: 0,
             max_delay_cycles: 0,
         }
@@ -172,6 +180,12 @@ pub struct ServerConfig {
     /// up to this long for active connections to finish before force-closing
     /// whatever remains. Default: 30s.
     pub shutdown_grace: Duration,
+    /// Upper bound on how long the idle accept loop stays asleep before it
+    /// checks shutdown again (Feature 05). On unix the loop parks on listener
+    /// readiness and wakes at once on a new connection. It also wakes at once on
+    /// shutdown (`ShutdownSignal` wakes the reactor); this bound is a safety net
+    /// only, for when the wake link could not be made. Default: 10 ms.
+    pub accept_shutdown_poll: Duration,
     /// When set, every response carries an `Alt-Svc: h3=":<port>"` header
     /// telling clients that this origin also speaks HTTP/3 on `port` (F53 /
     /// RFC 7838). `None` (the default) means no header is added.
@@ -179,7 +193,7 @@ pub struct ServerConfig {
     /// How accepted sockets acquire bytes (Feature 48). Default
     /// [`ServerIo::Std`] — plain `read(2)`, no reactor, so nothing changes for a
     /// caller who does not ask. [`ServerIo::Completion`] opts the read path into
-    /// the io_uring completion inbox and errors at startup if the kernel cannot.
+    /// the `io_uring` completion inbox and errors at startup if the kernel cannot.
     pub io_mode: ServerIo,
     /// TLS acceptor for encrypted connections.
     #[cfg(any(
@@ -202,6 +216,7 @@ impl ServerConfig {
             keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
             shutdown_grace: Duration::from_secs(30),
+            accept_shutdown_poll: Duration::from_millis(10),
             alt_svc_h3_port: None,
             io_mode: ServerIo::Std,
             #[cfg(any(
@@ -226,6 +241,11 @@ impl ServerConfig {
     }
 
     /// Get the `WouldBlock` sleep duration from calculator.
+    ///
+    /// Feature 05: on unix the accept loop parks on listener readiness instead
+    /// of sleeping, so this value is used only by the non-unix sleep fallback
+    /// and by [`ServerConfig::accept_error_sleep`]. Kept for callers that read
+    /// it; the accept loop no longer sleeps on it on unix.
     #[must_use]
     pub fn would_block_sleep(&self) -> Duration {
         // Use sleep duration for default context
@@ -269,6 +289,16 @@ impl ServerConfig {
             ..*self.timeout_calculator.config()
         };
         self.timeout_calculator = TimeoutCalculator::with_config(new_config);
+        self
+    }
+
+    /// Set how long the idle accept loop may wait before it checks shutdown
+    /// again (Feature 05). On unix the loop wakes at once on a new connection and
+    /// at once on shutdown; this bounds shutdown-detection latency only when the
+    /// shutdown wake link could not be made.
+    #[must_use]
+    pub fn with_accept_shutdown_poll(mut self, dur: Duration) -> Self {
+        self.accept_shutdown_poll = dur;
         self
     }
 
@@ -323,7 +353,7 @@ impl ServerConfig {
 
     /// Choose how accepted sockets acquire bytes (Feature 48).
     ///
-    /// WHY: an operator who wants the io_uring completion read path must be able
+    /// WHY: an operator who wants the `io_uring` completion read path must be able
     /// to demand it — and be told at startup if the kernel cannot deliver —
     /// rather than getting a silent default.
     ///
@@ -397,10 +427,12 @@ mod connection;
 mod h2_connection;
 #[cfg(feature = "quic")]
 mod h3_server;
-mod protocol_detect;
+pub mod protocol_detect;
 
+pub use connection::ConnectionHandler;
+pub use h2_connection::H2ConnectionHandler;
 #[cfg(feature = "quic")]
-pub use h3_server::serve_h3;
+pub use h3_server::{serve_h3, H3AcceptTask};
 
 use protocol_detect::ProtocolDetectHandler;
 
@@ -454,7 +486,7 @@ impl HttpServer {
     ///
     /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, shutdown))]
-    pub fn serve(self, shutdown: &Arc<OnSignal>) {
+    pub fn serve(self, shutdown: &Arc<ShutdownSignal>) {
         let listener = match std::net::TcpListener::bind(&self.bind_addr) {
             Ok(l) => l,
             Err(e) => {
@@ -473,7 +505,11 @@ impl HttpServer {
     ///
     /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, listener, shutdown))]
-    pub fn serve_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<OnSignal>) {
+    pub fn serve_with_listener(
+        self,
+        listener: &std::net::TcpListener,
+        shutdown: &Arc<ShutdownSignal>,
+    ) {
         tracing::info!("Listening on {}", self.bind_addr);
         listener
             .set_nonblocking(true)
@@ -482,9 +518,8 @@ impl HttpServer {
         self.init_io();
         let io_mode = self.config.io_mode;
         self.serve_loop(listener, shutdown, move |conn, addr| {
-            let tcp = match conn {
-                foundation_netio::netcap::Connection::Tcp(t) => t,
-                _ => return Err("expected TCP connection".to_string()),
+            let foundation_netio::netcap::Connection::Tcp(tcp) = conn else {
+                return Err("expected TCP connection".to_string());
             };
             let c = build_connection(tcp, addr, io_mode)?;
             RawStream::from_connection(c).map_err(|e| format!("Failed to create RawStream: {e}"))
@@ -494,7 +529,7 @@ impl HttpServer {
     /// Start serving from an [`Acceptor`] — any transport, not just TCP.
     ///
     /// The acceptor delivers connections as `Connection` enum values (e.g.
-    /// `Connection::Tcp`, `Connection::Overlay`). Use this with WireGuard
+    /// `Connection::Tcp`, `Connection::Overlay`). Use this with `WireGuard`
     /// overlay acceptors (`OverlayAcceptor` in `foundation_wireguard`).
     ///
     /// # Panics
@@ -504,12 +539,11 @@ impl HttpServer {
     pub fn serve_with_acceptor<A: foundation_netio::native::connection::Acceptor + ?Sized>(
         self,
         acceptor: &A,
-        shutdown: &Arc<OnSignal>,
+        shutdown: &Arc<ShutdownSignal>,
     ) {
         let addr = acceptor
             .local_addr()
-            .map(|a| a.to_string())
-            .unwrap_or_else(|_| self.bind_addr.clone());
+            .map_or_else(|_| self.bind_addr.clone(), |a| a.to_string());
         tracing::info!("Listening on {} (generic acceptor)", addr);
         acceptor
             .set_nonblocking(true)
@@ -526,6 +560,9 @@ impl HttpServer {
     ///
     /// Requires an `ssl` or `ssl-*` feature flag and a `tls_acceptor`
     /// configured in `ServerConfig`.
+    ///
+    /// # Panics
+    /// Panics if the listener cannot be switched to non-blocking mode.
     #[cfg(any(
         feature = "ssl",
         feature = "ssl-rustls",
@@ -535,14 +572,12 @@ impl HttpServer {
         feature = "ssl-native-tls",
     ))]
     #[tracing::instrument(skip(self, shutdown))]
-    pub fn serve_tls(self, shutdown: Arc<OnSignal>) {
-        let acceptor = match &self.config.tls_acceptor {
-            Some(a) => a.clone(),
-            None => {
-                tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
-                return;
-            }
+    pub fn serve_tls(self, shutdown: &Arc<ShutdownSignal>) {
+        let Some(acceptor) = &self.config.tls_acceptor else {
+            tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
+            return;
         };
+        let acceptor = acceptor.clone();
 
         let listener = match std::net::TcpListener::bind(&self.bind_addr) {
             Ok(l) => l,
@@ -559,10 +594,9 @@ impl HttpServer {
 
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(&listener, &shutdown, move |conn, addr| {
-            let tcp = match conn {
-                foundation_netio::netcap::Connection::Tcp(t) => t,
-                _ => return Err("expected TCP connection for TLS".to_string()),
+        self.serve_loop(&listener, shutdown, move |conn, addr| {
+            let foundation_netio::netcap::Connection::Tcp(tcp) = conn else {
+                return Err("expected TCP connection for TLS".to_string());
             };
             let c = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
@@ -579,6 +613,9 @@ impl HttpServer {
     /// Blocks until the shutdown signal is triggered.
     ///
     /// Requires an `ssl`/`ssl-*` feature and a `tls_acceptor` in `ServerConfig`.
+    ///
+    /// # Panics
+    /// Panics if the listener cannot be switched to non-blocking mode.
     #[cfg(any(
         feature = "ssl",
         feature = "ssl-rustls",
@@ -591,15 +628,13 @@ impl HttpServer {
     pub fn serve_tls_with_listener(
         self,
         listener: &std::net::TcpListener,
-        shutdown: &Arc<OnSignal>,
+        shutdown: &Arc<ShutdownSignal>,
     ) {
-        let acceptor = match &self.config.tls_acceptor {
-            Some(a) => a.clone(),
-            None => {
-                tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
-                return;
-            }
+        let Some(acceptor) = &self.config.tls_acceptor else {
+            tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
+            return;
         };
+        let acceptor = acceptor.clone();
         tracing::info!("Listening on {} (TLS)", self.bind_addr);
         listener
             .set_nonblocking(true)
@@ -607,9 +642,8 @@ impl HttpServer {
         self.init_io();
         let io_mode = self.config.io_mode;
         self.serve_loop(listener, shutdown, move |conn, addr| {
-            let tcp = match conn {
-                foundation_netio::netcap::Connection::Tcp(t) => t,
-                _ => return Err("expected TCP connection for TLS".to_string()),
+            let foundation_netio::netcap::Connection::Tcp(tcp) = conn else {
+                return Err("expected TCP connection for TLS".to_string());
             };
             let c = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
@@ -622,7 +656,7 @@ impl HttpServer {
 
     /// Initialise the shared reactor for the configured [`ServerIo`] mode.
     ///
-    /// WHY: an operator who asks for [`ServerIo::Completion`] must get io_uring
+    /// WHY: an operator who asks for [`ServerIo::Completion`] must get `io_uring`
     /// or a hard failure at startup — never a server that logs one line and then
     /// silently serves nothing (Feature 48, no-silent-defaults).
     ///
@@ -634,7 +668,7 @@ impl HttpServer {
     /// # Panics
     /// Panics, naming the requested mode, if the reactor cannot be initialised on
     /// the backend the mode demands (e.g. `Completion` on a kernel without
-    /// io_uring) — the same fail-fast contract as the `set_nonblocking` setup
+    /// `io_uring`) — the same fail-fast contract as the `set_nonblocking` setup
     /// above.
     #[cfg(unix)]
     fn init_io(&self) {
@@ -653,11 +687,15 @@ impl HttpServer {
     /// Generic accept loop — shared by `serve`, `serve_tls`, and `serve_with_acceptor`.
     /// The `wrap_stream` closure converts an accepted `Connection` into a `RawStream`
     /// (with optional TLS wrapping).
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the accept loop reads best as one ordered flow"
+    )]
     #[tracing::instrument(skip(self, acceptor, shutdown, wrap_stream))]
     fn serve_loop(
         self,
         acceptor: &(impl foundation_netio::native::connection::Acceptor + ?Sized),
-        shutdown: &Arc<OnSignal>,
+        shutdown: &Arc<ShutdownSignal>,
         wrap_stream: impl Fn(
                 foundation_netio::netcap::Connection,
                 std::net::SocketAddr,
@@ -669,8 +707,42 @@ impl HttpServer {
         let wrap_stream = Arc::new(wrap_stream);
         let would_block_sleep = self.config.would_block_sleep();
         let accept_error_sleep = self.config.accept_error_sleep();
+        #[cfg(unix)]
+        let accept_shutdown_poll = self.config.accept_shutdown_poll;
         let keep_alive_config = self.config.keep_alive.clone();
         let shutdown_grace = self.config.shutdown_grace;
+
+        // On unix, register the listener fd with the shared reactor so the
+        // accept loop can park on readiness instead of sleeping (Feature 05).
+        // Acceptors without an fd (an overlay) fall back to the sleep path.
+        #[cfg(unix)]
+        let listener_readiness: Option<FdReadiness> = match acceptor.raw_fd() {
+            Some(fd) => match FdReadiness::register(fd) {
+                Ok(r) => Some(r),
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "could not register the listener fd; the accept loop falls back to sleep"
+                    );
+                    None
+                }
+            },
+            None => None,
+        };
+
+        // Link the shutdown signal to the shared reactor so a turn-on wakes the
+        // parked accept loop at once (Feature 31). Best-effort: on failure the
+        // loop still sees shutdown within `accept_shutdown_poll`.
+        #[cfg(unix)]
+        if listener_readiness.is_some() {
+            if let Err(e) = shutdown.register_wake() {
+                tracing::warn!(
+                    error = %e,
+                    "could not link the shutdown signal to the reactor; \
+                     shutdown waits for accept_shutdown_poll"
+                );
+            }
+        }
 
         // Tracks connections currently owned by a valtron handler task. Each
         // handler holds a guard that decrements on completion, so the drain
@@ -682,6 +754,14 @@ impl HttpServer {
                 tracing::info!("Shutdown signal received, stopping accept loop");
                 break;
             }
+
+            // Snapshot the reactor's event generation before the accept, so the
+            // WouldBlock path never sleeps through a connection that landed in
+            // the race window (lost-wakeup guard, Feature 05).
+            #[cfg(unix)]
+            let gen = listener_readiness
+                .as_ref()
+                .map(foundation_iogate::FdReadiness::events_generation);
 
             match acceptor.accept_connection() {
                 Ok((conn, addr)) => {
@@ -734,6 +814,9 @@ impl HttpServer {
                         guard,
                         keep_alive_config.clone(),
                         self.config.alt_svc_h3_port,
+                        // The server app holds the host `Ctx`. The accept loop
+                        // passes it on, so the connection reads the host clock.
+                        self.app.context().clone(),
                     );
 
                     match foundation_core::valtron::send(detector) {
@@ -746,17 +829,42 @@ impl HttpServer {
                                 err = ?e,
                                 "Failed to submit connection to valtron"
                             );
-                            if let Err(err) = respond::text(
-                                &mut shared_stream.clone(),
-                                503,
-                                "Service Unavailable",
-                            ) {
-                                tracing::debug!(%client_ip, err = ?err, "could not write the 503");
-                            }
+                            // The executor refused the task: the pool is not
+                            // initialised or has been torn down. No task can
+                            // drive an async response, and a synchronous write
+                            // would truncate on this non-blocking socket, so
+                            // close the connection. The client sees a closed
+                            // connection rather than a broken response.
+                            tracing::error!(
+                                %client_ip,
+                                err = ?e,
+                                "cannot serve the connection: the executor is unavailable"
+                            );
                         }
                     }
                 }
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    // Park on listener readiness (unix): the reactor wakes this
+                    // thread at once when a connection arrives, bounded by the
+                    // shutdown-poll timeout so a shutdown signal is still
+                    // noticed. Acceptors without a registered fd fall back to
+                    // the non-unix sleep path.
+                    #[cfg(unix)]
+                    {
+                        match &listener_readiness {
+                            Some(readiness) => {
+                                // The generation seen on wake is not needed: the
+                                // next loop iteration takes a fresh snapshot
+                                // before the accept, so no event can slip through.
+                                let _ = readiness.wait_for_events(
+                                    gen.expect("generation snapshotted before accept"),
+                                    accept_shutdown_poll,
+                                );
+                            }
+                            None => std::thread::sleep(would_block_sleep),
+                        }
+                    }
+                    #[cfg(not(unix))]
                     std::thread::sleep(would_block_sleep);
                 }
                 Err(e) => {
@@ -775,7 +883,8 @@ impl HttpServer {
             grace_ms = shutdown_grace.as_millis(),
             "Draining in-flight connections"
         );
-        if active.wait_timeout(shutdown_grace) {
+        // The drain waits on the clock of the server's `Ctx`.
+        if active.wait_timeout(shutdown_grace, self.app.context()) {
             tracing::info!("All in-flight connections drained cleanly");
         } else {
             tracing::warn!(

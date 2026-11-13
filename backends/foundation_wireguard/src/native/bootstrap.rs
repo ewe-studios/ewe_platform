@@ -16,6 +16,8 @@ use std::io::{self, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::Arc;
 
+use foundation_context::Ctx;
+
 use super::noise_psk::{self, NoiseStream};
 use crate::shared::bootstrap::rpc::{Admission, BootstrapRequest, BootstrapResponse};
 use crate::shared::error::{WgError, WgResult};
@@ -64,19 +66,32 @@ fn http_response(stream: &mut impl Read) -> io::Result<Option<HttpResponse>> {
     loop {
         line.clear();
         match read_line(stream, &mut line) {
-            Ok(0) => return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "headers truncated")),
+            Ok(0) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "headers truncated",
+                ))
+            }
             Err(e) => return Err(e),
             Ok(_) => {}
         }
         let trimmed = line.trim();
-        if trimmed.is_empty() { break; }
-        if let Some(val) = trimmed.strip_prefix("Content-Length:").or_else(|| trimmed.strip_prefix("content-length:")) {
+        if trimmed.is_empty() {
+            break;
+        }
+        if let Some(val) = trimmed
+            .strip_prefix("Content-Length:")
+            .or_else(|| trimmed.strip_prefix("content-length:"))
+        {
             content_length = val.trim().parse::<usize>().unwrap_or(0);
         }
     }
 
     if content_length > MAX_FRAME {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "response body exceeds limit"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "response body exceeds limit",
+        ));
     }
     let mut body = vec![0u8; content_length];
     if content_length > 0 {
@@ -94,8 +109,12 @@ fn read_line(stream: &mut impl Read, buf: &mut String) -> io::Result<usize> {
             Ok(0) => return if total == 0 { Ok(0) } else { Ok(total) },
             Ok(_) => {
                 total += 1;
-                if byte[0] == b'\n' { return Ok(total); }
-                if byte[0] != b'\r' { buf.push(byte[0] as char); }
+                if byte[0] == b'\n' {
+                    return Ok(total);
+                }
+                if byte[0] != b'\r' {
+                    buf.push(byte[0] as char);
+                }
             }
             Err(e) => return Err(e),
         }
@@ -105,10 +124,17 @@ fn read_line(stream: &mut impl Read, buf: &mut String) -> io::Result<usize> {
 fn parse_status(line: &str) -> io::Result<u16> {
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 2 || !parts[0].starts_with("HTTP/") {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, format!("bad status line: {line}")));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("bad status line: {line}"),
+        ));
     }
-    parts[1].parse::<u16>()
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, format!("bad status code: {line}")))
+    parts[1].parse::<u16>().map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("bad status code: {line}"),
+        )
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -162,7 +188,7 @@ impl BootstrapServer {
         channel_psk: [u8; 32],
         handler: Arc<dyn BootstrapHandler>,
     ) -> WgResult<Self> {
-        let listener = TcpListener::bind(addr)?;
+        let listener = TcpListener::bind(addr).map_err(WgError::from)?;
         Ok(Self {
             listener,
             channel_psk,
@@ -175,7 +201,7 @@ impl BootstrapServer {
     /// # Errors
     /// [`WgError::Io`] if the address cannot be read.
     pub fn local_addr(&self) -> WgResult<SocketAddr> {
-        Ok(self.listener.local_addr()?)
+        Ok(self.listener.local_addr().map_err(WgError::from)?)
     }
 
     /// The raw fd of the TCP listener, for reactor registration (F02 valtron task).
@@ -187,7 +213,11 @@ impl BootstrapServer {
 
     /// Try to accept one connection and serve it synchronously.
     /// Returns `Ok(true)` when a connection was served, `Ok(false)` when
-    /// no connection was waiting (WouldBlock), or an error.
+    /// no connection was waiting (`WouldBlock`), or an error.
+    ///
+    /// # Errors
+    /// Returns the listener error unless it is `WouldBlock`, which returns
+    /// `Ok(false)`.
     pub fn try_accept_and_serve(&self) -> io::Result<bool> {
         match self.listener.accept() {
             Ok((tcp, _peer)) => {
@@ -213,7 +243,7 @@ impl BootstrapServer {
     /// [`WgError::Protocol`] on a failed handshake (e.g. wrong seed) or malformed frame;
     /// [`WgError::Io`] on transport errors.
     pub fn serve_once(&self) -> WgResult<()> {
-        let (tcp, _peer) = self.listener.accept()?;
+        let (tcp, _peer) = self.listener.accept().map_err(WgError::from)?;
         self.handshake_and_serve(tcp)
     }
 
@@ -227,21 +257,29 @@ impl BootstrapServer {
     /// granularity — the reactor drain thread updates it asynchronously from
     /// epoll/kqueue events. Falls back to 50ms sleep when no reactor is running.
     ///
+    /// The idle wait deadline comes from the clock of `ctx`, so a test can drive it
+    /// with a simulated clock and never sleep.
+    ///
     /// # Errors
     /// [`WgError::Io`] only on a fatal listener error; per-connection failures (e.g. a
     /// wrong-seed handshake) are logged and skipped.
-    pub fn serve_until(&self, stop: &std::sync::atomic::AtomicBool) -> WgResult<()> {
+    pub fn serve_until(&self, stop: &std::sync::atomic::AtomicBool, ctx: &Ctx) -> WgResult<()> {
         use std::sync::atomic::Ordering;
-        use std::time::{Duration, Instant};
+        use std::time::Duration;
 
-        self.listener.set_nonblocking(true)?;
+        self.listener.set_nonblocking(true).map_err(WgError::from)?;
         let fd = self.listener_fd();
 
         // Try to register with the shared reactor for edge-triggered wake.
         let reactor_token = foundation_nativeapis::native::poll::Token(0xF200);
         let reactor = foundation_nativeapis::native::fd::Reactor::get().ok();
         if let Some(ref r) = reactor {
-            r.register(fd, reactor_token, foundation_nativeapis::native::poll::Interest::READABLE).ok();
+            r.register(
+                fd,
+                reactor_token,
+                foundation_nativeapis::native::poll::Interest::READABLE,
+            )
+            .ok();
         }
 
         while !stop.load(Ordering::Relaxed) {
@@ -258,11 +296,17 @@ impl BootstrapServer {
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Wait for a connection or timeout using reactor readiness.
                     if let Some(ref r) = reactor {
-                        r.clear(reactor_token, foundation_nativeapis::native::fd::Ready::READABLE);
-                        let deadline = Instant::now() + Duration::from_millis(50);
-                        while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
+                        r.clear(
+                            reactor_token,
+                            foundation_nativeapis::native::fd::Ready::READABLE,
+                        );
+                        let deadline = ctx.clock().now() + Duration::from_millis(50);
+                        while ctx.clock().now() < deadline && !stop.load(Ordering::Relaxed) {
                             if r.is_ready(reactor_token) {
-                                r.clear(reactor_token, foundation_nativeapis::native::fd::Ready::READABLE);
+                                r.clear(
+                                    reactor_token,
+                                    foundation_nativeapis::native::fd::Ready::READABLE,
+                                );
                                 break;
                             }
                             std::hint::spin_loop();
@@ -272,7 +316,7 @@ impl BootstrapServer {
                         std::thread::sleep(Duration::from_millis(50));
                     }
                 }
-                Err(e) => return Err(e.into()),
+                Err(e) => return Err(WgError::from(e).into()),
             }
         }
         Ok(())
@@ -285,9 +329,8 @@ impl BootstrapServer {
 
     fn serve_stream(&self, stream: &mut NoiseStream<TcpStream>) -> WgResult<()> {
         loop {
-            let req = match read_http_request(stream)? {
-                Some(r) => r,
-                None => return Ok(()), // peer closed
+            let Some(req) = read_http_request(stream).map_err(WgError::from)? else {
+                return Ok(()); // peer closed
             };
             let (status, body) = match req.method.as_str() {
                 "Join" => {
@@ -295,33 +338,49 @@ impl BootstrapServer {
                         .map_err(|e| WgError::Protocol(format!("join body: {e}")))?;
                     let record = match request {
                         BootstrapRequest::Join(r) => r,
-                        other => return Err(WgError::Protocol(format!("expected Join, got {other:?}"))),
+                        other => {
+                            return Err(
+                                WgError::Protocol(format!("expected Join, got {other:?}")).into()
+                            )
+                        }
                     };
                     let (decision, members) = self.handler.on_join(record);
-                    (200, serde_json::to_vec(&BootstrapResponse::JoinResult { decision, members })
-                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
+                    (
+                        200,
+                        serde_json::to_vec(&BootstrapResponse::JoinResult { decision, members })
+                            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?,
+                    )
                 }
-                "PullMembership" => {
-                    (200, serde_json::to_vec(&BootstrapResponse::Membership(self.handler.membership()))
-                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
-                }
+                "PullMembership" => (
+                    200,
+                    serde_json::to_vec(&BootstrapResponse::Membership(self.handler.membership()))
+                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?,
+                ),
                 "Announce" => {
                     let request: BootstrapRequest = serde_json::from_slice(&req.body)
                         .map_err(|e| WgError::Protocol(format!("announce body: {e}")))?;
                     let record = match request {
                         BootstrapRequest::Announce(r) => r,
-                        other => return Err(WgError::Protocol(format!("expected Announce, got {other:?}"))),
+                        other => {
+                            return Err(WgError::Protocol(format!(
+                                "expected Announce, got {other:?}"
+                            ))
+                            .into())
+                        }
                     };
                     self.handler.on_announce(record);
-                    (200, serde_json::to_vec(&BootstrapResponse::Ack)
-                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
+                    (
+                        200,
+                        serde_json::to_vec(&BootstrapResponse::Ack)
+                            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?,
+                    )
                 }
                 _ => {
                     let err = serde_json::json!({"code":"unimplemented","message":format!("unknown method: {}",req.method)});
                     (501, serde_json::to_vec(&err).unwrap_or_default())
                 }
             };
-            write_http_response(stream, status, &body)?;
+            write_http_response(stream, status, &body).map_err(WgError::from)?;
         }
     }
 }
@@ -343,33 +402,45 @@ fn read_http_request(stream: &mut impl Read) -> io::Result<Option<HttpRequest>> 
     }
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 2 {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, format!("bad request line: {line}")));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("bad request line: {line}"),
+        ));
     }
     // Extract method name from the path: /wg_bootstrap.v1.WgBootstrap/Join → Join
-    let method = parts[1]
-        .rsplit('/')
-        .next()
-        .unwrap_or("")
-        .to_string();
+    let method = parts[1].rsplit('/').next().unwrap_or("").to_string();
 
     // Read headers.
     let mut content_length: usize = 0;
     loop {
         line.clear();
         match read_line(stream, &mut line) {
-            Ok(0) => return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "headers truncated")),
+            Ok(0) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "headers truncated",
+                ))
+            }
             Err(e) => return Err(e),
             Ok(_) => {}
         }
         let trimmed = line.trim();
-        if trimmed.is_empty() { break; }
-        if let Some(val) = trimmed.strip_prefix("Content-Length:").or_else(|| trimmed.strip_prefix("content-length:")) {
+        if trimmed.is_empty() {
+            break;
+        }
+        if let Some(val) = trimmed
+            .strip_prefix("Content-Length:")
+            .or_else(|| trimmed.strip_prefix("content-length:"))
+        {
             content_length = val.trim().parse::<usize>().unwrap_or(0);
         }
     }
 
     if content_length > MAX_FRAME {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "request body exceeds limit"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "request body exceeds limit",
+        ));
     }
     let mut body = vec![0u8; content_length];
     if content_length > 0 {
@@ -427,7 +498,7 @@ impl BootstrapClient {
     /// [`WgError::Io`] if the TCP connect fails; [`WgError::Protocol`] if the handshake
     /// fails (e.g. wrong seed).
     pub fn connect(&self, endpoint: SocketAddr) -> WgResult<BootstrapConnection> {
-        let tcp = TcpStream::connect(endpoint)?;
+        let tcp = TcpStream::connect(endpoint).map_err(WgError::from)?;
         let stream = noise_psk::connect(tcp, self.channel_psk)?;
         Ok(BootstrapConnection { stream })
     }
@@ -440,7 +511,8 @@ pub struct BootstrapConnection {
 
 impl std::fmt::Debug for BootstrapConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BootstrapConnection").finish_non_exhaustive()
+        f.debug_struct("BootstrapConnection")
+            .finish_non_exhaustive()
     }
 }
 
@@ -449,18 +521,28 @@ impl BootstrapConnection {
     ///
     /// # Errors
     /// [`WgError::Io`] on transport errors; [`WgError::Protocol`] on a malformed reply.
-    pub fn request(&mut self, method: &str, request: &BootstrapRequest) -> WgResult<BootstrapResponse> {
-        let body = serde_json::to_vec(request)
-            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?;
-        http_request(&mut self.stream, method, &body)?;
-        let resp = http_response(&mut self.stream)?
+    pub fn request(
+        &mut self,
+        method: &str,
+        request: &BootstrapRequest,
+    ) -> WgResult<BootstrapResponse> {
+        let body =
+            serde_json::to_vec(request).map_err(|e| WgError::Protocol(format!("encode: {e}")))?;
+        http_request(&mut self.stream, method, &body).map_err(WgError::from)?;
+        let resp = http_response(&mut self.stream)
+            .map_err(WgError::from)?
             .ok_or_else(|| WgError::Protocol("connection closed before reply".into()))?;
         if resp.status != 200 {
             let detail = String::from_utf8_lossy(&resp.body);
-            return Err(WgError::Protocol(format!("bootstrap server returned {}: {detail}", resp.status)));
+            return Err(WgError::Protocol(format!(
+                "bootstrap server returned {}: {detail}",
+                resp.status
+            ))
+            .into());
         }
         serde_json::from_slice(&resp.body)
             .map_err(|e| WgError::Protocol(format!("decode response: {e}")))
+            .map_err(Into::into)
     }
 
     /// Announce self and request admission, returning the decision + membership.
@@ -470,7 +552,7 @@ impl BootstrapConnection {
     pub fn join(&mut self, record: PeerRecord) -> WgResult<(Admission, Vec<PeerRecord>)> {
         match self.request("Join", &BootstrapRequest::Join(record))? {
             BootstrapResponse::JoinResult { decision, members } => Ok((decision, members)),
-            other => Err(WgError::Protocol(format!("unexpected join reply: {other:?}"))),
+            other => Err(WgError::Protocol(format!("unexpected join reply: {other:?}")).into()),
         }
     }
 
@@ -481,7 +563,9 @@ impl BootstrapConnection {
     pub fn pull_membership(&mut self) -> WgResult<Vec<PeerRecord>> {
         match self.request("PullMembership", &BootstrapRequest::PullMembership)? {
             BootstrapResponse::Membership(members) => Ok(members),
-            other => Err(WgError::Protocol(format!("unexpected membership reply: {other:?}"))),
+            other => {
+                Err(WgError::Protocol(format!("unexpected membership reply: {other:?}")).into())
+            }
         }
     }
 
@@ -492,7 +576,7 @@ impl BootstrapConnection {
     pub fn announce(&mut self, record: PeerRecord) -> WgResult<()> {
         match self.request("Announce", &BootstrapRequest::Announce(record))? {
             BootstrapResponse::Ack => Ok(()),
-            other => Err(WgError::Protocol(format!("unexpected announce reply: {other:?}"))),
+            other => Err(WgError::Protocol(format!("unexpected announce reply: {other:?}")).into()),
         }
     }
 }

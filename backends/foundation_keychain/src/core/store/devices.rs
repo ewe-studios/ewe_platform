@@ -7,7 +7,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -25,7 +25,8 @@ pub struct DeviceRow {
     pub updated_at: DateTime<Utc>,
 }
 
-const COLUMNS: &str = "uuid, user_uuid, identifier, name, atype, refresh_token, created_at, updated_at";
+const COLUMNS: &str =
+    "uuid, user_uuid, identifier, name, atype, refresh_token, created_at, updated_at";
 
 fn map_row(row: &SqlRow) -> AppResult<DeviceRow> {
     let created_at: String = row.get_by_name("created_at").map_err(store_err)?;
@@ -43,6 +44,10 @@ fn map_row(row: &SqlRow) -> AppResult<DeviceRow> {
 }
 
 /// Find a device by (user, client identifier).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find(
     db: &dyn QueryStore,
     user_uuid: &str,
@@ -65,6 +70,10 @@ pub async fn find(
 }
 
 /// Find a device by its refresh-grant `(user, identifier)` from a refresh token.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_user_identifier(
     db: &dyn QueryStore,
     user_uuid: &str,
@@ -74,6 +83,10 @@ pub async fn find_by_user_identifier(
 }
 
 /// Insert a new device.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &DeviceRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_devices \
@@ -99,6 +112,10 @@ pub async fn insert(db: &dyn QueryStore, row: &DeviceRow) -> AppResult<()> {
 }
 
 /// Replace a device's stored refresh token (rotation).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update_refresh_token(
     db: &dyn QueryStore,
     uuid: &str,

@@ -1,14 +1,12 @@
-use foundation_db::{QueryStore, Migration, MigrationRunner};
+use foundation_db::{Migration, MigrationRunner, QueryStore};
 
 use crate::store::VectorStoreError;
 
-pub static MIGRATIONS: &[Migration] = &[
-    Migration {
-        id: "vectors_001_create_vectors",
-        name: "Create vectors table for VectorStore",
-        sql: include_str!("sql/001_create_vectors.sql"),
-    },
-];
+pub static MIGRATIONS: &[Migration] = &[Migration {
+    id: "vectors_001_create_vectors",
+    name: "Create vectors table for VectorStore",
+    sql: include_str!("sql/001_create_vectors.sql"),
+}];
 
 /// Apply the vector-store migrations that haven't run yet.
 ///

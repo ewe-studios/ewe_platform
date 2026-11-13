@@ -3,7 +3,9 @@
 //! This module provides composable wrappers that add retry logic, timeouts,
 //! and backoff strategies to any `TaskIterator`, enabling robust task execution.
 
-use crate::valtron::{Ctx, TaskIterator, TaskStatus};
+use crate::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use std::time::Duration;
 
 // ============================================================================
@@ -11,7 +13,7 @@ use std::time::Duration;
 // ============================================================================
 
 #[cfg(feature = "std")]
-use std::time::Instant;
+use foundation_compact::Instant;
 
 /// Wraps a `TaskIterator` with a timeout.
 ///
@@ -58,13 +60,12 @@ where
             return None; // Task stops on timeout
         }
 
-        // Initialize start time on first poll
-        if self.started_at.is_none() {
-            self.started_at = Some(Instant::now());
-        }
+        // Initialize start time on first poll, on the engine clock.
+        let now = ctx.clock().now();
+        let started_at = *self.started_at.get_or_insert(now);
 
         // Check if timed out and return timed out ready state
-        if self.started_at.unwrap().elapsed() > self.timeout {
+        if now.saturating_duration_since(started_at) > self.timeout {
             tracing::warn!("Task timed out after {:?}", self.timeout);
             return None;
         }
@@ -194,7 +195,8 @@ impl BackoffStrategy {
         let next = match self {
             Self::Fixed(d) => *d,
             Self::Exponential { base, multiplier } => {
-                Duration::from_secs_f64(base.as_secs_f64() * multiplier.powi(attempt as i32))
+                let exponent = i32::try_from(attempt).unwrap_or(i32::MAX);
+                Duration::from_secs_f64(base.as_secs_f64() * multiplier.powi(exponent))
             }
             Self::Linear { base, increment } => *base + (*increment * attempt),
         };

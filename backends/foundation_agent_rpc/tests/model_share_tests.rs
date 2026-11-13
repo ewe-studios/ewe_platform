@@ -16,6 +16,7 @@ use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelSpec, TextContent, ToolDeclarations, UserModelContent,
 };
+use foundation_context::Ctx;
 use foundation_core::valtron::{valtron_test, Stream};
 
 fn fixture_dir(name: &str) -> std::path::PathBuf {
@@ -32,7 +33,7 @@ fn load(fixture: &str) -> CandleModels {
         model_location: Some(fixture_dir(fixture).to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    CandleBackend::cpu()
+    CandleBackend::cpu(Ctx::host())
         .get_model_by_spec(spec)
         .expect("tiny fixture loads offline")
 }
@@ -159,20 +160,24 @@ fn interleaved_streams_on_one_llama_model_do_not_cross_talk() {
     assert_eq!(got_b, alone_b, "stream B diverged when interleaved with A");
 }
 
-fn session_on(model: &CandleModels) -> foundation_ai::agentic::AgentSession {
+async fn session_on(model: &CandleModels) -> foundation_ai::agentic::AgentSession {
     use foundation_ai::agentic::{AgentConfig, AgentSession};
     use foundation_ai::types::PreloadedProvider;
 
     let id = ModelId::Name("shared-tiny-llama".into(), None);
-    AgentSession::builder(PreloadedProvider::new(model.clone(), id.clone()).into_router())
-        .with_system_prompt("You are a helpful assistant.")
-        .with_model(id)
-        .with_config(AgentConfig {
-            model_params: greedy(8),
-            ..Default::default()
-        })
-        .build()
-        .expect("session builds")
+    AgentSession::builder(
+        PreloadedProvider::new(model.clone(), id.clone()).into_router(),
+        Ctx::host(),
+    )
+    .with_system_prompt("You are a helpful assistant.")
+    .with_model(id)
+    .with_config(AgentConfig {
+        model_params: greedy(8),
+        ..Default::default()
+    })
+    .build()
+    .await
+    .expect("session builds")
 }
 
 fn user(text: &str) -> Messages {
@@ -191,19 +196,31 @@ fn user(text: &str) -> Messages {
 /// complete with the answer each gives alone, and both sessions run on the
 /// same weights (no per-session load).
 #[valtron_test(threads = 4)]
-fn two_sessions_share_one_model_concurrently() {
+async fn two_sessions_share_one_model_concurrently() {
     let model = load("tiny-random-LlamaForCausalLM");
 
-    let answer = |s: &foundation_ai::agentic::AgentSession, q: &str| {
-        s.ask(user(q)).expect("turn starts").text().to_string()
-    };
-    let alone_a = answer(&session_on(&model), "Hi there.");
-    let alone_b = answer(&session_on(&model), "What is two plus two?");
+    let alone_a = session_on(&model)
+        .await
+        .ask(user("Hi there."))
+        .await
+        .expect("turn starts")
+        .text()
+        .to_string();
+    let alone_b = session_on(&model)
+        .await
+        .ask(user("What is two plus two?"))
+        .await
+        .expect("turn starts")
+        .text()
+        .to_string();
 
-    let (sa, sb) = (session_on(&model), session_on(&model));
-    let ta = std::thread::spawn(move || sa.ask(user("Hi there.")).map(|a| a.text().to_string()));
+    let (sa, sb) = (session_on(&model).await, session_on(&model).await);
+    let ta = std::thread::spawn(move || {
+        foundation_core::valtron::block_on_future(sa.ask(user("Hi there.")))
+            .map(|a| a.text().to_string())
+    });
     let tb = std::thread::spawn(move || {
-        sb.ask(user("What is two plus two?"))
+        foundation_core::valtron::block_on_future(sb.ask(user("What is two plus two?")))
             .map(|a| a.text().to_string())
     });
     let got_a = ta.join().expect("thread a").expect("concurrent turn a");

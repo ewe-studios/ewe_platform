@@ -113,14 +113,22 @@ impl PickItem<String> {
     #[must_use]
     pub fn new(value: impl Into<String>) -> Self {
         let value = value.into();
-        Self { label: value.clone(), value, disabled: false }
+        Self {
+            label: value.clone(),
+            value,
+            disabled: false,
+        }
     }
 }
 
 impl<T> PickItem<T> {
     /// A pickable item with a distinct value and display label.
     pub fn with_label(value: T, label: impl Into<String>) -> Self {
-        Self { value, label: label.into(), disabled: false }
+        Self {
+            value,
+            label: label.into(),
+            disabled: false,
+        }
     }
 }
 
@@ -260,7 +268,15 @@ pub fn select<T: Clone + PartialEq + 'static>(
     let items_for_render = items.clone();
     let value_for_render = value.clone();
     let render = move |c: &Context, r: &SharedInstructionReceiver, item: &PickItem<T>| -> Html {
-        option_html(c, r, item, tfv, &value_for_render, &set_value, Some(&set_open))
+        option_html(
+            c,
+            r,
+            item,
+            tfv,
+            &value_for_render,
+            &set_value,
+            Some(&set_open),
+        )
     };
 
     // Trigger label: selected item's label, else placeholder.
@@ -352,7 +368,9 @@ pub fn combobox<T: Clone + PartialEq + 'static>(
     set_query: SignalSetter<String>,
     items: Vec<PickItem<T>>,
 ) -> Html {
-    combobox_impl(ctx, rcv, config, open, set_open, value, set_value, query, set_query, items, false)
+    combobox_impl(
+        ctx, rcv, config, open, set_open, value, set_value, query, set_query, items, false,
+    )
 }
 
 /// Autocomplete — a combobox whose value IS the input text (suggestions list,
@@ -370,7 +388,9 @@ pub fn autocomplete(
 ) -> Html {
     // value ≡ query: selecting writes the query, no hidden value input.
     let (value, set_value) = ctx.signal::<Option<String>>(None);
-    combobox_impl(ctx, rcv, config, open, set_open, &value, set_value, query, set_query, items, true)
+    combobox_impl(
+        ctx, rcv, config, open, set_open, &value, set_value, query, set_query, items, true,
+    )
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -456,7 +476,11 @@ fn combobox_impl<T: Clone + PartialEq + 'static>(
         let q = query_for_filter.clone();
         move || -> Vec<PickItem<T>> {
             let query = q.get();
-            all_items.iter().filter(|it| matches(it, &query)).cloned().collect()
+            all_items
+                .iter()
+                .filter(|it| matches(it, &query))
+                .cloned()
+                .collect()
         }
     };
     let count = {
@@ -478,7 +502,10 @@ fn combobox_impl<T: Clone + PartialEq + 'static>(
     let i_query = query.clone();
     let p_open = open.clone();
     let p_closed = open.clone();
-    let p_empty = { let c = count.clone(); move || c() == 0 };
+    let p_empty = {
+        let c = count.clone();
+        move || c() == 0
+    };
     let s_count = count.clone();
     let disabled = config.disabled;
     html! { ctx, rcv,

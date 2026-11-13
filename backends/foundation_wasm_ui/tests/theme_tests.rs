@@ -35,13 +35,19 @@ fn pure_form_transforms_and_combines_scoped_styles() {
     assert_eq!(tree.children.len(), 2);
     let style = &tree.children[1];
     assert_eq!(
-        style.tag.as_ref().and_then(foundation_ui_traits::HtmlTag::name),
+        style
+            .tag
+            .as_ref()
+            .and_then(foundation_ui_traits::HtmlTag::name),
         Some("style")
     );
     let css = style.children[0].text.as_deref().unwrap();
     assert!(css.contains("#menu-tabs { background: white; }"), "{css}");
     assert!(css.contains("#menu-tabs .title { font-size: 20px; }"));
-    assert!(css.contains("#menu-tabs .subtitle { color: gray; }"), "combined (§4)");
+    assert!(
+        css.contains("#menu-tabs .subtitle { color: gray; }"),
+        "combined (§4)"
+    );
 }
 
 /// Class-identity fallback when there is no id (id wins when both exist).
@@ -96,7 +102,10 @@ fn reactive_form_ships_scoped_styles_to_head() {
         )),
         "appended to the reserved <head> ambient id"
     );
-    assert!(style_id >= 16, "instance ids stay out of the reserved 0-15 range");
+    assert!(
+        style_id >= 16,
+        "instance ids stay out of the reserved 0-15 range"
+    );
 }
 
 // ─── ThemeTokens derive (decision 020) ─────────────────────────────────────────
@@ -129,7 +138,10 @@ fn theme_tokens_generate_the_spec_css() {
     // Dark block: explicit override + auto-derived (~80% luminance).
     assert!(css.contains("@media (prefers-color-scheme: dark)"));
     assert!(css.contains("--color-primary: #60a5fa;"), "explicit dark");
-    assert!(css.contains("--color-secondary: #0d9467;"), "auto-derived dark: {css}");
+    assert!(
+        css.contains("--color-secondary: #0d9467;"),
+        "auto-derived dark: {css}"
+    );
 
     // Utility classes per category (§7.1 table).
     assert!(css.contains(".bg-primary { background-color: var(--color-primary); }"));
@@ -137,8 +149,10 @@ fn theme_tokens_generate_the_spec_css() {
     assert!(css.contains(".border-secondary { border-color: var(--color-secondary); }"));
     assert!(css.contains(".p-md { padding: var(--spacing-md); }"));
     assert!(css.contains(".m-md { margin: var(--spacing-md); }"));
-    assert!(css.contains(".rounded-sm { border-radius: var(--border-radius-sm); }")
-        || css.contains(".rounded-sm { border-radius: var(--radius-sm); }"));
+    assert!(
+        css.contains(".rounded-sm { border-radius: var(--border-radius-sm); }")
+            || css.contains(".rounded-sm { border-radius: var(--radius-sm); }")
+    );
     assert!(css.contains(".shadow-soft { box-shadow: var(--shadow-soft); }"));
 
     // Built-in utilities (§7.2).
@@ -203,9 +217,18 @@ fn theme_macro_builds_app_injects_and_reads_back() {
     let theme = app.get_theme().expect("theme installed");
     assert_eq!(theme.value("color", "primary"), Some("#3b82f6"));
     assert!(theme.to_css().contains("--color-primary: #3b82f6;"));
-    assert!(theme.to_css().contains("--spacing-md: 16px;"), "unquoted 16px token");
-    assert!(theme.to_css().contains("--color-primary: #60a5fa;"), "explicit dark");
-    assert!(theme.to_css().contains("--color-secondary: #0d9467;"), "auto-derived dark");
+    assert!(
+        theme.to_css().contains("--spacing-md: 16px;"),
+        "unquoted 16px token"
+    );
+    assert!(
+        theme.to_css().contains("--color-primary: #60a5fa;"),
+        "explicit dark"
+    );
+    assert!(
+        theme.to_css().contains("--color-secondary: #0d9467;"),
+        "auto-derived dark"
+    );
     assert!(theme.to_css().contains(".opacity-50 { opacity: 0.50; }"));
 
     // The CSS was queued toward <head> on install.

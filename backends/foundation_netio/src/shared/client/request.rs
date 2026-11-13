@@ -4,8 +4,8 @@
 //! via `into_simple_incoming_request()` to use with HTTP rendering.
 
 use crate::shared::http::{
-    HttpClientError, Proto, SendSafeBody, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
-    SimpleUrl,
+    BodyReadiness, HttpClientError, Proto, SendSafeBody, SimpleHeaders, SimpleIncomingRequest,
+    SimpleMethod, SimpleUrl,
 };
 use foundation_core::url::Uri;
 
@@ -18,6 +18,10 @@ pub struct PreparedRequest {
     pub headers: SimpleHeaders,
     pub body: SendSafeBody,
     pub extensions: Extensions,
+    /// Consumer-side pipe readiness for a pushable request body; `None` for
+    /// other bodies. Flows through to `SimpleIncomingRequest` so the non-blocking
+    /// body writer can park on it instead of a back-off timer.
+    pub body_readiness: Option<BodyReadiness>,
 }
 
 impl PreparedRequest {
@@ -35,14 +39,18 @@ impl PreparedRequest {
             SimpleUrl::url_only(self.url.to_string())
         };
 
-        let request = SimpleIncomingRequest::builder()
+        let mut builder = SimpleIncomingRequest::builder()
             .with_url(simple_url)
             .with_uri(self.url)
             .with_method(self.method)
             .with_proto(Proto::HTTP11)
             .with_headers(self.headers)
             .with_some_body(Some(self.body))
-            .with_extensions(self.extensions)
+            .with_extensions(self.extensions);
+        if let Some(readiness) = self.body_readiness {
+            builder = builder.with_body_readiness(readiness);
+        }
+        let request = builder
             .build()
             .map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
 

@@ -29,6 +29,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
+use foundation_deployment_platform::testing::docker_available;
 use foundation_sshkit::Backend;
 use foundation_sshkit::{Command, ConnectionPool, Host, Ssh2Backend};
 
@@ -36,12 +37,11 @@ const SSH_USER: &str = "testuser";
 const SSH_PASSWORD: &str = "testpass";
 const SSH_PORT: u16 = 2222;
 
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
-
 fn sshd_config() -> ContainerConfig {
     ContainerConfig::new("lscr.io/linuxserver/openssh-server:latest")
+        .ctx(foundation_context::Ctx::fixed(Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )))
         .port(SSH_PORT)
         .env("PUID", "1000")
         .env("PGID", "1000")
@@ -57,7 +57,10 @@ fn sshd_config() -> ContainerConfig {
 }
 
 fn backend_and_host(host_port: u16) -> (Ssh2Backend, Host) {
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(30)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(30),
+        foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
+    ));
     let backend = Ssh2Backend::new(pool);
     let host =
         Host::parse(&format!("{SSH_USER}@127.0.0.1:{host_port}")).with_password(SSH_PASSWORD);
@@ -82,11 +85,17 @@ fn upload_then_download(port: u16) -> Result<(String, String), String> {
     fs::write(&src, &payload).map_err(|e| format!("write src: {e}"))?;
 
     let remote = PathBuf::from("/config/sshkit_roundtrip.txt");
-    backend.upload(&host, &src, &remote)?;
+    backend
+        .upload(&host, &src, &remote)
+        .map_err(|e| format!("upload: {e}"))?;
 
-    let cat = backend.execute(&host, &Command::new("cat /config/sshkit_roundtrip.txt"))?;
+    let cat = backend
+        .execute(&host, &Command::new("cat /config/sshkit_roundtrip.txt"))
+        .map_err(|e| format!("execute: {e}"))?;
 
-    backend.download(&host, &remote, &dst)?;
+    backend
+        .download(&host, &remote, &dst)
+        .map_err(|e| format!("download: {e}"))?;
     let downloaded = fs::read_to_string(&dst).map_err(|e| format!("read dst: {e}"))?;
 
     fs::remove_file(&src).ok();
@@ -202,7 +211,10 @@ fn test_execute_wrong_password_is_rejected() {
     let port = handle.host_port(SSH_PORT).expect("ssh port mapped");
 
     let result = {
-        let pool = Arc::new(ConnectionPool::new(Duration::from_secs(10)));
+        let pool = Arc::new(ConnectionPool::new(
+            Duration::from_secs(10),
+            foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
+        ));
         let backend = Ssh2Backend::new(pool);
         let host = Host::parse(&format!("{SSH_USER}@127.0.0.1:{port}"))
             .with_password("definitely-the-wrong-password");
@@ -215,7 +227,7 @@ fn test_execute_wrong_password_is_rejected() {
     );
     let err = result.unwrap_err();
     assert!(
-        err.contains("auth"),
+        err.to_string().to_lowercase().contains("auth"),
         "error should point at the auth step, got: {err:?}"
     );
 }

@@ -24,21 +24,22 @@ use std::time::Duration;
 
 use base64::Engine as _;
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_http::native::server::HttpServer;
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
-use foundation_http::shared::serve::Serve;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::native::serve::Serve;
+use foundation_http::native::server::HttpServer;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Ctx, Envelope,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Envelope,
     H1Transport, H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
-    Response, Router,
+    Response, Router, RpcCtx,
 };
 
 use foundation_proxy::config::ServiceConfig;
@@ -74,7 +75,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -83,7 +84,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -95,12 +96,12 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             use futures_util::StreamExt;
             let mut parts = Vec::new();
             let mut reqs = reqs;
             while let Some(msg) = reqs.next().await {
-                parts.push(msg.map(|m| m.text).unwrap_or_else(|_| "<err>".to_string()));
+                parts.push(msg.map_or_else(|_| "<err>".to_string(), |m| m.text));
             }
             Ok(Response::new(Msg::of(parts.join("+"))))
         },
@@ -110,7 +111,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI_STREAM,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             use futures_util::StreamExt;
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
@@ -124,7 +125,7 @@ fn build_router() -> Router {
 
 /// Start a real `foundation_http` backend serving one connectrpc router over
 /// both HTTP/1.1 (Connect + gRPC-Web) and HTTP/2 (gRPC + Connect-over-H2).
-fn start_backend() -> (u16, Arc<OnSignal>) {
+fn start_backend() -> (u16, Arc<ShutdownSignal>) {
     // H1: Connect and gRPC-Web are HTTP/1.1-native.
     let h1: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(build_router().into_handler()));
     let mut h1_app = HttpApp::new_serve();
@@ -145,7 +146,7 @@ fn start_backend() -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::both(h1_app, h2_app), &addr);
     std::thread::spawn(move || {
@@ -163,7 +164,7 @@ fn build_tagged_router(tag: &str) -> Router {
     router.unary(
         UNARY,
         codecs(),
-        move |_ctx: Ctx, req: Request<Msg>| {
+        move |_ctx: RpcCtx, req: Request<Msg>| {
             let tag = tag.clone();
             async move { Ok(Response::new(Msg::of(format!("{tag}:{}", req.msg.text)))) }
         },
@@ -175,7 +176,7 @@ fn build_tagged_router(tag: &str) -> Router {
 /// Start a backend serving **only native gRPC** (HTTP/2 `ConnectRpcServeH2`),
 /// with no HTTP/1.1 / gRPC-Web dispatch at all. Used by the D-leg tests to prove
 /// the proxy translates an inbound gRPC-Web request rather than forwarding it.
-fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
+fn start_backend_grpc_only() -> (u16, Arc<ShutdownSignal>) {
     let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2.clone());
@@ -187,7 +188,7 @@ fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {
@@ -199,9 +200,10 @@ fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
 
 /// A native-gRPC-only backend (H2) whose unary responses carry `tag`, so a test
 /// can observe which of several backend instances answered.
-fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<OnSignal>) {
-    let h2: Arc<dyn H2Serve> =
-        Arc::new(ConnectRpcServeH2::new(build_tagged_router(tag).into_handler()));
+fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<ShutdownSignal>) {
+    let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(
+        build_tagged_router(tag).into_handler(),
+    ));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2);
 
@@ -209,7 +211,7 @@ fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {
@@ -225,8 +227,8 @@ fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<OnSignal>) {
 /// (The connectrpc clients dial the proxy and set the authority to the same
 /// loopback host, so the service host must be `127.0.0.1`, not a virtual name.)
 fn proxy_config(backend_port: u16) -> ProxyConfig {
-    let svc = ServiceConfig::new("rpc", "127.0.0.1")
-        .backend(&format!("http://127.0.0.1:{backend_port}"));
+    let svc =
+        ServiceConfig::new("rpc", "127.0.0.1").backend(&format!("http://127.0.0.1:{backend_port}"));
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
         .service(svc)
@@ -235,8 +237,8 @@ fn proxy_config(backend_port: u16) -> ProxyConfig {
 /// A proxy whose backend is declared `grpc://` (native gRPC), selecting the
 /// D-leg relay instead of the transparent HTTP forward.
 fn proxy_config_grpc(backend_port: u16) -> ProxyConfig {
-    let svc = ServiceConfig::new("rpc", "127.0.0.1")
-        .backend(&format!("grpc://127.0.0.1:{backend_port}"));
+    let svc =
+        ServiceConfig::new("rpc", "127.0.0.1").backend(&format!("grpc://127.0.0.1:{backend_port}"));
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
         .service(svc)
@@ -271,8 +273,19 @@ fn test_timeout_ms() -> u64 {
         .unwrap_or(DEFAULT_TIMEOUT_MS)
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+/// Bound for one client call in this suite.
+///
+/// WHY: a stalled call must fail on its own deadline and name itself, not only
+/// on the 30 s harness cap above. The client enforces this `RpcCtx` deadline, so
+/// the failing call's `.expect("...")` message and its line number say which
+/// call stalled.
+///
+/// WHAT: 5 s. A passing call takes about 0.2 s, so this is a 25× margin, and it
+/// is far below the harness cap.
+const CALL_DEADLINE: Duration = Duration::from_secs(5);
+
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(CALL_DEADLINE)
 }
 
 /// A typed client over HTTP/1.1 speaking the Connect protocol.
@@ -349,7 +362,9 @@ async fn collect_stream(client: &Client<Msg, Msg>, seed: &str) -> Vec<String> {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_h1_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, UNARY);
@@ -361,7 +376,11 @@ async fn connect_unary_via_h1_proxy() {
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
-    assert_eq!(resp.msg, Msg::of("echo:connect-h1"), "Connect unary over H1 must round-trip");
+    assert_eq!(
+        resp.msg,
+        Msg::of("echo:connect-h1"),
+        "Connect unary over H1 must round-trip"
+    );
 }
 
 /// WHY: Connect server-streaming (framed `application/connect+json`) must flow
@@ -369,7 +388,9 @@ async fn connect_unary_via_h1_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_h1_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, SERVER_STREAM);
@@ -380,7 +401,11 @@ async fn connect_server_stream_via_h1_proxy() {
 
     assert_eq!(
         got,
-        vec!["connect-h1-stream-0", "connect-h1-stream-1", "connect-h1-stream-2"],
+        vec![
+            "connect-h1-stream-0",
+            "connect-h1-stream-1",
+            "connect-h1-stream-2"
+        ],
         "Connect server-stream over H1 must deliver all frames in order"
     );
 }
@@ -391,7 +416,9 @@ async fn connect_server_stream_via_h1_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_h2_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -403,7 +430,11 @@ async fn connect_unary_via_h2_proxy() {
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
-    assert_eq!(resp.msg, Msg::of("echo:connect-h2"), "Connect unary over H2 must round-trip");
+    assert_eq!(
+        resp.msg,
+        Msg::of("echo:connect-h2"),
+        "Connect unary over H2 must round-trip"
+    );
 }
 
 /// WHY: Connect server-streaming over the H2 front end exercises the streaming
@@ -411,7 +442,9 @@ async fn connect_unary_via_h2_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_h2_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, SERVER_STREAM);
@@ -422,7 +455,11 @@ async fn connect_server_stream_via_h2_proxy() {
 
     assert_eq!(
         got,
-        vec!["connect-h2-stream-0", "connect-h2-stream-1", "connect-h2-stream-2"],
+        vec![
+            "connect-h2-stream-0",
+            "connect-h2-stream-1",
+            "connect-h2-stream-2"
+        ],
         "Connect server-stream over H2 must deliver all frames in order"
     );
 }
@@ -435,7 +472,9 @@ async fn connect_server_stream_via_h2_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_unary_via_proxy_carries_status() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_client(&addr, UNARY);
@@ -453,7 +492,7 @@ async fn grpc_unary_via_proxy_carries_status() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
     assert_eq!(grpc_status, Some("0"), "grpc-status must be relayed as 0");
 }
 
@@ -462,7 +501,9 @@ async fn grpc_unary_via_proxy_carries_status() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_server_stream_via_proxy_carries_status() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_client(&addr, SERVER_STREAM);
@@ -481,7 +522,7 @@ async fn grpc_server_stream_via_proxy_carries_status() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
 
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
@@ -501,7 +542,9 @@ async fn grpc_server_stream_via_proxy_carries_status() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_unary_via_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_web_client(&addr, UNARY);
@@ -513,7 +556,11 @@ async fn grpc_web_unary_via_proxy() {
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
-    assert_eq!(resp.msg, Msg::of("echo:grpc-web"), "gRPC-Web unary must round-trip");
+    assert_eq!(
+        resp.msg,
+        Msg::of("echo:grpc-web"),
+        "gRPC-Web unary must round-trip"
+    );
 }
 
 /// WHY: gRPC-Web server-streaming carries its status in a final body frame (not
@@ -522,7 +569,9 @@ async fn grpc_web_unary_via_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_server_stream_via_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_web_client(&addr, SERVER_STREAM);
@@ -533,7 +582,11 @@ async fn grpc_web_server_stream_via_proxy() {
 
     assert_eq!(
         got,
-        vec!["grpc-web-stream-0", "grpc-web-stream-1", "grpc-web-stream-2"],
+        vec![
+            "grpc-web-stream-0",
+            "grpc-web-stream-1",
+            "grpc-web-stream-2"
+        ],
         "gRPC-Web server-stream must deliver all frames in order"
     );
 }
@@ -547,7 +600,12 @@ async fn grpc_web_server_stream_via_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_web_client(&addr, UNARY);
@@ -573,7 +631,12 @@ async fn grpc_web_unary_via_grpc_backend() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_web_client(&addr, SERVER_STREAM);
@@ -592,7 +655,7 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
 
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
@@ -607,7 +670,8 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
         "gRPC-Web server-stream through a grpc:// backend must deliver all frames in order"
     );
     assert_eq!(
-        grpc_status, Some("0"),
+        grpc_status,
+        Some("0"),
         "grpc-status must be translated into the gRPC-Web trailer frame"
     );
 }
@@ -618,7 +682,12 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_text_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     // Build the request by hand: one `0x00` message envelope (JSON), then
@@ -652,7 +721,7 @@ async fn grpc_web_text_unary_via_grpc_backend() {
         resp_headers
             .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
-            .map(|s| s.as_str()),
+            .map(std::string::String::as_str),
         Some("application/grpc-web-text+json"),
         "text mode must be echoed back in the response content-type"
     );
@@ -694,7 +763,12 @@ async fn grpc_web_text_unary_via_grpc_backend() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, UNARY);
@@ -719,7 +793,12 @@ async fn connect_unary_via_grpc_backend() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, SERVER_STREAM);
@@ -745,7 +824,12 @@ async fn connect_server_stream_via_grpc_backend() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_client_stream_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, CLIENT_STREAM);
@@ -772,14 +856,19 @@ async fn connect_client_stream_via_grpc_backend() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_bidi_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, BIDI_STREAM);
     // `bidi_stream` hands back a drive-it-yourself `BidiStream`; the request is
     // sent by explicit `send` calls, not the (ignored) input stream.
     let mut stream = client
-        .bidi_stream(ctx(), futures_util::stream::empty())
+        .bidi_stream(ctx())
         .await
         .expect("connect bidi stream through grpc backend");
 
@@ -810,7 +899,12 @@ async fn connect_bidi_via_grpc_backend() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_grpc_backend_h2() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -841,8 +935,12 @@ async fn connect_unary_via_grpc_backend_h2() {
 async fn connect_streams_spread_across_grpc_backends() {
     let (port_a, shutdown_a) = start_backend_grpc_only_tagged("A");
     let (port_b, shutdown_b) = start_backend_grpc_only_tagged("B");
-    let proxy =
-        ProxyServer::start(proxy_config_grpc_multi(&[port_a, port_b])).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc_multi(&[port_a, port_b]),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     // Each call dials the proxy with a fresh H2 connection (H2Transport is

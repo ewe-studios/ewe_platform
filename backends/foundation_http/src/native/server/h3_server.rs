@@ -1,5 +1,5 @@
 //! HTTP/3 server — drives a QUIC endpoint and dispatches request streams to
-//! [`H3Serve`] handlers (F35 / spec-53 F19).
+//! [`H3Serve`](crate::native::serve::H3Serve) handlers (F35 / spec-53 F19).
 //!
 //! WHY: `foundation_netio` provides the QUIC substrate ([`QuicDriver`] — one
 //! `quinn_proto::Endpoint` per UDP socket) and the HTTP/3 mapping
@@ -19,22 +19,24 @@ use std::collections::VecDeque;
 use std::io;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use std::task::{Wake, Waker};
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{Ctx, 
-    FutureTask, Stream, TaskIterator, TaskStatus,
+use foundation_context::Ctx;
+use foundation_core::valtron::{
+    AnyReadiness, EventReadiness, FutureTask, ReadinessWaker, ResumeSignal, Stream, TaskIterator,
+    TaskStatus,
 };
+#[cfg(unix)]
+use foundation_iogate::FdReadiness as SocketReadiness;
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Connection, H3Error};
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::quic::{server_config_from_pem, QuicDriver, QuinnConnection};
 use foundation_netio::shared::http::SimpleMethod;
 
-use crate::native::serve::H3Serve;
-use crate::shared::app::HttpApp;
-
-type H3App = Arc<HttpApp<Arc<dyn H3Serve>>>;
+use crate::native::app::H3App;
 
 /// Bind a UDP socket at `bind_addr` and serve `app` over HTTP/3 (QUIC), using the
 /// PEM cert+key for the TLS handshake. Returns the actual bound address. Spawns
@@ -49,19 +51,53 @@ pub fn serve_h3(
     cert_pem: &[u8],
     key_pem: &[u8],
     app: H3App,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 ) -> io::Result<SocketAddr> {
     let cfg = server_config_from_pem(cert_pem, key_pem)?;
     let driver = QuicDriver::server(bind_addr, cfg)?;
     let local = driver.local_addr()?;
+
+    // Watch the driver's UDP socket so an idle endpoint parks on the reactor
+    // instead of polling at 1 ms. A socket that cannot be watched (non-unix, or
+    // the reactor refused it) falls back to the driver's 1 ms poll.
+    let driver = watch_driver_socket(driver);
+
     let accept_queue = driver.accept_queue();
 
     // The driver is the endpoint pump: run it as its own task.
+    let accept_wakers = driver.accept_wakers();
     foundation_core::valtron::send(driver)
         .map_err(|e| io::Error::other(format!("spawn quic driver: {e}")))?;
-    foundation_core::valtron::send(H3AcceptTask::new(accept_queue, app, shutdown))
-        .map_err(|e| io::Error::other(format!("spawn h3 accept task: {e}")))?;
+    foundation_core::valtron::send(H3AcceptTask::new(
+        accept_queue,
+        accept_wakers,
+        app,
+        shutdown,
+    ))
+    .map_err(|e| io::Error::other(format!("spawn h3 accept task: {e}")))?;
     Ok(local)
+}
+
+/// Wrap the driver's UDP socket in fd readiness so it parks when idle. Returns
+/// the driver unchanged when the socket cannot be watched, which falls back to
+/// the driver's 1 ms poll.
+fn watch_driver_socket(driver: QuicDriver) -> QuicDriver {
+    #[cfg(unix)]
+    {
+        use std::os::fd::AsRawFd;
+        let fd = driver.socket().as_raw_fd();
+        match SocketReadiness::register(fd) {
+            Ok(readiness) => driver.with_fd_readiness(Arc::new(readiness)),
+            Err(e) => {
+                tracing::debug!(error = %e, "h3 server: cannot watch the QUIC socket; polling instead");
+                driver
+            }
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        driver
+    }
 }
 
 /// A live H3 connection being driven by the accept task.
@@ -75,20 +111,68 @@ struct ActiveConn {
 }
 
 /// Drains handshaked QUIC connections and dispatches their request streams.
-struct H3AcceptTask {
+///
+/// It parks between turns: its waker is registered on the driver's accept list
+/// and on every connection, so it runs again when a connection is handshaked
+/// or one of them makes progress (SETTINGS, a new request stream, a close) —
+/// or when `shutdown` fires. No timer.
+pub struct H3AcceptTask {
     accept_queue: Arc<Mutex<VecDeque<QuinnConnection>>>,
+    accept_wakers: Arc<Mutex<Vec<Waker>>>,
     app: H3App,
     conns: Vec<ActiveConn>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
+    /// Set by `waker`; the task parks on it.
+    woken: ResumeSignal,
+    /// One waker for the task's life, so `will_wake` dedupes its
+    /// registrations.
+    waker: Waker,
 }
 
 impl H3AcceptTask {
-    fn new(
+    pub fn new(
         accept_queue: Arc<Mutex<VecDeque<QuinnConnection>>>,
+        accept_wakers: Arc<Mutex<Vec<Waker>>>,
         app: H3App,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
     ) -> Self {
-        Self { accept_queue, app, conns: Vec::new(), shutdown }
+        let woken = ResumeSignal::new(false);
+        Self {
+            accept_queue,
+            accept_wakers,
+            app,
+            conns: Vec::new(),
+            shutdown,
+            waker: Waker::from(Arc::new(SignalWaker(woken.clone()))),
+            woken,
+        }
+    }
+}
+
+/// A `Waker` that sets the accept task's signal (and asks the executor to run).
+struct SignalWaker(ResumeSignal);
+
+impl Wake for SignalWaker {
+    fn wake(self: Arc<Self>) {
+        self.0.set(true);
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.0.set(true);
+    }
+}
+
+/// Ready once the server is shutting down.
+struct ShutdownRequested(Arc<ShutdownSignal>);
+
+impl EventReadiness for ShutdownRequested {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
     }
 }
 
@@ -101,9 +185,24 @@ impl TaskIterator for H3AcceptTask {
             return None;
         }
 
+        // Register before looking for work, so progress made while we look
+        // still wakes us.
+        self.woken.set(false);
+        let waker = self.waker.clone();
+        if let Ok(mut wakers) = self.accept_wakers.lock() {
+            if !wakers.iter().any(|w| w.will_wake(&waker)) {
+                wakers.push(waker.clone());
+            }
+        }
+
         // Adopt newly handshaked connections.
+        let mut progressed = false;
         loop {
-            let next = self.accept_queue.lock().unwrap().pop_front();
+            let next = self
+                .accept_queue
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .pop_front();
             match next {
                 Some(conn) => {
                     let ctx = Arc::new(conn.connection_context());
@@ -113,6 +212,7 @@ impl TaskIterator for H3AcceptTask {
                         setup_done: false,
                         settings_done: false,
                     });
+                    progressed = true;
                 }
                 None => break,
             }
@@ -120,18 +220,31 @@ impl TaskIterator for H3AcceptTask {
 
         // Drive each connection: send our SETTINGS, read the peer's, accept and
         // dispatch request streams. A connection whose setup or accept fails is
-        // gone (closed, reset, or broken framing): drop it rather than keep
-        // polling a dead connection for ever.
+        // gone (closed, reset, or broken framing), as is one that cannot wake
+        // us: drop it rather than keep polling a dead connection for ever.
         let app = &self.app;
-        self.conns.retain_mut(|c| match drive_connection(c, app) {
-            Ok(()) => true,
-            Err(e) => {
-                tracing::debug!(error = %e, "h3 connection ended; dropping it");
-                false
+        self.conns.retain_mut(|c| {
+            if !c.h3.register_waker(&waker) {
+                tracing::debug!("h3 connection cannot be waited on; dropping it");
+                return false;
+            }
+            match drive_connection(c, app) {
+                Ok(()) => true,
+                Err(e) => {
+                    tracing::debug!(error = %e, "h3 connection ended; dropping it");
+                    false
+                }
             }
         });
 
-        Some(TaskStatus::Delayed(Duration::from_millis(5)))
+        if progressed {
+            // New connections may already have streams waiting.
+            return Some(TaskStatus::Pending(()));
+        }
+        Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
+            Arc::new(self.woken.clone()),
+            Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),
+        ))))
     }
 }
 
@@ -148,7 +261,6 @@ fn drive_connection(c: &mut ActiveConn, app: &H3App) -> Result<(), H3Error> {
     if c.setup_done && !c.settings_done {
         match c.h3.poll_peer_settings() {
             Stream::Next(Ok(true)) => c.settings_done = true,
-            Stream::Next(Ok(false)) => {}
             Stream::Next(Err(e)) => return Err(e),
             _ => {}
         }

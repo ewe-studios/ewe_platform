@@ -1,14 +1,14 @@
 //! # `foundation_browser` — a pure-Rust browser test driver (spec-43)
 //!
-//! WHY: CDP (Chrome DevTools Protocol) and WebDriver BiDi are just JSON-RPC over
+//! WHY: CDP (Chrome `DevTools` Protocol) and `WebDriver` `BiDi` are just JSON-RPC over
 //! a WebSocket. We already own a WebSocket client (`foundation_netio`), so we can
 //! speak those protocols DIRECTLY from Rust — no Node, no Playwright binary, no
 //! external driver. This lets us drive a real browser from Rust tests and verify
 //! the spec-42 UI machinery against real paint, layout, and trusted input.
 //!
 //! WHAT (phase 1, Chromium/CDP only): [`jsonrpc`] (the protocol-agnostic engine)
-//! + the CDP client, browser supervision, and a `Page`/`Locator` API (added
-//! incrementally). Firefox/BiDi is a later feature behind the same engine.
+//! plus the CDP client, browser supervision, and a `Page`/`Locator` API (added
+//! incrementally). Firefox/`BiDi` is a later feature behind the same engine.
 //!
 //! HOW: One reader thread drains the WebSocket, correlating `id → result` and
 //! fanning `method → events`; commands block on a per-request channel. Browser
@@ -25,6 +25,7 @@ pub mod error;
 pub mod geometry;
 pub mod jsonrpc;
 pub mod locator;
+pub mod pause;
 pub mod runtime;
 pub mod supervisor;
 pub mod test;
@@ -35,6 +36,7 @@ pub use error::{BrowserError, Result};
 pub use geometry::Rect;
 pub use jsonrpc::{RpcEngine, WireProtocol};
 pub use locator::{Locator, LocatorAssertions};
+pub use pause::WaitConfig;
 
 /// `#[wasm_ui_server]` — boot a server + browser for a test, with deterministic
 /// teardown (see the macro docs).

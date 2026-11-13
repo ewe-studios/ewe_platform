@@ -12,8 +12,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::writer::send_text;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
@@ -21,19 +22,20 @@ use foundation_netio::shared::http::{
 use serial_test::serial;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::ConnectionResult,
     },
 };
 
 struct SecretHandler;
 
 impl ServeFactory for SecretHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -41,12 +43,16 @@ impl ServeFactory for SecretHandler {
 impl Serve for SecretHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "smuggled-secret")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            "smuggled-secret",
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -54,7 +60,7 @@ impl Serve for SecretHandler {
 struct RejectPosts;
 
 impl RequestMiddleware for RejectPosts {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         if req.method != SimpleMethod::POST {
             return MiddlewareResult::Continue;
         }
@@ -68,8 +74,8 @@ impl RequestMiddleware for RejectPosts {
     }
 }
 
-fn start(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let config = ServerConfig::defaults()

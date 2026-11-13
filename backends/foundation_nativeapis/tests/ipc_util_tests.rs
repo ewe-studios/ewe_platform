@@ -1,6 +1,5 @@
 //! Tests extracted from shared/ipc/util.rs
 mod tests {
-    use foundation_nativeapis::shared::ipc::*;
     use foundation_nativeapis::shared::ipc::util::*;
 
     #[test]

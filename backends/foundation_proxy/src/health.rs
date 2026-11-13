@@ -21,23 +21,24 @@
 use std::net::TcpStream;
 use std::sync::Arc;
 use std::thread::JoinHandle;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{block_on_future, sleep_async};
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl,
 };
 
 use foundation_connectrpc::{
-    CancelSignal, ClientExchange, ClientExchangeConfig, GrpcClient, H2Transport, ProtocolClient,
-    Spec, Transport,
+    CancelSignal, ClientExchange, ClientExchangeConfig, CompressionRegistry, GrpcClient,
+    H2Transport, ProtocolClient, Spec, Transport,
 };
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_util::future::{select, Either};
 use futures_util::FutureExt;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use crate::config::{BackendProtocol, HealthCheckConfig};
 use crate::runtime::{BackendRuntime, ServiceRuntime};
@@ -120,11 +121,20 @@ impl HealthMonitor {
 ///
 /// Returns a [`HealthMonitor`]; the threads run until `shutdown` is turned on.
 /// A service without a `health_check` config spawns nothing — its backends stay
-/// at their initial healthy state.
+/// at their initial healthy state. The clock of `ctx` times the wait between
+/// two probes.
 #[must_use]
-pub fn spawn_service_probes(service: &Arc<ServiceRuntime>, shutdown: Arc<OnSignal>) -> HealthMonitor {
+// The shutdown handle is cloned into every probe handle.
+#[allow(clippy::needless_pass_by_value)]
+pub fn spawn_service_probes(
+    service: &Arc<ServiceRuntime>,
+    shutdown: Arc<ShutdownSignal>,
+    ctx: Ctx,
+) -> HealthMonitor {
     let Some(config) = service.config().health_check.clone() else {
-        return HealthMonitor { handles: Vec::new() };
+        return HealthMonitor {
+            handles: Vec::new(),
+        };
     };
     // One probe client per service, with the probe timeout for both the
     // connect and the read; its threads share its pool.
@@ -139,8 +149,12 @@ pub fn spawn_service_probes(service: &Arc<ServiceRuntime>, shutdown: Arc<OnSigna
         let config = config.clone();
         let client = client.clone();
         let shutdown = Arc::clone(&shutdown);
+        let ctx = ctx.clone();
+        // Kept: a dedicated thread per backend (not per request). The probe
+        // uses the blocking `DynNetClient`, so it is a real blocking boundary
+        // that must not run on a pool worker.
         let handle = std::thread::spawn(move || {
-            probe_loop(&backend, &config, &client, &shutdown);
+            probe_loop(&backend, &config, &client, &shutdown, &ctx);
         });
         handles.push(handle);
     }
@@ -152,7 +166,8 @@ fn probe_loop(
     backend: &Arc<BackendRuntime>,
     config: &HealthCheckConfig,
     client: &DynNetClient,
-    shutdown: &Arc<OnSignal>,
+    shutdown: &Arc<ShutdownSignal>,
+    ctx: &Ctx,
 ) {
     let mut state = ProbeState::new(
         config.healthy_threshold,
@@ -165,7 +180,7 @@ fn probe_loop(
             return;
         }
 
-        let success = probe_once(backend, config, client);
+        let success = probe_once(backend, config, client, ctx);
         if let Some(now_healthy) = state.record(success) {
             backend.set_healthy(now_healthy);
             if now_healthy {
@@ -176,7 +191,7 @@ fn probe_loop(
         }
 
         // Sleep the interval in small slices so shutdown is responsive.
-        if !sleep_interruptible(config.interval, shutdown) {
+        if !sleep_interruptible(config, shutdown, ctx) {
             return;
         }
     }
@@ -187,21 +202,20 @@ fn probe_once(
     backend: &Arc<BackendRuntime>,
     config: &HealthCheckConfig,
     client: &DynNetClient,
+    ctx: &Ctx,
 ) -> bool {
     match backend.protocol() {
         BackendProtocol::Tcp => probe_tcp(&backend.target().authority(), config.timeout),
         BackendProtocol::Udp => probe_udp(&backend.target().authority(), config.timeout),
         // `grpc://` backends answer the standard gRPC health protocol over H2,
         // not an HTTP GET path.
-        BackendProtocol::Grpc => probe_grpc_health(backend.url(), config.timeout),
+        BackendProtocol::Grpc => probe_grpc_health(backend.url(), config.timeout, ctx),
         // `connect` / `grpc-web` are HTTP-family; probe them with the HTTP path
         // probe (a Connect backend has no gRPC health endpoint).
         BackendProtocol::Http
         | BackendProtocol::Https
         | BackendProtocol::Connect
-        | BackendProtocol::GrpcWeb => {
-            probe_http(backend.url(), &config.path, client)
-        }
+        | BackendProtocol::GrpcWeb => probe_http(backend.url(), &config.path, client),
     }
 }
 
@@ -257,6 +271,8 @@ const SERVING: u64 = 0;
 /// `SERVING` (0) is the proto3 default, so an omitted field means the same as an
 /// empty message. Unknown trailing fields are skipped; a malformed message
 /// degrades to `SERVING` so the verdict comes from `grpc-status` instead.
+// A protobuf field length is bounded by the frame size.
+#[allow(clippy::cast_possible_truncation)]
 fn decode_health_status(msg: &[u8]) -> u64 {
     let mut i = 0;
     while i < msg.len() {
@@ -281,13 +297,12 @@ fn decode_health_status(msg: &[u8]) -> u64 {
 }
 
 /// Decode one base-128 varint from `buf` starting at `*i`, advancing `*i`.
+// A protobuf varint length is bounded by the frame size.
+#[allow(clippy::cast_possible_truncation)]
 fn varint(buf: &[u8], i: &mut usize) -> u64 {
     let mut result = 0u64;
     let mut shift = 0u32;
-    loop {
-        let Some(&byte) = buf.get(*i) else {
-            break;
-        };
+    while let Some(&byte) = buf.get(*i) {
         *i += 1;
         result |= u64::from(byte & 0x7f) << shift;
         if byte & 0x80 == 0 {
@@ -306,7 +321,7 @@ fn varint(buf: &[u8], i: &mut usize) -> u64 {
 /// single response message is decoded to its `ServingStatus`, cross-checked
 /// against the trailing `grpc-status`. `timeout` bounds the whole exchange: the
 /// pump tasks are raced against a timer, and a win by the timer yields `Err`.
-async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, String> {
+async fn grpc_health_check(url: String, timeout: Duration, ctx: Ctx) -> Result<bool, String> {
     let uri = Uri::parse(&url).map_err(|e| format!("parse health uri {url}: {e}"))?;
     let mut headers = SimpleHeaders::new();
     headers.insert(
@@ -325,9 +340,17 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         headers,
         method: SimpleMethod::POST,
     };
+    // `open` dials and runs the h2 handshake before the timer race below starts,
+    // so it needs its own bounds. The probe timeout bounds the dial, the
+    // handshake and every read: a backend that accepts the connection and then
+    // stays silent fails the probe in `timeout`, not in the 10 s transport default.
     let stream = H2Transport::new()
+        .with_connect_timeout(timeout)
+        .with_handshake_timeout(timeout)
+        .with_read_timeout(timeout)
         .open(out_request)
         .map_err(|e| format!("open h2 health upstream {url}: {e}"))?;
+    let compression = CompressionRegistry::new();
     let outbound = GrpcClient
         .new_conn(
             &Spec::empty(true),
@@ -336,6 +359,10 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
             ClientExchangeConfig {
                 cancel: CancelSignal::new(),
                 read_max_bytes: 0,
+                compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc health exchange: {e}"))?;
@@ -371,12 +398,12 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
             let trailers = out_recv
                 .response_trailers()
                 .await
-                .map(|t| t.clone())
+                .cloned()
                 .unwrap_or_default();
             let grpc_status = trailers
                 .get(&SimpleHeader::GRPC_STATUS)
                 .and_then(|v| v.first())
-                .map(|s| s.as_str());
+                .map(std::string::String::as_str);
             if grpc_status != Some("0") {
                 return Err(format!("health check grpc-status {grpc_status:?}"));
             }
@@ -393,7 +420,7 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         writer_task.map(|_| ()).boxed(),
     ])
     .boxed();
-    let timer = async move { sleep_async(timeout).await }.boxed();
+    let timer = async move { sleep_async(timeout, &ctx).await }.boxed();
 
     match select(work, timer).await {
         Either::Left(_) => result
@@ -407,25 +434,17 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
 
 /// gRPC health probe: `true` = the backend reported `SERVING`.
 ///
-/// The check is driven on a dedicated thread and bounded by a hard
-/// [`std::sync::mpsc::Receiver::recv_timeout`]. `grpc_health_check` already races
-/// its pump against an internal timer, but a stuck timer (or an in-flight probe
-/// racing proxy shutdown) must not be allowed to hang this probe thread — a hung
-/// probe would block [`HealthMonitor::join`] and stall `ProxyServer::shutdown`.
-/// The inner future still owns the normal path (and, on timeout, drops the H2
-/// pump so the connection is closed); the outer deadline is a backstop only.
-fn probe_grpc_health(base_url: &str, timeout: Duration) -> bool {
+/// The whole exchange is bounded twice: `grpc_health_check` races its pump
+/// against an internal timer, and the transport's read timeout
+/// ([`H2Transport::with_read_timeout`]) fails a peer that accepts the
+/// connection but then sends nothing. Both bounds resolve the call, so the probe
+/// runs inline on the probe thread with no throwaway thread and no
+/// `recv_timeout` backstop — an abandoned inner future and its H2 connection no
+/// longer leak per probe.
+#[must_use]
+pub fn probe_grpc_health(base_url: &str, timeout: Duration, ctx: &Ctx) -> bool {
     let url = join_url(base_url, "/grpc.health.v1.Health/Check");
-    let (tx, rx) = std::sync::mpsc::channel();
-    std::thread::spawn(move || {
-        let _ = tx.send(block_on_future(grpc_health_check(url, timeout)));
-    });
-    // A margin over `timeout` so the inner timer + H2 open settle before the
-    // outer deadline fires; the outer deadline only trips on a stuck inner timer.
-    rx.recv_timeout(timeout + Duration::from_millis(250))
-        .ok()
-        .and_then(std::result::Result::ok)
-        .unwrap_or(false)
+    block_on_future(grpc_health_check(url, timeout, ctx.clone())).unwrap_or(false)
 }
 
 /// Join a base URL and a health path, avoiding a doubled slash.
@@ -438,15 +457,23 @@ fn join_url(base_url: &str, path: &str) -> String {
     }
 }
 
-/// Sleep `total` in short slices, returning `false` if shutdown fired.
-fn sleep_interruptible(total: Duration, shutdown: &Arc<OnSignal>) -> bool {
-    let slice = Duration::from_millis(100);
-    let start = Instant::now();
-    while start.elapsed() < total {
+/// Sleep `config.interval` in slices of `config.shutdown_check_millis`,
+/// returning `false` if shutdown fired. Runs on the dedicated probe thread (a
+/// blocking boundary), never on a pool worker.
+fn sleep_interruptible(
+    config: &HealthCheckConfig,
+    shutdown: &Arc<ShutdownSignal>,
+    ctx: &Ctx,
+) -> bool {
+    let clock = ctx.clock();
+    let slice = Duration::from_millis(config.shutdown_check_millis.max(1));
+    let deadline = clock.now() + config.interval;
+    while clock.now() < deadline {
         if shutdown.probe() {
             return false;
         }
-        std::thread::sleep(slice.min(total.saturating_sub(start.elapsed())));
+        let remaining = deadline.saturating_duration_since(clock.now());
+        std::thread::sleep(slice.min(remaining));
     }
     true
 }

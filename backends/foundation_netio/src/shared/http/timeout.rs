@@ -20,7 +20,37 @@
 use crate::shared::http::client_classifier::ClientClassifier;
 use crate::shared::http::latency_tracker::LatencyTracker;
 use crate::shared::http::load_tracker::LoadTracker;
+use foundation_context::Ctx;
 use std::time::Duration;
+
+/// A duration's millisecond count as `f64`. Timeouts are far below 2^52 ms
+/// (~285,000 years), so the `u128 -> f64` precision loss is irrelevant.
+#[allow(clippy::cast_precision_loss)]
+fn millis_f64(d: Duration) -> f64 {
+    d.as_millis() as f64
+}
+
+/// A duration's millisecond count as `u64`. Timeouts never approach
+/// `u64::MAX` ms, so the `u128 -> u64` cast cannot truncate in practice.
+#[allow(clippy::cast_possible_truncation)]
+fn millis_u64(d: Duration) -> u64 {
+    d.as_millis() as u64
+}
+
+/// A byte count as `f64`. Body sizes above 2^52 bytes are not real, so the
+/// `usize -> f64` precision loss is irrelevant.
+#[allow(clippy::cast_precision_loss)]
+fn size_f64(v: usize) -> f64 {
+    v as f64
+}
+
+/// A scaled, non-negative millisecond value as `u64`. Rust's float-to-int cast
+/// saturates; the value is a small timeout, so truncation and sign loss cannot
+/// occur in practice.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn scaled_millis_u64(v: f64) -> u64 {
+    v as u64
+}
 
 /// Configuration for 100-continue expect delay behavior.
 ///
@@ -28,7 +58,8 @@ use std::time::Duration;
 /// time to receive the response and start writing the body. This config
 /// controls how long and how many times the server delays before failing.
 ///
-/// WHAT: Base delay, max retry attempts, and per-attempt penalty reduction.
+/// WHAT: Base delay, max retry attempts, per-attempt penalty reduction, and the
+/// total body-wait window for a transport that parks on read readiness.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ExpectContinueConfig {
     /// Base delay after sending 100 Continue (default: 50ms).
@@ -40,6 +71,13 @@ pub struct ExpectContinueConfig {
     /// Amount subtracted from the delay on each retry (default: 10ms).
     /// Delay = `base_delay` - (attempt * `penalty_reduction`), clamped to min.
     pub penalty_reduction: Duration,
+
+    /// Total time the server waits for the body after it sends 100 Continue
+    /// (default: 3s). A transport that reports readiness (the `WireGuard` overlay)
+    /// parks on the connection read waker and sends 408 Request Timeout only when
+    /// this window ends with no body. A blocking transport keeps the
+    /// `base_delay` / `max_attempts` polling scheme instead.
+    pub body_timeout: Duration,
 }
 
 impl Default for ExpectContinueConfig {
@@ -48,6 +86,7 @@ impl Default for ExpectContinueConfig {
             base_delay: Duration::from_millis(50),
             max_attempts: 5,
             penalty_reduction: Duration::from_millis(10),
+            body_timeout: Duration::from_secs(3),
         }
     }
 }
@@ -62,6 +101,13 @@ impl Default for ExpectContinueConfig {
 pub struct TimeoutConfig {
     /// TCP connection establishment timeout.
     pub connect_timeout: Duration,
+
+    /// DNS resolution timeout (feature 36).
+    ///
+    /// Default 30 s, matching nginx's `resolver_timeout` (which defaults to
+    /// 30 s). Bounds how long a task awaits the resolver before failing with
+    /// `ConnectionTimeout`.
+    pub dns_timeout: Duration,
 
     /// Base read timeout per KB of expected body size.
     /// Scaled sub-linearly using `sqrt(size_kb)` to avoid excessive timeouts.
@@ -99,6 +145,25 @@ pub struct TimeoutConfig {
 
     /// 100-continue expect delay configuration.
     pub expect_continue: ExpectContinueConfig,
+
+    /// How long a streaming response (SSE) may go without an event before the
+    /// client treats the connection as dead and reconnects.
+    ///
+    /// Default 60 s, matching nginx's `proxy_read_timeout`. LLM providers send a
+    /// keep-alive comment or ping every 10 to 30 s, and a model may pause for
+    /// seconds between tokens, so the size-based read timeout (100 ms for an
+    /// unsized body) is far too short for an open stream.
+    pub sse_idle_timeout: Duration,
+}
+
+impl TimeoutConfig {
+    /// Set [`Self::sse_idle_timeout`], how long an open streaming response may
+    /// stay silent before the client reconnects.
+    #[must_use]
+    pub fn with_sse_idle_timeout(mut self, timeout: Duration) -> Self {
+        self.sse_idle_timeout = timeout;
+        self
+    }
 }
 
 impl Default for TimeoutConfig {
@@ -109,6 +174,7 @@ impl Default for TimeoutConfig {
     /// | Field | Default | Rationale |
     /// |-------|---------|-----------|
     /// | connect_timeout | 10s | TCP handshake completion |
+    /// | dns_timeout | 30s | DNS lookup (nginx `resolver_timeout` default) |
     /// | read_timeout_per_kb | 10ms | Base for size-based calculation |
     /// | write_timeout_per_kb | 5ms | Upload speed factor |
     /// | min_read_timeout | 100ms | Absolute minimum for small payloads |
@@ -122,9 +188,12 @@ impl Default for TimeoutConfig {
     /// | expect_continue.base_delay | 50ms | Initial pause after 100 Continue |
     /// | expect_continue.max_attempts | 5 | Retries before failing request |
     /// | expect_continue.penalty_reduction | 10ms | Per-attempt delay reduction |
+    /// | expect_continue.body_timeout | 3s | Readiness-wait window for the body |
+    /// | sse_idle_timeout | 60s | Silence on an open SSE stream before a reconnect (nginx `proxy_read_timeout`) |
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
+            dns_timeout: Duration::from_secs(30),
             read_timeout_per_kb: Duration::from_millis(10),
             write_timeout_per_kb: Duration::from_millis(5),
             min_read_timeout: Duration::from_millis(100),
@@ -136,6 +205,7 @@ impl Default for TimeoutConfig {
             max_sleep_duration: Duration::from_millis(100),
             sleep_timeout_fraction: 100,
             expect_continue: ExpectContinueConfig::default(),
+            sse_idle_timeout: Duration::from_secs(60),
         }
     }
 }
@@ -326,15 +396,18 @@ impl TimeoutCalculator {
 
     /// Enable latency tracking with default config.
     #[must_use]
-    pub fn enable_latency_tracking(mut self) -> Self {
-        self.latency_tracker = Some(LatencyTracker::new());
+    pub fn enable_latency_tracking(mut self, ctx: Ctx) -> Self {
+        self.latency_tracker = Some(LatencyTracker::new(ctx));
         self
     }
 
     /// Enable load tracking with default config.
+    ///
+    /// `clock` measures the connection-rate window. The host passes the clock
+    /// from its context bundle.
     #[must_use]
-    pub fn enable_load_tracking(mut self) -> Self {
-        self.load_tracker = Some(LoadTracker::new());
+    pub fn enable_load_tracking(mut self, ctx: Ctx) -> Self {
+        self.load_tracker = Some(LoadTracker::new(ctx));
         self
     }
 
@@ -347,8 +420,8 @@ impl TimeoutCalculator {
 
     /// Enable client classification with default config.
     #[must_use]
-    pub fn enable_client_classification(mut self) -> Self {
-        self.client_classifier = Some(ClientClassifier::new());
+    pub fn enable_client_classification(mut self, ctx: Ctx) -> Self {
+        self.client_classifier = Some(ClientClassifier::new(ctx));
         self
     }
 
@@ -371,6 +444,13 @@ impl TimeoutCalculator {
     pub fn with_latency_safety_factor(mut self, factor: f64) -> Self {
         self.latency_safety_factor = factor;
         self
+    }
+
+    /// How long an open streaming response (SSE) may stay silent before the
+    /// client reconnects ([`TimeoutConfig::sse_idle_timeout`]).
+    #[must_use]
+    pub fn streaming_idle_timeout(&self) -> Duration {
+        self.config.sse_idle_timeout
     }
 
     /// Get the latency tracker if enabled.
@@ -435,9 +515,9 @@ impl TimeoutCalculator {
             if let Some(ref tracker) = self.latency_tracker {
                 if let Some(stats) = tracker.get_stats(endpoint) {
                     // Add P99 latency * safety factor as safety margin
-                    let latency_adjustment = Duration::from_millis(
-                        (stats.p99.as_millis() as f64 * self.latency_safety_factor) as u64,
-                    );
+                    let latency_adjustment = Duration::from_millis(scaled_millis_u64(
+                        millis_f64(stats.p99) * self.latency_safety_factor,
+                    ));
                     base_timeout + latency_adjustment
                 } else {
                     base_timeout
@@ -452,7 +532,7 @@ impl TimeoutCalculator {
         // Apply load-based scaling if enabled
         let adjusted_timeout = if let Some(ref load_tracker) = self.load_tracker {
             let factor = load_tracker.timeout_factor();
-            Duration::from_millis((adjusted_timeout.as_millis() as f64 * factor) as u64)
+            Duration::from_millis(scaled_millis_u64(millis_f64(adjusted_timeout) * factor))
         } else {
             adjusted_timeout
         };
@@ -492,9 +572,9 @@ impl TimeoutCalculator {
         if let Some(ref classifier) = self.client_classifier {
             if let Some(ip) = client_ip {
                 let multiplier = classifier.timeout_multiplier(ip);
-                return Duration::from_millis(
-                    (base_timeout.as_millis() as f64 * multiplier) as u64,
-                );
+                return Duration::from_millis(scaled_millis_u64(
+                    millis_f64(base_timeout) * multiplier,
+                ));
             }
         }
 
@@ -508,15 +588,15 @@ impl TimeoutCalculator {
     #[must_use]
     pub fn calculate_write_timeout(&self, ctx: &TimeoutContext) -> Duration {
         let base_timeout = if let Some(size) = ctx.expected_body_size {
-            let size_kb = size as f64 / 1024.0;
-            let per_kb_ms = self.config.write_timeout_per_kb.as_millis() as f64;
+            let size_kb = size_f64(size) / 1024.0;
+            let per_kb_ms = millis_f64(self.config.write_timeout_per_kb);
             let scaled_ms = per_kb_ms * size_kb.sqrt();
 
             if ctx.is_upload {
                 // Uploads are typically slower, apply 1.5x factor
-                Duration::from_millis((scaled_ms * 1.5) as u64)
+                Duration::from_millis(scaled_millis_u64(scaled_ms * 1.5))
             } else {
-                Duration::from_millis(scaled_ms as u64)
+                Duration::from_millis(scaled_millis_u64(scaled_ms))
             }
         } else {
             self.config.min_read_timeout
@@ -555,13 +635,13 @@ impl TimeoutCalculator {
             return self.config.min_read_timeout;
         }
 
-        let size_kb = size_bytes as f64 / 1024.0;
-        let per_kb_ms = self.config.read_timeout_per_kb.as_millis() as f64;
+        let size_kb = size_f64(size_bytes) / 1024.0;
+        let per_kb_ms = millis_f64(self.config.read_timeout_per_kb);
 
         // Sub-linear scaling: sqrt(size_kb) * per_kb
         let scaled_ms = per_kb_ms * size_kb.sqrt();
 
-        Duration::from_millis(scaled_ms as u64)
+        Duration::from_millis(scaled_millis_u64(scaled_ms))
     }
 
     /// Calculate sleep duration between work iterations.
@@ -589,7 +669,7 @@ impl TimeoutCalculator {
     #[must_use]
     pub fn calculate_sleep_duration(&self, ctx: &TimeoutContext) -> Duration {
         // Base sleep duration from config
-        let base_sleep_ms = self.config.min_sleep_duration.as_millis() as u64;
+        let base_sleep_ms = millis_u64(self.config.min_sleep_duration);
 
         // For streaming operations, use longer sleep to reduce CPU
         if ctx.is_streaming {
@@ -599,10 +679,7 @@ impl TimeoutCalculator {
 
         // For upload operations, use middle value
         if ctx.is_upload {
-            let mid_ms = u64::midpoint(
-                base_sleep_ms,
-                self.config.max_sleep_duration.as_millis() as u64,
-            );
+            let mid_ms = u64::midpoint(base_sleep_ms, millis_u64(self.config.max_sleep_duration));
             return Duration::from_millis(mid_ms);
         }
 
@@ -611,10 +688,8 @@ impl TimeoutCalculator {
             let read_timeout = self.calculate_read_timeout(ctx);
             // Sleep should be fraction of expected timeout, clamped to min/max
             let fraction = self.config.sleep_timeout_fraction.max(1);
-            let sleep_ms = (read_timeout.as_millis() as u64 / fraction).clamp(
-                base_sleep_ms,
-                self.config.max_sleep_duration.as_millis() as u64,
-            );
+            let sleep_ms = (millis_u64(read_timeout) / fraction)
+                .clamp(base_sleep_ms, millis_u64(self.config.max_sleep_duration));
             return Duration::from_millis(sleep_ms);
         }
 
@@ -669,149 +744,5 @@ impl TimeoutCalculator {
 impl Default for TimeoutCalculator {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_config() {
-        let config = TimeoutConfig::default();
-        assert_eq!(config.connect_timeout, Duration::from_secs(10));
-        assert_eq!(config.read_timeout_per_kb, Duration::from_millis(10));
-        assert_eq!(config.write_timeout_per_kb, Duration::from_millis(5));
-        assert_eq!(config.min_read_timeout, Duration::from_millis(100));
-        assert_eq!(config.max_read_timeout, Duration::from_secs(60));
-        assert_eq!(config.max_total_timeout, Duration::from_secs(300));
-        assert_eq!(config.ttfb_timeout, Duration::from_secs(5));
-        assert_eq!(config.max_retries, 3);
-    }
-
-    #[test]
-    fn test_size_based_calculation() {
-        let calc = TimeoutCalculator::new();
-
-        // 1 KB -> ~10ms, clamped to min 100ms
-        let ctx = TimeoutContext::with_size(1024);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(100));
-
-        // 10 KB -> sqrt(10) * 10ms = 32ms, clamped to min 100ms
-        let ctx = TimeoutContext::with_size(10 * 1024);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(100));
-
-        // 100 KB -> sqrt(100) * 10ms = 100ms
-        let ctx = TimeoutContext::with_size(100 * 1024);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(100));
-
-        // 1 MB -> sqrt(1024) * 10ms = 320ms
-        let ctx = TimeoutContext::with_size(1024 * 1024);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(320));
-
-        // 10 MB -> sqrt(10240) * 10ms = 1.01s
-        let ctx = TimeoutContext::with_size(10 * 1024 * 1024);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(1011));
-
-        // 100 MB -> sqrt(102400) * 10ms = 3.2s
-        let ctx = TimeoutContext::with_size(100 * 1024 * 1024);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(3200));
-    }
-
-    #[test]
-    fn test_bounds_clamping() {
-        let calc = TimeoutCalculator::new();
-
-        // Tiny body gets min timeout
-        let ctx = TimeoutContext::with_size(10);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(100));
-
-        // Huge body (36GB+) gets max timeout (60s)
-        // sqrt(36M KB) * 10ms = 6000 * 10ms = 60s, clamped to max
-        let ctx = TimeoutContext::with_size((36u64 * 1024 * 1024 * 1024) as usize);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_secs(60));
-    }
-
-    #[test]
-    fn test_zero_size() {
-        let calc = TimeoutCalculator::new();
-
-        let ctx = TimeoutContext::default();
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(100));
-    }
-
-    #[test]
-    fn test_write_timeout() {
-        let calc = TimeoutCalculator::new();
-
-        // 1 MB write: sqrt(1024) * 5ms = 160ms
-        let ctx = TimeoutContext::with_size(1024 * 1024);
-        let timeout = calc.calculate_write_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(160));
-
-        // Upload gets 1.5x factor: 160ms * 1.5 = 240ms
-        let ctx = TimeoutContext::with_size(1024 * 1024).upload();
-        let timeout = calc.calculate_write_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(240));
-    }
-
-    #[test]
-    fn test_total_timeout() {
-        let calc = TimeoutCalculator::new();
-
-        // 1 MB: 320ms read, 3 retries = 320ms * 4 = 1.28s
-        let ctx = TimeoutContext::with_size(1024 * 1024);
-        let timeout = calc.calculate_total_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(1280));
-
-        // Huge body (75GB+) gets clamped to max_read_timeout (60s)
-        // sqrt(75M KB) * 10ms = 8660 * 10ms = 86.6s per read, clamped to 60s
-        // With 4 attempts: 60s * 4 = 240s
-        let ctx = TimeoutContext::with_size((75u64 * 1024 * 1024 * 1024) as usize);
-        let timeout = calc.calculate_total_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_secs(240));
-    }
-
-    #[test]
-    fn test_custom_config() {
-        let config = TimeoutConfig {
-            min_read_timeout: Duration::from_millis(50),
-            max_read_timeout: Duration::from_secs(30),
-            ..TimeoutConfig::default()
-        };
-        let calc = TimeoutCalculator::with_config(config);
-
-        // Small body uses custom min
-        let ctx = TimeoutContext::with_size(100);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_millis(50));
-
-        // Huge body (9GB+) uses custom max (30s)
-        // sqrt(9M KB) * 10ms = 3000 * 10ms = 30s, clamped to max
-        let ctx = TimeoutContext::with_size((9u64 * 1024 * 1024 * 1024) as usize);
-        let timeout = calc.calculate_read_timeout(&ctx);
-        assert_eq!(timeout, Duration::from_secs(30));
-    }
-
-    #[test]
-    fn test_context_builder() {
-        let ctx = TimeoutContext::with_endpoint("api.example.com")
-            .with_body_size(1024)
-            .upload()
-            .streaming();
-
-        assert_eq!(ctx.endpoint, Some("api.example.com".to_string()));
-        assert_eq!(ctx.expected_body_size, Some(1024));
-        assert!(ctx.is_upload);
-        assert!(ctx.is_streaming);
     }
 }

@@ -18,10 +18,20 @@ fn test_connection_pool_basic_sanity() {
     let pool = ConnectionPool::new(4, std::time::Duration::from_secs(60));
 
     // Empty pool -> no connection available
-    assert!(pool.checkout("example.com", 80).is_none());
+    assert!(pool
+        .checkout(
+            "example.com",
+            80,
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new()
+            ))
+        )
+        .is_none());
 
     // Maintenance helpers should be callable and not panic
-    pool.cleanup_stale();
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     pool.clear();
 }
 
@@ -34,13 +44,25 @@ fn test_cleanup_and_clear_idempotent() {
     let pool = ConnectionPool::new(2, std::time::Duration::from_secs(0));
 
     // Call multiple times to ensure no panics and stable behavior
-    pool.cleanup_stale();
-    pool.cleanup_stale();
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     pool.clear();
     pool.clear();
 
     // Still empty after clears
-    assert!(pool.checkout("localhost", 8080).is_none());
+    assert!(pool
+        .checkout(
+            "localhost",
+            8080,
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new()
+            ))
+        )
+        .is_none());
 }
 
 /// WHY: Verify `ConnectionPool::new` creates pool
@@ -55,7 +77,13 @@ fn test_connection_pool_new() {
 #[test]
 fn test_connection_pool_checkout_empty() {
     let pool = ConnectionPool::new(10, std::time::Duration::from_secs(60));
-    let result = pool.checkout("example.com", 80);
+    let result = pool.checkout(
+        "example.com",
+        80,
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     assert!(result.is_none());
 }
 
@@ -68,6 +96,8 @@ fn test_connection_pool_checkout_empty() {
 #[test]
 fn test_cleanup_and_clear_no_panic() {
     let pool = ConnectionPool::new(2, std::time::Duration::from_secs(0));
-    pool.cleanup_stale();
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     pool.clear();
 }

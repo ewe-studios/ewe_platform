@@ -34,7 +34,7 @@ use crate::quic::{
     QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
 };
 
-use super::frame::{setting, Frame};
+use super::frame::{setting, Frame, DEFAULT_MAX_FRAME_SIZE, DEFAULT_READ_CHUNK};
 use super::stream::{FramedRecv, StreamError};
 
 /// Unidirectional stream types (RFC 9114 §11.2.4, RFC 9204 §4.2).
@@ -55,8 +55,13 @@ pub mod stream_type {
 pub mod error_code {
     /// No error.
     pub const H3_NO_ERROR: u64 = 0x0100;
+    /// An internal error: the endpoint cannot finish the message (RFC 9114
+    /// §8.1), for example a proxy whose upstream failed in the middle of a body.
+    pub const H3_INTERNAL_ERROR: u64 = 0x0102;
     /// A frame appeared where it is not allowed.
     pub const H3_FRAME_UNEXPECTED: u64 = 0x0105;
+    /// A frame failed layout requirements or carried an invalid size.
+    pub const H3_FRAME_ERROR: u64 = 0x0108;
     /// A stream required by the connection was closed.
     pub const H3_CLOSED_CRITICAL_STREAM: u64 = 0x0104;
     /// The first control frame was not SETTINGS.
@@ -77,8 +82,8 @@ fn our_settings(max_field_section_size: u64) -> Frame {
         (setting::QPACK_MAX_TABLE_CAPACITY, 0),
         (setting::QPACK_BLOCKED_STREAMS, 0),
         (setting::MAX_FIELD_SECTION_SIZE, max_field_section_size),
-        (setting::ENABLE_CONNECT_PROTOCOL, 1),   // RFC 9220 Extended CONNECT
-        (setting::ENABLE_WEBTRANSPORT, 1),        // draft-ietf-webtrans-http3 (F06)
+        (setting::ENABLE_CONNECT_PROTOCOL, 1), // RFC 9220 Extended CONNECT
+        (setting::ENABLE_WEBTRANSPORT, 1),     // draft-ietf-webtrans-http3 (F06)
     ])
 }
 
@@ -128,12 +133,16 @@ impl From<StreamError> for H3Error {
     fn from(e: StreamError) -> Self {
         match e {
             StreamError::Quic(e) => Self::Stream(e),
+            // A malformed or truncated frame is a frame error (RFC 9114 §8.1
+            // `H3_FRAME_ERROR`), not an "unexpected" frame — that code is for a
+            // well-formed frame in the wrong place, which the poll paths set
+            // themselves.
             StreamError::Protocol(message) => Self::Protocol {
-                code: error_code::H3_FRAME_UNEXPECTED,
+                code: error_code::H3_FRAME_ERROR,
                 message,
             },
             StreamError::Truncated => Self::Protocol {
-                code: error_code::H3_FRAME_UNEXPECTED,
+                code: error_code::H3_FRAME_ERROR,
                 message: "stream ended mid-frame".into(),
             },
         }
@@ -162,6 +171,10 @@ pub struct H3Connection<C: QuicConnection> {
     /// The peer's SETTINGS, once received.
     peer_settings: Option<Vec<(u64, u64)>>,
     max_field_section_size: u64,
+    /// The cap on a single frame's payload (DATA streams within it, see §1).
+    max_frame_size: usize,
+    /// The most DATA payload bytes one yield hands back before the next poll.
+    read_chunk: usize,
     /// The stream [`H3Connection::poll_accept_webtransport`] accepted and is
     /// still reading or answering; kept across polls so it is never lost.
     pending_accept: Option<PendingAccept<C::BidiStream>>,
@@ -174,16 +187,22 @@ struct PendingAccept<S: QuicBidiStream> {
     /// The `200` HEADERS frame of a WebTransport CONNECT, while not yet fully
     /// written.
     response: Option<Bytes>,
-    /// The `200` is written; the FIN is still to be queued.
-    finishing: bool,
+    /// The `200` is written; the CONNECT stream is ready to hand over, still
+    /// open.
+    handshake_done: bool,
 }
 
 /// What [`H3Connection::poll_accept_webtransport`] accepted.
 #[derive(Debug)]
 pub enum WtAccept<S: QuicBidiStream> {
-    /// A WebTransport Extended CONNECT, answered with `200`: call
+    /// A WebTransport Extended CONNECT, answered with `200`. The CONNECT stream
+    /// is still open and handed back here; pass it to
     /// [`H3Connection::into_webtransport`].
-    Session,
+    Session {
+        /// The open CONNECT stream. Its close ends the session
+        /// (draft-ietf-webtrans-http3 §5).
+        connect: S,
+    },
     /// An ordinary HTTP/3 request. Its HEADERS are already read (they are
     /// `headers`); serve it from its body on.
     Request {
@@ -219,8 +238,33 @@ impl<C: QuicConnection> H3Connection<C> {
             peer_control: None,
             peer_settings: None,
             max_field_section_size,
+            max_frame_size: DEFAULT_MAX_FRAME_SIZE,
+            read_chunk: DEFAULT_READ_CHUNK,
             pending_accept: None,
         }
+    }
+
+    /// Cap a single frame's payload at `max` bytes (default 16 MiB). A frame that
+    /// announces a longer payload is rejected before it is buffered.
+    #[must_use]
+    pub fn max_frame_size(mut self, max: usize) -> Self {
+        self.max_frame_size = max;
+        self
+    }
+
+    /// Yield DATA payload in pieces of at most `read_chunk` bytes (default 16 KiB),
+    /// so a body streams instead of being buffered whole.
+    #[must_use]
+    pub fn read_chunk(mut self, read_chunk: usize) -> Self {
+        self.read_chunk = read_chunk.max(1);
+        self
+    }
+
+    /// Wake `waker` when the connection next makes progress, so a caller whose
+    /// `poll_*` returned `Pending` can park instead of re-polling. Register
+    /// before polling. Returns `false` if the QUIC backend cannot wake.
+    pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        self.conn.register_waker(waker)
     }
 
     /// The peer's SETTINGS, once its control stream has delivered them.
@@ -249,7 +293,9 @@ impl<C: QuicConnection> H3Connection<C> {
             }
         }
 
-        let control = self.control.as_mut().expect("opened above");
+        let Some(control) = self.control.as_mut() else {
+            return Stream::Pending(());
+        };
 
         while self.control_preamble.has_remaining() {
             match control.send(&mut self.control_preamble) {
@@ -284,14 +330,20 @@ impl<C: QuicConnection> H3Connection<C> {
                     // We only care about the control stream; QPACK's encoder and
                     // decoder streams are never used, because our dynamic table
                     // is disabled, and push is not implemented.
-                    self.peer_control = Some(FramedRecv::new(TypedRecv::new(recv)));
+                    self.peer_control = Some(
+                        FramedRecv::new(TypedRecv::new(recv))
+                            .with_max_frame_size(self.max_frame_size)
+                            .with_read_chunk(self.read_chunk),
+                    );
                 }
                 Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
                 _ => return Stream::Pending(()),
             }
         }
 
-        let control = self.peer_control.as_mut().expect("set above");
+        let Some(control) = self.peer_control.as_mut() else {
+            return Stream::Pending(());
+        };
         match control.poll_frame() {
             Stream::Next(Ok(Some(Frame::Settings(settings)))) => {
                 self.peer_settings = Some(settings);
@@ -321,9 +373,12 @@ impl<C: QuicConnection> H3Connection<C> {
     /// nothing yet — call [`H3Request::poll_headers`].
     pub fn poll_accept(&mut self) -> Stream<Result<H3Request<C::BidiStream>, H3Error>, ()> {
         match self.conn.accept_bidi() {
-            Stream::Next(Ok(stream)) => {
-                Stream::Next(Ok(H3Request::new(stream, self.max_field_section_size)))
-            }
+            Stream::Next(Ok(stream)) => Stream::Next(Ok(H3Request::new(
+                stream,
+                self.max_field_section_size,
+                self.max_frame_size,
+                self.read_chunk,
+            ))),
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
         }
@@ -332,9 +387,12 @@ impl<C: QuicConnection> H3Connection<C> {
     /// Open an outbound request stream (client role).
     pub fn poll_open_request(&mut self) -> Stream<Result<H3Request<C::BidiStream>, H3Error>, ()> {
         match self.conn.open_bidi() {
-            Stream::Next(Ok(stream)) => {
-                Stream::Next(Ok(H3Request::new(stream, self.max_field_section_size)))
-            }
+            Stream::Next(Ok(stream)) => Stream::Next(Ok(H3Request::new(
+                stream,
+                self.max_field_section_size,
+                self.max_frame_size,
+                self.read_chunk,
+            ))),
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
         }
@@ -355,43 +413,57 @@ impl<C: QuicConnection> H3Connection<C> {
     /// Consume this `H3Connection` and return a [`WtSession`] wrapping the
     /// underlying QUIC connection (spec-55, F06 — server accept path).
     ///
-    /// Call after `poll_accept_bidi()` confirms a WebTransport Extended CONNECT
-    /// request (`:method = CONNECT` + `:protocol = webtransport`). The caller
-    /// stops driving HTTP/3 — the QUIC connection is now a WT session.
+    /// Call after `poll_accept_webtransport` confirms a WebTransport Extended
+    /// CONNECT request (`:method = CONNECT` + `:protocol = webtransport`). The
+    /// caller stops driving HTTP/3 — the QUIC connection is now a WT session.
+    /// `connect` is the open CONNECT stream handed back by the accept; the session
+    /// lives as long as it stays open (draft-ietf-webtrans-http3 §5).
     #[must_use]
-    pub fn into_webtransport(self, datagrams: bool) -> crate::webtransport::session::WtSession<C> {
-        crate::webtransport::session::WtSession::new(self.conn, datagrams)
+    pub fn into_webtransport(
+        self,
+        connect: C::BidiStream,
+        datagrams: bool,
+    ) -> crate::webtransport::session::WtSession<C> {
+        crate::webtransport::session::WtSession::new_with_connect(self.conn, connect, datagrams)
     }
 
     /// Poll for an incoming bidi stream and check if it's a WebTransport
     /// Extended CONNECT request (spec-55, F06 — server accept path).
     ///
-    /// Returns `Stream::Next(Ok(WtAccept::Session))` once a WebTransport
-    /// CONNECT has been answered with `200`; the caller then calls
-    /// [`Self::into_webtransport`]. Returns `Stream::Next(Ok(WtAccept::Request
-    /// { .. }))` for an ordinary HTTP/3 request, with the HEADERS it has already
-    /// read. `Stream::Pending(())` while nothing has arrived, or while the
-    /// accepted stream's HEADERS or the `200` are not through yet: the stream is
-    /// kept and the next call carries on with it, so none is lost.
+    /// Returns `Stream::Next(Ok(WtAccept::Session { connect }))` once a
+    /// WebTransport CONNECT has been answered with `200`; the caller then calls
+    /// [`Self::into_webtransport`] with that still-open `connect` stream. Returns
+    /// `Stream::Next(Ok(WtAccept::Request { .. }))` for an ordinary HTTP/3 request,
+    /// with the HEADERS it has already read. `Stream::Pending(())` while nothing
+    /// has arrived, or while the accepted stream's HEADERS or the `200` are not
+    /// through yet: the stream is kept and the next call carries on with it, so
+    /// none is lost.
     ///
     /// # Errors
     /// `Next(Err(..))` when the connection fails, or when the accepted stream is
     /// malformed (it is reset and dropped; the connection stays usable).
-    pub fn poll_accept_webtransport(&mut self) -> Stream<Result<WtAccept<C::BidiStream>, H3Error>, ()> {
+    pub fn poll_accept_webtransport(
+        &mut self,
+    ) -> Stream<Result<WtAccept<C::BidiStream>, H3Error>, ()> {
         let pending = match self.pending_accept.as_mut() {
             Some(pending) => pending,
             None => match self.conn.accept_bidi() {
                 Stream::Next(Ok(stream)) => self.pending_accept.insert(PendingAccept {
-                    request: H3Request::new(stream, self.max_field_section_size),
+                    request: H3Request::new(
+                        stream,
+                        self.max_field_section_size,
+                        self.max_frame_size,
+                        self.read_chunk,
+                    ),
                     response: None,
-                    finishing: false,
+                    handshake_done: false,
                 }),
                 Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
                 _ => return Stream::Pending(()),
             },
         };
 
-        if pending.response.is_none() && !pending.finishing {
+        if pending.response.is_none() && !pending.handshake_done {
             match pending.request.poll_headers() {
                 Stream::Next(Ok(headers)) => {
                     let field = |name: &[u8]| {
@@ -424,21 +496,25 @@ impl<C: QuicConnection> H3Connection<C> {
             match pending.request.poll_send_headers(frame) {
                 Stream::Next(Ok(())) => {
                     pending.response = None;
-                    pending.finishing = true;
+                    pending.handshake_done = true;
                 }
                 Stream::Next(Err(e)) => return Stream::Next(Err(self.drop_pending_accept(e))),
                 _ => return Stream::Pending(()),
             }
         }
 
-        match pending.request.poll_finish() {
-            Stream::Next(Ok(())) => {
-                self.pending_accept = None;
-                Stream::Next(Ok(WtAccept::Session))
-            }
-            Stream::Next(Err(e)) => Stream::Next(Err(self.drop_pending_accept(e))),
-            _ => Stream::Pending(()),
+        // The `200` is written. The CONNECT stream stays open — its close ends the
+        // session (draft-ietf-webtrans-http3 §5) — so it is handed over, not FIN'd.
+        if pending.handshake_done {
+            let Some(pending) = self.pending_accept.take() else {
+                return Stream::Pending(());
+            };
+            return Stream::Next(Ok(WtAccept::Session {
+                connect: pending.request.into_inner(),
+            }));
         }
+
+        Stream::Pending(())
     }
 
     /// The accepted stream failed: reset it (with the protocol's code when
@@ -454,12 +530,16 @@ impl<C: QuicConnection> H3Connection<C> {
         error
     }
 
-    /// Extract the underlying QUIC connection (for constructing a WtSession after
+    /// Extract the underlying QUIC connection (for constructing a `WtSession` after
     /// the Extended CONNECT handshake completes).
-    pub fn into_conn(self) -> C { self.conn }
+    pub fn into_conn(self) -> C {
+        self.conn
+    }
 
     /// Borrow the underlying QUIC connection.
-    pub fn conn_mut(&mut self) -> &mut C { &mut self.conn }
+    pub fn conn_mut(&mut self) -> &mut C {
+        &mut self.conn
+    }
 
     /// Close the connection with an HTTP/3 error code.
     pub fn close(&mut self, code: u64, reason: &[u8]) {
@@ -545,9 +625,16 @@ pub struct H3Request<S: QuicBidiStream> {
 }
 
 impl<S: QuicBidiStream> H3Request<S> {
-    fn new(stream: S, max_field_section_size: u64) -> Self {
+    fn new(
+        stream: S,
+        max_field_section_size: u64,
+        max_frame_size: usize,
+        read_chunk: usize,
+    ) -> Self {
         Self {
-            framed: FramedRecv::new(stream),
+            framed: FramedRecv::new(stream)
+                .with_max_frame_size(max_frame_size)
+                .with_read_chunk(read_chunk),
             max_field_section_size,
             headers_read: false,
             trailers: None,
@@ -585,7 +672,7 @@ impl<S: QuicBidiStream> H3Request<S> {
                     };
                 }
                 // RFC 9114 §9: ignore unknown frame types wherever they appear.
-                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => continue,
+                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => {}
                 Stream::Next(Ok(Some(other))) => {
                     return Stream::Next(Err(H3Error::Protocol {
                         code: error_code::H3_FRAME_UNEXPECTED,
@@ -630,7 +717,7 @@ impl<S: QuicBidiStream> H3Request<S> {
                         })),
                     };
                 }
-                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => continue,
+                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => {}
                 Stream::Next(Ok(Some(other))) => {
                     return Stream::Next(Err(H3Error::Protocol {
                         code: error_code::H3_FRAME_UNEXPECTED,
@@ -697,12 +784,36 @@ impl<S: QuicBidiStream> H3Request<S> {
         self.framed.get_mut().reset(code);
     }
 
+    /// Wake `waker` when this request's connection next makes progress, so a
+    /// caller whose `poll_*` returned `Pending` can park instead of
+    /// re-polling. Register before polling. Returns `false` if the QUIC
+    /// backend cannot wake.
+    pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        QuicRecvStream::register_waker(self.framed.get_ref(), waker)
+    }
+
+    /// WHY: a client that no longer wants the response sends `STOP_SENDING` for
+    /// this request's write half (RFC 9114 section 4.1.2). After the request
+    /// body ends, that frame is the only cancellation signal left: a
+    /// `RESET_STREAM` for the request stream arrives after quinn-proto has freed
+    /// its receive state, so the read half never reports it (issue #257).
+    ///
+    /// WHAT: the application error code the peer sent with `STOP_SENDING`, once
+    /// it arrives. `None` means the peer has not stopped the response.
+    ///
+    /// HOW: register a waker with [`H3Request::register_waker`] before polling
+    /// this value, so the driver wakes the caller when the stop arrives.
+    #[must_use]
+    pub fn peer_stopped(&self) -> Option<u64> {
+        QuicSendStream::stopped(self.framed.get_ref())
+    }
+
     /// WHY: a server that answers before reading the whole request (an early
     /// `413`, or a response that ends while the request is still open) must tell
     /// the peer to stop sending, or the unread bytes keep consuming the stream's
     /// and the connection's flow-control credit (RFC 9114 §4.1.1).
     ///
-    /// WHAT: abort the receive half with STOP_SENDING carrying `code`
+    /// WHAT: abort the receive half with `STOP_SENDING` carrying `code`
     /// (`H3_NO_ERROR` when the response is complete and simply does not need the
     /// rest of the request).
     pub fn stop_sending(&mut self, code: u64) {
@@ -712,5 +823,13 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// This request's QUIC stream id.
     pub fn id(&self) -> crate::quic::StreamId {
         QuicSendStream::id(self.framed.get_ref())
+    }
+
+    /// Consume the request and return the underlying QUIC stream, still open.
+    ///
+    /// Used by the WebTransport accept path to hand the CONNECT stream to the
+    /// session instead of finishing it (draft-ietf-webtrans-http3 §5).
+    pub fn into_inner(self) -> S {
+        self.framed.into_inner()
     }
 }

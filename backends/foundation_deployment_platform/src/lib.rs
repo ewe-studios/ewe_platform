@@ -11,7 +11,8 @@
 //! use foundation_deployment_platform::qemu::QemuConfig;
 //!
 //! let profile = get_profile("windows-build").unwrap();
-//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless)
+//! let ctx = Ctx::host();
+//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless, ctx)
 //!     .launch()
 //!     .unwrap();
 //! ```
@@ -19,11 +20,11 @@
 //! # Architecture
 //!
 //! - **config** — VM profiles, guest OS types, display modes, error types
-//! - **docker** — Container lifecycle (ContainerHandle, ContainerConfig, WaitFor)
+//! - **docker** — Container lifecycle (`ContainerHandle`, `ContainerConfig`, `WaitFor`)
 //! - **qemu** — Process management, disk operations, networking, snapshots, downloads
 //! - **providers** — Provider trait + Docker/QEMU/UTM backends
 //! - **ssh** — SSH connections and command execution on guests
-//! - **winrm** — WinRM SOAP client for Windows guest bootstrapping
+//! - **winrm** — `WinRM` SOAP client for Windows guest bootstrapping
 //! - **import** — Image download, cache management, Vagrant Cloud integration
 //! - **bootstrap** — VM bootstrapping with mise + nushell
 //! - **build** — Build pipeline, code sync, artifact retrieval
@@ -31,13 +32,18 @@
 //! - **state** — Persistent VM state management
 //! - **doctor** — Host and VM health checks
 //! - **init** — Project scaffolding (testbed init, scripts, .gitignore)
-//! - **host_bootstrap** — Host prerequisites (mise, nushell, pitchfork)
+//! - **`host_bootstrap`** — Host prerequisites (mise, nushell, pitchfork)
 
 #![allow(clippy::too_many_arguments)]
 
 // ── Core types (always available — used by Docker provider) ──────────────
 
 pub mod providers;
+
+/// Wall-clock conversions from the injected `Clock`. The VM surface uses them;
+/// the Docker surface reads only the monotonic clock.
+#[cfg(feature = "vms")]
+mod clock;
 
 // ── VM types (available with vms) ────────────────────────────────────────
 
@@ -49,6 +55,11 @@ pub mod doctor;
 // ── Docker runtime (always enabled) ───────────────────────────────────────
 
 pub mod docker;
+
+/// Shared test helpers for Docker-gated integration tests (needs the Docker
+/// endpoints, so it is gated on the `docker` feature like the client itself).
+#[cfg(feature = "docker")]
+pub mod testing;
 
 // ── VM infrastructure (moved from foundation_testbed, gated on vms) ───────
 

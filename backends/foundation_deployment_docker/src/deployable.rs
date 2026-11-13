@@ -131,14 +131,18 @@ impl Deployable for ContainerDeployment {
         let body = self.create_body();
         let name = self.name.clone();
         let store = self.store(&client);
+        let ctx = client.ctx().clone();
 
         Box::pin(async move {
             let created = docker.create_container(&body, name.as_deref()).await?;
             docker.start_container(&created.id).await?;
 
-            let output = ContainerDeployOutput { container_id: created.id };
+            let output = ContainerDeployOutput {
+                container_id: created.id,
+            };
             store
-                .store_typed(&instance_id.to_string(), &output).await
+                .store_typed(&instance_id.to_string(), &output, &ctx)
+                .await
                 .map_err(|e| DockerError::Unavailable(format!("persist deploy state: {e}")))?;
             Ok(output)
         })
@@ -155,7 +159,8 @@ impl Deployable for ContainerDeployment {
         Box::pin(async move {
             let key = instance_id.to_string();
             let output: ContainerDeployOutput = store
-                .get_typed(&key).await
+                .get_typed(&key)
+                .await
                 .map_err(|e| DockerError::Unavailable(format!("load deploy state: {e}")))?
                 .ok_or_else(|| {
                     DockerError::Unavailable(format!(
@@ -163,10 +168,13 @@ impl Deployable for ContainerDeployment {
                     ))
                 })?;
 
-            docker.stop_container(&output.container_id, Some(10)).await?;
+            docker
+                .stop_container(&output.container_id, Some(10))
+                .await?;
             docker.remove_container(&output.container_id, true).await?;
             store
-                .remove(&key).await
+                .remove(&key)
+                .await
                 .map_err(|e| DockerError::Unavailable(format!("clear deploy state: {e}")))?;
             Ok(())
         })

@@ -57,8 +57,18 @@ mod private {
 ///
 /// # Example
 ///
-/// ```ignore
-/// external_type_uuid!(String, "7edbc10a-2147-499c-af9a-498723c7b35f");
+/// ```
+/// use foundation_core::external_type_uuid;
+/// use foundation_core::type_uuid::TypeUuid;
+///
+/// // A local type stands in for the external type. An external crate cannot
+/// // implement a foreign trait for a foreign type.
+/// struct LocalType;
+///
+/// external_type_uuid!(LocalType, "7edbc10a-2147-499c-af9a-498723c7b35f");
+///
+/// assert_eq!(<LocalType as TypeUuid>::UUID.len(), 16);
+/// assert_eq!(<LocalType as TypeUuid>::UUID[0], 0x7e);
 /// ```
 #[macro_export]
 macro_rules! external_type_uuid {
@@ -72,6 +82,12 @@ macro_rules! external_type_uuid {
 /// Parse a UUID string into a `[u8; 16]` at compile time.
 ///
 /// Accepts the standard `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` format.
+///
+/// # Panics
+/// Panics when the text is not 36 characters, does not hold exactly 32 hex
+/// digits, or holds a character that is not a hexadecimal digit. Constant
+/// evaluation reports the panic at compile time.
+#[must_use]
 pub const fn parse_uuid_const(s: &str) -> Bytes {
     let b = s.as_bytes();
     assert!(b.len() == 36, "UUID must be 36 characters");
@@ -133,13 +149,22 @@ mod std_impls {
     external_type_uuid!(std::num::NonZeroU32, "b32f7cc7-2841-48b3-8d8e-760414b4c4ab");
     external_type_uuid!(std::num::NonZeroU64, "b43c6dad-6608-4f02-817a-8eac8c6345cb");
     external_type_uuid!(std::time::Duration, "449a4224-4665-47ce-88a2-8d0310d20572");
-    external_type_uuid!(std::time::SystemTime, "b8dfc518-faf7-4590-91ba-82acd78b1685");
+    external_type_uuid!(
+        std::time::SystemTime,
+        "b8dfc518-faf7-4590-91ba-82acd78b1685"
+    );
     external_type_uuid!(std::net::IpAddr, "a3c248b7-94e1-4d4a-8b7e-fd1915f4c81b");
     external_type_uuid!(std::net::Ipv4Addr, "a62542a2-6a38-4980-9467-f093bb546140");
     external_type_uuid!(std::net::Ipv6Addr, "a6ba4f16-f436-4ae2-ae62-69dd08150b33");
     external_type_uuid!(std::net::SocketAddr, "fe76891f-3e0a-49f7-b32e-14fc11768844");
-    external_type_uuid!(std::net::SocketAddrV4, "e951fa30-50d9-4832-8bc9-c49c06037697");
-    external_type_uuid!(std::net::SocketAddrV6, "8840455b-ad6c-41ae-8694-e50873d952c4");
+    external_type_uuid!(
+        std::net::SocketAddrV4,
+        "e951fa30-50d9-4832-8bc9-c49c06037697"
+    );
+    external_type_uuid!(
+        std::net::SocketAddrV6,
+        "8840455b-ad6c-41ae-8694-e50873d952c4"
+    );
     external_type_uuid!(std::path::Path, "72b02282-6efe-4392-9d9c-467b23ca8c83");
     external_type_uuid!(std::path::PathBuf, "d6db3123-4c95-45de-a28f-5a48d574b9c4");
 }
@@ -148,4 +173,3 @@ mod std_impls {
 #[allow(dead_code)]
 type Unit = ();
 external_type_uuid!(Unit, "03748d1a-0d0c-472f-9fdd-424856157064");
-

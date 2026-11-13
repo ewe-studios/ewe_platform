@@ -489,12 +489,12 @@ pub struct ServiceUpdateArgs {
 pub struct SwarmUpdateArgs {
     /// Query parameter: `version`.
     pub version: Option<String>,
-    /// Query parameter: `rotateWorkerToken`.
-    pub rotate_worker_token: Option<String>,
-    /// Query parameter: `rotateManagerToken`.
-    pub rotate_manager_token: Option<String>,
-    /// Query parameter: `rotateManagerUnlockKey`.
-    pub rotate_manager_unlock_key: Option<String>,
+    /// Query parameter: `rotateWorkerToken` (true/false).
+    pub rotate_worker_token: Option<bool>,
+    /// Query parameter: `rotateManagerToken` (true/false).
+    pub rotate_manager_token: Option<bool>,
+    /// Query parameter: `rotateManagerUnlockKey` (true/false).
+    pub rotate_manager_unlock_key: Option<bool>,
     /// Request body.
     pub body: SwarmSpec,
 }
@@ -534,8 +534,8 @@ pub async fn config_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/configs/{}/update", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/configs/{}/update", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -584,8 +584,8 @@ pub async fn container_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/update", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}/update", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -632,8 +632,8 @@ pub async fn node_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/nodes/{}/update", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/nodes/{}/update", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -682,8 +682,8 @@ pub async fn secret_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/secrets/{}/update", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/secrets/{}/update", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -732,8 +732,8 @@ pub async fn service_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/services/{}/update", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/services/{}/update", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -784,18 +784,27 @@ pub async fn swarm_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/swarm/update",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/swarm/update");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("version", args.version.as_deref());
-    builder = builder.query("rotateWorkerToken", args.rotate_worker_token.as_deref());
-    builder = builder.query("rotateManagerToken", args.rotate_manager_token.as_deref());
+    builder = builder.query(
+        "rotateWorkerToken",
+        args.rotate_worker_token
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "rotateManagerToken",
+        args.rotate_manager_token
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query(
         "rotateManagerUnlockKey",
-        args.rotate_manager_unlock_key.as_deref(),
+        args.rotate_manager_unlock_key
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     builder = builder

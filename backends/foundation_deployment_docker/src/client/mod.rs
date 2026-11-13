@@ -20,8 +20,14 @@ use std::sync::{Arc, OnceLock};
 use crate::error::DockerError;
 use crate::generated::auth::AuthResponse;
 use crate::generated::containers::{container_delete_request, ContainerDeleteArgs};
-use crate::generated::create::{container_create_request, ContainerCreateArgs, ContainerCreateResponse};
-use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse};
+use crate::generated::create::{
+    container_create_request, ContainerCreateArgs, ContainerCreateResponse,
+};
+use crate::generated::df::SystemDataUsageResponse;
+use crate::generated::info::SystemInfo;
+use crate::generated::json::{
+    container_inspect_request, ContainerInspectArgs, ContainerInspectResponse, ExecInspectResponse,
+};
 use crate::generated::pause::{container_pause_request, ContainerPauseArgs};
 use crate::generated::shared::{ApiError, IDResponse};
 use crate::generated::start::{container_start_request, ContainerStartArgs};
@@ -148,17 +154,11 @@ pub struct ContainerCreateBody {
     pub config: crate::generated::json::ContainerConfig,
 
     /// Port bindings, volumes, capabilities PLUS CPU/memory/device limits.
-    #[serde(
-        rename = "HostConfig",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "HostConfig", skip_serializing_if = "Option::is_none")]
     pub host_config: Option<ContainerHostConfig>,
 
     /// Per-network endpoint configuration (aliases, static IPs, MAC address).
-    #[serde(
-        rename = "NetworkingConfig",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "NetworkingConfig", skip_serializing_if = "Option::is_none")]
     pub networking_config: Option<NetworkingConfig>,
 }
 
@@ -166,9 +166,15 @@ impl ContainerCreateBody {
     /// Create a minimal body with just the image set.
     #[must_use]
     pub fn new(image: impl Into<String>) -> Self {
-        let mut config = crate::generated::json::ContainerConfig::default();
-        config.image = Some(image.into());
-        Self { config, host_config: None, networking_config: None }
+        let config = crate::generated::json::ContainerConfig {
+            image: Some(image.into()),
+            ..Default::default()
+        };
+        Self {
+            config,
+            host_config: None,
+            networking_config: None,
+        }
     }
 
     /// Set the command to run in the container.
@@ -232,7 +238,8 @@ pub struct ContainerHostConfig {
 pub struct NetworkingConfig {
     /// A mapping of network name to endpoint configuration for that network.
     #[serde(rename = "EndpointsConfig")]
-    pub endpoints_config: std::collections::HashMap<String, crate::generated::connect::EndpointSettings>,
+    pub endpoints_config:
+        std::collections::HashMap<String, crate::generated::connect::EndpointSettings>,
 }
 
 /// Container lifecycle operations (restart, kill, rename, resize, top, changes,
@@ -371,6 +378,10 @@ impl DockerClient {
         let http = HttpClientBuilder::new()
             .unix_socket(&socket_path)
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Self {
             http,
@@ -395,6 +406,10 @@ impl DockerClient {
         let socket_path = PathBuf::from(format!("tcp://{host}"));
         let http = HttpClientBuilder::new()
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Self {
             http,
@@ -421,17 +436,24 @@ impl DockerClient {
     pub fn connect_tls(host: &str, tls: DockerTls) -> Result<Self, DockerError> {
         use foundation_netio::netcap::ssl::SSLConnector;
 
-        let connector = SSLConnector::from_client_mutual_pem(
-            tls.ca_pem.as_deref(),
-            &tls.cert_pem,
-            &tls.key_pem,
-            tls.verify,
-        )
-        .map_err(|e| DockerError::Unavailable(format!("build TLS connector: {e}")))?;
+        // Move the fields out, so the caller can pass the struct by value.
+        let DockerTls {
+            ca_pem,
+            cert_pem,
+            key_pem,
+            verify,
+        } = tls;
+        let connector =
+            SSLConnector::from_client_mutual_pem(ca_pem.as_deref(), &cert_pem, &key_pem, verify)
+                .map_err(|e| DockerError::Unavailable(format!("build TLS connector: {e}")))?;
 
         let http = HttpClientBuilder::new()
             .with_tls_connector(connector)
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Ok(Self {
             http,
@@ -448,7 +470,7 @@ impl DockerClient {
     /// WHY: SSH is Docker's port-less remote transport — it reuses an existing
     /// SSH login instead of exposing a TCP port or managing TLS certs.
     ///
-    /// WHAT: SSHes in and runs `docker system dial-stdio`, whose stdio bridges to
+    /// WHAT: `SSHes` in and runs `docker system dial-stdio`, whose stdio bridges to
     /// the remote `/var/run/docker.sock`. The client then speaks the ordinary
     /// Docker HTTP API over that channel (base URL `http://localhost`).
     ///
@@ -456,7 +478,7 @@ impl DockerClient {
     /// [`HttpClientBuilder::with_connector`]; each request opens a fresh
     /// `dial-stdio` channel (session reused across requests, channel not pooled).
     /// The target is resolved through `~/.ssh/config` (HostName/User/Port/
-    /// IdentityFile), the server's key is checked against `~/.ssh/known_hosts`
+    /// `IdentityFile`), the server's key is checked against `~/.ssh/known_hosts`
     /// (trust-on-first-use), and auth follows OpenSSH order: agent, then the
     /// resolved/default `~/.ssh/id_*` keys — see [`foundation_sshkit::Host`].
     ///
@@ -476,6 +498,10 @@ impl DockerClient {
         let http = HttpClientBuilder::new()
             .with_connector(connector)
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Ok(Self {
             http,
@@ -525,7 +551,8 @@ impl DockerClient {
         }
         if let Some(addr) = host.strip_prefix("tcp://") {
             // TLS when DOCKER_TLS_VERIFY is set, or a DOCKER_CERT_PATH is given.
-            let verify = std::env::var("DOCKER_TLS_VERIFY").is_ok_and(|v| v != "0" && !v.is_empty());
+            let verify =
+                std::env::var("DOCKER_TLS_VERIFY").is_ok_and(|v| v != "0" && !v.is_empty());
             let cert_dir = std::env::var("DOCKER_CERT_PATH").ok();
             if verify || cert_dir.is_some() {
                 let dir = cert_dir.ok_or_else(|| {
@@ -735,7 +762,8 @@ impl DockerClient {
             body: generated_body("container config", json)?,
         };
         let response =
-            container_create_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_create_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -767,7 +795,9 @@ impl DockerClient {
             id: id.to_string(),
             condition: condition.map(str::to_string),
         };
-        let response = container_wait_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_wait_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -791,10 +821,10 @@ impl DockerClient {
             signal: None,
             t: timeout_secs.map(|t| t.to_string()),
         };
-        match container_stop_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await {
-            Ok(_) => Ok(()),
+        match container_stop_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await
+        {
             // Docker returns 304 when the container is already exited — not an error.
-            Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
+            Ok(_) | Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
             Err(e) => Err(e.into()),
         }
     }
@@ -808,7 +838,7 @@ impl DockerClient {
         let args = ContainerDeleteArgs {
             id: id.to_string(),
             v: None,
-            force: Some(force.to_string()),
+            force: Some(force),
             link: None,
         };
         container_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
@@ -828,7 +858,9 @@ impl DockerClient {
             id: id.to_string(),
             size: None,
         };
-        let response = container_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -840,9 +872,7 @@ impl DockerClient {
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn pause_container(&self, id: &str) -> Result<(), DockerError> {
-        let args = ContainerPauseArgs {
-            id: id.to_string(),
-        };
+        let args = ContainerPauseArgs { id: id.to_string() };
         container_pause_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
@@ -855,9 +885,7 @@ impl DockerClient {
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn unpause_container(&self, id: &str) -> Result<(), DockerError> {
-        let args = ContainerUnpauseArgs {
-            id: id.to_string(),
-        };
+        let args = ContainerUnpauseArgs { id: id.to_string() };
         container_unpause_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
@@ -867,6 +895,10 @@ impl DockerClient {
     /// Create an exec instance in a running container (`POST /containers/{id}/exec`).
     ///
     /// Delegates to [`exec::exec_create`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_create(&self, id: &str, cmd: &[&str]) -> Result<IDResponse, DockerError> {
         exec::exec_create(self, id, cmd).await
     }
@@ -874,6 +906,10 @@ impl DockerClient {
     /// Start a previously-created exec instance (`POST /exec/{id}/start`).
     ///
     /// Delegates to [`exec::exec_start`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_start(&self, id: &str, detach: bool) -> Result<body::LogStream, DockerError> {
         exec::exec_start(self, id, detach).await
     }
@@ -881,13 +917,21 @@ impl DockerClient {
     /// Inspect an exec instance (`GET /exec/{id}/json`).
     ///
     /// Delegates to [`exec::exec_inspect`].
-    pub async fn exec_inspect(&self, id: &str) -> Result<serde_json::Value, DockerError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
+    pub async fn exec_inspect(&self, id: &str) -> Result<ExecInspectResponse, DockerError> {
         exec::exec_inspect(self, id).await
     }
 
     /// Resize the TTY of an exec instance (`POST /exec/{id}/resize`).
     ///
     /// Delegates to [`exec::exec_resize`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_resize(&self, id: &str, h: u32, w: u32) -> Result<(), DockerError> {
         exec::exec_resize(self, id, h, w).await
     }
@@ -898,15 +942,20 @@ impl DockerClient {
     ///
     /// Delegates to [`system::system_info`].
     ///
-    /// Returns `serde_json::Value` because Docker's `LocalNodeState` is a raw
-    /// string (`"inactive"`) that the generated `SystemInfo` struct can't parse.
-    pub async fn system_info(&self) -> Result<serde_json::Value, DockerError> {
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
+    pub async fn system_info(&self) -> Result<SystemInfo, DockerError> {
         system::system_info(self).await
     }
 
     /// Ping the daemon (`GET /_ping`).
     ///
     /// Delegates to [`system::system_ping`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_ping(&self) -> Result<(), DockerError> {
         system::system_ping(self).await
     }
@@ -914,6 +963,10 @@ impl DockerClient {
     /// Stream daemon events (`GET /events`).
     ///
     /// Delegates to [`system::system_events`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_events(
         &self,
         since: Option<&str>,
@@ -926,14 +979,29 @@ impl DockerClient {
     /// Get data usage information (`GET /system/df`).
     ///
     /// Delegates to [`system::system_data_usage`].
-    pub async fn system_data_usage(&self, types: Option<&str>) -> Result<serde_json::Value, DockerError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
+    pub async fn system_data_usage(
+        &self,
+        types: Option<&str>,
+    ) -> Result<SystemDataUsageResponse, DockerError> {
         system::system_data_usage(self, types).await
     }
 
     /// Check auth configuration (`POST /auth`).
     ///
     /// Delegates to [`system::system_auth`].
-    pub async fn system_auth(&self, username: &str, password: &str) -> Result<AuthResponse, DockerError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
+    pub async fn system_auth(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<AuthResponse, DockerError> {
         system::system_auth(self, username, password).await
     }
 }
@@ -948,8 +1016,9 @@ pub(crate) fn generated_body<T: serde::de::DeserializeOwned>(
     what: &str,
     value: serde_json::Value,
 ) -> Result<T, DockerError> {
-    serde_json::from_value(value)
-        .map_err(|e| DockerError::JsonParse(format!("{what} does not fit the API's request type: {e}")))
+    serde_json::from_value(value).map_err(|e| {
+        DockerError::JsonParse(format!("{what} does not fit the API's request type: {e}"))
+    })
 }
 
 /// A Docker Engine API version, `major.minor` (e.g. `1.53`).

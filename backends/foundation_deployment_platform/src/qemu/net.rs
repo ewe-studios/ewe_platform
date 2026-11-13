@@ -9,6 +9,10 @@ use super::ResolvedPorts;
 /// Allocate free ports for the VM based on the profile's defaults.
 ///
 /// If a default port is in use, scans upward (up to +100) to find a free one.
+///
+/// # Errors
+///
+/// Returns an error if no free port is found for a required service.
 pub fn allocate_ports(profile: &VmProfile) -> Result<ResolvedPorts> {
     let ssh_port = allocate_port(profile.ssh_port)?;
 
@@ -27,6 +31,10 @@ pub fn allocate_ports(profile: &VmProfile) -> Result<ResolvedPorts> {
 }
 
 /// Find a free port starting from `start`, scanning up to +100.
+///
+/// # Errors
+///
+/// Returns an error if no free port is found in the scan range.
 pub fn allocate_port(start: u16) -> Result<u16> {
     for port in start..=start + 100 {
         if is_port_free(port) {
@@ -37,7 +45,7 @@ pub fn allocate_port(start: u16) -> Result<u16> {
 }
 
 /// Check if a TCP port is free on 127.0.0.1.
+#[must_use]
 pub fn is_port_free(port: u16) -> bool {
     TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
-

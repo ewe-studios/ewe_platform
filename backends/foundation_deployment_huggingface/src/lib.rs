@@ -14,19 +14,21 @@
 //! # Usage
 //!
 //! ```rust,no_run
+//! use foundation_core::valtron::block_on_future;
 //! use foundation_deployment_huggingface::{HFClient, client, repository, types};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Initialize client
 //! let client = HFClient::builder().token("hf_...").build()?;
 //!
-//! // Client operations
-//! let user = client::whoami(&client)?;
-//! let models = client::list_models(&client, &types::ListModelsParams::default())?;
+//! // Client operations are async; wrap them in a blocking future at the
+//! // sync boundary.
+//! block_on_future({ let c = client.clone(); async move { client::whoami(&c).await } })?;
+//! block_on_future({ let c = client.clone(); async move { client::list_models(&c, &types::ListModelsParams::default()).await } })?;
 //!
 //! // Repository operations
 //! let repo = client.model("owner", "repo-name");
-//! let info = repository::repo_info(&repo, &types::RepoInfoParams::default())?;
+//! block_on_future({ let r = repo.clone(); async move { repository::repo_info(&r, &types::RepoInfoParams::default()).await } })?;
 //! # Ok(())
 //! # }
 //! ```

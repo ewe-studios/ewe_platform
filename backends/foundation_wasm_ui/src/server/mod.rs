@@ -66,7 +66,7 @@ struct Inner {
 }
 
 /// Shared fan-out of server-driven UI connections. Cheap to clone (`Arc`) — the
-/// server keeps one handle and shares another into its request `ContextBag`.
+/// server keeps one handle and shares another into its request `Ctx`.
 #[derive(Clone)]
 pub struct Broadcaster {
     inner: Arc<Mutex<Inner>>,
@@ -76,13 +76,20 @@ impl Broadcaster {
     /// An empty broadcaster.
     #[must_use]
     pub fn new() -> Self {
-        Self { inner: Arc::new(Mutex::new(Inner { conns: Vec::new(), backlog: Vec::new() })) }
+        Self {
+            inner: Arc::new(Mutex::new(Inner {
+                conns: Vec::new(),
+                backlog: Vec::new(),
+            })),
+        }
     }
 
     /// A `Send` handle for pushing frames (held by an App's [`BroadcastSink`]).
     #[must_use]
     pub fn sender(&self) -> BroadcastTx {
-        BroadcastTx { inner: self.inner.clone() }
+        BroadcastTx {
+            inner: self.inner.clone(),
+        }
     }
 
     /// Register a freshly-connected client, replaying the backlog into it so a
@@ -96,13 +103,21 @@ impl Broadcaster {
 
     /// Drop all connections (teardown closes the sockets).
     pub fn close(&self) {
-        self.inner.lock().expect("broadcaster poisoned").conns.clear();
+        self.inner
+            .lock()
+            .expect("broadcaster poisoned")
+            .conns
+            .clear();
     }
 
     /// Number of frames pushed so far (diagnostics).
     #[must_use]
     pub fn frame_count(&self) -> usize {
-        self.inner.lock().expect("broadcaster poisoned").backlog.len()
+        self.inner
+            .lock()
+            .expect("broadcaster poisoned")
+            .backlog
+            .len()
     }
 
     /// Number of currently-connected clients (diagnostics).
@@ -157,7 +172,11 @@ pub struct BroadcastSink<E = ColumnarEncoder> {
 impl<E> BroadcastSink<E> {
     /// A sink over a specific encoder, shipping frames to `tx`.
     pub fn with_encoder(encoder: E, tx: BroadcastTx) -> Self {
-        Self { encoder, tx, next_id: Cell::new(0) }
+        Self {
+            encoder,
+            tx,
+            next_id: Cell::new(0),
+        }
     }
 }
 
@@ -196,7 +215,11 @@ impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolMethods<Vec<DomOp>> for BroadcastSi
         let id = self.next_id.get();
         self.next_id.set(id + 1);
         (
-            SendResult { memory_id: MemoryId::new(id, 0), op_count, encoded_bytes },
+            SendResult {
+                memory_id: MemoryId::new(id, 0),
+                op_count,
+                encoded_bytes,
+            },
             core::ptr::null(),
             0,
         )

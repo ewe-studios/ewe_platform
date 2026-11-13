@@ -15,9 +15,9 @@ pub mod client;
 #[cfg(not(target_family = "wasm"))]
 pub mod dns_ops;
 #[cfg(not(target_family = "wasm"))]
-pub mod types;
-#[cfg(not(target_family = "wasm"))]
 pub mod generated;
+#[cfg(not(target_family = "wasm"))]
+pub mod types;
 
 #[cfg(all(target_family = "wasm", feature = "workers"))]
 pub mod workers;

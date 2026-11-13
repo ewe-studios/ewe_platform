@@ -7,6 +7,8 @@
 //! WHAT: [`ps_exec`] encodes a script as UTF-16LE + Base64, executes it via
 //! `powershell -NoProfile -EncodedCommand`, and strips the CLIXML noise.
 
+use crate::error::{SshKitError, SshKitResult};
+
 use std::io::Read;
 
 /// Execute a PowerShell script over an authenticated ssh2 session.
@@ -18,27 +20,26 @@ use std::io::Read;
 ///
 /// Returns `Err(message)` if the channel session fails to open or the exec
 /// command fails.
-pub fn ps_exec(session: &ssh2::Session, script: &str) -> Result<(String, i32), String> {
+pub fn ps_exec(session: &ssh2::Session, script: &str) -> SshKitResult<(String, i32)> {
     // Encode as UTF-16LE + Base64 for -EncodedCommand
     let utf16le: Vec<u8> = script
         .encode_utf16()
         .flat_map(|c| c.to_le_bytes())
         .collect();
-    let encoded = base64::Engine::encode(
-        &base64::engine::general_purpose::STANDARD,
-        &utf16le,
-    );
+    let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
     let cmd = format!("powershell -NoProfile -EncodedCommand {encoded}");
     let mut channel = session
         .channel_session()
-        .map_err(|e| format!("channel: {e}"))?;
-    channel.exec(&cmd).map_err(|e| format!("exec: {e}"))?;
+        .map_err(|e| SshKitError::Operation(format!("channel: {e}")))?;
+    channel
+        .exec(&cmd)
+        .map_err(|e| SshKitError::Operation(format!("exec: {e}")))?;
 
     let mut stdout = String::new();
     channel
         .read_to_string(&mut stdout)
-        .map_err(|e| format!("read stdout: {e}"))?;
+        .map_err(|e| SshKitError::Operation(format!("read stdout: {e}")))?;
 
     let exit_code = channel.exit_status().unwrap_or(-1);
 

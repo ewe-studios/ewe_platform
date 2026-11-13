@@ -4,17 +4,17 @@
 use std::time::Duration;
 
 use foundation_agent_rpc::auth::MtlsConfig;
-use foundation_agent_rpc::secret::{SignedSecret, SigningKeyConfig};
 use foundation_agent_rpc::bootstrap::{self, BootstrapPayload};
 use foundation_agent_rpc::client::connect_with_payload;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest, HealthRequest};
+use foundation_agent_rpc::secret::{SignedSecret, SigningKeyConfig};
 use foundation_agent_rpc::{AgentRpcError, AgentRpcServer, ModelHandle};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
-use foundation_connectrpc::{Ctx, Request};
+use foundation_connectrpc::{Request, RpcCtx};
 use foundation_core::valtron::valtron_test;
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(20))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(20))
 }
 
 fn sample() -> BootstrapPayload {
@@ -95,10 +95,12 @@ async fn a_client_connects_from_the_payload_alone() {
     let config = MtlsConfig::from_state_dir_with(
         dir.path(),
         &SigningKeyConfig::in_state_dir(dir.path()).without_env_var(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("state");
     let server = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
         .with_mtls(config)
         .build()
@@ -177,18 +179,25 @@ async fn the_client_checks_the_secret_before_dialling() {
         .to_string();
     let err = connect_with_payload(&bootstrap::encode(&payload), "phone")
         .await
-        .expect_err("expired");
+        .err()
+        .expect("expired");
     assert_eq!(
         err.current_context().code(),
         foundation_connectrpc::Code::Unauthenticated
     );
-    assert!(err.current_context().to_string().contains("validity window"), "{err:?}");
+    assert!(
+        err.current_context()
+            .to_string()
+            .contains("validity window"),
+        "{err:?}"
+    );
 
     let good = secrets.issue().expect("issue").encode().to_string();
     payload.token = format!("{}AA", &good[..good.len() - 2]);
     let err = connect_with_payload(&bootstrap::encode(&payload), "phone")
         .await
-        .expect_err("corrupted");
+        .err()
+        .expect("corrupted");
     assert_eq!(
         err.current_context().code(),
         foundation_connectrpc::Code::InvalidArgument,

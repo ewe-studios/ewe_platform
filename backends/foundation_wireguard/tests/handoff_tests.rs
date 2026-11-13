@@ -4,12 +4,19 @@
 //! shared bootstrap key), and a revoked seed blocks a fresh join.
 #![cfg(not(target_family = "wasm"))]
 
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_wireguard::native::{WgConfig, WgNode};
 use foundation_wireguard::{IdentityKeypair, WgSeed};
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test.
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 #[test]
 #[traced_test]
@@ -33,15 +40,18 @@ fn mesh_uses_identity_keys_and_revoked_seed_blocks_new_join() {
     let network_id = seed.derive_network_id();
     let bootstrap = seed.derive_bootstrap(&network_id);
 
-    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id))
+    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id), test_ctx())
         .join()
         .expect("A joins");
     let a_boot = node_a.bootstrap_addr();
 
     // B joins while the seed is valid.
-    let node_b = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot]))
-        .join()
-        .expect("B joins");
+    let node_b = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
+        test_ctx(),
+    )
+    .join()
+    .expect("B joins");
 
     // Success criterion 4: peers use their own random identity keys, NOT the shared
     // bootstrap key.
@@ -57,7 +67,11 @@ fn mesh_uses_identity_keys_and_revoked_seed_blocks_new_join() {
     // Give the revocation a moment (atomic store is immediate, but be tolerant).
     thread::sleep(Duration::from_millis(50));
 
-    let node_c = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot])).join();
+    let node_c = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
+        test_ctx(),
+    )
+    .join();
     assert!(
         node_c.is_err(),
         "a fresh join with the revoked seed must be refused"

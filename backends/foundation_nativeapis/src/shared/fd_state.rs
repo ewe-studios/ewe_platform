@@ -1,6 +1,6 @@
-/// File descriptor readiness state.
-///
-/// Indicates which readiness states were observed on a file descriptor.
+//! File descriptor readiness state.
+//!
+//! Indicates which readiness states were observed on a file descriptor.
 
 /// Which readiness state was signaled on a file descriptor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -17,6 +17,7 @@ impl FdState {
     /// Returns `None` if the readiness contains neither readable nor writable
     /// (e.g. only closed/error flags).
     #[inline]
+    #[must_use]
     pub fn from_ready(readable: bool, writable: bool) -> Option<Self> {
         match (readable, writable) {
             (true, true) => Some(FdState::Both),

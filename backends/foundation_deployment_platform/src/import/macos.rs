@@ -1,4 +1,4 @@
-//! macOS image creation — native IPSW download + BaseSystem extraction.
+//! macOS image creation — native IPSW download + `BaseSystem` extraction.
 //!
 //! Creates bootable macOS qcow2 images on Linux without requiring
 //! quickget/quickemu dependencies. Uses QEMU's built-in DMG reader
@@ -10,17 +10,17 @@
 //! 3. Extract `BaseSystem.dmg` from the IPSW
 //! 4. Convert DMG → qcow2 via `qemu-img convert`
 //! 5. Create empty data disk for user space (resizable)
-//! 6. Generate OpenCore EFI config and EFI disk image
+//! 6. Generate `OpenCore` EFI config and EFI disk image
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::config::{Result, TestbedError};
 
-/// OpenCore release version to download from GitHub.
+/// `OpenCore` release version to download from GitHub.
 const OPENCORE_VERSION: &str = "1.0.3";
 
-/// OpenCore EFI disk filename.
+/// `OpenCore` EFI disk filename.
 pub const OPENCORE_EFI_FILENAME: &str = "opencore.qcow2";
 
 /// Minimum IPSW size (500 MB).
@@ -37,8 +37,11 @@ pub struct IpswInfo {
 
 /// Ensure a macOS image is available in the cache for the given profile.
 ///
-/// Creates both the BaseSystem qcow2 (boot disk) and the OpenCore EFI
+/// Creates both the `BaseSystem` qcow2 (boot disk) and the `OpenCore` EFI
 /// disk if they don't already exist.
+///
+/// # Errors
+/// Returns an error if a macOS image step fails.
 pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
     let base_dir = crate::config::image_cache_dir();
     std::fs::create_dir_all(&base_dir).map_err(|e| TestbedError::Qcow2Error {
@@ -55,11 +58,14 @@ pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
     let data_disk_qcow2 = macos_dir.join("macOS-data.qcow2");
 
     // If all components exist and look valid, return the BaseSystem path
-    if basesystem_qcow2.exists() && opencore_qcow2.exists() && data_disk_qcow2.exists()
+    if basesystem_qcow2.exists()
+        && opencore_qcow2.exists()
+        && data_disk_qcow2.exists()
         && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
-            && meta.len() > 100_000_000 {
-                return Ok(basesystem_qcow2);
-            }
+        && meta.len() > 100_000_000
+    {
+        return Ok(basesystem_qcow2);
+    }
 
     // Step 1: Find IPSW
     println!("  Looking up macOS IPSW...");
@@ -111,17 +117,15 @@ pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
 
 /// Query api.ipsw.me for available macOS IPSWs.
 ///
-/// Returns the latest macOS version available for iMacPro1,1 (x86_64).
+/// Returns the latest macOS version available for iMacPro1,1 (`x86_64`).
+///
+/// # Errors
+/// Returns an error if no macOS IPSW is found.
 pub fn find_ipsw(model: Option<&str>) -> Result<IpswInfo> {
     let device_id = model.unwrap_or("MacBookPro16,1"); // x86_64 Intel Mac
 
     // Try multiple device IDs that return macOS IPSWs
-    let devices = [
-        device_id,
-        "iMacPro1,1",
-        "MacPro7,1",
-        "MacBookPro16,1",
-    ];
+    let devices = [device_id, "iMacPro1,1", "MacPro7,1", "MacBookPro16,1"];
 
     let mut latest: Option<IpswInfo> = None;
 
@@ -129,7 +133,10 @@ pub fn find_ipsw(model: Option<&str>) -> Result<IpswInfo> {
         let api_url = format!("https://api.ipsw.me/v4/device/{dev}");
         if let Ok(info) = query_ipsw_api(&api_url) {
             // Keep the one with the highest version number (by build ID sort)
-            if latest.as_ref().is_none_or(|prev| info.build_id > prev.build_id) {
+            if latest
+                .as_ref()
+                .is_none_or(|prev| info.build_id > prev.build_id)
+            {
                 latest = Some(info);
             }
         }
@@ -154,24 +161,27 @@ fn query_ipsw_api(url: &str) -> Result<IpswInfo> {
     if !output.status.success() {
         return Err(TestbedError::DownloadFailed {
             status: 0,
-            url: format!("api.ipsw.me returned error: {}", String::from_utf8_lossy(&output.stderr)),
+            url: format!(
+                "api.ipsw.me returned error: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
         });
     }
 
-    let json: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|e| {
-        TestbedError::DownloadFailed {
+    let json: serde_json::Value =
+        serde_json::from_slice(&output.stdout).map_err(|e| TestbedError::DownloadFailed {
             status: 0,
             url: format!("failed to parse IPSW API response: {e}"),
-        }
-    })?;
+        })?;
 
     // The API returns an array of firmware entries
-    let firmwares = json.get("firmwares").and_then(|f| f.as_array()).ok_or_else(|| {
-        TestbedError::DownloadFailed {
+    let firmwares = json
+        .get("firmwares")
+        .and_then(|f| f.as_array())
+        .ok_or_else(|| TestbedError::DownloadFailed {
             status: 0,
             url: "api.ipsw.me response missing 'firmwares' field".to_string(),
-        }
-    })?;
+        })?;
 
     // Find the latest macOS firmware (skip iOS/iPadOS by checking version contains macOS indicators)
     let mut candidates: Vec<_> = firmwares
@@ -192,7 +202,12 @@ fn query_ipsw_api(url: &str) -> Result<IpswInfo> {
                 || version.contains("Big Sur");
 
             if is_macos {
-                Some(IpswInfo { version, build_id, url, size })
+                Some(IpswInfo {
+                    version,
+                    build_id,
+                    url,
+                    size,
+                })
             } else {
                 None
             }
@@ -201,10 +216,13 @@ fn query_ipsw_api(url: &str) -> Result<IpswInfo> {
 
     candidates.sort_by(|a, b| b.build_id.cmp(&a.build_id));
 
-    candidates.into_iter().next().ok_or_else(|| TestbedError::DownloadFailed {
-        status: 0,
-        url: "no macOS firmware found in API response".to_string(),
-    })
+    candidates
+        .into_iter()
+        .next()
+        .ok_or_else(|| TestbedError::DownloadFailed {
+            status: 0,
+            url: "no macOS firmware found in API response".to_string(),
+        })
 }
 
 /// Download an IPSW from Apple CDN using simple HTTP with progress.
@@ -220,7 +238,7 @@ fn download_ipsw(ipsw: &IpswInfo, dest: &Path) -> Result<()> {
             "600", // 10 minutes for large IPSW
             "-o",
             dest.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid IPSW destination path: {dest:?}"),
+                message: format!("invalid IPSW destination path: {}", dest.display()),
             })?,
             &ipsw.url,
         ])
@@ -245,11 +263,17 @@ fn download_ipsw(ipsw: &IpswInfo, dest: &Path) -> Result<()> {
     if meta.len() < MIN_IPSW_SIZE {
         return Err(TestbedError::DownloadFailed {
             status: 0,
-            url: format!("IPSW too small ({} bytes) — download may have failed", meta.len()),
+            url: format!(
+                "IPSW too small ({} bytes) — download may have failed",
+                meta.len()
+            ),
         });
     }
 
-    println!("  IPSW downloaded: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  IPSW downloaded: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -271,7 +295,6 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
         s.success()
     } else {
         // Fallback to unzip
-        
 
         Command::new("unzip")
             .args([
@@ -282,8 +305,7 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
                 ipsw_path.parent().unwrap().to_str().unwrap(),
             ])
             .status()
-            .map(|s| s.success())
-            .unwrap_or(false)
+            .is_ok_and(|s| s.success())
     };
 
     if !extracted {
@@ -308,7 +330,10 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
         message: format!("stat BaseSystem.dmg: {e}"),
     })?;
 
-    println!("  BaseSystem.dmg extracted: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  BaseSystem.dmg extracted: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -323,10 +348,10 @@ fn convert_dmg_to_qcow2(dmg_path: &Path, dest: &Path) -> Result<()> {
             "qcow2",
             "-c", // compress for smaller
             dmg_path.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid DMG path: {dmg_path:?}"),
+                message: format!("invalid DMG path: {}", dmg_path.display()),
             })?,
             dest.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid qcow2 destination: {dest:?}"),
+                message: format!("invalid qcow2 destination: {}", dest.display()),
             })?,
         ])
         .status()
@@ -344,7 +369,10 @@ fn convert_dmg_to_qcow2(dmg_path: &Path, dest: &Path) -> Result<()> {
         message: format!("stat qcow2: {e}"),
     })?;
 
-    println!("  BaseSystem.qcow2 created: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  BaseSystem.qcow2 created: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -356,7 +384,7 @@ fn create_data_disk(dest: &Path, size_gb: u32) -> Result<()> {
             "-f",
             "qcow2",
             dest.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid data disk path: {dest:?}"),
+                message: format!("invalid data disk path: {}", dest.display()),
             })?,
             &format!("{size_gb}G"),
         ])
@@ -374,9 +402,9 @@ fn create_data_disk(dest: &Path, size_gb: u32) -> Result<()> {
     Ok(())
 }
 
-/// Create an OpenCore EFI disk image.
+/// Create an `OpenCore` EFI disk image.
 ///
-/// Downloads OpenCore from GitHub releases, generates config.plist,
+/// Downloads `OpenCore` from GitHub releases, generates config.plist,
 /// and creates a FAT32 disk image with the EFI files.
 fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
     let efi_stage = macos_dir.join("opencore-stage");
@@ -395,11 +423,7 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
         println!("  Downloading OpenCore {OPENCORE_VERSION}...");
 
         let status = Command::new("curl")
-            .args([
-                "-L", "-#",
-                "-o", zip_path.to_str().unwrap(),
-                &gh_url,
-            ])
+            .args(["-L", "-#", "-o", zip_path.to_str().unwrap(), &gh_url])
             .status()
             .map_err(|e| TestbedError::DownloadFailed {
                 status: 0,
@@ -442,7 +466,9 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
 
     if !hfsplus_path.exists() {
         println!("  Downloading HfsPlus.efi driver...");
-        let hfsplus_url = "https://github.com/acidanthera/OcBinaryData/raw/master/Drivers/HfsPlus.efi".to_string();
+        let hfsplus_url =
+            "https://github.com/acidanthera/OcBinaryData/raw/master/Drivers/HfsPlus.efi"
+                .to_string();
         let _ = Command::new("curl")
             .args(["-sL", "-o", hfsplus_path.to_str().unwrap(), &hfsplus_url])
             .status();
@@ -452,9 +478,14 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
     println!("  Generating OpenCore config.plist...");
     let config_plist = generate_config_plist();
     std::fs::write(
-        efi_stage.join("X64").join("EFI").join("OC").join("config.plist"),
+        efi_stage
+            .join("X64")
+            .join("EFI")
+            .join("OC")
+            .join("config.plist"),
         config_plist,
-    ).map_err(|e| TestbedError::Qcow2Error {
+    )
+    .map_err(|e| TestbedError::Qcow2Error {
         message: format!("writing config.plist: {e}"),
     })?;
 
@@ -535,7 +566,10 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
         message: format!("stat EFI qcow2: {e}"),
     })?;
 
-    println!("  OpenCore EFI disk created: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  OpenCore EFI disk created: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -551,9 +585,10 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
         .status();
 
     if let Ok(s) = mcopy_status
-        && s.success() {
-            return Ok(());
-        }
+        && s.success()
+    {
+        return Ok(());
+    }
 
     // Fallback: mount loopback + cp
     let mount_point = fat_img.parent().unwrap().join("efi-mount");
@@ -571,27 +606,34 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
         .status();
 
     if let Ok(s) = mount_status
-        && s.success() {
-            let cp_status = Command::new("cp")
-                .args(["-r", efi_dir.to_str().unwrap(), &format!("{}/EFI", mount_point.display())])
-                .status();
+        && s.success()
+    {
+        let cp_status = Command::new("cp")
+            .args([
+                "-r",
+                efi_dir.to_str().unwrap(),
+                &format!("{}/EFI", mount_point.display()),
+            ])
+            .status();
 
-            let _ = Command::new("umount").arg(&mount_point).status();
-            let _ = std::fs::remove_dir(&mount_point);
+        let _ = Command::new("umount").arg(&mount_point).status();
+        let _ = std::fs::remove_dir(&mount_point);
 
-            if cp_status.map(|s| s.success()).unwrap_or(false) {
-                return Ok(());
-            }
+        if cp_status.is_ok_and(|s| s.success()) {
+            return Ok(());
         }
+    }
 
     Err(TestbedError::Qcow2Error {
         message: "failed to populate FAT32 image (tried mcopy and mount)".to_string(),
     })
 }
 
-/// Generate an OpenCore config.plist for QEMU macOS boot.
+/// Generate an `OpenCore` config.plist for QEMU macOS boot.
 ///
 /// Uses MacPro7,1 SMBIOS, standard boot args for QEMU compatibility.
+#[must_use]
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn generate_config_plist() -> String {
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -1052,4 +1094,3 @@ pub fn generate_config_plist() -> String {
 </plist>"#
         .to_string()
 }
-

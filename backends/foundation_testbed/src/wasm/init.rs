@@ -23,10 +23,10 @@ struct TemplateDirectory;
 
 /// Read a template file by its path within the templates directory.
 pub(crate) fn read_template(path: &str) -> Result<String> {
-    let bytes = TemplateDirectory.read_utf8_for(path)
+    let bytes = TemplateDirectory
+        .read_utf8_for(path)
         .ok_or_else(|| WasmTestbedError::TemplateNotFound(path.to_string()).trace())?;
-    String::from_utf8(bytes)
-        .map_err(|e| WasmTestbedError::TemplateNotUtf8(e).trace())
+    String::from_utf8(bytes).map_err(|e| WasmTestbedError::TemplateNotUtf8(e).trace())
 }
 
 /// Write a template to a target directory, replacing `PACKAGE_NAME`.
@@ -92,8 +92,9 @@ pub fn write_bindgen_runjs_to(
 
 /// Read the package name from a Cargo.toml file.
 fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
-    let content = std::fs::read_to_string(cargo_toml)
-        .map_err(|_e| WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())?;
+    let content = std::fs::read_to_string(cargo_toml).map_err(|_e| {
+        WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace()
+    })?;
 
     let mut in_package = false;
     for line in content.lines() {
@@ -106,11 +107,12 @@ fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
             in_package = false;
             continue;
         }
-        if in_package && trimmed.starts_with("name") {
-            if let Some(value) = trimmed.split('=').nth(1) {
-                let value = value.trim().trim_matches('"').trim_matches('\'');
-                return Ok(value.to_string());
-            }
+        if in_package
+            && trimmed.starts_with("name")
+            && let Some(value) = trimmed.split('=').nth(1)
+        {
+            let value = value.trim().trim_matches('"').trim_matches('\'');
+            return Ok(value.to_string());
         }
     }
 
@@ -185,8 +187,7 @@ pub fn run(args: InitArgs) -> Result<()> {
                 info!("{} already exists — skipping", dest.display());
             } else {
                 let content = read_template("fwt/sample_wasm_test.rs")?;
-                std::fs::write(&dest, content)
-                    .map_err(|e| WasmTestbedError::Io(e).trace())?;
+                std::fs::write(&dest, content).map_err(|e| WasmTestbedError::Io(e).trace())?;
                 info!(
                     "wrote {} — add `mod wasm_tests;` to lib.rs, set crate-type = [\"cdylib\"], \
                      and depend on foundation_wasm (feature \"web\") + foundation_macros; \
@@ -213,7 +214,11 @@ pub fn run(args: InitArgs) -> Result<()> {
             InitType::Web => vec!["web/index.html", "web/index.js", "web/loader.js"],
             InitType::Deno => vec!["deno/index.js", "deno/loader.js"],
             InitType::Wrangler => {
-                vec!["wrangler/worker.js", "wrangler/loader.js", "wrangler/wrangler.toml"]
+                vec![
+                    "wrangler/worker.js",
+                    "wrangler/loader.js",
+                    "wrangler/wrangler.toml",
+                ]
             }
         };
 

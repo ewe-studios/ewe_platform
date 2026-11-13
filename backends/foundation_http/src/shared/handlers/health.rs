@@ -2,17 +2,26 @@
 
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use serde_json::json;
-#[cfg(not(target_family = "wasm"))]
-use std::sync::Arc;
 
-use crate::shared::context::ContextBag;
-use crate::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory, respond};
+use crate::shared::context::Ctx;
+use crate::shared::serve::{respond_to_buffer, ConnectionResult, ServeWriter, ServeWriterFactory};
+
+/// The JSON body for a health `path`.
+///
+/// The native `Serve` impl in [`crate::native::handlers::health`] shares it.
+pub(crate) fn health_body(path: &str) -> serde_json::Value {
+    if path == "/health/live" || path == "/health/ready" {
+        json!({ "status": "ok" })
+    } else {
+        json!({ "status": "ok", "path": path })
+    }
+}
 
 /// Health check handler.
 pub struct HealthHandler;
 
 impl ServeWriterFactory for HealthHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -20,40 +29,14 @@ impl ServeWriterFactory for HealthHandler {
 impl ServeWriter for HealthHandler {
     fn serve_writer(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: SimpleIncomingRequest,
         mut conn: &mut dyn std::io::Write,
     ) -> ConnectionResult {
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or("/");
 
-        let body = if path == "/health/live" || path == "/health/ready" {
-            json!({ "status": "ok" })
-        } else {
-            json!({ "status": "ok", "path": path })
-        };
-
-        respond::json(&mut conn, 200, &body)
+        respond_to_buffer::json(&mut conn, 200, &health_body(path))
             .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
-    }
-}
-
-/// Native Serve impl (delegates to ServeWriter).
-#[cfg(not(target_family = "wasm"))]
-impl crate::shared::serve::Serve for HealthHandler {
-    fn serve(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        mut conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
-    ) -> ConnectionResult {
-        <Self as ServeWriter>::serve_writer(self, &bag, req, &mut conn)
-    }
-}
-
-#[cfg(not(target_family = "wasm"))]
-impl crate::shared::serve::ServeFactory for HealthHandler {
-    fn create(bag: &ContextBag) -> Self {
-        <Self as ServeWriterFactory>::create(bag)
     }
 }

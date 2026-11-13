@@ -10,18 +10,18 @@ pub use wasm_pack::WasmPackBuilder;
 
 use std::sync::Arc;
 
-use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::QueueReadiness;
 use foundation_core::valtron::run_background_job;
-use foundation_nativeapis::valtron::CompositeReadiness;
+use foundation_core::valtron::{EventQueue, QueueReadiness};
 use foundation_nativeapis::shared::WatchEvent;
+use foundation_nativeapis::valtron::CompositeReadiness;
 
 use crate::watcher::FileChange;
 use crate::ToolingError;
 
 // -- BuildResult
 
-pub type BuildResult = std::result::Result<BuildOutput, ToolingError>;
+pub type BuildResult =
+    std::result::Result<BuildOutput, foundation_errstacks::ErrorTrace<ToolingError>>;
 
 #[derive(Debug, Clone)]
 pub enum BuildOutput {
@@ -48,28 +48,25 @@ pub trait ProjectBuilder: Send + Sync + std::fmt::Debug {
 pub struct ProjectBuilderTask {
     builders: Vec<Arc<dyn ProjectBuilder>>,
     change_rx: foundation_core::synca::mpp::Receiver<WatchEvent>,
-    change_queue: Arc<ConcurrentQueue<FileChange>>,
-    change_ready: QueueReadiness<FileChange>,
-    result_queue: Arc<ConcurrentQueue<BuildResult>>,
-    result_ready: QueueReadiness<BuildResult>,
-    build_complete_queue: Arc<ConcurrentQueue<()>>,
+    /// Woken when the watcher sends a watch event, so the parked task runs.
+    change_ready: QueueReadiness<WatchEvent>,
+    /// Build results from the background jobs. Their push wakes the parked task.
+    result_queue: EventQueue<BuildResult>,
+    build_complete_queue: EventQueue<()>,
     stop_on_failure: bool,
 }
 
 impl ProjectBuilderTask {
     pub fn new(
         change_rx: foundation_core::synca::mpp::Receiver<WatchEvent>,
-        build_complete_queue: Arc<ConcurrentQueue<()>>,
+        build_complete_queue: EventQueue<()>,
     ) -> Self {
-        let change_queue = Arc::new(ConcurrentQueue::unbounded());
-        let result_queue = Arc::new(ConcurrentQueue::unbounded());
+        let change_ready = change_rx.readiness();
         Self {
             builders: Vec::new(),
             change_rx,
-            change_queue: change_queue.clone(),
-            change_ready: QueueReadiness::new(change_queue),
-            result_queue: result_queue.clone(),
-            result_ready: QueueReadiness::new(result_queue),
+            change_ready,
+            result_queue: EventQueue::unbounded(),
             build_complete_queue,
             stop_on_failure: false,
         }
@@ -85,21 +82,38 @@ impl ProjectBuilderTask {
         self
     }
 
+    /// A readiness that is ready when the watcher has an unprocessed event. A
+    /// send on the watcher channel wakes the task parked on it.
+    #[must_use]
+    pub fn change_readiness(&self) -> Arc<QueueReadiness<WatchEvent>> {
+        Arc::new(self.change_ready.clone())
+    }
+
+    /// A readiness that is ready when a build result is queued. A push from the
+    /// background job wakes the task parked on it.
+    #[must_use]
+    pub fn result_readiness(&self) -> Arc<QueueReadiness<BuildResult>> {
+        Arc::new(self.result_queue.readiness())
+    }
+
+    /// The readiness of the whole task: ready when a file change **or** a build
+    /// result arrives.
     pub fn readiness(&self) -> Arc<CompositeReadiness> {
         Arc::new(CompositeReadiness::new(
-            Arc::new(self.change_ready.clone()),
-            Arc::new(self.result_ready.clone()),
+            self.change_readiness(),
+            self.result_readiness(),
         ))
     }
 }
 
 impl ProjectBuilderTask {
     /// Drain watch events, dispatch to matching builders.
+    ///
+    /// `try_iter` pops each event from the watch channel, so the change
+    /// readiness drops as the events are consumed.
     fn drain_watch_events(&mut self) {
-        // Use try_iter on the mpp receiver's underlying queue
         for event in self.change_rx.try_iter() {
             let change: FileChange = (&event).into();
-            let _ = self.change_queue.push(change.clone());
             for builder in &self.builders {
                 if builder.should_build(&change) {
                     self.submit_build(builder.clone(), change.clone());
@@ -109,16 +123,28 @@ impl ProjectBuilderTask {
     }
 
     /// Submit a build to BackgroundJobRegistry.
-    fn submit_build(&self, builder: Arc<dyn ProjectBuilder>, _change: FileChange) {
+    ///
+    /// A missing background pool does not panic. The task queues the error as a
+    /// failed build, so `drain_results` reports it and the build is not lost.
+    fn submit_build(&self, builder: Arc<dyn ProjectBuilder>, change: FileChange) {
         let result_queue = self.result_queue.clone();
         let complete_queue = self.build_complete_queue.clone();
+        let job_result_queue = result_queue.clone();
+        let job_complete_queue = complete_queue.clone();
 
-        run_background_job(move || {
-            tracing::info!("{}: building for {:?}", builder.name(), _change);
-            let result = builder.build(&_change);
-            let _ = result_queue.push(result);
+        let submitted = run_background_job(move || {
+            tracing::info!("{}: building for {:?}", builder.name(), change);
+            let result = builder.build(&change);
+            let _ = job_result_queue.push(result);
+            let _ = job_complete_queue.push(());
+        });
+
+        if let Err(error) = submitted {
+            let error = ToolingError::BackgroundJob(error.to_string());
+            tracing::error!("build not submitted: {error}");
+            let _ = result_queue.push(Err(error.into()));
             let _ = complete_queue.push(());
-        }).expect("background job pool available");
+        }
     }
 
     /// Drain build results (fire-and-forget: log, signal).
@@ -141,7 +167,8 @@ impl ProjectBuilderTask {
 
 // -- TaskIterator impl
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 
 impl TaskIterator for ProjectBuilderTask {
     type Ready = BuildResult;

@@ -1,5 +1,14 @@
 use super::super::core::errors::CedarError;
 
+/// The four policy documents a [`PolicyStore`] can load, in one bundle.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PolicyBundle {
+    pub schema: String,
+    pub policies: String,
+    pub entities: Option<String>,
+    pub version: String,
+}
+
 /// A source of Cedar policies, schema and entities.
 ///
 /// Async because the storage-backed sources (`KvPolicyStore`,
@@ -12,6 +21,20 @@ pub trait PolicyStore: core::fmt::Debug + Send + Sync {
         Ok(None)
     }
     async fn version(&self) -> Result<String, CedarError>;
+
+    /// Load the schema, policies, entities and version together.
+    ///
+    /// The default implementation runs the four per-field loads. A store that
+    /// keeps all four values in one record (for example `SqlPolicyStore`)
+    /// overrides this with a single read.
+    async fn load_all(&self) -> Result<PolicyBundle, CedarError> {
+        Ok(PolicyBundle {
+            schema: self.load_schema().await?,
+            policies: self.load_policies().await?,
+            entities: self.load_entities().await?,
+            version: self.version().await?,
+        })
+    }
 }
 
 pub struct InMemoryPolicyStore {
@@ -67,6 +90,9 @@ impl PolicyStore for InMemoryPolicyStore {
 impl core::fmt::Debug for InMemoryPolicyStore {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("InMemoryPolicyStore")
+            .field("schema", &self.schema)
+            .field("policies", &self.policies)
+            .field("entities", &self.entities)
             .field("version", &self.version)
             .finish()
     }

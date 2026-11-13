@@ -20,21 +20,20 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{valtron_test, sleep_async, PipeReceiver, PipeSender};
+use foundation_core::valtron::{sleep_async, valtron_test, PipeReceiver, PipeSender};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::shared::context::ContextBag;
-use foundation_netio::http2::types::{
-    H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader,
-};
+use foundation_http::shared::app::HttpApp;
+use foundation_http::shared::context::Ctx;
+use foundation_http::ShutdownSignal;
+use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
 use futures_util::FutureExt;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 
 use foundation_proxy::config::{HealthCheckConfig, ServiceConfig};
@@ -64,7 +63,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -72,8 +71,8 @@ fn build_router() -> Router {
     router
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// A backend that answers `grpc.health.v1.Health/Check` with a flippable verdict
@@ -85,9 +84,11 @@ struct HealthGatedBackend {
 }
 
 impl H2Serve for HealthGatedBackend {
+    // A gRPC message length is capped by the frame size, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn serve_h2(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
@@ -136,13 +137,13 @@ impl H2Serve for HealthGatedBackend {
             }
             .boxed()
         } else {
-            self.inner.serve_h2(bag, header, body, tx)
+            self.inner.serve_h2(app_ctx, header, body, tx)
         }
     }
 }
 
 /// Start the health-gated backend and return its port and shutdown signal.
-fn start_health_gated_backend(serving: Arc<AtomicBool>) -> (u16, Arc<OnSignal>) {
+fn start_health_gated_backend(serving: Arc<AtomicBool>) -> (u16, Arc<ShutdownSignal>) {
     let backend = Arc::new(HealthGatedBackend {
         inner: Arc::new(ConnectRpcServeH2::new(build_router().into_handler())),
         serving,
@@ -156,7 +157,7 @@ fn start_health_gated_backend(serving: Arc<AtomicBool>) -> (u16, Arc<OnSignal>) 
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {
@@ -177,6 +178,7 @@ fn proxy_config_grpc_health(backend_port: u16) -> ProxyConfig {
             timeout: Duration::from_millis(500),
             healthy_threshold: 1,
             unhealthy_threshold: 1,
+            ..HealthCheckConfig::default()
         });
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
@@ -206,7 +208,11 @@ where
         if cond().await {
             return true;
         }
-        sleep_async(Duration::from_millis(50)).await;
+        sleep_async(
+            Duration::from_millis(50),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     false
 }
@@ -218,7 +224,12 @@ where
 async fn grpc_health_gate_excludes_and_restores_backend() {
     let serving = Arc::new(AtomicBool::new(true));
     let (backend_port, backend_shutdown) = start_health_gated_backend(Arc::clone(&serving));
-    let proxy = ProxyServer::start(proxy_config_grpc_health(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc_health(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -233,8 +244,7 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
             client
                 .unary(ctx(), Request::new(Msg::of("healthy")))
                 .await
-                .map(|r| r.msg == Msg::of("echo:healthy"))
-                .unwrap_or(false)
+                .is_ok_and(|r| r.msg == Msg::of("echo:healthy"))
         }
     })
     .await;
@@ -244,7 +254,12 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
     serving.store(false, Ordering::SeqCst);
     let ejected = wait_until(Duration::from_secs(5), || {
         let client = &client;
-        async move { client.unary(ctx(), Request::new(Msg::of("probe"))).await.is_err() }
+        async move {
+            client
+                .unary(ctx(), Request::new(Msg::of("probe")))
+                .await
+                .is_err()
+        }
     })
     .await;
     assert!(ejected, "backend must be ejected when NOT_SERVING");
@@ -257,8 +272,7 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
             client
                 .unary(ctx(), Request::new(Msg::of("recovered")))
                 .await
-                .map(|r| r.msg == Msg::of("echo:recovered"))
-                .unwrap_or(false)
+                .is_ok_and(|r| r.msg == Msg::of("echo:recovered"))
         }
     })
     .await;

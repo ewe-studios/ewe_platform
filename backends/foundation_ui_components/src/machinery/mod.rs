@@ -49,7 +49,10 @@ pub fn scoped_script(body: impl Into<Cow<'static, str>>) -> Html {
         text: None,
         children: vec![Html::text(body)],
         attributes: vec![
-            (AttrName::from_static("primal:script"), Cow::Borrowed("true")),
+            (
+                AttrName::from_static("primal:script"),
+                Cow::Borrowed("true"),
+            ),
             (AttrName::from_static("scoped"), Cow::Borrowed("")),
         ],
         parts: Vec::new(),

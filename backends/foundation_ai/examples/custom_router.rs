@@ -3,9 +3,9 @@
 //! Demonstrates:
 //!   - Manually mixing different provider types into one router
 //!   - Setting primary, memory, and fallback models
-//!   - Bridging into an AgentSessionBuilder
+//!   - Bridging into an `AgentSessionBuilder`
 //!
-//! This example uses Claude (Anthropic) as primary and OpenAI as fallback.
+//! This example uses Claude (Anthropic) as primary and `OpenAI` as fallback.
 //!
 //! Run with:
 //! ```bash
@@ -15,20 +15,30 @@
 
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::harness::{CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O};
+
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let anthropic_key = std::env::var("ANTHROPIC_API_KEY")
-        .expect("ANTHROPIC_API_KEY must be set");
-    let openai_key = std::env::var("OPENAI_API_KEY")
-        .expect("OPENAI_API_KEY must be set");
+    let anthropic_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+    let openai_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // Mix: Claude Opus primary, Claude Sonnet memory, GPT-4o fallback.
+    let ctx = Ctx::host();
     let preset = RouterMix::new()
-        .primary(CloudPresets::claude_opus(&anthropic_key)?, CLAUDE_OPUS)
-        .memory(CloudPresets::claude_sonnet(&anthropic_key)?, CLAUDE_SONNET)
-        .fallback(CloudPresets::openai_gpt4o(&openai_key)?, OPENAI_GPT4O)
+        .primary(
+            CloudPresets::claude_opus(&anthropic_key, ctx.clone())?,
+            CLAUDE_OPUS,
+        )
+        .memory(
+            CloudPresets::claude_sonnet(&anthropic_key, ctx.clone())?,
+            CLAUDE_SONNET,
+        )
+        .fallback(
+            CloudPresets::openai_gpt4o(&openai_key, ctx.clone())?,
+            OPENAI_GPT4O,
+        )
         .build();
 
     println!(
@@ -38,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // Bridge into an agent builder and finish customizing.
     let agent = preset
-        .into_agent_builder()
+        .into_agent_builder(ctx)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()
@@ -48,7 +58,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .await?;
 
     println!("Sending hello via mixed router...");
-    let turn = agent.run_turn("Hello! Say hi and tell me which model you are.").await?;
+    let turn = agent
+        .run_turn("Hello! Say hi and tell me which model you are.")
+        .await?;
 
     for record in &turn {
         println!("{record:?}");

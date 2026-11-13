@@ -98,7 +98,7 @@ struct EmbeddingMockProvider {
 }
 
 impl RoutableProvider for EmbeddingMockProvider {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "mock-embed"
     }
     fn provider_id(&self) -> ModelProviders {
@@ -137,6 +137,7 @@ fn make_embedder(dims: usize, values: Vec<f32>) -> Arc<dyn EmbeddingProvider> {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     ))
 }
 
@@ -164,10 +165,21 @@ fn sample_def(name: &str, desc: &str, category: &str) -> ToolDefinition {
 // ToolDiscovery tests
 // ---------------------------------------------------------------------------
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 #[valtron_test]
 async fn index_and_search_finds_tool() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
-    let def = sample_def("yaml_parser", "Parse YAML documents into structured data", "parsing");
+    let def = sample_def(
+        "yaml_parser",
+        "Parse YAML documents into structured data",
+        "parsing",
+    );
     discovery.index(&def).await.unwrap();
 
     let results = discovery.search("parse YAML", 5).await.unwrap();
@@ -215,7 +227,11 @@ struct NamedTool {
 #[async_trait::async_trait]
 impl ToolImpl for NamedTool {
     fn definition(&self) -> foundation_ai::types::Tool {
-        foundation_ai::types::Tool::SingleCommand(sample_def(self.name, self.description, "test"))
+        foundation_ai::types::Tool::SingleCommand(Box::new(sample_def(
+            self.name,
+            self.description,
+            "test",
+        )))
     }
 
     async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -252,7 +268,7 @@ fn shed_request(args: ToolArguments) -> ToolCallRequest {
 fn returned_names(result: &ToolCallResult) -> Vec<String> {
     let content = match &result.content {
         foundation_ai::types::UserModelContent::Text(tc) => &tc.content,
-        _ => panic!("expected text content"),
+        foundation_ai::types::UserModelContent::Image(_) => panic!("expected text content"),
     };
     let parsed: ShedResult = serde_json::from_str(content).unwrap();
     parsed.tools.into_iter().map(|t| t.name).collect()
@@ -377,7 +393,10 @@ async fn with_defaults_searches_through_discovery() {
     let hits = mgr.search_tools("zzz", 5).await.unwrap();
     assert_eq!(hits.index_failures, Vec::new());
     assert_eq!(
-        hits.tools.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
+        hits.tools
+            .iter()
+            .map(|h| h.name.as_str())
+            .collect::<Vec<_>>(),
         vec!["grep_tool"]
     );
     assert!(
@@ -390,8 +409,9 @@ async fn with_defaults_searches_through_discovery() {
 /// everything else as the same unit vector.
 struct PickyEmbedder;
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for PickyEmbedder {
-    fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         if text.contains("broken") {
             return Err(EmbeddingError::ModelNotFound(model_id.to_string()));
         }
@@ -402,12 +422,16 @@ impl EmbeddingProvider for PickyEmbedder {
         })
     }
 
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
 
     fn register_model(&self, _model_id: &str, _dimensions: u16) {}
@@ -443,7 +467,11 @@ async fn a_failed_index_update_is_reported_and_retried() {
     assert_eq!(first.index_failures.len(), 1);
     assert_eq!(first.index_failures[0].tool, "bad_tool");
     assert_eq!(
-        first.tools.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
+        first
+            .tools
+            .iter()
+            .map(|h| h.name.as_str())
+            .collect::<Vec<_>>(),
         vec!["good_tool"],
         "only the indexed tool is found by embedding"
     );
@@ -537,7 +565,7 @@ fn toolshed_all_tools_empty_when_no_fields_set() {
     let shed = ToolDeclarations {
         shed: None,
         tools: Vec::new(),
-        };
+    };
     let tools = shed.all_tools();
-    assert!(tools.is_empty());
+    assert_eq!(tools, [] as [foundation_ai::types::Tool; 0]);
 }

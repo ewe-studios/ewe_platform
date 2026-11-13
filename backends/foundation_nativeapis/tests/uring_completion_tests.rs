@@ -1,4 +1,4 @@
-//! io_uring completion-mode read path (F43 — Decision 14 F4).
+//! `io_uring` completion-mode read path (F43 — Decision 14 F4).
 //!
 //! WHY: completion mode changes who reads the socket. The kernel fills a buffer
 //! from a registered pool and hands us the buffer id; the transport pops bytes
@@ -22,29 +22,23 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::poll::probe;
 use foundation_nativeapis::native::poll::sys::unix::selector::uring_completion::{
     Completion, Selector,
 };
 use foundation_nativeapis::{Events, Interest, Token};
 
+mod common;
+
 /// Skip a test when the running kernel lacks the completion tier.
 ///
 /// Decision 14 makes this a documented fallback, not a failure: below the
 /// 5.19/6.0 matrix the ladder selects readiness mode. Version numbers are never
-/// consulted — the functional probe is the gate.
+/// consulted — the functional probe is the gate. With `EWE_REQUIRE_IO_URING=1`
+/// the missing tier fails the test instead (CI).
 macro_rules! require_completion_tier {
     () => {
-        match probe::probe() {
-            Ok(caps) if caps.supports_completion() => {}
-            Ok(caps) => {
-                eprintln!("skipping: kernel lacks the completion tier ({caps})");
-                return;
-            }
-            Err(e) => {
-                eprintln!("skipping: io_uring unavailable ({e})");
-                return;
-            }
+        if common::io_uring_missing("completion tier", common::Requires::Completion) {
+            return;
         }
     };
 }
@@ -53,7 +47,12 @@ fn socketpair() -> (RawFd, RawFd) {
     let mut fds = [0 as libc::c_int; 2];
     // SAFETY: `fds` is a valid 2-element array for socketpair to fill.
     let rc = unsafe {
-        libc::socketpair(libc::AF_UNIX, libc::SOCK_STREAM | libc::SOCK_CLOEXEC, 0, fds.as_mut_ptr())
+        libc::socketpair(
+            libc::AF_UNIX,
+            libc::SOCK_STREAM | libc::SOCK_CLOEXEC,
+            0,
+            fds.as_mut_ptr(),
+        )
     };
     assert!(rc == 0, "socketpair: {}", io::Error::last_os_error());
     (fds[0], fds[1])
@@ -70,7 +69,12 @@ fn nonblocking_pipe() -> (RawFd, RawFd) {
 fn write_all(fd: RawFd, data: &[u8]) {
     // SAFETY: writing `data.len()` bytes from a valid slice to an owned fd.
     let n = unsafe { libc::write(fd, data.as_ptr().cast(), data.len()) };
-    assert_eq!(n, data.len() as isize, "write: {}", io::Error::last_os_error());
+    assert_eq!(
+        n,
+        data.len() as isize,
+        "write: {}",
+        io::Error::last_os_error()
+    );
 }
 
 fn close(fd: RawFd) {
@@ -84,7 +88,8 @@ fn collect_completions(sel: &Selector, token: Token, budget: Duration) -> Vec<Co
     let mut events = Events::with_capacity(16);
     loop {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         let completions = sel.take_completions(token);
         if !completions.is_empty() {
             return completions;
@@ -103,7 +108,8 @@ fn kernel_delivers_socket_bytes_into_a_provided_buffer() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     write_all(b, b"hello completion");
 
     let completions = collect_completions(&sel, token, Duration::from_secs(2));
@@ -133,7 +139,8 @@ fn dropping_a_provided_buf_returns_it_to_the_pool() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     write_all(b, b"recycle me");
 
     let before = sel.bufring().recycle_count();
@@ -168,7 +175,8 @@ fn multishot_recv_delivers_successive_writes() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
 
     for i in 0..4u8 {
         write_all(b, &[b'a' + i]);
@@ -198,11 +206,16 @@ fn peer_close_surfaces_as_eof() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     close(b);
 
     let completions = collect_completions(&sel, token, Duration::from_secs(2));
-    assert_eq!(completions.len(), 1, "closing the peer must produce one completion");
+    assert_eq!(
+        completions.len(),
+        1,
+        "closing the peer must produce one completion"
+    );
     assert!(
         matches!(completions[0], Completion::Eof),
         "a closed peer is EOF, not data or an error; got {:?}",
@@ -221,7 +234,8 @@ fn bytes_still_arrive_when_the_peer_closes_immediately_after_writing() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     write_all(b, b"last words");
     close(b);
 
@@ -232,7 +246,8 @@ fn bytes_still_arrive_when_the_peer_closes_immediately_after_writing() {
     let mut events = Events::with_capacity(16);
     while Instant::now() < deadline {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         all.extend(sel.take_completions(token));
         if all.iter().any(|c| matches!(c, Completion::Eof)) {
             break;
@@ -248,7 +263,10 @@ fn bytes_still_arrive_when_the_peer_closes_immediately_after_writing() {
         .flatten()
         .collect();
 
-    assert_eq!(data, b"last words", "the bytes must survive an immediate close");
+    assert_eq!(
+        data, b"last words",
+        "the bytes must survive an immediate close"
+    );
     assert!(
         all.iter().any(|c| matches!(c, Completion::Eof)),
         "EOF must still be reported after the final data"
@@ -268,7 +286,9 @@ fn non_socket_fds_fall_back_to_the_poll_path() {
 
     // A pipe is not a socket: RECV would fail with -ENOTSOCK, so the selector
     // must register it with multishot POLL_ADD instead.
-    let armed = sel.register_recv_fd(r, token, Interest::READABLE).expect("register pipe");
+    let armed = sel
+        .register_recv_fd(r, token, Interest::READABLE)
+        .expect("register pipe");
     assert!(!armed, "a pipe cannot take the RECV path");
     write_all(w, b"x");
 
@@ -277,11 +297,15 @@ fn non_socket_fds_fall_back_to_the_poll_path() {
     let mut events = Events::with_capacity(16);
     while Instant::now() < deadline && !saw_readable {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         saw_readable = events.iter().any(|e| e.token() == token && e.is_readable());
     }
 
-    assert!(saw_readable, "a pipe must still report readable in completion mode");
+    assert!(
+        saw_readable,
+        "a pipe must still report readable in completion mode"
+    );
     assert!(
         sel.take_completions(token).is_empty(),
         "a poll-path fd has no kernel-filled buffers; the caller must read() it"
@@ -301,7 +325,8 @@ fn a_starved_pool_recovers_once_buffers_are_returned() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
 
     write_all(b, b"first");
     let first = collect_completions(&sel, token, Duration::from_secs(2));
@@ -314,7 +339,8 @@ fn a_starved_pool_recovers_once_buffers_are_returned() {
     let deadline = Instant::now() + Duration::from_millis(500);
     while Instant::now() < deadline {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         assert!(
             sel.take_completions(token).is_empty(),
             "no buffer is available, so nothing can be delivered"
@@ -341,11 +367,67 @@ fn a_starved_pool_recovers_once_buffers_are_returned() {
         Completion::Data(buf) => assert_eq!(&buf[..], b"second"),
         other => panic!("expected Data, got {other:?}"),
     }
-    assert_eq!(sel.starved_tokens(), 0, "the token must no longer be parked");
+    // `second` still holds the only buffer. Kernels before 6.12 try the next
+    // recv at once after the last buffer is used, and answer -ENOBUFS even with
+    // no data. The token may be parked again here, and that is correct. Return
+    // the buffer, then wait for the reactor to re-arm the token.
+    drop(second);
+    let deadline = Instant::now() + Duration::from_secs(3);
+    let mut events = Events::with_capacity(16);
+    while sel.starved_tokens() != 0 && Instant::now() < deadline {
+        events.clear();
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
+    }
+    assert_eq!(
+        sel.starved_tokens(),
+        0,
+        "the token must no longer be parked once the buffer is returned"
+    );
 
     sel.deregister_fd(a).expect("deregister");
     close(a);
     close(b);
+}
+
+#[test]
+fn a_buffer_returned_before_the_enobufs_is_seen_still_re_arms() {
+    require_completion_tier!();
+
+    // The consumer returns its buffer right after the second message is sent,
+    // and before the selector reads any completion. The kernel may already
+    // have queued -ENOBUFS for that message. A starved token must still re-arm.
+    for round in 0..20_u32 {
+        let sel = Selector::with_ring(1, 64).expect("completion selector");
+        let (a, b) = socketpair();
+        let token = Token(1);
+        sel.register_recv_fd(a, token, Interest::READABLE)
+            .expect("register socket");
+
+        write_all(b, b"first");
+        let first = collect_completions(&sel, token, Duration::from_secs(2));
+        assert_eq!(first.len(), 1, "round {round}: first message");
+
+        write_all(b, b"second");
+        drop(first);
+
+        let second = collect_completions(&sel, token, Duration::from_secs(3));
+        assert_eq!(second.len(), 1, "round {round}: second message must arrive");
+        drop(second);
+
+        let deadline = Instant::now() + Duration::from_secs(3);
+        let mut events = Events::with_capacity(16);
+        while sel.starved_tokens() != 0 && Instant::now() < deadline {
+            events.clear();
+            sel.poll(&mut events, Some(Duration::from_millis(25)))
+                .expect("poll");
+        }
+        assert_eq!(sel.starved_tokens(), 0, "round {round}: token still parked");
+
+        sel.deregister_fd(a).expect("deregister");
+        close(a);
+        close(b);
+    }
 }
 
 /// The evidence for Decision 14 OQ#14.1's committed re-evaluation.
@@ -367,7 +449,8 @@ fn submissions_are_per_registration_not_per_read() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     let after_register = sel.submissions();
     assert_eq!(after_register, 1, "arming a socket takes exactly one SQE");
 
@@ -382,7 +465,8 @@ fn submissions_are_per_registration_not_per_read() {
 
     let after_reads = sel.submissions();
     assert_eq!(
-        after_reads, after_register,
+        after_reads,
+        after_register,
         "{MESSAGES} reads pushed {} extra SQE(s). Multishot RECV is supposed to arm \
          once per fd; per-read submission would make the SQ lock a real contention \
          point and would re-open Decision 14 OQ#14.1's per-worker-ring question",
@@ -402,7 +486,8 @@ fn deregistered_socket_stops_delivering() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     sel.deregister_fd(a).expect("deregister");
 
     write_all(b, b"ignored");
@@ -438,7 +523,8 @@ fn plain_registration_leaves_the_bytes_in_the_socket() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     assert!(
         !sel.is_recv_token(token),
         "plain register_fd must not arm RECV; completion mode is opt-in"
@@ -452,10 +538,14 @@ fn plain_registration_leaves_the_bytes_in_the_socket() {
     let mut readable = false;
     while Instant::now() < deadline && !readable {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         readable = events.iter().any(|e| e.token() == token && e.is_readable());
     }
-    assert!(readable, "a plainly-registered socket must still report readable");
+    assert!(
+        readable,
+        "a plainly-registered socket must still report readable"
+    );
 
     assert!(
         sel.take_completions(token).is_empty(),
@@ -466,7 +556,11 @@ fn plain_registration_leaves_the_bytes_in_the_socket() {
     let mut buf = [0u8; 32];
     // SAFETY: reading into a valid local buffer from an owned socket fd.
     let n = unsafe { libc::read(a, buf.as_mut_ptr().cast(), buf.len()) };
-    assert!(n > 0, "the kernel consumed bytes the caller never opted out of: {}", io::Error::last_os_error());
+    assert!(
+        n > 0,
+        "the kernel consumed bytes the caller never opted out of: {}",
+        io::Error::last_os_error()
+    );
     assert_eq!(&buf[..n as usize], b"mine to read");
 
     sel.deregister_fd(a).expect("deregister");
@@ -485,7 +579,11 @@ fn a_listening_socket_falls_back_to_the_poll_path() {
 
     let sel = Selector::new().expect("completion selector");
     let armed = sel
-        .register_recv_fd(std::os::fd::AsRawFd::as_raw_fd(&listener), token, Interest::READABLE)
+        .register_recv_fd(
+            std::os::fd::AsRawFd::as_raw_fd(&listener),
+            token,
+            Interest::READABLE,
+        )
         .expect("register listener");
     assert!(
         !armed,
@@ -500,9 +598,79 @@ fn a_listening_socket_falls_back_to_the_poll_path() {
     let mut readable = false;
     while Instant::now() < deadline && !readable {
         events.clear();
-        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        sel.poll(&mut events, Some(Duration::from_millis(25)))
+            .expect("poll");
         readable = events.iter().any(|e| e.token() == token && e.is_readable());
     }
-    assert!(readable, "an incoming connection must make the listener readable");
+    assert!(
+        readable,
+        "an incoming connection must make the listener readable"
+    );
     listener.accept().expect("accept must still work");
+}
+
+/// A token that is used again must get only the new socket's bytes (#515).
+///
+/// WHY: a cancel is asynchronous. The old socket's receive can post a data
+/// completion before the cancel lands. The selector used to look the token up
+/// from that completion, so it put the old socket's bytes in the new socket's
+/// inbox. A late completion without `F_MORE` also re-armed the new socket while
+/// its own receive was live. Two receives on one socket split its bytes.
+///
+/// WHAT: data that the old socket's receive read before the cancel never
+/// reaches the new socket's inbox.
+///
+/// HOW: each receive has its own id. Completions of a cancelled id are stale:
+/// the selector returns their buffers to the pool and delivers nothing.
+#[test]
+fn a_reused_token_gets_only_the_new_sockets_bytes() {
+    require_completion_tier!();
+
+    for round in 0..10_u32 {
+        let sel = Selector::with_ring(4, 64).expect("completion selector");
+        let (a, b) = socketpair();
+        let (c, d) = socketpair();
+        let token = Token(7);
+
+        sel.register_recv_fd(a, token, Interest::READABLE)
+            .expect("register old socket");
+        write_all(b, b"old socket");
+        // Give the kernel time to post the old receive's data completion. No
+        // poll runs, so the completion waits in the queue past the cancel.
+        std::thread::sleep(Duration::from_millis(20));
+        sel.deregister_fd(a).expect("deregister old socket");
+
+        sel.register_recv_fd(c, token, Interest::READABLE)
+            .expect("register new socket");
+        write_all(d, b"new socket");
+
+        let mut got = Vec::new();
+        let deadline = Instant::now() + Duration::from_millis(500);
+        let mut events = Events::with_capacity(16);
+        while Instant::now() < deadline {
+            events.clear();
+            sel.poll(&mut events, Some(Duration::from_millis(25)))
+                .expect("poll");
+            for completion in sel.take_completions(token) {
+                match completion {
+                    Completion::Data(buf) => got.extend_from_slice(&buf[..]),
+                    other => panic!("round {round}: unexpected {other:?}"),
+                }
+            }
+        }
+        assert_eq!(
+            String::from_utf8_lossy(&got),
+            "new socket",
+            "round {round}: the reused token must carry only the new socket's bytes"
+        );
+        assert!(
+            sel.bufring().has_free_buffer(),
+            "round {round}: stale completions must return their buffers to the pool"
+        );
+
+        sel.deregister_fd(c).expect("deregister new socket");
+        for fd in [a, b, c, d] {
+            close(fd);
+        }
+    }
 }

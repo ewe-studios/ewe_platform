@@ -59,7 +59,9 @@ where
         match block_on(self.rows.next()) {
             Ok(Some(row)) => Some((self.transform)(&row)),
             Ok(None) => None,
-            Err(e) => Some(Err(crate::core::errors::StorageError::Backend(e.to_string()))),
+            Err(e) => Some(Err(crate::core::errors::StorageError::Backend(
+                e.to_string(),
+            ))),
         }
     }
 }

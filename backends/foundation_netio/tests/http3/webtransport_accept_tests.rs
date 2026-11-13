@@ -9,7 +9,9 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator};
+
+use foundation_context::Ctx;
 use foundation_netio::http3::connection::{H3Connection, H3Request};
 use foundation_netio::http3::WtAccept;
 use foundation_netio::quic::{
@@ -33,8 +35,8 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status(Ctx::new());
-            let _ = $client.next_status(Ctx::new());
+            let _ = $server.next_status(Ctx::host());
+            let _ = $client.next_status(Ctx::host());
         }
     }};
 }
@@ -51,7 +53,7 @@ fn h3_pair() -> (
     let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = sq.local_addr().expect("addr");
     let (mut cq, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     let deadline = Instant::now() + BUDGET;
     let server_conn = loop {
@@ -59,8 +61,8 @@ fn h3_pair() -> (
             break conn;
         }
         assert!(Instant::now() < deadline, "server never accepted");
-        let _ = sq.next_status(Ctx::new());
-        let _ = cq.next_status(Ctx::new());
+        let _ = sq.next_status(Ctx::host());
+        let _ = cq.next_status(Ctx::host());
     };
 
     let mut server = H3Connection::new(server_conn);
@@ -91,6 +93,9 @@ fn header<'a>(headers: &'a [(Bytes, Bytes)], name: &[u8]) -> Option<&'a [u8]> {
 /// The stream arrives before its HEADERS (a reserved, unknown frame goes
 /// first, RFC 9114 §7.2.8): the first polls see the stream but no HEADERS yet.
 /// The stream must still be there when they arrive.
+///
+/// This test is the regression pin for issue #273: the accepted stream stays
+/// in `pending_accept` across the polls that return `Pending`.
 #[test]
 fn a_stream_accepted_before_its_headers_is_not_lost() {
     let (mut sq, mut cq, mut server, mut client) = h3_pair();
@@ -110,8 +115,8 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
             !matches!(server.poll_accept_webtransport(), Stream::Next(_)),
             "nothing is complete yet"
         );
-        let _ = sq.next_status(Ctx::new());
-        let _ = cq.next_status(Ctx::new());
+        let _ = sq.next_status(Ctx::host());
+        let _ = cq.next_status(Ctx::host());
     }
 
     let fields: Vec<(&[u8], &[u8])> = vec![
@@ -132,7 +137,7 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
         WtAccept::Request { headers, .. } => {
             assert_eq!(header(&headers, b":path"), Some(&b"/late"[..]));
         }
-        WtAccept::Session => panic!("a GET is not a WebTransport CONNECT"),
+        WtAccept::Session { .. } => panic!("a GET is not a WebTransport CONNECT"),
     }
 }
 
@@ -191,8 +196,93 @@ fn a_webtransport_connect_is_answered_and_reported() {
 
     assert!(matches!(
         until!(sq, cq, server.poll_accept_webtransport()),
-        WtAccept::Session
+        WtAccept::Session { .. }
     ));
     let response = until!(sq, cq, req.poll_headers());
     assert_eq!(header(&response, b":status"), Some(&b"200"[..]));
+}
+
+/// A WebTransport CONNECT stream stays open after the accept; the session still
+/// opens a stream 200 ms later, and the server never FINs the CONNECT stream
+/// (draft-ietf-webtrans-http3 §5: closing it ends the session).
+#[test]
+fn webtransport_session_stays_open_after_accept() {
+    let (mut sq, mut cq, mut server, mut client) = h3_pair();
+    let mut req = until!(sq, cq, client.poll_open_request());
+    let fields: Vec<(&[u8], &[u8])> = vec![
+        (b":method", b"CONNECT"),
+        (b":protocol", b"webtransport"),
+        (b":scheme", b"https"),
+        (b":authority", b"example.com"),
+        (b":path", b"/wt"),
+    ];
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
+
+    let connect = match until!(sq, cq, server.poll_accept_webtransport()) {
+        WtAccept::Session { connect } => connect,
+        WtAccept::Request { .. } => panic!("expected a WebTransport session"),
+    };
+    let mut session = server.into_webtransport(connect, true);
+    session.on_connected();
+    assert!(session.is_open());
+
+    // The client sees the `200`, then the CONNECT stream must still be open —
+    // the server must not have FIN'd it.
+    let response = until!(sq, cq, req.poll_headers());
+    assert_eq!(header(&response, b":status"), Some(&b"200"[..]));
+    assert!(
+        matches!(req.poll_body(), Stream::Pending(())),
+        "the server must keep the CONNECT stream open after the 200"
+    );
+
+    // 200 ms later the session still opens a bidirectional stream.
+    std::thread::sleep(Duration::from_millis(200));
+    let _stream = until!(sq, cq, session.open_bidi());
+}
+
+/// A FIN (or reset) on the CONNECT stream ends the session
+/// (draft-ietf-webtrans-http3 §5).
+#[test]
+fn closing_connect_stream_ends_session() {
+    let (mut sq, mut cq, mut server, mut client) = h3_pair();
+    let mut req = until!(sq, cq, client.poll_open_request());
+    let fields: Vec<(&[u8], &[u8])> = vec![
+        (b":method", b"CONNECT"),
+        (b":protocol", b"webtransport"),
+        (b":scheme", b"https"),
+        (b":authority", b"example.com"),
+        (b":path", b"/wt"),
+    ];
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
+
+    let connect = match until!(sq, cq, server.poll_accept_webtransport()) {
+        WtAccept::Session { connect } => connect,
+        WtAccept::Request { .. } => panic!("expected a WebTransport session"),
+    };
+    let mut session = server.into_webtransport(connect, true);
+    session.on_connected();
+    assert!(session.is_open());
+
+    // The client finishes the CONNECT stream; the server must end the session.
+    until!(sq, cq, req.poll_finish());
+
+    let ended = until!(sq, cq, session.poll_connect());
+    assert!(ended, "a FIN on the CONNECT stream must end the session");
+    assert!(session.is_closed());
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

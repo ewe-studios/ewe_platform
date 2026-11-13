@@ -4,9 +4,10 @@
 //! # Quick start
 //!
 //! ```no_run
+//! use foundation_context::Ctx;
 //! use foundation_repl::Repl;
 //!
-//! let repl = Repl::new();
+//! let repl = Repl::new(Ctx::host());
 //!
 //! // Register custom commands (optional)
 //! repl.register_command("greet", |cmd| {
@@ -66,9 +67,10 @@
 //! piece at a time:
 //!
 //! ```no_run
+//! use foundation_context::Ctx;
 //! use foundation_repl::Repl;
 //!
-//! let repl = Repl::new();
+//! let repl = Repl::new(Ctx::host());
 //! for input in repl.messages() {
 //!     let stream = repl.animation("thinking");
 //!     for token in generate(&input) {
@@ -96,6 +98,7 @@
 //! Use [`Repl::builder()`] to change prompts, banners and the theme:
 //!
 //! ```no_run
+//! use foundation_context::Ctx;
 //! use foundation_repl::{BorderKind, Repl, ReplColor, ReplPadding, ReplTheme};
 //!
 //! let repl = Repl::builder()
@@ -109,6 +112,7 @@
 //!         padding: ReplPadding::uniform(2),
 //!         ..ReplTheme::default()
 //!     })
+//!     .ctx(Ctx::host())
 //!     .build();
 //!
 //! for input in repl.messages() {
@@ -137,9 +141,13 @@
 //! greyscale this crate used to default to).
 //!
 //! ```
+//! use foundation_context::Ctx;
 //! use foundation_repl::{Repl, ReplTheme};
 //!
-//! let repl = Repl::builder().theme(ReplTheme::abyss()).build();
+//! let repl = Repl::builder()
+//!     .theme(ReplTheme::abyss())
+//!     .ctx(Ctx::host())
+//!     .build();
 //! # drop(repl);
 //! ```
 //!
@@ -205,16 +213,16 @@ pub use shared::activity::{Activity, ActivityView};
 pub use shared::commands::{CommandHandler, CommandRegistry, CommandResult};
 pub use shared::config::ReplConfig;
 pub use shared::history::ReplHistory;
+#[cfg(any(feature = "native", feature = "ratzilla"))]
+pub use shared::host::{ReplHost, ViewportMode};
 pub use shared::layout::{
     layout_input, split_committed, visible_window, wrap_text, InputLayout, InputRow, InputView,
 };
+#[cfg(any(feature = "native", feature = "ratzilla"))]
+pub use shared::render::ReplRenderer;
 #[cfg(any(feature = "native", feature = "wasm"))]
 pub use shared::repl::{Repl, ReplBuilder, ReplMessageIter};
 pub use shared::theme::{ActivityStyle, BorderKind, ReplColor, ReplPadding, ReplTheme};
-#[cfg(any(feature = "native", feature = "ratzilla"))]
-pub use shared::host::{ReplHost, ViewportMode};
-#[cfg(any(feature = "native", feature = "ratzilla"))]
-pub use shared::render::ReplRenderer;
 pub use shared::traits::{ReplDisplay, ReplInput, SharedDisplay};
 
 #[cfg(all(feature = "native", not(feature = "wasm")))]

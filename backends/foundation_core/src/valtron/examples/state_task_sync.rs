@@ -16,7 +16,9 @@
 //!
 //! [run]: ../../../examples/valtron_state_task.rs
 
-use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
+use crate::valtron::{execute, task, valtron, StreamIteratorExt, TaskStatus};
+
+use foundation_context::Ctx;
 
 /// The stages a house passes through on its way to completion.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -63,7 +65,7 @@ async fn main() {
     println!("sync  build_house -> {house:?}");
 
     // The transition itself remains directly callable:
-    let (next, status) = build_house(Ctx::new(), Stage::Walls).expect("transition step");
+    let (next, status) = build_house(Ctx::host(), Stage::Walls).expect("transition step");
     assert_eq!(next, Stage::Roof);
     assert_eq!(status, TaskStatus::Ignore);
 }

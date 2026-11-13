@@ -7,6 +7,12 @@
 //! time-boxed secret and a CSR, then calls the agent listener with the issued
 //! certificate — which must be recorded, unrevoked, in the store.
 
+// The `#[valtron_test]` `Send` check descends the deeply nested async chain of
+// the `turso` connection opened by the trusted-client store, which overflows
+// the default recursion limit (128). Raise it for this test crate (the depth
+// is in the external `turso` dependency).
+#![recursion_limit = "256"]
+
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
@@ -20,7 +26,7 @@ use foundation_agent_rpc::secret::{
 use foundation_agent_rpc::trust::TrustedClientStore;
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle, RunningServer};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
-use foundation_connectrpc::{Code, Ctx, Request};
+use foundation_connectrpc::{Code, Request, RpcCtx};
 use foundation_core::valtron::valtron_test;
 
 fn mock_model() -> ModelHandle {
@@ -29,19 +35,24 @@ fn mock_model() -> ModelHandle {
     ModelHandle::from_router("mock", "mock", mock.into_router())
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(20))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(20))
 }
 
 /// Everything from `dir`, ignoring the process environment.
 async fn state(dir: &Path) -> MtlsConfig {
-    MtlsConfig::from_state_dir_with(dir, &SigningKeyConfig::in_state_dir(dir).without_env_var())
-        .await
-        .expect("state dir")
+    MtlsConfig::from_state_dir_with(
+        dir,
+        &SigningKeyConfig::in_state_dir(dir).without_env_var(),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("state dir")
 }
 
 fn serve(config: MtlsConfig) -> RunningServer {
     AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model())
         .with_mtls(config)
         .build()
@@ -82,7 +93,11 @@ async fn a_secret_enrolls_once_then_mtls_is_required() {
     let err = enroll(&url, &fingerprint, &foreign.encode(), "laptop")
         .await
         .expect_err("foreign secret");
-    assert_eq!(err.current_context().code(), Code::Unauthenticated, "{err:?}");
+    assert_eq!(
+        err.current_context().code(),
+        Code::Unauthenticated,
+        "{err:?}"
+    );
 
     // The real secret yields a client certificate…
     let identity = enroll(&url, &fingerprint, &secret, "laptop")
@@ -132,7 +147,10 @@ async fn expired_and_tampered_secrets_are_refused_by_the_server() {
         .await
         .expect_err("expired");
     assert_eq!(err.current_context().code(), Code::Unauthenticated);
-    assert!(err.current_context().to_string().contains("expired"), "{err:?}");
+    assert!(
+        err.current_context().to_string().contains("expired"),
+        "{err:?}"
+    );
 
     let truncated = {
         let s = secrets.issue().expect("issue").encode().to_string();
@@ -142,12 +160,15 @@ async fn expired_and_tampered_secrets_are_refused_by_the_server() {
         .await
         .expect_err("truncated");
     assert_eq!(err.current_context().code(), Code::Unauthenticated);
-    assert!(server
-        .enrollment()
-        .expect("secure")
-        .trusted_clients()
-        .list()
-        .is_empty());
+    assert_eq!(
+        server
+            .enrollment()
+            .expect("secure")
+            .trusted_clients()
+            .list()
+            .len(),
+        0
+    );
 
     server.graceful_shutdown().expect("clean shutdown");
 }
@@ -263,7 +284,12 @@ async fn enrollment_survives_a_restart_and_spent_secrets_stay_spent() {
         .await
         .expect("an unused secret from before the restart still enrolls");
     assert_eq!(
-        second.enrollment().expect("secure").trusted_clients().list().len(),
+        second
+            .enrollment()
+            .expect("secure")
+            .trusted_clients()
+            .list()
+            .len(),
         2
     );
 
@@ -300,6 +326,7 @@ async fn losing_the_signing_key_invalidates_outstanding_secrets_only() {
 #[valtron_test(threads = 4)]
 async fn the_server_must_choose_its_auth() {
     let err = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model())
         .build()
         .expect_err("no auth chosen");
@@ -307,6 +334,7 @@ async fn the_server_must_choose_its_auth() {
 
     let dir = tempfile::tempdir().expect("tempdir");
     let err = AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model())
         .with_mtls(state(dir.path()).await)
         .insecure_plaintext()
@@ -316,7 +344,9 @@ async fn the_server_must_choose_its_auth() {
 
     // A trusted-client store over any foundation_db SQL backend works.
     let store = TrustedClientStore::open(Arc::new(
-        foundation_db::TursoStorage::open(":memory:").await.expect("memory db"),
+        foundation_db::TursoStorage::open(":memory:", foundation_context::Ctx::host())
+            .await
+            .expect("memory db"),
     ))
     .await
     .expect("store");
@@ -326,6 +356,7 @@ async fn the_server_must_choose_its_auth() {
         store,
     );
     AgentRpcServer::builder()
+        .with_ctx(foundation_context::Ctx::host())
         .with_model(mock_model())
         .with_mtls(config)
         .build()

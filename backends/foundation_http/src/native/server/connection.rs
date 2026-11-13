@@ -9,21 +9,33 @@
 //! thread for other work — enabling true HTTP/1.1 keep-alive multiplexing.
 
 use std::sync::Arc;
+use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
+#[cfg(unix)]
+use std::os::unix::io::AsRawFd;
+
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::synca::WaitGroupGuard;
+use foundation_core::valtron::{
+    queue_waker, AnyReadiness, EventQueue, EventReadiness, EventReadinessPtr, QueueReadiness,
+    ReadinessWaker, ResumeSignal, TaskIterator, TaskStatus, WakeToken,
+};
+#[cfg(unix)]
+use foundation_iogate::FdReadiness as SocketReadiness;
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{Ctx, BoolSignal, TaskIterator, TaskStatus};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleIncomingRequest, SimpleOutgoingResponse,
 };
-use foundation_errstacks::ErrorTrace;
 
 use crate::native::reader::read_next_request;
-use crate::shared::serve::{respond, ConnectionResult, Serve, ServeError};
+use crate::native::serve::Serve;
+use crate::native::writer::{send_continue_100, send_not_found, send_text};
+use crate::shared::serve::{ConnectionResult, ServeFuture, ServeOutcome};
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -43,12 +55,62 @@ enum HandlerState {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        /// Absolute time after which a parked readiness wait gives up with 408.
+        /// `None` until the connection read waker is armed; a blocking transport
+        /// leaves it `None` and uses the `attempt` countdown instead.
+        deadline: Option<Instant>,
+    },
+    /// Send the `100 Continue` interim response, then wait for the body.
+    ContinueWrite {
+        future: ServeFuture,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
     },
     /// Run middleware chain, route, and dispatch to handler.
     Processing {
         req: SimpleIncomingRequest,
         should_close: bool,
     },
+    /// A handler returned `ConnectionResult::Async`. The future is polled once per
+    /// `next_status` and parked on the bridge until it resolves to a
+    /// [`ServeOutcome`] or the server drains.
+    Awaiting {
+        future: ServeFuture,
+        should_close: bool,
+    },
+}
+
+/// Ready once an instant has passed on the connection's clock.
+struct DeadlinePassed(Instant, Ctx);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.1.clock().now() >= self.0
+    }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    /// Nothing signals it: the executor wakes at the deadline.
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
+}
+
+/// Ready once the server asks this connection to drain.
+struct ShutdownRequested(Arc<ShutdownSignal>);
+
+impl EventReadiness for ShutdownRequested {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -67,37 +129,50 @@ pub struct ConnectionHandler {
     /// handler stops taking *new* keep-alive requests at its idle checkpoint but
     /// lets an in-flight request finish (cooperative, task-decided drain —
     /// Decision 12 §10).
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     /// Decrements the server's active-connection `WaitGroup` when this handler
     /// task completes (on drop), so the drain phase can wait for in-flight
     /// connections to finish (Decision 12 §10).
     _drain_guard: WaitGroupGuard,
     /// Cloned calculator for computing expect-continue delays.
     timeout_calculator: TimeoutCalculator,
+    /// How long this idle keep-alive connection waits for its next request.
+    idle_timeout: Duration,
     max_expect_attempts: usize,
     max_continue_retries: usize,
     escalation_threshold: u32,
     max_delay_cycles: u32,
     /// When set, every response carries `Alt-Svc: h3=":<port>"` (F53).
     alt_svc_h3_port: Option<u16>,
+    /// The wake queue backing an `Awaiting` future's waker. One connection has at
+    /// most one `Awaiting` at a time, so one unbounded queue is enough. It is
+    /// drained before each poll (the `FutureTask` bridge pattern).
+    wake_queue: EventQueue<WakeToken>,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
     total_delay_cycles: u32,
+    /// The engine context, seeded from the pool root `Ctx`.
+    ctx: Ctx,
 }
 
 impl ConnectionHandler {
     /// Create a new connection handler.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the handler needs the connection, its app, its limits and its drain guard"
+    )]
     pub fn new(
         app: std::sync::Arc<crate::shared::app::HttpApp<Arc<dyn Serve>>>,
         streams: HTTPStreams<RawStream>,
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
+        ctx: Ctx,
     ) -> Self {
         let max_expect_attempts = config
             .timeout_calculator
@@ -113,15 +188,18 @@ impl ConnectionHandler {
             shutdown,
             _drain_guard: drain_guard,
             timeout_calculator: config.timeout_calculator.clone(),
+            idle_timeout: config.idle_timeout,
             max_expect_attempts,
             max_continue_retries: 3,
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
             alt_svc_h3_port,
+            wake_queue: EventQueue::unbounded(),
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
             total_delay_cycles: 0,
+            ctx,
         }
     }
 
@@ -131,10 +209,19 @@ impl ConnectionHandler {
         self.timeout_calculator.calculate_sleep_duration(&ctx)
     }
 
-    /// Get idle timeout from calculator.
+    /// The idle timeout, the wait for the next request on an open connection.
     fn idle_timeout(&self) -> Duration {
-        let ctx = TimeoutContext::default().streaming();
-        self.timeout_calculator.calculate_read_timeout(&ctx)
+        self.idle_timeout
+    }
+
+    /// Total time to wait for the body after 100 Continue when the transport can
+    /// report readiness (the `WireGuard` overlay). A blocking transport uses the
+    /// `base_delay` / `max_attempts` polling scheme instead.
+    fn body_wait_timeout(&self) -> Duration {
+        self.timeout_calculator
+            .config()
+            .expect_continue
+            .body_timeout
     }
 
     fn is_transient_error(e: &HttpReaderError) -> bool {
@@ -237,13 +324,15 @@ impl ConnectionHandler {
 
     fn track_idle(&mut self) {
         if self.idle_since.is_none() {
-            self.idle_since = Some(Instant::now());
+            self.idle_since = Some(self.ctx.clock().now());
         }
     }
 
     fn idle_exceeded(&self) -> bool {
         match self.idle_since {
-            Some(since) => since.elapsed() >= self.idle_timeout(),
+            Some(since) => {
+                self.ctx.clock().now().saturating_duration_since(since) >= self.idle_timeout()
+            }
             None => false,
         }
     }
@@ -298,12 +387,12 @@ impl ConnectionHandler {
                         method = %req.method,
                         "Idle: unsupported HTTP version on HTTP/1.x connection, sending 505"
                     );
-                    report_closing_write(respond::text(
-                        &mut self.conn.clone(),
+                    return self.close_with(send_text(
+                        self.conn.clone(),
                         505,
                         "HTTP Version Not Supported",
+                        &self.ctx,
                     ));
-                    return None;
                 }
 
                 let should_close = Self::should_close_after(&req);
@@ -329,9 +418,11 @@ impl ConnectionHandler {
             }
             Some(Err(e)) => {
                 if Self::is_transient_error(&e) {
-                    // Non-blocking transport: park on the read waker instead of
-                    // spin-delaying, so the driver unparks us when the request lands.
-                    if let Some(status) = self.park_on_read_waker() {
+                    self.idle_poll_count += 1;
+                    self.track_idle();
+                    // Non-blocking transport: park until the next request
+                    // lands, instead of spin-delaying.
+                    if let Some(status) = self.park_idle() {
                         return Some(status);
                     }
                     tracing::trace!(
@@ -340,8 +431,6 @@ impl ConnectionHandler {
                         idle_poll_count = self.idle_poll_count,
                         "Idle: transient read error, delaying"
                     );
-                    self.idle_poll_count += 1;
-                    self.track_idle();
                     Some(self.maybe_delay_idle())
                 } else {
                     tracing::warn!(
@@ -349,43 +438,38 @@ impl ConnectionHandler {
                         err = ?e,
                         "Idle: non-transient read error, sending 400"
                     );
-                    let _err = ErrorTrace::new(ServeError::BadRequest {
-                        status: 400,
-                        reason: e.to_string(),
-                    });
-                    report_closing_write(respond::text(&mut self.conn.clone(), 400, "Bad Request"));
-                    None
+                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request", &self.ctx))
                 }
             }
             None => {
-                // Non-blocking transport: park on the read waker instead of
-                // spin-delaying, so the driver unparks us when the request lands.
-                if let Some(status) = self.park_on_read_waker() {
+                self.idle_poll_count += 1;
+                self.track_idle();
+                // Non-blocking transport: park until the next request lands,
+                // instead of spin-delaying.
+                if let Some(status) = self.park_idle() {
                     return Some(status);
                 }
                 tracing::trace!(
                     client_ip = %self.client_ip,
                     "Idle: no data available (WouldBlock)"
                 );
-                self.idle_poll_count += 1;
-                self.track_idle();
                 Some(self.maybe_delay_idle())
             }
         }
     }
 
     /// Park on the connection's read waker after a `WouldBlock` reading the next
-    /// request, for non-blocking transports (the WireGuard overlay).
+    /// request, for non-blocking transports (the `WireGuard` overlay).
     ///
     /// Returns `Some(Depends(signal))` — re-entering `Idle` when unparked — if the
     /// transport supports readiness wakeups, or `None` for a blocking transport
     /// (whose caller falls back to the delay/timeout path). The `TunnelDriver`
-    /// flips the `BoolSignal` when the socket becomes readable.
+    /// sets the `ResumeSignal` when the socket becomes readable.
     fn park_on_read_waker(&mut self) -> Option<TaskStatus<(), ()>> {
-        let signal = BoolSignal::new(false);
-        let flag = signal.clone_inner();
+        let signal = ResumeSignal::new(false);
+        let flag = signal.clone();
         let waker: foundation_netio::native::connection::ConnWaker =
-            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+            Arc::new(move || flag.set(true));
         let registered = self
             .conn
             .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
@@ -399,6 +483,73 @@ impl ConnectionHandler {
         } else {
             None
         }
+    }
+
+    /// Park until the next request arrives, the idle deadline passes, or the
+    /// server shuts down.
+    ///
+    /// The overlay transport has its own read waker; a plain or TLS socket is
+    /// watched on the shared reactor. Returns `None` only for a transport that
+    /// can be watched neither way, so the caller falls back to the delay and
+    /// timeout path.
+    fn park_idle(&mut self) -> Option<TaskStatus<(), ()>> {
+        if let Some(status) = self.park_on_read_waker() {
+            return Some(status);
+        }
+        self.park_on_socket()
+    }
+
+    /// Park on the socket's read readiness, the idle deadline and shutdown.
+    /// `None` when the transport has no kernel file descriptor to watch, so the
+    /// caller falls back to the delay and timeout path.
+    ///
+    /// The registration is made here, at each park, and dropped when the task
+    /// runs again. It must not be cached for the life of the connection: other
+    /// code on the same fd (the response writer, the RPC connection IO) also
+    /// registers the fd with the shared reactor and drops that registration
+    /// when it finishes. The reactor keeps one selector registration per fd, so
+    /// a drop deregisters the fd even when another token's entry still exists.
+    /// A cached registration would then wait on an fd that the selector no
+    /// longer watches, and a new request would never wake it. A fresh
+    /// registration always owns the fd at the moment this task parks, and a
+    /// stale drop elsewhere cannot cancel it (the reactor only deregisters the
+    /// live token for the fd).
+    #[cfg(unix)]
+    fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
+        let fd = self.conn.with_inner_ref(|raw: &RawStream| raw.as_raw_fd());
+        if fd < 0 {
+            return None;
+        }
+        let socket = match SocketReadiness::register(fd) {
+            Ok(readiness) => Arc::new(readiness),
+            Err(e) => {
+                tracing::debug!(
+                    client_ip = %self.client_ip,
+                    error = %e,
+                    "Idle: cannot watch the socket on the reactor; polling instead"
+                );
+                return None;
+            }
+        };
+        let mut ready = AnyReadiness::either(
+            socket as EventReadinessPtr,
+            Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),
+        );
+        // End the connection at the idle deadline even when no bytes arrive.
+        if let Some(deadline) = self.idle_since.map(|since| since + self.idle_timeout()) {
+            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.ctx.clone())));
+        }
+        tracing::trace!(
+            client_ip = %self.client_ip,
+            "Idle: request not ready; parking on socket readiness"
+        );
+        self.state = Some(HandlerState::Idle);
+        Some(TaskStatus::Depends(Arc::new(ready)))
+    }
+
+    #[cfg(not(unix))]
+    fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
+        None
     }
 
     fn maybe_delay_idle(&mut self) -> TaskStatus<(), ()> {
@@ -449,70 +600,23 @@ impl ConnectionHandler {
                 return Some(TaskStatus::Pending(()));
             }
 
-            // Send 100 Continue and wait for body data.
-            match respond::continue_100(&mut self.conn.clone()) {
-                Ok(()) => {
-                    tracing::trace!(
-                        client_ip = %self.client_ip,
-                        "Sent 100 Continue, entering WaitingForBody state"
-                    );
-                    self.state = Some(HandlerState::WaitingForBody {
+            // Send 100 Continue through the async writer, then wait for body
+            // data. The write may park on socket readiness; `ContinueWrite`
+            // drives it without holding a worker.
+            return match send_continue_100(self.conn.clone(), &self.ctx).split() {
+                Ok(future) => {
+                    self.state = Some(HandlerState::ContinueWrite {
+                        future,
                         req,
                         should_close,
-                        attempt: 0,
+                        continue_retries,
                     });
-                    let delay = self
-                        .timeout_calculator
-                        .calculate_expect_continue_delay(
-                            &TimeoutContext::default(),
-                            0,
-                            self.max_expect_attempts,
-                        )
-                        .expect("first attempt must yield a delay");
-                    return Some(TaskStatus::Delayed(delay));
+                    Some(TaskStatus::Pending(()))
                 }
-                Err(e) => {
-                    let next = continue_retries + 1;
-                    if next <= self.max_continue_retries {
-                        tracing::trace!(
-                            client_ip = %self.client_ip,
-                            err = ?e,
-                            retry = next,
-                            max_retries = self.max_continue_retries,
-                            "100 Continue write failed, retrying"
-                        );
-                        // Re-enter CheckExpect with incremented counter.
-                        self.state = Some(HandlerState::CheckExpect {
-                            req,
-                            should_close,
-                            continue_retries: next,
-                        });
-                        // Short delay before retry — use base delay from calculator.
-                        let delay = self
-                            .timeout_calculator
-                            .calculate_expect_continue_delay(
-                                &TimeoutContext::default(),
-                                continue_retries,
-                                self.max_expect_attempts.max(1),
-                            )
-                            .unwrap_or(Duration::from_millis(100));
-                        return Some(TaskStatus::Delayed(delay));
-                    }
-                    tracing::warn!(
-                        client_ip = %self.client_ip,
-                        err = ?e,
-                        retries = continue_retries,
-                        max_retries = self.max_continue_retries,
-                        "Failed to write 100 Continue after all retries"
-                    );
-                    report_closing_write(respond::text(
-                        &mut self.conn.clone(),
-                        502,
-                        "Bad Gateway — Expect: failed to write response",
-                    ));
-                    return None;
+                Err(outcome) => {
+                    self.apply_continue_result(outcome, req, should_close, continue_retries)
                 }
-            }
+            };
         }
         // No expect header — go straight to processing.
         tracing::trace!(
@@ -533,6 +637,7 @@ impl ConnectionHandler {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        deadline: Option<Instant>,
     ) -> Option<TaskStatus<(), ()>> {
         let next_attempt = attempt + 1;
 
@@ -541,6 +646,11 @@ impl ConnectionHandler {
             attempt = attempt,
             "WaitingForBody: probing for body data"
         );
+
+        // Arm the read waker before probing, so a body that arrives while we
+        // look still wakes the parked task (the h2 handler arms first for the
+        // same reason). A blocking transport returns `None` and polls instead.
+        let armed = self.arm_body_waker();
 
         match self.conn.probe() {
             Ok(len) if len > 0 => {
@@ -553,14 +663,28 @@ impl ConnectionHandler {
                 self.state = Some(HandlerState::Processing { req, should_close });
                 Some(TaskStatus::Pending(()))
             }
-            Ok(_) => self.waiting_for_body_retry(req, should_close, attempt, next_attempt),
+            Ok(_) => self.waiting_for_body_retry(
+                req,
+                should_close,
+                attempt,
+                next_attempt,
+                deadline,
+                armed,
+            ),
             Err(e) => {
                 let kind = e.kind();
                 if kind == std::io::ErrorKind::WouldBlock
                     || kind == std::io::ErrorKind::TimedOut
                     || kind == std::io::ErrorKind::Interrupted
                 {
-                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt)
+                    self.waiting_for_body_retry(
+                        req,
+                        should_close,
+                        attempt,
+                        next_attempt,
+                        deadline,
+                        armed,
+                    )
                 } else {
                     tracing::warn!(
                         client_ip = %self.client_ip,
@@ -568,10 +692,32 @@ impl ConnectionHandler {
                         err = ?e,
                         "WaitingForBody: hard error on probe"
                     );
-                    report_closing_write(respond::text(&mut self.conn.clone(), 400, "Bad Request"));
-                    None
+                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request", &self.ctx))
                 }
             }
+        }
+    }
+
+    /// Arm the connection's read waker, so a body that arrives while the handler
+    /// probes still wakes the parked task. Returns the signal to park on for a
+    /// transport that can report readiness (the `WireGuard` overlay), or `None`
+    /// for a blocking transport, whose caller falls back to fixed delays.
+    fn arm_body_waker(&self) -> Option<ResumeSignal> {
+        let signal = ResumeSignal::new(false);
+        let flag = signal.clone();
+        let waker: foundation_netio::native::connection::ConnWaker =
+            Arc::new(move || flag.set(true));
+        let registered = self
+            .conn
+            .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
+        if registered {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "WaitingForBody: armed the connection read waker"
+            );
+            Some(signal)
+        } else {
+            None
         }
     }
 
@@ -581,12 +727,51 @@ impl ConnectionHandler {
         should_close: bool,
         attempt: usize,
         next_attempt: usize,
+        deadline: Option<Instant>,
+        armed: Option<ResumeSignal>,
     ) -> Option<TaskStatus<(), ()>> {
         tracing::trace!(
             client_ip = %self.client_ip,
             attempt = attempt,
-            "WaitingForBody: no data, computing next delay"
+            "WaitingForBody: no body data yet"
         );
+
+        // If a parked overlay wait already ran past its deadline, give up now.
+        let now = self.ctx.clock().now();
+        if let Some(deadline) = deadline {
+            if now >= deadline {
+                return self.send_408(attempt);
+            }
+        }
+
+        // A transport that can report readiness (the WireGuard overlay) parks on
+        // its read waker, bounded by `body_timeout`, instead of polling on fixed
+        // delays. Blocking transports fall through to the countdown below.
+        if let Some(signal) = armed {
+            let deadline = deadline.unwrap_or_else(|| now + self.body_wait_timeout());
+            if now >= deadline {
+                return self.send_408(attempt);
+            }
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                attempt = attempt,
+                remaining_ms = deadline.saturating_duration_since(now).as_millis(),
+                "WaitingForBody: no body yet; parking on the connection read waker"
+            );
+            self.state = Some(HandlerState::WaitingForBody {
+                req,
+                should_close,
+                attempt,
+                deadline: Some(deadline),
+            });
+            let readiness: EventReadinessPtr = Arc::new(AnyReadiness::either(
+                Arc::new(signal),
+                Arc::new(DeadlinePassed(deadline, self.ctx.clone())),
+            ));
+            return Some(TaskStatus::Depends(readiness));
+        }
+
+        // Blocking transport: the fixed-delay countdown, 408 after max attempts.
         let prev = self.timeout_calculator.calculate_expect_continue_delay(
             &TimeoutContext::default(),
             attempt,
@@ -611,26 +796,36 @@ impl ConnectionHandler {
                 req,
                 should_close,
                 attempt: next_attempt,
+                deadline: None,
             });
             Some(TaskStatus::Delayed(delay))
         } else {
-            tracing::warn!(
-                client_ip = %self.client_ip,
-                attempt = attempt,
-                max_attempts = self.max_expect_attempts,
-                "WaitingForBody: max attempts reached, sending 408"
-            );
-            report_closing_write(respond::text(
-                &mut self.conn.clone(),
-                408,
-                "Request Timeout — body not received after 100 Continue",
-            ));
-            None
+            self.send_408(attempt)
         }
+    }
+
+    /// Send 408 Request Timeout: the body never arrived after 100 Continue.
+    fn send_408(&mut self, attempt: usize) -> Option<TaskStatus<(), ()>> {
+        tracing::warn!(
+            client_ip = %self.client_ip,
+            attempt = attempt,
+            max_attempts = self.max_expect_attempts,
+            "WaitingForBody: body never arrived, sending 408"
+        );
+        self.close_with(send_text(
+            self.conn.clone(),
+            408,
+            "Request Timeout — body not received after 100 Continue",
+            &self.ctx,
+        ))
     }
 
     // ---- Processing state -------------------------------------------------
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the middleware chain and route dispatch read best as one flow"
+    )]
     fn handle_processing(
         &mut self,
         mut req: SimpleIncomingRequest,
@@ -643,12 +838,12 @@ impl ConnectionHandler {
             "Processing: entering middleware chain"
         );
 
-        let bag = self.app.context().clone();
+        let ctx = self.app.context().clone();
 
         // Run middleware chain.
         let mut middleware_response: Option<SimpleOutgoingResponse> = None;
         for mw in self.app.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
+            match mw.handle(&ctx, &mut req) {
                 crate::shared::middleware::MiddlewareResult::Continue => {}
                 crate::shared::middleware::MiddlewareResult::Response(resp) => {
                     tracing::trace!(
@@ -676,8 +871,7 @@ impl ConnectionHandler {
                     // `SendSafeBody::None` is the *representation* of "no body"
                     // that the renderer expects; `Option::None` is not
                     // interchangeable with it. Only real content is stripped.
-                    let carries_content =
-                        !matches!(resp.body, None | Some(SendSafeBody::None));
+                    let carries_content = !matches!(resp.body, None | Some(SendSafeBody::None));
                     if carries_content {
                         tracing::warn!(
                             client_ip = %self.client_ip,
@@ -729,8 +923,7 @@ impl ConnectionHandler {
                     vec![format!("h3=\":{port}\"")],
                 );
             }
-            if let Err(err) = Http11::response(resp).http_render_to_writer(&mut self.conn.clone())
-            {
+            if let Err(err) = Http11::response(resp).http_render_to_writer(&mut self.conn.clone()) {
                 tracing::debug!(
                     client_ip = %self.client_ip,
                     err = ?err,
@@ -761,7 +954,7 @@ impl ConnectionHandler {
         );
 
         if let Some(handler) = self.app.router().dispatch(method, path) {
-            let result = handler.serve(bag, req, self.conn.clone());
+            let result = handler.serve(ctx, req, self.conn.clone());
             match result {
                 ConnectionResult::Take => {
                     tracing::trace!(client_ip = %self.client_ip, "Processing: handler took connection (e.g. WebSocket upgrade)");
@@ -781,6 +974,14 @@ impl ConnectionHandler {
                     self.state = Some(HandlerState::Idle);
                     Some(TaskStatus::Pending(()))
                 }
+                ConnectionResult::Async(future) => {
+                    tracing::trace!(client_ip = %self.client_ip, "Processing: handler returned Async; parking on its future");
+                    self.state = Some(HandlerState::Awaiting {
+                        future,
+                        should_close,
+                    });
+                    Some(TaskStatus::Pending(()))
+                }
             }
         } else {
             tracing::trace!(
@@ -789,30 +990,254 @@ impl ConnectionHandler {
                 path = %path,
                 "Processing: no route matched, returning 404"
             );
-            if let Err(err) = respond::not_found(&mut self.conn.clone()) {
-                tracing::debug!(
-                    client_ip = %self.client_ip,
-                    err = ?err,
-                    "Processing: writing the 404 failed; closing"
-                );
-                return None;
-            }
             // The request body was never read: the next request on this
             // connection would start inside it, so the connection must close.
-            if should_close || body_left_unread(&req) {
-                return None;
-            }
-            self.state = Some(HandlerState::Idle);
-            Some(TaskStatus::Pending(()))
+            let close = should_close || body_left_unread(&req);
+            self.await_response(send_not_found(self.conn.clone(), &self.ctx), close)
         }
     }
-}
 
-/// Log a failed write of an error response the connection closes after
-/// anyway: there is no one left to tell, but the failure is not hidden.
-fn report_closing_write(result: Result<(), ErrorTrace<ServeError>>) {
-    if let Err(err) = result {
-        tracing::debug!(err = ?err, "could not write the closing error response");
+    // ---- Awaiting state ---------------------------------------------------
+
+    /// Poll an `Async` handler future once, parking on the wake bridge if it is
+    /// still pending. Returns `None` to close the connection (drain, hangup, or
+    /// a handler error).
+    fn handle_awaiting(
+        &mut self,
+        mut future: ServeFuture,
+        should_close: bool,
+    ) -> Option<TaskStatus<(), ()>> {
+        // Drain stale tokens before polling (the FutureTask bridge pattern).
+        while self.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let mut cx = Context::from_waker(&waker);
+        match future.as_mut().poll(&mut cx) {
+            // Poll before the shutdown check: a future that completes now still
+            // delivers its response during the drain. An in-flight handler that
+            // is only writing its answer completes here, so shutdown never
+            // truncates it.
+            Poll::Ready(result) => self.apply_async_result(result, should_close),
+            Poll::Pending => {
+                // A future that is still waiting when the server drains is
+                // dropped, and its drop flags run (the shutdown test checks this).
+                if self.shutdown.probe() {
+                    tracing::trace!(client_ip = %self.client_ip, "Awaiting: server draining, dropping the handler future");
+                    return None;
+                }
+                self.state = Some(HandlerState::Awaiting {
+                    future,
+                    should_close,
+                });
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
+                        future: self.wake_queue.readiness(),
+                        shutdown: self.shutdown.clone(),
+                    })))
+                } else {
+                    // A self-wake during poll: requeue without parking.
+                    Some(TaskStatus::Ignore)
+                }
+            }
+        }
+    }
+
+    /// Apply the resolved [`ServeOutcome`] of an `Async` future.
+    fn apply_async_result(
+        &mut self,
+        result: ServeOutcome,
+        should_close: bool,
+    ) -> Option<TaskStatus<(), ()>> {
+        match result {
+            ServeOutcome::Keep => {
+                if should_close {
+                    tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler kept connection but Connection: close; closing");
+                    return None;
+                }
+                tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler kept connection, returning to Idle");
+                self.state = Some(HandlerState::Idle);
+                Some(TaskStatus::Pending(()))
+            }
+            ServeOutcome::Take => {
+                tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler took connection");
+                None
+            }
+            ServeOutcome::Close(err) => {
+                if let Some(e) = &err {
+                    tracing::error!(client_ip = %self.client_ip, err = ?e, "Connection closed with error");
+                }
+                None
+            }
+        }
+    }
+
+    // ---- Async response helpers ------------------------------------------
+
+    /// Write a final response through an async writer and close when it ends.
+    fn close_with(&mut self, result: ConnectionResult) -> Option<TaskStatus<(), ()>> {
+        self.await_response(result, true)
+    }
+
+    /// Drive an async response, then either close (`close`) or return to
+    /// `Idle`. A response that fails to build closes at once, because the
+    /// socket state is unknown.
+    fn await_response(
+        &mut self,
+        result: ConnectionResult,
+        close: bool,
+    ) -> Option<TaskStatus<(), ()>> {
+        match result {
+            ConnectionResult::Async(future) => {
+                self.state = Some(HandlerState::Awaiting {
+                    future,
+                    should_close: close,
+                });
+                Some(TaskStatus::Pending(()))
+            }
+            ConnectionResult::Close(err) => {
+                if let Some(e) = err {
+                    tracing::debug!(
+                        client_ip = %self.client_ip,
+                        err = ?e,
+                        "response could not be built; closing"
+                    );
+                }
+                None
+            }
+            ConnectionResult::Keep | ConnectionResult::Take => {
+                if close {
+                    None
+                } else {
+                    self.state = Some(HandlerState::Idle);
+                    Some(TaskStatus::Pending(()))
+                }
+            }
+        }
+    }
+
+    /// Poll the `100 Continue` write once. On success, wait for the body; on
+    /// failure, retry up to `max_continue_retries`, then answer `502` and
+    /// close.
+    fn handle_continue_write(
+        &mut self,
+        mut future: ServeFuture,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
+    ) -> Option<TaskStatus<(), ()>> {
+        if self.shutdown.probe() {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "ContinueWrite: server draining, dropping the interim write"
+            );
+            return None;
+        }
+
+        while self.wake_queue.pop().is_ok() {}
+        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let mut cx = Context::from_waker(&waker);
+        match future.as_mut().poll(&mut cx) {
+            Poll::Ready(result) => {
+                self.apply_continue_result(result, req, should_close, continue_retries)
+            }
+            Poll::Pending => {
+                self.state = Some(HandlerState::ContinueWrite {
+                    future,
+                    req,
+                    should_close,
+                    continue_retries,
+                });
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
+                        future: self.wake_queue.readiness(),
+                        shutdown: self.shutdown.clone(),
+                    })))
+                } else {
+                    Some(TaskStatus::Ignore)
+                }
+            }
+        }
+    }
+
+    /// Act on the [`ServeOutcome`] of the `100 Continue` write.
+    fn apply_continue_result(
+        &mut self,
+        result: ServeOutcome,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
+    ) -> Option<TaskStatus<(), ()>> {
+        match result {
+            ServeOutcome::Keep => {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    "Sent 100 Continue, entering WaitingForBody state"
+                );
+                self.state = Some(HandlerState::WaitingForBody {
+                    req,
+                    should_close,
+                    attempt: 0,
+                    deadline: None,
+                });
+                let delay = self
+                    .timeout_calculator
+                    .calculate_expect_continue_delay(
+                        &TimeoutContext::default(),
+                        0,
+                        self.max_expect_attempts,
+                    )
+                    .expect("first attempt must yield a delay");
+                Some(TaskStatus::Delayed(delay))
+            }
+            ServeOutcome::Close(err) => {
+                let next = continue_retries + 1;
+                if next <= self.max_continue_retries {
+                    tracing::trace!(
+                        client_ip = %self.client_ip,
+                        err = ?err,
+                        retry = next,
+                        max_retries = self.max_continue_retries,
+                        "100 Continue write failed, retrying"
+                    );
+                    self.state = Some(HandlerState::CheckExpect {
+                        req,
+                        should_close,
+                        continue_retries: next,
+                    });
+                    // Short delay before retry — use base delay from calculator.
+                    let delay = self
+                        .timeout_calculator
+                        .calculate_expect_continue_delay(
+                            &TimeoutContext::default(),
+                            continue_retries,
+                            self.max_expect_attempts.max(1),
+                        )
+                        .unwrap_or(Duration::from_millis(100));
+                    Some(TaskStatus::Delayed(delay))
+                } else {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        err = ?err,
+                        retries = continue_retries,
+                        max_retries = self.max_continue_retries,
+                        "Failed to write 100 Continue after all retries"
+                    );
+                    self.close_with(send_text(
+                        self.conn.clone(),
+                        502,
+                        "Bad Gateway — Expect: failed to write response",
+                        &self.ctx,
+                    ))
+                }
+            }
+            ServeOutcome::Take => {
+                tracing::error!(
+                    client_ip = %self.client_ip,
+                    "ContinueWrite: unexpected result; closing"
+                );
+                None
+            }
+        }
     }
 }
 
@@ -833,6 +1258,29 @@ fn body_left_unread(req: &SimpleIncomingRequest) -> bool {
 // ---------------------------------------------------------------------------
 // TaskIterator implementation
 
+/// Readiness for a parked `Awaiting` task: ready when the handler future's waker
+/// has pushed a token, or when the server is draining. Mirrors
+/// `CancellableFutureTask`'s `CancelOrReadiness` (the future ORs a cancel flag).
+struct AsyncReadiness {
+    future: QueueReadiness<WakeToken>,
+    shutdown: Arc<ShutdownSignal>,
+}
+
+impl EventReadiness for AsyncReadiness {
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.shutdown.probe() || self.future.is_ready(dur)
+    }
+
+    /// The wake queue is an `EventQueue` (its push wakes the registered task) and
+    /// `ShutdownSignal::turn_on` wakes it too: no timer re-check when both take
+    /// the waker.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let shutdown = self.shutdown.register_readiness(waker);
+        let future = self.future.register(waker);
+        shutdown && future
+    }
+}
+
 impl TaskIterator for ConnectionHandler {
     type Ready = ();
     type Pending = ();
@@ -847,14 +1295,25 @@ impl TaskIterator for ConnectionHandler {
                 should_close,
                 continue_retries,
             } => self.handle_check_expect(req, should_close, continue_retries),
+            HandlerState::ContinueWrite {
+                future,
+                req,
+                should_close,
+                continue_retries,
+            } => self.handle_continue_write(future, req, should_close, continue_retries),
             HandlerState::WaitingForBody {
                 req,
                 should_close,
                 attempt,
-            } => self.handle_waiting_for_body(req, should_close, attempt),
+                deadline,
+            } => self.handle_waiting_for_body(req, should_close, attempt, deadline),
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
             }
+            HandlerState::Awaiting {
+                future,
+                should_close,
+            } => self.handle_awaiting(future, should_close),
         }
     }
 }

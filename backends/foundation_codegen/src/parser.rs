@@ -24,8 +24,11 @@ pub fn parse_rust_file(path: &Path) -> Result<syn::File> {
         source: e,
     })?;
 
-    syn::parse_file(&source).map_err(|e| CodegenError::ParseError {
-        path: path.to_path_buf(),
-        message: e.to_string(),
+    syn::parse_file(&source).map_err(|e| {
+        CodegenError::ParseError {
+            path: path.to_path_buf(),
+            message: e.to_string(),
+        }
+        .into()
     })
 }

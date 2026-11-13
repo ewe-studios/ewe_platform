@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use foundation_proxy::config::ServiceConfig;
-use foundation_proxy::runtime::ServiceRuntime;
 use foundation_proxy::router::Router;
+use foundation_proxy::runtime::ServiceRuntime;
 
 fn service(name: &str, host: &str, prefix: Option<&str>) -> Arc<ServiceRuntime> {
     let mut cfg = ServiceConfig::new(name, host).backend("http://127.0.0.1:1");
@@ -22,9 +22,16 @@ fn test_exact_host_routing() {
         service("a", "a.example.com", None),
         service("b", "b.example.com", None),
     ]);
-    assert_eq!(router.route("a.example.com", "/").unwrap().config().name, "a");
     assert_eq!(
-        router.route("b.example.com:8080", "/x").unwrap().config().name,
+        router.route("a.example.com", "/").unwrap().config().name,
+        "a"
+    );
+    assert_eq!(
+        router
+            .route("b.example.com:8080", "/x")
+            .unwrap()
+            .config()
+            .name,
         "b",
         "port on Host must be ignored"
     );
@@ -53,7 +60,11 @@ fn test_wildcard_host_and_exact_precedence() {
         "arbitrary subdomain matches the wildcard"
     );
     assert_eq!(
-        router.route("deep.foo.example.com", "/").unwrap().config().name,
+        router
+            .route("deep.foo.example.com", "/")
+            .unwrap()
+            .config()
+            .name,
         "wild",
         "deep subdomain still matches the wildcard"
     );
@@ -78,9 +89,26 @@ fn test_longest_path_prefix_wins() {
         service("api", "app.local", Some("/api")),
         service("apiv1", "app.local", Some("/api/v1")),
     ]);
-    assert_eq!(router.route("app.local", "/api/v1/x").unwrap().config().name, "apiv1");
-    assert_eq!(router.route("app.local", "/api/thing").unwrap().config().name, "api");
-    assert_eq!(router.route("app.local", "/other").unwrap().config().name, "root");
+    assert_eq!(
+        router
+            .route("app.local", "/api/v1/x")
+            .unwrap()
+            .config()
+            .name,
+        "apiv1"
+    );
+    assert_eq!(
+        router
+            .route("app.local", "/api/thing")
+            .unwrap()
+            .config()
+            .name,
+        "api"
+    );
+    assert_eq!(
+        router.route("app.local", "/other").unwrap().config().name,
+        "root"
+    );
     assert_eq!(
         router.route("app.local", "/apix").unwrap().config().name,
         "root",
@@ -96,5 +124,8 @@ fn test_query_string_ignored_for_prefix() {
         service("root", "app.local", None),
         service("api", "app.local", Some("/api")),
     ]);
-    assert_eq!(router.route("app.local", "/api?x=1").unwrap().config().name, "api");
+    assert_eq!(
+        router.route("app.local", "/api?x=1").unwrap().config().name,
+        "api"
+    );
 }

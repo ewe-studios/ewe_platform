@@ -1,12 +1,12 @@
 //! Folder persistence (spec-57, F008 Stage 1).
 //!
-//! Ported from OrangeVault `db/queries.rs` (folders) onto `foundation_db`'s
+//! Ported from `OrangeVault` `db/queries.rs` (folders) onto `foundation_db`'s
 //! `QueryStore`. The row carries `user_uuid` so the handler layer can
 //! enforce ownership.
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -36,6 +36,10 @@ fn map_row(row: &SqlRow) -> AppResult<FolderRow> {
 }
 
 /// Insert a new folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &FolderRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO folders (uuid, user_uuid, name, created_at, updated_at) \
@@ -54,6 +58,10 @@ pub async fn insert(db: &dyn QueryStore, row: &FolderRow) -> AppResult<()> {
 }
 
 /// All folders owned by a user, ordered by name.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<FolderRow>> {
     let rows = db
         .query(
@@ -69,6 +77,10 @@ pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec
 }
 
 /// A single folder by uuid, if it exists.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<FolderRow>> {
     let rows = db
         .query(
@@ -84,6 +96,10 @@ pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<FolderRow
 }
 
 /// Rename a folder and bump its `updated_at`.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update_name(
     db: &dyn QueryStore,
     uuid: &str,
@@ -104,6 +120,10 @@ pub async fn update_name(
 }
 
 /// Delete a folder by uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute(
         "DELETE FROM folders WHERE uuid = ?",

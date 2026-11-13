@@ -29,7 +29,7 @@ impl CedarResponse {
         self.inner
             .diagnostics()
             .errors()
-            .map(|e| e.to_string())
+            .map(std::string::ToString::to_string)
             .collect()
     }
 }

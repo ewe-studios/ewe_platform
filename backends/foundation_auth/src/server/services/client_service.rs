@@ -1,8 +1,9 @@
 //! OAuth client management service.
 
+use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_context::Ctx;
 
 use super::super::models::client::hex_sha256;
 use super::super::models::OAuthClient;
@@ -24,12 +25,14 @@ impl core::fmt::Display for ClientServiceError {
 
 impl std::error::Error for ClientServiceError {}
 
+#[must_use]
 pub fn create_client_record(
     name: &str,
     redirect_uris: Vec<String>,
     grant_types: Vec<String>,
     scopes: Vec<String>,
     is_public: bool,
+    ctx: &Ctx,
 ) -> (OAuthClient, String) {
     let client_id = uuid::Uuid::new_v4().to_string();
     let secret = generate_client_secret();
@@ -43,7 +46,7 @@ pub fn create_client_record(
         grant_types,
         scopes,
         is_public,
-        created_at: Utc::now().timestamp_millis(),
+        created_at: now_millis(ctx),
     };
 
     (client, secret)
@@ -54,4 +57,3 @@ fn generate_client_secret() -> String {
     foundation_compact::rng::rng().fill_bytes(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
-

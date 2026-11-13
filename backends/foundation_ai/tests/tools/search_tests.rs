@@ -51,7 +51,12 @@ fn search_context_tool_definition() {
     let def = tool.definition();
     assert_eq!(def.name(), "search_context");
     assert_eq!(def.category().unwrap(), "search");
-    assert!(def.definitions().next().unwrap().description.contains("knowledge"));
+    assert!(def
+        .definitions()
+        .next()
+        .unwrap()
+        .description
+        .contains("knowledge"));
 }
 
 #[test]
@@ -91,7 +96,7 @@ fn search_context_finds_matching_messages() {
         let _ = ctx.message_api().append(SessionRecord::Conversation {
             message: user_msg("the authentication module handles JWT tokens"),
         });
-        let _ = ctx.message_api().flush();
+        ctx.message_api().flush().await.expect("flush");
 
         let tool = SearchContextTool::new(ctx);
         let args = ToolArguments::from_iter([
@@ -118,7 +123,7 @@ fn search_context_hybrid_searches_messages_and_memory() {
         let _ = ctx.message_api().append(SessionRecord::Conversation {
             message: user_msg("the database uses postgres"),
         });
-        let _ = ctx.message_api().flush();
+        ctx.message_api().flush().await.expect("flush");
 
         let working = SessionRecord::WorkingMemory {
             id: foundation_compact::ids::new_scru128(),
@@ -184,12 +189,18 @@ fn search_context_graph_returns_empty() {
 }
 
 fn make_vfs_tool() -> SearchFileTool {
-    let fs = Arc::new(foundation_nativeapis::MemoryFs::new());
+    let fs = Arc::new(foundation_nativeapis::MemoryFs::new(
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    ));
     SearchFileTool::from_vfs(fs, "/".into())
 }
 
 fn make_vfs_tool_with_files() -> SearchFileTool {
-    let fs = foundation_nativeapis::MemoryFs::new();
+    let fs = foundation_nativeapis::MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    ));
     fs.write_file("/hello.txt", b"hello world\ngoodbye world\n")
         .unwrap();
     fs.write_file("/foo.rs", b"fn main() {}").unwrap();
@@ -204,7 +215,12 @@ fn search_file_tool_definition() {
     let def = tool.definition();
     assert_eq!(def.name(), "search_file");
     assert_eq!(def.category().unwrap(), "search_files");
-    assert!(def.definitions().next().unwrap().description.contains("grep"));
+    assert!(def
+        .definitions()
+        .next()
+        .unwrap()
+        .description
+        .contains("grep"));
 }
 
 #[test]

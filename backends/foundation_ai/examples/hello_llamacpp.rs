@@ -1,6 +1,6 @@
 //! Example: Run a local GGUF model via Llama.cpp (GLM 5.2 + Gemma 4 E2B).
 //!
-//! This downloads models from HuggingFace on first run. GPU offloading can be
+//! This downloads models from `HuggingFace` on first run. GPU offloading can be
 //! enabled via the `metal`, `vulkan`, or `cuda` features.
 //!
 //! Run with:
@@ -20,6 +20,7 @@
 
 use foundation_ai::agentic::TurnEvent;
 use foundation_ai::harness::RouterPreset;
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron;
 use futures_lite::StreamExt;
 
@@ -27,7 +28,8 @@ use futures_lite::StreamExt;
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // GLM 5.2 (main) + Gemma 4 E2B (memory) via Llama.cpp.
     // None, None = default Q4_K_M quantization, default cache dir, CPU.
-    let builder = RouterPreset::glm52_gemma(None, None)?.into_agent_builder();
+    let ctx = Ctx::host();
+    let builder = RouterPreset::glm52_gemma(None, None, ctx.clone())?.into_agent_builder(ctx);
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
@@ -37,7 +39,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Asking GLM 5.2 (local GGUF)...");
     // Stream the answer as it is generated.
     let mut answer = String::new();
-    let mut events = agent.run_turn_stream("Hello! Please say hi back in one sentence.")?.events();
+    let mut events = agent
+        .run_turn_stream("Hello! Please say hi back in one sentence.")?
+        .events();
     while let Some(event) = events.next().await {
         match event {
             TurnEvent::Text(delta) => {

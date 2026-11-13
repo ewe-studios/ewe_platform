@@ -110,6 +110,24 @@ wasm-bindgen`.
 `docs/bug-backlog.md` (grouped by crate) is the source of truth; add an entry in
 the same change that finds a bug and remove it in the change that fixes it.
 
+## Durable Streams input (2026-10-30)
+
+The [Durable Streams research note](../research/edge-data/durable-streams.md) and
+[spec 71](../71-durable-streams-in-valtron) give a contract for this spec's
+streaming operations. The key takeaways:
+
+- **The cursor is the state, not the connection.** A turn or progress stream
+  should carry a resume cursor (`Stream-Next-Offset` in the source protocol), so
+  a client reconnects and continues with no skip and no duplicate.
+- **`Stream::Wait` + `WakeableStream` is already the long-poll tail.** The
+  durable-streams live mode and valtron's parking primitives are the same shape;
+  spec 71 names the bridge.
+- **Fork = branch a conversation without copying it.** A forked `AgentSession`
+  is a fork of the turn log, sharing the prefix and owning only the tail.
+- **The mechanism lives in valtron, not here.** `01-agent-rpc` and `05-cloudflare`
+  consume the `DurableStream` reader/writer and `DurableStreamStore` trait that
+  spec 71 builds. No new feature is added to this spec for it.
+
 ## Key finding (creation)
 
 This system is **four single-mission components composed by a manifest and one
@@ -1094,3 +1112,68 @@ The owner reviewed features 02, 03, 04 and feature 07's `proto.md` and `migratio
   `#[async_trait::async_trait]`, as `foundation_db`'s storage traits do.
 - **A merge can leave a stray conflict marker** (`\=======` was at line 895 of this file). Search
   for markers after each merge.
+
+## Merge of master into `65-f01-agent-rpc` (2026-11-13)
+
+Git showed nine textual conflicts. The real cost was in changes that merged
+cleanly but no longer fit together. What we learned:
+
+- **Spec 76 renamed `foundation_connectrpc::Ctx` to `RpcCtx`.** `RpcCtx` wraps a
+  `foundation_context::Ctx` in its public `ctx` field. Every request context out
+  of `foundation_connectrpc` is an `RpcCtx`; a side-effect bundle for a store or
+  a model is a `foundation_context::Ctx`. Never mix the two names.
+- **`TursoStorage` gained a connection gate.** `new`, `in_memory` and
+  `with_encryption` take a `Ctx`, and the branch-only `TursoStorage::open` must
+  take one too (`open(url, ctx)`), or the struct initializer misses `gate`.
+- **`foundation_db` renamed the async storage trait.** `AsyncQueryStore` is now
+  `QueryStore`, and `query_async`/`execute_async`/`execute_batch_async` lost
+  their suffix (`query`, `execute`, `execute_batch`). Old names compile nowhere.
+- **`foundation_http` split native from shared.** `ServerApp` and the `Serve`
+  trait moved to `native::{app, serve}`; `HttpApp` stays in `shared::app`. The
+  serve methods take `&Arc<foundation_iogate::ShutdownSignal>`, not the passive
+  `foundation_core::synca::OnSignal`: a parked accept loop only wakes on the
+  former. `foundation_http` re-exports `ShutdownSignal`.
+- **`foundation_ai` is async all the way (rule 6).** `AgentSession::builder`
+  takes a `Ctx`, and `build`, `ask`, `run_turn` and `end` return `'static`
+  futures. A synchronous caller wraps them with
+  `foundation_core::valtron::block_on_future`. `CandleBackend::cpu`, `cuda`,
+  `metal` and their `_with_config` forms also take a `Ctx`.
+- **A round of the merge dropped an import.** `turn.rs` lost
+  `WakeCallback`/`WakeResult`/`WakeableStream` from its `foundation_core::valtron`
+  import (commit 319b71153 added them), so an `impl WakeableStream` no longer
+  compiled. After each merge, build every crate the conflict touched; do not
+  trust that a clean auto-merge kept the imports.
+- **Auto-merge can pin two versions of one build tool.** `foundation_deployment_docker`
+  kept `buffa-build = "=0.8.1"` from the branch while the runtime was 0.9.2;
+  cargo then resolved a second `buffa` 0.8.1 and `smoothutf8` 0.1.1 into the
+  lock. Rule 17 wants one version: the pin is now 0.9.2.
+- **The `turso` and candle async chains overflow the default recursion limit**
+  when a `#[valtron_test]` body forces a `Send` check through them. Test crates
+  that open a `TursoStorage` or build a candle session set
+  `#![recursion_limit = "256"]` (same fix as `foundation_db/tests`).
+- **`expect_err` needs the `Ok` type to be `Debug`.** A test that wants only the
+  error from a call that returns a tuple without `Debug` uses `.err().expect(..)`.
+- **The `.agents` submodule needs a checkout, not just a merge.** The worktree
+  sat on an ancestor of master's commit; `git submodule update --checkout
+  .agents` moved it to the recorded pointer.
+- **The repo keeps `Ctx` out of library code.** `AgentRpcServerBuilder` takes
+  `with_ctx`; `build()` returns `AgentRpcError::Config` when it is missing. No
+  `Ctx::host()` inside the crate, so tests choose their own clock and RNG.
+- **A merge can duplicate a TOML table without a conflict marker.** Both sides
+  added one `[packages.foundation_agent_rpc]` table in `ci/packages.toml`.
+  Git saw two separate hunks, and the merge kept both. Two tables with one key
+  are a TOML error, so `ci.py` could not read the file. Parse every merged
+  `.toml` with `tomllib`; a plain text diff does not show the problem.
+- **CI denies clippy warnings for every package by default.** `[defaults]` in
+  `ci/packages.toml` sets `clippy-deny-warnings = true`, and `ci.py` adds
+  `--no-deps -- -D warnings`. Warnings in dependencies do not fail the run, but
+  every pedantic warning in the package does. A merged crate must reach zero.
+- **Master carried one clippy warning in `foundation_connectrpc`.** The
+  `call_unary_post_inner` function had 133 lines, over the 100-line pedantic
+  limit. Moved the pre-decode protocol checks to `run_unary_interceptors`.
+- **Some test failures on macOS are expected.** `foundation_connectrpc` fails
+  `a_blackholed_dial_does_not_block_the_worker` (#466), and `foundation_netio`
+  fails its blackhole connect test (#485) and a quic poll test (#530). Their
+  `macos-tests = "none"` entries name the issues, so a local macOS failure of
+  these targets is not a merge regression. Run `scripts/ci/linux.sh` for the
+  Linux result.

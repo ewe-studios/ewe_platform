@@ -10,7 +10,11 @@ fn fixture_dir() -> std::path::PathBuf {
 fn scan_fixture_finds_schema_structs() {
     let gen = SchemaGenerator::new(&fixture_dir()).expect("should scan fixture crate");
 
-    assert_eq!(gen.structs().len(), 3, "should find 3 structs with schema derives");
+    assert_eq!(
+        gen.structs().len(),
+        3,
+        "should find 3 structs with schema derives"
+    );
 
     let names: Vec<&str> = gen.structs().iter().map(|s| s.name.as_str()).collect();
     assert!(names.contains(&"VfsMetadata"));
@@ -22,7 +26,11 @@ fn scan_fixture_finds_schema_structs() {
 fn scan_detects_correct_derive_flags() {
     let gen = SchemaGenerator::new(&fixture_dir()).expect("should scan fixture crate");
 
-    let vfs = gen.structs().iter().find(|s| s.name == "VfsMetadata").unwrap();
+    let vfs = gen
+        .structs()
+        .iter()
+        .find(|s| s.name == "VfsMetadata")
+        .unwrap();
     assert!(vfs.has_arrow_schema, "VfsMetadata has ArrowSchema");
     assert!(vfs.has_json_schema, "VfsMetadata has JsonSchema");
 
@@ -30,8 +38,15 @@ fn scan_detects_correct_derive_flags() {
     assert!(dir.has_arrow_schema, "DirEntry has ArrowSchema");
     assert!(!dir.has_json_schema, "DirEntry does not have JsonSchema");
 
-    let api = gen.structs().iter().find(|s| s.name == "ApiResponse").unwrap();
-    assert!(!api.has_arrow_schema, "ApiResponse does not have ArrowSchema");
+    let api = gen
+        .structs()
+        .iter()
+        .find(|s| s.name == "ApiResponse")
+        .unwrap();
+    assert!(
+        !api.has_arrow_schema,
+        "ApiResponse does not have ArrowSchema"
+    );
     assert!(api.has_json_schema, "ApiResponse has JsonSchema");
 }
 
@@ -39,7 +54,11 @@ fn scan_detects_correct_derive_flags() {
 fn scan_extracts_fields_correctly() {
     let gen = SchemaGenerator::new(&fixture_dir()).expect("should scan fixture crate");
 
-    let vfs = gen.structs().iter().find(|s| s.name == "VfsMetadata").unwrap();
+    let vfs = gen
+        .structs()
+        .iter()
+        .find(|s| s.name == "VfsMetadata")
+        .unwrap();
     assert_eq!(vfs.fields.len(), 4);
     assert_eq!(vfs.fields[0].name, "size");
     assert_eq!(vfs.fields[0].rust_type, "u64");
@@ -57,12 +76,17 @@ fn generate_json_schema_roundtrip() {
     copy_dir_recursive(&fixture, temp_dir.path());
 
     let gen = SchemaGenerator::new(temp_dir.path()).expect("should scan");
-    let generated = gen.generate(true, false).expect("should generate json schemas");
+    let generated = gen
+        .generate(true, false)
+        .expect("should generate json schemas");
 
     // VfsMetadata and ApiResponse have JsonSchema — 2 files
     assert_eq!(generated.len(), 2, "should generate 2 json schema files");
 
-    let vfs_gen = generated.iter().find(|g| g.struct_name == "VfsMetadata").unwrap();
+    let vfs_gen = generated
+        .iter()
+        .find(|g| g.struct_name == "VfsMetadata")
+        .unwrap();
     let full_path = temp_dir.path().join(&vfs_gen.path);
     assert!(full_path.exists(), "VfsMetadata.json should exist");
 
@@ -79,7 +103,10 @@ fn generate_json_schema_roundtrip() {
     assert!(req_names.contains(&"size"));
     assert!(req_names.contains(&"name"));
     assert!(req_names.contains(&"permissions"));
-    assert!(!req_names.contains(&"checksum"), "optional field not in required");
+    assert!(
+        !req_names.contains(&"checksum"),
+        "optional field not in required"
+    );
 }
 
 #[test]
@@ -89,12 +116,17 @@ fn generate_arrow_schema_roundtrip() {
     copy_dir_recursive(&fixture, temp_dir.path());
 
     let gen = SchemaGenerator::new(temp_dir.path()).expect("should scan");
-    let generated = gen.generate(false, true).expect("should generate arrow schemas");
+    let generated = gen
+        .generate(false, true)
+        .expect("should generate arrow schemas");
 
     // VfsMetadata and DirEntry have ArrowSchema — 2 files
     assert_eq!(generated.len(), 2, "should generate 2 arrow schema files");
 
-    let dir_gen = generated.iter().find(|g| g.struct_name == "DirEntry").unwrap();
+    let dir_gen = generated
+        .iter()
+        .find(|g| g.struct_name == "DirEntry")
+        .unwrap();
     let full_path = temp_dir.path().join(&dir_gen.path);
     assert!(full_path.exists(), "DirEntry.json should exist");
 
@@ -119,7 +151,9 @@ fn generate_both_schemas() {
     copy_dir_recursive(&fixture, temp_dir.path());
 
     let gen = SchemaGenerator::new(temp_dir.path()).expect("should scan");
-    let generated = gen.generate(true, true).expect("should generate all schemas");
+    let generated = gen
+        .generate(true, true)
+        .expect("should generate all schemas");
 
     // VfsMetadata: both (2), DirEntry: arrow only (1), ApiResponse: json only (1) = 4
     assert_eq!(generated.len(), 4, "should generate 4 total schema files");

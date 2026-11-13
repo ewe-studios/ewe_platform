@@ -3,6 +3,7 @@ use std::io::SeekFrom;
 use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 
 use super::async_traits::{
@@ -11,9 +12,7 @@ use super::async_traits::{
 use super::error::{VfsError, VfsResult};
 use super::path_utils::{file_name, normalize_vfs_path, parent_path};
 use super::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
-use super::types::{
-    OpenMode, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata,
-};
+use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata};
 
 const MAX_SYMLINK_HOPS: usize = 40;
 const DEFAULT_DIR_PERMS: u32 = 0o755;
@@ -40,17 +39,17 @@ enum MemoryNode {
 impl MemoryNode {
     fn metadata(&self) -> &VfsMetadata {
         match self {
-            MemoryNode::File { metadata, .. } => metadata,
-            MemoryNode::Directory { metadata } => metadata,
-            MemoryNode::Symlink { metadata, .. } => metadata,
+            MemoryNode::File { metadata, .. }
+            | MemoryNode::Directory { metadata }
+            | MemoryNode::Symlink { metadata, .. } => metadata,
         }
     }
 
     fn metadata_mut(&mut self) -> &mut VfsMetadata {
         match self {
-            MemoryNode::File { metadata, .. } => metadata,
-            MemoryNode::Directory { metadata } => metadata,
-            MemoryNode::Symlink { metadata, .. } => metadata,
+            MemoryNode::File { metadata, .. }
+            | MemoryNode::Directory { metadata }
+            | MemoryNode::Symlink { metadata, .. } => metadata,
         }
     }
 
@@ -129,19 +128,31 @@ impl MemoryFsInner {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MemoryFs {
     inner: Arc<RwLock<MemoryFsInner>>,
+    ctx: Ctx,
+}
+
+impl std::fmt::Debug for MemoryFs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MemoryFs")
+            .field("inner", &self.inner)
+            .finish_non_exhaustive()
+    }
 }
 
 impl MemoryFs {
-    pub fn new() -> Self {
+    /// An empty file system whose root directory and every later entry take
+    /// their timestamps from the clock of `ctx`.
+    #[must_use]
+    pub fn new(ctx: Ctx) -> Self {
         let mut nodes = HashMap::new();
         let mut ino_to_path = HashMap::new();
         nodes.insert(
             "/".to_string(),
             MemoryNode::Directory {
-                metadata: VfsMetadata::new_directory(1, DEFAULT_DIR_PERMS),
+                metadata: VfsMetadata::new_directory(1, DEFAULT_DIR_PERMS, &ctx),
             },
         );
         ino_to_path.insert(1u64, "/".to_string());
@@ -152,13 +163,8 @@ impl MemoryFs {
                 version: 0,
                 next_inode: 2,
             })),
+            ctx,
         }
-    }
-}
-
-impl Default for MemoryFs {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -167,12 +173,13 @@ pub struct MemoryFile {
     path: String,
     fs: Arc<RwLock<MemoryFsInner>>,
     mode: OpenMode,
+    ctx: Ctx,
 }
 
 impl VfsFile for MemoryFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
         let content = self.content.read().unwrap();
-        let offset = offset as usize;
+        let offset = usize::try_from(offset).unwrap_or(usize::MAX);
         if offset >= content.len() {
             return Ok(0);
         }
@@ -187,12 +194,12 @@ impl VfsFile for MemoryFile {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
         let mut content = self.content.write().unwrap();
-        let offset = offset as usize;
-        let needed = offset + buf.len();
+        let offset = usize::try_from(offset).unwrap_or(usize::MAX);
+        let needed = offset.saturating_add(buf.len());
         if needed > content.len() {
             content.resize(needed, 0);
         }
-        content[offset..offset + buf.len()].copy_from_slice(buf);
+        content[offset..needed].copy_from_slice(buf);
 
         let mut inner = self.fs.write().unwrap();
         let version = inner.next_version();
@@ -200,7 +207,7 @@ impl VfsFile for MemoryFile {
             let meta = node.metadata_mut();
             meta.size = content.len() as u64;
             meta.version = version;
-            meta.modified = Some(std::time::SystemTime::now());
+            meta.modified = Some(self.ctx.clock().wall_now());
         }
         Ok(buf.len())
     }
@@ -219,7 +226,7 @@ impl VfsFile for MemoryFile {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
         let mut content = self.content.write().unwrap();
-        content.resize(size as usize, 0);
+        content.resize(usize::try_from(size).unwrap_or(usize::MAX), 0);
 
         let mut inner = self.fs.write().unwrap();
         let version = inner.next_version();
@@ -227,7 +234,7 @@ impl VfsFile for MemoryFile {
             let meta = node.metadata_mut();
             meta.size = size;
             meta.version = version;
-            meta.modified = Some(std::time::SystemTime::now());
+            meta.modified = Some(self.ctx.clock().wall_now());
         }
         Ok(())
     }
@@ -292,18 +299,18 @@ impl SeekableVfsFile for SeekableMemoryFile {
     }
 
     fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64> {
-        let size = VfsFile::size(&self.inner)? as i64;
+        let size = i64::try_from(VfsFile::size(&self.inner)?).unwrap_or(i64::MAX);
         let new_pos = match pos {
-            SeekFrom::Start(n) => n as i64,
+            SeekFrom::Start(n) => i64::try_from(n).unwrap_or(i64::MAX),
             SeekFrom::End(n) => size + n,
-            SeekFrom::Current(n) => self.position as i64 + n,
+            SeekFrom::Current(n) => i64::try_from(self.position).unwrap_or(i64::MAX) + n,
         };
         if new_pos < 0 {
             return Err(ErrorTrace::new(VfsError::InvalidPath {
                 path: format!("seek to negative position: {new_pos}"),
             }));
         }
-        self.position = new_pos as u64;
+        self.position = new_pos.cast_unsigned();
         Ok(self.position)
     }
 
@@ -318,6 +325,7 @@ unsafe impl Sync for SeekableMemoryFile {}
 pub struct MemoryDirectory {
     fs: Arc<RwLock<MemoryFsInner>>,
     dir_path: String,
+    ctx: Ctx,
 }
 
 impl MemoryDirectory {
@@ -394,7 +402,7 @@ impl VfsDirectory for MemoryDirectory {
         let ino = inner.alloc_inode();
         let version = inner.next_version();
         let content = Arc::new(RwLock::new(Vec::new()));
-        let mut metadata = VfsMetadata::new_file(ino, 0, mode);
+        let mut metadata = VfsMetadata::new_file(ino, 0, mode, &self.ctx);
         metadata.version = version;
         inner.ino_to_path.insert(ino, child_path.clone());
         inner.nodes.insert(
@@ -408,6 +416,7 @@ impl VfsDirectory for MemoryDirectory {
             content,
             path: child_path,
             fs: self.fs.clone(),
+            ctx: self.ctx.clone(),
             mode: OpenMode::ReadWrite,
         })
     }
@@ -426,7 +435,7 @@ impl VfsDirectory for MemoryDirectory {
         }
         let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
+        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS, &self.ctx);
         metadata.version = version;
         inner.ino_to_path.insert(ino, child_path.clone());
         inner
@@ -434,6 +443,7 @@ impl VfsDirectory for MemoryDirectory {
             .insert(child_path.clone(), MemoryNode::Directory { metadata });
         Ok(Box::new(MemoryDirectory {
             fs: self.fs.clone(),
+            ctx: self.ctx.clone(),
             dir_path: child_path,
         }))
     }
@@ -511,6 +521,7 @@ impl VfsDirectory for MemoryDirectory {
                 content: content.clone(),
                 path: resolved,
                 fs: self.fs.clone(),
+                ctx: self.ctx.clone(),
                 mode,
             }),
             Some(_) => Err(ErrorTrace::new(VfsError::NotAFile { path: resolved })),
@@ -537,6 +548,7 @@ impl VfsDirectory for MemoryDirectory {
         match inner.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => Ok(Box::new(MemoryDirectory {
                 fs: self.fs.clone(),
+                ctx: self.ctx.clone(),
                 dir_path: resolved,
             })),
             Some(_) => Err(ErrorTrace::new(VfsError::NotADirectory { path: resolved })),
@@ -605,11 +617,11 @@ impl VfsFileSystem for MemoryFs {
 
     fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
         let inner = self.inner.read().unwrap();
-        inner
-            .ino_to_path
-            .get(&ino)
-            .cloned()
-            .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: format!("inode:{ino}") }))
+        inner.ino_to_path.get(&ino).cloned().ok_or_else(|| {
+            ErrorTrace::new(VfsError::NotFound {
+                path: format!("inode:{ino}"),
+            })
+        })
     }
 
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
@@ -656,7 +668,7 @@ impl VfsFileSystem for MemoryFs {
         }
         let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_symlink(ino);
+        let mut metadata = VfsMetadata::new_symlink(ino, &self.ctx);
         metadata.version = version;
         inner.ino_to_path.insert(ino, link.clone());
         inner.nodes.insert(
@@ -760,6 +772,7 @@ impl VfsFileSystem for MemoryFs {
                 content: content.clone(),
                 path: resolved,
                 fs: self.inner.clone(),
+                ctx: self.ctx.clone(),
                 mode,
             }),
             Some(_) => Err(ErrorTrace::new(VfsError::NotAFile { path: resolved })),
@@ -782,6 +795,7 @@ impl VfsFileSystem for MemoryFs {
         match inner.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => Ok(MemoryDirectory {
                 fs: self.inner.clone(),
+                ctx: self.ctx.clone(),
                 dir_path: resolved,
             }),
             Some(_) => Err(ErrorTrace::new(VfsError::NotADirectory { path: resolved })),
@@ -805,7 +819,7 @@ impl VfsFileSystem for MemoryFs {
         let ino = inner.alloc_inode();
         let version = inner.next_version();
         let content = Arc::new(RwLock::new(Vec::new()));
-        let mut metadata = VfsMetadata::new_file(ino, 0, mode);
+        let mut metadata = VfsMetadata::new_file(ino, 0, mode, &self.ctx);
         metadata.version = version;
         inner.ino_to_path.insert(ino, path.clone());
         inner.nodes.insert(
@@ -819,6 +833,7 @@ impl VfsFileSystem for MemoryFs {
             content,
             path,
             fs: self.inner.clone(),
+            ctx: self.ctx.clone(),
             mode: OpenMode::ReadWrite,
         })
     }
@@ -838,12 +853,10 @@ impl VfsFileSystem for MemoryFs {
         }
         let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
+        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS, &self.ctx);
         metadata.version = version;
         inner.ino_to_path.insert(ino, path.clone());
-        inner
-            .nodes
-            .insert(path, MemoryNode::Directory { metadata });
+        inner.nodes.insert(path, MemoryNode::Directory { metadata });
         Ok(())
     }
 
@@ -873,7 +886,7 @@ impl VfsFileSystem for MemoryFs {
                     let meta = node.metadata_mut();
                     meta.size = data.len() as u64;
                     meta.version = version;
-                    meta.modified = Some(std::time::SystemTime::now());
+                    meta.modified = Some(self.ctx.clock().wall_now());
                 }
                 Ok(())
             }
@@ -886,16 +899,12 @@ impl VfsFileSystem for MemoryFs {
                 }
                 let ino = inner.alloc_inode();
                 let content = Arc::new(RwLock::new(data.to_vec()));
-                let mut metadata = VfsMetadata::new_file(ino, data.len() as u64, 0o644);
+                let mut metadata = VfsMetadata::new_file(ino, data.len() as u64, 0o644, &self.ctx);
                 metadata.version = version;
                 inner.ino_to_path.insert(ino, path.clone());
-                inner.nodes.insert(
-                    path,
-                    MemoryNode::File {
-                        content,
-                        metadata,
-                    },
-                );
+                inner
+                    .nodes
+                    .insert(path, MemoryNode::File { content, metadata });
                 Ok(())
             }
         }
@@ -1034,7 +1043,11 @@ impl AsyncVfsDirectory for MemoryDirectory {
         VfsDirectory::open(self, &path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         VfsDirectory::open_seekable(self, &path, mode)
     }
 
@@ -1065,9 +1078,14 @@ pub struct AsyncMemoryDirectory {
 }
 
 impl AsyncMemoryDirectory {
-    fn from_sync(dir: Box<dyn VfsDirectory<File = MemoryFile, SeekableFile = SeekableMemoryFile>>) -> Self {
+    fn from_sync(
+        dir: Box<dyn VfsDirectory<File = MemoryFile, SeekableFile = SeekableMemoryFile>>,
+    ) -> Self {
         let cached_path = dir.path().to_string();
-        Self { inner: dir, cached_path }
+        Self {
+            inner: dir,
+            cached_path,
+        }
     }
 }
 
@@ -1117,7 +1135,11 @@ impl AsyncVfsDirectory for AsyncMemoryDirectory {
         self.inner.open(&path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         self.inner.open_seekable(&path, mode)
     }
 
@@ -1181,7 +1203,11 @@ impl AsyncVfsFileSystem for MemoryFs {
         VfsFileSystem::open(self, &path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         VfsFileSystem::open_seekable(self, &path, mode)
     }
 

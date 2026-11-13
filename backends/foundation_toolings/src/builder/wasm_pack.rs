@@ -37,14 +37,14 @@ impl ProjectBuilder for WasmPackBuilder {
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|e| ToolingError::Io(e))?;
+            .map_err(ToolingError::Io)?;
 
         if output.status.success() {
             Ok(BuildOutput::BuildComplete {
                 binary: format!("{}/pkg", self.crate_path),
             })
         } else {
-            Err(ToolingError::Build("wasm-pack build failed".into()))
+            Err(ToolingError::Build("wasm-pack build failed".into()).into())
         }
     }
 }

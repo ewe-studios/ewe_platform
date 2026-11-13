@@ -1,6 +1,6 @@
 //! Unit tests for `ToolFormatter` implementations.
 //!
-//! Tests AnthropicFormatter, OpenAIFormatter, and TextBasedFormatter
+//! Tests `AnthropicFormatter`, `OpenAIFormatter`, and `TextBasedFormatter`
 //! with sample provider responses.
 
 use foundation_ai::backends::anthropic_messages_provider::AnthropicFormatter;
@@ -22,13 +22,13 @@ fn make_tool(name: &str, description: &str) -> Tool {
     let opts: ValidationOptions = scheme::object()
         .required("query", scheme::string().min_len(1))
         .build();
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.to_string(),
         category: "search".into(),
         description: description.to_string(),
         arguments: Args::new(opts),
         returns: None,
-    })
+    }))
 }
 
 // ============================================================================
@@ -56,7 +56,8 @@ fn anthropic_format_tools_empty() {
     let formatter = AnthropicFormatter;
     let result = formatter.format_tools(&[]).unwrap();
     let arr = result.as_array().unwrap();
-    assert!(arr.is_empty());
+    let empty: &[serde_json::Value] = &[];
+    assert_eq!(arr.as_slice(), empty);
 }
 
 #[test]
@@ -131,7 +132,7 @@ fn anthropic_extract_no_tool_calls() {
 
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(!result.has_tool_calls);
-    assert!(result.calls.is_empty());
+    assert_eq!(result.calls, [] as [foundation_ai::types::ModelOutput; 0]);
     assert_eq!(
         result.remaining_text,
         Some("Hello! How can I help?".to_string())
@@ -155,12 +156,12 @@ fn anthropic_format_tool_response() {
         signature: None,
     };
 
-    let formatted = formatter.format_tool_response(&result).unwrap();
-    assert_eq!(formatted["type"], "tool_result");
-    assert_eq!(formatted["tool_use_id"], "tool_abc123");
-    assert_eq!(formatted["is_error"], false);
+    let output = formatter.format_tool_response(&result).unwrap();
+    assert_eq!(output["type"], "tool_result");
+    assert_eq!(output["tool_use_id"], "tool_abc123");
+    assert_eq!(output["is_error"], false);
 
-    let content_arr = formatted["content"].as_array().unwrap();
+    let content_arr = output["content"].as_array().unwrap();
     assert_eq!(content_arr.len(), 1);
     assert_eq!(content_arr[0]["text"], "Found 3 results");
 }
@@ -182,8 +183,8 @@ fn anthropic_format_tool_response_error() {
         signature: None,
     };
 
-    let formatted = formatter.format_tool_response(&result).unwrap();
-    assert_eq!(formatted["is_error"], true);
+    let output = formatter.format_tool_response(&result).unwrap();
+    assert_eq!(output["is_error"], true);
 }
 
 #[test]
@@ -304,7 +305,7 @@ fn openai_extract_no_tool_calls() {
 
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(!result.has_tool_calls);
-    assert!(result.calls.is_empty());
+    assert_eq!(result.calls, [] as [foundation_ai::types::ModelOutput; 0]);
     assert_eq!(result.remaining_text, Some("Hello!".to_string()));
 }
 
@@ -325,10 +326,10 @@ fn openai_format_tool_response() {
         signature: None,
     };
 
-    let formatted = formatter.format_tool_response(&result).unwrap();
-    assert_eq!(formatted["role"], "tool");
-    assert_eq!(formatted["tool_call_id"], "call_xyz");
-    assert_eq!(formatted["content"], "Found 3 results");
+    let output = formatter.format_tool_response(&result).unwrap();
+    assert_eq!(output["role"], "tool");
+    assert_eq!(output["tool_call_id"], "call_xyz");
+    assert_eq!(output["content"], "Found 3 results");
 }
 
 #[test]
@@ -440,20 +441,20 @@ fn text_based_extract_no_tool_calls() {
 
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(!result.has_tool_calls);
-    assert!(result.calls.is_empty());
+    assert_eq!(result.calls, [] as [foundation_ai::types::ModelOutput; 0]);
     assert_eq!(result.remaining_text, Some(response.to_string()));
 }
 
 #[test]
 fn text_based_extract_malformed_json_kept_as_text() {
     let formatter = TextBasedFormatter;
-    let response = r#"<ToolCall>{not valid json}</ToolCall>
-Some text after."#;
+    let response = r"<ToolCall>{not valid json}</ToolCall>
+Some text after.";
 
     let result = formatter.extract_tool_calls(response).unwrap();
     // Malformed JSON should not be extracted as a tool call
     assert!(!result.has_tool_calls);
-    assert!(result.calls.is_empty());
+    assert_eq!(result.calls, [] as [foundation_ai::types::ModelOutput; 0]);
     // The malformed tag + text should be in remaining
     assert!(result.remaining_text.is_some());
 }
@@ -485,11 +486,11 @@ fn text_based_format_tool_response() {
         signature: None,
     };
 
-    let formatted = formatter.format_tool_response(&result).unwrap();
-    assert_eq!(formatted["role"], "tool");
-    assert_eq!(formatted["name"], "search");
-    assert!(formatted["content"].as_str().unwrap().contains("search"));
-    assert!(formatted["content"]
+    let output = formatter.format_tool_response(&result).unwrap();
+    assert_eq!(output["role"], "tool");
+    assert_eq!(output["name"], "search");
+    assert!(output["content"].as_str().unwrap().contains("search"));
+    assert!(output["content"]
         .as_str()
         .unwrap()
         .contains("Found 3 results"));
@@ -512,8 +513,8 @@ fn text_based_format_tool_response_error_note() {
         signature: None,
     };
 
-    let formatted = formatter.format_tool_response(&result).unwrap();
-    let content = formatted["content"].as_str().unwrap();
+    let output = formatter.format_tool_response(&result).unwrap();
+    let content = output["content"].as_str().unwrap();
     assert!(content.contains("(error)"));
 }
 
@@ -572,18 +573,22 @@ fn tool_calling_error_display() {
 // function_spec — returns field propagation
 // ============================================================================
 
-fn make_tool_with_returns(name: &str, description: &str, returns_schema: serde_json::Value) -> Tool {
+fn make_tool_with_returns(
+    name: &str,
+    description: &str,
+    returns_schema: serde_json::Value,
+) -> Tool {
     let opts: ValidationOptions = scheme::object()
         .required("query", scheme::string().min_len(1))
         .build();
     let returns_opts = ValidationOptions::with_schema(returns_schema);
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.to_string(),
         category: "search".into(),
         description: description.to_string(),
         arguments: Args::new(opts),
         returns: Some(Args::new(returns_opts)),
-    })
+    }))
 }
 
 #[test]
@@ -616,15 +621,21 @@ fn function_spec_multi_commands_collects_first_returns() {
         "multi".into(),
         vec![
             ToolDefinition {
-                name: "cmd_a".into(), category: "multi".into(),
+                name: "cmd_a".into(),
+                category: "multi".into(),
                 description: "A".into(),
-                arguments: Args::new(ValidationOptions::with_schema(serde_json::json!({"type": "object"}))),
+                arguments: Args::new(ValidationOptions::with_schema(
+                    serde_json::json!({"type": "object"}),
+                )),
                 returns: Some(Args::new(returns_a)),
             },
             ToolDefinition {
-                name: "cmd_b".into(), category: "multi".into(),
+                name: "cmd_b".into(),
+                category: "multi".into(),
                 description: "B".into(),
-                arguments: Args::new(ValidationOptions::with_schema(serde_json::json!({"type": "object"}))),
+                arguments: Args::new(ValidationOptions::with_schema(
+                    serde_json::json!({"type": "object"}),
+                )),
                 returns: Some(Args::new(returns_b)),
             },
         ],
@@ -651,7 +662,10 @@ fn openai_format_tools_emits_strict_when_returns_present() {
     let result = formatter.format_tools(&[tool]).unwrap();
     let arr = result.as_array().unwrap();
     let func = &arr[0]["function"];
-    assert_eq!(func["strict"], true, "strict must be true when returns is present");
+    assert_eq!(
+        func["strict"], true,
+        "strict must be true when returns is present"
+    );
 }
 
 #[test]
@@ -662,7 +676,10 @@ fn openai_format_tools_no_strict_when_returns_absent() {
     let arr = result.as_array().unwrap();
     let func = &arr[0]["function"];
     // strict should be absent (not false, not null)
-    assert!(func.get("strict").is_none(), "strict should be absent: {func}");
+    assert!(
+        func.get("strict").is_none(),
+        "strict should be absent: {func}"
+    );
 }
 
 // ============================================================================
@@ -702,9 +719,18 @@ fn text_based_format_tools_embeds_returns_in_description() {
     let arr = result.as_array().unwrap();
     let desc = arr[0]["description"].as_str().unwrap();
     assert!(desc.contains("Search the web"));
-    assert!(desc.contains("Returns:"), "expected Returns: in description, got: {desc}");
-    assert!(desc.contains("required"), "expected schema in description, got: {desc}");
-    assert!(desc.contains("url"), "expected 'url' prop in description, got: {desc}");
+    assert!(
+        desc.contains("Returns:"),
+        "expected Returns: in description, got: {desc}"
+    );
+    assert!(
+        desc.contains("required"),
+        "expected schema in description, got: {desc}"
+    );
+    assert!(
+        desc.contains("url"),
+        "expected 'url' prop in description, got: {desc}"
+    );
 }
 
 #[test]
@@ -715,7 +741,10 @@ fn text_based_format_tools_no_returns_in_description_when_absent() {
     let arr = result.as_array().unwrap();
     let desc = arr[0]["description"].as_str().unwrap();
     assert_eq!(desc, "Search the web");
-    assert!(!desc.contains("Returns:"), "should not have Returns: {desc}");
+    assert!(
+        !desc.contains("Returns:"),
+        "should not have Returns: {desc}"
+    );
 }
 
 #[test]
@@ -724,7 +753,7 @@ fn errstack_trace_propagation() {
     // Plain text with no tool calls — returns Ok with empty results
     let result = formatter.extract_tool_calls("totally invalid").unwrap();
     assert!(!result.has_tool_calls);
-    assert!(result.calls.is_empty());
+    assert_eq!(result.calls, [] as [foundation_ai::types::ModelOutput; 0]);
     assert_eq!(result.remaining_text, Some("totally invalid".to_string()));
 }
 
@@ -783,7 +812,10 @@ fn anthropic_thinking_only_response_has_no_tool_calls() {
     let response = r#"{"content":[{"type":"thinking","thinking":"hmm"}]}"#;
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(!result.has_tool_calls);
-    assert!(result.remaining_text.is_some(), "the reasoning must not vanish");
+    assert!(
+        result.remaining_text.is_some(),
+        "the reasoning must not vanish"
+    );
 }
 
 #[test]
@@ -806,8 +838,8 @@ fn anthropic_formats_an_image_tool_result_as_a_placeholder() {
         signature: None,
     };
 
-    let formatted = formatter.format_tool_response(&result).unwrap();
-    let content = formatted["content"].as_array().expect("content array");
+    let output = formatter.format_tool_response(&result).unwrap();
+    let content = output["content"].as_array().expect("content array");
     assert_eq!(
         content[0]["text"], "[image]",
         "an image result must be marked, not blank"

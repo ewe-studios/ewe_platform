@@ -4,9 +4,15 @@
 //! Turso store: register → login → verify the minted access token → rotate via the
 //! refresh grant → confirm the old refresh token is superseded.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::{accounts, identity};
@@ -31,13 +37,22 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 fn register_req(email: &str, password_hash: &str) -> RegisterRequest {
@@ -80,21 +95,28 @@ fn password_grant_issues_verifiable_tokens() {
 
     let c = ctx.clone();
     let login = drive(async move {
-        identity::connect_token(&c, password_grant("alice@example.com", "master-hash", "dev-1")).await
+        identity::connect_token(
+            &c,
+            password_grant("alice@example.com", "master-hash", "dev-1"),
+        )
+        .await
     })
     .expect("login");
 
     assert_eq!(login.token_type, "Bearer");
-    assert!(!login.access_token.is_empty());
-    assert!(!login.refresh_token.is_empty());
+    assert_ne!(login.access_token, "");
+    assert_ne!(login.refresh_token, "");
     assert_eq!(login.kdf_iterations, 600_000);
     // The user's protected key round-trips into the unlock metadata.
     assert_eq!(login.key.as_deref(), Some("2.userkey|wrapped"));
-    assert!(login.user_decryption_options.master_password_unlock.is_some());
+    assert!(login
+        .user_decryption_options
+        .master_password_unlock
+        .is_some());
 
     // The minted access token verifies and carries the right principal + sstamp.
     let authed = verify_access_token(ctx.verifier(), &login.access_token).expect("verify access");
-    assert!(!authed.user_uuid.is_empty());
+    assert_ne!(authed.user_uuid, "");
     assert!(authed.security_stamp.is_some());
     assert_eq!(authed.device.as_deref(), Some("dev-1"));
 }
@@ -108,7 +130,10 @@ fn wrong_password_is_rejected() {
     let res = drive(async move {
         identity::connect_token(&c, password_grant("bob@example.com", "wrong", "dev-1")).await
     });
-    assert!(matches!(res, Err(AppError::BadRequest(_))), "wrong password must be invalid_grant");
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_))),
+        "wrong password must be invalid_grant"
+    );
 }
 
 #[valtron_test]
@@ -118,7 +143,9 @@ fn unknown_user_is_rejected() {
     let res = drive(async move {
         identity::connect_token(&c, password_grant("ghost@example.com", "x", "dev-1")).await
     });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }
 
 #[valtron_test]
@@ -141,12 +168,17 @@ fn refresh_grant_rotates_and_supersedes_old_token() {
         refresh_token: Some(first_refresh.clone()),
         ..Default::default()
     };
-    let rotated = drive(async move { identity::connect_token(&c, refresh_req).await }).expect("refresh");
-    assert!(!rotated.access_token.is_empty());
-    assert_ne!(rotated.refresh_token, first_refresh, "refresh token must rotate");
+    let rotated =
+        drive(async move { identity::connect_token(&c, refresh_req).await }).expect("refresh");
+    assert_ne!(rotated.access_token, "");
+    assert_ne!(
+        rotated.refresh_token, first_refresh,
+        "refresh token must rotate"
+    );
 
     // The rotated access token verifies.
-    let authed = verify_access_token(ctx.verifier(), &rotated.access_token).expect("verify rotated");
+    let authed =
+        verify_access_token(ctx.verifier(), &rotated.access_token).expect("verify rotated");
     assert_eq!(authed.device.as_deref(), Some("dev-1"));
 
     // The OLD refresh token is now superseded.
@@ -157,7 +189,10 @@ fn refresh_grant_rotates_and_supersedes_old_token() {
         ..Default::default()
     };
     let reuse = drive(async move { identity::connect_token(&c, reuse_req).await });
-    assert!(matches!(reuse, Err(AppError::BadRequest(_))), "reused refresh token must fail");
+    assert!(
+        matches!(reuse, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_))),
+        "reused refresh token must fail"
+    );
 }
 
 #[valtron_test]
@@ -170,7 +205,9 @@ fn refresh_with_garbage_token_is_rejected() {
         ..Default::default()
     };
     let res = drive(async move { identity::connect_token(&c, req).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }
 
 #[valtron_test]
@@ -182,5 +219,7 @@ fn unsupported_grant_type_is_rejected() {
         ..Default::default()
     };
     let res = drive(async move { identity::connect_token(&c, req).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }

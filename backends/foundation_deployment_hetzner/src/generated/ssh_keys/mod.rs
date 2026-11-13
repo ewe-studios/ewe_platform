@@ -6,7 +6,12 @@
 //! Feature flag: `hetzner_ssh_keys `
 
 #![cfg(feature = "hetzner_ssh_keys")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -137,8 +142,8 @@ pub async fn list_ssh_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/ssh_keys",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = "/ssh_keys";
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -190,8 +195,8 @@ pub async fn create_ssh_key_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/ssh_keys",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = "/ssh_keys";
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

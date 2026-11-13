@@ -13,7 +13,7 @@
 //!
 //! HOW: Uses [`accept_websocket`] + [`do_connect`] from the deployment_cloudflare
 //! workers module for transport, and [`crate::core::notifications`] for
-//! MessagePack framing (VarInt + rmpv — portable, shared with native backend).
+//! MessagePack framing (VarInt + rmp-serde — portable, shared with native backend).
 
 use std::cell::RefCell;
 
@@ -26,7 +26,9 @@ use worker::{
     WebSocket, WebSocketIncomingMessage,
 };
 
-use crate::core::notifications::{self, Notification, UpdateType};
+use crate::core::notifications::{
+    decode_signalr_frame, encode_signalr_notification, Notification, UpdateType,
+};
 
 /// A SignalR MessagePack WebSocket hub backed by a Cloudflare Durable Object.
 ///
@@ -71,7 +73,7 @@ impl DurableObject for SignalRHub {
         match (method.as_str(), path.as_str()) {
             // WebSocket upgrade — standard SignalR connect endpoint.
             ("GET", "/ws") => {
-                let (server, mut resp) = accept_websocket()?;
+                let (server, resp) = accept_websocket()?;
                 // Accept on the DO state so websocket_message events fire.
                 do_connect(&self.state, &server, &[])?;
                 Ok(resp)
@@ -189,121 +191,5 @@ impl SignalRHub {
             Err(_) => return,
         };
         do_broadcast(&self.state, &frame);
-    }
-}
-
-// ── SignalR frame helpers ────────────────────────────────────────────────
-
-/// Decode a VarInt (up to 5 bytes) from the start of a byte slice.
-fn decode_varint(data: &[u8]) -> Option<(u64, usize)> {
-    let mut value: u64 = 0;
-    let mut shift = 0;
-    for (i, &byte) in data.iter().enumerate().take(5) {
-        value |= u64::from(byte & 0x7F) << shift;
-        if byte & 0x80 == 0 {
-            return Some((value, i + 1));
-        }
-        shift += 7;
-        if shift >= 35 {
-            return None;
-        }
-    }
-    None
-}
-
-/// Encode a u32 as a VarInt byte vector.
-fn encode_varint(mut value: u32) -> Vec<u8> {
-    let mut buf = Vec::with_capacity(5);
-    loop {
-        let mut byte = (value & 0x7F) as u8;
-        value >>= 7;
-        if value != 0 {
-            byte |= 0x80;
-        }
-        buf.push(byte);
-        if value == 0 {
-            break;
-        }
-    }
-    buf
-}
-
-/// Decode a SignalR MessagePack frame: `(message_type, payload_bytes)`.
-fn decode_signalr_frame(data: &[u8]) -> Option<(u8, &[u8])> {
-    let (len, consumed) = decode_varint(data)?;
-    let payload = data.get(consumed..consumed + len as usize)?;
-    // Payload is a MessagePack array `[msg_type, ..]`. First element is the
-    // hub invocation message type.
-    let msg_type: u8 = rmp_serde::from_slice(payload).ok()?;
-    Some((msg_type, payload))
-}
-
-/// Encode a [`Notification`] as a complete SignalR WebSocket binary frame:
-/// VarInt length prefix + `[1, {Target: "...", Arguments: [payload_json]}]`.
-fn encode_signalr_notification(notif: &Notification) -> Result<Vec<u8>, String> {
-    let payload_json = notif
-        .payload
-        .as_ref()
-        .and_then(|v| serde_json::to_string(v).ok())
-        .unwrap_or_default();
-
-    let target = match notif.update_type {
-        UpdateType::SyncCipherCreate => "SyncCipherCreate",
-        UpdateType::SyncCipherUpdate => "SyncCipherUpdate",
-        UpdateType::SyncLoginDelete => "SyncLoginDelete",
-        UpdateType::SyncFolderDelete => "SyncFolderDelete",
-        UpdateType::SyncCiphers => "SyncCiphers",
-        UpdateType::SyncVault => "SyncVault",
-        UpdateType::SyncOrgKeys => "SyncOrgKeys",
-        UpdateType::SyncFolderCreate => "SyncFolderCreate",
-        UpdateType::SyncFolderUpdate => "SyncFolderUpdate",
-        UpdateType::SyncCipherDelete => "SyncCipherDelete",
-        UpdateType::SyncSettings => "SyncSettings",
-        UpdateType::SyncLogOut => "SyncLogOut",
-        UpdateType::SyncSendCreate => "SyncSendCreate",
-        UpdateType::SyncSendUpdate => "SyncSendUpdate",
-        UpdateType::SyncSendDelete => "SyncSendDelete",
-        UpdateType::AuthRequest => "AuthRequest",
-        UpdateType::AuthRequestResponse => "AuthRequestResponse",
-    };
-
-    // SignalR hub invocation: `[1, {Target: "...", Arguments: [...]}]`
-    let invocation = rmp_serde::encode::to_vec_named(&(
-        1u8,
-        serde_json::json!({
-            "Target": target,
-            "Arguments": [payload_json],
-        }),
-    ))
-    .map_err(|e| e.to_string())?;
-
-    let mut frame = encode_varint(invocation.len() as u32);
-    frame.extend_from_slice(&invocation);
-    Ok(frame)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn varint_round_trip() {
-        for val in [0u32, 1, 127, 128, 16383, 16384, 2097151, 268435456] {
-            let enc = encode_varint(val);
-            let (dec, n) = decode_varint(&enc).expect("decode varint");
-            assert_eq!(dec, val as u64, "varint round-trip fail at {val}");
-            assert_eq!(n, enc.len());
-        }
-    }
-
-    #[test]
-    fn notification_frame_is_valid() {
-        let notif = Notification::new(
-            UpdateType::SyncCipherCreate,
-            Some(serde_json::json!({"id": "test-123"})),
-        );
-        let frame = encode_signalr_notification(&notif).expect("encode");
-        let (msg_type, _payload) = decode_signalr_frame(&frame).expect("decode");
-        assert_eq!(msg_type, 1); // Invocation
     }
 }

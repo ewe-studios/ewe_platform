@@ -1,15 +1,15 @@
 // SCRU128 monotonic IDs — folded from foundation_rng.
 // Original: https://github.com/scru128/rust (MIT OR Apache-2.0)
 
-mod rand_adapter;
 #[cfg(feature = "global_gen")]
 mod global_gen;
+mod rand_adapter;
 
 pub mod generator;
 pub mod id;
 
 pub use generator::{Generator, RandSource, StdSystemTime, TimeSource};
-pub use id::{FieldError, Id, ParseError};
+pub use id::{FieldError, Id, ParseError, ParseErrorKind};
 pub use rand_adapter::Adapter;
 
 #[cfg(feature = "global_gen")]
@@ -88,11 +88,9 @@ pub fn new_scru128_with_machine_id(machine_id: u32) -> Id {
     GEN.with_borrow_mut(|slot| {
         let needs_new = !matches!(slot, Some((mid, _)) if *mid == machine_id);
         if needs_new {
-            let gen = Generator::with_rand_and_time_sources(
-                Adapter(crate::rng::rng()),
-                StdSystemTime,
-            )
-            .with_machine_id(machine_id, DEFAULT_MACHINE_ID_BITS);
+            let gen =
+                Generator::with_rand_and_time_sources(Adapter(crate::rng::rng()), StdSystemTime)
+                    .with_machine_id(machine_id, DEFAULT_MACHINE_ID_BITS);
             *slot = Some((machine_id, gen));
         }
         // Safe: set just above when needed.
@@ -143,7 +141,11 @@ pub fn stable_hash(bytes: &[u8]) -> u64 {
 pub fn scru128_from_name_with_machine_id(name: &str, machine_id: u32) -> Id {
     let ts = now_unix_ms();
     let bits = u32::from(DEFAULT_MACHINE_ID_BITS);
-    let mid = if bits == 0 { 0 } else { machine_id & ((1u32 << bits) - 1) };
+    let mid = if bits == 0 {
+        0
+    } else {
+        machine_id & ((1u32 << bits) - 1)
+    };
     let h = stable_hash(name.as_bytes());
 
     #[allow(clippy::cast_possible_truncation)]
@@ -200,7 +202,9 @@ mod machine_id_api_tests {
     #[test]
     fn new_with_machine_id_is_monotonic_and_attributable() {
         let machine = 0x3FF;
-        let ids: Vec<Id> = (0..2_000).map(|_| new_scru128_with_machine_id(machine)).collect();
+        let ids: Vec<Id> = (0..2_000)
+            .map(|_| new_scru128_with_machine_id(machine))
+            .collect();
         for w in ids.windows(2) {
             // Strictly increasing even across same-millisecond bursts.
             assert!(w[0] < w[1], "ids must be strictly increasing");
@@ -216,7 +220,11 @@ mod machine_id_api_tests {
         let bits = u32::from(DEFAULT_MACHINE_ID_BITS);
         let wide = 0xFFFF_FFFFu32;
         let id = new_scru128_with_machine_id(wide);
-        let expected = if bits == 32 { wide } else { wide & ((1u32 << bits) - 1) };
+        let expected = if bits == 32 {
+            wide
+        } else {
+            wide & ((1u32 << bits) - 1)
+        };
         assert_eq!(machine_id_of(&id), expected);
     }
 
@@ -234,7 +242,10 @@ mod machine_id_api_tests {
                 break;
             }
         }
-        assert!(matched, "two calls should land in the same millisecond at least once");
+        assert!(
+            matched,
+            "two calls should land in the same millisecond at least once"
+        );
     }
 
     #[test]
@@ -242,7 +253,10 @@ mod machine_id_api_tests {
         // Different names differ in the hashed counter/entropy region.
         let a = scru128_from_name_with_machine_id("alpha", 1);
         let b = scru128_from_name_with_machine_id("beta", 1);
-        assert_ne!(a.counter_hi() ^ a.counter_lo(), b.counter_hi() ^ b.counter_lo());
+        assert_ne!(
+            a.counter_hi() ^ a.counter_lo(),
+            b.counter_hi() ^ b.counter_lo()
+        );
         // Same name on different machines carries different machine ids.
         let m1 = scru128_from_name_with_machine_id("same", 1);
         let m2 = scru128_from_name_with_machine_id("same", 2);

@@ -21,7 +21,7 @@ use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_core::wasm_logs;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::wasm::bridge::cf::CfHttpApp;
 use foundation_http::wasm::cf_conn::{CfConn, CfConnectionResult};
 use foundation_http::wasm::serve_cf::{CfServe, CfServeFactory};
@@ -94,10 +94,14 @@ async fn get_or_build_session() -> Result<AgentSession, String> {
     if let Some(base_url) = creds.base_url {
         config = config.with_base_url(base_url);
     }
-    let provider = WorkersAiProvider::with_http_client(HttpClientBuilder::new().build())
-        .create(Some(config))
-        .map_err(|e| e.to_string())?;
-    let session = AgentSession::builder(provider)
+    let ctx = foundation_context::Ctx::try_host().map_err(|e| e.to_string())?;
+    let provider = WorkersAiProvider::with_http_client(
+        HttpClientBuilder::new().build(),
+        ctx.clone(),
+    )
+    .create(Some(config))
+    .map_err(|e| e.to_string())?;
+    let session = AgentSession::builder(provider, ctx)
         .with_model(ModelId::from(creds.model.as_str()))
         .with_system_prompt(SYSTEM_PROMPT)
         .build()
@@ -147,7 +151,7 @@ async fn run_prompt(prompt: &str) -> Result<PromptOutcome, String> {
 struct AgentHandler;
 
 impl CfServeFactory for AgentHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         AgentHandler
     }
 }
@@ -156,7 +160,7 @@ impl CfServeFactory for AgentHandler {
 impl CfServe for AgentHandler {
     async fn serve_cf(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: &mut CfConn,
     ) -> CfConnectionResult {
@@ -205,7 +209,7 @@ pub async fn fetch(req: web_sys::Request, env: JsValue) -> Result<web_sys::Respo
     POOL_GUARD.get_or_init(|| initialize_pool(42, None));
 
     store_creds(&env);
-    let guard = CfHttpAppSingleton::get_or_init(|_bag| build_app());
+    let guard = CfHttpAppSingleton::get_or_init(|_ctx| build_app());
     guard
         .fetch(req, env)
         .await

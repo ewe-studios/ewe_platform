@@ -159,7 +159,12 @@ fn capped(end: Option<usize>, pending_len: usize, kind: FrameKind, limit: usize)
 #[must_use]
 pub fn header_block(pending: &[u8], limits: &FrameLimits) -> FrameCheck {
     let kind = FrameKind::HeaderBlock;
-    capped(blank_line_end(pending), pending.len(), kind, limits.limit(kind))
+    capped(
+        blank_line_end(pending),
+        pending.len(),
+        kind,
+        limits.limit(kind),
+    )
 }
 
 /// Whether one full line is buffered, as `LineFeed::stream_line_feeds` reads it.
@@ -194,7 +199,12 @@ pub fn sse_event(pending: &[u8], limits: &FrameLimits) -> FrameCheck {
         (Some(a), Some(b)) => Some(a.min(b)),
         (a, b) => a.or(b),
     };
-    capped(end, pending.len(), FrameKind::SseEvent, limits.max_sse_event)
+    capped(
+        end,
+        pending.len(),
+        FrameKind::SseEvent,
+        limits.max_sse_event,
+    )
 }
 
 /// Whether the next chunk-size line of a chunked body is fully buffered. Chunk

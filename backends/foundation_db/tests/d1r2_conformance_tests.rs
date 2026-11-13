@@ -1,7 +1,7 @@
 //! `D1R2DocumentStore` conformance (F23) — exercises the target-agnostic
 //! D1+R2 store logic over real, in-process backends with no external infra.
 //!
-//! WHY: `D1R2DocumentStore<Q, B>` is the Cloudflare DocumentStore; on Workers it
+//! WHY: `D1R2DocumentStore<Q, B>` is the Cloudflare `DocumentStore`; on Workers it
 //! runs over `D1WasmStorage` + `R2WasmStorage`, and the gated
 //! `d1r2_document_store_tests` proves the native D1/R2 REST clients against a
 //! miniflare worker. This suite proves the *store logic itself* — 4 KB offload
@@ -16,6 +16,7 @@
 
 use std::sync::Mutex;
 
+use foundation_compact::ids::new_scru128_string;
 use foundation_db::traits::{BlobStore, DocumentStore};
 use foundation_db::{D1R2DocumentStore, MemoryStorage, StorageError, TursoStorage};
 use futures_lite::StreamExt;
@@ -31,10 +32,13 @@ fn init_valtron() {
 
 /// A `D1R2DocumentStore` over in-memory SQLite (index) + in-memory blobs (R2),
 /// plus a handle to the blob store so tests can assert on offload directly.
-fn make_store() -> (D1R2DocumentStore<TursoStorage, MemoryStorage>, MemoryStorage) {
+fn make_store() -> (
+    D1R2DocumentStore<TursoStorage, MemoryStorage>,
+    MemoryStorage,
+) {
     init_valtron();
     let turso = futures_lite::future::block_on(async {
-        let turso = TursoStorage::new(":memory:").await?;
+        let turso = TursoStorage::new(":memory:", foundation_context::Ctx::host()).await?;
         turso.init_schema().await?;
         Ok::<_, StorageError>(turso)
     })
@@ -49,14 +53,88 @@ fn blob_key(collection: &str, doc_id: &str) -> String {
 }
 
 #[test]
+fn append_with_id_is_idempotent() {
+    let (store, _blobs) = make_store();
+    futures_lite::future::block_on(async {
+        let id = new_scru128_string();
+        let first = store
+            .append_with_id("k", &id, serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        assert_eq!(first.id, id);
+        let second = store
+            .append_with_id("k", &id, serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        assert_eq!(second.id, id);
+        assert_eq!(
+            store.count("k").await.unwrap(),
+            1,
+            "re-append must not duplicate"
+        );
+        let docs = store.scan_documents("k", 10).await.unwrap();
+        assert_eq!(docs.len(), 1);
+        assert_eq!(docs[0].id, id);
+    });
+}
+
+#[test]
+fn append_with_id_is_idempotent_for_offloaded_documents() {
+    let (store, blobs) = make_store();
+    futures_lite::future::block_on(async {
+        let id = new_scru128_string();
+        let body = "y".repeat(8192); // > 4 KB → offloaded to the blob store
+        let doc = store
+            .append_with_id("k", &id, serde_json::json!({"body": body.clone()}))
+            .await
+            .unwrap();
+        assert!(
+            blobs.blob_exists(&blob_key("k", &doc.id)).await.unwrap(),
+            "large doc must offload"
+        );
+
+        store
+            .append_with_id("k", &id, serde_json::json!({"body": body}))
+            .await
+            .unwrap();
+        assert_eq!(
+            store.count("k").await.unwrap(),
+            1,
+            "re-append must not duplicate"
+        );
+        let back: Vec<serde_json::Value> = store
+            .scan_all::<serde_json::Value>("k")
+            .await
+            .unwrap()
+            .map(Result::unwrap)
+            .collect()
+            .await;
+        assert_eq!(back.len(), 1);
+        assert_eq!(back[0]["body"].as_str().unwrap().len(), 8192);
+    });
+}
+
+#[test]
 fn append_orders_by_scru128_and_counts() {
     let (store, _blobs) = make_store();
     futures_lite::future::block_on(async {
-        let a = store.append("k", serde_json::json!({"n": 0})).await.unwrap();
-        let b = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
-        let c = store.append("k", serde_json::json!({"n": 2})).await.unwrap();
+        let a = store
+            .append("k", serde_json::json!({"n": 0}))
+            .await
+            .unwrap();
+        let b = store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        let c = store
+            .append("k", serde_json::json!({"n": 2}))
+            .await
+            .unwrap();
         assert_eq!(a.id.len(), 25, "scru128 id");
-        assert!(b.id > a.id && c.id > b.id, "appends produce ascending scru128 ids");
+        assert!(
+            b.id > a.id && c.id > b.id,
+            "appends produce ascending scru128 ids"
+        );
         assert_eq!(store.count("k").await.unwrap(), 3);
 
         // scan_documents returns newest-first (DESC).
@@ -70,9 +148,18 @@ fn append_orders_by_scru128_and_counts() {
 fn scan_from_is_inclusive_and_ascending() {
     let (store, _blobs) = make_store();
     futures_lite::future::block_on(async {
-        let _a = store.append("k", serde_json::json!({"n": 0})).await.unwrap();
-        let b = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
-        let _c = store.append("k", serde_json::json!({"n": 2})).await.unwrap();
+        let _a = store
+            .append("k", serde_json::json!({"n": 0}))
+            .await
+            .unwrap();
+        let b = store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        let _c = store
+            .append("k", serde_json::json!({"n": 2}))
+            .await
+            .unwrap();
 
         let from_b: Vec<serde_json::Value> = store
             .scan_from::<serde_json::Value>("k", &b.id, 0)
@@ -148,7 +235,10 @@ fn large_documents_offload_and_read_through() {
 fn mixed_inline_and_offloaded_round_trip_in_order() {
     let (store, blobs) = make_store();
     futures_lite::future::block_on(async {
-        let small = store.append("k", serde_json::json!({"i": 0, "b": "s"})).await.unwrap();
+        let small = store
+            .append("k", serde_json::json!({"i": 0, "b": "s"}))
+            .await
+            .unwrap();
         let big = store
             .append("k", serde_json::json!({"i": 1, "b": "L".repeat(5000)}))
             .await
@@ -196,14 +286,27 @@ fn delete_removes_row_and_offloaded_blob() {
 fn delete_all_clears_collection_and_blobs() {
     let (store, blobs) = make_store();
     futures_lite::future::block_on(async {
-        let d0 = store.append("k", serde_json::json!({"b": "a".repeat(6000)})).await.unwrap();
-        let d1 = store.append("k", serde_json::json!({"b": "b".repeat(6000)})).await.unwrap();
-        store.append("other", serde_json::json!({"b": "keep"})).await.unwrap();
+        let d0 = store
+            .append("k", serde_json::json!({"b": "a".repeat(6000)}))
+            .await
+            .unwrap();
+        let d1 = store
+            .append("k", serde_json::json!({"b": "b".repeat(6000)}))
+            .await
+            .unwrap();
+        store
+            .append("other", serde_json::json!({"b": "keep"}))
+            .await
+            .unwrap();
 
         let removed = store.delete_all("k").await.unwrap();
         assert_eq!(removed, 2);
         assert_eq!(store.count("k").await.unwrap(), 0);
-        assert_eq!(store.count("other").await.unwrap(), 1, "other collection untouched");
+        assert_eq!(
+            store.count("other").await.unwrap(),
+            1,
+            "other collection untouched"
+        );
         assert!(!blobs.blob_exists(&blob_key("k", &d0.id)).await.unwrap());
         assert!(!blobs.blob_exists(&blob_key("k", &d1.id)).await.unwrap());
     });

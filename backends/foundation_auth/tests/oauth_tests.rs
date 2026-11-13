@@ -1,8 +1,15 @@
 //! Native OAuth client tests.
 
+use std::sync::Arc;
+
 use foundation_auth::native::oauth::NativeOAuth;
 use foundation_auth::shared::oauth::{OAuthConfig, OAuthManager, PkceChallenge};
 use foundation_auth::shared::oauth_token::OAuthToken;
+use foundation_context::{Ctx, MonotonicClock};
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 #[test]
 fn test_oauth_config_builder() {
@@ -97,8 +104,9 @@ fn test_oauth_token_conversion() {
         id_token: None,
     };
 
-    let jwt_token = oauth_token.into_jwt_token().unwrap();
+    let ctx = test_clock();
+    let jwt_token = oauth_token.into_jwt_token(&ctx).unwrap();
     assert_eq!(jwt_token.access_token(), "access_123");
     assert_eq!(jwt_token.refresh_token(), Some("refresh_456".to_string()));
-    assert!(!jwt_token.is_expired());
+    assert!(!jwt_token.is_expired(&ctx));
 }

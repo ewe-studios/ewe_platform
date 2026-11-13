@@ -55,7 +55,10 @@ fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
     set_open.set(true);
     app.stabilize();
     let ops = ops_of(&sent);
-    assert!(created_tags(&ops).contains(&String::from("em")), "mounted on true");
+    assert!(
+        created_tags(&ops).contains(&String::from("em")),
+        "mounted on true"
+    );
     // Inserted BEFORE the region anchor, not appended blind.
     assert!(ops
         .iter()
@@ -198,10 +201,8 @@ fn texts_in_order(ops: &[DomOp]) -> Vec<String> {
 fn for_renders_appends_and_removes_without_moves() {
     let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
-    let (todos, set_todos) = ctx.signal(vec![
-        Todo { id: 1, label: "a" },
-        Todo { id: 2, label: "b" },
-    ]);
+    let (todos, set_todos) =
+        ctx.signal(vec![Todo { id: 1, label: "a" }, Todo { id: 2, label: "b" }]);
 
     let _tree = html! { ctx, receiver,
         <ul>

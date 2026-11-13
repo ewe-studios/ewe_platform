@@ -192,7 +192,9 @@ fn parse_flags(attr: TokenStream) -> Result<Flags, syn::Error> {
             other => {
                 return Err(syn::Error::new(
                     ident.span(),
-                    format!("unknown #[wasm_test] flag `{other}` (expected `should_panic` or `ignore`)"),
+                    format!(
+                        "unknown #[wasm_test] flag `{other}` (expected `should_panic` or `ignore`)"
+                    ),
                 ))
             }
         }
@@ -223,8 +225,11 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
         Err(err) => return err.to_compile_error(),
     };
     if !case.sig.inputs.is_empty() {
-        return syn::Error::new_spanned(&case.sig.inputs, "#[wasm_test] functions take no arguments")
-            .to_compile_error();
+        return syn::Error::new_spanned(
+            &case.sig.inputs,
+            "#[wasm_test] functions take no arguments",
+        )
+        .to_compile_error();
     }
 
     let fw = foundation_wasm_path();
@@ -304,17 +309,16 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[link_section = "__fwt_manifest"]
         static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;
     }
-    .into()
 }
 
 /// `#[valtron_wasm_test]` — `#[wasm_test]` but with a live valtron pool.
 ///
 /// Same as `#[wasm_test]` (owned export + manifest entry + runner),
-/// but wraps the test body in `valtron::initialize_pool()` / drop() so
+/// but wraps the test body in `valtron::initialize_pool()` / `drop()` so
 /// `valtron::execute()` and `valtron::spawn()` are available without
 /// manual pool setup.
-pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let flags = match parse_flags(attr) {
+pub(crate) fn valtron_wasm_test(attr: &TokenStream, item: &TokenStream) -> TokenStream {
+    let flags = match parse_flags(attr.clone()) {
         Ok(flags) => flags,
         Err(err) => return err.to_compile_error(),
     };
@@ -339,9 +343,15 @@ pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenSt
     let ignore = flags.ignore;
 
     let mut manifest_flags = String::new();
-    if is_async { manifest_flags.push('a'); }
-    if flags.should_panic { manifest_flags.push('p'); }
-    if ignore { manifest_flags.push('i'); }
+    if is_async {
+        manifest_flags.push('a');
+    }
+    if flags.should_panic {
+        manifest_flags.push('p');
+    }
+    if ignore {
+        manifest_flags.push('i');
+    }
     let manifest_line = format!("{name_str}|{manifest_flags}\n");
     let manifest_bytes = syn::LitByteStr::new(manifest_line.as_bytes(), name.span());
     let manifest_len = manifest_line.len();
@@ -395,5 +405,4 @@ pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenSt
         #[link_section = "__fwt_manifest"]
         static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;
     }
-    .into()
 }

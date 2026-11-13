@@ -1,0 +1,100 @@
+name: Diagnose one test
+
+# Runs one test with its full output on one operating system (OS).
+# .github/diagnose.toml names the OS, the package, the test and the repeat count.
+# The normal CI keeps only the failure lines; this job keeps the whole output
+# of the first failed attempt, at the end of the log, where the log API can read it.
+# A new branch matches the path filter on its first push. Dependabot opens
+# many new branches, so its branches do not start this job. Every other
+# branch does.
+on:
+  push:
+    branches-ignore:
+      - "dependabot/**"
+    paths:
+      - .github/diagnose.toml
+      - .github/workflows/diagnose.yaml
+  workflow_dispatch:
+
+# The job only reads the repository.
+permissions:
+  contents: read
+
+# CLAUDE.md rule 16: one diagnose run per branch at a time.
+concurrency:
+  group: diagnose-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Read .github/diagnose.toml
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.read.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - id: read
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib
+          cfg = tomllib.load(open(".github/diagnose.toml", "rb"))
+          runners = {
+              "linux": "ubuntu-latest",
+              "macos": "macos-26",
+              "windows": "windows-2025",
+          }
+          print(f"runner={runners[cfg['os']]}")
+          PY
+
+  diagnose:
+    name: Diagnose
+    needs: plan
+    runs-on: ${{ needs.plan.outputs.runner }}
+    timeout-minutes: 90
+    env:
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install the pinned toolchain
+        run: |
+          py=$(command -v python3 || command -v python)
+          toolchain=$("$py" -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Run the test
+        run: |
+          py=$(command -v python3 || command -v python)
+          "$py" - <<'PY'
+          import os, shlex, subprocess, sys, tomllib
+          cfg = tomllib.load(open(".github/diagnose.toml", "rb"))
+          env = {**os.environ, **{k: str(v) for k, v in cfg.get("env", {}).items()}}
+          base = ["cargo", "test", "-p", cfg["package"], *shlex.split(cfg.get("args", ""))]
+          build = subprocess.run([*base, "--no-run"], env=env)
+          if build.returncode != 0:
+              sys.exit(build.returncode)
+          cmd = [*base, "--", cfg.get("filter", ""), "--nocapture", "--test-threads=1"]
+          repeat = int(cfg.get("repeat", 1))
+          for attempt in range(1, repeat + 1):
+              proc = subprocess.run(cmd, env=env, capture_output=True, text=True, errors="replace")
+              print(f"attempt {attempt}/{repeat}: exit {proc.returncode}", flush=True)
+              if proc.returncode != 0:
+                  print(f"::group::full output of failed attempt {attempt}")
+                  print(proc.stdout)
+                  print(proc.stderr)
+                  print("::endgroup::")
+                  print(f"::error::attempt {attempt} of {repeat} failed")
+                  sys.exit(1)
+          print(f"all {repeat} attempts passed")
+          PY

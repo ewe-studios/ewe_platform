@@ -1,4 +1,4 @@
-//! Tests for foundation_arrow IPC encode/decode.
+//! Tests for `foundation_arrow` IPC encode/decode.
 
 use arrow_array::{
     ArrayRef, BinaryArray, Float64Array, Int64Array, RecordBatch, StringArray, UInt64Array,
@@ -18,11 +18,7 @@ fn make_test_batch() -> RecordBatch {
 
     let id: ArrayRef = Arc::new(UInt64Array::from(vec![1, 2, 3]));
     let name: ArrayRef = Arc::new(StringArray::from(vec!["alice", "bob", "charlie"]));
-    let value: ArrayRef = Arc::new(Float64Array::from(vec![
-        Some(1.5),
-        Some(2.7),
-        None,
-    ]));
+    let value: ArrayRef = Arc::new(Float64Array::from(vec![Some(1.5), Some(2.7), None]));
     let timestamp: ArrayRef = Arc::new(Int64Array::from(vec![1000, 2000, 3000]));
     let data: ArrayRef = Arc::new(BinaryArray::from_opt_vec(vec![
         Some(b"hello"),
@@ -39,7 +35,7 @@ fn test_encode_decode_single_batch() {
     let encoded = encode_ipc(&batch).expect("encode failed");
 
     // Encoded data should be non-empty
-    assert!(!encoded.is_empty());
+    assert_ne!(encoded, [] as [u8; 0]);
 
     let decoded = decode_ipc(&encoded).expect("decode failed");
 
@@ -84,7 +80,7 @@ fn test_encode_decode_multiple_batches() {
     assert_eq!(decoded[1].schema(), batch2.schema());
 
     // Combined rows should be 6
-    let total_rows: usize = decoded.iter().map(|b| b.num_rows()).sum();
+    let total_rows: usize = decoded.iter().map(RecordBatch::num_rows).sum();
     assert_eq!(total_rows, 6);
 }
 

@@ -8,11 +8,11 @@
 //! WHAT: [`ConnectRpcServeH3`] wrapping a [`ConnectRpcHandler`].
 //!
 //! HOW: `serve_h3()` returns a future that drives `H3Request::poll_headers`,
-//! `poll_body`, and `poll_send_*` via `std::future::poll_fn`. QUIC streams have
-//! no waker registration (`quinn-proto` is sans-IO and the endpoint driver task
-//! moves the datagrams), so a not-ready H3 poll wakes its own task before
-//! yielding: valtron then requeues it behind the driver instead of parking it on
-//! a wake that would never come.
+//! `poll_body`, and `poll_send_*` via `std::future::poll_fn`. Before each poll
+//! the future registers its waker on the QUIC connection; the endpoint driver
+//! task (which moves the datagrams for the sans-IO `quinn-proto`) wakes it when
+//! the connection makes progress, so a not-ready H3 future parks instead of
+//! busy-polling a worker.
 //!
 //! The request body of a streaming procedure is never collected: each DATA frame
 //! is forwarded into the protocol's bounded request pipe as it arrives, while the
@@ -29,7 +29,7 @@ use std::task::{Context, Poll};
 use bytes::Bytes;
 use foundation_core::valtron::{Pipe, Stream as VStream};
 use foundation_http::native::serve::{BoxFuture, H3Serve};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::http3::connection::{error_code, H3Error, H3Request};
 use foundation_netio::http3::types::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -40,15 +40,19 @@ use foundation_netio::shared::http::{
 };
 use futures::StreamExt;
 
+use crate::native::dispatch_h2::{
+    extend_handler_headers, grpc_status_trailers, h2_headers, request_from_header, run_unary,
+    ThreadTimer,
+};
 use crate::shared::compression::CompressionRegistry;
-use crate::shared::context::{CancelSignal, Ctx, Spec};
+use crate::shared::context::{CancelSignal, RpcCtx, Spec};
 use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
-    exchange_until_aborted, extract_path, grpc_status_trailers, h2_headers,
-    http_version_not_supported, method_not_allowed,
-    request_from_header, run_unary, status_only, stream_error_frame, stream_failure,
-    unclosed_stream_error, unsupported_media_type, write_error, Abort, StreamEnd, ThreadTimer,
+    exchange_until_aborted, extract_path, http_version_not_supported, merge_handler_headers,
+    method_not_allowed, protocol_encoding_header, status_only, stream_error_frame, stream_failure,
+    take_handler_headers, unclosed_stream_error, unsupported_media_type, write_error, Abort,
+    StreamEnd,
 };
 use crate::shared::router::erased::ErasedStreamHandler;
 use crate::shared::router::{ConnectRpcHandler, HandlerKind};
@@ -57,7 +61,7 @@ use crate::shared::transport::check_compatible;
 
 type Req = H3Request<QuinnBidiStream>;
 
-/// `H3Serve` impl that dispatches through a ConnectRPC router.
+/// `H3Serve` impl that dispatches through a `ConnectRPC` router.
 pub struct ConnectRpcServeH3 {
     handler: Arc<ConnectRpcHandler>,
 }
@@ -74,16 +78,16 @@ impl ConnectRpcServeH3 {
 impl H3Serve for ConnectRpcServeH3 {
     fn serve_h3(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         connection: Arc<ConnectionContext>,
         request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, io::Result<()>> {
         let handler = self.handler.clone();
-        Box::pin(dispatch_h3(handler, bag, connection, request))
+        Box::pin(dispatch_h3(handler, app_ctx, connection, request))
     }
 }
 
-/// Drive one HTTP/3 request through the ConnectRPC router (F35 server half).
+/// Drive one HTTP/3 request through the `ConnectRPC` router (F35 server half).
 ///
 /// `connection` is the connection-scoped context populated from the QUIC
 /// handshake — peer address, ALPN, TLS details — built once per connection
@@ -93,18 +97,22 @@ impl H3Serve for ConnectRpcServeH3 {
 /// # Errors
 /// The stream failed: the peer reset it, the connection went away, or the
 /// HTTP/3 framing was invalid. A request body that fails mid-read cancels the
-/// call's [`Ctx`] and resets our response half with `H3_REQUEST_CANCELLED`.
+/// call's [`RpcCtx`] and resets our response half with `H3_REQUEST_CANCELLED`.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the request lifecycle reads best as one ordered function"
+)]
 pub async fn dispatch_h3(
     handler: Arc<ConnectRpcHandler>,
-    bag: Arc<ContextBag>,
+    app_ctx: Ctx,
     connection: Arc<ConnectionContext>,
     mut req: H3Request<QuinnBidiStream>,
 ) -> io::Result<()> {
     // ── 1. Read the request headers ──────────────────────────────────────
-    let fields = poll_h3(|| req.poll_headers()).await?;
+    let fields = poll_req(&mut req, H3Request::poll_headers).await?;
 
-    let header = request_from_fields(&fields, connection)
-        .map_err(|e| io::Error::other(e.to_string()))?;
+    let header =
+        request_from_fields(&fields, connection).map_err(|e| io::Error::other(e.to_string()))?;
     let request = request_from_header(&header);
     let path = extract_path(&request.request_url.url);
 
@@ -168,7 +176,13 @@ pub async fn dispatch_h3(
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
     let spec = entry.spec.clone();
-    let ctx = build_ctx(bag, &request, spec.clone(), protocol, CancelSignal::new());
+    let ctx = build_ctx(
+        app_ctx,
+        &request,
+        spec.clone(),
+        protocol,
+        CancelSignal::new(),
+    );
 
     // ── 3. Dispatch ──────────────────────────────────────────────────────
     match &entry.handler {
@@ -198,17 +212,46 @@ pub async fn dispatch_h3(
             // The deadline bounds the handler; the body read above is bounded
             // by the transport's own idle timeout.
             let cancel = ctx.cancel_signal().clone();
-            let response = run_unary(
-                handler_fn.clone(),
-                protocol,
-                request,
-                codec_name,
-                compression,
-                ctx,
-                read_max_bytes,
-                Some(&ThreadTimer),
-            )
-            .await;
+            // A client that cancels after its request body ends sends
+            // `STOP_SENDING` for our write half, which is the only signal left
+            // once the stream's receive state is freed (issue #257). Race it
+            // against the handler, or the handler runs to completion and its
+            // response goes to a peer that has stopped reading.
+            // The probe borrows `req` for as long as it is alive, so it lives
+            // in an inner scope that ends before the response is written.
+            let raced = {
+                let run = std::pin::pin!(run_unary(
+                    handler_fn.clone(),
+                    protocol,
+                    request,
+                    codec_name,
+                    compression,
+                    ctx,
+                    read_max_bytes,
+                    Some(&ThreadTimer),
+                ));
+                let stopped = std::pin::pin!(peer_stopped(&mut req));
+                match futures::future::select(run, stopped).await {
+                    futures::future::Either::Left((response, _stopped)) => {
+                        UnaryRace::Answered(response)
+                    }
+                    futures::future::Either::Right((code, _run)) => UnaryRace::Stopped(code),
+                }
+            };
+            let response = match raced {
+                UnaryRace::Answered(response) => response,
+                UnaryRace::Stopped(code) => {
+                    tracing::debug!(
+                        code,
+                        "h3 peer stopped the response half; cancelling the unary call"
+                    );
+                    cancel.cancel();
+                    // RFC 9114 section 4.1.2: a sender that receives
+                    // `STOP_SENDING` SHOULD reset the stream.
+                    req.reset(error_code::H3_REQUEST_CANCELLED);
+                    return Ok(());
+                }
+            };
             let sent = send_h3_response(&mut req, response).await;
             if sent.is_err() {
                 // The peer is gone; anything the handler left running stops.
@@ -250,6 +293,10 @@ pub async fn dispatch_h3(
 /// they share it through a `Mutex` held only for one synchronous poll — never
 /// across an `.await` — which keeps it uncontended.
 #[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the send and receive halves share one stream and one state machine"
+)]
 async fn run_streaming_h3(
     handler: Arc<dyn ErasedStreamHandler>,
     protocol: &dyn ProtocolHandler,
@@ -257,7 +304,7 @@ async fn run_streaming_h3(
     spec: Spec,
     codec_name: String,
     compression: &CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     pipe_depth: usize,
     read_max_bytes: usize,
     mut req: Req,
@@ -267,6 +314,7 @@ async fn run_streaming_h3(
 
     let cancel = ctx.cancel_signal().clone();
     let deadline = ctx.request.deadline;
+    let timer_ctx = ctx.ctx.clone();
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
@@ -286,6 +334,7 @@ async fn run_streaming_h3(
         conn,
         reader_task,
         writer_task,
+        response_headers,
     } = exchange;
 
     let shared = Mutex::new(req);
@@ -298,7 +347,9 @@ async fn run_streaming_h3(
     // The writer task compressed per this same negotiation — a flagged envelope
     // is only valid when the encoding header goes out with the response HEADERS.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
+    let encoding_header = protocol_encoding_header(protocol);
     let pump_content_type = content_type.clone();
+    let pump_headers = Arc::clone(&response_headers);
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
     // As over h2: the request side lives as long as the CLIENT keeps its request
@@ -318,12 +369,14 @@ async fn run_streaming_h3(
                     // The protocol reader is gone and will never read the rest;
                     // the response side decides the outcome.
                     tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
-                    req_tx.close();
+                    // The bool only reports who closed the pipe; the reader
+                    // is gone, so either result ends the body.
+                    let _ = req_tx.close();
                     return Ok(());
                 }
             }
             body_done.store(true, Ordering::Release);
-            req_tx.close();
+            let _ = req_tx.close();
             Ok::<(), io::Error>(())
         };
         let request_side =
@@ -348,6 +401,8 @@ async fn run_streaming_h3(
                     if let Some((name, enc)) = &response_encoding {
                         headers.push((Bytes::from(name.clone()), Bytes::from(enc.clone())));
                     }
+                    let handler = take_handler_headers(&pump_headers);
+                    extend_handler_headers(&mut headers, handler, encoding_header);
                     let mut header_frame = Req::encode_headers(&headers);
                     poll_shared(&shared, |r| r.poll_send_headers(&mut header_frame)).await?;
                 }
@@ -357,13 +412,32 @@ async fn run_streaming_h3(
             Ok::<bool, io::Error>(opened)
         };
 
+        // A client that cancels sends `STOP_SENDING` for our write half. After
+        // the request body ends, that frame is the only cancellation left: a
+        // `RESET_STREAM` for a stream whose receive state is already freed is
+        // dropped (issue #257). A reset while the peer still streams the
+        // request is reported by the feeder instead.
+        let gone = async {
+            match poll_shared(&shared, |r| match r.peer_stopped() {
+                Some(code) => VStream::Next(Ok(code)),
+                None => VStream::Pending(()),
+            })
+            .await
+            {
+                Ok(code) => {
+                    tracing::debug!(code, "h3 peer stopped the response half; ending the stream");
+                }
+                Err(e) => {
+                    tracing::debug!(error = %e, "h3 peer-stop probe failed");
+                }
+            }
+        };
+
         let rest = std::pin::pin!(exchange_until_aborted(
             request_side,
             response_side,
-            dispatch::deadline_expiry(Some(&ThreadTimer), deadline),
-            // A reset of our response half shows up as a failed send in the
-            // pump; QUIC offers no separate signal to wait on.
-            std::future::pending::<()>(),
+            dispatch::deadline_expiry(Some(&ThreadTimer), deadline, &timer_ctx),
+            gone,
             &cancel,
         ));
         let pump = std::pin::pin!(pump);
@@ -398,6 +472,9 @@ async fn run_streaming_h3(
         }
         StreamEnd::Aborted(Abort::PeerGone) => {
             cancel.cancel();
+            // RFC 9114 section 4.1.2: a sender that receives `STOP_SENDING`
+            // SHOULD reset the stream.
+            req.reset(error_code::H3_REQUEST_CANCELLED);
             return Ok(());
         }
         StreamEnd::Aborted(Abort::Deadline) => {
@@ -427,13 +504,13 @@ async fn run_streaming_h3(
             // gRPC's outcome rides trailing HEADERS (`grpc-status`); a stream
             // that ends without them reads as `Unknown` to every gRPC client.
             let mut trailer_frame = Req::encode_headers(&grpc_status_trailers(failure.as_ref()));
-            poll_h3(|| req.poll_send_headers(&mut trailer_frame)).await?;
+            poll_req(&mut req, |r| r.poll_send_headers(&mut trailer_frame)).await?;
         } else if let Some(frame) = failure
             .as_ref()
             .and_then(|e| stream_error_frame(protocol, &request, e))
         {
             let mut data_frame = Req::encode_data(frame);
-            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+            poll_req(&mut req, |r| r.poll_send_data(&mut data_frame)).await?;
         }
         poll_h3_finish(&mut req).await?;
         return Ok(());
@@ -450,11 +527,14 @@ async fn run_streaming_h3(
             .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
         if is_grpc {
             // A gRPC stream with no messages still ends in `grpc-status`.
-            response
-                .trailers
-                .insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+            response.trailers.insert(
+                SimpleHeader::from("grpc-status".to_string()),
+                vec!["0".to_string()],
+            );
         }
     }
+    let handler = take_handler_headers(&response_headers);
+    merge_handler_headers(&mut response.headers, handler, encoding_header);
     send_h3_response(&mut req, response).await
 }
 
@@ -472,31 +552,87 @@ fn abort_call(req: &mut Req, cancel: &CancelSignal, error: &io::Error) -> io::Er
     )
 }
 
+/// Logged once per process when a backend cannot register a waker, so the
+/// self-wake fallback below does not flood the log on every not-ready poll.
+static SELF_WAKE_LOGGED: AtomicBool = AtomicBool::new(false);
+
 /// Map one H3 poll result onto `std::task::Poll`.
 ///
-/// QUIC streams register no waker: bytes arrive when the endpoint driver task
-/// moves datagrams. A not-ready poll therefore wakes its own task before
-/// yielding, so valtron's `FutureTask` requeues it (`TaskStatus::Ignore`) behind
-/// the driver rather than parking it (`Depends`) on a wake that never comes.
-fn map_h3<T>(cx: &Context<'_>, polled: VStream<Result<T, H3Error>, ()>) -> Poll<io::Result<T>> {
+/// A not-ready poll parks: the caller registered `cx`'s waker on the QUIC
+/// connection first (`parked`), and the endpoint driver wakes it when the
+/// connection makes progress. Only a backend that cannot wake (`!parked`)
+/// falls back to waking its own task, so valtron requeues it behind the
+/// driver rather than parking it on a wake that never comes. That fallback
+/// logs once at `debug`, because a backend that cannot wake is a misconfig.
+fn map_h3<T>(
+    cx: &Context<'_>,
+    polled: VStream<Result<T, H3Error>, ()>,
+    parked: bool,
+) -> Poll<io::Result<T>> {
     match polled {
         VStream::Next(Ok(v)) => Poll::Ready(Ok(v)),
         VStream::Next(Err(e)) => Poll::Ready(Err(io::Error::other(e.to_string()))),
         _ => {
-            cx.waker().wake_by_ref();
+            if !parked {
+                self_wake(cx);
+            }
             Poll::Pending
         }
     }
 }
 
-/// Poll an `H3Request` method until it yields `Next(..)`.
-fn poll_h3<T>(
-    mut f: impl FnMut() -> VStream<Result<T, H3Error>, ()>,
-) -> impl Future<Output = io::Result<T>> {
-    std::future::poll_fn(move |cx: &mut Context<'_>| map_h3(cx, f()))
+/// Wake our own task when the backend cannot register a waker, so valtron
+/// requeues it behind the driver. Logs once per process.
+fn self_wake(cx: &Context<'_>) {
+    if !SELF_WAKE_LOGGED.swap(true, Ordering::Relaxed) {
+        tracing::debug!("h3 request backend cannot register a waker; self-waking");
+    }
+    cx.waker().wake_by_ref();
 }
 
-/// [`poll_h3`] over the request shared by the body feeder and the response
+/// Wait until the peer stops our response half (`STOP_SENDING`).
+///
+/// WHY: a client that cancels a call sends `STOP_SENDING` for the direction it
+/// will not read (RFC 9114 section 4.1.2). Once the request body has ended,
+/// quinn-proto frees the stream's receive state, and a `RESET_STREAM` that
+/// arrives later is dropped. `STOP_SENDING` is then the only cancellation that
+/// a handler can still observe (issue #257).
+///
+/// WHAT: resolves with the peer's application error code the first time the
+/// stop is set.
+///
+/// HOW: checks the send half, then parks on the connection's waker the same way
+/// [`poll_req`] does. A backend with no stop signal never resolves, so the
+/// caller's other branch decides the call.
+fn peer_stopped(req: &mut Req) -> impl Future<Output = u64> + '_ {
+    std::future::poll_fn(move |cx: &mut Context<'_>| {
+        let parked = req.register_waker(cx.waker());
+        if let Some(code) = req.peer_stopped() {
+            return Poll::Ready(code);
+        }
+        if !parked {
+            self_wake(cx);
+        }
+        Poll::Pending
+    })
+}
+
+/// Poll an `H3Request` method until it yields `Next(..)`, parking on the
+/// connection between attempts. The waker is registered *before* each
+/// attempt, so progress made between a `Pending` and the registration still
+/// wakes us.
+fn poll_req<'a, T>(
+    req: &'a mut Req,
+    mut f: impl FnMut(&mut Req) -> VStream<Result<T, H3Error>, ()> + 'a,
+) -> impl Future<Output = io::Result<T>> + 'a {
+    std::future::poll_fn(move |cx: &mut Context<'_>| {
+        let parked = req.register_waker(cx.waker());
+        let polled = f(req);
+        map_h3(cx, polled, parked)
+    })
+}
+
+/// [`poll_req`] over the request shared by the body feeder and the response
 /// pump. The lock is taken for one synchronous poll and released before
 /// yielding, so it is never held across an `.await`.
 fn poll_shared<'a, T>(
@@ -504,12 +640,21 @@ fn poll_shared<'a, T>(
     mut f: impl FnMut(&mut Req) -> VStream<Result<T, H3Error>, ()> + 'a,
 ) -> impl Future<Output = io::Result<T>> + 'a {
     std::future::poll_fn(move |cx: &mut Context<'_>| {
-        let polled = match shared.lock() {
-            Ok(mut req) => f(&mut req),
+        let (parked, polled) = match shared.lock() {
+            Ok(mut req) => (req.register_waker(cx.waker()), f(&mut req)),
             Err(_) => return Poll::Ready(Err(io::Error::other("h3 request lock poisoned"))),
         };
-        map_h3(cx, polled)
+        map_h3(cx, polled, parked)
     })
+}
+
+/// Which branch of a unary call finished first.
+enum UnaryRace {
+    /// The handler answered before the peer stopped reading.
+    Answered(SimpleOutgoingResponse),
+    /// The peer stopped reading first; the application error code it sent with
+    /// `STOP_SENDING`.
+    Stopped(u64),
 }
 
 /// The outcome of collecting a unary request body.
@@ -524,7 +669,7 @@ enum CollectedBody {
 /// `max_bytes` (`0` = unlimited, as for `SizeLimits::read_max_bytes`).
 async fn collect_h3_body(req: &mut Req, max_bytes: usize) -> io::Result<CollectedBody> {
     let mut body = Vec::new();
-    while let Some(chunk) = poll_h3(|| req.poll_body()).await? {
+    while let Some(chunk) = poll_req(req, H3Request::poll_body).await? {
         let read = body.len() + chunk.len();
         if max_bytes > 0 && read > max_bytes {
             return Ok(CollectedBody::TooLarge { read });
@@ -546,7 +691,7 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
     // response borrow done.
 
     let mut header_frame = Req::encode_headers(&response_fields);
-    poll_h3(|| req.poll_send_headers(&mut header_frame)).await?;
+    poll_req(req, |r| r.poll_send_headers(&mut header_frame)).await?;
 
     let stream = body
         .filter(|b| !matches!(b, SendSafeBody::None))
@@ -556,14 +701,14 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
         while let Some(chunk) = stream.next().await {
             let chunk = chunk.map_err(|e| io::Error::other(e.to_string()))?;
             let mut data_frame = Req::encode_data(Bytes::from(chunk));
-            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+            poll_req(req, |r| r.poll_send_data(&mut data_frame)).await?;
         }
     }
 
     if !trailers.is_empty() {
         // The trailer section is a HEADERS frame after the body (RFC 9114 §4.1).
         let mut trailer_frame = Req::encode_headers(&h2_headers(&trailers));
-        poll_h3(|| req.poll_send_headers(&mut trailer_frame)).await?;
+        poll_req(req, |r| r.poll_send_headers(&mut trailer_frame)).await?;
     }
 
     poll_h3_finish(req).await
@@ -571,5 +716,5 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
 
 /// Poll `poll_finish` until the FIN is queued.
 fn poll_h3_finish(req: &mut Req) -> impl Future<Output = io::Result<()>> + '_ {
-    poll_h3(move || req.poll_finish())
+    poll_req(req, H3Request::poll_finish)
 }

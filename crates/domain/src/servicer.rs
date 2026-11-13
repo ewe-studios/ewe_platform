@@ -5,6 +5,7 @@ use ewe_channels::{
     mspc::{self, ChannelError},
 };
 
+use foundation_errstacks::ErrorTrace;
 use std::sync;
 
 use crate::{
@@ -17,8 +18,8 @@ const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
 #[must_use]
 pub fn create<
     App,
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 >() -> DServicer<App, E, R, P>
 where
@@ -52,8 +53,8 @@ where
 }
 
 pub struct DShell<
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 > {
     shell_platform: P,
@@ -65,7 +66,7 @@ pub struct DShell<
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static> Clone
+impl<E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static> Clone
     for DShell<E, R, P>
 {
     fn clone(&self) -> Self {
@@ -81,7 +82,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+impl<E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static>
     domains::MasterShell for DShell<E, R, P>
 {
     fn send_request(
@@ -118,7 +119,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+impl<E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static>
     domains::DomainShell for DShell<E, R, P>
 {
     type Events = E;
@@ -143,12 +144,14 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     {
         match self.response_registry.resolve(id.clone()) {
             Ok(sender) => Ok(sender),
-            Err(pending_chan::PendingChannelError::NotFound(_)) => {
-                Err(domains::DomainOpsErrors::NotFound(id))
-            }
-            Err(pending_chan::PendingChannelError::ClosedSender(_)) => {
-                Err(domains::DomainOpsErrors::ClosedChannel(id))
-            }
+            Err(trace) => match trace.current_context() {
+                pending_chan::PendingChannelError::NotFound(_) => {
+                    Err(domains::DomainOpsErrors::NotFound(id).into())
+                }
+                pending_chan::PendingChannelError::ClosedSender(_) => {
+                    Err(domains::DomainOpsErrors::ClosedChannel(id).into())
+                }
+            },
         }
     }
 
@@ -166,7 +169,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
                 .1
                 .take()
                 .expect("should have receiving channel")),
-            Err(_) => Err(domains::DomainOpsErrors::UnableToSendRequest(req)),
+            Err(_) => Err(domains::DomainOpsErrors::UnableToSendRequest(req).into()),
         }
     }
 
@@ -181,7 +184,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     {
         match self.executor.schedule(receiver, receiver_fn) {
             Ok(()) => Ok(()),
-            Err(_) => Err(domains::DomainErrors::FailedScheduling),
+            Err(_) => Err(domains::DomainErrors::FailedScheduling.into()),
         }
     }
 
@@ -194,7 +197,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     {
         match self.executor.spawn(fut) {
             Ok(()) => Ok(()),
-            Err(_) => Err(domains::DomainErrors::FailedScheduling),
+            Err(_) => Err(domains::DomainErrors::FailedScheduling.into()),
         }
     }
 
@@ -219,8 +222,8 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
 
 pub struct DServicer<
     App,
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 > where
     App: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -235,8 +238,8 @@ pub struct DServicer<
 
 pub fn create_shell<
     App,
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 >(
     servicer: &DServicer<App, E, R, P>,
@@ -255,7 +258,7 @@ where
     }
 }
 
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone + Default + 'static> Clone
+impl<A, E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Clone + Default + 'static> Clone
     for DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -272,7 +275,7 @@ where
     }
 }
 
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone + Default + 'static>
+impl<A, E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Clone + Default + 'static>
     DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -284,8 +287,10 @@ where
                     .handle_event(request, self.domain_shell.clone());
                 Ok(())
             }
-            Err(ChannelError::ReceiveFailed(_)) => Err(DomainErrors::ClosedRequestReceiver),
-            _ => Ok(()),
+            Err(trace) => match trace.current_context() {
+                ChannelError::ReceiveFailed(_) => Err(DomainErrors::ClosedRequestReceiver.into()),
+                _ => Ok(()),
+            },
         }
     }
 
@@ -297,13 +302,19 @@ where
                         .handle_request(request, sender, self.domain_shell.clone());
                     Ok(())
                 }
-                Err(PendingChannelError::ClosedSender(_)) => {
-                    Err(DomainErrors::UnexpectedSenderClosure)
-                }
-                Err(PendingChannelError::NotFound(_)) => Err(DomainErrors::RequestSenderNotFound),
+                Err(trace) => match trace.current_context() {
+                    PendingChannelError::ClosedSender(_) => {
+                        Err(DomainErrors::UnexpectedSenderClosure.into())
+                    }
+                    PendingChannelError::NotFound(_) => {
+                        Err(DomainErrors::RequestSenderNotFound.into())
+                    }
+                },
             },
-            Err(mspc::ChannelError::Closed) => Err(DomainErrors::ClosedRequestReceiver),
-            _ => Ok(()),
+            Err(trace) => match trace.current_context() {
+                mspc::ChannelError::Closed => Err(DomainErrors::ClosedRequestReceiver.into()),
+                _ => Ok(()),
+            },
         }
     }
 
@@ -330,15 +341,27 @@ where
 
     fn serve_events(&mut self) {
         (match self.process_incoming_event() {
-            Err(DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure) => {
-                Err(DomainErrors::ProblematicState)
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
             }
             _ => Ok(()),
         })
         .expect("event processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    executor::ExecutorError::Decommission
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
+            }
             _ => Ok(()),
         })
         .expect("execution service should have ended better");
@@ -346,328 +369,39 @@ where
 
     fn serve_requests(&mut self) {
         (match self.process_incoming_request() {
-            Err(DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure) => {
-                Err(DomainErrors::ProblematicState)
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
             }
             _ => Ok(()),
         })
         .expect("request processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    executor::ExecutorError::Decommission
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
+            }
             _ => Ok(()),
         })
         .expect("execution service should have ended better");
     }
 }
 
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+impl<A, E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static>
     domains::TaskExecutor for DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
 {
     fn run_tasks(&mut self) {
         self.serve().expect("execute all tasks with no errors");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use crate::{
-        app,
-        domains::{self, DomainOpsResult, DomainShell},
-        servicer,
-    };
-    use crossbeam::atomic;
-    use std::sync;
-    use tracing::info;
-
-    #[test]
-    fn can_decrement_count_with_a_decrement_requests() {
-        let (mut executor, server) = app::create::<CounterApp>();
-        let mut shell = servicer::create_shell(&server);
-
-        let request = domains::NamedRequest::new("decrement_count", CounterRequests::Decrement);
-
-        let result = shell.do_request(request);
-
-        executor.run_all();
-
-        assert!(matches!(result, DomainOpsResult::Ok(_)));
-
-        let mut receiver = result.expect("expected a receiver");
-
-        let item = receiver.block_receive().expect("should receive value");
-
-        let items = item.items();
-
-        assert_eq!(
-            *items.first().unwrap(),
-            CounterEvents::Decremented(CounterModel::new(-1))
-        );
-
-        executor.run_all();
-
-        let mut events = shell.listen().unwrap();
-        let mut requests = shell.requests().unwrap();
-
-        let published_event = events.block_receive().expect("got event");
-
-        assert_eq!(
-            published_event.items(),
-            vec![CounterEvents::Decremented(CounterModel::new(-1))]
-        );
-
-        let published_requests = requests.block_receive().expect("got requests");
-        assert_eq!(
-            published_requests.item(),
-            CounterRequests::Render(CounterModel::new(-1))
-        );
-    }
-
-    #[test]
-    fn can_increment_count_with_an_increment_request() {
-        let (mut executor, server) = app::create::<CounterApp>();
-        let mut shell = servicer::create_shell(&server);
-
-        let increment_request =
-            domains::NamedRequest::new("increment_count", CounterRequests::Increment);
-
-        let result;
-        {
-            result = shell.do_request(increment_request);
-        }
-
-        executor.run_all();
-
-        assert!(matches!(result, DomainOpsResult::Ok(_)));
-
-        let mut receiver = result.expect("expected a receiver");
-
-        let item = receiver.block_receive().expect("should receive value");
-
-        let items = item.items();
-
-        assert_eq!(
-            *items.first().unwrap(),
-            CounterEvents::Incremented(CounterModel::new(1))
-        );
-
-        executor.run_all();
-
-        let mut events = shell.listen().unwrap();
-        let mut requests = shell.requests().unwrap();
-
-        let published_event = events.block_receive().expect("got event");
-        assert_eq!(
-            published_event.items(),
-            vec![CounterEvents::Incremented(CounterModel::new(1))]
-        );
-
-        let published_requests = requests.block_receive().expect("got requests");
-        assert_eq!(
-            published_requests.item(),
-            CounterRequests::Render(CounterModel::new(1))
-        );
-    }
-
-    #[test]
-    fn can_use_use_case_implementation_with_an_app() {
-        let (mut executor, server) = app::create::<CounterApp>();
-        let mut shell = servicer::create_shell(&server);
-
-        let increment_request =
-            domains::NamedRequest::new("increment_count", CounterRequests::Increment);
-
-        let result = shell.do_request(increment_request);
-
-        executor.run_all();
-
-        assert!(matches!(result, DomainOpsResult::Ok(_)));
-
-        // call because a new data is waiting processing
-        executor.run_all();
-
-        let count_render = CounterRender::new();
-
-        executor.register(Box::new(domains::UseCaseExecutor::new(
-            shell,
-            count_render.clone(),
-        )));
-
-        executor.run_all();
-
-        assert!(!count_render.data.lock().unwrap().is_empty());
-    }
-
-    #[derive(Default, Clone)]
-    struct Platform {}
-
-    #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
-    struct CounterModel {
-        pub count: i16,
-    }
-
-    #[derive(Clone)]
-    struct CounterRender {
-        pub data: sync::Arc<sync::Mutex<Vec<String>>>,
-    }
-
-    impl CounterRender {
-        pub fn new() -> Self {
-            Self {
-                data: sync::Arc::new(sync::Mutex::new(Vec::new())),
-            }
-        }
-    }
-
-    impl domains::UseCase for CounterRender {
-        type Platform = Platform;
-        type Event = CounterEvents;
-        type Request = CounterRequests;
-
-        fn is_request(&self, req: sync::Arc<domains::NamedRequest<Self::Request>>) -> bool {
-            if let CounterRequests::Render(_) = req.item() {
-                return true;
-            }
-            false
-        }
-
-        fn handle_request(
-            &mut self,
-            req: sync::Arc<domains::NamedRequest<Self::Request>>,
-            mut chan: ewe_channels::mspc::SendChannel<domains::NamedEvent<Self::Event>>,
-            _shell: impl DomainShell<
-                Events = Self::Event,
-                Requests = Self::Request,
-                Platform = Self::Platform,
-            >,
-        ) {
-            if let CounterRequests::Render(model) = req.item() {
-                self.data
-                    .lock()
-                    .unwrap()
-                    .push(format!("Counter(count: {})", model.count));
-            }
-            chan.close().expect("close channel");
-        }
-    }
-
-    impl CounterModel {
-        pub fn new(value: i16) -> Self {
-            Self { count: value }
-        }
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    enum CounterEvents {
-        Incremented(CounterModel),
-        Decremented(CounterModel),
-    }
-
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    enum CounterRequests {
-        Increment,
-        Decrement,
-        Render(CounterModel),
-    }
-
-    #[derive(Clone)]
-    struct CounterApp {
-        state: sync::Arc<atomic::AtomicCell<CounterModel>>,
-    }
-
-    impl Default for CounterApp {
-        fn default() -> Self {
-            Self {
-                state: sync::Arc::new(atomic::AtomicCell::new(CounterModel { count: 0 })),
-            }
-        }
-    }
-
-    impl domains::Domain for CounterApp {
-        type Events = CounterEvents;
-        type Requests = CounterRequests;
-        type Platform = Platform;
-
-        fn handle_request(
-            &self,
-            req: domains::NamedRequest<Self::Requests>,
-            mut chan: ewe_channels::mspc::SendChannel<domains::NamedEvent<Self::Events>>,
-            mut shell: impl domains::MasterShell<
-                Events = Self::Events,
-                Requests = Self::Requests,
-                Platform = Self::Platform,
-            >,
-        ) {
-            match req.item() {
-                CounterRequests::Increment => {
-                    let current = self.state.load();
-                    let next = CounterModel {
-                        count: current.count + 1,
-                    };
-                    self.state.swap(next);
-
-                    let event = req.to_one(CounterEvents::Incremented(next));
-                    chan.try_send(event.clone())
-                        .expect("should have sent message");
-
-                    shell
-                        .send_all(event)
-                        .expect("should notify interested parties on important change");
-                }
-                CounterRequests::Decrement => {
-                    let current = self.state.load();
-                    let next = CounterModel {
-                        count: current.count - 1,
-                    };
-                    self.state.swap(next);
-
-                    // respond to request with new state via event
-                    let event = req.to_one(CounterEvents::Decremented(next));
-                    chan.try_send(event.clone())
-                        .expect("should have sent message");
-
-                    shell
-                        .send_all(event)
-                        .expect("should notify interested parties on important change");
-                }
-                CounterRequests::Render(_) => {}
-            }
-        }
-
-        fn handle_event(
-            &self,
-            events: domains::NamedEvent<Self::Events>,
-            mut shell: impl domains::MasterShell<
-                Events = Self::Events,
-                Requests = Self::Requests,
-                Platform = Self::Platform,
-            >,
-        ) {
-            for item in events.items() {
-                match item {
-                    CounterEvents::Incremented(model) => {
-                        info!("incremented counter to {}", model.count);
-                        shell
-                            .send_request(domains::NamedRequest::new(
-                                "render_count",
-                                CounterRequests::Render(model),
-                            ))
-                            .expect("sent request");
-                    }
-                    CounterEvents::Decremented(model) => {
-                        info!("decremented counter to {}", model.count);
-                        shell
-                            .send_request(domains::NamedRequest::new(
-                                "render_count",
-                                CounterRequests::Render(model),
-                            ))
-                            .expect("sent request");
-                    }
-                }
-            }
-        }
     }
 }

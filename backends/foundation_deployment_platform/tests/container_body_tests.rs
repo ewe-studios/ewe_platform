@@ -13,7 +13,7 @@
 use std::net::Ipv4Addr;
 
 use foundation_deployment_platform::docker::container::{
-    caller_network_mode, gateway_of, published_port_host, CallerContainer, ContainerHandle,
+    CallerContainer, ContainerHandle, caller_network_mode, gateway_of, published_port_host,
 };
 use foundation_deployment_platform::docker::{ContainerConfig, DockerFileConfig};
 

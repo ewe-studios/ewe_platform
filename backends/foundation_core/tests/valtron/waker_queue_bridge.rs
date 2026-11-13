@@ -18,11 +18,11 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
 
-use concurrent_queue::ConcurrentQueue;
+use foundation_context::Ctx;
 #[cfg(feature = "multi")]
 use foundation_core::valtron::from_future;
 use foundation_core::valtron::{
-    queue_waker, Ctx, FutureTask, TaskIterator, TaskStatus, WakeToken,
+    queue_waker, EventQueue, FutureTask, TaskIterator, TaskStatus, WakeToken,
 };
 
 // ============================================================================
@@ -34,19 +34,27 @@ use foundation_core::valtron::{
 /// HOW: Build a waker over a fresh queue, fire it, and inspect the queue.
 #[test]
 fn queue_waker_wake_pushes_token_with_id() {
-    let queue = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let queue = EventQueue::<WakeToken>::unbounded();
     let waker = queue_waker(queue.clone(), 7);
 
     assert!(queue.is_empty(), "no wake yet -> queue empty");
 
     waker.wake_by_ref();
-    assert_eq!(queue.pop(), Ok(WakeToken { id: 7 }), "wake_by_ref pushes token");
+    assert_eq!(
+        queue.pop(),
+        Ok(WakeToken { id: 7 }),
+        "wake_by_ref pushes token"
+    );
     assert!(queue.is_empty());
 
     // A cloned waker shares the same queue and id (RawWaker clone bumps the Arc).
     let cloned = waker.clone();
     cloned.wake(); // consumes the clone
-    assert_eq!(queue.pop(), Ok(WakeToken { id: 7 }), "cloned wake pushes token");
+    assert_eq!(
+        queue.pop(),
+        Ok(WakeToken { id: 7 }),
+        "cloned wake pushes token"
+    );
     assert!(queue.is_empty());
 }
 
@@ -55,7 +63,7 @@ fn queue_waker_wake_pushes_token_with_id() {
 /// HOW: Clone/drop in a loop, then confirm a final wake still works.
 #[test]
 fn queue_waker_clone_drop_is_sound() {
-    let queue = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let queue = EventQueue::<WakeToken>::unbounded();
     let waker = queue_waker(queue.clone(), 0);
 
     for _ in 0..10_000 {
@@ -101,7 +109,7 @@ impl Future for WakeParkFuture {
 ///      this) and inspect the returned readiness signal.
 #[test]
 fn pending_future_parks_then_completes_on_wake() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let poll_count = Arc::new(AtomicUsize::new(0));
     let ready = Arc::new(AtomicBool::new(false));
     let waker_slot: Arc<Mutex<Option<Waker>>> = Arc::new(Mutex::new(None));
@@ -116,26 +124,49 @@ fn pending_future_parks_then_completes_on_wake() {
         Some(TaskStatus::Depends(signal)) => signal,
         other => panic!("expected Depends on first poll, got {other:?}"),
     };
-    assert_eq!(poll_count.load(Ordering::SeqCst), 1, "polled once, then parks");
+    assert_eq!(
+        poll_count.load(Ordering::SeqCst),
+        1,
+        "polled once, then parks"
+    );
 
     // Park predicate stays false while blocked — the executor would NOT re-run
     // the task, so the turn count is flat (no busy-poll).
     for _ in 0..1000 {
-        assert!(!signal.is_ready(None), "parked signal must remain not-ready");
+        assert!(
+            !signal.is_ready(None),
+            "parked signal must remain not-ready"
+        );
     }
-    assert_eq!(poll_count.load(Ordering::SeqCst), 1, "no re-poll while parked");
+    assert_eq!(
+        poll_count.load(Ordering::SeqCst),
+        1,
+        "no re-poll while parked"
+    );
 
     // Wake: set the result and fire the stashed waker — the signal flips ready.
     ready.store(true, Ordering::SeqCst);
-    waker_slot.lock().unwrap().take().expect("waker stashed").wake();
-    assert!(signal.is_ready(None), "wake() makes the signal ready to re-run");
+    waker_slot
+        .lock()
+        .unwrap()
+        .take()
+        .expect("waker stashed")
+        .wake();
+    assert!(
+        signal.is_ready(None),
+        "wake() makes the signal ready to re-run"
+    );
 
     // The unparked re-run drains the stale token, re-polls, and completes.
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(99)) => {}
         other => panic!("expected Ready(99) after wake, got {other:?}"),
     }
-    assert_eq!(poll_count.load(Ordering::SeqCst), 2, "exactly two polls total");
+    assert_eq!(
+        poll_count.load(Ordering::SeqCst),
+        2,
+        "exactly two polls total"
+    );
     assert!(task.next_status(ctx.clone()).is_none(), "task is complete");
 }
 
@@ -172,7 +203,7 @@ impl Future for SelfWakeOnceFuture {
 /// HOW: Stress 2000 iterations; each fresh task must complete on the second poll.
 #[test]
 fn wake_before_park_is_never_lost() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     for iteration in 0..2000 {
         let mut task = FutureTask::new(SelfWakeOnceFuture { polled: false });
 
@@ -180,15 +211,18 @@ fn wake_before_park_is_never_lost() {
         match task.next_status(ctx.clone()) {
             Some(TaskStatus::Ignore) => {}
             other => panic!("iter {iteration}: expected Ignore, got {other:?}"),
-        };
+        }
 
         // Second poll: future returns Ready.
         match task.next_status(ctx.clone()) {
             Some(TaskStatus::Ready(1)) => {}
             other => panic!("iter {iteration}: expected Ready(1), got {other:?}"),
-        };
+        }
 
-        assert!(task.next_status(ctx.clone()).is_none(), "iter {iteration}: complete");
+        assert!(
+            task.next_status(ctx.clone()).is_none(),
+            "iter {iteration}: complete"
+        );
     }
 }
 
@@ -223,16 +257,14 @@ fn future_parks_and_wakes_on_pool() {
     // Wake the task once it has parked (stashed its waker) on the pool.
     let ws = waker_slot.clone();
     let rd = ready.clone();
-    let waker_thread = thread::spawn(move || {
-        loop {
-            let maybe_waker = ws.lock().unwrap().clone();
-            if let Some(w) = maybe_waker {
-                rd.store(true, Ordering::SeqCst);
-                w.wake();
-                break;
-            }
-            thread::sleep(Duration::from_millis(1));
+    let waker_thread = thread::spawn(move || loop {
+        let maybe_waker = ws.lock().unwrap().clone();
+        if let Some(w) = maybe_waker {
+            rd.store(true, Ordering::SeqCst);
+            w.wake();
+            break;
         }
+        thread::sleep(Duration::from_millis(1));
     });
 
     let iter = get_pool()

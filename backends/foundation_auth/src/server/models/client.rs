@@ -1,4 +1,4 @@
-//! OAuth client entity for the IdP server.
+//! OAuth client entity for the `IdP` server.
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -55,4 +55,3 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
         .fold(0u8, |acc, (x, y)| acc | (x ^ y))
         == 0
 }
-

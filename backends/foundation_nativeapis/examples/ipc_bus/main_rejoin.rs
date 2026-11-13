@@ -6,7 +6,9 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_rejoin
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
-    use foundation_nativeapis::ipc::{self, BytesMessage, Label, LabelOp, Message, Options, Selector};
+    use foundation_nativeapis::ipc::{
+        self, BytesMessage, Label, LabelOp, Message, Options, Selector,
+    };
     use std::time::Duration;
 
     let ts = std::time::SystemTime::now()
@@ -18,9 +20,12 @@ fn main() {
     {
         let bus = format!("com.ewe.rejoin.{ts}.1");
         let opts = Options::new(&bus, Label::new("node")).controller_affinity(true);
-        let (_sender, _receiver) =
-            ipc::join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("first join");
+        let (_sender, _receiver) = ipc::join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::host(),
+        )
+        .expect("first join");
         println!("  Joined. Dropping...");
     }
     println!("  Dropped.");
@@ -28,9 +33,12 @@ fn main() {
     println!("Second join (fresh bus)...");
     let bus = format!("com.ewe.rejoin.{ts}.2");
     let opts = Options::new(&bus, Label::new("node")).controller_affinity(true);
-    let (sender, mut receiver) =
-        ipc::join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("second join");
+    let (sender, mut receiver) = ipc::join::<BytesMessage, BytesMessage>(
+        opts,
+        Some(Duration::from_secs(5)),
+        foundation_context::Ctx::host(),
+    )
+    .expect("second join");
     println!("  Joined.");
 
     sender
@@ -43,9 +51,7 @@ fn main() {
         ))
         .expect("send");
 
-    let msg = receiver
-        .recv(Some(Duration::from_secs(2)))
-        .expect("recv");
+    let msg = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
     println!(
         "  Received: format={} data={:?}",
         msg.payload.format,

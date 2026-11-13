@@ -204,7 +204,10 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     ///
     /// # Errors
     /// Returns the store error when the recent messages cannot be read.
-    pub async fn assemble_from_memory(&self, memory: &SessionMemory) -> StorageResult<AgentContext> {
+    pub async fn assemble_from_memory(
+        &self,
+        memory: &SessionMemory,
+    ) -> StorageResult<AgentContext> {
         let recent = self
             .message_api
             .recent(self.config.recent_message_count)
@@ -354,7 +357,10 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             SearchMode::Semantic => {
                 // Real embedding recall when an embedder is wired (F16); else
                 // keyword fallback so a capability-less context still works.
-                if !self.semantic_search_messages(query, &recent, &mut hits) {
+                if !self
+                    .semantic_search_messages(query, &recent, &mut hits)
+                    .await
+                {
                     Self::search_messages(&query_lower, &recent, &mut hits);
                 }
             }
@@ -371,20 +377,30 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
                     "SearchMode::Graph is not available (no session knowledge graph); \
                      falling back to hybrid recall"
                 );
-                if !self.semantic_search_messages(query, &recent, &mut hits) {
+                if !self
+                    .semantic_search_messages(query, &recent, &mut hits)
+                    .await
+                {
                     Self::search_messages(&query_lower, &recent, &mut hits);
                 }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
             SearchMode::Hybrid => {
-                if !self.semantic_search_messages(query, &recent, &mut hits) {
+                if !self
+                    .semantic_search_messages(query, &recent, &mut hits)
+                    .await
+                {
                     Self::search_messages(&query_lower, &recent, &mut hits);
                 }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
         }
 
-        hits.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        hits.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         hits.truncate(k);
         Ok(hits)
     }
@@ -393,7 +409,7 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     /// and each candidate message, scoring by cosine similarity. Returns `true`
     /// when it ran (an embedder is wired and the query embedded); `false`
     /// signals the caller to fall back to keyword matching.
-    fn semantic_search_messages(
+    async fn semantic_search_messages(
         &self,
         query: &str,
         recent: &[SessionRecord],
@@ -402,7 +418,7 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         let Some(embedder) = &self.embedder else {
             return false;
         };
-        let query_vec = match embedder.embed(query, &self.embedding_model) {
+        let query_vec = match embedder.embed(query, &self.embedding_model).await {
             Ok(v) => v,
             Err(e) => {
                 tracing::warn!(error = ?e, "query embedding failed; falling back to keyword search");
@@ -416,7 +432,7 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
                 if text.trim().is_empty() {
                     continue;
                 }
-                let Ok(cand) = embedder.embed(&text, &self.embedding_model) else {
+                let Ok(cand) = embedder.embed(&text, &self.embedding_model).await else {
                     continue;
                 };
                 let score = cosine_similarity(&query_vec.data, &cand.data);
@@ -609,4 +625,3 @@ fn estimate_tokens(msg: &Messages) -> u64 {
     };
     (text_len as u64) / 4
 }
-

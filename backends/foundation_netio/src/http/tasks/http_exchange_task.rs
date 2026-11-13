@@ -25,8 +25,9 @@
 
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_core::extensions::result_ext::SendableBoxedError;
-use foundation_core::valtron::{Ctx, 
+use foundation_core::valtron::{
     inlined_task, BoxedSendExecutionAction, InlineActionBehaviour, Stream, TaskIterator, TaskStatus,
 };
 
@@ -37,7 +38,7 @@ use crate::native::readiness::IoInterest;
 use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
-use crate::shared::http::{HttpClientError, IncomingResponseParts, SendSafeBody};
+use crate::shared::http::{HttpClientError, IncomingResponseParts};
 
 type ChildReceiver<R> = foundation_core::valtron::DrivenRecvIterator<SendRequestTask<R>>;
 
@@ -53,11 +54,6 @@ struct BodyStream {
     >,
     /// Active chunk iterator for the current body payload.
     chunk_iter: Option<SendSafeBodyBytesIterator>,
-    /// Whether the active payload is framed (chunked, line or SSE). Framed
-    /// iterators buffer each frame themselves, capped by the body extractor's
-    /// `FrameLimits`, and report a would-block as `HttpReaderError::WouldBlock`.
-    /// Raw bodies (`Content-Length` or read-to-EOF) report it as `Data::Retry`.
-    framed: bool,
     /// Whether the socket is non-blocking (parks on readiness) or blocking
     /// (the transport cannot report readiness; kernel read timeouts apply).
     nonblocking: bool,
@@ -69,6 +65,10 @@ struct BodyStream {
 /// Generic over the DNS resolver `R` so the exchange inherits whatever resolver
 /// the client stack was built with — the pump never pins a concrete resolver.
 enum State<R: DnsResolver + Send + 'static> {
+    /// The child task is built but not yet spawned. The first `next_status`
+    /// call spawns it with the `Ctx` of the engine that drives this task, so
+    /// the receiver reads that engine's clock.
+    Init(Box<SendRequestTask<R>>),
     /// Awaiting the next result from the spawned `SendRequestTask` child.
     Polling(ChildReceiver<R>),
     /// Head received; draining the body from the `HttpResponseReader`.
@@ -87,8 +87,6 @@ enum State<R: DnsResolver + Send + 'static> {
 /// built with a custom resolver keeps it end-to-end — the exchange pins nothing.
 pub struct HttpExchangeTask<R: DnsResolver + Send + 'static = SystemDnsResolver> {
     state: State<R>,
-    /// The spawn action, returned once on the first `next_status()` call.
-    spawn: Option<BoxedSendExecutionAction>,
     /// Pool reference for returning the connection when the exchange completes.
     pool: Arc<HttpConnectionPool<R>>,
     /// Inactivity bound while streaming the response body on a non-blocking socket.
@@ -111,14 +109,8 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
         // for a synchronous reader.
         let child =
             SendRequestTask::new(request, max_redirects, pool, config).with_nonblocking_handoff();
-        let (action, receiver) = inlined_task(
-            InlineActionBehaviour::LiftWithParent,
-            child,
-            std::time::Duration::from_millis(0),
-        );
         Self {
-            state: State::Polling(receiver),
-            spawn: Some(Box::new(action)),
+            state: State::Init(Box::new(child)),
             pool: pool_for_conn,
             body_idle_timeout,
         }
@@ -131,7 +123,12 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
     /// back into blocking mode, because pooled connections are handed to callers
     /// that may read synchronously. A connection whose mode cannot be restored is
     /// dropped, not pooled.
-    fn release(pool: &HttpConnectionPool<R>, mut conn: HttpClientConnection, nonblocking: bool) {
+    fn release(
+        pool: &HttpConnectionPool<R>,
+        mut conn: HttpClientConnection,
+        nonblocking: bool,
+        ctx: &Ctx,
+    ) {
         conn.drain_stream();
         if nonblocking {
             if let Err(err) = conn.set_nonblocking(false) {
@@ -139,23 +136,25 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 return;
             }
         }
-        pool.return_to_pool(conn);
+        pool.return_to_pool(conn, ctx);
     }
 
     fn fail(
         &mut self,
         err: SendableBoxedError,
         conn: Option<(HttpClientConnection, bool)>,
+        ctx: &Ctx,
     ) -> ExchangeStatus {
         self.state = State::Failed(Some(err));
         if let Some((c, nonblocking)) = conn {
-            Self::release(&self.pool, c, nonblocking);
+            Self::release(&self.pool, c, nonblocking, ctx);
         }
         TaskStatus::Pending(HttpExchangePending::Waiting)
     }
 
     fn start_body(
         &mut self,
+        ctx: &Ctx,
         stream: Box<
             crate::shared::http::HttpResponseReader<
                 crate::shared::http::SimpleHttpBody,
@@ -170,7 +169,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
             Ok(nb) => nb,
             Err(err) => {
                 tracing::error!(?err, "cannot read the socket mode");
-                return self.fail(Box::new(HttpClientError::IoError(err)), None);
+                return self.fail(Box::new(HttpClientError::IoError(err)), None, ctx);
             }
         };
         // On a non-blocking socket every `WouldBlock` parks until readiness and
@@ -189,7 +188,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
             conn: Some(conn),
             body_reader,
             chunk_iter: None,
-            framed: false,
             nonblocking,
             idle: IdleDeadline::new(self.body_idle_timeout),
         }));
@@ -199,7 +197,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
         })
     }
 
-    fn poll_child(&mut self) -> ExchangeStatus {
+    fn poll_child(&mut self, ctx: &Ctx) -> ExchangeStatus {
         let State::Polling(ref mut rx) = self.state else {
             unreachable!("poll_child is only called while polling");
         };
@@ -209,12 +207,12 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 headers,
                 conn,
                 stream,
-            })) => self.start_body(stream, conn, intro, headers),
+            })) => self.start_body(ctx, stream, conn, intro, headers),
             Some(TaskStatus::Ready(RequestIntro::Failed(e))) => {
                 // Carry the concrete `HttpClientError` object — it is
                 // `Send + Sync`, so it goes straight into the boxed error
                 // with its type and source chain intact.
-                self.fail(Box::new(e), None)
+                self.fail(Box::new(e), None, ctx)
             }
             Some(TaskStatus::Spawn(action)) => TaskStatus::Spawn(action),
             // Intermediate states (including a child that parked itself on
@@ -233,19 +231,19 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
     }
 
     /// Park the body stream on readability after a `WouldBlock`.
-    fn park_body(&mut self) -> ExchangeStatus {
+    fn park_body(&mut self, ctx: &Ctx) -> ExchangeStatus {
         let State::StreamingBody(ref mut body) = self.state else {
             unreachable!("park_body is only called while streaming");
         };
         let Some(conn) = body.conn.as_ref() else {
             unreachable!("the connection is held until the body ends");
         };
-        match nonblocking::park(conn, IoInterest::Readable, &mut body.idle) {
+        match nonblocking::park(conn, IoInterest::Readable, &mut body.idle, ctx) {
             Park::On(signal) => TaskStatus::Depends(signal),
             Park::Expired => {
                 tracing::error!(timeout = ?body.idle.timeout(), "response body stalled past the idle deadline");
                 let conn = body.conn.take().map(|c| (c, body.nonblocking));
-                self.fail(Box::new(HttpClientError::Timeout), conn)
+                self.fail(Box::new(HttpClientError::Timeout), conn, ctx)
             }
             Park::Unsupported => {
                 let conn = body.conn.take().map(|c| (c, body.nonblocking));
@@ -254,13 +252,14 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                         crate::shared::http::HttpReaderError::WouldBlock,
                     )),
                     conn,
+                    ctx,
                 )
             }
         }
     }
 
     #[allow(clippy::too_many_lines)]
-    fn stream_body(&mut self) -> ExchangeStatus {
+    fn stream_body(&mut self, ctx: &Ctx) -> ExchangeStatus {
         let State::StreamingBody(ref mut body) = self.state else {
             unreachable!("stream_body is only called while streaming");
         };
@@ -275,12 +274,10 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                     body.idle.progress();
                     return TaskStatus::Ready(HttpExchange::BodyChunk(bytes));
                 }
-                Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e)))
-                    if body.nonblocking && is_would_block(&*e) =>
-                {
-                    // A framed iterator found its next frame incomplete and
-                    // consumed nothing: park and call it again when readable.
-                    return self.park_body();
+                Some(Stream::Wait) if body.nonblocking => {
+                    // The socket has nothing yet (any body kind): park and
+                    // call again when readable.
+                    return self.park_body(ctx);
                 }
                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                     // Unlike the other failure arms, this error cannot be carried
@@ -291,11 +288,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                     // an `io::Error`.
                     let se: SendableBoxedError = Box::new(std::io::Error::other(e.to_string()));
                     let conn = body.conn.take().map(|c| (c, body.nonblocking));
-                    return self.fail(se, conn);
-                }
-                Some(Stream::Ignore) if body.nonblocking && !body.framed => {
-                    // A raw body's `Data::Retry`: the socket would block.
-                    return self.park_body();
+                    return self.fail(se, conn, ctx);
                 }
                 Some(Stream::Ignore) => {
                     // A non-data item (chunk end marker, trailers, a skipped
@@ -306,7 +299,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 None => {
                     // This payload exhausted — drop iterator, try next part.
                     body.chunk_iter = None;
-                    body.framed = false;
                     return TaskStatus::Pending(HttpExchangePending::Waiting);
                 }
                 Some(_) => return TaskStatus::Pending(HttpExchangePending::Waiting),
@@ -319,12 +311,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 IncomingResponseParts::SizedBody(payload)
                 | IncomingResponseParts::StreamedBody(payload),
             )) => {
-                body.framed = matches!(
-                    payload,
-                    SendSafeBody::ChunkedStream(_)
-                        | SendSafeBody::LineFeedStream(_)
-                        | SendSafeBody::SseStream(_)
-                );
                 body.chunk_iter = Some(SendSafeBodyBytesIterator::new(payload));
                 TaskStatus::Pending(HttpExchangePending::Waiting)
             }
@@ -333,16 +319,16 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 | IncomingResponseParts::Headers(..)
                 | IncomingResponseParts::SKIP,
             )) => TaskStatus::Pending(HttpExchangePending::Waiting),
-            Some(Err(e)) if body.nonblocking && e.is_would_block() => self.park_body(),
+            Some(Err(e)) if body.nonblocking && e.is_would_block() => self.park_body(ctx),
             Some(Err(e)) => {
                 // `HttpReaderError` is `Send + Sync` — carry it intact.
                 let conn = body.conn.take().map(|c| (c, body.nonblocking));
-                self.fail(Box::new(e), conn)
+                self.fail(Box::new(e), conn, ctx)
             }
             Some(Ok(IncomingResponseParts::NoBody)) | None => {
                 if let Some(c) = body.conn.take() {
                     let nonblocking = body.nonblocking;
-                    Self::release(&self.pool, c, nonblocking);
+                    Self::release(&self.pool, c, nonblocking, ctx);
                 }
                 self.state = State::Done;
                 TaskStatus::Pending(HttpExchangePending::Waiting)
@@ -355,16 +341,28 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     type Ready = HttpExchange;
     type Pending = HttpExchangePending;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        // First call — emit the Spawn so the executor runs the child.
-        if let Some(action) = self.spawn.take() {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        // First call — emit the Spawn so the executor runs the child. The
+        // inline pair is built here, with the `Ctx` of the driving engine.
+        if matches!(self.state, State::Init(_)) {
+            let State::Init(child) = std::mem::replace(&mut self.state, State::Done) else {
+                unreachable!("the state was Init")
+            };
+            let (action, receiver) = inlined_task(
+                InlineActionBehaviour::LiftWithParent,
+                *child,
+                std::time::Duration::from_millis(0),
+                ctx,
+            );
+            self.state = State::Polling(receiver);
+            let action: BoxedSendExecutionAction = Box::new(action);
             return Some(TaskStatus::Spawn(action));
         }
 
         match self.state {
-            State::Polling(_) => Some(self.poll_child()),
-            State::StreamingBody(_) => Some(self.stream_body()),
-            State::Done => None,
+            State::Polling(_) => Some(self.poll_child(&ctx)),
+            State::StreamingBody(_) => Some(self.stream_body(&ctx)),
+            State::Init(_) | State::Done => None,
             State::Failed(ref mut opt) => {
                 let err = opt.take();
                 if err.is_none() {
@@ -376,14 +374,4 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
             }
         }
     }
-}
-
-/// Whether a body iterator's error is the non-blocking "frame not complete yet"
-/// signal rather than a failure.
-fn is_would_block(err: &(dyn std::error::Error + 'static)) -> bool {
-    if let Some(reader) = err.downcast_ref::<crate::shared::http::HttpReaderError>() {
-        return reader.is_would_block();
-    }
-    err.downcast_ref::<std::io::Error>()
-        .is_some_and(|io| io.kind() == std::io::ErrorKind::WouldBlock)
 }

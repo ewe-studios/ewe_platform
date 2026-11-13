@@ -14,7 +14,7 @@
 //! spuriously.
 //!
 //! HOW: builds a [`LlamaBackendConfig`] with `.mtp(Some(mtp_path), 4)`, loads
-//! via `LlamaBackends::LLamaCPU`, and runs a short generation through
+//! via `LlamaBackends::cpu(clock)`, and runs a short generation through
 //! `Model::generate`. Correctness of drafts is enforced by the speculative
 //! engine itself (drafts are verified against the target, so output is not
 //! degraded); we assert the result is non-empty text.
@@ -72,7 +72,15 @@ fn hello_interaction() -> ModelInteraction {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 /// End-to-end: Gemma 4 E2B + MTP head → non-empty generated text.
+
 #[valtron_test]
 fn test_mtp_generate_gemma4_e2b_end_to_end() {
     let Some((target_path, draft_path)) = gemma_paths() else {
@@ -84,7 +92,7 @@ fn test_mtp_generate_gemma4_e2b_end_to_end() {
         return;
     };
 
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let config = LlamaBackendConfig::builder()
         .context_length(2048)
         .batch_size(512)
@@ -142,7 +150,7 @@ fn test_mtp_stream_gemma4_e2b() {
         return;
     };
 
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let config = LlamaBackendConfig::builder()
         .context_length(2048)
         .batch_size(512)
@@ -217,7 +225,7 @@ fn test_mtp_concurrent_generations_share_model() {
     };
 
     // One model instance; clones share the inner Arc (and the draft-model cache).
-    let model = LlamaBackends::LLamaCPU
+    let model = LlamaBackends::cpu(test_clock())
         .load_model(spec, &config)
         .expect("Gemma 4 E2B + MTP head should load");
 
@@ -240,7 +248,9 @@ fn test_mtp_concurrent_generations_share_model() {
                     _ => None,
                 });
                 assert!(
-                    text.as_deref().map(str::trim).is_some_and(|t| !t.is_empty()),
+                    text.as_deref()
+                        .map(str::trim)
+                        .is_some_and(|t| !t.is_empty()),
                     "concurrent MTP generation {i} yielded empty text"
                 );
             })

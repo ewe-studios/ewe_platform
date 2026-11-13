@@ -19,6 +19,10 @@ use crate::core::models::sync::{EquivalentDomains, SyncData};
 use crate::core::store::orgs as org_store;
 
 /// `GET /api/sync` — the full vault snapshot for the user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn sync(ctx: &KeychainContext, user_uuid: &str) -> AppResult<SyncData> {
     let profile = accounts::account(ctx, user_uuid).await?;
     let folders = folders::list(ctx, user_uuid).await?;

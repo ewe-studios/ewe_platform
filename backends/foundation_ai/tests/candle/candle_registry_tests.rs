@@ -14,12 +14,21 @@
 //! HOW: offline — a `tempdir`, no weights, no device. The one thing NOT covered
 //! here is successful weight loading, which the gated live-model suite does.
 
-use foundation_ai::backends::candle::{CandleArchitecture, CandleBackend, CandleBackendConfig, CandleDType};
+use foundation_ai::backends::candle::{
+    CandleArchitecture, CandleBackend, CandleBackendConfig, CandleDType,
+};
 use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
 
 // ---------------------------------------------------------------------------
 // Config builder — pure plumbing
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 #[test]
 fn config_builder_default_matches_new() {
@@ -44,9 +53,15 @@ fn config_builder_chain_preserves_every_field() {
 fn every_dtype_is_distinct() {
     // The dtype selects the weight precision; two variants collapsing to one
     // would silently load at the wrong precision.
-    let f32c = CandleBackendConfig::builder().dtype(CandleDType::F32).build();
-    let f16c = CandleBackendConfig::builder().dtype(CandleDType::F16).build();
-    let bf16c = CandleBackendConfig::builder().dtype(CandleDType::BF16).build();
+    let f32c = CandleBackendConfig::builder()
+        .dtype(CandleDType::F32)
+        .build();
+    let f16c = CandleBackendConfig::builder()
+        .dtype(CandleDType::F16)
+        .build();
+    let bf16c = CandleBackendConfig::builder()
+        .dtype(CandleDType::BF16)
+        .build();
     assert_ne!(f32c.dtype, f16c.dtype);
     assert_ne!(f16c.dtype, bf16c.dtype);
     assert_ne!(f32c.dtype, bf16c.dtype);
@@ -72,7 +87,7 @@ fn a_custom_architecture_is_preserved() {
 fn get_one_is_not_supported() {
     // Candle loads from a local path; there is no catalog to query. This must
     // be an explicit error, not an empty result that reads as "no such model".
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let err = backend
         .get_one(ModelId::Name("anything".into(), None))
         .expect_err("Candle has no registry");
@@ -85,7 +100,7 @@ fn get_one_is_not_supported() {
 
 #[test]
 fn get_all_is_not_supported() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     assert!(
         backend
             .get_all(ModelId::Name("anything".into(), None))
@@ -112,7 +127,7 @@ fn spec_without_location() -> ModelSpec {
 fn get_model_by_spec_requires_a_model_location() {
     // The rejection happens before any device init or weight read, so this is
     // reachable with no GPU and no files.
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let err = backend
         .get_model_by_spec(spec_without_location())
         .expect_err("a spec with no local path cannot load");
@@ -133,7 +148,7 @@ fn get_model_by_spec_rejects_a_directory_with_no_config_json() {
     ));
     std::fs::create_dir_all(&dir).expect("temp dir");
 
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let spec = ModelSpec {
         name: "local".into(),
         id: ModelId::Name("local".into(), None),
@@ -154,7 +169,7 @@ fn get_model_by_spec_rejects_a_directory_with_no_config_json() {
 
 #[test]
 fn get_model_by_spec_rejects_a_nonexistent_directory() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let spec = ModelSpec {
         name: "local".into(),
         id: ModelId::Name("local".into(), None),
@@ -199,7 +214,7 @@ fn spec_at(dir: &std::path::Path) -> ModelSpec {
 }
 
 fn load_err(dir: &std::path::Path) -> String {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     backend
         .get_model_by_spec(spec_at(dir))
         .expect_err("a directory without real weights cannot load")

@@ -10,6 +10,7 @@ mod iterators;
 mod notifiers;
 mod pipe;
 mod pipe_mapped;
+mod readiness_wake;
 mod stream_future;
 mod streams;
 mod task;
@@ -37,6 +38,20 @@ pub use foundation_macros::{task, timeout, valtron, valtron_test};
 /// Override per test with `#[valtron_test(timeout = .., shutdown_grace = ms)]`.
 pub const DEFAULT_TEST_SHUTDOWN_GRACE: core::time::Duration = core::time::Duration::from_secs(5);
 
+/// Default `shutdown` grace for a [`PoolGuard`](crate::valtron::PoolGuard):
+/// how long the pool gets for its workers to stop before the stuck ones are
+/// detached and the process-wide lifecycle gate is released.
+///
+/// WHY: `PoolGuard` holds the lifecycle gate as a field, and Rust drops fields
+/// only after `Drop::drop` returns. A worker stuck in a task must not keep the
+/// gate shut for the rest of the process; a panic must not freeze every later
+/// pool user. 5 s: a healthy pool tears down in milliseconds, so this only ever
+/// runs out for workers that are truly stuck.
+///
+/// Override the deadline per call with
+/// [`PoolGuard::shutdown_within`](crate::valtron::PoolGuard::shutdown_within).
+pub const DEFAULT_POOL_SHUTDOWN_GRACE: core::time::Duration = core::time::Duration::from_secs(5);
+
 pub use branches::*;
 #[cfg(feature = "std")]
 pub use ctx::*;
@@ -48,6 +63,10 @@ pub use iterators::*;
 pub use notifiers::*;
 pub use pipe::*;
 pub use pipe_mapped::*;
+#[doc(hidden)]
+pub use readiness_wake::ParkGuard;
+pub(crate) use readiness_wake::ParkState;
+pub use readiness_wake::{EventQueue, ReadinessNotifier, ReadinessWaker};
 pub use stream_future::*;
 pub use streams::*;
 pub use task::*;
@@ -60,7 +79,7 @@ pub use wake::*;
 /// JS-hosted wasm (`js-wasmbindgen` / `js-foundation-wasm`), where blocking
 /// would freeze the isolate's only thread.
 ///
-/// Evaluated in this crate, so it reflects foundation_core's own features
+/// Evaluated in this crate, so it reflects `foundation_core`'s own features
 /// after Cargo's feature unification — which a dependent crate cannot see
 /// with its own `cfg`. Use [`blocking_boundary!`](crate::blocking_boundary)
 /// to compile items only where blocking exists.
@@ -73,20 +92,23 @@ pub const BLOCKING_BOUNDARY: bool = !cfg!(all(
 /// ([`BLOCKING_BOUNDARY`] is `true`).
 ///
 /// WHY: `.block()` / `.blocking()` are absent on JS-hosted wasm, and the
-/// choice is made by foundation_core's features, not the dependent crate's.
+/// choice is made by `foundation_core`'s features, not the dependent crate's.
 /// A sync entry point that waits on async code (a `main`, an OS thread)
 /// imports its blocking helpers inside this macro so they exist exactly
 /// where valtron can block.
 ///
-/// ```ignore
+/// ```
 /// foundation_core::blocking_boundary! {
+///     #[allow(unused_imports)]
 ///     use foundation_core::valtron::block_on_future;
 /// }
+///
 /// // Or with an `else` arm for the JS-hosted wasm build:
 /// foundation_core::blocking_boundary! {
-///     if { pub const CAN_BLOCK: bool = true; }
-///     else { pub const CAN_BLOCK: bool = false; }
+///     if { const CAN_BLOCK: bool = true; }
+///     else { const CAN_BLOCK: bool = false; }
 /// }
+/// assert_eq!(CAN_BLOCK, foundation_core::valtron::BLOCKING_BOUNDARY);
 /// ```
 #[cfg(not(all(
     target_family = "wasm",
@@ -164,3 +186,14 @@ pub use futures_lite::StreamExt;
 // foundation_core::valtron::trace::try_init_tracing_with() without every
 // crate adding foundation_compact as a direct dependency.
 pub use foundation_compact::trace;
+
+/// The instant type of [`EventReadiness::deadline`].
+///
+/// WHY: the standard library's monotonic clock read panics on
+/// `wasm32-unknown-unknown`, and a deadline the executor reads (to wake at it) is
+/// compared with the clock. This
+/// is `std::time::Instant` on every other target, and the host-clock instant on
+/// JS wasm, so one readiness source compiles and runs on both. A crate that
+/// implements `deadline` names this type, so it does not need a direct
+/// dependency on `foundation_compact`.
+pub use foundation_compact::Instant as ReadinessInstant;

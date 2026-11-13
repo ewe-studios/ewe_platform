@@ -1,3 +1,6 @@
+// This suite uses Unix file descriptors, so it builds on Unix only.
+#![cfg(unix)]
+
 /// Integration test: Poll selector correctness.
 ///
 /// Tests the extracted mio-style poll layer:
@@ -5,7 +8,6 @@
 /// - Deregister fd, poll returns no events
 /// - Waker wakes from another thread
 /// - Multiple tokens return correct tokens
-
 use foundation_nativeapis::{Events, Interest, Poll, SourceFd, Token, Waker};
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::Arc;
@@ -15,21 +17,27 @@ use std::time::Duration;
 /// Create a pipe (reader, writer), both nonblocking.
 fn make_pipe() -> (OwnedFd, OwnedFd) {
     let (r, w) = nix::unistd::pipe().expect("pipe creation failed");
-    nix::fcntl::fcntl(r.as_raw_fd(), nix::fcntl::FcntlArg::F_SETFL(
-        nix::fcntl::OFlag::O_NONBLOCK
-    )).expect("fcntl O_NONBLOCK failed");
-    nix::fcntl::fcntl(w.as_raw_fd(), nix::fcntl::FcntlArg::F_SETFL(
-        nix::fcntl::OFlag::O_NONBLOCK
-    )).expect("fcntl O_NONBLOCK failed");
-    (r, w)  // nix::pipe already returns OwnedFd
+    nix::fcntl::fcntl(
+        r.as_raw_fd(),
+        nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+    )
+    .expect("fcntl O_NONBLOCK failed");
+    nix::fcntl::fcntl(
+        w.as_raw_fd(),
+        nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+    )
+    .expect("fcntl O_NONBLOCK failed");
+    (r, w) // nix::pipe already returns OwnedFd
 }
 
 /// Write to a raw fd.
 fn write_fd(fd: std::os::unix::io::RawFd, data: &[u8]) -> std::io::Result<()> {
-    let n = unsafe {
-        libc::write(fd, data.as_ptr() as *const libc::c_void, data.len())
-    };
-    if n < 0 { Err(std::io::Error::last_os_error()) } else { Ok(()) }
+    let n = unsafe { libc::write(fd, data.as_ptr().cast::<libc::c_void>(), data.len()) };
+    if n < 0 {
+        Err(std::io::Error::last_os_error())
+    } else {
+        Ok(())
+    }
 }
 
 /// Test: Register fd, poll returns event when data arrives
@@ -40,7 +48,11 @@ fn poll_returns_event_when_data_arrives() {
     let (reader, writer) = make_pipe();
 
     registry
-        .register(&mut SourceFd(reader.as_raw_fd()), Token(42), Interest::READABLE)
+        .register(
+            &mut SourceFd(reader.as_raw_fd()),
+            Token(42),
+            Interest::READABLE,
+        )
         .expect("register failed");
 
     // Poll with short timeout — no data yet
@@ -70,7 +82,11 @@ fn poll_returns_no_events_after_deregister() {
     let (reader, writer) = make_pipe();
 
     registry
-        .register(&mut SourceFd(reader.as_raw_fd()), Token(7), Interest::READABLE)
+        .register(
+            &mut SourceFd(reader.as_raw_fd()),
+            Token(7),
+            Interest::READABLE,
+        )
         .expect("register failed");
 
     // Deregister
@@ -111,8 +127,7 @@ fn waker_wakes_from_another_thread() {
     let tokens: Vec<_> = events.iter().map(|e| e.token()).collect();
     assert!(
         tokens.contains(&Token(999)),
-        "expected waker event, got: {:?}",
-        tokens
+        "expected waker event, got: {tokens:?}"
     );
 
     handle.join().expect("thread panicked");
@@ -170,13 +185,12 @@ fn poll_zero_timeout_returns_immediately() {
 
     assert!(
         elapsed < Duration::from_millis(50),
-        "poll with zero timeout took too long: {:?}",
-        elapsed
+        "poll with zero timeout took too long: {elapsed:?}"
     );
     assert!(events.is_empty());
 }
 
-/// Test: Interest::WRITABLE returns writable events
+/// Test: `Interest::WRITABLE` returns writable events
 #[test]
 fn poll_writable_interest() {
     let poll = Poll::new().expect("failed to create poll");
@@ -184,7 +198,11 @@ fn poll_writable_interest() {
     let (_reader, writer) = make_pipe();
 
     registry
-        .register(&mut SourceFd(writer.as_raw_fd()), Token(10), Interest::WRITABLE)
+        .register(
+            &mut SourceFd(writer.as_raw_fd()),
+            Token(10),
+            Interest::WRITABLE,
+        )
         .expect("register failed");
 
     let mut events = Events::with_capacity(16);
@@ -192,11 +210,10 @@ fn poll_writable_interest() {
         .expect("poll failed");
 
     // Pipe write end should be writable
-    let is_writable = events.iter().any(|e| e.token() == Token(10) && e.is_writable());
-    assert!(
-        is_writable,
-        "expected writable event for token 10"
-    );
+    let is_writable = events
+        .iter()
+        .any(|e| e.token() == Token(10) && e.is_writable());
+    assert!(is_writable, "expected writable event for token 10");
 }
 
 /// Test: Waker wakes from multiple threads simultaneously
@@ -223,8 +240,7 @@ fn waker_wakes_from_multiple_threads() {
     let tokens: Vec<_> = events.iter().map(|e| e.token()).collect();
     assert!(
         tokens.contains(&Token(999)),
-        "expected waker event, got: {:?}",
-        tokens
+        "expected waker event, got: {tokens:?}"
     );
 
     for handle in handles {
@@ -256,7 +272,10 @@ fn concurrent_registration() {
         .collect();
 
     for handle in handles {
-        handle.join().expect("thread panicked").expect("register failed");
+        handle
+            .join()
+            .expect("thread panicked")
+            .expect("register failed");
     }
 
     // Verify all are registered by polling (should return no events)
@@ -274,10 +293,13 @@ fn poll_handles_eintr() {
     // or return an error for normal operation
     let mut events = Events::with_capacity(16);
     let result = poll.poll(&mut events, Some(Duration::from_millis(1)));
-    assert!(result.is_ok(), "poll should handle normal timeout gracefully");
+    assert!(
+        result.is_ok(),
+        "poll should handle normal timeout gracefully"
+    );
 }
 
-/// Test: TcpStream connect/accept loopback
+/// Test: `TcpStream` connect/accept loopback
 #[test]
 fn tcp_stream_connect_accept() {
     use std::net::TcpListener as StdTcpListener;
@@ -292,7 +314,11 @@ fn tcp_stream_connect_accept() {
 
     // Register listener for readability
     registry
-        .register(&mut SourceFd(listener.as_raw_fd()), Token(1), Interest::READABLE)
+        .register(
+            &mut SourceFd(listener.as_raw_fd()),
+            Token(1),
+            Interest::READABLE,
+        )
         .expect("register failed");
 
     // Connect a client
@@ -303,7 +329,9 @@ fn tcp_stream_connect_accept() {
     poll.poll(&mut events, Some(Duration::from_millis(100)))
         .expect("poll failed");
     assert!(
-        events.iter().any(|e| e.token() == Token(1) && e.is_readable()),
+        events
+            .iter()
+            .any(|e| e.token() == Token(1) && e.is_readable()),
         "expected listener readable event"
     );
 
@@ -312,7 +340,7 @@ fn tcp_stream_connect_accept() {
     assert!(stream.peer_addr().is_ok());
 }
 
-/// Test: UdpSocket send/recv loopback
+/// Test: `UdpSocket` send/recv loopback
 #[test]
 fn udp_socket_send_recv() {
     use std::net::UdpSocket as StdUdpSocket;
@@ -325,7 +353,11 @@ fn udp_socket_send_recv() {
     let registry = poll.registry();
 
     registry
-        .register(&mut SourceFd(sock.as_raw_fd()), Token(5), Interest::READABLE)
+        .register(
+            &mut SourceFd(sock.as_raw_fd()),
+            Token(5),
+            Interest::READABLE,
+        )
         .expect("register failed");
 
     // Send a datagram to ourselves
@@ -335,7 +367,9 @@ fn udp_socket_send_recv() {
     poll.poll(&mut events, Some(Duration::from_millis(100)))
         .expect("poll failed");
     assert!(
-        events.iter().any(|e| e.token() == Token(5) && e.is_readable()),
+        events
+            .iter()
+            .any(|e| e.token() == Token(5) && e.is_readable()),
         "expected udp socket readable event"
     );
 
@@ -361,13 +395,19 @@ fn unix_socket_connect_accept() {
     ));
 
     let listener = StdUnixListener::bind(&path).expect("bind failed");
-    listener.set_nonblocking(true).expect("set_nonblocking failed");
+    listener
+        .set_nonblocking(true)
+        .expect("set_nonblocking failed");
 
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
     registry
-        .register(&mut SourceFd(listener.as_raw_fd()), Token(3), Interest::READABLE)
+        .register(
+            &mut SourceFd(listener.as_raw_fd()),
+            Token(3),
+            Interest::READABLE,
+        )
         .expect("register failed");
 
     // Connect a client
@@ -377,7 +417,9 @@ fn unix_socket_connect_accept() {
     poll.poll(&mut events, Some(Duration::from_millis(100)))
         .expect("poll failed");
     assert!(
-        events.iter().any(|e| e.token() == Token(3) && e.is_readable()),
+        events
+            .iter()
+            .any(|e| e.token() == Token(3) && e.is_readable()),
         "expected unix listener readable event"
     );
 

@@ -14,9 +14,7 @@ use bytes::Bytes;
 
 use foundation_netio::http3::types::{request_from_fields, response_to_fields, MalformedRequest};
 use foundation_netio::netcap::context::ConnectionContext;
-use foundation_netio::shared::http::{
-    SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status};
 
 fn field(name: &str, value: &str) -> (Bytes, Bytes) {
     (
@@ -62,10 +60,9 @@ fn a_well_formed_request_maps_onto_the_shared_simple_types() {
 
     // Pseudo-headers must not leak into the regular header map.
     assert!(
-        header
+        !header
             .headers
-            .get(&SimpleHeader::from(":method".to_string()))
-            .is_none(),
+            .contains_key(&SimpleHeader::from(":method".to_string())),
         "pseudo-headers are not regular fields"
     );
 }

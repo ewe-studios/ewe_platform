@@ -1,4 +1,4 @@
-//! Load balancer: weighted round-robin, eligibility gating, max_connections,
+//! Load balancer: weighted round-robin, eligibility gating, `max_connections`,
 //! and the in-flight refcount.
 
 use foundation_proxy::config::{BackendState, BackendTarget, ServiceConfig};
@@ -55,7 +55,10 @@ fn test_eligibility_excludes_unhealthy_and_paused() {
 
     // Pause B too → nothing is eligible.
     backends[1].set_state(BackendState::Paused);
-    assert!(svc.pick().is_none(), "no eligible backend → None (handler 503s)");
+    assert!(
+        svc.pick().is_none(),
+        "no eligible backend → None (handler 503s)"
+    );
 
     // Recover A → picks resume.
     backends[0].set_healthy(true);
@@ -96,7 +99,11 @@ fn test_inflight_refcount_tracks_leases() {
     let svc = service_with(vec![BackendTarget::new("http://a")]);
     assert_eq!(svc.backends()[0].inflight(), 0);
     let lease = svc.pick().unwrap();
-    assert_eq!(svc.backends()[0].inflight(), 1, "lease increments in-flight");
+    assert_eq!(
+        svc.backends()[0].inflight(),
+        1,
+        "lease increments in-flight"
+    );
     drop(lease);
     assert_eq!(svc.backends()[0].inflight(), 0, "drop decrements in-flight");
 }

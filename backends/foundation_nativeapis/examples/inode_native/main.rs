@@ -1,13 +1,13 @@
-use foundation_nativeapis::shared::vfs::{MemoryFs, VfsFile, VfsFileSystem};
+use foundation_nativeapis::shared::vfs::{MemoryFs, VfsDirectory, VfsFile, VfsFileSystem};
 
 fn main() {
     println!("=== Inode-Native VFS Example ===\n");
 
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::host());
 
     // Root directory always has inode 1
     let root_ino = fs.inode("/").unwrap();
-    println!("Root inode: {}", root_ino);
+    println!("Root inode: {root_ino}");
 
     // Create files — each gets a unique inode
     fs.mkdir("/projects").unwrap();
@@ -19,12 +19,12 @@ fn main() {
     let app_ino = fs.inode("/projects/app.rs").unwrap();
     let lib_ino = fs.inode("/projects/lib.rs").unwrap();
     let dir_ino = fs.inode("/projects").unwrap();
-    println!("Inodes: /projects={}, app.rs={}, lib.rs={}", dir_ino, app_ino, lib_ino);
+    println!("Inodes: /projects={dir_ino}, app.rs={app_ino}, lib.rs={lib_ino}");
     assert_ne!(app_ino, lib_ino);
 
     // Reverse lookup: inode → path
     let path = fs.path_by_inode(app_ino).unwrap();
-    println!("path_by_inode({}) = {:?}", app_ino, path);
+    println!("path_by_inode({app_ino}) = {path:?}");
     assert_eq!(path, "/projects/app.rs");
 
     // stat_by_inode — same result as stat by path
@@ -41,17 +41,21 @@ fn main() {
     fs.rename("/projects/app.rs", "/projects/main.rs").unwrap();
     let ino_after = fs.inode("/projects/main.rs").unwrap();
     println!("\nRename /projects/app.rs → /projects/main.rs");
-    println!("Inode before: {}, after: {} (preserved: {})", app_ino, ino_after, app_ino == ino_after);
+    println!(
+        "Inode before: {}, after: {} (preserved: {})",
+        app_ino,
+        ino_after,
+        app_ino == ino_after
+    );
     assert_eq!(app_ino, ino_after);
 
     // Reverse lookup updates too
     let new_path = fs.path_by_inode(app_ino).unwrap();
-    println!("path_by_inode({}) now = {:?}", app_ino, new_path);
+    println!("path_by_inode({app_ino}) now = {new_path:?}");
     assert_eq!(new_path, "/projects/main.rs");
 
     // Directory listing shows inodes
     let dir = fs.open_directory("/projects").unwrap();
-    use foundation_nativeapis::shared::vfs::VfsDirectory;
     let entries = dir.list().unwrap();
     println!("\n/projects entries:");
     for e in &entries {

@@ -434,8 +434,8 @@ pub async fn system_info_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/info",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/info");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

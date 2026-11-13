@@ -7,10 +7,11 @@
 //!
 //! HOW: Re-export these from each provider's `shared` module for convenience.
 
-use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::client::PreparedRequest;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeaders};
+use foundation_netio::shared::http::SimpleHeaders;
 use foundation_netio::DynNetClient;
+use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
 
 use super::body::{read_error_body, BodyLimits, ByteStream, JsonLinesStream};
@@ -19,7 +20,7 @@ use super::body::{read_error_body, BodyLimits, ByteStream, JsonLinesStream};
 pub use foundation_core::valtron::BoxedSendExecutionAction;
 #[deprecated(
     note = "RequestIntro is native-only; use HttpClient::open_exchange() + HttpExchange \
-            (or body_reader::split_exchange/collect_exchange) instead"
+            (or body_reader::split_exchange/send_and_split) instead"
 )]
 pub use foundation_netio::http::RequestIntro;
 
@@ -154,12 +155,15 @@ impl std::fmt::Debug for ApiClient {
 /// becomes [`ApiError::HttpStatus`] carrying the vendor's error body (the
 /// diagnosis — "`server_type` cx99 does not exist" — lives there), read up to
 /// the client's [`BodyLimits::max_error_body`]. A 2xx body is parsed as `T`;
-/// it is read whole because the parsed value is what the caller needs next.
+/// it is read up to one byte past [`BodyLimits::max_json_body`], so an
+/// over-cap body is refused with an error naming the limit and its rest is
+/// never read.
 ///
 /// # Errors
 /// [`ApiError::RequestSendFailed`] when the request cannot be sent,
 /// [`ApiError::HttpStatus`] for a non-2xx status, and [`ApiError::ParseFailed`]
-/// when the body is not a `T`.
+/// when the body is not a `T` or is longer than
+/// [`BodyLimits::max_json_body`].
 pub async fn send_json<T>(
     client: impl Into<ApiClient>,
     request: PreparedRequest,
@@ -169,7 +173,28 @@ where
 {
     let client = client.into();
     let (status, headers, body) = send_checked(&client, request).await?;
-    let bytes = collect_bytes_from_send_safe(body);
+    let max = client.limits.max_json_body;
+    let mut body = body;
+    let mut bytes = Vec::new();
+    while bytes.len() <= max {
+        match body.next().await {
+            Some(Ok(chunk)) => {
+                let room = max + 1 - bytes.len();
+                bytes.extend_from_slice(&chunk[..chunk.len().min(room)]);
+            }
+            Some(Err(e)) => {
+                return Err(ApiError::RequestSendFailed(format!(
+                    "reading the response body: {e}"
+                )));
+            }
+            None => break,
+        }
+    }
+    if bytes.len() > max {
+        return Err(ApiError::ParseFailed(format!(
+            "response body longer than {max} bytes (max_json_body)"
+        )));
+    }
     let parsed: T =
         serde_json::from_slice(&bytes).map_err(|e| ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse {
@@ -249,7 +274,7 @@ pub async fn send_bytes(
 pub async fn send_checked(
     client: &ApiClient,
     request: PreparedRequest,
-) -> Result<(u16, SimpleHeaders, SendSafeBody), ApiError> {
+) -> Result<(u16, SimpleHeaders, AsyncSendSafeBody), ApiError> {
     let response = client
         .http
         .send_async(request)
@@ -259,7 +284,7 @@ pub async fn send_checked(
     let status = u16::try_from(status)
         .map_err(|_| ApiError::RequestSendFailed(format!("invalid HTTP status {status}")))?;
     let headers = response.get_headers_ref().clone();
-    let body = response.take_body();
+    let body = response.take_async_body();
     if !(200..300).contains(&status) {
         let body = read_error_body(body, client.limits.max_error_body).await;
         return Err(ApiError::HttpStatus {

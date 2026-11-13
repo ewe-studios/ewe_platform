@@ -1,4 +1,4 @@
-//! Window management — Tauri WebView lifecycle (F35).
+//! Window management — Tauri `WebView` lifecycle (F35).
 //!
 //! WHY: `WebViewPool` tracks labels but doesn't create real windows. This
 //! module provides the bridge: a `WindowOps` trait the session calls, and
@@ -21,7 +21,7 @@ use crate::stack::{WebViewPool, WebViewState};
 /// Operations the session needs from the native window system.
 /// In production this wraps Tauri's `AppHandle`; in tests it's absent.
 pub trait WindowOps: Send + Sync + 'static {
-    /// Create a new WebView window with the given label and initial URL.
+    /// Create a new `WebView` window with the given label and initial URL.
     fn create(&self, label: &str, url: &str);
     /// Navigate an existing window to a new URL.
     fn navigate(&self, label: &str, url: &str);
@@ -43,11 +43,11 @@ pub trait WindowOps: Send + Sync + 'static {
 
 #[cfg(not(target_family = "wasm"))]
 mod tauri_impl {
+    use super::WindowOps;
     use tauri::Manager;
-    use super::*;
 
     /// A `WindowOps` backed by Tauri's `AppHandle`.
-    /// Implements the trait by calling Tauri's WebView window API.
+    /// Implements the trait by calling Tauri's `WebView` window API.
     pub struct TauriWindowOps<R: tauri::Runtime = tauri::Wry> {
         app_handle: tauri::AppHandle<R>,
     }
@@ -66,7 +66,7 @@ mod tauri_impl {
         fn create(&self, label: &str, url: &str) {
             if let Some(window) = self.app_handle.get_webview_window(label) {
                 // Window already exists — navigate + return
-                let _ = window.eval(&format!("location.href = '{url}'"));
+                let _ = window.eval(format!("location.href = '{url}'"));
                 return;
             }
             // Create a new window
@@ -89,7 +89,7 @@ mod tauri_impl {
 
         fn navigate(&self, label: &str, url: &str) {
             if let Some(window) = self.app_handle.get_webview_window(label) {
-                let _ = window.eval(&format!("location.href = '{url}'"));
+                let _ = window.eval(format!("location.href = '{url}'"));
             }
         }
 
@@ -128,7 +128,7 @@ mod tauri_impl {
             // On desktop this creates a new browser tab; on Android it fires
             // an intent that the system browser handles.
             if let Some(window) = self.app_handle.get_webview_window("main") {
-                let _ = window.eval(&format!("window.open('{url}','_blank')"));
+                let _ = window.eval(format!("window.open('{url}','_blank')"));
             }
         }
     }
@@ -147,7 +147,9 @@ impl WindowOps for NoopWindowOps {
     fn show(&self, _label: &str) {}
     fn hide(&self, _label: &str) {}
     fn close(&self, _label: &str) {}
-    fn screenshot(&self, _label: &str) -> Vec<u8> { Vec::new() }
+    fn screenshot(&self, _label: &str) -> Vec<u8> {
+        Vec::new()
+    }
     fn eval(&self, _label: &str, _script: &str) {}
     fn open_url(&self, _url: &str) {}
 }
@@ -163,21 +165,30 @@ pub struct WindowManager {
 impl WindowManager {
     #[must_use]
     pub fn new() -> Self {
-        Self { ops: Mutex::new(None) }
+        Self {
+            ops: Mutex::new(None),
+        }
     }
 
-    /// Inject the concrete window backend (called by PlatformBuilder at build time).
+    /// Inject the concrete window backend (called by `PlatformBuilder` at build time).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn set_ops(&self, ops: Box<dyn WindowOps>) {
         *self.ops.lock().unwrap() = Some(ops);
     }
 
-    /// Ensure a WebView window exists for the given label and is navigating to url.
+    /// Ensure a `WebView` window exists for the given label and is navigating to url.
     /// If the window doesn't exist, creates it lazily. If it exists, navigates.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn ensure(&self, pool: &mut WebViewPool, label: &str, url: &str) {
         let ops_guard = self.ops.lock().unwrap();
-        let ops = match ops_guard.as_ref() {
-            Some(o) => o,
-            None => return,
+        let Some(ops) = ops_guard.as_ref() else {
+            return;
         };
 
         if pool.get(label).is_none() {
@@ -192,50 +203,66 @@ impl WindowManager {
     }
 
     /// Show a window and update its pool state to Active.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn activate(&self, pool: &mut WebViewPool, label: &str) {
         let ops_guard = self.ops.lock().unwrap();
-        let ops = match ops_guard.as_ref() {
-            Some(o) => o,
-            None => return,
+        let Some(ops) = ops_guard.as_ref() else {
+            return;
         };
         ops.show(label);
         pool.set_state(label, WebViewState::Active);
     }
 
     /// Hide a window and mark its pool state as Ready.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn deactivate(&self, pool: &mut WebViewPool, label: &str) {
         let ops_guard = self.ops.lock().unwrap();
-        let ops = match ops_guard.as_ref() {
-            Some(o) => o,
-            None => return,
+        let Some(ops) = ops_guard.as_ref() else {
+            return;
         };
         ops.hide(label);
         pool.set_state(label, WebViewState::Ready);
     }
 
     /// Close a window and remove it from the pool.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn destroy(&self, pool: &mut WebViewPool, label: &str) {
         let ops_guard = self.ops.lock().unwrap();
-        let ops = match ops_guard.as_ref() {
-            Some(o) => o,
-            None => return,
+        let Some(ops) = ops_guard.as_ref() else {
+            return;
         };
         ops.close(label);
         pool.remove(label);
     }
 
     /// Navigate an existing window to a new URL.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn navigate(&self, pool: &mut WebViewPool, label: &str, url: &str) {
         let ops_guard = self.ops.lock().unwrap();
-        let ops = match ops_guard.as_ref() {
-            Some(o) => o,
-            None => return,
+        let Some(ops) = ops_guard.as_ref() else {
+            return;
         };
         ops.navigate(label, url);
         pool.set_route(label, url);
     }
 
     /// Open a URL in the system browser via Tauri shell (external navigation).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn open_external(&self, _pool: &mut WebViewPool, url: &str) {
         let ops_guard = self.ops.lock().unwrap();
         if let Some(ops) = ops_guard.as_ref() {
@@ -244,6 +271,10 @@ impl WindowManager {
     }
 
     /// Capture a screenshot of a window as PNG bytes.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     pub fn screenshot(&self, _pool: &mut WebViewPool, label: &str) -> Vec<u8> {
         let ops_guard = self.ops.lock().unwrap();
         if let Some(ops) = ops_guard.as_ref() {
@@ -254,6 +285,10 @@ impl WindowManager {
     }
 
     /// Check if window ops are available (false in tests).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the ops lock is poisoned.
     #[must_use]
     pub fn is_available(&self) -> bool {
         self.ops.lock().unwrap().is_some()
@@ -261,6 +296,7 @@ impl WindowManager {
 }
 
 impl Default for WindowManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
-

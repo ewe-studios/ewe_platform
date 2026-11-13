@@ -1,13 +1,14 @@
-/// Valtron task: FileWatcherTask — wraps a NativeWatcher and delivers file events
+/// Valtron task: `FileWatcherTask` — wraps a `NativeWatcher` and delivers file events
 /// to subscriber queues.
-
+use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::synca::mpp::Receiver;
-use foundation_core::valtron::{Ctx, DrivenStreamIterator, TaskIterator, TaskStatus};
 use foundation_core::valtron::{execute, GenericResult};
+use foundation_core::valtron::{DrivenStreamIterator, TaskIterator, TaskStatus};
 
 use crate::shared::error::Result;
 use crate::shared::event::WatchEvent;
@@ -27,9 +28,18 @@ pub struct FileWatcherTask {
     broadcaster: EventBroadcaster<WatchEvent>,
     poll_timeout: Duration,
     stop: StopSignal,
+    /// Events from the current poll that were not yet returned.
+    ///
+    /// One poll can return many events. The task delivers one event per
+    /// `next_status` call, so the rest wait here for later calls.
+    pending: VecDeque<WatchEvent>,
 }
 
 impl FileWatcherTask {
+    /// Create a task with the best native watcher for this platform.
+    ///
+    /// # Errors
+    /// Returns a watcher error if no native watcher can be built.
     pub fn new() -> Result<Self> {
         use crate::shared::api::native_watcher;
 
@@ -38,41 +48,56 @@ impl FileWatcherTask {
             broadcaster: EventBroadcaster::new(64),
             poll_timeout: Duration::from_millis(50),
             stop: StopSignal::new(),
+            pending: VecDeque::new(),
         })
     }
 
+    #[must_use]
     pub fn with_watcher(watcher: Box<dyn NativeWatcher>) -> Self {
         Self {
             watcher: SharedWatcher::from_boxed(watcher),
             broadcaster: EventBroadcaster::new(64),
             poll_timeout: Duration::from_millis(50),
             stop: StopSignal::new(),
+            pending: VecDeque::new(),
         }
     }
 
+    #[must_use]
     pub fn with_shared_watcher(watcher: SharedWatcher) -> Self {
         Self {
             watcher,
             broadcaster: EventBroadcaster::new(64),
             poll_timeout: Duration::from_millis(50),
             stop: StopSignal::new(),
+            pending: VecDeque::new(),
         }
     }
 
     /// Get a clone of the shared watcher handle.
+    #[must_use]
     pub fn watcher(&self) -> SharedWatcher {
         self.watcher.clone_handle()
     }
 
     /// Get a `StopSignal` that can terminate this task when signaled.
+    #[must_use]
     pub fn stop_signal(&self) -> StopSignal {
         self.stop.clone()
     }
 
+    /// Add a path to watch.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be watched.
     pub fn watch(&mut self, path: &Path, recursive: bool) -> Result<()> {
         self.watcher.watch(path, recursive)
     }
 
+    /// Remove a watched path.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be unwatched.
     pub fn unwatch(&mut self, path: &Path) -> Result<()> {
         self.watcher.unwatch(path)
     }
@@ -81,11 +106,13 @@ impl FileWatcherTask {
         self.broadcaster.subscribe()
     }
 
+    #[must_use]
     pub fn with_poll_timeout(mut self, timeout: Duration) -> Self {
         self.poll_timeout = timeout;
         self
     }
 
+    #[must_use]
     pub fn subscriber_count(&self) -> usize {
         self.broadcaster.subscriber_count()
     }
@@ -101,14 +128,20 @@ impl TaskIterator for FileWatcherTask {
             return None;
         }
 
+        // Return the next event that is still waiting from an earlier poll.
+        if let Some(event) = self.pending.pop_front() {
+            return Some(TaskStatus::Ready(event));
+        }
+
         match self.watcher.poll(self.poll_timeout) {
             Ok(events) if !events.is_empty() => {
-                let (first, rest) = events.split_first().unwrap();
-                self.broadcaster.broadcast(first.clone());
-                for event in rest {
+                // Broadcast every event exactly once, then queue them all.
+                for event in &events {
                     self.broadcaster.broadcast(event.clone());
                 }
-                Some(TaskStatus::Ready(first.clone()))
+                self.pending.extend(events);
+                let first = self.pending.pop_front().unwrap();
+                Some(TaskStatus::Ready(first))
             }
             Ok(_) | Err(_) => Some(TaskStatus::Depends(Arc::new(CompositeReadiness::new(
                 Arc::new(self.watcher.clone_handle()),
@@ -143,29 +176,40 @@ pub struct FileWatcherBuilder {
 }
 
 impl FileWatcherBuilder {
+    /// Create a builder with the best native watcher for this platform.
+    ///
+    /// # Errors
+    /// Returns a watcher error if no native watcher can be built.
     pub fn new() -> Result<Self> {
         Ok(Self {
             task: FileWatcherTask::new()?,
         })
     }
 
+    #[must_use]
     pub fn with_watcher(watcher: Box<dyn NativeWatcher>) -> Self {
         Self {
             task: FileWatcherTask::with_watcher(watcher),
         }
     }
 
+    #[must_use]
     pub fn with_shared_watcher(watcher: SharedWatcher) -> Self {
         Self {
             task: FileWatcherTask::with_shared_watcher(watcher),
         }
     }
 
+    /// Add a path to watch.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be watched.
     pub fn watch(mut self, path: impl AsRef<Path>, recursive: bool) -> Result<Self> {
         self.task.watch(path.as_ref(), recursive)?;
         Ok(self)
     }
 
+    #[must_use]
     pub fn poll_timeout(mut self, timeout: Duration) -> Self {
         self.task = self.task.with_poll_timeout(timeout);
         self
@@ -176,6 +220,9 @@ impl FileWatcherBuilder {
     /// The caller drives consumption — use `collect_one()`, `collect_result()`,
     /// or iterate manually. The stream yields `Stream<WatchEvent, ()>` so
     /// callers can distinguish events from pending/delayed states.
+    ///
+    /// # Errors
+    /// Returns an executor error if the task cannot be spawned.
     pub fn build(self) -> GenericResult<DrivenStreamIterator<FileWatcherTask>> {
         execute(self.task, None)
     }

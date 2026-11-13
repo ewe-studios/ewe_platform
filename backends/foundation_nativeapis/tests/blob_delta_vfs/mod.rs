@@ -5,10 +5,14 @@
 //! emulator: async directly, and sync through `SyncFs`.
 
 use std::io::SeekFrom;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use foundation_core::valtron::{initialize_pool, valtron_test, PoolGuard};
-use foundation_db::MemoryStorage;
-use foundation_nativeapis::native::vfs::blob_delta::BlobDelta;
+use foundation_db::traits::BlobListStream;
+use foundation_db::{BlobStore, MemoryStorage, StorageResult};
+use foundation_nativeapis::native::vfs::blob_delta::{BlobDelta, BlobDeltaConfig};
 use foundation_nativeapis::shared::vfs::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
@@ -16,7 +20,63 @@ use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::{DeltaStore, OpenMode, VfsFileSystem, VfsFileType};
 
 fn delta() -> BlobDelta<MemoryStorage> {
-    BlobDelta::from_store(MemoryStorage::new())
+    BlobDelta::from_store(
+        MemoryStorage::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+}
+
+/// A blob store that counts every byte passed to `put_blob`.
+#[derive(Clone)]
+struct CountingStore {
+    inner: MemoryStorage,
+    written: Arc<AtomicUsize>,
+}
+
+impl CountingStore {
+    fn new() -> (Self, Arc<AtomicUsize>) {
+        let written = Arc::new(AtomicUsize::new(0));
+        (
+            Self {
+                inner: MemoryStorage::new(),
+                written: Arc::clone(&written),
+            },
+            written,
+        )
+    }
+}
+
+#[async_trait]
+impl BlobStore for CountingStore {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        self.written.fetch_add(data.len(), Ordering::Relaxed);
+        self.inner.put_blob(key, data).await
+    }
+
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        self.inner.get_blob(key).await
+    }
+
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
+        self.inner.delete_blob(key).await
+    }
+
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
+        self.inner.blob_exists(key).await
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        self.inner
+            .list_blobs_after(prefix, start_after, limit)
+            .await
+    }
 }
 
 #[valtron_test]
@@ -40,7 +100,10 @@ async fn write_at_honours_the_offset() {
     f.write_at_async(b"WORLD".to_vec(), 6).await.unwrap();
     // Past the end pads with zeros.
     f.write_at_async(b"!".to_vec(), 12).await.unwrap();
-    assert_eq!(d.read_file_async("/f".into()).await.unwrap(), b"hello WORLD\0!");
+    assert_eq!(
+        d.read_file_async("/f".into()).await.unwrap(),
+        b"hello WORLD\0!"
+    );
     assert_eq!(f.read_at_async(5, 6).await.unwrap(), b"WORLD");
 }
 
@@ -67,7 +130,10 @@ async fn truncate_persists() {
 async fn seekable_file_tracks_its_cursor() {
     let d = delta();
     d.create_async("/s".into(), 0o644).await.unwrap();
-    let mut f = d.open_seekable_async("/s".into(), OpenMode::ReadWrite).await.unwrap();
+    let mut f = d
+        .open_seekable_async("/s".into(), OpenMode::ReadWrite)
+        .await
+        .unwrap();
     f.write_async(b"abc".to_vec()).await.unwrap();
     f.write_async(b"def".to_vec()).await.unwrap();
     assert_eq!(f.position_async(), 6);
@@ -116,7 +182,10 @@ async fn rename_moves_data_and_metadata() {
     assert!(!d.exists_async("/from".into()).await.unwrap());
     assert_eq!(d.read_file_async("/to".into()).await.unwrap(), b"data");
     assert_eq!(d.stat_async("/to".into()).await.unwrap().permissions, 0o640);
-    assert!(d.rename_async("/missing".into(), "/x".into()).await.is_err());
+    assert!(d
+        .rename_async("/missing".into(), "/x".into())
+        .await
+        .is_err());
 }
 
 #[valtron_test]
@@ -126,13 +195,98 @@ async fn directories_create_and_look_up_children() {
     let dir = d.open_directory_async("/dir".into()).await.unwrap();
     dir.create_file_async("child".into(), 0o644).await.unwrap();
 
-    let entry = dir.get_entry_async("child".into()).await.unwrap().expect("child");
+    let entry = dir
+        .get_entry_async("child".into())
+        .await
+        .unwrap()
+        .expect("child");
     assert_eq!(entry.name, "child");
     assert_eq!(entry.file_type, VfsFileType::Regular);
     assert!(dir.get_entry_async("other".into()).await.unwrap().is_none());
 
     // A file is not a directory.
     assert!(d.open_directory_async("/dir/child".into()).await.is_err());
+}
+
+#[valtron_test]
+async fn blob_delta_lists_files_and_whiteouts() {
+    let d = delta();
+    d.mkdir_async("/d".into()).await.unwrap();
+    d.create_async("/d/a.txt".into(), 0o644).await.unwrap();
+    d.create_async("/d/b.txt".into(), 0o644).await.unwrap();
+    d.mkdir_async("/d/sub".into()).await.unwrap();
+    d.create_async("/d/gone.txt".into(), 0o644).await.unwrap();
+    d.remove_async("/d/gone.txt".into()).await.unwrap();
+    d.add_whiteout_async("/d/removed".into(), 5).await.unwrap();
+
+    let dir = d.open_directory_async("/d".into()).await.unwrap();
+    let mut names: Vec<String> = dir
+        .list_async()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|e| e.name)
+        .collect();
+    names.sort();
+    assert_eq!(names, vec!["a.txt", "b.txt", "sub"]);
+
+    let mut whiteouts = d.list_whiteouts_async("/d".into()).await.unwrap();
+    whiteouts.sort();
+    assert_eq!(
+        whiteouts,
+        vec![
+            ("/d/gone.txt".to_string(), 0),
+            ("/d/removed".to_string(), 5),
+        ]
+    );
+}
+
+#[valtron_test]
+async fn blob_delta_reset_clears_everything() {
+    let d = delta();
+    d.mkdir_async("/d".into()).await.unwrap();
+    d.create_async("/d/a".into(), 0o644).await.unwrap();
+    d.add_whiteout_async("/w".into(), 1).await.unwrap();
+
+    d.reset_async().await.unwrap();
+
+    assert!(!d.exists_async("/d/a".into()).await.unwrap());
+    assert!(!d.exists_async("/d".into()).await.unwrap());
+    assert!(d.list_whiteouts_async("/".into()).await.unwrap().is_empty());
+}
+
+#[valtron_test]
+async fn blob_delta_small_writes_touch_one_chunk() {
+    let (store, written) = CountingStore::new();
+    let config = BlobDeltaConfig::default().with_chunk_size(4096);
+    let d = BlobDelta::from_store_with_config(
+        store,
+        config,
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
+    let f = d.create_async("/big".into(), 0o644).await.unwrap();
+
+    // 1 MiB in 4 KiB pieces. Chunked writes touch one 4 KiB chunk per write,
+    // so the store sees about 1 MiB plus metadata; a whole-file rewrite would
+    // push ~128 MiB through the store.
+    let piece = vec![0xabu8; 4096];
+    for i in 0..256usize {
+        f.write_at_async(piece.clone(), (i * 4096) as u64)
+            .await
+            .unwrap();
+    }
+
+    assert_eq!(
+        d.read_file_async("/big".into()).await.unwrap().len(),
+        1024 * 1024
+    );
+    let bytes = written.load(Ordering::Relaxed);
+    assert!(
+        bytes < 16 * 1024 * 1024,
+        "expected chunked writes, but {bytes} bytes reached the store"
+    );
 }
 
 #[valtron_test]

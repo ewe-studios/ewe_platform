@@ -21,7 +21,7 @@
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
-use foundation_connectrpc::{ClientOptions, Ctx, H1Transport, Request, Transport};
+use foundation_connectrpc::{ClientOptions, H1Transport, Request, RpcCtx, Transport};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::netcap::ssl::SSLConnector;
 use foundation_netio::HttpClientBuilder;
@@ -104,7 +104,7 @@ pub async fn enroll(
     let client = BootstrapServiceClient::new(transport, bootstrap_url, ClientOptions::new())?;
     let reply = client
         .enroll(
-            Ctx::background().with_deadline(Duration::from_secs(30)),
+            RpcCtx::background().with_deadline(Duration::from_secs(30)),
             Request::new(EnrollRequest {
                 token: secret.to_string(),
                 client_name: client_name.to_string(),

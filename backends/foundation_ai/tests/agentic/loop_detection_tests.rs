@@ -213,7 +213,9 @@ fn short_text_skips_simhash() {
 
 #[test]
 fn punctuation_only_replies_are_vacuous() {
-    for reply in [".", "..", "...", ",", "-", "!", "?", "  .  ", "\n", "", "   "] {
+    for reply in [
+        ".", "..", "...", ",", "-", "!", "?", "  .  ", "\n", "", "   ",
+    ] {
         assert!(
             is_vacuous_answer(reply),
             "{reply:?} carries no information and should be treated as vacuous"
@@ -337,7 +339,10 @@ fn a_number_is_recognised_without_its_context() {
         assert!(is_bare_number(reply), "{reply:?} is number-only");
     }
     for reply in ["4 apples", "Paris", "no", "."] {
-        assert!(!is_bare_number(reply), "{reply:?} carries more than a number");
+        assert!(
+            !is_bare_number(reply),
+            "{reply:?} carries more than a number"
+        );
     }
 }
 
@@ -389,7 +394,10 @@ fn a_bare_number_answering_arithmetic_is_kept() {
     // The regression the conservative rule exists to avoid.
     let mut detector = LoopDetector::new(LoopDetectorConfig::default());
 
-    assert_eq!(detector.check_answer("4", "What is 2+2?"), LoopDetection::NoLoop);
+    assert_eq!(
+        detector.check_answer("4", "What is 2+2?"),
+        LoopDetection::NoLoop
+    );
     assert_eq!(
         detector.check_answer("8", "How many planets are there?"),
         LoopDetection::NoLoop

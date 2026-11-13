@@ -45,7 +45,9 @@ fn control_socket_status_and_drain() {
         .bind("127.0.0.1:0")
         .control_socket(&sock)
         .service(svc);
-    let proxy = ProxyServer::start(config).block().expect("start proxy");
+    let proxy = ProxyServer::start(config, foundation_context::Ctx::host())
+        .block()
+        .expect("start proxy");
 
     // Give the control thread a moment to bind and start accepting.
     std::thread::sleep(Duration::from_millis(200));
@@ -60,7 +62,12 @@ fn control_socket_status_and_drain() {
     let resp = rpc(&sock, r#"{"command":"list"}"#);
     assert_eq!(resp["ok"], true, "list ok: {resp}");
     assert_eq!(resp["data"][0]["name"], "echo", "service name: {resp}");
-    assert_eq!(resp["data"][0]["backends"].as_array().map(|a| a.len()), Some(2));
+    assert_eq!(
+        resp["data"][0]["backends"]
+            .as_array()
+            .map(std::vec::Vec::len),
+        Some(2)
+    );
 
     // `drain` one backend, then confirm `status` reflects it.
     let resp = rpc(
@@ -70,7 +77,10 @@ fn control_socket_status_and_drain() {
     assert_eq!(resp["ok"], true, "drain ok: {resp}");
 
     let resp = rpc(&sock, r#"{"command":"status"}"#);
-    assert_eq!(resp["data"]["draining"], 1, "one backend draining now: {resp}");
+    assert_eq!(
+        resp["data"]["draining"], 1,
+        "one backend draining now: {resp}"
+    );
 
     // Unknown command is a clean error, not a crash.
     let resp = rpc(&sock, r#"{"command":"bogus"}"#);
@@ -79,5 +89,8 @@ fn control_socket_status_and_drain() {
     proxy.shutdown();
 
     // The socket file is removed on shutdown.
-    assert!(!std::path::Path::new(&sock).exists(), "socket file cleaned up");
+    assert!(
+        !std::path::Path::new(&sock).exists(),
+        "socket file cleaned up"
+    );
 }
