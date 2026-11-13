@@ -30,9 +30,9 @@ bench = false
 [dependencies]
 
 # -- ewe platform dependencies
-foundation_toolings = { version = "0.0.9" }
-foundation_http = { version = "0.0.11", features = ["multi"] }
-foundation_core = { version = "0.0.20", features = ["multi"] }
+foundation_toolings = { version = "0.0.10" }
+foundation_http = { version = "0.0.12", features = ["multi"] }
+foundation_core = { version = "0.0.21", features = ["multi"] }
 foundation_config = { version = "0.1.3" }
 
 # directory embedding

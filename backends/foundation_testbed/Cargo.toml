@@ -1,6 +1,6 @@
 [package]
 name = "foundation_testbed"
-version = "0.0.5"
+version = "0.0.6"
 edition = "2024"
 description = "Holistic test harness: QEMU/KVM VM testbed (vms) + wasm32 browser/Deno/Workers harness (wasm), feature-gated"
 license = "MIT"
@@ -77,9 +77,9 @@ libc = "0.2"
 [dependencies]
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
-foundation_core = { path = "../foundation_core", version = "0.0.20" }
-foundation_context = { path = "../foundation_context", version = "0.0.2" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.5", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.21" }
+foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"
@@ -89,12 +89,12 @@ derive_more = { version = "2", features = ["display", "error", "from"] }
 
 # wasm feature — the wasm32 test harness (optional, enabled by `wasm`).
 walrus = { workspace = true, optional = true }
-foundation_codegen = { path = "../foundation_codegen", version = "0.2.0", optional = true }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.2", optional = true, features = ["embedded-js"] }
-foundation_http = { path = "../foundation_http", version = "0.0.11", optional = true }
-foundation_browser = { path = "../foundation_browser", version = "0.0.6", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.20", optional = true }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.8", optional = true }
+foundation_codegen = { path = "../foundation_codegen", version = "0.2.1", optional = true }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.3", optional = true, features = ["embedded-js"] }
+foundation_http = { path = "../foundation_http", version = "0.0.12", optional = true }
+foundation_browser = { path = "../foundation_browser", version = "0.0.7", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.21", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.9", optional = true }
 portpicker = { workspace = true, optional = true }
 tempfile = { version = "3", optional = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
@@ -137,7 +137,7 @@ clap = { version = "4", features = ["derive"], optional = true }
 # vms has moved to foundation_deployment_platform (spec-53, Feature 11). This is
 # a NATIVE dependency (VM/container orchestration), enabled by the `vms` feature
 # — it must not live under the wasm32-only target table.
-foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.6", optional = true }
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.7", optional = true }
 
 # The multi-threaded valtron executor is native-only (its `idle_wake` module is
 # `#[cfg(not(target_family = "wasm"))]`). Enable it only for the native testbed;
@@ -145,12 +145,12 @@ foundation_deployment_platform = { path = "../foundation_deployment_platform", v
 # JS-yield executor, so forcing `multi` there broke their `cargo check --tests
 # --target wasm32-unknown-unknown` (E0433 `idle_wake`).
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
 
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that the harness
 # deadlines follow the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi", "test-clock"] }
 # The VM e2e tests (`vms`) build `TestbedError::SshFailed`, whose `source` is
 # an `anyhow::Error` in foundation_deployment_platform's public error type.
 anyhow = "1"

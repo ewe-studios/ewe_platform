@@ -327,7 +327,7 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "foundation_codegen"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "custom_debug",
  "derive_more",
@@ -353,7 +353,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.20"
+version = "0.0.21"
 dependencies = [
  "base85rs",
  "brotli",
@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.8"
+version = "0.0.9"
 
 [[package]]
 name = "foundation_theme"
@@ -380,7 +380,7 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "clap",
  "concurrent-queue",

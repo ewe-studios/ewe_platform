@@ -205,14 +205,12 @@ impl<R: Read> HintReadterator for BatchReader<R> {
                 );
                 if self.consecutive_retries > self.max_consecutive_retries {
                     self.done = true;
-
-                    if self.received_data {
-                        tracing::trace!("Finished reading, saw data, ending");
-                        return None;
-                    }
-
-                    tracing::trace!(
-                        "Problematic, max retries reached, returning exahaustion errors"
+                    // A stall is an error, also after some data came. Ending
+                    // with `None` here made a body that stopped mid-way look
+                    // complete; on Windows that cut response bodies short (#520).
+                    tracing::debug!(
+                        received_data = self.received_data,
+                        "max consecutive retries reached; the read stalled"
                     );
                     Some(Err(io::Error::new(
                         e.kind(),

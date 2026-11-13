@@ -12,11 +12,13 @@ use crate::poll::{Interest, Registry, Token};
 
 use std::collections::HashMap;
 use std::io;
+use std::net::UdpSocket;
+use std::os::windows::io::AsRawSocket;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use windows_sys::Win32::{
-    Foundation::*, Networking::WinSock::*, System::Threading::*, System::IO::CreateIoCompletionPort,
+    Foundation::*, Networking::WinSock::*, System::IO::CreateIoCompletionPort,
 };
 
 /// Per-registered-fd state for the IOCP selector.
@@ -38,10 +40,14 @@ pub struct Selector {
     iocp: HANDLE,
     /// Track registered handles and their state.
     handles: Mutex<HashMap<RawFd, IoState>>,
-    /// Waker token.
+    /// Waker token, reported when [`Selector::wake`] ends a poll.
     waker_token: Mutex<Option<Token>>,
-    /// Waker event handle.
-    waker_event: Mutex<Option<HANDLE>>,
+    /// Wake channel: a loopback UDP socket connected to itself (#532).
+    ///
+    /// `WSAPoll` waits only on sockets, so an event handle cannot end it. Every
+    /// poll puts this socket in its set. One byte sent to it ends a blocked
+    /// poll: for a wake, and for a change of the registered set.
+    notify: UdpSocket,
 }
 
 // SAFETY: The IOCP handle and the event handle are kernel handles. Windows allows
@@ -69,12 +75,59 @@ impl Selector {
                 ));
             }
 
+            let notify = match Self::notify_socket() {
+                Ok(socket) => socket,
+                Err(e) => {
+                    WSACleanup();
+                    CloseHandle(iocp);
+                    return Err(e);
+                }
+            };
+
             Ok(Self {
                 iocp,
                 handles: Mutex::new(HashMap::new()),
                 waker_token: Mutex::new(None),
-                waker_event: Mutex::new(None),
+                notify,
             })
+        }
+    }
+
+    /// A non-blocking loopback UDP socket that sends to itself.
+    fn notify_socket() -> io::Result<UdpSocket> {
+        let socket = UdpSocket::bind("127.0.0.1:0")?;
+        socket.connect(socket.local_addr()?)?;
+        socket.set_nonblocking(true)?;
+        Ok(socket)
+    }
+
+    /// End a blocked [`Selector::poll`].
+    ///
+    /// A full send buffer means a byte is already queued, and that byte ends
+    /// the poll too, so `WouldBlock` is success.
+    fn notify(&self) -> io::Result<()> {
+        match self.notify.send(&[1]) {
+            Ok(_) => Ok(()),
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Read every queued notify byte, so the next poll can block again.
+    fn drain_notify(&self) {
+        let mut buf = [0_u8; 64];
+        loop {
+            match self.notify.recv(&mut buf) {
+                Ok(_) => {}
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                // Windows reports an earlier ICMP error on a UDP socket as
+                // ConnectionReset on the next recv; read on.
+                Err(e) if e.kind() == io::ErrorKind::ConnectionReset => {}
+                Err(e) => {
+                    tracing::warn!(error = %e, "draining the Windows selector notify socket failed");
+                    break;
+                }
+            }
         }
     }
 
@@ -132,8 +185,11 @@ impl Selector {
                 is_socket,
             },
         );
+        drop(handles);
 
-        Ok(())
+        // A poll that blocks now does not watch this socket. End it, so the
+        // next poll includes it.
+        self.notify()
     }
 
     /// Re-register a raw handle with new token and/or interest.
@@ -142,7 +198,8 @@ impl Selector {
         if let Some(state) = handles.get_mut(&fd) {
             state.token = token.0 as u64;
             state.interest = interest;
-            Ok(())
+            drop(handles);
+            self.notify()
         } else {
             Err(io::Error::new(
                 io::ErrorKind::NotFound,
@@ -154,7 +211,12 @@ impl Selector {
     /// Deregister a raw handle from the IOCP selector.
     pub fn deregister_fd(&self, fd: RawFd) -> io::Result<()> {
         let mut handles = self.handles.lock().unwrap();
-        handles.remove(&fd);
+        let removed = handles.remove(&fd).is_some();
+        drop(handles);
+        if removed {
+            // A blocked poll may still watch the removed socket.
+            self.notify()?;
+        }
         Ok(())
     }
 
@@ -171,46 +233,19 @@ impl Selector {
         Ok(())
     }
 
-    /// Register the waker — creates a manual-reset event and associates it
-    /// with the IOCP via a dummy completion key.
+    /// Register the waker token. [`Selector::wake`] then ends a blocked poll,
+    /// and the poll reports this token as readable.
     pub fn register_waker(&self, token: Token) -> io::Result<()> {
-        unsafe {
-            let event = CreateEventW(
-                std::ptr::null(),
-                true as BOOL,
-                false as BOOL,
-                std::ptr::null(),
-            );
-            if event.is_null() {
-                return Err(io::Error::last_os_error());
-            }
-
-            // Associate the event with the IOCP. When signaled, it posts a completion.
-            let result = CreateIoCompletionPort(event, self.iocp, token.0 as usize, 0);
-            if result.is_null() {
-                CloseHandle(event);
-                return Err(io::Error::last_os_error());
-            }
-
-            *self.waker_token.lock().unwrap() = Some(token);
-            *self.waker_event.lock().unwrap() = Some(event);
-            Ok(())
-        }
+        *self.waker_token.lock().unwrap() = Some(token);
+        Ok(())
     }
 
-    /// Wake the poll selector by signaling the waker event.
+    /// Wake the poll selector: send one byte to the notify socket.
     pub fn wake(&self, _token: Token) -> io::Result<()> {
-        let waker_event = self.waker_event.lock().unwrap();
-        if let Some(event) = *waker_event {
-            unsafe {
-                if SetEvent(event) == 0 {
-                    return Err(io::Error::last_os_error());
-                }
-            }
-            Ok(())
-        } else {
-            Err(io::Error::new(io::ErrorKind::Other, "waker not registered"))
+        if self.waker_token.lock().unwrap().is_none() {
+            return Err(io::Error::new(io::ErrorKind::Other, "waker not registered"));
         }
+        self.notify()
     }
 
     /// Wait for readiness events.
@@ -219,16 +254,23 @@ impl Selector {
     /// For non-socket handles, uses `GetQueuedCompletionStatus` with the given timeout
     /// to check for overlapped I/O completions.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let timeout_ms = timeout.map(|d| d.as_millis() as u32).unwrap_or(u32::MAX);
+        // WSAPoll takes an i32: -1 waits with no limit. Clamp long timeouts.
+        let timeout_ms: i32 =
+            timeout.map_or(-1, |d| i32::try_from(d.as_millis()).unwrap_or(i32::MAX));
 
         let (ptr, cap) = events.as_mut_ptr_and_cap();
         let mut count = 0;
 
         let handles = self.handles.lock().unwrap();
 
-        // Collect sockets for WSAPoll
-        let mut pollfds: Vec<WSAPOLLFD> = Vec::new();
-        let mut socket_tokens: Vec<Token> = Vec::new();
+        // Collect sockets for WSAPoll. Slot 0 is the notify socket, so a wake
+        // or a change of the set ends the wait, and the set is never empty.
+        let mut pollfds: Vec<WSAPOLLFD> = vec![WSAPOLLFD {
+            fd: self.notify.as_raw_socket() as SOCKET,
+            events: POLLIN,
+            revents: 0,
+        }];
+        let mut socket_tokens: Vec<Token> = vec![Token(usize::MAX)];
 
         for (&fd, state) in handles.iter() {
             if state.is_socket {
@@ -251,15 +293,9 @@ impl Selector {
 
         drop(handles);
 
-        // Poll sockets via WSAPoll
-        if !pollfds.is_empty() {
-            let n = unsafe {
-                WSAPoll(
-                    pollfds.as_mut_ptr(),
-                    pollfds.len() as u32,
-                    timeout_ms as i32,
-                )
-            };
+        // Poll sockets via WSAPoll. The set always holds the notify socket.
+        {
+            let n = unsafe { WSAPoll(pollfds.as_mut_ptr(), pollfds.len() as u32, timeout_ms) };
 
             if n < 0 {
                 let err = unsafe { io::Error::from_raw_os_error(WSAGetLastError()) };
@@ -272,7 +308,20 @@ impl Selector {
             }
 
             if n > 0 {
-                for (i, pollfd) in pollfds.iter().enumerate() {
+                if pollfds[0].revents != 0 {
+                    self.drain_notify();
+                    let waker = *self.waker_token.lock().unwrap();
+                    if let (Some(token), true) = (waker, count < cap) {
+                        let event = Event::default()
+                            .with_key(token.0)
+                            .with_flags(super::super::event::windows::READABLE);
+                        unsafe {
+                            *ptr.add(count) = event;
+                        }
+                        count += 1;
+                    }
+                }
+                for (i, pollfd) in pollfds.iter().enumerate().skip(1) {
                     if pollfd.revents != 0 {
                         if count < cap {
                             let mut event = Event::default().with_key(socket_tokens[i].0);
@@ -284,7 +333,9 @@ impl Selector {
                             if pollfd.revents & POLLOUT != 0 {
                                 flags |= super::super::event::windows::WRITABLE;
                             }
-                            if pollfd.revents & (POLLERR | POLLHUP) != 0 {
+                            // POLLHUP is a normal peer close, not an error. The
+                            // reader still drains the bytes that came before it.
+                            if pollfd.revents & (POLLERR | POLLNVAL) != 0 {
                                 flags |= super::super::event::windows::ERROR;
                             }
                             if pollfd.revents & POLLHUP != 0 {
@@ -311,9 +362,6 @@ impl Selector {
 impl Drop for Selector {
     fn drop(&mut self) {
         unsafe {
-            if let Some(event) = self.waker_event.lock().unwrap().take() {
-                CloseHandle(event);
-            }
             if !self.iocp.is_null() {
                 CloseHandle(self.iocp);
             }

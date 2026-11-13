@@ -20,4 +20,9 @@ pub enum WatchEventKind {
     Removed,
     /// A file was renamed (from old path, to new path).
     Renamed { from: PathBuf, to: PathBuf },
+    /// The backend lost events (for example, its change buffer was full).
+    ///
+    /// The `path` of the event is the watched root. The caller must scan that
+    /// path again to learn the current state.
+    Rescan,
 }

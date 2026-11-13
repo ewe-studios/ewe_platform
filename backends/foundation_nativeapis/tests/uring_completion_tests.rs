@@ -608,3 +608,69 @@ fn a_listening_socket_falls_back_to_the_poll_path() {
     );
     listener.accept().expect("accept must still work");
 }
+
+/// A token that is used again must get only the new socket's bytes (#515).
+///
+/// WHY: a cancel is asynchronous. The old socket's receive can post a data
+/// completion before the cancel lands. The selector used to look the token up
+/// from that completion, so it put the old socket's bytes in the new socket's
+/// inbox. A late completion without `F_MORE` also re-armed the new socket while
+/// its own receive was live. Two receives on one socket split its bytes.
+///
+/// WHAT: data that the old socket's receive read before the cancel never
+/// reaches the new socket's inbox.
+///
+/// HOW: each receive has its own id. Completions of a cancelled id are stale:
+/// the selector returns their buffers to the pool and delivers nothing.
+#[test]
+fn a_reused_token_gets_only_the_new_sockets_bytes() {
+    require_completion_tier!();
+
+    for round in 0..10_u32 {
+        let sel = Selector::with_ring(4, 64).expect("completion selector");
+        let (a, b) = socketpair();
+        let (c, d) = socketpair();
+        let token = Token(7);
+
+        sel.register_recv_fd(a, token, Interest::READABLE)
+            .expect("register old socket");
+        write_all(b, b"old socket");
+        // Give the kernel time to post the old receive's data completion. No
+        // poll runs, so the completion waits in the queue past the cancel.
+        std::thread::sleep(Duration::from_millis(20));
+        sel.deregister_fd(a).expect("deregister old socket");
+
+        sel.register_recv_fd(c, token, Interest::READABLE)
+            .expect("register new socket");
+        write_all(d, b"new socket");
+
+        let mut got = Vec::new();
+        let deadline = Instant::now() + Duration::from_millis(500);
+        let mut events = Events::with_capacity(16);
+        while Instant::now() < deadline {
+            events.clear();
+            sel.poll(&mut events, Some(Duration::from_millis(25)))
+                .expect("poll");
+            for completion in sel.take_completions(token) {
+                match completion {
+                    Completion::Data(buf) => got.extend_from_slice(&buf[..]),
+                    other => panic!("round {round}: unexpected {other:?}"),
+                }
+            }
+        }
+        assert_eq!(
+            String::from_utf8_lossy(&got),
+            "new socket",
+            "round {round}: the reused token must carry only the new socket's bytes"
+        );
+        assert!(
+            sel.bufring().has_free_buffer(),
+            "round {round}: stale completions must return their buffers to the pool"
+        );
+
+        sel.deregister_fd(c).expect("deregister new socket");
+        for fd in [a, b, c, d] {
+            close(fd);
+        }
+    }
+}
