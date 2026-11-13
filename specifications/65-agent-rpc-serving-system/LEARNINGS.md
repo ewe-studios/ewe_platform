@@ -1,9 +1,36 @@
-# LEARNINGS — Agent RPC Serving System
+# LEARNINGS — Agent RPC
 
 _Updated after each milestone/task (see
 `.agents/skills/specifications-management/skill.md`). The **Handoff guide** below
 is the current state of the world; the dated sections after it are the history,
 oldest first._
+
+## Spec split (2026-11-14) — read this before the older sections
+
+The owner split the old spec 65 into five focused specifications. This file keeps the
+agent RPC and wasm history. The operator path and the shared platform now have their own
+learnings:
+
+| Topic | New home |
+|---|---|
+| Manifest format and installer | `../78-manifest-contract/` and `../79-manifest-installer/` |
+| Env, transport facts and migration groups | `../80-platform-prerequisites/` |
+| Signed secrets, CA, trust store and mTLS | `../81-foundation-auth/` |
+| Proxy registration authority and registrar sidecar | `../82-proxy-registration-and-registrar/` |
+
+Some dated sections below describe work that moved. Read them for the agent RPC context, and
+read the new spec's `LEARNINGS.md` before you change a moved feature. The dated sections use the
+old feature numbers (02 to 15). Section 2 of `requirements.md` maps each one to its new home.
+
+The boundary rules that the split added:
+
+1. **This spec owns the server, its hosts and its client auth.** It does not own the manifest,
+   the installer, the registrar or the shared auth library.
+2. **Spec 80 owns the injection seams.** Do not add a second `Env` or a global clock here.
+3. **Spec 81 owns the auth primitives.** This spec wires them.
+4. **Spec 82 owns the proxy and the sidecar.** A change to the registration contract is a change
+   to 82, not here.
+5. **The manifest is read only by the installer and the registrar.** The server never sees it.
 
 ## Handoff guide (2026-10-21) — read this before anything else
 

@@ -5,27 +5,35 @@ this_file: "specifications/65-agent-rpc-serving-system/start.md"
 created: 2026-10-19
 ---
 
-# Start: Agent RPC Serving System
+# Start: Agent RPC
 
 ## Agent Workflow
 
-1. Read `requirements.md` (overview + feature index + spec-wide architecture).
-2. **Identify language stack** — Rust. Read `.agents/skills/rust-clean-code/skill.md`
-   and `.agents/skills/rust-valtron-usage/skill.md` (async/valtron boundaries).
+1. Read `requirements.md` (mission, feature index, spec order, success criteria).
+2. **Identify language stack** — Rust. Read `.agents/skills/rust-clean-code/skill.md` and
+   `.agents/skills/rust-valtron-usage/skill.md`.
 3. Read `LEARNINGS.md` (past discoveries and mistakes).
-4. Pick a feature from the Feature Index (respect dependency order).
-5. Navigate to `features/[feature]/start.md` and follow that feature's workflow.
-6. **ALWAYS UPDATE `LEARNINGS.md`** after each completed task/milestone.
+4. Read `agent-rpc-architecture.md` for the shared design of the pluggable server.
+5. Read the requirements of the two specs this one builds on:
+   `../80-platform-prerequisites/requirements.md` and
+   `../81-foundation-auth/requirements.md`.
+6. Pick a feature from the Feature Index and respect the order: 03 before 04 and 05; 06 after 05;
+   08 last.
+7. Navigate to `features/[feature]/start.md`.
+8. **ALWAYS UPDATE `LEARNINGS.md`** after each completed task or milestone.
 
-**Feature order:** build `0` (foundation — wasm/CF-Workers readiness) first.
-After that: 1 (agent-rpc) and 2 (installer) are independent leaves; 3 (proxy
-registration) extends the proxy; 4 (registrar) composes 2 + 3; 5 (cloudflare)
-consumes 0 + 1.
+**Spec order:** 80 → 81 → 65. The operator path is separate: 78 → 79, and 82 after 78 and 81.
+
+**Feature order:** 00, 01 and 02 are complete. 03 (core) is next. 04 (native host) makes the
+proof of concept work. 05 (Worker host) follows 03. 06 (Cloudflare) follows 05. 08 (key
+protection) is last.
 
 ---
 
-**Workflow:** Requirements → Select Feature → Feature start.md → Follow feature workflow
+**Workflow:** Requirements → Shared design → 80 and 81 baselines → Select feature →
+Feature start.md → Follow feature workflow
 
 ---
 
 _Created: 2026-10-19_
+_Last updated: 2026-11-14 (split; this spec is now agent RPC only)_

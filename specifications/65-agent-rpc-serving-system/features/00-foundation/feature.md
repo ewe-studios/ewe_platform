@@ -456,7 +456,7 @@ impl Model for WorkersAiModel {
       in-process mock vendor (OpenRouter SSE deltas + `[DONE]`; Workers AI
       cumulative `{"response"}` chunks), then assert the answer arrives once,
       the vendor saw exactly one call, and `GET /` still answers. Both green.
-      Getting there fixed: the isolate freeze (feature 06 T5), the doubled
+      Getting there fixed: the isolate freeze (feature 02 T5), the doubled
       OpenRouter `/v1`, loop detection on snapshot streams, snapshot
       concatenation in both examples' output, and the harness (undrained pipes,
       orphaned workerd on stop, no `--var`/POST/chunked support).

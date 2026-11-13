@@ -1,7 +1,7 @@
 ---
 feature: "Bring PR #126 onto master"
-description: "Task T0: merge master into 65-f01-agent-rpc and adapt the agent-rpc crate to master's async-only storage traits and async AgentSession, so CI is green and features 08 to 14 can build on it."
-status: "pending"
+description: "Task T0: merge master into 65-f01-agent-rpc and adapt the agent-rpc crate to master's async-only storage traits and async AgentSession, so CI is green and the later features can build on it."
+status: "completed"
 priority: "high"
 depends_on: ["01-agent-rpc"]
 builds_on:
@@ -9,13 +9,13 @@ builds_on:
   - "PR #130, #131, #132, #133 (async-first valtron, async-only foundation_db)"
 estimated_effort: "small"
 created: 2026-10-22
-last_updated: 2026-10-27
+last_updated: 2026-11-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 1
+  completed: 1
+  uncompleted: 0
   total: 1
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Bring PR #126 onto master
@@ -28,7 +28,7 @@ Defence Industries Association of Europe (ASD), the owner of the STE standard AS
 This feature does one thing: it brings the agent-rpc code of PR #126 onto current `master`, so
 that the later features start from green CI. The overall design, the glossary and the owner
 decisions are in [`agent-rpc-architecture.md`](../../agent-rpc-architecture.md). The work after
-this feature is features 08 to 14; feature 15 is last.
+this feature is spec 80, spec 81, then features 03 to 05 in this spec; feature 08 is last.
 
 ## 1. Task
 
