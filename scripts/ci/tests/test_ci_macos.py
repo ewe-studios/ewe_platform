@@ -33,10 +33,12 @@ class MacosRuns(unittest.TestCase):
         self.ci = load_ci()
 
     def test_macos_commands_use_macos_runs_and_only_the_test_step(self):
-        s = settings_for(self.ci, "foundation_http")
-        plan = self.ci.commands("foundation_http", s, "uat", "macos")
+        # foundation_http opts out of macOS today (#546); nativeapis sets its own
+        # `macos-runs`.
+        s = settings_for(self.ci, "foundation_nativeapis")
+        plan = self.ci.commands("foundation_nativeapis", s, "uat", "macos")
         self.assertEqual(len(plan["test"]), len(s.macos_runs))
-        self.assertIn("multi,quic", plan["test"][1])
+        self.assertIn("watcher-macos", plan["test"][2])
         for step in ("fmt", "build", "clippy", "wasm"):
             self.assertEqual(plan[step], [])
 
