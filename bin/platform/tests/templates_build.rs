@@ -110,17 +110,57 @@ fn templates_generate_projects_that_build() {
 
         let output = Command::new("cargo")
             .arg("check")
-            .arg("--quiet")
+            // No `--quiet`: it hides the "patch was not used" warning checked below.
             .arg("--message-format=json")
             .env("CARGO_TARGET_DIR", &target_dir)
             .current_dir(&generated_dir)
             .output()
             .expect("run cargo check");
 
+        // `--message-format=json` puts the compiler errors on stdout, one JSON
+        // object per line. Print each error's rendered text, so a failure
+        // shows the real error and not only "could not compile".
+        let errors: String = String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .filter(|line| line.contains("\"level\":\"error\""))
+            .filter_map(|line| {
+                let start = line.find("\"rendered\":\"")? + "\"rendered\":\"".len();
+                let rest = &line[start..];
+                let end = rest.find("\",\"")?;
+                Some(
+                    rest[..end]
+                        .replace("\\n", "\n")
+                        .replace("\\\"", "\"")
+                        .replace("\\\\", "\\"),
+                )
+            })
+            .collect();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        // An unused patch means the template asks for another version than the
+        // local crate has (for 0.0.x, "0.0.11" means exactly 0.0.11). Cargo then
+        // builds the old crate from crates.io, and the test checks the wrong code.
+        // Cargo also warns for patched crates that the template does not use at
+        // all; only a patch for a crate in the template's manifest is a stale pin.
+        let manifest = std::fs::read_to_string(generated_dir.join("Cargo.toml"))
+            .expect("read the generated Cargo.toml");
+        let stale: Vec<&str> = stderr
+            .lines()
+            .filter(|line| line.contains("was not used in the crate graph"))
+            .filter_map(|line| line.split('`').nth(1)?.split(' ').next())
+            .filter(|name| {
+                manifest
+                    .lines()
+                    .any(|dep| dep.trim_start().starts_with(&format!("{name} ")))
+            })
+            .collect();
+        assert!(
+            stale.is_empty(),
+            "template {template_name} pins versions that the local crates do not have \
+             ({stale:?}); update them in its Cargo.toml.template"
+        );
         assert!(
             output.status.success(),
-            "cargo check failed for template {template_name}:\n{}",
-            String::from_utf8_lossy(&output.stderr)
+            "cargo check failed for template {template_name}:\n{errors}\n{stderr}"
         );
 
         // A generated project must build with no warning of its own. Warnings
