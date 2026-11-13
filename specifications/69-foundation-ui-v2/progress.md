@@ -180,7 +180,10 @@ is recorded here as passed.
   choices, `WasmEnvelope`, `NativeBehaviour`, two known gaps).
   - Item 1 (A1) is closed: D41 in `requirements.md` section 2.4. A frame is one list of
     operations; the columnar batch is one operation type; no threshold.
-  - The feature files are not yet revised for D41. Revise them one time, after the review
+  - Item 2 (A2) is closed: D42. The ten elements are accepted. Operations are grouped by
+    type: `UiOperation` (shared), `WebOperation`, `MobileOperation`; a reader ignores a
+    type that it does not care about.
+  - The feature files are not yet revised for D41 and D42. Revise them one time, after the review
     ends: features 01, 02, 03, 07, 09, 11, 14, 15 and `requirements.md` sections 2.2, 5.4
     and 5.6.
 

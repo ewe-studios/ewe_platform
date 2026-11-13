@@ -152,8 +152,9 @@ the review of every item is complete. Until then, this section is the rule.
 | # | Decision | Replaces |
 |---|---|---|
 | D41 | **A frame is one list of operations.** `Frame { …, operations: [Operation] }`. Each operation says its own type, so the count (one or more) does not matter. The columnar batch of UI operations is one operation type in that list; the reader opens it and applies the operations inside. Plain Arrow data is another operation type: a user-defined data message, not a UI operation. The typed data table, the MessagePack block, the hello answer and an error are operation types in the same list. There is no `Body` union above the list, no tier choice by the framework and no threshold. A sender puts in the list what it wants; the delivery handler decides (D16). | A1 (`columnar_threshold`, default 64); the `Body` union of section 5.4; the tier choice of feature 03; the `Body` cases in features 01, 07, 09, 11, 14 and 15 |
+| D42 | **The ten core elements are accepted** (Stack, Text, Image, Button, TextInput, Toggle, List, Scroll, Spacer, Overlay). **Operations are grouped by who cares.** The shared UI operations are one specific type (`UiOperation`), which every platform applies. Web needs are a separate type (`WebOperation`); mobile needs are a separate type (`MobileOperation`). The `Operation` union of a frame holds these types beside the columnar batch, the data messages, the hello answer and the error. A reader ignores a type that it does not care about. A new platform need is a new member of its own type, or a new type; it does not change the shared type. The platform of an operation is its type, so no form-to-platform table is needed. The server still removes the web type for a `Native` mount before it sends (App Store 2.5.2); the reader's "ignore" rule is the second defence. | A2 as "adopted"; the flat 24-member `Op` union of feature 01; the form-to-platform table of feature 02 |
 
-**Status of the review.** Item 1 of 17 (A1) is closed by D41. Items 2 to 17 are open.
+**Status of the review.** Items 1 and 2 of 17 (A1, A2) are closed by D41 and D42. Items 3 to 17 are open.
 
 ## 3. Spec-level stories
 
