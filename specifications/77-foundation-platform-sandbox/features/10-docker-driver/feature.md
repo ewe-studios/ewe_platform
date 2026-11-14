@@ -345,18 +345,25 @@ caller takes `&DockerPlatform`:
 ```rust
 // foundation_platform_sandbox/src/native/platform.rs
 pub struct DockerPlatform {
-    /// The common handles: the `Ctx`, the sandbox provider and the container control.
-    pub platform: Platform,
-    /// The Docker Engine connection that `DockerContainerControl` and `DockerContainerOps`
-    /// use. It holds the socket or the host URL, not `bollard` handles.
+    /// The `Ctx` of this run.
+    pub ctx: Ctx,
+    /// The sandbox control plane, when the host also serves sandboxes.
+    pub sandboxes: Arc<dyn SandboxProvider>,
+    /// The same object as `control`.
+    pub containers: Option<Arc<dyn ContainerControl>>,
+    /// The Docker container control (section 6.7.1).
+    pub control: Arc<DockerContainerControl>,
+    /// The Engine connection that `DockerContainerControl` and `DockerContainerOps` use. It
+    /// holds the socket or the host URL, not `bollard` handles.
     pub engine: Arc<dyn DockerApi>,
 }
 
-impl core::ops::Deref for DockerPlatform {
-    type Target = Platform;
-    fn deref(&self) -> &Platform {
-        &self.platform
-    }
+impl Platform for DockerPlatform {
+    fn ctx(&self) -> &Ctx { &self.ctx }
+    fn sandboxes(&self) -> &Arc<dyn SandboxProvider> { &self.sandboxes }
+    fn containers(&self) -> Option<&Arc<dyn ContainerControl>> { self.containers.as_ref() }
+    fn kind(&self) -> PlatformKind { PlatformKind::Docker }
+    fn as_any(&self) -> &dyn Any { self }
 }
 ```
 

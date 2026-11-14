@@ -456,26 +456,33 @@ gets no change, and each part wraps the `Ctx` with the handles it has. This part
 ```rust
 // foundation_platform_sandbox/src/cloudflare/platform.rs
 pub struct CloudflarePlatform {
-    /// The common handles: the `Ctx`, the sandbox provider and the container control.
-    pub platform: Platform,
+    /// The `Ctx` of this run.
+    pub ctx: Ctx,
+    /// This DO's sandbox manager: one sandbox, `SandboxIdPolicy::Fixed`.
+    pub sandboxes: Arc<dyn SandboxProvider>,
+    /// The same object as `control`.
+    pub containers: Option<Arc<dyn ContainerControl>>,
     /// This DO's container control. It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// Deploys the Worker and its container (feature 08).
-    pub deployer: Arc<dyn CloudflareDeployer>,
+    /// The `fetch` of the DO stub or the Worker (spec 85). A JS value is not `Send` and wasm
+    /// has one thread, so `foundation_compact::SendWrapper` carries it. The build must not
+    /// enable the wasm `atomics` feature, because `SendWrapper` has no `Send` impl then.
+    pub fetcher: Option<foundation_compact::SendWrapper<Rc<dyn Fetcher>>>,
 }
 
-impl core::ops::Deref for CloudflarePlatform {
-    type Target = Platform;
-    fn deref(&self) -> &Platform {
-        &self.platform
-    }
+impl Platform for CloudflarePlatform {
+    fn ctx(&self) -> &Ctx { &self.ctx }
+    fn sandboxes(&self) -> &Arc<dyn SandboxProvider> { &self.sandboxes }
+    fn containers(&self) -> Option<&Arc<dyn ContainerControl>> { self.containers.as_ref() }
+    fn kind(&self) -> PlatformKind { PlatformKind::Cloudflare }
+    fn as_any(&self) -> &dyn Any { self }
 }
 ```
 
-The wrapper holds no `Fetcher`: spec 85's `Fetcher` is not `Send`, so the Worker entry keeps
-its `FetchTransport` and the wrapper stays `Send + Sync`. Inside the DO, `platform.sandboxes`
-is this DO's `SandboxManager` (one sandbox, `SandboxIdPolicy::Fixed`), and `containers` is the
-same control as `control`.
+Inside the DO, `sandboxes` is this DO's `SandboxManager` (one sandbox,
+`SandboxIdPolicy::Fixed`), and `containers` is the same control as `control`. The type exists
+only on wasm, because `cloudflare/` does. Deployment (feature 08) needs no wrapper: it applies a
+`DeploymentPlan` and touches no handle.
 
 **`DoContainerOps`** implements `ContainerOps` over `ContainerApi` and the slave:
 

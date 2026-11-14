@@ -121,10 +121,10 @@ write no code. A second context design is a defect.
    values can hold two different `Env` values, and each test builds its own.
 
 Handles are not effects. A sandbox or container handle, a transport and a store are resources.
-They travel in the wrapper of spec 77 section 6.0 (`Platform`, and one wrapper for each part:
-`NativePlatform`, `DockerPlatform` or `CloudflarePlatform`), and that wrapper holds the `Ctx`.
-Rule 4 applies to it: the wrapper holds a `Ctx`, so the `Ctx` cannot hold the wrapper. This
-specification adds no method to `Ctx` for a handle, and no handle type.
+They travel in the wrapper of spec 77 section 6.0: one struct for each part
+(`NativePlatform`, `DockerPlatform` or `CloudflarePlatform`), which implements the `Platform`
+trait and holds the `Ctx`. Rule 4 applies to it: the wrapper holds a `Ctx`, so the `Ctx` cannot
+hold the wrapper. This specification adds no method to `Ctx` for a handle, and no handle type.
 
 ## 4. Why `Ctx`, and not a process-wide `Env`
 

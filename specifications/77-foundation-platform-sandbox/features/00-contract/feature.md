@@ -255,8 +255,11 @@ src/
   shared/control.rs     SandboxProvider, SandboxHandle (the handle type), SandboxInfo, SandboxState, ExitReport
   shared/container.rs    ContainerControl, ContainerHandle, ContainerSpec, ContainerInfo, port types
   shared/host.rs        SandboxHost, SlaveHost and their traits
+  shared/platform.rs    Platform (the trait), PlatformKind (the as_* helpers live in their part)
   native/mod.rs         #[cfg(not(target_family = "wasm"))]
+  native/platform.rs    NativePlatform (features 05 and 09), DockerPlatform (feature 10)
   cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))]
+  cloudflare/platform.rs  CloudflarePlatform (features 07 and 08)
   cli/mod.rs            #[cfg(all(not(target_family = "wasm"), feature = "cli"))]
 ```
 
@@ -489,7 +492,7 @@ impl SandboxError {
 |---|---|
 | `InvalidSpec`, `UnsupportedRootFs`, `UnsupportedNetwork`, `UnsupportedMount`, `SocketPathTooLong` | `InvalidArgument` |
 | `NotFound`, `SlaveError` with code `NotFound` | `NotFound` |
-| `SandboxStopped`, `HostNotConfigured`, `NoDriver`, `DriverUnavailable`, `BinaryNotFound`, `LibraryNotFound`, `LibraryTooOld`, `NotSigned`, `UnsupportedCapability` | `FailedPrecondition` |
+| `SandboxStopped`, `HostNotConfigured`, `NoDriver`, `DriverUnavailable`, `BinaryNotFound`, `LibraryNotFound`, `LibraryTooOld`, `NotSigned`, `UnsupportedCapability`, `PlatformMismatch` | `FailedPrecondition` |
 | `BootTimeout`, `ExecTimeout` | `DeadlineExceeded` |
 | `TooManySessions`, `InputQueueFull` | `ResourceExhausted` |
 | `SequenceGap` | `OutOfRange` |
@@ -695,6 +698,7 @@ Fields of the `SandboxError` variants:
 | `LibraryTooOld` | `symbol: String` |
 | `InvalidSpec` | `field: String, reason: String` |
 | `UnsupportedCapability` | `capability: String` |
+| `PlatformMismatch` | `expected: PlatformKind, actual: PlatformKind` |
 | `SocketPathTooLong` | `path: String, max: usize` |
 | `SubstrateExited` | `code: Option<i32>, log_tail: Vec<u8>` |
 | `SubstrateApi` | `status: u16, message: String` |

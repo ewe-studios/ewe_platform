@@ -307,85 +307,124 @@ The handle is the whole interface. A caller does not know whether the work cross
 boundary (a Cloudflare DO in front of `worker::Container`) or reaches the resource directly
 (the Docker Engine API). That choice belongs to the adapter.
 
-The `Ctx` gains no method, and `foundation_context` gains no dependency. A boundary builds one
-wrapper value that holds the `Ctx` and the controls, and the callers that need a handle take a
-reference to that wrapper (owner direction 2026-11-15, second note):
+The `Ctx` gains no method, and `foundation_context` gains no dependency. Each part of the
+platform wraps the `Ctx` in a struct that holds the handles of that part. A caller takes the
+concrete type when it needs one part, and `&dyn Platform` when one function serves several
+parts (owner direction 2026-11-15, second and third notes):
 
 "we wont go edit foundation_context, but rather wrap Ctx with whatever the cloudflare part
-needs that provides the other cloudflare specific handles", and "same for others".
+needs that provides the other cloudflare specific handles", "same for others", and "functions for
+a given specific platform expect the specific rust type, as far as they implement the trait, we
+can use them where using the trait is more suited".
 
 ```rust
 // foundation_platform_sandbox/src/shared/platform.rs
-/// The common handles of one host, with the `Ctx` of its run. A boundary builds one.
-///
-/// `Ctx` is `Arc`-backed and `Clone`, so a handle clones it and reads the clock, the
-/// entropy and the `Env` entry (spec 84) through the same `Ctx` as the host.
-pub struct Platform {
+/// What every platform wrapper gives a caller that does not name the part.
+pub trait Platform: Send + Sync + 'static {
     /// The `Ctx` of this run: the clock, the timers, the entropy and the `Env` entry.
-    pub ctx: Ctx,
+    fn ctx(&self) -> &Ctx;
     /// The sandbox control plane. Local (`SandboxManager`) or remote.
-    pub sandboxes: Arc<dyn SandboxProvider>,
+    fn sandboxes(&self) -> &Arc<dyn SandboxProvider>;
     /// The container control, when the host has one.
-    pub containers: Option<Arc<dyn ContainerControl>>,
+    fn containers(&self) -> Option<&Arc<dyn ContainerControl>>;
+    /// Which part this is. The value names the concrete type of the downcast helpers.
+    fn kind(&self) -> PlatformKind;
+    /// The same object as `dyn Any`, for the downcast helpers.
+    fn as_any(&self) -> &dyn Any;
 }
 
-impl Platform {
-    /// The container control, or `HostNotConfigured` when the host has none.
+/// The parts that ship a wrapper.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlatformKind {
+    /// Firecracker and libkrun, in process (features 05 and 09).
+    Native,
+    /// The Docker Engine (feature 10).
+    Docker,
+    /// A Cloudflare Worker and its container (features 07 and 08).
+    Cloudflare,
+}
+
+// In native/platform.rs, which the crate compiles only on a native host:
+impl dyn Platform + '_ {
+    /// The same object as `NativePlatform`, or `PlatformMismatch`.
     ///
     /// # Errors
-    /// [`SandboxError::HostNotConfigured`] when the host has no container control.
-    pub fn container_control(&self) -> SandboxResult<&Arc<dyn ContainerControl>>;
+    /// [`SandboxError::PlatformMismatch`] when `kind()` is not `PlatformKind::Native`.
+    pub fn as_native(&self) -> SandboxResult<&NativePlatform>;
+
+    /// The same object as `DockerPlatform`, or `PlatformMismatch`.
+    ///
+    /// # Errors
+    /// [`SandboxError::PlatformMismatch`] when `kind()` is not `PlatformKind::Docker`.
+    pub fn as_docker(&self) -> SandboxResult<&DockerPlatform>;
+}
+
+// In cloudflare/platform.rs, which the crate compiles only on wasm with the `cloudflare` feature:
+impl dyn Platform + '_ {
+    /// The same object as `CloudflarePlatform`, or `PlatformMismatch`.
+    ///
+    /// # Errors
+    /// [`SandboxError::PlatformMismatch`] when `kind()` is not `PlatformKind::Cloudflare`.
+    pub fn as_cloudflare(&self) -> SandboxResult<&CloudflarePlatform>;
 }
 ```
 
-Each part of the platform adds one wrapper of its own. The wrapper holds a `Platform` and the
-handles that only that part has. So no generic entry carries fields that most hosts do not use,
-and `foundation_context` stays generic:
+Each helper sits in the module of its type, so `shared/platform.rs` names no part. A helper
+reads `kind()` first, so a caller that passes the wrong part gets a typed error that names both
+kinds and not a `None` that hides the mistake. It then calls `as_any().downcast_ref()`.
 
-| Part | Wrapper | What it adds over `Platform` | Owner |
+Each wrapper names the `Ctx` and the common handles as fields, so `cf.ctx` is a field read and
+not a trait call:
+
+| Part | Wrapper | It also holds | Owner |
 |---|---|---|---|
-| Any host | `Platform` | `Ctx`, `Arc<dyn SandboxProvider>`, `Option<Arc<dyn ContainerControl>>` | this specification, section 6.0 |
-| Firecracker and libkrun | `NativePlatform` | the local `SandboxManager` as a concrete value (it holds the drivers, the record store and the `ManagerConfig`) | features 05 and 09 |
-| Docker | `DockerPlatform` | `DockerContainerControl` and the Engine connection | feature 10 |
-| Cloudflare | `CloudflarePlatform` | the `CloudflareContainerControl` and the `Arc<dyn CloudflareDeployer>` | features 07 and 08 |
-
-A wrapper derefs to `Platform`, so `cf.ctx`, `cf.sandboxes` and `cf.containers` resolve:
+| Firecracker and libkrun | `NativePlatform` | the local `SandboxManager` as a concrete value (the drivers, the record store and the `ManagerConfig`) | features 05 and 09 |
+| Docker | `DockerPlatform` | the `DockerContainerControl` and the Engine connection | feature 10 |
+| Cloudflare | `CloudflarePlatform` | the `CloudflareContainerControl` and the `fetch` of the runtime (spec 85) | feature 07 |
 
 ```rust
 // foundation_platform_sandbox/src/cloudflare/platform.rs
 pub struct CloudflarePlatform {
-    pub platform: Platform,
-    /// The Cloudflare container control (feature 07). It implements `ContainerControl`,
-    /// and the DO container API sits behind it.
+    /// The `Ctx` of this run.
+    pub ctx: Ctx,
+    /// This DO's sandbox manager: one sandbox, `SandboxIdPolicy::Fixed`.
+    pub sandboxes: Arc<dyn SandboxProvider>,
+    /// The same object as `control`.
+    pub containers: Option<Arc<dyn ContainerControl>>,
+    /// The Cloudflare container control (feature 07). It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// Deploys the Worker and its container (feature 08).
-    pub deployer: Arc<dyn CloudflareDeployer>,
-}
-
-impl core::ops::Deref for CloudflarePlatform {
-    type Target = Platform;
-    fn deref(&self) -> &Platform {
-        &self.platform
-    }
+    /// The `fetch` of this runtime (spec 85), when the host has one. A JS value is not `Send`
+    /// and wasm has one thread, so `foundation_compact::SendWrapper` carries it. The build must
+    /// not enable the wasm `atomics` feature, because `SendWrapper` has no `Send` impl then.
+    pub fetcher: Option<foundation_compact::SendWrapper<Rc<dyn Fetcher>>>,
 }
 ```
 
-A wrapper holds `Send + Sync` handles only. A runtime value that is not `Send` stays in the
-boundary that made it: spec 85's `Fetcher` is `!Send`, because it holds a JS value, so the
-Worker entry builds its `FetchTransport` and keeps it, and the `frozen` connectrpc client
-holds it. The wrapper carries no `Fetcher`.
+`Ctx` is `Arc`-backed and `Clone`, so a handle clones the `ctx` field and reads the clock, the
+entropy and the `Env` entry (spec 84) through the same `Ctx` as the host.
 
-A wrapper never goes into the `Ctx`: it holds the `Ctx`, so an entry would make a reference
-cycle. It is a value that the host entry point builds and passes down:
+`foundation_compact::SendWrapper` asserts `Send` and does not check the thread. That is sound on
+single-threaded wasm, where no other thread exists to reach the value.
+
+`CloudflarePlatform` exists only on wasm, because `cloudflare/` does. Cloudflare deployment is
+not a handle interaction, so it needs no wrapper: the deploy host builds a `DeploymentPlan` and
+a `CloudflareDeployer` with the `Ctx` and its own config (feature 08, section 6.7).
+
+The host entry point builds one wrapper and passes it down. A wrapper never goes into the
+`Ctx`: it holds the `Ctx`, and an entry lives in the `Ctx`, so the pair would make an `Arc`
+cycle.
 
 - `agent-rpc` on Cloudflare (spec 83 feature 06) takes `&CloudflarePlatform`.
 - The native host (feature 06) takes `&NativePlatform`.
 - A Docker host takes `&DockerPlatform`.
-- `agent-slave` takes `&Platform`. In a nested host (feature 11) the `sandboxes` field is the
+- A function that serves more than one part takes `&dyn Platform`. It calls `kind()` for a
+  branch, or one of the `as_*` helpers when it needs the part.
+- `agent-slave` takes `&dyn Platform`. In a nested host (feature 11) its `sandboxes()` is the
   inner control plane, so the slave creates child sandboxes without a driver of its own.
 
 They do not build a sandbox, a driver or a container control. Once this library lands, the
-agent RPC host builds the wrapper, and that is all.
+host builds the wrapper, and that is all.
 
 ```rust
 /// The control plane, as a trait. `SandboxManager` (local) and `SandboxRpcClient`
@@ -475,8 +514,8 @@ structs.
 - Processes, sockets, files, the Docker client and the Cloudflare container handle are
   behind traits. Each role reads one typed entry from the `Ctx`: `SandboxHost` (control
   plane, native), `SlaveHost` (slave) and `CloudflareHost` (control plane in a DO). The
-  handles themselves come in the wrapper of section 6.0 (`Platform` and its per-part
-  wrappers); they are not entries.
+  handles themselves come in the wrapper of section 6.0, which implements the `Platform`
+  trait; they are not entries.
 - Only a boundary builds these entries and these wrappers. A missing entry or wrapper gives
   `HostNotConfigured`.
 - Tests give in-memory entries, a simulated clock and a seeded `Ctx`.
@@ -505,11 +544,11 @@ pub trait ContainerControl: Send + Sync + 'static {
 
 - `ContainerControl` is the factory; `ContainerHandle` is the live object. The handle has
   `fetch`, `exec`, `signal`, `wait`, `stop`, `destroy` and `log_tail`.
-- A boundary puts the control in `Platform::containers` (section 6.0), and every caller
-  reads it there. On a native host, `Platform::containers` is `SandboxManager::containers`,
-  the control of the first driver in its order that has one. On a Worker it is
-  `DoContainerClient::new`, a remote control over the transport of the Worker. A
-  `SandboxHandle` gives the container of one sandbox with `SandboxHandle::container()`.
+- A boundary puts the control in the `containers` field of the wrapper (section 6.0), and
+  every caller reads it there. On a native host it is `SandboxManager::containers`, the control
+  of the first driver in its order that has one. On a Worker it is `DoContainerClient::new`, a
+  remote control over the transport of the Worker. A `SandboxHandle` gives the container of one
+  sandbox with `SandboxHandle::container()`.
 - The Cloudflare adapter is in feature 07; the Docker adapter is in feature 10. Both use
   the same contract.
 - `SandboxHandle::container()` returns the handle of a container-backed sandbox, or `None` for a
@@ -682,7 +721,7 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D13 | (2026-11-12) On Cloudflare the control plane runs `agent-slave` in Cloudflare containers. There is no nested case there. |
 | D14 | (2026-11-12) The Docker Sandboxes product is not ready. Feature 16 is a draft and not a must have. It is not scheduled, and no milestone needs it. |
 | D15 | (2026-11-14) Spec 77 owns Cloudflare container control and Cloudflare deployment. `foundation_deployment_cloudflare` is the primary deploy path; the manual `wrangler` adapter is a supported fallback. Both apply one `DeploymentPlan`. Spec 83 feature 06 consumes these surfaces and builds the agent-rpc Worker on them. |
-| D16 | (2026-11-15) The target vocabulary is two levels with the same shape: `SandboxProvider` and `SandboxHandle`, `ContainerControl` and `ContainerHandle` (section 6.0). The old control trait is `SandboxProvider`; the old handle struct is `SandboxHandle`; the old id-policy enum of feature 02 is `SandboxIdPolicy`, because `IdSource` is the spec 84 trait. Feature 06's deployment adapter is `SandboxDeploymentProvider` with the handle `SandboxDeploymentHandle`, so it does not clash with the control. Every outside caller takes a reference to the wrapper of section 6.0 (`Platform` for a generic host, `NativePlatform`, `DockerPlatform` or `CloudflarePlatform` for a part). `foundation_context` gets no change. |
+| D16 | (2026-11-15) The target vocabulary is two levels with the same shape: `SandboxProvider` and `SandboxHandle`, `ContainerControl` and `ContainerHandle` (section 6.0). The old control trait is `SandboxProvider`; the old handle struct is `SandboxHandle`; the old id-policy enum of feature 02 is `SandboxIdPolicy`, because `IdSource` is the spec 84 trait. Feature 06's deployment adapter is `SandboxDeploymentProvider` with the handle `SandboxDeploymentHandle`, so it does not clash with the control. Every outside caller takes a reference to the wrapper of section 6.0 (the concrete type, or `&dyn Platform` when a function serves several parts). `foundation_context` gets no change. |
 | D17 | (2026-11-15) The secret and the bearer check come from spec 86 (`Secret`, `extract_bearer_token`, `Secret::ct_eq`). This spec defines neither. Mutual TLS comes from spec 87; the native listener may add it, and a Worker uses `CfMtlsAuth`. The wasm fetch pump and `FetchServe` come from spec 85. |
 
 ### 10.2 Open, with a recommendation

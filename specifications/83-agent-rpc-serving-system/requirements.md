@@ -114,7 +114,7 @@ _The diagram shows the server, the one loaded model, the instances that share it
 | The native host and the deterministic simulation host | this specification | |
 | The Worker host, the Durable Object layout and the browser client | this specification | |
 | The Cloudflare container: control, `ContainerHandle` and deployment | spec 77 | this specification builds the agent-rpc Worker on it |
-| The sandbox and container handles, and the wrappers that carry them (`Platform`, `CloudflarePlatform`) | spec 77 section 6.0 | the hosts and the user programs take a wrapper and use its handles. They never build one, and `foundation_context` gets no change |
+| The sandbox and container handles, and the `CloudflarePlatform` wrapper that carries them | spec 77 section 6.0 | the hosts and the user programs take the wrapper and use its handles. They never build one, and `foundation_context` gets no change |
 | Key protection at rest | this specification (last feature) | |
 | The `Env` bundle and the `IdSource` | spec 84 | shared with the proxy |
 | The fetch transport for the Worker and the browser | spec 85 | shared with every wasm transport user |

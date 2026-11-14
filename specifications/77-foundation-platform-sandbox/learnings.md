@@ -579,11 +579,19 @@ owner corrected the first design on 2026-11-15: "we wont go edit foundation_cont
 wrap Ctx with whatever the cloudflare part needs that provides the other cloudflare specific
 handles", and "same for others".
 
-So `Platform` holds the `Ctx`, `Arc<dyn SandboxProvider>` and
-`Option<Arc<dyn ContainerControl>>`, and each part adds one wrapper over it:
-`NativePlatform` (Firecracker and libkrun), `DockerPlatform` and `CloudflarePlatform`. A
-boundary builds the wrapper; `agent-rpc` and `agent-slave` take a reference to it. They do not
-start a sandbox, pick a driver or build a container control.
+So each part has one wrapper struct that holds the `Ctx` and the handles of that part:
+`NativePlatform` (Firecracker and libkrun), `DockerPlatform` and `CloudflarePlatform`. They
+share the `Platform` trait (`ctx`, `sandboxes`, `containers`, `kind`, `as_any`) and a
+`PlatformKind` enum, with `as_native`, `as_docker` and `as_cloudflare` helpers for the downcast.
+A function for one part takes the concrete type; a function that serves several takes
+`&dyn Platform`. A boundary builds the wrapper; `agent-rpc` and `agent-slave` take a reference
+to it. They do not start a sandbox, pick a driver or build a container control.
+
+The owner added a third note: "just wrap the js with a SendWrapper to make it look Send, wasm is
+non-send anyway". So `CloudflarePlatform` carries `Option<SendWrapper<Rc<dyn Fetcher>>>`, and it
+uses `foundation_compact::SendWrapper` rather than a new dependency. That type asserts `Send`
+and does not check the thread, which is sound because single-threaded wasm has one thread. A
+build that enables the wasm `atomics` target feature has no `Send` impl, so the spec forbids it.
 
 The reason is a boundary rule, not a style rule. Without a shared value, every consumer repeats
 the host detection, the driver order and the container control construction, and each copy can

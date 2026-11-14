@@ -573,23 +573,29 @@ part wraps the `Ctx` with the handles it has. This part adds `NativePlatform`:
 ```rust
 // foundation_platform_sandbox/src/native/platform.rs
 pub struct NativePlatform {
-    /// The common handles: the `Ctx`, the sandbox provider and the container control.
-    pub platform: Platform,
+    /// The `Ctx` of this run.
+    pub ctx: Ctx,
+    /// The same object as `manager`.
+    pub sandboxes: Arc<dyn SandboxProvider>,
+    /// The control of the first driver in the order that has one.
+    pub containers: Option<Arc<dyn ContainerControl>>,
     /// The local manager. It holds the drivers, the record store and the `ManagerConfig`.
     pub manager: Arc<SandboxManager>,
 }
 
-impl core::ops::Deref for NativePlatform {
-    type Target = Platform;
-    fn deref(&self) -> &Platform {
-        &self.platform
-    }
+impl Platform for NativePlatform {
+    fn ctx(&self) -> &Ctx { &self.ctx }
+    fn sandboxes(&self) -> &Arc<dyn SandboxProvider> { &self.sandboxes }
+    fn containers(&self) -> Option<&Arc<dyn ContainerControl>> { self.containers.as_ref() }
+    fn kind(&self) -> PlatformKind { PlatformKind::Native }
+    fn as_any(&self) -> &dyn Any { self }
 }
 ```
 
-The native host (feature 06) builds one. `manager` and `platform.sandboxes` are the same
-`Arc<dyn SandboxProvider>`; a caller uses whichever it has. Feature 09 uses the same wrapper
-for libkrun, because the driver set decides the substrate and the wrapper does not.
+The native host (feature 06) builds one. `manager` and `sandboxes` are the same
+`Arc<SandboxManager>`; a caller uses whichever it has, and a function that serves several parts
+takes `&dyn Platform`. Feature 09 uses the same wrapper for libkrun, because the driver set
+decides the substrate and the wrapper does not.
 
 ## 7. Tests
 

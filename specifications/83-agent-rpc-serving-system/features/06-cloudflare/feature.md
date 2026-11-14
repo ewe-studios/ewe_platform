@@ -107,6 +107,9 @@ impl AgentContainer {
 }
 ```
 
+A function that serves more than one host takes `&dyn Platform` and calls `as_cloudflare()`
+when it needs the part. A wrong part gives `PlatformMismatch { expected, actual }`.
+
 The agent-rpc plan is not the sandbox plan. It names its own Worker, its own DO class and its
 own bindings. Both plans go to the same deployer, so both paths (Rust and `wrangler`) stay
 available for both Workers.

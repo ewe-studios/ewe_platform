@@ -92,9 +92,16 @@ ASD-STE100.
   part needs that provides the other cloudflare specific handles", and "same for others". So
   section 6.0 gives a wrapper value instead: `Platform` holds the `Ctx` and the two controls,
   and each part adds one wrapper (`NativePlatform` in features 05 and 09, `DockerPlatform` in
-  feature 10, `CloudflarePlatform` in features 07 and 08). Spec 83 feature 06 takes
-  `&CloudflarePlatform`. Feature 09 reuses `NativePlatform`: a libkrun host registers a different
-  driver in the same manager, so the wrapper names no driver.
+  feature 10, `CloudflarePlatform` in feature 07). The wrappers share the `Platform` trait and
+  the `PlatformKind` enum, with `as_*` downcast helpers that give `PlatformMismatch` on a wrong
+  part. A function for one part takes the concrete type; a function that serves several takes
+  `&dyn Platform`. Spec 83 feature 06 takes `&CloudflarePlatform`. Feature 09 reuses
+  `NativePlatform`: a libkrun host registers a different driver in the same manager, so the
+  wrapper names no driver.
+- 2026-11-15 (third note): "just wrap the js with a SendWrapper to make it look Send, wasm is
+  non-send anyway". `CloudflarePlatform` now carries `Option<SendWrapper<Rc<dyn Fetcher>>>`,
+  with `foundation_compact::SendWrapper` (no new dependency), and the spec forbids a wasm
+  `atomics` build.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
