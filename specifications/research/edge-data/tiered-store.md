@@ -38,7 +38,7 @@ idea. Every source agrees on it (NATS p.99, p.113–116; TP Part 3; the lunora c
 - **What it is:** The SQLite database inside a DO. `ctx.storage.sql.exec()` is synchronous and runs in the same thread as the DO code (GED p.2).
 - **Why it is interesting:** A write commits locally and is durable when the call returns. Many queries inside one DO call cost no network. The DO is single-threaded, so the sequence of commits is the sequence of calls. A per-DO counter in the same transaction gives a gap-free commit order (lunora `_commitSeq`, see [change-logs.md](./change-logs.md#22-commit-ordered-sequence-not-wall-clock)).
 - **Limits:** 10 GB for each DO. About 500 to 1,000 simple requests each second for each DO (Rules of Durable Objects, "Message throughput limits"). 100 bound parameters for each statement. A query cannot cross DOs. Storage costs $0.20/GB-mo, rows written cost $1.00 for each million.
-- **Where it could apply:** `DoSqlStore` (spec 65 feature 07, task T20) gives `QueryStore` and `KeyValueStore` over `worker::Storage::sql()`. That is T0 for us.
+- **Where it could apply:** `DoSqlStore` (spec 83 feature 07, task T20) gives `QueryStore` and `KeyValueStore` over `worker::Storage::sql()`. That is T0 for us.
 
 ### 2.2 T1: D1 (warm)
 
@@ -90,7 +90,7 @@ A delete travels as a tombstone row (`deleted = 1`), as NATS p.143 suggests for 
 
 ### 3.2 Demotion T1 → T2: the archive
 
-- **Source:** NATS p.119–122 (core tables and delta tables); lunora `cdc-retention.ts` and `ctx-db-cdc-archive.ts`; spec 65 feature 07 `hosts.md` section 5.12.
+- **Source:** NATS p.119–122 (core tables and delta tables); lunora `cdc-retention.ts` and `ctx-db-cdc-archive.ts`; spec 83 feature 07 `hosts.md` section 5.12.
 - **What it is:** Rows that reached a terminal state (an invoice that is `paid`, an audit entry, a closed conversation) move to R2. Core state (users, balances, settings) stays in D1 for ever. Prune by state, not by age (NATS p.119–120).
 - **Why it is interesting:** It keeps D1, the most expensive tier per byte, small. lunora calls the alternative a "cliff": without an archive, a reader that falls behind the retention window must re-seed from a snapshot. With an archive, the cliff becomes a tier.
 - **Limits:** A user who asks for old data needs a second read path (R2), and the two results must be merged (NATS p.121).

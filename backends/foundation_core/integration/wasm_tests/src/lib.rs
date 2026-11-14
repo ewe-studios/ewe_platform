@@ -222,7 +222,7 @@ async fn no_deadlock_with_js_yield() {
 }
 
 // ---------------------------------------------------------------------------
-// Spec 68 / spec 65 feature 06 T5: event-driven park → wake → resume.
+// Spec 68 / spec 83 feature 06 T5: event-driven park → wake → resume.
 //
 // A task parked on a readiness signal must not be re-polled while it waits, the
 // executor must hand the thread back to the JS event loop (not spin), and the

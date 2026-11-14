@@ -1,14 +1,14 @@
 ---
-feature: "Cloudflare Worker"
+feature: "Cloudflare Worker and deployment"
 status: "pending"
 priority: "high"
 model: "sonnet"
 phase: "MVP-B"
 depends_on: ["06-programs-rpc-provider", "07-cloudflare-control-plane"]
-crates: ["infrastructure/sandbox_worker", "foundation_platform_sandbox", "foundation_deployment_platform"]
+crates: ["sandbox_worker", "foundation_platform_sandbox", "foundation_deployment_platform", "foundation_deployment_cloudflare"]
 ---
 
-# Feature 08: The Cloudflare Worker and the end-to-end path (MVP-B)
+# Feature 08: The Cloudflare Worker, deployment and the end-to-end path (MVP-B)
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -39,6 +39,11 @@ sandbox.stop().await?;
 This is MVP-B: the control plane runs in a DO, the slave runs in the DO's container, and
 the caller uses the same `SandboxControl` API as on a host.
 
+This feature owns the two supported Cloudflare deployment paths. The Rust deployer in
+`foundation_deployment_cloudflare` is the primary path. The manual `wrangler` adapter is a
+supported fallback. Both apply the same deployment plan. Spec 83 feature 06 uses this
+deployment surface; it does not own one.
+
 ## 2. Story
 
 - **S1**: "A remote caller creates a sandbox through the Worker; the Worker picks a new DO
@@ -47,8 +52,10 @@ the caller uses the same `SandboxControl` API as on a host.
 - **S3**: "The caller lists the sandboxes of the Worker."
 - **S4**: "A caller with no token, or a wrong token, calls the Worker."
 - **S5**: "A caller names a sandbox that does not exist."
-- **S6**: "An operator deploys the Worker and its container image."
+- **S6**: "An operator deploys the Worker and its container image, by the Rust deployer or
+  by `wrangler`."
 - **S7**: "A caller with a `Provider` starts a Cloudflare sandbox."
+- **S8**: "The two deploy paths apply the same plan and give the same Worker."
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
@@ -57,14 +64,15 @@ the caller uses the same `SandboxControl` API as on a host.
 | U3 | List | Worker | `SandboxService/List` | The entries of the index DO. |
 | U4 | Probe | Worker | `SandboxService/Probe` | One report: the Cloudflare driver. |
 | U5 | Authorise | Worker | every call | 401-class error with no token. |
-| U6 | Deploy | operator | `npx wrangler deploy` | The Worker, the DO classes and the image exist. |
+| U6 | Deploy | operator | `CloudflareDeployer::deploy`, or `npx wrangler deploy` | The Worker, the DO classes, the image and the routes exist. |
 | U7 | Provider | orchestration code | `SandboxProvider::cloudflare(control)` | A `SandboxHandle`. |
+| U8 | Check a deploy | operator | `CloudflareDeployer::status` | The deployment state and the Worker URL. |
 
 ## 3. Bounded context
 
 **Inside this feature:** the Worker entry, routing a call to a DO, the token check, the two
-DO classes as wrappers, the index, the container image, the deploy configuration, the
-end-to-end tests, the Cloudflare `Provider` constructor.
+DO classes as wrappers, the index, the container image, the deployment plan and its two
+adapters, the end-to-end tests, the Cloudflare `Provider` constructor.
 
 **Outside:** everything a DO does with its sandbox (feature 07); the client
 (`SandboxRpcClient`, feature 06); the slave (feature 01).
@@ -77,6 +85,8 @@ end-to-end tests, the Cloudflare `Provider` constructor.
 | Index entry | Sandbox ID to `SandboxInfo`. | `SandboxIndexDo` storage |
 | Worker token | The secret `SANDBOX_TOKEN`. | the operator |
 | Container image | The image with `agent-slave`. | `infrastructure/sandbox_worker/Dockerfile` |
+| Deployment plan | The one description of the Worker, its bindings, DO migrations, container classes, routes and secret names. | `foundation_deployment_cloudflare::DeploymentPlan` |
+| Deploy path | `FoundationCloudflareDeployer` (primary) or `WranglerCloudflareDeployer` (fallback). | the operator picks one; both read the plan |
 | Routing rule | Which DO gets a call. | `foundation_platform_sandbox::shared::cloudflare::routing` (library) |
 
 | Verb | Kind | Trigger | Effect |
@@ -85,6 +95,9 @@ end-to-end tests, the Cloudflare `Provider` constructor.
 | route | entity | each request | Finds the target: new DO, named DO, index DO, or a local answer. |
 | forward | entity | after route | Sends the request to the DO stub and returns its response as it is. |
 | index put / remove / list | entity | a DO, the Worker | Keeps the list. |
+| deploy | story | an operator | Applies one `DeploymentPlan` through the selected adapter. |
+| status | entity | an operator | Reads the deployment state and the Worker URL. |
+| rollback | story | a failed deploy or an operator | Restores the previous Worker and container tags. |
 
 The routing rule is library code (`shared::cloudflare::routing::route(path, body) ->
 RouteTarget`), with native tests. The Worker crate only calls it and talks to the `worker`
@@ -116,14 +129,14 @@ Freeze points:           none
 Links to other entities: each entry's id is a DO name; List checks a stale entry against its DO
 
 Entity: Worker deployment
-Conserved value:         the slave in the image and the control plane in the Worker are built from the same crate version
-Bound:                   none
-Inverse pairs:           none
-Idempotent verbs:        deploy
+Conserved value:         the plan is the same for both paths; the slave in the image and the control plane in the Worker are built from the same crate version
+Bound:                   one deploy at a time for one Worker name (the deploy lock)
+Inverse pairs:           deploy / rollback
+Idempotent verbs:        deploy of the same plan; rollback of a rolled-back deployment
 Ordering pairs:          build the slave -> build the image -> deploy
 Monotone values:         none
 Freeze points:           none
-Links to other entities: SlaveInfo.slave_version = the Worker's crate version (checked in a test)
+Links to other entities: the deployed Worker's bindings and DO migrations equal the plan
 ```
 
 ### 4.2 Invariants
@@ -139,6 +152,10 @@ Links to other entities: SlaveInfo.slave_version = the Worker's crate version (c
 | I7 | The Worker crate has no sandbox logic: its source has no state check, no retry and no call to `ContainerApi` outside the `worker` trait implementations. |
 | I8 | The shared acceptance scenarios pass against the Worker through `SandboxRpcClient`, the same as against Firecracker. |
 | I9 | The image has a static `agent-slave` for `linux/amd64` at the configured path, built from the same commit as the Worker. |
+| I10 | Both deploy paths consume one `DeploymentPlan`; the deployed Worker has the same name, bindings, DO migrations, container class, routes and secret names. |
+| I11 | `FoundationCloudflareDeployer` is the primary path. `WranglerCloudflareDeployer` is a supported fallback. The deploy task selects the foundation path when no adapter is named. |
+| I12 | The plan holds secret names and sources, never secret values. A printed plan has no credential. |
+| I13 | A failed deploy leaves the previous Worker live. `rollback` is idempotent. |
 
 ### 4.3 Must have
 
@@ -146,6 +163,8 @@ Links to other entities: SlaveInfo.slave_version = the Worker's crate version (c
   `wrangler.toml`, the `Dockerfile`, the README.
 - `shared::cloudflare::routing`.
 - `ProviderId::CloudflareContainer` and `SandboxProvider::cloudflare`.
+- `CloudflareDeployer`, `DeploymentPlan`, `DeploymentOutcome`, `DeploymentStatus`,
+  `DeployError`, `FoundationCloudflareDeployer`, `WranglerCloudflareDeployer`.
 - The end-to-end test and its script.
 
 ### 4.4 Must do
@@ -153,12 +172,16 @@ Links to other entities: SlaveInfo.slave_version = the Worker's crate version (c
 - Read the request body one time, with a size limit, for routing; then forward the same
   bytes.
 - Document how to deploy and how to set the token.
+- Deploy by the foundation path by default; document the `wrangler` path as the fallback.
+- Read every secret from the `SecretSource`; never write a value to the plan or a log.
 
 ### 4.5 Must not
 
 - Must not log the token or a request body.
 - Must not keep state in the Worker isolate between requests, other than the valtron pool
   and the `Ctx`.
+- Must not have a second deployment format for the agent-rpc Worker (spec 83 feature 06).
+- Must not bake a secret into an image or a plan.
 
 ## 5. Acceptance scenarios
 
@@ -225,6 +248,20 @@ Feature: Cloudflare Worker
     Then is_running is true
     When stop is called
     Then is_running is false
+
+  Scenario: Both deployers apply one plan
+    Given one DeploymentPlan for the sandbox Worker
+    When the foundation deployer and the wrangler deployer each plan the deploy
+    Then both name the same Worker, bindings, DO migrations, container class and routes
+
+  Scenario: The primary deployer is the Rust path
+    When an operator runs the deploy task with no adapter selected
+    Then FoundationCloudflareDeployer runs
+
+  Scenario: A secret never enters the plan
+    Given a plan with a SecretRef
+    When the plan is printed
+    Then the secret value is absent
 ```
 
 ## 6. Technical breakdown
@@ -404,10 +441,153 @@ images; the image features 12 to 15 are for the microVM drivers.
 
 ### 6.7 Deploy
 
-README steps: install `wrangler` and `worker-build`; `mise run sandbox:worker-image`;
-`npx wrangler secret put SANDBOX_TOKEN`; `npx wrangler deploy` (it builds the Worker,
-builds and pushes the image, which needs Docker). A deploy from Rust code is not in this
-spec.
+The Worker, its two DO classes, its container and its routes come from one `DeploymentPlan`.
+Two adapters apply that plan:
+
+| Adapter | How it works | When to use it |
+|---|---|---|
+| `FoundationCloudflareDeployer` | The Rust path. It uses `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare` (the generated Worker, Durable Object, D1/KV/R2 and container types). It builds the Worker, builds and pushes the image, uploads a Worker version with the bindings and DO migrations, sets the secrets and routes, and promotes the version. | The default. CI and an operator with the Rust toolchain. |
+| `WranglerCloudflareDeployer` | The manual path. It writes the same plan as a temporary `wrangler.toml`, copies the Dockerfile, runs `npx wrangler deploy`, and reads the Worker URL from the output. It is native-only and uses an injected `CommandRunner`. | A fallback when the foundation crate is not available, and the documented manual procedure. |
+
+The foundation path is the priority. A deploy run with no adapter selected uses it. The
+`wrangler` path is supported and tested; it is not a second design. Both adapters read the
+same plan, and a test compares the plan they receive (invariant I10).
+
+The manual steps in the README remain correct: install `wrangler` and `worker-build`; run
+`mise run sandbox:worker-image`; set `SANDBOX_TOKEN`; run `npx wrangler deploy`. They are
+the `WranglerCloudflareDeployer` path. The README also gives the one-command foundation
+path and marks it as the primary one.
+
+### 6.8 The deployment plan and the two adapters
+
+`foundation_deployment_cloudflare` gets the deployment surface. It is a native library; it
+does not compile to wasm. The plan types are plain data and have no side effect.
+
+```rust
+pub struct DeploymentPlan {
+    pub worker: WorkerDeployment,
+    pub bindings: Vec<Binding>,
+    pub migrations: Vec<DoMigration>,
+    pub containers: Vec<ContainerDeployment>,
+    pub routes: Vec<Route>,
+    pub secrets: Vec<SecretRef>,
+}
+pub struct WorkerDeployment {
+    pub name: String,                  // "ewe-sandbox"
+    pub main: PathBuf,                 // the worker-build output, or a wasm module
+    pub compatibility_date: String,    // "2026-05-12"
+}
+pub enum Binding {
+    DurableObject { name: String, class_name: String },
+    D1 { name: String, database_id: String },
+    Kv { name: String, namespace_id: String },
+    R2 { name: String, bucket_name: String },
+    Ai { name: String },
+    Service { name: String, service: String },
+    PlainText { name: String, value: String },   // never a secret
+}
+pub struct DoMigration { pub tag: String, pub new_sqlite_classes: Vec<String> }
+pub struct ContainerDeployment {
+    pub class_name: String,
+    pub name: String,
+    pub image: ContainerImage,
+    pub max_instances: u32,
+    pub instance_type: String,          // "lite", "basic", ...
+}
+pub enum ContainerImage {
+    Dockerfile(PathBuf),                // build and push from this file
+    Registry { tag: String, digest: Option<String> },   // CI built it
+}
+pub struct Route { pub pattern: String, pub zone: Option<String> }
+pub struct SecretRef { pub name: String, pub source: SecretSource }
+pub enum SecretSource { WorkerSecret, SecretsStore { store: String } }
+
+pub trait CloudflareDeployer: Send + Sync + 'static {
+    fn deploy(&self, ctx: Ctx, plan: DeploymentPlan)
+        -> BoxFuture<'_, Result<DeploymentOutcome, DeployError>>;
+    fn status(&self, ctx: Ctx, id: &DeploymentId)
+        -> BoxFuture<'_, Result<DeploymentStatus, DeployError>>;
+    fn rollback(&self, ctx: Ctx, id: &DeploymentId)
+        -> BoxFuture<'_, Result<(), DeployError>>;
+}
+pub struct DeploymentOutcome {
+    pub id: DeploymentId,
+    pub worker_url: String,
+    pub container_tags: Vec<String>,
+    pub deployed_unix_ms: u64,
+}
+pub enum DeploymentStatus { Queued, Building, Uploading, Live, Failed, RolledBack }
+pub struct DeploymentId(String);
+pub enum DeployError {
+    HostNotConfigured { entry: String },
+    InvalidPlan { field: String, reason: String },
+    Auth { message: String },
+    Build { step: String, code: Option<i32>, message: String },
+    Push { image: String, message: String },
+    Api { status: u16, message: String },
+    Conflict { message: String },
+    RolloutTimeout { deployment: String },
+    Io { op: String, message: String },
+    Unsupported { what: String },
+}
+```
+
+**`FoundationCloudflareDeployer`** (primary) runs these steps:
+
+1. Validate the plan. One Worker name, one `main`, one binding name, one migration tag.
+   Every `ContainerDeployment.class_name` has a `Binding::DurableObject` with the same
+   class name, and every DO class is in a migration `new_sqlite_classes`. A failure is
+   `InvalidPlan`; nothing reaches Cloudflare.
+2. Build the Worker: run `worker-build --release` in the Worker directory, or use the wasm
+   module that the plan names. A build failure is `Build`.
+3. For each `ContainerDeployment`: build the image from the Dockerfile with the Docker
+   Engine (or use the registry tag), then push it. A failure is `Push`. Cloudflare
+   containers are `linux/amd64`.
+4. Create or update the container application and the Worker's container class through the
+   generated Cloudflare API types (root rule 5). A missing generated type is a generator
+   defect; fix the generator, do not hand-roll JSON.
+5. Upload a new Worker version with the bindings and the Durable Object migrations. The
+   upload is one API call; the body streams from the file. The new version is not live
+   yet.
+6. Set each secret on the new version: read the value from the `SecretSource` through the
+   injected secret store, then write it. The value is never in the plan or a log.
+7. Set the routes.
+8. Promote the new version. This is the traffic switch. A failure before this step leaves
+   the previous version live.
+9. Return `DeploymentOutcome { id, worker_url, container_tags, deployed_unix_ms }`.
+
+**`WranglerCloudflareDeployer`** (fallback) runs these steps:
+
+1. Validate the plan with the same function.
+2. Write `wrangler.toml` from the plan into a temporary directory; copy or link the
+   `Dockerfile` and the Worker `main`.
+3. Run `npx wrangler deploy` with the injected `CommandRunner` (native only). The command
+   builds the Worker and the image, and pushes them. Capture the output to find the Worker
+   URL.
+4. For each `SecretRef`: run `npx wrangler secret put <name>` and write the value to its
+   standard input. `WorkerSecret` and `SecretsStore` both have a wrangler command; the
+   adapter uses the one that the source names.
+5. Return the same `DeploymentOutcome` shape. The CLI uploads the Worker as one atomic
+   change, so a failed command leaves the previous Worker live.
+
+Both adapters use the injected `Ctx` entries: a `CloudflareDeployHost` with the API client,
+the Docker client, the command runner (wrangler only), the secret store and the clock. A
+missing entry is `HostNotConfigured`. Tests use fakes.
+
+**The sandbox plan.** `DeploymentPlan::sandbox_worker()` returns the plan of sections 6.5
+and 6.6: Worker `ewe-sandbox`, bindings `SANDBOX` and `SANDBOX_INDEX`, the two DO classes,
+the `containers` entry with class `SandboxDo`, image `./Dockerfile`, `max_instances 10`,
+`instance_type "lite"`, and the `SANDBOX_TOKEN` secret. `wrangler.toml` is a view of this
+plan for the manual path; the plan is the source of truth.
+
+**The agent-rpc plan.** Spec 83 feature 06 builds its own `DeploymentPlan` with its Worker
+name, bindings, DO migrations and container class, and calls the same `CloudflareDeployer`.
+The deployer does not know agent-rpc. This is the boundary: spec 77 owns the deploy
+mechanism; a caller owns its plan.
+
+**Status and rollback.** `status` reads the Cloudflare deployment state. `rollback` applies
+the previous `DeploymentOutcome` (the previous Worker version and container tags). A failed
+deploy does not change the live Worker. `rollback` is idempotent.
 
 ## 7. Tests
 
@@ -429,6 +609,13 @@ spec.
 | I9, "The slave and the Worker have the same version" | `e2e_cloudflare_versions` | the same | identity |
 | restart of a DO | `e2e_cloudflare_restart`: create; stop and start `wrangler dev` with the same state directory (`--persist-to`); then `Get`. The test reads `docker ps` first to know which case it is in: the container survived (then `Get` must give `Ready`, and a new command must work, with no second `Prepare` in the slave) or it did not (then `Get` must give `NotFound`, and `List` must be empty). Each case has one exact expected result. | the same | expected outcome |
 | "A provider starts a Cloudflare sandbox" | `provider_e2e_cloudflare` | `foundation_deployment_platform/tests/sandbox_provider_tests.rs` | example |
+| I10, "Both deployers apply one plan" | `deploy_plan_parity` (both adapters receive the same `DeploymentPlan`; their recorded calls name the same Worker, bindings, migrations, container class and routes) | `foundation_deployment_cloudflare/tests/deploy_plan.rs` | identity |
+| I11, "The primary deployer is the Rust path" | `default_deployer_is_foundation` | the same | example |
+| I12, "A secret never enters the plan" | `deploy_plan_has_no_secret_value`, `deploy_sets_secret_from_source` (a fake secret store; the value reaches the API and never the plan or the log) | the same | expected outcome, conservation |
+| I13 | `deploy_failure_keeps_previous`, `rollback_idempotent` (a fake API fails at each step; the live version stays; a second rollback is `Ok`) | the same | fault, idempotence |
+| plan validation | `deploy_plan_invalid` (two mains, a duplicate binding, a missing migration tag) | the same | expected outcome |
+| foundation adapter | `foundation_deploy_mock` (a fake API and Docker client; each step in order) | the same | example |
+| wrangler adapter | `wrangler_deploy_command_lines` (a fake `CommandRunner`; the generated `wrangler.toml`, the deploy command and the secret commands) | the same | example |
 
 The `e2e_cloudflare` tests need `wrangler`, `worker-build` and Docker. They read
 `EWE_SANDBOX_WORKER_URL` and `EWE_SANDBOX_WORKER_TOKEN`; when the URL is not set they print
@@ -456,6 +643,7 @@ cargo test -p foundation_platform_sandbox --features testing --profile uat cloud
 mise run sandbox:worker-image
 infrastructure/sandbox_worker/test/run.sh
 cargo test -p foundation_deployment_platform --features sandbox --profile uat provider_e2e_cloudflare
+cargo test -p foundation_deployment_cloudflare --profile uat deploy_
 ```
 
 ## 9. Done when
@@ -466,4 +654,6 @@ cargo test -p foundation_deployment_platform --features sandbox --profile uat pr
 - The Worker crate has only the entry, the two DO wrappers and the `worker` type
   conversions.
 - The README tells an operator how to deploy and how to set the token.
+- Both deploy paths apply one plan. The foundation path is the default; the `wrangler` path
+  is a tested fallback.
 - `progress.md` records MVP-B and the manual deploy result.

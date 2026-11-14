@@ -50,7 +50,7 @@ only because the brief asks what lunora does (section 5). It is not an input to 
   - A "not found" from a replica is never final. Check the primary once. Never cache the negative answer across requests.
   - Security reads never accept replica lag. They start at the primary.
 - **Limits:** Every query site must choose a class. A wrong class is a silent stale read.
-- **Where it could apply:** A `ReadConsistency` value on the T1 read path. The trust store and revocation reads of spec 65 feature 07 (`SqlTrustStore<D1WasmStorage>`) are `primary_required`.
+- **Where it could apply:** A `ReadConsistency` value on the T1 read path. The trust store and revocation reads of spec 83 feature 07 (`SqlTrustStore<D1WasmStorage>`) are `primary_required`.
 
 ### 2.3 Carrying the bookmark, and guarding the session
 

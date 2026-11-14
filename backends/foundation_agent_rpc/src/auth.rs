@@ -1,7 +1,7 @@
 //! Client-facing auth: signed bootstrap secret → client certificate → mutual
 //! TLS, with a durable record of every enrolled client.
 //!
-//! WHY: agent-rpc owns how its clients authenticate (spec 65: the proxy never
+//! WHY: agent-rpc owns how its clients authenticate (spec 83: the proxy never
 //! sees this channel). A client starts with nothing but a signed, time-boxed
 //! secret handed to it out of band; after one enrollment it holds a
 //! certificate, and from then on every call is authenticated by mutual TLS

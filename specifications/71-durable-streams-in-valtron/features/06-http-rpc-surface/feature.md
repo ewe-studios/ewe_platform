@@ -39,7 +39,7 @@ Map the durable contract onto the existing HTTP and RPC seams, so any `foundatio
 6. **Cursor for collapsing.** A live response carries a `Stream-Cursor` so an edge can collapse
    waiting clients at the same offset. This is a header on the existing path, not new code.
 7. **Park, never poll.** The SSE and long-poll paths use `Stream::Wait` + `WakeableStream` (feature
-   02), reusing the wasm SSE parking work from spec 65 feature 06. No timer-based polling.
+   02), reusing the wasm SSE parking work from spec 83 feature 06. No timer-based polling.
 
 ## 3. Design
 

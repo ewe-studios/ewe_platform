@@ -72,7 +72,7 @@ stream: closing it ends the session.
 
 **Do.** Record the error next to `done`. `QueueSseEvents` then ends with
 `Stream::Pending(SseProgress::Failed(msg))` and then `None`, the same as a fetch failure
-(spec 65 feature 06 already uses `SseProgress::Failed`).
+(spec 83 feature 06 already uses `SseProgress::Failed`).
 
 **Test** (`foundation_netio/tests/wasm/…`, `wasm-bindgen-test`, run under Node as the other wasm
 tests): a `ReadableStream` that errors after one event; assert the consumer gets the event, then

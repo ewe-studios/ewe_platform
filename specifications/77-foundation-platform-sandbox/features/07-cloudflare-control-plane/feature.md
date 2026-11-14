@@ -25,14 +25,19 @@ Make the control-plane core run in a Cloudflare DO and drive that DO's container
 slave as the container's main process. This feature is library code only:
 
 1. `CloudflareContainerDriver`: a `SandboxDriver` on a small trait for the container.
-2. `ContainerPortTransport`: an RPC transport that sends each call with the container's
+2. `ContainerControl` and `ContainerHandle` for Cloudflare: the public surface to start a
+   container, talk to it, run commands in it, and stop it. The sandbox driver uses it; the
+   agent-rpc Worker (spec 83 feature 06) uses it too.
+3. `ContainerPortTransport`: an RPC transport that sends each call with the container's
    port `fetch`.
-3. `DoRecordStore` and the idle alarm logic.
-4. `DoControlPlane`: the object that a DO class holds; it builds the `SandboxManager` and
+4. `DoRecordStore` and the idle alarm logic.
+5. `DoControlPlane`: the object that a DO class holds; it builds the `SandboxManager` and
    handles each request.
-5. In `src/cloudflare/`: the implementations of the traits on the `worker` crate types.
+6. The internal `ContainerService` that gives a native caller or a Worker a remote
+   `ContainerHandle`.
+7. In `src/cloudflare/`: the implementations of the traits on the `worker` crate types.
 
-The logic of items 1 to 4 depends only on traits, so it compiles and is tested on a native
+The logic of items 1 to 6 depends only on traits, so it compiles and is tested on a native
 host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
 
 ## 2. Story
@@ -56,8 +61,9 @@ host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
 
 ## 3. Bounded context
 
-**Inside this feature:** the Cloudflare driver, the port transport, the DO record store,
-the idle rule, the request handler of one DO.
+**Inside this feature:** the Cloudflare driver, the container control and handle, the port
+transport, the DO record store, the idle rule, the request handler of one DO, and the
+internal container service.
 
 **Outside:** `SandboxManager` and its laws (feature 02); the slave (feature 01); the Worker
 entry, routing to a DO, the token check and the container image (feature 08); the
@@ -66,7 +72,8 @@ Cloudflare runtime.
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
 | Container | The one container of one DO. | the Cloudflare runtime, through `ContainerApi` |
-| `ContainerApi` | The trait for the container: running, start, destroy, signal, wait, port fetch. | defined in `shared::cloudflare`; implemented in `cloudflare/` and by a fake |
+| `ContainerApi` | The private DO-level trait for the container: running, start, destroy, signal, wait, port fetch. | defined in `shared::cloudflare`; implemented in `cloudflare/` and by a fake |
+| `ContainerControl`, `ContainerHandle` | The public, provider-neutral surface of feature 00, section 6.13. | `DoContainerOps` (server), `DoContainerClient` (remote), `CloudflareContainerControl` (factory) |
 | DO storage | The key-value store of one DO. | `DoStorage` trait; the DO |
 | Stored record | The sandbox record under the key `sandbox`. | `DoRecordStore` |
 | Idle deadline | The time after which an unused sandbox stops. Key `idle_deadline_ms`. | `DoControlPlane` |
@@ -155,11 +162,16 @@ Links to other entities: a record with no running container is removed from stor
 | I8 | A sandbox with no request for `idle_timeout` stops. A request before that moves the deadline. A running streaming call counts as use. |
 | I9 | The logic of this feature (driver, transport, store, idle, handler) compiles and passes its tests on a native host with fakes; only `src/cloudflare/` names a `worker` type. |
 | I10 | The driver accepts only `RootFs::ContainerImage(name)` with `name` equal to the configured image name, no mounts, and `RootMode::Overlay`. Each other value is rejected before the container starts. `vcpus` and `memory_mib` are ignored (the Worker configuration sets the instance type). |
+| I12 | A `ContainerHandle` is the only writer of its container. `destroy` is idempotent; after it, every other call gives `NotFound`. Two handles for one container share the same `ContainerId`. |
+| I13 | `ContainerCapabilities` is truthful. `exec` is true only when the slave endpoint exists; `logs` is false on Cloudflare. An absent method gives `UnsupportedCapability { capability }`. |
+| I14 | The internal `ContainerService` is behind the Worker token. No call starts a second container in one DO. |
 
 ### 4.3 Must have
 
 - `ContainerApi`, `DoStorage`, `DoAlarm`, `SandboxIndex` traits and `CloudflareHost`.
 - `CloudflareContainerDriver`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane`.
+- `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`, and the internal
+  `ContainerService` (feature 00, section 6.13).
 - The `worker` implementations in `src/cloudflare/`.
 - The `attach` implementation of this driver, and the use of `restore` and `IdSource`
   (section 6.7).
@@ -272,6 +284,28 @@ Feature: Cloudflare control plane
     When the fake container's wait_for_exit completes
     Then the state becomes Failed and then Stopped
     And storage has no record
+
+  Scenario: A container handle runs a command
+    Given a running Cloudflare container with the slave
+    When the caller gets a ContainerHandle and runs ["echo", "hi"]
+    Then the result is stdout "hi\n", code 0
+    And the handle's capabilities have exec true
+
+  Scenario: A container handle streams a port response
+    Given a running Cloudflare container
+    When the caller fetches port 8080 with GET /large
+    Then the body arrives in chunks and the caller never holds the whole body
+
+  Scenario: A container handle is idempotent
+    Given a running Cloudflare container
+    When the caller destroys it two times
+    Then both calls succeed
+    And every later call gives NotFound
+
+  Scenario: A container without the slave has no exec
+    Given a running Cloudflare container that does not run the slave
+    When the caller calls exec
+    Then the result is UnsupportedCapability { capability: "exec" }
 ```
 
 ## 6. Technical breakdown
@@ -280,11 +314,11 @@ Feature: Cloudflare control plane
 
 | Fact | Source |
 |---|---|
-| The workspace uses `worker` 0.8.5 (Rust Workers). | `Cargo.lock` |
-| `State::container() -> Option<Container>`. | `worker-0.8.5/src/durable.rs`, line 258 |
-| `Container::running() -> bool`, `start(Option<ContainerStartupOptions>) -> Result<()>`, `wait_for_exit()`, `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`. | `worker-0.8.5/src/container.rs`, lines 13 to 41 |
+| The workspace targets `worker` 0.8.7 (Rust Workers); the lock still resolves 0.8.5 until the next update. | `Cargo.lock`; spec 83 feature 04 |
+| `State::container() -> Option<Container>`. | `worker-0.8.7/src/durable.rs`, line 281 |
+| `Container::running() -> bool`, `start(Option<ContainerStartupOptions>) -> Result<()>`, `wait_for_exit()`, `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`. | `worker-0.8.7/src/container.rs`, lines 13 to 41 |
 | `ContainerStartupOptions` has `entrypoint`, `enable_internet`, `env`. It has no image and no instance type. | the same file, lines 86 to 112 |
-| `Fetcher::fetch` and `fetch_request` send an HTTP request and give a response with a streamed body. | `worker-0.8.5/src/fetcher.rs`, lines 23 and 48 |
+| `Fetcher::fetch` and `fetch_request` send an HTTP request and give a response with a streamed body. | `worker-0.8.7/src/fetcher.rs`, lines 23 and 48 |
 | A port `fetch` before a process listens fails with an error whose text contains `the container is not listening`. | `cloudflare/containers`, `src/lib/container.ts`, line 27 |
 | The image of a container class is set in the Worker configuration (`containers[].image`), not at start. | `cloudflare/containers`, `examples/core-tests/wrangler.jsonc` |
 | The repository serves HTTP in a Worker with `foundation_http::wasm` (`CfHttpAppSingleton`, `serve_cf::CfServe`, `dispatch`), and has a Rust DO (`foundation_keychain/src/server/signalr_do.rs`). | those files; `examples/cf-agent-loop/src/lib.rs` |
@@ -296,6 +330,8 @@ Feature: Cloudflare control plane
 |---|---|---|
 | `src/shared/cloudflare/mod.rs` | all | The traits, `CloudflareHost`, `CloudflareConfig`. |
 | `src/shared/cloudflare/driver.rs` | all | `CloudflareContainerDriver`, its handle. |
+| `src/shared/cloudflare/container.rs` | all | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`. |
+| `src/shared/cloudflare/container_service.rs` | all | The internal `ContainerService` router. |
 | `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
 | `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
 | `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
@@ -352,6 +388,8 @@ pub struct CloudflareConfig {
     pub idle_timeout: Duration,          // default 10 minutes: the default sleepAfter of @cloudflare/containers
     pub boot_timeout: Duration,          // default 60 s; used in place of SandboxLimits.boot_timeout.
                                          // A cold container start with a first image pull takes much longer than a microVM boot.
+    pub wait_timeout: Option<Duration>,  // default None: the internal `Wait` call has no deadline.
+                                         // A container runs for hours; a boot deadline is wrong for it.
 }
 ```
 
@@ -388,11 +426,80 @@ The substrate: `endpoint: CloudflarePort { port }`,
 | `kill()` | `destroy()`; `forced: true`. |
 | `log_tail(max)` | Empty. The platform gives no log through this API; the error message says "see the Worker logs". |
 | `cleanup()` | `destroy()` when `running()`. |
+| `container()` | `Some(handle)` where `handle` is a `ContainerHandle` on `DoContainerOps` (section 6.4.1). |
+| `containers()` | `Some(Arc<CloudflareContainerControl>)`, built from the same host, config, slave connector and container handle. One control for one DO. |
 
 A failed `start` returns `SubstrateApi { status: 0, message }` with the platform's text.
 
 `attach(ctx, record)` (section 6.7): `Ok(Some(substrate))` when `container.running()`, with
 the same endpoint and handle; `Ok(None)` when it does not run.
+
+### 6.4.1 Container control on Cloudflare
+
+The driver above is one user of the container. The agent-rpc Worker (spec 83 feature 06) is
+another: it starts a container, sends HTTP to a port, runs commands, and stops it, with no
+sandbox record. This section gives that surface. It implements the contract of feature 00,
+section 6.13, so a Docker adapter (feature 10) has the same shape.
+
+**The two layers.**
+
+| Layer | Type | Where it runs | What it does |
+|---|---|---|---|
+| DO-level | `ContainerApi` | inside the DO | The `worker::Container` methods: running, start, destroy, signal, wait, port fetch. It is private to the DO. |
+| Public | `ContainerControl` / `ContainerHandle` | native or Worker | The provider-neutral surface of feature 00. A caller uses it. |
+
+**`DoContainerOps`** implements `ContainerOps` over `ContainerApi` and the slave:
+
+| Method | Work |
+|---|---|
+| `info` | `ContainerInfo { id, driver: CloudflareContainer, image: config.image_name, status from running(), created_unix_ms from the DO record, resources: instance_type }` |
+| `capabilities` | `exec: true` (the container runs the slave), `port_fetch: true`, `signal: true`, `logs: false` |
+| `fetch` | `container.fetch(port, request)`; maps the port error to `SandboxError::Rpc { code: Unavailable, message }` |
+| `exec` | Build a `SlaveService` client at `CloudflarePort { port: slave_port }`, call `Exec`, and wrap the stream in an `ExecHandle`. The slave is the command channel: the Rust `worker` crate has no `container.exec`. |
+| `signal` | `container.signal(signo)` |
+| `wait` | `container.wait_for_exit()`; `SubstrateExit { code: None, signal: None, forced: false }` (the platform gives no code) |
+| `stop(grace)` | Await the first of the exit and a timer of `grace`; then `container.destroy()`; `forced` is true when the timer won. |
+| `destroy` | `container.destroy()` when `running()`; idempotent. |
+| `log_tail` | Empty. The platform gives no log through this API. |
+
+The `exec` path needs the slave endpoint. `DoContainerOps` holds the `SlaveConnector` and
+the `SlaveEndpoint` of the container. The driver already builds both. A container that does
+not run the slave has `capabilities.exec == false`; `exec` then returns
+`UnsupportedCapability { capability: "exec" }`. The Cloudflare container driver always
+starts the slave, so its handle has `exec: true`.
+
+**`CloudflareContainerControl`** implements `ContainerControl`:
+
+- `start(ctx, spec)`: `spec.image` must equal `config.image_name` (`UnsupportedRootFs`
+  otherwise). The entry point is `spec.entrypoint` when it is not empty, else the driver's
+  entry point (the slave). The control starts the container with `enable_internet` from
+  `spec.network`, builds `DoContainerOps`, and returns the handle. It does not create a
+  sandbox record. The `ContainerId` is `config.name`: the platform gives the container of a
+  DO no ID of its own, and the DO name is unique.
+- A `ContainerSpec` for Cloudflare maps as follows: `env` is the container environment;
+  `resources.instance_type` is passed to the container class; `resources.vcpus` and
+  `resources.memory_mib` are ignored (the instance type sets them); `labels` are ignored
+  (the platform has no label call).
+- `get(ctx, id)`: returns a handle when this DO's container runs and its ID is `id`.
+  `None` otherwise. It never starts a container.
+- `list(ctx)`: returns one `ContainerInfo` when the container runs, else an empty vector.
+  The Worker-wide list is the index DO of feature 08; this control owns one DO.
+
+**Remote handles.** A native caller and the agent-rpc Worker cannot reach `ContainerApi`
+directly: only the DO can. The DO therefore serves an internal Connect service,
+`ewe.sandbox.container.v1.ContainerService`, on the same DO and behind the same bearer
+token as `SandboxService`. Its calls are `Start`, `Get`, `List`, `Fetch`, `Exec`, `Signal`,
+`Wait`, `Stop`, `Destroy` and `LogTail`. `DoContainerOps` is the server side.
+`DoContainerClient` implements `ContainerOps` over a `Transport` and is the client side.
+Its constructor is `DoContainerClient::new(ctx, transport, limits)`, and
+`with_token(self, token)` adds the bearer header. The request and response types are the
+contract types of feature 00. `Fetch` is unary in the request and server-streaming in the
+response. `Exec` is server-streaming, as the slave `Exec` is. `Wait` is unary and has no
+deadline unless `CloudflareConfig.wait_timeout` sets one (the default is `None`).
+
+The internal service is not part of `SandboxService`. It has its own package, so a client
+that only controls a container does not need the sandbox messages. The Worker entry of
+feature 08 routes both services to the DO.
 
 ### 6.5 `ContainerPortTransport`
 
@@ -413,7 +520,7 @@ Implements `foundation_connectrpc::shared::transport::Transport`
 `PortConnector` is the `SlaveConnector` for a DO: `CloudflarePort { port }` gives a
 `ContainerPortTransport`; every other endpoint gives `InvalidSpec { field: "endpoint" }`.
 
-If feature 05 of spec 65 lands a general `WasmFetchTransport` in `foundation_connectrpc`
+If feature 05 of spec 83 lands a general `WasmFetchTransport` in `foundation_connectrpc`
 first, this type uses its body pump. It does not wait for it: the pump is about 80 lines.
 
 ### 6.6 `DoRecordStore` and `DoControlPlane`
@@ -468,6 +575,10 @@ manager must know the sandbox before it can stop it). Then read `idle_deadline_m
 
 - `SandboxDriver::attach` (feature 00, section 6.8): this driver returns
   `Ok(Some(substrate))` when `container.running()`, else `Ok(None)`.
+- `ContainerControl`, `ContainerOps`, `ContainerHandle`, `ContainerSpec`, `ContainerInfo`
+  and the port types (feature 00, section 6.13). This feature implements them for
+  Cloudflare.
+- `ExecHandle` (feature 02, section 6.6): the handle that `ContainerOps::exec` returns.
 - `IdSource::Fixed(id)` and `max_sandboxes: 1` (feature 02, section 6.2): the DO's manager
   holds one sandbox, named as the DO.
 - `SandboxManager::restore` (feature 02, section 6.2): `DoControlPlane::handle` calls it
@@ -514,6 +625,12 @@ Each scenario of section 5 is one test.
 | I6, "Stop removes everything" | `stop_removes_all` | conservation |
 | "A container that exits ..." | `container_exit_fails_sandbox` | fault |
 | transport | `transport_refuses_request_streaming` (a client-streaming call fails before a fetch), `transport_streams_response` (a 10 MiB server stream arrives in chunks; the fake counts that it never holds more than 2 chunks) | expected outcome, bound |
+| I12, "A container handle is idempotent" | `container_destroy_idempotent` | conservation |
+| I13, "A container handle runs a command", "A container without the slave has no exec" | `container_exec_via_slave`, `container_no_exec_without_slave`, `container_capabilities` | expected outcome |
+| container port | `container_fetch_streams` | bound |
+| remote handle | `container_remote_roundtrip` (a native `DoContainerClient` over a scripted transport; each call arrives at the DO service) | identity |
+| container start | `container_start_handle` (the spec image, entry point and network flag; no sandbox record) | example |
+| container wait | `container_wait_deadline` (with `wait_timeout` set to 100 ms, a remote `Wait` on a container that never exits gives `DeadlineExceeded`) | expected outcome |
 | I9 | the native test run itself, and the wasm check in section 8 | build |
 
 ## 8. Verify
@@ -531,3 +648,5 @@ cargo check -p foundation_platform_sandbox --no-default-features --features "con
 - The `cloudflare` feature compiles for wasm32.
 - Only `src/cloudflare/` names a `worker` type.
 - A restarted DO control plane finds its sandbox again (invariant I7).
+- A `ContainerHandle` starts, talks to, runs commands in, and stops a container with no
+  sandbox record.

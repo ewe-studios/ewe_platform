@@ -15,7 +15,7 @@ has_features: true
 has_fundamentals: true
 builds_on: ""
 related_specs:
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
   - "specifications/completed/70-foundational-io-hardening"
   - "specifications/research/edge-data"
 features:
@@ -53,7 +53,7 @@ Today the platform has every piece of that scattered, and none of it reusable:
   A dropped connection loses in-flight data.
 - `foundation_log` (issue #155) plans an append-only log on R2 and S3, but its reader contract is
   not defined as a type.
-- The agent-rpc turn stream (spec 65) needs resumption and replay, but there is no primitive to
+- The agent-rpc turn stream (spec 83) needs resumption and replay, but there is no primitive to
   build it on.
 - valtron already has `Stream::Wait` (park), `WakeableStream` (wake on readiness), `Stream::Spread`
   (a batch), `into_next_stream` / `into_future_stream` (async bridges), and `#[task]` (a state
@@ -230,8 +230,8 @@ reader sees one stream. The fork is independent: its own URL/name, TTL, closure 
 | In-memory | `BTreeMap` + a notifier | DST and tests (seeded, replayable) |
 | File + LMDB | a native log file + LMDB metadata | native `foundation_log` tail |
 | R2 / S3 segments | `foundation_db::BlobStore` + `foundation_log` key layout | the sealed tier |
-| DO SQLite | `DoSqlStore` (`QueryStore`/`KeyValueStore`) | spec 65 T0 |
-| D1 | `D1WasmStorage` | spec 65 T1 |
+| DO SQLite | `DoSqlStore` (`QueryStore`/`KeyValueStore`) | spec 83 T0 |
+| D1 | `D1WasmStorage` | spec 83 T1 |
 
 The store is the only place that builds offsets. The offset scheme is per-backend (a monotonic
 sequence, a padded last-sequence, an epoch-prefixed key) and never leaks into the reader.

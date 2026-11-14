@@ -2,7 +2,7 @@
 
 `foundation_ai` agentic layer on Cloudflare Workers, served through the
 `foundation_http` `dispatch_cf` path, with Workers AI as the model provider
-(spec 65 T5). The handler runs the turn to completion and returns the
+(spec 83 T5). The handler runs the turn to completion and returns the
 accumulated assistant text (buffered, not streamed).
 
 - `POST /` — the prompt as the body; the reply as plain text.

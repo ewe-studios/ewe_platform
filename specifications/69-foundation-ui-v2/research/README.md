@@ -4,7 +4,7 @@ status: "research"
 created: 2026-10-27
 last_updated: 2026-11-12
 author: "Main Agent"
-source: "specifications/65-agent-rpc-serving-system/resources/foundation_ui_rearchitecture.md"
+source: "specifications/83-agent-rpc-serving-system/resources/foundation_ui_rearchitecture.md"
 related_specs:
   - "specifications/completed/39-foundation-wasm-ui"
   - "specifications/completed/42-ui-component"
@@ -30,7 +30,7 @@ WASM and compiled Rust. One action model serves every surface. Each platform sup
 capabilities that only it can provide.**
 
 Source:
-[`foundation_ui_rearchitecture.md`](../../65-agent-rpc-serving-system/resources/foundation_ui_rearchitecture.md).
+[`foundation_ui_rearchitecture.md`](../../83-agent-rpc-serving-system/resources/foundation_ui_rearchitecture.md).
 
 The owner set four goals for this research (PR #157 review, 2026-11-12):
 

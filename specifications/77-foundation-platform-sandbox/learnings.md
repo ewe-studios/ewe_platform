@@ -303,9 +303,14 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
 - Since version 1.0, `@cloudflare/sandbox` has only file helpers that work through
   `exec()` of a static helper program. The DO class is application code.
 
-### 4.2 The Rust `worker` crate (version 0.8.5, in this workspace's `Cargo.lock`)
+### 4.2 The Rust `worker` crate (0.8.5 in the lock; 0.8.7 is the target)
 
-- `State::container() -> Option<Container>` (`src/durable.rs` line 258).
+Observed on 0.8.5. Re-checked against `worker-0.8.7` on 2026-11-14. `container.rs` and
+`fetcher.rs` have the same lines in both versions. `State::container()` moved from line 258 to
+line 281.
+
+- `State::container() -> Option<Container>` (`src/durable.rs` line 281 in 0.8.7; line 258 in
+  0.8.5).
 - `Container`: `running()`, `start(Option<ContainerStartupOptions>)`, `wait_for_exit()`,
   `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`
   (`src/container.rs` lines 13 to 41).
@@ -324,7 +329,7 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
   with its own workspace root and `worker-build`.
 - `foundation_connectrpc`: the router and the client are in `shared/` (all targets). The
   `fetch` client transport is only a capability constant today
-  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 65 feature 05
+  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 83 feature 05
   plans a general one.
 - `backends/foundation_cloudflare_workers` has generated calls for
   `GET /accounts/{account_id}/containers` and the registry credentials call. They list and
@@ -471,4 +476,79 @@ version v1; its home is `docker/sandboxes-api`).
   The design of feature 16 is correct for both answers (`restore` checks `Info`).
 - Which template name is the best default. Candidates from the documents:
   `docker.io/sbx/shell-image:latest` and `docker/sandbox-templates:claude-code-minimal`.
+
+## 9. The Cloudflare merge (2026-11-14)
+
+### 9.1 The conflict
+
+Spec 83 feature 06 (then "Cloudflare Deployment") and this spec said opposite things:
+
+| Question | Spec 77 | Spec 83 feature 06 |
+|---|---|---|
+| Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare`. |
+| Who owns the container surface? | The private `ContainerApi` of the Cloudflare DO (feature 07, section 6). | A public `ContainersDeploy` in `foundation_deployment_cloudflare`. |
+| Is there a handle for the container? | No. The `Sandbox` is the only handle. | No. `ContainersDeploy` takes a `ContainerSpec` with undefined fields. |
+
+Both texts were correct about one artifact and wrong about the other. The owner merged them.
+
+### 9.2 What the Cloudflare Rust API can and cannot do
+
+Checked against `worker` 0.8.7 in the `cloudflare/workers-rs` source (2026-11-13):
+
+- `State::container()` returns a `Container` (`durable.rs:281`).
+- `Container` has `running`, `start`, `wait_for_exit`, `destroy`, `signal` and
+  `get_tcp_port` (`container.rs:13-41`).
+- `ContainerStartOptions` has `entrypoint`, `enable_internet` and `env`
+  (`container.rs:86-112`). It has no image field and no instance type.
+- The image comes from `wrangler.toml` `containers[].image`. So a deploy from Rust must
+  write the Worker configuration, not call a container "create" API.
+- A port fetch before the server listens fails with text that contains
+  `the container is not listening`.
+- The container architecture is `linux/amd64`.
+- There is no exit code and no log call through `Container`.
+
+Consequence: the container handle on Cloudflare is truthful about its limits. It reports
+`exec: true` only when the sandbox slave endpoint exists. It reports `logs: false`. It
+cannot fetch a port by itself, because the slave owns that path.
+
+### 9.3 Why one handle, not two
+
+The `Sandbox` is the unit that runs programs. A container is a possible substrate under it.
+Two unconnected handles would let a caller start a container with no sandbox record, or
+destroy the substrate under a live sandbox. So the two are joined:
+
+- `ContainerControl::start` creates a container and returns a handle. It creates no sandbox
+  record. A caller that only needs a container uses this.
+- `Sandbox::container()` and `SubstrateHandle::container()` return the container of a live
+  sandbox, or `None`. A sandbox caller never builds a second handle.
+- `ContainerHandle` methods that change state go through `ContainerOps`. On Cloudflare, the
+  DO is the single writer (invariant I12). `destroy` on the substrate handle and on the
+  sandbox handle reach the same container, and the second call is idempotent.
+
+So there is one container type and one set of capability rules. The sandbox is the owner
+when a sandbox exists; the standalone control is the path when it does not.
+
+### 9.4 Why both deploy paths stay
+
+The Rust deployer is the primary path because it is typed, testable and it records the
+plan. The `wrangler` path stays supported because:
+
+- The Cloudflare Worker configuration holds fields that a new API version can change. The
+  `wrangler` program follows the API.
+- An operator can deploy by hand when the Rust client is out of date or when a CI job has
+  no credentials.
+- The Cloudflare Sandbox product documents its own `wrangler.product.toml`. Feature 17
+  keeps that file as the manual adapter's view.
+
+Both adapters take the same `DeploymentPlan`, so a test proves parity: the plan that
+`FoundationCloudflareDeployer` applies and the `wrangler.toml` that
+`WranglerCloudflareDeployer` writes must carry the same bindings, migrations, container
+class, routes and secret names.
+
+### 9.5 Dead end: a second container service
+
+The first design gave the Cloudflare container handle its own HTTP service in the Worker.
+The DO already runs the control service that the sandbox slave talks to. A second service
+would add a second token, a second route and a second place to start a container. The
+feature uses the existing service with new methods instead (invariant I14).
 

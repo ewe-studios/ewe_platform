@@ -767,7 +767,7 @@ fn build_gemma2_model(
 
 /// A loaded model's read-only weights, shared by every generation.
 ///
-/// WHY (decision 06, spec 65 F1/T1): architectures manage KV state differently
+/// WHY (decision 06, spec 83 F1/T1): architectures manage KV state differently
 /// — Llama takes an EXTERNAL `Cache`, Gemma2 keeps its cache INTERNAL. That
 /// state used to live next to the weights inside one `Mutex`, so two
 /// generations on the same loaded model (two agent sessions sharing one model)
@@ -958,7 +958,7 @@ impl ChatTemplate {
 
 /// Candle model wrapper implementing the [`Model`] trait.
 ///
-/// WHY: one loaded model must serve many sessions at once (spec 65 F1) without
+/// WHY: one loaded model must serve many sessions at once (spec 83 F1) without
 /// a reload per session and without generations disturbing each other.
 ///
 /// WHAT: a cheap-to-clone handle. Clones share the loaded weights, tokenizer

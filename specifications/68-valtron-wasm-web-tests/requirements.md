@@ -26,7 +26,7 @@ has_features: false
 has_fundamentals: false
 builds_on: ""
 related_specs:
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
   - "specifications/completed/31-wasm-testbed"
   - "specifications/completed/30-valtron-js-eventloop-yield"
   - "specifications/completed/64-valtron-stream-task"
@@ -39,7 +39,7 @@ tasks:
 
 # Overview
 
-Spec 65's `00-foundation` made `foundation_core`/`foundation_ai` *compile* on
+Spec 83's `00-foundation` made `foundation_core`/`foundation_ai` *compile* on
 `wasm32-unknown-unknown`, and its feature 06 (`wasm-async-streaming`) fixed the
 T6 runtime deadlock by removing the `run_future`/`collect()` anti-pattern and
 making the future-stream bridge **park**. But every one of those fixes is
@@ -49,7 +49,7 @@ plus, at most, one miniflare smoke test of a single streaming path.
 **Nothing exercises valtron itself — the executor, the
 `Stream`/`StreamIterator`/`WakeableStream` machinery, and the parking bridge —
 at runtime on wasm or inside a browser.** That is the gap this spec closes, and
-it is a real one, because the behaviours spec 65 depends on are exactly the ones
+it is a real one, because the behaviours spec 83 depends on are exactly the ones
 that only manifest at runtime on the single-threaded wasm executor:
 
 - `into_future_stream` / `into_next_stream` must return `Poll::Pending` on
@@ -79,7 +79,7 @@ rather than creating a new crate.
   `depends_on_wake_signal_parks_then_resumes`), alongside the existing
   `bridge_park.rs` / `wakeable_stream.rs` / `wake_registry.rs`. ✅
 - **Tier B, wasm-bindgen backend under Deno** — `tests/valtron/wasm_js_yield_integration.rs`
-  runs green via `mise run test:wasm-bindgen:deno` (5 cases, incl. the spec 65
+  runs green via `mise run test:wasm-bindgen:deno` (5 cases, incl. the spec 83
   feature 06 T5 regression `depends_task_parks_until_wake_signal_fires`, which
   hangs without the fix). Getting there needed testbed fixes: the runner located
   wasm by guessing target-dir paths (cargo's build-dir layout moved them; it now
@@ -110,7 +110,7 @@ rather than creating a new crate.
 
 - Add **native** parking/wake tests to `foundation_core/tests/valtron/` that pin
   the parking bridge, `WakeableStream`/`WakeRegistry`, and the
-  `run_future` → `block_on_future` rename (overlapping spec 65 feature 06 T1).
+  `run_future` → `block_on_future` rename (overlapping spec 83 feature 06 T1).
 - Add the **same behaviours** to `foundation_core`'s wasm integration crate
   (`integration/wasm_tests`) as owned `#[wasm_test]`/`#[valtron_wasm_test]`
   cases, and run them **headless** (embedded Deno) and **in a browser**
@@ -141,7 +141,7 @@ rather than creating a new crate.
    auto-init (foundation_macros F52) — use it for any case that needs a pool;
    use plain `#[wasm_test]` for manual-poll cases that need no pool. Never call
    `initialize_pool` manually in the new cases.
-4. **The specific behaviours under test** (the spec-65 critical path):
+4. **The specific behaviours under test** (the spec-83 critical path):
    - `into_future_stream` / `into_next_stream` / `into_collect_future` /
      `into_ready_future` park (`Poll::Pending`) on
      `Wait`/`Pending`/`Init`/`Delayed` and resume on wake.
@@ -256,7 +256,7 @@ All in `backends/foundation_core/`, extended in place:
 - [x] **T1 — native parking/wake tests (`tests/valtron/`).** Extend the native
       tier with any parking-bridge and wake contract not yet pinned after the 06
       rename (`into_future_stream` parks / `into_pure_future_stream` stays raw,
-      `block_on_future` is documented native-only). Overlaps spec 65 feature 06
+      `block_on_future` is documented native-only). Overlaps spec 83 feature 06
       T1. Gate: `cargo test -p foundation_core` green.
 - [ ] **T2 — wasm/web cases (`integration/wasm_tests`).** Port the parking-bridge
       contract, the `WakeableStream`/`WakeRegistry` + `NotSupported` self-wake

@@ -205,7 +205,7 @@ chain internally). See `start.md`.
 
 # Requirements Conversation Summary
 
-## Phase 1 — Stream cleanup (was spec 65)
+## Phase 1 — Stream cleanup (was spec 65, now spec 83)
 
 - **Scope came from a cross-crate audit.** The user asked to find every
   `ConcurrentQueue<Stream<D, P>>` communicator with zero callers (or whose users

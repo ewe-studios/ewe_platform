@@ -172,7 +172,7 @@ The key ideas:
   boundary the edge notes need for a full state dump versus incremental changes.
 - **Limits:** `MaterializedState` is a plain in-memory map; the reactive query engine (TanStack DB)
   is an application dependency, not part of the stream protocol.
-- **Where it could apply:** Spec 65's agent-rpc state (a turn log plus a materialised instance
+- **Where it could apply:** Spec 83's agent-rpc state (a turn log plus a materialised instance
   state) and the "snapshot boundary" idea for any state feed we ship.
 
 ### 3.8 The storage contract is small and any backend fits
@@ -201,7 +201,7 @@ The key ideas:
 | Fork without copy | `foundation_core::valtron` | A prefix-chain combinator; soft-delete is backend bookkeeping. |
 | `410` = a refusal, never a gap | `foundation_log` | A trimmed segment is an error, not a skip. |
 | Immutable prefix + ETag/cache | `foundation_http`, `foundation_netio` | Catch-up responses are cacheable; live responses are not. |
-| State protocol (insert/update/delete + snapshot) | `foundation_db`, spec 65 feature 07 | Structured CRUD over the stream; the snapshot boundary. |
+| State protocol (insert/update/delete + snapshot) | `foundation_db`, spec 83 feature 07 | Structured CRUD over the stream; the snapshot boundary. |
 | Storage contract | `foundation_db` `BlobStore`/`QueryStore` | The `DurableStreamStore` trait; every tier implements it. |
 | Six HTTP verbs + headers | `foundation_http`, `foundation_connectrpc` | The wire surface that "spreads the capability around". |
 
@@ -217,4 +217,4 @@ The key ideas:
 - **TanStack DB / StreamDB as a dependency.** The reactive query engine is application glue. The
   stream + state protocol is the part we want.
 - **The Durable Proxy as a product.** Its lesson (a resumable read URL in front of a streaming
-  API) applies to spec 65's Cloudflare target, not as a separate service.
+  API) applies to spec 83's Cloudflare target, not as a separate service.

@@ -1,7 +1,7 @@
 # cf-cloud-provider
 
 `foundation_ai` on Cloudflare Workers. A chat page backed by an agent session
-that calls OpenRouter and streams each reply as it is generated (spec 65 T5).
+that calls OpenRouter and streams each reply as it is generated (spec 83 T5).
 
 - `GET /` — the chat page.
 - `POST /chat` — the prompt as the body; the reply as Server-Sent Events (SSE).
