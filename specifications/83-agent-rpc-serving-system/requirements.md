@@ -114,7 +114,7 @@ _The diagram shows the server, the one loaded model, the instances that share it
 | The native host and the deterministic simulation host | this specification | |
 | The Worker host, the Durable Object layout and the browser client | this specification | |
 | The Cloudflare container: control, `ContainerHandle` and deployment | spec 77 | this specification builds the agent-rpc Worker on it |
-| The sandbox and container handles, and the `Platform` entry in the `Ctx` | spec 77 section 6.0 | the kernel, the hosts and the user programs ask the `Ctx` for a handle. They never build one |
+| The sandbox and container handles, and the wrappers that carry them (`Platform`, `CloudflarePlatform`) | spec 77 section 6.0 | the hosts and the user programs take a wrapper and use its handles. They never build one, and `foundation_context` gets no change |
 | Key protection at rest | this specification (last feature) | |
 | The `Env` bundle and the `IdSource` | spec 84 | shared with the proxy |
 | The fetch transport for the Worker and the browser | spec 85 | shared with every wasm transport user |
@@ -163,7 +163,7 @@ The old spec 83 bundled the operator path with the server. The features moved as
 | 03 | [Agent RPC Core](./features/03-agent-rpc-core/feature.md) | `agent.proto`, model catalog, `InstanceRegistry` trait, transport-agnostic service and enrollment handlers | 80, 81, 84, 86, 87 | ⬜ Pending |
 | 04 | [Native Host and DST](./features/04-native-host-and-dst/feature.md) | Native host (TCP/TLS, local models, Turso) and the deterministic simulation harness; the proof of concept works | 80, 81, 03 | ⬜ Pending |
 | 05 | [Worker Host and Web Client](./features/05-worker-host-and-web-client/feature.md) | Workers, one Durable Object per instance, browser client, R2 history archive | 80, 85, 03 | ⬜ Pending |
-| 06 | [Cloudflare Host](./features/06-cloudflare/feature.md) | The agent-rpc Worker: end-to-end tests on Workers, the Workers AI path, and the native server in a Cloudflare container. Container control, deployment and the `Platform` entry come from spec 77 | 00, 01, 05, 77, 87 | ⬜ Pending |
+| 06 | [Cloudflare Host](./features/06-cloudflare/feature.md) | The agent-rpc Worker: end-to-end tests on Workers, the Workers AI path, and the native server in a Cloudflare container. Container control, deployment and the `CloudflarePlatform` wrapper come from spec 77 | 00, 01, 05, 77, 87 | ⬜ Pending |
 | 07 | [Pluggable Agent RPC: landing](./features/07-pluggable-agent-rpc/feature.md) | Task T0 only: bring PR #126 onto master. The design is in `agent-rpc-architecture.md` | 01 | ✅ Landed (#126 on master) |
 | 08 | [Key Protection at Rest](./features/08-key-protection-at-rest/feature.md) | Key store over `foundation_db`; private keys encrypted at rest (KEK sources, WebCrypto, remote KMS); passphrase key files; rotation by `kid` | 81, 04 | 📝 Todo (last) |
 

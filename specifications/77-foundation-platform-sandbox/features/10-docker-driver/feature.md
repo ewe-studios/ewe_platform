@@ -339,6 +339,27 @@ The Docker driver is one user of the Docker Engine. The platform also exposes a 
 handle (feature 00, section 6.13), so a caller can start a container, run commands in it,
 and stop it without a sandbox.
 
+This part adds `DockerPlatform` (requirements section 6.0). A Docker host builds one, and a
+caller takes `&DockerPlatform`:
+
+```rust
+// foundation_platform_sandbox/src/native/platform.rs
+pub struct DockerPlatform {
+    /// The common handles: the `Ctx`, the sandbox provider and the container control.
+    pub platform: Platform,
+    /// The Docker Engine connection that `DockerContainerControl` and `DockerContainerOps`
+    /// use. It holds the socket or the host URL, not `bollard` handles.
+    pub engine: Arc<dyn DockerApi>,
+}
+
+impl core::ops::Deref for DockerPlatform {
+    type Target = Platform;
+    fn deref(&self) -> &Platform {
+        &self.platform
+    }
+}
+```
+
 `DockerContainerControl` implements `ContainerControl`; `DockerContainerOps` implements
 `ContainerOps`:
 

@@ -558,7 +558,7 @@ feature uses the existing service with new methods instead (invariant I14).
 The owner reviewed six conflicts across the plan and gave one direction for each. This section
 records the two rules that the review set for this specification.
 
-### 10.1 Every outside caller uses a handle that the `Ctx` gives it
+### 10.1 Every outside caller uses a handle from a wrapper that holds the `Ctx`
 
 Owner direction: "Whether containers (docker, cloudflare,...etc), everything should be through
 a handle that whatever central wrapper over Ctx or exposed via Ctx.get provides and whatever is
@@ -574,14 +574,30 @@ So two levels have the same shape:
 | Sandbox | `SandboxProvider` | `SandboxHandle` |
 | Container | `ContainerControl` | `ContainerHandle` |
 
-The `Platform` typed entry carries `Arc<dyn SandboxProvider>` and
-`Option<Arc<dyn ContainerControl>>`. A boundary installs it; `agent-rpc` and `agent-slave` read
-it with the `CtxPlatform` extension trait and take the `Arc`. They do not start a sandbox, pick
-a driver or build a container control.
+The handles come in a wrapper value, not in a `Ctx` entry and not in a new `Ctx` method. The
+owner corrected the first design on 2026-11-15: "we wont go edit foundation_context, but rather
+wrap Ctx with whatever the cloudflare part needs that provides the other cloudflare specific
+handles", and "same for others".
 
-The reason is a boundary rule, not a style rule. Without the entry, every consumer repeats the
-host detection, the driver order and the container control construction, and each copy can pick
-a different driver for the same host. With the entry, the boundary makes that decision once.
+So `Platform` holds the `Ctx`, `Arc<dyn SandboxProvider>` and
+`Option<Arc<dyn ContainerControl>>`, and each part adds one wrapper over it:
+`NativePlatform` (Firecracker and libkrun), `DockerPlatform` and `CloudflarePlatform`. A
+boundary builds the wrapper; `agent-rpc` and `agent-slave` take a reference to it. They do not
+start a sandbox, pick a driver or build a container control.
+
+The reason is a boundary rule, not a style rule. Without a shared value, every consumer repeats
+the host detection, the driver order and the container control construction, and each copy can
+pick a different driver for the same host. With the wrapper, the boundary makes that decision
+once.
+
+Two dead ends, recorded so a later pass does not repeat them:
+
+- A `Platform` entry in the `Ctx` (`Ctx::insert::<Platform>(..)`) needs an extension trait for
+  the read side, because `foundation_context` must not depend on this crate. The trait works,
+  but it puts a look-up that can fail in the path of every handle use, and it invites a second
+  entry for each part. The wrapper is a value the compiler checks.
+- Putting the `Ctx` inside the entry makes a cycle: the entry lives in the `Ctx`. The wrapper
+  holds the `Ctx`, so the wrapper cannot be an entry.
 
 ### 10.2 One owner for each shared block
 

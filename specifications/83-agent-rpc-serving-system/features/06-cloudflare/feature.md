@@ -92,16 +92,18 @@ _Wait for spec 77 features 07 and 08 before this feature starts._
 | A command | `ContainerHandle::exec`, `signal`, `stop`, `destroy` | Control the native server lifecycle. |
 | A deploy | `CloudflareDeployer::deploy` with a `DeploymentPlan` | Deploy the agent-rpc Worker with its DO class, bindings, secrets and container. |
 | An image | `ContainerImage` in `DeploymentPlan` | Set the image tag of the native agent-rpc. |
-| The controls | `Platform` in the `Ctx` (spec 77 requirements section 6.0) | The DO and the Worker read `ctx.platform()`. They never build a container control or a sandbox provider of their own. |
+| The controls | `CloudflarePlatform` (spec 77 requirements section 6.0, feature 07 section 6.4.1) | The Worker builds the wrapper, and the DO and the Worker take `&CloudflarePlatform`. They never build a container control or a sandbox provider of their own. |
 
-The `Platform` entry is the rule of the owner direction of 2026-11-15: a caller gets a handle
-from the `Ctx` and uses it, and it does not matter whether the handle crosses an RPC boundary.
-So `AgentContainer::start` takes the `Ctx`, not a control:
+The wrapper is the rule of the owner direction of 2026-11-15: a caller gets a handle and uses
+it, and it does not matter whether the handle crosses a remote procedure call (RPC) boundary.
+`foundation_context` gets no change; the Cloudflare part wraps the `Ctx` with the handles that
+only it has. So `AgentContainer::start` takes `&CloudflarePlatform`, not a control and not the
+bare `Ctx`:
 
 ```rust
 impl AgentContainer {
-    /// Reads `Platform` from `ctx` and starts the native server container.
-    pub async fn start(ctx: &Ctx, image: String) -> SandboxResult<Self>;
+    /// Takes the Cloudflare wrapper of spec 77 and starts the native server container.
+    pub async fn start(cf: &CloudflarePlatform, image: String) -> SandboxResult<Self>;
 }
 ```
 
@@ -300,8 +302,8 @@ pub type WasmFetchTransport = foundation_connectrpc::wasm::FetchTransport<Global
 pub struct AgentContainer { pub handle: ContainerHandle }
 
 impl AgentContainer {
-    /// The control comes from `ctx.platform()` (spec 77 section 6.0).
-    pub async fn start(ctx: &Ctx, image: String) -> SandboxResult<Self>;
+    /// The control comes from `cf.control` (spec 77 section 6.0 and feature 07 section 6.4.1).
+    pub async fn start(cf: &CloudflarePlatform, image: String) -> SandboxResult<Self>;
     pub async fn call(&self, port: u16, request: PortRequest)
         -> SandboxResult<PortResponse>;
     pub async fn stop(&self, grace: Duration) -> SandboxResult<SubstrateExit>;

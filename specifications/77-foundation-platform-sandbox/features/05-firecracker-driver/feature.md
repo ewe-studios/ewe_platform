@@ -565,6 +565,32 @@ value; the boundary passes the real environment reader, tests pass a map.
 | `libkrun_path` | `EWE_LIBKRUN`; none |
 | `driver_order` | `EWE_SANDBOX_DRIVERS` (comma list); `firecracker, libkrun, docker` |
 
+### 6.10 The wrapper of this part
+
+`requirements.md` section 6.0 gives the rule: `foundation_context` gets no change, and each
+part wraps the `Ctx` with the handles it has. This part adds `NativePlatform`:
+
+```rust
+// foundation_platform_sandbox/src/native/platform.rs
+pub struct NativePlatform {
+    /// The common handles: the `Ctx`, the sandbox provider and the container control.
+    pub platform: Platform,
+    /// The local manager. It holds the drivers, the record store and the `ManagerConfig`.
+    pub manager: Arc<SandboxManager>,
+}
+
+impl core::ops::Deref for NativePlatform {
+    type Target = Platform;
+    fn deref(&self) -> &Platform {
+        &self.platform
+    }
+}
+```
+
+The native host (feature 06) builds one. `manager` and `platform.sandboxes` are the same
+`Arc<dyn SandboxProvider>`; a caller uses whichever it has. Feature 09 uses the same wrapper
+for libkrun, because the driver set decides the substrate and the wrapper does not.
+
 ## 7. Tests
 
 `backends/foundation_platform_sandbox/tests/`. Each scenario of section 5 is one test.

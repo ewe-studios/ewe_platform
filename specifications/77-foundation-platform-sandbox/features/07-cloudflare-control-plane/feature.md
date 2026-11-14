@@ -448,6 +448,35 @@ section 6.13, so a Docker adapter (feature 10) has the same shape.
 | DO-level | `ContainerApi` | inside the DO | The `worker::Container` methods: running, start, destroy, signal, wait, port fetch. It is private to the DO. |
 | Public | `ContainerControl` / `ContainerHandle` | native or Worker | The provider-neutral surface of feature 00. A caller uses it. |
 
+**The wrapper of this part.** Requirements section 6.0 states the rule: `foundation_context`
+gets no change, and each part wraps the `Ctx` with the handles it has. This part adds
+`CloudflarePlatform`, and the agent-rpc Worker (spec 83 feature 06) takes
+`&CloudflarePlatform`:
+
+```rust
+// foundation_platform_sandbox/src/cloudflare/platform.rs
+pub struct CloudflarePlatform {
+    /// The common handles: the `Ctx`, the sandbox provider and the container control.
+    pub platform: Platform,
+    /// This DO's container control. It implements `ContainerControl`.
+    pub control: Arc<CloudflareContainerControl>,
+    /// Deploys the Worker and its container (feature 08).
+    pub deployer: Arc<dyn CloudflareDeployer>,
+}
+
+impl core::ops::Deref for CloudflarePlatform {
+    type Target = Platform;
+    fn deref(&self) -> &Platform {
+        &self.platform
+    }
+}
+```
+
+The wrapper holds no `Fetcher`: spec 85's `Fetcher` is not `Send`, so the Worker entry keeps
+its `FetchTransport` and the wrapper stays `Send + Sync`. Inside the DO, `platform.sandboxes`
+is this DO's `SandboxManager` (one sandbox, `SandboxIdPolicy::Fixed`), and `containers` is the
+same control as `control`.
+
 **`DoContainerOps`** implements `ContainerOps` over `ContainerApi` and the slave:
 
 | Method | Work |

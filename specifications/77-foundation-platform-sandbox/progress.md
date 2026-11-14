@@ -83,9 +83,18 @@ ASD-STE100.
   | Mutual TLS was deferred to spec 65, which no longer owns it | One specification for mTLS | [Spec 87](../87-mutual-tls/requirements.md) owns the CA, the trust store, the verifiers and the mTLS providers. Question Q4 points there. Feature 06 section 6.5 names `ServerTlsConfig` and `MtlsAuth`. |
   | Two `Secret` types and two bearer parsers | One small specification in `foundation_auth` | [Spec 86](../86-auth-primitives/requirements.md) owns `Secret`, `constant_time_eq` and the bearer parser. Feature 00 section 6.10 defines none; feature 02 section 6.10 has `authorize` over spec 86's `Secret`. |
   | Two meanings of `IdSource`, and an `Env` design that did not match `Ctx` | One featureless specification | [Spec 84](../84-context-injection/requirements.md) owns the `Env` entry. Feature 02's enum is renamed `SandboxIdPolicy`, and the field is `id_policy`. |
-  | No central handle for containers and sandboxes | One control surface at two levels | Section 6.0 states the handle doctrine and the `Platform` typed entry. `SandboxControl` is renamed `SandboxProvider`; `Sandbox` is renamed `SandboxHandle`; feature 06's deployment adapter is renamed `SandboxDeploymentProvider` and `SandboxDeploymentHandle` (decision D16). |
+  | No central handle for containers and sandboxes | One control surface at two levels | Section 6.0 states the handle doctrine and the `Platform` wrapper. `foundation_context` gets no change; each part adds a wrapper of its own (`NativePlatform`, `DockerPlatform`, `CloudflarePlatform`). `SandboxControl` is renamed `SandboxProvider`; `Sandbox` is renamed `SandboxHandle`; feature 06's deployment adapter is renamed `SandboxDeploymentProvider` and `SandboxDeploymentHandle` (decision D16). |
 
   `related_specs` now names spec 84, 85, 86 and 87.
+
+- 2026-11-15 (second note): the owner rejected a `Platform` entry in the `Ctx` and a `Ctx`
+  method. "We wont go edit foundation_context, but rather wrap Ctx with whatever the cloudflare
+  part needs that provides the other cloudflare specific handles", and "same for others". So
+  section 6.0 gives a wrapper value instead: `Platform` holds the `Ctx` and the two controls,
+  and each part adds one wrapper (`NativePlatform` in features 05 and 09, `DockerPlatform` in
+  feature 10, `CloudflarePlatform` in features 07 and 08). Spec 83 feature 06 takes
+  `&CloudflarePlatform`. Feature 09 reuses `NativePlatform`: a libkrun host registers a different
+  driver in the same manager, so the wrapper names no driver.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
