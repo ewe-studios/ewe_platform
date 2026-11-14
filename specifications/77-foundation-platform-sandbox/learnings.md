@@ -590,8 +590,11 @@ to it. They do not start a sandbox, pick a driver or build a container control.
 The owner added a third note: "just wrap the js with a SendWrapper to make it look Send, wasm is
 non-send anyway". So `CloudflarePlatform` carries `Option<SendWrapper<Rc<dyn Fetcher>>>`, and it
 uses `foundation_compact::SendWrapper` rather than a new dependency. That type asserts `Send`
-and does not check the thread, which is sound because single-threaded wasm has one thread. A
-build that enables the wasm `atomics` target feature has no `Send` impl, so the spec forbids it.
+and `Sync` and does not check the thread, which is sound because single-threaded wasm has one
+thread. `Platform` needs both bounds, so `Sync` is not optional here. A build that enables the
+wasm `atomics` target feature has neither impl, so the spec forbids it. On a native target the
+wrapper is transparent, so `Rc<dyn Fetcher>` makes the struct `!Send`; this is one more reason
+for the wasm-only module.
 
 The reason is a boundary rule, not a style rule. Without a shared value, every consumer repeats
 the host detection, the driver order and the container control construction, and each copy can

@@ -394,9 +394,10 @@ pub struct CloudflarePlatform {
     pub containers: Option<Arc<dyn ContainerControl>>,
     /// The Cloudflare container control (feature 07). It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// The `fetch` of this runtime (spec 85), when the host has one. A JS value is not `Send`
-    /// and wasm has one thread, so `foundation_compact::SendWrapper` carries it. The build must
-    /// not enable the wasm `atomics` feature, because `SendWrapper` has no `Send` impl then.
+    /// The `fetch` of this runtime (spec 85), when the host has one. A JS value is neither
+    /// `Send` nor `Sync` and wasm has one thread, so `foundation_compact::SendWrapper` carries
+    /// it. The build must not enable the wasm `atomics` feature, because `SendWrapper` has no
+    /// `Send` or `Sync` impl then.
     pub fetcher: Option<foundation_compact::SendWrapper<Rc<dyn Fetcher>>>,
 }
 ```
@@ -404,8 +405,12 @@ pub struct CloudflarePlatform {
 `Ctx` is `Arc`-backed and `Clone`, so a handle clones the `ctx` field and reads the clock, the
 entropy and the `Env` entry (spec 84) through the same `Ctx` as the host.
 
-`foundation_compact::SendWrapper` asserts `Send` and does not check the thread. That is sound on
-single-threaded wasm, where no other thread exists to reach the value.
+`foundation_compact::SendWrapper` asserts both `Send` and `Sync`, and it does not check the
+thread. That is sound on single-threaded wasm, where no other thread exists to reach the value.
+`Platform` requires `Send + Sync`, so the `Sync` half matters as much as the `Send` half. On a
+native target the wrapper is transparent and the bounds come from the inner type, so
+`Rc<dyn Fetcher>` makes the struct `!Send` there. This is one more reason why
+`CloudflarePlatform` exists only on wasm.
 
 `CloudflarePlatform` exists only on wasm, because `cloudflare/` does. Cloudflare deployment is
 not a handle interaction, so it needs no wrapper: the deploy host builds a `DeploymentPlan` and

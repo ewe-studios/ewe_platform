@@ -464,9 +464,10 @@ pub struct CloudflarePlatform {
     pub containers: Option<Arc<dyn ContainerControl>>,
     /// This DO's container control. It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// The `fetch` of the DO stub or the Worker (spec 85). A JS value is not `Send` and wasm
-    /// has one thread, so `foundation_compact::SendWrapper` carries it. The build must not
-    /// enable the wasm `atomics` feature, because `SendWrapper` has no `Send` impl then.
+    /// The `fetch` of the DO stub or the Worker (spec 85). A JS value is neither `Send` nor
+    /// `Sync` and wasm has one thread, so `foundation_compact::SendWrapper` carries it: that
+    /// type asserts both bounds. The build must not enable the wasm `atomics` feature, because
+    /// the assertions are absent then.
     pub fetcher: Option<foundation_compact::SendWrapper<Rc<dyn Fetcher>>>,
 }
 

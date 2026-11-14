@@ -60,7 +60,7 @@ STE standard ASD-STE100.
 | body pump | The task that copies chunks from a source stream to a sink stream with a bound. |
 | capability | A property that a transport declares, for example request streaming. A call that needs an absent capability is refused before it is sent. |
 | Durable Object stub | The handle that a Worker uses to send a request to one DO. |
-| `SendWrapper` | A wrapper that makes a single-threaded value look `Send`. It is sound on wasm, which has one thread. |
+| `SendWrapper` | The wrapper of `foundation_compact` that makes a single-threaded value look `Send` and `Sync`. It is sound on wasm, which has one thread, and it does not check the thread at run time. |
 
 ## 1. Purpose
 
@@ -163,8 +163,10 @@ pub trait Fetcher: 'static {
 }
 ```
 
-`Fetcher` is not `Send`: a JS value cannot cross a thread, and wasm has one thread. The
-transport wraps it in `SendWrapper` and never moves it off the thread.
+`Fetcher` is neither `Send` nor `Sync`: a JS value cannot cross a thread, and wasm has one
+thread. The transport wraps it in `foundation_compact::SendWrapper`, which asserts both bounds
+and does not check the thread at run time. A build that enables the wasm `atomics` target
+feature has neither assertion, so this crate does not support that build.
 
 ### 4.2 `FetchTransport`
 
