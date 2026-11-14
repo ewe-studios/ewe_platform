@@ -2,9 +2,9 @@
 
 _Renamed from spec 65 to spec 83 on 2026-11-14, after specs 80 and 81 became its prerequisites._
 
-_Last updated: 2026-11-14 (split into specs 78 to 82; Cloudflare container control and
-deployment moved to spec 77; this spec is now agent RPC only). Read this first, then
-`LEARNINGS.md` (the handoff guide at the top) before touching code._
+_Last updated: 2026-11-15 (the fetch transport moved to spec 85; the container control and the
+deployment stay in spec 77; feature 06 reads the `Platform` entry from the `Ctx`). Read this
+first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 
 ## Status at a glance
 
@@ -15,8 +15,8 @@ deployment moved to spec 77; this spec is now agent RPC only). Read this first, 
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ⏳ 0/4, design complete | — |
 | 04 — native host and DST | ⏳ 0/2, design complete | — |
-| 05 — Worker host and web client | ⏳ 0/5, design complete | — |
-| 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77) | — |
+| 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete | — |
+| 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; reads `Platform` from the `Ctx`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
 | 08 — key protection at rest | 📝 0/6, todo (last) | — |
 
