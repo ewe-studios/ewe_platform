@@ -61,7 +61,7 @@ The sidecar proves its identity **only on its link to the proxy registration aut
 link can change where the proxy sends client traffic, so the proxy must know that the caller is
 a sidecar that the operator trusts. The sidecar shows an enrollment token one time and gets a
 client certificate; then it uses mTLS on every call. On the same machine as the proxy, it can use
-a Unix socket with file permissions instead. Feature 03, section 5, gives the full design. The
+a Unix socket with file permissions instead. Feature 00, section 5.5, gives the full design. The
 sidecar has no other credential and checks no other caller.
 
 ```mermaid

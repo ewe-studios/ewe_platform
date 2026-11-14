@@ -57,7 +57,7 @@ advertises that to clients as a base64 (and renderable QR) payload.
 
 It knows nothing of the manifest, the registrar, or the proxy. The proxy merely
 forwards to it (spec 63); the registrar merely tells the proxy it exists
-(spec 65 F3).
+(spec 82 feature 00).
 
 ## Language Stack
 
@@ -412,8 +412,9 @@ cargo test -p foundation_agent_rpc --test rpc_e2e_tests
 
 ## Changes made by later features
 
-Features 07 to 14 ([agent-rpc-architecture.md](../../agent-rpc-architecture.md) section 7) change these parts. The
-code on branch `65-f01-agent-rpc` still has the feature 01 form until the features in specs 80 and 81 and features 03 to 05 here are built.
+Specs 80 and 81, and features 03 to 05 here ([agent-rpc-architecture.md](../../agent-rpc-architecture.md)
+section 7), change these parts. The code on branch `65-f01-agent-rpc` still has the feature 01
+form until those changes land.
 
 | Here | After the later features |
 |---|---|

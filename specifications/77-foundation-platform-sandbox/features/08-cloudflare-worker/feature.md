@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP-B"
 depends_on: ["06-programs-rpc-provider", "07-cloudflare-control-plane"]
-crates: ["infrastructure/sandbox_worker", "foundation_platform_sandbox", "foundation_deployment_platform"]
+crates: ["sandbox_worker", "foundation_platform_sandbox", "foundation_deployment_platform"]
 ---
 
 # Feature 08: The Cloudflare Worker and the end-to-end path (MVP-B)

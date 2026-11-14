@@ -394,7 +394,8 @@ graph LR
   F10 --> F11[11 nested sandboxes]
   F10 -.-> F16[16 Docker Sandboxes product<br/>draft, not scheduled]
   MB --> F17[17 Cloudflare Sandbox product]
-  MB --> F12[12 images] --> F13[13 container source] --> F14[14 Sandboxfile] --> F15[15 registry pull]
+  F09 --> F12[12 images] --> F13[13 container source] --> F14[14 Sandboxfile] --> F15[15 registry pull]
+  F10 --> F13
 ```
 
 _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other substrates and the image tooling come after it and reuse its shape._
@@ -529,4 +530,4 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 |---|---|---|
 | Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
 | Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. Mutual TLS as in spec 65 comes with the agent-rpc merge. | Accept for the MVP. |
-| Q5 | The old spec `start.md` files are not in spec 76 or here. | Follow spec 76: `requirements.md`, `progress.md`, `learnings.md`, one `feature.md` for each feature. |
+| Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 65 does. |

@@ -48,6 +48,12 @@ ASD-STE100.
 - 2026-11-12: the owner made feature 16 (Docker Sandboxes product) a draft that is not a
   must have, because the product is not ready (decision D14). It is out of the lane order.
 
+- 2026-11-14: the split-review fixes. The product examples use the control service path
+  `ewe.sandbox.control.v1`. Features 12, 13 and 15 match the feature graph. Feature 08 names
+  the crate `sandbox_worker`. Features 07 and 17 use `worker` 0.8.7, and learnings section 4.2
+  records the re-check. The spec has a `start.md` at its root and in every feature directory;
+  Q5 is closed.
+
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
 ## In progress
@@ -116,8 +122,8 @@ sections; the other features use the nine numbered sections of the skill. The co
 the same. A renumber is a mechanical edit for a later pass.
 
 Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
-`foundation_deployment_docker`), Q4 (authentication for the MVP), Q5 (no `start.md`
-files). Q1 and Q3 are closed (decisions D10 and D11).
+`foundation_deployment_docker`) and Q4 (authentication for the MVP) remain. Q1 and Q3 are
+closed (decisions D10 and D11). Q5 is closed: the 2026-11-14 pass added the `start.md` files.
 
 ## Findings to file as GitHub issues
 

@@ -106,7 +106,7 @@ Inverse pairs:           none
 Idempotent verbs:        the ones of SandboxService
 Ordering pairs:          none
 Monotone values:         none
-Freeze points:           the path /ewe.sandbox.v1.SandboxService/<Method>; the content types
+Freeze points:           the path /ewe.sandbox.control.v1.SandboxService/<Method>; the content types
 Links to other entities: the bearer token rule of feature 02 (check_bearer)
 ```
 
@@ -173,13 +173,13 @@ Feature: Cloudflare Sandbox product support
 
   Scenario: A plain HTTP caller creates a sandbox and runs a command
     Given the Worker runs in wrangler dev
-    When a caller sends POST /ewe.sandbox.v1.SandboxService/Create with content type application/json and a bearer token
+    When a caller sends POST /ewe.sandbox.control.v1.SandboxService/Create with content type application/json and a bearer token
     Then the answer is 200 with a JSON body that has the sandbox id
-    When the caller sends POST /ewe.sandbox.v1.SandboxService/Exec with content type application/connect+json
+    When the caller sends POST /ewe.sandbox.control.v1.SandboxService/Exec with content type application/connect+json
     Then the answer is a stream of enveloped JSON messages that ends with an exit event with code 0
 
   Scenario: A JSON call with no token is refused
-    When a caller sends POST /ewe.sandbox.v1.SandboxService/List with no Authorization header
+    When a caller sends POST /ewe.sandbox.control.v1.SandboxService/List with no Authorization header
     Then the answer is the HTTP status 401 and a JSON error body with the code "unauthenticated" (the Connect mapping of the check_bearer error of feature 02)
 ```
 
@@ -196,7 +196,7 @@ Source: `cloudflare/sandbox-sdk` at `61cac81` (`learnings.md`, section 4.4).
 | `sandbox-shim` is one static program for `linux/amd64`. A donor image holds it; an application image copies it to `/usr/local/bin/sandbox-shim`. The shim is not a daemon: each file call starts one short process with `exec()`. | `docs/architecture.md`, `images/sandbox-tools/Dockerfile` |
 | An example image: `FROM docker.io/cloudflare/sandbox:1.0.3 AS sandbox-tools`, a pinned `ubuntu:24.04`, `COPY --from=sandbox-tools /usr/local/bin/sandbox-shim /usr/local/bin/sandbox-shim`, `CMD ["sleep", "infinity"]`. | `examples/artifact-workspace/Dockerfile` |
 | The application starts the container with `container.start({ image, enableInternet })` and runs commands with `container.exec(argv, options)`. | `README.md` |
-| The Rust `worker` crate (0.8.5) has `start` with `entrypoint`, `enable_internet` and `env`, and `get_tcp_port`. It has no `exec`, no snapshot call and no outbound interception. | `learnings.md`, section 4.2 |
+| The Rust `worker` crate (0.8.7) has `start` with `entrypoint`, `enable_internet` and `env`, and `get_tcp_port`. It has no `exec`, no snapshot call and no outbound interception. | `learnings.md`, section 4.2 |
 
 ### 6.2 The images
 
@@ -251,7 +251,7 @@ the document shows them with `curl`:
 
 | Call kind | Request | Answer |
 |---|---|---|
-| Unary (`Create`, `Get`, `List`, `Stop`, `ExecInput`, the file calls except `FileRead`) | `POST <base>/ewe.sandbox.v1.SandboxService/<Method>`; `Content-Type: application/json`; `Authorization: Bearer <token>`; the body is the request message as JSON | `200` and the answer message as JSON; or an HTTP error status and `{"code": "...", "message": "..."}` |
+| Unary (`Create`, `Get`, `List`, `Stop`, `ExecInput`, the file calls except `FileRead`) | `POST <base>/ewe.sandbox.control.v1.SandboxService/<Method>`; `Content-Type: application/json`; `Authorization: Bearer <token>`; the body is the request message as JSON | `200` and the answer message as JSON; or an HTTP error status and `{"code": "...", "message": "..."}` |
 | Server stream (`Exec`, `FileRead`, `CreateWithProgress`) | the same path; `Content-Type: application/connect+json`; the body is one envelope: 1 byte of flags (0), 4 bytes of length (big-endian), the JSON message | `200`; a stream of envelopes; the last one has the flag `0x02` and holds `{}` or `{"error": {..}}` |
 
 The document has one complete example for each row, with the real field names of

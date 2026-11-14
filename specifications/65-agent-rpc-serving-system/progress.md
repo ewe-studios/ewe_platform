@@ -43,6 +43,10 @@ The 2026-11-14 split moved features and their history:
 
 The design files moved with their features. Spec 78 owns the manifest contract.
 
+The same pass fixed stale references that the renumber left: feature 06 now names feature 05
+for the Worker host, feature 05 names feature 06 for Cloudflare deployment, and feature 01
+names spec 82 feature 00 for the registrar.
+
 ## Feature 01 — agent RPC model server
 
 | Task | Status | Commit |

@@ -303,9 +303,14 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
 - Since version 1.0, `@cloudflare/sandbox` has only file helpers that work through
   `exec()` of a static helper program. The DO class is application code.
 
-### 4.2 The Rust `worker` crate (version 0.8.5, in this workspace's `Cargo.lock`)
+### 4.2 The Rust `worker` crate (0.8.5 in the lock; 0.8.7 is the target)
 
-- `State::container() -> Option<Container>` (`src/durable.rs` line 258).
+Observed on 0.8.5. Re-checked against `worker-0.8.7` on 2026-11-14. `container.rs` and
+`fetcher.rs` have the same lines in both versions. `State::container()` moved from line 258 to
+line 281.
+
+- `State::container() -> Option<Container>` (`src/durable.rs` line 281 in 0.8.7; line 258 in
+  0.8.5).
 - `Container`: `running()`, `start(Option<ContainerStartupOptions>)`, `wait_for_exit()`,
   `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`
   (`src/container.rs` lines 13 to 41).

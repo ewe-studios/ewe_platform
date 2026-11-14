@@ -280,11 +280,11 @@ Feature: Cloudflare control plane
 
 | Fact | Source |
 |---|---|
-| The workspace uses `worker` 0.8.5 (Rust Workers). | `Cargo.lock` |
-| `State::container() -> Option<Container>`. | `worker-0.8.5/src/durable.rs`, line 258 |
-| `Container::running() -> bool`, `start(Option<ContainerStartupOptions>) -> Result<()>`, `wait_for_exit()`, `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`. | `worker-0.8.5/src/container.rs`, lines 13 to 41 |
+| The workspace targets `worker` 0.8.7 (Rust Workers); the lock still resolves 0.8.5 until the next update. | `Cargo.lock`; spec 65 feature 04 |
+| `State::container() -> Option<Container>`. | `worker-0.8.7/src/durable.rs`, line 281 |
+| `Container::running() -> bool`, `start(Option<ContainerStartupOptions>) -> Result<()>`, `wait_for_exit()`, `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`. | `worker-0.8.7/src/container.rs`, lines 13 to 41 |
 | `ContainerStartupOptions` has `entrypoint`, `enable_internet`, `env`. It has no image and no instance type. | the same file, lines 86 to 112 |
-| `Fetcher::fetch` and `fetch_request` send an HTTP request and give a response with a streamed body. | `worker-0.8.5/src/fetcher.rs`, lines 23 and 48 |
+| `Fetcher::fetch` and `fetch_request` send an HTTP request and give a response with a streamed body. | `worker-0.8.7/src/fetcher.rs`, lines 23 and 48 |
 | A port `fetch` before a process listens fails with an error whose text contains `the container is not listening`. | `cloudflare/containers`, `src/lib/container.ts`, line 27 |
 | The image of a container class is set in the Worker configuration (`containers[].image`), not at start. | `cloudflare/containers`, `examples/core-tests/wrangler.jsonc` |
 | The repository serves HTTP in a Worker with `foundation_http::wasm` (`CfHttpAppSingleton`, `serve_cf::CfServe`, `dispatch`), and has a Rust DO (`foundation_keychain/src/server/signalr_do.rs`). | those files; `examples/cf-agent-loop/src/lib.rs` |

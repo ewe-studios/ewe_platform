@@ -18,7 +18,7 @@ tasks:
 # Cloudflare Deployment
 
 _Status note (2026-10-26): pending. New text is in ASD-STE100 Simplified Technical English (STE);
-older paragraphs keep their wording. Code and identifiers stay as they are. **Feature 14 now
+older paragraphs keep their wording. Code and identifiers stay as they are. **Feature 05 now
 builds the Worker side of this feature**; section "Relation to feature 05" says which tasks
 remain here._
 
@@ -34,7 +34,7 @@ owner of the STE standard ASD-STE100.
 | Term | Meaning |
 |---|---|
 | Worker | A Cloudflare Worker: a wasm program that answers HTTP `fetch` events. One thread, about 128 MB of memory. |
-| Thin orchestrator | The agent layer on a Worker, with remote models only. Feature 07 calls it the Worker host. |
+| Thin orchestrator | The agent layer on a Worker, with remote models only. Feature 05 calls it the Worker host. |
 | Sandboxes, Containers | Cloudflare products that run a normal Linux container. The full native agent-rpc can run there. |
 | Workers AI | Cloudflare's hosted model service. |
 | F24 fetch transport | The `foundation_connectrpc` client transport over `fetch`. Feature 07 names it `FetchTransport`. |
@@ -334,13 +334,13 @@ cargo test -p foundation_deployment_cloudflare --test containers_tests
 
 ## Relation to feature 05
 
-Feature 07 designs the Worker host in full ([worker-and-web.md](../05-worker-host-and-web-client/worker-and-web.md)
+Feature 05 designs the Worker host in full ([worker-and-web.md](../05-worker-host-and-web-client/worker-and-web.md)
 section 5). To keep one design, the tasks map like this:
 
 | Task here | State | Where it is now |
 |---|---|---|
-| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 14 T21: `host/worker/*` with `FetchServe` and one Durable Object per instance. |
-| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 14 T19: `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
+| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 05 T21: `host/worker/*` with `FetchServe` and one Durable Object per instance. |
+| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 05 T19: `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
 | T3: Sandboxes and Containers in `foundation_deployment_cloudflare` | **Stays here** | This feature. |
 | T4: end to end on Workers with Workers AI | **Stays here**, built on feature 05 T21 | The `cf-agent-rpc` example of feature 05 is its base. |
 | T5: end to end, Worker to a remote native agent-rpc | **Stays here**, built on feature 05 T19 | |
