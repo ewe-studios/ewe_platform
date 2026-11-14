@@ -67,7 +67,7 @@ the drivers (05, 07, 09, 10); `foundation_connectrpc` (the RPC engine, used as i
 | `SandboxId`, `ExecId`, `UploadId`, `DriverId` | Identifiers. | `shared::ids` |
 | `Capabilities`, `HostReport` | What a driver can do here. | each driver (defined here) |
 | `SandboxDriver`, `SubstrateHandle`, `SlaveEndpoint` | The driver interface. | defined here; implemented in 05, 07, 09, 10, 11, 16 |
-| `SandboxControl` | The control-plane interface. | defined here; implemented in 02 and 06 |
+| `SandboxProvider` | The control-plane interface. | defined here; implemented in 02 and 06 |
 | `SandboxHost`, `SlaveHost` | The side-effect bundles. | defined here; built only by boundaries |
 
 | Verb | Kind | Trigger | Effect |
@@ -252,7 +252,7 @@ src/
   shared/rpc/mod.rs     the two #[service] traits
   shared/rpc/messages.rs  every request and response type
   shared/driver.rs      SandboxDriver, Substrate, SubstrateHandle, SlaveEndpoint, Capabilities, HostReport, CreateProgress
-  shared/control.rs     SandboxControl, Sandbox (the handle type), SandboxInfo, SandboxState, ExitReport
+  shared/control.rs     SandboxProvider, SandboxHandle (the handle type), SandboxInfo, SandboxState, ExitReport
   shared/container.rs    ContainerControl, ContainerHandle, ContainerSpec, ContainerInfo, port types
   shared/host.rs        SandboxHost, SlaveHost and their traits
   native/mod.rs         #[cfg(not(target_family = "wasm"))]
@@ -672,10 +672,8 @@ pub type ExecEventStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<Exec
 pub type FileChunkStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<FileChunk>> + Send>>;
 /// `impl ByteStream` in a signature means: any `futures::Stream<Item = SandboxResult<Vec<u8>>> + Send + 'static`.
 
-/// A secret text. `Debug` and `Display` print "<redacted>". No workspace crate has such a
-/// type that this crate can use without a new dependency, so it is defined here.
-pub struct Secret(String);
-impl Secret { pub fn new(value: String) -> Self; pub fn expose(&self) -> &str; }
+// The redacted secret is spec 86's `foundation_auth::Secret`. Do not define one here.
+// Use `Secret::new`, `Secret::expose`, `Secret::ct_eq` and `extract_bearer_token`.
 
 impl SandboxSpec { pub fn new(rootfs: RootFs) -> Self; }                  // every other field has its default
 impl Command { pub fn new<I, S>(argv: I) -> Self where I: IntoIterator<Item = S>, S: Into<String>; }
@@ -734,9 +732,9 @@ definition and its tests.
 `DriverId::Nested` and the enum variants above are added by their feature, with a version
 bump of the crate.
 
-### 6.12 `SandboxControl` and `Sandbox`
+### 6.12 `SandboxProvider` and `SandboxHandle`
 
-Requirements section 6 has the trait. `Sandbox` is a struct that holds an
+Requirements section 6 has the trait. `SandboxHandle` is a struct that holds an
 `Arc<dyn SandboxOps>`:
 
 ```rust
@@ -755,8 +753,8 @@ pub trait SandboxOps: Send + Sync + 'static {
 }
 ```
 
-`ExecHandle` and `FileStream` get their bodies in feature 02. `Sandbox::run` is a provided
-function on top of `exec` (feature 02). `Sandbox::container()` returns
+`ExecHandle` and `FileStream` get their bodies in feature 02. `SandboxHandle::run` is a provided
+function on top of `exec` (feature 02). `SandboxHandle::container()` returns
 `self.ops.container()`. It is the bridge from the command surface to the container surface.
 
 ### 6.13 Container control
@@ -778,7 +776,7 @@ pub trait ContainerControl: Send + Sync + 'static {
     fn list(&self, ctx: Ctx) -> BoxFuture<'_, SandboxResult<Vec<ContainerInfo>>>;
 }
 
-/// A cheap handle to one container. `Sandbox` has the same shape for commands and files.
+/// A cheap handle to one container. `SandboxHandle` has the same shape for commands and files.
 #[derive(Clone)]
 pub struct ContainerHandle { id: ContainerId, ops: Arc<dyn ContainerOps> }
 pub trait ContainerOps: Send + Sync + 'static {
@@ -869,7 +867,7 @@ Rules:
 - `ContainerCapabilities` says what the runtime can do. A caller checks it before it calls
   a method that may be absent. An absent method returns
   `UnsupportedCapability { capability }`.
-- `Sandbox::container()` returns the handle of a container-backed sandbox, or `None` for a
+- `SandboxHandle::container()` returns the handle of a container-backed sandbox, or `None` for a
   microVM. `SubstrateHandle::container()` has a default that returns `None`.
 - `SandboxManager::containers()` returns the `ContainerControl` of its first driver that
   has one, so a local caller starts a container with no sandbox. A remote caller builds a

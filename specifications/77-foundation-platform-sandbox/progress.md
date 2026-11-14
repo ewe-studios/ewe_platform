@@ -33,7 +33,7 @@ ASD-STE100.
   has a drop policy, so a restart does not kill what `restore` must find; one boot
   deadline covers the launch, the readiness wait and `Prepare`; file paths resolve inside
   the program root with `openat2`; the slave is a child subreaper when it is not PID 1;
-  `ControlService`, `SandboxRpcClient` and `check_bearer` moved to feature 02, so feature
+  `ControlService`, `SandboxRpcClient` and the bearer check moved to feature 02, so feature
   07 does not need feature 06.
 - 2026-11-11: the skill `story-driven-specification` in the `.agents` repository (on its
   `master`), and `specifications-management` version 5.0, which makes that layout
@@ -61,7 +61,7 @@ ASD-STE100.
     `ContainerOps`, `ContainerSpec`, `ContainerInfo`, `ContainerStatus`,
     `ContainerResources`, `ContainerCapabilities`, `ContainerId`, `PortRequest`,
     `PortResponse` and `PortError` (requirements section 6.6, feature 00 section 6.13).
-    `Sandbox::container()` and `SubstrateHandle::container()` return the handle of the
+    `SandboxHandle::container()` and `SubstrateHandle::container()` return the handle of the
     sandbox's own container.
   - Feature 07 adds `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient` and
     the internal `ContainerService` (section 6.4.1).
@@ -73,6 +73,19 @@ ASD-STE100.
   - Spec 83 feature 06 now consumes these surfaces. It is renamed "Cloudflare Host". It
     adds no file to `foundation_deployment_cloudflare` or `foundation_platform_sandbox`.
   - Q4 is closed.
+
+- 2026-11-15: the six-conflict review. The owner sent six defects with one direction each.
+  Five of them change this spec:
+
+  | Defect | Direction | What changed here |
+  |---|---|---|
+  | The wasm fetch pump was planned in three places | One owner, delivered first | [Spec 85](../85-wasm-fetch-transport/requirements.md) owns `FetchTransport`, `FetchServe` and `DoStubTransport`. Feature 07 section 6.5 and feature 08 section 6.4 use it and write no pump. |
+  | Mutual TLS was deferred to spec 65, which no longer owns it | One specification for mTLS | [Spec 87](../87-mutual-tls/requirements.md) owns the CA, the trust store, the verifiers and the mTLS providers. Question Q4 points there. Feature 06 section 6.5 names `ServerTlsConfig` and `MtlsAuth`. |
+  | Two `Secret` types and two bearer parsers | One small specification in `foundation_auth` | [Spec 86](../86-auth-primitives/requirements.md) owns `Secret`, `constant_time_eq` and the bearer parser. Feature 00 section 6.10 defines none; feature 02 section 6.10 has `authorize` over spec 86's `Secret`. |
+  | Two meanings of `IdSource`, and an `Env` design that did not match `Ctx` | One featureless specification | [Spec 84](../84-context-injection/requirements.md) owns the `Env` entry. Feature 02's enum is renamed `SandboxIdPolicy`, and the field is `id_policy`. |
+  | No central handle for containers and sandboxes | One control surface at two levels | Section 6.0 states the handle doctrine and the `Platform` typed entry. `SandboxControl` is renamed `SandboxProvider`; `Sandbox` is renamed `SandboxHandle`; feature 06's deployment adapter is renamed `SandboxDeploymentProvider` and `SandboxDeploymentHandle` (decision D16). |
+
+  `related_specs` now names spec 84, 85, 86 and 87.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
@@ -143,8 +156,8 @@ the same. A renumber is a mechanical edit for a later pass.
 
 Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
 `foundation_deployment_docker`) remains. Q1 and Q3 are closed (decisions D10 and D11). Q5 is
-closed: the 2026-11-14 pass added the `start.md` files. Q4 is closed by decision D15: a signed
-secret or Cloudflare's own mTLS, through the spec 81 `ClientAuth` providers.
+closed: the 2026-11-14 pass added the `start.md` files. Q4 is closed by decisions D15 and D17: a signed
+secret or Cloudflare's own mTLS, through the `Secret` of spec 86 and the `CfMtlsAuth` of spec 87.
 
 ## Findings to file as GitHub issues
 

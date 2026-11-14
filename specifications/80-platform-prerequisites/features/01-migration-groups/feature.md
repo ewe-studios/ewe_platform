@@ -53,4 +53,4 @@ The tests of [migrations.md](./migrations.md) section 6 pass, including the layo
 
 ## 5. Pull requests
 
-One PR (part of PR group C). It has no dependency on feature 00 or feature 01 in this spec and can start at once.
+One PR (part of PR group C). It depends on no other feature in this spec and can start at once.

@@ -20,6 +20,10 @@ related_specs:
   - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/completed/54-foundation-deployment-docker"
   - "specifications/76-shared-context"
+  - "specifications/84-context-injection"
+  - "specifications/85-wasm-fetch-transport"
+  - "specifications/86-auth-primitives"
+  - "specifications/87-mutual-tls"
 features:
   completed: 0
   uncompleted: 18
@@ -123,7 +127,7 @@ _Caption: callers talk to one control plane; the control plane starts a substrat
   sidecar in a container. One implementation of its behaviour.
 - **A driver** starts and stops one kind of substrate and says how to reach the slave in
   it. Drivers are the only substrate-specific code in the control plane.
-- **A caller** uses the control plane as a library (`SandboxControl` trait on
+- **A caller** uses the control plane as a library (`SandboxProvider` trait on
   `SandboxManager`), or over RPC (`SandboxService`, with `SandboxRpcClient` that
   implements the same trait). agent-rpc can use either.
 
@@ -172,7 +176,7 @@ Where the control plane runs is a different question from which system it drives
 | Path | Kind | Content |
 |---|---|---|
 | `backends/foundation_platform_sandbox` | library | **All logic.** |
-| `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxControl`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system. |
+| `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxProvider`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system. |
 | `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP. |
 | `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The Cloudflare container driver, the Cloudflare container control, the `Fetcher` RPC transport, the DO storage registry, the DO request handler. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
@@ -279,20 +283,75 @@ All functions that wait are `async fn` (root rule 6). A sync caller wraps them w
 `foundation_core::valtron::block_on_future`. Feature 00 has the types; feature 02 has the
 implementation.
 
+### 6.0 The handle doctrine (owner direction 2026-11-15)
+
+Every outside caller reaches this library through a handle that it reads from the `Ctx`, and
+never by starting a sandbox itself:
+
+"Whether containers (docker, cloudflare,...etc), everything should be through a handle that
+whatever central wrapper over Ctx or exposed via Ctx.get provides and whatever is returned
+specifically provides the necessary methods to interact with the relevant underlying
+infrastructure."
+
+So there are two levels with the same shape:
+
+| Level | Factory (the control) | Handle (the live object) | Methods of the handle |
+|---|---|---|---|
+| Sandbox | `SandboxProvider` | `SandboxHandle` | Create, get, list, stop and kill live on the provider. The handle runs commands and moves files. |
+| Container | `ContainerControl` | `ContainerHandle` | Start, inspect, exec, signal, fetch a port, wait, stop and destroy one container. |
+
+A sandbox uses a `ContainerHandle` internally. `SandboxHandle::container()` returns it, or
+`None` for a microVM.
+
+The handle is the whole interface. A caller does not know whether the work crosses an RPC
+boundary (a Cloudflare DO in front of `worker::Container`) or reaches the resource directly
+(the Docker Engine API). That choice belongs to the adapter.
+
+The `Platform` typed entry in the `Ctx` carries the two controls. It is a plain entry
+(`Ctx::insert`), and the crate adds a small extension trait, because `foundation_context` must
+not depend on this crate:
+
+```rust
+// foundation_platform_sandbox/src/shared/platform.rs
+/// The platform entry. A boundary installs it; every other caller reads it.
+pub struct Platform {
+    /// The sandbox control plane. Local (`SandboxManager`) or remote.
+    pub sandboxes: Arc<dyn SandboxProvider>,
+    /// The container control, when the host has one.
+    pub containers: Option<Arc<dyn ContainerControl>>,
+}
+
+/// Reads the platform entry from the `Ctx`. `foundation_context` does not know `Platform`.
+pub trait CtxPlatform {
+    /// The platform entry, or `HostNotConfigured`.
+    ///
+    /// # Errors
+    /// [`SandboxError::HostNotConfigured`] when no boundary installed the entry.
+    fn platform(&self) -> SandboxResult<Arc<Platform>>;
+}
+
+impl CtxPlatform for Ctx { /* Ctx::get::<Platform>() */ }
+```
+
+`agent-rpc` (spec 83 feature 06) and `agent-slave` read `ctx.platform()`, take
+`Arc<dyn SandboxProvider>`, and use it. They do not build a sandbox, a driver or a container
+control. Once the sandbox library lands, the agent RPC host passes the `Arc<SandboxProvider>`
+and that is all.
+
 ```rust
 /// The control plane, as a trait. `SandboxManager` (local) and `SandboxRpcClient`
 /// (remote) both implement it.
-pub trait SandboxControl: Send + Sync + 'static {
+pub trait SandboxProvider: Send + Sync + 'static {
     fn probe(&self) -> BoxFuture<'_, SandboxResult<Vec<HostReport>>>;
-    fn create(&self, spec: SandboxSpec) -> BoxFuture<'_, SandboxResult<Sandbox>>;
+    fn create(&self, spec: SandboxSpec) -> BoxFuture<'_, SandboxResult<SandboxHandle>>;
     fn create_with_progress(&self, spec: SandboxSpec) -> CreateStream;
-    fn get(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<Sandbox>>;
+    fn get(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<SandboxHandle>>;
     fn list(&self) -> BoxFuture<'_, SandboxResult<Vec<SandboxInfo>>>;
     fn stop(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>>;
     fn kill(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>>;
 }
 
-impl Sandbox {
+impl SandboxHandle {
     pub fn id(&self) -> &SandboxId;
     pub fn info(&self) -> SandboxInfo;                       // driver, state, created time
     pub fn container(&self) -> Option<ContainerHandle>;      // None for a microVM
@@ -362,12 +421,14 @@ structs.
 
 ### 6.4 Side effects (root rule 11)
 
-- Time and timers: `ctx.clock()`. Sandbox IDs: `ctx.rng()`.
+- Time and timers: `ctx.clock()`. Sandbox IDs: the `IdSource` of the `Env` entry (spec 84),
+  through the `SandboxIdPolicy` of feature 02 section 6.2 (`Random` or `Fixed(id)` for a test).
 - Processes, sockets, files, the Docker client and the Cloudflare container handle are
   behind traits. Each role reads one typed entry from the `Ctx`: `SandboxHost` (control
-  plane, native), `SlaveHost` (slave), `CloudflareHost` (control plane in a DO).
+  plane, native), `SlaveHost` (slave), `CloudflareHost` (control plane in a DO), and
+  `Platform` (section 6.0) for the controls.
 - Only a boundary builds these entries. A missing entry gives `HostNotConfigured`.
-- Tests give in-memory entries, a `SimulatedClock` and a seeded `Ctx`.
+- Tests give in-memory entries, a simulated clock and a seeded `Ctx`.
 
 ### 6.5 Valtron style
 
@@ -393,13 +454,14 @@ pub trait ContainerControl: Send + Sync + 'static {
 
 - `ContainerControl` is the factory; `ContainerHandle` is the live object. The handle has
   `fetch`, `exec`, `signal`, `wait`, `stop`, `destroy` and `log_tail`.
-- A caller gets a control in one of two ways. `SandboxManager::containers` returns the
-  control of the first driver in its order that has one. `DoContainerClient::new` builds a
-  remote control over the transport of a Cloudflare Worker. A `SandboxHandle` gives the
-  container of one sandbox with `Sandbox::container()`.
+- A boundary installs the control in the `Platform` entry (section 6.0), and every caller
+  reads it there. On a native host, `Platform::containers` is `SandboxManager::containers`,
+  the control of the first driver in its order that has one. On a Worker it is
+  `DoContainerClient::new`, a remote control over the transport of the Worker. A
+  `SandboxHandle` gives the container of one sandbox with `SandboxHandle::container()`.
 - The Cloudflare adapter is in feature 07; the Docker adapter is in feature 10. Both use
   the same contract.
-- `Sandbox::container()` returns the handle of a container-backed sandbox, or `None` for a
+- `SandboxHandle::container()` returns the handle of a container-backed sandbox, or `None` for a
   microVM. This is the bridge between the two surfaces.
 - A method that a runtime cannot support gives `UnsupportedCapability { capability }`.
   `ContainerCapabilities` states what the runtime supports before the call.
@@ -408,8 +470,9 @@ pub trait ContainerControl: Send + Sync + 'static {
   platform's text. A caller that waits for a server to listen retries until its deadline.
 - A `ContainerHandle` is the only writer of its container. `destroy` is idempotent.
 
-The agent-rpc Cloudflare host (spec 83 feature 06) is the first caller outside this spec.
-It starts a container, talks to its port, runs commands through the slave, and stops it.
+The agent-rpc Cloudflare host (spec 83 feature 06) is the first caller outside this spec. It
+reads `Arc<dyn ContainerControl>` from `Platform` (section 6.0), starts a container, talks to
+its port, runs commands through the slave, and stops it.
 
 ## 7. Features and the way to the MVP
 
@@ -519,7 +582,7 @@ Each item becomes a GitHub issue when feature 06 lands.
 
 One file, `tests/support/acceptance.rs`, holds the shared acceptance scenarios (run a
 command, exit code, input, files, isolation, stop). Each driver's `e2e_*.rs` calls them with
-its own `SandboxControl`, so every substrate proves the same behaviour, and so does the RPC
+its own `SandboxProvider`, so every substrate proves the same behaviour, and so does the RPC
 path (law L11).
 
 A real substrate test calls `probe()` first. When the host cannot run it, the test prints
@@ -568,11 +631,13 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D13 | (2026-11-12) On Cloudflare the control plane runs `agent-slave` in Cloudflare containers. There is no nested case there. |
 | D14 | (2026-11-12) The Docker Sandboxes product is not ready. Feature 16 is a draft and not a must have. It is not scheduled, and no milestone needs it. |
 | D15 | (2026-11-14) Spec 77 owns Cloudflare container control and Cloudflare deployment. `foundation_deployment_cloudflare` is the primary deploy path; the manual `wrangler` adapter is a supported fallback. Both apply one `DeploymentPlan`. Spec 83 feature 06 consumes these surfaces and builds the agent-rpc Worker on them. |
+| D16 | (2026-11-15) The target vocabulary is two levels with the same shape: `SandboxProvider` and `SandboxHandle`, `ContainerControl` and `ContainerHandle` (section 6.0). The old control trait is `SandboxProvider`; the old handle struct is `SandboxHandle`; the old id-policy enum of feature 02 is `SandboxIdPolicy`, because `IdSource` is the spec 84 trait. Feature 06's deployment adapter is `SandboxDeploymentProvider` with the handle `SandboxDeploymentHandle`, so it does not clash with the control. Every outside caller reads the controls from the `Platform` entry in the `Ctx`. |
+| D17 | (2026-11-15) The secret and the bearer check come from spec 86 (`Secret`, `extract_bearer_token`, `Secret::ct_eq`). This spec defines neither. Mutual TLS comes from spec 87; the native listener may add it, and a Worker uses `CfMtlsAuth`. The wasm fetch pump and `FetchServe` come from spec 85. |
 
 ### 10.2 Open, with a recommendation
 
 | # | Question | Recommendation |
 |---|---|---|
 | Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
-| Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. A Worker cannot run its own mTLS: Cloudflare ends TLS. | (2026-11-14) Decided: a signed secret as a bearer credential, or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of spec 81. A direct native listener can add mTLS when spec 81 lands. |
+| Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. A Worker cannot run its own mTLS: Cloudflare ends TLS. | (2026-11-14) Decided: a signed secret as a bearer credential, or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of spec 86 and spec 87. The secret and the bearer check are spec 86's `Secret` and `extract_bearer_token`. A direct native listener adds mTLS when spec 87 lands; on a Worker the provider is `CfMtlsAuth` of spec 87. |
 | Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 83 does. |

@@ -15,7 +15,7 @@ created: 2026-11-14
    history archive).
 3. Read `../03-agent-rpc-core/feature.md` and `registry-and-models.md` (the core it hosts).
 4. Read `../04-native-host-and-dst/hosts.md` (what each host gives the core).
-5. Read `../../../80-platform-prerequisites/features/01-transport-prerequisites/feature.md`
+5. Read `../../../80-platform-prerequisites/features/00-transport-prerequisites/feature.md`
    (request extensions and TLS peer facts).
 6. Read `../../agent-rpc-architecture.md` and `../../LEARNINGS.md`. Read `.agents/AGENTS.md` and
    the Rust skills. Generate `compacted.md` with `.agents/skills/context-compaction/skill.md`.

@@ -21,8 +21,8 @@ WebAssembly (wasm); deterministic simulation testing (DST); behaviour-driven dev
 ## 1. Goal
 
 Write the control plane as library code in `shared/`: `SandboxManager`, which implements
-`SandboxControl`. It holds the registry of sandboxes, runs the create story (driver launch,
-slave readiness, `Prepare`), gives callers a `Sandbox` handle that talks to the slave, and
+`SandboxProvider`. It holds the registry of sandboxes, runs the create story (driver launch,
+slave readiness, `Prepare`), gives callers a `SandboxHandle` handle that talks to the slave, and
 cleans up on every exit path.
 
 It has no substrate code and no operating-system call. It compiles for native targets and
@@ -48,7 +48,7 @@ into it.
 | U1 | Probe | caller | `probe()` | One `HostReport` for each registered driver. |
 | U2 | Create | caller | `create(spec)`, `create_with_progress(spec)` | A `Ready` sandbox, or a typed error and nothing left. |
 | U3 | Look up | caller | `get(id)`, `list()` | The handle or the list. |
-| U4 | Exec | caller | `Sandbox::exec`, `run` | Events, or bounded output. |
+| U4 | Exec | caller | `SandboxHandle::exec`, `run` | Events, or bounded output. |
 | U5 | Files | caller | `write_file`, `read_file` | Bytes moved; size returned. |
 | U6 | Stop | caller | `stop()`, `kill()` | `ExitReport`; state `Stopped`. |
 | U7 | Fail | substrate, slave | exit, time-out | State `Failed`, then `Stopped`; handles get errors. |
@@ -160,7 +160,7 @@ Links to other entities: none
 
 - `SandboxManager`, `SlaveClient`, `ExecHandle`, `ExecStdin`, `FileStream`.
 - `RecordStore` with the in-memory implementation.
-- `ControlService`, `SandboxRpcClient`, `check_bearer` (section 6.10).
+- `ControlService`, `SandboxRpcClient`, `authorize` (section 6.10).
 - The public module `testing` (feature `testing`): `SimDriver`, `ScriptedSlave`,
   `in_memory_connector`.
 
@@ -328,7 +328,7 @@ Feature: Control-plane core
     Then the substrate handle got kill and cleanup
 
   Scenario: A fixed id holds one sandbox at a time
-    Given a manager with IdSource Fixed("aaaaaaaaaaaa")
+    Given a manager with SandboxIdPolicy::Fixed("aaaaaaaaaaaa")
     When the caller creates a sandbox
     Then its id is "aaaaaaaaaaaa"
     When the caller creates a second one
@@ -380,7 +380,7 @@ pub struct SandboxManager { /* Arc<Inner> */ }
 pub struct ManagerConfig {
     pub limits: SandboxLimits,           // defaults for a spec that does not set them
     pub max_sandboxes: usize,            // default 64
-    pub id_source: IdSource,             // default Random
+    pub id_policy: SandboxIdPolicy,             // default Random
     pub on_drop: DropPolicy,             // default KillAll
 }
 /// What the manager does with its sandboxes when it is dropped.
@@ -393,7 +393,7 @@ pub enum DropPolicy { KillAll, Detach }
 /// DO, feature 07). With `Fixed`, a second create while the first exists fails with
 /// `TooManySessions`. After that sandbox is `Stopped`, a new create with the same ID is
 /// allowed.
-pub enum IdSource { Random, Fixed(SandboxId) }
+pub enum SandboxIdPolicy { Random, Fixed(SandboxId) }
 
 impl SandboxManager {
     /// `drivers` is in preference order. `connector` turns an endpoint into a transport.
@@ -405,7 +405,7 @@ impl SandboxManager {
         config: ManagerConfig,
     ) -> Self;
 }
-impl SandboxControl for SandboxManager { /* section 6 of the requirements */ }
+impl SandboxProvider for SandboxManager { /* section 6 of the requirements */ }
 
 impl SandboxManager {
     /// Loads the stored records and finds their substrates again. Call it one time, before
@@ -456,7 +456,7 @@ pub enum CreateState {
 
 #[task]
 async fn create_sandbox(ctx: Ctx, state: CreateState)
-    -> Option<(CreateState, TaskStatus<SandboxResult<Sandbox>, CreateProgress>)>;
+    -> Option<(CreateState, TaskStatus<SandboxResult<SandboxHandle>, CreateProgress>)>;
 ```
 
 The task holds an `Arc` of the manager internals through the state (not shown).
@@ -466,7 +466,7 @@ The task holds an `Arc` of the manager internals through the state (not shown).
 | `Choose` | Driver choice and validation (section 6.2). Check `max_sandboxes`. Generate the ID. `deadline = now + boot_timeout`: the one deadline of the whole create. Add a record in `Creating` (its endpoint is `None`). Call `driver.launch(ctx, id, spec, deadline)`. | nothing (the driver emits `Preparing` first) | `Launch` |
 | `Launch` | Take the next item of the launch stream. A `Pending(p)` passes on. `Next(Ok(substrate))`: store the endpoint in the record; build the transport with `connector.connect(endpoint)`; make the `SlaveClient`. The deadline is the one from `Choose`. A progress value that is lower than the last one passed on is dropped. | the driver's progress values | `AwaitSlave` |
 | `AwaitSlave` | Await the first of: `client.info()` with the time-out `min(rpc_timeout, time left)`; `substrate.handle.exited()`; the deadline. An `Info` failure that is a transport error or `Unavailable`: await a timer of `min(5 ms * 2^attempt, 100 ms)` and try again. | `Pending(SlaveConnected)` on the answer | `Prepare` |
-| `Prepare` | `client.prepare(PrepareRequest { root: substrate.root, workdir, env, mounts, dns, limits })`, with the time that is left to the deadline as its time-out (not `rpc_timeout`: a mount can take longer than one normal call). `dns` is `spec.dns` when the network mode is `Host`, else empty. On success: record state `Ready`, start the watcher, build the `Sandbox`. | `Pending(SlaveReady)`, then `Ready(Ok(sandbox))` | `Done` |
+| `Prepare` | `client.prepare(PrepareRequest { root: substrate.root, workdir, env, mounts, dns, limits })`, with the time that is left to the deadline as its time-out (not `rpc_timeout`: a mount can take longer than one normal call). `dns` is `spec.dns` when the network mode is `Host`, else empty. On success: record state `Ready`, start the watcher, build the `SandboxHandle`. | `Pending(SlaveReady)`, then `Ready(Ok(sandbox))` | `Done` |
 | `Done` | | `None` | |
 
 `create()` is `execute(create_sandbox::new(..), None)?.into_ready_future().await`.
@@ -558,7 +558,7 @@ with no data. Dropping `ExecStdin` without `close` starts a task that sends `eof
 Dropping an `ExecHandle` before `Exit` drops the response stream; the slave then kills the
 program (feature 01, invariant I8).
 
-`Sandbox::run(command)`: `exec`, then read events into two buffers up to
+`SandboxHandle::run(command)`: `exec`, then read events into two buffers up to
 `max_captured_output` each; set the `*_truncated` flag and discard more bytes; return at
 `Exit`.
 
@@ -602,7 +602,7 @@ _Caption: stop asks the slave first, forces the substrate only after the grace t
 - `kill()`: state `Stopping`; `handle.kill()`; `cleanup()`; `Stopped`. `killed` is true.
 - The watcher task of a `Ready` record awaits `handle.exited()`. When it completes and the
   state is `Ready`: state `Failed`; `cleanup()`; state `Stopped`; remove the record.
-- Dropping the last `Sandbox` handle does nothing. The record stays in the registry, and
+- Dropping the last `SandboxHandle` handle does nothing. The record stays in the registry, and
   `get(id)` gives a new handle. A sandbox ends by `stop`, `kill` or its own exit. When the
   manager is dropped, `ManagerConfig.on_drop` decides: `KillAll` starts a task that kills
   every record; `Detach` does nothing.
@@ -658,7 +658,7 @@ The manager calls `put` on each state change and `remove` at `Stopped`. A store 
 
 The doc comment of the module says: these give no isolation and are for tests.
 
-### 6.10 `ControlService`, `SandboxRpcClient` and `check_bearer`
+### 6.10 `ControlService`, `SandboxRpcClient` and the bearer check
 
 These three make the control plane usable over RPC. They are here, in `shared/`, because
 they have no operating-system call; feature 06 serves them on a host, and feature 07
@@ -666,7 +666,7 @@ serves them in a Durable Object.
 
 ```rust
 /// SandboxService on any control plane.
-pub struct ControlService { control: Arc<dyn SandboxControl>, limits: SandboxLimits }
+pub struct ControlService { control: Arc<dyn SandboxProvider>, limits: SandboxLimits }
 impl SandboxService for ControlService { /* one method for each call */ }
 ```
 
@@ -679,25 +679,30 @@ impl SandboxService for ControlService { /* one method for each call */ }
 Errors: `SandboxError::to_connect`.
 
 ```rust
-/// SandboxControl on a transport to a SandboxService.
+/// SandboxProvider on a transport to a SandboxService.
 pub struct SandboxRpcClient { /* generated SandboxService client, ctx, limits */ }
 impl SandboxRpcClient {
     pub fn new(ctx: Ctx, transport: Arc<dyn Transport>, limits: SandboxLimits) -> Self;
     pub fn with_token(self, token: Secret) -> Self;      // adds "Authorization: Bearer ..."
 }
-impl SandboxControl for SandboxRpcClient { /* each call maps to its RPC */ }
+impl SandboxProvider for SandboxRpcClient { /* each call maps to its RPC */ }
 ```
 
-The remote `Sandbox` handle is the same handle code as the local one (section 6.6), on a
+The remote `SandboxHandle` handle is the same handle code as the local one (section 6.6), on a
 second implementation of `ExecFileCalls`: the scoped `SandboxService` client, which adds
 the `sandbox_id` to each message. `stop`, `kill` and `info` map to their calls.
 
 ```rust
 /// The token check for a served control plane. `header` is the Authorization header.
-/// Compares SHA-256 digests of the given and the expected token in constant time.
-/// Errors: Unauthorized (missing header, a scheme that is not Bearer, a wrong token).
-pub fn check_bearer(header: Option<&str>, token: &Secret) -> SandboxResult<()>;
+/// This crate does not write a bearer check of its own: `Secret::from_bearer` and
+/// `Secret::ct_eq` (spec 86) give the token and the constant-time compare. A failure is
+/// `Unauthorized` (missing header, a scheme that is not Bearer, a wrong token).
+fn authorize(header: Option<&str>, token: &Secret) -> SandboxResult<()>;
 ```
+
+`Secret`, `Secret::from_bearer` and `Secret::ct_eq` are `foundation_auth` types from spec
+86. `foundation_platform_sandbox` takes `foundation_auth` as a dependency for them; it does
+not copy the code. The test name `check_bearer_cases` stays.
 
 ## 7. Tests
 
@@ -725,8 +730,8 @@ Simulation (`control_sim_*.rs`), with `Ctx::with_seed`, `SimulatedClock`, `SimDr
 | I15, "The same seed gives the same trace" | `same_seed_same_trace` | identity |
 | the restart, drop, fixed id, limit, input and read scenarios above | `restore_ready_record`, `restore_dead_substrate`, `drop_detach`, `drop_kill_all`, `fixed_id`, `max_sandboxes`, `stdin_gives_up`, `read_file_gap`, `stdin_bytes_mode`, `run_with_timeout`, `store_error_in_create_fails`, `store_error_after_ready_is_logged` | expected outcome |
 | `restore`, more cases (section 6.2) | `restore_ready_record`, `restore_dead_substrate`, `restore_unprepared_slave`, `restore_unfinished_record` (one for `Creating`, one for `Stopping`), `restore_twice`; `fixed_id` (the sandbox ID is the configured one; a second create fails with `TooManySessions`) | expected outcome |
-| law L11 of the requirements (the same outcome through the library and through RPC) | `rpc_parity_sim`: every simulation scenario of this table that uses a `Sandbox` runs a second time through `SandboxRpcClient` + `ControlService` over the pipe connection, and the outcomes are equal; `rpc_error_variants` (each `SandboxError` variant that a control call can return keeps its variant and fields); `rpc_create_dropped_cleans_up` | differential, identity, fault |
-| `check_bearer` | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | expected outcome |
+| law L11 of the requirements (the same outcome through the library and through RPC) | `rpc_parity_sim`: every simulation scenario of this table that uses a `SandboxHandle` runs a second time through `SandboxRpcClient` + `ControlService` over the pipe connection, and the outcomes are equal; `rpc_error_variants` (each `SandboxError` variant that a control call can return keeps its variant and fields); `rpc_create_dropped_cleans_up` | differential, identity, fault |
+| `authorize` | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | expected outcome |
 | `SandboxManager::containers` | `manager_containers` (a `SimDriver` with no control gives `None`; a driver with a fake control gives it; the first driver in order wins) | expected outcome |
 | I16 | the wasm check in section 8; `no_os_calls` (a source scan of `src/shared/control/`) | build, example |
 

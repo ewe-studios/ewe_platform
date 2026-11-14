@@ -207,136 +207,42 @@ What the code does:
 `cert_not_after`, `cert_serial`). It lives in the Worker host, because `foundation_auth`
 does not depend on the `worker` crate.
 
-The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../../80-platform-prerequisites/features/00-env-and-side-effects/env.md),
+The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../../84-context-injection/env.md),
 section 7.2). It builds `Env::system()` and the engine once per isolate. It then runs
 `with_ctx(root_ctx(), host.fetch(req))` for each request.
 
-### 5.4 `FetchServe`: Connect dispatch over a fetch request
+### 5.4 `FetchServe`: Connect dispatch over a fetch request (moved to spec 85)
 
-`ConnectRpcHandler::dispatch_to` already streams on native hosts. It writes to a
-`ResponseSink` (`whole`, `open`, `chunk`, `finish`). `FetchServe` gives it a sink that feeds a
-pull-based `ReadableStream`. It is new, in `foundation_connectrpc` for wasm (task T19).
+`FetchServe` is defined by [spec 85](../../../85-wasm-fetch-transport/requirements.md) section
+3 and designed in its [fetch.md](../../../85-wasm-fetch-transport/fetch.md). It gives
+`ConnectRpcHandler::dispatch_to` a sink that feeds a pull-based `ReadableStream`, with the
+pull-based backpressure rule and the `max_request_bytes` limit.
 
-```rust
-// foundation_connectrpc/src/wasm/fetch_serve.rs (cfg(target_family = "wasm"), task T19)
-/// Serves Connect and gRPC-Web calls from a fetch event (a Worker or a DO).
-pub struct FetchServe {
-    handler: ConnectRpcHandler,
-    config: FetchServeConfig,
-    timer: Arc<dyn DeadlineTimer>,
-    clock: Arc<dyn Clock>,
-}
+What this feature does with it:
 
-#[derive(Debug, Clone)]
-pub struct FetchServeConfig {
-    /// Largest request body. Default 4 MiB: the gRPC default maximum
-    /// receive message size.
-    pub max_request_bytes: usize,
-    /// Response chunks that may wait for the reader. Default 4: the pipe
-    /// depth of `ClientOptions` today. A full queue pauses the handler.
-    pub response_queue: usize,
-}
+| Step | Code here |
+|---|---|
+| Build it | `FetchServe::new(router.into_handler(), FetchServeConfig::from(&config), ctx.clone())` |
+| Call it | `serve.serve(req, extensions).await` in the `fetch` entry (§5.3) |
+| Configure it | `FetchServeConfig` (§5.2), with the limits that spec 85 documents |
 
-impl FetchServe {
-    #[must_use]
-    pub fn new(handler: ConnectRpcHandler, config: FetchServeConfig, env: Env) -> Self {
-        Self {
-            handler,
-            config,
-            timer: Arc::new(TimerDeadline(Arc::clone(env.timer()))),
-            clock: Arc::clone(env.clock()),
-        }
-    }
-
-    /// Serve one call. Returns when the response head is ready. The body
-    /// streams after that, one chunk for each read by the runtime.
-    ///
-    /// # Errors
-    /// A `JsValue` when the runtime cannot build the response.
-    pub async fn serve(&self, req: web_sys::Request, extensions: Extensions) -> Result<web_sys::Response, JsValue> {
-        let (request, body) = request_from_fetch(&req, extensions, self.config.max_request_bytes)?;
-        let (head_tx, head_rx) = futures::channel::oneshot::channel();
-        let (chunk_tx, chunk_rx) = futures::channel::mpsc::channel(self.config.response_queue);
-        let handler = self.handler.clone();
-        let timer = Arc::clone(&self.timer);
-        let clock = Arc::clone(&self.clock);
-        // The dispatch future owns its sink and its hooks.
-        let mut dispatch = Box::pin(async move {
-            let mut sink = ChannelSink::new(head_tx, chunk_tx);
-            let hooks = CallHooks::default().with_timer(&*timer).with_clock(&*clock);
-            handler.dispatch_to(Arc::new(ContextBag::new()), request, body, &mut sink, hooks).await
-        });
-        // Drive the dispatch until the head arrives.
-        let head = drive_until_head(&mut dispatch, head_rx).await?;
-        // The body stream owns the rest of the dispatch: each read polls it.
-        let body = DispatchBody::new(dispatch, chunk_rx);
-        foundation_netio::wasm::response::streaming_response_with(head.status, &head.headers, body)
-    }
-}
-```
-
-What the code does:
-
-1. `request_from_fetch` turns the fetch request into a `SimpleIncomingRequest`. The body becomes a `RequestBody` stream over the request `ReadableStream`. It reads at most `max_request_bytes` and then fails with `RESOURCE_EXHAUSTED`. Nothing reads the whole body first.
-2. The dispatch future owns its sink. The sink sends the head through a one-shot channel and the frames through a bounded channel.
-3. `drive_until_head` polls the dispatch and waits for the head. A unary call usually finishes here.
-4. `DispatchBody` is a stream. Each poll first polls the dispatch future, then takes the next frame from the channel. So the handler runs only when the runtime asks for more body. Nothing builds up in memory.
-5. When the client goes away, the runtime cancels the `ReadableStream`. That drops `DispatchBody`, which drops the dispatch future, the handler and the turn stream. `guarded_turn` then aborts the session ([registry-and-models.md](../03-agent-rpc-core/registry-and-models.md), section 4.6).
-
-Changes in other crates that `FetchServe` needs (task T19, except where noted):
-
-| Crate | Change | Why |
-|---|---|---|
-| `foundation_netio` | `wasm::response::streaming_response_with(status, headers, body)` and `pull_readable_stream(body)`; `streaming_response` keeps its signature and calls them | `streaming_response` sets status 200 and one content type. Connect needs the status and headers of the handler. |
-| `foundation_compact` | `impl<S: Stream> Stream for SendWrapper<S>` (adds the small `futures-core` dependency) | `RequestBody` must be `Send`. A JS body stream is not. `SendWrapper` is sound on single-threaded wasm. |
-| `foundation_connectrpc` | `CallHooks::with_clock(&dyn Clock)`; dispatch computes the deadline from it (task T3) | Today `dispatch.rs` calls `std::time::Instant::now()` for `connect-timeout-ms`. That call panics on `wasm32-unknown-unknown`. |
+The out-of-crate changes that spec 85 needs (`foundation_netio::wasm::response::streaming_response_with`,
+`pull_readable_stream`, `impl<S: Stream> Stream for SendWrapper<S>`, `CallHooks::with_clock`)
+are spec 85's tasks. They are not tasks of this feature.
 
 The Worker serves Connect and gRPC-Web. It does not serve gRPC: gRPC needs HTTP/2 trailers,
 and the fetch API cannot send them. gRPC-Web puts its trailers in the body, so it works.
 
-### 5.5 `DoStubTransport`: the Worker calls a Durable Object
+### 5.5 `DoStubTransport`: the Worker calls a Durable Object (moved to spec 85)
 
-```rust
-// foundation_connectrpc/src/wasm/fetch_transport.rs (task T19)
-/// Sends one request and returns a response promise: the global `fetch`,
-/// or a DO stub.
-pub trait Fetcher: 'static {
-    fn fetch(&self, request: web_sys::Request) -> LocalBoxFuture<'static, Result<web_sys::Response, JsValue>>;
-}
+`DoStubTransport` is spec 85's `FetchTransport<StubFetcher>`: the transport over a Durable
+Object stub, with `StubFetcher` as the `Fetcher`. Section 4 of
+[fetch.md](../../../85-wasm-fetch-transport/fetch.md) has the code.
 
-/// A `Transport` over a `Fetcher`. See section 6.2.
-pub struct FetchTransport<F: Fetcher> { /* section 6.2 */ }
-```
-
-```rust
-// foundation_agent_rpc/src/host/worker/do_transport.rs (task T21)
-/// The Worker side of a call to an instance DO.
-pub struct StubFetcher {
-    stub: SendWrapper<worker::Stub>,
-    /// The checked caller. It goes into `ewe-forwarded-principal`.
-    principal: Principal,
-}
-
-impl Fetcher for StubFetcher {
-    fn fetch(&self, request: web_sys::Request) -> LocalBoxFuture<'static, Result<web_sys::Response, JsValue>> {
-        let header = forwarded::encode(&self.principal);            // JSON, proto.md section 7
-        let stub = self.stub.clone();
-        Box::pin(async move {
-            request.headers().set(forwarded::HEADER, &header)?;
-            let response = stub.fetch_with_request(worker::Request::from(request)).await.map_err(js_error)?;
-            Ok(web_sys::Response::from(response))
-        })
-    }
-}
-
-/// `DoStubTransport` = `FetchTransport` over a `StubFetcher`.
-pub type DoStubTransport = FetchTransport<StubFetcher>;
-```
-
-What the code does: the Worker reaches a DO with the same `FetchTransport` that a browser
-uses. Only the `Fetcher` differs. `StubFetcher` adds the forwarded principal header and calls
-`Stub::fetch_with_request`. The DO response body is a stream, so the turn events pass
-through with no buffering.
+| Item | Owner |
+|---|---|
+| `FetchTransport`, `Fetcher`, `StubFetcher`, `DoStubTransport` | Spec 85 |
+| The Worker code that builds the stub and the transport for one instance | This feature (T21) |
 
 ### 5.6 Inside the Durable Object
 
@@ -564,60 +470,17 @@ native host with `accept_access_secrets`. It uses Connect (or gRPC-Web) over the
 `fetch`. It shows a bearer secret on each call, because a browser page cannot choose a client
 certificate.
 
-### 6.2 `FetchTransport`
+### 6.2 `FetchTransport` (moved to spec 85)
 
-```rust
-// foundation_connectrpc/src/wasm/fetch_transport.rs (task T19)
-/// The global `fetch` of a browser page or a Worker.
-pub struct GlobalFetcher;
+The browser transport is spec 85's `FetchTransport<GlobalFetcher>`. Section 3 and section 4 of
+[fetch.md](../../../85-wasm-fetch-transport/fetch.md) have the code and the exchange rules:
+the request body is collected up to `max_request_bytes` (fetch cannot stream it up in every
+browser), the response body streams, and a dropped call cancels the reader.
 
-impl Fetcher for GlobalFetcher {
-    fn fetch(&self, request: web_sys::Request) -> LocalBoxFuture<'static, Result<web_sys::Response, JsValue>> {
-        Box::pin(async move {
-            let promise = global_fetch(&request)?;     // window.fetch or the Worker global fetch
-            Ok(JsFuture::from(promise).await?.unchecked_into())
-        })
-    }
-}
-
-/// A client `Transport` over fetch. Fetch has no request streaming, so it
-/// supports unary and server-streaming calls (`WASM_FETCH_CAPABILITIES`).
-pub struct FetchTransport<F: Fetcher> {
-    fetcher: Rc<F>,
-    config: FetchTransportConfig,
-}
-
-#[derive(Debug, Clone)]
-pub struct FetchTransportConfig {
-    /// Largest request body. Default 4 MiB: the gRPC default maximum send
-    /// message size of most clients.
-    pub max_request_bytes: usize,
-}
-
-impl<F: Fetcher> Transport for FetchTransport<F> {
-    fn capabilities(&self) -> TransportCapabilities {
-        WASM_FETCH_CAPABILITIES
-    }
-
-    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let exchange = SendWrapper::new(Rc::new(FetchExchange::new(Rc::clone(&self.fetcher), request, self.config.clone())));
-        Ok(TransportStream {
-            send_body: exchange.body_sink(),        // collects the small request body
-            head: exchange.head_stream(),           // first poll: send the request, await the head
-            recv_body: exchange.body_stream(),      // pulls the response ReadableStream
-            trailers: exchange.trailers(),          // none over fetch: gRPC-Web trailers are in the body
-        })
-    }
-}
-```
-
-What the code does:
-
-1. `open` returns at once and starts nothing. The work starts when the client polls the head.
-2. The client writes the request message into `send_body` and closes it. Our request messages are small (a prompt is at most 1 MiB, `TurnLimits::max_prompt_bytes`), and fetch cannot stream a request body in every browser. So the transport collects the request body, up to `max_request_bytes`. This is the allowed case of CLAUDE.md rule 4: a small body that is needed whole.
-3. The first poll of `head` sends the request and awaits the response head.
-4. `recv_body` reads the response `ReadableStream` one chunk at a time (`wasm-streams`). It never reads the whole body.
-5. When the client drops the call, the transport cancels the reader. The server then sees the client go away.
+| Item | Owner |
+|---|---|
+| `FetchTransport`, `GlobalFetcher`, the exchange state machine | Spec 85 |
+| `WebClient` and its calls | This feature (T22) |
 
 ### 6.3 The client API
 

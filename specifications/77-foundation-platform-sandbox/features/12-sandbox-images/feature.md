@@ -48,10 +48,10 @@ writable root, and the slave fills it.
 |---|---|---|---|---|
 | U1 | Make an empty image | image tool | `ImageStore::create_blank(size_mib)` | A sparse ext4 file. |
 | U2 | Boot writable | image tool | a spec with `RootMode::Writable` | Programs and unpack write to the image file. |
-| U3 | Unpack | image tool | `Sandbox::unpack(dest, tar_stream, options)` | The tree is in the image, with owners. |
+| U3 | Unpack | image tool | `SandboxHandle::unpack(dest, tar_stream, options)` | The tree is in the image, with owners. |
 | U4 | Commit an image | image tool | `ImageStore::commit(work, manifest)` | A named, immutable image. |
 | U5 | Boot an image | caller | `RootFs::Image(ref)` | A sandbox with the manifest defaults. |
-| U6 | Run the start command | caller | `Sandbox::start_cmd()` | The manifest `cmd` runs. |
+| U6 | Run the start command | caller | `SandboxHandle::start_cmd()` | The manifest `cmd` runs. |
 
 ## 3. Bounded context
 
@@ -135,7 +135,7 @@ Links to other entities: only one sandbox at a time uses a work image in Writabl
 - `ImageManifest`, `ImageRef`, `ImageStore`.
 - `RootMode::Writable` in the contract, the slave and both microVM drivers.
 - `UnpackBegin`, `UnpackChunk`, `UnpackCommit`, `UnpackAbort` in `SlaveService` and
-  `SandboxService`; `Sandbox::unpack`.
+  `SandboxService`; `SandboxHandle::unpack`.
 - `Command.user` and `ExecRequest.user`.
 - `rootfs_ext4` on libkrun when the library has block support.
 
@@ -297,7 +297,7 @@ spec: `rootfs = Ext4Image(path)`; `env` = manifest env then spec env; `workdir` 
 value when it is not the default `/workspace`, else the manifest value, else `/workspace`;
 `kernel` from the manifest when the spec has `None`. The record keeps the manifest.
 
-`Sandbox::start_cmd()`: `exec(Command { argv: manifest.cmd, user: manifest.user, .. })`;
+`SandboxHandle::start_cmd()`: `exec(Command { argv: manifest.cmd, user: manifest.user, .. })`;
 with no `cmd`: `InvalidSpec { field: "cmd" }`. Commands of that sandbox get
 `user: manifest.user` when the command has none.
 
@@ -358,7 +358,7 @@ pub struct UnpackAbortRequest { pub upload_id: String }
 pub struct UnpackOptions { pub oci_whiteouts: bool, pub skip: Vec<String> }   // Default: false, empty
 pub struct UnpackReport { pub entries: u64, pub bytes: u64 }
 
-impl Sandbox {
+impl SandboxHandle {
     /// `tar` is an uncompressed tar byte stream.
     pub async fn unpack(&self, dest: &str, tar: impl ByteStream, options: UnpackOptions) -> SandboxResult<UnpackReport>;
 }
@@ -398,7 +398,7 @@ In the slave (`native/slave/unpack.rs`):
   dependency and a small set of crates, and the `tar` crate needs `std::fs` paths that do
   not fit the `chroot` child's fd-relative calls.
 
-`Sandbox::unpack` on the control side is `write_file`'s loop on the unpack calls
+`SandboxHandle::unpack` on the control side is `write_file`'s loop on the unpack calls
 (`ExecFileCalls` gets the four calls).
 
 ### 6.7 The user of a command

@@ -9,8 +9,14 @@ created: 2026-11-14
 
 ## Read first
 
-- `requirements.md` (mission, laws, feature graph and success criteria).
-- `progress.md` and `learnings.md`.
+- `requirements.md` (mission, laws, the handle doctrine in section 6.0, the feature graph and
+  success criteria).
+- `progress.md` and `learnings.md`, especially section 10 (the handle doctrine, the one-owner
+  rule for shared blocks, and the renames of 2026-11-15).
+- The four specifications this one builds on: `../84-context-injection/requirements.md` (the
+  `Env` and the `IdSource`), `../85-wasm-fetch-transport/requirements.md` (the fetch plumbing),
+  `../86-auth-primitives/requirements.md` (`Secret` and the bearer parser) and
+  `../87-mutual-tls/requirements.md` (the CA, the trust store and mTLS).
 - `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md`,
   `.agents/skills/rust-valtron-usage/skill.md`,
   `.agents/skills/rust-valtron-iterator/skill.md` and

@@ -173,7 +173,7 @@ Links to other entities: a record with no running container is removed from stor
 - `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`, and the internal
   `ContainerService` (feature 00, section 6.13).
 - The `worker` implementations in `src/cloudflare/`.
-- The `attach` implementation of this driver, and the use of `restore` and `IdSource`
+- The `attach` implementation of this driver, and the use of `restore` and `SandboxIdPolicy`
   (section 6.7).
 
 ### 4.4 Must do
@@ -520,8 +520,17 @@ Implements `foundation_connectrpc::shared::transport::Transport`
 `PortConnector` is the `SlaveConnector` for a DO: `CloudflarePort { port }` gives a
 `ContainerPortTransport`; every other endpoint gives `InvalidSpec { field: "endpoint" }`.
 
-If feature 05 of spec 83 lands a general `WasmFetchTransport` in `foundation_connectrpc`
-first, this type uses its body pump. It does not wait for it: the pump is about 80 lines.
+This type does not write its own body pump. [Spec 85](../../../85-wasm-fetch-transport/requirements.md)
+owns the fetch plumbing, and the pump there is one implementation for both the transport and
+the server. This feature uses two parts of it:
+
+| Part of spec 85 | Use here |
+|---|---|
+| `FetchTransport<F>` with a `Fetcher` that calls `container.fetch(port, ..)` | The generic transport. `ContainerPortTransport` is a thin wrapper that adds a `NotFound` message for a ready check and maps `PortError`. |
+| `response_stream(status, headers, body, config)` | The response body, streamed with the out-of-crate backpressure rules. |
+
+The old note in this section ("the pump is about 80 lines, do not wait for it") is cancelled:
+the pump is not copied here.
 
 ### 6.6 `DoRecordStore` and `DoControlPlane`
 
@@ -535,7 +544,7 @@ pub struct DoControlPlane { /* ctx, host, manager, service, restored flag */ }
 
 impl DoControlPlane {
     /// Builds a SandboxManager with one driver, PortConnector, DoRecordStore,
-    /// max_sandboxes 1, IdSource::Fixed(id) and DropPolicy::Detach.
+    /// max_sandboxes 1, SandboxIdPolicy::Fixed(id) and DropPolicy::Detach.
     /// `id`: `Some` on a request (the DO name, from the request); `None` on an alarm.
     /// The ID is stored under the key `sandbox_id` the first time it is known, and read
     /// from there when `id` is `None`. With no stored ID and `None`, there is nothing to
@@ -579,7 +588,7 @@ manager must know the sandbox before it can stop it). Then read `idle_deadline_m
   and the port types (feature 00, section 6.13). This feature implements them for
   Cloudflare.
 - `ExecHandle` (feature 02, section 6.6): the handle that `ContainerOps::exec` returns.
-- `IdSource::Fixed(id)` and `max_sandboxes: 1` (feature 02, section 6.2): the DO's manager
+- `SandboxIdPolicy::Fixed(id)` and `max_sandboxes: 1` (feature 02, section 6.2): the DO's manager
   holds one sandbox, named as the DO.
 - `SandboxManager::restore` (feature 02, section 6.2): `DoControlPlane::handle` calls it
   one time for each DO object, before the first request.

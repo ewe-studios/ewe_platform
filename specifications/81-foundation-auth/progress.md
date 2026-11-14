@@ -1,6 +1,6 @@
 # Spec 81 Progress: Foundation Auth
 
-_Last updated: 2026-11-14._
+_Last updated: 2026-11-15._
 
 ## Status at a glance
 
@@ -10,14 +10,25 @@ _Last updated: 2026-11-14._
 
 ## What this spec owns
 
-The library, not its consumers:
+The library, not its consumers, and only the part that no other specification owns:
 
 | Module | Tasks |
 |---|---|
 | Signed secrets and key files | T5, T7 |
-| CA and mTLS verifiers | T8, T10 |
-| Trust store | T9 |
-| `ClientAuth` providers and interceptor | T11 |
+| The signed-secret, JWT and plaintext providers | T11 (their tasks) |
+| The connectrpc interceptor and the Connect code map | T11 |
+
+## What left this specification (2026-11-15)
+
+The owner reviewed six conflicts on 2026-11-15. Two of them moved work out of this
+specification:
+
+| Item | New home | Why |
+|---|---|---|
+| The `ClientAuth` trait, `AuthInfo`, `CallCredentials`, `Principal`, `AuthMethod`, `AuthError`, `Secret`, `constant_time_eq`, the bearer parser | [Spec 86](../86-auth-primitives/requirements.md) | The sandbox server (spec 77) needs a secret and a bearer check without the agent RPC stack. One copy serves all. |
+| `CaStore`, `CertificateAuthority`, `TrustStore`, `ClientCertVerifier`, `ServerTlsConfig`, `MtlsConfig`, `MtlsAuth`, `CfTlsClientAuth`, `CfMtlsAuth` | [Spec 87](../87-mutual-tls/requirements.md) | Mutual TLS must be scheduled and delivered before its consumers. No task in this feature needed it. |
+
+`auth.md` now points to both specifications from sections 5, 6, 7, 8.1 and 8.3.
 
 ## What stays out
 
@@ -26,9 +37,10 @@ feature 08. This library accepts operator key files for the proof of concept.
 
 ## Next steps
 
-1. Finish the move: add the nine-section story wrapper to the feature.
-2. Run the baseline against spec 80 (Env entropy and IDs, transport facts, migration groups).
-3. Implement T5 and T7 first; the consumers need signed secrets.
+1. Run the baseline against spec 86 and spec 87. The trait and the mTLS provider must exist
+   before this feature starts.
+2. Implement T5 and T7 first; the consumers need signed secrets.
+3. Wire the provider set: this feature's providers plus the spec 87 mTLS providers.
 
 ## Open questions
 

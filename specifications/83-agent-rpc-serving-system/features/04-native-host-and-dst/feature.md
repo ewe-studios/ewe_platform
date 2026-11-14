@@ -3,7 +3,7 @@ feature: "Native Host and Simulation Tests"
 description: "The native agent-rpc host (config, listeners, mTLS, operator key paths, LocalCatalog with Candle devices) and the deterministic simulation test harness. Finishing this feature gives the working agent-rpc proof of concept."
 status: "pending"
 priority: "high"
-depends_on: ["80-platform-prerequisites/features/01-transport-prerequisites", "81-foundation-auth/features/00-foundation-auth", "03-agent-rpc-core"]
+depends_on: ["80-platform-prerequisites/features/00-transport-prerequisites", "81-foundation-auth/features/00-foundation-auth", "03-agent-rpc-core"]
 part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
@@ -38,7 +38,7 @@ Part of the agent-rpc proof of concept.
 | Design file | Sections |
 |---|---|
 | [hosts.md](./hosts.md) | sections 1 to 4, 7, 8 and 9 (native host, native client) |
-| [deterministic-simulation-testing.md](../../../80-platform-prerequisites/features/00-env-and-side-effects/deterministic-simulation-testing.md) | the harness and its parts |
+| [deterministic-simulation-testing.md](../../../84-context-injection/deterministic-simulation-testing.md) | the harness and its parts |
 | [agent-rpc-architecture.md](../../agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
 | [agent-rpc-architecture.md](../../agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
 

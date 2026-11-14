@@ -37,7 +37,7 @@ sandbox.stop().await?;
 ```
 
 This is MVP-B: the control plane runs in a DO, the slave runs in the DO's container, and
-the caller uses the same `SandboxControl` API as on a host.
+the caller uses the same `SandboxProvider` API as on a host.
 
 This feature owns the two supported Cloudflare deployment paths. The Rust deployer in
 `foundation_deployment_cloudflare` is the primary path. The manual `wrangler` adapter is a
@@ -65,7 +65,7 @@ deployment surface; it does not own one.
 | U4 | Probe | Worker | `SandboxService/Probe` | One report: the Cloudflare driver. |
 | U5 | Authorise | Worker | every call | 401-class error with no token. |
 | U6 | Deploy | operator | `CloudflareDeployer::deploy`, or `npx wrangler deploy` | The Worker, the DO classes, the image and the routes exist. |
-| U7 | Provider | orchestration code | `SandboxProvider::cloudflare(control)` | A `SandboxHandle`. |
+| U7 | Provider | orchestration code | `SandboxDeploymentProvider::cloudflare(control)` | A `SandboxDeploymentHandle`. |
 | U8 | Check a deploy | operator | `CloudflareDeployer::status` | The deployment state and the Worker URL. |
 
 ## 3. Bounded context
@@ -162,7 +162,7 @@ Links to other entities: the deployed Worker's bindings and DO migrations equal 
 - `infrastructure/sandbox_worker` with `SandboxDo`, `SandboxIndexDo`, the entry, the
   `wrangler.toml`, the `Dockerfile`, the README.
 - `shared::cloudflare::routing`.
-- `ProviderId::CloudflareContainer` and `SandboxProvider::cloudflare`.
+- `ProviderId::CloudflareContainer` and `SandboxDeploymentProvider::cloudflare`.
 - `CloudflareDeployer`, `DeploymentPlan`, `DeploymentOutcome`, `DeploymentStatus`,
   `DeployError`, `FoundationCloudflareDeployer`, `WranglerCloudflareDeployer`.
 - The end-to-end test and its script.
@@ -243,7 +243,7 @@ Feature: Cloudflare Worker
     Then SandboxInfo.slave.slave_version equals the Worker's reported version
 
   Scenario: A provider starts a Cloudflare sandbox
-    Given SandboxProvider::cloudflare on the remote client
+    Given SandboxDeploymentProvider::cloudflare on the remote client
     When launch is called with RootFs::ContainerImage("sandbox")
     Then is_running is true
     When stop is called
@@ -289,7 +289,7 @@ pub fn route(path: &str, body: &[u8]) -> SandboxResult<RouteTarget>;
 | every other method | Read `sandbox_id` from the JSON body (a small struct with only that field). Parse it as `SandboxId` (`InvalidSpec { field: "sandbox_id" }` on a failure). `Sandbox(id)`. |
 | a path that is not a method of the service | `NotFound { what: "method" }` |
 
-The token check is `check_bearer` of feature 02, section 6.10. It is in `shared/`, so the
+The token check is `authorize` of feature 02, section 6.10, over `Secret` of spec 86. It is in `shared/`, so the
 native server and the Worker use one function.
 
 ### 6.2 The Worker crate
@@ -312,7 +312,7 @@ explicit line; add the line if the pattern does not cover it).
 **Entry (`src/lib.rs`).** One time for each isolate: start the valtron pool and build the
 `Ctx` (`Ctx::host()`; the entropy seed works on wasm since spec 76). For each request:
 
-1. `check_bearer(header("authorization"), env.secret("SANDBOX_TOKEN"))`. A failure answers
+1. `authorize(header("authorization"), &Secret::new(env.secret("SANDBOX_TOKEN")))`. A failure answers
    with the Connect error for `Unauthorized`.
 2. Read the body, at most `max_message_bytes` (a larger body answers `InvalidSpec`).
 3. `route(path, body)`.
@@ -323,7 +323,10 @@ explicit line; add the line if the pattern does not cover it).
    `id_from_name(id)`. `Sandbox(id)`: forward to that DO.
 5. Forward: build a new request with the same method, path, headers and the body bytes,
    call `stub.fetch_with_request`, and return the response as it is (the streamed body
-   passes through).
+   passes through). The stub adapter is `StubFetcher` and `DoStubTransport` of
+   [spec 85](../../../85-wasm-fetch-transport/requirements.md); this feature does not write a
+   fetch pump of its own. A server-side route (the `FetchServe` of spec 85) uses the same
+   plumbing.
 
 Errors from steps 1 to 3 are written with the error writer of `foundation_connectrpc`
 (`shared/error_writer.rs`) so the client sees a normal Connect error.
@@ -372,9 +375,9 @@ with no storage.
 ### 6.4 The `Provider`
 
 `foundation_deployment_platform`: `ProviderId::CloudflareContainer`
-(`cloudflare-container`); `SandboxProvider::cloudflare(control)` is
-`SandboxProvider::new(control, DriverId::CloudflareContainer)`. No other code: the facade
-of feature 06 works on any `SandboxControl`.
+(`cloudflare-container`); `SandboxDeploymentProvider::cloudflare(control)` is
+`SandboxDeploymentProvider::new(control, DriverId::CloudflareContainer)`. No other code: the facade
+of feature 06 works on any `SandboxProvider`.
 
 ### 6.5 `wrangler.toml`
 

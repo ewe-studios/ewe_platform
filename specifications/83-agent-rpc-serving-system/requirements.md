@@ -114,9 +114,14 @@ _The diagram shows the server, the one loaded model, the instances that share it
 | The native host and the deterministic simulation host | this specification | |
 | The Worker host, the Durable Object layout and the browser client | this specification | |
 | The Cloudflare container: control, `ContainerHandle` and deployment | spec 77 | this specification builds the agent-rpc Worker on it |
+| The sandbox and container handles, and the `Platform` entry in the `Ctx` | spec 77 section 6.0 | the kernel, the hosts and the user programs ask the `Ctx` for a handle. They never build one |
 | Key protection at rest | this specification (last feature) | |
-| The `Env` bundle, transport facts and migration groups | spec 80 | shared with the proxy |
-| Signed secrets, CA, trust store and mTLS verifiers | spec 81 | shared with the proxy |
+| The `Env` bundle and the `IdSource` | spec 84 | shared with the proxy |
+| The fetch transport for the Worker and the browser | spec 85 | shared with every wasm transport user |
+| `Secret`, `constant_time_eq` and the bearer parser | spec 86 | this specification adds no other copy |
+| The CA, the trust store, the mTLS verifiers and the mTLS providers | spec 87 | shared with the proxy |
+| Transport facts (peer facts, deadlines) and migration groups | spec 80 | shared with the proxy |
+| Signed secrets, key files, the auth providers and the interceptor | spec 81 | shared with the proxy |
 | The manifest contract | spec 78 | read only by the installer and the registrar |
 | Install, systemd, Docker and bootstrap | spec 79 | |
 | Proxy registration authority and the registrar sidecar | spec 82 | |
@@ -128,19 +133,23 @@ The old spec 83 bundled the operator path with the server. The features moved as
 | 02 manifest installer | spec 78 (contract) and spec 79 (installer) |
 | 03 proxy registration | spec 82 feature 00 |
 | 04 registrar sidecar | spec 82 feature 01 |
-| 08 env and side effects | spec 80 feature 00 |
-| 09 transport prerequisites | spec 80 feature 01 |
-| 10 migration groups | spec 80 feature 02 |
-| 11 foundation auth | spec 81 feature 00 |
+| 08 env and side effects | spec 84 (the `Env` entry), spec 80 (the transport and migration parts) |
+| 09 transport prerequisites | spec 80 feature 00 |
+| 10 migration groups | spec 80 feature 01 |
+| 11 foundation auth | spec 81 feature 00 (primitives in spec 86, mTLS in spec 87) |
 
 ## 3. Specification order
 
-1. **Spec 80 must land first.** The core takes its clock, timer, entropy, IDs and migrations from
-   it.
-2. **Spec 81 must land first.** The client auth providers and the bootstrap secret come from it.
-3. **This specification is independent of 78, 79 and 82.** The server can run without the
+1. **Specs 84, 85, 86 and 87 must land first.** Spec 84 holds the `Env` entry and the
+   `IdSource`. Spec 85 holds the fetch transport. Spec 86 holds `Secret` and the bearer
+   parser. Spec 87 holds the CA, the trust store and the mTLS providers.
+2. **Spec 80 must land first.** The core takes its peer facts, its deadlines and its
+   migrations from it.
+3. **Spec 81 must land first.** The signed-secret provider, the key files and the interceptor
+   come from it.
+4. **This specification is independent of 78, 79 and 82.** The server can run without the
    installer or the registrar. A deployment that uses them adds them in that order.
-4. **Inside this specification:** 00, 01 and 02 are complete. 03 (core) runs before 04 (native
+5. **Inside this specification:** 00, 01 and 02 are complete. 03 (core) runs before 04 (native
    host) and 05 (Worker host). 06 (Cloudflare host) runs after 05, and after spec 77 features 07
    (Cloudflare container control) and 08 (deployment). 08 (key protection) runs last.
 
@@ -151,10 +160,10 @@ The old spec 83 bundled the operator path with the server. The features moved as
 | 00 | [WASM and CF-Workers Readiness](./features/00-foundation/feature.md) | Make `foundation_ai` and its dependencies compile and run on `wasm32-unknown-unknown`; verify with miniflare and Cloudflare | None (extends completed spec 28) | 🔧 6/7 (T7 needs credentials) |
 | 01 | [Agent RPC Model Server](./features/01-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing secret → mTLS auth | None | ✅ Complete |
 | 02 | [WASM Lazy Streaming](./features/02-wasm-async-streaming/feature.md) | Parking `into_future_stream`, lazy wasm `send_sse`, `SseProgress::Failed`; remove the wasm-unsafe blocking path | 00 | ✅ Complete |
-| 03 | [Agent RPC Core](./features/03-agent-rpc-core/feature.md) | `agent.proto`, model catalog, `InstanceRegistry` trait, transport-agnostic service and enrollment handlers | 80, 81 | ⬜ Pending |
+| 03 | [Agent RPC Core](./features/03-agent-rpc-core/feature.md) | `agent.proto`, model catalog, `InstanceRegistry` trait, transport-agnostic service and enrollment handlers | 80, 81, 84, 86, 87 | ⬜ Pending |
 | 04 | [Native Host and DST](./features/04-native-host-and-dst/feature.md) | Native host (TCP/TLS, local models, Turso) and the deterministic simulation harness; the proof of concept works | 80, 81, 03 | ⬜ Pending |
-| 05 | [Worker Host and Web Client](./features/05-worker-host-and-web-client/feature.md) | Workers, one Durable Object per instance, browser client, R2 history archive | 80, 03 | ⬜ Pending |
-| 06 | [Cloudflare Host](./features/06-cloudflare/feature.md) | The agent-rpc Worker: end-to-end tests on Workers, the Workers AI path, and the native server in a Cloudflare container. Container control and deployment come from spec 77 | 00, 01, 05, 77 | ⬜ Pending |
+| 05 | [Worker Host and Web Client](./features/05-worker-host-and-web-client/feature.md) | Workers, one Durable Object per instance, browser client, R2 history archive | 80, 85, 03 | ⬜ Pending |
+| 06 | [Cloudflare Host](./features/06-cloudflare/feature.md) | The agent-rpc Worker: end-to-end tests on Workers, the Workers AI path, and the native server in a Cloudflare container. Container control, deployment and the `Platform` entry come from spec 77 | 00, 01, 05, 77, 87 | ⬜ Pending |
 | 07 | [Pluggable Agent RPC: landing](./features/07-pluggable-agent-rpc/feature.md) | Task T0 only: bring PR #126 onto master. The design is in `agent-rpc-architecture.md` | 01 | ✅ Landed (#126 on master) |
 | 08 | [Key Protection at Rest](./features/08-key-protection-at-rest/feature.md) | Key store over `foundation_db`; private keys encrypted at rest (KEK sources, WebCrypto, remote KMS); passphrase key files; rotation by `kid` | 81, 04 | 📝 Todo (last) |
 

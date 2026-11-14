@@ -6,24 +6,44 @@ Spec 83 bundled four missions. The Env bundle, the transport facts and the migra
 change shared crates that the proxy also uses. Keeping them in the agent RPC spec made the proxy
 spec depend on the agent RPC spec, which is the coupling the design forbids.
 
-The three features now have one owner. Both 65 and 82 depend on this spec.
+The features now have one owner. The agent RPC server (83), the proxy (82), the auth library
+(81) and mutual TLS (87) all depend on this spec.
 
-## Do not repeat spec 76
+## Why the `Env` bundle left this specification again (2026-11-15)
+
+The owner reviewed six conflicts on 2026-11-15. One of them was the `Env` design here: it
+described a second clock, an `IdSource` with two meanings and a bundle that did not match the
+`Ctx` that spec 76 had already landed. A consumer that read both designs could not tell which
+one was true.
+
+The owner direction: "Ctx should be the main means of all of such injection... lets create a
+small spec (featureless) that adds the bits into foundation_context then others get it by
+default."
+
+So the bundle is [spec 84](../84-context-injection/requirements.md) now. It is featureless,
+it extends `Ctx`, and it owns the one `Timer`, `EntropySource` and `IdSource`. This spec keeps
+only what is about the transport and the database.
+
+The lesson: a bundle of injected effects belongs next to the type that carries it, not in a
+specification about platforms. The two designs drifted while they had different owners.
+
+## Do not repeat spec 76 or spec 84
 
 Spec 76 already built `foundation_context::Ctx` with the clock, config and a seeded RNG, and
-moved about 600 sites. This spec adds the remaining delta:
+moved about 600 sites. Spec 84 adds the `Env` entry.
 
-- `EntropySource`, `IdSource` and `Timer` in the `Env` bundle.
-- The macro `env` argument.
-- foundation_ai IDs through `Env`.
-- connectrpc request extensions and the Env clock.
+This spec adds the remaining delta only:
+
+- connectrpc request extensions, and the deadline clock from `Ctx`.
 - foundation_http TLS peer facts.
 - Migration groups and `FleetRunner`.
 
-A second context type is a defect. Verify the baseline before writing code.
+A second context type is a defect. A second clock is a defect. Verify the baseline before
+writing code.
 
 ## Moved design files
 
-- `features/00-env-and-side-effects/env.md` — the full Env design.
-- `features/00-env-and-side-effects/deterministic-simulation-testing.md` — DST in plain words.
-- `features/02-migration-groups/migrations.md` — the migration-group design.
+- `features/01-migration-groups/migrations.md` — the migration-group design.
+
+The Env design and the deterministic-testing document are in
+`specifications/84-context-injection/`.

@@ -107,7 +107,7 @@ Idempotent verbs:        the ones of SandboxService
 Ordering pairs:          none
 Monotone values:         none
 Freeze points:           the path /ewe.sandbox.control.v1.SandboxService/<Method>; the content types
-Links to other entities: the bearer token rule of feature 02 (check_bearer)
+Links to other entities: the bearer check of feature 02 (section 6.10), built on `Secret` of spec 86
 ```
 
 ### 4.2 Invariants
@@ -180,7 +180,7 @@ Feature: Cloudflare Sandbox product support
 
   Scenario: A JSON call with no token is refused
     When a caller sends POST /ewe.sandbox.control.v1.SandboxService/List with no Authorization header
-    Then the answer is the HTTP status 401 and a JSON error body with the code "unauthenticated" (the Connect mapping of the check_bearer error of feature 02)
+    Then the answer is the HTTP status 401 and a JSON error body with the code "unauthenticated" (the Connect mapping of the `authorize` error of feature 02)
 ```
 
 ## 6. Technical breakdown
@@ -273,11 +273,11 @@ The document `docs/sandbox-cloudflare-product.md` has this table.
 | One sandbox = one DO and its container | One sandbox = one control-plane DO and its container (feature 07) | equal |
 | `container.start({ enableInternet })` | `SandboxSpec.network` (`None` or `Host`) | equal |
 | `container.start({ image })`, more than one image for each class | The image of the container class in the Worker configuration. One deployment has one image. | gap: the Rust `worker` crate has no image option |
-| `container.exec(argv, { cwd, env })` and `process.output()` | `Sandbox::exec`, `Sandbox::run` through the slave | equal |
+| `container.exec(argv, { cwd, env })` and `process.output()` | `SandboxHandle::exec`, `SandboxHandle::run` through the slave | equal |
 | `exec` with a terminal (`pty`) | none | gap (requirements section 7.3: interactive terminals) |
 | `Files.readFile`, `writeFile`, with Linux error names | `read_file`, `write_file`; errors of feature 00 | equal for read and write; the other `Files` calls are done with `exec` |
 | Inactivity time-out | The idle alarm of feature 07 | equal |
-| `container.destroy()` | `Sandbox::stop` | equal |
+| `container.destroy()` | `SandboxHandle::stop` | equal |
 | `getTcpPort(port).fetch` to a program in the sandbox | none for a caller; the control plane uses it for the slave only | gap (requirements section 7.3: port forwards) |
 | `snapshotContainer` | none | gap (requirements section 7.3: snapshots) |
 | `interceptOutboundHttp` | none | gap (requirements section 7.3: egress allow list) |

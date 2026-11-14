@@ -130,7 +130,7 @@ Links to other entities: attach finds it by its name
 ### 4.3 Must have
 
 - `DockerDriver`, `DockerDriverConfig`, `DockerApi`.
-- `ProviderId::DockerSandbox`, `SandboxProvider::docker`.
+- `ProviderId::DockerSandbox`, `SandboxDeploymentProvider::docker`.
 - `infrastructure/sandbox_control_image/` with a `Dockerfile` and a `compose.yaml`.
 - A capability field `network_none` (section 6.5).
 

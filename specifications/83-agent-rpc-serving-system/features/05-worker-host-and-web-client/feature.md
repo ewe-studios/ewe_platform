@@ -1,18 +1,18 @@
 ---
 feature: "Worker Host and Web Client"
-description: "agent-rpc on Cloudflare Workers (FetchServe, FetchTransport, DoSqlStore, one Durable Object per instance, the cf-agent-rpc example), the browser client, and the history archive to R2 on DestroyInstance."
+description: "agent-rpc on Cloudflare Workers (the host entry over spec 85's FetchServe, DoSqlStore, one Durable Object per instance, the cf-agent-rpc example), the browser client over spec 85's FetchTransport, and the history archive to R2 on DestroyInstance."
 status: "pending"
 priority: "medium"
-depends_on: ["80-platform-prerequisites/features/01-transport-prerequisites", "03-agent-rpc-core"]
+depends_on: ["specifications/85-wasm-fetch-transport", "specifications/80-platform-prerequisites", "03-agent-rpc-core"]
 part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
-last_updated: 2026-11-14
+last_updated: 2026-11-15
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 5
-  total: 5
+  uncompleted: 4
+  total: 4
   completion_percentage: 0
 ---
 
@@ -24,7 +24,7 @@ identifiers stay as they are._
 
 The design files of this feature are in this directory. The shared architecture, glossary and
 owner decisions are in [`agent-rpc-architecture.md`](../../agent-rpc-architecture.md). Task
-IDs keep their old numbers, so references such as "task T19" stay valid. The
+IDs keep their old numbers (T19 is now spec 85's task T2), so references such as "task T21" stay valid. The
 [glossary](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What this feature does
@@ -46,11 +46,15 @@ Not part of the native proof of concept. It can start once feature 03 is done.
 
 | Task | What | Main files | Done when |
 |---|---|---|---|
-| T19 | `FetchServe` and `FetchTransport` (wasm) | `foundation_connectrpc/src/wasm/*` | wasm fetch tests pass under Node |
 | T20 | `DoSqlStore`: `foundation_db` storage over a DO's SQL | `foundation_db` | contract tests pass under Miniflare |
-| T21 | Worker host: entry, instance DO, `DurableObjectRegistry`, `DoStubTransport`; `examples/cf-agent-rpc` | `host/worker/*` | the `cf-agent-rpc` Miniflare case passes |
-| T22 | Web client: `WebClient` over `FetchTransport`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
+| T21 | Worker host: entry, instance DO, `DurableObjectRegistry`; `examples/cf-agent-rpc` | `host/worker/*` | the `cf-agent-rpc` Miniflare case passes |
+| T22 | Web client: `WebClient`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
 | T26 | History archive to R2 on `DestroyInstance` (Worker and native) | `host/worker/object.rs`, `core/archive.rs` | the archive tests pass; a failed upload deletes nothing |
+
+Task T19 (`FetchServe`, `FetchTransport`) and the transport part of task T21
+(`DoStubTransport`) moved to [spec 85](../../../85-wasm-fetch-transport/requirements.md) on
+2026-11-15, so one specification owns the wasm fetch plumbing. This feature uses those types
+and writes no fetch pump. T21 here is the host wiring only.
 
 ## 4. Done when
 
@@ -58,4 +62,4 @@ The `cf-agent-rpc` Miniflare case passes. The web client tests pass in a headles
 
 ## 5. Pull requests
 
-Two PRs: T19 + T20 + T22, then T21 + T26 (was PR group G).
+Two PRs: T20 + T22, then T21 + T26 (was PR group G). T19 is spec 85's task T2.

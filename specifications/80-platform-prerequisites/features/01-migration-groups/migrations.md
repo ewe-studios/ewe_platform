@@ -1,6 +1,6 @@
 # Migrations: groups per database
 
-_Part of [feature 02](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 01](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** Structured Query Language (SQL); identifier (ID); Secure Hash
@@ -445,7 +445,7 @@ CREATE TABLE IF NOT EXISTS _migrations (
 One row for each applied migration. The rows of one group are the tracking records of that group.
 The reference document puts each pipeline's records in its own table; the owner chose one table
 with rows keyed by group, which gives the same isolation in one place. `applied_at` comes from
-`Env` (feature 00, `CLAUDE.md` rule 11), so a simulated test gives the same rows each run.
+`Env` (spec 84, root rule 11), so a simulated test gives the same rows each run.
 
 `MigrationRunner::record_checksums(store)` (task T25) fills empty checksums from the current SQL.
 An operator calls it after checking that the files did not change. A host can expose it as a

@@ -487,7 +487,7 @@ Spec 83 feature 06 (then "Cloudflare Deployment") and this spec said opposite th
 |---|---|---|
 | Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare`. |
 | Who owns the container surface? | The private `ContainerApi` of the Cloudflare DO (feature 07, section 6). | A public `ContainersDeploy` in `foundation_deployment_cloudflare`. |
-| Is there a handle for the container? | No. The `Sandbox` is the only handle. | No. `ContainersDeploy` takes a `ContainerSpec` with undefined fields. |
+| Is there a handle for the container? | No. The `SandboxHandle` is the only handle. | No. `ContainersDeploy` takes a `ContainerSpec` with undefined fields. |
 
 Both texts were correct about one artifact and wrong about the other. The owner merged them.
 
@@ -513,13 +513,13 @@ cannot fetch a port by itself, because the slave owns that path.
 
 ### 9.3 Why one handle, not two
 
-The `Sandbox` is the unit that runs programs. A container is a possible substrate under it.
+The `SandboxHandle` is the unit that runs programs. A container is a possible substrate under it.
 Two unconnected handles would let a caller start a container with no sandbox record, or
 destroy the substrate under a live sandbox. So the two are joined:
 
 - `ContainerControl::start` creates a container and returns a handle. It creates no sandbox
   record. A caller that only needs a container uses this.
-- `Sandbox::container()` and `SubstrateHandle::container()` return the container of a live
+- `SandboxHandle::container()` and `SubstrateHandle::container()` return the container of a live
   sandbox, or `None`. A sandbox caller never builds a second handle.
 - `ContainerHandle` methods that change state go through `ContainerOps`. On Cloudflare, the
   DO is the single writer (invariant I12). `destroy` on the substrate handle and on the
@@ -552,3 +552,60 @@ The DO already runs the control service that the sandbox slave talks to. A secon
 would add a second token, a second route and a second place to start a container. The
 feature uses the existing service with new methods instead (invariant I14).
 
+
+## 10. The handle doctrine and the six-conflict review (2026-11-15)
+
+The owner reviewed six conflicts across the plan and gave one direction for each. This section
+records the two rules that the review set for this specification.
+
+### 10.1 Every outside caller uses a handle that the `Ctx` gives it
+
+Owner direction: "Whether containers (docker, cloudflare,...etc), everything should be through
+a handle that whatever central wrapper over Ctx or exposed via Ctx.get provides and whatever is
+returned specifically provides the necessary methods to interact with the relevant underlying
+infrastructure... whether its using RPC internally or directly talks to the resource is not our
+concern. The benefit of this is, once sandbox is build, we just provide the Arc<SandboxProvider>
+to agent-rpc/agent-slave and it uses that and thats it, same for Containers and others."
+
+So two levels have the same shape:
+
+| Level | Factory | Handle |
+|---|---|---|
+| Sandbox | `SandboxProvider` | `SandboxHandle` |
+| Container | `ContainerControl` | `ContainerHandle` |
+
+The `Platform` typed entry carries `Arc<dyn SandboxProvider>` and
+`Option<Arc<dyn ContainerControl>>`. A boundary installs it; `agent-rpc` and `agent-slave` read
+it with the `CtxPlatform` extension trait and take the `Arc`. They do not start a sandbox, pick
+a driver or build a container control.
+
+The reason is a boundary rule, not a style rule. Without the entry, every consumer repeats the
+host detection, the driver order and the container control construction, and each copy can pick
+a different driver for the same host. With the entry, the boundary makes that decision once.
+
+### 10.2 One owner for each shared block
+
+The review found three blocks planned in two or three specifications at once: the wasm fetch
+pump, the secret and bearer check, and mutual TLS. Each block is now in one specification that
+lands before its consumers:
+
+| Block | Owner | Consumers here |
+|---|---|---|
+| The fetch pump, `FetchTransport`, `FetchServe`, `DoStubTransport` | Spec 85 | Features 07 and 08 |
+| `Secret`, `constant_time_eq`, the bearer parser | Spec 86 | Features 00 and 02 |
+| The CA, the trust store, the verifiers, the mTLS providers | Spec 87 | Feature 06 (native listener), question Q4 |
+| The `Env` entry and the `IdSource` trait | Spec 84 | Feature 02 (the id policy) |
+
+The lesson repeats the one from the `Env` split: a shared block that two specifications plan
+is a block that two implementations will write. One owner with a date is cheaper than a
+reconcile.
+
+### 10.3 Why the names changed
+
+| Old | New | Reason |
+|---|---|---|
+| `SandboxControl` | `SandboxProvider` | "Control" names the lower level in the container rows (`ContainerControl`). The sandbox level is the provider of sandboxes. |
+| `Sandbox` | `SandboxHandle` | The struct is the live object, not the concept. The handle doctrine names it that way. |
+| `SandboxProvider` (feature 06) | `SandboxDeploymentProvider` | It would clash with the control trait. It is a `Provider` facade for deployment, and its handle is `SandboxDeploymentHandle`. |
+| `IdSource` (feature 02 enum) | `SandboxIdPolicy` | `IdSource` is the spec 84 trait. Two types with one name across specifications is the defect the review removed. |
+| `check_bearer` | `authorize` over spec 86's `Secret` | The bearer parse and the constant-time compare are primitives, not sandbox code. |

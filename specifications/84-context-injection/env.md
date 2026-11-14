@@ -1,7 +1,26 @@
 # Side effects and the `Env` bundle
 
-_Part of [feature 00](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [spec 84](./requirements.md); the shared architecture is [agent-rpc-architecture.md](../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
+
+## Revision 2 (2026-11-15)
+
+The owner moved the effects into `foundation_context`, so that `Ctx` is the only injection
+mechanism. [requirements.md](./requirements.md) is the authority. Where this file and
+requirements.md disagree, requirements.md wins. The substitutions are:
+
+| This file says | Read now |
+|---|---|
+| `Env` in `foundation_core::env` | `Env` in `foundation_context::env`, and the builders in `foundation_core::env` |
+| `Env` holds the clock | `Env` holds no clock. `Ctx::clock()` is the one clock (spec 76) |
+| `Clock` in `foundation_compact::clock` | `Clock` in `foundation_context` (spec 76) |
+| `EntropySource`, `IdSource` in `foundation_compact` | The traits in `foundation_context::env`; the backends in `foundation_compact` |
+| `Timer` in `foundation_core::valtron` | The trait in `foundation_context::env`; `ValtronTimer` in `foundation_core` |
+| `Env::system()`, `Env::simulated(seed)` with no argument | `foundation_core::env::system(&ctx)`, `simulated(&ctx, seed)` |
+| `Timer::sleep_until(&self, deadline)` | `Timer::sleep_until(&self, ctx: Ctx, deadline)` (no stored `Ctx`) |
+
+The rest of the file is the original design and stays valid: the reasoning for one bundle, the
+traits of each effect, the lint, the host wiring and the tests.
 
 **Abbreviations in this file.** random number generator (RNG); identifier (ID);
 deterministic simulation testing (DST); remote procedure call (RPC); WebAssembly (wasm);
@@ -15,7 +34,7 @@ Query Language (SQL); Hypertext Transfer Protocol (HTTP); JavaScript Object Nota
 store (KV); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
 STE standard ASD-STE100. D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
 abbreviations. The
-[glossary in feature.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
+[glossary in agent-rpc-architecture.md](../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What a side effect is
 
@@ -1023,7 +1042,7 @@ Some libraries read randomness themselves. This table says which steps can use t
 | Time in JWT checks | `jwt-simple` | its own clock (`coarsetime`) | yes, with a change | Set `VerificationOptions::artificial_time` from `Env::wall_now()` on each check. |
 
 `p256` and `ed25519-compact` are pure Rust. `jwt-simple` already brings them into the
-dependency graph, and both build for wasm. [auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) shows the signer code.
+dependency graph, and both build for wasm. [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) shows the signer code.
 
 ## 9. The input/output seams
 

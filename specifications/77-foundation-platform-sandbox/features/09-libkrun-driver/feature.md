@@ -526,7 +526,7 @@ records the date, the host and the libkrun version. The Linux run is added to th
 
 - Each scenario of section D and each row of section 7 passes; the real microVM tests pass
   on Linux with KVM and on macOS with Apple silicon, and `progress.md` records both runs.
-- `ProviderId::Libkrun` and `SandboxProvider::libkrun(control)` exist
+- `ProviderId::Libkrun` and `SandboxDeploymentProvider::libkrun(control)` exist
   (`foundation_deployment_platform`), with one test on the simulated manager.
 - `agent-sandbox` has the libkrun driver when it is built with the feature, and
   `agent-sandbox doctor` shows its report.

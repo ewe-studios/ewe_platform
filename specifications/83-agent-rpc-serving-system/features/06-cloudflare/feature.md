@@ -6,7 +6,7 @@ priority: "high"
 depends_on: ["77-foundation-platform-sandbox", "05-worker-host-and-web-client", "07-pluggable-agent-rpc", "00-foundation", "01-agent-rpc"]
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-11-14
+last_updated: 2026-11-15
 author: "Main Agent"
 tasks:
   completed: 0
@@ -39,7 +39,7 @@ Europe (ASD), the owner of the STE standard ASD-STE100.
 | Durable Object | A Cloudflare object with an identity and its own storage. One DO instance runs one agent instance. |
 | Containers | The Cloudflare product that runs a normal Linux container. The full native agent-rpc runs there. |
 | Workers AI | Cloudflare's hosted model service. |
-| F24 fetch transport | The `foundation_connectrpc` client transport over `fetch`. Feature 07 names it `FetchTransport`. |
+| F24 fetch transport | The `foundation_connectrpc` client transport over `fetch`. It is spec 85's `FetchTransport`. |
 | `dispatch_cf` | The `foundation_http` function that hands a Worker `fetch` event to a router. |
 | `ContainerHandle` | The spec 77 type that talks to one live container: fetch a port, exec a command, signal, wait, stop, destroy. |
 | `ContainerControl` | The spec 77 factory that starts and gets a `ContainerHandle`. |
@@ -92,6 +92,18 @@ _Wait for spec 77 features 07 and 08 before this feature starts._
 | A command | `ContainerHandle::exec`, `signal`, `stop`, `destroy` | Control the native server lifecycle. |
 | A deploy | `CloudflareDeployer::deploy` with a `DeploymentPlan` | Deploy the agent-rpc Worker with its DO class, bindings, secrets and container. |
 | An image | `ContainerImage` in `DeploymentPlan` | Set the image tag of the native agent-rpc. |
+| The controls | `Platform` in the `Ctx` (spec 77 requirements section 6.0) | The DO and the Worker read `ctx.platform()`. They never build a container control or a sandbox provider of their own. |
+
+The `Platform` entry is the rule of the owner direction of 2026-11-15: a caller gets a handle
+from the `Ctx` and uses it, and it does not matter whether the handle crosses an RPC boundary.
+So `AgentContainer::start` takes the `Ctx`, not a control:
+
+```rust
+impl AgentContainer {
+    /// Reads `Platform` from `ctx` and starts the native server container.
+    pub async fn start(ctx: &Ctx, image: String) -> SandboxResult<Self>;
+}
+```
 
 The agent-rpc plan is not the sandbox plan. It names its own Worker, its own DO class and its
 own bindings. Both plans go to the same deployer, so both paths (Rust and `wrangler`) stay
@@ -281,15 +293,15 @@ _The diagram shows one streamed answer through the Worker, from Workers AI or fr
 pub fn wasm_worker_entry(env: Env) -> CfServe; // wires Router into dispatch_cf
 
 // foundation_connectrpc: F24 fetch transport
-pub struct WasmFetchTransport { /* FetchHttpClient + endpoint */ }
-impl Transport for WasmFetchTransport { /* Connect client over fetch */ }
+// spec 85's type; this crate builds it, it does not define it.
+pub type WasmFetchTransport = foundation_connectrpc::wasm::FetchTransport<GlobalFetcher>;
 
 // foundation_agent_rpc: the agent-rpc container, through the spec 77 handle
 pub struct AgentContainer { pub handle: ContainerHandle }
 
 impl AgentContainer {
-    pub async fn start(control: Arc<dyn ContainerControl>, ctx: Ctx, image: String)
-        -> SandboxResult<Self>;
+    /// The control comes from `ctx.platform()` (spec 77 section 6.0).
+    pub async fn start(ctx: &Ctx, image: String) -> SandboxResult<Self>;
     pub async fn call(&self, port: u16, request: PortRequest)
         -> SandboxResult<PortResponse>;
     pub async fn stop(&self, grace: Duration) -> SandboxResult<SubstrateExit>;

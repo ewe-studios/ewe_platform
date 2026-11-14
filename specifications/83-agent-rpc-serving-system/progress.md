@@ -39,9 +39,9 @@ The 2026-11-14 split moved features and their history:
 | 02 manifest installer | spec 79 | `../79-manifest-installer/progress.md` |
 | 03 proxy registration | spec 82 feature 00 | `../82-proxy-registration-and-registrar/progress.md` |
 | 04 registrar sidecar | spec 82 feature 01 | same file |
-| 08 env and side effects | spec 80 feature 00 | `../80-platform-prerequisites/progress.md` |
-| 09 transport prerequisites | spec 80 feature 01 | same file |
-| 10 migration groups | spec 80 feature 02 | same file |
+| 08 env and side effects | spec 84 (`Env`, `IdSource`), spec 80 (transport and migrations) | `../84-context-injection/progress.md`; `../80-platform-prerequisites/progress.md` |
+| 09 transport prerequisites | spec 80 feature 00 | `../80-platform-prerequisites/progress.md` |
+| 10 migration groups | spec 80 feature 01 | same file |
 | 11 foundation auth | spec 81 feature 00 | `../81-foundation-auth/progress.md` |
 
 The design files moved with their features. Spec 78 owns the manifest contract.

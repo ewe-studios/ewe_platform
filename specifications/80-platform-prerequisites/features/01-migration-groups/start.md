@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/80-platform-prerequisites"
-feature_directory: "specifications/80-platform-prerequisites/features/02-migration-groups"
-this_file: "specifications/80-platform-prerequisites/features/02-migration-groups/start.md"
+feature_directory: "specifications/80-platform-prerequisites/features/01-migration-groups"
+this_file: "specifications/80-platform-prerequisites/features/01-migration-groups/start.md"
 created: 2026-11-14
 ---
 

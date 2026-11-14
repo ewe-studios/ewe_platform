@@ -10,23 +10,31 @@ created: 2026-11-14
 
 ## Agent Workflow
 
-1. Read `feature.md` (tasks T5 and T7 to T11).
-2. Read `auth.md` (the full design; 15 sections).
-3. Read `../../requirements.md` (what this library owns and what stays out).
-4. Read `../../../80-platform-prerequisites/requirements.md` and the Env feature (entropy, IDs,
-   transport facts, migrations).
-5. Read `../../LEARNINGS.md`.
-6. Read `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md` and
+1. Read `feature.md` (tasks T5, T7 and T11).
+2. Read `auth.md` (the full design; 15 sections). Sections 5, 6, 7, 8.1 and 8.3 are pointers to
+   spec 86 and spec 87.
+3. Read `../../requirements.md` (what this library owns and what it does not).
+4. Read `../../../86-auth-primitives/requirements.md` section 3. The trait and the result types
+   come from there.
+5. Read `../../../87-mutual-tls/requirements.md` section 4. The CA, the trust store, the
+   verifiers and the mTLS providers come from there.
+6. Read `../../../84-context-injection/requirements.md` section 3 and
+   `../../../80-platform-prerequisites/requirements.md` (entropy, IDs, transport facts,
+   migrations).
+7. Read `../../LEARNINGS.md`.
+8. Read `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md` and
    `.agents/skills/rust-valtron-usage/skill.md`.
-7. Work on one task at a time, test first, tests in `backends/foundation_auth/tests/`.
-8. Report, verify, commit; update `../../progress.md` and `../../LEARNINGS.md`.
+9. Work on one task at a time, test first, tests in `backends/foundation_auth/tests/`.
+10. Report, verify, commit; update `../../progress.md` and `../../LEARNINGS.md`.
 
 **Boundary:** this feature adds the server credential modules. It does not change the existing
-OAuth, OIDC, JWT and session modules. Key protection at rest stays in spec 83 feature 08.
+OAuth, OIDC, JWT and session modules, and it does not edit `pki/`, `trust/` or `mtls/` (spec
+87 owns them). Key protection at rest stays in spec 83 feature 08.
 
-**Done when:** the five modules in `requirements.md` section 4 exist, a signed secret verifies
-with the public key only, and no secret or key appears in `Debug` output.
+**Done when:** a signed secret verifies with the public key only, the provider set includes the
+spec 87 mTLS providers, and no secret or key appears in `Debug` output.
 
 ---
 
 _Created: 2026-11-14_
+_Revised: 2026-11-15 (primitives moved to spec 86; mTLS moved to spec 87)._

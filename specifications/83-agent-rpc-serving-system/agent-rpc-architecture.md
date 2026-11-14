@@ -57,10 +57,13 @@ Each feature holds its own design files. This file holds only what the features 
 |---|---|---|
 | This file | — | Overview, glossary, architecture, owner directions, breaking changes, migration, testing strategy, the feature list and order, owner decisions, open questions, how to work |
 | [65.07 Bring #126 onto master](./features/07-pluggable-agent-rpc/feature.md) (landed) | — | Task T0 only |
-| [80.00 Env and side effects](../80-platform-prerequisites/features/00-env-and-side-effects/feature.md) | [`env.md`](../80-platform-prerequisites/features/00-env-and-side-effects/env.md), [`deterministic-simulation-testing.md`](../80-platform-prerequisites/features/00-env-and-side-effects/deterministic-simulation-testing.md) | Side effects, the `Env` bundle, valtron's `Ctx`, the lint; DST in plain words |
-| [80.01 Transport prerequisites](../80-platform-prerequisites/features/01-transport-prerequisites/feature.md) | — (small; the feature file says what to change) | connectrpc request extensions and clock; TLS peer certificates |
-| [80.02 Migration groups](../80-platform-prerequisites/features/02-migration-groups/feature.md) | [`migrations.md`](../80-platform-prerequisites/features/02-migration-groups/migrations.md) | Migrations per database, as ordered groups, each numbered from 1 and recorded by group |
-| [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | [`auth.md`](../81-foundation-auth/features/00-foundation-auth/auth.md) | Signed secrets, operator key files, CA, trusted clients, mTLS, client auth providers, security |
+| [84 Context injection](../84-context-injection/requirements.md) | [`env.md`](../84-context-injection/env.md), [`deterministic-simulation-testing.md`](../84-context-injection/deterministic-simulation-testing.md) | The `Env` bundle in `Ctx`: timer, entropy and id source; the builders; the lint; DST in plain words |
+| [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | — (small; the feature file says what to change) | connectrpc request extensions and clock; TLS peer certificates |
+| [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | [`migrations.md`](../80-platform-prerequisites/features/01-migration-groups/migrations.md) | Migrations per database, as ordered groups, each numbered from 1 and recorded by group |
+| [85 Wasm fetch transport](../85-wasm-fetch-transport/requirements.md) | [`fetch.md`](../85-wasm-fetch-transport/fetch.md) | `FetchTransport`, `FetchServe`, `DoStubTransport`, the body pump, the out-of-crate changes |
+| [86 Auth primitives](../86-auth-primitives/requirements.md) | — | `Secret`, `constant_time_eq`, the bearer parser, `ClientAuth`, `AuthInfo`, `StaticToken` |
+| [87 Mutual TLS](../87-mutual-tls/requirements.md) | [`mtls.md`](../87-mutual-tls/mtls.md) | The CA, the trust store, the rustls verifiers, the mTLS providers |
+| [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | [`auth.md`](../81-foundation-auth/features/00-foundation-auth/auth.md) | Signed secrets, operator key files, the provider set, the interceptor |
 | [65.03 Agent RPC core](features/03-agent-rpc-core/feature.md) | [`proto.md`](features/03-agent-rpc-core/proto.md), [`registry-and-models.md`](features/03-agent-rpc-core/registry-and-models.md) | The wire contract; model catalog, kinds and devices, the instance registry |
 | [65.04 Native host and DST](features/04-native-host-and-dst/feature.md) | [`hosts.md`](features/04-native-host-and-dst/hosts.md) | What each host gives the core, Cargo features, the native host, the native client |
 | [65.05 Worker host and web client](features/05-worker-host-and-web-client/feature.md) | [`worker-and-web.md`](features/05-worker-host-and-web-client/worker-and-web.md) | The Worker host, Durable Objects, the web client, the R2 archive |
@@ -384,8 +387,8 @@ sure each secret is used only as often as allowed._
 | 5 | `mark_seen` out of the TLS verifier | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 7; section 4.1 here |
 | 6 | Capabilities endpoint and instance kinds | [proto.md](features/03-agent-rpc-core/proto.md); [registry-and-models.md](features/03-agent-rpc-core/registry-and-models.md) section 2 |
 | 7 | Candle device: CPU or GPU | [registry-and-models.md](features/03-agent-rpc-core/registry-and-models.md) section 2.5 |
-| 8 | Side effects as traits, for DST and mocks | [env.md](../80-platform-prerequisites/features/00-env-and-side-effects/env.md); [deterministic-simulation-testing.md](../80-platform-prerequisites/features/00-env-and-side-effects/deterministic-simulation-testing.md) |
-| 9 | The bundle in valtron's `Ctx` as a typed entry | [env.md](../80-platform-prerequisites/features/00-env-and-side-effects/env.md) sections 5 and 6 |
+| 8 | Side effects as traits, for DST and mocks | [env.md](../84-context-injection/env.md); [deterministic-simulation-testing.md](../84-context-injection/deterministic-simulation-testing.md) |
+| 9 | The bundle in valtron's `Ctx` as a typed entry | [env.md](../84-context-injection/env.md) sections 5 and 6 |
 
 ## 6. Configuration
 
@@ -483,70 +486,72 @@ rest) is last, and starts only after the proof of concept works.
 | Feature | Tasks | What | Proof of concept |
 |---|---|---|---|
 | [07 Bring #126 onto master](./features/07-pluggable-agent-rpc/feature.md) | T0 | Merge `master` into `65-f01-agent-rpc`; adapt to async storage and async `AgentSession` | yes |
-| [80.00 Env and side effects](../80-platform-prerequisites/features/00-env-and-side-effects/feature.md) | T1, T2, T12 | `Clock`, `EntropySource`, `IdSource`, the `Env` bundle in valtron `Ctx`, the macro argument, `foundation_ai` on `Env` | yes |
-| [80.01 Transport prerequisites](../80-platform-prerequisites/features/01-transport-prerequisites/feature.md) | T3, T4 | connectrpc keeps request extensions and uses the `Env` clock; `foundation_http` reports the TLS peer certificate | yes |
-| [80.02 Migration groups](../80-platform-prerequisites/features/02-migration-groups/feature.md) | T25 | Migration groups per database, from code or directories; `FleetRunner` | yes |
-| [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | T5, T7, T8, T9, T10, T11 | Signed secrets, operator key files, CA, trusted clients, mTLS, client auth providers | yes |
+| [84 Context injection](../84-context-injection/requirements.md) | T1 to T6 | The `Env` bundle in `Ctx`, the builders, the `SandboxIdPolicy` rename, the lint | yes |
+| [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | T3, T4 | connectrpc keeps request extensions and uses the `Ctx` clock; `foundation_http` reports the TLS peer certificate | yes |
+| [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | T25 | Migration groups per database, from code or directories; `FleetRunner` | yes |
+| [85 Wasm fetch transport](../85-wasm-fetch-transport/requirements.md) | T1 to T5 | The fetch plumbing that feature 05 and spec 77 use | no |
+| [86 Auth primitives](../86-auth-primitives/requirements.md) | T1 to T6 | The trait, the result types, `Secret`, the bearer parser | yes |
+| [87 Mutual TLS](../87-mutual-tls/requirements.md) | T1 to T6 | The CA, the trust store, the verifiers, the mTLS providers | yes |
+| [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | T5, T7, T11 | Signed secrets, operator key files, the provider set, the interceptor | yes |
 | [65.03 Agent RPC core](features/03-agent-rpc-core/feature.md) | T13, T14, T15, T16 | `agent.proto`, model catalog, instance registry, service and enrollment handlers | yes |
 | [65.04 Native host and DST](features/04-native-host-and-dst/feature.md) | T17, T18 | The native host and the simulation harness. **Done here = the proof of concept works** | yes |
-| [65.05 Worker host and web client](features/05-worker-host-and-web-client/feature.md) | T19, T20, T21, T22, T26 | Workers, Durable Objects, the browser client, the R2 history archive | no |
+| [65.05 Worker host and web client](features/05-worker-host-and-web-client/feature.md) | T20, T21, T22, T26 | Workers, Durable Objects, the browser client, the R2 history archive | no |
 | [15 Key protection at rest](features/08-key-protection-at-rest/feature.md) | K1 to K6 (were T6, T23, T24) | Key store, encryption at rest, KMS, rotation by `kid`. Status: todo | no (last) |
 
 ### 10.1 Order of the features
 
 ```mermaid
 flowchart LR
-    N80_00[80.00 Env] --> N80_01[80.01 Transport]
-    N80_00 --> N81_00[81.00 Auth]
-    N80_01 --> N81_00
-    N80_02[80.02 Migrations] --> N81_00
-    N80_00 --> N03[65.03 Core]
+    N84[84 Context injection] --> N86[86 Auth primitives]
+    N86 --> N87[87 Mutual TLS]
+    N86 --> N85[85 Wasm fetch]
+    N84 --> N80[80 Prerequisites]
+    N80 --> N81_00[81.00 Auth]
+    N86 --> N81_00
+    N87 --> N81_00
+    N84 --> N03[65.03 Core]
     N81_00 --> N03
-    N80_01 --> N04[65.04 Native host + DST]
+    N80 --> N04[65.04 Native host + DST]
+    N87 --> N04
     N81_00 --> N04
     N03 --> N04
-    N80_01 --> N05[65.05 Worker + web]
+    N85 --> N05[65.05 Worker + web]
+    N80 --> N05
     N03 --> N05
     N04 --> N08[65.08 Key protection]
     N05 -.-> N08
 ```
 
-_The diagram shows which feature must finish before another starts. Feature 08 waits for the
-proof of concept (feature 04); the dashed line means it also covers the Worker when feature 05 is
+_The diagram shows which specification or feature must finish before another starts. The auth
+primitives (86) come before the mTLS library (87), the fetch plumbing (85) before the Worker
+host, and the `Env` bundle (84) before everything that reads it. Feature 08 waits for the proof
+of concept (feature 04); the dashed line means it also covers the Worker when feature 05 is
 done. Feature 07 has landed and is not in the diagram._
 
 ### 10.2 Order of the tasks
 
 ```mermaid
 flowchart LR
-    T0 --> T1 --> T2
-    T2 --> T3
-    T2 --> T5
-    T5 --> T7 --> T8
-    T7 --> T9
-    T8 --> T10
-    T9 --> T10
+    T3 --> T5
+    T5 --> T7
     T5 --> T11
-    T9 --> T11
+    T7 --> T11
     T3 --> T11
-    T2 --> T12
     T13 --> T14 --> T15 --> T16
     T11 --> T16
-    T12 --> T16
     T4 --> T17
-    T10 --> T17
     T16 --> T17
     T16 --> T18
-    T3 --> T19
-    T16 --> T21
-    T19 --> T21
     T20 --> T21
-    T19 --> T22
-    T25 --> T9
     T21 --> T26
 ```
 
 _The diagram shows which task must finish before another task starts._
+
+The tasks that moved to another specification are not in this diagram: T1, T2 and T12 are
+spec 84's tasks T1 to T6; T8, T9 and T10 are spec 87's tasks T1 to T3; T19 and the transport
+part of T21 are spec 85's tasks T2 and T3; T25 is feature 80.01's task. T3 and T4 need spec 84
+and spec 80 first.
 
 ## 11. Owner decisions (2026-10-22, 2026-10-25 and 2026-10-27)
 
@@ -560,10 +565,10 @@ The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come fro
 | 4 | JWT provider | **Ship `JwtAuth` in this feature**, behind a feature flag | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 8 |
 | 5 | History on `DestroyInstance` | **Archive to R2**, then delete the DO storage | [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5.12 |
 | 6 | Model provider API keys | **Worker secrets or Secrets Store secrets**; never in vars, D1, KV or logs | [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5.11 |
-| 7 | Postgres | **Only if it is not too much work.** It is a sizable job (section 11.1), so it is **not part of this feature**. The owner also asked for directory migrations: **yes**, task T25 | [migrations.md](../80-platform-prerequisites/features/02-migration-groups/migrations.md) |
+| 7 | Postgres | **Only if it is not too much work.** It is a sizable job (section 11.1), so it is **not part of this feature**. The owner also asked for directory migrations: **yes**, task T25 | [migrations.md](../80-platform-prerequisites/features/01-migration-groups/migrations.md) |
 | 8 | Rename timing | **Wait** for the rename PR (`Async*` to plain names) to merge, then start | section 1.5 |
 | 9 | Bootstrap payload versions (2026-10-25) | **No version field.** One `url` for every host; the client derives TLS trust from the fingerprint and access from the token purpose | [proto.md](features/03-agent-rpc-core/proto.md) section 6 |
-| 10 | Migration layout (2026-10-25) | **Groups per database**: a shared group, then specific groups, each numbered from 1 and recorded by group. No number ranges per crate | [migrations.md](../80-platform-prerequisites/features/02-migration-groups/migrations.md) |
+| 10 | Migration layout (2026-10-25) | **Groups per database**: a shared group, then specific groups, each numbered from 1 and recorded by group. No number ranges per crate | [migrations.md](../80-platform-prerequisites/features/01-migration-groups/migrations.md) |
 | 11 | Secret setup for the proof of concept (2026-10-27) | **Simple first.** The operator makes each private key with `ssh-keygen` or `openssl`; the host loads it from a file, an environment variable or a Worker secret, and uses it. The host does not make, seal, store or rotate keys. The key store, encryption at rest, remote KMS and rotation by `kid` move to the deferred spec 83 feature 08 | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 4; [spec 83 feature 08](features/08-key-protection-at-rest/feature.md) |
 
 ### 11.1 Why Postgres is a separate feature
@@ -587,7 +592,7 @@ client. We record it as a separate feature for spec 50 (storage), after this one
 
 1. ~~Migration number ranges.~~ **Resolved** by owner decision 10: migrations are groups per
    database, each numbered from 1 and recorded by group. There are no number ranges and no
-   record table per component. [migrations.md](../80-platform-prerequisites/features/02-migration-groups/migrations.md) has the design and its own open
+   record table per component. [migrations.md](../80-platform-prerequisites/features/01-migration-groups/migrations.md) has the design and its own open
    questions.
 2. ~~Remote KMS order.~~ **Moved** to the deferred [spec 83 feature 08](features/08-key-protection-at-rest/feature.md)
    by decision 11. The recommendation there stays: Vault Transit, then AWS KMS, then GCP Cloud KMS.
@@ -612,7 +617,7 @@ client. We record it as a separate feature for spec 50 (storage), after this one
    (write in STE) are central to this work.
 2. This file: overview, glossary, architecture, the feature list (section 10), open questions.
    Then the `feature.md` of the feature you work on, and its design files.
-3. [`deterministic-simulation-testing.md`](../80-platform-prerequisites/features/00-env-and-side-effects/deterministic-simulation-testing.md): why every
+3. [`deterministic-simulation-testing.md`](../84-context-injection/deterministic-simulation-testing.md): why every
    side effect is a trait.
 4. The design file of your feature (section 1.2 lists them).
 5. [`progress.md`](./progress.md) and [`LEARNINGS.md`](./LEARNINGS.md) for the state of spec 83.
