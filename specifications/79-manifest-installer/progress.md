@@ -6,11 +6,11 @@ _Last updated: 2026-11-14._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — manifest installer | ⏳ 0/10, design complete | Moved from spec 65 feature 02 |
+| 00 — manifest installer | ⏳ 0/10, design complete | Moved from spec 83 feature 02 |
 
 ## What moved
 
-- The installer feature moved from `specifications/65-agent-rpc-serving-system/features/02-manifest-installer`
+- The installer feature moved from `specifications/83-agent-rpc-serving-system/features/02-manifest-installer`
   to `features/00-manifest-installer`.
 - The manifest format (§4.1) now lives in spec 78. The installer feature keeps its own Rust
   types and points to 78 for the rules and fixtures.

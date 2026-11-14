@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/65-agent-rpc-serving-system"
-feature_directory: "specifications/65-agent-rpc-serving-system/features/03-agent-rpc-core"
-this_file: "specifications/65-agent-rpc-serving-system/features/03-agent-rpc-core/start.md"
+spec_directory: "specifications/83-agent-rpc-serving-system"
+feature_directory: "specifications/83-agent-rpc-serving-system/features/03-agent-rpc-core"
+this_file: "specifications/83-agent-rpc-serving-system/features/03-agent-rpc-core/start.md"
 created: 2026-11-14
 ---
 

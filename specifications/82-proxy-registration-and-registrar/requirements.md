@@ -109,7 +109,7 @@ _The diagram shows the sidecar reading the manifest, watching the app, and repor
 5. **Feature 01's end-to-end task needs spec 79.** Discovery reads the marks that the installer
    writes. The sidecar can be built and tested against a fake registration server before the
    installer exists; only the final end-to-end test needs it.
-6. **This specification unblocks nothing.** It is the last piece of the operator path; spec 65's
+6. **This specification unblocks nothing.** It is the last piece of the operator path; spec 83's
    RPC server can run without it.
 
 ## 3. Feature index
@@ -120,7 +120,7 @@ _The diagram shows the sidecar reading the manifest, watching the app, and repor
 | 01 | [Registrar Sidecar](./features/01-registrar-sidecar/feature.md) | `ManifestView`; discovery by marks; Kubernetes-style startup, liveness and readiness probes; metrics from cgroup v2 and Docker stats; the registration client and the reconcile loop; `ewe-registrar` | Feature 00; end to end also spec 79 | ⬜ Pending |
 
 The features keep tasks T1 to T11 (feature 00) and T1 to T10 (feature 01) from the original
-spec 65 features 03 and 04.
+spec 83 features 03 and 04.
 
 ## 4. Requirements conversation summary
 
@@ -196,7 +196,7 @@ atomic step. A request reads one snapshot for its whole life. A generation numbe
 router discard a snapshot that an old report built. No request sees a half-built table.
 
 **Two independent auth links.** The proxy checks the *sidecar* certificate. The app checks its
-*client* credential (spec 65 or its own). The proxy does not read the client credential. The
+*client* credential (spec 83 or its own). The proxy does not read the client credential. The
 sidecar does not read the client credential either.
 
 ## 6. Success criteria (spec-wide)
@@ -216,9 +216,9 @@ sidecar does not read the client credential either.
 ## 7. Out of scope
 
 - **Client TLS policy and certificates.** The proxy's existing TLS and ACME code owns them.
-- **The app's own client auth.** Spec 65 owns it.
+- **The app's own client auth.** Spec 83 owns it.
 - **Cloudflare D1 replication, region routing and Durable Object sharding.** The owner will
-  discuss these first; the notes are in spec 65 `resources/`.
+  discuss these first; the notes are in spec 83 `resources/`.
 - **Cross-org proxy federation.** One proxy has one registration trust domain.
 - **Postgres.** The proxy's state store is unchanged.
 
@@ -239,7 +239,7 @@ sidecar does not read the client credential either.
 - `specifications/completed/63-connectrpc-proxy/` — the proxy that this spec builds on.
 - `specifications/78-manifest-contract/requirements.md` — the `proxy` and `probes` blocks.
 - `specifications/81-foundation-auth/` — enrollment, CA, trust store and mTLS.
-- `specifications/65-agent-rpc-serving-system/` — the app that the end-to-end test installs.
+- `specifications/83-agent-rpc-serving-system/` — the app that the end-to-end test installs.
 
 ---
 

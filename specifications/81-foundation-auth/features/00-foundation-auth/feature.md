@@ -4,7 +4,7 @@ description: "Signed secrets (v1 and v2), operator key files (proof of concept),
 status: "pending"
 priority: "high"
 depends_on: ["80-platform-prerequisites/features/00-env-and-side-effects", "80-platform-prerequisites/features/01-transport-prerequisites", "80-platform-prerequisites/features/02-migration-groups"]
-part_of: "specifications/65-agent-rpc-serving-system/agent-rpc-architecture.md"
+part_of: "specifications/83-agent-rpc-serving-system/agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
 last_updated: 2026-11-14
@@ -23,13 +23,13 @@ thing). Written in ASD-STE100 Simplified Technical English (STE). Code and
 identifiers stay as they are._
 
 The design files of this feature are in this directory. The shared architecture, glossary and
-owner decisions are in [`agent-rpc-architecture.md`](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md). Task
+owner decisions are in [`agent-rpc-architecture.md`](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Task
 IDs keep their old numbers, so references such as "task T5" stay valid. The
-[glossary](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
+[glossary](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What this feature does
 
-The auth code moves out of agent-rpc into `foundation_auth`, on top of `foundation_db`, so other services can use it. The proof of concept loads operator key files (decision 11); key protection at rest is [spec 65 feature 08](../../../65-agent-rpc-serving-system/features/08-key-protection-at-rest/feature.md).
+The auth code moves out of agent-rpc into `foundation_auth`, on top of `foundation_db`, so other services can use it. The proof of concept loads operator key files (decision 11); key protection at rest is [spec 83 feature 08](../../../83-agent-rpc-serving-system/features/08-key-protection-at-rest/feature.md).
 
 Part of the agent-rpc proof of concept.
 
@@ -38,8 +38,8 @@ Part of the agent-rpc proof of concept.
 | Design file | Sections |
 |---|---|
 | [auth.md](./auth.md) | the whole file; section 4 for the operator key files |
-| [agent-rpc-architecture.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
-| [agent-rpc-architecture.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
+| [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
+| [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
 
 ## 3. Tasks
 

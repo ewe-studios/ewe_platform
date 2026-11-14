@@ -4,7 +4,7 @@
 
 //! `foundation_ai` agentic layer on Cloudflare Workers, served through the
 //! `foundation_http` `dispatch_cf` path + a shared `Router`, with Workers AI as
-//! the model provider (spec 65 T5, `cf-agent-loop`).
+//! the model provider (spec 83 T5, `cf-agent-loop`).
 //!
 //! `CfServe`/`CfConn` buffer the response (no streaming at this layer), so the
 //! handler runs the turn to completion and returns the accumulated assistant

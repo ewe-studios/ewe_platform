@@ -1,6 +1,6 @@
 # Side effects and the `Env` bundle
 
-_Part of [feature 00](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 00](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** random number generator (RNG); identifier (ID);
@@ -15,7 +15,7 @@ Query Language (SQL); Hypertext Transfer Protocol (HTTP); JavaScript Object Nota
 store (KV); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
 STE standard ASD-STE100. D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
 abbreviations. The
-[glossary in feature.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
+[glossary in feature.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What a side effect is
 
@@ -1059,8 +1059,8 @@ no `clippy.toml` today, so there is nothing to merge.
 ```toml
 # backends/foundation_agent_rpc/clippy.toml (also foundation_auth, task T5)
 disallowed-methods = [
-  { path = "std::time::SystemTime::now", reason = "read time through Env::clock (spec 65 F07)" },
-  { path = "std::time::Instant::now", reason = "read time through Env::clock (spec 65 F07)" },
+  { path = "std::time::SystemTime::now", reason = "read time through Env::clock (spec 83 F07)" },
+  { path = "std::time::Instant::now", reason = "read time through Env::clock (spec 83 F07)" },
   { path = "foundation_compact::SystemTime::now", reason = "read time through Env::clock" },
   { path = "foundation_compact::Instant::now", reason = "read time through Env::clock" },
   { path = "foundation_compact::entropy::fill", reason = "draw randomness through Env::entropy" },

@@ -22,7 +22,7 @@ created: 2026-11-14
 8. Report, verify, commit; update `../../progress.md` and `../../LEARNINGS.md`.
 
 **Boundary:** this feature adds the server credential modules. It does not change the existing
-OAuth, OIDC, JWT and session modules. Key protection at rest stays in spec 65 feature 08.
+OAuth, OIDC, JWT and session modules. Key protection at rest stays in spec 83 feature 08.
 
 **Done when:** the five modules in `requirements.md` section 4 exist, a signed secret verifies
 with the public key only, and no secret or key appears in `Debug` output.

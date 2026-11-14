@@ -1,8 +1,8 @@
 # LEARNINGS — Foundation Auth
 
-## Why auth left spec 65 (2026-11-14)
+## Why auth left spec 83 (2026-11-14)
 
-The proxy registration authority (spec 82) and the agent RPC server (spec 65) use the same auth
+The proxy registration authority (spec 82) and the agent RPC server (spec 83) use the same auth
 primitives. Both need signed secrets, key loading, a CA, a trust store and mTLS verifiers. If the
 library stayed inside the agent RPC spec, the proxy spec would depend on the agent RPC spec.
 

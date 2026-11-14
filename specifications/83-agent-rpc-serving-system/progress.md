@@ -1,4 +1,6 @@
-# Spec 65 Progress: Agent RPC
+# Spec 83 Progress: Agent RPC
+
+_Renamed from spec 65 to spec 83 on 2026-11-14, after specs 80 and 81 became its prerequisites._
 
 _Last updated: 2026-11-14 (split into specs 78 to 82; this spec is now agent RPC only). Read this
 first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._

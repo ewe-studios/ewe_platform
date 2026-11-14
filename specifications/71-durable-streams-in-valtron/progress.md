@@ -18,7 +18,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 ## Next steps
 
 1. Feature 01 (durable stream types) first, then 02 and 03 in parallel, then 04, then 05 and 06.
-2. Wire `foundation_log` (issue #155) and spec 65 `01-agent-rpc` / `05-cloudflare` to consume the
+2. Wire `foundation_log` (issue #155) and spec 83 `01-agent-rpc` / `05-cloudflare` to consume the
    primitive once 01–03 land.
 
 _Created: 2026-10-30_

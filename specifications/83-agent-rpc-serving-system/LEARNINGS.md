@@ -1,5 +1,7 @@
 # LEARNINGS — Agent RPC
 
+_Renamed from spec 65 to spec 83 on 2026-11-14, after specs 80 and 81 became its prerequisites._
+
 _Updated after each milestone/task (see
 `.agents/skills/specifications-management/skill.md`). The **Handoff guide** below
 is the current state of the world; the dated sections after it are the history,
@@ -7,7 +9,7 @@ oldest first._
 
 ## Spec split (2026-11-14) — read this before the older sections
 
-The owner split the old spec 65 into five focused specifications. This file keeps the
+The owner split the old spec 83 into five focused specifications. This file keeps the
 agent RPC and wasm history. The operator path and the shared platform now have their own
 learnings:
 
@@ -866,7 +868,7 @@ foundation_ai --profile uat` (all suites pass, provider_tests 243→245) and was
 - **Not covered:** gRPC over TLS has no client (`H2Transport` is h2c only), so
   gRPC is exercised in plaintext mode (T10). Proxy forwarding of the mTLS
   channel is out of this feature (the spec's proxy terminates TLS; end-to-end
-  client certificates through it need passthrough — spec 65 F3).
+  client certificates through it need passthrough — spec 83 F3).
 
 ## 01 T9 (2026-10-20) — bootstrap payload
 

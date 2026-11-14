@@ -6,9 +6,9 @@ _Last updated: 2026-11-14._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — env and side effects | ⏳ 0/3, design complete | Moved from spec 65 feature 08 |
-| 01 — transport prerequisites | ⏳ 0/2, design complete | Moved from spec 65 feature 09 |
-| 02 — migration groups | ⏳ 0/1, design complete | Moved from spec 65 feature 10 |
+| 00 — env and side effects | ⏳ 0/3, design complete | Moved from spec 83 feature 08 |
+| 01 — transport prerequisites | ⏳ 0/2, design complete | Moved from spec 83 feature 09 |
+| 02 — migration groups | ⏳ 0/1, design complete | Moved from spec 83 feature 10 |
 
 ## Baseline from spec 76
 

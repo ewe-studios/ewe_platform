@@ -1,6 +1,6 @@
 # LEARNINGS — Manifest Installer
 
-## Split from spec 65 (2026-11-14)
+## Split from spec 83 (2026-11-14)
 
 The installer is one mission: read a manifest, install and start each entry, record the result,
 and make a second run safe. It does not own the manifest format. It does not own health. It does

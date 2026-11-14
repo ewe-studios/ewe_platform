@@ -1,6 +1,6 @@
 # Pluggable Agent RPC: architecture and shared decisions
 
-_The overview of the agent RPC design. It covers spec 65 features 00 to 08 and the shared
+_The overview of the agent RPC design. It covers spec 83 features 00 to 08 and the shared
 features in specs 80 and 81. It moved out of feature 07 on 2026-10-27, when feature 07 was
 reduced to one task (owner direction: each feature is focused on one thing). It holds the
 glossary, the architecture, the owner decisions and the open questions that the features share.
@@ -124,7 +124,7 @@ Each feature holds its own design files. This file holds only what the features 
 | Host | The program-specific part that gives the core its network, storage, models and `Env`: native, Worker or DST. |
 | Instance | A named agent with its own session and history, on a shared model. |
 | Instance kind | `API`, `CANDLE` or `GGUF` (later `VIDEO`, `AUDIO`): what model an instance uses. |
-| Key source (`KeySource`) | Where the host reads an operator private key: a file, or an inline value from an environment variable or a Worker secret. The key store trait is deferred to spec 65 feature 08. |
+| Key source (`KeySource`) | Where the host reads an operator private key: a file, or an inline value from an environment variable or a Worker secret. The key store trait is deferred to spec 83 feature 08. |
 | Miniflare, wrangler | Cloudflare tools that run a Worker on a local machine. |
 | mTLS | Mutual TLS: both sides show a certificate. |
 | Registry (`InstanceRegistry`) | The trait that creates, finds, lists and removes instances. |
@@ -379,7 +379,7 @@ sure each secret is used only as often as allowed._
 |---|---|---|
 | 1 | Traits so one RPC surface runs on bare metal, Docker and Workers | Sections 3 and 4; [hosts.md](features/04-native-host-and-dst/hosts.md) |
 | 2 | Move auth into `foundation_auth`, built on `foundation_db` | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) sections 1 and 2 |
-| 3 | A `CaStore` trait for key material in any backend | Proof of concept: operator key files ([auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 4, decision 11). The `KeyStore` trait is designed in [spec 65 feature 08](features/08-key-protection-at-rest/keystore.md) (deferred) |
+| 3 | A `CaStore` trait for key material in any backend | Proof of concept: operator key files ([auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 4, decision 11). The `KeyStore` trait is designed in [spec 83 feature 08](features/08-key-protection-at-rest/keystore.md) (deferred) |
 | 4 | Pluggable client auth; the default is our signed JSON secret, not a JWT | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) sections 3 and 8 |
 | 5 | `mark_seen` out of the TLS verifier | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 7; section 4.1 here |
 | 6 | Capabilities endpoint and instance kinds | [proto.md](features/03-agent-rpc-core/proto.md); [registry-and-models.md](features/03-agent-rpc-core/registry-and-models.md) section 2 |
@@ -470,12 +470,12 @@ Each topic file ends with its own test table.
 
 Owner direction (2026-10-27): each feature is focused on one thing. Each feature has its own
 `feature.md` (tasks, what to read, "done when") and its own design files. On 2026-11-14 the owner
-split spec 65. The shared features moved to specs 80 and 81, and the operator features moved to
-specs 79 and 82. The work is now spec 80, then spec 81, then spec 65 features 03 to 05. Feature
+split spec 83. The shared features moved to specs 80 and 81, and the operator features moved to
+specs 79 and 82. The work is now spec 80, then spec 81, then spec 83 features 03 to 05. Feature
 07 is only task T0, and it has landed. This file holds what the features share. Task identifiers
 (IDs) keep their numbers, so a reference such as "task T21" still names one task.
 
-Specs 80 and 81, and spec 65 features 03 and 04, make the **agent-rpc proof of concept**: one
+Specs 80 and 81, and spec 83 features 03 and 04, make the **agent-rpc proof of concept**: one
 native agent-rpc host, with operator key files, that clients enroll with and call, tested end to
 end and under simulation. Feature 05 adds Workers and the browser. Feature 08 (key protection at
 rest) is last, and starts only after the proof of concept works.
@@ -556,7 +556,7 @@ The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come fro
 |---|---|---|---|
 | 1 | Instance name scope on the Worker | **Per caller** (`ScopePolicy::PerOwner`) on the Worker; shared on native | [registry-and-models.md](features/03-agent-rpc-core/registry-and-models.md) section 3.1 |
 | 2 | Version 2 signed secrets | **Issue version 2 by default**; still accept version 1 | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 3.2 |
-| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform. _Deferred by decision 11: it is the target of spec 65 feature 08, not of the proof of concept._ | [spec 65 feature 08 key-protection.md](features/08-key-protection-at-rest/key-protection.md) |
+| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform. _Deferred by decision 11: it is the target of spec 83 feature 08, not of the proof of concept._ | [spec 83 feature 08 key-protection.md](features/08-key-protection-at-rest/key-protection.md) |
 | 4 | JWT provider | **Ship `JwtAuth` in this feature**, behind a feature flag | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 8 |
 | 5 | History on `DestroyInstance` | **Archive to R2**, then delete the DO storage | [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5.12 |
 | 6 | Model provider API keys | **Worker secrets or Secrets Store secrets**; never in vars, D1, KV or logs | [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5.11 |
@@ -564,7 +564,7 @@ The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come fro
 | 8 | Rename timing | **Wait** for the rename PR (`Async*` to plain names) to merge, then start | section 1.5 |
 | 9 | Bootstrap payload versions (2026-10-25) | **No version field.** One `url` for every host; the client derives TLS trust from the fingerprint and access from the token purpose | [proto.md](features/03-agent-rpc-core/proto.md) section 6 |
 | 10 | Migration layout (2026-10-25) | **Groups per database**: a shared group, then specific groups, each numbered from 1 and recorded by group. No number ranges per crate | [migrations.md](../80-platform-prerequisites/features/02-migration-groups/migrations.md) |
-| 11 | Secret setup for the proof of concept (2026-10-27) | **Simple first.** The operator makes each private key with `ssh-keygen` or `openssl`; the host loads it from a file, an environment variable or a Worker secret, and uses it. The host does not make, seal, store or rotate keys. The key store, encryption at rest, remote KMS and rotation by `kid` move to the deferred spec 65 feature 08 | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 4; [spec 65 feature 08](features/08-key-protection-at-rest/feature.md) |
+| 11 | Secret setup for the proof of concept (2026-10-27) | **Simple first.** The operator makes each private key with `ssh-keygen` or `openssl`; the host loads it from a file, an environment variable or a Worker secret, and uses it. The host does not make, seal, store or rotate keys. The key store, encryption at rest, remote KMS and rotation by `kid` move to the deferred spec 83 feature 08 | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 4; [spec 83 feature 08](features/08-key-protection-at-rest/feature.md) |
 
 ### 11.1 Why Postgres is a separate feature
 
@@ -589,7 +589,7 @@ client. We record it as a separate feature for spec 50 (storage), after this one
    database, each numbered from 1 and recorded by group. There are no number ranges and no
    record table per component. [migrations.md](../80-platform-prerequisites/features/02-migration-groups/migrations.md) has the design and its own open
    questions.
-2. ~~Remote KMS order.~~ **Moved** to the deferred [spec 65 feature 08](features/08-key-protection-at-rest/feature.md)
+2. ~~Remote KMS order.~~ **Moved** to the deferred [spec 83 feature 08](features/08-key-protection-at-rest/feature.md)
    by decision 11. The recommendation there stays: Vault Transit, then AWS KMS, then GCP Cloud KMS.
 3. **Archive on native.** [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5.12 gives the native host the same archive
    step through a `foundation_db` blob store. **Recommendation: yes, default to a local directory.**
@@ -615,13 +615,13 @@ client. We record it as a separate feature for spec 50 (storage), after this one
 3. [`deterministic-simulation-testing.md`](../80-platform-prerequisites/features/00-env-and-side-effects/deterministic-simulation-testing.md): why every
    side effect is a trait.
 4. The design file of your feature (section 1.2 lists them).
-5. [`progress.md`](./progress.md) and [`LEARNINGS.md`](./LEARNINGS.md) for the state of spec 65.
+5. [`progress.md`](./progress.md) and [`LEARNINGS.md`](./LEARNINGS.md) for the state of spec 83.
 
 ### Workflow
 
 1. Do task T0 first. Merge `master` into `65-f01-agent-rpc` with a merge commit (no rebase,
    no force-push). Adapt the crate to the async storage traits and the async `AgentSession`.
-2. Do the features in the order of section 10.1 (spec 80, then spec 81, then spec 65 features
+2. Do the features in the order of section 10.1 (spec 80, then spec 81, then spec 83 features
    03 to 05; feature 08 is last and waits for the proof of concept). Each feature's `feature.md` lists its tasks, what
    to read, and its pull requests. Inside a feature, follow the task order of section 10.2.
 3. For each task:

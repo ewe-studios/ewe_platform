@@ -17,7 +17,7 @@ tasks:
 
 # Key Protection at Rest
 
-_Status: **todo**, the last feature of spec 65 (owner direction, 2026-10-27). Start it only after
+_Status: **todo**, the last feature of spec 83 (owner direction, 2026-10-27). Start it only after
 the agent-rpc proof of concept works end to end. Written in ASD-STE100
 Simplified Technical English (STE). Code and identifiers stay as they are._
 

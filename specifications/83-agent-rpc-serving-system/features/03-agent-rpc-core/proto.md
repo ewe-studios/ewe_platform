@@ -55,7 +55,7 @@ The file below replaces the current file. Each `NEW (07)` comment marks an addit
 Lines without that comment are the same as today.
 
 ```proto
-// agent-rpc wire contract (spec 65 features 01 and 07).
+// agent-rpc wire contract (spec 83 features 01 and 07).
 //
 // AgentService is the client <-> agent-rpc API.
 // BootstrapService is the signed secret + CSR -> client certificate exchange.

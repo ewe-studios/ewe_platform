@@ -70,7 +70,7 @@ store fires on the next append. This is the same `WakeRegistry` pattern the exis
 - [ ] **T3 — trim refusal.** A read at a dropped offset surfaces `Trimmed` as a terminal error.
       Test: `trimmed_offset_is_a_refusal_not_a_gap`.
 - [ ] **T4 — bridges.** `into_next_stream()` and `into_future_stream()` over the reader park on
-      `Wait` and resume on wake. Test with a hand-rolled waker (see spec 65 feature 06's parking
+      `Wait` and resume on wake. Test with a hand-rolled waker (see spec 83 feature 06's parking
       tests).
 - [ ] **T5 — DST harness.** An in-memory store with a simulated clock; the reader replays a seeded
       append/read scenario. This lands in `tests/valtron/durable/`.

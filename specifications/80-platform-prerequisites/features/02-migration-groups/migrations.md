@@ -1,13 +1,13 @@
 # Migrations: groups per database
 
-_Part of [feature 02](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 02](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** Structured Query Language (SQL); identifier (ID); Secure Hash
 Algorithm with 256 bits (SHA-256); input/output (I/O); WebAssembly (wasm); continuous
 integration (CI); Durable Object (DO); data definition language (DDL), the SQL statements that
 change a schema; AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
-STE standard ASD-STE100. The [glossary in feature.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains the
+STE standard ASD-STE100. The [glossary in feature.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains the
 shared terms. Section 2 explains the terms of this file.
 
 ## 1. What this file covers
@@ -17,7 +17,7 @@ A **migration** is one change to a database schema, for example "create the tabl
 yet, in order, and records each one.
 
 The owner set the design in the PR #126 review (2026-10-25, owner decision 10 in
-[feature.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md) section 11). The reference is
+[feature.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) section 11). The reference is
 [`resources/Migration Management.md`](../../resources/Migration%20Management.md) (topic 3: a
 shared pipeline first, then tenant pipelines, each with its own tracking records).
 

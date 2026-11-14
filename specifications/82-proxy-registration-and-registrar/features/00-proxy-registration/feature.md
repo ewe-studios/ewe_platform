@@ -401,7 +401,7 @@ sequenceDiagram
     O->>P: control socket: issue-registrar-token host-17 (window 1 h, 1 use)
     P-->>O: token (SignedSecret, purpose Enroll)
     O->>S: put token in the sidecar secret (file or env), one time
-    S->>S: make key pair and CSR (sealed at rest later, spec 65 feature 08)
+    S->>S: make key pair and CSR (sealed at rest later, spec 83 feature 08)
     S->>P: Enroll(token, host_id, CSR) over server-auth TLS
     P->>P: verify signature, purpose, window; spend one use; sign CSR; record sidecar
     P-->>S: client certificate, registration CA certificate
@@ -614,7 +614,7 @@ _The diagram shows how a registered backend enters rotation, leaves it, and is r
 
 | Phase | What happens |
 |---|---|
-| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, spec 81 feature 00; a missing key stops the start; encryption at rest is the deferred spec 65 feature 08). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
+| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, spec 81 feature 00; a missing key stops the start; encryption at rest is the deferred spec 83 feature 08). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
 | Run | Serve calls. The sweeper runs every `sweep_interval` and calls `BackendRegistry::sweep`. |
 | Config reload | The existing `reload` command re-reads the file. Config services are rebuilt. Registered services stay. Policy changes apply to the next call; a backend that the new policy forbids moves to `Draining`. |
 | Stop | Stop accepting registration calls. The public listener drains as today (`start_drain`). Registered backends are not deregistered: the apps still run. |
@@ -810,7 +810,7 @@ cargo test -p foundation_proxy --test registration_e2e_tests
    uses one listener for each backend and cannot be registered at run time.
    - **Recommendation:** signed-secret auth behind the proxy now; SNI passthrough as a later
      feature.
-4. **Move the generic enrollment steps into `foundation_auth`.** agent-rpc (spec 65 feature 03,
+4. **Move the generic enrollment steps into `foundation_auth`.** agent-rpc (spec 83 feature 03,
    `core::enroll`) and the proxy run the same five steps.
    - **Recommendation: yes**, as `foundation_auth::enroll::EnrollmentService`, used by both.
 5. **Use metrics for load balancing?** This feature stores and shows them only.

@@ -25,7 +25,7 @@ builds_on: "specifications/78-manifest-contract"
 related_specs:
   - "specifications/78-manifest-contract"
   - "specifications/82-proxy-registration-and-registrar"
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
 features:
   completed: 0
   uncompleted: 1
@@ -66,7 +66,7 @@ records what it did, so a second run is safe and an upgrade can roll back.
 
 This specification owns the installer only. The manifest format is spec 78. The registrar that
 watches the started entries is spec 82. The agent RPC server that the installer may install is
-spec 65.
+spec 83.
 
 ```mermaid
 flowchart LR
@@ -96,7 +96,7 @@ _The diagram shows the installer's place: it reads the manifest, gets artifacts,
 |---|---|---|---|---|
 | 00 | [Manifest Installer](./features/00-manifest-installer/feature.md) | Parse and validate the manifest; resolve sources (github-release, url, cargo, apt, mise, docker-image); apply systemd, Docker and none; install record, lock, upgrade and rollback; bootstrap script; `ewe-installer` CLI | Spec 78 | ⬜ Pending |
 
-The feature keeps tasks T1 to T10 from the original spec 65 feature 02. The manifest schema
+The feature keeps tasks T1 to T10 from the original spec 83 feature 02. The manifest schema
 section moved to spec 78. The installer keeps its own parser and its own `Entry` types.
 
 ## 4. Requirements conversation summary
@@ -107,7 +107,7 @@ section moved to spec 78. The installer keeps its own parser and its own `Entry`
 - **Pluggable adapters.** Source adapters and deploy-target adapters are traits. A new source or
   deploy kind is one new implementation, not a change to the installer core.
 - **Systemd and Docker only.** The installer never targets Cloudflare. Cloudflare deployment is
-  `foundation_deployment_cloudflare` and spec 65.
+  `foundation_deployment_cloudflare` and spec 83.
 - **Delegate Docker.** All Docker calls go through `foundation_deployment_docker` and its
   generated types. The installer builds no `docker` command string.
 - **Idempotent and safe.** A second run changes nothing. An upgrade keeps the old version until

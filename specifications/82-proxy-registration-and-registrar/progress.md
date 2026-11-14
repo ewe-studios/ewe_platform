@@ -6,8 +6,8 @@ _Last updated: 2026-11-14._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — proxy registration | ⏳ 0/11, design complete | Moved from spec 65 feature 03 |
-| 01 — registrar sidecar | ⏳ 0/10, design complete | Moved from spec 65 feature 04 |
+| 00 — proxy registration | ⏳ 0/11, design complete | Moved from spec 83 feature 03 |
+| 01 — registrar sidecar | ⏳ 0/10, design complete | Moved from spec 83 feature 04 |
 
 ## What moved
 

@@ -15,7 +15,7 @@ metadata:
 has_features: true
 has_fundamentals: false
 related_specs:
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
   - "specifications/completed/41-connectrpc"
   - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/completed/54-foundation-deployment-docker"
@@ -66,7 +66,7 @@ the owner of the STE standard ASD-STE100.
 
 The platform can start Docker containers and QEMU or UTM VMs. It cannot start a small,
 isolated sandbox fast and run commands in it. Agent workloads need this: they run code that
-the platform does not trust. The agent-rpc system (spec 65) needs a component that owns
+the platform does not trust. The agent-rpc system (spec 83) needs a component that owns
 sandbox set-up, on a server and on Cloudflare.
 
 Each substrate has a different control model:
@@ -460,7 +460,7 @@ Each item becomes a GitHub issue when feature 06 lands.
 - Cloudflare Sandbox product functions with no call in the Rust `worker` crate: more than
   one image for each class, container snapshots, outbound interception, bucket mounts and
   directory backups (feature 17, section 6.4).
-- Merging agent-rpc into this crate. Spec 65 decides that.
+- Merging agent-rpc into this crate. Spec 83 decides that.
 
 ## 8. Tests
 
@@ -529,5 +529,5 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | # | Question | Recommendation |
 |---|---|---|
 | Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
-| Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. Mutual TLS as in spec 65 comes with the agent-rpc merge. | Accept for the MVP. |
-| Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 65 does. |
+| Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. Mutual TLS as in spec 83 comes with the agent-rpc merge. | Accept for the MVP. |
+| Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 83 does. |

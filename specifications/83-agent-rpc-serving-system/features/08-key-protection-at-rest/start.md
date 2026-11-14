@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/65-agent-rpc-serving-system"
-feature_directory: "specifications/65-agent-rpc-serving-system/features/08-key-protection-at-rest"
-this_file: "specifications/65-agent-rpc-serving-system/features/08-key-protection-at-rest/start.md"
+spec_directory: "specifications/83-agent-rpc-serving-system"
+feature_directory: "specifications/83-agent-rpc-serving-system/features/08-key-protection-at-rest"
+this_file: "specifications/83-agent-rpc-serving-system/features/08-key-protection-at-rest/start.md"
 created: 2026-11-14
 ---
 
@@ -25,7 +25,7 @@ created: 2026-11-14
 8. Report to the Main Agent. After the commit, update `../../progress.md` and
    `../../LEARNINGS.md`.
 
-**Order:** feature 04 must work end to end first. This feature is the last of spec 65.
+**Order:** feature 04 must work end to end first. This feature is the last of spec 83.
 
 ---
 

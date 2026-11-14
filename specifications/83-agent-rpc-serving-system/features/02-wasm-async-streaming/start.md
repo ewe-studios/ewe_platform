@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/65-agent-rpc-serving-system"
-feature_directory: "specifications/65-agent-rpc-serving-system/features/02-wasm-async-streaming"
-this_file: "specifications/65-agent-rpc-serving-system/features/02-wasm-async-streaming/start.md"
+spec_directory: "specifications/83-agent-rpc-serving-system"
+feature_directory: "specifications/83-agent-rpc-serving-system/features/02-wasm-async-streaming"
+this_file: "specifications/83-agent-rpc-serving-system/features/02-wasm-async-streaming/start.md"
 created: 2026-10-20
 ---
 

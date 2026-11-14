@@ -4,7 +4,7 @@ description: "Two small library fixes the hosts need: connectrpc keeps request e
 status: "pending"
 priority: "high"
 depends_on: ["00-env-and-side-effects"]
-part_of: "specifications/65-agent-rpc-serving-system/agent-rpc-architecture.md"
+part_of: "specifications/83-agent-rpc-serving-system/agent-rpc-architecture.md"
 estimated_effort: "small"
 created: 2026-10-27
 last_updated: 2026-11-14
@@ -23,9 +23,9 @@ thing). Written in ASD-STE100 Simplified Technical English (STE). Code and
 identifiers stay as they are._
 
 The design files of this feature are in this directory. The shared architecture, glossary and
-owner decisions are in [`agent-rpc-architecture.md`](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md). Task
+owner decisions are in [`agent-rpc-architecture.md`](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Task
 IDs keep their old numbers, so references such as "task T3" stay valid. The
-[glossary](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
+[glossary](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What this feature does
 
@@ -38,9 +38,9 @@ Part of the agent-rpc proof of concept.
 | Design file | Sections |
 |---|---|
 | [auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) | section 7.4 (the host must report the peer certificate) and section 8.2 (the interceptor needs the `build_ctx` fix) |
-| [hosts.md](../../../65-agent-rpc-serving-system/features/04-native-host-and-dst/hosts.md) | section 4.3 (listeners and TLS) and the `foundation_connectrpc` row of section 5.4 |
-| [agent-rpc-architecture.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
-| [agent-rpc-architecture.md](../../../65-agent-rpc-serving-system/agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
+| [hosts.md](../../../83-agent-rpc-serving-system/features/04-native-host-and-dst/hosts.md) | section 4.3 (listeners and TLS) and the `foundation_connectrpc` row of section 5.4 |
+| [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
+| [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
 
 ## 3. Tasks
 

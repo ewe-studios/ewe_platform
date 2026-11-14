@@ -1,5 +1,5 @@
 ---
-description: "One auth library for the serving system: signed secrets, operator key files, a certificate authority, a trust store, mutual TLS verifiers and pluggable client-auth providers. The agent RPC server (spec 65) and the proxy (spec 82) both use it; neither owns it."
+description: "One auth library for the serving system: signed secrets, operator key files, a certificate authority, a trust store, mutual TLS verifiers and pluggable client-auth providers. The agent RPC server (spec 83) and the proxy (spec 82) both use it; neither owns it."
 status: "in-progress"
 priority: "high"
 created: 2026-11-14
@@ -24,7 +24,7 @@ has_fundamentals: false
 builds_on: "specifications/80-platform-prerequisites"
 related_specs:
   - "specifications/80-platform-prerequisites"
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/48-foundation-auth-app"
 features:
@@ -85,8 +85,8 @@ not replace the existing modules.
 |---|---|---|---|---|
 | 00 | [Foundation Auth](./features/00-foundation-auth/feature.md) | Signed secrets v1/v2 and key loading; CA, CSR issuance and mTLS verifiers; trust store over SQL, key-value and memory; `ClientAuth` providers and interceptor | Spec 80 | ⬜ Pending |
 
-The feature keeps tasks T5 and T7 to T11 from the original spec 65 feature 11. Key protection at
-rest stays in spec 65 (feature 08), because it starts only after the agent RPC proof of concept
+The feature keeps tasks T5 and T7 to T11 from the original spec 83 feature 11. Key protection at
+rest stays in spec 83 (feature 08), because it starts only after the agent RPC proof of concept
 works.
 
 ## 4. What this library owns
@@ -111,7 +111,7 @@ graph TD
     CA --> MTLS[mTLS verifier]
     TRUST --> MTLS
     JWT[Existing JWT module] --> PROVIDER
-    PROVIDER --> ARPC[agent-rpc<br/>spec 65]
+    PROVIDER --> ARPC[agent-rpc<br/>spec 83]
     MTLS --> PROXY[proxy registration authority<br/>spec 82]
     SEC --> PROXY
 ```
@@ -143,7 +143,7 @@ a `RemoteKeyPair` with RFC 6979 nonces where the algorithm allows it.
 
 ## 7. Out of scope
 
-- **Key protection at rest.** Spec 65 feature 08 owns the keystore, KEK sources, WebCrypto and
+- **Key protection at rest.** Spec 83 feature 08 owns the keystore, KEK sources, WebCrypto and
   remote KMS. This library accepts operator key files.
 - **The proxy's routing policy.** Spec 82 owns it.
 - **Application login.** The existing OAuth, OIDC, JWT and session modules keep their behaviour.
@@ -162,7 +162,7 @@ a `RemoteKeyPair` with RFC 6979 nonces where the algorithm allows it.
 ## 9. Module references
 
 - `specifications/81-foundation-auth/features/00-foundation-auth/auth.md` — the full design,
-  moved from spec 65 feature 11.
+  moved from spec 83 feature 11.
 - `backends/foundation_auth/src/lib.rs` — the existing public surface.
 - `specifications/80-platform-prerequisites/features/00-env-and-side-effects/env.md` — entropy
   and ID injection.

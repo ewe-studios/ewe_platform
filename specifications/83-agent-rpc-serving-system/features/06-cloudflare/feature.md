@@ -92,7 +92,7 @@ stop. Cloudflare deployment lives in `foundation_deployment_cloudflare` /
      entry: agentic layer + Workers AI provider, served via
      `foundation_http::wasm::dispatch_cf` + `foundation_connectrpc::shared::Router`
      (Connect/gRPC-Web over fetch/WebSocket; **no H2 trailers** — gRPC `grpc-status`
-     stays unavailable, matching spec 65's known gap).
+     stays unavailable, matching spec 83's known gap).
    - The native full model-server build is unaffected.
 
 2. **Worker-as-client fetch transport (the "remote agent-rpc" variant).**

@@ -280,7 +280,7 @@ Feature: Cloudflare control plane
 
 | Fact | Source |
 |---|---|
-| The workspace targets `worker` 0.8.7 (Rust Workers); the lock still resolves 0.8.5 until the next update. | `Cargo.lock`; spec 65 feature 04 |
+| The workspace targets `worker` 0.8.7 (Rust Workers); the lock still resolves 0.8.5 until the next update. | `Cargo.lock`; spec 83 feature 04 |
 | `State::container() -> Option<Container>`. | `worker-0.8.7/src/durable.rs`, line 281 |
 | `Container::running() -> bool`, `start(Option<ContainerStartupOptions>) -> Result<()>`, `wait_for_exit()`, `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`. | `worker-0.8.7/src/container.rs`, lines 13 to 41 |
 | `ContainerStartupOptions` has `entrypoint`, `enable_internet`, `env`. It has no image and no instance type. | the same file, lines 86 to 112 |
@@ -413,7 +413,7 @@ Implements `foundation_connectrpc::shared::transport::Transport`
 `PortConnector` is the `SlaveConnector` for a DO: `CloudflarePort { port }` gives a
 `ContainerPortTransport`; every other endpoint gives `InvalidSpec { field: "endpoint" }`.
 
-If feature 05 of spec 65 lands a general `WasmFetchTransport` in `foundation_connectrpc`
+If feature 05 of spec 83 lands a general `WasmFetchTransport` in `foundation_connectrpc`
 first, this type uses its body pump. It does not wait for it: the pump is about 80 lines.
 
 ### 6.6 `DoRecordStore` and `DoControlPlane`

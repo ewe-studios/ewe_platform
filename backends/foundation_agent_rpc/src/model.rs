@@ -12,7 +12,7 @@
 //! HOW: a local model is loaded once and wrapped in a
 //! [`PreloadedProvider`] router, which hands each session a clone of the same
 //! model handle (`CandleModels`/`LlamaModels` clones share weights). The handle
-//! keeps no loader, so nothing downstream can trigger a reload. Spec 65 F1/T1
+//! keeps no loader, so nothing downstream can trigger a reload. Spec 83 F1/T1
 //! proved concurrent generations on one candle model do not interfere.
 
 #[cfg(any(feature = "candle", feature = "gguf"))]

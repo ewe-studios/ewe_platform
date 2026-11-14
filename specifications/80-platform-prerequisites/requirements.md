@@ -26,7 +26,7 @@ builds_on: "specifications/76-shared-context"
 related_specs:
   - "specifications/76-shared-context"
   - "specifications/81-foundation-auth"
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
   - "specifications/82-proxy-registration-and-registrar"
 features:
   completed: 0
@@ -58,7 +58,7 @@ ASD-STE100.
 
 ## 1. Purpose
 
-The agent RPC server (spec 65) and the proxy (spec 82) both need the same three platform
+The agent RPC server (spec 83) and the proxy (spec 82) both need the same three platform
 capabilities. They are not agent-RPC features and they are not proxy features. This specification
 owns them, so both can depend on one plan.
 
@@ -90,7 +90,7 @@ the commit and write no code. A second context design is a defect.
 | 01 | [Transport Prerequisites](./features/01-transport-prerequisites/feature.md) | connectrpc keeps request extensions and uses the Env clock; foundation_http reports TLS peer certificates | Feature 00 | ⬜ Pending |
 | 02 | [Migration Groups](./features/02-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | Spec 76 | ⬜ Pending |
 
-The features keep tasks T1, T2, T12 (00), T3, T4 (01) and T25 (02) from the original spec 65.
+The features keep tasks T1, T2, T12 (00), T3, T4 (01) and T25 (02) from the original spec 83.
 
 ## 4. What spec 76 already did
 
@@ -159,9 +159,9 @@ _The diagram shows the three seams: one Env entry, transport facts on the reques
 - `backends/foundation_connectrpc/src/shared/` — `RpcCtx`, handlers.
 - `backends/foundation_db/` — migrations and storage traits.
 - `specifications/80-platform-prerequisites/features/00-env-and-side-effects/env.md` — the full
-  Env design, moved from spec 65.
+  Env design, moved from spec 83.
 - `specifications/80-platform-prerequisites/features/02-migration-groups/migrations.md` — the
-  full migration design, moved from spec 65.
+  full migration design, moved from spec 83.
 
 ---
 

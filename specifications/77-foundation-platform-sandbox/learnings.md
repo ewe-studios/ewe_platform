@@ -329,7 +329,7 @@ line 281.
   with its own workspace root and `worker-build`.
 - `foundation_connectrpc`: the router and the client are in `shared/` (all targets). The
   `fetch` client transport is only a capability constant today
-  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 65 feature 05
+  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 83 feature 05
   plans a general one.
 - `backends/foundation_cloudflare_workers` has generated calls for
   `GET /accounts/{account_id}/containers` and the registry credentials call. They list and

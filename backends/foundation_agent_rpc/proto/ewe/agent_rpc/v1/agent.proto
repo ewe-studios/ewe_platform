@@ -1,4 +1,4 @@
-// agent-rpc wire contract (spec 65 feature 01).
+// agent-rpc wire contract (spec 83 feature 01).
 //
 // AgentService is the client <-> agent-rpc API (served on the mTLS listener).
 // BootstrapService is the token -> client-certificate exchange (served on the

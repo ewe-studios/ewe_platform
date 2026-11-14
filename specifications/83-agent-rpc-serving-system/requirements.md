@@ -119,7 +119,7 @@ _The diagram shows the server, the one loaded model, the instances that share it
 | Install, systemd, Docker and bootstrap | spec 79 | |
 | Proxy registration authority and the registrar sidecar | spec 82 | |
 
-The old spec 65 bundled the operator path with the server. The features moved as follows:
+The old spec 83 bundled the operator path with the server. The features moved as follows:
 
 | Old feature | New home |
 |---|---|

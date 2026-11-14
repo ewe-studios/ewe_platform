@@ -1,8 +1,8 @@
 # LEARNINGS — Platform Prerequisites
 
-## Why the seams left spec 65 (2026-11-14)
+## Why the seams left spec 83 (2026-11-14)
 
-Spec 65 bundled four missions. The Env bundle, the transport facts and the migration groups
+Spec 83 bundled four missions. The Env bundle, the transport facts and the migration groups
 change shared crates that the proxy also uses. Keeping them in the agent RPC spec made the proxy
 spec depend on the agent RPC spec, which is the coupling the design forbids.
 

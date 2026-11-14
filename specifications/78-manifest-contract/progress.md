@@ -13,7 +13,7 @@ _Last updated: 2026-11-14._
 
 ## Where this specification came from
 
-This spec was extracted from spec 65 (`65-agent-rpc-serving-system`) on 2026-11-14. The manifest
+This spec was extracted from spec 83 (`83-agent-rpc-serving-system`) on 2026-11-14. The manifest
 format was split across the old feature 02 (`02-manifest-installer` §4.1) and feature 04
 (`04-registrar-sidecar` §4.1). The contract now has one owner. The installer moved to spec 79;
 the registrar moved to spec 82 feature 01.

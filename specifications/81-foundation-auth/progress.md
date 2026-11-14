@@ -6,7 +6,7 @@ _Last updated: 2026-11-14._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — foundation auth | ⏳ 0/6, design complete | Moved from spec 65 feature 11 |
+| 00 — foundation auth | ⏳ 0/6, design complete | Moved from spec 83 feature 11 |
 
 ## What this spec owns
 
@@ -21,7 +21,7 @@ The library, not its consumers:
 
 ## What stays out
 
-Key protection at rest (keystore, KEK, WebCrypto, remote KMS, rotation) stays in spec 65
+Key protection at rest (keystore, KEK, WebCrypto, remote KMS, rotation) stays in spec 83
 feature 08. This library accepts operator key files for the proof of concept.
 
 ## Next steps
