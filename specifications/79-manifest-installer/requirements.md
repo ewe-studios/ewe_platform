@@ -107,7 +107,7 @@ section moved to spec 78. The installer keeps its own parser and its own `Entry`
 - **Pluggable adapters.** Source adapters and deploy-target adapters are traits. A new source or
   deploy kind is one new implementation, not a change to the installer core.
 - **Systemd and Docker only.** The installer never targets Cloudflare. Cloudflare deployment is
-  `foundation_deployment_cloudflare` and spec 83.
+  `foundation_deployment_cloudflare`, owned by spec 77 feature 08.
 - **Delegate Docker.** All Docker calls go through `foundation_deployment_docker` and its
   generated types. The installer builds no `docker` command string.
 - **Idempotent and safe.** A second run changes nothing. An upgrade keeps the old version until
@@ -178,7 +178,8 @@ in the feature's "Lifecycle of one entry".
 ## 7. Out of scope
 
 - **The manifest format.** Spec 78 owns it.
-- **Cloudflare deployment.** `foundation_deployment_cloudflare` owns it.
+- **Cloudflare deployment.** `foundation_deployment_cloudflare` owns it, through spec 77
+  feature 08.
 - **Health and readiness.** The installer proves that a program *started*. The registrar proves
   that it is *healthy* (spec 82).
 - **A package registry.** The installer reads manifests; it does not publish or sign them.

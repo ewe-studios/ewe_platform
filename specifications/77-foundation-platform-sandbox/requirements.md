@@ -172,9 +172,9 @@ Where the control plane runs is a different question from which system it drives
 | Path | Kind | Content |
 |---|---|---|
 | `backends/foundation_platform_sandbox` | library | **All logic.** |
-| `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxControl`, `SlaveClient`, the slave's request handling that needs no operating system. |
-| `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the native side effects, the RPC servers on UDS, vsock and TCP. |
-| `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The Cloudflare container driver, the `Fetcher` RPC transport, the DO storage registry, the DO request handler. |
+| `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxControl`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system. |
+| `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP. |
+| `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The Cloudflare container driver, the Cloudflare container control, the `Fetcher` RPC transport, the DO storage registry, the DO request handler. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
 | `backends/foundation_deployment_platform/src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::sandbox::run`. |
 | `bin/agent_slave/src/main.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. It is its own package because it must be a static musl program, and `foundation_deployment_platform` does not build for musl today (decisions D4 and D11). |
@@ -187,6 +187,11 @@ part exists; this spec has none (the RPC client is in `shared/`).
 
 Docker capability lives in `foundation_deployment_docker` (the existing Docker client).
 `foundation_platform_sandbox` uses it behind the `docker` feature.
+
+Cloudflare deployment lives in `foundation_deployment_cloudflare` (the existing crate, with
+its generated Cloudflare types and `ewe_deployables::cloudflare`). It is a native library,
+not wasm. `foundation_platform_sandbox` does not use it; a caller of the deployer does
+(feature 08).
 
 ### 2.5 The two RPC contracts
 
@@ -283,11 +288,14 @@ pub trait SandboxControl: Send + Sync + 'static {
     fn create_with_progress(&self, spec: SandboxSpec) -> CreateStream;
     fn get(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<Sandbox>>;
     fn list(&self) -> BoxFuture<'_, SandboxResult<Vec<SandboxInfo>>>;
+    fn stop(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>>;
+    fn kill(&self, id: SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>>;
 }
 
 impl Sandbox {
     pub fn id(&self) -> &SandboxId;
     pub fn info(&self) -> SandboxInfo;                       // driver, state, created time
+    pub fn container(&self) -> Option<ContainerHandle>;      // None for a microVM
     pub async fn exec(&self, command: Command) -> SandboxResult<ExecHandle>;   // streamed
     pub async fn run(&self, command: Command) -> SandboxResult<ExecOutput>;    // bounded capture
     pub async fn write_file(&self, path: &str, mode: u32, data: impl ByteStream) -> SandboxResult<u64>;
@@ -323,7 +331,7 @@ and fields, and the client maps it back, so law L11 holds for errors too.
 | Group | Variants |
 |---|---|
 | Host set-up | `HostNotConfigured`, `NoDriver { reports }`, `DriverUnavailable { driver, reason }`, `BinaryNotFound`, `LibraryNotFound`, `LibraryTooOld`, `NotSigned` |
-| Spec | `InvalidSpec { field, reason }`, `UnsupportedRootFs`, `UnsupportedNetwork`, `UnsupportedMount`, `SocketPathTooLong` |
+| Spec | `InvalidSpec { field, reason }`, `UnsupportedRootFs`, `UnsupportedNetwork`, `UnsupportedMount`, `UnsupportedCapability { capability }`, `SocketPathTooLong` |
 | Start | `SubstrateExited { code, log_tail }`, `SubstrateApi { status, message }`, `BootTimeout { stage }`, `SlaveHandshake` |
 | Use | `NotFound { what }`, `SandboxStopped`, `ExecTimeout`, `SlaveError { code, errno, message }`, `SequenceGap`, `InputQueueFull`, `StreamLost`, `TooManySessions` |
 | Artifacts and images | `ArtifactHashMismatch`, `ArtifactUnsafePath`, `ArtifactTooLarge`, `ImageArchMismatch`, `BuildStepFailed` |
@@ -370,6 +378,39 @@ structs.
 - The slave uses valtron too (owner decision 2026-11-11). `foundation_nativeapis` with the
   `fd` feature compiles for `x86_64-unknown-linux-musl` (checked 2026-11-11).
 
+### 6.6 Container control
+
+A container is the substrate of a sandbox, and it is also a first-class object. The traits
+are in feature 00, section 6.13. This section states the spec-level rules.
+
+```rust
+pub trait ContainerControl: Send + Sync + 'static {
+    fn start(&self, ctx: Ctx, spec: ContainerSpec) -> BoxFuture<'_, SandboxResult<ContainerHandle>>;
+    fn get(&self, ctx: Ctx, id: &ContainerId) -> BoxFuture<'_, SandboxResult<Option<ContainerHandle>>>;
+    fn list(&self, ctx: Ctx) -> BoxFuture<'_, SandboxResult<Vec<ContainerInfo>>>;
+}
+```
+
+- `ContainerControl` is the factory; `ContainerHandle` is the live object. The handle has
+  `fetch`, `exec`, `signal`, `wait`, `stop`, `destroy` and `log_tail`.
+- A caller gets a control in one of two ways. `SandboxManager::containers` returns the
+  control of the first driver in its order that has one. `DoContainerClient::new` builds a
+  remote control over the transport of a Cloudflare Worker. A `SandboxHandle` gives the
+  container of one sandbox with `Sandbox::container()`.
+- The Cloudflare adapter is in feature 07; the Docker adapter is in feature 10. Both use
+  the same contract.
+- `Sandbox::container()` returns the handle of a container-backed sandbox, or `None` for a
+  microVM. This is the bridge between the two surfaces.
+- A method that a runtime cannot support gives `UnsupportedCapability { capability }`.
+  `ContainerCapabilities` states what the runtime supports before the call.
+- The response body of `fetch` streams; the request body is one bounded message.
+- A port that does not answer yet is `SandboxError::Rpc { code: Unavailable }` with the
+  platform's text. A caller that waits for a server to listen retries until its deadline.
+- A `ContainerHandle` is the only writer of its container. `destroy` is idempotent.
+
+The agent-rpc Cloudflare host (spec 83 feature 06) is the first caller outside this spec.
+It starts a container, talks to its port, runs commands through the slave, and stops it.
+
 ## 7. Features and the way to the MVP
 
 ```mermaid
@@ -409,8 +450,8 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 | 04 | [Firecracker API client](features/04-firecracker-api-client/feature.md) | sonnet | MVP | Generated types and the client pass against a mock and the real program. |
 | 05 | [Firecracker driver](features/05-firecracker-driver/feature.md) | sonnet | MVP | A command runs in a Firecracker microVM through `SandboxManager`. |
 | 06 | [Programs, RPC and Provider](features/06-programs-rpc-provider/feature.md) | sonnet | **MVP-A** | `agent-sandbox` and `agent-slave` exist; `SandboxService` works; the `Provider` facade works; CI runs the microVM tests. |
-| 07 | [Cloudflare control plane](features/07-cloudflare-control-plane/feature.md) | sonnet | MVP | The control plane compiles to wasm and drives a container through fakes of the Cloudflare types. |
-| 08 | [Cloudflare Worker](features/08-cloudflare-worker/feature.md) | sonnet | **MVP-B** | A command runs in a Cloudflare container through `SandboxService` on a Worker, in `wrangler dev`. |
+| 07 | [Cloudflare control plane](features/07-cloudflare-control-plane/feature.md) | sonnet | MVP | The control plane compiles to wasm, drives a container through fakes, and exposes `ContainerControl` and `ContainerHandle`. |
+| 08 | [Cloudflare Worker and deployment](features/08-cloudflare-worker/feature.md) | sonnet | **MVP-B** | A command runs in a Cloudflare container through `SandboxService` on a Worker; both deploy paths apply one plan. |
 | 09 | [libkrun driver](features/09-libkrun-driver/feature.md) | sonnet | 2 | A command runs in a libkrun microVM on Linux and macOS. |
 | 10 | [Docker driver](features/10-docker-driver/feature.md) | sonnet | 2 | A command runs in a Docker container that the control plane starts through the host's Docker Engine; `agent-sandbox` can also run in a container. |
 | 11 | [Nested sandboxes](features/11-nested-sandboxes/feature.md) | sonnet | 2 | A slave in a container starts Firecracker microVMs in it. |
@@ -432,7 +473,8 @@ does the same through `SandboxManager`, `SandboxRpcClient` or a `Provider`.
 against a Cloudflare Worker, where the control plane runs in a DO and the slave runs in the
 DO's container. Feature 07 needs only features 01 and 02. Feature 08 also needs feature
 06, for the native client (`SandboxRpcClient::connect`), the `Provider` facade and the CI
-workflow; so MVP-B comes after MVP-A.
+workflow; so MVP-B comes after MVP-A. Feature 08 also owns the two deployment paths: the
+Rust deployer is the primary path, and the `wrangler` adapter is the fallback.
 
 Features 00 to 04 have no dependency on each other after 00, so 01, 02, 03 and 04 run in
 parallel. Feature 07 starts as soon as 01 and 02 are done, in parallel with 05 and 06.
@@ -460,7 +502,8 @@ Each item becomes a GitHub issue when feature 06 lands.
 - Cloudflare Sandbox product functions with no call in the Rust `worker` crate: more than
   one image for each class, container snapshots, outbound interception, bucket mounts and
   directory backups (feature 17, section 6.4).
-- Merging agent-rpc into this crate. Spec 83 decides that.
+- The agent-rpc Worker, its bindings and its model path. Spec 83 feature 06 builds them on
+  this spec's container control and deployer.
 
 ## 8. Tests
 
@@ -470,6 +513,7 @@ Each item becomes a GitHub issue when feature 06 lands.
 | Simulation (DST) | nothing | Control-plane laws with a simulated driver, a scripted slave, a `SimulatedClock` and a seed. | `tests/control_sim_*.rs` |
 | Slave process | Linux | The real slave as a normal process on a UDS. | `tests/slave_*.rs` |
 | Mock substrate | nothing | Each driver's start sequence against a fake API and fake processes. | `tests/<driver>_sim_*.rs` |
+| Container control | nothing (a fake runtime) | Start, fetch, exec, capabilities, stop and idempotent destroy on each adapter. | `tests/contract_container.rs`, `tests/*_container_*.rs` |
 | Real substrate | KVM, Docker or `wrangler dev` | The acceptance scenarios end to end. | `tests/e2e_*.rs` |
 | Boundaries | as the substrate | Programs, the `Provider` facade, the Worker. | `foundation_deployment_platform/tests/`, `infrastructure/sandbox_worker/test/` |
 
@@ -523,11 +567,12 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D12 | (2026-11-12) The Docker driver talks to the Docker Engine of the host and starts containers that hold the slave. The general case is a control plane on the host. A control plane in a Docker container is the operator's choice; it uses the host's Docker socket. |
 | D13 | (2026-11-12) On Cloudflare the control plane runs `agent-slave` in Cloudflare containers. There is no nested case there. |
 | D14 | (2026-11-12) The Docker Sandboxes product is not ready. Feature 16 is a draft and not a must have. It is not scheduled, and no milestone needs it. |
+| D15 | (2026-11-14) Spec 77 owns Cloudflare container control and Cloudflare deployment. `foundation_deployment_cloudflare` is the primary deploy path; the manual `wrangler` adapter is a supported fallback. Both apply one `DeploymentPlan`. Spec 83 feature 06 consumes these surfaces and builds the agent-rpc Worker on them. |
 
 ### 10.2 Open, with a recommendation
 
 | # | Question | Recommendation |
 |---|---|---|
 | Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
-| Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. Mutual TLS as in spec 83 comes with the agent-rpc merge. | Accept for the MVP. |
+| Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. A Worker cannot run its own mTLS: Cloudflare ends TLS. | (2026-11-14) Decided: a signed secret as a bearer credential, or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of spec 81. A direct native listener can add mTLS when spec 81 lands. |
 | Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 83 does. |

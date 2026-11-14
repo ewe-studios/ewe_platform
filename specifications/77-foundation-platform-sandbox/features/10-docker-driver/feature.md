@@ -30,6 +30,9 @@ Two things, both on the existing Docker client (`foundation_deployment_docker`):
 2. An image and a compose file that run `agent-sandbox serve` in a container, with the
    host's Docker socket. This is the operator's choice. The control plane in the container
    uses the same driver and starts sibling containers on the host's Docker Engine.
+3. `DockerContainerControl`: the container handle of feature 00, section 6.13, on the
+   Docker Engine. It starts, runs commands in, and stops a container with no sandbox
+   record.
 
 The Docker Sandboxes product (`sbx`) is a different system; feature 16 has its driver.
 
@@ -60,7 +63,8 @@ microVMs inside the container.
 ## 3. Bounded context
 
 **Inside this feature:** the Docker launch sequence, slave injection, the link choice (UDS
-or TCP), the container handle, `attach`, the control-plane image.
+or TCP), the container handle, `attach`, the control-plane image, and the Docker container
+control.
 
 **Outside:** the Docker API client and its generated types (`foundation_deployment_docker`,
 used as it is); the slave (feature 01); the control plane (feature 02).
@@ -69,6 +73,7 @@ used as it is); the slave (feature 01); the control plane (feature 02).
 |---|---|---|
 | Container | One Docker container, named `ewe-sbx-<sandbox_id>`. | the Docker daemon, through `DockerApi` |
 | `DockerApi` | The trait for the calls that the driver needs. | defined here; implemented on `DockerClient` and by a fake |
+| `DockerContainerControl`, `DockerContainerOps` | The container handle of feature 00, section 6.13, on Docker. | this feature |
 | Slave file in the container | `/.ewe/agent-slave`, copied in before the start. | the driver |
 | Run directory | `<state_dir>/<sandbox_id>/`, bind-mounted at `/.ewe/run` (UDS link). | the driver creates; the handle removes |
 | Link | How the control plane reaches the slave: `Unix` or `Tcp`. | `DockerDriverConfig` |
@@ -328,6 +333,49 @@ A trait with one method for each `DockerClient` call that the driver uses, with 
 argument and result types. `DockerClient` implements it by delegation. The tests use a
 fake that records calls. The trait and the driver are in `src/native/docker/`.
 
+### 6.7.1 Container control on Docker
+
+The Docker driver is one user of the Docker Engine. The platform also exposes a container
+handle (feature 00, section 6.13), so a caller can start a container, run commands in it,
+and stop it without a sandbox.
+
+`DockerContainerControl` implements `ContainerControl`; `DockerContainerOps` implements
+`ContainerOps`:
+
+| Method | Work |
+|---|---|
+| `start` | `create_container` from `ContainerSpec` (image tag, entrypoint, env, network, resources) with the label `ewe.container.control=true`; `start_container`. The ID is the Docker container ID. A failure removes the container. |
+| `get` | `inspect_container(id)`. A missing or stopped container gives `None`; it never starts one. |
+| `list` | `list_containers` with the label, running only. |
+| `info` | `ContainerInfo { id, driver: Docker, image, status, created_unix_ms, resources }`. |
+| `capabilities` | `exec: true`, `port_fetch: false`, `signal: true`, `logs: true`. |
+| `exec` | Docker exec: create, start, attach the output stream. The `ExecHandle` is the same type as a sandbox `exec`. |
+| `fetch` | `UnsupportedCapability { capability: "port_fetch" }`. The Docker Engine has no HTTP fetch to a container port. A caller that needs HTTP uses the sandbox slave, or publishes the port. |
+| `signal` | `kill_container(id, signal)`. |
+| `wait` | `wait_container(id)`; the exit code from the daemon. |
+| `stop(grace)` | `stop_container(id, timeout = grace)`; then `wait`; `forced` is true when the code is 137. |
+| `destroy` | `remove_container(id, force = true)`; 404 is `Ok`; remove the run directory. |
+| `log_tail` | `container_logs` with `tail`, cut to `max`. |
+
+The driver's substrate handle returns `Some(handle)` from `container()`, and the driver
+returns `Some(Arc<DockerContainerControl>)` from `containers()`. The driver and the control
+share `DockerApi`; the control uses the same injected `DockerClient`.
+
+`DockerApi` has one method for each `DockerClient` call that the control needs:
+`create_container` with the `ContainerSpec` fields, `start_container`, `inspect_container`,
+`list_containers`, `exec_create`, `exec_start`, `kill_container`, `wait_container`,
+`stop_container`, `remove_container` and `container_logs`. Each is one `DockerClient` call
+with the same argument and result types. A call that `DockerClient` does not have yet is a
+new method on `DockerClient`, not a raw HTTP request in this crate.
+
+A `ContainerSpec` for Docker maps as follows: `image` is a tag (`docker pull` when it is
+missing); `entrypoint` overrides the image entrypoint when it is not empty; `env` is the
+container environment; `network == Host` gives the bridge network, `None` gives `none`
+(where the daemon allows it); `resources.vcpus` and `resources.memory_mib` map to the
+Docker `NanoCpus` and `Memory` fields; `resources.instance_type` is rejected
+(`UnsupportedCapability { capability: "instance_type" }`); `labels` are added to the
+container.
+
 ### 6.8 The control plane in a container
 
 `infrastructure/sandbox_control_image/`:
@@ -368,6 +416,10 @@ Docker; treat this container as trusted.
 | "No daemon is a clear report" | `probe_no_daemon` | `tests/docker_sim_*.rs` | expected outcome |
 | "The control plane runs in a container" | `e2e_control_image` (`docker compose up`, then the acceptance scenarios through `SandboxRpcClient`) | `infrastructure/sandbox_control_image/test/run.sh` | the shared scenarios |
 | provider | `provider_docker_sim` | `foundation_deployment_platform/tests/` | expected outcome |
+| Container control | `docker_container_control_sim` (a fake `DockerApi`: create, start, get, list, exec, signal, wait, stop, destroy) | `tests/docker_sim_*.rs` | example |
+| Container capabilities | `docker_container_capabilities` (`port_fetch` is false; a fetch gives `UnsupportedCapability`) | the same | expected outcome |
+| Container control idempotence | `docker_container_destroy_idempotent` (two removes; a missing container is `Ok`) | the same | conservation |
+| Container control labels | `docker_container_labels` (the `ewe.container.control` label; `list` returns only those) | the same | expected outcome |
 
 The real-daemon tests run in the existing Docker CI workflow
 (`.github/workflows/platform-docker-tests.yml`).
@@ -387,6 +439,8 @@ infrastructure/sandbox_control_image/test/run.sh
 
 - Each scenario of section 5 and each row of section 7 passes.
 - The shared acceptance scenarios give the same results as on Firecracker.
+- A `ContainerHandle` starts, runs commands in, and stops a Docker container with no
+  sandbox record.
 - `agent-sandbox` has the Docker driver when built with the feature, and `doctor` shows
   its report.
 - The control-plane image and compose file work, and the README has the trust note.

@@ -30,6 +30,10 @@ created: 2026-11-14
 
 **Order:** Features 01 and 02 land first.
 
+This feature also owns the Cloudflare container control (section 6.4.1): `CloudflareContainerControl`,
+`DoContainerOps`, `DoContainerClient` and the internal `ContainerService`. Spec 83 feature 06
+is the first caller outside this spec.
+
 ---
 
 _Created: 2026-11-14_

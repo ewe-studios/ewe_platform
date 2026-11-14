@@ -26,6 +26,7 @@ has_features: true
 has_fundamentals: true
 builds_on: "specifications/80-platform-prerequisites"
 related_specs:
+  - "specifications/77-foundation-platform-sandbox"
   - "specifications/80-platform-prerequisites"
   - "specifications/81-foundation-auth"
   - "specifications/82-proxy-registration-and-registrar"
@@ -82,7 +83,8 @@ The server has two hosts:
 1. **Native** — TCP and TLS listeners, local models (llama.cpp GGUF or Candle), the full
    feature set. This is the first milestone.
 2. **Cloudflare Worker** — a thin orchestrator on Workers, with remote model providers, and the
-   full native server on Sandboxes or Containers.
+   full native server in a Cloudflare container. Spec 77 owns container control and deployment;
+   this specification builds the agent-rpc Worker on those surfaces.
 
 The server knows nothing of the manifest, the installer, the registrar or the proxy's routing.
 Those are separate specifications. A client reaches the server directly or through the proxy,
@@ -111,7 +113,7 @@ _The diagram shows the server, the one loaded model, the instances that share it
 | The agent RPC service and `InstanceRegistry` | this specification | |
 | The native host and the deterministic simulation host | this specification | |
 | The Worker host, the Durable Object layout and the browser client | this specification | |
-| The Cloudflare target and Sandboxes/Containers deployment | this specification | |
+| The Cloudflare container: control, `ContainerHandle` and deployment | spec 77 | this specification builds the agent-rpc Worker on it |
 | Key protection at rest | this specification (last feature) | |
 | The `Env` bundle, transport facts and migration groups | spec 80 | shared with the proxy |
 | Signed secrets, CA, trust store and mTLS verifiers | spec 81 | shared with the proxy |
@@ -139,7 +141,8 @@ The old spec 83 bundled the operator path with the server. The features moved as
 3. **This specification is independent of 78, 79 and 82.** The server can run without the
    installer or the registrar. A deployment that uses them adds them in that order.
 4. **Inside this specification:** 00, 01 and 02 are complete. 03 (core) runs before 04 (native
-   host) and 05 (Worker host). 06 (Cloudflare) runs after 05. 08 (key protection) runs last.
+   host) and 05 (Worker host). 06 (Cloudflare host) runs after 05, and after spec 77 features 07
+   (Cloudflare container control) and 08 (deployment). 08 (key protection) runs last.
 
 ## 4. Feature index
 
@@ -151,7 +154,7 @@ The old spec 83 bundled the operator path with the server. The features moved as
 | 03 | [Agent RPC Core](./features/03-agent-rpc-core/feature.md) | `agent.proto`, model catalog, `InstanceRegistry` trait, transport-agnostic service and enrollment handlers | 80, 81 | ⬜ Pending |
 | 04 | [Native Host and DST](./features/04-native-host-and-dst/feature.md) | Native host (TCP/TLS, local models, Turso) and the deterministic simulation harness; the proof of concept works | 80, 81, 03 | ⬜ Pending |
 | 05 | [Worker Host and Web Client](./features/05-worker-host-and-web-client/feature.md) | Workers, one Durable Object per instance, browser client, R2 history archive | 80, 03 | ⬜ Pending |
-| 06 | [Cloudflare Deployment](./features/06-cloudflare/feature.md) | Full native server on Cloudflare Sandboxes/Containers, end-to-end tests on Workers, and the Workers AI path | 00, 01, 05 | ⬜ Pending |
+| 06 | [Cloudflare Host](./features/06-cloudflare/feature.md) | The agent-rpc Worker: end-to-end tests on Workers, the Workers AI path, and the native server in a Cloudflare container. Container control and deployment come from spec 77 | 00, 01, 05, 77 | ⬜ Pending |
 | 07 | [Pluggable Agent RPC: landing](./features/07-pluggable-agent-rpc/feature.md) | Task T0 only: bring PR #126 onto master. The design is in `agent-rpc-architecture.md` | 01 | ✅ Landed (#126 on master) |
 | 08 | [Key Protection at Rest](./features/08-key-protection-at-rest/feature.md) | Key store over `foundation_db`; private keys encrypted at rest (KEK sources, WebCrypto, remote KMS); passphrase key files; rotation by `kid` | 81, 04 | 📝 Todo (last) |
 
@@ -235,7 +238,7 @@ when they are built.
    has landed; feature 01's gRPC tests assert the trailer.
 3. **Cloudflare and wasm.** The full `foundation_ai` cannot compile to a Worker. The local model
    backends stay `not(target_family = "wasm")`-gated. Feature 00 is the readiness work; feature
-   06 is the target.
+   06 is the target. Feature 06 needs spec 77 for the container handle and the deployer.
 4. **`foundation_arrow` wasm status.** Feature 00's T2 audit checks it. Do not assume it.
 5. **One valtron pool serves all tests in a binary.** A test that holds workers (the gated
    streaming test) makes other tests wait. Use a call deadline that outlasts the other tests
@@ -255,7 +258,8 @@ when they are built.
 - **One RPC surface on every host.** Traits make the core transport-agnostic: native, Worker and
   simulation. The owner's direction of 2026-10-22.
 - **Two artifacts on Cloudflare.** A thin wasm orchestrator on Workers, and the full native
-  server on Sandboxes or Containers.
+  server in a Cloudflare container. The container handle and the deployer come from spec 77.
+  This specification builds the agent-rpc Worker on them.
 
 ## 8. Owner decisions
 
@@ -285,8 +289,9 @@ specification:
   models; the core does not know which host it is on.
 - A deterministic simulation test replays a native run from one seed, with an injected clock,
   timer, entropy and RNG.
-- The Cloudflare target runs the thin orchestrator on Workers and the full server on
-  Sandboxes/Containers.
+- The Cloudflare target runs the thin orchestrator on Workers and the full server in a
+  Cloudflare container, started and controlled through the spec 77 `ContainerHandle` and
+  deployed through the spec 77 `CloudflareDeployer`.
 - No secret, private key or token appears in `Debug` or `Display` output.
 
 ## 10. Out of scope
@@ -298,6 +303,7 @@ specification:
 - **The shared auth primitives.** Spec 81. This specification wires them.
 - **Changes to `foundation_connectrpc`** beyond what spec 63 and spec 80 track. The server
   consumes the RPC engine.
+- **Cloudflare container control and deployment.** Spec 77. This specification calls them.
 - **Cloudflare deployment in the installer.** The installer's targets are systemd and Docker.
 - **Porting local model backends to wasm.** Workers use Workers AI or a remote server.
 - **gRPC-JSON transcoding or a REST façade.**
@@ -308,7 +314,10 @@ specification:
 - `backends/foundation_agent_rpc/` — the core, the native host, the Worker host and the binaries.
 - `backends/foundation_ai/` — modified only for wasm readiness (feature 00).
 - `backends/foundation_connectrpc/` — used; the wasm fetch transport is feature 05.
-- `backends/foundation_deployment_cloudflare/` — the Sandboxes/Containers surface (feature 06).
+- `backends/foundation_deployment_cloudflare/` — used through spec 77 feature 08; no change
+  from feature 06.
+- `backends/foundation_platform_sandbox/` — used through spec 77 feature 07; no change from
+  feature 06.
 - `backends/foundation_auth/` — used through spec 81.
 - `proto/ewe/agent_rpc/v1/agent.proto` — the wire contract (feature 03).
 - Crate layout rule: a library is `src/lib.rs`; each binary is `src/bin/<name>.rs` with a
@@ -335,5 +344,6 @@ specification:
 ---
 
 _Created: 2026-10-19_
-_Last updated: 2026-11-14 (split into specs 78 to 82; this spec is now agent RPC only)_
+_Last updated: 2026-11-14 (split into specs 78 to 82; Cloudflare container control and
+deployment moved to spec 77; this spec is now agent RPC only)_
 _Structure: Feature-based (has_features: true, has_fundamentals: true)_

@@ -29,7 +29,7 @@ IDs keep their old numbers, so references such as "task T19" stay valid. The
 
 ## 1. What this feature does
 
-The same RPC surface on Cloudflare Workers and in the browser. Feature 06 (Cloudflare deployment) builds its end-to-end tests on this feature.
+The same RPC surface on Cloudflare Workers and in the browser. Feature 06 (Cloudflare host) builds its end-to-end tests on this feature.
 
 Not part of the native proof of concept. It can start once feature 03 is done.
 

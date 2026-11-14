@@ -2,8 +2,9 @@
 
 _Renamed from spec 65 to spec 83 on 2026-11-14, after specs 80 and 81 became its prerequisites._
 
-_Last updated: 2026-11-14 (split into specs 78 to 82; this spec is now agent RPC only). Read this
-first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
+_Last updated: 2026-11-14 (split into specs 78 to 82; Cloudflare container control and
+deployment moved to spec 77; this spec is now agent RPC only). Read this first, then
+`LEARNINGS.md` (the handoff guide at the top) before touching code._
 
 ## Status at a glance
 
@@ -15,7 +16,7 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 03 — agent RPC core | ⏳ 0/4, design complete | — |
 | 04 — native host and DST | ⏳ 0/2, design complete | — |
 | 05 — Worker host and web client | ⏳ 0/5, design complete | — |
-| 06 — Cloudflare deployment | ⏳ 0/6 (old T1 and T2 replaced by 05) | — |
+| 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
 | 08 — key protection at rest | 📝 0/6, todo (last) | — |
 
@@ -48,6 +49,29 @@ The design files moved with their features. Spec 78 owns the manifest contract.
 The same pass fixed stale references that the renumber left: feature 06 now names feature 05
 for the Worker host, feature 05 names feature 06 for Cloudflare deployment, and feature 01
 names spec 82 feature 00 for the registrar.
+
+## The Cloudflare merge (2026-11-14)
+
+Feature 06 and spec 77 said opposite things about Cloudflare deployment and about the
+container surface. Feature 06 put deployment in `foundation_deployment_cloudflare` and added
+a `ContainersDeploy` surface. Spec 77 feature 08 deployed by hand with `npx wrangler` and
+kept its container API private to the Durable Object. The owner merged both into spec 77
+(spec 77 decision D15).
+
+| Item | Before | Now |
+|---|---|---|
+| Cloudflare deployment | Feature 06 here | Spec 77 feature 08: `CloudflareDeployer`, `DeploymentPlan`, `FoundationCloudflareDeployer` (primary), `WranglerCloudflareDeployer` (fallback) |
+| Container control | Feature 06 here (`ContainersDeploy`) | Spec 77 feature 00 section 6.13 and feature 07 section 6.4.1: `ContainerControl`, `ContainerHandle`, `DoContainerOps`, `DoContainerClient` |
+| Feature 06 T3 | Add a Sandboxes/Containers surface here | Moved to spec 77 feature 08 |
+| Feature 06 name | "Cloudflare Deployment" | "Cloudflare Host" |
+| Feature 06 tasks | 6 | 3 (T4, T5, T6) |
+| Feature 06 files in `foundation_deployment_cloudflare` | `src/`, `tests/containers_tests.rs` | None. The crate is used, not changed. |
+
+Feature 06 keeps its agent-rpc work: the thin wasm orchestrator on Workers (built on feature
+05 T21), the F24 fetch transport for a remote native server (built on feature 05 T19), the
+agent-rpc `DeploymentPlan`, and the native server in a Cloudflare container.
+
+Its `depends_on` now includes spec 77.
 
 ## Feature 01 — agent RPC model server
 

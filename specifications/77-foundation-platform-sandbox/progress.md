@@ -54,6 +54,26 @@ ASD-STE100.
   records the re-check. The spec has a `start.md` at its root and in every feature directory;
   Q5 is closed.
 
+- 2026-11-14: the Cloudflare merge. Spec 83 feature 06 said the opposite of this spec: it put
+  Cloudflare deployment and a Sandboxes/Containers surface in `foundation_deployment_cloudflare`.
+  The owner merged both pathways into this spec (decision D15):
+  - A provider-neutral container surface: `ContainerControl`, `ContainerHandle`,
+    `ContainerOps`, `ContainerSpec`, `ContainerInfo`, `ContainerStatus`,
+    `ContainerResources`, `ContainerCapabilities`, `ContainerId`, `PortRequest`,
+    `PortResponse` and `PortError` (requirements section 6.6, feature 00 section 6.13).
+    `Sandbox::container()` and `SubstrateHandle::container()` return the handle of the
+    sandbox's own container.
+  - Feature 07 adds `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient` and
+    the internal `ContainerService` (section 6.4.1).
+  - Feature 08 owns Cloudflare deployment. Both paths are supported and apply one
+    `DeploymentPlan`: `FoundationCloudflareDeployer` (Rust, primary) and
+    `WranglerCloudflareDeployer` (manual, fallback) (section 6.8).
+  - Feature 10 adds `DockerContainerControl` and `DockerContainerOps` (section 6.7.1).
+  - Feature 17 deploys the product image through the same `DeploymentPlan`.
+  - Spec 83 feature 06 now consumes these surfaces. It is renamed "Cloudflare Host". It
+    adds no file to `foundation_deployment_cloudflare` or `foundation_platform_sandbox`.
+  - Q4 is closed.
+
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
 ## In progress
@@ -122,8 +142,9 @@ sections; the other features use the nine numbered sections of the skill. The co
 the same. A renumber is a mechanical edit for a later pass.
 
 Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
-`foundation_deployment_docker`) and Q4 (authentication for the MVP) remain. Q1 and Q3 are
-closed (decisions D10 and D11). Q5 is closed: the 2026-11-14 pass added the `start.md` files.
+`foundation_deployment_docker`) remains. Q1 and Q3 are closed (decisions D10 and D11). Q5 is
+closed: the 2026-11-14 pass added the `start.md` files. Q4 is closed by decision D15: a signed
+secret or Cloudflare's own mTLS, through the spec 81 `ClientAuth` providers.
 
 ## Findings to file as GitHub issues
 

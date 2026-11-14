@@ -34,6 +34,22 @@ The boundary rules that the split added:
    to 82, not here.
 5. **The manifest is read only by the installer and the registrar.** The server never sees it.
 
+### Cloudflare moved to spec 77 (2026-11-14)
+
+Feature 06 and spec 77 gave opposite answers about Cloudflare deployment and about the
+container surface. The owner made spec 77 the owner of both (spec 77 decision D15). Feature
+06 is now "Cloudflare Host" and builds only the agent-rpc Worker.
+
+| Topic | Owner now |
+|---|---|
+| Cloudflare container control | Spec 77 feature 00 section 6.13 (`ContainerControl`, `ContainerHandle`) and feature 07 section 6.4.1 (`CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`, internal `ContainerService`) |
+| Cloudflare deployment | Spec 77 feature 08: `DeploymentPlan`, `CloudflareDeployer`, `FoundationCloudflareDeployer` (primary), `WranglerCloudflareDeployer` (fallback) |
+| The agent-rpc Worker, its routes, its model path | This specification, feature 06 |
+
+Do not add a container API call or a deployer to this specification. Build a
+`DeploymentPlan` and call the spec 77 deployer. Hold a `ContainerHandle` and call it. The
+facts and the dead ends are in `../77-foundation-platform-sandbox/learnings.md` section 9.
+
 ## Handoff guide (2026-10-21) — read this before anything else
 
 ### Where the work lives

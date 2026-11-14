@@ -30,6 +30,11 @@ created: 2026-11-14
 
 **Order:** Feature 08 lands first.
 
+The product deployable is a `DeploymentPlan` (section 6.8 of feature 08). Set
+`ContainerDeployment.image` to `./Dockerfile.product` and deploy it with
+`FoundationCloudflareDeployer`. `wrangler.product.toml` is the manual adapter's view, not the
+primary path.
+
 ---
 
 _Created: 2026-11-14_

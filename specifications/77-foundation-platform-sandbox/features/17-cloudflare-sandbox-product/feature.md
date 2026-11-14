@@ -237,8 +237,11 @@ The `mise` task `sandbox:product-dockerfile` reads the values and writes
 configuration names, and the spec does not depend on a `wrangler` option for build
 arguments.
 
-`wrangler.product.toml` is a copy of the Worker configuration of feature 08 with one
-difference: the `image` of the container class is `./Dockerfile.product`.
+The product deployable is a `DeploymentPlan` of feature 08, section 6.8. It is the sandbox
+plan with one difference: the `ContainerDeployment.image` is `./Dockerfile.product`.
+`wrangler.product.toml` is the manual adapter's view of that plan. The primary path is
+`FoundationCloudflareDeployer`; the fallback is `WranglerCloudflareDeployer`. Both apply the
+same plan.
 
 An operator with an existing product image adds only the two lines that name
 `agent-slave`. The README shows this as a three-line change to
@@ -316,6 +319,7 @@ Faults:
 | I6, the two JSON scenarios | `e2e_cf_json_unary`, `e2e_cf_json_stream`, `e2e_cf_json_no_token` (they use the HTTP client of `foundation_netio` with hand-made bodies, not `SandboxRpcClient`; the stream is read as a stream) | `tests/e2e_cf_product.rs` | identity with the `SandboxRpcClient` answer |
 | the fault row "no slave" | `e2e_cf_product_no_slave` | the same | fault |
 | I4, I5 | `no_shim_reference` (a search of the crate sources for `sandbox-shim` and `@cloudflare/sandbox` finds only documents) | `product.sh`, with `grep` | expected outcome |
+| Product deploy plan | `product_deploy_plan` (the plan names `./Dockerfile.product`, the same Worker and bindings; both adapters accept it) | `foundation_deployment_cloudflare/tests/deploy_product.rs` | identity |
 
 The script runs in the CI workflow of feature 08, as one more step after its own script.
 

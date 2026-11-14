@@ -411,6 +411,9 @@ impl SandboxManager {
     /// Loads the stored records and finds their substrates again. Call it one time, before
     /// the first request, in a control plane that can restart while its sandboxes live.
     pub async fn restore(&self) -> SandboxResult<()>;
+    /// The container control of the first driver in `drivers` that has one (feature 00,
+    /// section 6.13). `None` when no driver runs a container with no sandbox.
+    pub fn containers(&self) -> Option<Arc<dyn ContainerControl>>;
 }
 ```
 
@@ -724,6 +727,7 @@ Simulation (`control_sim_*.rs`), with `Ctx::with_seed`, `SimulatedClock`, `SimDr
 | `restore`, more cases (section 6.2) | `restore_ready_record`, `restore_dead_substrate`, `restore_unprepared_slave`, `restore_unfinished_record` (one for `Creating`, one for `Stopping`), `restore_twice`; `fixed_id` (the sandbox ID is the configured one; a second create fails with `TooManySessions`) | expected outcome |
 | law L11 of the requirements (the same outcome through the library and through RPC) | `rpc_parity_sim`: every simulation scenario of this table that uses a `Sandbox` runs a second time through `SandboxRpcClient` + `ControlService` over the pipe connection, and the outcomes are equal; `rpc_error_variants` (each `SandboxError` variant that a control call can return keeps its variant and fields); `rpc_create_dropped_cleans_up` | differential, identity, fault |
 | `check_bearer` | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | expected outcome |
+| `SandboxManager::containers` | `manager_containers` (a `SimDriver` with no control gives `None`; a driver with a fake control gives it; the first driver in order wins) | expected outcome |
 | I16 | the wasm check in section 8; `no_os_calls` (a source scan of `src/shared/control/`) | build, example |
 
 Real slave process (`control_slave_process_*.rs`, Linux, features `slave` and `testing`). A

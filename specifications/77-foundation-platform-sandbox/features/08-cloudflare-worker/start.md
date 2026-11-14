@@ -30,6 +30,10 @@ created: 2026-11-14
 
 **Order:** Features 06 and 07 land first. This feature closes MVP-B. `infrastructure/sandbox_worker` is its own workspace root.
 
+This feature also owns Cloudflare deployment (section 6.8): `DeploymentPlan`, `CloudflareDeployer`,
+`FoundationCloudflareDeployer` (primary) and `WranglerCloudflareDeployer` (fallback). Both
+apply one plan. Spec 83 feature 06 builds its own plan and calls the same deployer.
+
 ---
 
 _Created: 2026-11-14_
