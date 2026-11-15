@@ -177,9 +177,17 @@ if [ -f "$BINARY" ] && [ -f "$CACHE_DIR/icudtl.dat" ]; then
   exit 0
 fi
 
-# 3. Download a pinned headless build into the cache. It needs no sudo and reads
-#    no /etc/os-release. A Linux developer with a system Chromium already has it
-#    on PATH, so the driver finds it before this task is needed.
+# 3. A browser on PATH is already the one the driver finds (the search order of
+#    invariant I4 reads the cache first, then PATH). The Linux CI image ships
+#    one, so CI installs nothing. No sudo and no /etc/os-release.
+for name in chromium google-chrome chromium-browser chrome; do
+  if found="$(command -v "$name" 2>/dev/null)"; then
+    echo "chromium: $found (PATH)"
+    exit 0
+  fi
+done
+
+# 4. Download a pinned headless build into the cache.
 case "$(uname -s)" in
   Darwin)
     case "$(uname -m)" in

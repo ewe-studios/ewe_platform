@@ -188,7 +188,13 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
             let build = build::run_with_tests(&crate_path, args.release, args.features.as_deref())?;
             match args.mode {
                 Mode::BindgenWeb => {
-                    run_bindgen_web(&build, &integration_dir, &args.browser, args.headless)?;
+                    run_bindgen_web(
+                        &build,
+                        &integration_dir,
+                        &args.browser,
+                        args.headless,
+                        args.filter.as_deref(),
+                    )?;
                 }
                 Mode::BindgenDeno => {
                     run_bindgen_deno(&build, &integration_dir, args.filter.as_deref())?;
@@ -209,6 +215,7 @@ fn run_bindgen_web(
     integration_dir: &std::path::Path,
     browser: &cli::Browser,
     headless: bool,
+    filter: Option<&str>,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
@@ -231,7 +238,13 @@ fn run_bindgen_web(
     )?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
-    let tests = wasm_test::discover_tests(&bg_wasm)?;
+    let mut tests = wasm_test::discover_tests(&bg_wasm)?;
+    if let Some(filter) = filter {
+        tests.retain(|name| name.contains(filter));
+    }
+    if tests.is_empty() {
+        return Err(WasmTestbedError::NoFwtCases(bg_wasm.display().to_string()).trace());
+    }
     tracing::info!("Discovered {} tests", tests.len());
 
     init::write_bindgen_runjs_to(

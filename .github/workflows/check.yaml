@@ -299,7 +299,25 @@ jobs:
           EWE_REQUIRE_PTRACE: "1"
         run: cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
+      - name: Cache the pinned Chromium build
+        # Spec 88 T8. The task installs `chrome-headless-shell` into this
+        # directory; later runs restore it instead of downloading it again.
+        if: matrix.package == 'wasm-tests'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/foundation/chromium
+          key: chromium-${{ runner.os }}-157.0.8103.51
+
+      - name: Install Chromium when the image has none
+        # The Linux image links Google Chrome on PATH, so the task prints that
+        # path and downloads nothing. The cache covers a runner that lost it.
+        if: matrix.package == 'wasm-tests'
+        run: mise run test:browsers:chromium
+
       - name: test
+        env:
+          # The CDP wire trace only on a manual run (spec 88 T8).
+          PRIMAL_CDP_TRACE: ${{ matrix.package == 'wasm-tests' && github.event_name == 'workflow_dispatch' && '1' || '' }}
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
@@ -512,6 +530,11 @@ jobs:
             rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
           fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Install the wasm32 target
+        # The owned browser suite builds a wasm module (spec 88 T8). The
+        # command is a no-op when the target is present.
+        run: rustup target add wasm32-unknown-unknown
 
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2

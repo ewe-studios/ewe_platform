@@ -35,3 +35,37 @@ run = """
 mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
 cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter wasm_js_yield_integration
 """
+
+[tasks."test:wasm-bindgen:core"]
+alias = "test-wasm-bindgen-core"
+description = "foundation_core's 19 `dual!` wasm-bindgen cases on the Deno host (#575). Needs the mise-pinned deno + wasm-bindgen."
+run = """
+mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter async_first_api
+"""
+
+[tasks."test:wasm-bindgen:web"]
+alias = "test-wasm-bindgen-web"
+description = "The wasm-bindgen web runner in headless Chromium. Runs the fixture's passing case until the valtron browser suite starts (#586)."
+depends = ["test:browsers:chromium"]
+run = """
+cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-web backends/foundation_testbed/integration/bindgen_failing_case --filter a_passes --headless
+"""
+
+[tasks."test:wasm-testbed:bindgen-fails"]
+alias = "test-wasm-testbed-bindgen-fails"
+description = "Regression check: a case that fails turns both wasm-bindgen runners red (spec 88 rules I1, I7, R14). The step passes only when both commands fail."
+run = """
+#!/usr/bin/env bash
+set -uo pipefail
+fixture="backends/foundation_testbed/integration/bindgen_failing_case"
+if cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno "$fixture" --filter b_fails; then
+  echo "bindgen-deno reported success for a failing case" >&2
+  exit 1
+fi
+if cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-web "$fixture" --filter b_fails --headless; then
+  echo "bindgen-web reported success for a failing case" >&2
+  exit 1
+fi
+echo "✓ both wasm-bindgen runners reject a failing case"
+"""

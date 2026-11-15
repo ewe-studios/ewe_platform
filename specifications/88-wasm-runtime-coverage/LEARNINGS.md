@@ -281,3 +281,34 @@ Keep one test target per crate (rule R10): put every case in one tests/*.rs file
 **Also in T7.** `test bindgen-wrangler --filter <name>` keeps only the matching cases before it
 writes `worker.js`. On the fixture, `--filter a_passes` reported "Discovered 1 tests" and `test
 result: ok. 1 passed`. The two stale runner names are corrected (#574).
+
+## 14. The CI shape that runs all five executors (T8)
+
+**Five executors, cheapest failure first.** The `wasm-tests` package runs the owned Deno host,
+the bindgen Deno host, the 19 `dual!` cases, the worker, the owned browser host, the bindgen
+web host, then the failing fixture. The fixture step passes only when both bindgen runners
+reject `b_fails`.
+
+**Measured results of each new task.**
+
+| Task | Result |
+|---|---|
+| `test:wasm-bindgen:core` | Discovered 19 tests; `test result: ok. 19 passed` |
+| `test:wasm-bindgen:web` | Discovered 1 test; `test result: ok. 1 passed` |
+| `test:wasm-testbed:bindgen-fails` | both runners exit non-zero; the step passes |
+
+**What did not happen as planned.** `test:wasm-bindgen:web` was meant to run the valtron
+`dual!` cases. That module traps while it starts in Chromium (`RuntimeError: unreachable`), so
+the page prints no result. Feature 01 owns that runtime work; #586 records it. The web step
+runs the fixture's passing case until then, so the executor still proves it runs and reports
+the truth. The web runner also gained `--filter` here (#582), because without it the step could
+not name one case.
+
+**Chromium cost.** The Linux image links Google Chrome on `PATH`, so the install task now checks
+`PATH` before it downloads. The workflow caches `~/.cache/foundation/chromium` with a key that
+names the pinned version. The macOS job needs no browser install: Chrome is in `/Applications`,
+and the search order of invariant I4 reads that path. The macOS job runs two direct `cargo run`
+commands instead of the mise task, because the macOS runner has no mise.
+
+**Rule for the future.** A CI step that runs a mise task inherits a tool the runner may not
+have. Prefer the direct command on a platform whose tool set the image does not control.
