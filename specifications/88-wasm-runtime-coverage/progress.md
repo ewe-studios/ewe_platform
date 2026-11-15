@@ -10,9 +10,10 @@ _Updated 2026-11-15. Written in ASD-STE100 Simplified Technical English (STE)._
 | Issues filed from the survey | done (#566-#576) |
 | Architecture and rules | done (requirements sections 3-6) |
 | Feature designs | done: four features, each with `feature.md` and `start.md` |
-| Owner approval of the plan | **waiting** |
-| Implementation | not started |
-| Pull request | not opened (PR #553 holds spec 85 work) |
+| Owner approval of the plan | **approved 2026-11-16**: three answers, given in full in "The approval in detail" below |
+| What the approval settles | D1: repair the browser host in this specification. D2: `foundation_http` and `foundation_connectrpc` use the wasm-bindgen harness on all three hosts. D3: all three hosts run on every pull request |
+| Implementation | feature 00 in progress (one agent, sonnet); features 01 to 03 wait for the owner's review |
+| Pull request | not opened (PR #553 holds spec 85 and spec 88 work) |
 
 No product code changes until the owner approves the plan (owner rule: the plan update and
 approval come before implementation).
@@ -21,7 +22,7 @@ approval come before implementation).
 
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
-| 00-executors | `todo` | one agent, sonnet | nothing |
+| 00-executors | `in progress` | one agent, sonnet | nothing |
 | 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
@@ -46,6 +47,20 @@ write `foundation_testbed/src/wasm/server.rs`, first 00 (the `/echo` route), the
 The last row is the one open question. Feature 03 measures it and records the answer; it does
 not build a stub to avoid the question.
 
+## The approval in detail
+
+The owner answered three questions. The plan follows the answers. The full record is section 4
+of `requirements.md`.
+
+| Decision | The owner's answer | What the plan does |
+|---|---|---|
+| D1: the browser executor | "Fix it here" | Feature 00 repairs the mise task, the preflight, the install path, the macOS Chrome case and the protocol defect. No change from the answer. |
+| D2: the test form | "Accept the narrowing" (the first answer was: owned harness where a crate can run without wasm-bindgen; wasm-bindgen where it cannot; workerd is wasm-bindgen only) | `foundation_core` uses the owned harness on Deno and the browser. `foundation_http` and `foundation_connectrpc` use the wasm-bindgen harness on all three hosts, because their wasm modules import wasm-bindgen glue through `foundation_netio`'s `wasm-fetch` feature (requirements 2.7). A port of the netio fetch client to the owned ABI would remove the limit; it costs a second transport implementation and gives no host coverage |
+| D3: the CI cadence | "Keep all three on every PR" | All three hosts run on every pull request, inside the Linux `wasm-tests` job. The Chromium install is cached, so the cost is paid once. The macOS job runs the browser suite on full runs. Rule 16 still holds |
+
+The words "narrowing" and "amendment" are the Main Agent's names for the gap between the first
+answer and the measured plan. They are not the owner's words.
+
 ## Issues this specification closes
 
 | Issue | Severity | Closed by |
@@ -64,13 +79,11 @@ not build a stub to avoid the question.
 
 ## Next steps
 
-1. Owner reviews the four feature designs and the two narrowed decisions (requirements
-   section 4: D2 and D3).
-2. On approval, feature 00 starts alone.
-3. When 00 merges, features 01, 02 and 03 start in parallel, one agent each.
-4. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
+1. Feature 00 starts alone (approved 2026-11-16).
+2. When 00 merges, features 01, 02 and 03 start in parallel, one agent each.
+3. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
    commits.
-5. One pull request for the specification (owner rule: one branch and one pull request per
+4. One pull request for the specification (owner rule: one branch and one pull request per
    spec).
 
 ## Records that must exist before a feature is called done

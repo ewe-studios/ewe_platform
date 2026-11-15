@@ -24,6 +24,14 @@ owned harness on Deno and the browser, and the wasm-bindgen harness on Deno and 
 `foundation_http` and `foundation_connectrpc` use the wasm-bindgen harness on all three hosts.
 The feature files repeat the reason so no agent tries the owned path again.
 
+**What would change the answer.** The limit is the import, not the crate name. Port
+`foundation_netio`'s wasm fetch client to the owned ABI, in the style of `foundation_core`'s
+`js-foundation-wasm`, and no wasm-bindgen glue enters the graph. Then the owned harness can host
+all three crates. The cost is a second HTTP transport implementation: request and response
+streaming, headers, abort and the websocket path. It gives no host coverage, because the
+wasm-bindgen harness already runs on all three hosts. This is recorded as a low-severity issue,
+not as work in this specification.
+
 **Rule for the future.** Before you pick a harness for a crate, build its wasm module and
 count the imports. One `__wbindgen_*` import decides it.
 
