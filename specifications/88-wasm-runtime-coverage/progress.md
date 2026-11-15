@@ -12,7 +12,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Feature designs | done: four features, each with `feature.md` and `start.md` |
 | Owner approval of the plan | **approved 2026-11-16**: feature 00 is approved with four answers, recorded below |
 | The owner's answers | D1: repair the browser host in this specification. D2: both harnesses run where a crate allows it. D3: all three hosts run on every pull request |
-| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) done 2026-11-16, waiting for review; features 01 to 03 next |
+| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) **reviewed 2026-11-16**; the Linux-run fixes (#587, #588, #590) landed 2026-11-16; features 01 to 03 next |
 | Pull request | not opened (PR #553 holds spec 85 and spec 88 work) |
 
 Product code changes need the owner's approval of the plan. The owner approved feature 00 on
@@ -22,7 +22,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
-| 00-executors | `in progress`: T1 to T8 done and reviewed; T9 (#586) done 2026-11-16, waiting for review | one agent, sonnet | nothing |
+| 00-executors | `in progress`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged (T9 included) |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
@@ -103,6 +103,27 @@ set, the wasm check and the new `.mjs` test.
 `scripts/ci/linux.sh` cannot run from a worktree without an extra read-only mount of the main
 `.git` directory; issue #590 records it.
 
+### The Linux-run fixes (2026-11-16)
+
+Commit `25c34d5f8` on `spec/88-executors`. The measurements ran in the same image, still
+emulated.
+
+| Issue | Fix | Evidence |
+|---|---|---|
+| #587 high | The runner reports after each case, keeps its line buffer, and exposes `__FWT_DIAGNOSTICS__`. The embedded driver appends the error, the case in flight and the panic report. `TestReports.snapshot()` keeps a report a trap cut off during delivery. | The run names `any_readiness_resumes_when_a_child_is_ready` and prints `resumed 64ms after the child was ready (window 25ms)` |
+| #588 high | `BrowserOutput.output` holds every page line. The runner prints it, and `CaseFailures` and `OwnedRunFailed` carry it. | `tests/web_failure_report_tests.rs` (2 cases); the browser run follows |
+| #590 low | `scripts/ci/linux.sh` resolves the git common directory and mounts it read-only. | The script ran `foundation_nostd` from the worktree inside the container |
+
+The #587 message shows that the wake works: `polls_at_fire` was 1, so the executor did not poll
+the parked task. The 25 ms resume window failed on an emulated host. That is the family of
+#589, not a lost wake. A manual CI run on native `amd64` measures both:
+`gh workflow run check.yaml --ref spec/88-executors -f packages=wasm-tests` (run 43753198986,
+in flight when this file was updated).
+
+New issues from the same work: #597 (`low`, a timing bound in `foundation_nostd`) and #598
+(`low`, 16 clippy warnings in `foundation_wasm` under a wasm feature tree that CI does not
+lint).
+
 ### Issues that feature 00 closed
 
 #566, #567, #568, #569, #571, #572, #573, #574, #579, #580, #581, #582. The review closed
@@ -118,10 +139,12 @@ set, the wasm check and the new `.mjs` test.
 | #584 | low | open | workerd's request URL has no port; the runner avoids it |
 | #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
 | #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16), fixed on `spec/88-executors` |
-| #587 | high | open | the owned Deno abort; fix now, it turns the `wasm-tests` job red |
-| #588 | high | open | the browser harness must name a failed case; fix now |
-| #589 | medium | open | rerun on a native amd64 runner before changing a timing bound |
-| #590 | low | open | the CI script needs a worktree form; it waits |
+| #587 | high | open | the owned Deno abort; fixed in `25c34d5f8`: the harness names the case, the cause is the #589 window |
+| #588 | high | open | the browser harness must name a failed case; fixed in `25c34d5f8` |
+| #589 | medium | open | native `amd64` run 43753198986 measures the timing cases |
+| #590 | low | open | the CI script needs a worktree form; fixed in `25c34d5f8` |
+| #597 | low | open | a `foundation_nostd` timing bound; it waits |
+| #598 | low | open | 16 clippy warnings in a wasm feature tree that CI does not lint; it waits |
 
 ## What the plan depends on
 

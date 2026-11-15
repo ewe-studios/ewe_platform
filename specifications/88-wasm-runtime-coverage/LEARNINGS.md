@@ -376,3 +376,47 @@ to `async_first_api`. Without a filter, foundation_core has 34 wasm-bindgen case
 **Rule for the future.** A test binary built with `--tests` holds two test systems in one
 module: libtest's `main` and the `__wbgt_` exports. A JavaScript host must call only the
 exports. Remove the start call, and keep the externref table setup that shares its body.
+
+## 16. A trap in a host callback lost the case name (#587)
+
+**Expected.** A failing case reports its verdict and its message, and the run continues to the
+next case. The panic hook runs before the abort trap, so a panic reaches the runner.
+
+**Measured.** The owned Deno run ended with `RuntimeError: unreachable`. No `test result` line
+followed, and no case name appeared. The trap happened in a host callback: a `setTimeout`
+callback re-entered the wasm module and an assertion panicked there.
+
+**Root cause, part one (the missing name).** The runner printed case lines into its `out`
+array, but it sent the structured report to Rust only after the last case. A trap in the middle
+of the run lost every line. The line buffer was also invisible to the driver: no JavaScript
+frame held it, and the event loop returned an error to Rust.
+
+**Root cause, part two (the missing message).** The panic hook ships the message through the
+`host_report` import into `TestReports`. The runner awaits `testReports.next()` while a case is
+pending, so `push` resolved a pending promise and did not buffer the report. The awaiting
+continuation never ran after the trap, so the message sat in a dead promise.
+
+**Fix.** The runner sends a report after each case. It exposes `__FWT_DIAGNOSTICS__`: the case
+in flight, `TestReports.snapshot()` (buffered reports plus the last delivered one), and the
+line buffer. When the event loop ends with an error, `run_staged_harness` reads that object,
+appends the error and the diagnostics to the output, and counts the run as one failure.
+`BrowserRunLimits` timeout diagnostic reads the same object.
+
+**Measured after the fix.** In the `linux/amd64` CI image on an `arm64` host, the run names the
+case and the message:
+
+```
+failing case: any_readiness_resumes_when_a_child_is_ready
+case report: any_readiness_resumes_when_a_child_is_ready: panicked at
+  src/../../../tests/valtron/wasm_wake_support.rs:684:13:
+resumed 64ms after the child was ready (window 25ms)
+```
+
+**What the message shows.** The wake path passed its first check: `polls_at_fire` was 1, so the
+executor did not poll the task while it was parked. The run failed on the 25 ms resume window
+alone. The host was emulated. This is the family of #589, not a lost wake. The checks after the
+window did not run.
+
+**Rule for the future.** A harness that runs many cases in one event loop must report each case
+as it ends. An awaiting promise is not a store: anything a trap can cut off needs a copy that a
+later reader can reach.
