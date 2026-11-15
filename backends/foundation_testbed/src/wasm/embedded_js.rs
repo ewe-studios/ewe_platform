@@ -301,11 +301,11 @@ pub fn run_module(entry: &Path) -> Result<(), Box<dyn std::error::Error>> {
     })
 }
 
-/// Run a staged `#[wasm_test]` harness (`runner.mjs` + `foundation-wasm.js` +
+/// Run a staged `#[wasm_test]` harness (`runner.js` + `foundation-wasm.js` +
 /// `module.wasm` + `cases.json`) in-process and return its captured result.
 ///
 /// This is the embedded replacement for shelling out to `node`/`deno`: it builds
-/// the runtime with the harness ops, evaluates `runner.mjs`, drives the event loop,
+/// the runtime with the harness ops, evaluates `runner.js`, drives the event loop,
 /// and reads the report the runner pushed through `op_fwt_report`.
 ///
 /// # Errors
@@ -314,7 +314,7 @@ pub fn run_module(entry: &Path) -> Result<(), Box<dyn std::error::Error>> {
 pub fn run_staged_harness(stage_dir: &Path) -> Result<HarnessReport, Box<dyn std::error::Error>> {
     let sink = ReportSink::default();
     let captured = sink.clone();
-    let runner = stage_dir.join("runner.mjs");
+    let runner = stage_dir.join("runner.js");
 
     tokio_runtime()?.block_on(async {
         let mut runtime = build_runtime_with(vec![foundation_fwt::init(sink)])?;

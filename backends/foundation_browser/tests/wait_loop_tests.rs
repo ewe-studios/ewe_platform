@@ -136,7 +136,16 @@ fn connect_with_retry_ends_when_the_clock_passes_the_deadline() {
     // The socket connect is lazy and succeeds on a closed port, so a bad URL
     // is the way to make every attempt fail at once.
     let url = "not a websocket url".to_string();
-    let rx = spawn(move || connect_with_retry(&url, Browser::Firefox, &wait(), &ctx).is_err());
+    let rx = spawn(move || {
+        connect_with_retry(
+            &url,
+            Browser::Firefox,
+            &wait(),
+            &ctx,
+            &foundation_browser::RpcEngineConfig::default(),
+        )
+        .is_err()
+    });
     // The Firefox retry deadline is 20 s of clock time.
     let failed = blocked_then_released(&rx, &clock, Duration::from_secs(21));
     assert!(failed, "the connect must fail after the deadline");

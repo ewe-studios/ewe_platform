@@ -187,3 +187,54 @@ install in the same change. A task that installs a tool no code calls is a false
 ---
 
 _Created: 2026-11-15_
+
+## 11. The page session stalled behind the read deadline (#569)
+
+**Expected.** The first command that carries a `sessionId` (`Page.enable`) never answered. Both
+observed failures were exactly 30 s, so the plan guessed that a socket read deadline equal to
+the call deadline ended the reader.
+
+**Measured.** With `PRIMAL_CDP_TRACE=1` on Chrome for Testing 157.0.8103.51, macOS arm64,
+`wasm-testbed browser integration/module --filter passes --headless` printed these frames:
+
+```
+17:29:08.224  send id=1 Target.createTarget
+17:29:08.493  recv id=1 result
+17:29:08.493  send id=2 Target.attachToTarget
+17:29:38.241  recv event Target.attachedToTarget
+17:29:38.241  recv id=2 result
+17:29:38.241  send id=3 Page.enable session=5DE5…
+17:30:08.245  reader thread exiting reason=stopped
+             error: Page.enable timed out after 30000ms
+```
+
+The answer to `Target.attachToTarget` arrived 29.7 s after the command was sent. The reader
+then delivered the next command at once and timed out again. The reader did not exit before
+the call deadline: the engine was dropped after the timeout, and the reason was `stopped`.
+
+**Root cause.** The `foundation_netio` WebSocket task drains its outbound pipe between socket
+reads, and one blocking read used the engine's read deadline (30 s). A command queued while
+the reader was blocked in that read was not written until the read timed out. So a CDP call
+could only start after the previous read returned, and the first read after a quiet moment
+cost up to 30 s. The protocol and the frame parser were correct.
+
+**Fix.** The engine sets a short read deadline (default 50 ms), so it writes a queued command
+within one read. Every call now answers in 20-50 ms in the same trace. The reader contract
+holds at the same time: a close, a read error or the end of the stream marks the connection
+dead, fails every waiting call with `ConnectionLost`, and makes a later call fail at once
+(invariant I6). `RpcEngineConfig` holds `call_timeout`, `read_timeout` and `idle_sleep`;
+`LaunchConfig` holds the engine config and `navigate_timeout`.
+
+**Two more blockers appeared after the CDP fix.** Each one is a GitHub issue.
+
+| Defect | Evidence | Result |
+|---|---|---|
+| The static server sent `.mjs` as `application/octet-stream`, and Chrome refused the module | the page stayed at "running…"; a probe page ran its module only with `text/javascript` | staged runner renamed to `runner.js`; #578 records the `foundation_http` fix |
+| The runner read the first `#output` line as the verdict | "owned harness run failed with exit code 1" after `test result: ok` | last `test result:` line is the verdict; #579 |
+| Synchronous WebAssembly compile threw above 8 MiB | the core module failed with `RangeError: WebAssembly.Compile is disallowed on the main thread` | async compile and instantiate; #580 |
+| The install copied the binary without `icudtl.dat` | the binary exited before it opened the debug port; #581 | the task copies the whole archive |
+
+**Rule for the future.** A blocking transport that multiplexes reads and writes on one thread
+must wake often. A read deadline is a poll interval, not the time a caller should wait. When a
+diagnosis shows a delay equal to a timeout, measure the send and receive times of every frame
+before you change the contract.

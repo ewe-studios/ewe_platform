@@ -5,7 +5,7 @@
 //!
 //! WHAT: [`run_deno`], [`run_web`] — build a `foundation_wasm` cdylib to wasm32
 //! (LLVM backend), discover `__fwt_` cases, stage a self-contained harness
-//! (embedded `foundation-wasm.js` runtime + generic `runner.mjs` + the module +
+//! (embedded `foundation-wasm.js` runtime + generic `runner.js` + the module +
 //! `cases.json`), execute it, and surface the exit code/summary.
 //!
 //! HOW: Staging goes to a temp dir (everything in it is generated; nothing to
@@ -126,7 +126,7 @@ pub fn stage_from_wasm(wasm_path: &Path, cases: &[FwtCase], stage_dir: &Path) ->
         "foundation-wasm-ui.js",
         foundation_wasm_ui::embedded::FOUNDATION_WASM_UI_JS.as_bytes(),
     )?;
-    write("runner.mjs", read_template("fwt/runner.mjs")?.as_bytes())?;
+    write("runner.js", read_template("fwt/runner.js")?.as_bytes())?;
     write("index.html", read_template("fwt/index.html")?.as_bytes())?;
     write("cases.json", cases_json(cases).as_bytes())?;
     let wasm_bytes =
@@ -218,7 +218,13 @@ pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
     let serving = server::start_serving(dir.path())?;
     let url = serving.url("index.html");
     info!("serving owned harness at {url}");
-    let outcome = crate::wasm::browser::run(&url, &args.browser, args.headless, ctx);
+    let outcome = crate::wasm::browser::run(
+        &url,
+        &args.browser,
+        args.headless,
+        ctx,
+        &crate::wasm::browser::BrowserRunLimits::default(),
+    );
     serving.shutdown();
     let browser_output = outcome?;
 

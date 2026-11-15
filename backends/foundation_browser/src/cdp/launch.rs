@@ -3,10 +3,12 @@
 use std::borrow::Cow;
 use std::fmt;
 use std::path::PathBuf;
+use std::time::Duration;
 
 use foundation_context::Ctx;
 
 use crate::error::{BrowserError, Result};
+use crate::jsonrpc::RpcEngineConfig;
 use crate::pause::WaitConfig;
 
 /// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
@@ -280,6 +282,14 @@ pub struct LaunchConfig {
     pub ctx: Option<Ctx>,
     /// The intervals of every launch wait loop. See [`WaitConfig`].
     pub wait: WaitConfig,
+    /// The limits of the protocol connection (timeouts and the idle pause).
+    pub engine: RpcEngineConfig,
+    /// The budget of one navigation, in clock time.
+    ///
+    /// The default is 30 s: Chrome loaded the smoke test's `data:` page in
+    /// under a second on macOS, and a full page with a wasm module takes about
+    /// a second. A dead navigation must still fail in bounded time.
+    pub navigate_timeout: Duration,
 }
 
 impl fmt::Debug for LaunchConfig {
@@ -290,6 +300,8 @@ impl fmt::Debug for LaunchConfig {
             .field("extra_args", &self.extra_args)
             .field("ctx", &self.ctx.is_some())
             .field("wait", &self.wait)
+            .field("engine", &self.engine)
+            .field("navigate_timeout", &self.navigate_timeout)
             .finish()
     }
 }
@@ -302,6 +314,8 @@ impl Default for LaunchConfig {
             extra_args: Vec::new(),
             ctx: None,
             wait: WaitConfig::default(),
+            engine: RpcEngineConfig::default(),
+            navigate_timeout: Duration::from_secs(30),
         }
     }
 }
@@ -322,6 +336,8 @@ impl LaunchConfig {
             extra_args: Vec::new(),
             ctx: None,
             wait: WaitConfig::default(),
+            engine: RpcEngineConfig::default(),
+            navigate_timeout: Duration::from_secs(30),
         }
     }
 
@@ -343,6 +359,20 @@ impl LaunchConfig {
     #[must_use]
     pub fn headless(mut self, on: bool) -> Self {
         self.headless = on;
+        self
+    }
+
+    /// Set the limits of the protocol connection.
+    #[must_use]
+    pub fn engine(mut self, engine: RpcEngineConfig) -> Self {
+        self.engine = engine;
+        self
+    }
+
+    /// Set the budget of one navigation.
+    #[must_use]
+    pub fn navigate_timeout(mut self, timeout: Duration) -> Self {
+        self.navigate_timeout = timeout;
         self
     }
 

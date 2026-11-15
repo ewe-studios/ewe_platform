@@ -4779,7 +4779,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "base64 0.22.1",
  "derive_more",

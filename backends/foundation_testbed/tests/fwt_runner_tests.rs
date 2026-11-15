@@ -99,7 +99,7 @@ fn staging_produces_a_self_contained_harness() {
     for file in [
         "foundation-wasm.js",
         "foundation-wasm-ui.js",
-        "runner.mjs",
+        "runner.js",
         "index.html",
         "cases.json",
         "module.wasm",

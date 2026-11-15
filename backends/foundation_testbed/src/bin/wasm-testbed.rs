@@ -20,12 +20,16 @@ use cli::{Cli, Command};
 use error::WasmTestbedError;
 
 fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
-        )
-        .init();
+    let mut filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
+    // PRIMAL_CDP_TRACE=1 prints the CDP wire: every frame the engine sends and
+    // every frame the browser answers. Use it to diagnose a stalled page.
+    if std::env::var("PRIMAL_CDP_TRACE").is_ok_and(|value| value == "1")
+        && let Ok(directive) = "foundation_browser=trace".parse()
+    {
+        filter = filter.add_directive(directive);
+    }
+    tracing_subscriber::fmt().with_env_filter(filter).init();
 
     let cli = Cli::parse();
 
@@ -131,6 +135,7 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                         &args.browser,
                         args.headless,
                         &foundation_context::Ctx::host(),
+                        &browser::BrowserRunLimits::default(),
                     )?;
                     tracing::info!("Test output: {}", output.test_result);
                     server.shutdown();
@@ -240,7 +245,13 @@ fn run_bindgen_web(
     let url = server.url("index.html");
     tracing::info!("Serving at {}", url);
 
-    let output = browser::run(&url, browser, headless, &foundation_context::Ctx::host())?;
+    let output = browser::run(
+        &url,
+        browser,
+        headless,
+        &foundation_context::Ctx::host(),
+        &browser::BrowserRunLimits::default(),
+    )?;
     tracing::info!("Test output: {}", output.test_result);
 
     server.shutdown();

@@ -45,7 +45,9 @@ function report(passed, failed, ignored) {
 
 async function runCase(moduleCompiled, testCase) {
   const rt = new FoundationWasm();
-  const instance = new WebAssembly.Instance(moduleCompiled, { abi: rt.web_abi });
+  // Async instantiate for the same reason as the compile above: Chrome
+  // refuses the synchronous form for a module over 8 MiB on the main thread.
+  const instance = await WebAssembly.instantiate(moduleCompiled, { abi: rt.web_abi });
   rt.init(instance);
 
   let trapped = false;
@@ -78,7 +80,11 @@ async function runCase(moduleCompiled, testCase) {
 
 async function main() {
   const cases = JSON.parse(new TextDecoder().decode(await loadBytes(here("./cases.json"))));
-  const moduleCompiled = new WebAssembly.Module(await loadBytes(here("./module.wasm")));
+  // Async compile: Chrome refuses a synchronous WebAssembly.Module for a buffer
+  // over 8 MiB on the main thread. The foundation_core module is larger.
+  const moduleCompiled = await WebAssembly.compile(
+    await loadBytes(here("./module.wasm")),
+  );
 
   let passed = 0;
   let failed = 0;

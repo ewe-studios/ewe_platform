@@ -59,6 +59,14 @@ pub enum BrowserError {
         after_ms: u64,
     },
 
+    /// The protocol connection ended, so the command can never be answered.
+    #[display("connection lost: {reason}")]
+    #[from(ignore)]
+    ConnectionLost {
+        /// The reason the reader stopped, or the last frame error.
+        reason: String,
+    },
+
     /// A selector matched no element.
     #[display("selector matched no element: {_0}")]
     #[from(ignore)]

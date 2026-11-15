@@ -34,7 +34,7 @@ pub use browser::{BrowserDriver, Page};
 pub use cdp::launch::{resolve_browser, Browser, LaunchConfig};
 pub use error::{BrowserError, Result};
 pub use geometry::Rect;
-pub use jsonrpc::{RpcEngine, WireProtocol};
+pub use jsonrpc::{RpcEngine, RpcEngineConfig, WireProtocol};
 pub use locator::{Locator, LocatorAssertions};
 pub use pause::WaitConfig;
 

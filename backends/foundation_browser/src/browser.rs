@@ -21,7 +21,7 @@ use crate::bidi::backend::BiDiBackend;
 use crate::cdp::backend::CdpBackend;
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};
-use crate::jsonrpc::RpcEngine;
+use crate::jsonrpc::{RpcEngine, RpcEngineConfig};
 use crate::pause::{pause, WaitConfig};
 use crate::supervisor::BrowserProcess;
 
@@ -50,6 +50,7 @@ impl CtxSource<'_> {
 pub struct BrowserDriver<'a> {
     engine: RpcEngine,
     browser: Browser,
+    navigate_timeout: Duration,
     ctx: CtxSource<'a>,
     #[allow(dead_code)] // held for its Drop (kills the process)
     process: BrowserProcess,
@@ -100,7 +101,13 @@ impl<'a> BrowserDriver<'a> {
         let process = BrowserProcess::launch(config, ctx.ctx_ref())?;
         // Firefox's remote agent takes a beat to start listening; CDP's endpoint
         // is ready as soon as DevToolsActivePort appears, so one shot suffices.
-        let engine = connect_with_retry(process.ws_url(), browser, &config.wait, ctx.ctx_ref())?;
+        let engine = connect_with_retry(
+            process.ws_url(),
+            browser,
+            &config.wait,
+            ctx.ctx_ref(),
+            &config.engine,
+        )?;
         // BiDi is connection-scoped: open the session once, up front.
         if browser == Browser::Firefox {
             crate::bidi::new_session(&engine)?;
@@ -108,6 +115,7 @@ impl<'a> BrowserDriver<'a> {
         Ok(Self {
             engine,
             browser,
+            navigate_timeout: config.navigate_timeout,
             ctx,
             process,
         })
@@ -119,7 +127,7 @@ impl<'a> BrowserDriver<'a> {
     /// Protocol errors during session/context setup.
     pub fn new_page(&self) -> Result<Page<'_>> {
         let backend: Box<dyn Backend + '_> = match self.browser {
-            Browser::Chromium => Box::new(CdpBackend::attach(&self.engine)?),
+            Browser::Chromium => Box::new(CdpBackend::attach(&self.engine, self.navigate_timeout)?),
             Browser::Firefox => Box::new(BiDiBackend::create(&self.engine)?),
         };
         Ok(Page {
@@ -141,14 +149,14 @@ pub fn connect_with_retry(
     browser: Browser,
     wait: &WaitConfig,
     ctx: &Ctx,
+    config: &RpcEngineConfig,
 ) -> Result<RpcEngine> {
-    let call_timeout = Duration::from_secs(30);
     if browser == Browser::Chromium {
-        return RpcEngine::connect(ws_url, call_timeout);
+        return RpcEngine::connect(ws_url, *config);
     }
     let deadline = ctx.clock().now() + Duration::from_secs(20);
     loop {
-        match RpcEngine::connect(ws_url, call_timeout) {
+        match RpcEngine::connect(ws_url, *config) {
             Ok(engine) => return Ok(engine),
             Err(e) if ctx.clock().now() >= deadline => return Err(e),
             Err(_) => pause(ctx, wait.poll_interval, wait),
