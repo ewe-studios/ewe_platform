@@ -169,8 +169,10 @@ if [ -n "${PRIMAL_TEST_CHROMIUM_BIN:-}" ] && [ -f "$PRIMAL_TEST_CHROMIUM_BIN" ];
   exit 0
 fi
 
-# 2. The cache path. The second run prints it and downloads nothing.
-if [ -f "$BINARY" ]; then
+# 2. The cache path. The second run prints it and downloads nothing. The
+#    resource check repairs a cache that holds the binary alone: the binary
+#    exits at once with "icudtl.dat not found in bundle" without its files.
+if [ -f "$BINARY" ] && [ -f "$CACHE_DIR/icudtl.dat" ]; then
   echo "chromium: $BINARY (cached)"
   exit 0
 fi
@@ -200,10 +202,14 @@ echo "downloading chrome-headless-shell ${CHROME_VERSION} (${PLATFORM})..."
 curl -fsSL "$URL" -o "$TMP_DIR/chrome.zip"
 unzip -q "$TMP_DIR/chrome.zip" -d "$TMP_DIR"
 
-# Move the binary into place in one rename, so a partial download never looks
+# Move the archive into place in one step, so a partial download never looks
 # like an installed browser. The download itself stays in the temporary dir.
+# The binary needs its resources (the data files and the SwiftShader library)
+# in the same directory, so every extracted file goes to the cache. The binary
+# moves last: the cache is complete only when the binary is there.
 mkdir -p "$CACHE_DIR"
-install -m 0755 "$TMP_DIR/chrome-headless-shell-${PLATFORM}/chrome-headless-shell" "$BINARY"
+cp -R "$TMP_DIR/chrome-headless-shell-${PLATFORM}/." "$CACHE_DIR/"
+mv -f "$CACHE_DIR/chrome-headless-shell" "$BINARY"
 echo "chrome-headless-shell ${CHROME_VERSION}: $("$BINARY" --version)"
 """
 

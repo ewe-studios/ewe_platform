@@ -139,8 +139,7 @@ impl BrowserSearch {
             local_app_data: var("LOCALAPPDATA"),
             program_files: var("PROGRAMFILES"),
             path_dirs: std::env::var_os("PATH")
-                .map(|path| std::env::split_paths(&path).collect())
-                .unwrap_or_default(),
+                .map_or_else(Vec::new, |path| std::env::split_paths(&path).collect()),
         }
     }
 
