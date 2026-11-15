@@ -38,6 +38,9 @@ fn mime_type(path: &Path) -> &str {
         Some("html" | "htm") => "text/html",
         Some("css") => "text/css",
         Some("js") => "application/javascript",
+        // A module script needs a JavaScript MIME type. Chrome refuses
+        // `application/octet-stream` for `<script type="module">` (issue #578).
+        Some("mjs") => "text/javascript",
         Some("json") => "application/json",
         Some("png") => "image/png",
         Some("jpg" | "jpeg") => "image/jpeg",

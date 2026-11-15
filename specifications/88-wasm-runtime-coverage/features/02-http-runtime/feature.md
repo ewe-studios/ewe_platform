@@ -470,6 +470,11 @@ reason goes into this section and `LEARNINGS.md`. Do not fake a module with a sh
 | a case waits on its own response forever | the dispatch deadline fails it | the case name | the module instance is dropped |
 | the worker has no binding | case 13 asserts `None` | nothing; the case passes | nothing |
 
+**#578 is closed.** The review of feature 00 fixed the MIME type: `StaticFileHandler` answers
+`.mjs` with `text/javascript` (`backends/foundation_http/src/native/handlers/static_file.rs`),
+and `static_file_serves_mjs_as_a_module_script` in `tests/static_file_tests.rs` proves it. A
+browser host may stage a module script again; the name `runner.js` is not a contract.
+
 ## 7. Tests
 
 | Law or scenario | Test | Oracle |

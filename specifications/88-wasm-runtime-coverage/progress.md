@@ -12,7 +12,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Feature designs | done: four features, each with `feature.md` and `start.md` |
 | Owner approval of the plan | **approved 2026-11-16**: feature 00 is approved with four answers, recorded below |
 | The owner's answers | D1: repair the browser host in this specification. D2: both harnesses run where a crate allows it. D3: all three hosts run on every pull request |
-| Implementation | feature 00 in progress (one agent, sonnet); features 01 to 03 wait for 00 |
+| Implementation | feature 00 **done 2026-11-16**, reviewed, on branch `spec/88-executors`; features 01 to 03 next |
 | Pull request | not opened (PR #553 holds spec 85 and spec 88 work) |
 
 Product code changes need the owner's approval of the plan. The owner approved feature 00 on
@@ -22,7 +22,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
-| 00-executors | `in progress` | one agent, sonnet | nothing: approved 2026-11-16 |
+| 00-executors | `done` 2026-11-16 (branch `spec/88-executors`, reviewed) | one agent, sonnet | nothing |
 | 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
@@ -30,6 +30,55 @@ Product code changes need the owner's approval of the plan. The owner approved f
 Features 01, 02 and 03 run in parallel after 00. They write different crates. 00 and 03 both
 write `foundation_testbed/src/wasm/server.rs`, first 00 (the `/echo` route), then 03 (the
 `/connect` route).
+
+## Feature 00: what landed (2026-11-16)
+
+Branch `spec/88-executors`, base `982b434ee`, pushed. The Main Agent reviewed it against the
+"Done when" list of `features/00-executors/feature.md` section 9, and added one review commit
+that records the result and closes #578.
+
+| Commit | Task | What it does |
+|---|---|---|
+| `4c7ab99e3` | T2, part | checkpoint of the browser search |
+| `90cf6b327` | T2 | the full browser search order, including `/Applications` |
+| `f248cb3d2` | T3 | the browser check runs before the wasm build, and no Node, npm or npx is needed |
+| `b48fd4ed7` | T4 | the 50 ms read deadline, the trace, and the verdict from the last `test result:` line |
+| `d6a64b207` | T5 | `test bindgen-deno` and `test bindgen-web` fail when a case fails |
+| `7785a77fc` | T6 | a local `/echo` endpoint and a base URL on each host |
+| `bf3035a77` | T7 | `--filter` on `test bindgen-wrangler`, and two test artifacts fail with both names |
+| `532b54488` | T8 | the five executors and the failing fixture in the `wasm-tests` CI job |
+| `b143a07ca` | T8 | the testbed docs name the right runner and browser host |
+
+Measured on macOS with Chrome for Testing 157.0.8103.51:
+
+| Check | Result |
+|---|---|
+| `foundation_browser` tests `resolve_binary`, `smoke`, `connection_lost` | 10, 18 and 2 cases pass |
+| `mise run test:wasm-testbed:browser` | 18 cases pass on the owned browser host |
+| `MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails` | both bindgen runners reject `b_fails` |
+| `test:wasm-bindgen:core` | 19 `dual!` cases pass on Deno |
+| `test:wasm-bindgen:web` | 1 fixture case passes; the valtron module traps while it starts, #586 |
+| workerd self-fetch | 200 from `/echo` inside the worker |
+
+Playwright is gone: no task, dependency or install names it. The browser task downloads the
+pinned `chrome-headless-shell` into `~/.cache/foundation/chromium`, and the workflow caches
+that directory.
+
+### Issues that feature 00 closed
+
+#566, #567, #568, #569, #571, #572, #573, #574, #579, #580, #581, #582. The review closed
+#578 with a one-line MIME fix and its test.
+
+### Issues that feature 00 opened
+
+| Issue | Severity | State | Home |
+|---|---|---|---|
+| #577 | low | open | out of scope (`requirements.md` section 11) |
+| #578 | high | closed by the review | feature 02 records it in section 6.9 |
+| #583 | low | open | the wasm-bindgen 0.3.76 context quirk; it waits |
+| #584 | low | open | workerd's request URL has no port; the runner avoids it |
+| #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
+| #586 | high | open | feature 01 T1 starts with it (section 6.1) |
 
 ## What the plan depends on
 
@@ -43,10 +92,11 @@ write `foundation_testbed/src/wasm/server.rs`, first 00 (the `/echo` route), the
 | The Linux CI image ships Chrome | read from the image build | requirements 2.2 |
 | `foundation_connectrpc` builds for wasm32 with the `rpc` feature set | measured | feature 03 section 1 |
 | `foundation_http`'s library builds for wasm32 with `wasm-bindgen-http` | measured | feature 02 section 6.7 |
-| workerd can fetch the host loopback | **not measured** | feature 03 section 6.5 measures it before the transport cases |
+| workerd can fetch the host loopback | measured: it can; the runner sends its origin in an `x-fwt-base-url` header | feature 00 T6, `LEARNINGS.md` entry 12 |
 
-The last row is the one open question. Feature 03 measures it and records the answer; it does
-not build a stub to avoid the question.
+The last row was the open question. Feature 00 T6 measured it: a worker fetched its own
+dev-server origin and received 200. Feature 03 still repeats the measurement for its own
+transport case.
 
 ## The approval in detail
 
@@ -96,8 +146,13 @@ container checks Linux compatibility only.
 | #572 | high | 00 T5 |
 | #573 | low | 00 T4 |
 | #574 | low | 00 T7 |
-| #575 | medium | 01 T1 and T5 |
+| #575 | medium | closed by 00 T8: the 19 `dual!` cases run on Deno in CI |
 | #576 | low | 00 T8 records the check form; the issue stays open until `foundation_testing` builds for wasm32 |
+| #578 | high | 00 review: `StaticFileHandler` answers `.mjs` with `text/javascript` |
+| #579 | low | 00 T4 |
+| #580 | low | 00 T4 |
+| #581 | low | 00 T1 |
+| #582 | low | 00 T8 |
 
 #577 is recorded and not closed. This specification does not port `foundation_netio`'s wasm
 fetch client to the owned ABI: it is a product change that adds no host coverage
@@ -105,14 +160,16 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
 
 ## Next steps
 
-1. Feature 00 runs now, one sonnet agent in its own git worktree, T1 to T8. It commits there;
-   the Main Agent reviews and merges.
-2. When 00 merges, features 01, 02 and 03 start in parallel, one agent each. Features 02 and
-   03 carry the second test package from "Decisions after the first review".
+1. Feature 00 is reviewed and done on `spec/88-executors`. The Main Agent merges that branch
+   into `spec/split-65`, which keeps one pull request for the specification (PR #553).
+2. Features 01, 02 and 03 then start in parallel, one agent each. Feature 01 T1 starts with
+   #586. Features 02 and 03 carry the second test package from "Decisions after the first
+   review".
 3. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
-   commits.
-4. One pull request for the specification (owner rule: one branch and one pull request per
-   spec).
+   commits on the branch of that feature.
+4. The Linux job of PR #553 is the first full run of the repaired executors. A macOS and a
+   Windows run need a push to `master` or `platform/release`, a pull request into or from
+   `platform/release`, the nightly schedule or a manual run.
 
 ## Records that must exist before a feature is called done
 

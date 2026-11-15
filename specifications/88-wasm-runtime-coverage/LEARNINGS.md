@@ -229,7 +229,7 @@ dead, fails every waiting call with `ConnectionLost`, and makes a later call fai
 
 | Defect | Evidence | Result |
 |---|---|---|
-| The static server sent `.mjs` as `application/octet-stream`, and Chrome refused the module | the page stayed at "running…"; a probe page ran its module only with `text/javascript` | staged runner renamed to `runner.js`; #578 records the `foundation_http` fix |
+| The static server sent `.mjs` as `application/octet-stream`, and Chrome refused the module | the page stayed at "running…"; a probe page ran its module only with `text/javascript` | feature 00 staged `runner.js`; #578 was closed in the review: `StaticFileHandler` now answers `.mjs` with `text/javascript`, and `static_file_serves_mjs_as_a_module_script` proves it |
 | The runner read the first `#output` line as the verdict | "owned harness run failed with exit code 1" after `test result: ok` | last `test result:` line is the verdict; #579 |
 | Synchronous WebAssembly compile threw above 8 MiB | the core module failed with `RangeError: WebAssembly.Compile is disallowed on the main thread` | async compile and instantiate; #580 |
 | The install copied the binary without `icudtl.dat` | the binary exited before it opened the debug port; #581 | the task copies the whole archive |
