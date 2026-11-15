@@ -11,9 +11,10 @@
 //! HOW: Staging goes to a temp dir (everything in it is generated; nothing to
 //! commit). The SAME runner script serves both hosts: the embedded in-process Deno
 //! runtime (`run_deno` → `embedded_js::run_staged_harness`, via the `op_fwt_*` ops)
-//! and the browser (`run_web` → an `index.html` shell that Playwright polls for the
-//! `test result:` summary). The runtime assets come from `foundation_wasm_ui`'s
-//! `embedded-js` feature, so the staged harness needs no repo paths.
+//! and the browser (`run_web` → an `index.html` shell whose `#output` element the
+//! pure-Rust CDP driver reads for the `test result:` summary). The runtime assets
+//! come from `foundation_wasm_ui`'s `embedded-js` feature, so the staged harness
+//! needs no repo paths.
 
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -41,6 +42,24 @@ pub(crate) fn preflight(tools: &[(&str, &str)]) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Resolve the browser binary before the wasm build.
+///
+/// The launcher and this check use [`foundation_browser::resolve_browser`], so
+/// they read the search order of invariant I4 and agree on the binary. No
+/// `node`, `npm` or `npx` is needed: the run is pure Rust.
+fn preflight_browser() -> Result<()> {
+    let config = foundation_browser::LaunchConfig::chromium();
+    match foundation_browser::resolve_browser(&config) {
+        Ok(_) => Ok(()),
+        Err(foundation_browser::BrowserError::BrowserNotInstalled { searched, .. }) => {
+            Err(WasmTestbedError::MissingBrowser { searched }.trace())
+        }
+        Err(other) => {
+            Err(WasmTestbedError::BrowserDriver(format!("resolve browser: {other}")).trace())
+        }
+    }
 }
 
 /// Outcome of an owned-harness run.
@@ -183,21 +202,16 @@ pub fn run_deno(_args: &OwnedRunArgs) -> Result<RunOutcome> {
     Err(WasmTestbedError::EmbeddedRuntimeDisabled.trace())
 }
 
-/// `wasm-testbed web <crate>` — serve the staged harness and run it under
-/// Playwright on OUR runtime (no bindgen glue).
+/// `wasm-testbed browser <crate>` — serve the staged harness and run it in
+/// headless Chrome through the pure-Rust `DevTools` Protocol (CDP) driver.
 ///
 /// # Errors
-/// Fails on build/discovery/staging errors or when the browser run fails.
+/// Fails on build/discovery/staging errors or when the browser run fails. A
+/// missing browser fails before the wasm build, with every searched path.
 pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
-    preflight(&[
-        ("cargo", "builds the test crate to wasm32"),
-        ("node", "runs the Playwright driver script"),
-        (
-            "npm",
-            "installs Playwright for the driver (or run `mise run setup:playwright` once)",
-        ),
-        ("npx", "launches the Playwright browser installer"),
-    ])?;
+    crate::wasm::browser::ensure_supported(&args.browser)?;
+    preflight(&[("cargo", "builds the test crate to wasm32")])?;
+    preflight_browser()?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
 

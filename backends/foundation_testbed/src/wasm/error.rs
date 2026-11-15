@@ -108,6 +108,13 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     MissingTool { tool: String, why: String },
 
+    #[display(
+        "browser 'chromium' not found — searched {searched:?}.\n\
+        Install it with `mise run test:browsers:chromium` or set PRIMAL_TEST_CHROMIUM_BIN."
+    )]
+    #[error(ignore)]
+    MissingBrowser { searched: Vec<std::path::PathBuf> },
+
     #[display("owned harness run failed with exit code {_0}")]
     #[error(ignore)]
     OwnedRunFailed(i32),

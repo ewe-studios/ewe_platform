@@ -31,6 +31,25 @@ const MODULE_SETTLE: Duration = Duration::from_secs(3);
 /// Clock time between two reads of the `#output` element.
 const RESULT_POLL: Duration = Duration::from_millis(500);
 
+/// Check that the testbed can drive `browser`.
+///
+/// Only Chrome is supported. The Firefox `WebDriver` `BiDi` backend exists in
+/// `foundation_browser`, but no wasm suite runs on it yet (spec 88 section 11).
+///
+/// # Errors
+/// [`WasmTestbedError::BrowserDriver`] for every other browser.
+pub(crate) fn ensure_supported(browser: &Browser) -> Result<()> {
+    if matches!(browser, Browser::Chrome) {
+        return Ok(());
+    }
+    Err(WasmTestbedError::BrowserDriver(format!(
+        "{browser:?} is not supported: the testbed drives Chrome over the Chrome DevTools \
+         Protocol (CDP). The Firefox WebDriver BiDi backend has no wasm suite yet \
+         (spec 88 section 11)."
+    ))
+    .trace())
+}
+
 /// Run a browser test and collect its output.
 ///
 /// # Errors
@@ -38,12 +57,7 @@ const RESULT_POLL: Duration = Duration::from_millis(500);
 /// Returns an error if the browser is not supported, the page cannot be
 /// opened, or the result does not arrive before the timeout.
 pub fn run(url: &str, browser: &Browser, headless: bool, ctx: &Ctx) -> Result<BrowserOutput> {
-    if !matches!(browser, Browser::Chrome) {
-        return Err(WasmTestbedError::BrowserDriver(format!(
-            "{browser:?} is not supported by the pure-Rust CDP driver yet — use Chrome"
-        ))
-        .trace());
-    }
+    ensure_supported(browser)?;
 
     info!("Running browser test: {url} (headless={headless})");
 

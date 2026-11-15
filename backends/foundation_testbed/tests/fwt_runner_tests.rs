@@ -73,6 +73,25 @@ fn filtered_run_is_green_with_exit_zero() {
 }
 
 #[test]
+fn an_unsupported_browser_fails_before_the_build() {
+    use foundation_context::Ctx;
+    use foundation_testbed::wasm::fwt_runner::run_web;
+
+    let mut run_args = args(Some("passes"));
+    run_args.browser = Browser::Firefox;
+    let error = run_web(&run_args, &Ctx::host()).expect_err("Firefox has no wasm suite");
+    let message = error.to_string();
+    assert!(
+        message.contains("drives Chrome"),
+        "the error must name the supported driver: {message}"
+    );
+    assert!(
+        message.contains("no wasm suite yet"),
+        "the error must give the reason: {message}"
+    );
+}
+
+#[test]
 fn staging_produces_a_self_contained_harness() {
     let dir = tempfile::tempdir().expect("tempdir");
     let cases = stage(&sample_crate(), &args(None), dir.path()).expect("stage succeeds");
