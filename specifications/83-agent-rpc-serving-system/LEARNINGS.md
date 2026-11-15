@@ -1240,3 +1240,34 @@ cleanly but no longer fit together. What we learned:
   other tests of the same binary, not just the call itself; it is now 120 s.
   The root cause is #551 (severity medium): one pool serves tests that block
   workers. A test count or a thread count does not bound this wait.
+
+## Target-neutral types and `Send` seams (2026-11-15)
+
+The owner reviewed the platform injection design of spec 77 section 6.0 and asked one question:
+"can you check where else you have made similar mistake". The mistake has two shapes:
+
+1. A public type whose shape or bounds change per target. A `cfg` decides which variant, which
+   alias or which struct field exists, so the same source names two different types.
+2. A `!Send` value in a slot that requires `Send` or `Send + Sync`.
+
+Both shapes were present in this specification:
+
+- `features/08-key-protection-at-rest/key-protection.md` defined `SealFuture` as a `Send` alias
+  on native and a `!Send` alias on wasm. `KeySealer` is `Send + Sync`, so the trait signature
+  changed meaning per target. The alias is now `Send` on every target, and a wasm sealer wraps
+  its JS or network future in `foundation_compact::SendWrapper`. `SendWrapper` implements
+  `Future` and asserts `Send` on single-threaded wasm.
+- `agent-rpc-architecture.md` section 3.2 said `foundation_core` owns the "`Env` bundle" and the
+  `Ctx`. Both are in `foundation_context` (spec 84 and spec 76). The `foundation_auth` row also
+  called `client_auth` target-neutral, but `client_auth::cloudflare` needs `worker` and is wasm
+  only, while `client_auth::mtls` needs the peer certificate chain and is native only. Both rows
+  are corrected.
+
+The rule to keep: a `cfg` belongs on a private inner type, a method, a module or a dependency.
+It never changes the shape of a public type. When one target cannot have a value, make the inner
+type private and uninhabited there, keep the outer type identical, and report the missing
+capability with a typed error. Spec 77's `RuntimeFetch` is the reference form:
+`RuntimeFetch(RuntimeFetchInner)` on every target.
+
+The other specs got the same audit: spec 85 (`FetchTransport` field), spec 81 (`KeySource`),
+spec 80 (`MigrationSource`). The table is in spec 77 `learnings.md` section 10.1.

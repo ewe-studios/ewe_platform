@@ -601,13 +601,51 @@ The first two passes made two mistakes here, and the owner caught both:
 - The type was first made wasm-only, "because `cloudflare/` is". That is wrong:
   `CloudflareContainerControl` is generic over `ContainerApi` and lives in
   `shared/cloudflare/`, so only `WorkerContainer` and its neighbours are wasm. A native host
-  that manages a Cloudflare container needs the same wrapper. The fix is `RuntimeFetch`: a wasm
-  alias over the real fetch, and an uninhabited enum on a native target. The public struct then
-  has one shape on both targets, `fetch` is always `None` on native, and no `cfg` changes a
-  public type. Owner rule: "this should properly separate whats wasm and native, so the same
-  API services both".
+  that manages a Cloudflare container needs the same wrapper. The fix is `RuntimeFetch`. The
+  public struct then has one shape on both targets, `fetch` is always `None` on native, and no
+  `cfg` changes a public type. Owner rule: "this should properly separate whats wasm and native,
+  so the same API services both".
 - The deployer was in the wrapper for one pass. It does not belong there: both deployers are
   native values in the deployment crate, and deployment touches no sandbox or container handle.
+
+The owner corrected the `RuntimeFetch` shape on 2026-11-15: "you know you can just add a
+RuntimeFetchInner with a RuntimeFetchOuter(RuntimeFetchInner) that wraps it and hides away the
+presence or absence of a SendWrapper". The first fix was a type alias: `SendWrapper<Rc<dyn
+Fetcher>>` on wasm and an uninhabited enum on native, under one name. That still makes the
+public name a different type on each target. The outer/inner form is better: `RuntimeFetch` is
+one outer newtype on every target, and only its private inner type differs. The accessors
+(`new`, `fetcher`) are wasm-only because there is nothing to fetch with on native, but the type
+and its fields are the same everywhere, and `RuntimeFetch` is `Send + Sync` on both.
+
+The same seam applies to every wasm adapter of a `Send + Sync` trait. `ContainerApi`,
+`DoStorage` and `DoAlarm` all require both bounds, and their `worker` values are `!Send`, so
+`WorkerContainer`, `WorkerStorage` and `WorkerAlarm` hold their values in `SendWrapper` too
+(feature 07 section 6.3). Keep one rule: a JavaScript value or future crosses a `Send` slot
+only inside `SendWrapper`.
+
+**The same class of error elsewhere (audit 2026-11-15).** The owner asked: "can you check where
+else you have made similar mistake". The two shapes of the mistake are (a) a public type whose
+shape or bounds change per target, and (b) a `!Send` value in a `Send + Sync` slot. The audit
+found and fixed these:
+
+| Place | Defect | Fix |
+|---|---|---|
+| Spec 77 requirements section 2.4 | `src/cloudflare/` was listed with the driver, the control, the transport, the store and the request handler. Feature 07 puts all of them in `shared/cloudflare/` (`all`). | The row now lists only `WorkerContainer`, `WorkerStorage`, `WorkerAlarm` and `CloudflareHost::from_state`; a new row describes `shared/cloudflare/`. |
+| Spec 77 feature 00 | The `cloudflare` feature said "wasm32 only". | It gates `shared/cloudflare/` on every target and the `worker` adapters on wasm only. |
+| Spec 85 section 4.2 | `FetchTransport` held `fetcher: Rc<F>` while `Transport` requires `Send + Sync + 'static`. The struct cannot implement the trait. | The field is `SendWrapper<Rc<F>>`, and the prose says every JS value crosses a `Send` slot inside the wrapper. |
+| Spec 85 section 4.4 and `fetch.md` | `body_stream` returns a `Send` `BodyStream` from a JS `ReadableStream` with no wrapper named. `fetch.md` also said the wrapper panics on a drop from another thread; it has no `Drop` check. | The doc comment names the wrapper, and the prose says it asserts the bounds and checks nothing. |
+| Spec 81 section 4.4 | `KeySource::File(PathBuf)` was a `cfg(not(wasm))` variant, so the public enum changed shape per target. | The variant exists on every target, and a wasm host returns the new `KeyLoadError::NoFileSystem`. |
+| Spec 80 feature 01 | `MigrationSource::Directory(PathBuf)` was a `cfg(not(wasm))` variant. | The variant exists everywhere; `plan` reports the new `MigrationProblem::NoFileSystem` on wasm; the readers stay native-only. |
+| Spec 83 feature 08 | `SealFuture` was a `Send` alias on native and a `!Send` alias on wasm. | One `Send` alias on every target; a wasm sealer wraps its future in `SendWrapper`. |
+| Spec 83 architecture, section 3.2 | `foundation_core` owned the "`Env` bundle" and `Ctx`; both are in `foundation_context`. The `foundation_auth` row called `client_auth` target-neutral, but `client_auth::cloudflare` is wasm and `client_auth::mtls` is native. | Both rows are corrected, and `foundation_context` has its own row. |
+
+Two more bounds were missing rather than wrong, and both now name the bound: `DockerApi` is
+`Send + Sync + 'static` because `DockerPlatform` holds it in an `Arc<dyn ..>`, and
+`ContainerApi`/`DoStorage`/`DoAlarm` adapters show the wrapper in feature 07 section 6.3.
+
+The lesson: a `cfg` belongs on an inner type, a method, a module or a dependency, never on the
+shape of a public type. When a target cannot have a value, make the value-unconstructible inner
+type private, keep the outer type the same, and name the missing capability in a typed error.
 
 The reason is a boundary rule, not a style rule. Without a shared value, every consumer repeats
 the host detection, the driver order and the container control construction, and each copy can

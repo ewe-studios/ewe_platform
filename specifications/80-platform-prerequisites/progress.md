@@ -46,3 +46,12 @@ depend on the agent RPC spec. They now have one owner.
 
 - See each feature's open questions. The migration-group questions are in
   `features/01-migration-groups/migrations.md`.
+
+## Documentation correction (2026-11-15)
+
+- **`MigrationSource` (feature 01, `migrations.md`).** `Directory(PathBuf)` was a
+  `cfg(not(wasm))` variant, so the public enum changed shape per target. The variant now exists
+  on every target; `plan` reports the new `MigrationProblem::NoFileSystem { group }` on wasm;
+  the directory readers stay native only.
+
+No code changed.

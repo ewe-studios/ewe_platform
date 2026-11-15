@@ -332,7 +332,7 @@ Feature: Cloudflare control plane
 | `src/shared/cloudflare/driver.rs` | all | `CloudflareContainerDriver`, its handle. |
 | `src/shared/cloudflare/container.rs` | all | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`. |
 | `src/shared/cloudflare/container_service.rs` | all | The internal `ContainerService` router. |
-| `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, `RuntimeFetch` (the wasm alias and the native empty enum), the `as_cloudflare` helper. |
+| `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, `RuntimeFetch` (an outer type over a private wasm-or-native inner type), the `as_cloudflare` helper. |
 | `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
 | `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
 | `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
@@ -402,6 +402,38 @@ is in one function with a test. The text is from the Cloudflare library source (
 error at the deadline: `BootTimeout { stage: "slave" }` with the last `PortError` text.
 So a changed text costs nothing but a less exact message.
 
+**The wasm adapters.** `src/cloudflare/mod.rs` is the only wasm-only file of this feature. It
+holds the three adapters of the traits above. Each trait requires `Send + Sync`, and each
+adapter holds a `worker` value, which is `!Send` because it wraps a JavaScript object. So each
+adapter holds its value inside `foundation_compact::SendWrapper`, the same seam that
+`CloudflarePlatform` uses (section 6.4.1 and requirements section 6.0). The assertion is sound
+on single-threaded wasm and does not compile with the wasm `atomics` target feature.
+
+```rust
+// foundation_platform_sandbox/src/cloudflare/mod.rs — wasm32 with the `cloudflare` feature
+
+/// `ContainerApi` over the DO's `worker::Container`. The container binding is a JS object.
+pub struct WorkerContainer(SendWrapper<worker::Container>);
+/// `DoStorage` over the DO's `worker::Storage`. A JS object.
+pub struct WorkerStorage(SendWrapper<worker::Storage>);
+/// `DoAlarm` over the DO's alarm API. A JS object.
+pub struct WorkerAlarm(SendWrapper<worker::State>);
+
+impl ContainerApi for WorkerContainer { /* the six methods; each `worker` future is wrapped in
+    SendWrapper too, so the `BoxFuture` it returns is `Send` */ }
+impl DoStorage for WorkerStorage { /* get, put, delete; each future wrapped in SendWrapper */ }
+impl DoAlarm for WorkerAlarm { /* set, clear; each future wrapped in SendWrapper */ }
+```
+
+`ContainerApi::fetch` returns a `PortResponse` whose `body` is a `BoxByteStream`, which requires
+`Send`. The body of a container fetch is a JS `ReadableStream`, so the adapter puts it inside
+`SendWrapper` as well. Every `worker` future that leaves the adapter goes through the same
+wrapper. The rule is: a JavaScript value or future crosses into the `Send + Sync` traits only
+inside `SendWrapper`.
+
+`CloudflareHost::from_state(&state, index)` builds the three adapters from the DO state and
+returns the `CloudflareHost` above.
+
 ### 6.4 `CloudflareContainerDriver`
 
 Capabilities: `rootfs_container_image: true`, the other `rootfs_*` false,
@@ -457,13 +489,27 @@ gets no change, and each part wraps the `Ctx` with the handles it has. This part
 
 ```rust
 // foundation_platform_sandbox/src/shared/cloudflare/platform.rs
-/// Wasm: the fetch of the DO stub or the Worker (spec 85), inside `SendWrapper`, which asserts
-/// `Send` and `Sync` on single-threaded wasm. Native: an uninhabited enum, so the field is
-/// `None` and the public struct has one shape on both targets.
+/// Wasm: the DO stub or Worker fetch (spec 85), inside `SendWrapper`, which asserts `Send` and
+/// `Sync` on single-threaded wasm. Native: an uninhabited enum. The inner type is private, so
+/// no `cfg` changes a public type.
 #[cfg(target_family = "wasm")]
-pub type RuntimeFetch = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
+type RuntimeFetchInner = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
 #[cfg(not(target_family = "wasm"))]
-pub enum RuntimeFetch {}
+enum RuntimeFetchInner {}
+
+/// The runtime `fetch`: one public type on every target, `Send + Sync` on both.
+pub struct RuntimeFetch(RuntimeFetchInner);
+
+impl RuntimeFetch {
+    #[cfg(target_family = "wasm")]
+    #[must_use]
+    pub fn new(fetcher: Rc<dyn Fetcher>) -> Self { Self(foundation_compact::SendWrapper::new(fetcher)) }
+
+    /// A clone of the `fetch` that this value holds.
+    #[cfg(target_family = "wasm")]
+    #[must_use]
+    pub fn fetcher(&self) -> Rc<dyn Fetcher> { Rc::clone(&*self.0) }
+}
 
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
@@ -692,13 +738,15 @@ Each scenario of section 5 is one test.
 cargo fmt --all --check
 cargo clippy -p foundation_platform_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_platform_sandbox --features "testing slave" --profile uat cloudflare_ control_sim
+cargo check -p foundation_platform_sandbox --no-default-features --features "control cloudflare" --profile uat
 cargo check -p foundation_platform_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
 ```
 
 ## 9. Done when
 
 - Each scenario of section 5 and each row of section 7 passes on a native host.
-- The `cloudflare` feature compiles for wasm32.
+- The `cloudflare` feature compiles for native and for wasm32. The shared part runs on both,
+  so the same API serves both targets.
 - Only `src/cloudflare/` names a `worker` type.
 - A restarted DO control plane finds its sandbox again (invariant I7).
 - A `ContainerHandle` starts, talks to, runs commands in, and stops a container with no

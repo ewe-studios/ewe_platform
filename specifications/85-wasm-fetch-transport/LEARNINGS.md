@@ -50,10 +50,19 @@ growth.
 
 `TransportStream` holds `Arc<dyn SendBody>`, so the exchange must be `Send`. JS values are not
 `Send`. wasm has one thread, so a value that never leaves its thread may claim `Send`.
-`SendWrapper` enforces the rest: it panics if it is dropped on another thread.
 
-The alternative, an `unsafe impl Send`, is what spec 76 removed from `ContextBag` for a good
-reason: it hides a future mistake. `SendWrapper` keeps the check.
+`foundation_compact::SendWrapper` has `unsafe impl Send` and `unsafe impl Sync` under
+`cfg(all(target_family = "wasm", not(target_os = "emscripten"), not(target_feature = "atomics")))`
+(`backends/foundation_compact/src/send_wrapper.rs`). On every other target it is
+`#[repr(transparent)]` with no assertion, so the bounds come from the inner type. It has **no
+run-time check**: it does not panic on a drop from another thread, and it cannot, because the
+target it is for has one thread. Do not describe it as an enforcement mechanism. The protection
+is compile-time: a build with threads (native, emscripten, wasm with `atomics`) has no impl, so
+wrapping a `!Send` value there does not compile.
+
+The alternative, an `unsafe impl Send` at the use site, is what spec 76 removed from
+`ContextBag` for a good reason: it hides a future mistake. `SendWrapper` keeps that one
+assertion in one audited place, and it also gives the `Sync` half that `Transport` needs.
 
 ## Why the DO stub takes headers from the caller (2026-11-15)
 

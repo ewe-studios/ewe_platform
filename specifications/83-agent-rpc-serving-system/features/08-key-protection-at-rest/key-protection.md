@@ -119,12 +119,10 @@ use std::pin::Pin;
 
 use foundation_compact::crypto::SecureBytes;
 
-/// A boxed future. `Send` on native; not `Send` on wasm, where JS values
-/// are single-threaded.
-#[cfg(not(target_family = "wasm"))]
+/// A boxed future. It is `Send` on every target. A wasm sealer wraps its JS or
+/// network future in `foundation_compact::SendWrapper`, which asserts `Send`
+/// on single-threaded wasm, so the alias does not change shape per target.
 pub type SealFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, KeyStoreError>> + Send + 'a>>;
-#[cfg(target_family = "wasm")]
-pub type SealFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, KeyStoreError>> + 'a>>;
 
 /// Encrypts and decrypts private keys with one KEK.
 pub trait KeySealer: Send + Sync + 'static {
@@ -144,6 +142,12 @@ pub trait KeySealer: Send + Sync + 'static {
 What the code does: the two functions return futures. A local sealer returns a future that is
 ready at once. A WebCrypto or KMS sealer awaits its call. `SecureBytes` overwrites itself with
 zeros when it is dropped.
+
+`SealFuture` is the same type on every target. A wasm sealer returns
+`Box::pin(foundation_compact::SendWrapper::new(future))`. `SendWrapper` implements `Future`, and
+it asserts `Send` on single-threaded wasm, so the box satisfies the alias. Native code never
+needs the wrapper: its futures are `Send` already. Do not add a second, `!Send` alias, and do
+not use `unsafe impl Send`.
 
 ### 3.3 `KekSource`
 

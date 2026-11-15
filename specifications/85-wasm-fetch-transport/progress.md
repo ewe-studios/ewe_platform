@@ -17,6 +17,19 @@ _Last updated: 2026-11-15._
 This specification is a plan in a pull request for the owner's review. No file under
 `backends/` changes until the owner approves it.
 
+## Design corrections (2026-11-15)
+
+- `FetchTransport` held `fetcher: Rc<F>`, and `Transport` requires `Send + Sync + 'static`
+  (`backends/foundation_connectrpc/src/shared/transport/base.rs:161`), so the struct could not
+  implement the trait. The field is now `SendWrapper<Rc<F>>`. The same holds for every JS value
+  the transport returns: `HeadStream` and `BodyStream` are `Send` aliases, so `body_stream` and
+  the pump wrap their JS values too.
+- `fetch.md` said `SendWrapper` panics on a drop from another thread. The real type has no
+  `Drop` check and no run-time check at all. The paragraph now names the compile-time gate
+  instead.
+- Section 5 has a new rule 9: a JavaScript value crosses a `Send` slot only inside
+  `SendWrapper`, never with a second wrapper and never with `unsafe impl Send`.
+
 ## Where this specification came from
 
 The design lived in spec 83 feature 05 (`worker-and-web.md` sections 5.4, 5.5 and 6.2) as

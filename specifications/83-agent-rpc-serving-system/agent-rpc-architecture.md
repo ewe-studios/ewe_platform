@@ -191,10 +191,11 @@ core uses the shared libraries. Arrows point from the user to the part it uses._
 | Crate | Owns | Targets |
 |---|---|---|
 | `foundation_compact` | `Clock`, `EntropySource`, `IdSource` traits and their real and simulated implementations | all |
-| `foundation_core` | `Env` bundle; valtron `Ctx`, `Timer`, `SimRuntime` | all (multi-threaded only on native) |
+| `foundation_core` | The valtron task engine: executors, `Timer`, `SimRuntime`, compat helpers | all; the `multi` executor is native only |
+| `foundation_context` | `Ctx` (a typed map plus the clock, the config and the random number generator) and the `Env` typed entry (spec 84) | all |
 | `foundation_db` | async storage traits; `DoSqlStore` (new); `Faulty*` test wrappers | all |
 | `foundation_connectrpc` | `Router`, `Transport`; `FetchServe` and `FetchTransport` (wasm, new); `MemNetwork` (test) | all |
-| `foundation_auth` | `secret`, `keystore`, `trust`, `client_auth` (all targets); `pki`, `mtls` (native) | all, with native-only parts |
+| `foundation_auth` | `secret`, `keystore`, `trust`, `client_auth::{ClientAuth, StaticToken}`; `pki`, `mtls`, `client_auth::mtls` (native); `client_auth::cloudflare`, `keystore::webcrypto` (wasm) | all, with native-only and wasm-only modules |
 | `foundation_ai` | `AgentSession`, model providers | all |
 | `foundation_agent_rpc` | `core` (service, registry, catalog, enrollment); `host::native`; `host::worker`; `client::{native, web}` | per module |
 

@@ -47,3 +47,17 @@ writing code.
 
 The Env design and the deterministic-testing document are in
 `specifications/84-context-injection/`.
+
+## A public type keeps one shape on every target (2026-11-15)
+
+`MigrationSource::Directory(PathBuf)` was a `#[cfg(not(target_family = "wasm"))]` variant, so
+the public enum changed shape per target. The owner asked for every instance of that pattern to
+be checked across the split specifications (spec 77 section 6.0, `RuntimeFetch`).
+
+The variant now exists on every target. A `PathBuf` is portable; only reading a directory is
+not. `MigrationRunner::plan` reports the new `MigrationProblem::NoFileSystem { group }` when a
+wasm host is given a `Directory` group. The readers stay gated, because they are capabilities:
+`MigrationLayout::scan`, `from_dir` and `add_from_dir` are native only.
+
+The rule: a `cfg` goes on a private inner type, a method, a module or a dependency. It never
+changes the variants of a public enum.

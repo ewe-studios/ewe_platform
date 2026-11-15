@@ -333,6 +333,12 @@ A trait with one method for each `DockerClient` call that the driver uses, with 
 argument and result types. `DockerClient` implements it by delegation. The tests use a
 fake that records calls. The trait and the driver are in `src/native/docker/`.
 
+The trait is `pub trait DockerApi: Send + Sync + 'static`. `DockerPlatform` and
+`DockerContainerControl` hold it in an `Arc<dyn DockerApi>`, and `Platform` and
+`ContainerControl` require `Send + Sync`, so a trait object without those bounds does not
+compile. `DockerClient` is `Send + Sync`: it holds the injected transport, not a thread-bound
+handle.
+
 ### 6.7.1 Container control on Docker
 
 The Docker driver is one user of the Docker Engine. The platform also exposes a container

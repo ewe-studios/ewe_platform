@@ -45,3 +45,13 @@ feature 08. This library accepts operator key files for the proof of concept.
 ## Open questions
 
 See `features/00-foundation-auth/feature.md` and `auth.md`.
+
+## Documentation correction (2026-11-15)
+
+- **`KeySource` (auth.md section 4.4).** `File(PathBuf)` was a `cfg(not(wasm))` variant, so the
+  public enum changed shape per target. The variant now exists on every target, and
+  `PrivateKey::load` returns the new `KeyLoadError::NoFileSystem` on a wasm host. The
+  constructors stay target-gated: `from_env_var` is native only, `from_worker_secret` is wasm
+  only.
+
+No code changed. The specification waits for the owner review.

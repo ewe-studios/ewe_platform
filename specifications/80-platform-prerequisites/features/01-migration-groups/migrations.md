@@ -246,8 +246,8 @@ pub enum MigrationSource {
     /// Files read at build time by `embed_migrations!`. All targets,
     /// including wasm and Workers, which have no file system.
     Embedded(&'static [EmbeddedMigration]),
-    /// A directory read at run time. Native only.
-    #[cfg(not(target_family = "wasm"))]
+    /// A directory read at run time. Only a native host can read one. On wasm
+    /// `plan` reports `MigrationProblem::NoFileSystem` for the group.
     Directory(PathBuf),
 }
 
@@ -365,6 +365,7 @@ Each of these groups numbers from 1. They need no number ranges.
 | No gap in a group | `0001`, `0002`, `0004` | `Gap { group, missing: 3 }` |
 | No file is larger than `max_file_bytes` | a 5 MiB data dump | `TooLarge { origin, bytes }` |
 | A file is valid UTF-8 | a binary file | `NotUtf8 { origin }` |
+| A `Directory` group needs a file system | a wasm host given a `Directory` group | `NoFileSystem { group }` |
 
 The same number in two **different** groups is correct: `shared` 1 and `tenant_france` 1 are two
 migrations.
@@ -582,6 +583,8 @@ pub enum MigrationProblem {
     AppliedNotPrefix { group: String, missing: Vec<u64> },
     AppliedButMissing { group: String, number: u64 },
     UnknownGroup { group: String },
+    /// A `Directory` group on a host with no file system (wasm).
+    NoFileSystem { group: String },
     /// A layout group folder contains a folder.
     NestedFolder { origin: String },
     /// A migration's SQL failed. Nothing of that migration is kept.

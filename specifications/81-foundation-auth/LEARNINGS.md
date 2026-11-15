@@ -45,3 +45,18 @@ Neither link sees the other's credential. The library serves both; it does not d
 - PEM parsing and key files: accept `ssh-keygen` and `openssl` output.
 - `ring`'s sealed random source cannot be made deterministic. Use the pure-Rust key crates and
   RFC 6979 nonces where DST requires replay.
+
+## A public type keeps one shape on every target (2026-11-15)
+
+`KeySource::File(PathBuf)` was a `#[cfg(not(target_family = "wasm"))]` variant, so the public
+enum had two shapes. A wasm caller could not write it and could not match it, and the same
+source named two types. The owner reviewed the same pattern in spec 77 (`RuntimeFetch`) and
+asked for the whole set to be checked.
+
+The variant now exists on every target. A `PathBuf` is portable; only the file read is not.
+`PrivateKey::load` returns the new `KeyLoadError::NoFileSystem` when a wasm host is given a
+`File` source. The constructors stay gated, because they are capabilities: `from_env_var` is
+native only, and `from_worker_secret` is wasm only. A gated method is not a shape change.
+
+The rule: a `cfg` goes on a private inner type, a method, a module or a dependency. It never
+changes the variants of a public enum.

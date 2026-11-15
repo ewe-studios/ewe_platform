@@ -231,7 +231,7 @@ licence.
 | `firecracker` | The Firecracker driver (features 04, 05). Linux only. | on |
 | `libkrun` | The libkrun driver (feature 09). Linux and macOS. | off |
 | `docker` | The Docker driver (feature 10). | off |
-| `cloudflare` | The Cloudflare modules (feature 07). wasm32 only. | off |
+| `cloudflare` | The Cloudflare part (feature 07): `shared/cloudflare/` on every target, plus the `worker` adapters on wasm32. | off |
 | `cli` | The command structures (feature 06). Native only. | off |
 | `testing` | The simulation helpers as a public module (feature 02). | off |
 
@@ -256,10 +256,11 @@ src/
   shared/container.rs    ContainerControl, ContainerHandle, ContainerSpec, ContainerInfo, port types
   shared/host.rs        SandboxHost, SlaveHost and their traits
   shared/platform.rs    Platform (the trait), PlatformKind (the as_* helpers live in their part)
+  shared/cloudflare/mod.rs  #[cfg(feature = "cloudflare")] the traits, CloudflareHost, CloudflareConfig (feature 07)
+  shared/cloudflare/platform.rs  #[cfg(feature = "cloudflare")] CloudflarePlatform, RuntimeFetch
   native/mod.rs         #[cfg(not(target_family = "wasm"))]
   native/platform.rs    NativePlatform (features 05 and 09), DockerPlatform (feature 10)
-  cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))]
-  shared/cloudflare/platform.rs  CloudflarePlatform, RuntimeFetch (feature 07)
+  cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))] WorkerContainer, WorkerStorage, WorkerAlarm, CloudflareHost::from_state
   cli/mod.rs            #[cfg(all(not(target_family = "wasm"), feature = "cli"))]
 ```
 

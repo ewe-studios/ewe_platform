@@ -176,9 +176,10 @@ Where the control plane runs is a different question from which system it drives
 | Path | Kind | Content |
 |---|---|---|
 | `backends/foundation_platform_sandbox` | library | **All logic.** |
-| `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxProvider`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system. |
-| `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP. |
-| `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The Cloudflare container driver, the Cloudflare container control, the `Fetcher` RPC transport, the DO storage registry, the DO request handler. |
+| `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxProvider`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system, `Platform` and `PlatformKind` (`shared/platform.rs`). |
+| `.../src/shared/cloudflare/` | all targets | Everything of the Cloudflare part that needs no `worker` type: `CloudflareContainerDriver`, `CloudflareContainerControl`, `DoContainerOps`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane`, `CloudflarePlatform` and `RuntimeFetch`. `ContainerApi`, `DoStorage` and `DoAlarm` are the seams. |
+| `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP, and the wrappers `NativePlatform` and `DockerPlatform`. |
+| `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The three adapters of the traits (feature 07 section 6.3): `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, and `CloudflareHost::from_state`. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
 | `backends/foundation_deployment_platform/src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::sandbox::run`. |
 | `bin/agent_slave/src/main.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. It is its own package because it must be a static musl program, and `foundation_deployment_platform` does not build for musl today (decisions D4 and D11). |
@@ -386,18 +387,42 @@ not a trait call:
 ```rust
 // foundation_platform_sandbox/src/shared/cloudflare/platform.rs — compiled on every target
 
-/// The runtime `fetch` of the Cloudflare part.
+/// The target-specific inner of [`RuntimeFetch`]. It is private to this module, so no `cfg`
+/// reaches a public item.
 ///
-/// On wasm it holds the value that reaches a DO stub or a container port (spec 85). A JS value
-/// is neither `Send` nor `Sync`, so `foundation_compact::SendWrapper` asserts both, which is
-/// sound on single-threaded wasm. A build with the wasm `atomics` feature is not supported.
+/// Wasm: the value that reaches a DO stub or a container port (spec 85), inside
+/// `foundation_compact::SendWrapper`. A JS value is neither `Send` nor `Sync`, so the wrapper
+/// asserts both. That is sound on single-threaded wasm. A build with the wasm `atomics` target
+/// feature has no assertion, so it does not compile.
 ///
-/// A native host has no such value. The type is then uninhabited, so the field can only be
-/// `None`, and the struct keeps one shape on both targets.
+/// Native: an uninhabited enum. A native host has no JS value, so no value of this type exists.
 #[cfg(target_family = "wasm")]
-pub type RuntimeFetch = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
+type RuntimeFetchInner = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
 #[cfg(not(target_family = "wasm"))]
-pub enum RuntimeFetch {}
+enum RuntimeFetchInner {}
+
+/// The runtime `fetch` of the Cloudflare part: one public type on every target.
+///
+/// The outer type hides the inner one. A caller therefore names `RuntimeFetch` on both targets,
+/// and the type is `Send + Sync` on both: on wasm the `SendWrapper` gives the two bounds, and
+/// on native the value cannot exist.
+pub struct RuntimeFetch(RuntimeFetchInner);
+
+impl RuntimeFetch {
+    /// Holds the runtime `fetch` of this Worker, DO or browser page (spec 85).
+    #[cfg(target_family = "wasm")]
+    #[must_use]
+    pub fn new(fetcher: Rc<dyn Fetcher>) -> Self {
+        Self(foundation_compact::SendWrapper::new(fetcher))
+    }
+
+    /// A clone of the `fetch` that this value holds.
+    #[cfg(target_family = "wasm")]
+    #[must_use]
+    pub fn fetcher(&self) -> Rc<dyn Fetcher> {
+        Rc::clone(&*self.0)
+    }
+}
 
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
@@ -420,9 +445,10 @@ entropy and the `Env` entry (spec 84) through the same `Ctx` as the host.
 thread. That is sound on single-threaded wasm, where no other thread exists to reach the value.
 `Platform` requires `Send + Sync`, so the `Sync` half matters as much as the `Send` half. On a
 native target the wrapper is transparent and the bounds come from the inner type, so
-`Rc<dyn Fetcher>` would make the struct `!Send`. The `RuntimeFetch` alias keeps that difference
-inside one type: a wasm host holds the real fetch, and a native host cannot build one, so the
-field is `None` and the struct is `Send + Sync` on both targets.
+`Rc<dyn Fetcher>` would make the struct `!Send`. `RuntimeFetch` is an outer type over a private
+inner type, so the difference stays on one side of the public API: a wasm host holds the real
+fetch, and a native host cannot build one, so the field is `None`. The outer type is
+`Send + Sync` on both targets, and no `cfg` changes the shape of a public type.
 
 **What belongs to which side.** The same API serves both targets. A member that only one side
 can have sits behind the one seam that is already there, and no `cfg` decides the shape of a
@@ -431,7 +457,7 @@ public struct:
 | Member | Both targets | Wasm only | Native only |
 |---|---|---|---|
 | `CloudflarePlatform`, `Platform` trait, `PlatformKind` | yes | | |
-| `RuntimeFetch` | the name and the field | the alias over `Rc<dyn Fetcher>` | an uninhabited enum |
+| `RuntimeFetch` | the outer type and the `fetch` field | the inner type `SendWrapper<Rc<dyn Fetcher>>`, `new` and `fetcher` | the inner type: an uninhabited enum |
 | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient` | yes: `ContainerApi` is the seam | | |
 | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state` | | yes | |
 | `FoundationCloudflareDeployer`, `WranglerCloudflareDeployer` | | | yes |

@@ -177,7 +177,9 @@ pub struct GlobalFetcher;
 /// A client `Transport` over fetch. Fetch has no request streaming and no trailers, so it
 /// supports unary and server-streaming calls.
 pub struct FetchTransport<F: Fetcher> {
-    fetcher: Rc<F>,
+    /// `Transport` requires `Send + Sync`, and an `Rc` is neither. The `SendWrapper` asserts
+    /// both, which is sound on single-threaded wasm (section 4.1).
+    fetcher: SendWrapper<Rc<F>>,
     config: FetchTransportConfig,
 }
 
@@ -210,6 +212,13 @@ impl<F: Fetcher> Transport for FetchTransport<F> {
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
 }
 ```
+
+`Transport` requires `Send + Sync + 'static`, and every JavaScript value is `!Send`. So every
+JavaScript value or future that `FetchTransport` holds or returns sits inside
+`foundation_compact::SendWrapper`: the `Rc<F>`, the fetch future, the response body stream and
+the pump task. A `!Send` value in any other position does not compile. The assertion is sound
+on single-threaded wasm, and a build with the wasm `atomics` target feature does not compile
+(section 4.1).
 
 `open` returns at once and starts no work. The work starts when the client polls the head:
 
@@ -324,7 +333,8 @@ pub fn response_stream(
     config: &FetchTransportConfig,
 ) -> TransportStream;
 
-/// A response body stream over a JS `ReadableStream`, one chunk for each read.
+/// A response body stream over a JS `ReadableStream`, one chunk for each read. The stream
+/// holds the JS value inside `SendWrapper`, so the result is the `Send` `BodyStream`.
 pub fn body_stream(stream: web_sys::ReadableStream, max_chunk_bytes: usize) -> BodyStream;
 ```
 
@@ -379,6 +389,11 @@ adds its own header and this specification stays neutral.
    cancels the JS reader. No task keeps running after the caller goes.
 8. **No `worker` type in a browser-to-Worker path.** The `cloudflare` feature is optional, so a
    browser build has no `worker` dependency.
+9. **A JavaScript value crosses a `Send` slot only inside `SendWrapper`.** The slots are
+   `Transport` (which is `Send + Sync`), `HeadStream`, `BodyStream`, `SendBody` and a valtron
+   task. The wrapper asserts `Send` and `Sync`, which is sound on single-threaded wasm, and it
+   does not compile with the wasm `atomics` target feature. Do not write a second wrapper and
+   do not use `unsafe impl Send`.
 
 ## 6. Consumers and their tasks
 

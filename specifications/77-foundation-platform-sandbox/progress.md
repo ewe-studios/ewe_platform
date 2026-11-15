@@ -103,9 +103,21 @@ ASD-STE100.
   `foundation_compact::SendWrapper` (no new dependency), and the spec forbids a wasm `atomics`
   build. The owner also rejected a wasm-only wrapper: "this should properly separate whats wasm
   and native, so the same API services both". So the wrapper lives in
-  `shared/cloudflare/platform.rs` and compiles everywhere, and `RuntimeFetch` is the one seam:
-  an alias over `SendWrapper<Rc<dyn Fetcher>>` on wasm, an uninhabited enum on native. The
-  deployer is not in the wrapper; both deployers are native deployment-crate values.
+  `shared/cloudflare/platform.rs` and compiles everywhere. The deployer is not in the wrapper;
+  both deployers are native deployment-crate values.
+- 2026-11-15 (fourth note): "you know you can just add a RuntimeFetchInner with a
+  RuntimeFetchOuter(RuntimeFetchInner) that wraps it and hides away the presence or absence of a
+  SendWrapper". `RuntimeFetch` is now one outer newtype on every target, over a private inner
+  type: `SendWrapper<Rc<dyn Fetcher>>` on wasm, an uninhabited enum on native. The accessors
+  (`new`, `fetcher`) are wasm-only; the type and its fields are the same everywhere, and the
+  type is `Send + Sync` on both.
+- 2026-11-15 (audit): the owner asked "can you check where else you have made similar mistake".
+  Seven places had the same two shapes of defect, and all are fixed: the section 2.4 module
+  table, the `cloudflare` feature row, spec 85's `FetchTransport` field and body stream, spec
+  81's `KeySource` variant, spec 80's `MigrationSource` variant, spec 83's `SealFuture` and the
+  two crate rows of `agent-rpc-architecture.md`. The `worker` adapters of feature 07 now show
+  the wrapper, and `DockerApi` names its `Send + Sync + 'static` bound. The table is in
+  `learnings.md` section 10.1.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 

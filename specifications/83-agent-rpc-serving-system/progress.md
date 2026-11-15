@@ -168,3 +168,16 @@ The merge is resolved and landed. What it taught:
 The owner split the spec into five focused specifications and narrowed this one to agent RPC. No
 code changed. See `LEARNINGS.md` "Spec split (2026-11-14)" for the reasons and the boundary
 rules.
+
+## Documentation corrections (2026-11-15)
+
+No code changed.
+
+- **`SealFuture` (feature 08).** The alias was `Send` on native and `!Send` on wasm, so the
+  `KeySealer` signature changed shape per target. It is one `Send` alias on every target now,
+  and a wasm sealer wraps its future in `foundation_compact::SendWrapper`.
+- **Architecture section 3.2.** `foundation_core` does not own `Env` or `Ctx`; both are in
+  `foundation_context`, which now has its own row. `foundation_auth` is no longer called
+  target-neutral: `client_auth::cloudflare` is wasm only and `client_auth::mtls` is native only.
+- Feature 06 takes `&CloudflarePlatform`, whose `fetch` field is the `RuntimeFetch` outer type
+  of spec 77 section 6.0.

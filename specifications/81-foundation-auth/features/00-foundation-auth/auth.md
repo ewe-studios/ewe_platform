@@ -725,13 +725,16 @@ use foundation_compact::crypto::SecureBytes;
 
 /// Where a private key comes from. The operator makes the key; the host
 /// reads it one time, at start.
+///
+/// The enum has the same shape on every target. Only a native host can read a
+/// file; a wasm host returns `KeyLoadError::NoFileSystem` for `File` and takes
+/// the key as an inline value or a Worker secret.
 #[derive(Clone)]
 pub enum KeySource {
-    /// A file (native only). On Unix the host refuses a file that the
-    /// group or others can read, as OpenSSH does ("UNPROTECTED PRIVATE
-    /// KEY FILE"). `NativeHostConfig::allow_loose_key_permissions` turns
-    /// the check off for development.
-    #[cfg(not(target_family = "wasm"))]
+    /// A file. On Unix the host refuses a file that the group or others can
+    /// read, as OpenSSH does ("UNPROTECTED PRIVATE KEY FILE").
+    /// `NativeHostConfig::allow_loose_key_permissions` turns the check off
+    /// for development.
     File(PathBuf),
     /// The key text from an environment variable or a Worker secret: the
     /// PEM text, or the PEM text in standard base64 (for a system that
@@ -781,7 +784,8 @@ pub struct PrivateKey {
 
 impl PrivateKey {
     /// Reads and parses the key. File I/O runs inside this async function,
-    /// like `foundation_db::JsonFileStorage`.
+    /// like `foundation_db::JsonFileStorage`. A `File` source on a wasm host
+    /// returns [`KeyLoadError::NoFileSystem`].
     ///
     /// # Errors
     /// [`KeyLoadError`].
@@ -830,6 +834,9 @@ pub enum KeyLoadError {
     UnsupportedFormat(#[error(not(source))] String),
     #[display("this role needs a {expected:?} key, found {found:?}")]
     WrongAlgorithm { expected: PrivateKeyAlgorithm, found: PrivateKeyAlgorithm },
+    /// A `File` source on a host with no file system (wasm).
+    #[display("this host has no file system; give the key as an inline value or a Worker secret")]
+    NoFileSystem,
 }
 ```
 

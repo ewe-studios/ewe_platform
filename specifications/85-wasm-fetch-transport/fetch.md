@@ -58,8 +58,11 @@ enum ExchangeState {
 
 The exchange is `!Send`. It is wrapped in `SendWrapper` because `TransportStream` holds
 `Arc<dyn SendBody>` and `BodyStream` values that must pass the `Send` bound of the trait. On
-wasm there is one thread, so the wrapper is sound. `SendWrapper` panics on a drop from another
-thread, which cannot happen here.
+wasm there is one thread, so the wrapper is sound. `SendWrapper` asserts `Send` and `Sync`
+through `unsafe impl` and checks nothing at run time: it has no `Drop` check. A value cannot
+reach another thread here, because wasm has one thread. `FetchTransport` keeps one `Fetcher`
+for all its calls, and that field is `SendWrapper<Rc<F>>` for the same reason: `Transport`
+requires `Send + Sync`, and an `Rc` is neither.
 
 ## 3. `FetchServe` and the dispatch
 
