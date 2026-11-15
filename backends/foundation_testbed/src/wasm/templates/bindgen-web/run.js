@@ -9,6 +9,10 @@ window.on_console_log = __wbgtest_console_log;
 globalThis.__wbg_test_invoke = (callback) => callback();
 globalThis.__wbg_test_output_writeln = (line) => console.log(line);
 
+// The testbed serves /echo next to this page, so the page's own origin is the
+// endpoint (spec 88 invariant I5).
+globalThis.__FWT_BASE_URL__ = location.origin;
+
 const tests = [/* TEST_NAMES */];
 await cx.run(tests.map(name => wasm[name]));
 

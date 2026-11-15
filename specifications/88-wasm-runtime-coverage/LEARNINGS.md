@@ -238,3 +238,25 @@ dead, fails every waiting call with `ConnectionLost`, and makes a later call fai
 must wake often. A read deadline is a poll interval, not the time a caller should wait. When a
 diagnosis shows a delay equal to a timeout, measure the send and receive times of every frame
 before you change the contract.
+
+## 12. The endpoint on each host (T6)
+
+**Answer to the open question: workerd permits a subrequest to the dev server's own origin.**
+No service binding is needed. Measured on 2026-11-16 with `wrangler dev --local`: the fixture's
+`echo_endpoint_answers` case fetched `http://127.0.0.1:<port>/echo` from inside the worker and
+got 200 with its method, header and body. The first attempt failed with "Network connection
+lost", but the cause was not a refusal: workerd gave the worker a request URL without the port
+(`http://127.0.0.1`), so the fetch went to port 80. The runner now sends the origin in an
+`x-fwt-base-url` header and the worker reads it.
+
+| Fact | Evidence | Consequence |
+|---|---|---|
+| the request body arrives as a stream, not a sized value | the handler answered 400 "not chunked" with a `Content-Length` request | `EchoHandler` collects the body with `DataBytesIterator`, and stops at the limit |
+| a page and the endpoint must share one origin | the page loaded from `localhost`, the base URL used `127.0.0.1`, so Chrome blocked the fetch | `TestServer::url` now uses the same origin as `base_url` |
+| the embedded Deno runtime has no executor pool of its own | the server rejected every connection with "valtron pool not initialized" | the runner calls `foundation_browser::runtime::ensure_runtime` first |
+| the embedded Deno fetch speaks correct HTTP/1.1 | a raw listener received `POST /echo HTTP/1.1` with the headers and the body | the endpoint works on both owned hosts |
+
+**Cases that prove it.** The owned sample crate has the async case `echo_endpoint_answers`
+(registered host function + one yield per poll). The bindgen fixture has the case of the same
+name, which uses `web_sys` fetch so it runs on Deno, the page and workerd. The filter `--filter
+echo` runs each alone. The route itself has two tests in `tests/echo_server_tests.rs`.

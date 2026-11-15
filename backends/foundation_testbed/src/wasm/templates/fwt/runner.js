@@ -79,7 +79,16 @@ async function runCase(moduleCompiled, testCase) {
 }
 
 async function main() {
-  const cases = JSON.parse(new TextDecoder().decode(await loadBytes(here("./cases.json"))));
+  const decoder = new TextDecoder();
+  const cases = JSON.parse(decoder.decode(await loadBytes(here("./cases.json"))));
+  // The host writes harness.json with the endpoint a case may call. Set the
+  // global before the first case runs (spec 88 invariant I5).
+  try {
+    const harness = JSON.parse(decoder.decode(await loadBytes(here("./harness.json"))));
+    if (harness.baseUrl) globalThis.__FWT_BASE_URL__ = harness.baseUrl;
+  } catch (error) {
+    console.log(`no harness.json: ${error?.message ?? error}`);
+  }
   // Async compile: Chrome refuses a synchronous WebAssembly.Module for a buffer
   // over 8 MiB on the main thread. The foundation_core module is larger.
   const moduleCompiled = await WebAssembly.compile(

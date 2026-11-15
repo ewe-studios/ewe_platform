@@ -166,6 +166,16 @@ fn staged_temp(
     Ok((dir, cases))
 }
 
+/// Write `harness.json` next to `cases.json`.
+///
+/// The runner reads it before the first case and sets
+/// `globalThis.__FWT_BASE_URL__` from it (spec 88 invariant I5).
+fn write_harness_json(dir: &Path, base_url: &str) -> Result<()> {
+    let path = dir.join("harness.json");
+    let body = serde_json::json!({ "baseUrl": base_url });
+    std::fs::write(&path, body.to_string()).map_err(|e| WasmTestbedError::Io(e).trace())
+}
+
 /// `wasm-testbed deno <crate>` — build → discover → stage → run the owned
 /// `#[wasm_test]` harness **in-process** on the embedded Deno runtime (`deno_core` +
 /// `deno_web`). No external `node`/`deno` binary; requires the `wasm-embedded-js`
@@ -178,8 +188,17 @@ pub fn run_deno(args: &OwnedRunArgs) -> Result<RunOutcome> {
     preflight(&[("cargo", "builds the test crate to wasm32")])?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
+    // The server submits each connection to the valtron pool, and the embedded
+    // runtime does not start one. Start it before the first case.
+    foundation_browser::runtime::ensure_runtime(None);
+    // Start the local endpoint before the first case, and tell the runner where
+    // it is (invariant I5). The endpoint answers until the last case ends.
+    let serving = server::start_serving_with_echo(dir.path(), &server::ServerLimits::default())?;
+    write_harness_json(dir.path(), &serving.base_url())?;
     let report = crate::wasm::embedded_js::run_staged_harness(dir.path())
-        .map_err(|e| WasmTestbedError::EmbeddedRunFailed(e.to_string()).trace())?;
+        .map_err(|e| WasmTestbedError::EmbeddedRunFailed(e.to_string()).trace());
+    serving.shutdown();
+    let report = report?;
     print!("{}", report.output);
     if !report.output.ends_with('\n') {
         println!();
@@ -215,7 +234,12 @@ pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
 
-    let serving = server::start_serving(dir.path())?;
+    // The server submits each connection to the valtron pool. Start it before
+    // the server accepts a request.
+    foundation_browser::runtime::ensure_runtime(None);
+    let serving = server::start_serving_with_echo(dir.path(), &server::ServerLimits::default())?;
+    // The page reads the endpoint before its first case (invariant I5).
+    write_harness_json(dir.path(), &serving.base_url())?;
     let url = serving.url("index.html");
     info!("serving owned harness at {url}");
     let outcome = crate::wasm::browser::run(
