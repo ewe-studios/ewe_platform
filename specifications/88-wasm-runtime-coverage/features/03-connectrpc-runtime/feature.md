@@ -6,13 +6,13 @@ priority: "high"
 depends_on: ["00-executors"]
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-15
+last_updated: 2026-11-16
 author: "Main Agent"
 model: "sonnet"
 tasks:
   completed: 0
-  uncompleted: 6
-  total: 6
+  uncompleted: 7
+  total: 7
   completion_percentage: 0%
 ---
 
@@ -35,10 +35,13 @@ Prove `foundation_connectrpc` on the three hosts:
 | headless Chromium | the same, over the browser's fetch and with a real origin |
 | workerd | dispatch, the sink contract, the error model and the deadline; the transport only if the measurement in 6.5 allows it |
 
-The crate cannot use the owned harness (spec 88 section 2.7). Every case is a
-`#[wasm_bindgen_test]`. The crate builds for wasm32 with `default-features = false, features =
-["rpc"]`; the default `rpc_multi` turns on `foundation_core/multi`, which is a hard error on
-wasm (measured 2026-11-15: the check finishes clean with the `rpc` feature set).
+The transport cases use the wasm-bindgen harness, because their wasm module imports wasm-bindgen
+glue through `foundation_netio` (spec 88 section 2.7). The pure-Rust cases also run on the owned
+harness, from a second package built without the fetch client. The owner asked for both harnesses
+where the crate allows it (spec 88 section 4, D2). T7 builds and measures that package. The crate
+builds for wasm32 with `default-features = false, features = ["rpc"]`; the default `rpc_multi`
+turns on `foundation_core/multi`, which is a hard error on wasm (measured 2026-11-15: the check
+finishes clean with the `rpc` feature set).
 
 ## 2. Story
 
@@ -212,8 +215,9 @@ Scenario: The suite proves it can fail
 | T4 | The `/connect` route on the testbed server | `foundation_testbed/src/wasm/server.rs`, `Cargo.toml` | `curl http://127.0.0.1:<port>/connect/…` returns a Connect response |
 | T5 | The transport cases and the workerd measurement | `tests/wasm.rs`, `foundation_testbed/src/wasm/server.rs` | cases 14-17 pass on the hosts that can reach the endpoint, and the reason is recorded for the others |
 | T6 | CI: the crate's checks and the three runs | `scripts/ci/ci.py`, `ci/packages.toml`, `mise.toml` | CI builds the crate and runs it on each host |
+| T7 | The owned-harness package: gate `wasm-fetch` behind a crate feature, build a second package without it, measure the imports, run the pure-Rust cases on the owned harness | `backends/foundation_connectrpc/Cargo.toml`, `backends/foundation_connectrpc/src/…`, `backends/foundation_connectrpc/integration/wasm_owned/{Cargo.toml,src/lib.rs,tests/owned.rs}`, `scripts/ci/ci.py`, `ci/packages.toml`, `mise.toml` | the module has no `__wbindgen_` import and its cases pass on Deno and Chromium; a case that keeps a glue import stays on the wasm-bindgen harness, and T7 records why |
 
-Order: T1, T2, T3 need no endpoint. T4 then T5. T6 last.
+Order: T1, T2, T3 need no endpoint. T4 then T5. T6 is CI. T7 extends CI with the second package.
 
 ### 6.2 T1: the crate
 
@@ -377,7 +381,70 @@ Run one probe case and record the answer:
 Do not fake the endpoint to make workerd green. A green case on a stub is the defect this
 whole specification exists to remove.
 
-### 6.6 Fault table
+### 6.6 T7: the owned-harness package
+
+The owned harness needs a module with no wasm-bindgen import (spec 88 section 2.7). The import
+enters through `foundation_netio`'s `wasm-fetch` feature, which the wasm target dependency turns
+on (`Cargo.toml:51-53`). Six steps, in order:
+
+1. Add the crate feature `wasm-fetch` to `foundation_connectrpc`. It turns on
+   `foundation_netio/wasm-fetch` and `foundation_http/wasm-fetch`. Keep it on inside the
+   transport feature set, so every current build keeps the fetch client.
+2. Put each use of a netio type or a `foundation_http` wasm-fetch type behind
+   `#[cfg(feature = "wasm-fetch")]`. The `H1Transport` and the exchange code are the first
+   users. A type that cannot compile without netio stays in the gated code. Do not stub it.
+3. Create the second package. Features unify inside one package, so the second module needs its
+   own manifest. Copy the layout of `foundation_core/integration/wasm_tests`, the working owned
+   crate:
+
+   ```toml
+   [package]
+   name = "foundation_connectrpc_wasm_owned_tests"
+   version = "0.0.1"
+   publish = false
+   edition = "2021"
+
+   [dependencies]
+   foundation_connectrpc = { path = "../..", default-features = false, features = ["rpc"] }
+   foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+   foundation_macros = { path = "../../../foundation_macros" }
+   foundation_context = { path = "../../../foundation_context", features = ["host-abi"] }
+   foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
+
+   [lib]
+   crate-type = ["cdylib"]
+
+   [workspace]
+   ```
+
+   The package names no `wasm-bindgen`, no `foundation_netio` and no `foundation_http`. A host
+   function that the cases need comes from `abi::web::register_function` (spec 88 section 2.7).
+4. Measure the module's imports before you promise a case:
+
+   ```
+   cargo build --manifest-path backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml \
+     --target wasm32-unknown-unknown --profile uat
+   wasm2wat <artifact> | rg '\(import '
+   ```
+
+   The second command must print no `__wbindgen_` line. A line that stays keeps its case on the
+   wasm-bindgen harness, and this section records the symbol.
+5. Write the cases under `#[wasm_test]` in `tests/owned.rs`: the router, the error model, the
+   recording sink, and the deadline on the injected clock (S1 to S7, S11). The transport cases
+   (S8 to S10) stay on the wasm-bindgen harness.
+6. Run the package on the owned harness, and add both to the tasks and to CI:
+
+   ```
+   wasm-testbed deno    backends/foundation_connectrpc/integration/wasm_owned
+   wasm-testbed browser backends/foundation_connectrpc/integration/wasm_owned --headless
+   cargo check --tests --target wasm32-unknown-unknown \
+     --manifest-path backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml
+   ```
+
+A step that fails stops T7 with a report: the cases stay on the wasm-bindgen harness, and the
+reason goes into this section and `LEARNINGS.md`. Do not fake a module with a shim.
+
+### 6.7 Fault table
 
 | Step that fails | What the runner does | What the contributor sees | What is left behind |
 |---|---|---|---|
@@ -436,6 +503,9 @@ cargo clippy -p foundation_connectrpc -p foundation_testbed --all-targets -- -D 
       an issue.
 - [ ] Case 17 passes on all three.
 - [ ] The deadline cases run on a simulated clock, and no layer code reads a wall clock.
+- [ ] The owned package builds without the fetch client, `wasm2wat` shows no `__wbindgen_`
+      import, and its cases pass on Deno and Chromium. A case that keeps a glue import stays on
+      the wasm-bindgen harness, and 6.6 records its symbol.
 - [ ] The R14 break is recorded per host and reverted.
 - [ ] `progress.md` and `LEARNINGS.md` name what landed and what is next.
 

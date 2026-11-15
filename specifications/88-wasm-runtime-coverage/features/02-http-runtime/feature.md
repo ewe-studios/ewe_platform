@@ -6,13 +6,13 @@ priority: "high"
 depends_on: ["00-executors"]
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-15
+last_updated: 2026-11-16
 author: "Main Agent"
 model: "sonnet"
 tasks:
   completed: 0
-  uncompleted: 5
-  total: 5
+  uncompleted: 6
+  total: 6
   completion_percentage: 0%
 ---
 
@@ -35,8 +35,10 @@ Prove `foundation_http` on the three hosts:
 | headless Chromium | wasm-bindgen | the same, with a real DOM and a real `Request` |
 | workerd | wasm-bindgen | the CF bridge with a real `env` object |
 
-The crate cannot use the owned harness: its wasm module imports wasm-bindgen glue through
-`foundation_netio` (spec 88 section 2.7). Every case here is a `#[wasm_bindgen_test]`.
+The transport cases use the wasm-bindgen harness, because their wasm module imports wasm-bindgen
+glue through `foundation_netio` (spec 88 section 2.7). The pure-Rust cases also run on the owned
+harness, from a second package built without the fetch client. The owner asked for both harnesses
+where the crate allows it (spec 88 section 4, D2). T6 builds and measures that package.
 
 The feature has a second job: `foundation_http`'s `wasm-bindgen-http` and `wasm-test` features
 are named by no CI run (#570), so the bridge and the three pure-Rust wasm test files never
@@ -220,9 +222,11 @@ Scenario: The suite proves it can fail
 | T3 | The CF-bridge cases | `tests/wasm.rs`, `src/lib.rs` (the env helper) | cases 12-15 pass on Deno and Chromium, and 14 passes on workerd |
 | T4 | The serve-writer, stream and response cases | `tests/wasm.rs` | cases 16-20 pass on all three hosts |
 | T5 | CI: the crate's checks and the native `wasm-test` run | `scripts/ci/ci.py`, `ci/packages.toml`, `mise.toml` | CI builds the crate for wasm32 and runs `cargo test -p foundation_http --features wasm-test` |
+| T6 | The owned-harness package: gate `wasm-fetch` behind a crate feature, build a second package without it, measure the imports, run the pure-Rust cases on the owned harness | `backends/foundation_http/Cargo.toml`, `backends/foundation_http/src/wasm/serve_writer.rs`, `backends/foundation_http/integration/wasm_owned/{Cargo.toml,src/lib.rs,tests/owned.rs}`, `scripts/ci/ci.py`, `ci/packages.toml`, `mise.toml` | the module has no `__wbindgen_` import and its cases pass on Deno and Chromium; a case that keeps a glue import stays on the wasm-bindgen harness, and T6 records why |
 
 Order: T1 before the rest. T2, T3 and T4 are three groups of cases in one file; write them in
-that order so a broken bridge is found before the cases that depend on it.
+that order so a broken bridge is found before the cases that depend on it. T5 is CI. T6 extends
+CI with the second package.
 
 ### 6.2 T1: the crate
 
@@ -392,7 +396,71 @@ mise run test:wasm-bindgen:http:web      # test bindgen-web  backends/foundation
 
 The wrangler run is `test bindgen-wrangler backends/foundation_http/integration/wasm`.
 
-### 6.8 Fault table
+### 6.8 T6: the owned-harness package
+
+The owned harness needs a module with no wasm-bindgen import (spec 88 section 2.7). The import
+enters through `foundation_netio`'s `wasm-fetch` feature, which the wasm target dependency turns
+on (`Cargo.toml:46-49`). Six steps, in order:
+
+1. Add the crate feature `wasm-fetch` to `foundation_http`. It turns on
+   `foundation_netio/wasm-fetch`. Keep it on inside `wasm-bindgen-http`, so every current build
+   keeps the fetch client.
+2. Put each use of a netio type behind `#[cfg(feature = "wasm-fetch")]`. The request type at
+   `src/wasm/serve_writer.rs:8` is the first one. A type that cannot compile without netio stays
+   in the gated code. Do not stub it.
+3. Create the second package. Features unify inside one package, so the second module needs its
+   own manifest. Copy the layout of `foundation_core/integration/wasm_tests`, the working owned
+   crate:
+
+   ```toml
+   [package]
+   name = "foundation_http_wasm_owned_tests"
+   version = "0.0.1"
+   publish = false
+   edition = "2021"
+
+   [dependencies]
+   foundation_http = { path = "../..", features = ["wasm-test"] }
+   foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+   foundation_macros = { path = "../../../foundation_macros" }
+   foundation_context = { path = "../../../foundation_context", features = ["host-abi"] }
+   foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
+
+   [lib]
+   crate-type = ["cdylib"]
+
+   [workspace]
+   ```
+
+   The package names no `wasm-bindgen` and no `foundation_netio`. A host function that the cases
+   need comes from `abi::web::register_function` (spec 88 section 2.7).
+
+4. Measure the module's imports before you promise a case:
+
+   ```
+   cargo build --manifest-path backends/foundation_http/integration/wasm_owned/Cargo.toml \
+     --target wasm32-unknown-unknown --profile uat
+   wasm2wat <artifact> | rg '\(import '
+   ```
+
+   The second command must print no `__wbindgen_` line. A line that stays keeps its case on the
+   wasm-bindgen harness, and this section records the symbol.
+5. Write the cases under `#[wasm_test]` in `tests/owned.rs`. They hold the same assertions as
+   `tests/wasm_response_tests.rs`, `tests/wasm_stream_tests.rs` and `tests/wasm_server_tests.rs`,
+   which run natively today.
+6. Run the package on the owned harness, and add both to the tasks and to CI:
+
+   ```
+   wasm-testbed deno    backends/foundation_http/integration/wasm_owned
+   wasm-testbed browser backends/foundation_http/integration/wasm_owned --headless
+   cargo check --tests --target wasm32-unknown-unknown \
+     --manifest-path backends/foundation_http/integration/wasm_owned/Cargo.toml
+   ```
+
+A step that fails stops T6 with a report: the cases stay on the wasm-bindgen harness, and the
+reason goes into this section and `LEARNINGS.md`. Do not fake a module with a shim.
+
+### 6.9 Fault table
 
 | Step that fails | What the runner does | What the contributor sees | What is left behind |
 |---|---|---|---|
@@ -450,6 +518,9 @@ cargo clippy -p foundation_http --all-targets -- -D warnings
 - [ ] Twenty cases pass on Deno, Chromium and workerd, except case 14, which passes on workerd
       and states why it does not run elsewhere.
 - [ ] `cargo test -p foundation_http --features wasm-test` is a CI step (#570 closed).
+- [ ] The owned package builds without the fetch client, `wasm2wat` shows no `__wbindgen_`
+      import, and its cases pass on Deno and Chromium. A case that keeps a glue import stays on
+      the wasm-bindgen harness, and 6.8 records its symbol.
 - [ ] A body limit is a configuration field with a documented default (case 18).
 - [ ] The R14 break is recorded per host and reverted.
 - [ ] The two paths this feature does not cover are recorded in 6.6 with their owners.

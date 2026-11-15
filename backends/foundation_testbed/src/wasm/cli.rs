@@ -211,7 +211,7 @@ impl Mode {
         }
     }
 
-    /// Whether this mode requires a browser (Playwright).
+    /// Whether this mode requires a Chromium binary.
     #[must_use]
     pub fn needs_browser(&self) -> bool {
         matches!(self, Mode::Web | Mode::BindgenWeb)

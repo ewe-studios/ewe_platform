@@ -168,7 +168,9 @@ Links to other entities: a reader exit marks all pending calls failed
 
 ### 4.5 Must not
 
-- must not keep the Playwright dependency in the browser task;
+- must not keep the `setup:playwright` task, `integration/package.json` or any Playwright
+  reference in a task or a CI file. `foundation_browser` speaks the Chrome DevTools
+  Protocol (CDP) itself;
 - must not install a browser when one already resolves;
 - must not add a second copy of a timeout constant; read it from configuration;
 - must not let a template print `test result: ok` without checking the verdict;
@@ -232,10 +234,10 @@ Scenario: A closed CDP connection fails the next call at once
 
 | Task | What | Files | Done when |
 |---|---|---|---|
-| T1 | Rename the mise task and its subcommand; drop Playwright; make the install portable and idempotent | `mise.toml:166-177`, `mise.toml:1080-1090`, `mise.wasm.toml` | `mise run test:wasm-testbed:browser --filter passes` starts Chromium on Linux and macOS with no manual variable |
+| T1 | Rename the mise task and its subcommand; delete the Playwright task and its package file; make the install portable and idempotent | `mise.toml:145-153`, `mise.toml:166-177`, `mise.toml:1080-1090`, `mise.wasm.toml`, `backends/foundation_testbed/integration/package.json` (delete) | `mise run test:wasm-testbed:browser --filter passes` starts Chromium on Linux and macOS with no manual variable |
 | T2 | Complete the binary search: cache path, macOS application paths, Windows local-app path; make the resolver public | `foundation_browser/src/supervisor.rs:201-220`, `src/cdp/launch.rs:28-45`, `src/lib.rs` | the resolution order is I4 and a unit test covers each branch |
 | T3 | Replace the `node`/`npm`/`npx` preflight with a browser check; correct the doc comment | `foundation_testbed/src/wasm/fwt_runner.rs:183-201` | a missing browser fails before the wasm build, with the new error |
-| T4 | Diagnose #569 and fix the page-session failure; move the timeouts to configuration (#573) | `foundation_browser/src/jsonrpc/engine.rs`, `src/cdp/backend.rs:36-45`, `src/cdp/mod.rs:29-57`, `foundation_testbed/src/wasm/browser.rs:38-55` | `foundation_browser/tests/smoke.rs` passes on macOS and Linux; the owned browser run passes |
+| T4 | Diagnose #569 and fix the page-session failure; move the timeouts to configuration (#573). A root cause that needs a larger fix stops T4 with a report | `foundation_browser/src/jsonrpc/engine.rs`, `src/cdp/backend.rs:36-45`, `src/cdp/mod.rs:29-57`, `foundation_testbed/src/wasm/browser.rs:38-55` | `foundation_browser/tests/smoke.rs` passes on macOS and Linux; the owned browser run passes |
 | T5 | Read and enforce the wasm-bindgen verdict (#572) | `templates/bindgen-deno/run.js`, `templates/bindgen-web/run.js`, `bin/wasm-testbed.rs:255-311`, `src/wasm/bindgen_runner.rs:178-190` | the fixture exits non-zero through `bindgen-deno` and `bindgen-web` |
 | T6 | Give every host a local endpoint and a base URL | `src/wasm/server.rs`, `src/wasm/fwt_runner.rs`, `templates/fwt/runner.mjs`, `templates/bindgen-deno/run.js`, `templates/bindgen-web/run.js`, `templates/bindgen-wrangler/worker.js` | a case on each host gets 200 from `__FWT_BASE_URL__/echo` |
 | T7 | Add `--filter` to the wrangler runner; fail on more than one test artifact; fix the stale comments (#571, #574) | `bin/wasm-testbed.rs:174-195,313-380`, `src/wasm/build.rs:155-210`, `src/wasm/bindgen_runner.rs:1-14`, `integration/wasm_tests/Cargo.toml:1-4` | `--filter passes` runs one case; two candidate artifacts fail with both names |
@@ -265,6 +267,13 @@ _Figure 1: T1 and T2 come first because every run resolves a browser; T8 names w
 3. Delete `depends = ["setup:playwright"]`. The run uses our own CDP client
    (`fwt_runner.rs:206-220` calls `browser::run`), not Playwright.
 4. Set `depends = ["test:browsers:chromium"]`.
+5. Delete the task `setup:playwright` (`mise.toml:145-153`) and the file
+   `backends/foundation_testbed/integration/package.json`. That file holds only the
+   Playwright development dependency and a `setup:web` script. Nothing else reads it.
+   The owner asked for this removal on 2026-11-16 (`progress.md`).
+6. Search with `rg -i playwright mise.toml mise.wasm.toml backends/foundation_testbed scripts .github`.
+   The search must find no task, no dependency and no install. A comment that records the
+   removal may stay.
 
 `mise.toml:166-177` is the install task. Replace it with a Bash task that:
 
@@ -275,7 +284,8 @@ _Figure 1: T1 and T2 come first because every run resolves a browser; T8 names w
    binary this driver needs and it is about a third of the size;
 4. downloads nothing twice: the download goes to a temporary directory and moves into place.
 
-The pinned version is one line at the top of the task. It prints the version it installed.
+The pinned version is one line at the top of the task. It prints the version it installed. The
+owner confirmed the download on 2026-11-16 (`progress.md`, Q2).
 
 No `sudo`, no `/etc/os-release`. A Linux developer with a system Chromium already has it on
 `PATH` (T2), so the task exits at step 0 or 1 for them.
@@ -354,6 +364,11 @@ Then settle the root cause from the trace. The candidates, in order of likelihoo
 Candidate 1 is the leading one because both observed timeouts are exactly 30 s. Whatever the
 trace shows, the fix is the reader contract above plus a read deadline that is larger than the
 call deadline. Record the root cause in `LEARNINGS.md` and close #569 with it.
+
+**Owner boundary (2026-11-16).** Trace as far as the evidence allows, and name the root cause.
+Present the root cause when the fix is not small. T4 changes the reader contract and the read
+deadline. T4 stops and reports when the root cause needs a change to the protocol layer, the
+transport or the frame parser. T5 to T8 must not wait for an open protocol fix.
 
 Move every hard-coded limit to configuration (#573): `read_timeout`, `idle_sleep` and
 `navigate_timeout` on `RpcEngine`/`LaunchConfig`, and `module_settle`, `result_poll` on the
@@ -470,11 +485,15 @@ already has Chrome (section 2.2). Add one step before the `test` step:
 1. `actions/cache` on `~/.cache/foundation/chromium`, keyed by the pinned version in the task;
 2. `mise run test:browsers:chromium`, which is a no-op when the image provides Chrome.
 
-The macOS job (`macos-test`) runs the browser suite for the `wasm-tests` package. A macOS
-runner ships Chrome in `/Applications`, so T2 makes it resolve with no install and no cache.
-Add `macos-runs` or a dedicated step so `test:wasm-testbed:browser` runs there; keep
-`macos-tests = "none"` for the rest of the package, and change its reason: the Deno and
-wrangler runners stay Linux-only because `wrangler` and the pinned Deno are in the image.
+The macOS job (`macos-test`) runs the browser suite for the `wasm-tests` package (owner answer,
+2026-11-16). A macOS runner ships Chrome in `/Applications`, so T2 makes it resolve with no
+install and no cache. Add `macos-runs` or a dedicated step so `test:wasm-testbed:browser` runs
+there; keep `macos-tests = "none"` for the rest of the package, and change its reason: the Deno
+and wrangler runners stay Linux-only because `wrangler` and the pinned Deno are in the image.
+
+The macOS and Windows jobs run on the full runs only (`.github/workflows/check.yaml:38-49`): a
+push to `master` or `platform/release`, a pull request into or from `platform/release`, the
+nightly schedule and a manual run. A normal pull request runs the Linux jobs only.
 
 Windows stays out: no `wrangler` and no Deno in the Windows runner's tool set. Record the
 reason (#-named in `ci/packages.toml`), as rule 15 requires.
@@ -540,18 +559,20 @@ cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed
 
 # T8
 python3 scripts/ci/ci.py plan --package wasm-tests
-python3 scripts/ci/ci.py run wasm-tests --step test   # locally; the full run is the PR's CI
+python3 scripts/ci/ci.py run wasm-tests --step test   # Linux; the full run is on GitHub
 cargo fmt --check -p foundation_testbed -p foundation_browser
 cargo clippy -p foundation_testbed -p foundation_browser --all-targets -- -D warnings
 ```
 
-The full Linux, macOS and Windows run is the pull request's CI (specifications `CLAUDE.md`
-rule 2).
+You are on a Mac. Check the browser suite here with `mise run test:wasm-testbed:browser`. It
+needs no Docker container. The Linux container (`scripts/ci/linux.sh`) checks Linux
+compatibility only. The macOS and Windows jobs run in CI on the full runs (section 6.9), not
+on a normal pull request.
 
 ## 9. Done when
 
-- [ ] `mise run test:wasm-testbed:browser` runs on Linux and macOS, and no task or document
-      says `web` or depends on `setup:playwright`.
+- [ ] `mise run test:wasm-testbed:browser` runs on Linux and macOS, no task or document
+      says `web`, and the `setup:playwright` task and `integration/package.json` are gone.
 - [ ] A browser resolves from the cache, a macOS application path, or `PATH`, in that order,
       and a missing browser gives one actionable error.
 - [ ] `foundation_browser/tests/smoke.rs` passes on macOS and Linux, and #569 is closed with

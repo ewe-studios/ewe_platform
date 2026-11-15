@@ -1,7 +1,7 @@
 # Learnings: Spec 88, Wasm Runtime Coverage
 
-_Written 2026-11-15 from the survey and the measurements that shaped the plan. Written in
-ASD-STE100 Simplified Technical English (STE)._
+_Written 2026-11-15, updated 2026-11-16, from the survey, the measurements and the owner's
+answers. Written in ASD-STE100 Simplified Technical English (STE)._
 
 Each entry names what we expected, what we measured, and what the plan does because of it. A
 dead end stays here so the next reader does not walk it again.
@@ -19,18 +19,29 @@ wasm feature.
 import module, so it cannot instantiate that module. The import comes through
 `foundation_netio`, which every wasm HTTP or RPC path reaches.
 
-**Result.** Decision D2 is one narrowing of the owner's answer: `foundation_core` uses the
-owned harness on Deno and the browser, and the wasm-bindgen harness on Deno and wrangler.
-`foundation_http` and `foundation_connectrpc` use the wasm-bindgen harness on all three hosts.
-The feature files repeat the reason so no agent tries the owned path again.
+**Result.** Decision D2 is the owner's answer: both harnesses run where a crate allows it
+(owner, 2026-11-16). `foundation_core` uses the owned harness on Deno and the browser, and the
+wasm-bindgen harness on Deno and wrangler. Features 02 and 03 add a crate feature that gates
+`foundation_netio`'s `wasm-fetch`, build a second test package with the feature off, measure its
+imports, and run the pure-Rust cases on the owned harness on Deno and Chromium. A transport case
+stays on the wasm-bindgen harness on all three hosts. The feature files repeat the reason so no
+agent tries the owned path with the fetch client still on.
 
-**What would change the answer.** The limit is the import, not the crate name. Port
-`foundation_netio`'s wasm fetch client to the owned ABI, in the style of `foundation_core`'s
-`js-foundation-wasm`, and no wasm-bindgen glue enters the graph. Then the owned harness can host
-all three crates. The cost is a second HTTP transport implementation: request and response
-streaming, headers, abort and the websocket path. It gives no host coverage, because the
-wasm-bindgen harness already runs on all three hosts. This is recorded as #577, a low-severity
-issue, not as work in this specification.
+**What does not change the answer.** The `abi` runtime compiles a JavaScript function body at
+runtime and binds it to a handle (`Operations::MakeFunction`, `foundation-wasm.js:1202-1218`). A
+crate calls `abi::web::register_function("function(){ … }")` and gets its own host function
+(`foundation_core/integration/wasm_tests/src/lib.rs:28-34`). This adds no import. It supplies a
+missing host primitive, such as a clock. It cannot supply the wasm-bindgen runtime intrinsics:
+heap slots by index, memory-backed strings and throws, the `externref` table. Only the generated
+glue provides those. A hand-written shim is a version-locked copy of the wasm-bindgen runtime and
+gives no coverage.
+
+**What would change the answer.** Port `foundation_netio`'s wasm fetch client to the owned ABI,
+in the style of `foundation_core`'s `js-foundation-wasm`. Then no wasm-bindgen glue enters the
+graph. The cost is a second HTTP transport implementation: request and response streaming,
+headers, abort and the websocket path. It gives no host coverage, because the wasm-bindgen
+harness already runs on all three hosts. This is recorded as #577, a low-severity issue, not as
+work in this specification.
 
 **Rule for the future.** Before you pick a harness for a crate, build its wasm module and
 count the imports. One `__wbindgen_*` import decides it.
@@ -138,7 +149,7 @@ with the default fails with a `compile_error!` it cannot interpret.
 | workerd has no DOM and no page | browser-only paths are not tested there |
 | a browser cannot serve; a worker cannot open a socket | the suite reaches the testbed's Rust server over the loopback |
 | a workerd fetch to the loopback may be refused | feature 03 measures it first and records the answer |
-| the owned harness supplies only `abi` | a crate that imports anything else cannot use it (entry 1) |
+| the owned harness supplies only `abi` | a glue import blocks it; `abi` can still compile a new host function (entry 1) |
 | `foundation_core/multi` is a hard error on wasm | a bundled dep asking for it breaks every wasm build; target-gate the dep |
 
 ## 9. Writing rules that kept the plan honest
@@ -152,6 +163,26 @@ with the default fails with a `compile_error!` it cannot interpret.
   false greens; a stub in the suite would recreate one.
 - **A missing tool is not a failing case.** It is a runner defect, and the fix belongs in
   feature 00.
+
+## 10. The Playwright install outlived its runner
+
+**Expected.** Spec 43 replaced the Node browser runner with the pure-Rust CDP client in
+`foundation_browser`. The browser task looked repaired.
+
+**Measured.** The install stayed in two places. `mise.toml:145-153` defines
+`setup:playwright`, and the browser task still depends on it (`mise.toml:1083`). That task
+runs `npx playwright install --with-deps chromium`. It needs `sudo`, and it puts Chromium in
+the Playwright cache, where `resolve_binary` never looks. The file
+`backends/foundation_testbed/integration/package.json` holds the Playwright development
+dependency and a `setup:web` script, and nothing reads it. No test or CI step checks that a
+removed tool is gone.
+
+**Result.** The owner removed Playwright on 2026-11-16. Feature 00 T1 deletes the task and
+the package file, and its done-when searches the name. `foundation_browser` supplies the
+CDP client.
+
+**Rule for the future.** When a runner changes its transport, delete the old transport's
+install in the same change. A task that installs a tool no code calls is a false dependency.
 
 ---
 

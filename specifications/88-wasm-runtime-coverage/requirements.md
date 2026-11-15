@@ -242,27 +242,49 @@ records it, and feature 00 closes it.
 
 The owned harness is not a free choice. The runner instantiates a module with one import module,
 `abi` (`foundation_testbed/src/wasm/templates/fwt/runner.mjs:17-20`, `embedded_js.rs:180-200`).
-A module that imports any wasm-bindgen glue cannot start. Measured on 2026-11-15 with a probe
-crate that uses only the pure-Rust request and response types:
+A module that imports any wasm-bindgen glue cannot start on that runtime. Measured on 2026-11-15
+with a probe crate that uses only the pure-Rust request and response types:
 
 ```
 foundation_http (feature `wasm`) + foundation_netio (feature `wasm-fetch`)
 → 7 imports, all __wbindgen_* / __wbg___wbindgen_*
 ```
 
-So every crate that depends on `foundation_netio` with `wasm-fetch` is a wasm-bindgen crate on
-wasm, whatever the test uses. `foundation_http` takes its request type from `foundation_netio`
-(`foundation_http/src/wasm/serve_writer.rs:8`), and `foundation_connectrpc` depends on both
-(`foundation_connectrpc/Cargo.toml:55-58`). Only `foundation_core` with `js-foundation-wasm`
-stays free of wasm-bindgen (`foundation_core/Cargo.toml:113-115`).
+A crate that depends on `foundation_netio` with `wasm-fetch` is a wasm-bindgen crate on wasm
+while that feature is on, whatever the test uses. `foundation_http` takes its request type from
+`foundation_netio` (`foundation_http/src/wasm/serve_writer.rs:8`), and `foundation_connectrpc`
+depends on both (`foundation_connectrpc/Cargo.toml:55-58`). Only `foundation_core` with
+`js-foundation-wasm` stays free of wasm-bindgen (`foundation_core/Cargo.toml:113-115`).
+
+The limit is the import, not the crate. The `abi` runtime is not a closed set of functions. The
+runtime compiles a JavaScript function body and binds it to a handle
+(`Operations::MakeFunction`, `foundation-wasm.js:1110,1202-1218`). A crate that depends on
+`foundation_wasm` calls `abi::web::register_function("function(){ … }")` and gets a handle to
+its own function. The existing owned wasm test crate registers a clock this way
+(`foundation_core/integration/wasm_tests/src/lib.rs:28-34`). This adds no import, so a case can
+supply any host function it needs.
+
+Two ways remove the glue imports, and they differ:
+
+1. **Register the function.** Use `register_function` for a host function that the case needs.
+   The module stays glue-free. This covers a missing host primitive, not a wasm-bindgen crate.
+2. **Build a module without the client.** The glue imports come from `foundation_netio`'s
+   `wasm-fetch` feature. A crate feature that turns the feature on, kept on for the default wasm
+   build and off for a second test package, builds a module with no fetch client. Measure its
+   imports before you promise a case to the owned harness.
+
+wasm-bindgen glue is different from a host function. Its imports are runtime intrinsics: heap
+slots by index, memory-backed strings and throws, the `externref` table. Only the generated glue
+provides them. A hand-written shim is a version-locked copy of the wasm-bindgen runtime and adds
+no coverage (#577).
 
 The harness per layer is therefore:
 
 | Layer | owned harness (`#[wasm_test]`) | wasm-bindgen harness (`#[wasm_bindgen_test]`) |
 |---|---|---|
 | valtron | yes: Deno and browser | yes: Deno and wrangler |
-| `foundation_http` | no: the module imports wasm-bindgen glue | yes: all three hosts |
-| `foundation_connectrpc` | no: the same | yes: all three hosts |
+| `foundation_http` | yes for the cases that need no transport, from a module built without `wasm-fetch` (owner decision, 2026-11-16) | yes: all three hosts, for the transport cases |
+| `foundation_connectrpc` | the same | the same |
 
 ## 3. What each host proves
 
@@ -302,12 +324,12 @@ _Figure 1: each layer runs on each host; each host adds one runtime fact._
 | headless Chromium | a real page, a DOM, a renderer event loop | worker bindings; `wrangler` globals |
 | workerd | the Worker runtime and its `env` bindings | a DOM; a page |
 
-## 4. Decisions (owner, 2026-11-15)
+## 4. Decisions (owner, 2026-11-15 and 2026-11-16)
 
 | Decision | Answer | Consequence |
 |---|---|---|
-| D1: the browser executor | Fix it in this specification | Feature 00 repairs the mise task, the preflight, the install path, the macOS case and the CDP defect |
-| D2: test form | Owned `#[wasm_test]`/`#[valtron_wasm_test]` where the crate can run without wasm-bindgen; the wasm-bindgen harness where it cannot; wrangler is wasm-bindgen only | Decision 031 stays the default. Section 2.7 measures where the owned harness cannot start: `foundation_http` and `foundation_connectrpc` import wasm-bindgen glue through `foundation_netio`, so they use the wasm-bindgen harness on all three hosts. `foundation_core` uses the owned harness on Deno and browser, and the wasm-bindgen harness on Deno and wrangler. This is one narrowing of the owner's answer, made after the measurement; the feature files repeat it |
+| D1: the browser executor | Fix it in this specification | Feature 00 repairs the mise task, the preflight, the install path, the macOS case and the CDP defect. It also deletes the `setup:playwright` task and `integration/package.json`, because `foundation_browser` supplies the CDP client (owner decision, 2026-11-16) |
+| D2: test form | Owned `#[wasm_test]`/`#[valtron_wasm_test]` where the crate can run without wasm-bindgen; the wasm-bindgen harness where it cannot; wrangler is wasm-bindgen only; both harnesses run where a crate allows it (owner, 2026-11-16) | Decision 031 stays the default. Section 2.7 measures the glue imports. The owner then asked for both harnesses where a crate allows it. `foundation_core` uses the owned harness on Deno and the browser, and the wasm-bindgen harness on Deno and wrangler. Features 02 and 03 add a crate feature that gates `foundation_netio`'s `wasm-fetch`. The default wasm build keeps that feature on. A second test package turns it off, measures its imports, and runs its pure-Rust cases on the owned harness on Deno and Chromium. A transport case stays on the wasm-bindgen harness on all three hosts. A case that still imports glue stays there too, with the reason recorded. This is not #577: #577 ports the fetch client to the `abi` contract |
 | D3: CI cadence | All three hosts on every pull request, and the Chromium cost is paid once, not per run | The Linux image already installs Chrome, and a macOS runner ships it in `/Applications` (section 2.2). Feature 00 makes the driver find both, so the cache holds a browser only when a runner has none; the task downloads one into the cache directory and the workflow caches that directory. Rule 16 still holds |
 
 ## 5. Architecture

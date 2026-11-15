@@ -41,6 +41,7 @@ You write only these:
 - `mise.toml`, `mise.wasm.toml`
 - `scripts/ci/ci.py`, `ci/packages.toml`, `.github/workflows/check.yaml`
 - `backends/foundation_testbed/integration/bindgen_failing_case/` (a new crate)
+- `backends/foundation_testbed/integration/package.json` (delete only; T1)
 
 You do not write `foundation_core`, `foundation_http` or `foundation_connectrpc`. If a task
 needs a change there, stop and report it.
@@ -53,7 +54,7 @@ verify command is a report, not a workaround.
 
 | Task | One line |
 |---|---|
-| T1 | rename `test:wasm-testbed:web` to `:browser`, drop `setup:playwright`, make `test:browsers:chromium` portable and idempotent |
+| T1 | rename `test:wasm-testbed:web` to `:browser`, delete `setup:playwright` and `integration/package.json`, make `test:browsers:chromium` portable and idempotent |
 | T2 | complete the browser search order and make it public |
 | T3 | replace the `node`/`npm`/`npx` preflight with a browser check |
 | T4 | measure #569 with frame tracing, fix the reader contract, move the limits to configuration |
@@ -64,7 +65,10 @@ verify command is a report, not a workaround.
 
 T4 is a diagnosis task. Do not guess the cause of #569. Add the trace, run it on macOS, read
 the frames, write what you found in the issue and in `LEARNINGS.md`, then fix it. The reader
-contract in feature section 6.5 is fixed whether or not it is the cause.
+contract in feature section 6.5 is fixed whether or not it is the cause. Trace as far as the
+evidence allows, and present the root cause when the fix is not small: a root cause in the
+protocol layer, the transport or the frame parser stops T4 with a report. T5 to T8 must not wait
+for an open protocol fix.
 
 T6 has one open question: whether workerd permits a fetch to the dev server's own origin.
 Measure it. Use the route if it works, the service binding if it does not, and record which
@@ -94,8 +98,14 @@ consumer's requirement in the same change (owner rule on new public API).
 cargo test -p foundation_browser --features browser-tests --test smoke
 cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- --help
 MISE_ENV=wasm mise run test:wasm-testbed:deno
+mise run test:wasm-testbed:browser
 python3 scripts/ci/ci.py plan --package wasm-tests
 ```
+
+You are on a Mac. Run the browser suite here with `mise run test:wasm-testbed:browser`. It needs
+no Docker container. The macOS and Windows CI jobs run on the full runs only (a push to `master`
+or `platform/release`, a pull request into or from `platform/release`, the nightly schedule and a
+manual run).
 
 The local cargo profile sets a codegen backend from the environment, so a crate outside the
 workspace needs:
@@ -108,7 +118,9 @@ env -u CARGO_PROFILE_DEV_CODEGEN_BACKEND -u CARGO_PROFILE_UAT_CODEGEN_BACKEND ca
 
 ## Do not
 
-- do not commit or push. The Main Agent reviews your report and commits.
+- commit to `spec/split-65`. You work in your own git worktree, on the branch the worktree
+  starts on. Commit your work there in small steps and report the branch name. Do not push and
+  do not switch branches. The Main Agent reviews your report and merges your branch.
 - do not touch a crate another agent owns.
 - do not leave a stub for a later feature. If a task needs a dependency, finish the dependency
   in the same task.
