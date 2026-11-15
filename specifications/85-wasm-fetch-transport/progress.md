@@ -11,7 +11,7 @@ _Last updated: 2026-11-15._
 | T3 — `streaming_response_with(status, headers, body)` | ⬜ Pending |
 | T4 — the streaming inbound body in both bridges, and the connectrpc `ResponseSink` | ⬜ Pending |
 | T5 — `StubHttpClient` over `worker::Stub`, behind the `cloudflare` feature | ⬜ Pending |
-| T6 — the wasm test crates, the `mise.wasm.toml` task and the `scripts/ci/ci.py` step | ⬜ Pending |
+| T6 — the `mise.wasm.toml` netio task and its `scripts/ci/ci.py` step, the standalone `foundation_connectrpc` test crate, and the fix for #565 | ⬜ Pending |
 
 ## No product code exists
 
