@@ -35,8 +35,16 @@ executor, which does not exist for these crates today. T4 needs T3; T5 needs T2.
 
 **Owned crates:** `foundation_netio` (the wasm client, the shared reader, the response
 builders, the DO stub client), `foundation_http` (the two wasm bridges), `foundation_connectrpc`
-(the sink and the capability constants), and the test wiring in `mise.wasm.toml` and
-`scripts/ci/ci.py`. Do not touch `foundation_platform_sandbox` or `foundation_agent_rpc`: their
+(the sink and the capability constants), and the test wiring: the existing
+`foundation_netio/tests/wasm/`, a new `foundation_connectrpc/integration/wasm/` crate
+(outside the workspace, as `foundation_db/integration/wasm_cf` shows), and the tasks in
+`mise.wasm.toml` and `scripts/ci/ci.py`.
+
+**Test executor:** the `wasm-testbed test bindgen-deno <crate>` mode runs `#[valtron_bindgen]`
+under the pinned Deno. It passes `--no-default-features` on wasm32 (`build.rs:273-276`), so
+`foundation_netio` needs no new crate. `foundation_connectrpc` does: `foundation_core` with
+`multi` is a hard error on wasm32 (`foundation_core/src/lib.rs:20`). The suite ran on
+2026-11-15: five tests found, four pass, one hangs (#565). Do not touch `foundation_platform_sandbox` or `foundation_agent_rpc`: their
 specs record the dependency and do their own change.
 
 **Root rules that decide the hard cases:** rule 4 (stream, do not buffer), rule 6 (async all

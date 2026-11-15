@@ -468,36 +468,62 @@ drops the stream after 10, then the source is dropped and the handler sees the c
 
 ## 8. Tests
 
-There is no Node wasm runner and no wasm `cargo test` runner in this workspace. The tests run
-in the `wasm-testbed` binary (`backends/foundation_testbed`), in three modes:
+There is no Node wasm runner and no wasm `cargo test` runner in this workspace. The `wasm-testbed`
+binary (`backends/foundation_testbed`) runs the wasm tests, in four modes:
 
-| Mode | Command | Runtime |
-|---|---|---|
-| `bindgen-deno` | `mise run test:wasm-bindgen:deno` (`mise.wasm.toml:29`) | Deno, installed at the pinned version |
-| `bindgen-web` | `wasm-testbed test bindgen-web <crate> --headless` | headless Chromium through Playwright; no mise task and no CI caller today |
-| `bindgen-wrangler` | `mise run test:wasm-testbed:wrangler` | `wrangler dev --local`, with real D1, R2 and KV bindings |
+| Command | Harness it runs | Runtime | Called by |
+|---|---|---|---|
+| `wasm-testbed deno <crate>` | the owned `#[wasm_test]` harness (`__fwt_`) | embedded Deno, in process (`deno_core` plus `deno_web`, `deno_fetch` and `deno_websocket`) | `mise run test:wasm-testbed:deno` (`mise.wasm.toml:18`), CI (`scripts/ci/ci.py:772`) |
+| `wasm-testbed browser <crate>` | the owned harness | headless Chromium through the CDP driver; needs node, npm, npx and Playwright | `mise run test:wasm-testbed:web`, no CI caller |
+| `wasm-testbed test bindgen-deno <crate>` | `#[wasm_bindgen_test]` and `#[valtron_bindgen]` | external Deno, pinned 2.9.7 (`mise.wasm.toml:14`) | `mise run test:wasm-bindgen:deno` (`mise.wasm.toml:29`), CI (`ci.py:773`) |
+| `wasm-testbed test bindgen-wrangler <crate>` | the same | `wrangler dev --local`, with real D1, R2 and KV bindings | `mise run test:wasm-testbed:wrangler`, CI (`ci.py:777`) |
 
-A test in these modes uses `#[wasm_bindgen_test]` or `#[valtron_bindgen]`. `#[valtron_test]`
-is native only, because it expands to `#[test]`.
+`test bindgen-web` (headless Chromium) exists too, and no task and no CI step calls it. The
+`test deno|web|wrangler` modes run a JS harness that the crate supplies in
+`integrations/<mode>/index.js`.
 
-Today `foundation_netio`'s wasm test targets are compile-checked only
-(`scripts/ci/ci.py:751-753`); no step executes them, and `foundation_connectrpc` has no wasm
-test target. T6 adds both.
+`#[valtron_test]` is native only, because it expands to `#[test]`. A wasm test is
+`#[wasm_bindgen_test]` or `#[valtron_bindgen]` in a bindgen mode, or `#[wasm_test]` and
+`#[valtron_wasm_test]` in the owned harness.
 
-`foundation_netio`'s suite marks itself `run_in_browser`
-(`foundation_netio/tests/wasm/mod.rs:3`). The testbed drives the `__wbgt_` exports with its own
-`run.js` and does not load wasm-bindgen-test's harness, so Deno should run it, as it runs the
-other suites. T6 measures that first; if a test needs a DOM API, it moves to `bindgen-web`.
+### The netio suite runs under Deno today
+
+Measured on 2026-11-15 with `wasm-testbed test bindgen-deno ./backends/foundation_netio
+--features wasm-fetch`:
+
+- The build passes. The testbed adds `--no-default-features` to every wasm32 build
+  (`foundation_testbed/src/wasm/build.rs:273-276`), so the `wasm` test target builds and the
+  native targets skip on their `required-features`.
+- The runner finds five `__wbgt_` tests and runs them in Deno (`deno run --allow-read
+  --allow-net --no-check`, `foundation_testbed/src/wasm/deno.rs:46`). The generated `run.js`
+  drives wasm-bindgen's own `WasmBindgenTestContext`
+  (`foundation_testbed/src/wasm/templates/bindgen-deno/run.js:1`).
+- Four pass. `websocket::open_websocket_task_yields_pending_connecting_on_wasm` hangs, and in
+  the full run it fails with an allocation failure inside the harness's result recording
+  (#565). It is the only test that drives `valtron::execute` from a test body.
+- The output directory is `<crate>/integrations/bindgen-deno/`, which `.gitignore:215` ignores.
+
+So `foundation_netio` needs a mise task and a CI step, not a new crate. The one failing test
+needs a fix, or it moves to `bindgen-web` with the browser marker the suite already carries
+(`run_in_browser`, `foundation_netio/tests/wasm/mod.rs:3`).
+
+`foundation_connectrpc` cannot use that path. It has 18 autodiscovered `tests/*.rs` targets, and
+its dev-dependencies pull in `foundation_core` with `multi`. That combination is a hard error:
+
+```
+foundation_core/src/lib.rs:20: error: foundation_core: the `multi` feature is native-only and
+cannot be enabled for wasm32.
+```
+
+T6 gives it a standalone crate, as `foundation_db/integration/wasm_cf` does: the crate depends
+on `foundation_connectrpc` with the wasm features, and holds its tests in `tests/`.
 
 There is no fake `fetch` on any target, so a test that exercises `FetchHttpClient` fetches a
 real endpoint. The `bindgen-wrangler` mode already passes its bindings to the wasm as a global
-(`globalThis.__CF_TEST_ENV__`, `foundation_db/integration/wasm_cf/src/lib.rs:22`). T6 follows
-that precedent in the `bindgen-deno` template
-(`foundation_testbed/src/wasm/templates/bindgen-deno/run.js`): it starts a `Deno.serve`
-handler that answers a streamed body, and sets its URL as a global. The Deno runner already
-allows network access (`foundation_testbed/src/wasm/deno.rs:46`). A test of a non-fetch
-`NetClient` (T2's "the exchange uses its client", T5's stub client) answers from a map and
-needs no endpoint.
+(`globalThis.__CF_TEST_ENV__`, `foundation_db/integration/wasm_cf/src/lib.rs:22`), and Deno
+gives the wasm module `Deno.serve` and `fetch` through `globalThis`. T6 uses one of those two to
+serve a streamed body and passes its URL as a global. A test of a non-fetch `NetClient` (T2's
+"the exchange uses its client", T5's stub client) answers from a map and needs no endpoint.
 
 | Rule or scenario | Test | Oracle |
 |---|---|---|
@@ -521,20 +547,23 @@ needs no endpoint.
 | T3 | `streaming_response_with(status, headers, body)` | `foundation_netio/src/wasm/response.rs` | the two old functions call it; `cargo check --target wasm32-unknown-unknown -p foundation_netio --features wasm-fetch` is clean |
 | T4 | The streaming inbound body in both bridges, and `ConnectSink` over `CfConn` | `foundation_http/src/wasm/bridge/{web,cf}.rs`, `foundation_connectrpc/src/wasm/sink.rs` | `inbound_body_streams`, `error_status_streams` and `cancel_drops_source` pass in the wasm testbed |
 | T5 | `StubHttpClient` as a `NetClient` over `worker::Stub`, behind a new `cloudflare` feature on `foundation_netio` | `foundation_netio/src/cloudflare/stub_client.rs`, `Cargo.toml` (optional `worker`) | a DO stub call passes in the wasm testbed under `wrangler dev --local`; a browser build has no `worker` dependency |
-| T6 | The wasm test crates for T1, T2 and T4, in the standalone style of `foundation_db/integration/wasm_cf`; the `mise.wasm.toml` task and the `scripts/ci/ci.py` `wasm-tests` entries that run them | `foundation_netio/integration/wasm_fetch/`, `foundation_connectrpc/integration/wasm/`, `mise.wasm.toml`, `scripts/ci/ci.py` | `mise run test:wasm-bindgen:netio` runs the suite in Deno, CI is red when it fails, and #563 closes |
+| T6 | The netio mise task and CI step; a standalone test crate for `foundation_connectrpc`; the fix for the one test that hangs under Deno | `mise.wasm.toml`, `scripts/ci/ci.py`, `foundation_connectrpc/integration/wasm/`, `foundation_netio/tests/wasm/websocket.rs` | `mise run test:wasm-bindgen:netio` is green, CI runs it, and #563 and #565 close |
 
-T6 lands first. The runner exists, but no test crate and no CI step runs `foundation_netio`'s
-wasm suite today (`scripts/ci/ci.py:751-753` only compiles it), so T1 and T2 would ship
-untested on wasm without it. T4's tests have no wasm test target in `foundation_connectrpc` at
-all. T6 delivers the two crates, a new `test:wasm-bindgen:netio` task in `mise.wasm.toml`
-(modeled on `test:wasm-bindgen:deno`) and the `wasm-tests` entries in `scripts/ci/ci.py`, with
-one smoke test in each crate. T1, T2 and T4 add their own tests to them.
+T6 lands first. The runner exists, but no CI step runs `foundation_netio`'s wasm suite
+(`scripts/ci/ci.py:751-753` only compiles it), so T1 and T2 would ship untested on wasm without
+it. T6 adds the `mise.wasm.toml` task and the `wasm-tests` step in `ci.py`, fixes the one test
+that hangs (#565), and gives `foundation_connectrpc` a standalone crate. T1, T2 and T4 add their
+own tests.
 
-A standalone crate is the pattern the testbed's `--tests` build needs: it builds every test
-target of the package with the default features on, and the native targets of
-`foundation_netio` and `foundation_connectrpc` do not compile for wasm32. The crate depends on
-the package with `default-features = false` and the wasm features, and holds its tests in
-`tests/`.
+The two packages get different treatment, and the difference is measured:
+
+- `foundation_netio` works with the existing suite. The testbed builds it with
+  `--no-default-features --features wasm-fetch`, the native test targets skip on their
+  `required-features`, and Deno runs the `wasm` target.
+- `foundation_connectrpc` does not. Its 18 autodiscovered test targets, and a dev-dependency on
+  `foundation_core` with `multi`, stop a wasm build of the package with a guard error
+  (`foundation_core/src/lib.rs:20`). A standalone crate, as
+  `foundation_db/integration/wasm_cf` does, builds only what it needs.
 
 ## 10. Verify
 
@@ -545,7 +574,6 @@ cargo check -p foundation_connectrpc --profile uat
 cargo tree -p foundation_netio --target wasm32-unknown-unknown -e features | grep -c worker   # 0 without the cloudflare feature
 # The wasm code, and the test crates, compile for wasm32.
 cargo check --tests --target wasm32-unknown-unknown -p foundation_netio --no-default-features --features wasm-fetch
-cargo check --tests --target wasm32-unknown-unknown --manifest-path backends/foundation_netio/integration/wasm_fetch/Cargo.toml
 cargo check --tests --target wasm32-unknown-unknown --manifest-path backends/foundation_connectrpc/integration/wasm/Cargo.toml
 # The wasm tests run in the testbed (Deno, the runtime the Workers backend uses).
 mise run test:wasm-bindgen:netio

@@ -147,17 +147,48 @@ wasm path and inherits an unrun suite has no test behind it.
 
 Three more facts decide how the executor is built:
 
-- The testbed's bindgen mode builds the package with `--tests` and its **default** features.
-  `foundation_netio` and `foundation_connectrpc` have native test targets that do not compile
-  for wasm32 with defaults on, so the tests live in a standalone crate outside the workspace,
-  as `foundation_db/integration/wasm_cf` does.
-- `foundation_netio/tests/wasm/mod.rs:3` sets `run_in_browser`. The testbed drives the
-  `__wbgt_` exports with its own `run.js` and does not load wasm-bindgen-test's harness, so the
-  marker should not matter. Measure it; do not assume it.
+- The testbed's bindgen mode builds a package with `--tests` **and** `--no-default-features` for
+  every wasm32 target (`build.rs:273-276`). A package whose test targets declare
+  `required-features` therefore builds the wasm one and skips the rest. That is why
+  `foundation_netio` needs no new crate.
+- A package cannot opt out of its dev-dependencies. `foundation_connectrpc` has 18
+  autodiscovered test targets and a dev-dependency on `foundation_core` with `multi`, and
+  `foundation_core/src/lib.rs:20` is a hard error on wasm32. A standalone crate is the only way
+  in, as `foundation_db/integration/wasm_cf` shows.
 - No fake `fetch` exists. A client test needs a real endpoint. The `bindgen-wrangler` mode
-  passes its bindings as `globalThis.__CF_TEST_ENV__`; the Deno template can pass a served URL
-  the same way, and its runner already has `--allow-net`
-  (`foundation_testbed/src/wasm/deno.rs:46`).
+  passes its bindings as `globalThis.__CF_TEST_ENV__`; in Deno the test can reach `Deno.serve`
+  and `fetch` through `globalThis`.
+
+## The Deno runner does the work, measured (2026-11-15)
+
+The owner said: "there is a deno based runner — i believe foundation_testbed supports that, so
+survey that for what's possible." It supports two Deno paths:
+
+- `wasm-testbed deno <crate>` runs the **owned** `#[wasm_test]` harness on an embedded Deno
+  (`deno_core` with `deno_web`, `deno_fetch` and `deno_websocket`), in process, with no
+  external tool.
+- `wasm-testbed test bindgen-deno <crate>` runs `#[wasm_bindgen_test]` and `#[valtron_bindgen]`
+  under the pinned Deno 2.9.7. It builds with `--tests`, runs wasm-bindgen, discovers `__wbgt_`
+  exports with walrus, drops the libtest start call, and drives wasm-bindgen's own
+  `WasmBindgenTestContext` from a generated `run.js`. The Deno process has `--allow-read
+  --allow-net` and `--no-check`.
+
+Two claims in the earlier draft were wrong and measurement corrected them:
+
+| The draft said | Measurement |
+|---|---|
+| Deno "should" run the netio suite; measure it | It does. Five tests found, four pass. |
+| The testbed drives the exports with its own `run.js` and does not load wasm-bindgen's harness | It imports `WasmBindgenTestContext` from the generated glue and calls `cx.run(...)`; it *is* the harness, minus the browser page. |
+| A standalone crate is needed because the testbed builds default features | The testbed passes `--no-default-features` on wasm32. The crate is needed only for `foundation_connectrpc`, whose dev-dependencies break the wasm build. |
+
+The fifth test, `websocket::open_websocket_task_yields_pending_connecting_on_wasm`, hangs under
+Deno and fails with an allocation error in `log_test_result` during the full run (#565). The
+suite carries a browser marker (`run_in_browser`), so Chromium (`bindgen-web`) is the second
+measurement to make. It was not possible on this machine: Chromium is not installed, and the
+mode has no mise task.
+
+The lesson: a runner that exists is not the same as a suite that passes. Run the suite before
+planning around it.
 
 ## Two response builders already buffer (2026-11-15)
 

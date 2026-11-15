@@ -107,9 +107,36 @@ After the map was validated, the plan got a second read against it. The result:
 | `NativeHttpClient` at `src/native/` | `src/http/http_client_impl.rs:50` |
 | The wasm tests run under Node | There is no Node runner; the testbed runs Deno, Chromium and `wrangler dev --local` |
 | `cargo test --target wasm32-unknown-unknown` runs them | It builds only; no runner executes a wasm `#[test]` binary |
-| `foundation_connectrpc/tests/wasm/` exists | The directory does not exist, and the crate has no wasm test target |
+| `foundation_connectrpc/tests/wasm/` exists | The directory does not exist, and the package cannot build its tests for wasm32 (`foundation_core` with `multi` is a hard error) |
 | T1's code ships with tests that run | `foundation_netio`'s wasm suite is compile-checked only (`scripts/ci/ci.py:751-753`) |
-| T6 is last | T6 is first: without a test crate, T1 and T2 ship untested on wasm |
+| T6 is last | T6 is first: without the task and the CI step, T1 and T2 ship untested on wasm |
+
+## The Deno runner, measured (2026-11-15)
+
+The owner asked for a survey of the Deno runner in `foundation_testbed`. It has four modes, and
+two of them are Deno:
+
+| Mode | What it runs | CI |
+|---|---|---|
+| `deno <crate>` | the owned `#[wasm_test]` harness on the embedded Deno runtime (`deno_core` with `deno_web`, `deno_fetch` and `deno_websocket`), in process | `test:wasm-testbed:deno` |
+| `test bindgen-deno <crate>` | `#[wasm_bindgen_test]` and `#[valtron_bindgen]` under the pinned Deno 2.9.7, with `--allow-read --allow-net` | `test:wasm-bindgen:deno` |
+
+The netio suite ran on the second one. `wasm-testbed test bindgen-deno ./backends/foundation_netio
+--features wasm-fetch` builds the package, finds five tests, and runs them. Four pass:
+
+```
+sse::sse_read_error_surfaces_failed_not_a_clean_end ........ ok
+http_exchange_task::wasm_http_exchange_task_constructs ..... ok
+websocket::fetch_client_is_a_websocket_connector ........... ok
+websocket::open_websocket_refused_surfaces_close ........... ok
+```
+
+The fifth, `websocket::open_websocket_task_yields_pending_connecting_on_wasm`, hangs, and in the
+full run it fails with an allocation error in the harness's result recording. #565 records it.
+
+So netio needs a task and a CI step, not a new crate. `foundation_connectrpc` still needs a
+standalone crate: its test build for wasm32 stops on the `multi` guard in
+`foundation_core/src/lib.rs:20`, and it has 18 autodiscovered test targets.
 
 The review also removed a risk of a third response builder. `foundation_http` has two wasm
 builders (`CfConn::into_response` at `wasm/cf_conn.rs:64`, `WasmResponse` at
@@ -117,20 +144,22 @@ builders (`CfConn::into_response` at `wasm/cf_conn.rs:64`, `WasmResponse` at
 `streaming_response_with`, the only one that takes a stream, and says so in section 4.4 of the
 plan and in `fetch.md`.
 
-Two issues came out of the review:
+Three issues came out of the review:
 
 - #563 (medium): `foundation_netio`'s wasm suite never executes, and
   `foundation_connectrpc` has no wasm test target. T6 closes it.
 - #564 (low): `mise.toml`'s `test:wasm:node` and `test:wasm:node-single` point at
   `./tests/integrations/`, which does not exist. Delete them.
+- #565 (medium): one netio wasm test hangs under the Deno runner
+  (`websocket::open_websocket_task_yields_pending_connecting_on_wasm`). T6 settles it.
 
 Issue #557 and issue #558 got a correction comment: both said spec 85 adds a `FetchTransport`.
 It does not.
 
 ## Next steps
 
-1. T6 first: the two standalone test crates (Deno), the `test:wasm-bindgen:netio` task and the
-   `wasm-tests` CI entries, each with one smoke test.
+1. T6 first: the `test:wasm-bindgen:netio` task and its CI step, the fix for #565, and the
+   standalone crate for `foundation_connectrpc`.
 2. T1 next. It is the one gap that needs the harness, and it makes the rest work.
 3. T2, and correct the capability constant in the same change.
 4. T3, which T4 needs.
