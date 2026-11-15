@@ -420,3 +420,32 @@ window did not run.
 **Rule for the future.** A harness that runs many cases in one event loop must report each case
 as it ends. An awaiting promise is not a store: anything a trap can cut off needs a copy that a
 later reader can reach.
+
+## 17. A build script needs its tool on every operating system (#599)
+
+**Symptom.** A full CI run ended with `failure` while every package job passed. The separate
+`macOS build` job panicked at `foundation_agent_rpc/build.rs:31` with "failed to run protoc
+(protoc): No such file or directory".
+
+**Root cause.** `protoc` was pinned in only one place: the Linux CI image, through
+`ci/platform-images/mise/mise.toml` and `mise.lock`. The hosted macOS and Windows runners have
+no `protoc`. Every package job ran in that image, so the gap stayed hidden until the job that
+builds on the bare runner. The macOS and Windows test jobs also need `protoc` when
+`foundation_agent_rpc` is in their matrix (`runs = ["", "gguf"]`).
+
+**Fix.** The `macos-test`, `windows-test` and `macOS build` jobs run a new
+"Install the pinned protoc" step. It picks the release asset from `uname -s` and `uname -m`,
+checks its SHA-256 against the value in `mise.lock`, unpacks it and adds `bin` to
+`$GITHUB_PATH`. The Linux image keeps its own install.
+
+**Two traps in the step.** A zip file does not record the executable bit, so unpacking with
+`zipfile.extractall` left `protoc` not executable. The step runs `chmod +x` after it. On
+Windows, `$RUNNER_TEMP` holds a native path, so the step uses `cygpath -m` to give bash and
+the native Python one path they both read.
+
+**Measured.** The step ran on this macOS `arm64` host. It verified the checksum, printed
+`libprotoc 36.2` and wrote the `bin` directory to `GITHUB_PATH`. `actionlint` accepts the
+workflow.
+
+**Rule for the future.** A tool that a build script runs is part of the build. Pin it for each
+operating system that builds the crate, in the same change that adds the build script.

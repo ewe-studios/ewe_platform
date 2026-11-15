@@ -12,7 +12,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Feature designs | done: four features, each with `feature.md` and `start.md` |
 | Owner approval of the plan | **approved 2026-11-16**: feature 00 is approved with four answers, recorded below |
 | The owner's answers | D1: repair the browser host in this specification. D2: both harnesses run where a crate allows it. D3: all three hosts run on every pull request |
-| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) **reviewed 2026-11-16**; the Linux-run fixes (#587, #588, #590) landed 2026-11-16; features 01 to 03 next |
+| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) **reviewed 2026-11-16**; the Linux-run fixes (#587, #588, #590) landed and passed the native `amd64` run 2026-11-16; #599 fixed 2026-11-16; features 01 to 03 next |
 | Pull request | not opened (PR #553 holds spec 85 and spec 88 work) |
 
 Product code changes need the owner's approval of the plan. The owner approved feature 00 on
@@ -131,13 +131,37 @@ it on the emulated image, so the cause is the host, not one executor.
 
 The #587 message shows that the wake works: `polls_at_fire` was 1, so the executor did not poll
 the parked task. The 25 ms resume window failed on an emulated host. That is the family of
-#589, not a lost wake. A manual CI run on native `amd64` measures both:
-`gh workflow run check.yaml --ref spec/88-executors -f packages=wasm-tests` (run 43753198986,
-in flight when this file was updated).
+#589, not a lost wake.
 
-New issues from the same work: #597 (`low`, a timing bound in `foundation_nostd`) and #598
+### The native `amd64` measurement (2026-11-16)
+
+Manual run 43753198986: `gh workflow run check.yaml --ref spec/88-executors -f packages=wasm-tests`.
+The package job runs in the CI image on a native `amd64` GitHub runner. Every timing case
+passes.
+
+| Host | Result |
+|---|---|
+| owned harness, Deno (`test:wasm-testbed:deno`) | 18 passed, 0 failed |
+| owned harness, Chromium (`test:wasm-testbed:browser`) | 18 passed, 0 failed |
+| wasm-bindgen, Deno (`test:wasm-bindgen:deno`) | 15 passed, 0 failed |
+| wasm-bindgen, Chromium (`test bindgen-web backends/foundation_core`) | 34 passed, 0 failed |
+| `test:wasm-testbed:bindgen-fails` | both runners reject `b_fails`, as intended |
+
+The macOS job `macOS 1/1` passes its two browser runs. The `macOS build` job failed for a
+different reason: the runner had no `protoc`, and the build script of `foundation_agent_rpc`
+needs it. Issue #599 (`high`) records it. The same change fixes it: the workflow installs the
+pinned `protoc` 36.2 in the `macos-test`, `windows-test` and `macOS build` jobs.
+
+The step downloads the release asset for the runner's operating system (OS) and processor,
+checks its SHA-256 against the value in `ci/platform-images/mise/mise.lock`, unpacks it and
+adds `bin` to the `PATH`. The step ran on this macOS `arm64` host: it printed
+`libprotoc 36.2`, and `actionlint` accepts the workflow.
+
+Issues #587, #588, #589 and #590 closed with these measurements.
+
+New issues from the same work: #597 (`low`, a timing bound in `foundation_nostd`), #598
 (`low`, 16 clippy warnings in `foundation_wasm` under a wasm feature tree that CI does not
-lint).
+lint) and #599 (`high`, the macOS build job needs `protoc`).
 
 ### Issues that feature 00 closed
 
@@ -154,12 +178,13 @@ lint).
 | #584 | low | open | workerd's request URL has no port; the runner avoids it |
 | #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
 | #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16), fixed on `spec/88-executors` |
-| #587 | high | open | the owned Deno abort; fixed in `25c34d5f8`: the harness names the case, the cause is the #589 window |
-| #588 | high | open | the browser harness must name a failed case; fixed in `25c34d5f8`, proven by the emulated run |
-| #589 | medium | open | native `amd64` run 43753198986 measures the timing cases |
-| #590 | low | open | the CI script needs a worktree form; fixed in `25c34d5f8` |
+| #587 | high | closed | the owned Deno abort; fixed in `25c34d5f8`, native run 43753198986 passes |
+| #588 | high | closed | the browser harness names a failed case; fixed in `25c34d5f8`, native run passes |
+| #589 | medium | closed | native `amd64` run 43753198986 passes the three timing cases |
+| #590 | low | closed | the CI script works in a worktree; fixed in `25c34d5f8` |
 | #597 | low | open | a `foundation_nostd` timing bound; it waits |
 | #598 | low | open | 16 clippy warnings in a wasm feature tree that CI does not lint; it waits |
+| #599 | high | closed | the macOS and Windows jobs install the pinned `protoc` 36.2 (this change) |
 
 ## What the plan depends on
 
@@ -235,6 +260,10 @@ container checks Linux compatibility only.
 | #581 | low | 00 T1 |
 | #582 | low | 00 T8 |
 | #586 | high | 00 T9: the web runner drops libtest's `main` from the wasm-bindgen glue |
+| #587 | high | 00 Linux-run fix: the harness names the trapped case and keeps its output |
+| #588 | high | 00 Linux-run fix: the browser harness prints every page line |
+| #589 | medium | the native `amd64` measurement (run 43753198986); no bound changed |
+| #590 | low | 00 Linux-run fix: `scripts/ci/linux.sh` runs from a worktree |
 
 #577 is recorded and not closed. This specification does not port `foundation_netio`'s wasm
 fetch client to the owned ABI: it is a product change that adds no host coverage
@@ -242,8 +271,8 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
 
 ## Next steps
 
-1. The Main Agent reviews T9 (#586) on `spec/88-executors`. When it lands, the Main Agent
-   merges that branch into `spec/split-65`, which keeps one pull request for the
+1. The next full run proves the #599 fix: the `macOS build` job must pass. The Main Agent then
+   merges `spec/88-executors` into `spec/split-65`, which keeps one pull request for the
    specification (PR #553).
 2. Features 01, 02 and 03 then start in parallel, one agent each. Features 02 and 03 carry the
    second test package from "Decisions after the first review".
