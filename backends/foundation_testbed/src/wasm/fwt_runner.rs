@@ -252,11 +252,16 @@ pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
     serving.shutdown();
     let browser_output = outcome?;
 
-    // The summary line is the verdict (the browser cannot set an exit code).
+    // The page prints every case line, then the summary. Print all of it: a
+    // failing case names itself and its first mismatched value there (spec 88
+    // rule R3, issue #588). The summary line is the verdict.
+    print!("{}", browser_output.output);
+    if !browser_output.output.ends_with('\n') {
+        println!();
+    }
     let exit_code = i32::from(!browser_output.test_result.contains("test result: ok"));
-    println!("{}", browser_output.test_result);
     Ok(RunOutcome {
-        output: browser_output.test_result,
+        output: browser_output.output,
         exit_code,
         cases,
     })

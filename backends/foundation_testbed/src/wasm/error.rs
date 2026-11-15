@@ -139,9 +139,9 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     VerdictMismatch { exit_code: i32, summary: String },
 
-    #[display("owned harness run failed with exit code {_0}")]
+    #[display("owned harness run failed with exit code {exit_code}.\nOutput:\n{output}")]
     #[error(ignore)]
-    OwnedRunFailed(i32),
+    OwnedRunFailed { exit_code: i32, output: String },
 
     // --- wasi_runner.rs ---
     #[display("WASI runner requires --target wasip1 or wasip2, got {_0}")]

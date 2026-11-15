@@ -1,6 +1,6 @@
 [package]
 name = "foundation_testbed"
-version = "0.0.7"
+version = "0.0.8"
 edition = "2024"
 description = "Holistic test harness: QEMU/KVM VM testbed (vms) + wasm32 browser/Deno/Workers harness (wasm), feature-gated"
 license = "MIT"

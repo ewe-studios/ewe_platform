@@ -35,7 +35,7 @@ function print(line) {
   }
 }
 
-function report(passed, failed, ignored) {
+function sendReport(passed, failed, ignored) {
   // Embedded: hand the structured result to Rust. Browser: the summary line
   // already printed into #output is the verdict (the page can't set an exit code).
   if (ops?.op_fwt_report) {
@@ -43,8 +43,23 @@ function report(passed, failed, ignored) {
   }
 }
 
+// The case in flight, so a trap that escapes `runCase` still names itself.
+// The panic hook reports a FAIL into `rt.testReports` before the abort trap;
+// that report is lost if the trap leaves no JS frame to catch it (issue #587).
+let liveRun = null;
+
+// What the embedded driver reads when the event loop ends with an error.
+// `snapshot()` includes the report a trap cut off between the hook's delivery
+// and the awaiting continuation (issue #587).
+globalThis.__FWT_DIAGNOSTICS__ = () => ({
+  case: liveRun?.name ?? null,
+  reports: liveRun?.rt?.testReports?.snapshot() ?? [],
+  output: out.join("\n"),
+});
+
 async function runCase(moduleCompiled, testCase) {
   const rt = new FoundationWasm();
+  liveRun = { rt, name: testCase.name };
   // Async instantiate for the same reason as the compile above: Chrome
   // refuses the synchronous form for a module over 8 MiB on the main thread.
   const instance = await WebAssembly.instantiate(moduleCompiled, { abi: rt.web_abi });
@@ -111,14 +126,17 @@ async function main() {
       print(`FAILED  ${testCase.name}`);
       if (report.message) print(`        ${report.message}`);
     }
+    // Report after each case: a later trap that escapes the event loop must not
+    // lose the verdicts and lines already produced (issue #587).
+    sendReport(passed, failed, ignored);
   }
 
   const status = failed === 0 ? "ok" : "FAILED";
   print(`test result: ${status}. ${passed} passed; ${failed} failed; ${ignored} ignored`);
-  report(passed, failed, ignored);
+  sendReport(passed, failed, ignored);
 }
 
 main().catch((error) => {
   print(`test result: FAILED. runner error: ${error?.stack ?? error}`);
-  report(0, 1, 0);
+  sendReport(0, 1, 0);
 });

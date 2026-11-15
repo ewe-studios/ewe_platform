@@ -20,6 +20,12 @@ use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
 
 #[derive(Debug)]
 pub struct BrowserOutput {
+    /// Every line the page printed, in order: the case lines, then the summary.
+    ///
+    /// A failing run must name its case and its first mismatched value, so the
+    /// runner keeps this text whole (spec 88 rule R3).
+    pub output: String,
+    /// The last `test result:` line: the verdict.
     pub test_result: String,
     pub console_logs: Vec<String>,
     pub exit_code: i32,
@@ -148,8 +154,11 @@ pub fn run(
             break text;
         }
         if clock.now() >= deadline {
+            // A trap inside a host callback ends the page's module before the
+            // summary. The runner exposes the case in flight through
+            // `__FWT_DIAGNOSTICS__`, so the timeout names it (issue #587).
             let diagnostic = page
-                .eval("JSON.stringify({title:document.title||'',hasOutput:!!document.querySelector('#output'),body:(document.body?.textContent||'').substring(0,500)})")
+                .eval("JSON.stringify({title:document.title||'',hasOutput:!!document.querySelector('#output'),body:(document.body?.textContent||'').substring(0,500),diagnostics:(globalThis.__FWT_DIAGNOSTICS__ && globalThis.__FWT_DIAGNOSTICS__()) || null})")
                 .ok()
                 .and_then(|v| v.as_str().map(str::to_string))
                 .unwrap_or_default();
@@ -164,7 +173,8 @@ pub fn run(
 
     debug!("browser page output:\n{output}");
     // #output holds every printed line: each case line, then the summary. The
-    // summary is the verdict, so take the last line that carries it.
+    // summary is the verdict, so take the last line that carries it. The whole
+    // text stays in `output`: a failing case names itself there (issue #588).
     let test_result = output
         .lines()
         .rfind(|line| line.contains("test result:"))
@@ -174,6 +184,7 @@ pub fn run(
     debug!("Browser test result: {test_result}");
 
     Ok(BrowserOutput {
+        output,
         test_result,
         console_logs: Vec::new(),
         exit_code: 0,

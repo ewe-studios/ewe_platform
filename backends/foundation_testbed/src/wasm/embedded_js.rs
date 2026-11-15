@@ -48,6 +48,7 @@
 //! current-thread runtime, and is gated behind `wasm-embedded-js`.
 
 use std::cell::RefCell;
+use std::fmt::Write as _;
 use std::path::Path;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -316,18 +317,88 @@ pub fn run_staged_harness(stage_dir: &Path) -> Result<HarnessReport, Box<dyn std
     let captured = sink.clone();
     let runner = stage_dir.join("runner.js");
 
-    tokio_runtime()?.block_on(async {
+    let (outcome, diagnostics) = tokio_runtime()?.block_on(async {
         let mut runtime = build_runtime_with(vec![foundation_fwt::init(sink)])?;
         let id = load_entry(&mut runtime, &runner).await?;
-        evaluate(&mut runtime, id).await
+        let outcome = evaluate(&mut runtime, id).await;
+        // A trap inside a host callback ends the event loop with an error, before
+        // the runner prints its summary. The isolate stays usable, so read what
+        // the runner knows before it returns (issue #587).
+        let diagnostics = outcome.is_err().then(|| read_diagnostics(&mut runtime));
+        Ok::<_, Box<dyn std::error::Error>>((outcome, diagnostics))
     })?;
 
-    let json = captured
-        .0
-        .borrow_mut()
-        .take()
-        .ok_or("harness finished without calling op_fwt_report")?;
-    Ok(serde_json::from_str(&json)?)
+    let json = captured.0.borrow_mut().take();
+    match outcome {
+        Ok(()) => {
+            let json = json.ok_or("harness finished without calling op_fwt_report")?;
+            Ok(serde_json::from_str(&json)?)
+        }
+        Err(error) => {
+            // The runner reports after each case, so a late trap keeps the
+            // verdicts and lines it already produced. The diagnostics name the
+            // case in flight and the report the panic hook pushed before the
+            // trap. Both go into the output, so the failure is never anonymous.
+            let mut report = match json {
+                Some(json) => serde_json::from_str::<HarnessReport>(&json)?,
+                None => HarnessReport {
+                    passed: 0,
+                    failed: 0,
+                    ignored: 0,
+                    output: String::new(),
+                },
+            };
+            let mut text = report.output;
+            if !text.is_empty() {
+                text.push('\n');
+            }
+            let _ = write!(text, "runner error: {error}");
+            if let Some(diagnostics) = diagnostics {
+                text.push('\n');
+                text.push_str(&diagnostics);
+            }
+            report.output = text;
+            report.failed = report.failed.max(1);
+            Ok(report)
+        }
+    }
+}
+
+/// The script that reads the runner's diagnostics, when the runner defines them.
+const DIAGNOSTICS_JS: &str = "JSON.stringify((globalThis.__FWT_DIAGNOSTICS__ && \
+     globalThis.__FWT_DIAGNOSTICS__()) || null)";
+
+/// Name the case in flight and the reports it pushed before the trap.
+fn read_diagnostics(runtime: &mut JsRuntime) -> String {
+    let Ok(value) = runtime.execute_script("<fwt-diagnostics>", DIAGNOSTICS_JS) else {
+        return "no diagnostics: the isolate did not run the diagnostics script".to_string();
+    };
+    let text = {
+        deno_core::scope!(scope, runtime);
+        let local = deno_core::v8::Local::new(scope, value);
+        local.to_rust_string_lossy(scope)
+    };
+    let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return format!("no diagnostics: the runner returned {text}");
+    };
+    if parsed.is_null() {
+        return "no diagnostics: the runner defined none".to_string();
+    }
+    let case = parsed
+        .get("case")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("(none)");
+    let mut lines = format!("failing case: {case}");
+    if let Some(reports) = parsed.get("reports").and_then(serde_json::Value::as_array) {
+        for entry in reports {
+            let message = entry
+                .get("message")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("(no message)");
+            let _ = write!(lines, "\ncase report: {message}");
+        }
+    }
+    lines
 }
 
 /// Install the rustls `aws-lc-rs` `CryptoProvider` once per process — `deno_tls`

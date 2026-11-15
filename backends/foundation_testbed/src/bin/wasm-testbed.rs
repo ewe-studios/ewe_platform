@@ -66,7 +66,11 @@ fn run_owned(
     use error::ToTrace;
     let outcome = outcome?;
     if outcome.exit_code != 0 {
-        return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
+        return Err(WasmTestbedError::OwnedRunFailed {
+            exit_code: outcome.exit_code,
+            output: outcome.output,
+        }
+        .trace());
     }
     Ok(())
 }
@@ -79,7 +83,11 @@ fn run_bindgen_outcome(
     use error::ToTrace;
     let outcome = outcome?;
     if outcome.exit_code != 0 {
-        return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
+        return Err(WasmTestbedError::OwnedRunFailed {
+            exit_code: outcome.exit_code,
+            output: outcome.output,
+        }
+        .trace());
     }
     Ok(())
 }
@@ -137,12 +145,12 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                         &foundation_context::Ctx::host(),
                         &browser::BrowserRunLimits::default(),
                     )?;
-                    tracing::info!("Test output: {}", output.test_result);
+                    tracing::info!("Test output: {}", output.output);
                     server.shutdown();
                     if output.exit_code != 0 {
                         return Err(WasmTestbedError::BrowserTestFailed(
                             output.exit_code,
-                            output.test_result,
+                            output.output,
                         )
                         .trace());
                     }
@@ -271,7 +279,7 @@ fn run_bindgen_web(
         &foundation_context::Ctx::host(),
         &browser::BrowserRunLimits::default(),
     )?;
-    tracing::info!("Test output: {}", output.test_result);
+    tracing::info!("Test output: {}", output.output);
 
     server.shutdown();
     // The page cannot set an exit code: the last `test result:` line is the
@@ -282,9 +290,10 @@ fn run_bindgen_web(
     }
     if !summary.starts_with("test result: ok") {
         let failed = failed_count(&summary);
+        // The whole page text names the failing cases (issue #588).
         return Err(WasmTestbedError::CaseFailures {
             failed,
-            output: output.test_result,
+            output: output.output,
         }
         .trace());
     }
