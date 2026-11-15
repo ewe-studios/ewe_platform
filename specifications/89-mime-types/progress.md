@@ -12,7 +12,8 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Feature design | done: `features/01-mime-table/feature.md` |
 | Owner approval of the plan | **approved 2026-11-16**: spec 89; the table is a `phf::Map`; an unknown name returns `None` |
 | Implementation | **done 2026-11-16** on branch `spec/89-mime-types` |
-| Pull request | not open yet |
+| The Main Agent's review | **done 2026-11-16**: pass, with four findings recorded below |
+| Pull request | not open yet; the owner decides on #592 and #593 first |
 
 ## The feature
 
@@ -62,6 +63,27 @@ The `no_std` question was measured before the approval: `phf` 0.14.0 signals
 The `cargo` verification block of feature section 8 is green, and so is
 `cargo test -p foundation_browser --profile uat`.
 
+## The review (2026-11-16)
+
+The Main Agent read every new file and ran the suites again. The work matches the
+"Done when" list of `features/01-mime-table/feature.md` section 9.
+
+| Check | Command | Result |
+|---|---|---|
+| The macros | `cargo test -p foundation_macros --profile uat --test include_json --test include_yaml` | 2 and 3 cases pass |
+| The module | `cargo test -p foundation_netio --profile uat --test mime_tests --test mime_data_tests --test mime_guess_agreement` | 8, 4 and 1 cases pass |
+| Formatting | `cargo fmt --all -- --check` | pass |
+| Clippy and the wasm check | `cargo clippy` on the five crates, then `cargo check -p foundation_netio --target wasm32-unknown-unknown --no-default-features --features wasm-fetch` | pass; no lint, and the crate checks for `wasm32` |
+| No inline tests | `grep -rn '#\[cfg(test)\]'` on the two new files | none |
+| The counts | `generate_mime.py` on a fresh v1.54.0 download | 2,522 types, 1,239 extensions, 48 ambiguous; the documents match |
+
+The review measured the `mp4` question again. A rule that prefers a non-application
+type inside one rank changes four rows: `mp4` and `mpg4` become `video/mp4`, `xml`
+becomes `text/xml`, and `rtf` becomes `text/rtf`. The `rtf` row would go wrong,
+because the Internet Assigned Numbers Authority (IANA) marks `text/rtf` as
+deprecated. The review therefore recommends an override list instead of a new
+tie-break. The record is in `LEARNINGS.md`.
+
 ## Open findings
 
 | Issue | Severity | Summary |
@@ -69,12 +91,15 @@ The `cargo` verification block of feature section 8 is green, and so is
 | #591 | low | The plan's mime-db counts were wrong. Fixed in this branch. |
 | #592 | medium | `foundation_platform/src/responder.rs` keeps a second extension map. |
 | #593 | medium | Rule R7 maps `mp4` to `application/mp4`, not `video/mp4`. |
+| #595 | low | 22 manifests carry stale version requirements for a path dependency. It predates this specification. |
 
 ## Next steps
 
-1. The Main Agent reviews against "Done when", then opens the pull request.
-2. The full continuous integration (CI) run proves Linux, macOS and Windows.
-3. The review of spec 88 feature 00 continues in its own track (spec 88 `progress.md`).
+1. The owner decides on #593 (the `mp4` row) and on #592 (the second map in
+   `foundation_platform`). Both change the approved plan, so each needs an answer first.
+2. The Main Agent opens the pull request after that answer.
+3. The full continuous integration (CI) run proves Linux, macOS and Windows.
+4. The review of spec 88 feature 00 continues in its own track (spec 88 `progress.md`).
 
 ---
 

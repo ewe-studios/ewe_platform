@@ -134,3 +134,61 @@ records the error.
 - Extensions in mime-db can hold an underscore (`x_b`, `x_t`, `fe_launch`).
   The data test allows a lower-case letter, a digit, `-` and `_`, and it
   refuses a dot.
+
+## The review (2026-11-16)
+
+The Main Agent read the new files and ran the suites again. `progress.md` holds
+the command and the result table. The review made these measurements.
+
+### The count of ambiguous extensions is 48
+
+The review first measured 52. That count came from a wider rule, so it was
+wrong. The generator counts one row for each lower-case extension with two or
+more candidate rows. A fresh download of the tag `v1.54.0` gives this result:
+
+```text
+2522 media types
+1239 extensions
+48 ambiguous extensions
+```
+
+The command is `python3 -I generate_mime.py data/db.json out.json`, and the
+script prints the three numbers. No extension in the file has two candidates
+that are the same media type, so the count is exact.
+
+### A non-application tie-break is the wrong fix for #593
+
+The review tested a rule that prefers a type outside `application/` inside one
+rank. It changes four rows:
+
+| Extension | Rule R7 today | The tested rule |
+|---|---|---|
+| `mp4` | `application/mp4` | `video/mp4` |
+| `mpg4` | `application/mp4` | `video/mp4` |
+| `xml` | `application/xml` | `text/xml` |
+| `rtf` | `application/rtf` | `text/rtf` |
+
+Two rows improve and two do not. The IANA registry marks `text/rtf` as
+deprecated, so that row would go wrong. The `xml` row is arguable: nginx and
+`new_mime_guess` send `text/xml`, and the registry lists both.
+
+The recommendation is a short override list in `generate_mime.py`:
+
+```python
+OVERRIDES = {"mp4": "video/mp4", "mpg4": "video/mp4"}
+```
+
+The list is written, reviewed and tested like the rule. It keeps the rank order
+for the other 46 ambiguous extensions. The agreement test can then add `mp4` to
+its common list. The change needs the owner's approval, because it changes rule
+R7 of the approved plan.
+
+### A second audit found stale version requirements
+
+The review compared every path dependency that also names a version with the
+crate version. 45 pairs in 22 manifests fail, and all of them predate this
+branch. A caret requirement on `0.0.x` holds one patch only, so `0.0.10` does
+not satisfy `0.0.8`. Cargo ignores the version while the path exists, so a
+local build passes; `cargo package` fails. Issue #595 records it and holds the
+audit command. The fix lands after this pull request, because both change the
+same manifests.
