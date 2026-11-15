@@ -115,6 +115,21 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     MissingBrowser { searched: Vec<std::path::PathBuf> },
 
+    #[display("test result: {failed} case(s) failed across the run\n{output}")]
+    #[error(ignore)]
+    CaseFailures { failed: usize, output: String },
+
+    #[display(
+        "the run printed no `test result:` summary, so the verdict is unknown.\n\
+        Output:\n{_0}"
+    )]
+    #[error(ignore)]
+    MissingTestSummary(String),
+
+    #[display("the exit code and the summary disagree: exit code {exit_code}, summary `{summary}`")]
+    #[error(ignore)]
+    VerdictMismatch { exit_code: i32, summary: String },
+
     #[display("owned harness run failed with exit code {_0}")]
     #[error(ignore)]
     OwnedRunFailed(i32),

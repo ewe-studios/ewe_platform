@@ -1,0 +1,28 @@
+# Regression fixture for the wasm-bindgen verdict (spec 88 feature 00 T5,
+# rule R14). One case passes and one fails, so a runner that reports the truth
+# exits non-zero. A runner that prints `test result: ok` regardless turns green
+# here, and CI catches it.
+#
+#   cargo run -p foundation_testbed --features wasm --profile uat \
+#     --bin wasm-testbed -- test bindgen-deno <this directory>
+#
+# The crate is standalone: it has its own [workspace], because the testbed
+# builds it for wasm32 and the root workspace must not inherit that target.
+[package]
+name = "foundation_testbed_bindgen_failing_case"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+# Pinned to the version foundation_testbed pins and CI installs: the
+# wasm-bindgen CLI must be >= the crate it processes.
+wasm-bindgen = "=0.2.126"
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.76"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]

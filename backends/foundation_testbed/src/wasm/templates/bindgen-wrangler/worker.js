@@ -1,6 +1,32 @@
 import { WasmBindgenTestContext, wasm } from "./PACKAGE_NAME.js";
 
 let cx = null;
+let consoleWrapped = false;
+
+// wasm-bindgen-test prints its own `test result:` summary, and `Context::run`
+// resolves the global object on this toolchain, not a boolean. The summary is
+// the verdict, so capture every line that carries it.
+let lastSummary = null;
+const note = (args) => {
+  const text = args.map((arg) => String(arg)).join(" ");
+  if (text.includes("test result:")) {
+    lastSummary = text;
+  }
+};
+
+function wrapConsoleOnce() {
+  if (consoleWrapped) return;
+  consoleWrapped = true;
+  const originalLog = console.log;
+  globalThis.__wbgtest_og_console_log = function (...args) {
+    note(args);
+    originalLog.apply(console, args);
+  };
+  console.log = function (...args) {
+    note(args);
+    originalLog.apply(console, args);
+  };
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -17,6 +43,7 @@ export default {
       // wasm-bindgen-test's worker formatter and poll loop call these host
       // functions. The official runner injects them; the testbed defines them
       // here (output goes to workerd's console log).
+      wrapConsoleOnce();
       globalThis.__wbg_test_output_writeln = (line) => console.log(line);
       globalThis.__wbg_test_invoke = (callback) => callback();
       cx = new WasmBindgenTestContext();
@@ -25,7 +52,9 @@ export default {
     // patches its JS to export that instance as `wasm`, and the test names
     // are raw wasm exports on it.
     const names = [/* TEST_NAMES */];
-    const passed = await cx.run(names.map((name) => wasm[name]));
+    lastSummary = null;
+    await cx.run(names.map((name) => wasm[name]));
+    const passed = lastSummary !== null && lastSummary.includes("test result: ok");
     // Always answer 200: a failing test is a result, not a worker error. (A
     // 500 goes through wrangler's error middleware, whose re-encoded response
     // is not what the runner reads.)

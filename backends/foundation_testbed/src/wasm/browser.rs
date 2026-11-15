@@ -162,6 +162,7 @@ pub fn run(
         pause(ctx, limits.result_poll, &wait);
     };
 
+    debug!("browser page output:\n{output}");
     // #output holds every printed line: each case line, then the summary. The
     // summary is the verdict, so take the last line that carries it.
     let test_result = output

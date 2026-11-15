@@ -255,10 +255,19 @@ fn run_bindgen_web(
     tracing::info!("Test output: {}", output.test_result);
 
     server.shutdown();
-    if output.exit_code != 0 {
-        return Err(
-            WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace(),
-        );
+    // The page cannot set an exit code: the last `test result:` line is the
+    // verdict. A page that printed none is not a pass.
+    let summary = output.test_result.trim().to_string();
+    if !summary.contains("test result:") {
+        return Err(WasmTestbedError::MissingTestSummary(summary).trace());
+    }
+    if !summary.starts_with("test result: ok") {
+        let failed = failed_count(&summary);
+        return Err(WasmTestbedError::CaseFailures {
+            failed,
+            output: output.test_result,
+        }
+        .trace());
     }
     Ok(())
 }
@@ -308,11 +317,49 @@ fn run_bindgen_deno(
         integration_dir,
     )?;
 
-    let output = deno::run(integration_dir, "run.js")?;
+    // The suite exits non-zero when a case fails. Read the summary, and fail
+    // when it and the exit code disagree.
+    let output = deno::run_status(integration_dir, "run.js")?;
     if !output.stdout.is_empty() {
         println!("{}", output.stdout);
     }
+    let Some(summary) = output
+        .stdout
+        .lines()
+        .rfind(|line| line.contains("test result:"))
+        .map(|line| line.trim().to_string())
+    else {
+        return Err(WasmTestbedError::MissingTestSummary(output.stdout).trace());
+    };
+    let passed = summary.starts_with("test result: ok");
+    if passed != (output.exit_code == 0) {
+        return Err(WasmTestbedError::VerdictMismatch {
+            exit_code: output.exit_code,
+            summary: summary.clone(),
+        }
+        .trace());
+    }
+    if !passed {
+        let failed = failed_count(&summary);
+        return Err(WasmTestbedError::CaseFailures {
+            failed,
+            output: output.stdout,
+        }
+        .trace());
+    }
     Ok(())
+}
+
+/// The count before `failed` in a `test result:` summary line.
+///
+/// The line is `test result: FAILED. 1 passed; 1 failed; 0 ignored; …`.
+fn failed_count(summary: &str) -> usize {
+    summary
+        .split(';')
+        .find(|part| part.contains("failed"))
+        .and_then(|part| part.split_whitespace().next())
+        .and_then(|count| count.parse().ok())
+        .unwrap_or(0)
 }
 
 fn run_bindgen_wrangler(
