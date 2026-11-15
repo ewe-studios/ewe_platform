@@ -25,13 +25,10 @@ fn b_fails() {
 
 /// The base URL the host sets before the first case (spec 88 invariant I5).
 fn base_url() -> String {
-    js_sys::Reflect::get(
-        &js_sys::global(),
-        &JsValue::from_str("__FWT_BASE_URL__"),
-    )
-    .expect("read __FWT_BASE_URL__")
-    .as_string()
-    .expect("the host sets __FWT_BASE_URL__ to a string")
+    js_sys::Reflect::get(&js_sys::global(), &JsValue::from_str("__FWT_BASE_URL__"))
+        .expect("read __FWT_BASE_URL__")
+        .as_string()
+        .expect("the host sets __FWT_BASE_URL__ to a string")
 }
 
 /// Send one POST to `url` and return its status and text.
