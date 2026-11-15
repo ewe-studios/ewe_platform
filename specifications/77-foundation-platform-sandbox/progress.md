@@ -117,7 +117,7 @@ ASD-STE100.
   81's `KeySource` variant, spec 80's `MigrationSource` variant, spec 83's `SealFuture` and the
   two crate rows of `agent-rpc-architecture.md`. The `worker` adapters of feature 07 now show
   the wrapper, and `DockerApi` names its `Send + Sync + 'static` bound. The table is in
-  `learnings.md` section 10.1.
+  `learnings.md` section 10.1. Issue #556 records the set, and it is closed.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 

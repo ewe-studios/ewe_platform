@@ -30,6 +30,8 @@ This specification is a plan in a pull request for the owner's review. No file u
 - Section 5 has a new rule 9: a JavaScript value crosses a `Send` slot only inside
   `SendWrapper`, never with a second wrapper and never with `unsafe impl Send`.
 
+Issue #556 records these three corrections, with the audit that found them. It is closed.
+
 ## Where this specification came from
 
 The design lived in spec 83 feature 05 (`worker-and-web.md` sections 5.4, 5.5 and 6.2) as

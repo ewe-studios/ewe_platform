@@ -54,4 +54,5 @@ See `features/00-foundation-auth/feature.md` and `auth.md`.
   constructors stay target-gated: `from_env_var` is native only, `from_worker_secret` is wasm
   only.
 
-No code changed. The specification waits for the owner review.
+No code changed. The specification waits for the owner review. Issue #556 records it, and it
+is closed.

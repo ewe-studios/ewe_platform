@@ -181,3 +181,5 @@ No code changed.
   target-neutral: `client_auth::cloudflare` is wasm only and `client_auth::mtls` is native only.
 - Feature 06 takes `&CloudflarePlatform`, whose `fetch` field is the `RuntimeFetch` outer type
   of spec 77 section 6.0.
+
+Issue #556 records the set across the split specifications. It is closed.

@@ -54,4 +54,4 @@ depend on the agent RPC spec. They now have one owner.
   on every target; `plan` reports the new `MigrationProblem::NoFileSystem { group }` on wasm;
   the directory readers stay native only.
 
-No code changed.
+No code changed. Issue #556 records it, and it is closed.
