@@ -30,13 +30,15 @@ pub enum BrowserError {
 
     /// The browser binary was not found.
     #[display(
-        "browser '{binary}' not found — install it with `{mise_task}` or set its *_BIN env var"
+        "browser '{binary}' not found — searched {searched:?}. Install it with `{mise_task}` or set its *_BIN env var"
     )]
     BrowserNotInstalled {
         /// The binary we looked for (e.g. `chromium`).
         binary: String,
         /// The `mise` task that installs it.
         mise_task: String,
+        /// Every location searched, in order.
+        searched: Vec<std::path::PathBuf>,
     },
 
     /// The browser returned a protocol-level error for a command.
