@@ -1,25 +1,26 @@
 ---
 feature: "Executors"
 description: "Repair and complete the five wasm test executors: the browser host on Linux and macOS, the wasm-bindgen verdict, a local endpoint per host, a wrangler filter, and a CI step that runs all of them on every pull request."
-status: "todo"
+status: "done"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-15
+last_updated: 2026-11-16
 author: "Main Agent"
 model: "sonnet"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Executors
 
-_Status: **todo**, the first feature of spec 88. Written in ASD-STE100 Simplified Technical
-English (STE). Code and identifiers stay as they are._
+_Status: **done** on branch `spec/88-executors`, reviewed 2026-11-16; the first feature of
+spec 88. Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay
+as they are._
 
 **Abbreviations in this file.** Chrome DevTools Protocol (CDP); continuous integration (CI);
 operating system (OS); application programming interface (API); Chrome for Testing (CfT);
