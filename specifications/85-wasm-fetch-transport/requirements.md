@@ -86,13 +86,25 @@ and spec 83 features 05 and 06 use it and record the dependency. They do not wri
 | Item | State on master |
 |---|---|
 | `Transport` trait | `foundation_connectrpc/src/shared/transport/base.rs:161`. `open` is synchronous and returns a `TransportStream` with four halves. |
-| Native transports | `H1Transport` (`shared/transport/h1.rs:61`), `H2Transport` (`native/transport/h2.rs`), `H3Transport` (`native/transport/h3.rs`), `WsTransport` (`shared/transport/ws.rs:78`). |
+| `H1Transport` | `shared/transport/h1.rs:61`. It lives in `shared/`, so it compiles for every target. `default()` builds the client from `HttpClientBuilder`, which is the native pool on native and `FetchHttpClient` on wasm. `capabilities()` reports `request_streaming: true` (`h1.rs:62`) on every target, but `WASM_FETCH_CAPABILITIES` reports `false` (`shared/transport/wasm.rs:17`). |
+| Native-only transports | `H2Transport` (`native/transport/h2.rs`), `H3Transport` (`native/transport/h3.rs`), `WsTransport` (`shared/transport/ws.rs:78`). `WsTransport` needs a WebSocket, which the wasm client does not have. |
 | wasm transport | `shared/transport/wasm.rs` is a 23-line stub with `WASM_FETCH_CAPABILITIES` and no implementation. |
 | `src/wasm/` module | Does not exist. |
 | `worker` dependency | Not in `foundation_connectrpc/Cargo.toml`. |
 | `FetchServe`, `FetchTransport`, `Fetcher`, `StubFetcher`, `DoStubTransport` | Do not exist anywhere in the workspace. |
 | `foundation_netio` | Has `wasm::response::streaming_response` (status 200 and one content type only) and the HTTP exchange task. |
 | Dispatch | `ConnectRpcHandler::dispatch_to` writes to a `ResponseSink` (`whole`, `open`, `chunk`, `finish`) and already streams on native hosts. |
+
+**Why this specification does not build on `HttpClient`.** `foundation_netio::HttpClient`
+(`shared/client/http_client.rs:65`) is `Send + Sync` and abstracted on both targets:
+`NativeHttpClient` on native, `FetchHttpClient` on wasm (`wasm/client/client.rs:113`). It is
+the API for ordinary HTTP calls. It cannot carry an RPC call on wasm. Its `send_async` reads
+the whole response body into a `String` before it returns (`resp.text()`, then `JsFuture`, at
+`wasm/client/client.rs:334`). Root rule 4 forbids that read, and an RPC response body has no
+bound. `FetchTransport` reads the `web_sys::Response` body as a `ReadableStream` and yields
+chunks, so it streams. A caller that needs a plain HTTP request uses the `DynNetClient` of the
+`Env` (spec 84). The `Fetcher` of this specification is the JavaScript `fetch` handle, not a
+second HTTP client.
 
 ## 3. Ownership
 

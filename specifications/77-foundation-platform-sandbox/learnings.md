@@ -687,3 +687,31 @@ reconcile.
 | `SandboxProvider` (feature 06) | `SandboxDeploymentProvider` | It would clash with the control trait. It is a `Provider` facade for deployment, and its handle is `SandboxDeploymentHandle`. |
 | `IdSource` (feature 02 enum) | `SandboxIdPolicy` | `IdSource` is the spec 84 trait. Two types with one name across specifications is the defect the review removed. |
 | `check_bearer` | `authorize` over spec 86's `Secret` | The bearer parse and the constant-time compare are primitives, not sandbox code. |
+
+### 10.4 `RuntimeFetch` is a JavaScript handle, not the HTTP client (2026-11-15)
+
+The owner asked: "if it is using API should it not use our Http api that properly abstract out
+wasm/web fetch vs native http as well? the `DynHttpClient` trait from foundation_netio or is
+this something else?"
+
+The two are different layers.
+
+| Layer | Type | Job |
+|---|---|---|
+| Ordinary HTTP | `foundation_netio::HttpClient` (`shared/client/http_client.rs:65`), held as `DynNetClient` in the `Env` | One request, one response. Native and wasm implementations exist. |
+| Runtime fetch | `RuntimeFetch` over spec 85's `Fetcher` | The raw JavaScript `fetch` function, which spec 85 needs to build a streaming transport. |
+
+There is no `DynHttpClient` in the workspace. The names are `HttpClient` and
+`DynNetClient = Arc<dyn NetClient>` (`network_client.rs:41`).
+
+The reason a transport cannot sit on `HttpClient` is measured, not stylistic. The wasm
+`FetchHttpClient` awaits `resp.text()` before `send_async` returns
+(`wasm/client/client.rs:334`). Every response is therefore read whole into memory, with no
+bound (`max_body_size` defaults to `None`). Root rule 4 forbids that, and an RPC response has
+no bound. So spec 85 streams from the `web_sys::Response` body itself.
+
+The follow-up work is recorded, not hidden:
+
+- Issue #557 (high): the wasm `HttpClient` reads whole bodies.
+- Issue #558 (medium): `H1Transport` reports `request_streaming: true` on wasm, where the
+  fetch client has no request streaming.

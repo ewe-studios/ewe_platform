@@ -450,6 +450,13 @@ inner type, so the difference stays on one side of the public API: a wasm host h
 fetch, and a native host cannot build one, so the field is `None`. The outer type is
 `Send + Sync` on both targets, and no `cfg` changes the shape of a public type.
 
+**`RuntimeFetch` is not an HTTP client.** It holds the JavaScript `fetch` function of the
+runtime. Spec 85 needs it to build a streaming transport (`FetchTransport`, `DoStubTransport`).
+It does not replace `foundation_netio::HttpClient`. A plain HTTP request goes through the
+`DynNetClient` of the `Env` (spec 84) on both targets. The wasm `HttpClient` reads the whole
+response body before it returns (`wasm/client/client.rs:334`), so it cannot carry a streamed
+RPC response. That limit is the reason for spec 85.
+
 **What belongs to which side.** The same API serves both targets. A member that only one side
 can have sits behind the one seam that is already there, and no `cfg` decides the shape of a
 public struct:

@@ -32,6 +32,14 @@ This specification is a plan in a pull request for the owner's review. No file u
 
 Issue #556 records these three corrections, with the audit that found them. It is closed.
 
+- The owner asked why this specification does not reuse `foundation_netio`'s `HttpClient`
+  (or a `DynHttpClient`, which does not exist; the alias is `DynNetClient`). Section 2 now
+  gives the reason: the wasm client awaits `resp.text()` (`wasm/client/client.rs:334`), so it
+  reads whole bodies. Section 2 also no longer calls `H1Transport` a native transport; it
+  lives in `shared/` and picks the platform client.
+- Two code defects are filed: #557 (high, the wasm `HttpClient` reads whole bodies) and #558
+  (medium, `H1Transport` reports request streaming on wasm).
+
 ## Where this specification came from
 
 The design lived in spec 83 feature 05 (`worker-and-web.md` sections 5.4, 5.5 and 6.2) as

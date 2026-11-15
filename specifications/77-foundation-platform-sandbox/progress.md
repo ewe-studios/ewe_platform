@@ -119,6 +119,15 @@ ASD-STE100.
   the wrapper, and `DockerApi` names its `Send + Sync + 'static` bound. The table is in
   `learnings.md` section 10.1. Issue #556 records the set, and it is closed.
 
+- 2026-11-15 (fifth note): "should it not use our Http api that properly abstract out wasm/web
+  fetch vs native http as well? the `DynHttpClient` trait from foundation_netio". Section 6.0
+  now says what `RuntimeFetch` is not. It holds the JavaScript `fetch` function that spec 85
+  needs; a plain HTTP request goes through the `DynNetClient` of the `Env`. The wasm
+  `HttpClient` reads whole response bodies (`wasm/client/client.rs:334`), so it cannot carry a
+  streamed RPC response. There is no `DynHttpClient` type; the names are `HttpClient` and
+  `DynNetClient`. The two code defects are issues #557 and #558. `learnings.md` section 10.4
+  records the answer.
+
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
 ## In progress

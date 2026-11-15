@@ -86,3 +86,27 @@ implementations, so it is not a speculative abstraction.
 2. Write a second pump. If a response is not a `web_sys::Response`, call `response_stream`.
 3. Set a CORS header in `FetchServe`. CORS is the policy of one host.
 4. Depend on the `cloudflare` feature in a browser build.
+
+## Why not `HttpClient` (2026-11-15)
+
+The owner asked why `CloudflarePlatform` carries a `Fetcher` and not
+`foundation_netio`'s `HttpClient` or `DynNetClient`. The answer is measured.
+
+`HttpClient` (`shared/client/http_client.rs:65`) is `Send + Sync` and abstracted on both
+targets: `NativeHttpClient` on native, `FetchHttpClient` on wasm. It is the right API for an
+ordinary HTTP call, and the `Env` of spec 84 carries it.
+
+It cannot carry an RPC call on wasm. `FetchHttpClient::send_async` awaits `resp.text()` and
+returns `SendSafeBody::Text` (`wasm/client/client.rs:334`). The whole response is read into
+memory, with no bound, before the call returns. Root rule 4 forbids that, and an RPC response
+has no bound.
+
+`FetchTransport` keeps the raw `web_sys::Response` and reads its body as a `ReadableStream`
+with `wasm-streams`. That is the difference, and it is the reason this specification exists.
+
+Consequences that are recorded, not hidden:
+
+- The wasm `HttpClient` buffering is issue #557 (high).
+- `H1Transport` reports `request_streaming: true` on wasm, where the fetch client has none:
+  issue #558 (medium). Section 2 of `requirements.md` no longer calls `H1Transport` a native
+  transport.
