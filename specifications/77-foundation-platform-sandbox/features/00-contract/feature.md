@@ -259,7 +259,7 @@ src/
   native/mod.rs         #[cfg(not(target_family = "wasm"))]
   native/platform.rs    NativePlatform (features 05 and 09), DockerPlatform (feature 10)
   cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))]
-  cloudflare/platform.rs  CloudflarePlatform (features 07 and 08)
+  shared/cloudflare/platform.rs  CloudflarePlatform, RuntimeFetch (feature 07)
   cli/mod.rs            #[cfg(all(not(target_family = "wasm"), feature = "cli"))]
 ```
 

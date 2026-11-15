@@ -360,7 +360,7 @@ impl dyn Platform + '_ {
     pub fn as_docker(&self) -> SandboxResult<&DockerPlatform>;
 }
 
-// In cloudflare/platform.rs, which the crate compiles only on wasm with the `cloudflare` feature:
+// In shared/cloudflare/platform.rs, which the crate compiles on every target:
 impl dyn Platform + '_ {
     /// The same object as `CloudflarePlatform`, or `PlatformMismatch`.
     ///
@@ -384,21 +384,32 @@ not a trait call:
 | Cloudflare | `CloudflarePlatform` | the `CloudflareContainerControl` and the `fetch` of the runtime (spec 85) | feature 07 |
 
 ```rust
-// foundation_platform_sandbox/src/cloudflare/platform.rs
+// foundation_platform_sandbox/src/shared/cloudflare/platform.rs — compiled on every target
+
+/// The runtime `fetch` of the Cloudflare part.
+///
+/// On wasm it holds the value that reaches a DO stub or a container port (spec 85). A JS value
+/// is neither `Send` nor `Sync`, so `foundation_compact::SendWrapper` asserts both, which is
+/// sound on single-threaded wasm. A build with the wasm `atomics` feature is not supported.
+///
+/// A native host has no such value. The type is then uninhabited, so the field can only be
+/// `None`, and the struct keeps one shape on both targets.
+#[cfg(target_family = "wasm")]
+pub type RuntimeFetch = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
+#[cfg(not(target_family = "wasm"))]
+pub enum RuntimeFetch {}
+
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
-    /// This DO's sandbox manager: one sandbox, `SandboxIdPolicy::Fixed`.
+    /// The sandbox manager: one sandbox, `SandboxIdPolicy::Fixed`, in a DO.
     pub sandboxes: Arc<dyn SandboxProvider>,
     /// The same object as `control`.
     pub containers: Option<Arc<dyn ContainerControl>>,
     /// The Cloudflare container control (feature 07). It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// The `fetch` of this runtime (spec 85), when the host has one. A JS value is neither
-    /// `Send` nor `Sync` and wasm has one thread, so `foundation_compact::SendWrapper` carries
-    /// it. The build must not enable the wasm `atomics` feature, because `SendWrapper` has no
-    /// `Send` or `Sync` impl then.
-    pub fetcher: Option<foundation_compact::SendWrapper<Rc<dyn Fetcher>>>,
+    /// The `fetch` of this runtime (spec 85). `None` on a native host.
+    pub fetch: Option<RuntimeFetch>,
 }
 ```
 
@@ -409,12 +420,25 @@ entropy and the `Env` entry (spec 84) through the same `Ctx` as the host.
 thread. That is sound on single-threaded wasm, where no other thread exists to reach the value.
 `Platform` requires `Send + Sync`, so the `Sync` half matters as much as the `Send` half. On a
 native target the wrapper is transparent and the bounds come from the inner type, so
-`Rc<dyn Fetcher>` makes the struct `!Send` there. This is one more reason why
-`CloudflarePlatform` exists only on wasm.
+`Rc<dyn Fetcher>` would make the struct `!Send`. The `RuntimeFetch` alias keeps that difference
+inside one type: a wasm host holds the real fetch, and a native host cannot build one, so the
+field is `None` and the struct is `Send + Sync` on both targets.
 
-`CloudflarePlatform` exists only on wasm, because `cloudflare/` does. Cloudflare deployment is
-not a handle interaction, so it needs no wrapper: the deploy host builds a `DeploymentPlan` and
-a `CloudflareDeployer` with the `Ctx` and its own config (feature 08, section 6.7).
+**What belongs to which side.** The same API serves both targets. A member that only one side
+can have sits behind the one seam that is already there, and no `cfg` decides the shape of a
+public struct:
+
+| Member | Both targets | Wasm only | Native only |
+|---|---|---|---|
+| `CloudflarePlatform`, `Platform` trait, `PlatformKind` | yes | | |
+| `RuntimeFetch` | the name and the field | the alias over `Rc<dyn Fetcher>` | an uninhabited enum |
+| `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient` | yes: `ContainerApi` is the seam | | |
+| `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state` | | yes | |
+| `FoundationCloudflareDeployer`, `WranglerCloudflareDeployer` | | | yes |
+
+The deployment surface is not platform state. Both deployers apply a `DeploymentPlan`
+(feature 08, section 6.8), they live in the native deployment crate, and the deploy host holds
+them directly. So `CloudflarePlatform` carries no deployer and needs no `cfg` for one.
 
 The host entry point builds one wrapper and passes it down. A wrapper never goes into the
 `Ctx`: it holds the `Ctx`, and an entry lives in the `Ctx`, so the pair would make an `Arc`

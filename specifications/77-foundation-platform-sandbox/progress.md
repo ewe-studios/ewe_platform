@@ -99,9 +99,13 @@ ASD-STE100.
   `NativePlatform`: a libkrun host registers a different driver in the same manager, so the
   wrapper names no driver.
 - 2026-11-15 (third note): "just wrap the js with a SendWrapper to make it look Send, wasm is
-  non-send anyway". `CloudflarePlatform` now carries `Option<SendWrapper<Rc<dyn Fetcher>>>`,
-  with `foundation_compact::SendWrapper` (no new dependency), and the spec forbids a wasm
-  `atomics` build.
+  non-send anyway". `CloudflarePlatform` now carries `Option<RuntimeFetch>`, with
+  `foundation_compact::SendWrapper` (no new dependency), and the spec forbids a wasm `atomics`
+  build. The owner also rejected a wasm-only wrapper: "this should properly separate whats wasm
+  and native, so the same API services both". So the wrapper lives in
+  `shared/cloudflare/platform.rs` and compiles everywhere, and `RuntimeFetch` is the one seam:
+  an alias over `SendWrapper<Rc<dyn Fetcher>>` on wasm, an uninhabited enum on native. The
+  deployer is not in the wrapper; both deployers are native deployment-crate values.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 

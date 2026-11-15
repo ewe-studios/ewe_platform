@@ -588,13 +588,26 @@ A function for one part takes the concrete type; a function that serves several 
 to it. They do not start a sandbox, pick a driver or build a container control.
 
 The owner added a third note: "just wrap the js with a SendWrapper to make it look Send, wasm is
-non-send anyway". So `CloudflarePlatform` carries `Option<SendWrapper<Rc<dyn Fetcher>>>`, and it
-uses `foundation_compact::SendWrapper` rather than a new dependency. That type asserts `Send`
-and `Sync` and does not check the thread, which is sound because single-threaded wasm has one
+non-send anyway". So `CloudflarePlatform` carries `Option<RuntimeFetch>`, and it uses
+`foundation_compact::SendWrapper` rather than a new dependency. That type asserts `Send` and
+`Sync` and does not check the thread, which is sound because single-threaded wasm has one
 thread. `Platform` needs both bounds, so `Sync` is not optional here. A build that enables the
-wasm `atomics` target feature has neither impl, so the spec forbids it. On a native target the
-wrapper is transparent, so `Rc<dyn Fetcher>` makes the struct `!Send`; this is one more reason
-for the wasm-only module.
+wasm `atomics` target feature has neither impl, so the spec forbids it.
+
+The first two passes made two mistakes here, and the owner caught both:
+
+- `Arc<dyn Fetcher>` does not compile, because `Fetcher` is not `Send`. The fix is the
+  `SendWrapper` around an `Rc`.
+- The type was first made wasm-only, "because `cloudflare/` is". That is wrong:
+  `CloudflareContainerControl` is generic over `ContainerApi` and lives in
+  `shared/cloudflare/`, so only `WorkerContainer` and its neighbours are wasm. A native host
+  that manages a Cloudflare container needs the same wrapper. The fix is `RuntimeFetch`: a wasm
+  alias over the real fetch, and an uninhabited enum on a native target. The public struct then
+  has one shape on both targets, `fetch` is always `None` on native, and no `cfg` changes a
+  public type. Owner rule: "this should properly separate whats wasm and native, so the same
+  API services both".
+- The deployer was in the wrapper for one pass. It does not belong there: both deployers are
+  native values in the deployment crate, and deployment touches no sandbox or container handle.
 
 The reason is a boundary rule, not a style rule. Without a shared value, every consumer repeats
 the host detection, the driver order and the container control construction, and each copy can

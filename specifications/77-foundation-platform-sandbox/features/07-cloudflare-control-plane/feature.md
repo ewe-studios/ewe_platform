@@ -332,6 +332,7 @@ Feature: Cloudflare control plane
 | `src/shared/cloudflare/driver.rs` | all | `CloudflareContainerDriver`, its handle. |
 | `src/shared/cloudflare/container.rs` | all | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`. |
 | `src/shared/cloudflare/container_service.rs` | all | The internal `ContainerService` router. |
+| `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, `RuntimeFetch` (the wasm alias and the native empty enum), the `as_cloudflare` helper. |
 | `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
 | `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
 | `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
@@ -451,10 +452,19 @@ section 6.13, so a Docker adapter (feature 10) has the same shape.
 **The wrapper of this part.** Requirements section 6.0 states the rule: `foundation_context`
 gets no change, and each part wraps the `Ctx` with the handles it has. This part adds
 `CloudflarePlatform`, and the agent-rpc Worker (spec 83 feature 06) takes
-`&CloudflarePlatform`:
+`&CloudflarePlatform`. The type serves both targets: the container control is generic over
+`ContainerApi`, so only `WorkerContainer` and the other `worker` types are wasm-only.
 
 ```rust
-// foundation_platform_sandbox/src/cloudflare/platform.rs
+// foundation_platform_sandbox/src/shared/cloudflare/platform.rs
+/// Wasm: the fetch of the DO stub or the Worker (spec 85), inside `SendWrapper`, which asserts
+/// `Send` and `Sync` on single-threaded wasm. Native: an uninhabited enum, so the field is
+/// `None` and the public struct has one shape on both targets.
+#[cfg(target_family = "wasm")]
+pub type RuntimeFetch = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
+#[cfg(not(target_family = "wasm"))]
+pub enum RuntimeFetch {}
+
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -464,11 +474,8 @@ pub struct CloudflarePlatform {
     pub containers: Option<Arc<dyn ContainerControl>>,
     /// This DO's container control. It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// The `fetch` of the DO stub or the Worker (spec 85). A JS value is neither `Send` nor
-    /// `Sync` and wasm has one thread, so `foundation_compact::SendWrapper` carries it: that
-    /// type asserts both bounds. The build must not enable the wasm `atomics` feature, because
-    /// the assertions are absent then.
-    pub fetcher: Option<foundation_compact::SendWrapper<Rc<dyn Fetcher>>>,
+    /// The `fetch` of the DO stub or the Worker (spec 85). `None` on a native host.
+    pub fetch: Option<RuntimeFetch>,
 }
 
 impl Platform for CloudflarePlatform {
@@ -481,9 +488,9 @@ impl Platform for CloudflarePlatform {
 ```
 
 Inside the DO, `sandboxes` is this DO's `SandboxManager` (one sandbox,
-`SandboxIdPolicy::Fixed`), and `containers` is the same control as `control`. The type exists
-only on wasm, because `cloudflare/` does. Deployment (feature 08) needs no wrapper: it applies a
-`DeploymentPlan` and touches no handle.
+`SandboxIdPolicy::Fixed`), and `containers` is the same control as `control`. Deployment
+(feature 08) needs no wrapper: it applies a `DeploymentPlan` and touches no handle, and both
+deployers are native values that the deploy host holds directly.
 
 **`DoContainerOps`** implements `ContainerOps` over `ContainerApi` and the slave:
 

@@ -466,6 +466,10 @@ path and marks it as the primary one.
 `foundation_deployment_cloudflare` gets the deployment surface. It is a native library; it
 does not compile to wasm. The plan types are plain data and have no side effect.
 
+The deployer is not part of `CloudflarePlatform` (feature 07, section 6.4.1). Deployment
+touches no sandbox and no container handle. The deploy host holds the `Arc<dyn
+CloudflareDeployer>` directly and passes it to the deploy task.
+
 ```rust
 pub struct DeploymentPlan {
     pub worker: WorkerDeployment,
