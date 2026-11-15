@@ -131,6 +131,12 @@ pub fn run_bindgen(args: &BindgenArgs, ctx: &Ctx) -> Result<RunOutcome> {
         Some(&built.package_name),
     )?;
 
+    // The glue's `init` returns the exports, so no extra export is needed. Its
+    // start call must go: that start is libtest's `main`, which aborts the
+    // module before a case runs (see `wasm::patch_bindgen_glue`).
+    let js_file = staging_path.join(format!("{}.js", built.package_name));
+    wasm::patch_bindgen_glue(&js_file, false)?;
+
     // 2b. index.html (the page the browser loads)
     init::write_template_to("bindgen-web/index.html", &built.package_name, &staging_path)?;
 

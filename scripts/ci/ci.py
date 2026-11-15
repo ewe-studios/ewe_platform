@@ -796,7 +796,8 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         # bindings (`wrangler dev --local`). The REST clients use the same
         # local D1/R2 state through the explorer API.
         ["mise", "run", "test:wasm-testbed:wrangler"],
-        # The owned browser host, then the wasm-bindgen web host.
+        # The owned browser host, then the wasm-bindgen web host on
+        # foundation_core's 34 cases (spec 88 T9, #586).
         ["mise", "run", "test:wasm-testbed:browser"],
         ["mise", "run", "test:wasm-bindgen:web"],
         # The suite proves it can fail: both bindgen runners must reject the

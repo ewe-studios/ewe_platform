@@ -46,10 +46,11 @@ cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed
 
 [tasks."test:wasm-bindgen:web"]
 alias = "test-wasm-bindgen-web"
-description = "The wasm-bindgen web runner in headless Chromium. Runs the fixture's passing case until the valtron browser suite starts (#586)."
+description = "The wasm-bindgen web runner in headless Chromium: foundation_core's 34 wasm-bindgen cases (spec 88 T9, #586)."
 depends = ["test:browsers:chromium"]
 run = """
-cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-web backends/foundation_testbed/integration/bindgen_failing_case --filter a_passes --headless
+mise install github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-web ./backends/foundation_core --features js-wasmbindgen,std --headless
 """
 
 [tasks."test:wasm-testbed:bindgen-fails"]

@@ -12,7 +12,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Feature designs | done: four features, each with `feature.md` and `start.md` |
 | Owner approval of the plan | **approved 2026-11-16**: feature 00 is approved with four answers, recorded below |
 | The owner's answers | D1: repair the browser host in this specification. D2: both harnesses run where a crate allows it. D3: all three hosts run on every pull request |
-| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) added on the owner's word; features 01 to 03 next |
+| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) done 2026-11-16, waiting for review; features 01 to 03 next |
 | Pull request | not opened (PR #553 holds spec 85 and spec 88 work) |
 
 Product code changes need the owner's approval of the plan. The owner approved feature 00 on
@@ -22,7 +22,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
-| 00-executors | `in progress`: T1 to T8 done and reviewed; T9 (#586) approved 2026-11-16 | one agent, sonnet | nothing |
+| 00-executors | `in progress`: T1 to T8 done and reviewed; T9 (#586) done 2026-11-16, waiting for review | one agent, sonnet | nothing |
 | 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged (T9 included) |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
@@ -57,12 +57,32 @@ Measured on macOS with Chrome for Testing 157.0.8103.51:
 | `mise run test:wasm-testbed:browser` | 18 cases pass on the owned browser host |
 | `MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails` | both bindgen runners reject `b_fails` |
 | `test:wasm-bindgen:core` | 19 `dual!` cases pass on Deno |
-| `test:wasm-bindgen:web` | 1 fixture case passes; the valtron module traps while it starts, #586 |
+| `test:wasm-bindgen:web` | 34 cases pass on Chromium: `foundation_core` (spec 88 T9) |
 | workerd self-fetch | 200 from `/echo` inside the worker |
 
 Playwright is gone: no task, dependency or install names it. The browser task downloads the
 pinned `chrome-headless-shell` into `~/.cache/foundation/chromium`, and the workflow caches
 that directory.
+
+### T9: the Chromium start trap (#586), 2026-11-16
+
+The wasm-bindgen CLI writes `wasm.__wbindgen_start();` into the web glue. In a test binary that
+start is libtest's `main`, which ran the plain native-only `#[test]` cases. A case that spawns
+threads panicked, and the module aborted before the first `#[wasm_bindgen_test]` case. The Deno
+runner already removed the call; the web runner did not. `wasm::patch_bindgen_glue` now removes
+it for web, deno and wrangler, and keeps the externref table setup.
+
+| Check | Result |
+|---|---|
+| `test bindgen-web backends/foundation_core --features js-wasmbindgen,std --headless` | Discovered 34 tests; `test result: ok. 34 passed` |
+| `test bindgen-deno backends/foundation_core --features js-wasmbindgen,std` | 34 passed |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:core` | 19 passed |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:web` | 34 passed |
+| `MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails` | both runners reject `b_fails` |
+| `cargo test -p foundation_testbed --test bindgen_glue_tests --profile uat` | 3 cases pass |
+
+`test:wasm-bindgen:web` now runs `backends/foundation_core`, and the `bindgen-fails` step keeps
+the failing fixture red. `LEARNINGS.md` entry 15 records the cause.
 
 ### The Linux run (2026-11-16)
 
@@ -96,7 +116,7 @@ set, the wasm check and the new `.mjs` test.
 | #583 | low | open | the wasm-bindgen 0.3.76 context quirk; it waits |
 | #584 | low | open | workerd's request URL has no port; the runner avoids it |
 | #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
-| #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16), an agent works on it now |
+| #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16), fixed on `spec/88-executors` |
 | #587 | high | open | the owned Deno abort; fix now, it turns the `wasm-tests` job red |
 | #588 | high | open | the browser harness must name a failed case; fix now |
 | #589 | medium | open | rerun on a native amd64 runner before changing a timing bound |
@@ -175,6 +195,7 @@ container checks Linux compatibility only.
 | #580 | low | 00 T4 |
 | #581 | low | 00 T1 |
 | #582 | low | 00 T8 |
+| #586 | high | 00 T9: the web runner drops libtest's `main` from the wasm-bindgen glue |
 
 #577 is recorded and not closed. This specification does not port `foundation_netio`'s wasm
 fetch client to the owned ABI: it is a product change that adds no host coverage
@@ -182,7 +203,7 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
 
 ## Next steps
 
-1. T9 (#586) runs now on `spec/88-executors`, one sonnet agent. When it lands, the Main Agent
+1. The Main Agent reviews T9 (#586) on `spec/88-executors`. When it lands, the Main Agent
    merges that branch into `spec/split-65`, which keeps one pull request for the
    specification (PR #553).
 2. Features 01, 02 and 03 then start in parallel, one agent each. Features 02 and 03 carry the

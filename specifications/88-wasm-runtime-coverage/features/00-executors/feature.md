@@ -508,6 +508,14 @@ reason (#-named in `ci/packages.toml`), as rule 15 requires.
 `test bindgen-deno`, so the case code is sound. Chrome for Testing 157.0.8103.51 traps inside
 the wasm-bindgen start function.
 
+**Cause and fix (2026-11-16).** The wasm-bindgen CLI writes `wasm.__wbindgen_start();` into
+the web glue. In a test binary that start is libtest's `main`. The harness runs the plain
+`#[test]` cases. `io::buffer_pool_tests::test_concurrent_access` calls `std::thread::spawn`,
+which is not supported on wasm, and panics. The module aborts before the first
+`#[wasm_bindgen_test]` case. The Deno runner already removed the call; the web runner did not.
+`wasm::patch_bindgen_glue` now removes the call for web, deno and wrangler, and it keeps the
+externref table setup. Measured after the fix: `test result: ok. 34 passed`.
+
 **Where to look, in this order.**
 
 1. **The generated glue.** wasm-bindgen 0.2.126's `__wbindgen_start` walks the heap, the
@@ -540,9 +548,11 @@ a valtron defect.
 
 ```bash
 cargo run -p foundation_testbed --no-default-features --features wasm --profile uat \
-  --bin wasm-testbed -- test bindgen-web backends/foundation_core
-mise run test:wasm-bindgen:web
-mise run test:wasm-bindgen:core
+  --bin wasm-testbed -- test bindgen-web backends/foundation_core \
+  --features js-wasmbindgen,std --headless
+MISE_ENV=wasm mise run test:wasm-bindgen:web
+MISE_ENV=wasm mise run test:wasm-bindgen:core
+MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails
 ```
 
 ### 6.11 Fault table

@@ -231,6 +231,12 @@ fn run_bindgen_web(
         Some(&build.package_name),
     )?;
 
+    // The page imports the glue's `init`, which returns the wasm exports, so
+    // the glue does not need an extra export. Its start call must still go:
+    // that start is libtest's `main`, which aborts the module before a case.
+    let js_file = integration_dir.join(format!("{}.js", build.package_name));
+    wasm::patch_bindgen_glue(&js_file, false)?;
+
     init::write_template_to(
         "bindgen-web/index.html",
         &build.package_name,
@@ -301,20 +307,11 @@ fn run_bindgen_deno(
         Some(&build.package_name),
     )?;
 
-    // Patch the generated JS to export the `wasm` variable (wasm exports).
-    // The deno target generates `const wasm = wasmInstance.exports;` locally;
-    // we need it exported so run.js can access __wbgt_ test functions.
+    // The deno glue keeps the instance private and starts the module at
+    // import time. Export `wasm` so run.js can call the `__wbgt_` shims, and
+    // drop the libtest `main` start call (see `wasm::patch_bindgen_glue`).
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
-    if let Ok(content) = std::fs::read_to_string(&js_file) {
-        // A test binary's start function is libtest's `main`, which runs every
-        // plain `#[test]` (threads, filesystem: they abort on wasm) before any
-        // `#[wasm_bindgen_test]` case. wasm-bindgen's own test runner skips it
-        // (`emit_start(false)`); the CLI has no flag for that, so drop the call.
-        let content = content.replace("wasm.__wbindgen_start();", "");
-        // Add `export { wasm };` at the end of the file
-        let patched = format!("{content}\nexport {{ wasm }};\n");
-        std::fs::write(&js_file, patched).map_err(|e| WasmTestbedError::Io(e).trace())?;
-    }
+    wasm::patch_bindgen_glue(&js_file, true)?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let mut tests = wasm_test::discover_tests(&bg_wasm)?;
@@ -383,11 +380,6 @@ fn run_bindgen_wrangler(
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
 
-    // The wasm-bindgen CLI emits this call; a version that stops emitting it
-    // would leave the libtest `main` in place and skip the table setup, with
-    // no error at that point. Fail with the version rule instead.
-    const START_CALL: &str = "wasm.__wbindgen_start();";
-
     tracing::info!("Running wasm-bindgen (module)...");
     wasm::run_wasm_bindgen_with_name(
         &build.wasm_path,
@@ -398,26 +390,10 @@ fn run_bindgen_wrangler(
 
     // The `module` target instantiates the wasm at import time and keeps the
     // instance private. Export it as `wasm` so the worker can call the
-    // `__wbgt_` test shims (raw wasm exports). Drop the libtest `main` call:
-    // it would run the plain `#[test]`s, which abort on wasm. Keep its
-    // externref-table initialisation: without it a `JsValue` constant (for
-    // example the `true`/`false` that `run` resolves to) maps to a wrong
-    // table slot.
+    // `__wbgt_` test shims (raw wasm exports). Drop the libtest `main` start
+    // call (see `wasm::patch_bindgen_glue`).
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
-    let content = std::fs::read_to_string(&js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
-    if !content.contains(START_CALL) {
-        return Err(WasmTestbedError::WasmParseFailed(format!(
-            "the wasm-bindgen `module` output has no `{START_CALL}`; update the \
-             testbed's shim for the installed wasm-bindgen version"
-        ))
-        .trace());
-    }
-    let content = content.replace(
-        START_CALL,
-        "const __initTable = Object.values(__wbg_get_imports())\n  .map((m) => m && m.__wbindgen_init_externref_table)\n  .find((f) => f);\nif (__initTable) __initTable();",
-    );
-    std::fs::write(&js_file, format!("{content}\nexport {{ wasm }};\n"))
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
+    wasm::patch_bindgen_glue(&js_file, true)?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let mut tests = wasm_test::discover_tests(&bg_wasm)?;

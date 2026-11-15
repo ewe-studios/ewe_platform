@@ -312,3 +312,67 @@ commands instead of the mise task, because the macOS runner has no mise.
 
 **Rule for the future.** A CI step that runs a mise task inherits a tool the runner may not
 have. Prefer the direct command on a platform whose tool set the image does not control.
+
+## 15. The Chromium start trap was libtest's `main` (#586)
+
+**Expected.** The web host traps inside wasm-bindgen's start function, before a case runs. The
+plan looked for a glue version mismatch, a missing import, or a valtron start path.
+
+**Measured.** With `PRIMAL_CDP_TRACE=1` on Chrome for Testing 157.0.8103.51, macOS arm64, the
+page's `#output` carried this stack (shortened):
+
+```
+at mod-<hash>.wasm.__rustc[<hash>]::__rust_abort (…wasm-function[29762])
+at mod-<hash>.wasm.__rustc[<hash>]::rust_panic (…wasm-function[29244])
+at mod-<hash>.wasm.std[<hash>]::panicking::panic_with_hook (…wasm-function[4416])
+at mod-<hash>.wasm.core[<hash>]::panicking::panic_fmt (…wasm-function[16865])
+at mod-<hash>.wasm.core[<hash>]::result::unwrap_failed (…wasm-function[11766])
+at mod-<hash>.wasm.std[<hash>]::thread::functions::spawn::<mod[<hash>]::io::buffer_pool_tests::test_concurrent_access::{closure#0}, ()> (wasm-function[3579]:0x2ace2b)
+```
+
+The trap was not a start-table walk. A plain `#[test]` case ran, and it called
+`std::thread::spawn`.
+
+**Root cause.** The wasm-bindgen CLI writes `wasm.__wbindgen_start();` into the glue at every
+target. In a test binary, that start function does two jobs. It calls the
+`__wbindgen_init_externref_table` import. Then it calls the binary's `main`, which is libtest's
+test harness. The harness runs every plain `#[test]` case. The crate's `tests/mod.rs` compiles
+`io` and `synca` for wasm, and `io::buffer_pool_tests::test_concurrent_access` spawns ten
+threads. Threads are not supported on `wasm32-unknown-unknown`, so `std::thread::spawn` panics.
+The panic aborts the module, and the browser reports `RuntimeError: unreachable`. The page
+never reaches `new WasmBindgenTestContext()`, so no `test result:` line appears.
+
+This was measured on the background wasm module: the exported `__wbindgen_start` calls import
+57 `__wbindgen_init_externref_table`, then an unnamed wrapper, then the `main` export. The
+module has 32291 code bodies, and the plain test cases are in the same module.
+
+The Deno path passed because `run_bindgen_deno` already removed the call with
+`content.replace("wasm.__wbindgen_start();", "")`. The web path in `run_bindgen_web` and in
+`bindgen_runner::run_bindgen` did not. The fixture case passed on the web host because the
+fixture crate has only `#[wasm_bindgen_test]` cases, so its libtest `main` runs nothing.
+
+**Fix.** `wasm::patch_bindgen_glue` in `foundation_testbed/src/wasm/wasm.rs` replaces the call
+in every glue target with the externref table setup only, because a `JsValue` constant maps to a
+wrong table slot without it. It appends `export { wasm };` for the deno and wrangler runners.
+It returns an error when the glue has no such call, so a changed CLI fails loudly instead of
+leaving the harness `main` in place. The web, deno and wrangler runners and
+`bindgen_runner::run_bindgen` call it. `tests/bindgen_glue_tests.rs` has three cases.
+
+**Measured after the fix.**
+
+| Check | Result |
+|---|---|
+| `test bindgen-web backends/foundation_core --features js-wasmbindgen,std --headless` | Discovered 34 tests; `test result: ok. 34 passed` |
+| `test bindgen-deno backends/foundation_core --features js-wasmbindgen,std` | 34 passed |
+| `bindgen backends/foundation_core --features js-wasmbindgen,std --headless` | 34 passed |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:core` | 19 passed |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:web` | 34 passed |
+| `MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails` | both runners reject `b_fails` |
+
+**The case count.** Entry 14 names 19 cases, because the `test:wasm-bindgen:core` task filters
+to `async_first_api`. Without a filter, foundation_core has 34 wasm-bindgen cases: 19 in
+`async_first_api` and 15 in `wasm_js_yield_integration`. Both hosts run all 34.
+
+**Rule for the future.** A test binary built with `--tests` holds two test systems in one
+module: libtest's `main` and the `__wbgt_` exports. A JavaScript host must call only the
+exports. Remove the start call, and keep the externref table setup that shares its body.
