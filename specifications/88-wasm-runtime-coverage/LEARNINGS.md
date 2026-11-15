@@ -445,7 +445,7 @@ the native Python one path they both read.
 
 **Measured.** The step ran on this macOS `arm64` host. It verified the checksum, printed
 `libprotoc 36.2` and wrote the `bin` directory to `GITHUB_PATH`. `actionlint` accepts the
-workflow.
+workflow. Run 43754950849 then passed the `macOS build` job on a macOS `arm64` runner.
 
 **Rule for the future.** A tool that a build script runs is part of the build. Pin it for each
 operating system that builds the crate, in the same change that adds the build script.

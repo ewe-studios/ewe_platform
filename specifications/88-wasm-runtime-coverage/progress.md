@@ -157,6 +157,10 @@ checks its SHA-256 against the value in `ci/platform-images/mise/mise.lock`, unp
 adds `bin` to the `PATH`. The step ran on this macOS `arm64` host: it printed
 `libprotoc 36.2`, and `actionlint` accepts the workflow.
 
+Manual run 43754950849 (`spec/88-executors`, `packages=wasm-tests`) proves the fix: the
+`macOS build` job passes, and the run concludes `success`. The Windows form of the step is
+not proven yet. A `windows-test` job needs a full run that selects `foundation_agent_rpc`.
+
 Issues #587, #588, #589 and #590 closed with these measurements.
 
 New issues from the same work: #597 (`low`, a timing bound in `foundation_nostd`), #598
@@ -184,7 +188,7 @@ lint) and #599 (`high`, the macOS build job needs `protoc`).
 | #590 | low | closed | the CI script works in a worktree; fixed in `25c34d5f8` |
 | #597 | low | open | a `foundation_nostd` timing bound; it waits |
 | #598 | low | open | 16 clippy warnings in a wasm feature tree that CI does not lint; it waits |
-| #599 | high | closed | the macOS and Windows jobs install the pinned `protoc` 36.2 (this change) |
+| #599 | high | closed | the macOS and Windows jobs install the pinned `protoc` 36.2; run 43754950849 passes `macOS build` |
 
 ## What the plan depends on
 
@@ -271,8 +275,9 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
 
 ## Next steps
 
-1. The next full run proves the #599 fix: the `macOS build` job must pass. The Main Agent then
-   merges `spec/88-executors` into `spec/split-65`, which keeps one pull request for the
+1. The `macOS build` job passes with the new `protoc` step (run 43754950849). A full run that
+   selects `foundation_agent_rpc` must then prove the Windows form. The Main Agent then merges
+   `spec/88-executors` into `spec/split-65`, which keeps one pull request for the
    specification (PR #553).
 2. Features 01, 02 and 03 then start in parallel, one agent each. Features 02 and 03 carry the
    second test package from "Decisions after the first review".
