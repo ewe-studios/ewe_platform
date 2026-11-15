@@ -111,8 +111,23 @@ emulated.
 | Issue | Fix | Evidence |
 |---|---|---|
 | #587 high | The runner reports after each case, keeps its line buffer, and exposes `__FWT_DIAGNOSTICS__`. The embedded driver appends the error, the case in flight and the panic report. `TestReports.snapshot()` keeps a report a trap cut off during delivery. | The run names `any_readiness_resumes_when_a_child_is_ready` and prints `resumed 64ms after the child was ready (window 25ms)` |
-| #588 high | `BrowserOutput.output` holds every page line. The runner prints it, and `CaseFailures` and `OwnedRunFailed` carry it. | `tests/web_failure_report_tests.rs` (2 cases); the browser run follows |
+| #588 high | `BrowserOutput.output` holds every page line. The runner prints it, and `CaseFailures` and `OwnedRunFailed` carry it. | `tests/web_failure_report_tests.rs` (2 cases); the browser run names `deadline_only_park_resumes_at_its_deadline` and its message (below) |
 | #590 low | `scripts/ci/linux.sh` resolves the git common directory and mounts it read-only. | The script ran `foundation_nostd` from the worktree inside the container |
+
+The owned browser suite in the same image runs 18 cases on Chromium: 17 pass, 1 fails, and it
+now names the case and the message:
+
+```
+FAILED  deadline_only_park_resumes_at_its_deadline
+        deadline_only_park_resumes_at_its_deadline: panicked at
+          src/../../../tests/valtron/wasm_wake_support.rs:604:13:
+        the host timer (10 ms) ran only after the deadline: the executor blocked
+          the event loop while it waited
+test result: FAILED. 17 passed; 1 failed; 0 ignored
+```
+
+The same case is one of the three that #589 records for the wasm-bindgen host. Both hosts fail
+it on the emulated image, so the cause is the host, not one executor.
 
 The #587 message shows that the wake works: `polls_at_fire` was 1, so the executor did not poll
 the parked task. The 25 ms resume window failed on an emulated host. That is the family of
@@ -140,7 +155,7 @@ lint).
 | #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
 | #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16), fixed on `spec/88-executors` |
 | #587 | high | open | the owned Deno abort; fixed in `25c34d5f8`: the harness names the case, the cause is the #589 window |
-| #588 | high | open | the browser harness must name a failed case; fixed in `25c34d5f8` |
+| #588 | high | open | the browser harness must name a failed case; fixed in `25c34d5f8`, proven by the emulated run |
 | #589 | medium | open | native `amd64` run 43753198986 measures the timing cases |
 | #590 | low | open | the CI script needs a worktree form; fixed in `25c34d5f8` |
 | #597 | low | open | a `foundation_nostd` timing bound; it waits |
