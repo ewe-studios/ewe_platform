@@ -217,12 +217,6 @@ Scenario: The suite proves it can fail
 Order: T1 first, because an unrun target hides compile errors. T2 and T3 are one design;
 T4 and T5 are independent. T6 last.
 
-**T1 starts with #586.** The `foundation_core` wasm-bindgen module traps while it starts in
-Chromium (`RuntimeError: unreachable`), so no case prints a result there. The issue is
-`severity: high`; it blocks the Chromium half of T1 and all of T5. Feature 00 measured the
-trap and left `test:wasm-bindgen:web` on the fixture's passing case (`LEARNINGS.md` entry 14).
-T1 diagnoses it on Chromium and fixes it, as section 6.7 says.
-
 ### 6.2 T1: one target, three hosts
 
 `foundation_core/tests/mod.rs` includes `mod valtron;` and `tests/valtron/mod.rs` gates modules

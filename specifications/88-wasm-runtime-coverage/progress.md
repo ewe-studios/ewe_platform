@@ -12,7 +12,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Feature designs | done: four features, each with `feature.md` and `start.md` |
 | Owner approval of the plan | **approved 2026-11-16**: feature 00 is approved with four answers, recorded below |
 | The owner's answers | D1: repair the browser host in this specification. D2: both harnesses run where a crate allows it. D3: all three hosts run on every pull request |
-| Implementation | feature 00 **done 2026-11-16**, reviewed, on branch `spec/88-executors`; features 01 to 03 next |
+| Implementation | feature 00: T1 to T8 **done and reviewed 2026-11-16**; T9 (#586) added on the owner's word; features 01 to 03 next |
 | Pull request | not opened (PR #553 holds spec 85 and spec 88 work) |
 
 Product code changes need the owner's approval of the plan. The owner approved feature 00 on
@@ -22,8 +22,8 @@ Product code changes need the owner's approval of the plan. The owner approved f
 
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
-| 00-executors | `done` 2026-11-16 (branch `spec/88-executors`, reviewed) | one agent, sonnet | nothing |
-| 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged |
+| 00-executors | `in progress`: T1 to T8 done and reviewed; T9 (#586) approved 2026-11-16 | one agent, sonnet | nothing |
+| 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged (T9 included) |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
 
@@ -78,7 +78,7 @@ that directory.
 | #583 | low | open | the wasm-bindgen 0.3.76 context quirk; it waits |
 | #584 | low | open | workerd's request URL has no port; the runner avoids it |
 | #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
-| #586 | high | open | feature 01 T1 starts with it (section 6.1) |
+| #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16) |
 
 ## What the plan depends on
 
@@ -160,11 +160,11 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
 
 ## Next steps
 
-1. Feature 00 is reviewed and done on `spec/88-executors`. The Main Agent merges that branch
-   into `spec/split-65`, which keeps one pull request for the specification (PR #553).
-2. Features 01, 02 and 03 then start in parallel, one agent each. Feature 01 T1 starts with
-   #586. Features 02 and 03 carry the second test package from "Decisions after the first
-   review".
+1. T9 (#586) runs now on `spec/88-executors`, one sonnet agent. When it lands, the Main Agent
+   merges that branch into `spec/split-65`, which keeps one pull request for the
+   specification (PR #553).
+2. Features 01, 02 and 03 then start in parallel, one agent each. Features 02 and 03 carry the
+   second test package from "Decisions after the first review".
 3. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
    commits on the branch of that feature.
 4. The Linux job of PR #553 is the first full run of the repaired executors. A macOS and a
