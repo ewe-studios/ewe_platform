@@ -64,6 +64,24 @@ Playwright is gone: no task, dependency or install names it. The browser task do
 pinned `chrome-headless-shell` into `~/.cache/foundation/chromium`, and the workflow caches
 that directory.
 
+### The Linux run (2026-11-16)
+
+`scripts/ci/linux.sh foundation_http` passed: fmt, build, clippy with `-D warnings`, the test
+set, the wasm check and the new `.mjs` test.
+
+`scripts/ci/linux.sh wasm-tests` failed four commands. The host was `arm64` and the image runs
+`linux/amd64` under emulation.
+
+| Command | Result | Issue |
+|---|---|---|
+| `build`: `cargo fmt --check` on `bindgen_failing_case` | the file was not formatted; fixed in `df0b096ec` | none |
+| `test:wasm-testbed:deno` | aborts with `RuntimeError: unreachable` in `wake::any_readiness_parks`; no result line | #587 high |
+| `test:wasm-bindgen:deno` | 12 pass, 3 timing cases fail (`wasm_wake_support.rs:756`, `:404`, `:604`) | #589 medium |
+| `test:wasm-testbed:browser` | 17 pass, 1 fails; the harness does not name it | #588 high |
+
+`scripts/ci/linux.sh` cannot run from a worktree without an extra read-only mount of the main
+`.git` directory; issue #590 records it.
+
 ### Issues that feature 00 closed
 
 #566, #567, #568, #569, #571, #572, #573, #574, #579, #580, #581, #582. The review closed
@@ -78,7 +96,11 @@ that directory.
 | #583 | low | open | the wasm-bindgen 0.3.76 context quirk; it waits |
 | #584 | low | open | workerd's request URL has no port; the runner avoids it |
 | #585 | low | open | `wrangler::run` ignores `config_path`; it waits |
-| #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16) |
+| #586 | high | open | feature 00 T9 (lifted by the owner on 2026-11-16), an agent works on it now |
+| #587 | high | open | the owned Deno abort; fix now, it turns the `wasm-tests` job red |
+| #588 | high | open | the browser harness must name a failed case; fix now |
+| #589 | medium | open | rerun on a native amd64 runner before changing a timing bound |
+| #590 | low | open | the CI script needs a worktree form; it waits |
 
 ## What the plan depends on
 
