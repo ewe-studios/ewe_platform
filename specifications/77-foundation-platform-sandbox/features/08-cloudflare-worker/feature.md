@@ -323,10 +323,11 @@ explicit line; add the line if the pattern does not cover it).
    `id_from_name(id)`. `Sandbox(id)`: forward to that DO.
 5. Forward: build a new request with the same method, path, headers and the body bytes,
    call `stub.fetch_with_request`, and return the response as it is (the streamed body
-   passes through). The stub adapter is `StubFetcher` and `DoStubTransport` of
-   [spec 85](../../../85-wasm-fetch-transport/requirements.md); this feature does not write a
-   fetch pump of its own. A server-side route (the `FetchServe` of spec 85) uses the same
-   plumbing.
+   passes through). The stub adapter is `StubHttpClient` of
+   [spec 85](../../../85-wasm-fetch-transport/requirements.md), and the call is
+   `H1Transport::new(Arc::new(stub))`. This feature writes no fetch pump of its own. A
+   server-side route serves through `foundation_http`'s `HttpApp<Arc<dyn CfServe>>` and the
+   streaming sink of spec 85 T4.
 
 Errors from steps 1 to 3 are written with the error writer of `foundation_connectrpc`
 (`shared/error_writer.rs`) so the client sees a normal Connect error.

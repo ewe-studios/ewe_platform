@@ -868,7 +868,10 @@ impl DurableObjectRegistry {
         let id = self.namespace.id_from_name(&do_name(&caller.scope, instance))
             .map_err(|e| AgentRpcError::Transport(format!("DO id: {e}")))?;
         let stub = id.get_stub().map_err(|e| AgentRpcError::Transport(format!("DO stub: {e}")))?;
-        let transport: Arc<dyn Transport> = Arc::new(DoStubTransport::new(stub, caller.principal.clone()));
+        // One client abstraction: the DO stub is the `DynNetClient` of this call
+        // (spec 85 section 4.5). The caller adds the forwarded identity header.
+        let stub: DynNetClient = Arc::new(StubHttpClient::from_stub(stub));
+        let transport = H1Transport::new(stub);
         AgentServiceClient::new(transport, "https://instance.do.internal", ClientOptions::new())
             .map_err(|e| AgentRpcError::Config(e.current_context().to_string()).into())
     }
@@ -877,7 +880,7 @@ impl DurableObjectRegistry {
 
 What the code does: `do_name` makes one fixed name from the scope and the instance name.
 `id_from_name` turns it into the DO ID (Cloudflare hashes the name). The registry then talks
-to that DO with the normal generated client over `DoStubTransport` (see
+to that DO with the normal generated client over `H1Transport` over the stub client (see
 [hosts.md](../04-native-host-and-dst/hosts.md)). The base URL is a placeholder: a DO stub ignores the host part.
 
 ### 4.3 The instance index
@@ -972,7 +975,7 @@ flowchart LR
     events --> guard["guarded_turn: wire events, busy flag, idle timeout"]
     guard --> dispatchDo["Connect dispatch in the DO"]
     dispatchDo --> rsDo["ReadableStream (DO response body)"]
-    rsDo --> stub["DoStubTransport in the Worker"]
+    rsDo --> stub["H1Transport over StubHttpClient in the Worker"]
     stub --> client["AgentServiceClient (server stream)"]
     client --> dispatchW["Connect or gRPC-Web dispatch in the Worker"]
     dispatchW --> rsW["ReadableStream (Worker response body)"]

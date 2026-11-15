@@ -60,7 +60,7 @@ Each feature holds its own design files. This file holds only what the features 
 | [84 Context injection](../84-context-injection/requirements.md) | [`env.md`](../84-context-injection/env.md), [`deterministic-simulation-testing.md`](../84-context-injection/deterministic-simulation-testing.md) | The `Env` bundle in `Ctx`: timer, entropy and id source; the builders; the lint; DST in plain words |
 | [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | — (small; the feature file says what to change) | connectrpc request extensions and clock; TLS peer certificates |
 | [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | [`migrations.md`](../80-platform-prerequisites/features/01-migration-groups/migrations.md) | Migrations per database, as ordered groups, each numbered from 1 and recorded by group |
-| [85 Wasm fetch transport](../85-wasm-fetch-transport/requirements.md) | [`fetch.md`](../85-wasm-fetch-transport/fetch.md) | `FetchTransport`, `FetchServe`, `DoStubTransport`, the body pump, the out-of-crate changes |
+| [85 Wasm HTTP streaming](../85-wasm-fetch-transport/requirements.md) | [`fetch.md`](../85-wasm-fetch-transport/fetch.md) | the streaming response body of the wasm client, `streaming_response_with`, the streaming bridges and sink, `StubHttpClient` |
 | [86 Auth primitives](../86-auth-primitives/requirements.md) | — | `Secret`, `constant_time_eq`, the bearer parser, `ClientAuth`, `AuthInfo`, `StaticToken` |
 | [87 Mutual TLS](../87-mutual-tls/requirements.md) | [`mtls.md`](../87-mutual-tls/mtls.md) | The CA, the trust store, the rustls verifiers, the mTLS providers |
 | [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | [`auth.md`](../81-foundation-auth/features/00-foundation-auth/auth.md) | Signed secrets, operator key files, the provider set, the interceptor |
@@ -164,7 +164,7 @@ flowchart TB
     end
     subgraph Libraries
         AUTH["foundation_auth: secret, keystore, pki, trust, mtls, client_auth"]
-        CRPC["foundation_connectrpc: Router, Transport, FetchServe"]
+        CRPC["foundation_connectrpc: Router, Transport, H1Transport"]
         DB["foundation_db: async storage traits"]
         AI["foundation_ai: AgentSession, providers"]
         VAL["foundation_core: valtron, Env, Ctx"]
@@ -194,7 +194,7 @@ core uses the shared libraries. Arrows point from the user to the part it uses._
 | `foundation_core` | The valtron task engine: executors, `Timer`, `SimRuntime`, compat helpers | all; the `multi` executor is native only |
 | `foundation_context` | `Ctx` (a typed map plus the clock, the config and the random number generator) and the `Env` typed entry (spec 84) | all |
 | `foundation_db` | async storage traits; `DoSqlStore` (new); `Faulty*` test wrappers | all |
-| `foundation_connectrpc` | `Router`, `Transport`; `FetchServe` and `FetchTransport` (wasm, new); `MemNetwork` (test) | all |
+| `foundation_connectrpc` | `Router`, `Transport`, `H1Transport` on native and on wasm; `MemNetwork` (test) | all |
 | `foundation_auth` | `secret`, `keystore`, `trust`, `client_auth::{ClientAuth, StaticToken}`; `pki`, `mtls`, `client_auth::mtls` (native); `client_auth::cloudflare`, `keystore::webcrypto` (wasm) | all, with native-only and wasm-only modules |
 | `foundation_ai` | `AgentSession`, model providers | all |
 | `foundation_agent_rpc` | `core` (service, registry, catalog, enrollment); `host::native`; `host::worker`; `client::{native, web}` | per module |
@@ -405,7 +405,7 @@ default names the established server or API it comes from (`CLAUDE.md` rule 8).
 | `CaConfig`, `ServerIdentityConfig` | certificate lifetimes, backdating | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 5 |
 | `TrustConfig` | prune interval, grace periods | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 6 |
 | `EnrollConfig` | enrollment limits | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 9 |
-| `FetchServeConfig`, `FetchTransportConfig` | wasm request and body limits | [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5 |
+| `ServeLimits` (Worker, worker-and-web.md section 5.2), `ClientConfig` (`foundation_netio`) | wasm request and body limits | [worker-and-web.md](features/05-worker-host-and-web-client/worker-and-web.md) section 5.2, spec 85 section 5 |
 
 ## 7. Breaking changes
 

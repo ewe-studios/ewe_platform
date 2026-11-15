@@ -64,7 +64,20 @@ The side effects split into two groups:
 | Group | Side effects | Where the trait lives | How code gets it |
 |---|---|---|---|
 | Ambient effects: every part of the program needs them | clock, entropy, IDs, timer | `foundation_compact` (clock, entropy, IDs), `foundation_core::valtron` (timer) | the `Env` bundle in valtron's `Ctx` |
-| Input/output resources: each component needs its own | network, storage, models | `foundation_connectrpc` (transport, dispatch), `foundation_db` (stores), `foundation_agent_rpc::core` (model catalog) | a constructor argument |
+| Input/output resources: each component needs its own | network, storage, files, models | `foundation_connectrpc` (transport, dispatch), `foundation_db` (stores), `foundation_nativeapis` (the VFS trait `AsyncVfsFileSystem`), `foundation_agent_rpc::core` (model catalog) | a constructor argument |
+
+**The file system is the VFS trait of `foundation_nativeapis`.** Every file read or write uses
+`AsyncVfsFileSystem` (`foundation_nativeapis/src/shared/vfs/async_traits.rs:150`), never
+`std::fs`, `tokio::fs` or a direct OS call. The implementations are `NativeFs` (feature
+`vfs-native`, a native host), `MemoryFs` (tests and deterministic simulation),
+`OverlayFileSystem`, and whatever a wasm host installs. The `vfs` feature and the shared trait
+build for wasm; only `NativeFs` is native. So one code path serves every target.
+
+The file system cannot be an `Env` entry. `foundation_nativeapis` depends on
+`foundation_context`, so `foundation_context` cannot name its trait without a cycle. A
+component that reads files takes the file system as a constructor argument or as a method
+parameter, exactly as it takes a network transport or a store. Spec 80 gives the rule for
+migrations (feature 01, section 4.2.1) and spec 81 for key files (feature 00, section 4.4).
 
 ## 3. What exists today, and what is missing
 
@@ -1051,8 +1064,8 @@ arguments.
 
 | Side effect | Trait (crate) | Real implementations | Test implementations |
 |---|---|---|---|
-| Network, client side | `Transport` (`foundation_connectrpc`, exists) | `H1Transport`, `H2Transport` (native); `FetchTransport` (wasm, task T19); `DoStubTransport` (Worker to DO, task T21) | `MemTransport` (task T18) |
-| Network, server side | `ConnectRpcHandler::dispatch_to(bag, request, body, sink, hooks)` (`foundation_connectrpc`, exists) | `ConnectRpcServe` (native HTTP/1.1), `ConnectRpcServeH2`; `FetchServe` (wasm, task T19) | `MemNetwork` calls `dispatch_to` directly (task T18) |
+| Network, client side | `Transport` (`foundation_connectrpc`, exists) | `H1Transport` on native, wasm and a Worker's DO calls (`StubHttpClient`); `H2Transport` (native) | `MemTransport` (task T18) |
+| Network, server side | `ConnectRpcHandler::dispatch_to(bag, request, body, sink, hooks)` (`foundation_connectrpc`, exists) | `ConnectRpcServe` (native HTTP/1.1), `ConnectRpcServeH2`; `foundation_http`'s `CfHttpApp` with the `ConnectService` adapter (wasm and Worker) | `MemNetwork` calls `dispatch_to` directly (task T18) |
 | Listener | owned by each host: `foundation_http::native::server::HttpServer` (native); the Cloudflare runtime (Worker) | — | none: DST has no sockets |
 | Storage | `KeyValueStore`, `QueryStore`, `BlobStore`, `DocumentStore` (`foundation_db`, exist) | Turso, libsql, D1, KV, R2, JSON file | `MemoryStorage`, `MemoryDocumentStore`, and the `Faulty*` wrappers (task T18) |
 | Key material | none: operator key files, read once at start (`foundation_auth::keys::PrivateKey::load`, new) | `KeySource::File`, `KeySource::Inline` | `KeySource::Inline` with fixture or seeded keys |

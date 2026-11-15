@@ -50,9 +50,9 @@ its own implementation. This table shows what each host plugs into each seam.
 |---|---|---|---|---|---|
 | `Env` (time, entropy, IDs, timer) | `Env::system()` in the pool configuration | `Env::system()`, once per isolate | `Env::system()`, once per DO isolate | `Env::system()`, once per page | `SimRuntime` (seeded) |
 | valtron engine | multi-threaded pool | single-threaded engine that JS drives | as the Worker | as the Worker | single-threaded, fixed seed |
-| Server entry | `HttpServer` with TLS, `ConnectRpcServe` (HTTP/1.1) and `ConnectRpcServeH2` (HTTP/2) | `FetchServe` in `#[event(fetch)]` | `FetchServe` in `DurableObject::fetch` | none | `MemNetwork` |
+| Server entry | `HttpServer` with TLS, `ConnectRpcServe` (HTTP/1.1) and `ConnectRpcServeH2` (HTTP/2) | `foundation_http`'s `CfHttpApp` and `ConnectService` in `#[event(fetch)]` | `ConnectService` in `DurableObject::fetch` | none | `MemNetwork` |
 | Protocols served | Connect, gRPC, gRPC-Web | Connect, gRPC-Web | Connect (from the Worker only) | none | Connect |
-| Client transport | `H1Transport`, `H2Transport` | `DoStubTransport` (to the DO) | none | `FetchTransport` | `MemTransport` |
+| Client transport | `H1Transport`, `H2Transport` | `H1Transport::new(StubHttpClient)` (to the DO) | none | `H1Transport::default()` | `MemTransport` |
 | `ClientAuth` | `MtlsAuth`, optionally `AnyOf` with `SignedSecretAuth` | `AnyOf(CfMtlsAuth, SignedSecretAuth)`, optionally `JwtAuth` | `ForwardedPrincipalAuth` | sends a bearer secret | any provider, over memory stores |
 | Key material ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4) | operator key files (`KeySource::File`), or `EWE_AGENT_RPC_*_KEY` variables | public keys from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`; the signing key from the secret `AGENT_RPC_SIGNING_KEY` only with enrollment | none | none | `KeySource::Inline` with fixture or seeded keys |
 | `TrustStore` | `SqlTrustStore<TursoStorage>` | `SqlTrustStore<D1WasmStorage>` | none | none | `MemoryTrustStore` |
@@ -437,8 +437,8 @@ lists the fields of the core and of `foundation_auth`.
 | `WorkerHostConfig::max_request_bytes` | Worker | 4 MiB | gRPC default maximum receive message size |
 | `WorkerHostConfig::instance_idle_ttl` | Worker | none | an instance lives until `DestroyInstance` (as on the native host) |
 | `WorkerHostConfig::cloudflare_mtls` | Worker | true | it has no effect until the zone has mTLS rules |
-| `FetchServeConfig::response_queue` | Worker, DO | 4 chunks | the pipe depth of `ClientOptions` today |
-| `FetchTransportConfig::max_request_bytes` | web, Worker | 4 MiB | gRPC default maximum send message size |
+| `ServeLimits::response_queue` | Worker, DO | 4 chunks | the pipe depth of `ClientOptions` today |
+| `ClientConfig::body_queue_chunks` | wasm client | 16 chunks | 256 KiB to 1 MiB queued ahead of the caller (spec 85 section 4.1) |
 | `CorsConfig::allowed_origins` | Worker, native | empty | closed by default |
 | `CorsConfig::max_age` | Worker, native | 7200 s | the CORS guide of Connect (connect-go) |
 

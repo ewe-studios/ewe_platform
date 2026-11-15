@@ -322,7 +322,7 @@ Feature: Cloudflare control plane
 | A port `fetch` before a process listens fails with an error whose text contains `the container is not listening`. | `cloudflare/containers`, `src/lib/container.ts`, line 27 |
 | The image of a container class is set in the Worker configuration (`containers[].image`), not at start. | `cloudflare/containers`, `examples/core-tests/wrangler.jsonc` |
 | The repository serves HTTP in a Worker with `foundation_http::wasm` (`CfHttpAppSingleton`, `serve_cf::CfServe`, `dispatch`), and has a Rust DO (`foundation_keychain/src/server/signalr_do.rs`). | those files; `examples/cf-agent-loop/src/lib.rs` |
-| The Connect client transport for `fetch` is a capability constant only today (`WASM_FETCH_CAPABILITIES`: no request streaming, no full duplex). | `foundation_connectrpc/src/shared/transport/wasm.rs` |
+| The Connect client transport on wasm is `H1Transport` over `DynNetClient`. `WASM_FETCH_CAPABILITIES` is stale until spec 85 T2 corrects it. | `foundation_connectrpc/src/shared/transport/{h1,wasm}.rs` |
 
 ### 6.2 Files
 
@@ -332,7 +332,7 @@ Feature: Cloudflare control plane
 | `src/shared/cloudflare/driver.rs` | all | `CloudflareContainerDriver`, its handle. |
 | `src/shared/cloudflare/container.rs` | all | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`. |
 | `src/shared/cloudflare/container_service.rs` | all | The internal `ContainerService` router. |
-| `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, `RuntimeFetch` (an outer type over a private wasm-or-native inner type), the `as_cloudflare` helper. |
+| `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, the `as_cloudflare` helper. |
 | `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
 | `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
 | `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
@@ -489,28 +489,6 @@ gets no change, and each part wraps the `Ctx` with the handles it has. This part
 
 ```rust
 // foundation_platform_sandbox/src/shared/cloudflare/platform.rs
-/// Wasm: the DO stub or Worker fetch (spec 85), inside `SendWrapper`, which asserts `Send` and
-/// `Sync` on single-threaded wasm. Native: an uninhabited enum. The inner type is private, so
-/// no `cfg` changes a public type.
-#[cfg(target_family = "wasm")]
-type RuntimeFetchInner = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
-#[cfg(not(target_family = "wasm"))]
-enum RuntimeFetchInner {}
-
-/// The runtime `fetch`: one public type on every target, `Send + Sync` on both.
-pub struct RuntimeFetch(RuntimeFetchInner);
-
-impl RuntimeFetch {
-    #[cfg(target_family = "wasm")]
-    #[must_use]
-    pub fn new(fetcher: Rc<dyn Fetcher>) -> Self { Self(foundation_compact::SendWrapper::new(fetcher)) }
-
-    /// A clone of the `fetch` that this value holds.
-    #[cfg(target_family = "wasm")]
-    #[must_use]
-    pub fn fetcher(&self) -> Rc<dyn Fetcher> { Rc::clone(&*self.0) }
-}
-
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -520,8 +498,6 @@ pub struct CloudflarePlatform {
     pub containers: Option<Arc<dyn ContainerControl>>,
     /// This DO's container control. It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// The `fetch` of the DO stub or the Worker (spec 85). `None` on a native host.
-    pub fetch: Option<RuntimeFetch>,
 }
 
 impl Platform for CloudflarePlatform {
@@ -596,13 +572,12 @@ feature 08 routes both services to the DO.
 Implements `foundation_connectrpc::shared::transport::Transport`
 (`shared/transport/base.rs`):
 
-- `capabilities()` returns `WASM_FETCH_CAPABILITIES`. So the client refuses a call that
-  needs a streamed request, before it sends (`check_compatible`).
-- `open(request)`: collect the request body from `send_body` (the calls of both services
-  send one message, at most `max_message_bytes`); call
-  `container.fetch(port, PortRequest { method: "POST", path, headers, body })`; publish the
-  response head from `status` and `headers`; pump `body` chunks to `recv_body`; no
-  trailers. The pump is a task started with `execute(from_future(..))`.
+- The transport is `H1Transport` over the `NetClient` of the port. It adds no transport
+  logic of its own.
+- `open(request)`: `H1Transport` writes a streaming request body through `send_body`; the
+  port client turns it into `container.fetch(port, PortRequest { .. })`, which accepts a
+  stream; the response head comes from `status` and `headers`, and the body streams to
+  `recv_body`. No trailers.
 - `PortError::NotListening` and `PortError::Other` both become a `TransportError` before
   the head; the first has the text `not listening`.
 - A unary call has the time-out `rpc_timeout` from the `Ctx` clock (a race with a timer).
@@ -610,17 +585,16 @@ Implements `foundation_connectrpc::shared::transport::Transport`
 `PortConnector` is the `SlaveConnector` for a DO: `CloudflarePort { port }` gives a
 `ContainerPortTransport`; every other endpoint gives `InvalidSpec { field: "endpoint" }`.
 
-This type does not write its own body pump. [Spec 85](../../../85-wasm-fetch-transport/requirements.md)
-owns the fetch plumbing, and the pump there is one implementation for both the transport and
-the server. This feature uses two parts of it:
-
-| Part of spec 85 | Use here |
-|---|---|
-| `FetchTransport<F>` with a `Fetcher` that calls `container.fetch(port, ..)` | The generic transport. `ContainerPortTransport` is a thin wrapper that adds a `NotFound` message for a ready check and maps `PortError`. |
-| `response_stream(status, headers, body, config)` | The response body, streamed with the out-of-crate backpressure rules. |
+This type does not write its own transport or its own body pump. The platform-neutral way is
+`foundation_netio`'s `DynNetClient` and `foundation_connectrpc`'s `H1Transport`, which already
+build on it ([spec 85](../../../85-wasm-fetch-transport/requirements.md) section 1). A
+container port is a `NetClient`: its `fetch(port, request)` becomes a `PreparedRequest` with a
+streaming body, and `H1Transport` gives the `TransportStream`. `ContainerPortTransport` is a
+thin wrapper that adds a `NotFound` message for a ready check and maps `PortError`.
 
 The old note in this section ("the pump is about 80 lines, do not wait for it") is cancelled:
-the pump is not copied here.
+there is no pump to copy. A container port and a DO stub use the same client abstraction as
+every other call.
 
 ### 6.6 `DoRecordStore` and `DoControlPlane`
 

@@ -177,7 +177,7 @@ Where the control plane runs is a different question from which system it drives
 |---|---|---|
 | `backends/foundation_platform_sandbox` | library | **All logic.** |
 | `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxProvider`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system, `Platform` and `PlatformKind` (`shared/platform.rs`). |
-| `.../src/shared/cloudflare/` | all targets | Everything of the Cloudflare part that needs no `worker` type: `CloudflareContainerDriver`, `CloudflareContainerControl`, `DoContainerOps`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane`, `CloudflarePlatform` and `RuntimeFetch`. `ContainerApi`, `DoStorage` and `DoAlarm` are the seams. |
+| `.../src/shared/cloudflare/` | all targets | Everything of the Cloudflare part that needs no `worker` type: `CloudflareContainerDriver`, `CloudflareContainerControl`, `DoContainerOps`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane` and `CloudflarePlatform`. `ContainerApi`, `DoStorage` and `DoAlarm` are the seams. |
 | `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP, and the wrappers `NativePlatform` and `DockerPlatform`. |
 | `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The three adapters of the traits (feature 07 section 6.3): `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, and `CloudflareHost::from_state`. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
@@ -382,48 +382,10 @@ not a trait call:
 |---|---|---|---|
 | Firecracker and libkrun | `NativePlatform` | the local `SandboxManager` as a concrete value (the drivers, the record store and the `ManagerConfig`) | features 05 and 09 |
 | Docker | `DockerPlatform` | the `DockerContainerControl` and the Engine connection | feature 10 |
-| Cloudflare | `CloudflarePlatform` | the `CloudflareContainerControl` and the `fetch` of the runtime (spec 85) | feature 07 |
+| Cloudflare | `CloudflarePlatform` | the `CloudflareContainerControl` | feature 07 |
 
 ```rust
 // foundation_platform_sandbox/src/shared/cloudflare/platform.rs — compiled on every target
-
-/// The target-specific inner of [`RuntimeFetch`]. It is private to this module, so no `cfg`
-/// reaches a public item.
-///
-/// Wasm: the value that reaches a DO stub or a container port (spec 85), inside
-/// `foundation_compact::SendWrapper`. A JS value is neither `Send` nor `Sync`, so the wrapper
-/// asserts both. That is sound on single-threaded wasm. A build with the wasm `atomics` target
-/// feature has no assertion, so it does not compile.
-///
-/// Native: an uninhabited enum. A native host has no JS value, so no value of this type exists.
-#[cfg(target_family = "wasm")]
-type RuntimeFetchInner = foundation_compact::SendWrapper<Rc<dyn Fetcher>>;
-#[cfg(not(target_family = "wasm"))]
-enum RuntimeFetchInner {}
-
-/// The runtime `fetch` of the Cloudflare part: one public type on every target.
-///
-/// The outer type hides the inner one. A caller therefore names `RuntimeFetch` on both targets,
-/// and the type is `Send + Sync` on both: on wasm the `SendWrapper` gives the two bounds, and
-/// on native the value cannot exist.
-pub struct RuntimeFetch(RuntimeFetchInner);
-
-impl RuntimeFetch {
-    /// Holds the runtime `fetch` of this Worker, DO or browser page (spec 85).
-    #[cfg(target_family = "wasm")]
-    #[must_use]
-    pub fn new(fetcher: Rc<dyn Fetcher>) -> Self {
-        Self(foundation_compact::SendWrapper::new(fetcher))
-    }
-
-    /// A clone of the `fetch` that this value holds.
-    #[cfg(target_family = "wasm")]
-    #[must_use]
-    pub fn fetcher(&self) -> Rc<dyn Fetcher> {
-        Rc::clone(&*self.0)
-    }
-}
-
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -433,29 +395,22 @@ pub struct CloudflarePlatform {
     pub containers: Option<Arc<dyn ContainerControl>>,
     /// The Cloudflare container control (feature 07). It implements `ContainerControl`.
     pub control: Arc<CloudflareContainerControl>,
-    /// The `fetch` of this runtime (spec 85). `None` on a native host.
-    pub fetch: Option<RuntimeFetch>,
 }
 ```
 
 `Ctx` is `Arc`-backed and `Clone`, so a handle clones the `ctx` field and reads the clock, the
 entropy and the `Env` entry (spec 84) through the same `Ctx` as the host.
 
-`foundation_compact::SendWrapper` asserts both `Send` and `Sync`, and it does not check the
-thread. That is sound on single-threaded wasm, where no other thread exists to reach the value.
-`Platform` requires `Send + Sync`, so the `Sync` half matters as much as the `Send` half. On a
-native target the wrapper is transparent and the bounds come from the inner type, so
-`Rc<dyn Fetcher>` would make the struct `!Send`. `RuntimeFetch` is an outer type over a private
-inner type, so the difference stays on one side of the public API: a wasm host holds the real
-fetch, and a native host cannot build one, so the field is `None`. The outer type is
-`Send + Sync` on both targets, and no `cfg` changes the shape of a public type.
+**The wrapper carries no HTTP client.** The platform-neutral way to make an HTTP or RPC call
+is `foundation_netio`'s `DynNetClient = Arc<dyn NetClient>`. `HttpClientBuilder::build()` gives
+the implementation of the target, and `H1Transport` builds on it. A Worker that calls its own
+DO holds a `DynNetClient` over the stub (spec 85, section 4.5) and passes it to
+`H1Transport::new`. So there is no `RuntimeFetch` type and no `fetch` field: one client
+abstraction serves every part, and a target difference never reaches this struct.
 
-**`RuntimeFetch` is not an HTTP client.** It holds the JavaScript `fetch` function of the
-runtime. Spec 85 needs it to build a streaming transport (`FetchTransport`, `DoStubTransport`).
-It does not replace `foundation_netio::HttpClient`. A plain HTTP request goes through the
-`DynNetClient` of the `Env` (spec 84) on both targets. The wasm `HttpClient` reads the whole
-response body before it returns (`wasm/client/client.rs:334`), so it cannot carry a streamed
-RPC response. That limit is the reason for spec 85.
+An earlier draft of this section added `Option<RuntimeFetch>`. The owner removed it on
+2026-11-15: "the core idea is `DynNetClient` is the platform agnostic way, and connectrpc
+already builds on it."
 
 **What belongs to which side.** The same API serves both targets. A member that only one side
 can have sits behind the one seam that is already there, and no `cfg` decides the shape of a
@@ -464,7 +419,7 @@ public struct:
 | Member | Both targets | Wasm only | Native only |
 |---|---|---|---|
 | `CloudflarePlatform`, `Platform` trait, `PlatformKind` | yes | | |
-| `RuntimeFetch` | the outer type and the `fetch` field | the inner type `SendWrapper<Rc<dyn Fetcher>>`, `new` and `fetcher` | the inner type: an uninhabited enum |
+| The HTTP client of a call | `DynNetClient` (`foundation_netio`), on every target | `StubHttpClient` (spec 85, section 4.5) | nothing |
 | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient` | yes: `ContainerApi` is the seam | | |
 | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state` | | yes | |
 | `FoundationCloudflareDeployer`, `WranglerCloudflareDeployer` | | | yes |
@@ -784,7 +739,7 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D14 | (2026-11-12) The Docker Sandboxes product is not ready. Feature 16 is a draft and not a must have. It is not scheduled, and no milestone needs it. |
 | D15 | (2026-11-14) Spec 77 owns Cloudflare container control and Cloudflare deployment. `foundation_deployment_cloudflare` is the primary deploy path; the manual `wrangler` adapter is a supported fallback. Both apply one `DeploymentPlan`. Spec 83 feature 06 consumes these surfaces and builds the agent-rpc Worker on them. |
 | D16 | (2026-11-15) The target vocabulary is two levels with the same shape: `SandboxProvider` and `SandboxHandle`, `ContainerControl` and `ContainerHandle` (section 6.0). The old control trait is `SandboxProvider`; the old handle struct is `SandboxHandle`; the old id-policy enum of feature 02 is `SandboxIdPolicy`, because `IdSource` is the spec 84 trait. Feature 06's deployment adapter is `SandboxDeploymentProvider` with the handle `SandboxDeploymentHandle`, so it does not clash with the control. Every outside caller takes a reference to the wrapper of section 6.0 (the concrete type, or `&dyn Platform` when a function serves several parts). `foundation_context` gets no change. |
-| D17 | (2026-11-15) The secret and the bearer check come from spec 86 (`Secret`, `extract_bearer_token`, `Secret::ct_eq`). This spec defines neither. Mutual TLS comes from spec 87; the native listener may add it, and a Worker uses `CfMtlsAuth`. The wasm fetch pump and `FetchServe` come from spec 85. |
+| D17 | (2026-11-15) The secret and the bearer check come from spec 86 (`Secret`, `extract_bearer_token`, `Secret::ct_eq`). This spec defines neither. Mutual TLS comes from spec 87; the native listener may add it, and a Worker uses `CfMtlsAuth`. The wasm gaps (the streaming client, the streaming bridges and sink, `StubHttpClient`) come from spec 85; the transport is `H1Transport` on every host. |
 
 ### 10.2 Open, with a recommendation
 

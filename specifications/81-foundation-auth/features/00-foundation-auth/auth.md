@@ -59,7 +59,7 @@ backends/foundation_auth/src/
 │   └── verifier.rs
 ├── keys/                 KeySource, PrivateKey, KeyLoadError           all targets
 │   ├── mod.rs
-│   ├── source.rs         a file (native only) or an inline value
+│   ├── source.rs         a file over the host VFS, or an inline value
 │   └── parse.rs          OpenSSH, PKCS#8 and SEC1 PEM to PKCS#8 DER
 ├── pki/                  CertificateAuthority, DeterministicSigner     native + feature "pki"
 ├── trust/                TrustStore, TrustedClients, TrustIndex        all targets
@@ -97,6 +97,9 @@ mtls = ["pki", "dep:rustls"]
 testing = ["foundation_compact/testing", "foundation_core/testing"]
 
 [dependencies]
+# The file system trait of section 4.4. All targets: the shared VFS builds
+# for wasm too.
+foundation_nativeapis = { workspace = true, features = ["vfs"] }
 ed25519-compact = { version = "2.6", default-features = false, features = ["std", "pem"], optional = true }
 ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
 
@@ -115,7 +118,7 @@ What works on wasm (Cloudflare Workers, browsers):
 | `secret` with Ed25519 | yes | `ed25519-compact` is pure Rust. Randomness comes from `Env`. |
 | `secret` with RSA-PSS | no | `ring` is C code. A wasm host refuses an RSA secret with `SecretError::UnsupportedAlgorithm`. |
 | `keys` with `KeySource::Inline` | yes | `ssh-key`, `ed25519-compact` and `p256` are pure Rust. |
-| `keys` with `KeySource::File` | no | No file system in a Worker. |
+| `keys` with `KeySource::File` | yes, over the injected file system | The read goes through `foundation_nativeapis`'s `AsyncVfsFileSystem`, not `std::fs`. A Worker that installs no file system gets `KeyLoadError::NotFound`. |
 | `pki` | no | CSR verification uses `ring` through `x509-parser`. |
 | `trust` | yes | `foundation_db` async traits only. |
 | `mtls` | no | `rustls` with `ring`. A Worker has no TLS listener anyway: Cloudflare terminates TLS. |
@@ -719,23 +722,28 @@ Configuration can set another `kid`.
 
 ```rust
 // foundation_auth/src/keys/mod.rs
-use std::path::PathBuf;
-
 use foundation_compact::crypto::SecureBytes;
+use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
 /// Where a private key comes from. The operator makes the key; the host
 /// reads it one time, at start.
 ///
-/// The enum has the same shape on every target. Only a native host can read a
-/// file; a wasm host returns `KeyLoadError::NoFileSystem` for `File` and takes
-/// the key as an inline value or a Worker secret.
+/// The enum has the same shape on every target, and so does the read. A file
+/// is read through the file system that the host installs (the VFS trait of
+/// `foundation_nativeapis`), never through `std::fs`. A host with no file
+/// system, such as a Worker, gives `KeyLoadError::NotFound` for `File` and
+/// takes the key as an inline value or a Worker secret.
 #[derive(Clone)]
 pub enum KeySource {
-    /// A file. On Unix the host refuses a file that the group or others can
-    /// read, as OpenSSH does ("UNPROTECTED PRIVATE KEY FILE").
-    /// `NativeHostConfig::allow_loose_key_permissions` turns the check off
-    /// for development.
-    File(PathBuf),
+    /// A path in the host's file system. On Unix the host refuses a file that
+    /// the group or others can read, as OpenSSH does ("UNPROTECTED PRIVATE KEY
+    /// FILE"). `NativeHostConfig::allow_loose_key_permissions` turns the check
+    /// off for development.
+    ///
+    /// The path is a UTF-8 string because the VFS trait takes `&str`
+    /// (`VfsFileSystem::open(&self, path: &str, ..)`). A native host converts
+    /// its `PathBuf` flag value once, at the boundary.
+    File(String),
     /// The key text from an environment variable or a Worker secret: the
     /// PEM text, or the PEM text in standard base64 (for a system that
     /// cannot keep line breaks in a variable).
@@ -783,13 +791,23 @@ pub struct PrivateKey {
 }
 
 impl PrivateKey {
-    /// Reads and parses the key. File I/O runs inside this async function,
-    /// like `foundation_db::JsonFileStorage`. A `File` source on a wasm host
-    /// returns [`KeyLoadError::NoFileSystem`].
+    /// Reads and parses the key. The read is async and runs over `files`, the
+    /// file system that the host installs. It never uses `std::fs` and never
+    /// blocks the executor.
+    ///
+    /// `files` is `NativeFs` (feature `vfs-native`) on a native host,
+    /// `MemoryFs` in a test or a deterministic simulation, and whatever store
+    /// a wasm host installs. An `Inline` source ignores `files`.
     ///
     /// # Errors
-    /// [`KeyLoadError`].
-    pub async fn load(source: &KeySource) -> Result<Self, KeyLoadError> { todo!("T7") }
+    /// [`KeyLoadError::NotFound`] when the file system has no such path,
+    /// [`KeyLoadError::Io`] for any other VFS error,
+    /// [`KeyLoadError::LoosePermissions`] on Unix, and the parse errors of
+    /// section 4.3.
+    pub async fn load<F: AsyncVfsFileSystem>(
+        source: &KeySource,
+        files: &F,
+    ) -> Result<Self, KeyLoadError> { todo!("T7") }
 
     /// Parses key text in one of the formats of section 4.3.
     ///
@@ -834,9 +852,6 @@ pub enum KeyLoadError {
     UnsupportedFormat(#[error(not(source))] String),
     #[display("this role needs a {expected:?} key, found {found:?}")]
     WrongAlgorithm { expected: PrivateKeyAlgorithm, found: PrivateKeyAlgorithm },
-    /// A `File` source on a host with no file system (wasm).
-    #[display("this host has no file system; give the key as an inline value or a Worker secret")]
-    NoFileSystem,
 }
 ```
 
@@ -844,6 +859,26 @@ What the code does: `KeySource` says where the key text is. `PrivateKey::load` r
 finds the format from the first line and turns every format into PKCS#8 DER. The rest of
 `foundation_auth` uses only that one form, so the signing and certificate code does not know
 the input format.
+
+**The file system is the VFS of `foundation_nativeapis`.** Every file that this crate reads
+goes through `AsyncVfsFileSystem` (`foundation_nativeapis/src/shared/vfs/async_traits.rs:150`),
+the trait that the workspace already uses for file tools
+(`foundation_ai/src/agentic/tools/files.rs:42`). `foundation_auth` adds a dependency on
+`foundation_nativeapis` with the `vfs` feature. The implementations are
+`NativeFs` (feature `vfs-native`, a native host), `MemoryFs` (tests and deterministic
+simulation), `OverlayFileSystem`, and whatever a wasm host installs. The `vfs` feature and the
+shared trait build for wasm; only `NativeFs` is native.
+
+The file system is a constructor argument, not an `Env` entry. It cannot be an `Env` entry:
+`foundation_nativeapis` depends on `foundation_context`, so `foundation_context` cannot name
+its trait without a cycle. This matches the rule of spec 84 for input and output resources
+(network, storage, models): the host passes the one it uses.
+
+So there is no `NoFileSystem` error. A host with no file system installs no file system, or
+an empty `MemoryFs`, and the read gives the ordinary `VfsError::NotFound`. The target makes no
+difference to this code path. A Unix host checks permissions with `files.stat(path)?.permissions`
+and `#[cfg(unix)]`; a file system that does not model modes reports the defaults, and the
+check is skipped.
 
 ### 4.5 Where each host reads its keys
 

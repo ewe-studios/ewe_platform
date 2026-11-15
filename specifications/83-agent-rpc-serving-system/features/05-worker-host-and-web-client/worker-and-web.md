@@ -97,9 +97,15 @@ pub struct WorkerHostConfig {
     pub cloudflare_mtls: bool,
     /// Destroy an instance after this long with no turn. Default `None`.
     pub instance_idle_ttl: Option<Duration>,
-    /// Largest request body that `FetchServe` reads. Default 4 MiB: the
+    /// Largest request body that the Worker accepts. Default 4 MiB: the
     /// gRPC default maximum receive message size.
     pub max_request_bytes: usize,
+    /// Chunks queued in one response before the handler waits. Default 4: the
+    /// pipe depth of `ClientOptions` today.
+    pub response_queue: usize,
+    /// Largest response header block. Default 32 KiB: nginx's default
+    /// `large_client_header_buffers` is four buffers of 8 KiB.
+    pub max_header_bytes: usize,
     /// `Some`: this Worker serves `BootstrapService` (Enroll, RefreshAccess)
     /// on its own origin, so browsers and other clients can enroll with a
     /// client key (auth.md section 9.1). The payload private key comes from
@@ -124,6 +130,28 @@ impl WorkerHostConfig {
     /// `AgentRpcError::Config` names the bad or missing var.
     pub fn from_bindings(bindings: &worker::Env) -> AgentRpcResult<Self> { todo!("T21") }
 }
+
+/// The limits of one served call. The `ConnectService` adapter reads them
+/// from the `Ctx` (section 5.3).
+#[derive(Debug, Clone)]
+pub struct ServeLimits {
+    /// Chunks queued in the response before the handler waits.
+    pub response_queue: usize,
+    /// Largest response header block.
+    pub max_header_bytes: usize,
+    /// Largest request body that the bridge reads.
+    pub max_request_bytes: usize,
+}
+
+impl From<&WorkerHostConfig> for ServeLimits {
+    fn from(config: &WorkerHostConfig) -> Self {
+        Self {
+            response_queue: config.response_queue,
+            max_header_bytes: config.max_header_bytes,
+            max_request_bytes: config.max_request_bytes,
+        }
+    }
+}
 ```
 
 What the code does: it reads every setting from Worker vars. A bad var stops the first
@@ -131,18 +159,25 @@ request with a `Config` error that names the var. No secret is in this struct.
 
 ### 5.3 The `fetch` entry
 
+The Worker serves through `foundation_http`, which owns the isolate singleton, the router, the
+middleware and the Cloudflare bridge. This feature supplies one `CfServe` handler, the Connect
+adapter of §5.4, and registers it on the service path.
+
 ```rust
 // foundation_agent_rpc/src/host/worker/entry.rs
 pub struct WorkerHost {
     env: Env,
+    ctx: Ctx,
     config: WorkerHostConfig,
-    serve: FetchServe,
+    /// `foundation_http::wasm::CfHttpApp`, that is `HttpApp<Arc<dyn CfServe>>`.
+    app: CfHttpApp,
 }
 
 impl WorkerHost {
     /// Build the host once per isolate.
     pub async fn new(env: Env, bindings: &worker::Env) -> AgentRpcResult<Self> {
         let config = WorkerHostConfig::from_bindings(bindings)?;
+        let ctx = Ctx::host();                                        // spec 84 section 5
         let d1: Arc<D1Database> = Arc::new(bindings.d1("AGENT_RPC_DB")?.into());
         let trust_store = SqlTrustStore::new(D1WasmStorage::new(Arc::clone(&d1), "agent_rpc"));
         let trust = TrustedClients::open(Arc::new(trust_store), env.clone(), config.trust.clone())
@@ -154,8 +189,9 @@ impl WorkerHost {
             providers.push(Arc::new(CfMtlsAuth::new(Arc::clone(&trust))));
         }
         providers.push(Arc::new(SignedSecretAuth::new(verifier, trust, AccessPolicy::default())));
+        // One platform-neutral client. On wasm `build()` gives `FetchHttpClient`.
+        let http: DynNetClient = HttpClientBuilder::new().build();
         // The same model list as the DOs. Building it makes no network call.
-        let http: Arc<dyn HttpClient> = Arc::new(FetchHttpClient::new());
         let catalog: Arc<dyn ModelCatalog> =
             Arc::new(RemoteCatalog::from_config(&config.models, &|name| secret(bindings, name), http)?);
         let registry = Arc::new(DurableObjectRegistry::new(
@@ -172,8 +208,17 @@ impl WorkerHost {
             .host_info(HostInfo::worker(&config))
             .build()?;
         let router = core.router(Arc::new(AnyOf(providers)));
-        let serve = FetchServe::new(router.into_handler(), FetchServeConfig::from(&config), env.clone());
-        Ok(Self { env, config, serve })
+        // The service travels in the `Ctx`: a route factory gets `&Ctx` and nothing else.
+        ctx.store(Arc::new(AgentRpcService::new(
+            router.into_handler(),
+            ServeLimits::from(&config),
+        )));
+        let mut app = CfHttpApp::new_cf();
+        app.route_any_cf::<ConnectService>("/ewe.agent.v1.AgentService/:method");
+        if config.enrollment.is_some() {
+            app.route_any_cf::<BootstrapConnect>("/ewe.auth.v1.BootstrapService/:method");
+        }
+        Ok(Self { env, ctx, config, app })
     }
 
     /// Serve one request from the internet.
@@ -181,14 +226,16 @@ impl WorkerHost {
         if req.method() == worker::Method::Options {
             return cors::preflight(&req, &self.config.cors);               // section 6.5
         }
-        let mut extensions = Extensions::new();
-        if let Some(tls) = req.cf().and_then(|cf| cf.tls_client_auth()) {
-            extensions.insert(CfTlsClientAuth::from_worker(&tls));
-        }
         // `new Request(req, init)` with a filtered copy of the headers. The body
         // moves to the new request: nothing copies or tees it.
         let web_req = without_forwarded_headers(req.inner())?;            // proto.md section 7
-        let response = self.serve.serve(web_req, extensions).await.map_err(js_error)?;
+        // The bridge reads the body as a stream (spec 85 T4), bounded by the config.
+        let mut incoming = request_from_cf(&web_req, self.config.max_request_bytes)?;
+        if let Some(tls) = req.cf().and_then(|cf| cf.tls_client_auth()) {
+            incoming.extensions = with_tls_client_auth(incoming.extensions,
+                CfTlsClientAuth::from_worker(&tls));
+        }
+        let response = self.app.dispatch_cf(self.ctx.clone(), incoming).await.map_err(js_error)?;
         Ok(cors::decorate(worker::Response::from(response), &self.config.cors))
     }
 }
@@ -197,10 +244,12 @@ impl WorkerHost {
 What the code does:
 
 1. `new` builds the trust store on D1, the bearer-secret verifier and the auth providers. It builds the remote catalog and the core with the DO registry. The Worker catalog only checks model requests and fills the index. The DO runs the model.
-2. `fetch` answers a CORS preflight at once.
-3. It copies the Cloudflare client-certificate facts into the request extensions, so `CfMtlsAuth` can read them (task T3 keeps extensions through dispatch).
-4. It removes every incoming `ewe-forwarded-*` header, so a caller cannot claim an identity. The headers of an incoming request cannot change in a Worker. So it makes a new request from the old one with a filtered header list. The body moves to the new request. `Request.clone()` is not used, because it tees the body, and an unread branch of a tee keeps every chunk in memory.
-5. It gives the request to `FetchServe` and adds the CORS headers to the response.
+2. It stores the Connect handler and its limits in the `Ctx`. A route factory of `foundation_http` receives only `&Ctx`, so the `Ctx` is where one request's service is found.
+3. It builds one `CfHttpApp` and registers the two service paths. The route pattern `/:method` matches every Connect method of the service.
+4. `fetch` answers a CORS preflight at once.
+5. It removes every incoming `ewe-forwarded-*` header, so a caller cannot claim an identity. The headers of an incoming request cannot change in a Worker. So it makes a new request from the old one with a filtered header list. The body moves to the new request. `Request.clone()` is not used, because it tees the body, and an unread branch of a tee keeps every chunk in memory.
+6. It copies the Cloudflare client-certificate facts into the request extensions, so `CfMtlsAuth` can read them.
+7. It gives the request to `dispatch_cf` and adds the CORS headers to the response.
 
 `CfTlsClientAuth::from_worker` copies the fields of `worker::TlsClientAuth`
 (`cert_presented`, `cert_verified`, `cert_fingerprint_sha256`, `cert_subject_dn`,
@@ -211,38 +260,85 @@ The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../.
 section 7.2). It builds `Env::system()` and the engine once per isolate. It then runs
 `with_ctx(root_ctx(), host.fetch(req))` for each request.
 
-### 5.4 `FetchServe`: Connect dispatch over a fetch request (moved to spec 85)
+### 5.4 The Connect adapter: a `CfServe` handler
 
-`FetchServe` is defined by [spec 85](../../../85-wasm-fetch-transport/requirements.md) section
-3 and designed in its [fetch.md](../../../85-wasm-fetch-transport/fetch.md). It gives
-`ConnectRpcHandler::dispatch_to` a sink that feeds a pull-based `ReadableStream`, with the
-pull-based backpressure rule and the `max_request_bytes` limit.
+`foundation_http` owns the serving stack: `HttpApp<Arc<dyn CfServe>>`, its router and
+middleware, `CfConn`, the Cloudflare bridge and `CfHttpAppSingleton`. This feature adds only
+the adapter between that stack and the connectrpc router.
 
-What this feature does with it:
+```rust
+// foundation_agent_rpc/src/host/worker/serve.rs
+/// The Connect service of the Worker.
+pub struct ConnectService;
 
-| Step | Code here |
+impl CfServeFactory for ConnectService {
+    fn create(_ctx: &Ctx) -> Self {
+        Self
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl CfServe for ConnectService {
+    async fn serve_cf(
+        &self,
+        ctx: Ctx,
+        req: SimpleIncomingRequest,
+        conn: &mut CfConn,
+    ) -> CfConnectionResult {
+        let Some(service) = ctx.get::<Arc<AgentRpcService>>() else {
+            conn.set_status(500);                     // the Ctx lost its service entry
+            return CfConnectionResult::Ok;
+        };
+        // The sink is spec 85's: one `ResponseSink` over `CfConn`, shared by every
+        // wasm consumer.
+        let mut sink = ConnectSink::new(conn, service.limits.clone());
+        match service.handler.dispatch_to(&ctx, &req, &mut sink).await {
+            Ok(()) => CfConnectionResult::Ok,
+            Err(error) => {
+                sink.fail(&error);                    // a Connect error frame with its status
+                CfConnectionResult::Ok
+            }
+        }
+    }
+}
+```
+
+`ConnectSink` is spec 85's `ResponseSink` (`whole`, `open`, `chunk`, `finish`) over the
+`CfConn` of `foundation_http`. `open` writes the status and the headers of the head. Each
+`chunk` writes one frame. `finish` closes the body. The body behind it is a bounded pushable
+stream, so a slow client pauses the handler and memory stays flat.
+
+| Step | Owner |
 |---|---|
-| Build it | `FetchServe::new(router.into_handler(), FetchServeConfig::from(&config), ctx.clone())` |
-| Call it | `serve.serve(req, extensions).await` in the `fetch` entry (§5.3) |
-| Configure it | `FetchServeConfig` (§5.2), with the limits that spec 85 documents |
-
-The out-of-crate changes that spec 85 needs (`foundation_netio::wasm::response::streaming_response_with`,
-`pull_readable_stream`, `impl<S: Stream> Stream for SendWrapper<S>`, `CallHooks::with_clock`)
-are spec 85's tasks. They are not tasks of this feature.
+| `CfConn` with a streaming body, `into_response` over `streaming_response_with` | Spec 85 (T3, T4) |
+| The streaming request body of the bridge, and `request_from_cf` | Spec 85 (T4) |
+| `ConnectSink` (the `ResponseSink` over `CfConn`) | Spec 85 (T4) |
+| The `ResponseSink` trait and `dispatch_to` | `foundation_connectrpc`, unchanged |
+| `ConnectService` and its registration on the service path | This feature (T19) |
 
 The Worker serves Connect and gRPC-Web. It does not serve gRPC: gRPC needs HTTP/2 trailers,
 and the fetch API cannot send them. gRPC-Web puts its trailers in the body, so it works.
 
-### 5.5 `DoStubTransport`: the Worker calls a Durable Object (moved to spec 85)
+### 5.5 The Worker calls a Durable Object
 
-`DoStubTransport` is spec 85's `FetchTransport<StubFetcher>`: the transport over a Durable
-Object stub, with `StubFetcher` as the `Fetcher`. Section 4 of
-[fetch.md](../../../85-wasm-fetch-transport/fetch.md) has the code.
+The Worker holds one `DynNetClient` over the stub: `StubHttpClient` (spec 85 section 4.5),
+built from `env.durable_object(binding)` and the instance name. `H1Transport::new(Arc::new(
+stub))` is the transport, and the generated client uses it as it uses any other transport.
+
+```rust
+// foundation_agent_rpc/src/host/worker/do_client.rs
+fn instance_client(env: &worker::Env, name: &str, limits: &ServeLimits) -> AgentRpcResult<AgentClient<H1Transport>> {
+    let stub = StubHttpClient::new(env, "AGENT_INSTANCES", name)?;
+    let transport = H1Transport::new(Arc::new(stub)).with_limits(limits.transport.clone());
+    Ok(AgentClient::new(transport))
+}
+```
 
 | Item | Owner |
 |---|---|
-| `FetchTransport`, `Fetcher`, `StubFetcher`, `DoStubTransport` | Spec 85 |
-| The Worker code that builds the stub and the transport for one instance | This feature (T21) |
+| `StubHttpClient` (a `NetClient` over `worker::Stub`) | Spec 85 (T5) |
+| The Worker code that builds the stub client and its transport for one instance | This feature (T21) |
+| The forwarded identity headers | This feature; it adds them to the request before the call |
 
 ### 5.6 Inside the Durable Object
 
@@ -282,7 +378,7 @@ On its first request, `AgentInstanceObject` builds its parts:
 3. `DoStores`: a `SessionStores` that opens `SqlDocumentStore<DoSqlStore>` and `KvMemoryStore<DoSqlStore>` for the session.
 4. `RemoteCatalog::from_config` over `FetchHttpClient`.
 5. `LocalInstanceRegistry<DoStores>` with `max_instances = 1`.
-6. A core with `ForwardedPrincipalAuth` and `FetchServe`.
+6. A core with `ForwardedPrincipalAuth`. The DO serves the usual `AgentService` (§5.6).
 
 A DO handles one request at a time on one thread. Its requests interleave at each `.await`.
 So the busy flag of the one-turn rule is still needed, and it cannot race.
@@ -303,7 +399,7 @@ turn. The Worker checks the caller, keeps the index in D1 and forwards to the in
 sequenceDiagram
     autonumber
     participant C as Client (browser or native)
-    participant W as Worker (FetchServe)
+    participant W as Worker (ConnectService)
     participant A as AnyOf auth
     participant D1 as D1 (trust, index)
     participant O as Instance DO
@@ -316,13 +412,13 @@ sequenceDiagram
     D1-->>A: no
     A-->>W: AuthInfo with Principal
     W->>D1: reserve the index row under the scope limit
-    W->>O: CreateInstance (DoStubTransport, forwarded principal)
+    W->>O: CreateInstance (H1Transport over StubHttpClient, forwarded principal)
     O->>O: build the AgentSession on DO storage, write instance_meta
     O-->>W: InstanceInfo
     W-->>C: InstanceInfo
     C->>W: ChatStream (instance, prompt)
     W->>A: authenticate (as above)
-    W->>O: ChatStream (DoStubTransport)
+    W->>O: ChatStream (H1Transport over StubHttpClient)
     O->>P: model request (streamed HTTP)
     loop each event, pulled by the reader
         P-->>O: model output
@@ -470,17 +566,21 @@ native host with `accept_access_secrets`. It uses Connect (or gRPC-Web) over the
 `fetch`. It shows a bearer secret on each call, because a browser page cannot choose a client
 certificate.
 
-### 6.2 `FetchTransport` (moved to spec 85)
+### 6.2 The browser transport
 
-The browser transport is spec 85's `FetchTransport<GlobalFetcher>`. Section 3 and section 4 of
-[fetch.md](../../../85-wasm-fetch-transport/fetch.md) have the code and the exchange rules:
-the request body is collected up to `max_request_bytes` (fetch cannot stream it up in every
-browser), the response body streams, and a dropped call cancels the reader.
+The browser uses the same `H1Transport` as every other caller:
+`H1Transport::default()`, whose `HttpClientBuilder::build()` gives `FetchHttpClient` on wasm
+(spec 85 section 1). `FetchHttpClient` implements `NetClient`, so the transport, the streams
+and the error mapping are the ones of the native path.
 
 | Item | Owner |
 |---|---|
-| `FetchTransport`, `GlobalFetcher`, the exchange state machine | Spec 85 |
+| The streaming response body of the wasm client | Spec 85 (T1) |
 | `WebClient` and its calls | This feature (T22) |
+
+The request body streams on both targets: `SendSafeBody::Stream` becomes a JS `ReadableStream`
+through `valtron::js_stream`. The response body streams after spec 85 T1. A dropped call drops
+the reader, and the reader cancels the fetch.
 
 ### 6.3 The client API
 
@@ -538,7 +638,7 @@ impl WebClient {
 }
 ```
 
-What the code does: every call goes through `FetchTransport` with
+What the code does: every call goes through `H1Transport` with
 `Authorization: Bearer <access secret>`. `WebSession` refreshes the access secret when less than
 a fifth of its window is left, and once more after an `UNAUTHENTICATED` reply, before it gives
 the error to the page.
@@ -602,7 +702,7 @@ sequenceDiagram
     autonumber
     participant U as Page (JS)
     participant B as WebClient (wasm)
-    participant F as FetchTransport
+    participant F as H1Transport
     participant W as Worker host
     U->>B: WebClient.enroll (payload, client name)
     B->>B: decode; check token signature, window, aud = url; make key and nonce
@@ -635,8 +735,8 @@ All tests go in each crate's `tests/` directory (CLAUDE.md rule 7).
 
 | Test | Crate and file | What it proves |
 |---|---|---|
-| `FetchServe` | `foundation_connectrpc/tests/wasm/fetch_serve_tests.rs` (`wasm-bindgen-test`, Node) | Unary, server stream, error status, deadline, a body over the limit, and cancel: dropping the body drops the handler. |
-| `FetchTransport` | `foundation_connectrpc/tests/wasm/fetch_transport_tests.rs` | Against a `FetchServe` in the same test through a `Fetcher` that calls it directly. |
+| `ConnectService` | `foundation_agent_rpc/tests/wasm/worker_serve_tests.rs` (`wasm-bindgen-test`, Node) | Unary, server stream, error status, deadline, a body over the limit, and cancel: dropping the response drops the handler. The test builds a `CfHttpApp` and dispatches a `web_sys::Request` into it. |
+| Browser client | `foundation_connectrpc/tests/wasm/h1_transport_tests.rs` | A `H1Transport` over a test `NetClient`, against a `ConnectService` in the same test. |
 | Worker host | `foundation_toolings/tests/cf_examples.rs`, case `cf-agent-rpc` (Miniflare, as for the other `examples/cf-*`) | Bearer auth, a revoked secret, CORS preflight, create, stream, list, destroy; a forged `ewe-forwarded-principal` header has no effect; a DO restart keeps the history. |
 | Cloudflare mTLS | the same case, with a fake `request.cf.tlsClientAuth` (Miniflare lets a test set `cf`) | `CfMtlsAuth` accepts a registered fingerprint and refuses `FAILED:…`. |
 | Web client | `foundation_agent_rpc/tests/wasm/web_client_tests.rs` (`wasm-bindgen-test`, headless browser in CI) | The payload rules of section 6.4; a full turn against a Miniflare Worker. |

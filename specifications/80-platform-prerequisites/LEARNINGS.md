@@ -52,7 +52,7 @@ The Env design and the deterministic-testing document are in
 
 `MigrationSource::Directory(PathBuf)` was a `#[cfg(not(target_family = "wasm"))]` variant, so
 the public enum changed shape per target. The owner asked for every instance of that pattern to
-be checked across the split specifications (spec 77 section 6.0, `RuntimeFetch`).
+be checked across the split specifications (spec 77 section 6.0, the part wrappers).
 
 The variant now exists on every target. A `PathBuf` is portable; only reading a directory is
 not. `MigrationRunner::plan` reports the new `MigrationProblem::NoFileSystem { group }` when a

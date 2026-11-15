@@ -26,7 +26,7 @@ is "one clock per run": the harness advances one clock and every deadline follow
 in two places break that law, and the second one is easy to forget.
 
 So the clock stays an engine-minimum element of `Ctx`. `Env` holds only the effects that `Ctx`
-does not. `FetchServe` and any other consumer that needs the time reads `ctx.clock()`.
+does not. Any consumer that needs the time reads `ctx.clock()`.
 
 ## Why `Timer` takes the `Ctx` as an argument (2026-11-15)
 

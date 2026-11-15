@@ -257,7 +257,7 @@ src/
   shared/host.rs        SandboxHost, SlaveHost and their traits
   shared/platform.rs    Platform (the trait), PlatformKind (the as_* helpers live in their part)
   shared/cloudflare/mod.rs  #[cfg(feature = "cloudflare")] the traits, CloudflareHost, CloudflareConfig (feature 07)
-  shared/cloudflare/platform.rs  #[cfg(feature = "cloudflare")] CloudflarePlatform, RuntimeFetch
+  shared/cloudflare/platform.rs  #[cfg(feature = "cloudflare")] CloudflarePlatform
   native/mod.rs         #[cfg(not(target_family = "wasm"))]
   native/platform.rs    NativePlatform (features 05 and 09), DockerPlatform (feature 10)
   cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))] WorkerContainer, WorkerStorage, WorkerAlarm, CloudflareHost::from_state

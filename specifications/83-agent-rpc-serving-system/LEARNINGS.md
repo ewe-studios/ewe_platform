@@ -1266,8 +1266,10 @@ Both shapes were present in this specification:
 The rule to keep: a `cfg` belongs on a private inner type, a method, a module or a dependency.
 It never changes the shape of a public type. When one target cannot have a value, make the inner
 type private and uninhabited there, keep the outer type identical, and report the missing
-capability with a typed error. Spec 77's `RuntimeFetch` is the reference form:
-`RuntimeFetch(RuntimeFetchInner)` on every target.
+capability with a typed error. Spec 77's part wrappers are the reference form: one public type
+on every target, over a private inner type that differs.
 
-The other specs got the same audit: spec 85 (`FetchTransport` field), spec 81 (`KeySource`),
-spec 80 (`MigrationSource`). The table is in spec 77 `learnings.md` section 10.1.
+The other specs got the same audit: spec 81 (`KeySource`), spec 80 (`MigrationSource`). Spec
+85's `FetchTransport` did not survive a second review: the owner replaced the whole design with
+`DynNetClient` and `H1Transport`, which already exist on both targets. The table is in spec 77
+`learnings.md` section 10.1.

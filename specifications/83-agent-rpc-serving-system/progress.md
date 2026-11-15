@@ -179,7 +179,7 @@ No code changed.
 - **Architecture section 3.2.** `foundation_core` does not own `Env` or `Ctx`; both are in
   `foundation_context`, which now has its own row. `foundation_auth` is no longer called
   target-neutral: `client_auth::cloudflare` is wasm only and `client_auth::mtls` is native only.
-- Feature 06 takes `&CloudflarePlatform`, whose `fetch` field is the `RuntimeFetch` outer type
-  of spec 77 section 6.0.
+- Feature 06 takes `&CloudflarePlatform`. The wrapper carries no HTTP client: a call holds a
+  `DynNetClient`, and an RPC call is `H1Transport` over it (spec 77 section 6.0).
 
 Issue #556 records the set across the split specifications. It is closed.

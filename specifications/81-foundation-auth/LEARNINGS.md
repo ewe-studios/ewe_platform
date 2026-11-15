@@ -50,8 +50,8 @@ Neither link sees the other's credential. The library serves both; it does not d
 
 `KeySource::File(PathBuf)` was a `#[cfg(not(target_family = "wasm"))]` variant, so the public
 enum had two shapes. A wasm caller could not write it and could not match it, and the same
-source named two types. The owner reviewed the same pattern in spec 77 (`RuntimeFetch`) and
-asked for the whole set to be checked.
+source named two types. The owner reviewed the same pattern in spec 77 (the part wrappers)
+and asked for the whole set to be checked.
 
 The variant now exists on every target. A `PathBuf` is portable; only the file read is not.
 `PrivateKey::load` returns the new `KeyLoadError::NoFileSystem` when a wasm host is given a

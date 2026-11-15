@@ -635,7 +635,7 @@ The Worker host runs one DO for each agent instance (see [hosts.md](../04-native
 The Worker does not need a second service definition to talk to the DO:
 
 - The DO serves the same `AgentService`. It holds exactly one instance.
-- The Worker calls the DO with the generated `AgentServiceClient` over a `DoStubTransport`.
+- The Worker calls the DO with the generated `AgentServiceClient` over `H1Transport::new(StubHttpClient)` (spec 85 section 4.5).
 - The Worker adds the header `ewe-forwarded-principal`. It holds the caller identity that the Worker has already checked. The value is JSON: `{"subject":"…","method":"signed-secret","roles":["agent-rpc:client"]}`.
 - The Worker deletes every incoming header that starts with `ewe-forwarded-` before it checks the caller. So a client cannot send a false identity.
 - A DO is not reachable from the internet. Only code in the same Cloudflare account reaches it, through the DO namespace binding. So the DO trusts the header.

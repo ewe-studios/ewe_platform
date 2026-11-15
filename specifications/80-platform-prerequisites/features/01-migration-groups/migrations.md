@@ -173,9 +173,9 @@ So `layout.runner_for("france")` is the runner `[shared, france]`, the same as
 ```rust
 // foundation_db/src/core/schema/layout.rs (task T25)
 
-/// Groups found in one directory tree. Made by `scan` (native) or
-/// `embed_migration_layout!` (all targets, at build time). Read by
-/// `runner_for` and by `FleetRunner`.
+/// Groups found in one directory tree. Made by `scan` (run time, over the
+/// host's file system) or `embed_migration_layout!` (all targets, at build
+/// time). Read by `runner_for` and by `FleetRunner`.
 #[derive(Debug, Clone)]
 pub struct MigrationLayout {
     templates: Vec<Arc<MigrationSet>>,                // in template order
@@ -190,10 +190,11 @@ pub struct MigrationLayoutConfig {
 }
 
 impl MigrationLayout {
-    /// Read the folders under `root` (native only). Checks the layout rules
-    /// and the rules of section 4.4 for every group.
-    #[cfg(not(target_family = "wasm"))]
-    pub async fn scan(root: impl Into<PathBuf>, layout: MigrationLayoutConfig, config: MigrationConfig)
+    /// Read the folders under `root` in `files`, the file system that the host
+    /// installs. Checks the layout rules and the rules of section 4.4 for
+    /// every group. It runs on every target.
+    pub async fn scan<F: AsyncVfsFileSystem>(files: &F, root: &str,
+        layout: MigrationLayoutConfig, config: MigrationConfig)
         -> Result<Self, MigrationError>;
 
     /// The runner of one database: the template groups, then its own group
@@ -204,7 +205,7 @@ impl MigrationLayout {
     pub fn databases(&self) -> impl Iterator<Item = &str>;
 }
 
-// Any crate: embed a whole layout at build time (Workers have no file system).
+// Any crate: embed a whole layout at build time (no file system is needed).
 static LAYOUT: EmbeddedLayout = foundation_db::embed_migration_layout!("database", templates = ["shared"]);
 ```
 
@@ -215,6 +216,26 @@ work at build time and fails the build on a broken rule.
 This is the file form that Cloudflare's `wrangler d1 migrations` uses (`0001_name.sql`), so a
 group directory can also serve that tool. The two tools record applied migrations in different
 tables, so do not use both on one database.
+
+**The file system is the VFS of `foundation_nativeapis`.** A directory read uses
+`AsyncVfsFileSystem` (`foundation_nativeapis/src/shared/vfs/async_traits.rs:150`), never
+`std::fs`. The trait takes a UTF-8 path as `&str` and returns `VfsResult`, which is
+`Result<T, ErrorTrace<VfsError>>`. The implementations are `NativeFs` (feature `vfs-native`, a
+native host), `MemoryFs` (tests and deterministic simulation), and whatever a wasm host
+installs. The `vfs` feature and the shared trait build for wasm; only `NativeFs` is native.
+
+The file system is a parameter of every method that reads a file: `MigrationLayout::scan`,
+`MigrationRunner::plan`, `MigrationRunner::run_async` and `FleetRunner::run`. A constructor
+takes only the path, because it reads nothing. So `MigrationRunner` is one type on every
+target, and the host gives it the file system that it uses.
+
+The file system is a constructor argument, not an `Env` entry. `foundation_nativeapis` depends
+on `foundation_context`, so `foundation_context` cannot name its trait without a cycle. Spec 84
+gives input and output resources (network, storage, models) the same rule.
+
+`foundation_db` adds a dependency on `foundation_nativeapis` with the `vfs` feature. The
+dependency goes in `[workspace.dependencies]` of the root `Cargo.toml` once, as root rule 17
+says.
 
 ### 4.3 Types
 
@@ -229,7 +250,8 @@ pub struct Migration {
 }
 
 /// A group: a name and its migrations. Made in code, by `embed_migrations!`,
-/// or (native only) by reading a directory. Read by `MigrationRunner`.
+/// or by reading a directory through the host's file system. Read by
+/// `MigrationRunner`.
 #[derive(Debug, Clone)]
 pub struct MigrationSet {
     /// The group name, stored in every record row of this group.
@@ -246,9 +268,11 @@ pub enum MigrationSource {
     /// Files read at build time by `embed_migrations!`. All targets,
     /// including wasm and Workers, which have no file system.
     Embedded(&'static [EmbeddedMigration]),
-    /// A directory read at run time. Only a native host can read one. On wasm
-    /// `plan` reports `MigrationProblem::NoFileSystem` for the group.
-    Directory(PathBuf),
+    /// A directory read at run time, through the file system that the host
+    /// gives to `plan` (the VFS trait of `foundation_nativeapis`). This works
+    /// on every target. A host that gives no such directory gets the ordinary
+    /// `MigrationProblem::Io`.
+    Directory(String),
 }
 
 /// Made by `embed_migrations!`, one per file.
@@ -284,28 +308,29 @@ pub struct MigrationRunner {
 impl MigrationRunner {
     /// A runner whose first group is `set`.
     pub fn from_static(set: &'static MigrationSet) -> Self;
-    /// A runner whose first group is read from a directory (native only).
-    /// The group name is the last path segment.
-    #[cfg(not(target_family = "wasm"))]
-    pub fn from_dir(path: impl Into<PathBuf>) -> Self;
+    /// A runner whose first group is a directory. The group name is the last
+    /// path segment. `plan` reads the files through the file system it is
+    /// given, so this constructor needs no file system of its own.
+    pub fn from_dir(path: impl Into<String>) -> Self;
 
     /// A new runner: this runner's groups, then `set`. `self` does not change.
     pub fn add_from_static(&self, set: &'static MigrationSet) -> Self;
-    #[cfg(not(target_family = "wasm"))]
-    pub fn add_from_dir(&self, path: impl Into<PathBuf>) -> Self;
+    pub fn add_from_dir(&self, path: impl Into<String>) -> Self;
 
     pub fn with_config(self, config: MigrationConfig) -> Self;
 
     /// The group names, in apply order.
     pub fn groups(&self) -> Vec<&str>;
 
-    /// Read every group, check the rules of section 4.4, and return the
-    /// migrations in apply order. No database access.
-    pub async fn plan(&self) -> Result<Vec<PlannedMigration>, MigrationError>;
+    /// Read every group through `files`, check the rules of section 4.4, and
+    /// return the migrations in apply order. No database access.
+    pub async fn plan<F: AsyncVfsFileSystem>(&self, files: &F)
+        -> Result<Vec<PlannedMigration>, MigrationError>;
 
     /// Compare the plan with the record table and apply what is missing, in
     /// apply order, each in its own transaction (section 4.6).
-    pub async fn run_async(&self, store: &dyn QueryStore) -> Result<RunSummary, MigrationError>;
+    pub async fn run_async<F: AsyncVfsFileSystem>(&self, files: &F, store: &dyn QueryStore)
+        -> Result<RunSummary, MigrationError>;
 }
 
 /// What one `run_async` did.
@@ -350,6 +375,19 @@ let runner = MigrationRunner::from_static(&foundation_db::DB_CORE)
 
 Each of these groups numbers from 1. They need no number ranges.
 
+**Who owns a migration.** The owner rule (2026-11-15): "the new crates own their migration but
+use the central foundation_db migration foundations to define theirs."
+
+| Owner | Holds |
+|---|---|
+| `foundation_db` | The foundations: `Migration`, `MigrationSet`, `MigrationSource`, `MigrationRunner`, `MigrationLayout`, `MigrationConfig`, the rules, `plan`, `run_async`, the record table, `embed_migrations!` and `embed_migration_layout!`. Also the `DB_CORE` group. |
+| Each crate with a schema | Its own group and its own SQL files. `foundation_auth` holds `AUTH_KEYS` and `AUTH_TRUST`; a new crate adds its group in its own crate, with the same foundations. |
+| The program | Which groups run, in which order, on which database (section 4.9). |
+
+A crate does not write a second runner, a second record table or a second rule check. It
+exports a `MigrationSet` and the program composes it. The numbering of a group is local to the
+group, so two crates never agree on a range.
+
 ### 4.4 Rules that `plan` checks
 
 `plan` reports **every** broken rule in one error, so an operator fixes them all in one pass.
@@ -365,7 +403,7 @@ Each of these groups numbers from 1. They need no number ranges.
 | No gap in a group | `0001`, `0002`, `0004` | `Gap { group, missing: 3 }` |
 | No file is larger than `max_file_bytes` | a 5 MiB data dump | `TooLarge { origin, bytes }` |
 | A file is valid UTF-8 | a binary file | `NotUtf8 { origin }` |
-| A `Directory` group needs a file system | a wasm host given a `Directory` group | `NoFileSystem { group }` |
+| Every `Directory` group is readable through the file system that `plan` is given | a path that the file system does not have | `Io { origin, message }` |
 
 The same number in two **different** groups is correct: `shared` 1 and `tenant_france` 1 are two
 migrations.
@@ -518,7 +556,7 @@ impl FleetRunner {
     /// Plans every runner first (no database access), then migrates each
     /// database with at most `max_parallel` in flight. Returns one outcome
     /// for each database, in the order of the list.
-    pub async fn run(&self) -> FleetReport;
+    pub async fn run<F: AsyncVfsFileSystem>(&self, files: &F) -> FleetReport;
 }
 
 #[derive(Debug)]
@@ -583,8 +621,9 @@ pub enum MigrationProblem {
     AppliedNotPrefix { group: String, missing: Vec<u64> },
     AppliedButMissing { group: String, number: u64 },
     UnknownGroup { group: String },
-    /// A `Directory` group on a host with no file system (wasm).
-    NoFileSystem { group: String },
+    /// A `Directory` group could not be read: the VFS error of the host, with
+    /// the path in `origin`. A file system with no such path gives `NotFound`.
+    Io { origin: String, message: String },
     /// A layout group folder contains a folder.
     NestedFolder { origin: String },
     /// A migration's SQL failed. Nothing of that migration is kept.
@@ -618,7 +657,7 @@ line, with the group, the number and the file path or code location.
 
 | Task | What | Done when |
 |---|---|---|
-| T25 | `MigrationSet`, `MigrationSource`, `MigrationRunner` with `from_static`, `add_from_static`, `from_dir`, `add_from_dir`; the rules; `plan`; transactional `run_async`; the record table and its upgrade with the 023 repair; `embed_migrations!`; directory layouts (`MigrationLayout`, `embed_migration_layout!`); `FleetRunner`; the `DB_CORE`, `AUTH_KEYS` and `AUTH_TRUST` groups | the tests in section 6 pass on memory, Turso and libsql, and under Miniflare for D1 |
+| T25 | `MigrationSet`, `MigrationSource`, `MigrationRunner` with `from_static`, `add_from_static`, `from_dir`, `add_from_dir`; the rules; `plan` and `run_async` over the injected `AsyncVfsFileSystem`; transactional `run_async`; the record table and its upgrade with the 023 repair; `embed_migrations!`; directory layouts (`MigrationLayout`, `embed_migration_layout!`); `FleetRunner`; the `DB_CORE`, `AUTH_KEYS` and `AUTH_TRUST` groups; the `foundation_nativeapis` dependency with `features = ["vfs"]` | the tests in section 6 pass on memory, Turso and libsql, and under Miniflare for D1 |
 
 ## 8. Open questions
 

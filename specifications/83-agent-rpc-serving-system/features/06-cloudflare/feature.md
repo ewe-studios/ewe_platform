@@ -39,7 +39,7 @@ Europe (ASD), the owner of the STE standard ASD-STE100.
 | Durable Object | A Cloudflare object with an identity and its own storage. One DO instance runs one agent instance. |
 | Containers | The Cloudflare product that runs a normal Linux container. The full native agent-rpc runs there. |
 | Workers AI | Cloudflare's hosted model service. |
-| F24 fetch transport | The `foundation_connectrpc` client transport over `fetch`. It is spec 85's `FetchTransport`. |
+| F24 wasm transport | The `foundation_connectrpc` client transport over `fetch`: `H1Transport` over a `DynNetClient`. It needs no type of its own; spec 85 makes the wasm client stream, and `H1Transport` is the same transport on every target. |
 | `dispatch_cf` | The `foundation_http` function that hands a Worker `fetch` event to a router. |
 | `ContainerHandle` | The spec 77 type that talks to one live container: fetch a port, exec a command, signal, wait, stop, destroy. |
 | `ContainerControl` | The spec 77 factory that starts and gets a `ContainerHandle`. |
@@ -297,9 +297,10 @@ _The diagram shows one streamed answer through the Worker, from Workers AI or fr
 #[cfg(target_family = "wasm")]
 pub fn wasm_worker_entry(env: Env) -> CfServe; // wires Router into dispatch_cf
 
-// foundation_connectrpc: F24 fetch transport
-// spec 85's type; this crate builds it, it does not define it.
-pub type WasmFetchTransport = foundation_connectrpc::wasm::FetchTransport<GlobalFetcher>;
+// foundation_connectrpc: F24 wasm transport
+// No new type: the transport is H1Transport, over the client that
+// HttpClientBuilder::build() gives (FetchHttpClient on wasm).
+pub type WasmTransport = foundation_connectrpc::H1Transport;
 
 // foundation_agent_rpc: the agent-rpc container, through the spec 77 handle
 pub struct AgentContainer { pub handle: ContainerHandle }
@@ -459,8 +460,8 @@ one design, the tasks map like this:
 
 | Task here | State | Where it is now |
 |---|---|---|
-| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 05 T21: `host/worker/*` with `FetchServe` and one Durable Object per instance. |
-| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 05 T19: `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
+| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 05 T21: `host/worker/*` with the `ConnectService` handler over `foundation_http` and one Durable Object per instance. |
+| T2: Connect fetch transport (was `WasmFetchTransport`) | **Replaced** | Feature 05 T19 and spec 85 T1 to T4: the wasm client streams, and the transport stays `H1Transport`. |
 | T3: Sandboxes and Containers in `foundation_deployment_cloudflare` | **Moved** | Spec 77 feature 08: `CloudflareDeployer`, `DeploymentPlan` and the two adapters. |
 | T4: end to end on Workers with Workers AI | **Stays here**, built on feature 05 T21 | The `cf-agent-rpc` example of feature 05 is its base. |
 | T5: end to end, Worker to a remote native agent-rpc | **Stays here**, built on feature 05 T19 | |

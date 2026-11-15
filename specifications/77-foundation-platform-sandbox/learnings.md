@@ -588,34 +588,26 @@ A function for one part takes the concrete type; a function that serves several 
 to it. They do not start a sandbox, pick a driver or build a container control.
 
 The owner added a third note: "just wrap the js with a SendWrapper to make it look Send, wasm is
-non-send anyway". So `CloudflarePlatform` carries `Option<RuntimeFetch>`, and it uses
-`foundation_compact::SendWrapper` rather than a new dependency. That type asserts `Send` and
-`Sync` and does not check the thread, which is sound because single-threaded wasm has one
-thread. `Platform` needs both bounds, so `Sync` is not optional here. A build that enables the
-wasm `atomics` target feature has neither impl, so the spec forbids it.
+non-send anyway". For one pass that note applied to a `RuntimeFetch` field on
+`CloudflarePlatform`. The owner then replaced that whole direction (section 10.4): the wrapper
+carries no HTTP client at all, because `DynNetClient` and `H1Transport` already work on both
+targets. The note still governs the `worker` adapters of feature 07.
 
-The first two passes made two mistakes here, and the owner caught both:
+The two mistakes that pass made, and the owner caught both:
 
-- `Arc<dyn Fetcher>` does not compile, because `Fetcher` is not `Send`. The fix is the
-  `SendWrapper` around an `Rc`.
+- `Arc<dyn Fetcher>` does not compile, because `Fetcher` is not `Send`. A JS value crosses a
+  `Send` slot only inside `foundation_compact::SendWrapper`.
 - The type was first made wasm-only, "because `cloudflare/` is". That is wrong:
   `CloudflareContainerControl` is generic over `ContainerApi` and lives in
   `shared/cloudflare/`, so only `WorkerContainer` and its neighbours are wasm. A native host
-  that manages a Cloudflare container needs the same wrapper. The fix is `RuntimeFetch`. The
-  public struct then has one shape on both targets, `fetch` is always `None` on native, and no
-  `cfg` changes a public type. Owner rule: "this should properly separate whats wasm and native,
-  so the same API services both".
+  that manages a Cloudflare container needs the same wrapper. Owner rule: "this should properly
+  separate whats wasm and native, so the same API services both".
 - The deployer was in the wrapper for one pass. It does not belong there: both deployers are
   native values in the deployment crate, and deployment touches no sandbox or container handle.
 
-The owner corrected the `RuntimeFetch` shape on 2026-11-15: "you know you can just add a
-RuntimeFetchInner with a RuntimeFetchOuter(RuntimeFetchInner) that wraps it and hides away the
-presence or absence of a SendWrapper". The first fix was a type alias: `SendWrapper<Rc<dyn
-Fetcher>>` on wasm and an uninhabited enum on native, under one name. That still makes the
-public name a different type on each target. The outer/inner form is better: `RuntimeFetch` is
-one outer newtype on every target, and only its private inner type differs. The accessors
-(`new`, `fetcher`) are wasm-only because there is nothing to fetch with on native, but the type
-and its fields are the same everywhere, and `RuntimeFetch` is `Send + Sync` on both.
+The lasting rule from that review, and the one a new part wrapper must follow: a `cfg` belongs
+on a private inner type, a method, a module or a dependency. It never changes the shape of a
+public type.
 
 The same seam applies to every wasm adapter of a `Send + Sync` trait. `ContainerApi`,
 `DoStorage` and `DoAlarm` all require both bounds, and their `worker` values are `!Send`, so
@@ -632,8 +624,7 @@ found and fixed these:
 |---|---|---|
 | Spec 77 requirements section 2.4 | `src/cloudflare/` was listed with the driver, the control, the transport, the store and the request handler. Feature 07 puts all of them in `shared/cloudflare/` (`all`). | The row now lists only `WorkerContainer`, `WorkerStorage`, `WorkerAlarm` and `CloudflareHost::from_state`; a new row describes `shared/cloudflare/`. |
 | Spec 77 feature 00 | The `cloudflare` feature said "wasm32 only". | It gates `shared/cloudflare/` on every target and the `worker` adapters on wasm only. |
-| Spec 85 section 4.2 | `FetchTransport` held `fetcher: Rc<F>` while `Transport` requires `Send + Sync + 'static`. The struct cannot implement the trait. | The field is `SendWrapper<Rc<F>>`, and the prose says every JS value crosses a `Send` slot inside the wrapper. |
-| Spec 85 section 4.4 and `fetch.md` | `body_stream` returns a `Send` `BodyStream` from a JS `ReadableStream` with no wrapper named. `fetch.md` also said the wrapper panics on a drop from another thread; it has no `Drop` check. | The doc comment names the wrapper, and the prose says it asserts the bounds and checks nothing. |
+| Spec 85 section 4 (first draft) | `FetchTransport` held `fetcher: Rc<F>` while `Transport` requires `Send + Sync + 'static`, and the whole type repeated `H1Transport`. | The type is gone (2026-11-15). Spec 85 fills the gaps inside `HttpClient` and `H1Transport`, which are `Send + Sync` on both targets. |
 | Spec 81 section 4.4 | `KeySource::File(PathBuf)` was a `cfg(not(wasm))` variant, so the public enum changed shape per target. | The variant exists on every target, and a wasm host returns the new `KeyLoadError::NoFileSystem`. |
 | Spec 80 feature 01 | `MigrationSource::Directory(PathBuf)` was a `cfg(not(wasm))` variant. | The variant exists everywhere; `plan` reports the new `MigrationProblem::NoFileSystem` on wasm; the readers stay native-only. |
 | Spec 83 feature 08 | `SealFuture` was a `Send` alias on native and a `!Send` alias on wasm. | One `Send` alias on every target; a wasm sealer wraps its future in `SendWrapper`. |
@@ -669,7 +660,7 @@ lands before its consumers:
 
 | Block | Owner | Consumers here |
 |---|---|---|
-| The fetch pump, `FetchTransport`, `FetchServe`, `DoStubTransport` | Spec 85 | Features 07 and 08 |
+| The wasm gaps: the streaming wasm client, the streaming bridges and sink, `StubHttpClient` | Spec 85 | Features 07 and 08 |
 | `Secret`, `constant_time_eq`, the bearer parser | Spec 86 | Features 00 and 02 |
 | The CA, the trust store, the verifiers, the mTLS providers | Spec 87 | Feature 06 (native listener), question Q4 |
 | The `Env` entry and the `IdSource` trait | Spec 84 | Feature 02 (the id policy) |
@@ -688,30 +679,59 @@ reconcile.
 | `IdSource` (feature 02 enum) | `SandboxIdPolicy` | `IdSource` is the spec 84 trait. Two types with one name across specifications is the defect the review removed. |
 | `check_bearer` | `authorize` over spec 86's `Secret` | The bearer parse and the constant-time compare are primitives, not sandbox code. |
 
-### 10.4 `RuntimeFetch` is a JavaScript handle, not the HTTP client (2026-11-15)
+### 10.4 The HTTP client is `DynNetClient`, and nothing else (2026-11-15)
 
-The owner asked: "if it is using API should it not use our Http api that properly abstract out
-wasm/web fetch vs native http as well? the `DynHttpClient` trait from foundation_netio or is
-this something else?"
+The owner asked three times, in stronger words each time: "if it is using API should it not use
+our Http api that properly abstract out wasm/web fetch vs native http as well? the `DynHttpClient`
+trait from foundation_netio or is this something else?", then "there is a `DynHttpClient` which
+encapsulates http across native, wasm, use that", then "the core idea is `DynNetClient` is the
+platform agnostic way", and "and connectrpc already builds on it".
 
-The two are different layers.
+The final answer is that the workspace has one client abstraction, and this specification must
+hold it rather than wrap it:
 
-| Layer | Type | Job |
+| Layer | Type | File |
 |---|---|---|
-| Ordinary HTTP | `foundation_netio::HttpClient` (`shared/client/http_client.rs:65`), held as `DynNetClient` in the `Env` | One request, one response. Native and wasm implementations exist. |
-| Runtime fetch | `RuntimeFetch` over spec 85's `Fetcher` | The raw JavaScript `fetch` function, which spec 85 needs to build a streaming transport. |
+| The trait | `HttpClient: Send + Sync` | `foundation_netio/src/shared/client/http_client.rs:65` |
+| The handle | `DynNetClient = Arc<dyn NetClient>` | `foundation_netio/src/network_client.rs:41` |
+| The choice per target | `HttpClientBuilder::build()` | `foundation_netio/src/network_client.rs:440` |
+| The RPC transport | `H1Transport`, in `shared/`, on both targets | `foundation_connectrpc/src/shared/transport/h1.rs:61` |
 
-There is no `DynHttpClient` in the workspace. The names are `HttpClient` and
-`DynNetClient = Arc<dyn NetClient>` (`network_client.rs:41`).
+There is no `DynHttpClient` type. The names are `HttpClient` and `DynNetClient`; the owner means
+the abstraction, and it is these two.
 
-The reason a transport cannot sit on `HttpClient` is measured, not stylistic. The wasm
-`FetchHttpClient` awaits `resp.text()` before `send_async` returns
-(`wasm/client/client.rs:334`). Every response is therefore read whole into memory, with no
-bound (`max_body_size` defaults to `None`). Root rule 4 forbids that, and an RPC response has
-no bound. So spec 85 streams from the `web_sys::Response` body itself.
+The first answer here was wrong. It said `RuntimeFetch` held the raw JavaScript `fetch` because
+`HttpClient` buffers a wasm response (`wasm/client/client.rs:334`) and so cannot carry a streamed
+RPC response. That observation is true and it is issue #557, but the conclusion was not: the fix
+belongs inside `FetchHttpClient`, which is where every wasm caller already goes. Adding a second
+client above it gave a caller two ways to send a request and a second place to keep honest.
 
-The follow-up work is recorded, not hidden:
+So, on 2026-11-15, `RuntimeFetch` is removed:
 
-- Issue #557 (high): the wasm `HttpClient` reads whole bodies.
-- Issue #558 (medium): `H1Transport` reports `request_streaming: true` on wasm, where the
-  fetch client has no request streaming.
+- `CloudflarePlatform` holds the `Ctx`, `sandboxes`, `containers` and `control`. It carries no
+  HTTP client and no `fetch` field.
+- A caller that sends a request holds a `DynNetClient`. On wasm that is `FetchHttpClient`, from
+  `HttpClientBuilder::build()`.
+- An RPC call is `H1Transport::new(client)`, on every host.
+- `ContainerPortTransport` is a thin wrapper over `H1Transport` over a port `NetClient`
+  (feature 07 section 6.5).
+- The Worker entry is `foundation_http`'s `HttpApp<Arc<dyn CfServe>>` (feature 08).
+- The Worker's calls to a Durable Object are `H1Transport::new(StubHttpClient)` (spec 85
+  section 4.5).
+
+The same mistake had a second form, in this specification's own first draft: it planned a body
+pump of about 80 lines for the container port, with the sentence "It does not wait for it". That
+sentence is the defect. `H1Transport` already streams a request body on wasm and a response body
+after spec 85 T1, so the pump has nothing left to do.
+
+The lesson, for this spec and for the next one: when a plan is about to add a "platform seam",
+first list the types the workspace already has for that job. Here every row of that list already
+existed, and three specifications had planned the same pump. The remaining real work was four
+small gaps inside `foundation_netio`, `foundation_http` and `foundation_connectrpc`, which is
+what spec 85 now contains.
+
+The two defects of the client itself are recorded, not hidden:
+
+- Issue #557 (high): the wasm `HttpClient` reads whole bodies. Spec 85 T1 fixes it.
+- Issue #558 (medium): `WASM_FETCH_CAPABILITIES` says the wasm client cannot stream a request
+  body, but it can. Spec 85 T2 corrects the constant.

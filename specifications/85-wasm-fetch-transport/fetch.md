@@ -1,212 +1,210 @@
-# Detailed design: the wasm fetch plumbing
+# Wasm HTTP Streaming: the design
 
-_Part of [spec 85](./requirements.md). Written in ASD-STE100 Simplified Technical English
-(STE). Code and identifiers stay as they are._
+_Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
+are._
 
 **Abbreviations in this file.** WebAssembly (wasm); Hypertext Transfer Protocol (HTTP);
-Hypertext Transfer Protocol version 2 (HTTP/2); remote procedure call (RPC); Cloudflare Durable
-Object (DO); JavaScript (JS); client-side JavaScript (CSJS); Cross-Origin Resource Sharing
-(CORS); Hypertext Transfer Protocol Secure (HTTPS); AeroSpace and Defence Industries
-Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+Hypertext Transfer Protocol version 2 (HTTP/2); remote procedure call (RPC); Cloudflare
+Durable Object (DO); JavaScript (JS).
 
-This file moves the design of spec 83 feature 05 sections 5.4, 5.5 and 6.2 into spec 85. The
-owner rule: one specification owns the pump, and every consumer builds on it.
+This page gives the detail of section 4 of [requirements.md](./requirements.md). The first
+draft of this specification added a `Fetcher`, a `FetchTransport`, a `FetchServe` and a body
+pump. The owner rejected that on 2026-11-15: "the core idea is `DynNetClient` is the platform
+agnostic way, and connectrpc already builds on it." This page records the design that follows
+that direction.
 
-## 1. Why `Transport::open` is synchronous
+## 1. One client abstraction
 
-`Transport::open` returns a `TransportStream` with four halves and starts no work. This shape
-is right for fetch for one reason: the client must be able to write its request message before
-the transport sends anything, and the transport must not block a single-threaded runtime.
-
-| Phase | Who acts | What happens |
+| Layer | Type | File |
 |---|---|---|
-| `open` | client | The transport builds an exchange object and returns the four halves. No JS call happens. |
-| The client writes `send_body` | client | The exchange collects the bytes. It fails at `max_request_bytes`. |
-| The client closes `send_body` | client | The exchange knows the body is complete. |
-| The first poll of `head` | runtime | The exchange builds a `web_sys::Request` and calls `Fetcher::fetch`. |
-| `head` resolves | runtime | The status and the headers are published. |
-| Each poll of `recv_body` | runtime | The exchange reads one chunk from the `ReadableStream`. |
-| `trailers` | runtime | Closes empty and with no error. |
+| The trait | `HttpClient: Send + Sync` | `foundation_netio/src/shared/client/http_client.rs:65` |
+| The handle | `DynNetClient = Arc<dyn NetClient>` | `foundation_netio/src/network_client.rs:41` |
+| The native implementation | `NativeHttpClient` | `foundation_netio/src/native/...` |
+| The wasm implementation | `FetchHttpClient`, which also implements `WebSocketConnector` | `foundation_netio/src/wasm/client/client.rs:113` |
+| The choice | `HttpClientBuilder::build()` | `foundation_netio/src/network_client.rs:83` |
+| The RPC transport | `H1Transport`, which holds a `DynNetClient` and has no target gate | `foundation_connectrpc/src/shared/transport/h1.rs:61` |
 
-Nothing polls the exchange after a drop. The `ReadableStream` reader is cancelled in `Drop`.
+`H1Transport::open` already writes a streaming request body:
+`pushable_request_body_with_readiness` gives a `SendSafeBody::Stream`, and on wasm
+`send_safe_body_to_js` turns that stream into a JS `ReadableStream` through
+`valtron::js_stream::iterator_to_readable_stream`
+(`foundation_netio/src/wasm/client/client.rs:395`). So a streamed request works today on both
+targets.
 
-## 2. `FetchExchange`
+`foundation_http` owns the serving side: `HttpApp<Arc<dyn CfServe>>`,
+`HttpApp<Arc<dyn WebServe>>`, `dispatch_cf`, `dispatch_web`, `CfConn`, `WebConn`, and the two
+bridges (`foundation_http/src/wasm/`). This specification does not add a router or a second
+serving stack.
+
+## 2. Gap 1: the wasm client reads the whole response
+
+Today `fetch_and_read` awaits `resp.text()`
+(`foundation_netio/src/wasm/client/client.rs:334`). Every response is in memory before
+`send_async` returns, with no bound (`max_body_size` defaults to `None`).
+
+The streaming read is not missing from the workspace. The SSE path already does it:
+`fetch_sse` takes `resp.body()` and the reader task in
+`foundation_netio/src/wasm/client/stream.rs:44` pushes each `Uint8Array` into a
+`ConcurrentQueue` and fires a `WakeRegistry`. T1 moves that reader into one shared type and
+uses it from both paths.
 
 ```rust
-// foundation_connectrpc/src/wasm/fetch_transport.rs
-struct FetchExchange<F: Fetcher> {
-    fetcher: Rc<F>,
-    request: RequestDescriptor,
-    config: FetchTransportConfig,
-    body: Rc<RefCell<Option<Vec<u8>>>>,       // the collected request body
-    head: PipeSender<SimpleHeaders>,
-    frames: PipeSender<Vec<u8>>,
-    state: Rc<RefCell<ExchangeState>>,
+// foundation_netio/src/wasm/client/stream.rs (extend the module that exists)
+
+/// The bytes of one wasm response, read one chunk at a time.
+///
+/// The JS reader lives inside the spawned task; this type holds `Arc` state
+/// only, so it is `Send` with no `unsafe impl` and no `SendWrapper`.
+pub struct WasmByteStream { /* queue, done, error, wake, cancelled */ }
+
+impl WasmByteStream {
+    /// At most `chunks` queued ahead of the consumer; stop after `max` bytes.
+    pub fn new(stream: web_sys::ReadableStream, chunks: usize, max: Option<usize>) -> Self;
+    /// The same bytes as `std::io::Read`, for the SSE parser.
+    pub fn reader(&self) -> QueueReader;
 }
 
-enum ExchangeState {
-    /// The client is still writing the request body.
-    Collecting,
-    /// The request is sent; the response head is awaited.
-    Sent,
-    /// The body streams.
-    Streaming,
-    /// The call ended with an error; the sink holds it.
-    Failed(TransportError),
+impl Iterator for WasmByteStream {
+    /// `Bytes` a chunk, `Retry` nothing yet (`Stream::Wait` for the caller),
+    /// `Err` a read error or a body over `max`, `None` at the end.
+    type Item = Result<Data, BoxedError>;
+}
+
+impl Drop for WasmByteStream {
+    /// Set `cancelled`; the task calls `reader.cancel()` and closes the queue.
+    fn drop(&mut self);
 }
 ```
 
-The exchange is `!Send`. It is wrapped in `SendWrapper` because `TransportStream` holds
-`Arc<dyn SendBody>` and `BodyStream` values that must pass the `Send` bound of the trait. On
-wasm there is one thread, so the wrapper is sound. `SendWrapper` asserts `Send` and `Sync`
-through `unsafe impl` and checks nothing at run time: it has no `Drop` check. A value cannot
-reach another thread here, because wasm has one thread. `FetchTransport` keeps one `Fetcher`
-for all its calls, and that field is `SendWrapper<Rc<F>>` for the same reason: `Transport`
-requires `Send + Sync`, and an `Rc` is neither.
+`fetch_and_read` then reads the head first and builds the body from `resp.body()`:
 
-## 3. `FetchServe` and the dispatch
-
-`ConnectRpcHandler::dispatch_to` takes a sink and a `CallHooks` value. `FetchServe` supplies
-both.
-
-```mermaid
-sequenceDiagram
-    participant RT as JS runtime
-    participant FS as FetchServe
-    participant D as dispatch future
-    participant S as ChannelSink
-    participant B as DispatchBody
-    RT->>FS: serve(request, extensions)
-    FS->>D: spawn dispatch_to(ChannelSink)
-    FS->>D: poll until the head arrives
-    D->>S: open(status, headers)
-    S-->>FS: head through the one-shot channel
-    FS->>RT: streaming_response_with(head, DispatchBody)
-    loop each read by the runtime
-        RT->>B: poll_next
-        B->>D: poll (the handler makes more frames)
-        D->>S: chunk(frame)
-        S-->>B: frame from the bounded channel
-        B-->>RT: the frame
-    end
-    RT->>B: drop (client went away)
-    B->>D: drop
+```rust
+let status = Status::from(resp.status().to_string());
+let headers = web_sys_headers_to_simple(&resp.headers());
+let body = match resp.body() {
+    Some(stream) => SendSafeBody::Stream(Some(Box::new(WasmByteStream::new(
+        stream,
+        config.body_queue_chunks,
+        config.max_body_size,
+    )))),
+    None => SendSafeBody::None, // 204, 304, HEAD
+};
+Ok(SimpleResponse::new(status, headers, body))
 ```
 
-_The diagram shows that the handler runs only while the runtime reads the body._
+`body_queue_chunks` is a new `ClientConfig` field, default 16. A browser chunk is 16 KiB to
+64 KiB, so the bound is 256 KiB to 1 MiB. `max_body_size` becomes a real limit on wasm: the
+reader counts the bytes it hands out and stops with an `HttpClientError` that names the
+limit. Its default stays as it is today.
 
-The pieces:
+Two details of the web platform decide the shape:
 
-| Type | Job |
+- `Response::body()` is `None` when there is no body. That is not an error, and it must not
+  become an empty `Text` body.
+- `cancel()` is the only way to release a connection early. The reader calls it in `Drop`, so
+  a caller that drops the stream stops the transfer.
+
+The `byob` reader (`ReadableStreamBYOBReader`) would save one copy per chunk. `web-sys` 0.3
+does not expose it everywhere, and the copy is not the cost that matters here. It is not in
+this specification.
+
+After this change `H1Transport` streams on wasm with no change of its own, and the wasm
+`open_exchange` drains a streaming body instead of a `SendSafeBody::Text`.
+
+## 3. Gap 2: the exchange task ignores its client
+
+`FetchHttpClient::open_exchange` builds `WasmHttpExchangeTask::new(req)`
+(`foundation_netio/src/wasm/client/client.rs:166`), and that task calls
+`fetch_via_client`, which builds a **new** `FetchHttpClient`
+(`foundation_netio/src/wasm/client/tasks/http_exchange_task.rs`). So `H1Transport::new(client)`
+on wasm never calls `client`.
+
+The design: `open_exchange` passes `self`, and the task calls `HttpClient::send_async` on that
+client. A DO stub client, a proxy client or a recording test client then works as it does on
+native.
+
+The capability constants follow the code: fetch streams a request body, so
+`WASM_FETCH_CAPABILITIES.request_streaming` is `true`. `full_duplex`, `h2_trailers` and
+`multiplexed` stay `false`.
+
+## 4. Gap 3: the response builder has no status
+
+`streaming_response` always answers 200 (`foundation_netio/src/wasm/response.rs:31`). A Connect
+error needs its own status.
+
+```rust
+pub fn streaming_response_with<S>(status: u16, headers: &SimpleHeaders, body: S)
+    -> Result<web_sys::Response, JsValue>
+where
+    S: Stream<Item = Vec<u8>> + 'static;
+```
+
+The body is pulled one chunk at a time. A cancel drops the source. `streaming_response` and
+`sse_response` keep their signatures and call it.
+
+## 5. Gap 4: the inbound body and the sink
+
+`foundation_http/src/wasm/bridge/web.rs` builds a `SimpleIncomingRequest` with `req.text()`.
+The bridge reads `req.body()` as a `ReadableStream` instead and gives a
+`SendSafeBody::Stream`, bounded by a config field. `bridge/cf.rs` does the same for the
+Cloudflare connection.
+
+The serving side of connectrpc needs one adapter: a `ResponseSink`
+(`foundation_connectrpc/src/shared/router/dispatch.rs:375`) over a streaming response.
+
+| Method | What it does |
 |---|---|
-| `ChannelSink` | Implements `ResponseSink`. `open` sends the head through a one-shot channel; `chunk` sends a frame into a bounded channel; `finish` closes the channel. A full channel returns `Pending`, so the handler pauses. |
-| `drive_until_head` | Polls the dispatch future and the one-shot head receiver together. Returns the head or the error. |
-| `DispatchBody` | A `Stream<Item = Result<Vec<u8>, TransportError>>`. Each poll polls the dispatch future first, then the frame receiver. When the dispatch future ends and the channel is empty, it ends. |
-| `RequestBody` | A `Stream<Item = Result<Vec<u8>, TransportError>>` over the request `ReadableStream`, bounded by `max_request_bytes`. Its error is `RESOURCE_EXHAUSTED`. |
+| `whole` | `streaming_response_with` over a one-chunk stream |
+| `open` | `streaming_response_with` from the head, and the stream waits for `chunk` |
+| `chunk` | one write into the stream |
+| `finish` | close the stream |
 
-### 3.1 Changes outside `foundation_connectrpc`
+A handler is polled only when the runtime asks for the next chunk, so a slow client slows the
+handler and memory stays flat. A dropped response drops the sink and stops the handler.
 
-| Crate | Change | Why |
-|---|---|---|
-| `foundation_netio` | `wasm::response::streaming_response_with(status, headers, body)` and `pull_readable_stream(body)`; `streaming_response` keeps its signature and calls them | `streaming_response` fixes status 200 and one content type. Connect needs the status and the headers of the handler. |
-| `foundation_compact` | `impl<S: Stream> Stream for SendWrapper<S>` (adds a `futures-core` dependency) | `RequestBody` must be `Send`. A JS body stream is not. |
-| `foundation_connectrpc` | `CallHooks::with_clock(&dyn Clock)`; dispatch reads the deadline from that clock | `dispatch.rs` today calls `std::time::Instant::now()`. That call panics on `wasm32-unknown-unknown`. Spec 84 supplies the clock. |
+Two rules make that true:
 
-### 3.2 Request conversion
+- **The pull parks.** `iterator_to_readable_stream` (`js_stream.rs:225`) takes one item per
+  pull. A source with no chunk yet answers `Data::Retry`. A loop over `Retry` freezes the one
+  wasm thread (root rule 6). The pull registers a waker on the queue's `WakeRegistry` and
+  returns a promise that resolves on the next push.
+- **A task, if one is needed, is a `#[valtron::task]`.** For example, a task that feeds the
+  queue from the handler is an `async fn` transition over an enum state with a terminal
+  `Done` arm: `async fn feed(ctx: Ctx, state: Feed) -> Option<(Feed, TaskStatus<R, P>)>`. Use
+  `feed::new(state)`. Do not write a struct with `impl TaskIterator`; the functional form has
+  less noise and is easier to test and to reason about.
 
-```rust
-pub fn request_body(
-    req: &web_sys::Request,
-    extensions: Extensions,
-    max_header_bytes: usize,
-    max_body_bytes: usize,
-) -> Result<(SimpleIncomingRequest, RequestBody), ServeError>;
-```
+## 6. The Durable Object client
 
-It reads the method, the URL path and the headers into a `SimpleIncomingRequest`. The header
-block is bounded by `max_header_bytes`. The body stays a stream. `extensions` carries the
-per-call values that the host knows, for example the Cloudflare client-certificate facts (spec
-83 feature 05 section 5.3) or the forwarded identity of a DO hop.
-
-## 4. The DO stub
+The Worker side of a call to a DO is a `NetClient`, not a new transport:
 
 ```rust
-pub struct StubFetcher {
-    stub: SendWrapper<worker::Stub>,
-    headers: Vec<(String, String)>,
-}
+// foundation_netio/src/cloudflare/stub_client.rs   (wasm + feature "cloudflare")
+pub struct StubHttpClient { /* SendWrapper<Rc<worker::Stub>> */ }
 
-impl Fetcher for StubFetcher {
-    fn fetch(&self, request: web_sys::Request) -> LocalBoxFuture<'static, Result<web_sys::Response, JsValue>> {
-        let stub = self.stub.clone();
-        let headers = self.headers.clone();
-        Box::pin(async move {
-            for (name, value) in &headers {
-                request.headers().set(name, value)?;
-            }
-            let response = stub.fetch_with_request(worker::Request::from(request))
-                .await
-                .map_err(js_error)?;
-            Ok(web_sys::Response::from(response))
-        })
-    }
-}
+impl HttpClient for StubHttpClient { /* stub.fetch_with_request */ }
+impl WebSocketConnector for StubHttpClient { /* Unsupported */ }
 ```
 
-`SendWrapper::clone` clones the `worker::Stub`, which is a JS handle. The header list is small
-and copied into the future, so the future owns no borrow.
+A Worker builds `H1Transport::new(Arc::new(StubHttpClient::new(env, binding, name)?))`. The
+transport, the streams and the error mapping are the ones of every other call. The forwarded
+identity headers stay with the caller: it adds them to the request that it sends.
 
-The DO response body is a `ReadableStream`, so turn events pass through with no buffering. Spec
-83 feature 05 section 5.6 has the DO side.
+## 7. Errors
 
-## 5. The browser
-
-`GlobalFetcher` calls the global `fetch`. In a browser page that is `window.fetch`; in a Worker
-it is the Worker's `fetch`. One implementation covers both, because both are the global
-function.
-
-```rust
-impl Fetcher for GlobalFetcher {
-    fn fetch(&self, request: web_sys::Request) -> LocalBoxFuture<'static, Result<web_sys::Response, JsValue>> {
-        Box::pin(async move {
-            let promise = global_fetch(&request)?;
-            Ok(JsFuture::from(promise).await?.unchecked_into())
-        })
-    }
-}
-```
-
-A browser page cannot choose a client certificate, so the browser client shows a bearer secret
-on each call (spec 86 supplies the `Secret` type; spec 83 feature 05 section 6.3 has the
-client). A Worker-to-DO call adds no CORS header, because it is not a browser call.
-
-## 6. Error mapping
-
-| Source | `TransportError` | Notes |
-|---|---|---|
-| The request body is larger than `max_request_bytes` | `RESOURCE_EXHAUSTED` | Before the send. |
-| `Fetcher::fetch` rejects | `Unavailable` with the JS error text | The text is cut to `max_error_message`. |
-| The status is 4xx or 5xx | The Connect code of the body frame, when the body has one; else `Unavailable` | The error body is read up to `max_error_body_bytes`. |
-| A header is not valid for a fetch request | `InvalidArgument` with the header name | Before the send. |
-| The response body stream fails | `Unavailable` | After the head. |
-| The call is a gRPC call | `Unimplemented` with the text "gRPC needs HTTP/2 trailers" | `FetchServe` only. |
-
-## 7. Tests of this file
-
-| Case | Test |
+| Case | Result |
 |---|---|
-| The four phases of section 1 | `exchange_phases` |
-| A drop cancels the reader | `drop_cancels_reader` |
-| A full frame channel pauses the handler | `backpressure_pauses` |
-| A header that fetch rejects | `invalid_header_refused` |
-| The error body bound | `error_body_bounded` |
-| A DO stub header is present | `stub_header_set` |
-| The global fetch is used in a browser build | `global_fetcher_browser` |
+| A response body larger than `max_body_size` | `HttpClientError` that names the limit, after the head |
+| A fetch that fails | `HttpClientError::Reason` with the JS error |
+| A request that needs full duplex or HTTP/2 trailers | `TransportError` from `check_compatible`, before any fetch |
+| gRPC (`application/grpc`) at a fetch server | `UNIMPLEMENTED`, "gRPC needs HTTP/2 trailers" |
+| A client that goes away | the source is dropped; the handler sees the call end |
 
-All tests are in `backends/foundation_connectrpc/tests/wasm/` and run under Node.
+## 8. What a consumer must not do
 
----
-
-_Created: 2026-11-15. Moved from spec 83 feature 05 (`worker-and-web.md` sections 5.4, 5.5 and
-6.2) and adapted: no `ContextBag`, the clock and the timer come from `Ctx` (spec 84), and the
-`Fetcher` header list replaces the hard-coded forwarded header._
+- Do not add a client trait, a transport or a body pump. Use `HttpClient`, `DynNetClient` and
+  `H1Transport`.
+- Do not read a body with `text()` or `array_buffer()`.
+- Do not build a client inside a task. Pass it.
+- Do not write a second `SendWrapper`, and do not use `unsafe impl Send`.
+- Do not set CORS in a library. The host sets it.

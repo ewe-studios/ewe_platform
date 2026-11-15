@@ -79,7 +79,7 @@ ASD-STE100.
 
   | Defect | Direction | What changed here |
   |---|---|---|
-  | The wasm fetch pump was planned in three places | One owner, delivered first | [Spec 85](../85-wasm-fetch-transport/requirements.md) owns `FetchTransport`, `FetchServe` and `DoStubTransport`. Feature 07 section 6.5 and feature 08 section 6.4 use it and write no pump. |
+  | The wasm fetch pump was planned in three places | One owner, delivered first | [Spec 85](../85-wasm-fetch-transport/requirements.md) owns the wasm gaps: the streaming response body of the wasm client, the streaming bridges and sink, and `StubHttpClient`. Feature 07 section 6.5 and feature 08 section 6.4 use `H1Transport` over a `DynNetClient` and write no pump. |
   | Mutual TLS was deferred to spec 65, which no longer owns it | One specification for mTLS | [Spec 87](../87-mutual-tls/requirements.md) owns the CA, the trust store, the verifiers and the mTLS providers. Question Q4 points there. Feature 06 section 6.5 names `ServerTlsConfig` and `MtlsAuth`. |
   | Two `Secret` types and two bearer parsers | One small specification in `foundation_auth` | [Spec 86](../86-auth-primitives/requirements.md) owns `Secret`, `constant_time_eq` and the bearer parser. Feature 00 section 6.10 defines none; feature 02 section 6.10 has `authorize` over spec 86's `Secret`. |
   | Two meanings of `IdSource`, and an `Env` design that did not match `Ctx` | One featureless specification | [Spec 84](../84-context-injection/requirements.md) owns the `Env` entry. Feature 02's enum is renamed `SandboxIdPolicy`, and the field is `id_policy`. |
@@ -199,6 +199,16 @@ Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
 `foundation_deployment_docker`) remains. Q1 and Q3 are closed (decisions D10 and D11). Q5 is
 closed: the 2026-11-14 pass added the `start.md` files. Q4 is closed by decisions D15 and D17: a signed
 secret or Cloudflare's own mTLS, through the `Secret` of spec 86 and the `CfMtlsAuth` of spec 87.
+
+- 2026-11-15 (sixth note): "the core idea is `DynNetClient` is the platform agnostic way",
+  and "and connectrpc already builds on it". So `RuntimeFetch` leaves this specification
+  completely. `CloudflarePlatform` holds the `Ctx`, the two controls and the container
+  control; it carries no HTTP client. Section 6.0 says why: `HttpClient`, `DynNetClient`,
+  `HttpClientBuilder::build()` and `H1Transport` already exist on both targets, so a wrapper
+  around the raw JavaScript `fetch` repeats a solved problem. Feature 07 section 6.5 makes
+  `ContainerPortTransport` a thin wrapper over `H1Transport`. Feature 08's Worker entry is
+  `foundation_http`'s `HttpApp<Arc<dyn CfServe>>`. Spec 85 was rewritten for the same reason:
+  it now fills four gaps inside the existing types instead of adding a transport.
 
 ## Findings to file as GitHub issues
 
