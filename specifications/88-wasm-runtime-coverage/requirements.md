@@ -418,6 +418,7 @@ These are filed under root rule 9 before feature 00 starts:
 | #574 | low | stale runner names in testbed comments (`bindgen_runner.rs` says `browser`, `wasm_tests` says `node`) |
 | #575 | medium | `foundation_core`'s 19 `dual!` wasm-bindgen cases pass on Deno, but no CI step runs them |
 | #576 | low | `foundation_testing` pulls `socket2`, so a package-level `--tests` wasm32 check fails for `foundation_http`; the lib check is the only form |
+| #577 | low | the owned wasm harness supplies only `abi`, so a crate that imports wasm-bindgen glue cannot use it; a port of `foundation_netio`'s fetch client to the owned ABI would remove the limit |
 
 ## 10. Success criteria
 

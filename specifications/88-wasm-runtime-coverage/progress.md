@@ -77,6 +77,9 @@ answer and the measured plan. They are not the owner's words.
 | #575 | medium | 01 T1 and T5 |
 | #576 | low | 00 T8 records the check form; the issue stays open until `foundation_testing` builds for wasm32 |
 
+#577 is recorded and not closed: the port it proposes is out of scope for this specification
+(`requirements.md` section 2.7 and `LEARNINGS.md` entry 1).
+
 ## Next steps
 
 1. Feature 00 starts alone (approved 2026-11-16).
