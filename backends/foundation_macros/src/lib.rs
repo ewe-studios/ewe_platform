@@ -9,6 +9,7 @@ mod docker_container;
 mod embedders;
 mod from_arrow;
 mod html_macro;
+mod include_data;
 mod json_hash;
 mod json_schema;
 mod mobile_directory;
@@ -34,6 +35,46 @@ mod wireguard;
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
 // Import from foundation_nostd::macros.
+
+// ── Compile-time data macros ──
+
+/// Read a JSON object of strings at compile time and emit a
+/// `phf::Map<&'static str, &'static str>`.
+///
+/// The path is one string literal, relative to the calling crate's
+/// `CARGO_MANIFEST_DIR`. The crate must depend on `foundation_nostd`: the
+/// emitted value names `foundation_nostd::phf`. It needs no `phf` dependency
+/// and no build script.
+///
+/// The build fails when the file is absent, the text is not an object, a value
+/// is not a string, or a key repeats. `serde_json` keeps the last pair of a
+/// repeated key, so the macro walks the object pair by pair and refuses a
+/// repeat itself.
+///
+/// ```ignore
+/// static TYPES: ::foundation_nostd::phf::Map<&'static str, &'static str> =
+///     foundation_macros::include_json!("data/types.json");
+/// ```
+#[proc_macro]
+pub fn include_json(input: TokenStream) -> TokenStream {
+    include_data::include_json(input)
+}
+
+/// Read a YAML mapping of strings at compile time and emit a
+/// `phf::Map<&'static str, &'static str>`.
+///
+/// The contract matches [`include_json`]. A scalar key becomes its text form.
+/// The macro refuses a key that is a sequence or a mapping, a repeated key, a
+/// value that is not a string, and text that is not a mapping.
+///
+/// ```ignore
+/// static TYPES: ::foundation_nostd::phf::Map<&'static str, &'static str> =
+///     foundation_macros::include_yaml!("data/types.yaml");
+/// ```
+#[proc_macro]
+pub fn include_yaml(input: TokenStream) -> TokenStream {
+    include_data::include_yaml(input)
+}
 
 // ── Embed macros ──
 

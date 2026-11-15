@@ -1,6 +1,6 @@
 [package]
 name = "foundation_macros"
-version = "0.0.21"
+version = "0.0.22"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,7 +14,13 @@ readme = "README.md"
 proc-macro = true
 
 [dependencies]
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
+# `include_json!` and `include_yaml!` write a `phf::Map` literal at expansion
+# time. The runtime map type comes from `foundation_nostd`'s `phf` re-export.
+phf_codegen = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml_ng = { workspace = true }
 # Shared theme CSS generator — called at macro-expansion time so theme!{} and
 # #[derive(ThemeTokens)] embed identical, runtime-generated CSS.
 foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
@@ -41,12 +47,10 @@ sha2 = "0.10.8"
 base85rs = "0.1"
 
 # Compute the mime types
-new_mime_guess = "4.0"
+new_mime_guess = { workspace = true }
 
 [dev-dependencies]
 trybuild = "1.0"
-serde = { workspace = true }
-serde_json = { workspace = true }
 foundation_arrow = { path = "../foundation_arrow" }
 foundation_jsonschema = { path = "../foundation_jsonschema" }
 # No version: path-only dev-dependencies are stripped on publish, which

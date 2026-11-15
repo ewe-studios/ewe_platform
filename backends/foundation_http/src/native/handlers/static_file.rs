@@ -32,28 +32,14 @@ use crate::native::writer::{
 use crate::shared::context::Ctx;
 use crate::shared::serve::{ConnectionResult, ServeOutcome};
 
-/// MIME type detection based on file extension.
-fn mime_type(path: &Path) -> &str {
-    match path.extension().and_then(|e| e.to_str()) {
-        Some("html" | "htm") => "text/html",
-        Some("css") => "text/css",
-        Some("js") => "application/javascript",
-        Some("json") => "application/json",
-        Some("png") => "image/png",
-        Some("jpg" | "jpeg") => "image/jpeg",
-        Some("gif") => "image/gif",
-        Some("svg") => "image/svg+xml",
-        Some("ico") => "image/x-icon",
-        Some("woff") => "font/woff",
-        Some("woff2") => "font/woff2",
-        Some("ttf") => "font/ttf",
-        Some("txt") => "text/plain",
-        Some("xml") => "application/xml",
-        Some("pdf") => "application/pdf",
-        Some("zip") => "application/zip",
-        Some("wasm") => "application/wasm",
-        _ => "application/octet-stream",
-    }
+/// The media type for the last extension of `path`, from the one shared table.
+///
+/// The table lives in `foundation_netio::shared::mime`. This handler keeps no
+/// extension map of its own. An unknown name gets the handler's fallback, which
+/// is the caller's choice (rule R3).
+fn mime_type(path: &Path) -> &'static str {
+    foundation_netio::shared::mime::from_path(path)
+        .unwrap_or(foundation_netio::shared::mime::OCTET_STREAM)
 }
 
 /// Limits for [`StaticFileHandler`].

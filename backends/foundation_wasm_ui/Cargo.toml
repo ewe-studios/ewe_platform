@@ -26,11 +26,11 @@ foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }
 foundation_signals = { path = "../foundation_signals", version = "0.0.5", default-features = false, features = ["single_threaded"] }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
-foundation_macros = { path = "../foundation_macros", version = "0.0.21" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
 # Theme token model + shared CSS generator (the theme!{} macro, ThemeTokens
 # derive, and runtime Theme builder all route through it).
 foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 tracing = { version = "0.1", default-features = false }
 # Arrow IPC v2 over the loop (the `arrow` feature).
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }

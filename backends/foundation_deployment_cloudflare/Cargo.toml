@@ -33,7 +33,7 @@ version = "0.0.6"
 # Native only: nothing on wasm32 uses it.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.21"
+version = "0.0.22"
 
 # Native only: `types.rs` (errstacks) and the REST API client `client.rs` and
 # `dns_ops.rs` (netio) sit behind `cfg(not(target_family = "wasm"))`, so on wasm32
@@ -51,7 +51,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.14"
+version = "0.0.15"
 
 # Native: `types.rs` and `dns_ops.rs`. The wasm32 entries (optional, enabled by the
 # `workers` feature) are in the wasm table below.

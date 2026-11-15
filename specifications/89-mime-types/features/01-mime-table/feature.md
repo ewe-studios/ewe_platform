@@ -1,7 +1,7 @@
 ---
 feature: "MIME Types"
 description: "One compile-time media type table for the platform: a JSON data file from mime-db, an include_json and include_yaml macro in foundation_macros, and a shared module in foundation_netio that every crate uses."
-status: "todo"
+status: "done"
 priority: "medium"
 depends_on: []
 estimated_effort: "medium"
@@ -10,16 +10,16 @@ last_updated: 2026-11-16
 author: "Main Agent"
 model: "sonnet"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # MIME Types
 
-_Status: **draft, waiting for the owner's approval**. Written in ASD-STE100 Simplified
-Technical English (STE). Code and identifiers do not change._
+_Status: **done 2026-11-16**. Written in ASD-STE100 Simplified Technical English (STE).
+Code and identifiers do not change._
 
 **Abbreviations in this file.** Multipurpose Internet Mail Extensions (MIME); Internet Assigned
 Numbers Authority (IANA); JavaScript Object Notation (JSON); Yet Another Markup Language

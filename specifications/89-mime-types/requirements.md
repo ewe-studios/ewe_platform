@@ -1,7 +1,7 @@
 # Requirements: Spec 89, MIME Types
 
-_Status: **draft, waiting for the owner's approval**. Written in ASD-STE100 Simplified
-Technical English (STE). Code and identifiers do not change._
+_Status: **approved 2026-11-16; implemented in feature 01**. Written in ASD-STE100
+Simplified Technical English (STE). Code and identifiers do not change._
 
 ## Glossary
 
@@ -35,9 +35,9 @@ asks for a different design:
 | `foundation_macros` builds embedded asset media types with `new_mime_guess::MimeGuess::from_path` | `embedders.rs:5`, 14 call sites |
 | The browser test server writes its own JavaScript type | `foundation_browser/src/test/server.rs:231` |
 | `foundation_netio` has no media type module | `backends/foundation_netio/src/shared/mod.rs` |
-| The standard database `mime-db` 1.54.0 holds 2,601 media types | downloaded 2026-11-16 from `jshttp/mime-db` |
-| Those types give 1,246 extensions | counted with the generator rule in section 5 |
-| 56 extensions carry two or more candidate types | counted with the same rule |
+| The standard database `mime-db` 1.54.0 holds 2,522 media types | downloaded 2026-11-16 from `jshttp/mime-db`; counted 2026-11-16 |
+| Those types give 1,239 extensions | counted with the generator rule in feature 01 section 6.4 |
+| 48 extensions carry two or more candidate types | counted with the same rule |
 | `.mjs` is `text/javascript` from IANA | `mime-db` entry `text/javascript` |
 | `.js` is both `application/javascript` (Apache) and `text/javascript` (IANA) | `mime-db` entries for both |
 | The workspace has `serde_json` 1 and no `phf` | root `Cargo.toml` |
