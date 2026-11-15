@@ -74,9 +74,9 @@ Two findings already change the plan's premises:
    `WasmByteStream` and uses it from `send_async`.
 
 Issue #556 records the first three corrections, with the audit that found them. It is closed.
-#557 (high) records the whole-body read and closes with T1. #558 (medium) records the stale
-capability constant and closes with T2. #559 (medium) records that `open_exchange` ignores its
-client and closes with T2.
+Issue #557 (high) records the whole-body read and closes with T1. Issue #558 (medium) records
+the stale capability constant and closes with T2. Issue #559 (medium) records that
+`open_exchange` ignores its client and closes with T2.
 
 ## Where this specification came from
 
@@ -116,6 +116,16 @@ builders (`CfConn::into_response` at `wasm/cf_conn.rs:64`, `WasmResponse` at
 `wasm/response.rs:5`), and both buffer. The plan uses `foundation_netio`'s
 `streaming_response_with`, the only one that takes a stream, and says so in section 4.4 of the
 plan and in `fetch.md`.
+
+Two issues came out of the review:
+
+- #563 (medium): `foundation_netio`'s wasm suite never executes, and
+  `foundation_connectrpc` has no wasm test target. T6 closes it.
+- #564 (low): `mise.toml`'s `test:wasm:node` and `test:wasm:node-single` point at
+  `./tests/integrations/`, which does not exist. Delete them.
+
+Issue #557 and issue #558 got a correction comment: both said spec 85 adds a `FetchTransport`.
+It does not.
 
 ## Next steps
 
