@@ -112,7 +112,7 @@ in-process (`wasm-embedded-js` feature). No external `node` or `deno` binary.
 
 1. `cargo build --target wasm32-unknown-unknown` (lib only, LLVM backend)
 2. Discovers `__fwt_*` function exports + `__fwt_manifest` custom section
-3. Stages a self-contained harness (`runner.mjs` + `foundation-wasm.js`) in a temp dir
+3. Stages a self-contained harness (`runner.js` + `foundation-wasm.js`) in a temp dir
 4. Runs: embedded Deno (in-process) or Chromium (CDP)
 
 Each test case runs in a **fresh WebAssembly instance** (panic aborts the
