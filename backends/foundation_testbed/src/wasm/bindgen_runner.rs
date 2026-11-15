@@ -1,9 +1,10 @@
-//! F52: `wasm-testbed browser <crate>` — end-to-end wasm-bindgen browser tests.
+//! `wasm-testbed test bindgen-web <crate>` — end-to-end wasm-bindgen browser
+//! tests. The top-level `browser` subcommand runs the owned harness, not this
+//! runner.
 //!
-//! WHY: The `test bindgen-web` sub-mode was buried under the `test` command and
-//! required the user to know about `Mode::BindgenWeb`. This runner lifts that
-//! logic into a top-level `browser` subcommand, matching the `deno`/`web`
-//! command shape, for a single-command developer experience.
+//! WHY: A crate that imports wasm-bindgen glue cannot run on the owned harness
+//! (spec 88 section 2.7), so its cases need a real browser page and the
+//! wasm-bindgen output.
 //!
 //! WHAT: build → wasm-bindgen → discover tests → stage harness → serve →
 //! Chromium → poll for results.

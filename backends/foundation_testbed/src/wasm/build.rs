@@ -154,39 +154,31 @@ fn run_impl(
         &target_dir,
     )?;
 
-    // Prefer what cargo reported. Tests: the test binary carrying
-    // `__wbgt_` exports. Library: the package's own cdylib.
-    let reported = if include_tests {
+    // Collect every artifact cargo reported that answers the request. For a
+    // test build, an artifact is a candidate when it carries `__wbgt_` exports.
+    let deps_dir = target_dir.join(target_triple).join(profile).join("deps");
+    let mut candidates: Vec<PathBuf> = if include_tests {
         artifacts
             .iter()
             .filter(|(_, is_test)| *is_test)
-            .find(|(path, _)| has_wasm_bindgen_tests(path))
+            .filter(|(path, _)| has_wasm_bindgen_tests(path))
             .map(|(path, _)| path.clone())
+            .collect()
     } else {
         artifacts
             .iter()
             .filter(|(_, is_test)| !*is_test)
-            .find(|(path, _)| {
+            .filter(|(path, _)| {
                 path.file_stem()
                     .is_some_and(|stem| stem.to_string_lossy() == package_name.replace('-', "_"))
             })
             .map(|(path, _)| path.clone())
+            .collect()
     };
-    if let Some(wasm_path) = reported {
-        info!("Built wasm: {}", wasm_path.display());
-        return Ok(BuildOutput {
-            wasm_path,
-            package_name,
-            profile: profile.to_string(),
-        });
-    }
 
-    let deps_dir = target_dir.join(target_triple).join(profile).join("deps");
-
-    // When building with --tests, find the test wasm binary containing
-    // __wbgt_ exports (wasm-bindgen). Scan ALL .wasm files in deps/ —
-    // cargo names them mod-<hash>.wasm, {pkg}-<hash>.wasm, or
-    // {test_target}-<hash>.wasm depending on how the test target is defined.
+    // Cargo does not always report a test artifact. Scan deps/ as well: cargo
+    // names the file mod-<hash>.wasm, {pkg}-<hash>.wasm or
+    // {test_target}-<hash>.wasm depending on how the target is defined.
     if include_tests && deps_dir.exists() {
         for entry in std::fs::read_dir(&deps_dir)
             .ok()
@@ -208,14 +200,34 @@ fn run_impl(
                 continue;
             }
             let path = entry.path();
-            if has_wasm_bindgen_tests(&path) {
-                info!("Built test wasm: {}", path.display());
-                return Ok(BuildOutput {
-                    wasm_path: path,
-                    package_name,
-                    profile: profile.to_string(),
-                });
+            if has_wasm_bindgen_tests(&path) && !candidates.contains(&path) {
+                candidates.push(path);
             }
+        }
+    }
+
+    match candidates.len() {
+        0 => {}
+        1 => {
+            let wasm_path = candidates.remove(0);
+            info!("Built wasm: {}", wasm_path.display());
+            return Ok(BuildOutput {
+                wasm_path,
+                package_name,
+                profile: profile.to_string(),
+            });
+        }
+        _ => {
+            // Two test targets in one crate build two modules. The runner
+            // cannot choose one without hiding the other (rule R10).
+            candidates.sort();
+            return Err(WasmTestbedError::AmbiguousTestArtifact {
+                candidates,
+                hint: "Keep one test target per crate (rule R10): put every case in one \
+                       tests/*.rs file, or keep a single [[test]] target."
+                    .to_string(),
+            }
+            .trace());
         }
     }
 

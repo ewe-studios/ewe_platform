@@ -194,7 +194,7 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     run_bindgen_deno(&build, &integration_dir, args.filter.as_deref())?;
                 }
                 Mode::BindgenWrangler => {
-                    run_bindgen_wrangler(&build, &integration_dir)?;
+                    run_bindgen_wrangler(&build, &integration_dir, args.filter.as_deref())?;
                 }
                 _ => unreachable!(),
             }
@@ -365,6 +365,7 @@ fn failed_count(summary: &str) -> usize {
 fn run_bindgen_wrangler(
     build: &build::BuildOutput,
     integration_dir: &std::path::Path,
+    filter: Option<&str>,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
@@ -406,7 +407,13 @@ fn run_bindgen_wrangler(
         .map_err(|e| WasmTestbedError::Io(e).trace())?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
-    let tests = wasm_test::discover_tests(&bg_wasm)?;
+    let mut tests = wasm_test::discover_tests(&bg_wasm)?;
+    if let Some(filter) = filter {
+        tests.retain(|name| name.contains(filter));
+    }
+    if tests.is_empty() {
+        return Err(WasmTestbedError::NoFwtCases(bg_wasm.display().to_string()).trace());
+    }
     tracing::info!("Discovered {} tests", tests.len());
 
     init::write_bindgen_runjs_to(

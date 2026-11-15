@@ -54,6 +54,15 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     WasmBinaryNotFound(String),
 
+    #[display(
+        "more than one wasm test artifact carries `__wbgt_` exports:\n{candidates:?}\n{hint}"
+    )]
+    #[error(ignore)]
+    AmbiguousTestArtifact {
+        candidates: Vec<std::path::PathBuf>,
+        hint: String,
+    },
+
     // --- wasm.rs ---
     #[display(
         "wasm-bindgen not found on PATH.\n\

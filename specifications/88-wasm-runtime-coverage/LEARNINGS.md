@@ -260,3 +260,24 @@ lost", but the cause was not a refusal: workerd gave the worker a request URL wi
 (registered host function + one yield per poll). The bindgen fixture has the case of the same
 name, which uses `web_sys` fetch so it runs on Deno, the page and workerd. The filter `--filter
 echo` runs each alone. The route itself has two tests in `tests/echo_server_tests.rs`.
+
+## 13. The artifact choice and the wrangler filter (T7)
+
+**Measured.** A scratch crate with two test files (`tests/one.rs`, `tests/two.rs`) built two
+wasm modules that both carry `__wbgt_` exports. The old code took the first one cargo reported
+(or the first in `deps/`), so one test target ran and the other vanished with no message.
+
+**Fix.** `build::run_impl` collects every candidate that answers the request and stops at the
+first one only when there is exactly one. Two or more fail with
+`AmbiguousTestArtifact { candidates, hint }`; the message lists both paths and says to keep one
+test target (rule R10). Verified:
+
+```
+Error: more than one wasm test artifact carries `__wbgt_` exports:
+["…/out/two-1e9256…wasm", "…/out/one-34af42…wasm"]
+Keep one test target per crate (rule R10): put every case in one tests/*.rs file, or keep a single [[test]] target.
+```
+
+**Also in T7.** `test bindgen-wrangler --filter <name>` keeps only the matching cases before it
+writes `worker.js`. On the fixture, `--filter a_passes` reported "Discovered 1 tests" and `test
+result: ok. 1 passed`. The two stale runner names are corrected (#574).
