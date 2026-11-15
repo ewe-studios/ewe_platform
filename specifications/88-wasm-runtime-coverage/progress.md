@@ -48,6 +48,7 @@ that records the result and closes #578.
 | `bf3035a77` | T7 | `--filter` on `test bindgen-wrangler`, and two test artifacts fail with both names |
 | `532b54488` | T8 | the five executors and the failing fixture in the `wasm-tests` CI job |
 | `b143a07ca` | T8 | the testbed docs name the right runner and browser host |
+| `835fc2ee4` | T9 | the web, deno and wrangler runners drop libtest's `main` from the glue |
 
 Measured on macOS with Chrome for Testing 157.0.8103.51:
 
