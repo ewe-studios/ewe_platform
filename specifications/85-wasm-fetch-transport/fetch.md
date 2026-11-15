@@ -19,9 +19,9 @@ that direction.
 |---|---|---|
 | The trait | `HttpClient: Send + Sync` | `foundation_netio/src/shared/client/http_client.rs:65` |
 | The handle | `DynNetClient = Arc<dyn NetClient>` | `foundation_netio/src/network_client.rs:41` |
-| The native implementation | `NativeHttpClient` | `foundation_netio/src/native/...` |
-| The wasm implementation | `FetchHttpClient`, which also implements `WebSocketConnector` | `foundation_netio/src/wasm/client/client.rs:113` |
-| The choice | `HttpClientBuilder::build()` | `foundation_netio/src/network_client.rs:83` |
+| The native implementation | `NativeHttpClient` | `foundation_netio/src/http/http_client_impl.rs:50` |
+| The wasm implementation | `FetchHttpClient`, which also implements `WebSocketConnector` | `foundation_netio/src/wasm/client/client.rs:56` |
+| The choice | `HttpClientBuilder::build()` | `foundation_netio/src/network_client.rs:440` |
 | The RPC transport | `H1Transport`, which holds a `DynNetClient` and has no target gate | `foundation_connectrpc/src/shared/transport/h1.rs:61` |
 
 `H1Transport::open` already writes a streaming request body:
@@ -129,8 +129,8 @@ The capability constants follow the code: fetch streams a request body, so
 
 ## 4. Gap 3: the response builder has no status
 
-`streaming_response` always answers 200 (`foundation_netio/src/wasm/response.rs:31`). A Connect
-error needs its own status.
+`streaming_response` always answers 200 (`foundation_netio/src/wasm/response.rs:33`), and
+`sse_response` does too (`:91`). A Connect error needs its own status.
 
 ```rust
 pub fn streaming_response_with<S>(status: u16, headers: &SimpleHeaders, body: S)
@@ -141,6 +141,12 @@ where
 
 The body is pulled one chunk at a time. A cancel drops the source. `streaming_response` and
 `sse_response` keep their signatures and call it.
+
+`foundation_http` already has two served-side builders, and both build a `Vec<u8>`:
+`CfConn::into_response` (`foundation_http/src/wasm/cf_conn.rs:64`) and `WasmResponse` with
+`build_response` and `from_wasm` (`foundation_http/src/wasm/response.rs:5`). This
+specification adds no third one. The sink in section 5 uses `streaming_response_with`, because
+it is the only builder that takes a stream.
 
 ## 5. Gap 4: the inbound body and the sink
 

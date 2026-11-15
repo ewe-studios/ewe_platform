@@ -64,7 +64,7 @@ The workspace already sends HTTP on native and on wasm through one abstraction:
   is `Send + Sync`. `NativeHttpClient` implements it on native and `FetchHttpClient` implements
   it on wasm (`backends/foundation_netio/src/wasm/client/client.rs:113`).
 - `DynNetClient = Arc<dyn NetClient>` (`backends/foundation_netio/src/network_client.rs:41`)
-  is the handle that code holds. `HttpClientBuilder::build()` (`network_client.rs:83`) picks
+  is the handle that code holds. `HttpClientBuilder::build()` (`network_client.rs:440`) picks
   the implementation of the target. `FetchHttpClient` also implements `WebSocketConnector`
   (`websocket/wasm/http_client_connector.rs:23`), so a wasm handle is a full `NetClient`.
 - `foundation_connectrpc::H1Transport`
@@ -87,7 +87,7 @@ Four small things are missing or wrong on the wasm side, and this specification 
    (`wasm/client/client.rs:166`). A caller that gives a `DynNetClient` of its own, such as one
    that reaches a DO stub, is silently bypassed (issue #559).
 3. `foundation_netio::wasm::response::streaming_response` always answers status 200 and sets
-   two headers (`backends/foundation_netio/src/wasm/response.rs:31`), so a Connect response
+   two headers (`backends/foundation_netio/src/wasm/response.rs:33`), so a Connect response
    with an error status cannot use it.
 4. The inbound path of `foundation_http` reads the whole request body
    (`foundation_http/src/wasm/bridge/web.rs`, `req.text()`), so a served call cannot stream its
@@ -109,7 +109,7 @@ request path exists and works today, so `H1Transport` is correct to report
 | `H1Transport` | `shared/transport/h1.rs:61`, no target gate, streaming request body | yes, unchanged |
 | request streaming on wasm | `SendSafeBody::Stream` → `iterator_to_readable_stream` (`wasm/client/client.rs:395`) | yes, unchanged |
 | HTTP exchange | `HttpExchangeClientTask`, `HttpExchange::{Head, BodyChunk, Failed}` (`shared/client/request_task.rs`), `WasmHttpExchangeTask` (`wasm/client/tasks/http_exchange_task.rs`), `SendSafeBodyBytesIterator` (`shared/client/body_reader.rs`) | yes: T2 changes which client it uses |
-| response builder | `streaming_response` and `sse_response` (`wasm/response.rs`) | yes: T3 adds a status and header parameter |
+| response builder | `streaming_response` (`wasm/response.rs:33`) and `sse_response` (`:91`), both behind the `wasm-fetch` feature (`wasm/mod.rs:8`) | yes: T3 adds a status and header parameter |
 | serving stack | `foundation_http::wasm`: `HttpApp<Arc<dyn CfServe>>`, `HttpApp<Arc<dyn WebServe>>`, `dispatch_cf`, `dispatch_web` (`wasm/dispatch.rs`), `CfConn` (`wasm/cf_conn.rs`), `bridge/cf.rs`, `bridge/web.rs`, `WasmHttpAppSingleton`, `CfHttpAppSingleton` | yes: T4 reuses it |
 | `ResponseSink` | `shared/router/dispatch.rs:375`: `whole`, `open`, `chunk`, `finish` | yes: T4 implements `ConnectSink` over `CfConn` |
 | `ConnectRpcHandler::dispatch_to` | writes to a `ResponseSink` | yes, unchanged |
@@ -339,6 +339,12 @@ Two pieces are missing:
    `foundation_connectrpc` already depends on `foundation_http` on wasm, so the sink lives
    there and every wasm consumer shares it.
 
+   Two response builders already exist on wasm: `CfConn::into_response`
+   (`foundation_http/src/wasm/cf_conn.rs:64`) and `WasmResponse` with `build_response` and
+   `from_wasm` (`foundation_http/src/wasm/response.rs:5`, behind `wasm-bindgen-http`). Both
+   build a `Vec<u8>`. `ConnectSink` builds its reply with
+   `foundation_netio::wasm::response::streaming_response_with`; it adds no third builder.
+
 The sink follows the pull rule of `streaming_response`: the handler is polled only when the
 runtime asks for the next chunk. A full queue pauses the handler.
 
@@ -462,9 +468,36 @@ drops the stream after 10, then the source is dropped and the handler sees the c
 
 ## 8. Tests
 
-Client tests are in `backends/foundation_netio/tests/wasm/`, transport tests in
-`backends/foundation_connectrpc/tests/wasm/`, and both run under Node (`wasm-bindgen-test`). A
-test client is a `NetClient` that answers from a map, so no network is needed.
+There is no Node wasm runner and no wasm `cargo test` runner in this workspace. The tests run
+in the `wasm-testbed` binary (`backends/foundation_testbed`), in three modes:
+
+| Mode | Command | Runtime |
+|---|---|---|
+| `bindgen-deno` | `mise run test:wasm-bindgen:deno` (`mise.wasm.toml:29`) | Deno, installed at the pinned version |
+| `bindgen-web` | `wasm-testbed test bindgen-web <crate> --headless` | headless Chromium through Playwright; no mise task and no CI caller today |
+| `bindgen-wrangler` | `mise run test:wasm-testbed:wrangler` | `wrangler dev --local`, with real D1, R2 and KV bindings |
+
+A test in these modes uses `#[wasm_bindgen_test]` or `#[valtron_bindgen]`. `#[valtron_test]`
+is native only, because it expands to `#[test]`.
+
+Today `foundation_netio`'s wasm test targets are compile-checked only
+(`scripts/ci/ci.py:751-753`); no step executes them, and `foundation_connectrpc` has no wasm
+test target. T6 adds both.
+
+`foundation_netio`'s suite marks itself `run_in_browser`
+(`foundation_netio/tests/wasm/mod.rs:3`). The testbed drives the `__wbgt_` exports with its own
+`run.js` and does not load wasm-bindgen-test's harness, so Deno should run it, as it runs the
+other suites. T6 measures that first; if a test needs a DOM API, it moves to `bindgen-web`.
+
+There is no fake `fetch` on any target, so a test that exercises `FetchHttpClient` fetches a
+real endpoint. The `bindgen-wrangler` mode already passes its bindings to the wasm as a global
+(`globalThis.__CF_TEST_ENV__`, `foundation_db/integration/wasm_cf/src/lib.rs:22`). T6 follows
+that precedent in the `bindgen-deno` template
+(`foundation_testbed/src/wasm/templates/bindgen-deno/run.js`): it starts a `Deno.serve`
+handler that answers a streamed body, and sets its URL as a global. The Deno runner already
+allows network access (`foundation_testbed/src/wasm/deno.rs:46`). A test of a non-fetch
+`NetClient` (T2's "the exchange uses its client", T5's stub client) answers from a map and
+needs no endpoint.
 
 | Rule or scenario | Test | Oracle |
 |---|---|---|
@@ -483,12 +516,25 @@ test client is a `NetClient` that answers from a map, so no network is needed.
 
 | Task | What | Main files | Done when |
 |---|---|---|---|
-| T1 | `WasmByteStream` (one reader for the SSE path and `send_async`), bounded by `body_queue_chunks` and `max_body_size` | `foundation_netio/src/wasm/client/stream.rs`, `src/wasm/client/client.rs`, `src/shared/client/config.rs` | `send_async_streams_body`, `body_limit`, `queue_is_bounded` and `cancel_drops_source` pass under Node; the SSE tests still pass; #557 closes |
-| T2 | `open_exchange` passes `self`; the exchange task calls that client; `WASM_FETCH_CAPABILITIES` corrected | `foundation_netio/src/wasm/client/client.rs`, `src/wasm/client/tasks/http_exchange_task.rs`, `foundation_connectrpc/src/shared/transport/wasm.rs` | `custom_client_is_used` and `capability_constants` pass; #558 and #559 close |
-| T3 | `streaming_response_with(status, headers, body)` | `foundation_netio/src/wasm/response.rs` | the two old functions call it; a native `cargo check` is clean |
-| T4 | The streaming inbound body in both bridges, and `ConnectSink` over `CfConn` | `foundation_http/src/wasm/bridge/{web,cf}.rs`, `foundation_connectrpc/src/wasm/sink.rs` | `inbound_body_streams`, `error_status_streams` and `cancel_drops_source` pass |
-| T5 | `StubHttpClient` as a `NetClient` over `worker::Stub` | `foundation_netio/src/cloudflare/stub_client.rs`, `Cargo.toml` (optional `worker`) | a DO stub call in `foundation_testing` passes; a browser build has no `worker` dependency |
-| T6 | The test crates and the Node runner; the `ci/packages.toml` entry | `foundation_netio/tests/wasm/`, `foundation_connectrpc/tests/wasm/`, `ci/packages.toml` | the wasm test job is green on Linux, macOS and Windows |
+| T1 | `WasmByteStream` (one reader for the SSE path and `send_async`), bounded by `body_queue_chunks` and `max_body_size` | `foundation_netio/src/wasm/client/stream.rs`, `src/wasm/client/client.rs`, `src/shared/client/config.rs` | `send_async_streams_body`, `body_limit`, `queue_is_bounded` and `cancel_drops_source` pass in the wasm testbed; the SSE tests still pass; #557 closes |
+| T2 | `open_exchange` passes `self`; the exchange task calls that client; `WASM_FETCH_CAPABILITIES` corrected | `foundation_netio/src/wasm/client/client.rs`, `src/wasm/client/tasks/http_exchange_task.rs`, `foundation_connectrpc/src/shared/transport/wasm.rs` | `custom_client_is_used` and `capability_constants` pass in the wasm testbed; #558 and #559 close |
+| T3 | `streaming_response_with(status, headers, body)` | `foundation_netio/src/wasm/response.rs` | the two old functions call it; `cargo check --target wasm32-unknown-unknown -p foundation_netio --features wasm-fetch` is clean |
+| T4 | The streaming inbound body in both bridges, and `ConnectSink` over `CfConn` | `foundation_http/src/wasm/bridge/{web,cf}.rs`, `foundation_connectrpc/src/wasm/sink.rs` | `inbound_body_streams`, `error_status_streams` and `cancel_drops_source` pass in the wasm testbed |
+| T5 | `StubHttpClient` as a `NetClient` over `worker::Stub`, behind a new `cloudflare` feature on `foundation_netio` | `foundation_netio/src/cloudflare/stub_client.rs`, `Cargo.toml` (optional `worker`) | a DO stub call passes in the wasm testbed under `wrangler dev --local`; a browser build has no `worker` dependency |
+| T6 | The wasm test crates for T1, T2 and T4, in the standalone style of `foundation_db/integration/wasm_cf`; the `mise.wasm.toml` task and the `scripts/ci/ci.py` `wasm-tests` entries that run them | `foundation_netio/integration/wasm_fetch/`, `foundation_connectrpc/integration/wasm/`, `mise.wasm.toml`, `scripts/ci/ci.py` | `mise run test:wasm-bindgen:netio` runs the suite in Deno, and CI is red when it fails |
+
+T6 lands first. The runner exists, but no test crate and no CI step runs `foundation_netio`'s
+wasm suite today (`scripts/ci/ci.py:751-753` only compiles it), so T1 and T2 would ship
+untested on wasm without it. T4's tests have no wasm test target in `foundation_connectrpc` at
+all. T6 delivers the two crates, a new `test:wasm-bindgen:netio` task in `mise.wasm.toml`
+(modeled on `test:wasm-bindgen:deno`) and the `wasm-tests` entries in `scripts/ci/ci.py`, with
+one smoke test in each crate. T1, T2 and T4 add their own tests to them.
+
+A standalone crate is the pattern the testbed's `--tests` build needs: it builds every test
+target of the package with the default features on, and the native targets of
+`foundation_netio` and `foundation_connectrpc` do not compile for wasm32. The crate depends on
+the package with `default-features = false` and the wasm features, and holds its tests in
+`tests/`.
 
 ## 10. Verify
 
@@ -497,10 +543,13 @@ test client is a `NetClient` that answers from a map, so no network is needed.
 cargo check -p foundation_netio --profile uat
 cargo check -p foundation_connectrpc --profile uat
 cargo tree -p foundation_netio --target wasm32-unknown-unknown -e features | grep -c worker   # 0 without the cloudflare feature
-# The wasm tests run under Node.
-cargo test -p foundation_netio --target wasm32-unknown-unknown --profile uat
-cargo test -p foundation_connectrpc --target wasm32-unknown-unknown --profile uat
-# The three operating systems run the same crate (CI does this on a full run).
+# The wasm code, and the test crates, compile for wasm32.
+cargo check --tests --target wasm32-unknown-unknown -p foundation_netio --no-default-features --features wasm-fetch
+cargo check --tests --target wasm32-unknown-unknown --manifest-path backends/foundation_netio/integration/wasm_fetch/Cargo.toml
+cargo check --tests --target wasm32-unknown-unknown --manifest-path backends/foundation_connectrpc/integration/wasm/Cargo.toml
+# The wasm tests run in the testbed (Deno, the runtime the Workers backend uses).
+mise run test:wasm-bindgen:netio
+# The three operating systems run the native crate (CI does this on a full run).
 cargo test -p foundation_netio --profile uat
 ```
 
@@ -515,7 +564,7 @@ cargo test -p foundation_netio --profile uat
 - `StubHttpClient` exists behind the `cloudflare` feature.
 - No `Fetcher`, `FetchTransport`, `FetchServe`, `StubFetcher`, `DoStubTransport` or body pump
   exists in the workspace.
-- The wasm tests pass under Node on Linux, macOS and Windows.
+- The wasm tests run in the `wasm-testbed` (Deno) and CI runs that step.
 - `progress.md` and `LEARNINGS.md` are current.
 
 ## 12. Open questions

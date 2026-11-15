@@ -94,6 +94,79 @@ about, and it fits an async-first system. A hand-written struct with `impl TaskI
 `Ready` is not terminal. Only `None` ends a task. Use an enum with a `Done` arm, not a `bool`
 flag.
 
+## The valtron test harness: the skill is behind the code (2026-11-15)
+
+The owner said the valtron skills hold the sensible guide but may be a little out of date,
+and that the code and its tests are the truth. That is correct. The skill's "Test
+Annotations" section still shows the old stack. The code has a macro:
+
+| The skill says | The code does |
+|---|---|
+| `let _guard = init_pool();` as the first line | `#[valtron_test]` replaces `#[test]`, initializes the pool and holds the guard for the body (`foundation_macros/src/lib.rs:675`) |
+| stack `#[ntest::timeout]`, `#[serial_test::serial]`, `#[tracing_test::traced_test]` by hand | the macro takes `seed`, `threads`, `timeout`, `slow_poll`, `ctx`, `shutdown_grace` and the `tracing*` keys (`foundation_macros/src/valtron_entry.rs:164`) |
+| no wasm story | `#[valtron_bindgen]` expands to `#[wasm_bindgen_test]` and drives an async body on the JavaScript event loop (`foundation_macros/src/bindgen_test.rs:7`) |
+| no dual-target story | `dual!` registers one `async fn` as `#[valtron_test]` natively and `#[valtron_bindgen]` on wasm (`foundation_core/tests/valtron/async_first_api.rs:36`) |
+
+`#[valtron_test]` is native only, because it emits `#[test]`. A wasm test uses
+`#[valtron_bindgen]` (or `#[wasm_test]` / `#[valtron_wasm_test]` for the owned harness). The
+skill's other rules hold: `#[task]` state machines with `Done => None`, no blocking inside a
+poll, combinators instead of manual `Stream` matching.
+
+## What a validation pass finds (2026-11-15)
+
+A fresh agent checked 340 claims in the capability map. 19 rows were wrong. The pattern is
+worth remembering:
+
+- Line numbers drift by a few lines. A symbol name is more durable than a number; cite the
+  symbol first and the line second.
+- The hard claims are the "absent" ones. They need a workspace-wide search, not a look at one
+  file.
+- A summary sentence can be wrong while the table under it is right. The `WasmOAuth` row
+  said "no Worker branch"; the code does branch on `ServiceWorkerGlobalScope`
+  (`foundation_auth/src/wasm_bindgen/oauth.rs:181`). The open question is whether `workerd`
+  exposes that global, and that is a measurement, not a code fact.
+- A feature name is easy to guess and easy to get wrong. `D1CredentialStore` needs
+  `foundation_db/wasm-bindgen-storage`, not `workers-rs`.
+
+A second pair of eyes on a factual document is not optional. Write the map as if a checker
+will read every line, because one will.
+
+## A test that compiles is not a test that runs (2026-11-15)
+
+The plan first said the wasm tests "run under Node". Neither half of that is true here:
+
+- There is no Node runner. The `wasm-testbed` binary runs Deno, headless Chromium and
+  `wrangler dev --local`.
+- `cargo check --tests --target wasm32-unknown-unknown` compiles a wasm test, and no runner
+  then executes it. `cargo test --target wasm32-unknown-unknown` does not run a wasm binary
+  either.
+
+`foundation_netio`'s wasm suite (`tests/wasm/`) has been compile-checked since it was written
+and has never run (`scripts/ci/ci.py:751-753`). It is the suite T1 extends. A plan that adds a
+wasm path and inherits an unrun suite has no test behind it.
+
+Three more facts decide how the executor is built:
+
+- The testbed's bindgen mode builds the package with `--tests` and its **default** features.
+  `foundation_netio` and `foundation_connectrpc` have native test targets that do not compile
+  for wasm32 with defaults on, so the tests live in a standalone crate outside the workspace,
+  as `foundation_db/integration/wasm_cf` does.
+- `foundation_netio/tests/wasm/mod.rs:3` sets `run_in_browser`. The testbed drives the
+  `__wbgt_` exports with its own `run.js` and does not load wasm-bindgen-test's harness, so the
+  marker should not matter. Measure it; do not assume it.
+- No fake `fetch` exists. A client test needs a real endpoint. The `bindgen-wrangler` mode
+  passes its bindings as `globalThis.__CF_TEST_ENV__`; the Deno template can pass a served URL
+  the same way, and its runner already has `--allow-net`
+  (`foundation_testbed/src/wasm/deno.rs:46`).
+
+## Two response builders already buffer (2026-11-15)
+
+`foundation_http` has `CfConn::into_response` (`wasm/cf_conn.rs:64`) and `WasmResponse`
+(`wasm/response.rs:5`). Both build a `Vec<u8>`. The plan adds one function in
+`foundation_netio` (`streaming_response_with`) because it is the only one that takes a stream,
+and every wasm host reaches it through the connectrpc sink. Before writing a builder, count the
+ones that exist and say why the new one is not a third copy of them.
+
 ## Why `SendWrapper` is sound here (2026-11-15)
 
 `TransportStream` holds `Arc<dyn SendBody>`, so the exchange must be `Send`. JS values are not
@@ -140,3 +213,8 @@ that knows the protocol. The cost is one line in each host.
 4. Set a CORS header in a library. CORS is the policy of one host.
 5. Write a task as a struct with `impl TaskIterator`. Write a `#[valtron::task]` `async fn`.
 6. Depend on the `cloudflare` feature in a browser build.
+7. Call `__private::block_on_future`, or depend on it. The owner calls it an anti-pattern
+   (2026-11-15). It is macro-internal and ungated, so it compiles on wasm and blocks the
+   isolate thread. A wait is a `StreamIterator` transition (`Wait`, `Pending`,
+   `Depends`); the friendly primitives are `into_ready_future`, `into_future_stream`,
+   `into_next_stream` and the parking wake path.

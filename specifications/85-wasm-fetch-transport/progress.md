@@ -11,12 +11,44 @@ _Last updated: 2026-11-15._
 | T3 — `streaming_response_with(status, headers, body)` | ⬜ Pending |
 | T4 — the streaming inbound body in both bridges, and the connectrpc `ResponseSink` | ⬜ Pending |
 | T5 — `StubHttpClient` over `worker::Stub`, behind the `cloudflare` feature | ⬜ Pending |
-| T6 — the Node test runner and the `ci/packages.toml` entry | ⬜ Pending |
+| T6 — the wasm test crates, the `mise.wasm.toml` task and the `scripts/ci/ci.py` step | ⬜ Pending |
 
 ## No product code exists
 
 This specification is a plan in a pull request for the owner's review. No file under
 `backends/` changes until the owner approves it.
+
+## The capability map (2026-11-15)
+
+Before the plan is reviewed, the owner asked for a map of what already exists across the
+relevant `foundation_*` crates. `whats_currently_available.md` now measures eleven crate
+groups on native, wasm32 and a Cloudflare Worker, with the symbol and the file and line for
+each claim, an explicit list of absences, and a final reuse table.
+
+State: every section is written, and a fresh agent has checked every claim against the code.
+It checked 340 claims across the eleven sections and the synthesis. 19 rows were wrong or
+uncertain: line drift, a wrong symbol for `StorageProvider`, a misdescribed `WasmOAuth`
+branch, a wrong feature name for the D1 session store, and a missing response builder. All
+are corrected. The map is ready for the plan review.
+
+The check also added three facts the map missed:
+
+1. `foundation_netio`'s `response` and `client` modules need the `wasm-fetch` feature
+   (`foundation_netio/src/wasm/mod.rs:8`).
+2. `foundation_http` has a second response builder, `WasmResponse` with `build_response`
+   and `from_wasm` (`foundation_http/src/wasm/response.rs:5`), beside `CfConn::into_response`.
+   It buffers too.
+3. A wasm dispatcher for `ServeWriter` exists (`foundation_http/src/wasm/serve_writer.rs:18`),
+   but no `web_sys::Request` bridge calls it.
+
+Two findings already change the plan's premises:
+
+1. `foundation_netio` and `foundation_wireguard` test targets are compile-checked on wasm
+   only (`scripts/ci/ci.py:749-768`). T1 adds a wasm path to `foundation_netio`, so the plan
+   must add an execution step for its tests, or the new code ships untested on wasm.
+2. There is no Node wasm runner. The wasm runners are the `wasm-testbed` binary (Deno,
+   Chromium, and `wrangler dev --local`). T6 is rewritten to them, and it is now the first
+   task.
 
 ## Design corrections (2026-11-15)
 
@@ -63,14 +95,37 @@ than a transport.
 | Spec 77 feature 07 own body pump | nothing: `H1Transport` already streams |
 | Spec 77 feature 08 own Worker entry details | `foundation_http`'s `HttpApp` plus spec 85's sink |
 
+## Clear-eyes review (2026-11-15)
+
+After the map was validated, the plan got a second read against it. The result:
+
+| Was in the plan | Is true |
+|---|---|
+| `HttpClientBuilder::build()` at `network_client.rs:83` | `:440` |
+| `streaming_response` at `wasm/response.rs:31` | `:33`; `sse_response` is at `:91` |
+| `FetchHttpClient` at `client.rs:113` | `:56` |
+| `NativeHttpClient` at `src/native/` | `src/http/http_client_impl.rs:50` |
+| The wasm tests run under Node | There is no Node runner; the testbed runs Deno, Chromium and `wrangler dev --local` |
+| `cargo test --target wasm32-unknown-unknown` runs them | It builds only; no runner executes a wasm `#[test]` binary |
+| `foundation_connectrpc/tests/wasm/` exists | The directory does not exist, and the crate has no wasm test target |
+| T1's code ships with tests that run | `foundation_netio`'s wasm suite is compile-checked only (`scripts/ci/ci.py:751-753`) |
+| T6 is last | T6 is first: without a test crate, T1 and T2 ship untested on wasm |
+
+The review also removed a risk of a third response builder. `foundation_http` has two wasm
+builders (`CfConn::into_response` at `wasm/cf_conn.rs:64`, `WasmResponse` at
+`wasm/response.rs:5`), and both buffer. The plan uses `foundation_netio`'s
+`streaming_response_with`, the only one that takes a stream, and says so in section 4.4 of the
+plan and in `fetch.md`.
+
 ## Next steps
 
-1. T1 first. It is the only gap that needs a wasm test harness, and it makes the rest work.
-2. T2 next, and correct the capability constant in the same change.
-3. T3, which T4 needs.
-4. T4 after T3.
-5. T5 after T2, behind the `cloudflare` feature.
-6. T6 last, because the Node runner needs the tests of T1 to T5.
+1. T6 first: the two standalone test crates (Deno), the `test:wasm-bindgen:netio` task and the
+   `wasm-tests` CI entries, each with one smoke test.
+2. T1 next. It is the one gap that needs the harness, and it makes the rest work.
+3. T2, and correct the capability constant in the same change.
+4. T3, which T4 needs.
+5. T4 after T3.
+6. T5 after T2, behind the `cloudflare` feature.
 
 ## Open questions
 

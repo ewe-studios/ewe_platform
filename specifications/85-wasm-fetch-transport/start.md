@@ -20,21 +20,24 @@ created: 2026-11-15
 5. Read `../77-foundation-platform-sandbox/features/07-cloudflare-control-plane/feature.md`
    section 6.5 and `features/08-cloudflare-worker/feature.md` section 6.2. They are the two
    sandbox consumers.
-6. Read `.agents/skills/rust-valtron-usage/skill.md` before T4. A task written there is a
-   `#[valtron::task]` async transition, not a hand-written `impl TaskIterator`. Read
-   `.agents/skills/rust-clean-code/skill.md` before T1.
+6. Read `.agents/skills/rust-valtron-usage/skill.md` before T4. Its test section is older than
+   the code: a wasm test is `#[wasm_bindgen_test]` or `#[valtron_bindgen]`, and a native test is
+   `#[valtron_test]`, which holds the pool guard (`foundation_macros/src/lib.rs:675`). A task
+   written there is a `#[valtron::task]` async transition, not a hand-written `impl
+   TaskIterator`. Read `.agents/skills/rust-clean-code/skill.md` before T1.
 7. Read `.agents/AGENTS.md` and the agent file for `foundation_connectrpc`.
 8. Work on one task at a time, in the order of the next section.
 9. Report to the Main Agent. Do not commit.
 10. After the commit, update `progress.md` and `LEARNINGS.md`.
 
-**Order:** T1 → T2 → T3 → T4 → T5 → T6. T4 needs T3; T5 needs T2.
+**Order:** T6 → T1 → T2 → T3 → T4 → T5. T6 first: it gives T1, T2 and T4 a wasm test
+executor, which does not exist for these crates today. T4 needs T3; T5 needs T2.
 
 **Owned crates:** `foundation_netio` (the wasm client, the shared reader, the response
 builders, the DO stub client), `foundation_http` (the two wasm bridges), `foundation_connectrpc`
-(the sink and the capability constants), and the `ci/packages.toml` entry. Do not touch
-`foundation_platform_sandbox` or `foundation_agent_rpc`: their specs record the dependency and
-do their own change.
+(the sink and the capability constants), and the test wiring in `mise.wasm.toml` and
+`scripts/ci/ci.py`. Do not touch `foundation_platform_sandbox` or `foundation_agent_rpc`: their
+specs record the dependency and do their own change.
 
 **Root rules that decide the hard cases:** rule 4 (stream, do not buffer), rule 6 (async all
 the way), rule 7 (tests in `tests/`), rule 8 (limits are configuration), rule 15 (Linux, macOS
