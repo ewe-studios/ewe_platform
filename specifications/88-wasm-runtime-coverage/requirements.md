@@ -451,6 +451,10 @@ These are filed under root rule 9 before feature 00 starts:
   change; this specification files it and does not take it.
 - The wasm-bindgen JS suites (`foundation_wasm`, `foundation_wasm_ui`,
   `foundation_ui_components`). They are `node --test` suites that no task runs.
+- A port of `foundation_netio`'s wasm fetch client to the owned ABI, which #577 proposes. It is
+  a product change: a second request and response implementation, with headers, abort and the
+  websocket path. It adds no host coverage, because the wasm-bindgen harness already runs the
+  same crates on the same three hosts (section 2.7).
 
 ---
 
