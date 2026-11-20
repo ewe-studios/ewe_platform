@@ -1,13 +1,13 @@
 ---
-feature: "Ctx in the I/O crates"
-status: "planned"
+feature: "Ctx in foundation_ai"
+status: "completed"
 priority: "medium"
 model: "haiku"
 depends_on: ["02-merge-contextbag-into-ctx"]
-crates: ["foundation_auth", "foundation_proxy", "foundation_netio", "foundation_db", "foundation_browser", "foundation_connectrpc", "foundation_http", "foundation_keychain"]
+crates: ["foundation_ai"]
 ---
 
-# Feature 04: Ctx in the I/O crates
+# Feature 03: Ctx in foundation_ai
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -23,14 +23,9 @@ were measured on 2026-11-09 (`dyn Clock` outside `tests/`):
 
 | Crate | Sites |
 |---|---|
-| `foundation_auth` | 80 |
-| `foundation_proxy` | 32 |
-| `foundation_netio` | 28 |
-| `foundation_db` | 28 |
-| `foundation_browser` | 19 |
-| `foundation_connectrpc` | 9 |
-| `foundation_http` | 8 |
-| `foundation_keychain` | 8 |
+| `foundation_ai` | 124 |
+Note: the backend constructors (`CandleBackend::cpu(clock)`, `LlamaCppBackend`, the provider clients in `backends/*_provider.rs`, and `harness/agents.rs`, `harness/providers.rs`) are the main public API. Change them first, then the callers in `apps/answerme-agent` and the examples.
+
 
 ## Migration recipe (the same in features 03, 04 and 05)
 

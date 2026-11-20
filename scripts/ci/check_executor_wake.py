@@ -29,7 +29,7 @@ ALLOWLIST = Path(__file__).resolve().parent / "executor_wake_allowlist.txt"
 # The one place the wake functions may be named.
 VALTRON = "backends/foundation_core/src/valtron/"
 PATTERN = re.compile(r"\b(request_executor_resume|resume_idle|idle_wake)\b")
-SKIP_DIRS = {"target", ".git", "node_modules", ".claude"}
+SKIP_DIRS = {"target", ".git", "node_modules", ".claude", ".worktrees"}
 
 
 def load_allowlist(path: Path) -> set[str]:

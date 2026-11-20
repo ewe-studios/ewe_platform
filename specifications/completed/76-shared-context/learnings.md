@@ -317,3 +317,11 @@ standard ASD-STE100.
 - The CI log API keeps only the end of a log, and the failure lines that ci.py keeps hide test
   output. `.github/diagnose.toml` and `diagnose.yaml` run one test many times on one OS and print
   the whole output of the first failure. This found #520 in one run.
+- The clock guard needs an allowlist for the kept getters and the host entry points. A
+  `dyn Clock` getter on a struct that holds a `Ctx` is deliberate; a `dyn Clock` parameter or
+  field is not.
+- A guard that walks the whole repository must skip `.worktrees/` and `.claude/`. A git
+  worktree is a second checkout, so its files are not the tree under test.
+- On macOS, candle's `gemm-f16` inline assembly fails with `instruction requires: fullfp16`.
+  Build the crate with `--no-default-features` and a typed error arm when no backend is on,
+  then the non-candle suites run on the host.

@@ -20,9 +20,9 @@ metadata:
   tools: []
 has_features: true
 has_fundamentals: false
-builds_on: "specifications/76-shared-context"
+builds_on: "specifications/completed/76-shared-context"
 related_specs:
-  - "specifications/76-shared-context"
+  - "specifications/completed/76-shared-context"
   - "specifications/84-context-injection"
   - "specifications/86-auth-primitives"
   - "specifications/87-mutual-tls"
@@ -148,7 +148,7 @@ _The diagram shows the two seams: transport facts on the request, and grouped mi
 
 ## 9. Module references
 
-- `specifications/76-shared-context/requirements.md` — the context that this spec builds on.
+- `specifications/completed/76-shared-context/requirements.md` — the context that this spec builds on.
 - `specifications/84-context-injection/requirements.md` — the `Env` bundle that feature 00
   reads its clock next to.
 - `backends/foundation_context/src/lib.rs` — `Ctx`, `Clock`, `CtxEntry`.

@@ -28,6 +28,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use base64::Engine;
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use ring::signature::{self, KeyPair as _};
 use serde::{Deserialize, Serialize};
@@ -617,10 +618,16 @@ pub struct VerifiedSecret {
 }
 
 /// Issues and verifies [`SignedSecret`]s with the server's [`SigningKey`].
-#[derive(Debug)]
 pub struct BootstrapSecrets {
     key: SigningKey,
     default_validity: Duration,
+    ctx: Ctx,
+}
+
+impl std::fmt::Debug for BootstrapSecrets {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BootstrapSecrets").finish_non_exhaustive()
+    }
 }
 
 impl BootstrapSecrets {
@@ -630,10 +637,11 @@ impl BootstrapSecrets {
 
     /// Sign with `key`; secrets last [`Self::DEFAULT_VALIDITY`].
     #[must_use]
-    pub fn new(key: SigningKey) -> Self {
+    pub fn new(key: SigningKey, ctx: Ctx) -> Self {
         Self {
             key,
             default_validity: Self::DEFAULT_VALIDITY,
+            ctx,
         }
     }
 
@@ -669,7 +677,7 @@ impl BootstrapSecrets {
     /// # Errors
     /// See [`issue_window`](Self::issue_window).
     pub fn issue_for(&self, validity: Duration) -> AgentRpcResult<SignedSecret> {
-        let now = SystemTime::now();
+        let now = self.ctx.clock().wall_now();
         self.issue_window(now, now + validity)
     }
 
@@ -709,7 +717,7 @@ impl BootstrapSecrets {
     /// # Errors
     /// As [`verify_at`](Self::verify_at).
     pub fn verify(&self, presented: &str) -> AgentRpcResult<VerifiedSecret> {
-        self.verify_at(presented, unix_secs(SystemTime::now()))
+        self.verify_at(presented, unix_secs(self.ctx.clock().wall_now()))
     }
 
     /// Verify `presented` at `now` (Unix seconds): well formed, signed by

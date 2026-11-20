@@ -1,6 +1,6 @@
 ---
 feature: "Ctx in the remaining crates"
-status: "planned"
+status: "completed"
 priority: "medium"
 model: "haiku"
 depends_on: ["02-merge-contextbag-into-ctx"]

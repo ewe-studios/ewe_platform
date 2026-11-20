@@ -13,6 +13,7 @@
 // is in the external `turso` dependency).
 #![recursion_limit = "256"]
 
+use foundation_context::Ctx;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
@@ -87,7 +88,7 @@ async fn a_secret_enrolls_once_then_mtls_is_required() {
     let (url, fingerprint, secret) = bootstrap(&server);
 
     // A secret signed by some other key is refused.
-    let foreign = BootstrapSecrets::new(SigningKey::generate().expect("key"))
+    let foreign = BootstrapSecrets::new(SigningKey::generate().expect("key"), Ctx::host())
         .issue()
         .expect("issue");
     let err = enroll(&url, &fingerprint, &foreign.encode(), "laptop")
@@ -352,7 +353,10 @@ async fn the_server_must_choose_its_auth() {
     .expect("store");
     let config = MtlsConfig::new(
         Arc::new(CertificateAuthority::generate("in-memory CA").expect("ca")),
-        Arc::new(BootstrapSecrets::new(SigningKey::generate().expect("key"))),
+        Arc::new(BootstrapSecrets::new(
+            SigningKey::generate().expect("key"),
+            Ctx::host(),
+        )),
         store,
     );
     AgentRpcServer::builder()

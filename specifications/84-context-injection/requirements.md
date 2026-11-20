@@ -26,9 +26,9 @@ metadata:
   tools: []
 has_features: false
 has_fundamentals: false
-builds_on: "specifications/76-shared-context"
+builds_on: "specifications/completed/76-shared-context"
 related_specs:
-  - "specifications/76-shared-context"
+  - "specifications/completed/76-shared-context"
   - "specifications/80-platform-prerequisites"
   - "specifications/81-foundation-auth"
   - "specifications/83-agent-rpc-serving-system"

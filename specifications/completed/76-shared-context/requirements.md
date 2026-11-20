@@ -1,6 +1,6 @@
 ---
 description: "Move valtron's Ctx into a new foundation_context crate, merge foundation_http's ContextBag into it, rename connectrpc's Ctx to RpcCtx, and pass one Ctx instead of a bare Arc<dyn Clock> in every crate."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-09
 author: "Main Agent"
@@ -17,10 +17,10 @@ builds_on: "specifications/completed/70-foundational-io-hardening"
 related_specs:
   - "specifications/completed/70-foundational-io-hardening"
 features:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Spec 76: One shared context (`foundation_context`)

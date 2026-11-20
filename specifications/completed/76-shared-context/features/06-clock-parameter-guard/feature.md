@@ -1,6 +1,6 @@
 ---
 feature: "Clock parameter guard"
-status: "planned"
+status: "completed"
 priority: "medium"
 model: "haiku"
 depends_on: ["03-ctx-in-foundation-ai", "04-ctx-in-io-crates", "05-ctx-in-remaining-crates"]

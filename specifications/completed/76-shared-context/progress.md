@@ -244,3 +244,21 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 - Next: real sleeps remain in the testbed Docker readiness loop (`docker.rs`) and the QEMU
   control loops (`qemu_control.rs`). The `RpcEngine` reader thread sleep is not a deadline
   loop. Each needs its own issue.
+
+## 2026-11-21: completion
+
+- The four direct wall-clock reads in `foundation_agent_rpc` now read
+  `ctx.clock().wall_now()`. `BootstrapSecrets::new`, `EnrollmentService::new`
+  and `connect_with_payload` take a `Ctx`; the crate is version 0.0.2.
+- Feature 06: `scripts/ci/check_clock_params.py`, `clock_params_allowlist.txt`,
+  nine unit tests and the `ci.py` step. The guard passes: 16 allowlisted hits,
+  0 violations. The time-source guard passes: 13 direct reads, 0 violations.
+- Root rule 11 names `foundation_context::Ctx`.
+- `check_executor_wake.py` skips `.worktrees` (#624).
+- `foundation_agent_rpc` builds with `--no-default-features` and returns a typed
+  error when no backend is on (#625).
+- Host checks: `cargo check --tests`, clippy and fmt pass. All 44 tests pass with
+  `--no-default-features`. Default-feature tests on macOS are blocked by the
+  `gemm-f16` assembler defect (#626); the test code type-checks.
+- The Linux CI image did not run: the Docker daemon was unavailable.
+- The spec is completed and moved to `specifications/completed/`.
