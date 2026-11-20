@@ -90,7 +90,7 @@ serving the new files in the test server.
 |---|---|---|
 | Node table | node id to DOM node | The existing `NodeRegistry`; the applicator calls its methods |
 | DOM | The page | The applicator, for frame operations |
-| `data-ewe-state` attribute | The sealed state of a component, as base64url text | The applicator (`AttachState`) |
+| `primal::state` attribute | The sealed state of a component, as base64url text | The applicator (`AttachState`) |
 | Stream cursor | The last applied `sequence_id` of each `stream_id` | The applicator |
 | `stats` | Counters | The applicator |
 
@@ -135,7 +135,7 @@ Links to other entities: Frame.sequence_id
 ```
 
 ```
-Entity: data-ewe-state attribute
+Entity: primal::state attribute
 Conserved value:         base64url-decode(attribute) == the AttachState bytes, byte for byte
 Bound:                   none
 Inverse pairs:           encode / decode
@@ -157,7 +157,7 @@ Links to other entities: the root element also has data-ewe-root=""
 | I5 | Live frames of one stream apply in strictly increasing `sequence_id` order. A frame at or below the cursor is ignored. |
 | I6 | An answer frame is applied in arrival order and does not move a stream cursor. |
 | I7 | A numeric column that starts at a byte offset that is a multiple of its element size is read as a view over the received buffer (`column.buffer === bytes.buffer`). Any other column is copied, and `stats.copiedColumns` increases. |
-| I8 | After `AttachState`, `base64urlDecode(root.getAttribute("data-ewe-state"))` equals the operation's bytes. |
+| I8 | Only `AttachState` can write the reserved state attribute. Reject a generic attribute write or removal for this name. After `AttachState`, `base64urlDecode(root.getAttribute("primal::state"))` equals the operation's bytes. |
 | I9 | `HtmlMorph` content goes to `MorphDom.morph` unchanged. `ScriptNode` runs through `Hydrator.hydrate`, one time. Both are members of `WebOperation`, so only a `web` field carries them. |
 | I10 | The applicator calls the web behaviour registry for `UiBehaviour` and `WebBehaviour`. A behaviour that the registry does not know reports `UnknownBehaviour` and renders the node without it (D56). |
 | I11 | Every existing test in `backends/foundation_wasm_ui/integration/test/` passes with no edit. |
@@ -251,7 +251,7 @@ Feature: Web frame applicator
     Given a frame with one ui message AttachState(root 40) whose bytes are state_counter.bin
     When the applicator applies it
     Then element 40 has data-ewe-root=""
-    And base64urlDecode(element 40's data-ewe-state) equals the bytes of state_counter.bin
+    And base64urlDecode(element 40's primal::state) equals the bytes of state_counter.bin
     And the attribute text has no "+", "/" or "="
 
   Scenario: A shared behaviour goes to the web behaviour registry
@@ -466,7 +466,7 @@ the column into a new array with `DataView` and count `copiedColumns`; else coun
 | `ReplaceSubtree` | Remove and unregister every descendant; then apply the nested units |
 | `BindAction` | Set the attribute `primal:on<dom event>` (from `vocab.WEB_EVENTS`) to the action text; call `dispatcher.scanAndWire(el)` when a dispatcher exists |
 | `UnbindAction` | Remove that attribute; call `dispatcher.off(el, domEvent)` when it exists |
-| `AttachState` | Set `data-ewe-root=""` and `data-ewe-state=base64urlEncode(bytes)` on the root |
+| `AttachState` | Set `data-ewe-root=""` and `primal::state=base64urlEncode(bytes)` on the root |
 | `LiveMount` | Create `<mount-stream>` (kind Stream) or `<mount-data>` (kind Data) with `api=endpoint`, `transport` = `sse`, `websocket` or `fetch` (`Local` gives `local`), `protocol="frame"`, `data-channel-id`, `data-resume-from`; set `primal-id`; register it. The element connects when a later `AppendChild` puts it in the document. Feature 11 gives it its behaviour |
 | `UiBehaviour` | Call `behaviours.applyBehaviour(node, behaviour, args)` of section 6.9. A name that the registry does not know reports `UnknownBehaviour`; the node stays |
 

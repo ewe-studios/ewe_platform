@@ -140,7 +140,7 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 | I6 | An `on:` binding with a string compiles only for the `host:` origin. |
 | I7 | A core element accepts only the property names of section 6.3, `on:` bindings and `key`; any other attribute is a compile error. |
 | I8 | A static property value of the wrong shape is a compile error. A dynamic one gives `LowerError::BadProp` and no units. |
-| I9 | The form `html! { ctx, receiver, Some(&state), … }` writes the template units to the receiver, then one `AttachState` for `ctx.state_root()`. A missing root gives `LowerError::NoComponentRoot`, and the action returns `Err`. Without a state, the form writes only the template units. |
+| I9 | The form `html! { ctx, receiver, Some(&state), … }` writes the template units to the receiver, then one `AttachState` for `ctx.state_root()`. A missing root gives `LowerError::NoComponentRoot`, and the action returns `Err`. The receiver can also queue state for a named element (section 4.6). |
 | I10 | The `AttachState` from the state field and from `mount` is unsealed (empty tag). Only the dispatcher seals it. |
 | I11 | A shared behaviour marker gives one `UiBehaviour` and no `ScriptNode`. A web-only behaviour gives one `WebBehaviour` and no `ScriptNode`. A plain scoped script still gives `ScriptNode` (D56). |
 
@@ -166,10 +166,27 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 - Do not allow a free-form attribute on a core element (D10: the core has no free-form names).
 - Do not send a `ScriptNode` for a standard behaviour (D56, feature 02).
 
+### 4.6 Attach state to an element
+
+Only the renderer writes `primal::state`. On the web it holds encoded signed bytes. Native renderers store the bytes on the same node record.
+Reserve this name in all template forms. Reject an author-supplied marker during parsing.
+An ordinary `state={value}` uses the element’s attribute or property rules. It cannot populate action state.
+
+The third argument `Some(&next)` queues state for the component root.
+To select another node, the author names it with `ref` and queues state through the receiver.
+The proposed `out.node_for_ref("todos")?` resolves a name in the current render.
+The macro records the mounted node number for each named element. An unknown or ambiguous name gives an error.
+Both paths use `receiver.state(owner, value)?`. The host signs the value and emits `AttachState(owner, signed_bytes)`.
+Only this operation can write the reserved attachment. Reject generic attribute operations that target the reserved name.
+
+Test that a plain web `state` attribute emits only an attribute update.
+Test that a template containing `primal::state` fails and that a generic attribute update cannot overwrite an attachment.
+Test that a submit returns the selected owner’s bytes even when the trigger has an ordinary `state` attribute.
+
 The author chooses the attachment target when producing the component output.
 An action binding can explicitly reference another owner in the same view. The default owner is the bound element.
 Carry this optional reference through template lowering and binding delivery on all three platforms.
-The [todo example](../05-action-runtime/feature.md#1-render-the-owner-and-bind-the-input) proposes `ref="todos"` and `state={list}` on the owner.
+The [todo example](../05-action-runtime/feature.md#1-render-the-owner-and-bind-the-input) proposes `ref="todos"` on the owner.
 It proposes `state-from="todos"` on the input. Resolve the reference to a node in that component instance during lowering.
 Test two copies of the same component. Each input must select its own list.
 The current `BindAction` schema lacks this reference. Define its wire representation and compatibility tests before implementing this binding form.
@@ -522,7 +539,7 @@ nested units.
 - [ ] 2. Parser: `on:` attributes and `ParsedAttr::Action`.
 - [ ] 3. Parser: the core tag list, the core attribute check, the static value check.
 - [ ] 4. Codegen: the `Action` attribute in both modes.
-- [ ] 5. `mod.rs`: the optional third field and `receiver.state`.
+- [ ] 5. Add the optional third field and the render-scoped node lookup. Test the attachment targets and errors in section 4.6.
 - [ ] 6. `view::lower` for core elements and the behaviour marker, with tests.
 - [ ] 7. `view::lower` for web elements and scripts, with tests.
 - [ ] 8. `view::mount`, with tests.

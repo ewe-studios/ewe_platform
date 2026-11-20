@@ -14,7 +14,7 @@ A user submits text. The input’s action reference tells the manager where to s
 ## What the application author writes
 
 This is a proposed end-to-end example. Feature 06 supplies `#[action]`. Feature 08 supplies the template.
-The attribute names `ref`, `state` and `state-from` below are proposed syntax for the explicit-owner rule.
+Feature 08 proposes `ref` to name the owner and `state-from` to select it for an event.
 
 ### 1. Render the owner and bind the input
 
@@ -32,17 +32,21 @@ fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
     let out = ctx.receiver();
     html! { ctx, out,
         <Stack>
-            <List ref="todos" state={list}>
+            <List ref="todos">
                 { list.items.iter().map(String::as_str).map(todo_row) }
             </List>
             <TextInput on:submit={add_todo} state-from="todos" />
         </Stack>
     };
+    let owner = out.node_for_ref("todos")?;
+    out.state(owner, list)?;
     Ok(())
 }
 ```
 
-The list and the input are siblings. `state={list}` attaches the initial list state to the list element.
+The list and the input are siblings. The proposed receiver lookup resolves the list in this render.
+The host signs the queued list. The renderer stores the signed bytes on the owner under the reserved name `primal::state`.
+A plain `state` attribute follows the element’s ordinary attribute rules. It never supplies action state.
 The input’s `state-from="todos"` selects that list for its submit action.
 The compiler resolves the name within this component instance. Two mounted copies each select their own list.
 An unresolved or duplicate reference is a template error.
@@ -107,6 +111,10 @@ This example uses a client without a local implementation. The host advertises `
 | Receiver after the macro | View operations update list 40 to display both rows. The last item is the unsealed two-item state for 40. |
 | Reply after success | The dispatcher signs the new state and sends the view operations followed by `AttachState(40, B)`. |
 | Next submit | Input 42 reads B from 40. The action receives both existing items before appending the next one. |
+
+The renderer copies the bytes from the owner’s runtime attachment into the request.
+The dispatcher verifies them with the request signer. The registered action adapter deserializes the verified body into a `TodoList`.
+That value populates `Interaction<TodoList>::state`. A failed check or decode stops the call.
 
 The dispatcher must establish owner 40 from verified state metadata or a trusted binding record.
 A node number supplied by the client alone cannot authorize an update.

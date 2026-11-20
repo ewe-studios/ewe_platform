@@ -407,7 +407,7 @@ in parallel.
 
 Feature 20 is the next implementation priority after its writer prerequisite. Its plan transfers producer migration from feature 12.
 
-The revised plans for features 04 and 05 await review. They propose signer-owned state bytes and a typed action registered by name.
+The owner approved feature 04. The signer owns the state bytes. Feature 05 proposes a typed action registered by name and awaits review.
 Earlier envelope, limiter and component-number instructions in dependent plans describe the prototype.
 Reconcile those instructions with the approved contracts before implementation.
 

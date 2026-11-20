@@ -1,6 +1,6 @@
 ---
 feature: "signed-state"
-status: "revised plan for review"
+status: "approved"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen"]
 crates: ["foundation_ui_runtime", "foundation_compact", "foundation_ui_wire"]
@@ -213,7 +213,7 @@ Request throttling belongs at the host request boundary. A host can reject repea
 The signer has no caller-address table. Remove the prototype limiter dependency from the dispatcher plan when adopting this revision.
 
 The existing implementation uses `StateCodec` and a fixed envelope. Its passing tests describe that prototype.
-Approval of this plan starts the migration. Update features 03 and 07 and their tests in the same implementation.
+The owner approved the signer migration. Update features 03 and 07 and their tests in the same implementation.
 
 ```sh
 cargo test -p foundation_compact --features crypto-chacha --profile uat

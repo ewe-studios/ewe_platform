@@ -415,3 +415,5 @@ ASD-STE100.
 - The login worker already resolves a trusted user through its session manager. A context fork isolates each request’s signer entry and current user.
 
 - A template reference needs component-instance scope. Two mounted todo lists can both name their owner “todos”.
+
+- The template parser accepts one colon between names. The reserved name `primal::state` needs no author syntax. The reactive emitter already knows each element’s node number.
