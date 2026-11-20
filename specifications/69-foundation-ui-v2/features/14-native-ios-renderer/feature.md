@@ -137,7 +137,7 @@ Links to other entities: none
 | I4 | A change to one record notifies only the observers of that record. |
 | I5 | `receive` returns after the store is edited. No scheduler sits between the reader and the store (research 06 section 3.5). |
 | I6 | Live frames of one stream apply in strictly increasing sequence order; an answer frame (`ack != 0`) applies at once; a frame with sequence 0 is out of band. The rule is the rule of feature 09 section 6.4. |
-| I7 | The state bytes that the event bridge sends equal the selected owner’s attached bytes. The trigger owns its state by default. An explicit binding selects another record in this view. |
+| I7 | The event bridge sends the exact bytes on the bound control’s record. A missing attachment gives empty bytes. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
 | I10 | The package holds no script engine and loads no code from the network. |
@@ -223,10 +223,11 @@ Feature: iOS renderer
       { node_id: 42, event_name: "tap", parent_node: 40, state: S }
     And the store applied the answer: record 42 has the text "1"
 
-  Scenario: A sibling uses an explicit owner
-    Given record 42 binds its tap to the state on sibling 40
-    When record 42 triggers the action
-    Then the request identifies node 42 and carries the exact bytes from record 40
+  Scenario: The next tap sends the updated local copy
+    Given the first frame attached signed bytes A to nodes 40 and 42
+    And the reply attached signed bytes B to both nodes
+    When record 42 triggers the action again
+    Then the request identifies node 42 and carries B from record 42
 
   Scenario: A child has no attachment
     Given only parent 40 has attached state and child 42 has a tap action
@@ -339,7 +340,7 @@ These rules are the contract for the reference model, the Swift store and the Ko
 | `ReplaceSubtree` | Delete every descendant of the node; clear its children; apply the nested rows with the same rules |
 | `BindAction` | `record.actions[event] = action` |
 | `UnbindAction` | Remove `record.actions[event]` |
-| `AttachState` | `root.state = bytes` (the exact bytes) |
+| `AttachState` | Store the exact bytes on the target record. A property write cannot change this field. |
 | `LiveMount` | Insert a record with kind `STACK` and `live = { kind, channel_id, transport, endpoint, resume_from }` |
 | `MountWebView` | Set `record.webView = { parent_id, url }` on the node. A missing node follows the `UnknownNode` rule. The store builds no control; feature 18 mounts it (D46) |
 | `NativeCommand` | Append `{ command, args }` to the command list; the args are `NativeArg` (the host runs it). An unknown command id: report `UnknownCommand`, nothing appended |
@@ -508,9 +509,8 @@ Every kind applies `A11Y_LABEL` (`.accessibilityLabel`), `HIDDEN`, `WIDTH` and `
 `FontToken` id `n` comes from a table that the app passes to `EweScreen`. A missing asset
 falls back to the primary colour and the body font.
 
-**The event bridge `send`:** look up `record.actions[event]`; none means return. Resolve the binding’s explicit owner in this store or use the triggering record by default.
-A missing explicit owner gives a binding error. Read the selected record’s state. Build `EventInput { node_id,
-event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: owner.state or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
+**The event bridge `send`:** look up `record.actions[event]`; none means return. Read the bound control’s record. The parent number describes the tree structure only. Build `EventInput { node_id,
+event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: record.state or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
 then `store.receive(frame)` on the main actor. A thrown error goes to `store.onError` with
 code `ActionFailed` and the error text.
 
@@ -582,7 +582,7 @@ Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
 | I4; Scenario: one record notified | `ObservationTests.testTextChangeNotifiesOneRecord` (`withObservationTracking` on two records) | example |
 | I5 | `ApplierTests.testReceiveIsSynchronous` (the record is changed on the line after `receive`) | example |
 | I6; Scenario: live gap | `OrderingTests.testLiveFramesApplyInOrder`, `.testGapAsksForResume`, `.testAnswerAppliesAtOnce`, `.testDuplicateIsIgnored` (an injected clock for the timer) | stateful model |
-| I7; Scenarios: tap, unbound | `EventBridgeTests.testTapSendsRootState`, `.testUnboundEventSendsNothing`, `.testTriggerErrorGoesToOnError` | example, fault |
+| I7; Scenarios: tap, unbound | `EventBridgeTests.testTapSendsLocalState`, `.testUnboundEventSendsNothing`, `.testTriggerErrorGoesToOnError` | example, fault |
 | I8; Scenario: live mount | `LiveMountTests.testOpensOnAttachAndClosesOnRemove`, `.testLocalTransportOpensNothing`, `.testResumeReopensWithCursor` | example |
 | I9; Scenario: unknown command | `ApplierTests.testUnknownCommandIsReported`, `.testHapticReachesCommandHost` | example |
 | I10 | Review item: the package has no `JavaScriptCore` import and no dynamic loading call | expected outcome |

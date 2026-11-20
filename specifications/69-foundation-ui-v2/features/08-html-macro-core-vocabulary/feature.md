@@ -59,7 +59,7 @@ operations; there is no `Response` type (D52). A behaviour marker lowers to one 
 | U1 | Core template | Developer | `html! { <Stack padding="8">…</Stack> }` | An `Html` tree with core tags |
 | U2 | Bind an action | Developer | `on:tap={increment_counter}` | The attribute `ewe:on:tap="server:increment_counter"`, or `host:` for a host action |
 | U3 | Lower | Runtime code | `lower(&html, &options)` | `Vec<OperationT>`, or `LowerError` |
-| U4 | View with state | Action | `html! { ctx, receiver, Some(&next), … }` | The template operations and one unsealed `AttachState`, all in the receiver |
+| U4 | View with state | Action | `html! { ctx, receiver, Some(&next), … }` | The template operations and one pending state value with its target nodes, all in the receiver |
 | U5 | Mount | Page render code | `mount(&html, &options, parent, state)` | Operation units that create the root and append it to `parent` |
 
 ## 3. Bounded context
@@ -90,7 +90,7 @@ the state field of the reactive form; `foundation_ui_runtime::view` (`lower`, `m
 |---|---|---|---|
 | `lower` | entity | Runtime code | A pure function from a tree to operation units |
 | `mount` | entity | Page render | `lower`, plus the root append and the state |
-| state field (of `html!`) | entity | The reactive form with `Some(&state)` | The template operations, then one unsealed `AttachState` in the receiver |
+| state field (of `html!`) | entity | The reactive form with `Some(&state)` | The template operations, then one pending state value with its target nodes in the receiver |
 
 `lower` and `mount` are pure functions of their arguments. None has a fault table. Their
 failures are `LowerError` values. The state field of `html!` writes to a receiver and
@@ -113,7 +113,7 @@ Idempotent verbs:        lower (the same tree and options give the same units)
 Ordering pairs:          a node is created before any unit names it; a child is created before it is appended
 Monotone values:         none
 Freeze points:           none
-Links to other entities: a core element gives a `ui` unit only; AttachState.root_node is the root id
+Links to other entities: a core element gives a `ui` unit only; AttachState.root_node identifies the attachment target
 ```
 
 ```
@@ -140,8 +140,8 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 | I6 | An `on:` binding with a string compiles only for the `host:` origin. |
 | I7 | A core element accepts only the property names of section 6.3, `on:` bindings and `key`; any other attribute is a compile error. |
 | I8 | A static property value of the wrong shape is a compile error. A dynamic one gives `LowerError::BadProp` and no units. |
-| I9 | The form `html! { ctx, receiver, Some(&state), … }` writes the template units to the receiver, then one `AttachState` for `ctx.state_root()`. A missing root gives `LowerError::NoComponentRoot`, and the action returns `Err`. The receiver can also queue state for a named element (section 4.6). |
-| I10 | The `AttachState` from the state field and from `mount` is unsealed (empty tag). Only the dispatcher seals it. |
+| I9 | The form `html! { ctx, receiver, Some(&state), … }` writes the template units to the receiver, then one pending state value for the root and marked nodes. A missing root gives `LowerError::NoComponentRoot`, and the action returns `Err`. The receiver also records the marked nodes (section 4.6). |
+| I10 | Only the host finalizer writes signed bytes to a delivery frame. It signs each pending value once. |
 | I11 | A shared behaviour marker gives one `UiBehaviour` and no `ScriptNode`. A web-only behaviour gives one `WebBehaviour` and no `ScriptNode`. A plain scoped script still gives `ScriptNode` (D56). |
 
 ### 4.3 Must have
@@ -168,28 +168,27 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 
 ### 4.6 Attach state to an element
 
-Only the renderer writes `primal::state`. On the web it holds encoded signed bytes. Native renderers store the bytes on the same node record.
-Reserve this name in all template forms. Reject an author-supplied marker during parsing.
-An ordinary `state={value}` uses the element’s attribute or property rules. It cannot populate action state.
+Write `html! { ctx, out, Some(list), <Stack><TextInput primal::state /></Stack> }`.
+The third argument supplies the component state. The root receives it automatically.
+The bare `primal::state` marker requests a copy on that input. Only the runtime supplies the value.
+A plain `state={value}` follows ordinary attribute or property rules.
 
-The third argument `Some(&next)` queues state for the component root.
-To select another node, the author names it with `ref` and queues state through the receiver.
-The proposed `out.node_for_ref("todos")?` resolves a name in the current render.
-The macro records the mounted node number for each named element. An unknown or ambiguous name gives an error.
-Both paths use `receiver.state(owner, value)?`. The host signs the value and emits `AttachState(owner, signed_bytes)`.
-Only this operation can write the reserved attachment. Reject generic attribute operations that target the reserved name.
+Recognize the exact token sequence `primal :: state` before ordinary attribute parsing.
+The current parser joins a single colon and an identifier. Keep existing single-colon forms intact.
+Reject a value on the marker. Reject a marker without component state before sending any output.
+Lower each marker to a target node number in the current component instance. Do not emit the marker as a normal attribute.
 
-Test that a plain web `state` attribute emits only an attribute update.
-Test that a template containing `primal::state` fails and that a generic attribute update cannot overwrite an attachment.
-Test that a submit returns the selected owner’s bytes even when the trigger has an ordinary `state` attribute.
+After rendering succeeds, serialize and sign the state once. Append `AttachState(node, bytes)` for the root and each marked node before finalizing the frame.
+Emit one attachment per distinct target, including when the root itself has a marker.
+Reject ordinary wire attribute writes and removals for the reserved name.
+The web renderer stores the signed bytes as encoded text. Native renderers store the bytes on each node record.
 
-The author chooses the attachment target when producing the component output.
-An action binding can explicitly reference another owner in the same view. The default owner is the bound element.
-Carry this optional reference through template lowering and binding delivery on all three platforms.
-The [todo example](../05-action-runtime/feature.md#1-render-the-owner-and-bind-the-input) proposes `ref="todos"` on the owner.
-It proposes `state-from="todos"` on the input. Resolve the reference to a node in that component instance during lowering.
-Test two copies of the same component. Each input must select its own list.
-The current `BindAction` schema lacks this reference. Define its wire representation and compatibility tests before implementing this binding form.
+On submit, read the attachment on the node with the event binding. An unattached trigger supplies empty bytes.
+Each render that changes shared state must refresh every control that will submit that state.
+The [todo example](../05-action-runtime/feature.md#1-render-the-owner-and-bind-the-input) does this by rendering the same component on initial load and after each submit.
+
+Test two independent component instances, two consecutive submits, a marked root, an unmarked control, and a failed sign that emits no frame.
+Test that ordinary `state` cannot supply action state and that `primal::state={value}` fails to compile.
 
 ## 5. Acceptance scenarios
 
@@ -284,16 +283,15 @@ Feature: html! in the core vocabulary
     When the action evaluates
       html! { ctx, receiver, Some(&next), <Button on:tap={increment_counter}>"Count: " {next.current}</Button> }
     Then the receiver holds BindAction(40, TAP, "server:increment_counter") and SetText(40, "Count: 2")
-    And the receiver then holds one AttachState for root 40 whose unsealed body decodes to Counter { current: 2 }
+    And the receiver then holds a pending state for root 40 whose body decodes to Counter { current: 2 }
     And the action returns Ok(())
 
-  Scenario: A todo action updates the list and its parent element owns the state
-    Given the list at node 40 owns its state and input 42 explicitly selects owner 40
-    When add_todo renders the updated List with ctx, out and Some(&next)
-    Then the receiver holds the view operations for the list and its rows
-    And its final item holds the next TodoList for node 40
-    And a successful dispatch attaches the signed state once to node 40
-    And the next submit from input 42 returns those exact bytes
+  Scenario: A todo submit refreshes its own copy
+    Given stack 40 is the root and input 42 has a bare primal::state marker
+    When add_todo renders the component with the updated list
+    Then the host signs the list once
+    And the reply attaches identical bytes to 40 and 42
+    And the next submit reads the bytes from 42
 
   Scenario: The third field with no state root is an action error
     Given a Context whose state_root is None
@@ -317,7 +315,7 @@ flowchart LR
     T["html! template"] --> P["parser: core tags, on: bindings, checks"]
     P --> H["Html tree"]
     H -->|"lower / mount"| O["Operation units<br/>ui, web or mobile field"]
-    H -->|"third field Some(&state)"| R["receiver.state(root, state)<br/>one AttachState"]
+    H -->|"third field Some(&state)"| R["Queue state for root and marked nodes"]
     O --> RC["the action's receiver"]
     R --> RC
     H -->|"existing reactive form"| X["DomOp effects (unchanged)"]
@@ -407,29 +405,17 @@ The macro counts the top-level fields before the template (D51):
 | one field, then `<template>` | — | The existing error for a bad form |
 | `ctx, receiver, <template>` | Reactive | The existing reactive output (D40) |
 | `ctx, receiver, None, <template>` | Reactive | The same as the two-field form |
-| `ctx, receiver, Some(&state), <template>` | Reactive with state | The reactive output, then `receiver.state(root, &state)` |
+| `ctx, receiver, Some(&state), <template>` | Reactive with state | The reactive output, then one pending value and its distinct target nodes |
 
 Detection, before the reactive split: if the first token is `<`, it is the pure form. Else
 split at top-level commas; there must be two or three fields before the template. Any other
 count gives ``html!: expected `ctx, receiver, <template>` or `ctx, receiver,
 Some(&state), <template>` ``.
 
-Expansion for the state field, with `ctx_expr` and `state_expr` from the fields and
-`TEMPLATE` the rest:
-
-```rust
-// The existing reactive expansion for ctx_expr, receiver_expr and TEMPLATE, then:
-#receiver.state(
-    #ctx.state_root().ok_or(#rt::view::LowerError::NoComponentRoot)?,
-    #state_expr,
-)?;
-```
-
-`receiver.state(root, &state)` records one unsealed `AttachState` unit as the next item of
-the receiver. The preceding template operations update the view.
-The call context supplies the author-selected owner, which can be the parent of the rendered children. The `?` propagates a `LowerError` as an
-`ErrorTrace<ActionErrorT>` through the impl of section 6.6. On `Err`, the caller sends only
-the error (D52). The state expression is evaluated one time.
+During initial render, lowering allocates the component root. During an action render, the call context supplies the existing root.
+Collect the root and all marked node numbers as the template emits its operations. Evaluate the state expression once.
+Queue one pending receiver item with the value and distinct target numbers. The host finalizer applies section 4.6.
+An action render without a component root returns `LowerError::NoComponentRoot`. Discard the pending operations on error.
 
 The pure `lower` and `mount` functions remain for a page render (section 6.6). They are not
 used by the state field.
@@ -539,7 +525,7 @@ nested units.
 - [ ] 2. Parser: `on:` attributes and `ParsedAttr::Action`.
 - [ ] 3. Parser: the core tag list, the core attribute check, the static value check.
 - [ ] 4. Codegen: the `Action` attribute in both modes.
-- [ ] 5. Add the optional third field and the render-scoped node lookup. Test the attachment targets and errors in section 4.6.
+- [ ] 5. Add the optional third field and the bare element marker. Test the attachment targets and errors in section 4.6.
 - [ ] 6. `view::lower` for core elements and the behaviour marker, with tests.
 - [ ] 7. `view::lower` for web elements and scripts, with tests.
 - [ ] 8. `view::mount`, with tests.

@@ -309,3 +309,5 @@ is recorded here as passed.
 - Feature 05 shows the todo page, sibling input, action, protected routes and two consecutive submits in one example.
 
 - The owner approved feature 04. Features 05 and 08 show how the receiver selects the todo list. Only the renderer writes the reserved state attachment.
+
+- The revised todo example refreshes the root and marked input together. Event delivery reads the bound control on each platform.

@@ -417,3 +417,5 @@ ASD-STE100.
 - A template reference needs component-instance scope. Two mounted todo lists can both name their owner “todos”.
 
 - The template parser accepts one colon between names. The reserved name `primal::state` needs no author syntax. The reactive emitter already knows each element’s node number.
+
+- A template marker selects a destination during rendering. Signing once gives each marked control identical bytes, even with a randomized signer.

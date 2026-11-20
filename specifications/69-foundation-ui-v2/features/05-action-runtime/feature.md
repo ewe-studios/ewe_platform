@@ -14,7 +14,7 @@ A user submits text. The input’s action reference tells the manager where to s
 ## What the application author writes
 
 This is a proposed end-to-end example. Feature 06 supplies `#[action]`. Feature 08 supplies the template.
-Feature 08 proposes `ref` to name the owner and `state-from` to select it for an event.
+Feature 08 proposes a bare marker to attach the component’s signed state to another element.
 
 ### 1. Render the owner and bind the input
 
@@ -30,26 +30,21 @@ fn todo_row(item: &str) -> Html {
 
 fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
     let out = ctx.receiver();
-    html! { ctx, out,
+    html! { ctx, out, Some(list),
         <Stack>
-            <List ref="todos">
+            <List>
                 { list.items.iter().map(String::as_str).map(todo_row) }
             </List>
-            <TextInput on:submit={add_todo} state-from="todos" />
+            <TextInput primal::state on:submit={add_todo} />
         </Stack>
     };
-    let owner = out.node_for_ref("todos")?;
-    out.state(owner, list)?;
     Ok(())
 }
 ```
 
-The list and the input are siblings. The proposed receiver lookup resolves the list in this render.
-The host signs the queued list. The renderer stores the signed bytes on the owner under the reserved name `primal::state`.
-A plain `state` attribute follows the element’s ordinary attribute rules. It never supplies action state.
-The input’s `state-from="todos"` selects that list for its submit action.
-The compiler resolves the name within this component instance. Two mounted copies each select their own list.
-An unresolved or duplicate reference is a template error.
+The stack is the component root. The bare marker requests a copy on the input.
+The host signs the list once and attaches the same bytes to both nodes.
+A plain `state` attribute still follows ordinary attribute rules.
 
 ### 2. Handle the submit
 
@@ -61,18 +56,12 @@ async fn add_todo(
 ) -> Result<(), ErrorTrace<ActionError>> {
     let mut next = event.state;
     next.items.push(event.input_value);
-    let out = ctx.receiver();
-
-    html! { ctx, out, Some(&next),
-        <List>{ next.items.iter().map(String::as_str).map(todo_row) }</List>
-    };
-    Ok(())
+    todo_page(ctx, &next)
 }
 ```
 
 The action starts with a verified, decoded list. The submitted text is the new item.
-Here the context targets the existing list. The template updates its rows and queues its next state exactly once.
-The sibling input stays mounted and keeps its binding.
+The action renders the same component with the new list. This refreshes both the rows and the input’s copy.
 
 ### 3. Connect the page and action handlers
 
@@ -100,37 +89,21 @@ let reply = app.dispatcher.dispatch(&request_ctx, &connection, &request_frame).a
 
 ### 4. Follow one event through the two frames
 
-Suppose the renderer assigns node 40 to the list and 42 to the input.
+Suppose the renderer assigns node 40 to the stack and 42 to the input.
 This example uses a client without a local implementation. The host advertises `server:add_todo`.
 
 | Step | Concrete result |
 |---|---|
-| First frame | List 40 displays “Buy milk” and holds signed bytes A. Input 42 binds submit to `host:add_todo` with owner 40. |
-| User submits “Get eggs” | The renderer reads A from 40. The manager routes `server:add_todo` with trigger 42, value “Get eggs” and bytes A. |
-| Dispatcher calls the action | `event.node_id == 42`, `event.state.items == ["Buy milk"]`, and `ctx.state_root() == Some(40)`. |
-| Receiver after the macro | View operations update list 40 to display both rows. The last item is the unsealed two-item state for 40. |
-| Reply after success | The dispatcher signs the new state and sends the view operations followed by `AttachState(40, B)`. |
-| Next submit | Input 42 reads B from 40. The action receives both existing items before appending the next one. |
+| First frame | The list displays “Buy milk”. The host attaches signed bytes A to stack 40 and input 42. |
+| User submits “Get eggs” | Input 42 sends its own bytes A and the submitted text. |
+| Dispatcher calls the action | The signer verifies A. The adapter decodes `TodoList`. Now `event.state.items == ["Buy milk"]` and `event.node_id == 42`. |
+| Action renders the component | The existing component root is the output target. The new template marks its submit control again. |
+| Reply after success | The frame updates the view and attaches signed bytes B to the root and marked input. |
+| Next submit | The input sends B. The handler sees both items before adding the next one. |
 
-The renderer copies the bytes from the owner’s runtime attachment into the request.
-The dispatcher verifies them with the request signer. The registered action adapter deserializes the verified body into a `TodoList`.
-That value populates `Interaction<TodoList>::state`. A failed check or decode stops the call.
-
-The dispatcher must establish owner 40 from verified state metadata or a trusted binding record.
-A node number supplied by the client alone cannot authorize an update.
-The current wire binding lacks the explicit owner field. The [template plan](../08-html-macro-core-vocabulary/feature.md) owns its lowering and compatibility tests.
-
-| What the author writes | What the receiver holds after the call |
-|---|---|
-| `html! { ctx, out, Some(&next), <List>…</List> }` | The view operations for the list and its rows, followed by one state item for node 40. |
-| `html! { ctx, out, <List>…</List> }` | Only the view operations. The current attachment stays on node 40. |
-| `out.state(40, &next)?` | Only the next state for node 40. The rendered rows stay as they are. |
-
-Here 40 illustrates the resolved owner. Application code can obtain that node from `ctx.state_root()`.
-The `<List>` represents the parent of the rendered rows. The macro uses the owner supplied by the call context for the state attachment.
-It queues the attachment once for the list. Each row can still own separate state.
-On success, the dispatcher signs the queued state and emits `AttachState` for node 40 after the view operations.
-The next submit from node 42 uses that updated attachment. A trigger without an explicit owner uses its own node.
+The component root identifies where the host renders the reply. The event reads its state directly from the input.
+The host must establish the render target from trusted component context or authenticated metadata.
+A failed verification or decode stops the call. A signing failure discards the pending updates.
 
 The proposed default uses Serde to encode and decode JavaScript Object Notation (JSON). A stateless action uses `Interaction<()>`.
 
@@ -194,13 +167,13 @@ A transport carries one action request to the selected runtime.
 | `#[action(host, web)]` | `host:focus_field` | Run on the web host. |
 | `#[action]` | `host:add_todo` | Prefer a local implementation. Use the advertised server implementation when the local one is absent. |
 
-For the unqualified todo action, the template produces `host:add_todo`. The input supplies the submitted text and its selected owner’s bytes.
+For the unqualified todo action, the template produces `host:add_todo`. The input supplies the submitted text and its own attached bytes.
 
 ```rust
 let frame = manager.trigger("host:add_todo", TriggerEvent {
     node_id: input_id,
     input: submit_input,
-    state: list_state_bytes,
+    state: input_state_bytes,
 }).await?;
 ```
 
@@ -222,7 +195,7 @@ The selected registry entry receives the caller’s context **when the action ex
 |---|---|---|
 | Host | Base `foundation_context::Ctx`, authentication service and registry | The application at startup |
 | Request | Forked `Ctx` with the verified user and signer binding | The protected route in [feature 04](../04-signed-state/feature.md#at-the-protected-route) |
-| Action call | UI `Context` containing that request context, verified state owner and fresh receiver | The dispatcher |
+| Action call | UI `Context` containing that request context, trusted component root and fresh receiver | The dispatcher |
 
 ```mermaid
 sequenceDiagram
@@ -247,7 +220,7 @@ The registry adapter decodes the verified body into `TodoList` and calls the gen
 ```rust
 let entry = self.registry.get(origin, name, surface)?;
 let verified = verify_event(request_ctx, entry.as_ref(), request)?;
-let call_ctx = Context::for_action(request_ctx.clone(), surface, verified.owner);
+let call_ctx = Context::for_action(request_ctx.clone(), surface, verified.component_root);
 entry.call_raw(&call_ctx, verified.event).await?;
 let items = call_ctx.into_receiver().drain();
 encode_updates(request_ctx, items)

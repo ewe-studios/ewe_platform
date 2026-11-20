@@ -134,7 +134,7 @@ Links to other entities: none
 | I4 | A write to one field of one record invalidates only the snapshot readers of that field. |
 | I5 | `receive` returns after the store is edited. |
 | I6 | The ordering of live, answer and out-of-band frames is the rule of feature 09 section 6.4. |
-| I7 | The state bytes that the event bridge sends equal the selected owner’s attached bytes. The trigger owns its state by default. An explicit binding selects another record in this view. |
+| I7 | The event bridge sends the exact bytes on the bound control’s record. A missing attachment gives empty bytes. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
 | I10 | The library holds no script engine and loads no code from the network. The WebView control is the only place that runs web content, and it is feature 18 (D46). |
@@ -229,10 +229,11 @@ Feature: Android renderer
       (nodeId 42, eventName "tap", parentNode 40, state = the bytes of state_counter.bin)
     And record 42 has the text "1"
 
-  Scenario: A sibling uses an explicit owner
-    Given record 42 binds its tap to the state on sibling 40
-    When record 42 triggers the action
-    Then the request identifies node 42 and carries the exact bytes from record 40
+  Scenario: The next tap sends the updated local copy
+    Given the first frame attached signed bytes A to nodes 40 and 42
+    And the reply attached signed bytes B to both nodes
+    When record 42 triggers the action again
+    Then the request identifies node 42 and carries B from record 42
 
   Scenario: A child has no attachment
     Given only parent 40 has attached state and child 42 has a tap action
@@ -384,9 +385,9 @@ The apply rules, the ordering and the snapshot format are those of feature 14 se
 and 6.4, with no difference. A `Message` with `control.state_expired` or
 `control.update_required` is recorded in `errors` and calls `onError` with its own code
 (`StateExpired`, `UpdateRequired`); the nodes stay. The event bridge and the live mount host
-follow feature 14 section 6.5: resolve the owner in the same store and read its state, the same `EventInput` fields, the
-same open and close rule, the same resume parameters (`stream_id`, `resume_from`), and
-`Local` transport opens nothing.
+follow feature 14 section 6.5. Read signed bytes from the bound control’s record. The parent number describes the tree structure only.
+Only `AttachState` writes the record’s signed state. Use the same `EventInput` fields, open and close rules, and resume parameters (`stream_id`, `resume_from`).
+The `Local` transport opens no channel.
 
 `behaviours/` holds the interface `BehaviourBinding` and the registry
 `BehaviourRegistry.standard`, as feature 16 section 6.6 defines. `NodeView` folds the
@@ -490,7 +491,7 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 | I4; Scenario: one record invalidated | `ObservationTest.textChangeInvalidatesOneRecord` (`Snapshot.observe` read observers, or `snapshotFlow` with a test dispatcher) | example |
 | I5 | `ApplierTest.receiveIsSynchronous` | example |
 | I6; Scenario: live gap | `OrderingTest.liveFramesApplyInOrder`, `.gapAsksForResume`, `.answerAppliesAtOnce`, `.duplicateIsIgnored` (a fake `GapTimer`) | stateful model |
-| I7; Scenario: click | `EventBridgeTest.tapSendsRootState`, `.unboundEventSendsNothing`, `.triggerErrorGoesToOnError` (`runTest`) | example, fault |
+| I7; Scenario: click | `EventBridgeTest.tapSendsLocalState`, `.unboundEventSendsNothing`, `.triggerErrorGoesToOnError` (`runTest`) | example, fault |
 | I8; Scenario: live mount | `LiveMountTest.opensOnAttachAndClosesOnRemove`, `.localTransportOpensNothing`, `.resumeReopensWithCursor` | example |
 | I9; Scenario: unknown command | `ApplierTest.unknownCommandIsReported`, `.hapticReachesCommandHost` | example |
 | I10 | Review item: no script engine dependency in any `build.gradle.kts`; no `WebView` class appears in this feature, because feature 18 owns the control | expected outcome |

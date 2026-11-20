@@ -1,6 +1,6 @@
 ---
 feature: "web-frame-applicator"
-description: "The web renderer for the new wire: the generated reader bundle, one apply loop for the ui, web, mobile and columnar operation fields, the core-to-HTML mapping, state on the root element, ordering, and the seams in the current runtime."
+description: "The web renderer for the new wire: the generated reader bundle, one apply loop for the ui, web, mobile and columnar operation fields, the core-to-HTML mapping, state on each target element, ordering, and the seams in the current runtime."
 status: "pending"
 priority: "high"
 model: "sonnet"
@@ -40,8 +40,8 @@ A new JS module, `foundation-ui-frames.js`, applies `Frame` buffers to the DOM. 
 them with the generated reader, walks the `messages` list, and applies the `ui`, `web` and
 `columnar` fields of each `Operation` unit (D41, D42, D45). It maps the core vocabulary to
 HTML, keeps the HTML morph and scoped scripts, applies shared behaviours from the web
-behaviour registry (D56), and stores signed state as a base64url attribute on the component
-root. The current runtime gets small seams that route frames to it. Every current wire and
+behaviour registry (D56), and stores signed state as a base64url attribute on each target
+element. The current runtime gets small seams that route frames to it. Every current wire and
 every current mount path keeps working.
 
 ## 2. Story
@@ -50,8 +50,7 @@ every current mount path keeps working.
 - **S2**: "A large list arrives as one columnar operation, and the applicator reads it as
   typed-array views."
 - **S3**: "A frame carries an HTML morph, and the existing reconciler applies it."
-- **S4**: "A frame carries the new state of a component, and the root element holds it as
-  text."
+- **S4**: "A frame carries the new state of a component, and each target element stores a copy."
 - **S5**: "A live frame arrives before the frame that precedes it."
 - **S6**: "A frame holds a unit with a mobile field."
 - **S7**: "A frame names a node that the page does not have."
@@ -143,7 +142,7 @@ Idempotent verbs:        AttachState with the same bytes
 Ordering pairs:          none
 Monotone values:         none
 Freeze points:           the applicator never edits the bytes
-Links to other entities: the root element also has data-ewe-root=""
+Links to other entities: the target element holds the signed bytes for its own events
 ```
 
 ### 4.2 Invariants
@@ -157,7 +156,7 @@ Links to other entities: the root element also has data-ewe-root=""
 | I5 | Live frames of one stream apply in strictly increasing `sequence_id` order. A frame at or below the cursor is ignored. |
 | I6 | An answer frame is applied in arrival order and does not move a stream cursor. |
 | I7 | A numeric column that starts at a byte offset that is a multiple of its element size is read as a view over the received buffer (`column.buffer === bytes.buffer`). Any other column is copied, and `stats.copiedColumns` increases. |
-| I8 | Only `AttachState` can write the reserved state attribute. Reject a generic attribute write or removal for this name. After `AttachState`, `base64urlDecode(root.getAttribute("primal::state"))` equals the operation's bytes. |
+| I8 | Only `AttachState` can write the reserved state attribute. Reject a generic attribute write or removal for this name. After `AttachState`, `base64urlDecode(element.getAttribute("primal::state"))` equals the operation's bytes. |
 | I9 | `HtmlMorph` content goes to `MorphDom.morph` unchanged. `ScriptNode` runs through `Hydrator.hydrate`, one time. Both are members of `WebOperation`, so only a `web` field carries them. |
 | I10 | The applicator calls the web behaviour registry for `UiBehaviour` and `WebBehaviour`. A behaviour that the registry does not know reports `UnknownBehaviour` and renders the node without it (D56). |
 | I11 | Every existing test in `backends/foundation_wasm_ui/integration/test/` passes with no edit. |
@@ -247,11 +246,10 @@ Feature: Web frame applicator
     Then the span text is "y"
     And onReport was called once with { code: "UnknownNode", unitIndex: 0, node: 999 }
 
-  Scenario: State is stored as base64url text on the root
-    Given a frame with one ui message AttachState(root 40) whose bytes are state_counter.bin
+  Scenario: Two elements each store the signed state
+    Given a frame with AttachState for nodes 40 and 42, both carrying state_counter.bin
     When the applicator applies it
-    Then element 40 has data-ewe-root=""
-    And base64urlDecode(element 40's primal::state) equals the bytes of state_counter.bin
+    Then each target element has a primal::state attribute that decodes to state_counter.bin
     And the attribute text has no "+", "/" or "="
 
   Scenario: A shared behaviour goes to the web behaviour registry
@@ -466,7 +464,7 @@ the column into a new array with `DataView` and count `copiedColumns`; else coun
 | `ReplaceSubtree` | Remove and unregister every descendant; then apply the nested units |
 | `BindAction` | Set the attribute `primal:on<dom event>` (from `vocab.WEB_EVENTS`) to the action text; call `dispatcher.scanAndWire(el)` when a dispatcher exists |
 | `UnbindAction` | Remove that attribute; call `dispatcher.off(el, domEvent)` when it exists |
-| `AttachState` | Set `data-ewe-root=""` and `primal::state=base64urlEncode(bytes)` on the root |
+| `AttachState` | Set `primal::state=base64urlEncode(bytes)` on the target element. Mounting the component sets `data-ewe-root` on its root for request grouping. |
 | `LiveMount` | Create `<mount-stream>` (kind Stream) or `<mount-data>` (kind Data) with `api=endpoint`, `transport` = `sse`, `websocket` or `fetch` (`Local` gives `local`), `protocol="frame"`, `data-channel-id`, `data-resume-from`; set `primal-id`; register it. The element connects when a later `AppendChild` puts it in the document. Feature 11 gives it its behaviour |
 | `UiBehaviour` | Call `behaviours.applyBehaviour(node, behaviour, args)` of section 6.9. A name that the registry does not know reports `UnknownBehaviour`; the node stays |
 
@@ -622,7 +620,7 @@ import list. `foundation-ui-vocab.js` does not change its export list.
 | I5; Scenarios: order, gap, duplicate | `frames-order.test.js` "live frames apply in order", "a gap asks for a resume", "a duplicate is ignored" (injected `schedule` and `timer`) | stateful model |
 | I6; Scenario: an answer frame | `frames-order.test.js` "an answer frame applies at once" | example |
 | I7; Scenarios: zero copy, unaligned | `frames-columnar.test.js` "columns are views", "an unaligned buffer is copied" | example |
-| I8; Scenario: state on the root | `frames-apply.test.js` "state is base64url on the root"; "base64url round trip" for lengths 0 to 64 | example, property |
+| I8; Scenario: state on each target | `frames-apply.test.js` "both targets store the signed state"; "base64url round trip" for lengths 0 to 64 | example, property |
 | I9; Scenario: HTML morph | `frames-apply.test.js` "html morph keeps a focused input", "a script node runs once" | example |
 | I10; Scenarios: shared behaviour, unknown behaviour | `frames-apply.test.js` "a shared behaviour goes to the registry", "an unknown behaviour is reported" | example |
 | I10; Section 6.9 | `frames-apply.test.js` "a web-only behaviour reaches WEB_ONLY", "registerWebBehaviour adds a name", "a behaviour applied twice matches once" | example, property |

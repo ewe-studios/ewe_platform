@@ -14,27 +14,24 @@ The host that issued those bytes verifies them before the action reads the count
 A host is the runtime that owns the action and its signing key. A renderer displays components and collects input.
 For a server action, the server signs and verifies. For a local action, the local runtime can use its own signer and key.
 
-The component author chooses which element stores the state. We call that element the **state owner**.
-The action binding selects the owner for that trigger. Without an explicit reference, the triggering element is the owner.
+The component author supplies state when rendering the component. The root receives a signed copy.
+A bare `primal::state` marker requests the same bytes on an additional element.
+The host signs once. It appends one `AttachState` operation per distinct target before it finishes the frame.
+The renderer applies each operation to its target node.
 
-| Renderer | Default lookup | Binding with an explicit owner |
-|---|---|---|
-| Web | Read the bound element’s state attribute. | Resolve the owner in this view’s node registry. Read that element’s state attribute. |
-| iOS (SwiftUI) | Read the control’s Swift node record. | Read the named owner’s record in the same node store. |
-| Android (Compose) | Read the control’s Kotlin node record. | Read the named owner’s record in the same node store. |
+| Renderer | Where an action reads its state |
+|---|---|
+| Web | The reserved attribute on the element with the event binding. |
+| iOS and Android | The attachment on the bound control’s native node record. |
+| Desktop | The attachment on the bound control in the desktop renderer. |
 
-For example, the author attaches counter state to node 40. Node 40 can trigger its own action.
-The author can also bind a separate button, node 42, to use node 40 as its state owner.
-The button can be a child or a sibling. Its request identifies trigger 42 and carries the exact bytes stored on node 40.
-A state update for that counter goes back to node 40.
-
-With no explicit reference and no attachment on the trigger, send empty state. Never search the tree for a stateful ancestor.
-An explicit owner must resolve inside the current user’s view. If it is missing, report a binding error before sending the action.
+For example, root 40 and marked input 42 receive the same bytes. A submit on 42 returns its own copy.
+A control without an attachment sends empty state.
 
 ## The contract
 
 The host installs a signer in its context (`Ctx`). It can also supply a **signing binding**: stable bytes that restrict where state verifies.
-The component’s action binding selects a node. The signing binding selects which host context can verify its bytes.
+The component’s action binding selects a handler. The signing binding selects which host context can verify its bytes.
 
 These are proposed Rust interfaces.
 
@@ -162,8 +159,8 @@ Feature 05 follows the [context through the registry call](../05-action-runtime/
 **Law and test.** Install a small test signer. Send its JSON wrapper through a frame, then verify the returned bytes.
 Share that input with the web, Swift and Kotlin renderer tests in features 10, 14 and 15.
 Give a parent, child and sibling different attachments. Trigger each node and compare its request with its own bytes.
-Bind a sibling explicitly to the parent. Expect the parent’s bytes and the sibling’s trigger identity.
-Repeat with an unattached child and no explicit owner. Expect empty state. With no signer, assert a typed error before calling the action.
+Mark a sibling to receive the same bytes as the root. Expect those bytes and the sibling’s trigger identity.
+Repeat with an unattached child. Expect empty state. With no signer, assert a typed error before calling the action.
 
 Test a missing cookie, revoked session and session-store error. Assert zero list reads, renders and action calls.
 Derive two contexts from one base for users A and B. Render for A, dispatch as A and verify A’s next state.

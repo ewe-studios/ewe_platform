@@ -34,7 +34,7 @@ On the web, an event attribute can hold an action reference with one of two orig
 or `host` (D50). One JS action manager reads the reference, checks the origin and the scope
 with the same rule as the Rust manager, and routes the call. A `host:` action is a page
 function or a compiled action in the local WASM or page registry. A `server:` action goes to
-the backend as one request `Frame` with the state of the component root. A `host:` reference
+the backend as one request `Frame` with the state of the bound element. A `host:` reference
 with no local target falls forward to the server when the server action list holds its name
 (D50 (8)). Every answer is a frame that the applicator of feature 09 applies.
 The server sends its `server:` action list in `ServerCaps.actions`, and the manager hides or
@@ -101,7 +101,7 @@ difference.
 | `hello` | entity | Page start | Builds one `Frame` with a `ClientHello` |
 | `applyCaps` | entity | A `caps` control message | Stores the server action list and marks the controls that are not available |
 
-**Words.** "Harvest" is to copy the `primal::state` text on the owner selected by the binding and
+**Words.** "Harvest" is to copy the `primal::state` text on the bound element and
 decode it from base64url to bytes. The manager does not read the bytes. "Host" is the local
 runtime of the page: a JS function or the compiled WASM actions (D50). "Request frame" is one
 root `Frame` whose kind is `FrameRequest`. The manager builds it, and the server, the WASM
@@ -153,7 +153,7 @@ Links to other entities: none
 |---|---|
 | I1 | The route of the JS manager equals the `expect` of every row of `backends/foundation_ui_runtime/fixtures/action_routes.json`. |
 | I2 | Only a `server:` reference reaches the server transport, except the D50 (8) fall-forward of a `host:` reference as `server:<name>`. Only a `host:` reference reaches a host target: a WASM action goes to the WASM transport, and a page function runs in the page. A `host:` reference leaves the page only as that fall-forward. |
-| I3 | The state bytes in a request frame equal the base64url decode of the `primal::state` attribute on the selected owner, byte for byte. The bound element is the default owner. |
+| I3 | The state bytes in a request frame equal the base64url decode of the `primal::state` attribute on the bound control, byte for byte. An absent attachment gives empty bytes. |
 | I4 | No request is sent before the reference parses, the registry has the action for the web surface or the server action list holds its name (D50 (8)), and a transport for the route exists. |
 | I5 | Each request has a `sequence_id` greater than the one before. |
 | I6 | While a root is in flight, a second `server:` trigger from inside that root is not sent. It is dropped, and `onError` gets `{ code: "Busy" }`. |
@@ -214,10 +214,11 @@ Feature: Web action manager
     When the user clicks the button
     Then the request frame has an empty state
 
-  Scenario: A sibling button explicitly selects the counter
-    Given button 42 names sibling 40 as its state owner
-    When button 42 triggers its action
-    Then the request identifies button 42 and carries the exact bytes attached to node 40
+  Scenario: The next click sends the updated copy
+    Given the first frame attached signed bytes A to nodes 40 and 42
+    And the reply attached signed bytes B to both nodes
+    When button 42 triggers its action again
+    Then the request identifies node 42 and carries B from button 42
 
   Scenario: A page function runs for a host reference
     Given a scoped script ran scope.action("notify", fn)
@@ -439,7 +440,7 @@ sequenceDiagram
     M->>M: parseReference
     M->>R: lookup(origin, name, WEB)
     M->>M: route(...)
-    M->>M: read the explicitly named owner or the bound element
+    M->>M: read the signed bytes on the bound element
     M->>T: send(request frame bytes)
     T-->>M: frames
     M->>F: receive(frame) for each frame
@@ -468,8 +469,8 @@ no local target sends to the server as `server:<name>` (D50 (8))._
    `host:name`, and the server lists it. Else `UnavailableOrigin` with origin `"host"`; stop.
 6. **Concurrency group** (used only to prevent duplicate requests): `root = el.closest("[data-ewe-root]")`. If `root` is in the in-flight set:
    `Busy`; stop. Else add `root` (or the element itself when there is no root).
-7. **State**: Use the bound control as the default owner. Resolve an explicit owner through this view’s node registry.
-   If the named node is missing, report a binding error. Read `base64urlDecode(owner.getAttribute("primal::state") ?? "")`.
+7. **State**: Read `base64urlDecode(el.getAttribute("primal::state") ?? "")` on the bound control.
+   The parent number describes the tree structure only.
    For a delegated click, `el` remains the control that owns the action binding.
 8. **Request**: build one root `Frame` whose kind is `FrameRequest`, with `action` set and
    `hello` absent (D47):
@@ -687,7 +688,7 @@ Add the test to the `test:browser` mise task set.
 | I1 | `integration/test/actions-routes.test.js` "route matches every vector" (reads `../../../foundation_ui_runtime/fixtures/action_routes.json`) | example |
 | I2; Scenarios: server, host page function, host WASM | `actions-manager.test.js` "server action sends state", "host action runs the page function", "host action goes to wasm" | example |
 | D50 (8); Scenario: A plain host reference falls forward to the server | `actions-manager.test.js` "a plain host reference falls forward to the server" | example |
-| I3; Scenarios: state of root, no root | `actions-manager.test.js` "state bytes equal the attribute", "no root gives empty state" | example |
+| I3; Scenarios: local state, absent attachment, next click | `actions-manager.test.js` "state bytes equal the attribute", "absent attachment gives empty state" | example |
 | I4; Scenarios: undeclared, mobile-only, no transport | `actions-manager.test.js` three tests named after the scenarios | fault |
 | I5 | `actions-manager.test.js` "sequence ids increase" | property |
 | I6; Scenario: second click | `actions-manager.test.js` "busy root drops the second trigger" | stateful model |
