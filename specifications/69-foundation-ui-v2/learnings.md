@@ -431,3 +431,14 @@ ASD-STE100.
 - A genuine attachment can outlive a domain change. A state-only update can also make the bound input newer than its visible label.
 
 - The signer checks binding and expiry. A wire reader only bounds and copies its bytes. Request forks and persistent hosts both use the same signer interface. A context clone shares its entries. A fork isolates request binding changes.
+
+## 2026-11-20. Action registration and event delivery
+
+A server name alone cannot tell a client whether a missing local action permits fallback.
+A client can keep the plain declaration when it omits the local implementation. The manager then checks the advertised server names.
+
+An absent state attachment must stay absent in the wire request. An empty byte vector incorrectly reached the signer as a submitted attachment.
+The stateless routing test checks the generated request field. The fix closes [issue 627](https://github.com/ewe-studios/ewe_platform/issues/627).
+
+The host can share one context across actions. Each invocation keeps its own receiver and trusted render target.
+A delivery handler can call `prepare_messages` to sign the output once before it selects an encoder.

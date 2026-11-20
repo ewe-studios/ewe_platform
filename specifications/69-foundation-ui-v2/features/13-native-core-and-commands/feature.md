@@ -221,7 +221,7 @@ Feature: Native core and commands
 ```
 
 The web-scope scenario gives `UnsupportedAction`, not `UnavailableOrigin`: the entry has
-scope `Web`, and the scope check of the registry runs first (feature 05 section 6.5, row 2).
+scope `Web`, and the scope check of the registry runs first (feature 05, stage 2).
 A `host` reference with no entry gives `UnknownAction`. A `server` reference with no host
 transport gives `UnavailableOrigin`. I2 covers the first two cases.
 
@@ -291,7 +291,7 @@ The generated bindings are checked in, with the same drift check pattern as
 ```rust
 /// The configuration of one core.
 pub struct CoreConfig {
-    pub ctx: foundation_ui_runtime::Ctx,
+    pub ctx: foundation_context::Ctx,
     pub registry: Arc<ActionRegistry>,
     /// Ios or Android.
     pub platform: Platform,
@@ -319,7 +319,7 @@ pub struct EventInput {
     pub value: String,
     pub checked: bool,
     pub parent_node: u32,
-    /// The sealed state bytes of the component root, as the node record holds them.
+    /// The signed state bytes on the triggering node. An unmarked node sends no state.
     pub state: Vec<u8>,
 }
 
@@ -349,6 +349,8 @@ impl NativeCore {
 impl NativeCore {
     /// Frame bytes of kind FrameRequest whose hello names this app.
     pub fn hello(&self) -> Vec<u8>;
+    /// Applies the server action list from a validated caps reply.
+    pub fn apply_caps_frame(&self, frame: Vec<u8>) -> Result<(), CoreError>;
     /// Runs or sends one action. Returns an immediate frame when the transport supplies one.
     pub async fn trigger(&self, reference: String, event: EventInput) -> Result<Option<Vec<u8>>, CoreError>;
     pub fn set_frame_listener(&self, listener: Arc<dyn FrameListener>);
@@ -380,13 +382,13 @@ not hold a global core.
 
 ### 6.4 Behaviour
 
-**`new`**: `surface = Surface { platform, mount: Native }`. Build a `Dispatcher` with
+Use `Surface::Native` for action selection. Use the configured platform for the writer capabilities. Build a `Dispatcher` with
 accept origin `Host`, the registry and a `DefaultDelivery` with
 `config.writer`. Build `Connection::stateless(ClientCaps::native_current(platform),
-surface, 0)` and a `LocalDispatcher`. Build the
-`ActionManager` for the surface with the local transport, and with the server transport
-when `server` is `Some` (an adapter that implements `ActionTransport` by calling
-`HostTransport::send` and mapping `CoreError` to `TransportError`).
+surface, 0)` and a `LocalDispatcher`. Use stream zero for this connection.
+Create `ActionManager::new(registry, Surface::Native, 0, config.writer.wire_limits().clone())`.
+Install the local transport with `with_host`. Install the optional server adapter with `with_server`.
+The adapter submits requests in order and maps transport failures to `ManagerError::Transport`.
 
 The app's registry holds `host` actions, built in the app's Rust crate.
 `registry.register(add)` reads the origin from the struct that the `#[action]` macro
@@ -409,11 +411,12 @@ A reconnect may resume incoming updates. It must never replay an action automati
 
 | `ManagerError` | `CoreError` |
 |---|---|
-| `BadReference(e)` | `BadReference { detail: e as text }` |
-| `UnknownAction` | `UnknownAction` |
-| `UnsupportedAction` | `UnsupportedAction` |
-| `UnavailableOrigin { origin }` | `UnavailableOrigin { origin: origin.prefix() }` |
-| `Transport(e)` | `Transport { detail }` |
+| `Lookup(InvalidReference)` | `BadReference { detail }` |
+| `Lookup(UnknownAction)` | `UnknownAction { reference }` |
+| `Lookup(UnsupportedAction)` | `UnsupportedAction { reference }` |
+| `Lookup(UnavailableOrigin)` | `UnavailableOrigin { origin }` |
+| `Wire(error)` or `SequenceExhausted` | `Write { detail }` |
+| `Transport(detail)` or `SubmissionPoisoned` | `Transport { detail }` |
 
 **`push_ops`**, in order: take the listener (clone the `Arc` and release the lock); `None`
 gives `NoListener`. Lock the sequencer; `header = FrameHeader { stream_id: 0, sequence_id:
@@ -426,7 +429,12 @@ both locks.
 kind: FrameKindT::FrameRequest(Box::new(FrameRequestT { action: None, hello:
 Some(ClientHelloT { vocabulary_version: VOCABULARY_VERSION, platform, mount: Native,
 resume_from: 0 }) })) }`, then `finish_frame`. The hello holds no action list:
-`ServerCaps.actions` carries the `server` actions, and the core sends no client list (D54).
+`ServerCaps.actions` carries the server action list (D54).
+When a renderer accepts a caps reply, pass its frame to `apply_caps_frame` once.
+Validate its kind and size. Extract the generated `ServerCapsT` and call `manager.apply_caps`.
+Report an invalid caps frame to the host. Keep the previous list if validation fails.
+The app declares plain actions even when their implementation lives only on the server.
+Test that an advertised plain action falls back. An explicit host action without a local implementation must fail.
 
 **Local logic and signals.** A device `App` (`foundation_wasm_ui::App`) lives on one thread
 because signals are not `Send`. After feature 12 it takes a `ProtocolMethods<Vec<OperationT>>`.
@@ -443,7 +451,7 @@ pull it in.
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
 | The manager's checks | Returns | `BadReference`, `UnknownAction`, `UnsupportedAction`, `UnavailableOrigin` | nothing |
-| The host transport | Returns | `Transport` | The manager's sequence counter moved by one (feature 05 section 6.6) |
+| The host transport | Returns | `Transport` | The manager's sequence counter moved by one (feature 05, stage 2) |
 | The local action returns `Err(ErrorTrace<ActionError>)` | The dispatcher drops the receiver and encodes an `ActionError` control message (D52) | `Ok(Some(frame))` whose message holds `control.error`. The host reader shows it (features 14, 15) | What the action changed before the error |
 
 **`push_ops`**
@@ -473,6 +481,7 @@ All in `backends/foundation_ui_native/tests/`.
 | Law or scenario | Test | Oracle |
 |---|---|---|
 | I1 | `core_tests.rs::trigger_matches_the_manager` (the same registry and fakes through `NativeCore` and through a hand-built `ActionManager`, for 6 references: host ok, server ok, unknown, unsupported, bad text, no server transport) | metamorphic |
+| Server capabilities reach the manager | Apply caps, trigger a plain action with no local implementation, and check the outbound server reference. Repeat for an explicit host action and count zero sends. | example |
 | I2; Scenario: a web-scoped host action | `core_tests.rs::web_scoped_host_action_never_runs` (scope Web: `UnsupportedAction`; not declared: `UnknownAction`) | expected outcome |
 | I3; Scenario: a web member does not reach the host | `core_tests.rs::local_answer_has_no_web_member`; `core_push_tests.rs::pushed_frame_has_no_web_member` | example |
 | I3; Scenario: a behaviour reaches the host | `core_tests.rs::behaviour_members_reach_the_host` (a `UiBehaviour` and a `MobileBehaviour` survive the gate; a `WebBehaviour` does not) | example |

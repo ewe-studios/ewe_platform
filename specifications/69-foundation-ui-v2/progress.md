@@ -321,3 +321,12 @@ is recorded here as passed.
 - Feature 08 specifies targeted append, insert, swap and removal. Feature 04 explains independent state and view updates with a signed todo row.
 
 - Feature 04 is complete. Runtime 0.0.2 installs context-bound signers. Wire 0.0.4 transports their bytes. Protected route, custom fixture and Wasm entropy checks pass. Feature 05 distinguishes the shared persistent context from each action receiver.
+
+## 2026-11-20. Action runtime and dependent features
+
+- Feature 05 is complete in runtime 0.0.3. The manager routes events. The host invokes a typed handler with its own context.
+- The todo test submits twice. It reads the signed attachment from the first reply and supplies it with the next request.
+- Checked all 19 feature documents. Updated 01 and 04 through 10, plus 13 through 15.
+- Feature 06 is ready for review. Its expansion uses the runtime action module and preserves the function's declared return type.
+- The dispatcher, template, web and native plans share the same rules for invocation, signed output and transport replies.
+- On macOS, 30 integration tests and three documentation tests passed. Strict Clippy, formatting and the WebAssembly target check passed.

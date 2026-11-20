@@ -1,6 +1,6 @@
 ---
 feature: "action-runtime"
-status: "revised plan for review"
+status: "complete"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "04-signed-state"]
 crates: ["foundation_ui_runtime"]
@@ -84,7 +84,7 @@ These host integration snippets use proposed rendering and dispatcher interfaces
 // Once, when constructing App.
 let mut registry = ActionRegistry::new();
 registry.register(add_todo)?;
-let dispatcher = Dispatcher::new(registry);
+let dispatcher = DispatcherBuilder::new(Origin::Server, Arc::new(registry)).build();
 
 // Page route. Load the initial list for the authenticated caller.
 let request_ctx = todo_request_ctx(app, req).await?;
@@ -92,7 +92,7 @@ let user = request_ctx.get::<CurrentUser>().ok_or(RouteError::LoginRequired)?;
 let list = todos.load_for(&user.id).await?;
 let page_ctx = Context::for_render(request_ctx.clone());
 todo_page(&page_ctx, &list)?;
-let first_frame = encode_updates(&request_ctx, page_ctx.into_receiver().drain())?;
+let first_frame = encode_updates(&request_ctx, page_ctx.into_receiver().drain(), &caps, header, &config)?;
 
 // Action route, on a later submit. Read and authenticate this request independently.
 let request_ctx = todo_request_ctx(app, req).await?;
@@ -190,6 +190,8 @@ let immediate_reply = manager.trigger("host:add_todo", TriggerEvent {
 ```
 
 The example uses the generated action input for `submit_input`.
+A client without the Rust implementation calls `registry.declare(None, "add_todo", Scope::All)?`.
+This declaration permits server fallback for that action. The server advertises its bare name through `ServerCaps.actions`.
 On success, the manager returns `Option<Vec<u8>>`. With `Some(frame)`, the host gives the immediate reply to its renderer.
 With `None`, the socket accepted the request. The receive path handles later frames.
 
@@ -247,14 +249,11 @@ The registry adapter decodes the verified body into `TodoList` and calls the gen
 
 ```rust
 let entry = self.registry.get(origin, name, surface)?;
-let verified = verify_event(ctx, entry.as_ref(), request)?;
-let call_ctx = Context::for_action(ctx.clone(), surface, verified.component_root);
-entry.call_raw(&call_ctx, verified.event).await?;
-let items = call_ctx.into_receiver().drain();
-encode_updates(ctx, items)
+let items = invoke_action(ctx, entry, surface, trusted_root, request).await?;
+let frame = encode_updates(ctx, items, caps, header, config)?;
 ```
 
-`Context::for_action` is a proposed constructor. It prepares the call receiver and target. Cloning the supplied `Ctx` retains the same services, map and signer.
+The helper creates a `Context::for_action` with a fresh receiver. The handle retains the caller’s services, map and signer.
 The action reads that receiver through `ctx.receiver()`. Application services can read the same `CurrentUser` through the underlying context.
 On success, `encode_updates` signs queued state using the request signer that verified the incoming bytes.
 On error, the caller drops the receiver and builds the error frame.

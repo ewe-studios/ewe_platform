@@ -34,9 +34,9 @@ On the web, an event attribute can hold an action reference with one of two orig
 or `host` (D50). One JS action manager reads the reference, checks the origin and the scope
 with the same rule as the Rust manager, and routes the call. A `host:` action is a page
 function or a compiled action in the local WASM or page registry. A `server:` action goes to
-the backend as one request `Frame` with the state of the bound element. A `host:` reference
-with no local target falls forward to the server when the server action list holds its name
-(D50 (8)). Every answer is a frame that the applicator of feature 09 applies.
+the backend as one request `Frame` with the state of the bound element. A plain declaration has no origin limit.
+When its local implementation is absent, the manager sends it to the server if the server advertises its name.
+An explicit host declaration always requires a local implementation. Every answer is a frame that the applicator of feature 09 applies.
 The server sends its `server:` action list in `ServerCaps.actions`, and the manager hides or
 marks a control whose action the list lacks (D54). A todo list example proves the paths in a
 real browser.
@@ -94,58 +94,17 @@ The receiver delivers later frames independently. An empty list means local hand
 | Client sequence counter | The `Frame.sequence_id` of the next request | `WebActionManager` |
 | In-flight set | The component roots with a transport send still pending | `WebActionManager` |
 
-| Verb | Kind | Trigger | Effect |
-|---|---|---|---|
-| `declare`, `registerHost` | entity | Page start, a scoped script | Adds an entry |
-| `trigger` | story | An event | Parse, check, route, harvest, send, apply |
-| `hello` | entity | Page start | Builds one `Frame` with a `ClientHello` |
-| `applyCaps` | entity | A `caps` control message | Stores the server action list and marks the controls that are not available |
-
-**Words.** "Harvest" is to copy the `primal::state` text on the bound element and
-decode it from base64url to bytes. The manager does not read the bytes. "Host" is the local
-runtime of the page: a JS function or the compiled WASM actions (D50). "Request frame" is one
-root `Frame` whose kind is `FrameRequest`. The manager builds it, and the server, the WASM
-module or the Rust core reads it (D47).
+The manager copies and decodes the bound control's `primal::state` attribute without interpreting the bytes.
+It sends one request frame to the selected runtime.
 
 ## 4. Rules
 
-### 4.1 Law worksheets
+### 4.1 Registration and request order
 
-```
-Entity: JS registry
-Conserved value:         an entry does not change after it is added, except that registerHost can replace the function of a host entry (a script that runs again after a morph)
-Bound:                   the same bound as the Rust registry: one All entry, or one Web and one Mobile entry, for one (origin, name)
-Inverse pairs:           none
-Idempotent verbs:        declare with the same origin, name and scope; registerHost with the same name and function
-Ordering pairs:          declare comes before trigger
-Monotone values:         none
-Freeze points:           none
-Links to other entities: the "origin:name" text of an entry equals Action::origin() + ":" + Action::NAME of one Rust action (D50); a server entry is one ServerAction of ServerCaps.actions (D54)
-```
-
-```
-Entity: Client sequence counter
-Conserved value:         none
-Bound:                   >= 1
-Inverse pairs:           none
-Idempotent verbs:        none
-Ordering pairs:          none
-Monotone values:         strictly increases
-Freeze points:           none
-Links to other entities: Frame.sequence_id of the request frame; the answer frame's ack
-```
-
-```
-Entity: In-flight set
-Conserved value:         a root is in the set until the transport send settles (HTTP reply, socket handoff, or failure)
-Bound:                   at most one request for one root at a time
-Inverse pairs:           add / remove
-Idempotent verbs:        none
-Ordering pairs:          none
-Monotone values:         none
-Freeze points:           none
-Links to other entities: none
-```
+Reject overlapping declarations for the same name, origin and surface.
+A plain declaration covers both origins. A page remount can replace its own script callback.
+Assign request numbers from one, in send order. The answer acknowledges the number.
+Keep one pending request per root until the send settles.
 
 ### 4.2 Invariants
 
@@ -154,11 +113,11 @@ Links to other entities: none
 | I1 | The route of the JS manager equals the `expect` of every row of `backends/foundation_ui_runtime/fixtures/action_routes.json`. |
 | I2 | Only a `server:` reference reaches the server transport, except the D50 (8) fall-forward of a `host:` reference as `server:<name>`. Only a `host:` reference reaches a host target: a WASM action goes to the WASM transport, and a page function runs in the page. A `host:` reference leaves the page only as that fall-forward. |
 | I3 | The state bytes in a request frame equal the base64url decode of the `primal::state` attribute on the bound control, byte for byte. An absent attachment gives empty bytes. |
-| I4 | No request is sent before the reference parses, the registry has the action for the web surface or the server action list holds its name (D50 (8)), and a transport for the route exists. |
+| I4 | No request is sent before the reference parses, the route meets the declaration and server list rules in section 6.4, and a transport for the route exists. |
 | I5 | Each request has a `sequence_id` greater than the one before. |
 | I6 | While a root is in flight, a second `server:` trigger from inside that root is not sent. It is dropped, and `onError` gets `{ code: "Busy" }`. |
 | I7 | A reference with no origin prefix is not an action reference: the dispatcher resolves it with the existing rules (callback id, `primal:setter`, dot-path function). |
-| I8 | A control whose action is absent from `ServerCaps.actions` gets `data-ewe-unavailable` (D54). The control stays in the DOM. A `trigger` on it stops with `{ code: "UnavailableAction" }`. |
+| I8 | A server control whose action is absent from `ServerCaps.actions` gets `data-ewe-unavailable` (D54). The control stays in the DOM. A `trigger` on it stops with `{ code: "UnavailableAction" }`. |
 | I9 | Every failure calls `onError` with a `code`. No failure is silent, and none throws out of the event listener. |
 
 ### 4.3 Must have
@@ -189,7 +148,7 @@ Links to other entities: none
 - Do not edit, parse or re-encode the state bytes.
 - The manager never retries an action. Only an explicit host policy for HTTP action requests may retry. Keep the D50 route rule.
 - Do not block the event loop on a WASM action.
-- Do not keep or compare an action registry hash. The server list is names only (D54).
+- Do not keep or compare an action registry hash. Use action names from the server list for routing (D54).
 
 ## 5. Acceptance scenarios
 
@@ -249,13 +208,13 @@ Feature: Web action manager
   Scenario: A host reference with no host target fails at the tap
     Given the registry declares host:open_picker with scope web
     But no page function and no WASM action has that name
-    And ServerCaps.actions holds no "open_picker"
+    And ServerCaps.actions advertises "open_picker"
     When the user clicks the button
     Then onError was called once with { code: "UnavailableOrigin", origin: "host" }
     And no transport received a request
 
   Scenario: A plain host reference falls forward to the server
-    Given the registry declares host:add_todo with scope all
+    Given the registry declares add_todo with no origin limit and scope all
     But no page function and no WASM action has that name
     And ServerCaps.actions holds "add_todo"
     And a recording server transport
@@ -358,24 +317,23 @@ examples/ui_todo/tests/todo_browser_tests.rs                             browser
 
 ```js
 export class JsActionRegistry {
-  /** origin: "server" | "host"; scope: "all" | "web" | "mobile" (default "all";
-   *  "host" from a page script forces "web"). Throws RangeError on a bad name or on a
-   *  duplicate that breaks the bound. */
+  /** origin: null (plain), "server", or "host". Scope: "all", "web", or "mobile".
+   *  Reject an invalid name or overlapping declaration. */
   declare(origin, name, scope = "all");
   /** Declares host:name with scope web (if needed) and sets its page function. */
   registerHost(name, fn);
-  /** Returns "ok", "unknown" or "unsupported" for the surface. */
+  /** Returns the declared origin, scope and local availability, or a lookup error. */
   lookup(origin, name, surface);
   hostFunction(name) /* function | undefined */;
   /** Sorted "origin:name" strings that exist on the surface. */
   refs(surface);
 }
 
-/** The pure route rule (feature 05 section 6.5). Returns { route: "server"|"host" } or
- *  { error: code }. `lookup` is "ok", "unknown" or "unsupported"; `has` says which
- *  transports exist; `serverHas(name)` says whether ServerCaps.actions holds name. */
+/** The pure route rule (feature 05, stage 2). Returns { route: "server"|"host" } or
+ *  { error: code }. Use the declaration returned by lookup. has records available transports.
+ *  serverHas returns undefined before caps arrive, then reports whether caps include the name. */
 export function route(reference, surface, lookup, has /* {server, host} */, serverHas);
-/** Returns { origin, name } or { error: "BadReference" }. */
+/** Returns { origin, name } or { error: "InvalidReference" }. */
 export function parseReference(text);
 
 export class FetchActionTransport {
@@ -423,7 +381,7 @@ export function installActionRuntime(wasmUi, deps) /* WebActionManager */;
 ```
 
 An error passed to `onError` is `{ code, reference?, origin?, detail? }`, with `code` one of
-`"BadReference"`, `"UnknownAction"`, `"UnsupportedAction"`, `"UnavailableOrigin"`,
+`"InvalidReference"`, `"UnknownAction"`, `"UnsupportedAction"`, `"UnavailableOrigin"`,
 `"UnavailableAction"`, `"Busy"`, `"Transport"`, `"HostThrew"`, or the name of a wire
 `ErrorCode` from an `Error` message (`"StateRejected"`, `"StateExpired"`, …).
 
@@ -450,23 +408,17 @@ _The diagram shows one server action on the web. A `host:` action either calls a
 function and stops, or sends a request on the local WASM transport. A plain host action with
 no local target sends to the server as `server:<name>` (D50 (8))._
 
-1. `parseReference`; an error gives `BadReference`.
+1. `parseReference`; an error gives `InvalidReference`.
 2. If `el` or an ancestor has `data-ewe-unavailable`: `UnavailableAction`; stop.
-3. `registry.lookup(origin, name, WEB)`; `"unsupported"` gives `UnsupportedAction`. An
-   `"unknown"` result goes to the route rule, which decides `UnknownAction` or the D50 (8)
-   fall-forward.
-4. `route(…)` with the lookup of step 3, `has { server: !!deps.server, host: true }` and
-   `serverHas(name)` from the latest `ServerCaps.actions`; an error gives its code (feature 05
-   section 6.5). The page is always a host. A `host:` reference that the registry does not
-   hold, when `deps.server` exists and the server list holds the name, routes to
-   `server:<name>` (D50 (8)). A missing function and a missing local transport are caught in
-   step 5.
-5. **`host`**: `fn = registry.hostFunction(name) ?? resolveGlobal(deps.scope, name)`. With a
-   function, call it and stop (the call is described after the numbered steps). Else, with a
-   local transport and a local WASM registry entry, send on the local transport. Else, when
-   `applyCaps` recorded that `ServerCaps.actions` holds `name`, send the same call as
-   `server:<name>` on the server transport (D50 (7), (8)); the plain `#[action]` writes
-   `host:name`, and the server lists it. Else `UnavailableOrigin` with origin `"host"`; stop.
+3. Read the declaration for the origin, name and surface. Reject the wrong origin or surface.
+   An unknown host reference gives `UnknownAction`, even when the server advertises the name.
+4. For a server reference, require a server transport. Before caps arrive, require a matching declaration.
+   After caps arrive, the server must advertise the name. Its list can supply a missing server declaration.
+5. For a host reference, run the registered page function or compiled local action when present.
+   A declared web page function may resolve the named global function. Require the local transport for a compiled action.
+   If the implementation is absent, check the declared origin. An explicit host action gives `UnavailableOrigin`.
+   A plain declaration can select `server:<name>` when the server advertises the name and its transport exists.
+   Otherwise report `UnavailableOrigin`. A local call failure ends the call.
 6. **Concurrency group** (used only to prevent duplicate requests): `root = el.closest("[data-ewe-root]")`. If `root` is in the in-flight set:
    `Busy`; stop. Else add `root` (or the element itself when there is no root).
 7. **State**: Read `base64urlDecode(el.getAttribute("primal::state") ?? "")` on the bound control.
@@ -489,7 +441,7 @@ no local target sends to the server as `server:<name>` (D50 (8))._
    plus `builder.finish(root, "EWF1")` gives the same bytes. A buffer longer than
    `WireLimits::max_action_request_bytes` (`deps.maxRequestBytes`, default 1 MiB) gives
    `onError({ code: "BadRequest", detail: "request too large" })`; stop. The state and node
-   values keep their meanings from step 7 and the `primal-id` rule.
+   values come from the bound control. Omit the state vector when the control has no attachment.
 9. **Send** on the transport that steps 4 and 5 selected: `deps.server` after the
    fall-forward, else the transport of the route. On rejection: remove the root from the set;
    `Transport` with the message; stop.
@@ -614,7 +566,7 @@ to `members` in the root `Cargo.toml`, next to `examples/platform_demo`. The nat
 are `examples/ui_todo_ios` and `examples/ui_todo_android`; features 14 and 15 own them. All
 platforms use one set of templates and actions.
 
-**State.** `TodoApp` implements `ComponentState` (`COMPONENT_TYPE` 1, a versioned body). It
+**State.** `TodoApp` derives `Serialize` and `Deserialize` for use in `Interaction<TodoApp>`. It
 holds the items (id, text, done), the filter (all, open, done), the add-dialog visibility and
 the delete-dialog target.
 
@@ -625,7 +577,7 @@ operations to `ctx.receiver()` (D52):
   sends the notification `host:notify`.
 - `#[action(server)] toggle_todo`: toggles the item.
 - `#[action(server)] confirm_delete`: deletes the item. A second delete of the same id
-  returns `Err(ActionError { code: ActionFailed, message: "already deleted" })` (the domain
+  returns `Err(ErrorTrace::new(ActionError::new(ErrorCode::ActionFailed, "already deleted")))` (the domain
   rule).
 
 **Host actions.** Each action returns `Result<(), ErrorTrace<ActionError>>`:
@@ -634,7 +586,7 @@ operations to `ctx.receiver()` (D52):
 - `#[action(host)] open_delete_dialog`: shows the confirm dialog with the target id.
 - `#[action(host)] close_dialog`: hides both dialogs.
 - `#[action(host)] filter_todos`: sets the filter and rewrites the list locally. The local
-  dispatcher seals the new state.
+  dispatcher signs the new state with its configured signer.
 
 **The `host:notify` pair.** `notify` has two forms (D50 (2)): a web-only page script declared
 with `scope.action("notify", …)` and a mobile form compiled into the native core. Both use
@@ -654,7 +606,8 @@ route. `/action` reads the `x-ewe-hello` header, makes `Connection::stateless`, 
 `Dispatcher::dispatch` and answers with `application/primal-frame` (one size-prefixed
 `Frame`). The `caps` message lists `add_todo`, `toggle_todo` and `confirm_delete` (D54). Use
 the HTTP server that `foundation_browser`'s test server uses, so no new dependency is added.
-The session id comes from a cookie that the page handler sets.
+Build the render and action contexts from the same application services.
+When the application binds its signer to a user, derive that binding from the validated session on each request.
 
 **The WASM module.** It is a `cdylib` for `wasm32-unknown-unknown` in
 `examples/ui_todo/module/`, built the way
@@ -743,7 +696,3 @@ mise run test:browser
 - [ ] `git diff` of `foundation-wasm-ui.js` for this feature shows only the two seams.
 - [ ] No existing JS or Rust test file changed.
 - [ ] The check list of the `story-driven-specification` skill passes.
-
----
-
-_Created: 2026-11-13_

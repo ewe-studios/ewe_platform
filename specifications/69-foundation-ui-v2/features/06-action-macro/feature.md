@@ -1,7 +1,7 @@
 ---
 feature: "action-macro"
 description: "The one #[action] attribute macro: it reads the function signature and the optional origin and scope limit, and generates the struct named after the function with origin(), scope() and its Action impl."
-status: "pending"
+status: "revised plan for review"
 priority: "high"
 model: "sonnet"
 depends_on: ["05-action-runtime"]
@@ -45,7 +45,7 @@ feature 05, so no runtime look-up picks a type.
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Declare | Developer | `#[action] async fn name(ctx: &Context, event: Interaction<T>) -> Result<(), ErrorTrace<ActionErrorT>>` | A struct `name` that implements `Action` |
+| U1 | Declare | Developer | `#[action] async fn name(ctx: &Context, event: Interaction<T>) -> Result<(), ErrorTrace<ActionError>>` | A struct `name` that implements `Action` |
 | U2 | Limit | Developer | `#[action(server)]`, `#[action(host)]`, `#[action(host, web)]` | `origin()` and `scope()` follow the limit |
 | U3 | Register | Developer | `registry.register(name)` | The entry exists (feature 05) |
 | U4 | Reject | Compiler | A bad signature or a bad limit | One `compile_error!` at the bad token |
@@ -61,7 +61,7 @@ generated struct and impl; the compile errors.
 |---|---|
 | `Action`, `Origin`, `Scope`, `Context`, `Interaction`, `ActionReceiver`, `ActionFuture`, `ErasedAction` | Feature 05 |
 | `ErrorTrace` | `backends/foundation_errstacks` |
-| `ActionErrorT` | Feature 01 |
+| `ActionError`, `ActionResult`, `ActionFuture` | Feature 05 |
 | Verify, sign, route, encode (the steps that are the same for every action) | Features 04, 05, 07 (library code, D19) |
 | `#[service]` | `foundation_macros::connectrpc_service`. This macro shares no code with it (D18) |
 | The `on:` binding in `html!` that names the struct | Feature 08 |
@@ -136,16 +136,16 @@ Feature: The #[action] macro
       """
       #[action]
       pub async fn increment_counter(ctx: &Context, event: Interaction<Counter>)
-          -> Result<(), ErrorTrace<ActionErrorT>> {
+          -> Result<(), ErrorTrace<ActionError>> {
           let next = Counter { current: event.state.current + 1 };
-          ctx.receiver().push(set_text(42, next.current.to_string()));
-          Ok(())
+          ctx.receiver().state(event.node_id, &next)
       }
       """
     Then <increment_counter as Action>::NAME is "increment_counter"
     And <increment_counter as Action>::origin() is None
     And <increment_counter as Action>::scope() is Scope::All
-    And calling it with Counter { current: 1 } returns Ok and the receiver holds SetText(42, "2")
+    And calling it with Counter { current: 1 } returns Ok
+    And the reply attaches a signed Counter { current: 2 } to the triggering node
 
   Scenario: A server-only action
     Given the same function with #[action(server)]
@@ -169,7 +169,7 @@ Feature: The #[action] macro
 
   Scenario: An action with no state
     Given #[action] async fn ping(ctx: &Context, event: Interaction<()>)
-        -> Result<(), ErrorTrace<ActionErrorT>>
+        -> Result<(), ErrorTrace<ActionError>>
     Then <ping as Action>::State is ()
 
   Scenario: The generated struct registers
@@ -180,23 +180,23 @@ Feature: The #[action] macro
 
   Scenario: A function that is not async does not compile
     Given #[action] fn f(ctx: &Context, event: Interaction<()>)
-        -> Result<(), ErrorTrace<ActionErrorT>> { .. }
+        -> Result<(), ErrorTrace<ActionError>> { .. }
     Then the build fails with "#[action] needs an `async fn`"
 
   Scenario: A wrong second parameter does not compile
     Given #[action] async fn f(ctx: &Context, event: String)
-        -> Result<(), ErrorTrace<ActionErrorT>> { .. }
+        -> Result<(), ErrorTrace<ActionError>> { .. }
     Then the build fails with "the second parameter of an action must be `Interaction<T>`"
 
   Scenario: An unknown limit does not compile
     Given #[action(desktop)] async fn f(ctx: &Context, event: Interaction<()>)
-        -> Result<(), ErrorTrace<ActionErrorT>> { .. }
+        -> Result<(), ErrorTrace<ActionError>> { .. }
     Then the build fails with "unknown action limit `desktop`; use `server` or `host`,
       then `web` or `mobile`"
 
   Scenario: A function with no return type does not compile
     Given #[action] async fn f(ctx: &Context, event: Interaction<()>) { .. }
-    Then the build fails with "an action must return `Result<(), ErrorTrace<ActionErrorT>>`"
+    Then the build fails with "an action must return `Result<(), ErrorTrace<ActionError>>`"
 ```
 
 ## 6. Technical breakdown
@@ -237,16 +237,15 @@ _The diagram shows what the macro makes from one function and where the result g
 - The second parameter type is a path whose last segment is `Interaction` with exactly one
   generic type argument `T`.
 - A return type is present. The macro does not check that it is
-  `Result<(), ErrorTrace<ActionErrorT>>`; the trait signature makes the compiler check it.
+  `Result<(), ErrorTrace<ActionError>>`; the trait signature makes the compiler check it.
 
 **No limit is a real state.** A plain `#[action]` has no origin limit, so `origin()` returns
 `None` and both registries accept it (D50 (8)). `Some(origin)` states a limit. The action
-manager falls forward to the server only for a `None` action, as feature 05 section 6.5
-row 2 says.
+manager falls forward to the server only for a `None` action, under the routing rules in stage 2 of feature 05.
 
 ### 6.3 The generated code
 
-For `#[action(host, web)] /// doc\n pub async fn open_picker(ctx: &Context, event: Interaction<Picker>) -> Result<(), ErrorTrace<ActionErrorT>> { BODY }`
+For `#[action(host, web)] /// doc\n pub async fn open_picker(ctx: &Context, event: Interaction<Picker>) -> Result<(), ErrorTrace<ActionError>> { BODY }`
 with `rt = foundation_ui_runtime_path()`:
 
 ```rust
@@ -255,18 +254,21 @@ with `rt = foundation_ui_runtime_path()`:
 #[derive(Clone, Copy, Debug, Default)]
 pub struct open_picker;
 
-impl #rt::Action for open_picker {
+impl #rt::action::Action for open_picker {
     const NAME: &'static str = "open_picker";
-    fn origin() -> #rt::Option<#rt::Origin> { #rt::Some(#rt::Origin::Host) }
-    fn scope() -> #rt::Scope { #rt::Scope::Web }
+    fn origin() -> ::core::option::Option<#rt::action::Origin> { ::core::option::Option::Some(#rt::action::Origin::Host) }
+    fn scope() -> #rt::action::Scope { #rt::action::Scope::Web }
     type State = Picker;
 
     fn call<'__a>(
         &'__a self,
         ctx: &'__a Context,                 // the user's identifier and type, with '__a added
         event: Interaction<Picker>,         // the user's identifier and type, unchanged
-    ) -> #rt::ActionFuture<'__a> {
-        ::std::boxed::Box::pin(async move { BODY })
+    ) -> #rt::action::ActionFuture<'__a> {
+        ::std::boxed::Box::pin(async move {
+            let result: #declared_return_type = (async move { BODY }).await;
+            result
+        })
     }
 }
 ```
@@ -274,16 +276,21 @@ impl #rt::Action for open_picker {
 - The struct takes the visibility and every outer attribute of the function except
   `#[action]` itself.
 - `NAME` is `stringify!` of the identifier. A raw identifier `r#type` gives `"type"`.
-- `origin()` and `scope()` are constant functions; they take the values of the limit. A
+- `origin()` and `scope()` return the declared origin and scope. A
   plain `#[action]` gives `None`.
 - The first parameter type becomes `&'__a Ty1`. The body is not changed.
-- The block is inserted as `async move #block`.
+- Preserve the declared return type on the inner result. The outer future checks it against `ActionResult`.
 - Add `pub fn foundation_ui_runtime_path() -> TokenStream` to `crate_paths.rs`, in the style
   of the functions there.
 
 Because the struct has the identifier of the function, the two forms of one name
 (`#[action(host, web)]` and `#[action(host, mobile)]`) live in different modules (research 13
 section 3.3). The macro adds no suffix.
+
+Test the expansion through a consumer that renames the runtime dependency. Register the generated value with `registry.register(open_picker)?`.
+The state type must implement `Serialize + DeserializeOwned + Send + 'static`. Use `Interaction<()>` for an action without state.
+Compile a handler with the `ActionResult` alias. Reject a state type without deserialization and a handler with the wrong result type.
+Run the native and WebAssembly builds. The native future requires `Send`. The WebAssembly future can retain local values across an await.
 
 ### 6.4 The compile errors
 
@@ -303,7 +310,7 @@ that it finds, in this order.
 | 9 | A parameter pattern is not an identifier | The pattern | `an action parameter must be a plain name` |
 | 10 | The first parameter type is not `&T` or has a lifetime or `mut` | The type | `the first parameter of an action must be a shared reference, for example &Context` |
 | 11 | The second parameter type is not `…::Interaction<T>` with one type argument | The type | ``the second parameter of an action must be `Interaction<T>` `` |
-| 12 | No return type | The signature | ``an action must return `Result<(), ErrorTrace<ActionErrorT>>` `` |
+| 12 | No return type | The signature | ``an action must return `Result<(), ErrorTrace<ActionError>>` `` |
 
 ### 6.5 Files
 
@@ -321,7 +328,7 @@ backends/foundation_ui_runtime/tests/trybuild/action/*.rs + *.stderr
 The `lib.rs` entry:
 
 ```rust
-/// Marks an `async fn` as a UI action. See `foundation_ui_runtime::Action`.
+/// Marks an `async fn` as a UI action. See `foundation_ui_runtime::action::Action`.
 ///
 /// `#[action]` has no limit. `#[action(server)]` runs on the server,
 /// `#[action(host)]` on the local host, and `#[action(host, web)]` on the web host only.
@@ -342,7 +349,7 @@ it to `[workspace.dependencies]` (rule 17).
 | Law or scenario | Test | Oracle |
 |---|---|---|
 | I1, I2, I3, I4; Scenarios: every origin, server-only, host-only, host web-only, host mobile-only, no state | `action_macro_tests.rs::name_origin_scope_and_state_follow_the_declaration` (five modules, each with one action; a helper `fn state_is<A: Action<State = S>, S>()` proves `State` at compile time) | example |
-| I5; Scenario: every origin (the call) | `action_macro_tests.rs::generated_action_runs_the_body` (drive the future with the `block_on` that `foundation_ui_runtime` tests of feature 05 use) | example |
+| I5; Scenario: every origin (the call) | `action_macro_tests.rs::generated_action_runs_the_body` (run the registered action in a native `#[valtron_test]`) | example |
 | I7 | `action_macro_tests.rs::struct_keeps_visibility_and_attributes` (a `pub(crate)` action with `#[doc = "x"]` in a nested module is reachable from the parent) | example |
 | I8 | `action_macro_tests.rs::macro_output_resolves_the_runtime_crate`: the test file is an integration test, so the macro resolves the crate by its name (`FoundCrate::Name`). The test compiles and runs one action. `crate_paths.rs` already uses the same `resolve_crate` helper for every other crate | example |
 | Scenario: The generated struct registers | `action_macro_tests.rs::generated_struct_registers` | example |

@@ -77,7 +77,6 @@ The readable format starts with `EWH1`. The private format starts with `EWC1`.
 The signer authenticates the binding's presence and length as well as its contents.
 Renderers carry these bytes in `AttachState.state` and `ActionRequest.state` without parsing their format.
 The older `EWS1` fixtures remain readable through the wire crate’s independent `read_signed_state` function.
-The built-in signers issue a new format. Render fresh state when moving from the prototype.
 
 A signed row identifier tells the handler which row to load. The application checks current permissions and decides whether stale state is acceptable.
 The signer can also protect a complete counter value when the application chooses that policy.
@@ -90,3 +89,77 @@ cargo test -p foundation_ui_runtime -p foundation_ui_wire --profile uat
 cargo test -p foundation_compact --features crypto-chacha --profile uat
 node --test backends/foundation_compact/tests/wasm_hosts/crypto.test.mjs
 ```
+
+## Register and run an action
+
+An action receives the state attached to the control that triggered it. The registry entry selects the Rust type used to decode that state.
+The host authenticates the request and supplies the context. A persistent host can reuse that context for many calls.
+Each call has a separate output receiver.
+
+This action saves a new counter value on the triggering node. It sends no view change.
+
+```rust
+use foundation_ui_runtime::action::{
+    Action, ActionFuture, ActionRegistry, Context, Interaction, Origin, Scope,
+};
+
+struct Increment;
+
+impl Action for Increment {
+    type State = u32;
+    const NAME: &'static str = "increment";
+
+    fn origin() -> Option<Origin> { Some(Origin::Server) }
+    fn scope() -> Scope { Scope::All }
+    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<u32>) -> ActionFuture<'a> {
+        Box::pin(async move {
+            ctx.receiver().state(event.node_id, &event.state.saturating_add(1))
+        })
+    }
+}
+
+let mut registry = ActionRegistry::new();
+registry.register(Increment)?;
+# Ok::<(), foundation_ui_runtime::action::RegistrationError>(())
+```
+
+The manager takes a reference such as `server:increment`, the triggering node, its input and its signed bytes.
+A transport returns `Some(frame)` for an immediate reply or `None` after a socket accepts the message.
+A client without the implementation can declare an unqualified action with `registry.declare(None, "add_todo", Scope::All)?`.
+The manager can then route it to an advertised server implementation.
+
+The host checks the reference and selects the entry with `registry.get(origin, name, surface)?`.
+It passes the context, entry, surface, trusted render target and owned request to `invoke_action`.
+The helper verifies the attachment before the registry decodes it. An action with state type `()` accepts an absent attachment.
+On success, `encode_updates` signs queued state and writes one frame.
+
+### Render the updated list
+
+Features 06 and 08 specify this template syntax. A hand-written handler runs in the [todo integration test](tests/action_flow_tests.rs).
+
+```text
+#[action]
+async fn add_todo(ctx: &Context, event: Interaction<TodoList>) -> ActionResult {
+    let mut list = event.state;
+    list.items.push(event.input_value);
+    todo_page(ctx, &list)
+}
+
+fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
+    let out = ctx.receiver();
+    html! { ctx, out, Some(list),
+        <Stack>
+            <TextInput primal::state on:submit={add_todo} />
+            <List>{list.items.iter().map(todo_row)}</List>
+        </Stack>
+    };
+    Ok(())
+}
+```
+
+The page handler and action use the same render function. The root and the marked input each receive the same signed snapshot.
+The next submit carries the bytes on the input. Ordinary element attributes remain application data.
+
+If the action queues state and then returns an error, the host receives the error and drops the queued output.
+For example, a title check can return `Err(ErrorTrace::new(ActionError::new(ErrorCode::ActionFailed, "Enter a todo title")))`.
+The client retains its previous view and attachment. The integration test exercises this case while another caller completes a submit.

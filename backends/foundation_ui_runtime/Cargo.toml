@@ -1,13 +1,13 @@
 [package]
 name = "foundation_ui_runtime"
-version = "0.0.2"
+version = "0.0.3"
 autotests = false
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Context-bound state signers for user interfaces."
+description = "State signing, action registration, and event routing for user interfaces."
 
 [dependencies]
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std", "crypto-chacha"] }
@@ -17,7 +17,8 @@ sha2 = { workspace = true }
 subtle = { workspace = true }
 zeroize = { workspace = true }
 
-[dev-dependencies]
+serde = { workspace = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.4" }
 serde_json = { workspace = true }
 

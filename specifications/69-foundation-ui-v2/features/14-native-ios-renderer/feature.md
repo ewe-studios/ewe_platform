@@ -367,7 +367,7 @@ only `{ "data": kind, "target": node }`. A `Message` with `control.error` is rec
 `errors`. A `Message` with `control.state_expired` or `control.update_required` is
 recorded in `errors` and calls the store's error callback with its own code
 (`StateExpired`, `UpdateRequired`). A `Message` with `control.caps` is recorded in
-`caps`.
+`caps`. Pass the accepted caps frame once to `ActionCore.applyCapsFrame`. Report a core error through the host error callback.
 
 Ordering: the rule of feature 09 section 6.4, with the same three classes of frame.
 
@@ -464,6 +464,7 @@ public struct WebViewMountSpec { public let parentId: UInt32; public let url: St
 
 public protocol ActionCore: Sendable {
     func hello() -> Data
+    func applyCapsFrame(_ frame: Data) throws
     func trigger(reference: String, event: EventInput) async throws -> Data?
 }
 
@@ -607,6 +608,7 @@ Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
 | U6; Scenario: WebView mount row | `ApplierTests.testMountWebViewIsStored` (no control is built) | example |
 | Scenario: bad bytes | `ApplierTests.testBadBytesAreRejected`, `.testEveryPrefixIsRejectedOrApplied` | property |
 | Views build | `ViewSmokeTests.testEveryKindBuilds`: host `EweScreen` in an `NSHostingView` on macOS with a store that has one node of each kind, and lay it out | example |
+| Caps delivery | Feed a caps frame through the store and check that the core receives it once. | example |
 | I8 of feature 01 (four languages read one fixture) | `WireTests.testFixturesReadTheSameAsRust` (the field values of feature 01 section 6.7) | example |
 
 ## 8. Tasks

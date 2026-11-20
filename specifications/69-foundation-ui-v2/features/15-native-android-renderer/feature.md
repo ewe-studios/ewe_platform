@@ -369,6 +369,7 @@ class NodeStore(
 
 interface ActionCore {
     fun hello(): ByteArray
+    fun applyCapsFrame(frame: ByteArray)
     suspend fun trigger(reference: String, event: EventInput): ByteArray?
 }
 data class EventInput(val nodeId: UInt, val eventName: String, val value: String,
@@ -396,6 +397,7 @@ follow feature 14 section 6.5. Read signed bytes from the bound control’s reco
 Only `AttachState` writes the record’s signed state. Use the same `EventInput` fields, open and close rules, and resume parameters (`stream_id`, `resume_from`).
 The `Local` transport opens no channel.
 
+When the store accepts a caps reply, pass its frame once to `core.applyCapsFrame(frame)`. Report a core error to the host.
 The event bridge awaits `core.trigger(reference, input)?.let { store.receive(it) }` on the UI dispatcher.
 A socket handoff returns `null`. The host routes each later frame through the socket reader or a live mount.
 
@@ -511,6 +513,7 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 | I11; Scenarios: behaviour, unknown behaviour | `ApplierTest.uiBehaviourIsStored`, `.unknownBehaviourIsReported`, `.mobileBehaviourUsesItsCustomName` | example |
 | U6; Scenario: WebView mount row | `ApplierTest.mountWebViewIsStored` (no control is built) | example |
 | Scenario: bad bytes | `ApplierTest.badBytesAreRejected`, `.everyPrefixIsRejectedOrApplied` (no exception escapes for any prefix of each fixture) | property |
+| Caps delivery | Feed a caps frame through the store and check that the core receives it once. | example |
 | I8 of feature 01 | `WireTest.fixturesReadTheSameAsRust` | example |
 | The `ui` module compiles and its prop mapping is right | `ui/src/test/kotlin/PropMappingTest`: pure functions `lengthToDp`, `alignmentOf`, `arrangementOf` | example |
 

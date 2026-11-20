@@ -392,7 +392,7 @@ in parallel.
 | 02 | [vocabulary-and-platform-forms](./features/02-vocabulary-and-platform-forms/feature.md) | Core kinds and props, the web and mobile name tables, the behaviour name tables, the vocabulary version | 01 | Sonnet | Standard | ✅ Complete |
 | 03 | [frame-writer](./features/03-frame-writer/feature.md) | The frame writer, the gate, the sequencer | 01, 02 | Sonnet | Standard | ✅ Complete |
 | 04 | [signed-state](./features/04-signed-state/feature.md) | A host-installed state signer, readable or private state, and compact encryption on native and Wasm hosts | 01 | Sonnet | Runtime | ✅ Complete |
-| 05 | [action-runtime](./features/05-action-runtime/feature.md) | `Ctx`, `Context`, `Interaction`, `Receiver`, the registry, the action manager | 01, 04 | Sonnet | Runtime | ⬜ Pending |
+| 05 | [action-runtime](./features/05-action-runtime/feature.md) | `Ctx`, `Context`, `Interaction`, `ActionReceiver`, the registry, the action manager | 01, 04 | Sonnet | Runtime | ✅ Complete |
 | 06 | [action-macro](./features/06-action-macro/feature.md) | The `#[action]` attribute macro | 05 | Sonnet | Runtime | ⬜ Pending |
 | 07 | [dispatcher-and-handshake](./features/07-dispatcher-and-handshake/feature.md) | The stateless dispatcher, the delivery handler, `ClientHello` and `ServerCaps` | 03, 04, 05 | Sonnet | Runtime | ⬜ Pending |
 | 08 | [html-macro-core-vocabulary](./features/08-html-macro-core-vocabulary/feature.md) | `html!` core elements, `on:` action bindings, the view form with state, `Html` to ops | 01, 02, 05, 06, 07 | Sonnet | Runtime | ⬜ Pending |
@@ -410,7 +410,7 @@ in parallel.
 
 Feature 20 is the next implementation priority after its writer prerequisite. Its plan transfers producer migration from feature 12.
 
-The owner approved feature 04. The signer owns the state bytes. Feature 05 proposes a typed action registered by name and awaits review.
+Features 04 and 05 are complete. The signer owns the state format. The action registry decodes verified state for each registered handler.
 Earlier envelope, limiter and component-number instructions in dependent plans describe the prototype.
 Reconcile those instructions with the approved contracts before implementation.
 

@@ -741,17 +741,13 @@ pub fn finish_frame(frame: &FrameT) -> Result<Vec<u8>, WireError>;
 #[must_use] pub fn finish_signed_state(state: &SignedStateT) -> Vec<u8>;
 
 // error_ext.rs ----------------------------------------------------------
-// The action result is `Result<(), ErrorTrace<ActionErrorT>>` (D52), and `ErrorTrace::new`
-// requires `C: core::error::Error`. The wire crate adds the two impls to its own generated
-// type; no hand-written twin is made (rule 5).
+// The wire error implements Display and Error for callers that handle control frames.
 impl core::fmt::Display for ActionErrorT { /* "<code>: <message>", or the code name */ }
 impl core::error::Error for ActionErrorT {}
 ```
 
 `ActionErrorT::message` is `Option<String>`. `Display` writes the code name and the message
-when it is set. `core::error::Error` is in `core`, so the impl needs no `std` feature. The
-action crates use `ActionErrorT` as the context type of `ErrorTrace` and do not define their
-own error type.
+when it is set. `core::error::Error` is in `core`, so the impl needs no `std` feature. Feature 05 uses its own action error in handlers. Feature 07 maps that error to a wire control message.
 
 **Read steps, in this order.**
 

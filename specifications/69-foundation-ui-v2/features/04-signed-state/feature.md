@@ -224,7 +224,7 @@ Advance the injected test clock to the expiry time. Check that repeated private 
 Request throttling belongs at the host request boundary. A host can reject repeated requests before dispatch.
 The signer has no caller-address table. The host owns request throttling.
 
-The built-in signers replace the prototype codec. The old wire fixtures remain readable. Hosts moving from the prototype must issue fresh state or supply a compatible signer.
+The wire reader can still read the original signed-state fixtures.
 See the [runtime examples](../../../../backends/foundation_ui_runtime/README.md), [protected route tests](../../../../backends/foundation_ui_runtime/tests/protected_route_tests.rs) and [custom signer fixture](../../../../backends/foundation_ui_wire/fixtures/state_counter_custom.json).
 Features 05, 07, 10, 14 and 15 own actual action invocation and renderer event handling.
 

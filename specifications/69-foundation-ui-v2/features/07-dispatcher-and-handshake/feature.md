@@ -68,8 +68,7 @@ capabilities of one connection. The hello checks the schema and the vocabulary v
 ## 3. Bounded context
 
 **Inside this feature:** `Dispatcher`, `DispatcherBuilder`, `Connection`, `HelloOutcome`,
-`HelloError`, `DeliveryHandler`, `DefaultDelivery`, `LocalDispatcher`, `attach_state`,
-`seal_items`, the mapping from internal errors to `Control` messages.
+`HelloError`, `DeliveryHandler`, `DefaultDelivery`, `LocalDispatcher`, the mapping from internal errors to `Control` messages.
 
 **Outside:**
 
@@ -79,7 +78,7 @@ capabilities of one connection. The hello checks the schema and the vocabulary v
 | `VOCABULARY_VERSION`, `vocab_version` | Feature 02 |
 | `write_messages`, `write_error`, `write_caps`, `write_messagepack`, `ClientCaps`, `StreamSequencer`, `WriterConfig` | Feature 03 |
 | `StateSigner`, `sign_state`, `verify_state`, request context binding | Feature 04 |
-| `ActionRegistry`, `ErasedAction`, `Context`, `ActionReceiver`, `ReceiverItem`, `ActionRef`, `ActionTransport`, `ServerActionT` | Feature 05 |
+| `ActionRegistry`, `ErasedAction`, `Context`, `ActionReceiver`, `ReceiverItem`, `ActionRef`, `ActionTransport`, `invoke_action`, `prepare_messages` | Feature 05 |
 | The network: how bytes arrive and leave; how the host finds the session and the address | The host (D25) |
 | The domain data, single use, authorization of the user for a row | The action (D13, D14) |
 | The live mode (`App`, `Broadcaster`) | `foundation_wasm_ui::server` (feature 11). The dispatcher does not replace it (D15) |
@@ -151,8 +150,7 @@ Links to other entities: caps.actions is the sorted server action list for the s
 
 - `DeliveryHandler` as a trait, with `DefaultDelivery` (D16).
 - `LocalDispatcher`, which implements `ActionTransport` (D29, D38).
-- `attach_state`, the helper that builds an attachment from signed bytes.
-- `seal_items`, the one step that seals every state item of the receiver.
+- Use the receiver finalizer from feature 05 to sign state and preserve message order.
 
 ### 4.4 Must do
 
@@ -283,7 +281,6 @@ backends/foundation_ui_runtime/src/dispatch/
 ├── hello.rs        Connection, HelloOutcome, Dispatcher::hello
 ├── delivery.rs     DeliveryHandler, DefaultDelivery
 ├── local.rs        LocalDispatcher
-├── state_op.rs     attach_state, seal_items
 └── errors.rs       error_control helpers, StateError -> Control
 backends/foundation_ui_runtime/tests/{dispatch_hello_tests.rs,dispatch_tests.rs,dispatch_errors_tests.rs,dispatch_delivery_tests.rs,dispatch_local_tests.rs,dispatch_fuzz_tests.rs}
 ```
@@ -358,8 +355,6 @@ impl LocalDispatcher {
 }
 impl ActionTransport for LocalDispatcher { /* send awaits dispatch and returns its answer as Some(frame) */ }
 
-/// Builds a wire operation after the request signer supplies the attachment.
-pub fn attach_state(root_node: u32, signed: Vec<u8>) -> OperationT;
 ```
 
 ### 6.3 `hello`, in order
@@ -373,10 +368,11 @@ Let `frame` be the read `Frame`, and `client_hello` its `FrameRequest.hello`.
 2. `frame.schema_version() != SCHEMA_VERSION` gives `UpdateRequired`.
 3. `vocab_version(client_hello.vocabulary_version())` of `None` gives `UpdateRequired`. Else
    `vocab = min(client_hello.vocabulary_version(), VOCABULARY_VERSION)`.
-4. `surface = Surface { platform, mount }`; the connection caps are
+4. Use the requested mount as the registry surface. The connection caps are
    `ClientCaps { platform, mount, vocabulary_version: vocab }`.
-5. `actions = registry.server_actions(surface)`; the list is sorted by name and each entry
-   carries `action_hash` (D54). There is no registry hash to check.
+5. Add server action enumeration to the feature 05 registry for this handshake.
+   Include callable Rust entries whose origin permits the server and whose scope accepts the mount.
+   Omit client declarations without an implementation. Sort by name and encode each declaration fingerprint in the generated `ServerActionT` (D54).
 6. `stream_id`: if `frame.stream_id() != 0`, keep it and start the sequencer with
    `StreamSequencer::resume(stream_id, client_hello.resume_from())`. Else take a `u64` from
    `ctx.rng()`; if it is 0, use 1.
@@ -433,17 +429,13 @@ Details:
    `last_request`; on success store the new value (`fetch_max`).
 4. **Reference.** `ActionRef::parse(action_request.action())`.
 5. **Look-up.** `registry.get(origin, name, connection.surface())`.
-6. **Input.** Read the input fields. A stateful action requires an attachment.
-7. **State.** Call `verify_state(ctx, bytes)`. The registered adapter decodes only the verified body.
-8. **Run.** Make the call context from the request context and the trusted render target. Await the registered action.
-   An action error discards the receiver and returns a control error (D52).
-9. **Header.** After the action returns with `Ok(())`: lock the sequencer,
-   `header(frame.sequence_id())`, unlock. The lock is never held across an `.await`.
-10. **Sign.** For each pending state, call `sign_state(ctx, body)` once.
-    Emit its returned bytes in one `AttachState` per distinct target. A signing failure discards all pending output and reports `ActionFailed`.
-11. **Build the messages.** `ReceiverItem::Operation(op)` gives `Message{operation: op}`.
-    `ReceiverItem::Data { target_node, bytes }` gives
-    `Message{data: Data{target_node, msgpack}}`. The message order is the receiver order.
+6. **Target.** Resolve the component render target from the host's routing information.
+7. **Invoke.** Await `invoke_action(ctx, entry, connection.surface(), root, request)` with the owned request.
+   It verifies the attachment before it decodes the state. It returns collected output only when the handler succeeds.
+8. **Errors.** Map `InvokeError::State` and `InvokeError::Action` using the table below.
+9. **Header.** Take the next header from the connection sequencer. Release its lock before delivery.
+10. **Sign.** Pass the collected items and the same context to `prepare_messages(ctx, items)`.
+11. **Messages.** Pass the resulting messages in receiver order. A signing failure returns one control error.
 12. **Deliver.** `delivery.messages(messages, caps, header)`. A `WriteError` gives a
     `Control{error}` message with code `ActionFailed` and the message of the error.
 13. **Control messages.** `write_error`, `write_caps` or a helper for `state_expired` and
@@ -463,7 +455,7 @@ Details:
 | Missing signer or host service | `error: ActionError{ code: ActionFailed }` |
 | `StateError::Expired` | `state_expired: StateExpired{ token_issued_at: 0 }` |
 | Invalid submitted state | `error: ActionError{ code: StateRejected, message: "state rejected" }` |
-| `Err(ErrorTrace<ActionErrorT>)` from the action | `error` with the `ActionError` of the trace; the full stack goes to the server log only |
+| `Err(ErrorTrace<ActionError>)` from the action | `error` with the public code and message of the runtime error. Keep the trace in the host log |
 | Seal or delivery failure | `error: ActionError{ code: ActionFailed, message: "<short reason>" }` |
 
 ### 6.5 Fault tables
@@ -525,7 +517,7 @@ features 04 and 05. Add `Probe`-wrapped variants to see if an action ran.
 
 ## 8. Tasks
 
-- [ ] 1. `state_op.rs`: `attach_state`, `seal_items`, and their test.
+- [ ] 1. Test signed attachments through the feature 05 receiver and the injected delivery handler.
 - [ ] 2. `delivery.rs` and its tests.
 - [ ] 3. `errors.rs`: the control mapping table as one function, with a table test.
 - [ ] 4. `hello.rs`, the action list and its tests.

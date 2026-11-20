@@ -59,7 +59,7 @@ reactive, and reactive with a state field. All three yield `Html`. The receiver 
 | U2 | Bind an action | Developer | `on:tap={increment_counter}` | The attribute `ewe:on:tap="server:increment_counter"`, or `host:` for a host action |
 | U3 | Lower | Runtime code | `lower(&html, &options)` | `Vec<OperationT>`, or `LowerError` |
 | U4 | View with state | Action | `html! { ctx, receiver, Some(&next), … }` | The template operations and one pending state value with its target nodes, all in the receiver |
-| U5 | Mount | Page render code | `mount(&html, &options, parent, state)` | Operation units that create the root and append it to `parent` |
+| U5 | Mount | Page render code | `mount(&html, &options, parent, out, state)` | The receiver holds the tree, its parent link and any pending state |
 
 ## 3. Bounded context
 
@@ -74,7 +74,7 @@ the state field of the reactive form; `foundation_ui_runtime::view` (`lower`, `m
 | The pure form `html! { <…> }` and the reactive form `html! { ctx, receiver, <…> }`; `primal:on*` local handlers; `primal-id` numbering; scoped styles and scripts | `foundation_macros::html_macro` (spec 39). Their `DomOp` output does not change (D40); feature 12 moves it |
 | `Html`, `HtmlTag`, `AttrName`, `TAG_NAMES`, `ATTR_NAMES` | `foundation_ui_traits` |
 | Core names, `PropKind`, `TokenTable`, `web_form` rules, the three operation unions | Feature 02 |
-| `Action::NAME`, `Action::origin()`, `Context`, `ComponentState` | Feature 05 |
+| `Action::NAME`, `Action::origin()`, `Context`, `ActionReceiver` | Feature 05 |
 | The receiver (`ctx.receiver()`), its `state` method, the sealing of the state | Features 05 and 07 |
 | Behaviour names, the marker text, the shared and web sets | Feature 02 (section 6.7) |
 | Applying the operations | Features 09, 14, 15 |
@@ -475,13 +475,10 @@ impl core::error::Error for LowerError {}
 
 /// A lowering failure inside an action is an action failure (D52). The code is
 /// `ActionFailed`; the message is the short sentence of `Display`, never a Rust detail.
-impl From<LowerError> for ErrorTrace<ActionErrorT> {
+impl From<LowerError> for ErrorTrace<ActionError> {
     fn from(error: LowerError) -> Self {
-        ErrorTrace::new(ActionErrorT {
-            code: ErrorCode::ActionFailed,
-            message: Some(error.to_string()),
-            row_index: 0,
-        })
+        let message = error.to_string();
+        ErrorTrace::new(error).change_context(ActionError::new(ErrorCode::ActionFailed, message))
     }
 }
 
@@ -489,9 +486,9 @@ impl From<LowerError> for ErrorTrace<ActionErrorT> {
 /// The root is not appended to anything.
 pub fn lower(html: &Html, options: &LowerOptions<'_>) -> Result<Vec<OperationT>, LowerError>;
 
-/// `lower`, then `AppendChild(parent, root)`, then the unsealed state if one is given.
-pub fn mount<S: ComponentState>(html: &Html, options: &LowerOptions<'_>, parent: u32,
-    state: Option<&S>) -> Result<Vec<OperationT>, LowerError>;
+/// Queue the tree and its signed-state targets in the render receiver.
+pub fn mount<S: serde::Serialize>(html: &Html, options: &LowerOptions<'_>, parent: u32,
+    out: &ActionReceiver, state: Option<&S>) -> ActionResult;
 ```
 
 **`lower` rules.** Walk the tree depth-first. `n` is the `primal-id` of an element as a
@@ -516,9 +513,9 @@ gives `Auto` with value 0. `ColorToken` and `FontToken`: `tokens.color_id(text)`
 `font_id`; `None` gives `UnknownToken`. The other kinds parse as in section 6.2 item 4. A
 dynamic attribute that evaluated to `None` is not in the tree, so it gives no unit.
 
-**`mount` rules.** `ops = lower(html, options)`, then one `AppendChild(parent, root)` unit in
-`ui`, then `AttachState { root_node: root }` in `ui` when the state is `Some`. The state is
-unsealed.
+**Mount order.** Queue the lowered operations, then append the root to the parent.
+For `Some(state)`, call `out.state_for(&targets, state)?` with the root and all marked nodes.
+The finalizer signs once and attaches the same bytes to each distinct target.
 
 `ReplaceSubtree` semantics, which features 09, 14 and 15 implement: remove every
 descendant of `node_id` from the id table and from the view; keep `node_id`; then apply the
@@ -574,7 +571,7 @@ Test one action that adds a row and swaps a count in the same frame.
 | I5, I6, I7, I8 (compile time); Scenarios: misspelled action, string binding, unknown property, bad static length | `backends/foundation_ui_runtime/tests/view_fail_tests.rs` with `trybuild` files `tests/trybuild/view/fail_*.rs`: `fail_unknown_action.rs`, `fail_string_not_host.rs`, `fail_brace_not_path.rs`, `fail_unknown_event.rs`, `fail_unknown_prop.rs`, `fail_bad_length.rs`, `fail_bad_align.rs`, `fail_bad_axis.rs`, `fail_bad_bool.rs`, `fail_primal_on_core.rs`, `fail_form_fields.rs` | expected outcome |
 | Scenario: a click binds to a page function | `view_bind_tests.rs::host_binding_on_web_element_is_primal_onclick` | example |
 | I8 (run time); Scenarios: bad dynamic length, unknown token | `view_lower_tests.rs::bad_dynamic_prop_fails_with_no_units`, `::unknown_token_fails` | expected outcome |
-| I9, I10; Scenarios: third field, no state root, `None` third field | `view_state_tests.rs::third_field_attaches_state`, `::none_third_field_equals_two_fields`, `::third_field_without_root_is_action_error`, `::attached_state_is_unsealed` | example |
+| I9, I10; Scenarios: third field, no state root, `None` third field | `view_state_tests.rs::third_field_attaches_state`, `::none_third_field_equals_two_fields`, `::third_field_without_root_is_action_error`, `::finalizer_signs_all_attachment_targets` | example |
 | The error conversion of section 6.6 | `view_state_tests.rs::lower_error_becomes_an_action_error` (`from(LowerError::NoComponentRoot)` gives code `ActionFailed` and the `Display` message) | example |
 | `mount` appends the root and attaches the state | `view_state_tests.rs::mount_appends_root_and_state` | example |
 | I11; Scenarios: behaviour marker, scoped script | `view_lower_tests.rs::shared_behaviour_is_one_ui_unit`, `::web_behaviour_is_one_web_unit`, `::scoped_script_is_script_node` | example |

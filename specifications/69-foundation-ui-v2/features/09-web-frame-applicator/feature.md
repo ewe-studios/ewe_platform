@@ -508,14 +508,12 @@ Add these and nothing else:
    `{ isFrame(bytes), splitFrames(buffer) }`.
 2. At the start of `decodeEnvelopeFrame`, after the `Uint8Array` conversion:
    `if (ProtocolHandler.frameHook?.isFrame(bytes)) return { type: "frame", frames: [bytes] };`
-3. `export class FrameHandler { async process(response) { … } }`: it reads
-   `response.arrayBuffer()` and returns
-   `{ type: "frame", frames: ProtocolHandler.frameHook.splitFrames(buffer) }`. With no hook
-   it logs `"frame response received but the frame runtime is not installed"` and returns
-   `{ type: "raw", text: "" }`.
-   The response of one action is small, so one `arrayBuffer()` read is within rule 4
-   ("small and needed for the next step"). A stream of frames uses SSE or WebSocket, where
-   each message is one frame.
+3. `FrameHandler.process(response)` checks the status before it reads the body.
+   With no frame hook, log the missing runtime and return `{ type: "raw", text: "" }`.
+   Read successful action replies as streams. Bound each one-frame reply by the configured `maxFrameBytes` while reading.
+   Reject a size prefix that exceeds the frame limit before allocating storage.
+   Pass complete frame bytes to the hook. Reject a truncated final frame.
+   Return `{ type: "frame", frames }`. A live channel delivers each frame separately.
 4. `ProtocolHandler.named("frame")` returns a `FrameHandler`.
    `ProtocolHandler.fromContentType`: a content type that includes `primal-frame` returns a
    `FrameHandler`. Put this test first.
