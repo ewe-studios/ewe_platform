@@ -11,13 +11,12 @@ use std::path::{Path, PathBuf};
 
 use foundation_openapi::unified::{group_crate_manifest, GenError};
 
-/// The four crates a Cloudflare group crate depends on by path, with versions
+/// The three crates a Cloudflare group crate depends on by path, with versions
 /// that no real crate in the workspace uses, so the assertion cannot pass by
 /// accident.
 const SIBLINGS: &[(&str, &str)] = &[
     ("foundation_cloudflare_types", "9.1.0"),
     ("foundation_deployment", "9.2.0"),
-    ("foundation_macros", "9.3.0"),
     ("foundation_netio", "9.4.0"),
 ];
 
@@ -74,6 +73,7 @@ fn each_path_dependency_requires_its_siblings_version() {
     )
     .expect("render the manifest");
 
+    assert!(manifest.contains("foundation_macros = { workspace = true }"));
     for (crate_name, version) in SIBLINGS {
         let expected =
             format!("{crate_name} = {{ path = \"../{crate_name}\", version = \"{version}\"");

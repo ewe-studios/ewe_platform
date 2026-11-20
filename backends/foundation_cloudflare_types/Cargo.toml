@@ -17,8 +17,7 @@ base85rs = "0.1"
 sha2 = { workspace = true }
 
 [dependencies.foundation_macros]
-path = "../foundation_macros"
-version = "0.0.21"
+workspace = true
 
 [lints]
 workspace = true

@@ -61,7 +61,7 @@ version = "0.0.13"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.21"
+version = "0.0.22"
 
 [dependencies.foundation_context]
 path = "../foundation_context"
@@ -85,8 +85,7 @@ version = "0.0.12"
 optional = true
 
 [dependencies.foundation_macros]
-path = "../foundation_macros"
-version = "0.0.21"
+workspace = true
 
 [dependencies.foundation_netio]
 features = [

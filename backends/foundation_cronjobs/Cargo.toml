@@ -11,7 +11,7 @@ keywords.workspace = true
 
 [dependencies]
 foundation_db = { path = "../foundation_db", version = "0.0.8" }
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
+foundation_core = { path = "../foundation_core", version = "0.0.22" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 async-trait = "0.1"
@@ -26,7 +26,7 @@ tracing = "0.1"
 tempfile = "3"
 # `test-clock` provides `SimulatedClock`, so a test proves that a cron run
 # time follows the injected wall clock.
-foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["test-clock"] }
 
 [lints]
 workspace = true

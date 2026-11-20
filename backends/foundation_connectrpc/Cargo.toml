@@ -10,14 +10,14 @@ description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foun
 keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
+foundation_core = { path = "../foundation_core", version = "0.0.22" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The instant type the injected clock returns. On every native target this is
 # `std::time::Instant`; on JS wasm it is the host-clock instant, so a call
 # deadline compiles and runs on both.
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", features = ["to_structured"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.21" }
+foundation_macros = { workspace = true }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.8", optional = true, default-features = false }
@@ -60,7 +60,7 @@ foundation_reactor = { path = "../foundation_reactor", version = "0.0.4" }
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a call
 # deadline follows the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_errstacks = { path = "../foundation_errstacks", features = ["to_structured"] }
 serde_json = { workspace = true }

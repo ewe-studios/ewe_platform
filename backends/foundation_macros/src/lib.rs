@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 
+mod action;
 mod arrow_json_schema;
 mod arrow_schema;
 mod bindgen_test;
@@ -34,6 +35,15 @@ mod wireguard;
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
 // Import from foundation_nostd::macros.
+
+/// Marks an asynchronous function as a user interface action.
+/// The host registers the generated value by its function name.
+/// Use `#[action(server)]` or `#[action(host)]` to select an origin.
+/// Add `web` or `mobile` after the origin to select a surface.
+#[proc_macro_attribute]
+pub fn action(attr: TokenStream, item: TokenStream) -> TokenStream {
+    action::expand(attr.into(), item.into()).into()
+}
 
 // ── Embed macros ──
 

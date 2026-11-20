@@ -99,29 +99,31 @@ Each call has a separate output receiver.
 This action saves a new counter value on the triggering node. It sends no view change.
 
 ```rust
-use foundation_ui_runtime::action::{
-    Action, ActionFuture, ActionRegistry, Context, Interaction, Origin, Scope,
-};
+use foundation_ui_runtime::action;
+use foundation_ui_runtime::action::{ActionRegistry, ActionResult, Context, Interaction};
 
-struct Increment;
-
-impl Action for Increment {
-    type State = u32;
-    const NAME: &'static str = "increment";
-
-    fn origin() -> Option<Origin> { Some(Origin::Server) }
-    fn scope() -> Scope { Scope::All }
-    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<u32>) -> ActionFuture<'a> {
-        Box::pin(async move {
-            ctx.receiver().state(event.node_id, &event.state.saturating_add(1))
-        })
-    }
+#[action(server)]
+async fn increment(ctx: &Context, event: Interaction<u32>) -> ActionResult {
+    ctx.receiver().state(event.node_id, &event.state.saturating_add(1))
 }
 
 let mut registry = ActionRegistry::new();
-registry.register(Increment)?;
+registry.register(increment)?;
 # Ok::<(), foundation_ui_runtime::action::RegistrationError>(())
 ```
+
+The attribute turns the function into a value named `increment`. The application registers that value once.
+The registry decodes verified state as the type inside `Interaction<T>`. Use `Interaction<()>` for an action without state.
+
+| Attribute | Where the action can run |
+|---|---|
+| `#[action]` | Prefer the local host. Allow an advertised server implementation as a fallback. |
+| `#[action(server)]` | Server |
+| `#[action(host)]` | Local host |
+| `#[action(host, web)]` | Local host on a web surface |
+| `#[action(server, mobile)]` | Server for a mobile surface |
+
+Either explicit origin accepts the optional `web` or `mobile` scope.
 
 The manager takes a reference such as `server:increment`, the triggering node, its input and its signed bytes.
 A transport returns `Some(frame)` for an immediate reply or `None` after a socket accepts the message.
@@ -135,7 +137,7 @@ On success, `encode_updates` signs queued state and writes one frame.
 
 ### Render the updated list
 
-Features 06 and 08 specify this template syntax. A hand-written handler runs in the [todo integration test](tests/action_flow_tests.rs).
+Feature 08 specifies the template syntax in this example. A hand-written handler runs in the [todo integration test](tests/action_flow_tests.rs).
 
 ```text
 #[action]

@@ -47,6 +47,8 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+foundation_macros = { path = "backends/foundation_macros", version = "0.0.22" }
+trybuild = "1.0.125"
 hex = "0.4.3"
 # BoringTun uses SimpleHmac with blake2 0.10. The upstream hkdf 0.12 also needs hmac 0.12.
 hmac = "0.13.0"

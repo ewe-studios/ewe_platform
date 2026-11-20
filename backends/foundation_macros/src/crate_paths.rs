@@ -58,3 +58,12 @@ pub fn foundation_theme_path() -> proc_macro2::TokenStream {
 pub fn foundation_deployment_platform_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_deployment_platform")
 }
+
+pub fn foundation_ui_runtime_path() -> proc_macro2::TokenStream {
+    let name = match crate_name("foundation_ui_runtime") {
+        Ok(FoundCrate::Name(name)) => name,
+        _ => "foundation_ui_runtime".to_owned(),
+    };
+    let ident = syn::Ident::new(&name, proc_macro2::Span::call_site());
+    quote! { ::#ident }
+}

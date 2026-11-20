@@ -330,3 +330,14 @@ is recorded here as passed.
 - Feature 06 is ready for review. Its expansion uses the runtime action module and preserves the function's declared return type.
 - The dispatcher, template, web and native plans share the same rules for invocation, signed output and transport replies.
 - On macOS, 30 integration tests and three documentation tests passed. Strict Clippy, formatting and the WebAssembly target check passed.
+
+## 2026-11-21. Action macro
+
+Feature 06 is complete. Applications can import `#[action]` from runtime 0.0.4 and register the generated value by name.
+The [runtime README](../../backends/foundation_ui_runtime/README.md#register-and-run-an-action) includes a tested counter action.
+The paired macro and core packages now use version 0.0.22.
+
+- The native macro and runtime suites pass. The runtime suite includes 15 compiler diagnostic cases.
+- The renamed consumer builds for macOS and WebAssembly. The WebAssembly action retains a local reference across an await.
+- Strict Clippy and workspace formatting pass. Six generator manifest tests pass.
+- Feature 07 is next. Its dispatcher can invoke the registered action with the host context.

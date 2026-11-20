@@ -393,7 +393,7 @@ in parallel.
 | 03 | [frame-writer](./features/03-frame-writer/feature.md) | The frame writer, the gate, the sequencer | 01, 02 | Sonnet | Standard | ✅ Complete |
 | 04 | [signed-state](./features/04-signed-state/feature.md) | A host-installed state signer, readable or private state, and compact encryption on native and Wasm hosts | 01 | Sonnet | Runtime | ✅ Complete |
 | 05 | [action-runtime](./features/05-action-runtime/feature.md) | `Ctx`, `Context`, `Interaction`, `ActionReceiver`, the registry, the action manager | 01, 04 | Sonnet | Runtime | ✅ Complete |
-| 06 | [action-macro](./features/06-action-macro/feature.md) | The `#[action]` attribute macro | 05 | Sonnet | Runtime | ⬜ Pending |
+| 06 | [action-macro](./features/06-action-macro/feature.md) | The `#[action]` attribute macro | 05 | Sonnet | Runtime | ✅ Complete |
 | 07 | [dispatcher-and-handshake](./features/07-dispatcher-and-handshake/feature.md) | The stateless dispatcher, the delivery handler, `ClientHello` and `ServerCaps` | 03, 04, 05 | Sonnet | Runtime | ⬜ Pending |
 | 08 | [html-macro-core-vocabulary](./features/08-html-macro-core-vocabulary/feature.md) | `html!` core elements, `on:` action bindings, the view form with state, `Html` to ops | 01, 02, 05, 06, 07 | Sonnet | Runtime | ⬜ Pending |
 | 09 | [web-frame-applicator](./features/09-web-frame-applicator/feature.md) | The generated TS reader bundle and one apply loop for every message type on the web | 01, 02, 03 | Sonnet | Web | ⬜ Pending |

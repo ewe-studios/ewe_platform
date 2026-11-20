@@ -1,5 +1,9 @@
 #[cfg(not(target_family = "wasm"))]
 mod action_flow_tests;
+#[cfg(not(target_family = "wasm"))]
+mod action_macro_fail_tests;
+#[cfg(not(target_family = "wasm"))]
+mod action_macro_tests;
 mod action_manager_tests;
 mod action_receiver_tests;
 mod action_registry_tests;

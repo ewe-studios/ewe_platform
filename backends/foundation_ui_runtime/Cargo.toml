@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_runtime"
-version = "0.0.3"
+version = "0.0.4"
 autotests = false
 edition.workspace = true
 rust-version.workspace = true
@@ -10,6 +10,7 @@ repository.workspace = true
 description = "State signing, action registration, and event routing for user interfaces."
 
 [dependencies]
+foundation_macros = { workspace = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std", "crypto-chacha"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 hmac = { workspace = true }
@@ -30,5 +31,6 @@ path = "tests/mod.rs"
 workspace = true
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+trybuild = { workspace = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.8", default-features = false }
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
+foundation_core = { path = "../foundation_core", version = "0.0.22" }

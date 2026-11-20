@@ -1,21 +1,21 @@
 ---
 feature: "action-macro"
 description: "The one #[action] attribute macro: it reads the function signature and the optional origin and scope limit, and generates the struct named after the function with origin(), scope() and its Action impl."
-status: "revised plan for review"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["05-action-runtime"]
 estimated_effort: "medium"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-21
 author: "Main Agent"
 crates: ["foundation_macros", "foundation_ui_runtime"]
 decisions: ["D18", "D19", "D23", "D31", "D37", "A7", "A8", "R7", "D49", "D50", "D52"]
 tasks:
-  completed: 0
-  uncompleted: 9
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 06: The `#[action]` macro
@@ -32,7 +32,7 @@ A developer writes a plain `async fn` with `#[action]`. The macro reads the sign
 optional limit. It generates a unit struct with the same identifier as the function and an
 `Action` impl for it: the name, `origin()`, `scope()`, the state type from `Interaction<T>`
 and the call glue (D50). There is one marker. `#[remote_action]` does not exist (A7). The
-decode of the state follows from the state type through the blanket `ErasedAction` impl of
+decode of the state follows from the state type through the registered adapter in
 feature 05, so no runtime look-up picks a type.
 
 ## 2. Story
@@ -206,7 +206,7 @@ flowchart LR
     F["#[action(host, web)]<br/>async fn open_picker(ctx, event: Interaction&lt;Picker&gt;)<br/>-&gt; Result&lt;(), ErrorTrace&lt;ActionError&gt;&gt;"] --> M["action macro"]
     M --> S["struct open_picker;"]
     M --> I["impl Action for open_picker<br/>NAME, origin() = Some(Host), scope() = Web, State = Picker, call()"]
-    I --> B["blanket ErasedAction (feature 05)<br/>decodes Picker, then calls"]
+    I --> B["Registered adapter (feature 05)<br/>decodes Picker, then calls"]
     S --> R["registry.register(open_picker)"]
 ```
 
@@ -219,7 +219,7 @@ _The diagram shows what the macro makes from one function and where the result g
 | `foundation_macros` resolves crate paths with `proc-macro-crate` in `crate_paths.rs` | `backends/foundation_macros/src/crate_paths.rs:1-17` |
 | `foundation_macros` uses `syn` 2 with the `full` feature | `backends/foundation_macros/Cargo.toml:22` |
 | `foundation_macros` has compile-fail tests in `tests/trybuild` | `backends/foundation_macros/tests/trybuild/` |
-| No proc macro named `action` exists | `grep -n "pub fn action" backends/foundation_macros/src/lib.rs` gives nothing (2026-11-13) |
+| Before feature 06, no proc macro named `action` existed | `grep -n "pub fn action" backends/foundation_macros/src/lib.rs` returned no match on 2026-11-13 |
 
 ### 6.2 The accepted shape
 
@@ -348,24 +348,22 @@ it to `[workspace.dependencies]` (rule 17).
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
-| I1, I2, I3, I4; Scenarios: every origin, server-only, host-only, host web-only, host mobile-only, no state | `action_macro_tests.rs::name_origin_scope_and_state_follow_the_declaration` (five modules, each with one action; a helper `fn state_is<A: Action<State = S>, S>()` proves `State` at compile time) | example |
-| I5; Scenario: every origin (the call) | `action_macro_tests.rs::generated_action_runs_the_body` (run the registered action in a native `#[valtron_test]`) | example |
-| I7 | `action_macro_tests.rs::struct_keeps_visibility_and_attributes` (a `pub(crate)` action with `#[doc = "x"]` in a nested module is reachable from the parent) | example |
-| I8 | `action_macro_tests.rs::macro_output_resolves_the_runtime_crate`: the test file is an integration test, so the macro resolves the crate by its name (`FoundCrate::Name`). The test compiles and runs one action. `crate_paths.rs` already uses the same `resolve_crate` helper for every other crate | example |
-| Scenario: The generated struct registers | `action_macro_tests.rs::generated_struct_registers` | example |
-| I6; Scenarios: not async, wrong second parameter, unknown limit, no return type | `action_macro_fail_tests.rs::compile_errors` runs `trybuild::TestCases::compile_fail("tests/trybuild/action/fail_*.rs")`. One file for each of the 12 rows of section 6.4, named `fail_01_unknown_limit.rs` to `fail_12_no_return.rs`, each with its `.stderr` | expected outcome |
+| I1 to I4, I7 and registration | `action_macro_tests.rs::declarations_select_the_expected_name_origin_scope_and_state` checks all seven forms. It checks a raw identifier, unit state and module visibility. | Runtime assertions and type checks |
+| I5 | `action_macro_tests.rs::registered_action_returns_signed_state_and_preserves_handler_errors` calls the registered counter and verifies the signed result. | Decoded reply and original handler error |
+| I6 | `action_macro_fail_tests.rs::compile_errors` checks each of the twelve syntax errors. It also checks type bounds, return type and native future safety. | Compiler diagnostic snapshots |
+| I8 | The `tests/fixtures/renamed_action` consumer imports the runtime as `ui`. Its WebAssembly handler holds a local reference-counted value across an await. | Native and WebAssembly compilation |
 
 ## 8. Tasks
 
-- [ ] 1. Add `foundation_ui_runtime_path` to `crate_paths.rs`.
-- [ ] 2. Write the 12 `fail_*.rs` files (they fail now because the macro does not exist).
-- [ ] 3. Write `action.rs`: the limit parse and errors 1 and 2.
-- [ ] 4. Write the signature parse and errors 3 to 12.
-- [ ] 5. Write the expansion; register the macro in `lib.rs`; re-export it from the runtime.
-- [ ] 6. Write `action_macro_tests.rs`; record the `.stderr` files with `TRYBUILD=overwrite` and read each one.
-- [ ] 7. Bump `foundation_macros` and `foundation_ui_runtime` versions and every consumer of `foundation_macros` (AGENTS reminder 12).
-- [ ] 8. Update `progress.md` and `learnings.md`.
-- [ ] 9. Write or update the package or feature README.
+- [x] 1. Add `foundation_ui_runtime_path` to `crate_paths.rs`.
+- [x] 2. Write the 12 `fail_*.rs` files (they fail now because the macro does not exist).
+- [x] 3. Write `action.rs`: the limit parse and errors 1 and 2.
+- [x] 4. Write the signature parse and errors 3 to 12.
+- [x] 5. Write the expansion; register the macro in `lib.rs`; re-export it from the runtime.
+- [x] 6. Write `action_macro_tests.rs`; record the `.stderr` files with `TRYBUILD=overwrite` and read each one.
+- [x] 7. Bump `foundation_macros` and `foundation_ui_runtime` versions and every consumer of `foundation_macros` (AGENTS reminder 12).
+- [x] 8. Update `progress.md` and `learnings.md`.
+- [x] 9. Write or update the package or feature README.
       Show how to declare an action with the macro. Include a compile check for the example.
 
 ## 9. Verify
@@ -378,20 +376,25 @@ cargo test   -p foundation_macros --profile uat
 cargo clippy -p foundation_ui_runtime --profile uat --no-deps -- -D warnings
 cargo test   -p foundation_ui_runtime --profile uat
 cargo check  -p foundation_ui_runtime --profile uat --target wasm32-unknown-unknown
+cargo check --locked --manifest-path backends/foundation_ui_runtime/tests/fixtures/renamed_action/Cargo.toml --target-dir target
+cargo check --locked --manifest-path backends/foundation_ui_runtime/tests/fixtures/renamed_action/Cargo.toml --target-dir target --target wasm32-unknown-unknown
 cargo tree -i foundation_macros --workspace --depth 1     # then test each crate that uses a changed API
 ```
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] Each of the 12 error rows has a `.stderr` file whose text holds the message of the row.
-- [ ] The macro output holds no `static`, no registry, no numeric id and no hash.
-- [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the new code.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All tasks are complete. Each verification command passes. Strict Clippy reports no code warnings.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] Each of the 12 error rows has a `.stderr` file whose text holds the message of the row.
+- [x] The macro output holds no `static`, no registry, no numeric id and no hash.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the new code.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 
 _Created: 2026-11-13_
-_Revised: 2026-11-14 (D41 to D59)_
+_Completed: 2026-11-21._
+
+Cargo reports existing workspace dependency warnings tracked in [issue 596](https://github.com/ewe-studios/ewe_platform/issues/596).
+The isolated compiler-test workspaces also report unused workspace patches.

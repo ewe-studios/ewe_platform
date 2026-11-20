@@ -442,3 +442,13 @@ The stateless routing test checks the generated request field. The fix closes [i
 
 The host can share one context across actions. Each invocation keeps its own receiver and trusted render target.
 A delivery handler can call `prepare_messages` to sign the output once before it selects an encoder.
+
+## 2026-11-21. Action macro expansion
+
+An absolute crate path lets the macro find the runtime through a dependency alias.
+The runtime also names itself for code expanded within the crate. A separate consumer builds with the alias `ui` on both targets.
+
+The expansion checks the author's declared return type, including early returns. The runtime future then checks the action result and target-specific bounds.
+The native compiler rejects a reference-counted local value held across an await. The same handler can compile for WebAssembly.
+
+The release configuration pairs the macro crate and the core crate. Generated Cloudflare manifests now read the shared macro dependency from the workspace.

@@ -35,7 +35,7 @@ tracing = "0.1"
 wat = "1.207"
 # `SimulatedClock` fixes the wall and monotonic time, so a test can prove that
 # the guest reads the injected clock and not the host clock.
-foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["test-clock"] }
 
 [lints]
 workspace = true
