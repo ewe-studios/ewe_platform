@@ -187,17 +187,17 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 
 ## Features
 
-Status key: pending, in progress, complete. Update this table when a feature changes state.
+Seven of 19 features are complete. Feature 07 is implemented. Its repository clock check remains open under [issue 594](https://github.com/ewe-studios/ewe_platform/issues/594).
 
 | # | Feature | Model | Status |
 |---|---|---|---|
 | 01 | wire-schema-and-codegen | Sonnet | complete |
 | 02 | vocabulary-and-platform-forms | Sonnet | complete |
-| 03 | frame-writer | Sonnet | pending |
-| 04 | signed-state | Sonnet | pending |
-| 05 | action-runtime | Sonnet | pending |
-| 06 | action-macro | Sonnet | pending |
-| 07 | dispatcher-and-handshake | Sonnet | pending |
+| 03 | frame-writer | Sonnet | complete |
+| 04 | signed-state | Sonnet | complete |
+| 05 | action-runtime | Sonnet | complete |
+| 06 | action-macro | Sonnet | complete |
+| 07 | dispatcher-and-handshake | Sonnet | implemented |
 | 08 | html-macro-core-vocabulary | Sonnet | pending |
 | 09 | web-frame-applicator | Sonnet | pending |
 | 10 | web-action-manager | Sonnet | pending |
@@ -209,6 +209,9 @@ Status key: pending, in progress, complete. Update this table when a feature cha
 | 16 | behaviour-matrix | Sonnet | pending |
 | 17 | toolchain-and-ci | Sonnet | complete |
 | 19 | native-package-releases | Sonnet | approved |
+| 20 | migrate-to-frame-writer | Sonnet | revised plan for review |
+
+The plans for features 08 through 16 have prior revisions. Their implementation is pending. Feature 12 now follows feature 20 for legacy removal.
 
 **Phase gate for feature 13:** not open. It opens when the browser scenario of feature 10
 is recorded here as passed.
@@ -279,7 +282,7 @@ is recorded here as passed.
 ## Next
 
 1. Review [feature 20](./features/20-migrate-to-frame-writer/feature.md). It is the next feature after the frame writer prerequisite.
-2. Features 02 and 03 are complete. Features 04 and 05 await review of their revised contracts.
+2. Apply the reviewed migration stages before switching the default browser protocol.
 3. Apply the browser acceptance gate before native implementation.
 
 
@@ -353,7 +356,7 @@ The [package example](../../backends/foundation_ui_runtime/README.md#negotiate-a
 - Raw view operations cannot supply signed attachments. The regression covers direct, nested and columnar operations. [Issue 628](https://github.com/ewe-studios/ewe_platform/issues/628)
 - On macOS, 51 integration tests and five documentation tests pass. Formatting, strict Clippy and the WebAssembly build pass.
 - The repository clock check still reports four existing violations in the agent RPC crate. [Issue 594](https://github.com/ewe-studios/ewe_platform/issues/594)
-- Feature 08 is next. Its template lowering can queue state targets through the receiver.
+- Feature 08 can queue state targets through the receiver when template lowering begins.
 
 Feature 20 review found a blocking browser parity case before the producer switch.
 Child detachment and node deletion need distinct semantics. The current default still uses the legacy protocol. [Issue 629](https://github.com/ewe-studios/ewe_platform/issues/629)

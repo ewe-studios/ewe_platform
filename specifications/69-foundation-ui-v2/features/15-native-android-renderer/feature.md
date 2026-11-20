@@ -7,7 +7,7 @@ model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
 packages: ["native/android/ewe-ui", "examples/ui_todo_android"]

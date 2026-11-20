@@ -7,7 +7,7 @@ model: "sonnet"
 depends_on: ["08-html-macro-core-vocabulary", "09-web-frame-applicator", "10-web-action-manager", "11-live-mounts-and-server-streams"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-21
 author: "Main Agent"
 crates: ["foundation_ui_traits", "foundation_ui_wire", "foundation_wasm_ui", "foundation_macros", "foundation_arrow", "foundation_ui_components", "foundation_browser", "foundation_signals", "foundation_wasm"]
 decisions: ["D8", "D9", "D10", "D27", "D28", "D29", "D40", "D41", "D42", "D44", "D45", "D55", "D59"]

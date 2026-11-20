@@ -7,7 +7,7 @@ model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms", "03-frame-writer"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_wasm_ui", "foundation_browser"]
 decisions: ["D4", "D8", "D10", "D12", "D24", "D27", "D29", "D36", "D40", "D41", "D42", "D44", "D45", "D47", "D53", "D56", "D59"]

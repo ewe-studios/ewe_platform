@@ -7,7 +7,7 @@ model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms", "05-action-runtime", "06-action-macro", "07-dispatcher-and-handshake"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_macros", "foundation_ui_runtime"]
 decisions: ["D10", "D20", "D36", "D37", "D40", "D41", "D42", "D44", "D45", "D50", "D51", "D52", "D56", "D59"]

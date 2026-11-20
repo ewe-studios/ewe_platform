@@ -473,3 +473,5 @@ A browser parity test must reattach the detached node by identifier. [Issue 629]
 The columnar-native receiver writes directly to column buffers. A row-batch adapter covers only one of the existing receiver paths.
 
 The wire vocabulary uses tag and attribute names from the traits crate independently of the legacy converter. Keep the wire-to-traits dependency after migration.
+
+The feature headers, requirements totals and progress table track the same 19 features. Count full completion separately from implementation with an open verification check.

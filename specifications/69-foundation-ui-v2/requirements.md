@@ -6,7 +6,7 @@ created: 2026-11-13
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-13
+  last_updated: 2026-11-21
   estimated_effort: "large"
   tags: [ui, flatbuffers, wire, actions, signed-state, web, native, live-mounts]
   skills: [story-driven-specification, specifications-management, rust-clean-code, rust-valtron-usage, test-driven-development]
@@ -20,10 +20,10 @@ related_specs:
   - "specifications/52-tauri-foundation-platform"
   - "specifications/76-shared-context"
 features:
-  completed: 2
-  uncompleted: 16
-  total: 18
-  completion_percentage: 11
+  completed: 7
+  uncompleted: 12
+  total: 19
+  completion_percentage: 37
 ---
 
 # Spec 69: foundation_ui v2
@@ -416,7 +416,7 @@ Reconcile those instructions with the approved contracts before implementation.
 
 Number 18 is reserved for the later WebView control (D46).
 
-Status key: ⬜ Pending | 🔄 In Progress | ✅ Complete
+The completion count includes features marked complete. Feature 07 is implemented with one open repository check. Feature 18 is reserved and excluded from the total.
 
 Feature 17 has no dependency and runs first: it pins the tools that features 01 and 13 to 15
 use. A feature whose verify needs a tool runs `scripts/toolchain/check.sh` before its own

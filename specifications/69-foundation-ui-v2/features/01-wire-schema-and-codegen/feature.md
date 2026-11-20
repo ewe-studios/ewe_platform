@@ -7,7 +7,7 @@ model: "sonnet"
 depends_on: ["17"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
 decisions: ["D7", "D9", "D21", "D24", "D28", "D29", "D36", "R1", "R2", "R8", "D41", "D42", "D44", "D45", "D47", "D53", "D56", "D57", "D59"]

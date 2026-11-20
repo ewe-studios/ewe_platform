@@ -7,7 +7,7 @@ model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
 decisions: ["D8", "D16", "D24", "D27", "D28", "D29", "D36", "A1", "R8", "D41", "D42", "D43", "D44", "D45", "D46", "D53", "D56", "D59"]
