@@ -169,6 +169,9 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 The author chooses the attachment target when producing the component output.
 An action binding can explicitly reference another owner in the same view. The default owner is the bound element.
 Carry this optional reference through template lowering and binding delivery on all three platforms.
+The [todo example](../05-action-runtime/feature.md#1-render-the-owner-and-bind-the-input) proposes `ref="todos"` and `state={list}` on the owner.
+It proposes `state-from="todos"` on the input. Resolve the reference to a node in that component instance during lowering.
+Test two copies of the same component. Each input must select its own list.
 The current `BindAction` schema lacks this reference. Define its wire representation and compatibility tests before implementing this binding form.
 
 ## 5. Acceptance scenarios

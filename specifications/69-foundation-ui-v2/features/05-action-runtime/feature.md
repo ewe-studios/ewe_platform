@@ -9,11 +9,14 @@ crates: ["foundation_ui_runtime"]
 # Feature 05. Register an action and trigger it
 
 An action is an asynchronous Rust function. The application registers it once.
-A user clicks a button. The button's action reference tells the manager where to send the event.
+A user submits text. The input’s action reference tells the manager where to send the event.
 
 ## What the application author writes
 
-The following example shows the intended interface. Feature 06 supplies the macro. Feature 08 supplies the template binding.
+This is a proposed end-to-end example. Feature 06 supplies `#[action]`. Feature 08 supplies the template.
+The attribute names `ref`, `state` and `state-from` below are proposed syntax for the explicit-owner rule.
+
+### 1. Render the owner and bind the input
 
 ```rust
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -21,6 +24,32 @@ struct TodoList {
     items: Vec<String>,
 }
 
+fn todo_row(item: &str) -> Html {
+    html! { <Text>{ item }</Text> }
+}
+
+fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
+    let out = ctx.receiver();
+    html! { ctx, out,
+        <Stack>
+            <List ref="todos" state={list}>
+                { list.items.iter().map(String::as_str).map(todo_row) }
+            </List>
+            <TextInput on:submit={add_todo} state-from="todos" />
+        </Stack>
+    };
+    Ok(())
+}
+```
+
+The list and the input are siblings. `state={list}` attaches the initial list state to the list element.
+The input’s `state-from="todos"` selects that list for its submit action.
+The compiler resolves the name within this component instance. Two mounted copies each select their own list.
+An unresolved or duplicate reference is a template error.
+
+### 2. Handle the submit
+
+```rust
 #[action]
 async fn add_todo(
     ctx: &Context,
@@ -31,21 +60,57 @@ async fn add_todo(
     let out = ctx.receiver();
 
     html! { ctx, out, Some(&next),
-        <List>{ next.items.iter().map(todo_row) }</List>
+        <List>{ next.items.iter().map(String::as_str).map(todo_row) }</List>
     };
     Ok(())
 }
 ```
 
-The registry adapter has already decoded the verified bytes into `event.state: TodoList`.
-The first line moves that list into `next`. The second appends the text from this submit event.
-For example, an existing list containing “Buy milk” and an input value of “Get eggs” produce a list with both items.
-The application’s `todo_row` function renders one item. The receiver serializes the updated list when it records the next state.
-The author registers the action with `registry.register(add_todo)?` and binds an input event to it with `on:submit={add_todo}`.
+The action starts with a verified, decoded list. The submitted text is the new item.
+Here the context targets the existing list. The template updates its rows and queues its next state exactly once.
+The sibling input stays mounted and keeps its binding.
 
-Suppose the list at node 40 owns the state. The input at node 42 explicitly names 40 as its state owner.
-When the user submits “Buy milk”, the dispatcher gives the action the verified list and the input text.
-The call context identifies node 40 as the output target for this component.
+### 3. Connect the page and action handlers
+
+Both routes use the [protected request helper](../04-signed-state/feature.md#at-the-protected-route).
+These host integration snippets use proposed rendering and dispatcher interfaces.
+
+```rust
+// Once, when constructing App.
+let mut registry = ActionRegistry::new();
+registry.register(add_todo)?;
+let dispatcher = Dispatcher::new(registry);
+
+// Page route. Load the initial list for the authenticated caller.
+let request_ctx = todo_request_ctx(app, req).await?;
+let user = request_ctx.get::<CurrentUser>().ok_or(RouteError::LoginRequired)?;
+let list = todos.load_for(&user.id).await?;
+let page_ctx = Context::for_render(request_ctx.clone());
+todo_page(&page_ctx, &list)?;
+let first_frame = encode_updates(&request_ctx, page_ctx.into_receiver().drain())?;
+
+// Action route, on a later submit. Read and authenticate this request independently.
+let request_ctx = todo_request_ctx(app, req).await?;
+let reply = app.dispatcher.dispatch(&request_ctx, &connection, &request_frame).await;
+```
+
+### 4. Follow one event through the two frames
+
+Suppose the renderer assigns node 40 to the list and 42 to the input.
+This example uses a client without a local implementation. The host advertises `server:add_todo`.
+
+| Step | Concrete result |
+|---|---|
+| First frame | List 40 displays “Buy milk” and holds signed bytes A. Input 42 binds submit to `host:add_todo` with owner 40. |
+| User submits “Get eggs” | The renderer reads A from 40. The manager routes `server:add_todo` with trigger 42, value “Get eggs” and bytes A. |
+| Dispatcher calls the action | `event.node_id == 42`, `event.state.items == ["Buy milk"]`, and `ctx.state_root() == Some(40)`. |
+| Receiver after the macro | View operations update list 40 to display both rows. The last item is the unsealed two-item state for 40. |
+| Reply after success | The dispatcher signs the new state and sends the view operations followed by `AttachState(40, B)`. |
+| Next submit | Input 42 reads B from 40. The action receives both existing items before appending the next one. |
+
+The dispatcher must establish owner 40 from verified state metadata or a trusted binding record.
+A node number supplied by the client alone cannot authorize an update.
+The current wire binding lacks the explicit owner field. The [template plan](../08-html-macro-core-vocabulary/feature.md) owns its lowering and compatibility tests.
 
 | What the author writes | What the receiver holds after the call |
 |---|---|

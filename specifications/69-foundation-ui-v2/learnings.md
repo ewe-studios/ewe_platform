@@ -413,3 +413,5 @@ ASD-STE100.
 - The same action receiver accepts state alone or a rendered view followed by its next state. The caller drains both on success.
 
 - The login worker already resolves a trusted user through its session manager. A context fork isolates each request’s signer entry and current user.
+
+- A template reference needs component-instance scope. Two mounted todo lists can both name their owner “todos”.

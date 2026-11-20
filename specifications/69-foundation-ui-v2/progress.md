@@ -305,3 +305,5 @@ is recorded here as passed.
 - Feature 05 now uses the agreed todo action as its main example. Feature 08 tests its view update and state attachment together.
 
 - Features 04 and 05 now trace the protected todo route from worker startup through session lookup, rendering and action invocation.
+
+- Feature 05 shows the todo page, sibling input, action, protected routes and two consecutive submits in one example.
