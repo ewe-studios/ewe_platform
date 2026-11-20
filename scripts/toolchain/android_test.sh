@@ -8,6 +8,7 @@ trap 'rm -rf "$scratch"' EXIT
 mkdir "$scratch/bin"
 export ANDROID_HOME="$scratch/sdk dir"
 export ANDROID_COMPILE_SDK=fixture-platform
+export ANDROID_UI_COMPILE_SDK=fixture-ui-platform
 export ANDROID_BUILD_TOOLS=fixture-build-tools
 export ANDROID_NDK=fixture-ndk
 export SDK_LOG="$scratch/sdk.log"
@@ -57,7 +58,7 @@ run_android 42
 unset FAIL_LICENSES
 
 run_android 0
-expected=$(printf '%s\n' --licenses --install platform-tools "platforms;android-$ANDROID_COMPILE_SDK" "build-tools;$ANDROID_BUILD_TOOLS" "ndk;$ANDROID_NDK")
+expected=$(printf '%s\n' --licenses --install platform-tools "platforms;android-$ANDROID_COMPILE_SDK" "build-tools;$ANDROID_BUILD_TOOLS" "ndk;$ANDROID_NDK" "platforms;android-$ANDROID_UI_COMPILE_SDK")
 [[ $(cat "$SDK_LOG") = "$expected" ]]
 
 run_android 0

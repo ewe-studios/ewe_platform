@@ -53,6 +53,8 @@ def check_android_packages(env):
         f'build-tools/{env["ANDROID_BUILD_TOOLS"]}',
         f'ndk/{env["ANDROID_NDK"]}',
     ]
+    if env.get("ANDROID_UI_COMPILE_SDK"):
+        packages.append(f'platforms/android-{env["ANDROID_UI_COMPILE_SDK"]}')
     sdk_root = os.environ.get("ANDROID_HOME")
     if not sdk_root:
         return report("android packages", None, "ANDROID_HOME is absent; run: mise exec -- scripts/toolchain/check.sh --scope android")

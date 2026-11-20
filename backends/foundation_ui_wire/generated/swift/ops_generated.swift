@@ -735,6 +735,7 @@ public struct ewe_ui_UiBehaviour: FlatBufferObject, Verifiable {
 
   public var nodeId: UInt32 { let o = _accessor.offset(VTOFFSET.nodeId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
   public var behaviour: ewe_ui_BehaviourId { let o = _accessor.offset(VTOFFSET.behaviour.v); return o == 0 ? .unknown : ewe_ui_BehaviourId(rawValue: _accessor.readBuffer(of: UInt16.self, at: o)) ?? .unknown }
+  public var rawBehaviour: UInt16 { let o = _accessor.offset(VTOFFSET.behaviour.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt16.self, at: o) }
   public var hasArgs: Bool { let o = _accessor.offset(VTOFFSET.args.v); return o == 0 ? false : true }
   public var argsCount: Int32 { let o = _accessor.offset(VTOFFSET.args.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func args(at index: Int32) -> ewe_ui_BehaviourArg? { let o = _accessor.offset(VTOFFSET.args.v); return o == 0 ? nil : ewe_ui_BehaviourArg(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
@@ -1784,6 +1785,7 @@ public struct ewe_ui_MobileBehaviour: FlatBufferObject, Verifiable {
 
   public var nodeId: UInt32 { let o = _accessor.offset(VTOFFSET.nodeId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
   public var behaviour: ewe_ui_MobileBehaviourId { let o = _accessor.offset(VTOFFSET.behaviour.v); return o == 0 ? .unknown : ewe_ui_MobileBehaviourId(rawValue: _accessor.readBuffer(of: UInt16.self, at: o)) ?? .unknown }
+  public var rawBehaviour: UInt16 { let o = _accessor.offset(VTOFFSET.behaviour.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt16.self, at: o) }
   public var custom: String? { let o = _accessor.offset(VTOFFSET.custom.v); return o == 0 ? nil : _accessor.string(at: o) }
   public var customSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.custom.v) }
   public var hasArgs: Bool { let o = _accessor.offset(VTOFFSET.args.v); return o == 0 ? false : true }

@@ -32,6 +32,7 @@ rustfmt --edition 2021 --config-path "$scratch/rustfmt.toml" "$scratch/src/gener
 
 flatc --ts --gen-object-api -o "$scratch/generated/ts" "${schema[@]}"
 flatc --swift -o "$scratch/generated/swift" "${schema[@]}"
+python3 -I "$script_dir/swift_raw_ids.py" "$scratch/generated/swift"
 flatc --kotlin -o "$scratch/generated/kotlin" "${schema[@]}"
 
 {

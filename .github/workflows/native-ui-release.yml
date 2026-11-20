@@ -1,0 +1,155 @@
+name: Native UI packages
+on:
+  push:
+    tags: ['native-ui-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: native-ui-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    runs-on: macos-26
+    outputs:
+      swift_repo: ${{ steps.inputs.outputs.swift_repository }}
+      swift_rev: ${{ steps.inputs.outputs.swift_revision }}
+      kotlin_repo: ${{ steps.inputs.outputs.kotlin_repository }}
+      kotlin_rev: ${{ steps.inputs.outputs.kotlin_revision }}
+    env:
+      EWE_UI_SWIFT: ${{ github.workspace }}/swift
+      EWE_UI_KOTLIN: ${{ github.workspace }}/kotlin
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: core
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: inputs
+        run: |
+          python3 - <<'PY'
+          import os, re, tomllib
+          c = tomllib.load(open("release/native-ui.toml", "rb"))
+          if os.environ["GITHUB_REF_TYPE"] == "tag" and os.environ["GITHUB_REF_NAME"] != "native-ui-v" + c["version"]:
+              raise SystemExit("Tag differs from release version")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              for platform in ("swift", "kotlin"):
+                  rev = c[platform + "_revision"]
+                  if not re.fullmatch("[a-f0-9]{40}", rev):
+                      raise SystemExit("Set the exact source revision for " + platform)
+                  for key in (platform + "_revision", platform + "_repository"):
+                      print(key + "=" + c[key], file=f)
+          PY
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.inputs.outputs.swift_repository }}
+          ref: ${{ steps.inputs.outputs.swift_revision }}
+          path: swift
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.inputs.outputs.kotlin_repository }}
+          ref: ${{ steps.inputs.outputs.kotlin_revision }}
+          path: kotlin
+          persist-credentials: false
+      - name: Install pinned tools
+        run: |
+          command -v mise >/dev/null || brew install mise
+          mise trust --yes mise.toml
+          mise install --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
+          mise run toolchain:android
+      - name: Check platform bindings and build the starter applications
+        run: |
+          scripts/ui_native/sync-ios.sh --check
+          scripts/ui_native/sync-android.sh --check
+          python3 scripts/ui/check_behaviours.py ios --package "$EWE_UI_SWIFT"
+          python3 scripts/ui/check_behaviours.py android --package "$EWE_UI_KOTLIN"
+          scripts/ui_native/release/prepare.sh --output target/native-ui/candidate
+          scripts/ui_native/release/verify.sh --candidate target/native-ui/candidate --templates both
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-candidate
+          path: core/target/native-ui/candidate/
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/native-ui-v')
+    needs: preview
+    runs-on: ubuntu-latest
+    environment: native-ui-release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-candidate
+          path: candidate
+      - name: Sign the verified files
+        env:
+          SIGNING_KEY: ${{ secrets.NATIVE_GPG_PRIVATE_KEY }}
+          GH_TOKEN: ${{ secrets.NATIVE_RELEASE_TOKEN }}
+          FINGERPRINT: ${{ vars.NATIVE_GPG_FINGERPRINT }}
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          printf '%s' "$SIGNING_KEY" | gpg --batch --import
+          previous=()
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx android-publication.zip; then
+            gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern android-publication.zip --dir "$RUNNER_TEMP"
+            previous=(--previous "$RUNNER_TEMP/android-publication.zip")
+          fi
+          python3 scripts/ui_native/release/sign.py --candidate candidate --out signed --key "$FINGERPRINT" "${previous[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed-native-packages-${{ github.run_attempt }}
+          path: signed/
+      - name: Publish verified packages
+        env:
+          GH_TOKEN: ${{ secrets.NATIVE_RELEASE_TOKEN }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        run: scripts/ui_native/release/publish.sh --candidate signed --resume
+
+  public-install:
+    needs: [preview, publish]
+    runs-on: macos-26
+    env:
+      EWE_UI_SWIFT: ${{ github.workspace }}/swift
+      EWE_UI_KOTLIN: ${{ github.workspace }}/kotlin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: core
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ needs.preview.outputs.swift_repo }}
+          ref: ${{ needs.preview.outputs.swift_rev }}
+          path: swift
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ needs.preview.outputs.kotlin_repo }}
+          ref: ${{ needs.preview.outputs.kotlin_rev }}
+          path: kotlin
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-candidate
+          path: candidate
+      - name: Resolve both public packages
+        working-directory: core
+        run: |
+          command -v mise >/dev/null || brew install mise
+          mise trust --yes mise.toml
+          mise install --yes java gradle http:android-sdk python
+          mise run toolchain:android
+          mise exec -- scripts/ui_native/release/verify.sh --candidate ../candidate --templates both --public
