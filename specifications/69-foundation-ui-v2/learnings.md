@@ -400,4 +400,4 @@ ASD-STE100.
 - The wire writer currently parses attached state. Signer-owned formats require it to carry those bytes without parsing them.
 - The later action discussion gives the receiver to the caller. The caller drains it on success and discards it on error.
 
-- Web, Swift and Kotlin read attached state from the node that owns the action binding. Parentage supplies no state.
+- Web, Swift and Kotlin use the triggering node by default. A binding can explicitly name another state owner in the same user’s view.

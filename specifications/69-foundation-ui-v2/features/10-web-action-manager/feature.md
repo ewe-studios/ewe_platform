@@ -101,7 +101,7 @@ difference.
 | `hello` | entity | Page start | Builds one `Frame` with a `ClientHello` |
 | `applyCaps` | entity | A `caps` control message | Stores the server action list and marks the controls that are not available |
 
-**Words.** "Harvest" is to copy the `data-ewe-state` text on the element that owns the action binding and
+**Words.** "Harvest" is to copy the `data-ewe-state` text on the owner selected by the binding and
 decode it from base64url to bytes. The manager does not read the bytes. "Host" is the local
 runtime of the page: a JS function or the compiled WASM actions (D50). "Request frame" is one
 root `Frame` whose kind is `FrameRequest`. The manager builds it, and the server, the WASM
@@ -153,7 +153,7 @@ Links to other entities: none
 |---|---|
 | I1 | The route of the JS manager equals the `expect` of every row of `backends/foundation_ui_runtime/fixtures/action_routes.json`. |
 | I2 | Only a `server:` reference reaches the server transport, except the D50 (8) fall-forward of a `host:` reference as `server:<name>`. Only a `host:` reference reaches a host target: a WASM action goes to the WASM transport, and a page function runs in the page. A `host:` reference leaves the page only as that fall-forward. |
-| I3 | The state bytes in a request frame equal the base64url decode of the `data-ewe-state` attribute on the bound element, byte for byte. An absent attribute gives empty state. |
+| I3 | The state bytes in a request frame equal the base64url decode of the `data-ewe-state` attribute on the selected owner, byte for byte. The bound element is the default owner. |
 | I4 | No request is sent before the reference parses, the registry has the action for the web surface or the server action list holds its name (D50 (8)), and a transport for the route exists. |
 | I5 | Each request has a `sequence_id` greater than the one before. |
 | I6 | While a root is in flight, a second `server:` trigger from inside that root is not sent. It is dropped, and `onError` gets `{ code: "Busy" }`. |
@@ -213,6 +213,11 @@ Feature: Web action manager
     Given <button primal-id="42" primal:onclick="server:add_todo">Add</button> inside a parent with data-ewe-state="BAUG"
     When the user clicks the button
     Then the request frame has an empty state
+
+  Scenario: A sibling button explicitly selects the counter
+    Given button 42 names sibling 40 as its state owner
+    When button 42 triggers its action
+    Then the request identifies button 42 and carries the exact bytes attached to node 40
 
   Scenario: A page function runs for a host reference
     Given a scoped script ran scope.action("notify", fn)
@@ -434,7 +439,7 @@ sequenceDiagram
     M->>M: parseReference
     M->>R: lookup(origin, name, WEB)
     M->>M: route(...)
-    M->>M: read the bound element’s own state
+    M->>M: read the explicitly named owner or the bound element
     M->>T: send(request frame bytes)
     T-->>M: frames
     M->>F: receive(frame) for each frame
@@ -463,7 +468,9 @@ no local target sends to the server as `server:<name>` (D50 (8))._
    `host:name`, and the server lists it. Else `UnavailableOrigin` with origin `"host"`; stop.
 6. **Concurrency group** (used only to prevent duplicate requests): `root = el.closest("[data-ewe-root]")`. If `root` is in the in-flight set:
    `Busy`; stop. Else add `root` (or the element itself when there is no root).
-7. **State**: `base64urlDecode(el.getAttribute("data-ewe-state") ?? "")`. For a delegated click, `el` is the bound control.
+7. **State**: Use the bound control as the default owner. Resolve an explicit owner through this view’s node registry.
+   If the named node is missing, report a binding error. Read `base64urlDecode(owner.getAttribute("data-ewe-state") ?? "")`.
+   For a delegated click, `el` remains the control that owns the action binding.
 8. **Request**: build one root `Frame` whose kind is `FrameRequest`, with `action` set and
    `hello` absent (D47):
 

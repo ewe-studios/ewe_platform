@@ -291,4 +291,4 @@ is recorded here as passed.
 
 - Feature 04 now shows the same state round trip on the web, iOS and Android. The issuing host owns verification.
 
-- Decision D60 makes state local to the triggering element in each user’s view on web, iOS and Android.
+- Decision D60 lets the author choose the state owner on web, iOS and Android. A separate trigger can explicitly reference that owner.

@@ -137,7 +137,7 @@ Links to other entities: none
 | I4 | A change to one record notifies only the observers of that record. |
 | I5 | `receive` returns after the store is edited. No scheduler sits between the reader and the store (research 06 section 3.5). |
 | I6 | Live frames of one stream apply in strictly increasing sequence order; an answer frame (`ack != 0`) applies at once; a frame with sequence 0 is out of band. The rule is the rule of feature 09 section 6.4. |
-| I7 | The state bytes that the event bridge sends equal the triggering record’s last attached bytes. A record without an attachment sends empty bytes, including under a stateful parent. |
+| I7 | The state bytes that the event bridge sends equal the selected owner’s attached bytes. The trigger owns its state by default. An explicit binding selects another record in this view. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
 | I10 | The package holds no script engine and loads no code from the network. |
@@ -222,6 +222,11 @@ Feature: iOS renderer
     Then the fake core got reference "server:increment_counter" and EventInput
       { node_id: 42, event_name: "tap", parent_node: 40, state: S }
     And the store applied the answer: record 42 has the text "1"
+
+  Scenario: A sibling uses an explicit owner
+    Given record 42 binds its tap to the state on sibling 40
+    When record 42 triggers the action
+    Then the request identifies node 42 and carries the exact bytes from record 40
 
   Scenario: A child has no attachment
     Given only parent 40 has attached state and child 42 has a tap action
@@ -503,8 +508,9 @@ Every kind applies `A11Y_LABEL` (`.accessibilityLabel`), `HIDDEN`, `WIDTH` and `
 `FontToken` id `n` comes from a table that the app passes to `EweScreen`. A missing asset
 falls back to the primary colour and the body font.
 
-**The event bridge `send`:** look up `record.actions[event]`; none means return. Read only `record.state`. Build `EventInput { node_id,
-event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: record.state or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
+**The event bridge `send`:** look up `record.actions[event]`; none means return. Resolve the binding’s explicit owner in this store or use the triggering record by default.
+A missing explicit owner gives a binding error. Read the selected record’s state. Build `EventInput { node_id,
+event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: owner.state or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
 then `store.receive(frame)` on the main actor. A thrown error goes to `store.onError` with
 code `ActionFailed` and the error text.
 

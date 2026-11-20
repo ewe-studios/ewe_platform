@@ -166,8 +166,10 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 - Do not allow a free-form attribute on a core element (D10: the core has no free-form names).
 - Do not send a `ScriptNode` for a standard behaviour (D56, feature 02).
 
-A state argument attaches to the element that owns that state. A nested control with its own action needs its own attachment.
-A parent attachment never supplies state to a child action.
+The author chooses the attachment target when producing the component output.
+An action binding can explicitly reference another owner in the same view. The default owner is the bound element.
+Carry this optional reference through template lowering and binding delivery on all three platforms.
+The current `BindAction` schema lacks this reference. Define its wire representation and compatibility tests before implementing this binding form.
 
 ## 5. Acceptance scenarios
 

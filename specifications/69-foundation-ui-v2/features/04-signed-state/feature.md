@@ -14,16 +14,22 @@ The host that issued those bytes verifies them before the action reads the count
 A host is the runtime that owns the action and its signing key. A renderer displays components and collects input.
 For a server action, the server signs and verifies. For a local action, the local runtime can use its own signer and key.
 
-| Renderer | Where the state lives | What happens on a tap |
-|---|---|---|
-| Web | The action element in the document tree | The handler reads the attachment on the element that owns the action binding. |
-| iOS (SwiftUI) | The control’s Swift node record | The event bridge sends the bytes on the record that triggered the action. |
-| Android (Compose) | The control’s Kotlin node record | The event bridge sends the bytes on the record that triggered the action. |
+The component author chooses which element stores the state. We call that element the **state owner**.
+The action binding selects the owner for that trigger. Without an explicit reference, the triggering element is the owner.
 
-Each stateful component owns its attachment in the current user’s view. A trigger reads only its own attachment.
-For example, attach counter state to button 42 and bind its tap to `server:increment_counter`.
-A tap on button 42 sends node 42 and its exact bytes. An unattached button sends empty state, even inside a stateful parent. The server verifies the bytes.
-For a local action, the native core can complete the same round trip on the device.
+| Renderer | Default lookup | Binding with an explicit owner |
+|---|---|---|
+| Web | Read the bound element’s state attribute. | Resolve the owner in this view’s node registry. Read that element’s state attribute. |
+| iOS (SwiftUI) | Read the control’s Swift node record. | Read the named owner’s record in the same node store. |
+| Android (Compose) | Read the control’s Kotlin node record. | Read the named owner’s record in the same node store. |
+
+For example, the author attaches counter state to node 40. Node 40 can trigger its own action.
+The author can also bind a separate button, node 42, to use node 40 as its state owner.
+The button can be a child or a sibling. Its request identifies trigger 42 and carries the exact bytes stored on node 40.
+A state update for that counter goes back to node 40.
+
+With no explicit reference and no attachment on the trigger, send empty state. Never search the tree for a stateful ancestor.
+An explicit owner must resolve inside the current user’s view. If it is missing, report a binding error before sending the action.
 
 ## The contract
 
@@ -95,7 +101,8 @@ Only the issuing host needs its signing key. A renderer can carry the state with
 **Law and test.** Install a small test signer. Send its JSON wrapper through a frame, then verify the returned bytes.
 Share that input with the web, Swift and Kotlin renderer tests in features 10, 14 and 15.
 Give a parent, child and sibling different attachments. Trigger each node and compare its request with its own bytes.
-Repeat with an unattached child under the same parent. Expect empty state. Repeat in a separate user session to check isolation. With no signer, assert a typed error before calling the action.
+Bind a sibling explicitly to the parent. Expect the parent’s bytes and the sibling’s trigger identity.
+Repeat with an unattached child and no explicit owner. Expect empty state. Repeat in a separate user session to check isolation. With no signer, assert a typed error before calling the action.
 
 ## Stage 2. Isolate the compact cryptography
 

@@ -206,6 +206,12 @@ Feature: Dispatcher and handshake
     And messages holds one Message whose operation.ui is AttachState for node 42
     And opening that AttachState with B's codec for "sess-A" gives Counter { current: 2 }
 
+  Scenario: A different control triggers an update for the owner
+    Given button 42 explicitly uses counter 40 in this user’s view
+    When button 42 sends the state attached to node 40
+    Then the action receives trigger 42 and the verified state owner 40
+    And the next counter state attaches to node 40
+
   Scenario: A forged state is rejected and counted
     Given a sealed state whose body byte is changed
     When the host calls dispatch with it

@@ -30,7 +30,8 @@ registry.register(increment)?;
 html! { <Button on:tap={increment}>"Add one"</Button> }
 ```
 
-The button reads and updates its own state at `event.node_id`. This rule also applies to a button inside another stateful component.
+This binding uses the button’s own state, so the action writes the update to `event.node_id`.
+When a binding names another owner, the dispatcher exposes the verified owner in the call context. Write the next state to that owner.
 An action that requires a counter rejects missing state before it runs.
 The application's `Counter` defines the data. The type in `Interaction<Counter>` tells the runtime how to read it.
 The proposed default uses Serde to encode and decode JavaScript Object Notation (JSON). A stateless action uses `Interaction<()>`.
