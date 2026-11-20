@@ -256,6 +256,41 @@ fn bidi_over_http1_is_505() {
 
 // ── execution ─────────────────────────────────────────────────────────────────
 
+#[derive(Clone, Debug, PartialEq)]
+struct Marker(&'static str);
+
+/// A value in the request's extension map reaches the handler through dispatch.
+/// Before the fix, `build_ctx` passed an empty map and dropped it.
+#[test]
+fn request_extensions_reach_the_handler() {
+    let mut router = Router::new();
+    router.unary(
+        ECHO,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        |ctx, req: Request<TestMsg>| async move {
+            assert_eq!(
+                ctx.request.extensions.get::<Marker>(),
+                Some(&Marker("kept")),
+                "the handler reads the request extension"
+            );
+            Ok(Response::new(req.msg))
+        },
+        HandlerOptions::new(),
+    );
+    let handler = router.into_handler();
+    let mut req = request(
+        ECHO,
+        SimpleMethod::POST,
+        Some("application/json"),
+        Some(json_bytes(&TestMsg::default())),
+    );
+    let mut extensions = foundation_netio::shared::http::Extensions::new();
+    extensions.insert(Marker("kept"));
+    req.extensions = Some(extensions);
+    let response = block_on(handler.dispatch(ctx(), req));
+    assert_eq!(response.status, Status::OK);
+}
+
 #[test]
 fn unary_post_json_roundtrips() {
     let handler = echo_router().into_handler();

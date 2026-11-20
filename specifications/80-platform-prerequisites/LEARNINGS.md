@@ -61,3 +61,16 @@ wasm host is given a `Directory` group. The readers stay gated, because they are
 
 The rule: a `cfg` goes on a private inner type, a method, a module or a dependency. It never
 changes the variants of a public enum.
+
+## 2026-11-21: transport facts
+
+- `build_ctx` built a fresh `Extensions` map instead of using the request's.
+  The request owns `Option<Extensions>`; move a clone into
+  `RequestContext::for_dispatch` or the handler never sees the value.
+- The rustls server handshake is lazy. `acceptor.accept` returns before the
+  handshake, so the peer chain is empty at accept time. Capture it after the
+  first successful protocol peek, when the handshake has completed.
+- The optional `ssl-openssl` and `ssl-native-tls` features are not in the CI
+  runs, so they rotted. A feature that CI never builds is not supported.
+  Issue #630 records both.
+

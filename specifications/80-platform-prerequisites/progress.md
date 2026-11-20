@@ -6,7 +6,7 @@ _Last updated: 2026-11-15._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — transport prerequisites | ⏳ 0/2, design complete | Moved from spec 83 feature 09 |
+| 00 — transport prerequisites | ✅ 2/2, completed 2026-11-21 | Moved from spec 83 feature 09 |
 | 01 — migration groups | ⏳ 0/1, design complete | Moved from spec 83 feature 10 |
 
 ## What left this specification
@@ -55,3 +55,18 @@ depend on the agent RPC spec. They now have one owner.
   the directory readers stay native only.
 
 No code changed. Issue #556 records it, and it is closed.
+
+## 2026-11-21: feature 00 landed
+
+- T3: `build_ctx` keeps the request extension map. The new test
+  `request_extensions_reach_the_handler` proves a handler reads it.
+- T4: `TlsPeerFacts` and `RawStream::tls_info` expose the peer chain. The
+  protocol detector rebuilds the connection context after the handshake. The
+  new `tls_peer_info_tests` runs a real mutual-TLS handshake and checks the
+  client certificate in `ConnectionContext::tls`.
+- Results: 11 dispatch tests pass; the peer-info test passes; clippy and fmt
+  are clean for `foundation_netio`, `foundation_http` and
+  `foundation_connectrpc`.
+- Issue #630: the `ssl-openssl` and `ssl-native-tls` feature sets do not build,
+  so their `TlsPeerFacts` impls are unverified. CI never builds them.
+- Feature 01 (migration groups) is next.
