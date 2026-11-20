@@ -425,3 +425,5 @@ ASD-STE100.
 - The receiver form of html! queues operations before returning Html. The tree carries the root identifier for later placement. Flush performs delivery.
 
 - A frame can describe a complete section while another frame describes its sibling. Sharing a stream identifier does not make those renders interchangeable.
+
+- The server signal and browser island examples demonstrate content delivery. They do not couple two Rust signal graphs. A socket handoff and action completion have separate lifetimes.

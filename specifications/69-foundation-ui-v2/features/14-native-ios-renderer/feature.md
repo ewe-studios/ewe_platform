@@ -58,7 +58,7 @@ must match it, and so must the Kotlin store of feature 15.
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
 | U1 | Apply | Host | `store.receive(frame)` | The store changed; the views of the changed records recompose |
-| U2 | Event | User | A tap or a change on a control | `core.trigger(reference, input)`; the answer frame is applied |
+| U2 | Event | User | A tap or a change on a control | `core.trigger(reference, input)`; the store applies an immediate frame when supplied |
 | U3 | Live mount | Store | A `LiveMount` record enters the tree | `LiveMountHost` opens the channel and feeds frames |
 | U4 | Command | Store | A `NativeCommand` member of `MobileOperation` | `CommandHost` runs the platform effect |
 | U5 | Report | Store | A member or id it cannot apply | A `Report`; the message list continues |
@@ -92,7 +92,7 @@ snapshots; the Swift package (`EweWire`, `EweUI`, `EweUITests`); the binding of
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
 | `receive` | story | Frame bytes | Order, then apply each row to the store |
-| `send` (event bridge) | story | A control event | Harvest state, call the core, apply the answer |
+| `send` (event bridge) | story | A control event | Harvest state, call the core, apply any immediate answer |
 | `open`, `close` (live mount) | entity | A record enters or leaves the tree | Opens or closes a channel |
 
 **Words.** "Record" is a `NodeRecord`. "Screen root" is the record with id 1, which exists
@@ -215,6 +215,13 @@ Feature: iOS renderer
     When the store receives native_replace.bin
     Then the snapshot equals native_replace.expected.json
 
+  Scenario: A socket handoff has no immediate frame
+    Given a fake ActionCore that returns nil
+    When a bound control sends its action
+    Then the store receives zero frames
+    When the socket reader supplies frame_ops_counter.bin
+    Then the store applies it once
+
   Scenario: A tap sends the triggering control’s own state
     Given a store after native_tree.bin, where record 42 has state bytes S and TAP bound to "server:increment_counter"
     And a fake ActionCore that answers frame_ops_counter.bin
@@ -271,7 +278,7 @@ flowchart LR
     S --> V["SwiftUI views"]
     V -->|"tap, change"| E["EventBridge"]
     E -->|"trigger"| C["ActionCore"]
-    C -->|"answer frame"| A
+    C -->|"immediate answer if present"| A
     S --> L["LiveMountHost"] -->|"frames"| A
     A --> K["CommandHost"]
 ```
@@ -457,7 +464,7 @@ public struct WebViewMountSpec { public let parentId: UInt32; public let url: St
 
 public protocol ActionCore: Sendable {
     func hello() -> Data
-    func trigger(reference: String, event: EventInput) async throws -> Data
+    func trigger(reference: String, event: EventInput) async throws -> Data?
 }
 
 @MainActor public final class EventBridge {
@@ -510,8 +517,15 @@ Every kind applies `A11Y_LABEL` (`.accessibilityLabel`), `HIDDEN`, `WIDTH` and `
 falls back to the primary colour and the body font.
 
 **The event bridge `send`:** look up `record.actions[event]`; none means return. Read the bound control’s record. The parent number describes the tree structure only. Build `EventInput { node_id,
-event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: record.state or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
-then `store.receive(frame)` on the main actor. A thrown error goes to `store.onError` with
+event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: record.state or empty }`. Start a `Task` and await `core.trigger`. On the main actor, apply an immediate frame when present.
+
+```swift
+if let frame = try await core.trigger(reference: reference, event: input) {
+    store.receive(frame)
+}
+```
+
+A socket handoff returns `nil`. The host routes each incoming frame to the store once, through the socket reader or a live mount. A thrown error goes to `store.onError` with
 code `ActionFailed` and the error text.
 
 **`LiveMountHost`:** observes store changes after each `receive`: for each record with

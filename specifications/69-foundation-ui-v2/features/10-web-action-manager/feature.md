@@ -56,7 +56,7 @@ real browser.
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Server action | User | An event on an element with `primal:on<event>="server:name"` | One HTTP request; the answer frame is applied |
+| U1 | Server action | User | An event on an element with `primal:on<event>="server:name"` | HTTP applies its reply. WebSocket sends once and accepts later updates through the receive path. |
 | U2 | Host page function | User | `…="host:name"` | The page function runs with `{ node, parent, event, data }` |
 | U3 | Local compiled action | User | `…="host:name"` and a host registry entry with a WASM action | The WASM export runs the action; the answer frame is applied |
 | U4 | Declare | Page start code | `actions.declare(origin, name, scope)` | The JS registry has the entry |
@@ -83,16 +83,16 @@ todo list example and its browser test.
 | The HTTP endpoint and the session cookie | The host (D25) |
 | Local handlers `primal:on*={closure}` and `primal:setter` | Spec 39. They do not change (D40) |
 
-A transport is any object with `send(bytes): Promise<Uint8Array[]>`. An HTTP endpoint is one
-transport; an IPC socket to a Rust backend is another (D46). The manager does not know the
-difference.
+A transport implements `send(bytes): Promise<Uint8Array[]>`. A request transport resolves with the reply frames.
+A WebSocket action transport resolves with an empty list after the open socket accepts the outbound binary message.
+The receiver delivers later frames independently. An empty list means local handoff only.
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
 | JS registry | Declared actions by origin and name; the page functions and compiled host actions | `JsActionRegistry` |
 | Server action list | The `server:` actions of the latest `ServerCaps.actions`, by name | `WebActionManager` |
 | Client sequence counter | The `Frame.sequence_id` of the next request | `WebActionManager` |
-| In-flight set | The component roots that have a server request with no answer yet | `WebActionManager` |
+| In-flight set | The component roots with a transport send still pending | `WebActionManager` |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
@@ -137,7 +137,7 @@ Links to other entities: Frame.sequence_id of the request frame; the answer fram
 
 ```
 Entity: In-flight set
-Conserved value:         a root is in the set from send until its answer or its failure
+Conserved value:         a root is in the set until the transport send settles (HTTP reply, socket handoff, or failure)
 Bound:                   at most one request for one root at a time
 Inverse pairs:           add / remove
 Idempotent verbs:        none
@@ -165,7 +165,7 @@ Links to other entities: none
 
 - `backends/foundation_wasm_ui/runtimes/foundation-ui-actions.js`, embedded as
   `FOUNDATION_UI_ACTIONS_JS`.
-- A custom request header on every server action, so a plain HTML form on another site
+- A custom request header on every HTTP server action, so a plain HTML form on another site
   cannot make the request (the CSRF layer of research 08 section 4.4).
 - The `scope.behaviour(name, fn)` extension, which calls
   `registerWebBehaviour(name, fn)` of `foundation-ui-behaviours.js` (feature 09 section 6.9).
@@ -187,7 +187,7 @@ Links to other entities: none
 - Do not send a `host:` reference to the server, except the D50 (8) fall-forward as
   `server:<name>`.
 - Do not edit, parse or re-encode the state bytes.
-- Do not add optimistic updates, retries or a "local then remote" policy (D32).
+- The manager never retries an action. Only an explicit host policy for HTTP action requests may retry. Keep the D50 route rule.
 - Do not block the event loop on a WASM action.
 - Do not keep or compare an action registry hash. The server list is names only (D54).
 
@@ -380,7 +380,7 @@ export function parseReference(text);
 
 export class FetchActionTransport {
   /** @param {{url: string, fetch?: typeof fetch, csrfToken?: string,
-   *           hello?: () => Uint8Array}} options */
+   *           hello?: () => Uint8Array, requestSignal?: () => AbortSignal}} options */
   constructor(options);
   /** POSTs the request. Resolves to the frames of the answer. Rejects on a network error
    *  or a status other than 200. */
@@ -407,7 +407,7 @@ export class WebActionManager {
    * @param {() => void=} deps.reload       default () => location.reload()
    */
   constructor(deps);
-  /** Called by the event listener. Never throws. Resolves when the action is done. */
+  /** Called by the event listener. Never throws. Resolves after reply processing or socket handoff. */
   trigger(reference, el, event, eventType) /* Promise<void> */;
   /** The bytes of one Frame of kind FrameRequest with `hello` set and `action` absent:
    *  platform Web, mount Web, the vocabulary version of the page, resume_from 0,
@@ -501,7 +501,8 @@ no local target sends to the server as `server:<name>` (D50 (8))._
     `onError({ code: "UpdateRequired" })` and `deps.reload()` one time for each manager; else
     `frames.receive(frame)`. A `control.caps` message reaches `applyCaps` through the
     `onCaps` seam of section 6.6.
-11. Remove the root from the in-flight set (in a `finally`).
+11. Release the root in `finally`. A socket send returns no immediate frames. Release the root as soon as that send settles.
+    Route inbound socket frames through the same control and frame handlers as step 10. An error can arrive after handoff.
 
 A page function gets `fn.call(el, { node: el, parent: el.parentElement, event, data:
 buildEventData(eventType, event, el) })`. A thrown exception gives `HostThrew`. If the
@@ -522,12 +523,14 @@ to `frames.receive`.
 
 ### 6.5 The transports
 
-**`FetchActionTransport.send`**: `fetch(url, { method: "POST", credentials: "same-origin",
+**`FetchActionTransport.send`**: `fetch(url, { method: "POST", credentials: "same-origin", signal: requestSignal?.(),
 headers: { "content-type": "application/primal-frame", "accept":
 "application/primal-frame", "x-ewe-action": "1", "x-ewe-hello": base64url(hello()) when
 `hello` is given, "x-csrf-token": csrfToken when given }, body: requestBytes })`. A status
-other than 200 rejects with `"http <status>"`. The body is read with `arrayBuffer()` (one
-answer frame; small) and split with `splitFrames`.
+other than 200 rejects with `"http <status>"`. Read a successful reply as a bounded stream of size-prefixed frames.
+Await the HTTP client's ordinary configured deadline for the full request, including its response body.
+The host supplies its request cancellation signal or deadline through the transport options. A timeout or network failure ends the attempt.
+Default to one attempt. Retrying a timed-out mutation requires an explicit HTTP action retry policy from the host.
 
 One content type and one identifier cover both directions (D47): `application/primal-frame`
 and `EWF1`. The header says that the message is ours; the `kind` field of the frame says
@@ -537,13 +540,13 @@ The `x-ewe-hello` header lets a server with no connection state build a
 `Connection::stateless` for each request (feature 07 section 6.6). A host that keeps a
 connection ignores it.
 
-**`WasmActionTransport.send`**: write the request frame into a new allocation
-(`create_allocation`, `allocation_start_pointer`), call
-`exports.ewe_ui_action(memId)`, which returns the id of an allocation with the answer
-frame; copy `allocation_length` bytes from `allocation_start_pointer` into a new
-`Uint8Array`; `dispose_allocation` the answer; resolve to `[bytes]`. A return value of
-`0n` rejects with `"no local dispatcher"`. The call is synchronous inside the Promise
-executor; it does not wait.
+**WebSocket delivery.** Accept a host-supplied action transport on an open socket. Send `requestBytes` as one binary message.
+Reject a closed socket or a send failure. Resolve with `[]` after successful handoff. Reconnection never replays an action.
+The host can deliver a later reply on the socket, through a live mount, or through another registered frame receiver.
+Use the request sequence for a correlated answer and the channel sequence for independent pushes. Register only one receive path per delivered frame.
+
+**Local Rust delivery.** Allocate a call identifier and register the pending promise before starting the Rust task.
+Transfer the request slot to Rust. The bridge resolves or rejects that promise on completion. Section 6.7 defines slot ownership.
 
 ### 6.6 Seams in `foundation-wasm-ui.js`
 
@@ -586,32 +589,23 @@ Add `foundation_ui_runtime` as a dependency of `foundation_wasm_ui`.
 pub fn install_local_dispatcher(local: foundation_ui_runtime::LocalDispatcher);
 pub fn uninstall_local_dispatcher();
 
-/// WASM export: run one `host:` action.
-/// `allocation_id` names a global-arena slot with request frame bytes. Rust reads and
-/// frees it. Returns the id of a new slot that holds the answer `Frame`; JS disposes it.
-/// Returns 0 when no dispatcher is installed or the slot is missing.
+/// Start one action on the browser thread. A zero status means accepted.
 #[no_mangle]
-pub extern "C" fn ewe_ui_action(allocation_id: u64) -> u64;
+pub extern "C" fn ewe_ui_action(call_id: u64, request_slot: u64) -> u32;
 ```
 
-The slot handling copies `invoke_signal_callback` (`src/events.rs:65-90`), with the same
-single-threaded global pattern as `EVENT_BRIDGE`.
+Rust consumes and releases a valid request slot on every start path. A start error rejects the registered promise.
+On acceptance, the local executor owns the request bytes, dispatcher handle and action future until completion.
+The action can await network or device input. A wake schedules another poll on the browser thread.
+The export returns control to the event loop between polls. Use Valtron’s thread-local future adapter and browser wake path. Propagate task scheduling failures as start errors.
+The proposed completion import is `ewe_ui_action_done(call_id, reply_slot)`. Rust calls it once per completed task.
+JavaScript copies and releases the reply slot, then resolves the matching promise. A missing reply slot signals a bridge failure.
+A normal action failure uses the dispatcher's error frame. On teardown, cancel outstanding tasks and reject outstanding promises.
+Release any late reply slot even if its caller has gone away.
 
-**Running the future.** A browser WASM module has one thread. The export polls the future
-of `LocalDispatcher::send` one time with a no-op waker.
-
-| Poll result | Effect |
-|---|---|
-| `Ready(Ok(bytes))` | Write `bytes` to a new slot; return its id |
-| `Pending` | Drop the future. Return a slot with a `control.error` message: code `ActionFailed`, message `"a host action in the browser must not wait"` |
-
-So a `host:` action in the browser must finish without waiting (it reads and writes local
-signals). This is a stated limit of version 1, not a silent one. On a device, feature 13
-awaits the same dispatcher on the Rust executor, so the limit does not apply there. The
-export never spins on a pending future (rule 6).
-
-The local dispatcher in the browser uses `HmacStateCodec` with a key made at start from
-`ctx.rng()` (feature 04 section 6.7).
+Test two local actions that wake in reverse order. Each promise must receive its own frame exactly once.
+Test teardown while waiting. Assert that all promises settle and all transferred slots are released.
+See the [research on signals and async delivery](../../research/15-actions-signals-and-rendering.md).
 
 ### 6.8 The todo list example (`examples/ui_todo`)
 
@@ -699,7 +693,9 @@ Add the test to the `test:browser` mise task set.
 | Registry bound | `actions-registry.test.js` "duplicate is rejected", "web and mobile forms coexist", "a page function is host and web" | expected outcome |
 | `scope.behaviour` registers a custom web behaviour | `actions-behaviours.test.js` "scope.behaviour reaches registerWebBehaviour" | example |
 | `FetchActionTransport` sends the headers and splits the frames | `actions-manager.test.js` "fetch transport" with an injected `fetch` | example |
-| `ewe_ui_action`: ready action; pending action; no dispatcher | `backends/foundation_wasm_ui/tests/actions_export_tests.rs::ready_action_returns_frame`, `::pending_action_returns_error_frame`, `::no_dispatcher_returns_zero` (the export is callable natively, as `invoke_signal_callback` is) | example |
+| `ewe_ui_action`: ready action; pending action; no dispatcher | `backends/foundation_wasm_ui/tests/actions_export_tests.rs::ready_action_returns_frame`, `::pending_action_wakes_and_returns_frame`, `::missing_dispatcher_rejects_start` (the export is callable natively, as `invoke_signal_callback` is) | example |
+| HTTP timeout and retry | Set the test deadline, expire the request, and count one send. Repeat with an explicit retry policy and count its configured attempts. | fault |
+| WebSocket action | Record one binary send. Complete the trigger before any reply. Deliver a later frame once. Reconnect and count zero resends. | example |
 | Browser scenario | `examples/ui_todo/tests/todo_browser_tests.rs::server_and_host_actions_work` | example |
 
 ## 8. Tasks

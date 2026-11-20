@@ -58,7 +58,7 @@ their tests run on Linux with no emulator.
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
 | U1 | Apply | Host | `store.receive(frame)` | The store changed; only the composables that read a changed record recompose |
-| U2 | Event | User | A click or a change | `core.trigger(reference, input)`; the answer frame is applied |
+| U2 | Event | User | A click or a change | `core.trigger(reference, input)`; the store applies an immediate frame when supplied |
 | U3 | Live mount | Store | A `LiveMount` record is attached | `LiveMountHost` opens the channel |
 | U4 | Command | Store | A `NativeCommand` member of `MobileOperation` | `CommandHost` runs the platform effect |
 | U5 | Report | Store | A member or id it cannot apply | A `Report`; the message list continues |
@@ -91,7 +91,7 @@ their tests run on Linux with no emulator.
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
 | `receive` | story | Frame bytes | Order, then apply each row |
-| `send` (event bridge) | story | A control event | Harvest state, call the core, apply the answer |
+| `send` (event bridge) | story | A control event | Harvest state, call the core, apply any immediate answer |
 | `open`, `close` (live mount) | entity | A record is attached or removed | Opens or closes a channel |
 
 **Words.** The same as feature 14: "record", "screen root" (id 1), "reference model".
@@ -222,6 +222,13 @@ Feature: Android renderer
     When the store receives native_replace.bin
     Then the snapshot equals native_replace.expected.json
 
+  Scenario: A socket handoff has no immediate frame
+    Given a fake ActionCore that returns null
+    When a bound control sends its action
+    Then the store receives zero frames
+    When the socket reader supplies frame_ops_counter.bin
+    Then the store applies it once
+
   Scenario: A click sends the triggering control’s own state
     Given a store after native_tree.bin and a fake ActionCore that answers frame_ops_counter.bin
     When the event bridge sends TAP for record 42
@@ -271,7 +278,7 @@ flowchart LR
     S --> V["Compose composables (ui module)"]
     V -->|"click, change"| E["EventBridge"]
     E -->|"suspend trigger"| C["ActionCore"]
-    C -->|"answer frame"| A
+    C -->|"immediate answer if present"| A
     S --> L["LiveMountHost"] -->|"frames"| A
     A --> K["CommandHost"]
 ```
@@ -362,7 +369,7 @@ class NodeStore(
 
 interface ActionCore {
     fun hello(): ByteArray
-    suspend fun trigger(reference: String, event: EventInput): ByteArray
+    suspend fun trigger(reference: String, event: EventInput): ByteArray?
 }
 data class EventInput(val nodeId: UInt, val eventName: String, val value: String,
                       val checked: Boolean, val parentNode: UInt, val state: ByteArray)
@@ -388,6 +395,9 @@ and 6.4, with no difference. A `Message` with `control.state_expired` or
 follow feature 14 section 6.5. Read signed bytes from the bound control’s record. The parent number describes the tree structure only.
 Only `AttachState` writes the record’s signed state. Use the same `EventInput` fields, open and close rules, and resume parameters (`stream_id`, `resume_from`).
 The `Local` transport opens no channel.
+
+The event bridge awaits `core.trigger(reference, input)?.let { store.receive(it) }` on the UI dispatcher.
+A socket handoff returns `null`. The host routes each later frame through the socket reader or a live mount.
 
 `behaviours/` holds the interface `BehaviourBinding` and the registry
 `BehaviourRegistry.standard`, as feature 16 section 6.6 defines. `NodeView` folds the

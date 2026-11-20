@@ -524,6 +524,13 @@ unsealed.
 descendant of `node_id` from the id table and from the view; keep `node_id`; then apply the
 nested units.
 
+When the renderer removes a mounted local component, dispose the signal scope owned by that component.
+Use the same local unmount hook for endpoint replacement and local removal. Dispose it once before reusing its node identifiers.
+A retained component keeps its scope. Closing a local mount releases its subscription. The producer manages its own graph.
+Test an externally replaced section with a locally reactive child and an untouched sibling.
+Change both signals after replacement. Only the retained sibling can emit an update.
+See the [scope evidence and proposed test](../../research/15-actions-signals-and-rendering.md).
+
 ## 7. Tests
 
 | Law or scenario | Test | Oracle |

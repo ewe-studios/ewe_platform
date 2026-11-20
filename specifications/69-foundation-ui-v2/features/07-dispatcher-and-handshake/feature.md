@@ -373,7 +373,7 @@ pub struct LocalDispatcher { /* dispatcher: Dispatcher, ctx: Ctx, connection: Co
 impl LocalDispatcher {
     #[must_use] pub fn new(dispatcher: Dispatcher, ctx: Ctx, connection: Connection) -> Self;
 }
-impl ActionTransport for LocalDispatcher { /* send = dispatch; never returns Err */ }
+impl ActionTransport for LocalDispatcher { /* send awaits dispatch and returns its answer as Some(frame) */ }
 
 /// Makes the operation that carries the state of a component, not yet sealed.
 /// `flags` bit 0 follows `S::PRIVATE`; key_id, times, binding and tag are empty.

@@ -315,3 +315,5 @@ is recorded here as passed.
 - Features 05 and 08 now distinguish the returned tree, receiver output and root placement. The todo helper returns its tree to callers that compose views.
 
 - Decision D61 defines the render boundary. Features 05, 07, 08 and 11 now use one complete render reply and ordered stream delivery.
+
+- Added research study 15 and linked it from the requirements. The action plans now describe HTTP deadlines, socket handoff and asynchronous Rust completion. The renderer plans specify local scope disposal.

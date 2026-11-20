@@ -56,7 +56,7 @@ a platform API.
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
 | U1 | Start | Host app | `NativeCore::new(config)` then `hello()` | `Frame` bytes of kind `FrameRequest` with a `ClientHello` for `mount: Native` |
-| U2 | Trigger | Host event bridge | `core.trigger(reference, event).await` | Frame bytes, or a `CoreError` |
+| U2 | Trigger | Host event bridge | `core.trigger(reference, event).await` | An optional immediate frame, or a `CoreError` |
 | U3 | Push | Local logic | `core.push_ops(ops)` | The frame listener gets frame bytes |
 | U4 | Command | Local action | A `NativeCommand` member of `MobileOperation` in its answer | The member is in the frame; the host runs it (features 14, 15) |
 
@@ -165,7 +165,19 @@ Feature: Native core and commands
     Given a core with a declared server:increment_counter and a RecordingHost that answers frame_ops_counter.bin
     When the host awaits trigger("server:increment_counter", event for node 42 with state bytes [1,2,3])
     Then the RecordingHost received one request frame whose action is that action and whose state is [1,2,3]
-    And the result equals frame_ops_counter.bin
+    And the result is Some(frame_ops_counter.bin)
+
+  Scenario: An HTTP action reaches its request timeout
+    Given a recording HTTP transport and the default action retry policy
+    When the configured timeout expires before a reply
+    Then trigger returns a transport error and the transport recorded exactly one request
+
+  Scenario: A WebSocket accepts an action before the update arrives
+    Given a recording socket that accepts one send and withholds incoming frames
+    When the host awaits trigger for that server action
+    Then trigger returns None and the store has received zero frames
+    When a later frame arrives on the receive channel
+    Then the store applies it once
 
   Scenario: A web-scoped host action does not run on a device
     Given a registry that declares the host action "open_picker" with scope Web
@@ -287,11 +299,11 @@ pub struct CoreConfig {
     pub writer: WriterConfig,
 }
 
-/// Implemented by the host app: carries one request frame to the server, returns one message frame.
+/// Sends one action request. Returns a frame for an immediate reply.
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
 pub trait HostTransport: Send + Sync {
-    async fn send(&self, request: Vec<u8>) -> Result<Vec<u8>, CoreError>;
+    async fn send(&self, request: Vec<u8>) -> Result<Option<Vec<u8>>, CoreError>;
 }
 
 /// Implemented by the host app: receives frames from local logic.
@@ -338,8 +350,8 @@ impl NativeCore {
 impl NativeCore {
     /// Frame bytes of kind FrameRequest whose hello names this app.
     pub fn hello(&self) -> Vec<u8>;
-    /// Runs or sends one action. Returns the bytes of the answer frame.
-    pub async fn trigger(&self, reference: String, event: EventInput) -> Result<Vec<u8>, CoreError>;
+    /// Runs or sends one action. Returns an immediate frame when the transport supplies one.
+    pub async fn trigger(&self, reference: String, event: EventInput) -> Result<Option<Vec<u8>>, CoreError>;
     pub fn set_frame_listener(&self, listener: Arc<dyn FrameListener>);
     pub fn clear_frame_listener(&self);
 }
@@ -384,6 +396,18 @@ generates (D50). A page function never runs in the core: it is `host` with scope
 **`trigger`**: build `TriggerEvent { node_id, input: ActionInputT { event_name, value,
 checked, key_code: 0, modifiers: 0, parent_node }, state }`; call `manager.trigger`.
 
+The proposed native interface preserves the transport result across the language boundary.
+
+| Path | Completion and delivery |
+|---|---|
+| Local Rust action | Await the dispatcher. Return `Some(frame)` on completion. |
+| HTTP action | Await the response using the configured request timeout. Return `Some(frame)` after reading the complete reply. Retry only under an explicit host policy. |
+| WebSocket action | Send the message once. Return `None` when the socket accepts the send. Propagate a send failure. |
+
+The receiving socket handler or a separate live channel delivers later frames to the store.
+A reconnect may resume incoming updates. It must never replay an action automatically.
+`None` means successful handoff. Validate each present frame. Empty bytes cannot represent handoff.
+
 | `ManagerError` | `CoreError` |
 |---|---|
 | `BadReference(e)` | `BadReference { detail: e as text }` |
@@ -421,7 +445,7 @@ pull it in.
 |---|---|---|---|
 | The manager's checks | Returns | `BadReference`, `UnknownAction`, `UnsupportedAction`, `UnavailableOrigin` | nothing |
 | The host transport | Returns | `Transport` | The manager's sequence counter moved by one (feature 05 section 6.6) |
-| The local action returns `Err(ErrorTrace<ActionError>)` | The dispatcher drops the receiver and encodes an `ActionError` control message (D52) | `Ok(frame)` whose message holds `control.error`. The host reader shows it (features 14, 15) | What the action changed before the error |
+| The local action returns `Err(ErrorTrace<ActionError>)` | The dispatcher drops the receiver and encodes an `ActionError` control message (D52) | `Ok(Some(frame))` whose message holds `control.error`. The host reader shows it (features 14, 15) | What the action changed before the error |
 
 **`push_ops`**
 
@@ -458,7 +482,7 @@ All in `backends/foundation_ui_native/tests/`.
 | I6 | A review item in "Done when": `grep -rn "objc\|jni\|UIKit\|android" backends/foundation_ui_native/src` finds nothing | expected outcome |
 | I7; Scenario: a waiting local action | `core_tests.rs::waiting_action_does_not_block` (two futures driven by the test executor that features 05 and 07 use) | example |
 | I8; Scenarios: push, no listener | `core_push_tests.rs::pushes_have_increasing_sequence`, `::push_with_no_listener_uses_no_sequence` | example, fault |
-| Scenarios: host action, server action, haptic, transport failure | `core_tests.rs::host_action_runs_on_device`, `::server_action_uses_host_transport`, `::haptic_is_a_command_op`, `::transport_failure_is_typed` | example |
+| Scenarios: host action, server action, haptic, transport failure | `core_tests.rs::host_action_runs_on_device`, `::server_action_uses_host_transport`, `::haptic_is_a_command_op`, `::transport_failure_is_typed`, `::http_timeout_sends_once`, `::socket_handoff_precedes_receive` | example |
 | The error mapping table | `core_tests.rs::manager_errors_map_one_to_one` | example |
 | Bindings are current | `scripts/ui_native/generate-bindings.sh --check` in the CI step of feature 14 | expected outcome |
 

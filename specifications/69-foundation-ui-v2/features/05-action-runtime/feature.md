@@ -182,14 +182,16 @@ A transport carries one action request to the selected runtime.
 For the unqualified todo action, the template produces `host:add_todo`. The input supplies the submitted text and its own attached bytes.
 
 ```rust
-let frame = manager.trigger("host:add_todo", TriggerEvent {
+let immediate_reply = manager.trigger("host:add_todo", TriggerEvent {
     node_id: input_id,
     input: submit_input,
     state: input_state_bytes,
 }).await?;
 ```
 
-The example uses the generated action input for `submit_input`. The host gives the returned frame to its renderer.
+The example uses the generated action input for `submit_input`.
+On success, the manager returns `Option<Vec<u8>>`. With `Some(frame)`, the host gives the immediate reply to its renderer.
+With `None`, the socket accepted the request. The receive path handles later frames.
 
 A page script can register a named web host action. A mobile surface cannot select it.
 The registry can hold separate web and mobile implementations of one name when their scopes do not overlap.
@@ -199,6 +201,10 @@ An unknown name, wrong scope or unavailable required origin returns a typed erro
 Use recording transports to test each row, including fallback and an explicit host action with no local implementation.
 
 ## Stage 3. Pass the request context to the action
+
+Rust awaits the action on the host executor. The transport controls when the sender finishes.
+HTTP waits for its reply under the configured request deadline. WebSocket completes its send at handoff and delivers updates separately.
+See the [transport and render study](../../research/15-actions-signals-and-rendering.md).
 
 Registration happens once at startup. It stores the callable for `add_todo`.
 The selected registry entry receives the caller’s context **when the action executes**. This lets concurrent requests use the same registry.

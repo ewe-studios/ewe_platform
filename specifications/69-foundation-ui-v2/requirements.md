@@ -110,6 +110,8 @@ native (D4).
 D1 to D40 are in [`research/README.md`](./research/README.md) section 3. This specification
 does not repeat them. Each feature names the decisions it implements.
 
+The [action delivery study](research/15-actions-signals-and-rendering.md) records HTTP deadlines, WebSocket handoff and local scope ownership.
+
 ### 2.2 Recommendations adopted (the owner confirms these at approval)
 
 The research left eight questions open. Each had a recommendation. This design adopts the

@@ -461,7 +461,7 @@ the column into a new array with `DataView` and count `copiedColumns`; else coun
 | `AppendChild` | `parent.appendChild(child)`; the child may be staged (`expectOrStaged`) |
 | `InsertBefore` | `parent.insertBefore(child, before)` |
 | `Remove` | Remove the node from its parent; unregister it and every descendant that has a `primal-id` |
-| `ReplaceSubtree` | Remove and unregister every descendant; then apply the nested units |
+| `ReplaceSubtree` | Run local unmount hooks for removed components, unregister descendants, then apply nested units (feature 08 section 6.6) |
 | `BindAction` | Set the attribute `primal:on<dom event>` (from `vocab.WEB_EVENTS`) to the action text; call `dispatcher.scanAndWire(el)` when a dispatcher exists |
 | `UnbindAction` | Remove that attribute; call `dispatcher.off(el, domEvent)` when it exists |
 | `AttachState` | Set `primal::state=base64urlEncode(bytes)` on the target element. Mounting the component sets `data-ewe-root` on its root for request grouping. |
@@ -483,7 +483,7 @@ the column into a new array with `DataView` and count `copiedColumns`; else coun
 | `WebStyle` | As `Op.SET_STYLE` |
 | `WebAddClass` | `classList.add` |
 | `WebRemoveClass` | `classList.remove` |
-| `HtmlMorph` | Resolve the target (node id, `#id`, `.class`, query) and the action as `DomOpApplicator.applyMorph` does today; call `deps.morph`. A missing target reports `Morph` |
+| `HtmlMorph` | Resolve the target (node id, `#id`, `.class`, query) and the action as `DomOpApplicator.applyMorph` does today; call `deps.morph`. Run local unmount hooks only for discarded components. A keyed component that survives the morph keeps its scope. A missing target reports `Morph` |
 | `WebRegisterNode` | `registry.applyRegister(id, document)` |
 | `WebUnregisterNode` | `registry.unregister(id)` |
 | `ScriptNode` | Create `<script primal:script scoped>` with the body as text under the parent; call `deps.hydrate(parent, doc)` |
