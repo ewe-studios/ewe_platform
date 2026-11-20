@@ -1,0 +1,85 @@
+use std::{fs, path::PathBuf};
+
+use foundation_ui_wire::{
+    vocab::{vocab_js, CORE_CSS, WEB_EVENTS, WEB_KINDS},
+    EventId, NodeKind,
+};
+
+#[test]
+fn js_file_matches_tables() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../foundation_wasm_ui/runtimes/foundation-ui-vocab.js");
+    let expected = vocab_js();
+    if std::env::var_os("UPDATE_FIXTURES").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        fs::write(&path, &expected).unwrap();
+    }
+    assert_eq!(fs::read_to_string(path).unwrap(), expected);
+}
+
+#[test]
+fn web_mapping_matches_the_core_names() {
+    let rows = [
+        (NodeKind::STACK, "div", "ewe-stack", &[][..]),
+        (NodeKind::TEXT, "span", "ewe-text", &[][..]),
+        (NodeKind::IMAGE, "img", "ewe-image", &[][..]),
+        (
+            NodeKind::BUTTON,
+            "button",
+            "ewe-button",
+            &[("type", "button")][..],
+        ),
+        (
+            NodeKind::TEXT_INPUT,
+            "input",
+            "ewe-text-input",
+            &[("type", "text")][..],
+        ),
+        (
+            NodeKind::TOGGLE,
+            "input",
+            "ewe-toggle",
+            &[("type", "checkbox"), ("role", "switch")][..],
+        ),
+        (NodeKind::LIST, "div", "ewe-list", &[("role", "list")][..]),
+        (NodeKind::SCROLL, "div", "ewe-scroll", &[][..]),
+        (
+            NodeKind::SPACER,
+            "div",
+            "ewe-spacer",
+            &[("aria-hidden", "true")][..],
+        ),
+        (NodeKind::OVERLAY, "div", "ewe-overlay", &[][..]),
+    ];
+    assert_eq!(WEB_KINDS.len(), rows.len());
+    for (row, expected) in WEB_KINDS.iter().zip(rows) {
+        assert_eq!((row.kind, row.tag, row.class, row.attrs), expected);
+    }
+    assert_eq!(
+        WEB_KINDS.iter().map(|row| row.kind).collect::<Vec<_>>(),
+        &NodeKind::ENUM_VALUES[1..],
+    );
+    assert_eq!(
+        WEB_EVENTS,
+        [
+            (EventId::TAP, "click"),
+            (EventId::CHANGE, "change"),
+            (EventId::SUBMIT, "submit"),
+            (EventId::FOCUS, "focus"),
+            (EventId::BLUR, "blur"),
+        ],
+    );
+    assert_eq!(
+        WEB_EVENTS.iter().map(|(id, _)| *id).collect::<Vec<_>>(),
+        &EventId::ENUM_VALUES[1..],
+    );
+    assert_eq!(
+        CORE_CSS,
+        concat!(
+            ".ewe-stack{display:flex;flex-direction:column}\n",
+            ".ewe-list{display:flex;flex-direction:column}\n",
+            ".ewe-scroll{overflow:auto}\n",
+            ".ewe-spacer{flex:1 1 auto}\n",
+            ".ewe-overlay{position:fixed;inset:0}\n",
+        ),
+    );
+}

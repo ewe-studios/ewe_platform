@@ -192,7 +192,7 @@ Status key: pending, in progress, complete. Update this table when a feature cha
 | # | Feature | Model | Status |
 |---|---|---|---|
 | 01 | wire-schema-and-codegen | Sonnet | complete |
-| 02 | vocabulary-and-platform-forms | Sonnet | pending |
+| 02 | vocabulary-and-platform-forms | Sonnet | complete |
 | 03 | frame-writer | Sonnet | pending |
 | 04 | signed-state | Sonnet | pending |
 | 05 | action-runtime | Sonnet | pending |
@@ -266,7 +266,13 @@ is recorded here as passed.
 - Commit `6d4faf280` adds explicit nonce encryption and fallible context accessors. Issue #549 is closed.
 - Features 03 and 04 each have a proposed contract change for owner review. Other checks continue.
 
+- Feature 02 defines the vocabulary tables and migration from legacy operations.
+  The generated browser tables match the Rust tables.
+  All 40 wire tests pass with and without the standard library.
+  The browser package tests pass with the embedded vocabulary.
+  The [wire package guide](../../backends/foundation_ui_wire/README.md) includes a runnable vocabulary example.
+
 ## Next
 
-1. The owner approved all remaining listed features. Features 02 and 04 are in progress.
+1. The owner approved all remaining listed features. Feature 04 is in progress.
 2. Follow the dependency order and the browser acceptance gate before native implementation.

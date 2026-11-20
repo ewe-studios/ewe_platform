@@ -371,3 +371,13 @@ ASD-STE100.
 - The new HMAC library requires the `KeyInit` trait for key construction. Existing authentication tests cover this change.
 - BoringTun still needs the older digest interface for its BLAKE2 implementation. The workspace manifest records this dependency constraint.
 - The new digest output lacks hexadecimal formatting. The shared hexadecimal encoder preserves lower-case output in authentication, code generation and deployment exports.
+
+## Feature 02 vocabulary verification
+
+- The existing browser tag and attribute tables match the Rust order. Their maxima are 114 and 81.
+- Version 1 has no behaviour identifiers. Version 2 adds four shared identifiers.
+- A legacy child removal and a legacy node removal use the same shared wire form.
+  The reverse conversion returns a node removal.
+- The test writes the browser vocabulary module from the Rust tables.
+  The browser module keeps numeric indexes for properties, node kinds and events.
+- The vocabulary classifies forms. The frame writer applies the mount filter in feature 03.

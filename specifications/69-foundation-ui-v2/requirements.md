@@ -385,9 +385,9 @@ in parallel.
 | # | Feature | Description | Depends on | Model | Phase | Status |
 |---|---|---|---|---|---|---|
 | 01 | [wire-schema-and-codegen](./features/01-wire-schema-and-codegen/feature.md) | The `foundation_ui_wire` crate, the schema, generated code for four languages from the pinned `flatc`, the reader and limits | 17 | Sonnet | Standard | ✅ Complete |
-| 02 | [vocabulary-and-platform-forms](./features/02-vocabulary-and-platform-forms/feature.md) | Core kinds and props, the web and mobile name tables, the behaviour name tables, the vocabulary version | 01 | Sonnet | Standard | ⬜ Pending |
+| 02 | [vocabulary-and-platform-forms](./features/02-vocabulary-and-platform-forms/feature.md) | Core kinds and props, the web and mobile name tables, the behaviour name tables, the vocabulary version | 01 | Sonnet | Standard | ✅ Complete |
 | 03 | [frame-writer](./features/03-frame-writer/feature.md) | The frame writer, the gate, the sequencer | 01, 02 | Sonnet | Standard | ⬜ Pending |
-| 04 | [signed-state](./features/04-signed-state/feature.md) | The state signer, the key ring, the ordered checks, the failure limiter | 01 | Sonnet | Runtime | ⬜ Pending |
+| 04 | [signed-state](./features/04-signed-state/feature.md) | The state signer, the key ring, the ordered checks, the failure limiter | 01 | Sonnet | Runtime | 🔄 In Progress |
 | 05 | [action-runtime](./features/05-action-runtime/feature.md) | `Ctx`, `Context`, `Interaction`, `Receiver`, the registry, the action manager | 01, 04 | Sonnet | Runtime | ⬜ Pending |
 | 06 | [action-macro](./features/06-action-macro/feature.md) | The `#[action]` attribute macro | 05 | Sonnet | Runtime | ⬜ Pending |
 | 07 | [dispatcher-and-handshake](./features/07-dispatcher-and-handshake/feature.md) | The stateless dispatcher, the delivery handler, `ClientHello` and `ServerCaps` | 03, 04, 05 | Sonnet | Runtime | ⬜ Pending |

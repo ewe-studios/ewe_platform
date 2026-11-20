@@ -295,7 +295,9 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
 #[cfg(feature = "embedded-js")]
 #[test]
 fn embedded_js_assets_carry_both_runtimes() {
-    use foundation_wasm_ui::embedded::{FOUNDATION_WASM_JS, FOUNDATION_WASM_UI_JS};
+    use foundation_wasm_ui::embedded::{
+        FOUNDATION_UI_VOCAB_JS, FOUNDATION_WASM_JS, FOUNDATION_WASM_UI_JS,
+    };
     assert!(FOUNDATION_WASM_JS.contains("class FoundationWasm"));
     assert!(FOUNDATION_WASM_JS.contains("globalThis.FoundationWasmRuntime"));
     assert!(FOUNDATION_WASM_UI_JS.contains("globalThis.FoundationWasmUiRuntime"));
@@ -305,4 +307,6 @@ fn embedded_js_assets_carry_both_runtimes() {
             || foundation_wasm_ui::embedded::APACHE_ARROW_JS.len() > 100_000
     );
     assert!(FOUNDATION_WASM_UI_JS.contains("class DomHeap"));
+    assert!(FOUNDATION_UI_VOCAB_JS.contains("export const VOCABULARY_VERSION"));
+    assert!(FOUNDATION_UI_VOCAB_JS.contains("export const WEB_KINDS"));
 }

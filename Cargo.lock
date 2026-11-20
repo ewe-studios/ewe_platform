@@ -6450,10 +6450,11 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_ui_wire"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "flatbuffers",
  "foundation_errstacks",
+ "foundation_ui_traits",
 ]
 
 [[package]]
@@ -6502,7 +6503,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "clap",
  "foundation_arrow",

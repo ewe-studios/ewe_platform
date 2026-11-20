@@ -213,3 +213,28 @@ Rust bindings live in [src/generated/](src/generated/). TypeScript, Swift and Ko
 The browser consumes the [bundled JavaScript module](../foundation_wasm_ui/runtimes/foundation-ui-wire.js).
 The Rust verifier checks unknown union table locations before the reader returns a view. The drift check regenerates into a temporary directory and compares outputs.
 Change the schema or generator to update generated code. Rust callers can disable the default `std` feature for targets with allocation and no standard library.
+
+## Look up vocabulary and platform forms
+
+The vocabulary gives each property one value type. For example, padding takes a length.
+A peer version row gives the last property number that the peer accepts.
+The operation union identifies the form group. Shared forms apply on both mount surfaces.
+Web forms apply on web mounts. The frame writer enforces the mount rule before it sends a frame.
+
+Run [the vocabulary example](examples/vocabulary.rs) from the repository root.
+
+```sh
+cargo run -p foundation_ui_wire --profile uat --example vocabulary
+```
+
+The example validates a padding value against vocabulary version 1.
+It converts a text update to a shared form and an attribute update to a web form.
+It then checks each form against the native and web mount surfaces.
+
+Regenerate the JavaScript vocabulary after a change to its Rust tables. Run all vocabulary tests to check the result.
+
+```sh
+UPDATE_FIXTURES=1 cargo test -p foundation_ui_wire --profile uat --test integration vocab_js_tests::js_file_matches_tables
+cargo test -p foundation_ui_wire --profile uat --test integration vocab_
+node --check backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js
+```
