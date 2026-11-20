@@ -197,6 +197,8 @@ fn wire_fixture_is_well_formed_but_has_no_valid_tag() {
 
 #[test]
 fn every_authenticated_field_change_is_rejected() {
+    type Change = (&'static str, fn(&mut SignedStateT));
+
     let (ctx, _) = test_ctx(WALL);
     let codec = codec();
     let session = session();
@@ -205,8 +207,7 @@ fn every_authenticated_field_change_is_rejected() {
         .unwrap()
         .unpack();
 
-    type Change = (&'static str, fn(&mut SignedStateT));
-    let changes: [Change; 10] = [
+    let mutations: [Change; 10] = [
         ("format version", |state| state.format_version ^= 1),
         ("flags", |state| state.flags ^= 1),
         ("key identifier", |state| state.key_id ^= 1),
@@ -215,12 +216,12 @@ fn every_authenticated_field_change_is_rejected() {
         ("component type", |state| state.component_type ^= 1),
         ("root node", |state| state.root_node ^= 1),
         ("session binding", |state| {
-            state.session_binding.as_mut().unwrap()[0] ^= 1
+            state.session_binding.as_mut().unwrap()[0] ^= 1;
         }),
         ("body", |state| state.body.as_mut().unwrap()[0] ^= 1),
         ("tag", |state| state.tag.as_mut().unwrap()[0] ^= 1),
     ];
-    for (name, mutate) in changes {
+    for (name, mutate) in mutations {
         let mut changed = signed.clone();
         mutate(&mut changed);
         let bytes = finish_signed_state(&changed);
