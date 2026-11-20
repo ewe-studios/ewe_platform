@@ -135,14 +135,29 @@ fn run_build(args: &ArgMatches) -> Result<(), BoxedError> {
 
 /// The owned runtime assets, resolved relative to the workspace layout.
 fn runtime_assets() -> Vec<(&'static str, &'static Path)> {
-    vec![
-        (
-            "foundation-wasm.js",
-            Path::new("backends/foundation_wasm/runtime/foundation-wasm.js"),
-        ),
-        (
-            "foundation-wasm-ui.js",
-            Path::new("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js"),
-        ),
-    ]
+    let mut assets = vec![(
+        "foundation-wasm.js",
+        Path::new("backends/foundation_wasm/runtime/foundation-wasm.js"),
+    )];
+    macro_rules! browser_assets {
+        ($($name:literal),+ $(,)?) => {
+            $(assets.push(($name, Path::new(concat!("backends/foundation_wasm_ui/runtimes/", $name))));)+
+        };
+    }
+    browser_assets!(
+        "foundation-wasm-ui.js",
+        "foundation-ui-frames.js",
+        "foundation-ui-live.js",
+        "foundation-ui-vocab.js",
+        "foundation-ui-wire.js",
+        "foundation-ui-behaviours.js",
+        "foundation-ui-bootstrap.js",
+        "foundation-ui-actions.js",
+        "platform-scheme-interceptor.js",
+    );
+    assets.push((
+        "bundle.js",
+        Path::new("backends/foundation_wasm_ui/runtimes/foundation-ui-runtime.js"),
+    ));
+    assets
 }

@@ -8,8 +8,8 @@ use super::WireForm;
 use crate::{
     AppendChildT, HtmlMorphT, InsertBeforeT, MorphAction, RemoveT, SelectorKind, SetTextT,
     TargetSelectorT, UiOperationT, WebAddClassT, WebAddListenerT, WebElementT, WebOperationT,
-    WebPropertyT, WebRegisterNodeT, WebRemoveAttributeT, WebRemoveClassT, WebRemoveListenerT,
-    WebReplaceNodeT, WebSetAttributeT, WebStyleT, WebTextT, WebUnregisterNodeT,
+    WebPropertyT, WebRemoveAttributeT, WebRemoveClassT, WebRemoveListenerT,
+    WebReplaceNodeT, WebSetAttributeT, WebStyleT, WebTextT,
 };
 
 /// Convert a legacy operation to its shared or web form.
@@ -29,15 +29,8 @@ pub fn web_form(op: &DomOp) -> WireForm {
             parent_id: *parent_id,
             child_id: *child_id,
         }))),
-        DomOp::RemoveChild {
-            parent_id,
-            child_id,
-        } => WireForm::Web(WebOperationT::WebDetachChild(Box::new(
-            crate::WebDetachChildT {
-                parent_id: *parent_id,
-                child_id: *child_id,
-            },
-        ))),
+        DomOp::RemoveChild { parent_id, child_id } =>
+            WireForm::Web(crate::ops::remove_child(*parent_id,*child_id).web),
         DomOp::RemoveNode { node_id } => WireForm::Ui(UiOperationT::Remove(Box::new(RemoveT {
             node_id: *node_id,
         }))),
@@ -112,14 +105,8 @@ pub fn web_form(op: &DomOp) -> WireForm {
             action: MorphAction(action.as_u8()),
             content: Some(String::from(content.as_ref())),
         }))),
-        DomOp::RegisterNode { node_id } => {
-            WireForm::Web(WebOperationT::WebRegisterNode(Box::new(WebRegisterNodeT {
-                node_id: *node_id,
-            })))
-        }
-        DomOp::UnregisterNode { node_id } => WireForm::Web(WebOperationT::WebUnregisterNode(
-            Box::new(WebUnregisterNodeT { node_id: *node_id }),
-        )),
+        DomOp::RegisterNode {node_id} => WireForm::Web(crate::ops::register_node(*node_id).web),
+        DomOp::UnregisterNode {node_id} => WireForm::Web(crate::ops::unregister_node(*node_id).web),
     }
 }
 

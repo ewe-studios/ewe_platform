@@ -1,26 +1,8 @@
-//! # Server-driven UI: broadcast an App's frames to live clients
+//! Send one frame to each connected browser.
 //!
-//! WHY: A native `foundation_wasm_ui` App can drive REAL browsers — mount a
-//! component + flip a signal in Rust, and the encoded DOM frames stream to every
-//! connected page where `<mount-stream>` applies them. That fan-out (with a
-//! replayed backlog so late joiners catch up) is a real SERVER capability, not a
-//! test detail, so it lives here. The App never leaves its thread; only the
-//! `Send` [`BroadcastTx`] crosses to the server/worker threads.
-//!
-//! WHAT: [`FrameTransport`] (a live client connection the transport layer
-//! implements — SSE, WebSocket, …), [`Broadcaster`] (owned connections + a
-//! replayed backlog), [`BroadcastTx`] (the `Send` push handle), and
-//! [`BroadcastSink`] (a [`ProtocolMethods`] sink that ships an App's encoded
-//! batches to a `BroadcastTx` on every `stabilize`).
-//!
-//! HOW: Transport-agnostic by design — the broadcaster holds
-//! `Box<dyn FrameTransport + Send>`, so this module depends on NO socket/HTTP
-//! crate. `foundation_http` (or any server) provides the `FrameTransport` impl.
-//! `BroadcastSink::encode_and_write` does `encode_with_envelope(&encoder, ops)`
-//! (exactly as [`FrameSink`](crate::protocol::FrameSink)) then `tx.send(frame)`.
-//! The wire is the envelope's business: columnar (default), JSON, or Arrow IPC
-//! all ride [`BroadcastTx::send`]; raw markup (the HTML protocol) rides
-//! [`BroadcastTx::send_text`]. Native-only (`std`), target-gated like the CLI.
+//! A broadcaster owns its connections and keeps their replay backlog.
+//! The default broadcast sink sends complete EWF1 frames.
+//! An application can select a legacy encoder with `BroadcastSink::with_encoder`.
 
 use std::prelude::rust_2021::*;
 use std::sync::{Arc, Mutex};
@@ -30,7 +12,7 @@ use core::cell::Cell;
 use foundation_ui_traits::{encode_with_envelope, ColumnarEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
-use crate::protocol::{HandleResult, ProtocolMethods, SendResult};
+use crate::protocol::{LegacyHandleResult, LegacyProtocolMethods, SendResult};
 
 /// A live client connection a [`Broadcaster`] fans frames to. The transport
 /// layer implements it — for example, the event stream in `foundation_http`. Each method returns
@@ -153,8 +135,7 @@ pub struct BroadcastTx {
 }
 
 impl BroadcastTx {
-    /// Deliver one BINARY (envelope-encoded) frame — the `DomOp` wires: columnar,
-    /// Arrow IPC, JSON. The envelope self-describes its protocol/version.
+    /// Deliver one binary frame. Its bytes identify its format.
     pub fn send(&self, frame: &[u8]) {
         self.push(Frame::Binary(frame.to_vec()));
     }
@@ -175,13 +156,13 @@ impl BroadcastTx {
 /// An App protocol sink that streams framed batches to clients through a
 /// [`BroadcastTx`]. Generic over the Layer-1 encoder `E` (columnar default,
 /// JSON, Arrow IPC) — the wire is just an envelope byte to the broadcaster.
-pub struct BroadcastSink<E = ColumnarEncoder> {
+pub struct LegacyBroadcastSink<E = ColumnarEncoder> {
     encoder: E,
     tx: BroadcastTx,
     next_id: Cell<u32>,
 }
 
-impl<E> BroadcastSink<E> {
+impl<E> LegacyBroadcastSink<E> {
     /// A sink over a specific encoder, shipping frames to `tx`.
     pub fn with_encoder(encoder: E, tx: BroadcastTx) -> Self {
         Self {
@@ -192,15 +173,57 @@ impl<E> BroadcastSink<E> {
     }
 }
 
-impl BroadcastSink<ColumnarEncoder> {
-    /// The default columnar sink (matches `<mount-stream protocol="arrow">`).
+/// Select the default frame broadcast sink or an explicit legacy codec.
+type BroadcastOutput = crate::protocol::FrameOutput<
+    Box<dyn Fn(Vec<u8>) -> Result<(), crate::protocol::ProtocolError>>,
+>;
+pub struct BroadcastSink(BroadcastOutput);
+
+impl BroadcastSink {
+    /// Send one bare frame per successful receiver flush.
     #[must_use]
     pub fn new(tx: BroadcastTx) -> Self {
-        Self::with_encoder(ColumnarEncoder, tx)
+        Self(crate::protocol::FrameOutput::new(
+            crate::protocol::FrameV1::new(0),
+            Box::new(move |bytes| {
+                tx.push(Frame::Binary(bytes));
+                Ok(())
+            }),
+        ))
+    }
+
+    /// Use a legacy codec for an independently deployed client.
+    pub fn with_encoder<E>(encoder: E, tx: BroadcastTx) -> LegacyBroadcastSink<E> {
+        LegacyBroadcastSink::with_encoder(encoder, tx)
     }
 }
 
-impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolHandler for BroadcastSink<E> {
+impl ProtocolHandler for BroadcastSink {
+    fn protocol_byte(&self) -> u8 {
+        self.0.protocol_byte()
+    }
+    fn version(&self) -> u8 {
+        self.0.version()
+    }
+    fn send_to_js(&self, _: MemoryId, _: *const u8, _: usize) {}
+    fn handle_from_js(&self, _: MemoryId, _: *const u8, _: usize) {}
+    fn ack(&self, _: MemoryId, _: &mut MemoryAllocations) {}
+}
+
+impl crate::protocol::ProtocolMethods<Vec<foundation_ui_wire::OperationT>> for BroadcastSink {
+    fn encode_and_write(
+        &self,
+        ops: Vec<foundation_ui_wire::OperationT>,
+        memory: &mut MemoryAllocations,
+    ) -> crate::protocol::WrittenBatch {
+        self.0.encode_and_write(ops, memory)
+    }
+    fn handle_received(&self, bytes: &[u8]) -> crate::protocol::HandleResult {
+        self.0.handle_received(bytes)
+    }
+}
+
+impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolHandler for LegacyBroadcastSink<E> {
     fn protocol_byte(&self) -> u8 {
         self.encoder.protocol_byte()
     }
@@ -213,7 +236,7 @@ impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolHandler for BroadcastSink<E> {
     fn ack(&self, _memory_id: MemoryId, _memory: &mut MemoryAllocations) {}
 }
 
-impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolMethods<Vec<DomOp>> for BroadcastSink<E> {
+impl<E: ProtocolEncoder<Vec<DomOp>>> LegacyProtocolMethods<Vec<DomOp>> for LegacyBroadcastSink<E> {
     fn encode_and_write(
         &self,
         ops: Vec<DomOp>,
@@ -238,7 +261,17 @@ impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolMethods<Vec<DomOp>> for BroadcastSi
     }
 
     // Send-only sink (server → browser); nothing is received back through it.
-    fn handle_received(&self, _memory_id: MemoryId, _ptr: *const u8, _len: usize) -> HandleResult {
+    fn handle_received(
+        &self,
+        _memory_id: MemoryId,
+        _ptr: *const u8,
+        _len: usize,
+    ) -> LegacyHandleResult {
         Ok(Vec::new())
     }
 }
+
+mod live;
+pub use live::{BacklogConfig, LiveChannel, LiveError, LiveTx};
+mod live_sink;
+pub use live_sink::FrameBroadcastSink;

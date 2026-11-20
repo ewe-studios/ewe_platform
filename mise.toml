@@ -14,6 +14,7 @@
 CARGO_TERM_COLOR = "always"
 ANDROID_HOME = { value = '{% if tools["http:android-sdk"] is defined %}{{ tools["http:android-sdk"].path }}{% else %}{{ env.ANDROID_HOME | default(value="") }}{% endif %}', tools = true }
 ANDROID_COMPILE_SDK = "36"
+ANDROID_UI_COMPILE_SDK = "37"
 ANDROID_BUILD_TOOLS = "36.0.0"
 ANDROID_GRADLE_PLUGIN = "9.5.1"
 ANDROID_KOTLIN_VERSION = { value = '{% if tools.kotlin is defined %}{{ tools.kotlin.version }}{% endif %}', tools = true }
@@ -140,6 +141,10 @@ run = "bash scripts/toolchain/wire_test.sh"
 [tasks."toolchain:apple"]
 description = "Check Xcode and compile the UniFFI Swift binding for the iOS simulator"
 run = ["bash scripts/toolchain/check.sh --scope apple", "bash scripts/toolchain/proof.sh --scope apple"]
+
+[tasks."ui-web:bundle"]
+description = "Build the self-contained browser runtime"
+run = "bash scripts/ui_web/bundle.sh"
 
 [tasks."ui-web:test"]
 description = "Test the browser runtime and compare both instruction encoders"

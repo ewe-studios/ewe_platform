@@ -27,7 +27,7 @@
 //! HOW: `parser` walks `TokenTree`s into a template tree; `codegen` numbers it
 //! (element ids for `Part`s, runtime indexes for the reactive id block) and
 //! emits typed `foundation_ui_traits::Html` construction plus, reactively, the
-//! `DomOp` build + effects. See each submodule's docs for the details.
+//! operation build + effects. See each submodule's docs for the details.
 
 mod codegen;
 mod parser;

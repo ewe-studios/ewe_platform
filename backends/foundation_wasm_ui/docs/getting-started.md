@@ -26,7 +26,7 @@ let (ctx, receiver) = app.context();
 let _ui = html! { ctx, receiver,
     <div class="greeting"><h1>"Hello, world"</h1></div>
 };
-app.stabilize();   // builds the nodes and flushes them to JS as DomOps
+app.stabilize();   // builds the nodes and flushes them to JS as operations
 ```
 
 That's the whole loop: build a tree, `stabilize()`, the runtime ships the batch.
@@ -229,7 +229,7 @@ pub fn myapp() {
     let inc = ctx.callback(move |_| set_count.set(count.get() + 1));
 
     // mount() appends the tree to <body> — no <mount-stream> needed,
-    // the WASM runtime applies DomOps directly to the live document.
+    // the WASM runtime applies operations directly to the live document.
     app.mount(html! { ctx, receiver,
         <button primal:onclick={inc}>"Count: " {count.get()}</button>
     });
@@ -255,12 +255,11 @@ runtime assets automatically.
 The generated wrapper handles the full boot sequence:
 1. Fetches `myapp.wasm` and instantiates it with `FoundationWasm`'s `web_abi`
 2. Binds the WASM instance to the runtime (`rt.init(instance)`)
-3. Registers `columnarHandler` on protocol byte 1 so `App::stabilize()` DomOps reach the DOM
+3. Installs the EWF1 frame reader and registers the legacy protocol handlers
 4. Calls your Rust entrypoint (`instance.exports.myapp()`)
 
-The columnar wire (protocol byte 1) is what `App::new()` uses — without the handler
-registered in step 3, every `stabilize()` dispatches to an unknown protocol and its
-DomOps go nowhere. The wrapper wires this automatically so you just call `init()`.
+Each successful flush from `App::new()` sends one bare EWF1 frame.
+The wrapper installs the reader before the Rust entry point runs.
 
 ### Mode 2: Native server streams to the browser (fullstack)
 
@@ -285,7 +284,7 @@ the frames.
   </script>
 </head>
 <body>
-  <!-- The mount-stream connects to your server and applies DomOp frames live.
+  <!-- The mount-stream connects to your server and applies EWF1 frames live.
        api = your server's streaming endpoint
        transport = "sse" (default), "ws", "chunked"
        protocol = "arrow" (binary envelope) or omit for plain HTML frames -->
@@ -307,7 +306,7 @@ let (ctx, rcv) = app.context();
 
 let (status, set_status) = ctx.signal(String::from("ready"));
 
-// mount() + stabilize() on the server encodes DomOps into frames
+// mount() + stabilize() on the server encodes operations into frames
 // that the broadcaster sends to every connected <mount-stream>.
 app.mount(html! { ctx, rcv, <p id="status" class="status">{status.get()}</p> });
 app.stabilize();                       // initial frame → all clients
@@ -335,7 +334,7 @@ let body = html! {
 // Serve body.to_markup() as text/html — done.
 ```
 
-`to_markup()` serializes the same tree the DomOp channel would build — one
+`to_markup()` serializes the same tree the frame channel would build — one
 renderer, slot spans and all. No `App`, no allocation arena. Use it for
 first-paint pages, SEO-critical content, or static sites that never go reactive.
 
@@ -357,10 +356,10 @@ let body = html! {
 | | `App::mount()` (WASM mode) | `<mount-stream>` (server mode) |
 |---|---|---|
 | **Where App runs** | Browser (WASM) | Native server |
-| **How DomOps arrive** | `host_apply` → `dispatcher` → `DomOpApplicator` | Envelope-framed bytes over SSE/WS |
+| **How operations arrive** | `host_apply` → `dispatcher` → `DomOpApplicator` | EWF1 bytes over the selected stream |
 | **HTML page needs** | `FoundationWasm` + `registerWasmApp(rt)` + `init()` | `<mount-stream>` + `registerWebComponents()` |
 | **JS runtime** | `foundation-wasm.js` + `foundation-wasm-ui.js` | `foundation-wasm-ui.js` |
-| **Live updates** | `stabilize()` → DomOps → DOM | `stabilize()` → encode → stream → browser applies |
+| **Live updates** | `stabilize()` → operations → DOM | `stabilize()` → encode → stream → browser applies |
 
 ### What `registerWebComponents()` does
 

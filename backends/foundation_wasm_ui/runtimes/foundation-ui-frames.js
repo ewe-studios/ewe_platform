@@ -1,4 +1,5 @@
 // Apply EWF1 message frames to the browser node registry.
+import { bindLiveMounts } from "./foundation-ui-live.js";
 import * as wire from "./foundation-ui-wire.js";
 import * as vocab from "./foundation-ui-vocab.js";
 import * as registryBehaviours from "./foundation-ui-behaviours.js";
@@ -171,7 +172,10 @@ export class FrameApplicator {
     this.gapTimeoutMs = deps.gapTimeoutMs ?? 1000;
     this.maxPendingFrames = deps.maxPendingFrames ?? 128;
     this.timer = deps.timer ?? { set: setTimeout, clear: clearTimeout };
-    this.schedule = deps.schedule ?? (globalThis.requestAnimationFrame?.bind(globalThis) ?? queueMicrotask);
+    this.schedule = deps.schedule ?? (run => {
+      if (this.document.visibilityState === "hidden" || !globalThis.requestAnimationFrame) queueMicrotask(run);
+      else globalThis.requestAnimationFrame(run);
+    });
     this.stats = { frames: 0, rows: 0, reports: 0, copiedColumns: 0, zeroCopyColumns: 0 };
     this.cursors = new Map();
     this.gaps = new Map();
@@ -179,6 +183,7 @@ export class FrameApplicator {
     this.scheduled = false;
     this.cssInstalled = false;
     this.nodeIds = new WeakMap();
+    this.origins = new WeakMap();
   }
   cursor(stream) { return this.cursors.get(stream); }
   setCursor(stream, sequence) {
@@ -194,7 +199,7 @@ export class FrameApplicator {
     if (this.deps.onReport) this.deps.onReport(report);
     else console.error("Frame operation failed", report);
   }
-  receive(input) {
+  receive(input, origin) {
     try {
       const bytes = asBytes(input);
       if (bytes.length > this.maxFrameBytes) { this.report("TooLarge"); return false; }
@@ -210,6 +215,10 @@ export class FrameApplicator {
       }
       const seq = frame.sequenceId();
       const stream = frame.streamId();
+      if (origin) {
+        this.origins.set(msg, origin);
+        origin.observeStream?.(stream);
+      }
       if (seq === 0n || msg.ack() !== 0n) this.enqueue(msg);
       else this.order(stream, seq, msg);
       return true;
@@ -253,6 +262,8 @@ export class FrameApplicator {
   flush() {
     this.scheduled = false;
     for (const msg of this.queue.splice(0)) {
+      const previousOrigin = this.origin;
+      this.origin = this.origins.get(msg);
       this.stats.frames++;
       for (let i = 0; i < msg.messagesLength(); i++) {
         try {
@@ -262,6 +273,8 @@ export class FrameApplicator {
           if (m.control()) this.applyControl(m.control());
         } catch (e) { this.report(e.report?.code ?? "BadFrame", { unitIndex: i, ...(e.report ?? {}), detail: e.message }); }
       }
+      this.origin = previousOrigin;
+      this.deps.onApplied?.();
     }
   }
   node(id, staged = false) {
@@ -376,6 +389,7 @@ export class FrameApplicator {
         el.className = kind?.cls ?? "ewe-unknown";
         for (const [attr, value] of kind?.attrs ?? []) el.setAttribute(attr, value);
         el.setAttribute("primal-id", String(m.nodeId));
+        this.origin?.onMount?.(m.nodeId, el);
         this.registry.register(m.nodeId, el);
         break;
       }
@@ -413,6 +427,7 @@ export class FrameApplicator {
         const transport = ["local", "sse", "websocket", "fetch"][m.transport];
         for (const [key, value] of Object.entries({ api: m.endpoint, transport, protocol: "frame",
           "data-channel-id": m.channelId, "data-resume-from": m.resumeFrom, "primal-id": m.nodeId })) el.setAttribute(key, String(value));
+        this.origin?.onMount?.(m.nodeId, el);
         this.registry.register(m.nodeId, el); break;
       }
       default: throw problem("UnknownOp", { field: "ui" });
@@ -433,10 +448,12 @@ export class FrameApplicator {
       case "WebElement": {
         const el = d.createElement(resolveName(m.tagId, m.customTag, vocab.TAG_NAMES));
         if (m.className) el.className = m.className;
+        this.origin?.onMount?.(id, el);
         this.nodeIds.set(el, id); this.registry.stage(id, el); break;
       }
       case "WebText": {
         const node = d.createTextNode(m.content ?? "");
+        this.origin?.onMount?.(id, node);
         this.nodeIds.set(node, id); this.registry.stage(id, node); break;
       }
       case "WebRegisterNode": this.registry.applyRegister(id, d); break;
@@ -590,8 +607,9 @@ export function installFrameRuntime(wasmUi, options = {}) {
   }
   const base = wasmUi.Patcher.ensureApplicator(doc);
   runtime.frames = new FrameApplicator({document: doc, registry: base.registry, applicator: base,
-    morph: wasmUi.MorphDom.morph, hydrate: wasmUi.Hydrator.hydrate, runtime,
+    morph: wasmUi.MorphDom.morph, hydrate: wasmUi.Hydrator.hydrate, runtime, onApplied: wasmUi.Patcher.markApplied,
     ...options });
+  bindLiveMounts(runtime, runtime.frames);
   wasmUi.ProtocolHandler.frameHook = {isFrame, splitFrames, readFrames, maxFrameBytes: runtime.frames.maxFrameBytes};
   return runtime.frames;
 }

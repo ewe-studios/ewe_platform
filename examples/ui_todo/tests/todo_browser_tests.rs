@@ -1,7 +1,11 @@
 //! Test the server and browser-local actions in the same browser page.
-use foundation_browser::{BrowserDriver, LaunchConfig};
+use foundation_browser::{
+    test::{BacklogConfig, LiveChannel},
+    BrowserDriver, LaunchConfig,
+};
 use foundation_context::Ctx;
 use foundation_http::ShutdownSignal;
+use foundation_ui_wire::writer::WriterConfig;
 use std::{net::TcpListener, path::Path, sync::Arc};
 
 #[test]
@@ -16,9 +20,17 @@ fn server_and_host_actions_work() {
     let url = format!("http://{}/", listener.local_addr().unwrap());
     let shutdown = Arc::new(ShutdownSignal::new());
     let stop = shutdown.clone();
-    let worker = std::thread::spawn(move || ui_todo::server::serve(&listener, &stop, &module));
+    let channel = LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default());
+    let served = channel.clone();
+    let worker = std::thread::spawn(move || {
+        ui_todo::server::serve_with_channel(&listener, &stop, &module, served)
+    });
     let outcome = std::panic::catch_unwind(|| {
         let driver = BrowserDriver::launch(LaunchConfig::default().ctx(Ctx::host())).unwrap();
+        let other = driver.new_page().unwrap();
+        other.goto(&url).unwrap();
+        let shared_count = other.locator("#count-value");
+        shared_count.expect().to_have_text("0").unwrap();
         let page = driver.new_page().unwrap();
         page.goto(&url).unwrap();
         let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]"#);
@@ -39,11 +51,32 @@ fn server_and_host_actions_work() {
             .unwrap_or_else(|e| panic!("{e:?}; {:?}", page.eval("document.body.innerText")));
         let toggle = page.locator(&button("server:toggle_todo"));
         toggle.expect().to_have_text("Complete").unwrap();
+        shared_count.expect().to_have_text("1").unwrap();
         page.locator("button[value=done]").click().unwrap();
         toggle.expect().to_have_count(0).unwrap();
         page.locator("button[value=all]").click().unwrap();
         toggle.expect().to_be_visible().unwrap();
+        other
+            .eval(
+                r"{
+            const fetch = window.fetch.bind(window);
+            window.fetch = (url, options) => {
+                if (String(url).includes('/live')) window.replayUrl = String(url);
+                return fetch(url, options);
+            };
+        }",
+            )
+            .unwrap();
+        channel.close();
         toggle.click().unwrap();
+        shared_count.expect().to_have_text("0").unwrap();
+        assert_eq!(
+            other
+                .eval("new URL(window.replayUrl, location.href).searchParams.get('resume_from')")
+                .unwrap()
+                .as_str(),
+            Some("1")
+        );
         page.locator("#open-count")
             .expect()
             .to_have_text("0")

@@ -1,7 +1,7 @@
 ---
 feature: "native-package-releases"
 description: "Release Swift and Kotlin libraries from sibling source repositories. Test starter applications against the published packages."
-status: "approved"
+status: "in-progress"
 depends_on: ["13", "14", "15", "16", "17"]
 ---
 

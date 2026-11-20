@@ -13,7 +13,7 @@ use foundation_ui_wire::{ErrorCode, MountSurface};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
-#[cfg(not(target_family = "wasm"))]
+#[cfg(all(feature = "server", not(target_family = "wasm")))]
 pub mod server;
 
 /// Stable roots created by the page shell.
@@ -106,7 +106,7 @@ fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
         .map(row);
     let count = state.items.iter().filter(|item| !item.done).count();
     let count_view = if web {
-        html! {<div id="open-count"><span id="count-value">{count}</span><mount-stream api="/live" protocol="frame" target="#live-sink"/></div>}
+        html! {<div id="open-count"><span id="count-value">{count}</span><mount-stream data-channel-id="1" api="/live" protocol="frame" target="#live-sink"/></div>}
     } else {
         html! {<Text>{count}</Text>}
     };

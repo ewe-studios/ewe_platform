@@ -955,7 +955,7 @@ pub fn proxy(input: TokenStream) -> TokenStream {
 /// Two forms:
 /// - `html! { <div>..</div> }` — a pure `Html` value.
 /// - `html! { ctx, receiver, <div>..</div> }` — additionally queues the DOM
-///   build as `DomOp`s on `receiver` and creates one effect per dynamic
+///   build as generated operations on `receiver` and creates one effect per dynamic
 ///   slot/attribute (effects run immediately).
 ///
 /// See `foundation_macros::html_macro` module docs for the full walkthrough.

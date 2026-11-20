@@ -26,3 +26,6 @@ mod writer_error_tests;
 mod writer_gate_tests;
 mod writer_roundtrip_tests;
 mod writer_table_tests;
+
+#[cfg(feature = "reference")]
+mod reference_tests;

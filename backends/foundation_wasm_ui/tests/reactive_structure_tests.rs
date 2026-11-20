@@ -7,12 +7,18 @@
 //! streams — including the §5 risk (effect creation inside a running
 //! watcher effect, made legal by `Runtime::untracked`).
 
+#[path = "support/app_parity.rs"]
+pub mod app_parity;
+#[path = "support/parity.rs"]
+mod parity;
+use parity::reference;
+
 use foundation_signals::Context;
 use foundation_ui_traits::{DomOp, Html};
-use foundation_wasm_ui::{html, App, SentBatches, SharedInstructionReceiver, Slot};
+use foundation_wasm_ui::{html, SentBatches, SharedInstructionReceiver, Slot};
 
 fn ops_of(sent: &SentBatches) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().cloned().collect()
+    sent.borrow().iter().flatten().map(reference).collect()
 }
 
 fn created_tags(ops: &[DomOp]) -> Vec<String> {
@@ -37,7 +43,7 @@ fn removed_ids(ops: &[DomOp]) -> Vec<u32> {
 
 #[test]
 fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (open, set_open) = ctx.signal(false);
 
@@ -46,14 +52,14 @@ fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
             <Show when={open.get()}>{ Slot::lazy(|c, r| html! { c, r, <em>"shown"</em> }) }</Show>
         </section>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
     assert!(
         !created_tags(&ops_of(&sent)).contains(&String::from("em")),
         "nothing mounted while false"
     );
 
     set_open.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = ops_of(&sent);
     assert!(
         created_tags(&ops).contains(&String::from("em")),
@@ -73,7 +79,7 @@ fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
         .expect("em id");
 
     set_open.set(false);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert!(
         removed_ids(&ops_of(&sent)).contains(&em_id),
         "unmounted on false"
@@ -83,7 +89,7 @@ fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
 /// The instance's own effects DIE with the instance (scope disposal).
 #[test]
 fn hide_disposes_the_interior_effects() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (open, set_open) = ctx.signal(true);
     let (count, set_count) = ctx.signal(0i64);
@@ -97,18 +103,18 @@ fn hide_disposes_the_interior_effects() {
             }) }</Show>
         </div>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
 
     set_count.set(1);
-    app.stabilize();
+    app.stabilize().unwrap();
     let mid = ops_of(&sent).len();
 
     set_open.set(false);
-    app.stabilize();
+    app.stabilize().unwrap();
     let after_hide = ops_of(&sent).len();
 
     set_count.set(2);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(
         ops_of(&sent).len(),
         after_hide,
@@ -120,7 +126,7 @@ fn hide_disposes_the_interior_effects() {
 /// Toggling content signals must NOT remount the region (untracked mount).
 #[test]
 fn content_signals_do_not_become_watcher_dependencies() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (open, _set_open) = ctx.signal(true);
     let (count, set_count) = ctx.signal(0i64);
@@ -134,14 +140,14 @@ fn content_signals_do_not_become_watcher_dependencies() {
             }) }</Show>
         </div>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
     let mounts_before = created_tags(&ops_of(&sent))
         .iter()
         .filter(|t| *t == "p")
         .count();
 
     set_count.set(5);
-    app.stabilize();
+    app.stabilize().unwrap();
     let mounts_after = created_tags(&ops_of(&sent))
         .iter()
         .filter(|t| *t == "p")
@@ -155,18 +161,18 @@ fn content_signals_do_not_become_watcher_dependencies() {
 /// Re-show mounts a FRESH instance; static Html content works (Render).
 #[test]
 fn reshow_is_a_fresh_instance_and_static_content_renders() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (open, set_open) = ctx.signal(true);
 
     let _tree = html! { ctx, receiver,
         <div><Show when={open.get()}>{ html! { <b>"static"</b> } }</Show></div>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
     set_open.set(false);
-    app.stabilize();
+    app.stabilize().unwrap();
     set_open.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
 
     let mounts = created_tags(&ops_of(&sent))
         .iter()
@@ -199,7 +205,7 @@ fn texts_in_order(ops: &[DomOp]) -> Vec<String> {
 
 #[test]
 fn for_renders_appends_and_removes_without_moves() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (todos, set_todos) =
         ctx.signal(vec![Todo { id: 1, label: "a" }, Todo { id: 2, label: "b" }]);
@@ -209,7 +215,7 @@ fn for_renders_appends_and_removes_without_moves() {
             <For each={todos.get()} key={|t: &Todo| t.id} render={todo_item} />
         </ul>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = ops_of(&sent);
     assert_eq!(
         created_tags(&ops).iter().filter(|t| *t == "li").count(),
@@ -229,7 +235,7 @@ fn for_renders_appends_and_removes_without_moves() {
         Todo { id: 2, label: "b" },
         Todo { id: 3, label: "c" },
     ]);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = ops_of(&sent);
     let new_moves = ops
         .iter()
@@ -240,14 +246,14 @@ fn for_renders_appends_and_removes_without_moves() {
 
     // REMOVE: one RemoveNode (the li), zero moves.
     set_todos.set(vec![Todo { id: 1, label: "a" }, Todo { id: 3, label: "c" }]);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = ops_of(&sent);
     assert!(!removed_ids(&ops).is_empty(), "removed item unmounted");
 }
 
 #[test]
 fn for_reorders_with_insert_before() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (todos, set_todos) = ctx.signal(vec![
         Todo { id: 1, label: "a" },
@@ -258,7 +264,7 @@ fn for_reorders_with_insert_before() {
     let _tree = html! { ctx, receiver,
         <ul><For each={todos.get()} key={|t: &Todo| t.id} render={todo_item} /></ul>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
     let creates_before = created_tags(&ops_of(&sent)).len();
 
     set_todos.set(vec![
@@ -266,7 +272,7 @@ fn for_reorders_with_insert_before() {
         Todo { id: 1, label: "a" },
         Todo { id: 2, label: "b" },
     ]);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = ops_of(&sent);
     assert_eq!(
         created_tags(&ops).len(),
@@ -284,17 +290,17 @@ fn for_reorders_with_insert_before() {
 
 #[test]
 fn for_empty_filled_empty_round_trip() {
-    let (app, sent) = App::mock();
+    let (app, sent) = app_parity::app();
     let (ctx, receiver) = app.context();
     let (todos, set_todos) = ctx.signal(Vec::<Todo>::new());
 
     let _tree = html! { ctx, receiver,
         <ul><For each={todos.get()} key={|t: &Todo| t.id} render={todo_item} /></ul>
     };
-    app.stabilize();
+    app.stabilize().unwrap();
 
     set_todos.set(vec![Todo { id: 7, label: "x" }]);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(
         created_tags(&ops_of(&sent))
             .iter()
@@ -304,11 +310,11 @@ fn for_empty_filled_empty_round_trip() {
     );
 
     set_todos.set(Vec::new());
-    app.stabilize();
+    app.stabilize().unwrap();
     assert!(!removed_ids(&ops_of(&sent)).is_empty(), "emptied");
 
     set_todos.set(vec![Todo { id: 7, label: "x" }]);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(
         created_tags(&ops_of(&sent))
             .iter()
@@ -322,7 +328,7 @@ fn for_empty_filled_empty_round_trip() {
 #[test]
 fn remote_unmount_disposes_a_whole_fragment_once() {
     use std::{cell::Cell, rc::Rc};
-    let (app, _) = App::mock();
+    let (app, _) = app_parity::app();
     let receiver = app.receiver();
     let scope = app.ctx().child();
     let (value, set_value) = app.ctx().signal(0u32);
@@ -345,7 +351,7 @@ fn remote_unmount_disposes_a_whole_fragment_once() {
     receiver.dispose_mount(41);
     receiver.dispose_mount(41);
     set_value.set(3);
-    app.stabilize();
+    app.stabilize().unwrap();
     drop(scope);
     assert_eq!(runs.get(), 1);
     assert_eq!(disposed.get(), 1);
@@ -357,7 +363,7 @@ fn local_bridge_teardown_is_thread_local() {
         events::ewe_ui_dispose_mount, install_app_bridge, uninstall_event_bridge,
     };
     use std::{cell::Cell, rc::Rc};
-    let (app, _) = App::mock();
+    let (app, _) = app_parity::app();
     install_app_bridge(&app);
     let scope = app.ctx().child();
     let removed = Rc::new(Cell::new(false));
@@ -367,7 +373,7 @@ fn local_bridge_teardown_is_thread_local() {
     });
     app.receiver().register_scope(&[42], &scope);
     std::thread::spawn(|| {
-        let (other, _) = App::mock();
+        let (other, _) = app_parity::app();
         install_app_bridge(&other);
         ewe_ui_dispose_mount(42);
         uninstall_event_bridge();

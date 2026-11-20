@@ -12,7 +12,8 @@ use foundation_ui_traits::{DomOp, JsonEncoder, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
 use super::{
-    decode_payload, encode_and_write_framed, ship, HandleResult, ProtocolMethods, SendResult,
+    decode_payload, encode_and_write_framed, ship, LegacyHandleResult, LegacyProtocolMethods,
+    SendResult,
 };
 
 /// JSON v1 protocol (protocol byte `2`).
@@ -49,7 +50,7 @@ impl ProtocolHandler for JsonV1 {
     }
 }
 
-impl ProtocolMethods<Vec<DomOp>> for JsonV1 {
+impl LegacyProtocolMethods<Vec<DomOp>> for JsonV1 {
     fn encode_and_write(
         &self,
         ops: Vec<DomOp>,
@@ -58,7 +59,12 @@ impl ProtocolMethods<Vec<DomOp>> for JsonV1 {
         encode_and_write_framed(self, &self.encoder, ops, memory)
     }
 
-    fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
+    fn handle_received(
+        &self,
+        _memory_id: MemoryId,
+        ptr: *const u8,
+        len: usize,
+    ) -> LegacyHandleResult {
         decode_payload(&self.encoder, ptr, len)
     }
 }

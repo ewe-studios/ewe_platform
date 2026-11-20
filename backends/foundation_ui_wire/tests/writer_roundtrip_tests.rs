@@ -29,7 +29,7 @@ fn write_then_read_gives_a_message_frame() {
     )
     .unwrap();
     assert_eq!(report.filtered, []);
-    assert_eq!(report.replaced_kinds, []);
+    assert!(report.replaced_kinds.is_empty());
     let frame = read_frame(&bytes, config.wire_limits()).unwrap();
     assert_eq!(frame.schema_version(), SCHEMA_VERSION);
     assert_eq!(frame.stream_id(), HEADER.stream_id);

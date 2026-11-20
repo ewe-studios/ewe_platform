@@ -1371,8 +1371,14 @@ export class ProtocolDispatcher {
     return this;
   }
 
+  /** Install a reader for a self-identifying binary format. Other messages use the envelope. */
+  setRawHandler(matches, apply) {
+    this.rawHandler = { matches, apply };
+  }
+
   /** @param {ArrayBuffer|Uint8Array} buffer */
   dispatch(buffer) {
+    if (this.rawHandler?.matches(buffer)) return this.rawHandler.apply(buffer);
     const { protocol, memoryId, payload } = WasmEnvelope.parse(buffer);
     const handler = this.handlers[protocol];
     if (!handler) {

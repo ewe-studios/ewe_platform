@@ -24,17 +24,18 @@ use foundation_signals::{Context, Runtime as SignalsRuntime};
 use foundation_theme::GeneratedTheme;
 use foundation_ui_traits::DomOp;
 use foundation_ui_traits::Html;
+use foundation_ui_wire::OperationT;
 
 use crate::theme::{inject_theme_css, BODY_NODE_ID};
 
 use crate::protocol::CollectedFrames;
-use crate::protocol::{ColumnarV1, FrameSink, FrameSinkV1, JsonV1, MockProtocol, ProtocolMethods};
+use crate::protocol::{ColumnarV1, FrameSink, JsonV1, MockProtocol, ProtocolMethods};
 use crate::runtime::{Runtime, SharedInstructionReceiver};
 use foundation_ui_traits::ProtocolEncoder;
 
 /// The batches a [`MockProtocol`] captured — what `App::mock` hands back
 /// for assertions.
-pub type SentBatches = Rc<core::cell::RefCell<Vec<Vec<DomOp>>>>;
+pub type SentBatches = Rc<core::cell::RefCell<Vec<Vec<OperationT>>>>;
 
 /// The five-object wiring as one value. See module docs.
 pub struct App {
@@ -46,24 +47,25 @@ pub struct App {
 }
 
 impl App {
-    /// THE DEFAULT — the compact columnar wire (protocol byte 1,
-    /// VERSION 1): our owned format, zero-copy on the JS side.
+    /// Send generated operations as one EWF1 frame per flush.
     #[must_use]
     pub fn new() -> Self {
+        Self::frames()
+    }
+
+    /// Select the legacy compact columnar codec.
+    #[must_use]
+    pub fn columnar() -> Self {
         Self::with_protocol(ColumnarV1::new())
     }
 
-    /// Explicit alias of the default (compact columnar, wire VERSION 1).
+    /// Use one frame per signal update batch.
     #[must_use]
-    pub fn columnar() -> Self {
-        Self::new()
+    pub fn frames() -> Self {
+        Self::with_protocol(crate::protocol::FrameV1::new(0))
     }
 
-    /// Apache Arrow (IPC `RecordBatch`es — protocol byte 1, wire VERSION
-    /// 2), read on the JS side with the embedded `apache-arrow.js`. The
-    /// compact columnar default is ~7x faster/smaller on small UI deltas
-    /// (see README §wire performance); pick arrow for bulk batches and
-    /// ecosystem interop.
+    /// Send legacy Apache Arrow record batches to clients with an Arrow reader.
     #[cfg(feature = "arrow")]
     #[must_use]
     pub fn arrow() -> Self {
@@ -76,17 +78,16 @@ impl App {
         Self::with_protocol(JsonV1::new())
     }
 
-    /// SERVER preset: the same compact columnar v1 wire, but every flushed
-    /// batch lands as an envelope-framed `Vec<u8>` in the returned queue —
-    /// ship them yourself (WebSocket binary frames, SSE events) toward a
-    /// client `mount-stream`. On a native server `host_apply` is a no-op
-    /// stub, so the normal presets would silently drop flushes; this is the
-    /// preset that makes server-driven UIs real. First-paint HTML needs no
-    /// App at all — `html! { … }.to_markup()` (see README §server).
+    /// Collect complete EWF1 frames in the returned queue for server delivery.
     #[must_use]
     pub fn server() -> (Self, CollectedFrames) {
-        let sink = FrameSinkV1::new();
-        let frames = sink.frames();
+        let frames = CollectedFrames::default();
+        let output = frames.clone();
+        let sink =
+            crate::protocol::FrameOutput::new(crate::protocol::FrameV1::new(0), move |bytes| {
+                output.borrow_mut().push_back(bytes);
+                Ok(())
+            });
         (Self::with_protocol(sink), frames)
     }
 
@@ -113,7 +114,7 @@ impl App {
 
     /// Escape hatch: any `ProtocolMethods` implementation.
     #[must_use]
-    pub fn with_protocol(protocol: impl ProtocolMethods<Vec<DomOp>> + 'static) -> Self {
+    pub fn with_protocol(protocol: impl ProtocolMethods<Vec<OperationT>> + 'static) -> Self {
         let signals = Rc::new(SignalsRuntime::new());
         let ctx = Context::new(Rc::clone(&signals));
         let runtime = Runtime::builder().protocol(protocol).global_arena().build();
@@ -165,7 +166,7 @@ impl App {
         &self.ctx
     }
 
-    /// The `DomOp` queue handle.
+    /// The generated operation queue.
     #[must_use]
     pub fn receiver(&self) -> SharedInstructionReceiver {
         self.receiver.clone()
@@ -184,9 +185,13 @@ impl App {
     }
 
     /// Run dirty effects glitch-free; the attached runtime flushes queued
-    /// `DomOp`s afterwards.
-    pub fn stabilize(&self) {
+    /// queued operations afterwards.
+    ///
+    /// # Errors
+    /// Returns the first rejected batch from this signal runtime.
+    pub fn stabilize(&self) -> Result<(), crate::protocol::ProtocolError> {
         self.signals.stabilize();
+        self.receiver.take_error().map_or(Ok(()), Err)
     }
 
     /// A child ownership scope — component-scoped teardown without touching

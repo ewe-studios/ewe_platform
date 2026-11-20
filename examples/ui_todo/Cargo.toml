@@ -15,19 +15,26 @@ foundation_ui_wire = { path = "../../backends/foundation_ui_wire" }
 serde = { workspace = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_core = { path = "../../backends/foundation_core" }
-foundation_http = { path = "../../backends/foundation_http" }
-foundation_netio = { path = "../../backends/foundation_netio" }
-base64 = "0.22"
-futures-lite = "2"
+foundation_core = { path = "../../backends/foundation_core", optional = true }
+foundation_http = { path = "../../backends/foundation_http", optional = true }
+foundation_netio = { path = "../../backends/foundation_netio", optional = true }
+base64 = { version = "0.22", optional = true }
+futures-lite = { version = "2", optional = true }
 
-foundation_browser = { path = "../../backends/foundation_browser" }
+foundation_browser = { path = "../../backends/foundation_browser", optional = true }
 
 [lints]
 workspace = true
 
 [features]
-browser-tests = []
+default = ["server"]
+server = ["dep:foundation_browser", "dep:foundation_core", "dep:foundation_netio", "dep:foundation_http", "dep:base64", "dep:futures-lite"]
+browser-tests = ["server"]
+
+[[bin]]
+name = "ui_todo"
+path = "src/main.rs"
+required-features = ["server"]
 
 [[test]]
 name = "todo_browser_tests"
@@ -37,3 +44,4 @@ required-features = ["browser-tests"]
 [[test]]
 name = "actions"
 path = "tests/mod.rs"
+required-features = ["server"]

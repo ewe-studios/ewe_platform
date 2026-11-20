@@ -52,6 +52,7 @@ pub use app::{App, SentBatches};
 pub use events::{
     install_app_bridge, install_event_bridge, invoke_signal_callback, uninstall_event_bridge,
 };
+pub use foundation_ui_wire::{ops, OperationT};
 pub use html_macro::MaybeCallback;
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 pub use reactive::{mount_for, mount_show};
@@ -65,8 +66,9 @@ pub use foundation_theme::{GeneratedTheme, Theme, ThemeToken};
 #[cfg(feature = "arrow")]
 pub use protocol::ArrowIpcV2;
 pub use protocol::{
-    BatchInstructionsV1, CollectedFrames, ColumnarV1, DomOpsBatch, FrameSinkV1, HandleResult,
-    JsonV1, MockProtocol, ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
+    BatchInstructionsV1, CollectedFrames, ColumnarV1, DomOpsBatch, FrameSinkV1, FrameV1,
+    HandleResult, JsonV1, LegacyHandleResult, LegacyProtocolMethods, MockProtocol, ProtocolError,
+    ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
 };
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use theme::{inject_theme_css, BODY_NODE_ID, HEAD_NODE_ID, THEME_STYLE_NODE_ID};

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_wire"
-version = "0.0.5"
+version = "0.0.6"
 autotests = false
 edition.workspace = true
 rust-version.workspace = true
@@ -12,8 +12,11 @@ description = "Verified FlatBuffers readers and writers for the user interface w
 [features]
 default = ["std"]
 std = ["flatbuffers/std"]
+reference = ["std", "dep:serde", "dep:serde_json"]
 
 [dependencies]
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 flatbuffers = { workspace = true }
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.5" }
 

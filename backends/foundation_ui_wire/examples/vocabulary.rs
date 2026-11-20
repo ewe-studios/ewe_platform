@@ -1,7 +1,8 @@
-use foundation_ui_traits::{AttrName, DomOp};
+use foundation_ui_traits::AttrName;
 use foundation_ui_wire::{
-    vocab::{check_prop, prop_kind, vocab_version, web_form, PropKind, WireForm},
-    Length, LengthUnit, LengthValueT, MountSurface, PropId, PropValueT, UiOperationT,
+    ops,
+    vocab::{check_prop, prop_kind, vocab_version, PropKind},
+    Length, LengthUnit, LengthValueT, MountSurface, OperationT, PropId, PropValueT, UiOperationT,
     WebOperationT,
 };
 
@@ -14,20 +15,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let peer = vocab_version(1).ok_or("Unknown vocabulary version")?;
     assert!(PropId::PADDING.0 <= peer.max_prop_id);
 
-    let shared = web_form(&DomOp::SetText {
-        node_id: 42,
-        text: "Ready".into(),
-    });
-    let web_only = web_form(&DomOp::SetAttribute {
-        node_id: 42,
-        name: AttrName::from_static("class"),
-        value: "ready".into(),
-    });
-    assert!(matches!(shared, WireForm::Ui(UiOperationT::SetText(_))));
-    assert!(matches!(
-        web_only,
-        WireForm::Web(WebOperationT::WebSetAttribute(_))
-    ));
+    let shared = ops::set_text(42, "Ready");
+    let web_only = ops::set_attribute(42, &AttrName::from_static("class"), "ready");
+    assert!(matches!(shared.ui, UiOperationT::SetText(_)));
+    assert!(matches!(web_only.web, WebOperationT::WebSetAttribute(_)));
     assert!(supports(MountSurface::Native, &shared));
     assert!(!supports(MountSurface::Native, &web_only));
     assert!(supports(MountSurface::Web, &web_only));
@@ -38,6 +29,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn supports(surface: MountSurface, form: &WireForm) -> bool {
-    surface == MountSurface::Web || matches!(form, WireForm::Ui(_))
+fn supports(surface: MountSurface, form: &OperationT) -> bool {
+    surface == MountSurface::Web || form.ui != UiOperationT::NONE
 }

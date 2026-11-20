@@ -1,21 +1,19 @@
 # foundation_wasm_ui
 
-Build reactive web UIs — and fullstack, server-driven apps — in pure Rust. No
-wasm-bindgen, no virtual DOM, no JS framework. You write Rust that looks like
-HTML; the Rust side never touches the DOM — it emits typed `DomOp` instructions
-over a compact binary wire, and a tiny dependency-free JS runtime applies them.
+Build reactive web interfaces in Rust. Templates queue generated operations.
+Each successful flush sends one EWF1 frame. The browser applies its operations in order.
 
 ```rust
 use foundation_wasm_ui::{html, App};
 
-let app = App::new();                 // default: compact columnar wire (zero-copy)
+let app = App::new();                 // Use the EWF1 frame writer.
 let (ctx, receiver) = app.context();
 
 let (count, set_count) = ctx.signal(0i64);
 let _ui = html! { ctx, receiver,
     <button primal:onclick={set_count}>"Count: " {count.get()}</button>
 };
-app.stabilize();                      // → DomOps flush to JS: create, set text, wire click
+app.stabilize()?;                     // Send the complete update.
 ```
 
 Every later `set_count.set(n)` (including clicks from the browser) re-runs exactly
@@ -35,7 +33,7 @@ steps from hello-world to a native server driving a real browser.
 - **Themed, scoped styling** — a `theme!{}` of design tokens; co-located scoped CSS.
 - **Server-rendered pages** — first-paint HTML from the same templates.
 - **Live server-driven UIs** — a native `App` streams DOM updates to many browsers
-  over SSE/WebSocket, in columnar / JSON / Apache Arrow — driven by Rust signals.
+  over a server stream. The default broadcaster sends bare EWF1 frames.
 - **Ready-made headless components** — see
   **[`foundation_ui_components`](../foundation_ui_components/README.md)** (dialog,
   select, field, menu, …): behavior + a data-attribute contract, you bring the CSS.
@@ -233,4 +231,72 @@ A keyed node that survives a morph keeps its scope. A host-owned JavaScript comp
 const observer = new ResizeObserver(updateLayout);
 observer.observe(componentRoot);
 frames.registerUnmount(componentRoot, () => observer.disconnect());
+```
+
+## Publish a live update
+
+A live channel assigns each complete update a sequence number. It uses the same sequence for web and native clients.
+Each client receives the operations that its surface supports.
+
+```rust
+use foundation_ui_wire::{ops, writer::WriterConfig};
+use foundation_wasm_ui::server::{BacklogConfig, LiveChannel, LiveError};
+
+fn publish_count(channel: &LiveChannel) -> Result<u64, LiveError> {
+    let text = ops::set_text(42, "5");
+    channel.sender().push_messages(vec![ops::message(text)])
+}
+
+let channel = LiveChannel::new(7, BacklogConfig::default(), WriterConfig::default());
+assert_eq!(publish_count(&channel).unwrap(), 1);
+```
+
+An application can also supply `FrameBroadcastSink::new(channel.sender())` to `App::with_protocol`.
+A signal change then reaches clients when the application calls `app.stabilize()?`.
+
+The default backlog retains every update. Use `BacklogConfig::default().max_frames(256)` to retain only the last 256 frames.
+On reconnect, the client sends the sequence number of the last update it applied.
+The server replays each later frame before sending new updates.
+If the oldest retained frame leaves a gap, the client needs a fresh render from the application.
+
+## Migrate a Rust protocol to EWF1
+
+A template still uses `html! { ctx, receiver, <button>…</button> }`.
+The receiver queues generated `OperationT` values. Both local delivery and server broadcast use the same frame writer.
+
+To write a text update by hand, call `receiver.queue(ops::set_text(7, "ready"))`.
+Call `app.stabilize()?` to flush it. The browser reads the same operation as a template text update.
+
+A custom transport implements `ProtocolMethods<Vec<OperationT>>`. Its write method returns `WrittenBatch`, which can carry a validation or allocation error.
+The receive method takes a borrowed byte slice and returns `HandleResult`. Inspect `operation.ui` or `operation.web` to match a generated variant.
+The host releases the memory slot after it consumes the frame. Server callbacks receive owned bytes.
+
+Run the [custom transport example](examples/protocol_migration.rs) to build both interfaces and read the generated text update.
+The [external consumer](tests/fixtures/renamed_reactive) checks pure and reactive templates with renamed dependencies.
+
+```sh
+cargo run -p foundation_wasm_ui --example protocol_migration
+cargo check --manifest-path backends/foundation_wasm_ui/tests/fixtures/renamed_reactive/Cargo.toml
+```
+
+Choose `App::columnar()`, `App::json()`, or `App::arrow()` for clients that need a legacy codec.
+These codecs accept the original 19 operations. An unsupported operation rejects the entire batch.
+`App::new()`, `App::server()` and `BroadcastSink::new()` send bare EWF1 frames.
+
+### Cost of small text updates
+
+This sample measures a release build on macOS. Each row averages 1,000 writes to an owned arena, including release of each slot.
+The allocation count includes reallocations. The text value is seven bytes. Local build times and machine load affect timing.
+
+| Operations | Format | Bytes | Allocations | Nanoseconds per batch |
+|---:|---|---:|---:|---:|
+| 1 | Legacy columnar | 80 | 2 | 225 |
+| 1 | EWF1 | 136 | 18 | 1,489 |
+| 4 | Legacy columnar | 160 | 2 | 322 |
+| 4 | EWF1 | 288 | 29 | 2,638 |
+| 16 | Legacy columnar | 496 | 2 | 776 |
+| 16 | EWF1 | 864 | 66 | 6,466 |
+
+```sh
+cargo test --release -p foundation_wasm_ui --no-default-features --test frame_cost -- --ignored --nocapture
 ```

@@ -26,6 +26,9 @@ pub const FOUNDATION_UI_FRAMES_JS: &str = include_str!("../runtimes/foundation-u
 /// Dispatch browser actions to local and remote hosts.
 pub const FOUNDATION_UI_ACTIONS_JS: &str = include_str!("../runtimes/foundation-ui-actions.js");
 
+/// Bind frame streams to their mount elements and resume interrupted delivery.
+pub const FOUNDATION_UI_LIVE_JS: &str = include_str!("../runtimes/foundation-ui-live.js");
+
 /// Install and remove shared and browser behaviours.
 pub const FOUNDATION_UI_BEHAVIOURS_JS: &str =
     include_str!("../runtimes/foundation-ui-behaviours.js");

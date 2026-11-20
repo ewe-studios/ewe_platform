@@ -8,7 +8,7 @@ publish=false
 crate-type=["cdylib"]
 
 [dependencies]
-ui_todo={path=".."}
+ui_todo={path="..",default-features=false}
 foundation_context={path="../../../backends/foundation_context",features=["host-abi"]}
 foundation_ui_runtime={path="../../../backends/foundation_ui_runtime"}
 foundation_ui_wire={path="../../../backends/foundation_ui_wire"}

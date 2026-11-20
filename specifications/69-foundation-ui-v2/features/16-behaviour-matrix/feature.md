@@ -1,7 +1,7 @@
 ---
 feature: "behaviour-matrix"
 description: "Component behaviours as platform hooks: the authoring enum and its marker, a declared behaviour list for each component, a matrix file, a build check for each platform, and the four native bindings."
-status: "pending"
+status: "in-progress"
 priority: "low"
 model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "08-html-macro-core-vocabulary", "09-web-frame-applicator", "14-native-ios-renderer", "15-native-android-renderer"]

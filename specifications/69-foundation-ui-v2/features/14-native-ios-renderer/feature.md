@@ -1,7 +1,7 @@
 ---
 feature: "native-ios-renderer"
 description: "The EweUI Swift package: the generated reader, a node store with one observable record per node, SwiftUI views for the core kinds, the event bridge, live mounts, native commands, and the shared reference model that iOS and Android must match."
-status: "pending"
+status: "in-progress"
 priority: "medium"
 model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]
@@ -313,7 +313,7 @@ impl RefStore {
 }
 ```
 
-`tests/reference_tests.rs` builds the conformance frames with `write_ops` for
+`tests/reference_tests.rs` builds the conformance frames with `write_messages` for
 `ClientCaps::native_current(Platform::Ios)`, except `native_mixed.bin`, which it builds
 with `finish_frame` directly so that it holds a `web` member (the gate would remove it; the
 fixture tests the reader's own defence). It writes the frames and the snapshots under
@@ -323,7 +323,7 @@ without it.
 | Fixture | Content |
 |---|---|
 | `native_tree.bin` | `CreateNode(40, STACK)`, `SetProp(40, PADDING, 8 Point)`, `SetProp(40, AXIS, Vertical)`, `CreateNode(41, TEXT)`, `SetText(41, "Count")`, `AppendChild(40, 41)`, `CreateNode(42, BUTTON)`, `SetText(42, "0")`, `BindAction(42, TAP, "server:increment_counter")`, `AppendChild(40, 42)`, `AppendChild(1, 40)`, `AttachState(42, state_counter.bin)`; header 7/1/1 |
-| `native_columnar.bin` | The same ops, written with threshold 0 |
+| `native_columnar.bin` | The same rows packed with `columnar_batch` |
 | `native_mixed.bin` | `SetText(42, "a")`, `HtmlMorph(node 40, ReplaceChildren, "<b>x</b>")`, `NativeCommand(HAPTIC)`, `SetText(999, "x")`, `SetText(42, "b")`; header 7/2/2 |
 | `native_replace.bin` | `ReplaceSubtree(40, [CreateNode(43, TEXT), SetText(43, "new"), AppendChild(40, 43)])`; header 7/3/3 |
 | `native_unknown_kind.bin` | `CreateNode(60, UNKNOWN)`, `AppendChild(1, 60)`; header 7/4/4 |

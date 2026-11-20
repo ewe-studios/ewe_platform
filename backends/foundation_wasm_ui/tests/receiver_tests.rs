@@ -11,22 +11,22 @@
 use std::rc::Rc;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
-use foundation_ui_traits::{ColumnarBatch, DomOp, ProtocolEncoder};
+use foundation_ui_traits::{ColumnarBatch, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, ProtocolHandler, WasmEnvelope};
 use foundation_wasm_ui::{
     BatchInstructionsV1, ColumnarReceiver, ColumnarV1, DomSignalBinding, InstructionReceiver,
     JsonV1, MockProtocol, ProtocolMethods, Runtime,
 };
 
-fn set_text(node_id: u32, text: &str) -> DomOp {
-    DomOp::SetText {
-        node_id,
-        text: String::from(text).into(),
-    }
-}
-
+use foundation_ui_wire::{ops, OperationT, UiOperationT};
+use ops::set_text;
+#[path = "support/parity.rs"]
+mod parity;
 /// A mock-backed receiver plus the shared recorders.
-fn mock_receiver() -> (InstructionReceiver, Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>) {
+fn mock_receiver() -> (
+    InstructionReceiver,
+    Rc<std::cell::RefCell<Vec<Vec<OperationT>>>>,
+) {
     let mock = MockProtocol::new();
     let sent = mock.sent_batches();
     let receiver = InstructionReceiver::new(Box::new(mock), MemoryAllocations::new());
@@ -40,26 +40,16 @@ fn mock_receiver() -> (InstructionReceiver, Rc<std::cell::RefCell<Vec<Vec<DomOp>
 fn flush_ships_one_batch_in_queue_order() {
     let (mut receiver, sent) = mock_receiver();
     receiver.queue(set_text(1, "a"));
-    receiver.queue(DomOp::AddClass {
-        node_id: 1,
-        class: "x".into(),
-    });
+    receiver.queue(ops::add_class(1, "x"));
     receiver.queue(set_text(2, "b"));
 
-    let result = receiver.flush().expect("non-empty flush ships");
+    let result = receiver.flush().unwrap().expect("non-empty flush ships");
     assert_eq!(result.op_count, 3);
     let batches = sent.borrow();
     assert_eq!(batches.len(), 1);
     assert_eq!(
         batches[0],
-        vec![
-            set_text(1, "a"),
-            DomOp::AddClass {
-                node_id: 1,
-                class: "x".into()
-            },
-            set_text(2, "b"),
-        ]
+        vec![set_text(1, "a"), ops::add_class(1, "x"), set_text(2, "b"),]
     );
 }
 
@@ -67,12 +57,15 @@ fn flush_ships_one_batch_in_queue_order() {
 #[test]
 fn empty_and_double_flushes_are_noops() {
     let (mut receiver, sent) = mock_receiver();
-    assert!(receiver.flush().is_none());
+    assert!(receiver.flush().unwrap().is_none());
     assert_eq!(receiver.flush_count(), 0);
 
     receiver.queue(set_text(1, "x"));
-    receiver.flush().unwrap();
-    assert!(receiver.flush().is_none(), "second flush has nothing");
+    receiver.flush().unwrap().unwrap();
+    assert!(
+        receiver.flush().unwrap().is_none(),
+        "second flush has nothing"
+    );
     assert_eq!(sent.borrow().len(), 1);
     assert_eq!(receiver.flush_count(), 1, "empty flush did not increment");
 }
@@ -85,13 +78,13 @@ fn flush_cycles_batch_separately() {
     for i in 0..5 {
         receiver.queue(set_text(i, "first"));
     }
-    receiver.flush().unwrap();
+    receiver.flush().unwrap().unwrap();
     for i in 0..3 {
         receiver.queue(set_text(i, "second"));
     }
-    receiver.flush().unwrap();
+    receiver.flush().unwrap().unwrap();
     receiver.queue(set_text(9, "third"));
-    receiver.flush().unwrap();
+    receiver.flush().unwrap().unwrap();
 
     let batches = sent.borrow();
     assert_eq!(batches.len(), 3);
@@ -109,15 +102,15 @@ fn large_batches_keep_count_and_order() {
         receiver.queue(set_text(i, "v"));
     }
     assert_eq!(receiver.pending_count(), 5000);
-    let result = receiver.flush().unwrap();
+    let result = receiver.flush().unwrap().unwrap();
     assert_eq!(result.op_count, 5000);
     let batches = sent.borrow();
     assert_eq!(batches[0].len(), 5000);
     for (i, op) in batches[0].iter().enumerate() {
-        let DomOp::SetText { node_id, .. } = op else {
+        let UiOperationT::SetText(text) = &op.ui else {
             panic!("unexpected op at {i}");
         };
-        assert_eq!(*node_id, u32::try_from(i).unwrap());
+        assert_eq!(text.node_id, u32::try_from(i).unwrap());
     }
 }
 
@@ -127,26 +120,19 @@ fn no_deduplication_for_same_node() {
     let (mut receiver, sent) = mock_receiver();
     receiver.queue(set_text(7, "one"));
     receiver.queue(set_text(7, "two"));
-    receiver.flush().unwrap();
+    receiver.flush().unwrap().unwrap();
     assert_eq!(sent.borrow()[0].len(), 2, "both ops present");
 }
 
 // ─── Protocol integration (tests 10-14) ────────────────────────────────────────
 
-fn five_ops() -> Vec<DomOp> {
+fn five_ops() -> Vec<OperationT> {
     vec![
-        DomOp::CreateElement {
-            node_id: 10,
-            tag: "div".into(),
-            class: "c".into(),
-        },
-        DomOp::RegisterNode { node_id: 10 },
+        ops::create_element(10, &"div".into(), "c"),
+        ops::register_node(10),
         set_text(10, "hello"),
-        DomOp::AppendChild {
-            parent_id: 1,
-            child_id: 10,
-        },
-        DomOp::RemoveNode { node_id: 99 },
+        ops::append_child(1, 10),
+        ops::remove_node(99),
     ]
 }
 
@@ -154,7 +140,9 @@ fn five_ops() -> Vec<DomOp> {
 #[test]
 fn columnar_send_result_carries_counts() {
     let mut memory = MemoryAllocations::new();
-    let result = ColumnarV1::new().encode_and_send(five_ops(), &mut memory);
+    let result = ColumnarV1::new()
+        .encode_and_send(five_ops(), &mut memory)
+        .unwrap();
     assert_eq!(result.op_count, 5);
     assert!(result.encoded_bytes > 0);
     assert!(memory.get(result.memory_id).is_ok(), "slot is live");
@@ -165,7 +153,7 @@ fn columnar_send_result_carries_counts() {
 fn batch_instructions_payload_is_one_slot_with_text_pool() {
     let mut memory = MemoryAllocations::new();
     let proto = BatchInstructionsV1::new();
-    let result = proto.encode_and_send(five_ops(), &mut memory);
+    let result = proto.encode_and_send(five_ops(), &mut memory).unwrap();
     assert_eq!(result.op_count, 5);
 
     // Exactly one LIVE slot (the batch scratch slots are recycled).
@@ -188,7 +176,9 @@ fn batch_instructions_payload_is_one_slot_with_text_pool() {
 #[test]
 fn json_payload_is_valid_json() {
     let mut memory = MemoryAllocations::new();
-    let result = JsonV1::new().encode_and_send(five_ops(), &mut memory);
+    let result = JsonV1::new()
+        .encode_and_send(five_ops(), &mut memory)
+        .unwrap();
     let bytes = memory
         .get(result.memory_id)
         .unwrap()
@@ -204,7 +194,7 @@ fn json_payload_is_valid_json() {
 fn ack_frees_and_stale_ids_miss() {
     let mut memory = MemoryAllocations::new();
     let proto = ColumnarV1::new();
-    let result = proto.encode_and_send(five_ops(), &mut memory);
+    let result = proto.encode_and_send(five_ops(), &mut memory).unwrap();
     proto.ack(result.memory_id, &mut memory);
     assert!(memory.get(result.memory_id).is_err(), "freed after ack");
     // Double-ack of the now-stale id is a safe no-op.
@@ -230,10 +220,11 @@ fn protocol_bytes_match_the_spec() {
 fn slot_contains_exact_encoded_body() {
     let mut memory = MemoryAllocations::new();
     let ops = five_ops();
-    let expected = foundation_ui_traits::ColumnarEncoder.encode(ops.clone());
+    let expected =
+        foundation_ui_traits::ColumnarEncoder.encode(ops.iter().map(parity::reference).collect());
     let expected_body = &expected[1 + expected[0] as usize..];
 
-    let result = ColumnarV1::new().encode_and_send(ops, &mut memory);
+    let result = ColumnarV1::new().encode_and_send(ops, &mut memory).unwrap();
     let bytes = memory
         .get(result.memory_id)
         .unwrap()
@@ -250,11 +241,11 @@ fn slot_contains_exact_encoded_body() {
 fn generation_prevents_stale_access_after_recycle() {
     let mut memory = MemoryAllocations::new();
     let proto = ColumnarV1::new();
-    let first = proto.encode_and_send(five_ops(), &mut memory);
+    let first = proto.encode_and_send(five_ops(), &mut memory).unwrap();
     proto.ack(first.memory_id, &mut memory);
 
     // Reallocate — the arena recycles the slot index with a bumped generation.
-    let second = proto.encode_and_send(five_ops(), &mut memory);
+    let second = proto.encode_and_send(five_ops(), &mut memory).unwrap();
     assert!(memory.get(first.memory_id).is_err(), "old id stays dead");
     assert!(memory.get(second.memory_id).is_ok());
 }
@@ -266,7 +257,7 @@ fn flush_ack_cycles_do_not_leak() {
         InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
     for cycle in 0..10u32 {
         receiver.queue(set_text(cycle, "tick"));
-        let result = receiver.flush().unwrap();
+        let result = receiver.flush().unwrap().unwrap();
         receiver.ack(result.memory_id);
     }
     let memory = receiver.memory().expect("owned arena");
@@ -316,7 +307,7 @@ fn builder_runtime_routes_ops_to_protocol() {
 
     let receiver = runtime.receiver();
     receiver.queue(set_text(1, "via builder"));
-    receiver.flush().unwrap();
+    receiver.flush().unwrap().unwrap();
     assert_eq!(sent.borrow().len(), 1);
     assert_eq!(sent.borrow()[0], vec![set_text(1, "via builder")]);
 }
@@ -334,7 +325,7 @@ fn mock_records_batches_and_acks() {
     let mut ids = Vec::new();
     for i in 0..3u32 {
         receiver.queue(set_text(i, "cycle"));
-        ids.push(receiver.flush().unwrap().memory_id);
+        ids.push(receiver.flush().unwrap().unwrap().memory_id);
     }
     receiver.ack(ids[0]);
     receiver.ack(ids[2]);
@@ -423,10 +414,11 @@ fn builder_and_encoder_emit_identical_bodies() {
     let ops = five_ops();
     let mut batch = ColumnarBatch::new();
     for op in &ops {
-        batch.push(op);
+        batch.push(&parity::reference(op));
     }
     let built = batch.serialize();
-    let encoded = foundation_ui_traits::ColumnarEncoder.encode(ops);
+    let encoded =
+        foundation_ui_traits::ColumnarEncoder.encode(ops.iter().map(parity::reference).collect());
     assert_eq!(
         built, encoded,
         "builder output == encoder output, shim included"
@@ -440,7 +432,7 @@ fn framed_columnar_header_is_absolutely_aligned() {
     let mut memory = MemoryAllocations::new();
     let mut batch = ColumnarBatch::new();
     for op in &five_ops() {
-        batch.push(op);
+        batch.push(&parity::reference(op));
     }
     let (result, ptr, _len) = ColumnarV1::new().write_batch(&batch, &mut memory);
 
@@ -461,13 +453,16 @@ fn framed_columnar_header_is_absolutely_aligned() {
 fn columnar_receiver_round_trips() {
     let ops = five_ops();
     let mut receiver = ColumnarReceiver::new(ColumnarV1::new(), MemoryAllocations::new());
-    assert!(receiver.flush().is_none(), "empty flush is a no-op");
+    assert!(
+        receiver.flush().unwrap().is_none(),
+        "empty flush is a no-op"
+    );
 
     for op in &ops {
-        receiver.queue(op);
+        receiver.queue(op.clone());
     }
     assert_eq!(receiver.pending_count(), ops.len());
-    let result = receiver.flush().expect("flush ships");
+    let result = receiver.flush().unwrap().expect("flush ships");
     assert_eq!(result.op_count, ops.len());
     assert_eq!(receiver.pending_count(), 0);
     assert_eq!(receiver.flush_count(), 1);
@@ -480,14 +475,12 @@ fn columnar_receiver_round_trips() {
         .unwrap();
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(envelope.protocol, 1);
-    let decoded = ColumnarV1::new()
-        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
-        .expect("decode");
+    let decoded = ColumnarV1::new().handle_received(payload).expect("decode");
     assert_eq!(decoded, ops);
 
     // Second cycle reuses the cleared buffers.
-    receiver.queue(&set_text(9, "next"));
-    let second = receiver.flush().expect("second flush");
+    receiver.queue(set_text(9, "next"));
+    let second = receiver.flush().unwrap().expect("second flush");
     assert_eq!(second.op_count, 1);
     receiver.ack(result.memory_id);
     receiver.ack(second.memory_id);

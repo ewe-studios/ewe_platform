@@ -207,10 +207,16 @@ reason = "6 pedantic warnings; clear them and delete this override (#441)"
 clippy-deny-warnings = false
 reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
+[packages.foundation_ui_native]
+runs = ["", "app"]
+wasm = "off"
+reason = "Swift and Kotlin use this crate on native devices."
+
 [packages.foundation_ui_runtime]
 wasm = "enforce"
 
 [packages.foundation_ui_wire]
+runs = ["", "reference"]
 wasm = "enforce"
 fmt = "enforce"
 

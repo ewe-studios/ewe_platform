@@ -1,0 +1,42 @@
+[package]
+name = "foundation_ui_native"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+description = "Native UI actions, local frames, and mobile commands."
+autotests = false
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[features]
+bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
+app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
+
+[dependencies]
+async-trait = { workspace = true }
+uniffi = { workspace = true }
+thiserror = { workspace = true }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.6" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.6" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.7" }
+foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.10" }
+
+[dev-dependencies]
+foundation_core = { path = "../foundation_core" }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi_bindgen.rs"
+required-features = ["bindgen"]
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

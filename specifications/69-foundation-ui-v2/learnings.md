@@ -501,3 +501,15 @@ A frame replacement can end a local Rust signal scope. The renderer calls the We
 A server frame cannot dispose a Rust scope through a JavaScript observer alone. The local renderer associates each node with its originating WebAssembly instance.
 The receiver tracks every root in a fragment. A partial removal keeps the scope alive. The last root releases it.
 Dropping an effect closure can drop a captured child context. The graph must release its mutable borrow before running those destructors.
+
+A reconnect can replay more frames than a bounded socket queue can hold. The socket driver sends shared history before the live queue.
+
+### Feature 20. Small frame costs and slot ownership
+
+Both Rust receiver paths now queue the same generated operations. This also reaches callers that selected the columnar receiver directly.
+The host can release a browser slot synchronously. The receiver releases the global arena lock before it calls the host.
+A single text update measured 136 bytes and 18 allocations with the frame writer. The legacy columnar path used 80 bytes and two allocations.
+
+A callback can submit another native push. One drain loop preserves the sequence while the callback runs outside the queue lock. Issue #634 has two regression tests.
+
+The browser calls a mount callback again when the mount removes its own placeholder. Issue #635 records the interrupted small-frame delivery.

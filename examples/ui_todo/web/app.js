@@ -24,6 +24,7 @@ async function boot() {
     for (const name of ["open_add_dialog", "open_delete_dialog", "close_dialog", "filter_todos"]) registry.declare("host", name);
     ui.Patcher.runtime.dispatcher = new ui.EventDispatcher(() => {});
     const frames = installFrameRuntime(ui, { onReport: report });
+    ui.registerWebComponents();
     frames.registry.register(40, document.querySelector("#page"));
     frames.registry.register(41, document.querySelector("#dialog"));
     const server = new FetchActionTransport({ url: "/action", hello: () => manager.hello() });

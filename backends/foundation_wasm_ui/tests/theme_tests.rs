@@ -8,6 +8,10 @@
 //! reactive), the theme derive's custom properties / dark handling / utility
 //! classes, and the first-batch injection helper.
 
+#[path = "support/parity.rs"]
+mod parity;
+use parity::reference;
+
 use std::rc::Rc;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
@@ -84,7 +88,7 @@ fn reactive_form_ships_scoped_styles_to_head() {
     };
     signals.stabilize();
 
-    let ops: Vec<DomOp> = sent.borrow().iter().flatten().cloned().collect();
+    let ops: Vec<DomOp> = sent.borrow().iter().flatten().map(reference).collect();
     let style_create = ops.iter().find_map(|op| match op {
         DomOp::CreateElement { node_id, tag, .. } if tag.name() == Some("style") => Some(*node_id),
         _ => None,
@@ -178,7 +182,7 @@ fn inject_theme_css_queues_the_head_sequence() {
     inject_theme_css(&receiver, AppTheme::CSS);
     receiver.flush().expect("theme batch ships");
 
-    let batch = &sent.borrow()[0];
+    let batch: Vec<_> = sent.borrow()[0].iter().map(reference).collect();
     assert!(matches!(
         batch[0],
         DomOp::CreateElement { node_id, ref tag, .. }
@@ -233,7 +237,7 @@ fn theme_macro_builds_app_injects_and_reads_back() {
 
     // The CSS was queued toward <head> on install.
     app.receiver().flush().expect("theme batch ships");
-    let batch = &sent.borrow()[0];
+    let batch: Vec<_> = sent.borrow()[0].iter().map(reference).collect();
     assert!(matches!(
         &batch[3],
         DomOp::SetText { text, .. } if text.contains("--color-primary")

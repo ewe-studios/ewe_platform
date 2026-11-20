@@ -12,7 +12,7 @@
 use foundation_ui_traits::DomOp;
 use foundation_wasm::{MemoryAllocations, WasmEnvelope};
 use foundation_wasm_ui::{
-    BatchInstructionsV1, ColumnarV1, InstructionReceiver, JsonV1, ProtocolMethods,
+    BatchInstructionsV1, ColumnarV1, InstructionReceiver, JsonV1, LegacyProtocolMethods,
 };
 
 fn sample_ops() -> Vec<DomOp> {
@@ -35,7 +35,7 @@ fn sample_ops() -> Vec<DomOp> {
 }
 
 /// Encode a batch, assert one framed slot, decode it back, and free it.
-fn assert_protocol_round_trip<P: ProtocolMethods<Vec<DomOp>>>(proto: &P, expected_byte: u8) {
+fn assert_protocol_round_trip<P: LegacyProtocolMethods<Vec<DomOp>>>(proto: &P, expected_byte: u8) {
     let ops = sample_ops();
     let mut mem = MemoryAllocations::new();
 
@@ -208,15 +208,15 @@ fn instruction_receiver_batches_and_flushes_once() {
         InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
 
     // Empty flush is a no-op: no encoding, no slot.
-    assert!(receiver.flush().is_none());
+    assert!(receiver.flush().unwrap().is_none());
     assert_eq!(receiver.memory().expect("owned arena").total_allocated(), 0);
 
     for op in &ops {
-        receiver.queue(op.clone());
+        receiver.queue(foundation_ui_wire::vocab::web_form(op).into());
     }
     assert_eq!(receiver.pending(), ops.len());
 
-    let result = receiver.flush().expect("flush ships a batch");
+    let result = receiver.flush().unwrap().expect("flush ships a batch");
     assert_eq!(receiver.pending(), 0, "queue drained after flush");
     assert_eq!(
         receiver.memory().expect("owned arena").total_allocated(),
@@ -249,7 +249,7 @@ fn instruction_receiver_batches_and_flushes_once() {
 #[test]
 fn instruction_receiver_empty_flush_does_nothing() {
     let mut receiver = InstructionReceiver::new(Box::new(JsonV1::new()), MemoryAllocations::new());
-    assert!(receiver.flush().is_none());
+    assert!(receiver.flush().unwrap().is_none());
     assert_eq!(receiver.pending(), 0);
     assert_eq!(receiver.memory().expect("owned arena").total_allocated(), 0);
 }
@@ -265,9 +265,9 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     assert!(receiver.memory().is_none(), "global receiver owns no arena");
 
     for op in &ops {
-        receiver.queue(op.clone());
+        receiver.queue(foundation_ui_wire::vocab::web_form(op).into());
     }
-    let result = receiver.flush().expect("flush ships a batch");
+    let result = receiver.flush().unwrap().expect("flush ships a batch");
 
     let slot = foundation_wasm::internal_api::get_memory(result.memory_id);
     let bytes = slot

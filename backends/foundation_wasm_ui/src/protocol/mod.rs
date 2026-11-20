@@ -3,7 +3,7 @@
 //! the boundary with no encoding knowledge. Something has to compose them into a
 //! single "encode these ops and ship them" call. That is Layer 3.
 //!
-//! WHAT: The [`ProtocolMethods`] trait plus the three concrete protocol
+//! WHAT: The [`LegacyProtocolMethods`] trait plus the three concrete protocol
 //! implementations — [`ColumnarV1`], [`BatchInstructionsV1`] (Custom Binary, byte 0 —
 //! the `foundation_wasm` Instructions format per decision 022), [`JsonV1`] — and the
 //! uniform `host_apply` FFI they all ship through (decision 028/030).
@@ -22,10 +22,15 @@ mod frame_sink;
 mod json;
 mod mock;
 
+mod frame;
 #[cfg(feature = "arrow")]
 pub use arrow_ipc::ArrowIpcV2;
 pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use columnar::ColumnarV1;
+pub use frame::{
+    decode_frame, FrameOutput, FrameV1, HandleResult, ProtocolError, ProtocolMethods, WrittenBatch,
+    PROTOCOL_FRAME,
+};
 pub use frame_sink::{CollectedFrames, FrameSink, FrameSinkV1};
 pub use json::JsonV1;
 pub use mock::MockProtocol;
@@ -52,7 +57,7 @@ pub(crate) fn ship(memory_id: MemoryId, ptr: *const u8, len: usize) {
 
 // ─── Send / handle results ─────────────────────────────────────────────────────
 
-/// Outcome of [`ProtocolMethods::encode_and_send`] — the arena slot that JS must
+/// Outcome of [`LegacyProtocolMethods::encode_and_send`] — the arena slot that JS must
 /// `dispose_allocation` after applying the batch, plus batch diagnostics.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SendResult {
@@ -64,11 +69,11 @@ pub struct SendResult {
     pub encoded_bytes: usize,
 }
 
-/// Outcome of [`ProtocolMethods::handle_received`] — the decoded `DomOp` batch or a
+/// Outcome of [`LegacyProtocolMethods::handle_received`] — the decoded `DomOp` batch or a
 /// decode error.
-pub type HandleResult = Result<Vec<DomOp>, DecodeError>;
+pub type LegacyHandleResult = Result<Vec<DomOp>, DecodeError>;
 
-// ─── ProtocolMethods trait (Layer 3) ───────────────────────────────────────────
+// ─── LegacyProtocolMethods trait (Layer 3) ───────────────────────────────────────────
 
 /// WHY: `InstructionReceiver` (and any caller) needs one object that both encodes a
 /// `DomOp` batch and ships it, without caring which wire format is configured.
@@ -80,7 +85,7 @@ pub type HandleResult = Result<Vec<DomOp>, DecodeError>;
 /// through one arena slot; `handle_received` decodes an incoming payload. Slot
 /// release (`ack`) comes from the [`ProtocolHandler`] supertrait — it is part of
 /// the transport contract, shared by every handler.
-pub trait ProtocolMethods<T>: ProtocolHandler {
+pub trait LegacyProtocolMethods<T>: ProtocolHandler {
     /// Encode `data` and WRITE the framed message into one arena slot WITHOUT
     /// shipping. Returns the slot + its live address for a later `send_to_js`.
     ///
@@ -111,7 +116,12 @@ pub trait ProtocolMethods<T>: ProtocolHandler {
     ///
     /// # Errors
     /// Returns [`DecodeError`] if the bytes are malformed for this protocol.
-    fn handle_received(&self, memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult;
+    fn handle_received(
+        &self,
+        memory_id: MemoryId,
+        ptr: *const u8,
+        len: usize,
+    ) -> LegacyHandleResult;
 }
 
 // ─── Shared composition helpers ────────────────────────────────────────────────
@@ -142,7 +152,7 @@ where
 /// Frame an already-encoded `payload` in a [`WasmEnvelope`] inside one arena slot
 /// and return the slot + its live address — WITHOUT shipping. The caller sends via
 /// `send_to_js` once it no longer holds the arena lock (see
-/// [`ProtocolMethods::encode_and_write`]).
+/// [`LegacyProtocolMethods::encode_and_write`]).
 ///
 /// # Panics
 /// Panics if the arena cannot allocate or address the slot — an allocation failure
@@ -190,7 +200,7 @@ where
 }
 
 /// Decode a payload slice at `(ptr, len)` with `encoder`.
-pub(crate) fn decode_payload<E>(encoder: &E, ptr: *const u8, len: usize) -> HandleResult
+pub(crate) fn decode_payload<E>(encoder: &E, ptr: *const u8, len: usize) -> LegacyHandleResult
 where
     E: ProtocolEncoder<Vec<DomOp>>,
 {

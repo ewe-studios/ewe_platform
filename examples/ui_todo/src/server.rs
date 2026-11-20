@@ -1,7 +1,7 @@
 //! Loopback HTTP host for the todo example.
 use crate::{TodoStore, PAGE_ROOT};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_browser::test::{stream::StreamHandler, Broadcaster};
+use foundation_browser::test::{stream::StreamHandler, BacklogConfig, LiveChannel};
 use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::{
@@ -23,7 +23,7 @@ use foundation_netio::{
     },
 };
 use foundation_ui_runtime::{
-    action::{encode_updates, Context, Origin},
+    action::{encode_updates, prepare_messages, Context, Origin},
     dispatch::{Connection, Dispatcher, DispatcherBuilder, HelloOutcome, RenderTarget},
     html_swap,
 };
@@ -63,12 +63,40 @@ fn http_frame(frame: &[u8]) -> Result<Reply, Error> {
 }
 
 enum Endpoint {
+    NativeInitial,
     Initial,
     Action,
 }
 impl Endpoint {
     async fn answer(&self, ctx: &Ctx, req: SimpleIncomingRequest) -> Result<Reply, Error> {
         let store = ctx.get::<TodoStore>().ok_or("Missing todo store")?;
+        if matches!(self, Self::NativeInitial) {
+            let view = Context::for_action(ctx.clone(), MountSurface::Native, Some(PAGE_ROOT));
+            for root in [PAGE_ROOT, crate::DIALOG_ROOT] {
+                let mut create = foundation_ui_wire::CreateNodeT::default();
+                create.node_id = root;
+                create.kind = foundation_ui_wire::NodeKind::STACK;
+                let mut op = foundation_ui_wire::OperationT::default();
+                op.ui = foundation_ui_wire::UiOperationT::CreateNode(Box::new(create));
+                view.receiver().render_op(op);
+                view.receiver()
+                    .render_op(foundation_ui_wire::ops::append_child(1, root));
+            }
+            crate::app(&view, &store.snapshot()).map_err(|e| format!("{e:?}"))?;
+            let bytes = encode_updates(
+                ctx,
+                view.into_receiver().drain(),
+                &ClientCaps::native_current(foundation_ui_wire::Platform::Ios),
+                FrameHeader {
+                    stream_id: 0,
+                    sequence_id: 0,
+                    ack: 0,
+                },
+                &WriterConfig::default(),
+            )
+            .map_err(|e| format!("{e:?}"))?;
+            return Ok((Status::OK, MIME, bytes));
+        }
         if matches!(self, Self::Initial) {
             let view = Context::for_action(ctx.clone(), MountSurface::Web, Some(PAGE_ROOT));
             crate::web_app(&view, &store.snapshot()).map_err(|e| format!("{e:?}"))?;
@@ -119,7 +147,7 @@ impl Endpoint {
         }
         let connection = Connection::stateless(
             negotiated.caps().clone(),
-            MountSurface::Web,
+            negotiated.surface(),
             parsed.stream_id(),
         );
         let reply = dispatcher.dispatch(ctx, &connection, &body).await;
@@ -132,10 +160,13 @@ impl Endpoint {
             let count = store.snapshot().items.iter().filter(|i| !i.done).count();
             let update = Context::for_render(ctx.clone());
             count_update(&update, count).map_err(|e| format!("{e:?}"))?;
-            ctx.get::<Broadcaster>()
+            ctx.get::<LiveChannel>()
                 .ok_or("Missing live stream")?
                 .sender()
-                .send(&encoded(ctx, update)?);
+                .push_messages(
+                    prepare_messages(ctx, update.into_receiver().drain())
+                        .map_err(|e| format!("{e:?}"))?,
+                )?;
         }
         http_frame(&reply)
     }
@@ -153,6 +184,7 @@ impl Serve for Endpoint {
     ) -> ConnectionResult {
         let endpoint = match self {
             Self::Initial => Self::Initial,
+            Self::NativeInitial => Self::NativeInitial,
             Self::Action => Self::Action,
         };
         ConnectionResult::Async(Box::pin(async move {
@@ -191,6 +223,27 @@ pub fn serve(
     shutdown: &Arc<ShutdownSignal>,
     module: &Path,
 ) -> Result<(), Error> {
+    serve_with_channel(
+        listener,
+        shutdown,
+        module,
+        LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default()),
+    )
+}
+
+/// Run the todo server with a shared count channel. The host can disconnect clients to test replay.
+///
+/// # Errors
+/// Returns an error if the channel uses a different identifier or setup fails.
+pub fn serve_with_channel(
+    listener: &TcpListener,
+    shutdown: &Arc<ShutdownSignal>,
+    module: &Path,
+    channel: LiveChannel,
+) -> Result<(), Error> {
+    if channel.stream_id() != 1 {
+        return Err("The todo page listens to stream 1".into());
+    }
     if !listener.local_addr()?.ip().is_loopback() {
         return Err("The single-user example requires a loopback address".into());
     }
@@ -200,12 +253,14 @@ pub fn serve(
     ctx.store(RenderTarget(PAGE_ROOT));
     ctx.store(TodoStore::default());
     ctx.store(WireLimits::default());
-    ctx.store(Broadcaster::new());
+    ctx.store(channel);
     ctx.store(DispatcherBuilder::new(Origin::Server, Arc::new(crate::server_registry()?)).build());
     let module = std::fs::read(module)?;
     let initial: Arc<dyn Serve> = Arc::new(Endpoint::Initial);
     let action: Arc<dyn Serve> = Arc::new(Endpoint::Action);
     app.router.add_route_any("/initial", &initial);
+    let native: Arc<dyn Serve> = Arc::new(Endpoint::NativeInitial);
+    app.router.add_route_any("/native-initial", &native);
     app.router.add_route(SimpleMethod::POST, "/action", action);
     app.route_any::<StreamHandler>("/live");
     for (url, kind, bytes) in [
@@ -244,6 +299,12 @@ pub fn serve(
             "/foundation-ui-frames.js",
             "text/javascript",
             include_bytes!("../../../backends/foundation_wasm_ui/runtimes/foundation-ui-frames.js")
+                .as_slice(),
+        ),
+        (
+            "/foundation-ui-live.js",
+            "text/javascript",
+            include_bytes!("../../../backends/foundation_wasm_ui/runtimes/foundation-ui-live.js")
                 .as_slice(),
         ),
         (

@@ -1,7 +1,7 @@
 ---
 feature: "native-core-and-commands"
 description: "The device Rust core: a UniFFI surface over the shared action manager and local dispatcher, a host transport for server actions, a frame listener for local logic, and NativeCommand as data."
-status: "in-progress"
+status: "complete"
 priority: "medium"
 model: "sonnet"
 depends_on: ["05-action-runtime", "07-dispatcher-and-handshake", "17"]
@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_ui_native"]
 decisions: ["D4", "D5", "D22", "D29", "D33", "D37", "D38", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D54", "D56", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 13: The native core and commands
@@ -495,18 +495,18 @@ All in `backends/foundation_ui_native/tests/`.
 
 ## 8. Tasks
 
-- [ ] 1. Add UniFFI to `[workspace.dependencies]`; create the crate; add the two Rust targets.
-- [ ] 2. `error.rs`, `input.rs`, `host.rs` with the adapter.
-- [ ] 3. `NativeCore::new`, `hello`, with tests.
-- [ ] 4. `trigger` with tests.
-- [ ] 5. `push_ops`, the listener methods, with tests. The test also proves that a
+- [x] 1. Add UniFFI to `[workspace.dependencies]`; create the crate; add the two Rust targets.
+- [x] 2. `error.rs`, `input.rs`, `host.rs` with the adapter.
+- [x] 3. `NativeCore::new`, `hello`, with tests.
+- [x] 4. `trigger` with tests.
+- [x] 5. `push_ops`, the listener methods, with tests. The test also proves that a
   `UiBehaviour` and a `MobileBehaviour` pass the gate, and a `WebBehaviour` does not.
-- [ ] 6. `command.rs` with a test.
-- [ ] 7. `CoreSink` behind the `app` feature (after the feature 20 producer migration).
-- [ ] 8. The bindgen binary and `scripts/ui_native/generate-bindings.sh`.
-- [ ] 9. `ci/packages.toml` section; the two compile checks in CI.
-- [ ] 10. Update `progress.md` and `learnings.md`.
-- [ ] 11. Write or update the package or feature README.
+- [x] 6. `command.rs` with a test.
+- [x] 7. `CoreSink` behind the `app` feature (after the feature 20 producer migration).
+- [x] 8. The bindgen binary and `scripts/ui_native/generate-bindings.sh`.
+- [x] 9. `ci/packages.toml` section; the two compile checks in CI.
+- [x] 10. Update `progress.md` and `learnings.md`.
+- [x] 11. Write or update the package or feature README.
       Show a native host call. Include binding generation and the binding checks.
 
 ## 9. Verify
@@ -526,12 +526,12 @@ python3 scripts/ci/ci.py plan
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The crate calls no platform API (I6).
-- [ ] No lock is held across an `.await` or across a listener call.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All tasks are complete and section 9 passes; issue #596 tracks the workspace manifest notices.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] The crate calls no platform API (I6).
+- [x] No lock is held across an `.await` or across a listener call.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

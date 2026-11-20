@@ -16,7 +16,10 @@ mod finish;
 )]
 mod generated;
 mod limits;
+pub mod ops;
 mod read;
+#[cfg(feature = "reference")]
+pub mod reference;
 pub mod vocab;
 pub mod writer;
 

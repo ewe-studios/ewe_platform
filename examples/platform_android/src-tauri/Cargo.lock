@@ -1599,7 +1599,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.23"
+version = "0.0.24"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -1708,7 +1708,7 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "clap",
  "concurrent-queue",
@@ -1722,7 +1722,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "clap",
  "foundation_arrow",

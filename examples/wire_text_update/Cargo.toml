@@ -5,6 +5,6 @@ edition = "2024"
 publish = false
 
 [dependencies]
-foundation_ui_wire = { path = "../../backends/foundation_ui_wire", version = "0.0.5" }
+foundation_ui_wire = { path = "../../backends/foundation_ui_wire", version = "0.0.6" }
 
 [workspace]

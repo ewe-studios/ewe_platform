@@ -9,6 +9,10 @@
 //! HOW: pure components are inspected as `Html`; reactive ones mount through
 //! `App::mock`, `stabilize`, and assert the captured `DomOp`s / signal values.
 
+#[path = "../../foundation_wasm_ui/tests/support/parity.rs"]
+mod parity;
+use parity::reference;
+
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -38,8 +42,8 @@ fn attr<'a>(h: &'a Html, name: &str) -> Option<&'a str> {
         .map(|(_, v)| v.as_ref())
 }
 
-fn all_ops(sent: &Rc<RefCell<Vec<Vec<DomOp>>>>) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().cloned().collect()
+fn all_ops(sent: &Rc<RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>) -> Vec<DomOp> {
+    sent.borrow().iter().flatten().map(reference).collect()
 }
 
 // ─── separator (pure) ──────────────────────────────────────────────────────────
@@ -76,7 +80,7 @@ fn toggle_reflects_pressed_signal_as_presence_attr() {
         set_pressed.clone(),
         ToggleSlots::default(),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
 
     // pressed=false → aria-pressed "false", data-pressed REMOVED (presence).
     let ops = all_ops(&sent);
@@ -94,7 +98,7 @@ fn toggle_reflects_pressed_signal_as_presence_attr() {
 
     // Flip on: data-pressed SET to presence (empty string).
     set_pressed.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         matches!(ops.last().unwrap(),
@@ -154,13 +158,13 @@ fn field_binding_input_and_blur_drive_state() {
     // focus → focused.
     app.signals()
         .invoke_callback(focus_id, EventData::default());
-    app.stabilize();
+    app.stabilize().unwrap();
     assert!(state.focused.get(), "focus set focused");
 
     // input "hi" → filled + dirty + (OnChange) valid.
     app.signals()
         .invoke_callback(input_id, EventData::with_value("input", "hi"));
-    app.stabilize();
+    app.stabilize().unwrap();
     assert!(state.filled.get(), "non-empty → filled");
     assert!(state.dirty.get(), "diverged from initial \"\" → dirty");
     assert_eq!(state.valid.get(), Some(true), "validator passed");
@@ -168,13 +172,13 @@ fn field_binding_input_and_blur_drive_state() {
     // input "" → invalid (validator returns an error).
     app.signals()
         .invoke_callback(input_id, EventData::with_value("input", ""));
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(state.valid.get(), Some(false), "empty → invalid");
     assert_eq!(state.errors.get(), vec![alloc_string("required")]);
 
     // blur → touched, not focused.
     app.signals().invoke_callback(blur_id, EventData::default());
-    app.stabilize();
+    app.stabilize().unwrap();
     assert!(state.touched.get(), "blur set touched");
     assert!(!state.focused.get(), "blur cleared focused");
 }
@@ -201,7 +205,7 @@ fn dialog_syncs_open_and_wires_aria_and_driver() {
             ..DialogSlots::default()
         },
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -221,7 +225,7 @@ fn dialog_syncs_open_and_wires_aria_and_driver() {
     );
 
     set_open.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -251,7 +255,7 @@ fn popover_wires_trigger_positioner_and_modal_machinery() {
             ..PopoverSlots::default()
         },
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -326,7 +330,7 @@ fn tooltip_is_hover_describe_popover() {
             ..PopoverSlots::default()
         },
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "tooltip")), "tooltip role");
@@ -349,10 +353,10 @@ fn toast_manager_adds_and_closes_over_the_list() {
     let (ctx, rcv) = app.context();
     let manager = ToastManager::new(&ctx);
     let _h = toast_viewport(&ctx, &rcv, &manager);
-    app.stabilize();
+    app.stabilize().unwrap();
 
     let id = manager.add(Toast::new("", "Saved"));
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -363,7 +367,7 @@ fn toast_manager_adds_and_closes_over_the_list() {
     assert_eq!(manager.toasts().get().len(), 1, "one toast queued");
 
     manager.close(&id);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(
         manager.toasts().get().len(),
         0,
@@ -386,7 +390,7 @@ fn switch_reflects_checked_as_presence_pair() {
         &checked,
         set_checked.clone(),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     // unchecked → data-unchecked present, data-checked removed.
     assert!(ops.iter().any(|op| matches!(op,
@@ -394,7 +398,7 @@ fn switch_reflects_checked_as_presence_pair() {
             if name.name() == Some("data-unchecked") && *value == "")));
 
     set_checked.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -418,7 +422,7 @@ fn checkbox_three_state_drives_aria_and_data() {
         set_state.clone(),
         CheckboxSlots::default(),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -431,7 +435,7 @@ fn checkbox_three_state_drives_aria_and_data() {
             if name.name() == Some("data-indeterminate") && *value == "")));
 
     set_state.set(CheckState::Checked);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. }
@@ -446,15 +450,15 @@ fn parent_check_state_computes_tristate() {
     let all = vec![alloc_string("a"), alloc_string("b")];
 
     let parent = parent_check_state(&ctx, &values, all);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(parent.get(), CheckState::Unchecked, "none selected");
 
     set_values.set(vec![alloc_string("a")]);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(parent.get(), CheckState::Indeterminate, "some selected");
 
     set_values.set(vec![alloc_string("a"), alloc_string("b")]);
-    app.stabilize();
+    app.stabilize().unwrap();
     assert_eq!(parent.get(), CheckState::Checked, "all selected");
 }
 
@@ -484,10 +488,10 @@ fn radio_group_marks_selected_item_checked() {
         set_value.clone(),
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
 
     set_value.set(Some(alloc_string("b")));
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -576,7 +580,7 @@ fn toggle_group_embeds_composite_machinery_and_marks_items() {
         set_values,
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -616,7 +620,7 @@ fn radio_group_wires_roving_and_move_and_select() {
         set_value,
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     // Group opts into the radio "move AND select" composite pattern.
     assert!(
@@ -757,7 +761,7 @@ fn menu_renders_roled_items_and_listbox_machinery() {
         vec![Html::text("Edit").into()],
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-haspopup") && *value == "menu")),
@@ -788,7 +792,7 @@ fn toolbar_marks_children_as_composite_members() {
             separator(SeparatorConfig::default()).into(),
         ],
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "toolbar")));
@@ -814,7 +818,7 @@ fn select_renders_listbox_options_and_hidden_input() {
         set_value,
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-haspopup") && *value == "listbox")),
@@ -856,7 +860,7 @@ fn select_is_generic_over_t_with_to_form_value() {
     ];
     let cfg = SelectConfig::with_form_value(|c: &City| c.id.to_string());
     let _h = select(&ctx, &rcv, cfg, &open, set_open, &value, set_value, items);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     // Hidden input serializes via to_form_value (the City id, not its label).
     assert!(
@@ -899,7 +903,7 @@ fn navigation_menu_is_nav_with_linked_panels() {
         set_active,
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-controls") && value.starts_with("nav-panel-"))),
@@ -926,7 +930,7 @@ fn progress_reflects_value_and_indeterminate() {
     let (ctx, rcv) = app.context();
     let (value, set_value) = ctx.signal::<Option<f64>>(Some(50.0));
     let _h = progress(&ctx, &rcv, ProgressConfig::default(), &value, None);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "progressbar")));
@@ -941,7 +945,7 @@ fn progress_reflects_value_and_indeterminate() {
     );
 
     set_value.set(None);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-indeterminate") && *value == "")),
@@ -954,7 +958,7 @@ fn slider_publishes_percent_and_hidden_range_input() {
     let (ctx, rcv) = app.context();
     let (value, set_value) = ctx.signal(25.0_f64);
     let _h = slider(&ctx, &rcv, SliderConfig::default(), &value, set_value);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1012,7 +1016,7 @@ fn input_reflects_value_and_is_field_aware() {
         set_value,
         Some(&state),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1041,7 +1045,7 @@ fn number_field_emits_spinbutton_structure() {
         &value,
         set_value,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "spinbutton")),
@@ -1088,7 +1092,7 @@ fn number_field_drives_full_m8_behavior() {
         &value,
         set_value,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nf-scrub") && *value == "true")),
@@ -1111,7 +1115,7 @@ fn slider_wires_drag_machinery() {
     let (ctx, rcv) = app.context();
     let (value, set_value) = ctx.signal(25.0_f64);
     let _h = slider(&ctx, &rcv, SliderConfig::default(), &value, set_value);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-slider-control") && *value == "true")),
@@ -1151,7 +1155,7 @@ fn drawer_snap_points_wired() {
         set_open,
         DialogSlots::default(),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-snap-points") && *value == "0.4,1")),
@@ -1178,7 +1182,7 @@ fn toast_swipe_to_dismiss_wired() {
     let manager = ToastManager::new(&ctx);
     let _h = toast_viewport(&ctx, &rcv, &manager);
     manager.add(Toast::new("", "Saved"));
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-swipe-direction") && *value == "right")),
@@ -1199,7 +1203,7 @@ fn otp_field_emits_cells_and_hidden_aggregate() {
         },
         set_code,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     let cell_count = ops.iter().filter(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-otp-cell") && *value == "true")).count();
@@ -1224,7 +1228,7 @@ fn collapsible_toggles_expanded_and_hidden() {
         set_open.clone(),
         CollapsibleSlots::default(),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1246,7 +1250,7 @@ fn collapsible_toggles_expanded_and_hidden() {
     );
 
     set_open.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1288,7 +1292,7 @@ fn accordion_reflects_open_item_and_ties_aria() {
         set_open.clone(),
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     // Panel↔trigger wiring present.
     assert!(
@@ -1299,7 +1303,7 @@ fn accordion_reflects_open_item_and_ties_aria() {
     );
 
     set_open.set(vec![alloc_string("a")]);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1339,7 +1343,7 @@ fn tabs_selection_drives_aria_and_automatic_mode_selects() {
         set_selected.clone(),
         defs,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1410,7 +1414,7 @@ fn avatar_wires_image_events_and_hides_fallback_on_loaded() {
             fallback: Some(Slot::from(Html::text("JD"))),
         },
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     // src present → loading status starts at Loading, fallback visible.
     assert!(
@@ -1446,7 +1450,7 @@ fn avatar_fallback_delay_emitted_as_css_var() {
         },
         AvatarSlots::default(),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1474,7 +1478,7 @@ fn button_reflects_disabled_and_loading() {
         ButtonSlots::single(Html::text("Click")),
         Some(loading),
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1502,7 +1506,7 @@ fn button_reflects_disabled_and_loading() {
     );
 
     set_loading.set(true);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1532,7 +1536,7 @@ fn button_focusable_when_disabled() {
         ButtonSlots::single(Html::text("Hover")),
         None,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     // focusable_when_disabled → aria-disabled BUT NOT the native disabled attr
     // (stays in tab order; announced as disabled but still focusable).
@@ -1563,7 +1567,7 @@ fn button_with_click_wires_onclick() {
         None,
         cb,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1597,7 +1601,7 @@ fn menubar_is_role_menubar_with_composite_roving() {
         ),
     ];
     let _h = menubar(&ctx, &rcv, menus);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1660,7 +1664,7 @@ fn context_menu_wires_surface_and_contextmenu() {
             on_select: Box::new(|| {}),
         }],
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1705,7 +1709,7 @@ fn combobox_filters_by_query_and_publishes_count() {
         set_query.clone(),
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1728,7 +1732,7 @@ fn combobox_filters_by_query_and_publishes_count() {
 
     // Typing "la" filters to Lagos + London.
     set_query.set("la".into());
-    app.stabilize();
+    app.stabilize().unwrap();
     // The status region has aria-live and the combobox has the right roles.
     // Filtering is verified by the rendered list (combobox renders <For> over filtered).
     assert!(
@@ -1762,7 +1766,7 @@ fn autocomplete_is_combobox_with_value_equals_query() {
         set_query.clone(),
         items,
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1772,7 +1776,7 @@ fn autocomplete_is_combobox_with_value_equals_query() {
     );
     // Selecting "Ap" → status shows 2 results (Apple, Apricot).
     set_query.set("Ap".into());
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1799,7 +1803,7 @@ fn fieldset_renders_legend_and_disabled() {
             children: vec![Slot::from(Html::text("body"))],
         },
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1836,7 +1840,7 @@ fn form_wires_submit_and_novalidate() {
         cb,
         vec![Slot::from(Html::text("form content"))],
     );
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1859,7 +1863,7 @@ fn meter_reflects_value_as_determinate() {
     let (ctx, rcv) = app.context();
     let (value, set_value) = ctx.signal(75.0_f64);
     let _h = meter(&ctx, &rcv, ProgressConfig::default(), &value, None);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
@@ -1887,7 +1891,7 @@ fn meter_reflects_value_as_determinate() {
     );
 
     set_value.set(0.0);
-    app.stabilize();
+    app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,

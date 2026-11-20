@@ -14,12 +14,13 @@
 //! dependencies — toggling a counter inside `<Show>` must re-render the
 //! counter's slot, not remount the whole region).
 
+use crate::ops;
 use alloc::rc::Rc;
 use alloc::vec::Vec;
 use core::cell::RefCell;
 
 use foundation_signals::Context;
-use foundation_ui_traits::{AttrName, DomOp, Html, HtmlTag};
+use foundation_ui_traits::{AttrName, Html, HtmlTag};
 
 use crate::runtime::SharedInstructionReceiver;
 use crate::slots::{mount_before, Render};
@@ -30,27 +31,20 @@ type ShowInstance = Option<(Vec<u32>, Context)>;
 /// Create the region's end anchor: an empty registered `<span primal-id>`.
 fn create_anchor(ctx: &Context, rcv: &SharedInstructionReceiver, parent_id: u32) -> u32 {
     let id = ctx.allocate_id_block(1);
-    rcv.queue(DomOp::CreateElement {
-        node_id: id,
-        tag: HtmlTag::from_static("span"),
-        class: "".into(),
-    });
-    rcv.queue(DomOp::RegisterNode { node_id: id });
-    rcv.queue(DomOp::SetAttribute {
-        node_id: id,
-        name: AttrName::from_static("primal-id"),
-        value: alloc::string::ToString::to_string(&id).into(),
-    });
-    rcv.queue(DomOp::AppendChild {
-        parent_id,
-        child_id: id,
-    });
+    rcv.queue(ops::create_element(id, &HtmlTag::from_static("span"), ""));
+    rcv.queue(ops::register_node(id));
+    rcv.queue(ops::set_attribute(
+        id,
+        &AttrName::from_static("primal-id"),
+        &alloc::string::ToString::to_string(&id),
+    ));
+    rcv.queue(ops::append_child(parent_id, id));
     id
 }
 
 fn unmount(rcv: &SharedInstructionReceiver, ids: &[u32]) {
     for id in ids.iter().filter(|id| rcv.owns_mount(**id)) {
-        rcv.queue(DomOp::RemoveNode { node_id: *id });
+        rcv.queue(ops::remove_node(*id));
     }
 }
 
@@ -195,11 +189,7 @@ pub fn mount_for<T, K>(
                 let mut next_ref = anchor;
                 for entry in new_entries.iter().rev() {
                     for id in entry.ids.iter().rev() {
-                        rcv.queue(DomOp::InsertBefore {
-                            parent_id,
-                            child_id: *id,
-                            ref_id: next_ref,
-                        });
+                        rcv.queue(ops::insert_before(parent_id, *id, next_ref));
                     }
                     if let Some(first) = entry.ids.first() {
                         next_ref = *first;

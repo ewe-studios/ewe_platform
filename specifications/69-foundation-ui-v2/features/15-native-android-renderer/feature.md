@@ -1,7 +1,7 @@
 ---
 feature: "native-android-renderer"
 description: "The ewe-ui Kotlin library: the generated reader, a node store with one snapshot-state record per node, Jetpack Compose composables for the core kinds, the event bridge, live mounts and native commands, proven against the shared reference model."
-status: "pending"
+status: "in-progress"
 priority: "medium"
 model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]

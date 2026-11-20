@@ -91,7 +91,7 @@ pub fn columnar_rows(batch: ColumnarBatch<'_>) -> Result<Vec<UiOperationT>, Colu
     decode::rows(&batch.unpack())
 }
 
-pub(super) fn decode_batch(
+pub(crate) fn decode_batch(
     batch: &ColumnarBatchT,
     message_index: usize,
 ) -> Result<Vec<UiOperationT>, WriteError> {

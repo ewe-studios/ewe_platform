@@ -20,4 +20,4 @@ pub use server::{
 pub use stream::{SseTransportConfig, STREAM_PATH};
 
 // Server-driven UI fan-out + the App protocol sink now live in foundation_wasm_ui.
-pub use foundation_wasm_ui::server::{BroadcastSink, BroadcastTx, Broadcaster};
+pub use foundation_wasm_ui::server::{BacklogConfig, BroadcastSink, BroadcastTx, Broadcaster, LiveChannel};

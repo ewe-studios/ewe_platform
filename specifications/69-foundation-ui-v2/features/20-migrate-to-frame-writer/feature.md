@@ -1,6 +1,6 @@
 ---
 feature: "migrate-to-frame-writer"
-status: "in-progress"
+status: "complete"
 depends_on: ["03-frame-writer", "09-web-frame-applicator"]
 ---
 
@@ -147,3 +147,20 @@ Show a template update, a custom protocol migration and a hand-written operation
   Review browser protocol registrations separately. Document each remaining test-only reference with its removal owner.
 - Run the affected Rust suites, the wire suite without default features, the WebAssembly target check and browser smoke tests.
   Run the README examples and the feature 09 browser parity cases for all migrated forms.
+
+## Implementation evidence
+
+The local receiver, signal effects, templates and default broadcaster now carry generated operations.
+A successful local flush delivers one EWF1 frame to the host and keeps the slot until acknowledgement.
+Validation failure and delivery failure leave the sequence available for the next batch.
+
+The [package guide](../../../../backends/foundation_wasm_ui/README.md) records the release measurements and migration commands.
+The [protocol fixture](../../../../backends/foundation_wasm_ui/examples/protocol_migration.rs) compiles both custom interfaces.
+The [external package](../../../../backends/foundation_wasm_ui/tests/fixtures/renamed_reactive) compiles pure and reactive templates with renamed dependencies.
+
+| Remaining use | Reason and owner |
+|---|---|
+| Traits encoders and the wire vocabulary bridge | Feature 12 removes these after compatibility tests pass. |
+| Explicit columnar, batch, JSON and Arrow codecs in the web host | These serve clients that select a legacy protocol. Feature 12 owns retirement. |
+| Saved fixture generators and test comparisons | Feature 12 owns the independent browser parity data and its Rust test helpers. |
+| `foundation_arrow` and the general WebAssembly instruction ABI | Their public encoders serve separate consumers. Their data and instruction contracts remain available. |

@@ -3,7 +3,7 @@ use foundation_ui_traits::{
     encode_with_envelope, AttrName, ColumnarEncoder, DomOp, HtmlTag, MorphAction, TargetSelector,
 };
 use foundation_ui_wire::{
-    vocab::{web_form, WireForm},
+    ops, vocab::web_form,
     writer::{write_messages, ClientCaps, FrameHeader, WriterConfig},
     MessageT, OperationT,
 };
@@ -153,28 +153,28 @@ fn every_dom_op_has_equivalent_frames() {
         ("register", vec![element(12)], RegisterNode { node_id: 12 }),
         ("unregister", vec![], UnregisterNode { node_id }),
     ];
-    for (name, setup, op) in cases {
-        let mut ops = vec![
-            element(10),
-            RegisterNode { node_id: 10 },
-            element(11),
-            RegisterNode { node_id: 11 },
-        ];
+    let title = AttrName::from_static("title");
+    let click = AttrName::from_static("click");
+    let expected_operations = [
+        ops::create_element(12,&HtmlTag::from_static("button"),"button"),
+        ops::create_text_node(12,"body"), ops::set_text(10,"next"),
+        ops::set_attribute(10,&title,"label"),ops::remove_attribute(10,&title),
+        ops::set_property(10,&AttrName::from_static("checked"),"true"),
+        ops::add_event_listener(10,&click),ops::remove_event_listener(10,&click),
+        ops::append_child(10,11),ops::remove_child(10,11),ops::remove_node(11),
+        ops::insert_before(10,12,11),ops::replace_node(11,12),
+        ops::set_style(10,&AttrName::from_static("color"),"red"),
+        ops::add_class(10,"active"),ops::remove_class(10,"active"),
+        ops::morph_node(ops::MorphTarget::NodeId(10),foundation_ui_wire::MorphAction::ReplaceChildren,"new text"),
+        ops::register_node(12),ops::unregister_node(10)
+    ];
+    assert_eq!(cases.len(),expected_operations.len());
+    for ((name, setup, op), generated) in cases.into_iter().zip(expected_operations) {
+        let mut ops = vec![element(10),RegisterNode {node_id:10},element(11),RegisterNode {node_id:11}];
         ops.extend(setup);
+        let mut messages:Vec<_> = ops.iter().map(|op|ops::message(web_form(op).into())).collect();
+        messages.push(ops::message(generated));
         ops.push(op);
-        let messages = ops
-            .iter()
-            .map(|op| {
-                let mut operation = OperationT::default();
-                match web_form(op) {
-                    WireForm::Ui(ui) => operation.ui = ui,
-                    WireForm::Web(web) => operation.web = web,
-                }
-                let mut message = MessageT::default();
-                message.operation = Some(Box::new(operation));
-                message
-            })
-            .collect();
         let (bytes, report) = write_messages(
             messages,
             &ClientCaps::web_current(),

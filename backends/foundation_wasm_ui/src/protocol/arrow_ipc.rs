@@ -21,7 +21,8 @@ use foundation_ui_traits::{DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
 use super::{
-    decode_payload, encode_and_write_framed, ship, HandleResult, ProtocolMethods, SendResult,
+    decode_payload, encode_and_write_framed, ship, LegacyHandleResult, LegacyProtocolMethods,
+    SendResult,
 };
 
 /// Arrow IPC protocol (protocol byte `1`, wire VERSION `2`).
@@ -58,7 +59,7 @@ impl ProtocolHandler for ArrowIpcV2 {
     }
 }
 
-impl ProtocolMethods<Vec<DomOp>> for ArrowIpcV2 {
+impl LegacyProtocolMethods<Vec<DomOp>> for ArrowIpcV2 {
     fn encode_and_write(
         &self,
         ops: Vec<DomOp>,
@@ -67,7 +68,12 @@ impl ProtocolMethods<Vec<DomOp>> for ArrowIpcV2 {
         encode_and_write_framed(self, &self.encoder, ops, memory)
     }
 
-    fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
+    fn handle_received(
+        &self,
+        _memory_id: MemoryId,
+        ptr: *const u8,
+        len: usize,
+    ) -> LegacyHandleResult {
         decode_payload(&self.encoder, ptr, len)
     }
 }

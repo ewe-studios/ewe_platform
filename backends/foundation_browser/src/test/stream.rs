@@ -37,7 +37,8 @@ use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
-use foundation_wasm_ui::server::{Broadcaster, FrameTransport};
+use foundation_wasm_ui::server::{Broadcaster, FrameTransport, LiveChannel, LiveError};
+use std::sync::Arc;
 
 /// The stream route the browser's runtime connects to.
 pub const STREAM_PATH: &str = "/__primal/stream";
@@ -116,7 +117,17 @@ impl FrameTransport for SseTransport {
 
 /// Write every queued frame to the client, in order, until the pipe closes or a
 /// write fails.
-async fn drive_sse(mut sse: SseStream, frames: PipeReceiver<OutboundFrame>) {
+async fn drive_sse(
+    mut sse: SseStream,
+    replay: Vec<Arc<[u8]>>,
+    frames: PipeReceiver<OutboundFrame>,
+) {
+    for frame in replay {
+        if let Err(error) = sse.binary(&frame).await {
+            tracing::debug!("SSE replay ended: {error}");
+            return;
+        }
+    }
     while let Some(frame) = frames.receive().await {
         let result = match frame {
             OutboundFrame::Binary(bytes) => sse.binary(&bytes).await,
@@ -149,20 +160,62 @@ impl Serve for StreamHandler {
     fn serve(
         &self,
         ctx: Ctx,
-        _req: SimpleIncomingRequest,
+        req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let config = self.config;
-
-        // The SSE head write is asynchronous (spec 70 feature 63): the upgrade
-        // parks on socket readiness instead of blocking the worker, so the
-        // whole upgrade runs as the handler's async continuation. The frame
-        // driver is a separate valtron task because the broadcaster pushes
-        // synchronously (spec 70 feature 82).
-        ConnectionResult::Async(Box::pin(async move {
-            let Some(bc) = ctx.get::<Broadcaster>() else {
-                return ServeOutcome::Close(None);
+        let (frames, receiver) = Pipe::with_depth(self.config.queue_depth.max(1));
+        let transport = SseTransport { frames };
+        let mut replay = Vec::new();
+        let mut legacy = None;
+        if let Some(channel) = ctx.get::<LiveChannel>() {
+            let queries = req.request_url.queries.as_ref();
+            let param = |name: &str| {
+                queries
+                    .and_then(|params| params.get(name))
+                    .map(|text| text.parse::<u64>())
+                    .transpose()
             };
+            let (Ok(stream), Ok(cursor)) = (param("stream_id"), param("resume_from")) else {
+                return foundation_http::native::writer::send_bytes(
+                    conn,
+                    400,
+                    "text/plain",
+                    "invalid stream cursor",
+                    &ctx,
+                );
+            };
+            if stream.is_some_and(|id| id != channel.stream_id()) {
+                return foundation_http::native::writer::send_bytes(
+                    conn,
+                    404,
+                    "text/plain",
+                    "unknown stream",
+                    &ctx,
+                );
+            }
+            replay = match channel.subscribe_web(transport, cursor.unwrap_or(0)) {
+                Ok(history) => history,
+                Err(error) => {
+                    let status = if matches!(error, LiveError::ResumeTooOld { .. }) {
+                        410
+                    } else {
+                        409
+                    };
+                    return foundation_http::native::writer::send_bytes(
+                        conn,
+                        status,
+                        "text/plain",
+                        error.to_string(),
+                        &ctx,
+                    );
+                }
+            };
+        } else if let Some(channel) = ctx.get::<Broadcaster>() {
+            legacy = Some((channel, transport));
+        } else {
+            return ConnectionResult::Close(None);
+        }
+        ConnectionResult::Async(Box::pin(async move {
             let sse = match SseStream::new(&conn, &ctx).await {
                 Ok(sse) => sse,
                 Err(e) => {
@@ -171,8 +224,7 @@ impl Serve for StreamHandler {
                 }
             };
 
-            let (frames, receiver) = Pipe::with_depth(config.queue_depth.max(1));
-            let driver = FutureTask::new(drive_sse(sse, receiver));
+            let driver = FutureTask::new(drive_sse(sse, replay, receiver));
             if let Err(e) = valtron::send(driver) {
                 tracing::warn!("Cannot start the SSE frame driver: {e}");
                 return ServeOutcome::Close(None);
@@ -180,7 +232,9 @@ impl Serve for StreamHandler {
 
             // The connection is Arc-shared; the driver's clone keeps it
             // open after the worker drops its handle on Take.
-            bc.register(SseTransport { frames });
+            if let Some((channel, transport)) = legacy {
+                channel.register(transport);
+            }
             ServeOutcome::Take
         }))
     }

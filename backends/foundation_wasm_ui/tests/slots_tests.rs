@@ -8,26 +8,32 @@
 //! wire, `runtime_id`, `mount_fragment`'s registry semantics, and
 //! `to_markup` parity.
 
+#[path = "support/app_parity.rs"]
+pub mod app_parity;
+#[path = "support/parity.rs"]
+mod parity;
+use parity::reference;
+
 use std::rc::Rc;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
 use foundation_ui_traits::{DomOp, Html, HtmlTag};
 use foundation_wasm::MemoryAllocations;
 use foundation_wasm_ui::{
-    html, mount_fragment, MockProtocol, Render, Runtime, SharedInstructionReceiver, Slot,
+    html, mount_fragment, Render, Runtime, SharedInstructionReceiver, Slot,
 };
 
 struct Harness {
     signals: Rc<SignalsRuntime>,
     ctx: Context,
-    sent: Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>,
+    sent: Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>,
     receiver: SharedInstructionReceiver,
 }
 
 fn setup() -> Harness {
     let signals = Rc::new(SignalsRuntime::new());
     let ctx = Context::new(Rc::clone(&signals));
-    let mock = MockProtocol::new();
+    let mock = app_parity::Compared::new();
     let sent = mock.sent_batches();
     let runtime = Runtime::builder()
         .protocol(mock)
@@ -43,8 +49,8 @@ fn setup() -> Harness {
     }
 }
 
-fn all_ops(sent: &Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().cloned().collect()
+fn all_ops(sent: &Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>) -> Vec<DomOp> {
+    sent.borrow().iter().flatten().map(reference).collect()
 }
 
 fn created_tags(ops: &[DomOp]) -> Vec<String> {

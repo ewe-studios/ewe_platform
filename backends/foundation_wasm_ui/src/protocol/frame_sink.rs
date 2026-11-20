@@ -23,7 +23,7 @@ use core::cell::{Cell, RefCell};
 use foundation_ui_traits::{encode_with_envelope, ColumnarEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
-use super::{decode_payload, HandleResult, ProtocolMethods, SendResult};
+use super::{decode_payload, LegacyHandleResult, LegacyProtocolMethods, SendResult};
 
 /// Shared handle to the framed batches, oldest first — drain it into your
 /// transport (`pop_front` per WS frame / SSE event).
@@ -83,7 +83,7 @@ impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolHandler for FrameSink<E> {
     fn ack(&self, _memory_id: MemoryId, _memory: &mut MemoryAllocations) {}
 }
 
-impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolMethods<Vec<DomOp>> for FrameSink<E> {
+impl<E: ProtocolEncoder<Vec<DomOp>>> LegacyProtocolMethods<Vec<DomOp>> for FrameSink<E> {
     fn encode_and_write(
         &self,
         ops: Vec<DomOp>,
@@ -107,7 +107,12 @@ impl<E: ProtocolEncoder<Vec<DomOp>>> ProtocolMethods<Vec<DomOp>> for FrameSink<E
         )
     }
 
-    fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
+    fn handle_received(
+        &self,
+        _memory_id: MemoryId,
+        ptr: *const u8,
+        len: usize,
+    ) -> LegacyHandleResult {
         decode_payload(&self.encoder, ptr, len)
     }
 }

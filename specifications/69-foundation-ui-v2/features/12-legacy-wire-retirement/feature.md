@@ -1,7 +1,7 @@
 ---
 feature: "legacy-wire-retirement"
 description: "Prove that the frame wire delivers the same web function, switch the defaults to it, move the internal code from DomOp to the generated operation units, then remove the old UI envelope, encoders, parser and DomOp."
-status: "pending"
+status: "in-progress"
 priority: "medium"
 model: "sonnet"
 depends_on: ["08-html-macro-core-vocabulary", "09-web-frame-applicator", "10-web-action-manager", "11-live-mounts-and-server-streams", "20-migrate-to-frame-writer"]

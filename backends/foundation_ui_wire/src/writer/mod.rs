@@ -12,6 +12,8 @@ use alloc::{boxed::Box, vec::Vec};
 
 use crate::{finish_frame, FrameKindT, FrameMessageT, FrameT, MessageT, SCHEMA_VERSION};
 
+#[cfg(feature = "reference")]
+pub(crate) use columnar::decode_batch;
 pub use columnar::{columnar_batch, columnar_rows, ColumnarError};
 pub use config::{ClientCaps, WriterConfig};
 pub use error::WriteError;

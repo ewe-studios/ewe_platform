@@ -5,7 +5,7 @@
 //!
 //! `std` crate (default allocator + panic handler); the library crates stay `no_std`.
 
-use foundation_ui_traits::DomOp;
+use foundation_wasm_ui::ops;
 use foundation_wasm::abi::web::register_function;
 use foundation_wasm::ExternalPointer;
 use foundation_wasm_ui::wasm::dom::{allocate_dom_reference, drop_dom_reference, DomInvoke};
@@ -43,12 +43,9 @@ pub extern "C" fn dom_drop(handle: u64) {
 #[no_mangle]
 pub extern "C" fn emit_batch_dom_ops() {
     let mut receiver = InstructionReceiver::with_global_arena(Box::new(BatchInstructionsV1::new()));
-    receiver.queue(DomOp::SetText {
-        node_id: 5,
-        text: "batch hi".into(),
-    });
-    receiver.queue(DomOp::RemoveNode { node_id: 6 });
-    receiver.flush();
+    receiver.queue(ops::set_text(5, "batch hi"));
+    receiver.queue(ops::remove_node(6));
+    receiver.flush().unwrap();
 }
 
 /// Ship a DomOp batch over the COLUMNAR protocol (byte 1, wire v1.1) through
@@ -59,12 +56,9 @@ pub extern "C" fn emit_batch_dom_ops() {
 #[no_mangle]
 pub extern "C" fn emit_columnar_dom_ops() {
     let mut receiver = ColumnarReceiver::with_global_arena(ColumnarV1::new());
-    receiver.queue(&DomOp::SetText {
-        node_id: 5,
-        text: "columnar hi".into(),
-    });
-    receiver.queue(&DomOp::RemoveNode { node_id: 6 });
-    let _ = receiver.flush();
+    receiver.queue(ops::set_text(5, "columnar hi"));
+    receiver.queue(ops::remove_node(6));
+    receiver.flush().unwrap();
 }
 
 std::thread_local! {
@@ -81,20 +75,30 @@ pub extern "C" fn mount_scoped_button() {
     app.receiver().register_scope(&[77], app.ctx());
     SCOPED_APP.replace(Some(app));
     let mut receiver = ColumnarReceiver::with_global_arena(ColumnarV1::new());
-    receiver.queue(&DomOp::CreateElement {
-        node_id: 77,
-        tag: foundation_ui_traits::HtmlTag::from_static("button"),
-        class: "".into(),
-    });
-    receiver.queue(&DomOp::RegisterNode { node_id: 77 });
-    receiver.queue(&DomOp::AppendChild {
-        parent_id: 1,
-        child_id: 77,
-    });
-    assert!(receiver.flush().is_some());
+    receiver.queue(ops::create_element(77, &foundation_ui_traits::HtmlTag::from_static("button"), ""));
+    receiver.queue(ops::register_node(77));
+    receiver.queue(ops::append_child(1, 77));
+    assert!(receiver.flush().unwrap().is_some());
 }
 
 #[no_mangle]
 pub extern "C" fn local_scope_releases() -> u32 {
     RELEASES.get()
 }
+
+/// Render the same button with either public transport.
+fn emit_parity(app: foundation_wasm_ui::App) {
+    let receiver = app.receiver();
+    let button = foundation_ui_traits::HtmlTag::from_static("button");
+    receiver.queue(ops::create_element(88, &button, "parity"));
+    receiver.queue(ops::register_node(88));
+    receiver.queue(ops::set_text(88, "rendered"));
+    receiver.queue(ops::append_child(foundation_wasm_ui::BODY_NODE_ID,88));
+    app.stabilize().expect("deliver parity button");
+}
+
+#[no_mangle]
+pub extern "C" fn emit_parity_frame() { emit_parity(foundation_wasm_ui::App::new()); }
+
+#[no_mangle]
+pub extern "C" fn emit_parity_legacy() { emit_parity(foundation_wasm_ui::App::columnar()); }

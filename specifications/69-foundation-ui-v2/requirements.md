@@ -20,10 +20,10 @@ related_specs:
   - "specifications/52-tauri-foundation-platform"
   - "specifications/76-shared-context"
 features:
-  completed: 10
-  uncompleted: 9
+  completed: 13
+  uncompleted: 6
   total: 19
-  completion_percentage: 53
+  completion_percentage: 68
 ---
 
 # Spec 69: foundation_ui v2
@@ -398,15 +398,15 @@ in parallel.
 | 08 | [html-macro-core-vocabulary](./features/08-html-macro-core-vocabulary/feature.md) | `html!` core elements, `on:` action bindings, the view form with state, `Html` to ops | 01, 02, 05, 06, 07 | Sonnet | Runtime | ✅ Complete |
 | 09 | [web-frame-applicator](./features/09-web-frame-applicator/feature.md) | The generated TS reader bundle and one apply loop for every message type on the web | 01, 02, 03 | Sonnet | Web | ✅ Complete |
 | 10 | [web-action-manager](./features/10-web-action-manager/feature.md) | The web action manager, the JS registry, the state harvest, the request path | 05, 07, 09 | Sonnet | Web | ✅ Complete |
-| 11 | [live-mounts-and-server-streams](./features/11-live-mounts-and-server-streams/feature.md) | The live mount contract on the web, the server stream on `Frame`, resume, local WASM frames | 03, 09 | Sonnet | Web | In progress |
-| 12 | [legacy-wire-retirement](./features/12-legacy-wire-retirement/feature.md) | The parity gate, then removal of the old envelope, encoders and parser | 08, 09, 10, 11, 20 | Sonnet | Web | ⬜ Pending |
-| 13 | [native-core-and-commands](./features/13-native-core-and-commands/feature.md) | The UniFFI Rust core, the local registry on device, `NativeCommand` | 05, 07, 17 | Sonnet | Native | In progress |
-| 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ⬜ Pending |
-| 15 | [native-android-renderer](./features/15-native-android-renderer/feature.md) | The Kotlin library: reader, node store, composables, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ⬜ Pending |
-| 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | ⬜ Pending |
+| 11 | [live-mounts-and-server-streams](./features/11-live-mounts-and-server-streams/feature.md) | The live mount contract on the web, the server stream on `Frame`, resume, local WASM frames | 03, 09 | Sonnet | Web | ✅ Complete |
+| 12 | [legacy-wire-retirement](./features/12-legacy-wire-retirement/feature.md) | The parity gate, then removal of the old envelope, encoders and parser | 08, 09, 10, 11, 20 | Sonnet | Web | In progress |
+| 13 | [native-core-and-commands](./features/13-native-core-and-commands/feature.md) | The UniFFI Rust core, the local registry on device, `NativeCommand` | 05, 07, 17 | Sonnet | Native | ✅ Complete |
+| 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | In progress |
+| 15 | [native-android-renderer](./features/15-native-android-renderer/feature.md) | The Kotlin library: reader, node store, composables, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | In progress |
+| 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | In progress |
 | 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
-| 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Sibling Swift and Kotlin packages, tagged releases, registry publication and starter apps | 13, 14, 15, 16, 17 | Sonnet | Release | Approved |
-| 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03, 09 | Sonnet | Web | In progress |
+| 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Sibling Swift and Kotlin packages, tagged releases, registry publication and starter apps | 13, 14, 15, 16, 17 | Sonnet | Release | In progress |
+| 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03, 09 | Sonnet | Web | ✅ Complete |
 
 After features 08–10, implement the live stream and producer migration before removing the legacy wire in feature 12.
 

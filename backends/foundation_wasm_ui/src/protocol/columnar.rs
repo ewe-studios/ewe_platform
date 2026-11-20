@@ -14,7 +14,7 @@ use alloc::vec::Vec;
 use foundation_ui_traits::{ColumnarBatch, ColumnarEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler, WasmEnvelope};
 
-use super::{decode_payload, ship, HandleResult, ProtocolMethods, SendResult};
+use super::{decode_payload, ship, LegacyHandleResult, LegacyProtocolMethods, SendResult};
 
 /// Compact-columnar protocol handler (protocol byte `1`, wire version 1).
 #[derive(Clone, Copy, Debug, Default)]
@@ -111,7 +111,7 @@ impl ColumnarV1 {
     }
 }
 
-impl ProtocolMethods<Vec<DomOp>> for ColumnarV1 {
+impl LegacyProtocolMethods<Vec<DomOp>> for ColumnarV1 {
     fn encode_and_write(
         &self,
         ops: Vec<DomOp>,
@@ -125,7 +125,12 @@ impl ProtocolMethods<Vec<DomOp>> for ColumnarV1 {
         self.write_batch(&batch, memory)
     }
 
-    fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
+    fn handle_received(
+        &self,
+        _memory_id: MemoryId,
+        ptr: *const u8,
+        len: usize,
+    ) -> LegacyHandleResult {
         decode_payload(&self.encoder, ptr, len)
     }
 }

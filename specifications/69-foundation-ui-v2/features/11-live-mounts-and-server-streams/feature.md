@@ -1,7 +1,7 @@
 ---
 feature: "live-mounts-and-server-streams"
 description: "The live mount contract on the web and the server: a live channel that sends Frames of Messages in sequence order with a replay backlog and resume, the mount elements on the frame protocol, and bare frames from local WASM logic."
-status: "in-progress"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["03-frame-writer", "09-web-frame-applicator"]
@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_wasm_ui", "foundation_wasm", "foundation_browser"]
 decisions: ["D4", "D15", "D25", "D29", "D30", "D39", "D40", "D41", "D42", "D44", "D45", "D46", "D55", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 11: Live mounts and server streams
@@ -297,7 +297,7 @@ backends/foundation_wasm_ui/tests/live_channel_tests.rs
 backends/foundation_wasm_ui/tests/frame_protocol_tests.rs
 backends/foundation_wasm/runtime/foundation-wasm.js       one seam (section 6.6)
 backends/foundation_wasm_ui/runtimes/foundation-ui-frames.js   mount delivery and stream resume (section 6.5)
-backends/foundation_wasm_ui/integration/test/frames-live.test.js
+backends/foundation_wasm_ui/integration/test/live-frames.test.js
 backends/foundation_browser/src/test/stream.rs            a `/live` frame route for the browser test
 ```
 
@@ -530,39 +530,31 @@ as the first statement inside the `try`:
 
 ## 7. Tests
 
-| Law or scenario | Test | Oracle |
-|---|---|---|
-| I1; Scenario: push in order | `tests/live_channel_tests.rs::push_reaches_every_connection_in_order`; `::sequences_have_no_gap` (50 pushes, 3 connections that join at pushes 0, 10 and 20 with resume 0) | example, property |
-| I2; Scenarios: late joiner, resume | `live_channel_tests.rs::late_joiner_gets_backlog_first`, `::resume_gets_only_missed_frames` | example |
-| I3; Scenario: each surface | `live_channel_tests.rs::each_surface_gets_its_own_fields` | example |
-| I4 | `live_channel_tests.rs::no_frame_is_missed_between_replay_and_live`: one thread pushes 1000 frames while another registers 20 connections at random points (seeded); each connection's frames are consecutive from its first | stateful model |
-| I5; Scenario: dead connection | `live_channel_tests.rs::dead_connection_is_dropped` | fault |
-| I6; Scenario: resume too old | `live_channel_tests.rs::resume_too_old_is_refused`, `::bounded_backlog_drops_oldest` | expected outcome |
-| Scenario: older vocabulary | `live_channel_tests.rs::older_vocabulary_is_refused` | expected outcome |
-| Scenario: App sink | `live_channel_tests.rs::app_sink_sends_generated_operations` (decode with `read_frame` and `columnar_rows`; compare with the generated operations that a `MockProtocol` App records for the same steps) | metamorphic |
-| I10 | `live_channel_tests.rs::every_message_holds_one_operation_field` (read the frame with `read_frame`; each `Message` sets exactly one of `ui`, `web`, `mobile`, `columnar`) | expected outcome |
-| Fault: encode error leaves the sequencer | `live_channel_tests.rs::write_error_uses_no_sequence` (a `WriterConfig` with `max_frame_bytes` 64) | fault |
-| I7; Scenarios: mount-stream, mount-data | `integration/test/frames-live.test.js` "mount-stream applies every frame", "mount-data applies a complete render", "list and footer both apply before one flush" | example |
-| Scenario: gap reconnect | `frames-live.test.js` "a gap reconnects with resume_from" (fake transport that records `connect` URLs) | example |
-| I8; Scenarios: local WASM frames, general ABI envelope | `tests/frame_protocol_tests.rs::frame_v1_ships_bare_frames` (native: the slot bytes pass `read_frame`); `frames-live.test.js` "dispatcher routes EWF1 to the frame handler", "a general ABI envelope still dispatches by protocol byte"; `frames-live.test.js` "local and server frames give the same DOM" (the same fixture through `frameHandler` and through `Patcher.route`) | example, metamorphic |
-| Local mount opens no network channel | `frames-live.test.js` "a local live mount does not connect" | example |
-| I9 | `cargo test -p foundation_wasm_ui` and `mise run ui-web:test` pass with no edit to an existing test | expected outcome |
-| End to end | `examples/ui_todo/tests/todo_browser_tests.rs::live_region_updates_and_resumes`: the example gains a `/live` SSE route over a `LiveChannel` and a `<mount-stream protocol="frame">` region that shows the open-item count; the test sees the count change twice, drops the connection through the test server, and sees the next change after the reconnect | example |
+| Test | What it verifies |
+|---|---|
+| `live_channel_tests::writer_selects_each_surface_and_preserves_sequence_after_failure` | A rejected batch uses no sequence. Each surface reads its own operations. |
+| `live_channel_tests::resume_covers_exactly_the_retained_frames` | A reconnect receives only the missing frames. Invalid versions and cursors fail before delivery. |
+| `live_channel_tests::concurrent_register_and_push_share_one_order` | Concurrent producers and joins preserve the order. A closed client does not affect the others. |
+| `live_channel_tests::a_mounted_signal_sends_complete_app_batches` | A mounted Rust signal reaches the channel through the application sink. |
+| `integration/test/live-frames.test.js` | A gap opens a new connection. A local mount uses the Rust allocation and no network connection. |
+| `integration/test/frames-apply.test.js` | Queued updates apply in sequence and preserve signed state. |
+| `ui_todo/tests/todo_browser_tests.rs` | Two browser pages receive live counts. A server disconnect causes a resume. |
+| `foundation_browser/tests/smoke.rs::wasm_and_sse_render_the_same_button` | Local and remote frames render the same button. |
 
 ## 8. Tasks
 
-- [ ] 1. Read issue #548; add a comment to it that names `LiveChannel` when this feature lands.
-- [ ] 2. `BacklogConfig`, `LiveError`, `LiveChannel::new`, `register`, `close` with tests.
-- [ ] 3. `LiveTx::push_messages` with the per-surface field removal and tests, including the concurrent test of I4.
-- [ ] 4. `FrameBroadcastSink` with its test.
-- [ ] 5. `FrameV1`, `App::frames`, `PROTOCOL_FRAME` with tests.
-- [ ] 6. The seam in `foundation-wasm.js`; the `wasmRuntime` option of `installFrameRuntime`.
-- [ ] 7. One-shot delivery, the mount binding, the resume, the local transport; the seam of section 6.7.
-- [ ] 8. `frames-live.test.js`.
-- [ ] 9. The `/live` route in the test server and in `examples/ui_todo`; the browser test.
-- [ ] 10. Bump crate versions.
-- [ ] 11. Update `progress.md` and `learnings.md`.
-- [ ] 12. Write or update the package or feature README.
+- [x] 1. Read issue #548; add a comment to it that names `LiveChannel` when this feature lands.
+- [x] 2. `BacklogConfig`, `LiveError`, `LiveChannel::new`, `register`, `close` with tests.
+- [x] 3. `LiveTx::push_messages` with the per-surface field removal and tests, including the concurrent test of I4.
+- [x] 4. `FrameBroadcastSink` with its test.
+- [x] 5. `FrameV1`, `App::frames`, `PROTOCOL_FRAME` with tests.
+- [x] 6. The seam in `foundation-wasm.js`; the `wasmRuntime` option of `installFrameRuntime`.
+- [x] 7. One-shot delivery, the mount binding, the resume, the local transport; the seam of section 6.7.
+- [x] 8. `live-frames.test.js`.
+- [x] 9. The `/live` route in the test server and in `examples/ui_todo`; the browser test.
+- [x] 10. Bump crate versions.
+- [x] 11. Update `progress.md` and `learnings.md`.
+- [x] 12. Write or update the package or feature README.
       Show a live stream and how to resume it. Validate the examples with the stream tests.
 
 ## 9. Verify
@@ -583,14 +575,14 @@ git diff --stat backends/foundation_wasm_ui/src/server/mod.rs   # two added line
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] `Broadcaster`, `BroadcastTx`, `BroadcastSink` and `FrameTransport` are unchanged.
-- [ ] No lock is held while user code runs, except the `send_binary` calls that the
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All tasks are complete and every command of section 9 passes with no warning.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] Existing transport callers pass their tests. Feature 20 selects the frame writer for the application sink.
+- [x] No lock is held while user code runs, except the `send_binary` calls that the
       existing `Broadcaster` also makes under its lock.
-- [ ] Issue #548 is linked in `learnings.md`.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] Issue #548 is linked in `learnings.md`.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

@@ -7,7 +7,7 @@
 //! runtime.
 //!
 //! WHAT: [`BatchInstructionsV1`] — the byte-0 [`ProtocolHandler`] +
-//! [`ProtocolMethods`] built on top of the batch system — plus [`DomOpsBatch`]
+//! [`LegacyProtocolMethods`] built on top of the batch system — plus [`DomOpsBatch`]
 //! (`DomOp`s as a registered batch operation, [`BATCH_OP_APPLY_DOM`]) so DOM
 //! batches CAN ride this protocol (Arrow/JSON remain their default transports).
 //!
@@ -30,7 +30,7 @@ use foundation_wasm::{
     ParamTypeId, Params, ProtocolHandler, TypeOptimization,
 };
 
-use super::{ship, write_framed, HandleResult, ProtocolMethods, SendResult};
+use super::{ship, write_framed, LegacyHandleResult, LegacyProtocolMethods, SendResult};
 
 /// The registered batch opcode carrying one `DomOp` row
 /// (`[opcode][ArgStart (params…) ArgStop][Operations::End]`). Outside the core
@@ -82,7 +82,7 @@ impl BatchInstructionsV1 {
 
     /// Build an [`Instructions`] batch from `message` and pack it into ONE envelope
     /// slot (`[texts_off:u32][texts_len:u32][ops][texts]`) WITHOUT shipping —
-    /// the write half of [`ProtocolMethods::encode_and_write`], generic over any
+    /// the write half of [`LegacyProtocolMethods::encode_and_write`], generic over any
     /// [`BatchMessage`] type.
     ///
     /// # Panics
@@ -165,7 +165,7 @@ impl ProtocolHandler for BatchInstructionsV1 {
     }
 }
 
-impl ProtocolMethods<Vec<DomOp>> for BatchInstructionsV1 {
+impl LegacyProtocolMethods<Vec<DomOp>> for BatchInstructionsV1 {
     fn encode_and_write(
         &self,
         ops: Vec<DomOp>,
@@ -177,13 +177,18 @@ impl ProtocolMethods<Vec<DomOp>> for BatchInstructionsV1 {
         (result, ptr, len)
     }
 
-    fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
+    fn handle_received(
+        &self,
+        _memory_id: MemoryId,
+        ptr: *const u8,
+        len: usize,
+    ) -> LegacyHandleResult {
         decode_dom_batch(read_payload(ptr, len))
     }
 }
 
 /// View the received region as a byte slice. Private so the public trait method
-/// itself never dereferences its raw argument (the `ProtocolMethods` contract
+/// itself never dereferences its raw argument (the `LegacyProtocolMethods` contract
 /// guarantees `(ptr, len)` describe a valid readable region for the call).
 fn read_payload<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
     // SAFETY: guaranteed readable by the `handle_received` contract.
@@ -300,7 +305,7 @@ impl<'a> Reader<'a> {
 
 /// Decode a byte-0 payload (`[texts_off][texts_len][ops][texts]`) built by
 /// [`DomOpsBatch`] back into `DomOp`s.
-fn decode_dom_batch(payload: &[u8]) -> HandleResult {
+fn decode_dom_batch(payload: &[u8]) -> LegacyHandleResult {
     if payload.len() < 8 {
         return Err(DecodeError::TruncatedBuffer {
             expected_min: 8,

@@ -201,15 +201,15 @@ Seven of 19 features are complete. Feature 07 is implemented. Its repository clo
 | 08 | html-macro-core-vocabulary | Sonnet | complete |
 | 09 | web-frame-applicator | Sonnet | complete |
 | 10 | web-action-manager | Sonnet | complete |
-| 11 | live-mounts-and-server-streams | Sonnet | in progress |
-| 12 | legacy-wire-retirement | Sonnet | pending |
-| 13 | native-core-and-commands | Sonnet | in progress |
-| 14 | native-ios-renderer | Sonnet | pending |
-| 15 | native-android-renderer | Sonnet | pending |
-| 16 | behaviour-matrix | Sonnet | pending |
+| 11 | live-mounts-and-server-streams | Sonnet | complete |
+| 12 | legacy-wire-retirement | Sonnet | in progress |
+| 13 | native-core-and-commands | Sonnet | complete |
+| 14 | native-ios-renderer | Sonnet | in progress |
+| 15 | native-android-renderer | Sonnet | in progress |
+| 16 | behaviour-matrix | Sonnet | in progress |
 | 17 | toolchain-and-ci | Sonnet | complete |
-| 19 | native-package-releases | Sonnet | approved |
-| 20 | migrate-to-frame-writer | Sonnet | in progress |
+| 19 | native-package-releases | Sonnet | in progress |
+| 20 | migrate-to-frame-writer | Sonnet | complete |
 
 Features 08 and 10 are complete. Feature 09 verifies local scope disposal. Implementation of features 11 through 16 is pending. Feature 12 now follows feature 20 for legacy removal.
 
@@ -401,3 +401,28 @@ The compiled WebAssembly fixture verifies external signal cleanup for feature 09
 The compiled WebAssembly fixture registers a real Rust scope on a button. A remote frame replaces the button.
 The `ewe_ui_dispose_mount` export runs its registered cleanup once. Removing the replacement leaves the count unchanged.
 The local bridge isolates native threads. Removing a captured child scope releases the graph borrow before its destructor runs.
+
+Feature 11 passes four Rust tests for live delivery and replay. Feature 14 shares six binary fixtures with the Android renderer.
+
+### Feature 20. Rust producer migration
+
+The default local and server transports write EWF1. Templates, signals, slots, the theme and mock receivers use generated operations.
+The custom protocol example and external renamed-template consumer compile. Receiver tests cover failed delivery, sequence continuity and slot release.
+All 19 operation constructors match the saved frame fixtures. The package guide records release measurements for one, four and sixteen text updates.
+
+The native core passes eight application tests, its README example, both mobile target checks, and binding generation.
+The core preserves frame order during concurrent pushes and listener callbacks (issue #634).
+Swift and Kotlin renderer work has started. The release build now assembles device and simulator libraries.
+
+## Web wire retirement checks, 2026-11-21
+
+| Check | Command | Result |
+|---|---|---|
+| G1 and G2 | `mise run ui-web:test` | Browser fixtures cover all 19 old operations and equivalent columnar rows. |
+| G3 | `cargo test -p foundation_wasm_ui --profile uat --test live_channel_tests` | All four channel tests pass. |
+| G4 | `mise run test:browser` | Two Chromium pages receive the live todo update. The server disconnects both. Both resume. |
+| G5 | `cargo test -p foundation_wasm_ui --profile uat --test app_tests --test reactive_structure_tests --test slots_tests` | All 31 tests pass. Each captured batch has the same ordered effects on both wires. |
+| G6 | `EWE_UI_WIRE=frame mise run test:browser` | The browser smoke suite passes. The local and streamed button have identical markup. |
+| G7 | Component behaviour tests through the installed frame runtime | All 13 assertions pass. |
+
+Feature 11 and feature 20 are complete. Feature 12 can now remove the old encoders.

@@ -261,7 +261,16 @@ impl WasmBundleGenerator {
         assets: &[(&str, &Path)],
         written: &mut Vec<PlannedFile>,
     ) -> Result<(), WasmBinError> {
-        if self.entrypoints.iter().any(|ep| ep.jsruntime_single) {
+        let needs_bundle = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
+        let prebuilt = assets.iter().find(|(name, _)| *name == "bundle.js");
+        if let Some((_, source)) = prebuilt.filter(|_| needs_bundle) {
+            let path = self.output_dir.join("bundle.js");
+            std::fs::copy(source, &path).map_err(|e| io_err(&path, e))?;
+            written.push(PlannedFile {
+                path,
+                kind: "runtime bundle",
+            });
+        } else if needs_bundle {
             let mut bundle = String::new();
             for (file_name, source) in assets {
                 let content = std::fs::read_to_string(source).map_err(|e| io_err(source, e))?;
@@ -284,8 +293,16 @@ impl WasmBundleGenerator {
                     kind: "runtime bundle",
                 });
             }
-        } else if !skip_runtimes {
+        }
+        let needs_modules = self
+            .entrypoints
+            .iter()
+            .any(|ep| !ep.jsruntime_single || ep.mode != BundleMode::Bin);
+        if needs_modules && !skip_runtimes {
             for (file_name, source) in assets {
+                if *file_name == "bundle.js" {
+                    continue;
+                }
                 let path = self.output_dir.join(file_name);
                 std::fs::copy(source, &path).map_err(|e| io_err(&path, e))?;
                 written.push(PlannedFile {

@@ -271,3 +271,28 @@ UPDATE_FIXTURES=1 cargo test -p foundation_ui_wire --profile uat --test integrat
 cargo test -p foundation_ui_wire --profile uat --test integration vocab_
 node --check backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js
 ```
+
+## Native renderer fixtures
+
+The `reference` feature enables a Rust node store for conformance tests.
+The Swift and Kotlin renderer tests read the same files from `fixtures/native/`.
+Each binary input has an expected node tree, reports, commands and state length in a JSON file.
+Compare parsed JSON values so object key order does not affect the result.
+
+The tree fixture renders a stack, a label, and a button with signed state.
+Its columnar counterpart uses the same rows. Both must produce the same tree.
+Apply the mixed, replacement, and behaviour fixtures after the tree. Apply the unknown-kind fixture to an empty store.
+
+```sh
+cargo test -p foundation_ui_wire --features reference --profile uat reference_tests
+```
+
+To update the snapshots after an intentional change, set `UPDATE_FIXTURES=1` for this command.
+Review the JSON and commit the binary inputs with their snapshots.
+
+### Construct a text update by hand
+
+`ops::set_text(7, "ready")` builds the generated text operation for node 7.
+Use `ops::message(operation)` to wrap it for `writer::write_messages`.
+The same module provides constructors for creation, insertion, removal, attributes, styles, listeners, registration and markup changes.
+The [vocabulary example](examples/vocabulary.rs) writes and reads a complete frame.

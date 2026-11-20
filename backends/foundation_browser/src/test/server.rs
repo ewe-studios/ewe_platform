@@ -193,6 +193,12 @@ pub struct TestServer {
 }
 
 impl TestServer {
+    /// Select frame delivery for the browser migration checks.
+    #[must_use]
+    pub fn frame_wire_requested() -> bool {
+        std::env::var("EWE_UI_WIRE").as_deref() == Ok("frame")
+    }
+
     /// Start a server bound to `bind` serving `page` at `/`, static directory
     /// mounts, and the channel-A SSE stream. `headers` are attached to the page
     /// response; `encoding` adds the `X-Primal-Encoding` announce header. When
@@ -237,12 +243,13 @@ impl TestServer {
             Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
         use foundation_wasm_ui::embedded::{
-            FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS,
+            FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS, FOUNDATION_UI_LIVE_JS,
             FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
         };
         for (name, source) in [
             ("foundation-ui-actions.js", FOUNDATION_UI_ACTIONS_JS),
             ("foundation-ui-frames.js", FOUNDATION_UI_FRAMES_JS),
+            ("foundation-ui-live.js", FOUNDATION_UI_LIVE_JS),
             ("foundation-ui-wire.js", FOUNDATION_UI_WIRE_JS),
             ("foundation-ui-vocab.js", FOUNDATION_UI_VOCAB_JS),
             ("foundation-ui-behaviours.js", FOUNDATION_UI_BEHAVIOURS_JS),

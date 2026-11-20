@@ -45,6 +45,8 @@ Server and browser allocate node identifiers in separate ranges. Each producer k
 The action endpoint accepts an Ewe wire frame (EWF1) and a base64url client hello in the `x-ewe-hello` header.
 It responds with `application/primal-frame`. A four-byte little-endian size precedes each response frame. The frame contains ordered messages and an acknowledgement.
 The count stream at `/live` pushes a complete replacement to the count element after each successful mutation.
+The count stream has identifier 1. To resume after frame 12, connect to `/live?stream_id=1&resume_from=12`.
+The server replays later count frames before it sends a new update.
 The add response carries the MessagePack string `host:notify` as a data message.
 The web page invokes its registered notification function when this message arrives.
 

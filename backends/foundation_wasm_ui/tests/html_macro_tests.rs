@@ -11,6 +11,10 @@
 //! HOW: Pure-form trees are inspected structurally (typed `Html`); reactive
 //! runs assert the exact `DomOp` stream the mock captured.
 
+#[path = "support/parity.rs"]
+mod parity;
+use parity::reference;
+
 use std::rc::Rc;
 
 use foundation_signals::{Context, EventData, Runtime as SignalsRuntime};
@@ -318,7 +322,7 @@ fn bare_text_runs() {
 struct Mounted {
     signals: Rc<SignalsRuntime>,
     ctx: Context,
-    sent: Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>,
+    sent: Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>,
     receiver: foundation_wasm_ui::SharedInstructionReceiver,
 }
 
@@ -342,8 +346,8 @@ fn reactive_setup() -> Mounted {
 }
 
 /// Flattened view of every op sent so far.
-fn all_ops(sent: &Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().cloned().collect()
+fn all_ops(sent: &Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>) -> Vec<DomOp> {
+    sent.borrow().iter().flatten().map(reference).collect()
 }
 
 /// Tests 40 + 42 — slot effect queues the initial `SetText` and re-renders on

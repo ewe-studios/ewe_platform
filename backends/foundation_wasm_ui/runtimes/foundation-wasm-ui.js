@@ -1159,7 +1159,8 @@ export function signalDeliver(bridge, encode = jsonEncodeEventData) {
     const bytes = encode(eventData);
     const memId = bridge.exports.create_allocation(BigInt(bytes.length));
     const ptr = Number(bridge.exports.allocation_start_pointer(memId));
-    new Uint8Array(bridge.memory().buffer, ptr, bytes.length).set(bytes);
+    const memory = typeof bridge.memory === "function" ? bridge.memory() : bridge.memory;
+    new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
     bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
   };
 }
@@ -1684,7 +1685,7 @@ export class FetchEventSource {
 
     let response;
     try {
-      response = await this.fetchFn(this.url, {
+      response = await this.fetchFn(this.options.nextUrl?.(this.url) ?? this.url, {
         method: this.options.method ?? "GET",
         headers,
         body: this.options.body,
@@ -1771,6 +1772,7 @@ export class SSETransport {
       onEvent: (event) =>
         onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data)),
       onError: this.config.onError,
+      nextUrl: this.config.nextUrl,
     });
     return this.source.connect();
   }
@@ -1799,12 +1801,14 @@ export class WebSocketTransport {
     this.closed = false;
     this.url = url;
     this.onResult = onResult;
-    this.ws = factory(url);
+    const socket = factory(this.config.nextUrl?.(url) ?? url);
+    this.ws = socket;
     // Binary frames carry the ENVELOPE — its header tells the protocol
     // (feature 04); text frames fall back to the declared protocol, else
     // json (the pre-feature-04 behavior, preserved as the text default).
     if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
     this.ws.onmessage = (event) => {
+      if (this.ws !== socket || this.closed) return;
       const { data } = event;
       if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
         const result = decodeEnvelopeFrame(
@@ -1816,11 +1820,11 @@ export class WebSocketTransport {
       onResult(streamEventResult(this.config.protocol ?? "json", data));
     };
     this.ws.onclose = () => {
-      if (this.closed) return;
+      if (this.closed || this.ws !== socket) return;
       const delay = reconnectDelay(this.attempt);
       this.attempt += 1;
       setTimeout(() => {
-        if (!this.closed) this.connect(this.url, undefined, this.onResult);
+        if (!this.closed && this.ws === socket) this.connect(this.url, undefined, this.onResult);
       }, delay);
     };
   }
@@ -1890,7 +1894,7 @@ export class Transport {
     switch (config.transport) {
       case "sse":
         return new SSETransport(config);
-      case "ws":
+      case "ws": case "websocket":
         return new WebSocketTransport(config);
       case "chunked":
         return new ChunkedTransport(config);
@@ -2292,6 +2296,10 @@ export class Patcher {
   /** Route one ProtocolHandler result to the DOM (shared by both mounts). */
   static route(result, targetEl, doc) {
     Patcher.applyRoute(result, targetEl, doc);
+    if (result.type !== "frame") Patcher.markApplied();
+  }
+
+  static markApplied() {
     // Frame instrument: every applied result bumps a sequence + timestamp. Cheap,
     // always-on, broadly useful — a server-driven client (or a test driver) can
     // poll `globalThis.__primalFrames` to know the DOM has caught up.
@@ -2416,37 +2424,68 @@ export class MountDataComponent extends BaseElement {
   async connectedCallback() {
     const doc = this.ownerDocument ?? globalThis.document;
     try {
+      const binding = Patcher.runtime.onMountConnect?.(this, false);
+      this._frameMount = binding;
+      if (binding?.local) return;
       const { api, data, transport, target } = mountSetup(this);
       this._transport = transport;
       const method = this.getAttribute("method") || "POST";
-      const result = await transport.send(api, method, data);
-      const targetEl = resolveMountTarget(this, target, doc);
-      Patcher.route(result, targetEl, doc);
+      const result = await transport.send(binding ? binding.url(api) : api, method, data);
+      if (binding) binding.receive(result);
+      else Patcher.route(result, resolveMountTarget(this, target, doc), doc);
     } catch (error) {
       console.error("mount-data:", error);
     }
   }
 
   disconnectedCallback() {
+    this._frameMount?.close();
     this._transport?.disconnect?.();
   }
 }
 
-/** `<mount-stream>` — continuous results until disconnect (spec §8). */
+/** Open a stream while its element is connected. */
 export class MountStreamComponent extends BaseElement {
   connectedCallback() {
     const doc = this.ownerDocument ?? globalThis.document;
     try {
-      const { api, data, transport, target } = mountSetup(this, { transport: "sse" });
-      this._transport = transport;
-      const targetEl = resolveMountTarget(this, target, doc);
-      transport.connect(api, data, (result) => Patcher.route(result, targetEl, doc));
+      const binding = Patcher.runtime.onMountConnect?.(this, true);
+      this._frameMount = binding;
+      if (binding?.local) return;
+      let generation = 0;
+      const open = () => {
+        const current = ++generation;
+        const { api, data, transport, target } = mountSetup(this, { transport: "sse" });
+        // Frame operations name their own targets. The mount owns the connection.
+        const targetEl = binding ? null : resolveMountTarget(this, target, doc);
+        this._transport = transport;
+        if (!binding && this.isConnected === false && targetEl?.isConnected && !this._targetObserver) {
+          // Legacy markup replaces its placeholder. Its replacement owns the connection.
+          this._targetObserver = new MutationObserver(() => {
+            if (!targetEl.isConnected) this.disconnectedCallback();
+          });
+          this._targetObserver.observe(doc, { childList: true, subtree: true });
+        }
+        if (binding && transport.config) transport.config.nextUrl = url => binding.url(url);
+        const payload = binding && this.getAttribute("data") === null ? undefined : data;
+        transport.connect(binding ? binding.url(api) : api, payload, result => {
+          if (current !== generation || transport !== this._transport) return;
+          if (binding) binding.receive(result);
+          else Patcher.route(result, targetEl, doc);
+        });
+      };
+      this._restartFrameStream = () => { this._transport?.disconnect?.(); open(); };
+      open();
     } catch (error) {
       console.error("mount-stream:", error);
     }
   }
 
   disconnectedCallback() {
+    this._frameMount?.close();
+    this._restartFrameStream = null;
+    this._targetObserver?.disconnect();
+    this._targetObserver = null;
     this._transport?.disconnect?.();
     this._transport = null;
   }
@@ -2514,6 +2553,15 @@ export function registerWasmApp(runtime, opts = {}) {
     }
   };
   runtime.dispatcher.setHandler(1, columnarHandler(applicator));
+  const hook = ProtocolHandler.frameHook;
+  if (hook && Patcher.runtime.frames) {
+    const frames = Patcher.runtime.frames;
+    runtime.dispatcher.setRawHandler(hook.isFrame, bytes => {
+      // The host acknowledges and frees the WebAssembly slot when dispatch returns.
+      if (bytes.byteLength > frames.maxFrameBytes) return frames.receive(bytes);
+      return frames.receive(Uint8Array.from(bytes), { onMount: applicator.onMount });
+    });
+  }
   // Initial scan + observer: wires primal:on* attrs that exist on page load.
   initEventRuntime(dispatcher, doc);
 }

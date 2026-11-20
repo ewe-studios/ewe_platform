@@ -12,6 +12,9 @@ packages=(
   "build-tools;$ANDROID_BUILD_TOOLS"
   "ndk;$ANDROID_NDK"
 )
+if [[ -n "${ANDROID_UI_COMPILE_SDK:-}" && "$ANDROID_UI_COMPILE_SDK" != "$ANDROID_COMPILE_SDK" ]]; then
+  packages+=("platforms;android-$ANDROID_UI_COMPILE_SDK")
+fi
 missing=()
 for package in "${packages[@]}"; do
   if [[ ! -f "$ANDROID_HOME/${package/;/\/}/source.properties" ]]; then

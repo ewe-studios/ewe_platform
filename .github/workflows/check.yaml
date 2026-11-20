@@ -239,6 +239,13 @@ jobs:
           scripts/toolchain/check.sh
           scripts/toolchain/wire_test.sh
 
+      - name: Check Android core and generated native bindings
+        if: matrix.package == 'foundation_ui_native'
+        run: |
+          rustup target add aarch64-linux-android
+          cargo check --locked --profile uat -p foundation_ui_native --lib --target aarch64-linux-android
+          scripts/ui_native/generate-bindings.sh --check
+
       - name: Test the browser frame and action runtimes
         if: matrix.package == 'foundation_wasm_ui' || matrix.package == 'foundation_ui_components'
         shell: bash
@@ -565,6 +572,12 @@ jobs:
           cache-bin: "false"
           # Only master writes caches, so PR runs can't evict each other.
           save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Check iOS native core
+        if: contains(format(' {0} ', matrix.packages), ' foundation_ui_native ')
+        run: |
+          rustup target add aarch64-apple-ios
+          cargo check --locked --profile uat -p foundation_ui_native --lib --target aarch64-apple-ios
 
       - name: test
         # On a macOS host, ci.py runs only the test step, with the macOS runs.

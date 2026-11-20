@@ -10,7 +10,7 @@
 //!   are. No context, no effects (snapshots, SSR, tests).
 //! - `html! { ctx, receiver, <div>..</div> }` — REACTIVE: also returns `Html`,
 //!   and additionally allocates a runtime id block, queues the full
-//!   `DomOp` build of the tree on `receiver`, and creates one effect per
+//!   operation build of the tree on `receiver`, and creates one effect per
 //!   slot/dynamic-attr. Effects run immediately (decision 008), so the
 //!   INITIAL content also arrives through them — each slot expression
 //!   therefore lives in EXACTLY ONE closure (no double-move of captured
@@ -25,7 +25,7 @@
 //!   in reactive mode node N's wire id is `__base + N` where `__base` comes
 //!   from `ctx.allocate_id_block(total)`, so every instance occupies a
 //!   disjoint `u32` range (the spec's `"42:0"` string prefixes don't fit the
-//!   `u32` `DomOp`/`NodeRegistry` ids — block allocation is the same idea in
+//!   32-bit node identifiers — block allocation is the same idea in
 //!   wire-compatible form).
 //!
 //! Event handlers go through `MaybeCallback` (G21): `SignalSetter` resolves
@@ -393,25 +393,16 @@ pub(crate) fn generate_reactive(
     );
 
     let node_total = plan.next_runtime;
+    let renderer = foundation_wasm_ui_path();
     let style_ops = styles.iter().enumerate().map(|(i, style)| {
         let css = &style.css;
         let idx = node_total + u32::try_from(i).expect("style index");
         quote! {
-            __rcv.queue(#ui::DomOp::CreateElement {
-                node_id: __base + #idx,
-                tag: #ui::HtmlTag::from_static("style"),
-                class: #ui::__macro::Cow::Borrowed(""),
-            });
-            __rcv.queue(#ui::DomOp::RegisterNode { node_id: __base + #idx });
-            __rcv.queue(#ui::DomOp::SetText {
-                node_id: __base + #idx,
-                text: #ui::__macro::Cow::Borrowed(#css),
-            });
+            __rcv.queue(#renderer::ops::create_element(__base + #idx, &#ui::HtmlTag::from_static("style"), ""));
+            __rcv.queue(#renderer::ops::register_node(__base + #idx));
+            __rcv.queue(#renderer::ops::set_text(__base + #idx, #css));
             // Reserved ambient id 0 = <head> (JS NodeRegistry seed).
-            __rcv.queue(#ui::DomOp::AppendChild {
-                parent_id: 0,
-                child_id: __base + #idx,
-            });
+            __rcv.queue(#renderer::ops::append_child(0, __base + #idx));
         }
     });
 
@@ -698,6 +689,7 @@ fn gen_mount_ops(
     effects: &mut TokenStream,
     handler_cursor: &mut usize,
 ) {
+    let renderer = foundation_wasm_ui_path();
     let ridx = node.runtime_index;
     match &node.node {
         ParsedNode::Element { tag, attrs, .. } => {
@@ -709,40 +701,22 @@ fn gen_mount_ops(
             let class = class_value.unwrap_or_default();
 
             ops.extend(quote! {
-                __rcv.queue(#ui::DomOp::CreateElement {
-                    node_id: __base + #ridx,
-                    tag: #ui::HtmlTag::from_static(#tag),
-                    class: #ui::__macro::Cow::Borrowed(#class),
-                });
-                __rcv.queue(#ui::DomOp::RegisterNode { node_id: __base + #ridx });
-                __rcv.queue(#ui::DomOp::SetAttribute {
-                    node_id: __base + #ridx,
-                    name: #ui::AttrName::from_static("primal-id"),
-                    value: #ui::__macro::Cow::Owned(
-                        #ui::__macro::ToString::to_string(&(__base + #ridx))
-                    ),
-                });
+                __rcv.queue(#renderer::ops::create_element(__base + #ridx, &#ui::HtmlTag::from_static(#tag), #class));
+                __rcv.queue(#renderer::ops::register_node(__base + #ridx));
+                __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static("primal-id"), &#ui::__macro::ToString::to_string(&(__base + #ridx))));
             });
 
             for attr in attrs {
                 match attr {
                     ParsedAttr::Static { name, value } if name != "class" => {
                         ops.extend(quote! {
-                            __rcv.queue(#ui::DomOp::SetAttribute {
-                                node_id: __base + #ridx,
-                                name: #ui::AttrName::from_static(#name),
-                                value: #ui::__macro::Cow::Borrowed(#value),
-                            });
+                            __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static(#name), #value));
                         });
                     }
                     ParsedAttr::Action { event, target } => {
                         let (name, value) = action_attribute(tag, event, target, ui);
                         ops.extend(quote! {
-                            __rcv.queue(#ui::DomOp::SetAttribute {
-                                node_id: __base + #ridx,
-                                name: #ui::AttrName::from_static(#name),
-                                value: #value,
-                            });
+                            __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static(#name), #ui::__macro::Cow::<str>::as_ref(&(#value))));
                         });
                     }
                     ParsedAttr::StateMarker(_) | ParsedAttr::Static { .. } => {}
@@ -755,11 +729,7 @@ fn gen_mount_ops(
                             if let ::core::option::Option::Some(__value) =
                                 #ui::IntoAttrValue::into_attr_value((#tokens))
                             {
-                                __rcv.queue(#ui::DomOp::SetAttribute {
-                                    node_id: __base + #ridx,
-                                    name: #ui::AttrName::from_static(#name),
-                                    value: __value,
-                                });
+                                __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static(#name), &__value));
                             }
                         });
                     }
@@ -773,17 +743,10 @@ fn gen_mount_ops(
                             __ctx.effect(move || {
                                 match #ui::IntoAttrValue::into_attr_value((#tokens)) {
                                     ::core::option::Option::Some(__value) => {
-                                        __r.queue(#ui::DomOp::SetAttribute {
-                                            node_id: __base + #ridx,
-                                            name: #ui::AttrName::from_static(#name),
-                                            value: __value,
-                                        });
+                                        __r.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static(#name), &__value));
                                     }
                                     ::core::option::Option::None => {
-                                        __r.queue(#ui::DomOp::RemoveAttribute {
-                                            node_id: __base + #ridx,
-                                            name: #ui::AttrName::from_static(#name),
-                                        });
+                                        __r.queue(#renderer::ops::remove_attribute(__base + #ridx, &#ui::AttrName::from_static(#name)));
                                     }
                                 }
                             });
@@ -793,18 +756,9 @@ fn gen_mount_ops(
                         let cb = format_ident!("__cb{handler_cursor}");
                         *handler_cursor += 1;
                         ops.extend(quote! {
-                            __rcv.queue(#ui::DomOp::AddEventListener {
-                                node_id: __base + #ridx,
-                                event_name: #ui::AttrName::from_static(#event_name),
-                            });
+                            __rcv.queue(#renderer::ops::add_event_listener(__base + #ridx, &#ui::AttrName::from_static(#event_name)));
                             if let ::core::option::Option::Some(__id) = #cb {
-                                __rcv.queue(#ui::DomOp::SetAttribute {
-                                    node_id: __base + #ridx,
-                                    name: #ui::AttrName::from_static("primal:setter"),
-                                    value: #ui::__macro::Cow::Owned(
-                                        #ui::__macro::ToString::to_string(&__id)
-                                    ),
-                                });
+                                __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static("primal:setter"), &#ui::__macro::ToString::to_string(&__id)));
                             }
                         });
                     }
@@ -817,25 +771,16 @@ fn gen_mount_ops(
 
             if let Some(parent) = parent_runtime {
                 ops.extend(quote! {
-                    __rcv.queue(#ui::DomOp::AppendChild {
-                        parent_id: __base + #parent,
-                        child_id: __base + #ridx,
-                    });
+                    __rcv.queue(#renderer::ops::append_child(__base + #parent, __base + #ridx));
                 });
             }
         }
         ParsedNode::Text(text) => {
             let parent = parent_runtime.expect("text under root element");
             ops.extend(quote! {
-                __rcv.queue(#ui::DomOp::CreateTextNode {
-                    node_id: __base + #ridx,
-                    content: #ui::__macro::Cow::Borrowed(#text),
-                });
-                __rcv.queue(#ui::DomOp::RegisterNode { node_id: __base + #ridx });
-                __rcv.queue(#ui::DomOp::AppendChild {
-                    parent_id: __base + #parent,
-                    child_id: __base + #ridx,
-                });
+                __rcv.queue(#renderer::ops::create_text_node(__base + #ridx, #text));
+                __rcv.queue(#renderer::ops::register_node(__base + #ridx));
+                __rcv.queue(#renderer::ops::append_child(__base + #parent, __base + #ridx));
             });
         }
         ParsedNode::Slot(tokens) => {
@@ -845,23 +790,10 @@ fn gen_mount_ops(
             // unlike a bare text node — the span carries an id, so MorphDom
             // preserves the slot's wiring across server patches.
             ops.extend(quote! {
-                __rcv.queue(#ui::DomOp::CreateElement {
-                    node_id: __base + #ridx,
-                    tag: #ui::HtmlTag::from_static("span"),
-                    class: #ui::__macro::Cow::Borrowed(""),
-                });
-                __rcv.queue(#ui::DomOp::RegisterNode { node_id: __base + #ridx });
-                __rcv.queue(#ui::DomOp::SetAttribute {
-                    node_id: __base + #ridx,
-                    name: #ui::AttrName::from_static("primal-id"),
-                    value: #ui::__macro::Cow::Owned(
-                        #ui::__macro::ToString::to_string(&(__base + #ridx))
-                    ),
-                });
-                __rcv.queue(#ui::DomOp::AppendChild {
-                    parent_id: __base + #parent,
-                    child_id: __base + #ridx,
-                });
+                __rcv.queue(#renderer::ops::create_element(__base + #ridx, &#ui::HtmlTag::from_static("span"), ""));
+                __rcv.queue(#renderer::ops::register_node(__base + #ridx));
+                __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static("primal-id"), &#ui::__macro::ToString::to_string(&(__base + #ridx))));
+                __rcv.queue(#renderer::ops::append_child(__base + #parent, __base + #ridx));
             });
             effects.extend(quote! {{
                 let __r = __rcv.clone();
@@ -871,10 +803,7 @@ fn gen_mount_ops(
                         .text
                         .map(|__c| __c.into_owned())
                         .unwrap_or_default();
-                    __r.queue(#ui::DomOp::SetText {
-                        node_id: __base + #ridx,
-                        text: #ui::__macro::Cow::Owned(__text),
-                    });
+                    __r.queue(#renderer::ops::set_text(__base + #ridx, &__text));
                 });
             }});
         }
