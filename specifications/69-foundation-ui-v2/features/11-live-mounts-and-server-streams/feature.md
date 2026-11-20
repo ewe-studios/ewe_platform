@@ -50,7 +50,7 @@ bare `Frame` bytes through `host_apply`, with no `WasmEnvelope` (D55). The curre
 - **S1**: "A server App changes a signal, and every connected page shows the change."
 - **S2**: "A page joins late and gets the frames that it missed."
 - **S3**: "A page loses its connection and resumes after the last frame that it applied."
-- **S4**: "A data mount shows only the latest value."
+- **S4**: "A data mount applies the complete result of its request."
 - **S5**: "Local WASM logic changes the page with the same frames as the server."
 - **S6**: "A web page and a native app listen to one channel, and each gets its own forms."
 - **S7**: "A client asks to resume from a frame that the backlog no longer has."
@@ -62,7 +62,7 @@ bare `Frame` bytes through `host_apply`, with no `WasmEnvelope` (D55). The curre
 | U1 | Push | Server App | `stabilize()` with pending messages | One frame per mount surface, sent to each connection of that surface |
 | U2 | Join | Client | `LiveChannel::register(conn, caps, 0)` | The whole backlog, then live frames |
 | U3 | Resume | Client | `register(conn, caps, n)` | The frames after `n`, then live frames |
-| U4 | Latest only | `<mount-data>` on the frame protocol | Several frames before a flush | Only the newest applies |
+| U4 | Data request | `<mount-data>` on the frame protocol | One render reply | All messages in the reply apply in order |
 | U5 | Local frames | WASM App | `App::frames()` and `stabilize()` | A bare `Frame` through `host_apply`; the applicator applies it |
 | U6 | Close | Region unmount | `disconnectedCallback` | The transport disconnects (existing behaviour) |
 
@@ -70,8 +70,7 @@ bare `Frame` bytes through `host_apply`, with no `WasmEnvelope` (D55). The curre
 
 **Inside this feature:** `LiveChannel`, `LiveTx`, `FrameBroadcastSink`, `BacklogConfig`,
 `LiveError` in `foundation_wasm_ui::server`; `FrameV1` in `foundation_wasm_ui::protocol`
-and `App::frames`; the frame seam in `foundation-wasm.js`; the resume and latest-only
-behaviour of the mount elements in `foundation-ui-frames.js`.
+and `App::frames`; the frame seam in `foundation-wasm.js`; stream resume and one-shot data delivery in `foundation-ui-frames.js`.
 
 **Outside:**
 
@@ -142,7 +141,7 @@ Links to other entities: none
 | I4 | A push stores the frame before it sends it, and a register replays under the same lock, so a connection never misses a frame between its replay and its first live frame. |
 | I5 | A connection whose `send_binary` returns false is removed and gets no more frames. The other connections are not affected. |
 | I6 | When `max_frames` is set, `register` with `n` lower than `oldest - 1` (frames between were dropped) fails with `LiveError::ResumeTooOld` and sends nothing. |
-| I7 | A `<mount-data>` on the frame protocol applies only the newest queued frame of its stream at a flush. A `<mount-stream>` applies every frame. |
+| I7 | A data mount applies its complete reply. A stream mount applies each distinct frame in sequence, including frames queued before the same flush. |
 | I8 | A bare `Frame` from local WASM logic and a `Frame` from the server with the same messages give the same DOM. |
 | I9 | The existing `Broadcaster` tests and the existing mount tests pass with no change. |
 | I10 | Every message of a `Frame` holds its operation in one field: the `ui`, `web` or `mobile` union member. The channel does not choose a field for the sender (D41). |
@@ -237,11 +236,15 @@ Feature: Live mounts and server streams
     When the transport delivers frames with sequence 1, 2 and 3 that set node 42 to "a", "b", "c"
     Then node 42 showed "a", then "b", then "c"
 
-  Scenario: A mount-data on the frame protocol keeps the latest value
-    Given a <mount-data> created by LiveMount(kind Data, channel 9) on the frame protocol
-    When frames with sequence 1, 2 and 3 for stream 9 are queued before one flush
-    Then only the frame with sequence 3 applied
-    And the cursor of stream 9 is 3
+  Scenario: A data mount receives one complete todo render
+    Given one data request for the todo section
+    When the reply frame contains list rows, a submit binding and signed state attachments
+    Then the mount applies all messages from that frame in order
+
+  Scenario: Two completed renders arrive before one flush
+    Given one stream for a page with a list and a footer
+    When one frame renders the list and the next renders the footer
+    Then both sections update in sequence during that flush
 
   Scenario: A gap makes the mount reconnect with resume_from
     Given a <mount-stream api="/live" protocol="frame"> whose stream cursor is 19
@@ -292,7 +295,7 @@ backends/foundation_wasm_ui/src/app.rs                    App::frames
 backends/foundation_wasm_ui/tests/live_channel_tests.rs
 backends/foundation_wasm_ui/tests/frame_protocol_tests.rs
 backends/foundation_wasm/runtime/foundation-wasm.js       one seam (section 6.6)
-backends/foundation_wasm_ui/runtimes/foundation-ui-frames.js   mount resume and latest-only (section 6.5)
+backends/foundation_wasm_ui/runtimes/foundation-ui-frames.js   mount delivery and stream resume (section 6.5)
 backends/foundation_wasm_ui/integration/test/frames-live.test.js
 backends/foundation_browser/src/test/stream.rs            a `/live` frame route for the browser test
 ```
@@ -419,17 +422,14 @@ as `BroadcastSink` does.
 
 ### 6.5 The web side (`foundation-ui-frames.js`)
 
-1. **Latest only.** `FrameApplicator` gains `setLatestOnly(streamId, bool)`. In `flush`,
-   for a stream marked latest-only, apply only the last queued live frame of that stream;
-   the cursor still moves to that frame's sequence. Out-of-order rules do not apply to a
-   latest-only stream: a frame with a sequence above the cursor is queued at once, and one
-   at or below it is ignored.
+1. **Delivery.** Apply one data request’s complete reply. Apply distinct live frames in sequence, using feature 09’s duplicate and gap rules.
+   Two complete renders of the same count display can supersede each other visually. Applying both leaves the second count visible.
+   Two renders on one stream can also target different sections. A stream identifier alone gives no reason to skip either render.
 2. **Mount binding.** `installFrameRuntime` wraps the mount elements once: when a
    `mount-stream` or `mount-data` with `protocol="frame"` connects, read
    `data-channel-id` (a decimal `u64`; absent means the first frame's `stream_id` decides)
-   and `data-resume-from`; call `frames.setCursor(streamId, resumeFrom)` when
-   `resumeFrom > 0`; for `mount-data` with a `data-channel-id`, call
-   `setLatestOnly(streamId, true)`. Keep a `Map` from stream id to the mount element. Do
+   and `data-resume-from`; call `frames.setCursor(streamId, resumeFrom)` for a stream when
+   `resumeFrom > 0`. Keep a `Map` from stream id to the stream mount for reconnection. Do
    this by a `connectedCallback` hook: `installFrameRuntime` sets
    `wasmUi.Patcher.runtime.onMountConnect = (element) => {…}`, and section 6.7 adds the one
    call to it.
@@ -547,7 +547,7 @@ as the first statement inside the `try`:
 | Scenario: App sink | `live_channel_tests.rs::app_sink_turns_dom_ops_into_messages` (decode with `read_frame` and `columnar_rows`; compare with `web_form` of the DomOps that a `MockProtocol` App records for the same steps) | metamorphic |
 | I10 | `live_channel_tests.rs::every_message_holds_one_operation_field` (read the frame with `read_frame`; each `Message` sets exactly one of `ui`, `web`, `mobile`, `columnar`) | expected outcome |
 | Fault: encode error leaves the sequencer | `live_channel_tests.rs::write_error_uses_no_sequence` (a `WriterConfig` with `max_frame_bytes` 64) | fault |
-| I7; Scenarios: mount-stream, mount-data | `integration/test/frames-live.test.js` "mount-stream applies every frame", "mount-data keeps the latest value" | example |
+| I7; Scenarios: mount-stream, mount-data | `integration/test/frames-live.test.js` "mount-stream applies every frame", "mount-data applies a complete render", "list and footer both apply before one flush" | example |
 | Scenario: gap reconnect | `frames-live.test.js` "a gap reconnects with resume_from" (fake transport that records `connect` URLs) | example |
 | I8; Scenarios: local WASM frames, general ABI envelope | `tests/frame_protocol_tests.rs::frame_v1_ships_bare_frames` (native: the slot bytes pass `read_frame`); `frames-live.test.js` "dispatcher routes EWF1 to the frame handler", "a general ABI envelope still dispatches by protocol byte"; `frames-live.test.js` "local and server frames give the same DOM" (the same fixture through `frameHandler` and through `Patcher.route`) | example, metamorphic |
 | Local mount opens no network channel | `frames-live.test.js` "a local live mount does not connect" | example |
@@ -562,7 +562,7 @@ as the first statement inside the `try`:
 - [ ] 4. `FrameBroadcastSink` with its test.
 - [ ] 5. `FrameV1`, `App::frames`, `PROTOCOL_FRAME` with tests.
 - [ ] 6. The seam in `foundation-wasm.js`; the `wasmRuntime` option of `installFrameRuntime`.
-- [ ] 7. `setLatestOnly`, the mount binding, the resume, the local transport; the seam of section 6.7.
+- [ ] 7. One-shot delivery, the mount binding, the resume, the local transport; the seam of section 6.7.
 - [ ] 8. `frames-live.test.js`.
 - [ ] 9. The `/live` route in the test server and in `examples/ui_todo`; the browser test.
 - [ ] 10. Bump crate versions.

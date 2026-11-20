@@ -70,6 +70,11 @@ Calling `todo_page(ctx, &next)` writes the new todo section to the action’s re
 The frontend applies those instructions to the section. The helper returns `Html` for callers that compose views. This action discards the tree after a successful render.
 The receiver keeps the update for the existing component target. Each attachment describes the state supplied to that render.
 
+The action author expresses element changes through `html!`. The runtime generates the attribute, text and node operations.
+One successful call to `add_todo` delivers one reply frame. It contains the section, its event bindings and its signed attachments.
+Each `todo_row` contributes to that section. Returning a row or calling another template helper does not send a frame.
+A failed action discards the queued output and returns one error reply.
+
 ### 3. Connect the page and action handlers
 
 Both routes use the [protected request helper](../04-signed-state/feature.md#at-the-protected-route).

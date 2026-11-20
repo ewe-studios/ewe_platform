@@ -436,6 +436,14 @@ An action render without a component root returns `LowerError::NoComponentRoot`.
 The pure `lower` and `mount` functions remain for a page render (section 6.6). They are not
 used by the state field.
 
+**Render boundary (D61).** The outer page render or action collects the output of its template helpers.
+Its finalizer writes one frame for that render. The selected section can contain one element, several rows, or a whole page.
+For `<Text>{count.get()}</Text>`, the runtime tracks the signal read. A later change can queue a text operation during stabilization.
+That operation implements the author’s template. It leaves other elements and their signed state alone.
+
+**Acceptance test.** Render a todo section with two row helpers and a marked input. Record calls to the frame sink.
+Expect one frame containing the rows, the input binding and all requested attachments. Expect zero sends from the row helpers.
+
 ### 6.6 `foundation_ui_runtime::view`
 
 Add `foundation_ui_traits` and `foundation_ui_wire` as dependencies of

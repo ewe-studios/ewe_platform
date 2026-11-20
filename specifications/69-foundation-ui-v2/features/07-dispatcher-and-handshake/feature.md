@@ -177,8 +177,7 @@ Links to other entities: caps.actions is the sorted server action list for the s
 
 Fixtures: registry with `Increment` (feature 05 test action; state `Counter`,
 `COMPONENT_TYPE` 7) under `Origin::Server`; `HmacStateCodec` with key id 1; session
-`"sess-A"`; address `"10.0.0.1"`; clock at 1 000 000 s. `Increment` writes
-`SetText(42, next)` and `receiver.state(40, &next)`.
+`"sess-A"`; address `"10.0.0.1"`; clock at 1 000 000 s. The counter template generates `SetText(42, next)`. The receiver records the next state for node 40. Both go in one reply frame.
 
 ```gherkin
 Feature: Dispatcher and handshake
@@ -261,7 +260,7 @@ Feature: Dispatcher and handshake
 
   Scenario: An action error becomes one error control message
     Given an action that returns Err with ActionError code ActionFailed and message "no stock"
-    And the action wrote one SetText to the receiver before the error
+    And its template queued a text change before the error
     When the host calls dispatch
     Then the answer has ack equal to the request sequence
     And the answer has one Control{error} message with code ActionFailed and message "no stock"
@@ -274,7 +273,7 @@ Feature: Dispatcher and handshake
 
   Scenario: A native connection gets no web field in the answer
     Given a Connection for a native mount
-    And an action that pushes one Operation with ui SetText(42, "x") and web HtmlMorph(node 40, "<b>x</b>")
+    And the renderer fixture supplies an Operation with ui SetText(42, "x") and web HtmlMorph(node 40, "<b>x</b>")
     When the host calls dispatch
     Then the answer holds one Message whose operation.ui is SetText(42, "x")
     And no Message holds a web field

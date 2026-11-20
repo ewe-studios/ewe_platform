@@ -217,7 +217,7 @@ A **live mount** is a node region with four fields:
 
 | Field | Meaning |
 |---|---|
-| `kind` | `stream` for an ordered series of frames; `data` for the latest value only |
+| `kind` | `stream` for an ordered series of frames; `data` for one complete reply |
 | `channel_id` | the stream id that the frames carry ([02](./02-unified-wire-contract.md)) |
 | `transport` | `local`, `sse`, `websocket` or `http` |
 | `resume_from` | the last sequence id that the region applied |
@@ -228,8 +228,7 @@ The semantics are the same on every platform:
 2. It opens a channel over the chosen transport. The client can ask for SSE or WebSocket; the
    header negotiation tells it what the server serves (D25, D30).
 3. It applies frames in `sequence_id` order. A gap asks to resume from the last applied id.
-4. A `stream` region keeps every frame in order. A `data` region keeps the latest value and
-   drops older values.
+4. A `stream` region applies each distinct frame in order. A `data` region applies the complete reply to its request (D61).
 5. The region closes the channel when it unmounts.
 
 | Platform | Representation |

@@ -313,3 +313,5 @@ is recorded here as passed.
 - The todo route and action share one render function. The author chooses the page or section to emit. Feature 08 tests a section-only render.
 
 - Features 05 and 08 now distinguish the returned tree, receiver output and root placement. The todo helper returns its tree to callers that compose views.
+
+- Decision D61 defines the render boundary. Features 05, 07, 08 and 11 now use one complete render reply and ordered stream delivery.
