@@ -37,7 +37,7 @@ pub fn finish_frame(frame: &FrameT) -> Result<Vec<u8>, WireError> {
     Ok(builder.finished_data().to_vec())
 }
 
-/// Packs an owned signed state with its wire identifier.
+/// Packs a state that uses the optional `EWS1` envelope.
 #[must_use]
 pub fn finish_signed_state(state: &SignedStateT) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();

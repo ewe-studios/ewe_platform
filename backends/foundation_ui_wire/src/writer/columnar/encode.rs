@@ -88,7 +88,10 @@ fn fields(op: &UiOperationT, row: usize) -> Result<Fields<'_>, ColumnarError> {
         },
         UiOperationT::AttachState(v) => Fields {
             node: v.root_node,
-            blob: v.state.as_deref().unwrap_or_default(),
+            blob: v
+                .state
+                .as_deref()
+                .ok_or(ColumnarError::InvalidValue { row })?,
             ..Fields::default()
         },
         UiOperationT::ReplaceSubtree(_)

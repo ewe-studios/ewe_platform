@@ -1,8 +1,8 @@
 use alloc::{boxed::Box, vec, vec::Vec};
 
 use crate::{
-    read_signed_state, vocab::check_prop, ActionErrorT, ArrowIpcBlobT, ControlT, DataT,
-    MessagePackBlobT, MessageT, OperationT, ServerCapsT, UiOperationT,
+    vocab::check_prop, ActionErrorT, ArrowIpcBlobT, ControlT, DataT, MessagePackBlobT, MessageT,
+    OperationT, ServerCapsT, UiOperationT,
 };
 
 use super::{
@@ -65,11 +65,17 @@ fn validate_ui(
             })?;
         }
         UiOperationT::AttachState(attach) => {
-            let err = || WriteError::UnsealedState { message_index };
-            let bytes = attach.state.as_deref().ok_or_else(err)?;
-            let state = read_signed_state(bytes, config.wire_limits()).map_err(|_| err())?;
-            if !config.unsealed_state_allowed() && state.tag().is_none_or(|tag| tag.is_empty()) {
-                return Err(err());
+            let state = attach
+                .state
+                .as_ref()
+                .ok_or(WriteError::MissingState { message_index })?;
+            let limit = config.wire_limits().action_request_bytes();
+            if state.len() > limit {
+                return Err(WriteError::StateTooLarge {
+                    message_index,
+                    limit,
+                    actual: state.len(),
+                });
             }
         }
         UiOperationT::ReplaceSubtree(subtree) => {

@@ -26,7 +26,7 @@ pub fn read_frame<'a>(bytes: &'a [u8], limits: &WireLimits) -> Result<Frame<'a>,
     Ok(frame)
 }
 
-/// Verifies a signed state buffer with the action request size limit.
+/// Verifies the structure of an `EWS1` envelope with the action request size limit.
 ///
 /// # Errors
 ///

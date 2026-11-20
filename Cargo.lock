@@ -6446,13 +6446,15 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_runtime"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
- "flatbuffers",
+ "foundation_auth",
  "foundation_compact",
  "foundation_context",
+ "foundation_core",
  "foundation_ui_wire",
  "hmac 0.13.0",
+ "serde_json",
  "sha2 0.11.1",
  "subtle",
  "zeroize",
@@ -6464,7 +6466,7 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_ui_wire"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "flatbuffers",
  "foundation_errstacks",

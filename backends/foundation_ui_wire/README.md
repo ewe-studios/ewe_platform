@@ -2,14 +2,14 @@
 
 `foundation_ui_wire` is the binary contract for Foundation user interface (UI) requests and updates.
 Use it to send an event to application logic, return view changes, or exchange data with a renderer.
-The crate provides generated types, Rust readers that verify received bytes, and writers for frames and signed state.
+The crate provides generated types, Rust readers that verify received bytes, and writers for frames and the optional `EWS1` state envelope.
 Rendering, action dispatch, state authentication and network transport belong to their respective runtimes.
 
 For a Rust crate under `backends/`, add the local dependency to its `Cargo.toml`:
 
 ```toml
 [dependencies]
-foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.3" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.4" }
 ```
 
 The generated types and read functions are exported directly from `foundation_ui_wire`.
@@ -25,7 +25,7 @@ The transport must supply the boundary of each frame. The protocol specifies `ap
 | Root identifier | Read / write | Contents |
 |---|---|---|
 | `EWF1` | `read_frame` / `finish_frame` | A request or an ordered reply, with schema version, stream identifier and sequence number. |
-| `EWS1` | `read_signed_state` / `finish_signed_state` | A component state envelope, with key identifier, time range, session binding, body and authentication tag. |
+| `EWS1` | `read_signed_state` / `finish_signed_state` | An optional state format with key identifier, time range, session binding, body and authentication tag. |
 
 `SCHEMA_VERSION` is 1. The vocabulary version in a hello describes the available elements and properties. It has a separate version number.
 A reader borrows the received bytes. Keep the buffer alive while using the view. Rust uses the standard library by default and also supports `no_std` with allocation.
@@ -59,7 +59,11 @@ The runtime design permits a missing host handler to fall forward as `server:nam
 The shared event vocabulary contains tap, change, submit, focus and blur.
 An `ActionRequest` names the action and triggering node. Its optional input holds the event name, value, checked state, key code, modifiers and parent node.
 The modifier bits are Alt (1), Control (2), Shift (4) and Meta (8).
-The optional state bytes hold the component root's signed envelope. A successful structural read does not authenticate that envelope.
+The host signs its state before the writer builds an `AttachState` operation. The signer chooses the byte format.
+The renderer stores those bytes on the target and returns the triggering node’s own bytes in `ActionRequest.state`.
+The writer checks that the attachment has a vector within the configured byte limit. The vector can contain any signer output.
+The host uses the request signer to verify the returned bytes. Structural frame verification only checks the wire.
+The `EWS1` functions serve callers that explicitly choose that envelope.
 [Action input](schema/action.fbs) · [Shared vocabulary](schema/common.fbs) · [Runtime routing design](../../specifications/69-foundation-ui-v2/features/10-web-action-manager/feature.md)
 
 An **operation** is a typed instruction in a reply. The schema defines 31 operation forms.
@@ -207,10 +211,11 @@ A **fixture** is a checked-in binary with known inputs and expected fields. Rust
 | `frame_columnar_3rows.bin`, `frame_data_table.bin` | Aligned numeric vectors and typed application data. |
 | `frame_error.bin`, `frame_state_expired.bin`, `caps_actions.bin` | Action failure, expired state and advertised server actions. |
 | `action_increment.bin`, `hello_web.bin`, `state_counter.bin` | Action with embedded state, stream handshake and the separate state envelope. |
+| `state_counter_custom.json`, `frame_state_custom.bin`, `action_increment_custom.bin` | A custom signer’s JSON wrapper, identical attachments on nodes 40 and 42, and the exact bytes returned by node 42. |
 | `frame_unknown_op.bin` | An unknown tag alongside a valid operation payload. |
 
 1. Add a deterministic value and filename to [fixtures_tests.rs](tests/fixtures_tests.rs). Use generated types and explicit identifiers.
-2. For a frame, call `finish_frame`. For a separate state, call `finish_signed_state`. Use the aligned builder for columnar data.
+2. For a frame, call `finish_frame`. For a separate `EWS1` sample, call `finish_signed_state`. For another format, use that signer’s output. Use the aligned builder for columnar data.
 3. Add assertions in [fixtures.test.mjs](tests/ts/fixtures.test.mjs) for the decoded fields. Use JavaScript `bigint` for 64-bit integer assertions.
 4. Write the fixture files once. Inspect the changed filenames. Run the tests again with updates off.
 

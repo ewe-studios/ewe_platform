@@ -254,9 +254,7 @@ fn writer_defaults_and_capabilities_match_current_vocabulary() {
     let config = WriterConfig::default();
     assert_eq!(config.table_rows(), 8192);
     assert_eq!(config.wire_limits(), &WireLimits::default());
-    assert!(!config.unsealed_state_allowed());
-    assert_eq!(config.clone().max_table_rows(0).table_rows(), 1);
-    assert!(config.allow_unsealed_state(true).unsealed_state_allowed());
+    assert_eq!(config.max_table_rows(0).table_rows(), 1);
     assert_eq!(
         ClientCaps::web_current(),
         ClientCaps {

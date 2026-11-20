@@ -429,3 +429,5 @@ ASD-STE100.
 - The server signal and browser island examples demonstrate content delivery. They do not couple two Rust signal graphs. A socket handoff and action completion have separate lifetimes.
 
 - A genuine attachment can outlive a domain change. A state-only update can also make the bound input newer than its visible label.
+
+- The signer checks binding and expiry. A wire reader only bounds and copies its bytes. Request forks and persistent hosts both use the same signer interface. A context clone shares its entries. A fork isolates request binding changes.

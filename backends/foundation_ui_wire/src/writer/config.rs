@@ -30,14 +30,13 @@ impl ClientCaps {
     }
 }
 
-/// Settings for frame size, table rows and unsealed state.
+/// Settings for frame sizes and table rows.
 ///
-/// The defaults use the standard wire limits and reject unsealed state.
+/// The defaults use the standard wire limits.
 /// Each table frame has at most 8192 rows, the `DataFusion` default batch size.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WriterConfig {
     table_rows: usize,
-    unsealed_state_allowed: bool,
     wire_limits: WireLimits,
 }
 
@@ -45,7 +44,6 @@ impl Default for WriterConfig {
     fn default() -> Self {
         Self {
             table_rows: 8192,
-            unsealed_state_allowed: false,
             wire_limits: WireLimits::default(),
         }
     }
@@ -60,12 +58,6 @@ impl WriterConfig {
     }
 
     #[must_use]
-    pub fn allow_unsealed_state(mut self, allow: bool) -> Self {
-        self.unsealed_state_allowed = allow;
-        self
-    }
-
-    #[must_use]
     pub fn limits(mut self, limits: WireLimits) -> Self {
         self.wire_limits = limits;
         self
@@ -74,11 +66,6 @@ impl WriterConfig {
     #[must_use]
     pub fn table_rows(&self) -> usize {
         self.table_rows
-    }
-
-    #[must_use]
-    pub fn unsealed_state_allowed(&self) -> bool {
-        self.unsealed_state_allowed
     }
 
     #[must_use]

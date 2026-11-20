@@ -319,3 +319,5 @@ is recorded here as passed.
 - Added research study 15 and linked it from the requirements. The action plans now describe HTTP deadlines, socket handoff and asynchronous Rust completion. The renderer plans specify local scope disposal.
 
 - Feature 08 specifies targeted append, insert, swap and removal. Feature 04 explains independent state and view updates with a signed todo row.
+
+- Feature 04 is complete. Runtime 0.0.2 installs context-bound signers. Wire 0.0.4 transports their bytes. Protected route, custom fixture and Wasm entropy checks pass. Feature 05 distinguishes the shared persistent context from each action receiver.

@@ -15,3 +15,12 @@ fn supplied_nonce_preserves_the_wire_format() {
         ciphertext
     );
 }
+
+#[test]
+fn changed_tag_fails_to_decrypt() {
+    let key = ChaChaKey::from_bytes([7; 32]);
+    let mut ciphertext = encrypt_with_nonce(&key, [4; 12], b"counter").unwrap();
+    let tag_byte = ciphertext.last_mut().expect("ciphertext includes a tag");
+    *tag_byte ^= 1;
+    assert!(decrypt(&key, &ciphertext).is_err());
+}

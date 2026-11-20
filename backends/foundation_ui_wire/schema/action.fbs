@@ -5,8 +5,7 @@ namespace ewe.ui;
 table ActionInput { event_name: string; value: string; checked: bool; key_code: uint;
   modifiers: ubyte; parent_node: uint; }
 // The frame holds the schema version, the stream and the sequence, so this table does not
-// repeat them (D47). `state` is the signed state of the component root (an EWS1 buffer), or
-// empty.
+// repeat them (D47). The triggering node returns the signer bytes from its attachment, or empty bytes.
 table ActionRequest {
   action: string;          // "server:name"
   node_id: uint;

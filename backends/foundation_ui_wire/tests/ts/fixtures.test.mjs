@@ -197,6 +197,17 @@ test('server capabilities contain the action name and exact 64-bit hash', () => 
   });
 });
 
+test('custom signer bytes travel unchanged on both attachments and the triggering node request', () => {
+  const bytes = [...readFileSync(new URL('../../fixtures/state_counter_custom.json', import.meta.url))];
+  const { messages } = frameMessage('frame_state_custom').unpack();
+  assert.deepEqual(messages.map(({ operation }) => operation.uiType), [UiOperation.AttachState, UiOperation.AttachState]);
+  assert.deepEqual(messages.map(({ operation }) => operation.ui.rootNode), [40, 42]);
+  for (const { operation } of messages) assert.deepEqual(operation.ui.state, bytes);
+  const { action } = frame('action_increment_custom').unpack().kind;
+  assert.equal(action.nodeId, 42);
+  assert.deepEqual(action.state, bytes);
+});
+
 test('signed state preserves header, session binding, body, and tag', () => {
   const buffer = new ByteBuffer(fixture('state_counter'));
   assert.ok(SignedState.bufferHasIdentifier(buffer));

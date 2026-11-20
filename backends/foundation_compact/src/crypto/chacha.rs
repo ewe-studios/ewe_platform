@@ -3,6 +3,13 @@
 //! Uses [`EncryptionKey<32>`] (256-bit) for the key and a 12-byte random nonce.
 //! Output format: `nonce (12 bytes) || ciphertext || tag (16 bytes)`.
 //! Decrypted plaintext is returned as [`SecureBytes`] (zeroed on drop).
+//!
+//! Use [`encrypt_with_nonce`] when a host provides the random source.
+//! A native host can seed its generator from operating system entropy.
+//! On WebAssembly, the `wasm-bindgen` backend calls Web Crypto.
+//! The `host-abi` backend uses the embedding runtime's `host_fill_random` import.
+//! Both report a missing entropy source through [`crate::entropy::fill`].
+//! A fixed nonce is suitable for a test vector. Real encryption requires a unique nonce per key.
 
 use chacha20poly1305::{
     aead::{Aead, KeyInit},

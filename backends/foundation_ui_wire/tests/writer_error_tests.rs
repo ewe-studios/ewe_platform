@@ -1,7 +1,10 @@
 use foundation_ui_wire::{
     finish_signed_state, read_frame,
     vocab::{PropKind, VocabError},
-    writer::{write_messages, ClientCaps, FrameHeader, WriteError, WriterConfig},
+    writer::{
+        columnar_batch, write_messages, ClientCaps, ColumnarError, FrameHeader, WriteError,
+        WriterConfig,
+    },
     AttachStateT, MessageT, OperationT, Platform, PropId, PropValueT, ReplaceSubtreeT, SetPropT,
     SetTextT, SignedStateT, TextValueT, UiOperationT, WebOperationT, WireLimits,
 };
@@ -69,72 +72,68 @@ fn empty_messages_and_operations_are_rejected() {
 }
 
 #[test]
-fn unsealed_state_is_rejected() {
+fn attachment_requires_a_byte_vector() {
     let caps = ClientCaps::web_current();
+    assert_eq!(
+        write_messages(
+            vec![message(attach(None))],
+            &caps,
+            HEADER,
+            &WriterConfig::default()
+        ),
+        Err(WriteError::MissingState { message_index: 0 })
+    );
+    assert_eq!(
+        columnar_batch(&[attach(None)]),
+        Err(ColumnarError::InvalidValue { row: 0 })
+    );
+}
+
+#[test]
+fn signer_bytes_are_opaque_to_the_writer() {
     let config = WriterConfig::default();
     for bytes in [
-        None,
-        Some(finish_signed_state(&SignedStateT::default())),
-        Some(finish_signed_state(&table!(SignedStateT {
-            tag: Some(vec![])
-        }))),
+        vec![],
+        vec![0xff, 0, 0xfe],
+        finish_signed_state(&SignedStateT::default()),
     ] {
-        let input = vec![message(attach(bytes))];
+        let input = vec![message(attach(Some(bytes)))];
+        let (frame, _) =
+            write_messages(input.clone(), &ClientCaps::web_current(), HEADER, &config).unwrap();
         assert_eq!(
-            write_messages(input, &caps, HEADER, &config),
-            Err(WriteError::UnsealedState { message_index: 0 }),
+            read_frame(&frame, config.wire_limits())
+                .unwrap()
+                .kind_as_frame_message()
+                .unwrap()
+                .unpack()
+                .messages,
+            Some(input),
         );
     }
 }
 
 #[test]
-fn unsealed_state_is_allowed_by_config() {
-    let config = WriterConfig::default().allow_unsealed_state(true);
-    let state = finish_signed_state(&table!(SignedStateT {
-        root_node: 40,
-        body: Some(vec![1, 2])
-    }));
-    let input = vec![message(attach(Some(state)))];
-    let (frame, report) =
-        write_messages(input.clone(), &ClientCaps::web_current(), HEADER, &config).unwrap();
-    assert_eq!(
-        read_frame(&frame, config.wire_limits())
-            .unwrap()
-            .kind_as_frame_message()
-            .unwrap()
-            .unpack()
-            .messages,
-        Some(input),
-    );
-    assert_eq!(report.filtered, []);
-}
-
-#[test]
-fn invalid_or_large_state_fails_when_unsealed_state_is_allowed() {
-    let caps = ClientCaps::web_current();
-    let config = WriterConfig::default().allow_unsealed_state(true);
-    let state = finish_signed_state(&table!(SignedStateT {
-        root_node: 40,
-        body: Some(vec![1, 2]),
-        tag: Some(vec![3]),
-    }));
-    let examples = [
-        (vec![1, 2, 3], config.clone()),
-        (
-            state,
-            config.limits(WireLimits::default().max_action_request_bytes(8)),
-        ),
-    ];
-    for (state, config) in examples {
+fn oversized_attachment_is_rejected_in_nested_and_columnar_forms() {
+    let config = WriterConfig::default().limits(WireLimits::default().max_action_request_bytes(8));
+    let row = attach(Some(vec![0; 9]));
+    let batch = columnar_batch(core::slice::from_ref(&row)).unwrap();
+    for operation in [
+        table!(OperationT { ui: row }),
+        table!(OperationT {
+            columnar: Some(Box::new(batch))
+        }),
+    ] {
         let input = vec![
             message(UiOperationT::SetText(Box::default())),
-            subtree(vec![table!(OperationT {
-                ui: attach(Some(state))
-            })]),
+            subtree(vec![operation]),
         ];
         assert_eq!(
-            write_messages(input, &caps, HEADER, &config),
-            Err(WriteError::UnsealedState { message_index: 1 }),
+            write_messages(input, &ClientCaps::web_current(), HEADER, &config),
+            Err(WriteError::StateTooLarge {
+                message_index: 1,
+                limit: 8,
+                actual: 9
+            }),
         );
     }
 }

@@ -581,6 +581,9 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
   `swift test --package-path native/ios/EweUI`, and `scripts/ui_native/build-ios.sh`
   followed by `xcodebuild build` of the example for the simulator.
 
+Use `frame_state_custom.bin` and `action_increment_custom.bin` from the wire fixtures.
+Check that nodes 40 and 42 receive the bytes of `state_counter_custom.json` and that a submit on node 42 returns them unchanged.
+
 ## 7. Tests
 
 Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in

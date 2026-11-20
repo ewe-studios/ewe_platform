@@ -136,7 +136,7 @@ design makes one choice. Each row says why.
 | # | Research | This design | Why |
 |---|---|---|---|
 | R1 | `Body.StateUpdate: SignedState`, and a dispatcher sketch that puts ops and state in one frame | State travels only as the cross-platform op `AttachState`. There is no `StateUpdate` body | A change has one form (D36). The state rides on the view (research 07). One frame holds the view and its state, so they cannot arrive apart |
-| R2 | `SignedState` as a table field | `[ubyte]`, an `EWS1` buffer; the owner calls `read_signed_state` first in its ordered checks (feature 04 section 6.6) | The client returns the exact bytes. It never builds the table again (D12, "never edited"). A `nested_flatbuffer` would make the frame verifier decode attacker bytes before feature 04 checks the tag |
+| R2 | State in a frame | A byte vector owned by the selected signer. | The renderer returns the exact bytes. The wire checks the size. The host signer verifies the format. |
 | R3 | The shared runtime crate has no name | `foundation_ui_runtime` | `foundation_ui_traits` stays `no_std` and dependency-free (research 02 section 4) |
 | R4 | The cross-platform set has six forms | It adds `InsertBefore`, `BindAction`, `UnbindAction`, `AttachState` and `LiveMount` | A list insert, an event binding, the state and a live mount exist on every platform. Each has one form. D59 confirms the result: the shared set is twelve types, and the shared behaviour joins it (D56) |
 | R5 | The 19 `DomOp` variants "become the web subset" | Sixteen web forms carry them; five variants use four shared types (feature 02 section 6.4) | D27 needs the same web function before the old code retires. D53 and D59 give the exact split |
@@ -285,7 +285,7 @@ sequenceDiagram
     U->>C: tap on node 42 (bound to server:toggle_todo)
     C->>C: read the attachment on the bound control
     C->>D: Frame(kind FrameRequest, seq 5, action, node 42, input, state)
-    D->>D: verify state (key, tag, expiry, session, component)
+    D->>D: verify attached bytes with the request signer and trusted binding
     D->>A: call(ctx, Interaction<Todo>)
     A-->>D: Ok(()); the receiver holds the ops and the AttachState
     D->>D: drain the receiver; seal each AttachState; gate; build the message list
@@ -321,7 +321,7 @@ ActionRequest{ action, node_id, input, state }        (the frame holds the rest)
 ClientHello  { vocabulary_version, platform, mount, resume_from }
 ServerCaps   { status, schema_version, vocabulary_version, stream_id, resume_from,
                actions: [ServerAction { hash, name }] }
-SignedState  { format_version, flags, key_id, issued_at, expires_at, component_type,
+Legacy EWS1 fixture format: SignedState { format_version, flags, key_id, issued_at, expires_at, component_type,
                root_node, session_binding, body, tag }
 ```
 
@@ -391,7 +391,7 @@ in parallel.
 | 01 | [wire-schema-and-codegen](./features/01-wire-schema-and-codegen/feature.md) | The `foundation_ui_wire` crate, the schema, generated code for four languages from the pinned `flatc`, the reader and limits | 17 | Sonnet | Standard | ✅ Complete |
 | 02 | [vocabulary-and-platform-forms](./features/02-vocabulary-and-platform-forms/feature.md) | Core kinds and props, the web and mobile name tables, the behaviour name tables, the vocabulary version | 01 | Sonnet | Standard | ✅ Complete |
 | 03 | [frame-writer](./features/03-frame-writer/feature.md) | The frame writer, the gate, the sequencer | 01, 02 | Sonnet | Standard | ✅ Complete |
-| 04 | [signed-state](./features/04-signed-state/feature.md) | A host-installed state signer, readable or private state, and compact encryption on native and Wasm hosts | 01 | Sonnet | Runtime | 🔄 In Progress |
+| 04 | [signed-state](./features/04-signed-state/feature.md) | A host-installed state signer, readable or private state, and compact encryption on native and Wasm hosts | 01 | Sonnet | Runtime | ✅ Complete |
 | 05 | [action-runtime](./features/05-action-runtime/feature.md) | `Ctx`, `Context`, `Interaction`, `Receiver`, the registry, the action manager | 01, 04 | Sonnet | Runtime | ⬜ Pending |
 | 06 | [action-macro](./features/06-action-macro/feature.md) | The `#[action]` attribute macro | 05 | Sonnet | Runtime | ⬜ Pending |
 | 07 | [dispatcher-and-handshake](./features/07-dispatcher-and-handshake/feature.md) | The stateless dispatcher, the delivery handler, `ClientHello` and `ServerCaps` | 03, 04, 05 | Sonnet | Runtime | ⬜ Pending |

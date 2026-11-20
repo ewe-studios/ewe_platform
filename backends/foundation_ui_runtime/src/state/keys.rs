@@ -2,33 +2,29 @@ use core::fmt;
 use std::collections::BTreeMap;
 
 use foundation_compact::crypto::chacha::ChaChaKey;
-use subtle::ConstantTimeEq;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroize;
 
 use super::StateError;
 
-/// Holds two separate 32-byte secrets. The key storage clears on drop.
+/// Holds a key identifier and a 32-byte secret. The secret clears on drop.
 pub struct StateKey {
     id: u32,
-    pub(super) mac: Zeroizing<[u8; 32]>,
-    pub(super) enc: ChaChaKey,
+    pub(super) secret: ChaChaKey,
 }
 
 impl StateKey {
-    /// Makes a key with a positive identifier and two different secrets.
+    /// Makes a key with a positive identifier and a host-supplied secret.
     ///
     /// # Errors
     ///
-    /// Returns an error if the identifier is zero or the secrets are equal.
-    pub fn new(id: u32, mut mac: [u8; 32], mut enc: [u8; 32]) -> Result<Self, StateError> {
+    /// Returns an error if the identifier is zero.
+    pub fn new(id: u32, mut secret: [u8; 32]) -> Result<Self, StateError> {
         let key = Self {
             id,
-            mac: Zeroizing::new(mac),
-            enc: ChaChaKey::from_bytes(enc),
+            secret: ChaChaKey::from_bytes(secret),
         };
-        mac.zeroize();
-        enc.zeroize();
-        if id == 0 || bool::from(key.mac.ct_eq(key.enc.as_bytes())) {
+        secret.zeroize();
+        if id == 0 {
             return Err(StateError::BadKey);
         }
         Ok(key)

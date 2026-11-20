@@ -321,11 +321,56 @@ fn unknown_operation_bytes(counter: &[u8]) -> Vec<u8> {
     bytes
 }
 
+fn counter_action_bytes(state: Vec<u8>) -> Vec<u8> {
+    finish_frame(&request_frame(
+        7,
+        5,
+        table!(FrameRequestT {
+            action: Some(Box::new(table!(ActionRequestT {
+                action: Some("server:increment_counter".into()),
+                node_id: 42,
+                input: Some(Box::new(table!(ActionInputT {
+                    event_name: Some("tap".into())
+                }))),
+                state: Some(state),
+            }))),
+        }),
+    ))
+    .unwrap()
+}
+
+fn custom_attachment_bytes(state: &[u8]) -> Vec<u8> {
+    let messages = [40, 42]
+        .into_iter()
+        .map(|root| {
+            message(table!(OperationT {
+                ui: UiOperationT::AttachState(Box::new(table!(AttachStateT {
+                    root_node: root,
+                    state: Some(state.to_vec()),
+                }))),
+            }))
+        })
+        .collect();
+    writer::write_messages(
+        messages,
+        &writer::ClientCaps::web_current(),
+        writer::FrameHeader {
+            stream_id: 7,
+            sequence_id: 20,
+            ack: 5,
+        },
+        &writer::WriterConfig::default(),
+    )
+    .unwrap()
+    .0
+}
+
 #[test]
 fn fixtures_match_built_values() {
     let counter = finish_frame(&counter_frame()).unwrap();
     let unknown = unknown_operation_bytes(&counter);
     let state = state_bytes();
+    let custom_state = include_bytes!("../fixtures/state_counter_custom.json");
     let frames = [
         ("frame_ops_counter.bin", counter),
         (
@@ -354,23 +399,14 @@ fn fixtures_match_built_values() {
             .unwrap(),
         ),
         ("frame_unknown_op.bin", unknown),
+        ("action_increment.bin", counter_action_bytes(state.clone())),
         (
-            "action_increment.bin",
-            finish_frame(&request_frame(
-                7,
-                5,
-                table!(FrameRequestT {
-                    action: Some(Box::new(table!(ActionRequestT {
-                        action: Some("server:increment_counter".into()),
-                        node_id: 42,
-                        input: Some(Box::new(table!(ActionInputT {
-                            event_name: Some("tap".into())
-                        }))),
-                        state: Some(state.clone()),
-                    }))),
-                }),
-            ))
-            .unwrap(),
+            "action_increment_custom.bin",
+            counter_action_bytes(custom_state.to_vec()),
+        ),
+        (
+            "frame_state_custom.bin",
+            custom_attachment_bytes(custom_state),
         ),
         (
             "hello_web.bin",

@@ -98,3 +98,10 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [lints.clippy]
 pedantic = "warn"
+
+# The integration harness builds this module for each supported WebAssembly host.
+[[example]]
+name = "compact_crypto_probe"
+path = "tests/wasm_hosts/probe.rs"
+crate-type = ["cdylib"]
+required-features = ["crypto-chacha"]

@@ -143,7 +143,7 @@ Links to other entities: every index in `replaced_kinds` is the index of a kept 
 | I6 | Every `[uint]`, `[int]`, `[long]` and `[double]` vector in a `ColumnarBatch`, `DataTable` or `ArrowIpcBlob` that the writer makes starts on an 8-byte boundary of the buffer. |
 | I7 | A frame longer than `max_frame_bytes` is never returned. |
 | I8 | A `SetProp` whose value type does not match its property is never written. |
-| I9 | An `AttachState` whose state has an empty `tag` is never written, unless `allow_unsealed_state` is true. |
+| I9 | The writer preserves the exact bytes in each `AttachState.state` vector. The signer owns its contents. |
 | I10 | `StreamSequencer::next` advances by one until it reaches the maximum unsigned 64-bit value. It then stays at that value. |
 | I11 | Each frame of `table_frames` has at most `max_table_rows` rows, and the rows of all frames, in order, are the rows of the input. |
 | I12 | A top-level `Message` whose `operation` has no field set after the gate is removed and listed with part `Message`. |
@@ -151,8 +151,7 @@ Links to other entities: every index in `replaced_kinds` is the index of a kept 
 
 ### 4.3 Must have
 
-- `WriterConfig` with `max_table_rows` (default 8192), `allow_unsealed_state` (default false)
-  and a `WireLimits`. There is no threshold and no tier choice (D41).
+- `WriterConfig` with `max_table_rows` (default 8192) and a `WireLimits`. There is no threshold and no tier choice (D41).
 - One gate filters all operation messages. Data and control wrappers carry no operations.
 
 ### 4.4 Must do
@@ -228,11 +227,11 @@ Feature: The frame writer
     Then the call fails with WriteError::Vocab(PropKindMismatch { .. }) at message 0
     And no bytes are returned
 
-  Scenario: An unsealed state is rejected
-    Given AttachState(root 40) whose SignedState has an empty tag
-    And the default WriterConfig
+  Scenario: A signer chooses the attachment format
+    Given an AttachState for node 42 holding a signed JSON wrapper
     When the producer calls write_messages
-    Then the call fails with WriteError::UnsealedState { message_index: 0 }
+    Then the attachment contains the exact wrapper bytes
+    And an action request can return the same bytes from node 42
 
   Scenario: A frame above the limit is rejected
     Given one Message whose operation.ui is SetText with a text of 2000 bytes
@@ -286,10 +285,9 @@ impl ClientCaps {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WriterConfig { /* private fields */ }
-impl Default for WriterConfig { /* 8192, false, WireLimits::default() */ }
+impl Default for WriterConfig { /* 8192, WireLimits::default() */ }
 impl WriterConfig {
     #[must_use] pub fn max_table_rows(self, rows: usize) -> Self;   // must be > 0
-    #[must_use] pub fn allow_unsealed_state(self, allow: bool) -> Self;
     #[must_use] pub fn limits(self, limits: WireLimits) -> Self;
     // one getter for each field
 }
@@ -316,7 +314,8 @@ pub struct WriteReport {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum WriteError {
     Vocab { message_index: usize, error: VocabError },
-    UnsealedState { message_index: usize },
+    MissingState { message_index: usize },
+    StateTooLarge { message_index: usize, actual: usize, limit: usize },
     /// A Message whose operation has no field set.
     EmptyMessage { message_index: usize },
     TooLarge { limit: usize, actual: usize },
@@ -411,9 +410,8 @@ _The diagram shows the fixed order of the steps of one write._
 1. **Validate** each message and each nested operation of a `ReplaceSubtree`, in order:
    - a `Message` with no field set, or an `operation` with no field set, gives `EmptyMessage`;
    - `SetProp`: `check_prop`; an error gives `Vocab`;
-   - `AttachState`: read the `state` bytes with `read_signed_state`; a read error or an empty
-     `tag` gives `UnsealedState`, unless `allow_unsealed_state` is true (then only a read
-     error fails).
+   - `AttachState` requires a byte vector. Missing bytes give `MissingState`.
+     A vector over the action request size limit gives `StateTooLarge`. Its format belongs to the signer.
    The `message_index` is the index of the top-level message.
 2. **Gate** (section 6.3).
 3. **Encode.** Build a `FrameT` with `schema_version: SCHEMA_VERSION`, the header values and
@@ -508,7 +506,7 @@ with `create_aligned_vector`.
 
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
-| Validate | Stops at the first bad message | `WriteError::{Vocab, UnsealedState, EmptyMessage, Columnar}` with the message index | nothing |
+| Validate | Stops at the first bad message | `WriteError::{Vocab, MissingState, StateTooLarge, EmptyMessage, Columnar}` with the message index | nothing |
 | Gate: unknown vocabulary version | Stops | `WriteError::UnknownVocabularyVersion` | nothing |
 | Encode: the frame builder rejects the root | Stops | `WriteError::Wire`; only `NoKind` is possible and the writer always sets the kind | nothing |
 | Size check | Drops the encoded bytes | `WriteError::TooLarge` | nothing. The caller's sequencer did advance if the caller took the header from it; the next frame then has a gap of one, which a client treats as a gap and resumes (feature 11). Callers that must not skip a number call `write_messages` with a header built from `sequencer.last() + 1` and call `next()` only on success |
@@ -534,7 +532,7 @@ All in `backends/foundation_ui_wire/tests/`. Use `ClientCaps::web_current()` and
 | I6 | `align_tests.rs` for 1, 3, 65 and 1000 rows, and for a table frame | property |
 | I7; Scenario: A frame above the limit | `writer_error_tests.rs::frame_above_limit_is_rejected` | expected outcome |
 | I8; Scenario: A wrong property value | `writer_error_tests.rs::wrong_prop_value_is_rejected` | expected outcome |
-| I9; Scenario: An unsealed state | `writer_error_tests.rs::unsealed_state_is_rejected`, `::unsealed_state_is_allowed_by_config` | expected outcome |
+| I9; Scenario: A signer chooses the attachment format | `writer_error_tests.rs::signer_bytes_are_opaque_to_the_writer`, `::attachment_requires_a_byte_vector`, `::oversized_attachment_is_rejected_in_nested_and_columnar_forms` | expected outcome |
 | I10 | `sequencer_tests.rs::next_is_strictly_increasing`, `::resume_continues_after_last` | property |
 | I11; Scenario: A table of 20000 rows | `writer_table_tests.rs::table_splits_by_rows`, `::validity_bits_follow_rows`, `::empty_table_gives_one_frame` | example |
 | I12 | `writer_gate_tests.rs::empty_operation_after_gate_is_removed` | example |

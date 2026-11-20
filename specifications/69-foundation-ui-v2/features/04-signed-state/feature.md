@@ -1,6 +1,6 @@
 ---
 feature: "signed-state"
-status: "approved"
+status: "complete"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen"]
 crates: ["foundation_ui_runtime", "foundation_compact", "foundation_ui_wire"]
@@ -41,14 +41,14 @@ The next submit uses the new attachment on that input. Other controls keep their
 Cross-site scripting (XSS) means untrusted script runs in the application’s page.
 Such a script could trigger Alice’s existing submit control. The normal handler would send the genuine attachment under her active session.
 This requires no signing key or change to the signed bytes. A per-user binding can reject Alice’s bytes in Bob’s context.
-Prevent script injection by rendering todo text as text and keeping untrusted content out of executable markup.
+The application chooses how it handles and renders untrusted content.
 
 ## The contract
 
 The host installs a signer in its context (`Ctx`). It can also supply a **signing binding**: stable bytes that restrict where state verifies.
 The component’s action binding selects a handler. The signing binding selects which host context can verify its bytes.
 
-These are proposed Rust interfaces.
+The runtime exposes these Rust interfaces.
 
 ```rust
 pub trait StateSigner: Send + Sync {
@@ -93,7 +93,7 @@ It gives that context to `SessionManager::new`. Its dashboard handler reads the 
 A successful lookup gives the handler a trusted `session.user_id`.
 See the [worker setup and dashboard handler](../../../../examples/cf-login-app/src/lib.rs) and [session lookup](../../../../backends/foundation_auth/src/shared/session.rs).
 
-Extend that setup as shown below. `App` is the application's long-lived state. The signer and dispatcher interfaces are proposed.
+Extend that setup as shown below. `App` is the application's long-lived state. The signer is available now. Features 05 and 07 supply the registry and dispatcher.
 The host configuration supplies the state signing key. Restarts and replicas that serve the same state need compatible keys.
 
 ```rust
@@ -107,7 +107,7 @@ registry.register(add_todo)?;
 let app = App { base, sessions, dispatcher: Dispatcher::new(registry) };
 ```
 
-The proposed `install_state_signer` helper stores a `SignerEntry` with the supplied signer and an absent binding.
+The `install_state_signer` helper stores a `SignerEntry` with the supplied signer and an absent binding.
 
 ### At the protected route
 
@@ -136,10 +136,10 @@ The cookie proves the session through lookup. The verified user identifier suppl
 The application stores `CurrentUser` on the same fork so its data access code can authorize the list read and later updates.
 
 ```rust
-// Proposed runtime helper. Ctx::fork, get and store already exist.
+// Runtime helper. The fork shares the host services.
 fn with_state_binding(base: &Ctx, value: &[u8]) -> Result<Ctx, StateError> {
-    let entry = base.get::<SignerEntry>().ok_or(StateError::MissingSigner)?;
     let child = base.fork();
+    let entry = child.get::<SignerEntry>().ok_or(StateError::MissingSigner)?;
     child.store(SignerEntry {
         signer: Arc::clone(&entry.signer),
         binding: Some(Arc::from(value)),
@@ -212,7 +212,7 @@ A changed tag fails. Exercise the native helper and each supported Wasm host pat
 3. Encode binding presence and length explicitly. Distinguish an absent binding from a supplied empty value. For ChaCha, authenticate the binding inside the encrypted payload or as associated data.
 4. Check configured size limits before allocating or decoding. Return the body only after all checks pass.
 5. Treat `AttachState.state` and `ActionRequest.state` as byte vectors in the wire writer, schema comments and package guide.
-   The current writer requires an `EWS1` table with a tag. Move format validation into the selected signer.
+   The wire writer enforces presence and size. The selected signer validates its own format.
 6. Keep the existing `EWS1` fixtures as examples of that format. Test a second signer with a different format.
 7. Update the runtime README with one readable counter and one private counter. Run both examples.
 
@@ -222,13 +222,15 @@ Advance the injected test clock to the expiry time. Check that repeated private 
 ## Scope and verification
 
 Request throttling belongs at the host request boundary. A host can reject repeated requests before dispatch.
-The signer has no caller-address table. Remove the prototype limiter dependency from the dispatcher plan when adopting this revision.
+The signer has no caller-address table. The host owns request throttling.
 
-The existing implementation uses `StateCodec` and a fixed envelope. Its passing tests describe that prototype.
-The owner approved the signer migration. Update features 03 and 07 and their tests in the same implementation.
+The built-in signers replace the prototype codec. The old wire fixtures remain readable. Hosts moving from the prototype must issue fresh state or supply a compatible signer.
+See the [runtime examples](../../../../backends/foundation_ui_runtime/README.md), [protected route tests](../../../../backends/foundation_ui_runtime/tests/protected_route_tests.rs) and [custom signer fixture](../../../../backends/foundation_ui_wire/fixtures/state_counter_custom.json).
+Features 05, 07, 10, 14 and 15 own actual action invocation and renderer event handling.
 
 ```sh
 cargo test -p foundation_compact --features crypto-chacha --profile uat
 cargo test -p foundation_ui_runtime -p foundation_ui_wire --profile uat
 cargo check -p foundation_ui_runtime --target wasm32-unknown-unknown
+node --test backends/foundation_compact/tests/wasm_hosts/crypto.test.mjs
 ```

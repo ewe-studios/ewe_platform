@@ -254,7 +254,7 @@ fn for_fixtures(mut check: impl FnMut(&[u8], bool)) {
             count += 1;
         }
     }
-    assert_eq!(count, 11);
+    assert_eq!(count, 13);
 }
 
 fn exercise_read(bytes: &[u8], signed_state: bool) {

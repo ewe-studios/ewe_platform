@@ -212,8 +212,8 @@ The selected registry entry receives the caller’s context **when the action ex
 | Lifetime | Value | Owner |
 |---|---|---|
 | Host | Base `foundation_context::Ctx`, authentication service and registry | The application at startup |
-| Request | Forked `Ctx` with the verified user and signer binding | The protected route in [feature 04](../04-signed-state/feature.md#at-the-protected-route) |
-| Action call | UI `Context` containing that request context, trusted component root and fresh receiver | The dispatcher |
+| Protected request, when a per-user binding is needed | Forked `Ctx` with the verified user and signer binding | The protected route in [feature 04](../04-signed-state/feature.md#at-the-protected-route) |
+| Action call | UI `Context` containing the supplied host or request handle, trusted component root and fresh receiver | The dispatcher |
 
 ```mermaid
 sequenceDiagram
@@ -232,24 +232,34 @@ sequenceDiagram
     D-->>Route: Frame with signed updates or one error
 ```
 
+A persistent host can pass its main context to every dispatch. Install its signer once at startup.
+
+```rust
+let frame = dispatcher.dispatch(&app.main_ctx, &connection, &request_bytes).await;
+```
+
+Use a fork when a handler needs a different binding or request-specific service entries.
+A persistent user session can reuse its own bound context across calls.
+Keep each action’s receiver and render target local to that invocation. Concurrent calls can then share the same services safely.
+
 The dispatcher passes the context explicitly. The following sketch shows the successful path inside dispatch.
 The registry adapter decodes the verified body into `TodoList` and calls the generated `add_todo.call(&call_ctx, event)`.
 
 ```rust
 let entry = self.registry.get(origin, name, surface)?;
-let verified = verify_event(request_ctx, entry.as_ref(), request)?;
-let call_ctx = Context::for_action(request_ctx.clone(), surface, verified.component_root);
+let verified = verify_event(ctx, entry.as_ref(), request)?;
+let call_ctx = Context::for_action(ctx.clone(), surface, verified.component_root);
 entry.call_raw(&call_ctx, verified.event).await?;
 let items = call_ctx.into_receiver().drain();
-encode_updates(request_ctx, items)
+encode_updates(ctx, items)
 ```
 
-`Context::for_action` is a proposed constructor. It creates an empty receiver and retains the supplied request handle.
+`Context::for_action` is a proposed constructor. It prepares the call receiver and target. Cloning the supplied `Ctx` retains the same services, map and signer.
 The action reads that receiver through `ctx.receiver()`. Application services can read the same `CurrentUser` through the underlying context.
 On success, `encode_updates` signs queued state using the request signer that verified the incoming bytes.
 On error, the caller drops the receiver and builds the error frame.
 
-A network transport carries the action frame. The receiving host authenticates it through its request handler and creates its own context.
+A network transport carries the action frame. The receiving host authenticates the request and selects the appropriate context.
 An in-process host passes its local request context directly. The template, component and registry need no cookie or binding-selection code.
 
 | Participant | Responsibility |
@@ -267,6 +277,7 @@ The signer protects the returned component state. Output collection covers UI up
 **Laws and tests.** Submit “Buy milk” from node 42. Verify that the returned view displays the new row and node 40 holds the updated list.
 Trigger the action again and check that it receives the updated list.
 Reject invalid signed bytes before decoding. Reject malformed list data before calling the action.
+Run two overlapping actions with one persistent context. Fail one and verify that the other delivers only its own output.
 Run two authenticated users through one registry at the same time. Check each action sees its own user and returns state verifiable in that user’s context.
 Reject an invalid session before lookup. Reject another user’s signed state before the action runs.
 Queue a view change and state, then fail the action. Assert that the client receives only the error and retains its previous view and state.

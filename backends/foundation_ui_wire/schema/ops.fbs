@@ -10,7 +10,7 @@ table InsertBefore { parent_id: uint; child_id: uint; before_id: uint; }
 table Remove { node_id: uint; }
 table BindAction { node_id: uint; event: EventId; action: string; }
 table UnbindAction { node_id: uint; event: EventId; }
-table AttachState { root_node: uint; state: [ubyte]; }   // state: an EWS1 buffer
+table AttachState { root_node: uint; state: [ubyte]; }   // Copy the signer bytes to the target node.
 
 enum LiveKind : ubyte { Stream = 0, Data = 1 }
 enum LiveTransport : ubyte { Local = 0, Sse = 1, WebSocket = 2, Http = 3 }

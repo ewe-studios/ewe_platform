@@ -72,7 +72,7 @@ a platform API.
 |---|---|
 | `ActionRegistry`, `ActionManager`, `ActionTransport`, `TriggerEvent`, `Surface` | Feature 05 |
 | `Dispatcher`, `LocalDispatcher`, `Connection` | Feature 07 |
-| `PlainStateCodec` | Feature 04 |
+| Host-installed `StateSigner` | Feature 04 |
 | `gate`, `write_ops`, `StreamSequencer`, `ClientCaps` | Feature 03 |
 | The network (`URLSession`, `OkHttp`) and the session | The host app, behind `HostTransport` |
 | Reading frames, the node store, running a `NativeCommand` | Features 14 and 15 |
@@ -131,8 +131,7 @@ Links to other entities: hello.platform and hello.mount equal the core's surface
 
 ### 4.4 Must do
 
-- Use `PlainStateCodec` for local actions (D5: on device, view and logic are in one signed
-  app).
+- Install a signer in the on-device host context. Use the same binding policy for rendering and local actions.
 - Map every `ManagerError` to one `CoreError` case.
 
 ### 4.5 Must not
@@ -382,9 +381,9 @@ not hold a global core.
 ### 6.4 Behaviour
 
 **`new`**: `surface = Surface { platform, mount: Native }`. Build a `Dispatcher` with
-accept origin `Host`, the registry, `PlainStateCodec` and a `DefaultDelivery` with
+accept origin `Host`, the registry and a `DefaultDelivery` with
 `config.writer`. Build `Connection::stateless(ClientCaps::native_current(platform),
-surface, Session::new("device"), "device", 0)` and a `LocalDispatcher`. Build the
+surface, 0)` and a `LocalDispatcher`. Build the
 `ActionManager` for the surface with the local transport, and with the server transport
 when `server` is `Some` (an adapter that implements `ActionTransport` by calling
 `HostTransport::send` and mapping `CoreError` to `TransportError`).

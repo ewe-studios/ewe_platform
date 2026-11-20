@@ -24,7 +24,7 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_ui_wire"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "flatbuffers",
  "foundation_ui_traits",

@@ -15,8 +15,13 @@ pub enum WriteError {
         message_index: usize,
         error: ColumnarError,
     },
-    UnsealedState {
+    MissingState {
         message_index: usize,
+    },
+    StateTooLarge {
+        message_index: usize,
+        limit: usize,
+        actual: usize,
     },
     EmptyMessage {
         message_index: usize,
@@ -64,11 +69,15 @@ impl fmt::Display for WriteError {
                     "Message {message_index} has an invalid columnar batch. {error}"
                 )
             }
-            Self::UnsealedState { message_index } => {
-                write!(
-                    formatter,
-                    "Message {message_index} has an invalid or unsealed state."
-                )
+            Self::MissingState { message_index } => {
+                write!(formatter, "Message {message_index} has no state bytes.")
+            }
+            Self::StateTooLarge {
+                message_index,
+                limit,
+                actual,
+            } => {
+                write!(formatter, "Message {message_index} has {actual} state bytes and exceeds the {limit}-byte limit.")
             }
             Self::EmptyMessage { message_index } => {
                 write!(formatter, "Message {message_index} has no payload.")

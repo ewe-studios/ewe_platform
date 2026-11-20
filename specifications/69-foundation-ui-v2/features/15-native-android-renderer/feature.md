@@ -488,6 +488,9 @@ posts each frame to the main thread before `onFrame`. `SystemCommandHost`: `HAPT
 - On full runs: `scripts/ui_native/build-android.sh` and
   `./gradlew -p examples/ui_todo_android assembleDebug`.
 
+Use `frame_state_custom.bin` and `action_increment_custom.bin` from the wire fixtures.
+Check that nodes 40 and 42 receive the bytes of `state_counter_custom.json` and that a submit on node 42 returns them unchanged.
+
 ## 7. Tests
 
 All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotlin/`.
