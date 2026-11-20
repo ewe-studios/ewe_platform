@@ -28,6 +28,21 @@ The renderer applies each operation to its target node.
 For example, root 40 and marked input 42 receive the same bytes. A submit on 42 returns its own copy.
 A control without an attachment sends empty state.
 
+### What a signed todo row proves
+
+Suppose the host signs row 42 for Alice when the row is open. Bob later completes it.
+Alice’s old attachment can still verify under her binding before it expires. The signature covers the bytes the host issued.
+For a consequential change, the handler checks Alice’s current permission and reads the current row.
+An application can use the signed value directly for a simple counter.
+
+State and view updates are independent. An action can attach new state to the input and leave the old label visible.
+The next submit uses the new attachment on that input. Other controls keep their own earlier attachments until updated.
+
+Cross-site scripting (XSS) means untrusted script runs in the application’s page.
+Such a script could trigger Alice’s existing submit control. The normal handler would send the genuine attachment under her active session.
+This requires no signing key or change to the signed bytes. A per-user binding can reject Alice’s bytes in Bob’s context.
+Prevent script injection by rendering todo text as text and keeping untrusted content out of executable markup.
+
 ## The contract
 
 The host installs a signer in its context (`Ctx`). It can also supply a **signing binding**: stable bytes that restrict where state verifies.

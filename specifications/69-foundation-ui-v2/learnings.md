@@ -427,3 +427,5 @@ ASD-STE100.
 - A frame can describe a complete section while another frame describes its sibling. Sharing a stream identifier does not make those renders interchangeable.
 
 - The server signal and browser island examples demonstrate content delivery. They do not couple two Rust signal graphs. A socket handoff and action completion have separate lifetimes.
+
+- A genuine attachment can outlive a domain change. A state-only update can also make the bound input newer than its visible label.

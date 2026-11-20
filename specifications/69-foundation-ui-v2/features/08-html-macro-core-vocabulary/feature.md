@@ -531,6 +531,36 @@ Test an externally replaced section with a locally reactive child and an untouch
 Change both signals after replacement. Only the retained sibling can emit an update.
 See the [scope evidence and proposed test](../../research/15-actions-signals-and-rendering.md).
 
+### 6.7 Targeted output from an action
+
+A local or remote action can change a mounted region without retaining a signal scope.
+Each macro queues one placement instruction in the action receiver and yields `Result<(), RenderError>`.
+The dispatcher delivers all instructions from the successful action in one frame.
+
+| Proposed macro | Effect |
+|---|---|
+| `html_add! { parent, ctx, out, <Row/> }` | Append the new content inside the parent. |
+| `html_add_before! { parent, Some(child), ctx, out, <Row/> }` | Insert inside the parent immediately before the named direct child. |
+| `html_add_after! { parent, Some(child), ctx, out, <Row/> }` | Insert inside the parent immediately after the named direct child. |
+| `html_swap! { target, ctx, out, <Row/> }` | Replace the target itself at its current sibling position. |
+| `html_remove! { target, ctx, out }` | Remove the target and its descendants. |
+
+`<Row/>` stands for a template rooted in a supported element, such as `<Text>`.
+The four content forms accept optional `Some(&state)` after `out`, using the same root and marker rules as `html!`.
+A swap obtains attachments from its new content. A remove takes neither content nor state.
+With `None` as the child, before inserts first and after inserts last. Both work with an empty parent.
+
+Resolve a portable target by its mounted node identifier in the current view. A web renderer can also resolve a CSS selector.
+Require exactly one parent or target. Resolve a supplied child among that parent’s direct children.
+A missing or ambiguous match reports a renderer error and skips the whole instruction, including node creation, bindings and attachments.
+Later independent instructions still apply. Swap and remove run the local unmount hook for discarded components.
+
+The current shared wire has numeric node operations. A selector and its nested operations need a shared placement instruction.
+Define its schema, capability negotiation, generated readers and writer checks before adding the macros.
+Resolve selectors on the renderer before applying nested operations. A native renderer must report an unsupported web selector.
+Test the same ordered children on web and native after each operation. Include missing targets, a wrong parent and both absent-child cases.
+Test one action that adds a row and swaps a count in the same frame.
+
 ## 7. Tests
 
 | Law or scenario | Test | Oracle |
@@ -556,7 +586,7 @@ See the [scope evidence and proposed test](../../research/15-actions-signals-and
 - [ ] 2. Parser: `on:` attributes and `ParsedAttr::Action`.
 - [ ] 3. Parser: the core tag list, the core attribute check, the static value check.
 - [ ] 4. Codegen: the `Action` attribute in both modes.
-- [ ] 5. Add the optional third field and the bare element marker. Test the attachment targets and errors in section 4.6.
+- [ ] 5. Add the targeted macros and wire prerequisites in section 6.7. Add the optional third field and the bare element marker. Test the attachment targets and errors in section 4.6.
 - [ ] 6. `view::lower` for core elements and the behaviour marker, with tests.
 - [ ] 7. `view::lower` for web elements and scripts, with tests.
 - [ ] 8. `view::mount`, with tests.

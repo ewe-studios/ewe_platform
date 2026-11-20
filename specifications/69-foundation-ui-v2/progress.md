@@ -317,3 +317,5 @@ is recorded here as passed.
 - Decision D61 defines the render boundary. Features 05, 07, 08 and 11 now use one complete render reply and ordered stream delivery.
 
 - Added research study 15 and linked it from the requirements. The action plans now describe HTTP deadlines, socket handoff and asynchronous Rust completion. The renderer plans specify local scope disposal.
+
+- Feature 08 specifies targeted append, insert, swap and removal. Feature 04 explains independent state and view updates with a signed todo row.
