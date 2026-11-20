@@ -497,7 +497,7 @@ A feature is complete when its README task and this verification pass. Record th
 ## 10. Module references
 
 - [`research/README.md`](./research/README.md) and the idea files 01 to 13: the reasons.
-- `backends/foundation_ui_traits/src/dom_op.rs`: the 19 current web operations.
+- `backends/foundation_ui_wire/src/ops.rs`: the frame operations used by renderers.
 - `backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js`: the current web runtime.
 - `backends/foundation_wasm_ui/src/server/mod.rs`: the live mode (`Broadcaster`).
 - `backends/foundation_context/src/lib.rs`: `Ctx`.

@@ -50,6 +50,15 @@ It checks the visible count, adds one todo through the public action endpoint, a
 The test passes when the count changes from zero to one.
 Linux runners need read and write access to `/dev/kvm` for hardware acceleration.
 
+Run the same count check on an iPhone simulator with Xcode and an installed iOS runtime.
+Point the local Swift package at the candidate archive before the test.
+
+```sh
+mise exec -- scripts/ui_native/release/test-ios-starter.sh --local-package "$EWE_UI_SWIFT"
+```
+
+Omit `--local-package` to test the published Swift package. The script removes its temporary simulator after the test.
+
 ## Publish one version
 
 Push the three approved source commits to their repositories before creating the release tag.
