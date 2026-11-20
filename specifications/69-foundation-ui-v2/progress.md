@@ -278,5 +278,6 @@ is recorded here as passed.
 
 ## Next
 
-1. The owner approved all remaining listed features. Feature 04 is in progress.
-2. Follow the dependency order and the browser acceptance gate before native implementation.
+1. Review [feature 20](./features/20-migrate-to-frame-writer/feature.md). It is the next feature after the frame writer prerequisite.
+2. Finish the feature 03 writer checks. Feature 04 still has an open envelope compatibility decision.
+3. Apply the browser acceptance gate before native implementation.

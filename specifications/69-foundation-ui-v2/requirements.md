@@ -402,6 +402,9 @@ in parallel.
 | 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | ⬜ Pending |
 | 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
 | 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Sibling Swift and Kotlin packages, tagged releases, registry publication and starter apps | 13, 14, 15, 16, 17 | Sonnet | Release | Approved |
+| 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Move existing UI producers, browser delivery and defaults to the frame writer | 03 | Sonnet | Web | Proposed |
+
+Feature 20 is the next implementation priority after its writer prerequisite. Its plan transfers producer migration from feature 12.
 
 Number 18 is reserved for the later WebView control (D46).
 
@@ -420,6 +423,10 @@ flowchart LR
     F05 --> F07
     F02 --> F08[08 html!]
     F06 --> F08
+    F03 --> F20[20 migrate existing callers]
+    F20 --> F08
+    F20 --> F09
+    F20 --> F11
     F03 --> F09[09 web applicator]
     F07 --> F10[10 web actions]
     F09 --> F10
@@ -467,7 +474,7 @@ A feature is complete when its README task and this verification pass. Record th
 
 ## 9. Success criteria (spec-wide)
 
-- All 18 indexed features are complete and verified. Feature 17 puts every pinned tool on each
+- All 19 indexed features are complete and verified. Feature 17 puts every pinned tool on each
   host: `scripts/toolchain/check.sh` exits 0 on Linux, macOS and Windows CI.
 - Each feature or package README has concrete examples and runnable validation. The documented checks pass.
 - The todo list example of D48 runs on the web with a `server:` action, a `host:` action that

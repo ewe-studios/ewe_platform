@@ -388,3 +388,8 @@ ASD-STE100.
 - Private state adds a nonce and an authentication tag. The envelope limit includes these bytes and the table overhead.
 - The runtime opens a private body larger than one mebibyte when the host raises the body limit.
 - Issue #619 tracks direct failure recording with a missing clock. The dispatcher checks the same context before it records a failure.
+
+## Producer migration
+
+- The feature 02 vocabulary example uses the legacy converter. Feature 20 replaces it with a direct writer example.
+- Moving producers also requires the local and streamed browser readers. A change to the Rust operation type alone cannot switch the default protocol.

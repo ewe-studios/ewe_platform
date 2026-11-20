@@ -29,6 +29,11 @@ WebAssembly (WASM); Server-Sent Events (SSE); continuous integration (CI); ident
 AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
 ASD-STE100.
 
+## Proposed change of ownership
+
+[Feature 20](../20-migrate-to-frame-writer/feature.md) moves the existing producers and their browser delivery path to the frame writer first.
+Its ownership table supersedes the migration sequence below upon approval.
+
 ## 1. Goal
 
 A new JS module, `foundation-ui-frames.js`, applies `Frame` buffers to the DOM. It reads
