@@ -4,7 +4,7 @@ status: "pending"
 priority: "low"
 model: "sonnet"
 phase: "3"
-depends_on: ["13-container-image-source"]
+depends_on: ["13-container-image-source", "14-sandboxfile-builder"]
 crates: ["foundation_platform_sandbox"]
 ---
 

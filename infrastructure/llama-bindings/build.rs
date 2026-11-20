@@ -339,17 +339,16 @@ fn main() {
     }
 
     let cmake_prefix_path = env::var("CMAKE_PREFIX_PATH").unwrap_or("".into());
-    let _tools_directory = std::fs::canonicalize(Path::new(
-        &env::var("TOOLS_DIR").expect("get TOOLS_DIR environment"),
-    ))
-    .expect("failed to collect TOOLS_DIR path");
-    let emscripten_sdk = std::fs::canonicalize(Path::new(
-        &env::var("EMSDK_DIR").expect("get EMSDK_DIR environment"),
-    ))
-    .expect("failed to collect EMSDK_DIR path");
 
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to get CARGO_MANIFEST_DIR");
-    let llama_dir = env::var("LLAMA_DIR").expect("get LLAMA_DIR environment");
+    // A published tarball holds `llama.cpp/` next to this build script, so no
+    // environment is needed. `LLAMA_DIR` still wins for an out-of-tree build.
+    let llama_dir = env::var("LLAMA_DIR").unwrap_or_else(|_| {
+        Path::new(&manifest_dir)
+            .join("llama.cpp")
+            .to_string_lossy()
+            .into_owned()
+    });
     ensure_llama_sources(Path::new(&llama_dir), Path::new(&manifest_dir));
     let llama_src =
         std::fs::canonicalize(Path::new(&llama_dir)).expect("failed to collect LLAMA_DIR path");
@@ -357,19 +356,27 @@ fn main() {
     let llama_tools_directory = llama_src.join("tools");
     let llama_mtmh_directory = llama_tools_directory.join("mtmd");
 
+    // Emscripten is optional: only a wasm build sets EMSDK_DIR and needs its
+    // sysroot on the search path. A plain consumer build has no EMSDK_DIR.
+    let emscripten_sdk = env::var("EMSDK_DIR")
+        .ok()
+        .and_then(|dir| std::fs::canonicalize(Path::new(&dir)).ok());
+
     // let dawn_directory = std::fs::canonicalize(Path::new(
     //     &env::var("DAWN_DIR").expect("get DAWN_DIR environment"),
     // ))
     // .expect("failed to collect DAWN_DIR path");
 
-    let library_search_tools = [
+    let mut library_search_tools = vec![
         llama_src.clone(),
         // dawn_directory.clone(),
         llama_tools_directory.clone(),
         llama_mtmh_directory.clone(),
         // dawn_directory.join("install/Release"),
-        emscripten_sdk.join("upstream/emscripten"),
     ];
+    if let Some(sdk) = emscripten_sdk {
+        library_search_tools.push(sdk.join("upstream/emscripten"));
+    }
 
     let mut cmake_append_search_path: Vec<String> = Vec::new();
     if !cmake_prefix_path.is_empty() {

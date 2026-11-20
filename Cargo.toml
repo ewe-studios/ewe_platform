@@ -78,7 +78,10 @@ thiserror = { version = "2"}
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
-bindgen = { version = "0.73.2" }
+# 0.73.2 accepts syn 3 (`syn = ">=2, <4"`), but `prettyplease` 0.2 uses syn 2.
+# The default `prettyplease` feature then fails to compile. Drop it; the
+# generated bindings are unformatted, which changes nothing in their meaning.
+bindgen = { version = "0.73.2", default-features = false, features = ["logging", "runtime"] }
 cc = { version = "1.2.49" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }

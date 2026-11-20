@@ -816,6 +816,11 @@ def commands(
         plan["build"].append(
             [sys.executable, "scripts/ci/check_time_sources.py", "--check"]
         )
+        # Spec 76 feature 06: a crate takes a `Ctx`, not a bare `Arc<dyn Clock>`,
+        # and only a host entry point builds `MonotonicClock`.
+        plan["build"].append(
+            [sys.executable, "scripts/ci/check_clock_params.py", "--check"]
+        )
         plan["build"].append([sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci/tests"])
     if s.build != "off":
         # Library, binaries, tests, examples and benches: compile errors show

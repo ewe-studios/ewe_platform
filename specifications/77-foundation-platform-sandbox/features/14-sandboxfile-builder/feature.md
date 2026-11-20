@@ -76,7 +76,7 @@ mode and unpack (feature 12); downloads (feature 03 `fetch`).
 | Step key | 32 hex characters that name the state after a step. | `images::build::keys` |
 | Snapshot | A work image stored under a step key: `<cache_dir>/images/steps/<key>.ext4`. | the builder |
 | Metadata | `env`, `workdir`, `user`, `cmd`, `kernel` gathered so far. | the builder |
-| Build sandbox | A `Writable` sandbox on a copy of the last snapshot. One for each changing step. | the builder, through `SandboxControl` |
+| Build sandbox | A `Writable` sandbox on a copy of the last snapshot. One for each changing step. | the builder, through `SandboxProvider` |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
@@ -360,7 +360,7 @@ pub enum BuildProgress {
 }
 impl ImageBuilder {
     pub fn new(ctx: Ctx, host: SandboxHost, store: ImageStore, importer: ImageImporter,
-               control: Arc<dyn SandboxControl>) -> Self;
+               control: Arc<dyn SandboxProvider>) -> Self;
     pub async fn build(&self, file: &Sandboxfile, context: &Path, options: BuildOptions) -> SandboxResult<ImageRef>;
     pub fn build_with_progress(&self, file: Sandboxfile, context: PathBuf, options: BuildOptions) -> BuildStream;
 }

@@ -5,6 +5,7 @@ use std::fmt;
 
 use foundation_context::Ctx;
 
+use crate::jsonrpc::RpcConfig;
 use crate::pause::WaitConfig;
 
 /// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
@@ -59,6 +60,8 @@ pub struct LaunchConfig {
     pub ctx: Option<Ctx>,
     /// The intervals of every launch wait loop. See [`WaitConfig`].
     pub wait: WaitConfig,
+    /// The protocol channel timeouts. See [`RpcConfig`].
+    pub rpc: RpcConfig,
 }
 
 impl fmt::Debug for LaunchConfig {
@@ -69,6 +72,7 @@ impl fmt::Debug for LaunchConfig {
             .field("extra_args", &self.extra_args)
             .field("ctx", &self.ctx.is_some())
             .field("wait", &self.wait)
+            .field("rpc", &self.rpc)
             .finish()
     }
 }
@@ -81,6 +85,7 @@ impl Default for LaunchConfig {
             extra_args: Vec::new(),
             ctx: None,
             wait: WaitConfig::default(),
+            rpc: RpcConfig::default(),
         }
     }
 }
@@ -101,6 +106,7 @@ impl LaunchConfig {
             extra_args: Vec::new(),
             ctx: None,
             wait: WaitConfig::default(),
+            rpc: RpcConfig::default(),
         }
     }
 
@@ -115,6 +121,13 @@ impl LaunchConfig {
     #[must_use]
     pub fn wait(mut self, wait: WaitConfig) -> Self {
         self.wait = wait;
+        self
+    }
+
+    /// Set the protocol channel timeouts.
+    #[must_use]
+    pub fn rpc(mut self, rpc: RpcConfig) -> Self {
+        self.rpc = rpc;
         self
     }
 

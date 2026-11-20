@@ -142,10 +142,16 @@ impl AgentRpcServerBuilder {
     /// insecure), no [`Ctx`] was supplied, no model was added, or two models
     /// share a name.
     pub fn build(self) -> AgentRpcResult<AgentRpcServer> {
+        let Some(ctx) = self.ctx else {
+            return Err(AgentRpcError::Config(
+                "no side-effect bundle: call with_ctx (Ctx::host at the entry point)".into(),
+            )
+            .into());
+        };
         let auth = match (self.insecure, self.mtls) {
             (true, None) => Auth::InsecurePlaintext,
             (false, Some(config)) => Auth::Mtls {
-                enrollment: Arc::new(EnrollmentService::new(&config)),
+                enrollment: Arc::new(EnrollmentService::new(&config, ctx.clone())),
                 config,
             },
             (true, Some(_)) => {
@@ -159,12 +165,6 @@ impl AgentRpcServerBuilder {
                     .into(),
             )
             .into()),
-        };
-        let Some(ctx) = self.ctx else {
-            return Err(AgentRpcError::Config(
-                "no side-effect bundle: call with_ctx (Ctx::host at the entry point)".into(),
-            )
-            .into());
         };
         let registry = InstanceRegistry::new(self.models, self.registry, ctx)?;
         Ok(AgentRpcServer {

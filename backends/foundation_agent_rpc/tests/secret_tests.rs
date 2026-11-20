@@ -1,5 +1,6 @@
 //! Signed, time-boxed bootstrap secrets and the signing key's lifecycle.
 
+use foundation_context::Ctx;
 use std::time::{Duration, SystemTime};
 
 use base64::Engine;
@@ -12,7 +13,7 @@ use foundation_agent_rpc::AgentRpcError;
 const RSA_FIXTURE: &str = include_str!("fixtures/test-only-rsa-signing-key.pem");
 
 fn signer() -> BootstrapSecrets {
-    BootstrapSecrets::new(SigningKey::generate().expect("key"))
+    BootstrapSecrets::new(SigningKey::generate().expect("key"), Ctx::host())
 }
 
 fn now() -> u64 {
@@ -259,8 +260,10 @@ fn the_key_is_generated_on_first_start_and_reloaded_after() {
     assert_eq!(again.public_key(), first.public_key());
 
     // A secret signed before the restart still verifies with the reloaded key.
-    let before = BootstrapSecrets::new(first).issue().expect("issue");
-    assert!(BootstrapSecrets::new(again)
+    let before = BootstrapSecrets::new(first, Ctx::host())
+        .issue()
+        .expect("issue");
+    assert!(BootstrapSecrets::new(again, Ctx::host())
         .verify(&before.encode())
         .is_ok());
 }
@@ -270,12 +273,14 @@ fn a_lost_key_is_regenerated_and_old_secrets_die_with_it() {
     let dir = tempfile::tempdir().expect("tempdir");
     let config = SigningKeyConfig::in_state_dir(dir.path()).without_env_var();
     let (old, _) = SigningKey::load_or_generate(&config).expect("generate");
-    let outstanding = BootstrapSecrets::new(old).issue().expect("issue");
+    let outstanding = BootstrapSecrets::new(old, Ctx::host())
+        .issue()
+        .expect("issue");
 
     std::fs::remove_file(config.path()).expect("lose the key");
     let (new, origin) = SigningKey::load_or_generate(&config).expect("regenerate");
     assert!(matches!(origin, SigningKeyOrigin::Generated(_)));
-    let err = BootstrapSecrets::new(new)
+    let err = BootstrapSecrets::new(new, Ctx::host())
         .verify(&outstanding.encode())
         .expect_err("old secret");
     assert!(
@@ -344,7 +349,7 @@ fn the_environment_variable_names_the_key() {
 fn an_operator_supplied_rsa_key_signs_and_verifies() {
     let key = SigningKey::from_pkcs8_pem(RSA_FIXTURE).expect("rsa pkcs8");
     assert_eq!(key.algorithm(), SigningAlgorithm::RsaPssSha256);
-    let secrets = BootstrapSecrets::new(key);
+    let secrets = BootstrapSecrets::new(key, Ctx::host());
     let secret = secrets.issue().expect("issue");
     let decoded = SignedSecret::decode(&secret.encode()).expect("decode");
     assert_eq!(decoded.algorithm(), SigningAlgorithm::RsaPssSha256);

@@ -617,3 +617,33 @@ fn send_timeout_closes_stalled_client() {
     drop(stalled);
     h.stop();
 }
+
+/// A `.mjs` file is a JavaScript module. Chrome refuses a `type="module"`
+/// script served as `application/octet-stream`, so the wasm-testbed browser
+/// harness stayed at "running…" until the extension was mapped (#609).
+#[test]
+#[foundation_macros::timeout(120_000)]
+#[serial(http_test)]
+fn mjs_file_is_served_as_javascript() {
+    let _pool = initialize_pool(301, Some(2));
+    let dir = TempDir::new("mjs");
+    std::fs::write(dir.path().join("runner.mjs"), "export const x = 1;\n").expect("write file");
+    let h = start_server(dir.path(), StaticFileConfig::new());
+
+    let mut stream = TcpStream::connect(h.addr).expect("connect");
+    let (head, _body) = request_head(&mut stream, "/runner.mjs");
+    assert!(head.starts_with("HTTP/1.1 200"), "head: {head:?}");
+    let content_type = head
+        .lines()
+        .find_map(|line| {
+            let (key, value) = line.split_once(':')?;
+            key.eq_ignore_ascii_case("content-type")
+                .then(|| value.trim().to_string())
+        })
+        .unwrap_or_else(|| panic!("no Content-Type in head: {head:?}"));
+    assert!(
+        content_type.starts_with("application/javascript"),
+        ".mjs content type was {content_type:?}, expected application/javascript"
+    );
+    h.stop();
+}

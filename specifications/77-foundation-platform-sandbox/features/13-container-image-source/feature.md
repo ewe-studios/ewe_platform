@@ -195,7 +195,7 @@ pub struct ImportOptions {
 pub enum ImportProgress { Identifying, Pulling, CacheHit, Filling { bytes: u64 }, Committing }
 
 impl ImageImporter {
-    pub fn new(ctx: Ctx, host: SandboxHost, store: ImageStore, control: Arc<dyn SandboxControl>,
+    pub fn new(ctx: Ctx, host: SandboxHost, store: ImageStore, control: Arc<dyn SandboxProvider>,
                docker: Option<Arc<dyn DockerApi>>) -> Self;
     pub async fn import(&self, source: ImageSource, options: ImportOptions) -> SandboxResult<ImportReport>;
     pub fn import_with_progress(&self, source: ImageSource, options: ImportOptions) -> ImportStream;

@@ -260,7 +260,7 @@ runs = ["testing", "--no-default-features --features testing"]
 macos-tests = "none"
 macos-reason = "Apple-vendor code is the Candle Metal and llama.cpp Metal backends; they need an Apple GPU and model downloads."
 timeout-minutes = 90
-# Wasm gate (spec 65 00-foundation): the agentic layer + cloud providers must
+# Wasm gate (spec 83 00-foundation): the agentic layer + cloud providers must
 # compile to wasm32 with no local (llamacpp/candle) backends.
 wasm = "enforce"
 wasm-runs = ["--no-default-features"]
@@ -398,7 +398,7 @@ wasm = "enforce"
 wasm-runs = ["", "--no-default-features --features workers"]
 
 # ---------------------------------------------------------------------------
-# Wasm32 compile gates (spec 65 00-foundation / spec 28 feature 07).
+# Wasm32 compile gates (spec 83 00-foundation / spec 28 feature 07).
 #
 # The foundation crates that must compile for Cloudflare Workers get a
 # `cargo check --target wasm32-unknown-unknown` gate on their wasm-relevant

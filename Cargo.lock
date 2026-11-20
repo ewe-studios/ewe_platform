@@ -1075,7 +1075,6 @@ dependencies = [
  "cexpr",
  "clang-sys",
  "log",
- "prettyplease",
  "proc-macro2",
  "quote",
  "regex",
@@ -4613,7 +4612,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_agent_rpc"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "buffa",
@@ -4794,7 +4793,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
