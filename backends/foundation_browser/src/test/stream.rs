@@ -162,6 +162,7 @@ impl ServeFactory for StreamHandler {
 
 impl StreamHandler {
     /// Opens a native frame stream with the transport settings from this host.
+    #[must_use]
     pub fn native(ctx: &Ctx) -> Self {
         Self {
             native: true,

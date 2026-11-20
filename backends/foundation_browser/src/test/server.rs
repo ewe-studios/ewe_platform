@@ -39,7 +39,14 @@ use foundation_netio::shared::http::{
 };
 use zeroize::Zeroizing;
 
-use foundation_wasm_ui::server::{BroadcastTx, Broadcaster, FrameBroadcastSink, LiveChannel};
+use foundation_ui_wire::writer::WriterConfig;
+use foundation_wasm_ui::embedded::{
+    FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS,
+    FOUNDATION_UI_LIVE_JS, FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
+};
+use foundation_wasm_ui::server::{
+    BacklogConfig, BroadcastTx, Broadcaster, FrameBroadcastSink, LiveChannel,
+};
 
 use crate::error::{BrowserError, Result};
 use crate::test::stream::{StreamHandler, STREAM_PATH};
@@ -202,7 +209,7 @@ impl TestServer {
             headers,
         });
         let broadcaster = Broadcaster::new();
-        let live = LiveChannel::new(1, Default::default(), Default::default());
+        let live = LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default());
 
         let mut app = HttpApp::new_serve();
         // PageState + Broadcaster are read out of the ctx by the handlers; the
@@ -221,10 +228,6 @@ impl TestServer {
         let primal_test: Arc<dyn Serve> =
             Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
-        use foundation_wasm_ui::embedded::{
-            FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS,
-            FOUNDATION_UI_LIVE_JS, FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
-        };
         for (name, source) in [
             ("foundation-ui-actions.js", FOUNDATION_UI_ACTIONS_JS),
             ("foundation-ui-frames.js", FOUNDATION_UI_FRAMES_JS),

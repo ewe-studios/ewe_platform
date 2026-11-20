@@ -406,3 +406,20 @@ test("every shipped matrix entry names a real browser binding", async () => {
   const browser = [...Object.keys(SHARED).map(name => name.toLowerCase()), ...Object.keys(WEB_ONLY)];
   assert.deepEqual(names.sort(),browser.sort());
 });
+
+test("shared browser bindings retain the component machinery logic", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const read = path => readFile(new URL(path, import.meta.url), "utf8");
+  const browser = await read("../../../foundation_wasm_ui/runtimes/foundation-ui-behaviours.js");
+  for (const name of ["dialog", "dismiss", "scroll_lock", "transition"]) {
+    const rust = await read(`../../src/machinery/${name}.rs`);
+    const original = rust.match(/pub const \w+_JS: &str = r(#*)"(.*?)"\1;/s)[2];
+    const definition = new RegExp(`^function ${name}\\(scope\\)(.*?^\\})`, "ms");
+    const body = browser.match(definition)[1];
+    // The frame owner releases observers, unlocks the page and removes its listener on unmount.
+    const logic = body
+      .replace(/^  scope\.onDispose\((?:unlock|\(\) => mo\.disconnect\(\))\);\n/gm, "")
+      .replace("scope.addEvent(el, 'transitionend', onEnd)", "el.addEventListener('transitionend', onEnd)");
+    assert.equal(`function(scope)${logic}`, original, name);
+  }
+});

@@ -9,7 +9,7 @@ For a Rust crate under `backends/`, add the local dependency to its `Cargo.toml`
 
 ```toml
 [dependencies]
-foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.5" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.6" }
 ```
 
 The generated types and read functions are exported directly from `foundation_ui_wire`.

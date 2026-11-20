@@ -257,6 +257,7 @@ jobs:
         run: |
           pnpm --filter foundation-ui-wire-bindings install --frozen-lockfile
           scripts/ui_wire/check.sh
+          bash scripts/ui_web/bundle.sh --check
           node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs
 
       - name: Use the pinned toolchain
@@ -425,6 +426,7 @@ jobs:
         run: |
           docker exec ci pnpm --filter foundation-ui-wire-bindings install --frozen-lockfile
           docker exec ci scripts/ui_wire/check.sh
+          docker exec ci bash scripts/ui_web/bundle.sh --check
           docker exec ci node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs
 
       - name: rustfmt

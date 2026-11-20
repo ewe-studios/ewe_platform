@@ -4867,7 +4867,7 @@ dependencies = [
  "foundation_http",
  "foundation_macros",
  "foundation_netio",
- "foundation_ui_traits",
+ "foundation_ui_wire",
  "foundation_wasm",
  "foundation_wasm_ui",
  "serde",

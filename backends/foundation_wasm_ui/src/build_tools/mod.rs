@@ -101,7 +101,8 @@ impl WasmBundleGenerator {
     /// Propagates crate validation/scan failures from the inner generator and
     /// malformed mode attributes.
     pub fn new(crate_dir: &Path, output_dir: &Path) -> Result<Self, WasmBinError> {
-        let inner = WasmBinGenerator::new(crate_dir)?;
+        let legacy = WasmBinGenerator::new(crate_dir)?;
+        let mut rust_entries = legacy.entrypoints().to_vec();
         let mut entrypoints = Vec::new();
         for (attr, mode) in [
             ("wasm_bin", BundleMode::Bin),
@@ -113,6 +114,18 @@ impl WasmBundleGenerator {
                 .scan_crate(crate_dir)
                 .map_err(|e| WasmBinError::ScanError(e.to_string()))?;
             for target in registry.filter_by_kind(&ItemKind::Function) {
+                if !rust_entries.iter().any(|entry| {
+                    entry.name == target.item_name && entry.qualified_path == target.qualified_path
+                }) {
+                    let mut entry = foundation_wasm::build_tools::wasm_entrypoint_from_fn(
+                        legacy.crate_name(),
+                        &target.item_name,
+                    );
+                    entry.qualified_path.clone_from(&target.qualified_path);
+                    entry.source_file.clone_from(&target.location.file_path);
+                    entry.line = target.location.line;
+                    rust_entries.push(entry);
+                }
                 entrypoints.push(entrypoint_from_attrs(
                     &target.item_name,
                     mode,
@@ -120,6 +133,7 @@ impl WasmBundleGenerator {
                 ));
             }
         }
+        let inner = WasmBinGenerator::from_entrypoints(crate_dir, rust_entries)?;
         Ok(Self {
             inner,
             entrypoints,
@@ -355,6 +369,16 @@ impl WasmBundleGenerator {
         files
     }
 
+    /// Write the Rust binary sources and their Cargo target declarations.
+    ///
+    /// # Errors
+    /// Returns the source generation or manifest error before compilation.
+    pub fn generate_sources(
+        &self,
+    ) -> Result<foundation_wasm::build_tools::WasmBinPlan, WasmBinError> {
+        self.inner.generate()
+    }
+
     /// Generate everything: `bin/` sources + Cargo `[[bin]]` entries (inner
     /// generator), `cargo build --target wasm32-unknown-unknown`, wrappers,
     /// bundles, and (unless `skip_runtimes`) the JS runtime assets.
@@ -367,7 +391,7 @@ impl WasmBundleGenerator {
         skip_runtimes: bool,
         runtime_assets: &[(&str, &Path)],
     ) -> Result<Vec<PlannedFile>, WasmBinError> {
-        self.inner.generate()?;
+        self.generate_sources()?;
 
         let mut cargo = Command::new("cargo");
         cargo

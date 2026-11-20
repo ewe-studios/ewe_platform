@@ -218,7 +218,8 @@ fn scoped_script_and_behaviours_belong_to_the_parent() {
             .push((AttrName::from_static("data-ewe-behaviour"), name.into()));
         root.children.push(marker);
     }
-    let mut script = element("script", 2);
+    let mut script = Html::new();
+    script.tag = Some(HtmlTag::from_static("script"));
     script
         .attributes
         .push((AttrName::from_static("primal:script"), "".into()));

@@ -63,9 +63,15 @@ fn select_decision_overrides_query() {
 #[test]
 fn select_detects_a_length_prefixed_frame() {
     let frame = b"\x08\0\0\0\x04\0\0\0EWF1";
-    assert_eq!(select_protocol(&ProtocolHint::Default, None, frame), Protocol::Frame);
+    assert_eq!(
+        select_protocol(&ProtocolHint::Default, None, frame),
+        Protocol::Frame
+    );
     let incomplete = b"\x09\0\0\0\x04\0\0\0EWF1";
-    assert_eq!(select_protocol(&ProtocolHint::Default, None, incomplete), Protocol::CustomBinary);
+    assert_eq!(
+        select_protocol(&ProtocolHint::Default, None, incomplete),
+        Protocol::CustomBinary
+    );
 }
 
 #[test]

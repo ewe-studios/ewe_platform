@@ -19,7 +19,7 @@ use std::prelude::rust_2021::*;
 const FETCH_LOAD: &str =
     "  // __EWE_WASM_LOAD__\n  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();";
 
-/// The protocol-1 (columnar) → DOM wiring injected after `rt.init(instance)`.
+/// The frame reader injected after `rt.init(instance)`.
 const REGISTER_WASM_APP: &str = "  FoundationUiBootstrap.registerFrameApp(rt);";
 
 /// `wasm_bin` — main-thread wrapper (`{name}.js`).

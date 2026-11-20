@@ -41,8 +41,12 @@ impl BatchInstructionsV1 {
             .expect("arena get texts failed")
             .clone_memory()
             .expect("read text bytes");
-        memory.deallocate(completed.ops_id).expect("release completed instruction slot");
-        memory.deallocate(completed.text_id).expect("release completed text slot");
+        memory
+            .deallocate(completed.ops_id)
+            .expect("release completed instruction slot");
+        memory
+            .deallocate(completed.text_id)
+            .expect("release completed text slot");
 
         let texts_off = 8 + ops_bytes.len();
         let mut payload = Vec::with_capacity(texts_off + text_bytes.len());

@@ -1206,7 +1206,7 @@ fn toast_swipe_to_dismiss_wired() {
     let (ctx, rcv) = app.context();
     let manager = ToastManager::new(&ctx);
     let _h = toast_viewport(&ctx, &rcv, &manager);
-    manager.add(Toast::new("", "Saved"));
+    assert!(!manager.add(Toast::new("", "Saved")).is_empty());
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
