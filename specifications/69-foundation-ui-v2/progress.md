@@ -498,3 +498,14 @@ The staging script stopped the Rust host and removed the temporary device. Publi
 The release tests built the Swift starter from a clean checkout and the Android starter with an empty Gradle cache.
 The Android device check saw zero, added one todo through the real action endpoint, then saw one after Refresh.
 Kotlin release input `a23e916f12a851ecca9d60fb4e13495912d1321f` adds the default branch to its test workflow.
+
+### Feature 19 iPhone starter and request body check
+
+The standalone Swift starter passed on an iPhone 17 simulator running iOS 27.
+The app displayed zero. A second client added a todo. Tapping Refresh changed the count to one.
+The Android and iOS checks both used the public action endpoint and the local package candidate.
+
+The HTTP server now waits for unread request bytes when headers arrive first.
+All six connection tests passed. Three additional requests with delayed bodies each returned HTTP 200.
+[Issue 648](https://github.com/ewe-studios/ewe_platform/issues/648) records the fix.
+Public package installation requires the first release.

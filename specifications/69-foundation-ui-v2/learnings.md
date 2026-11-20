@@ -555,3 +555,8 @@ This avoids a second copy of the hints. A pending test future borrows its name u
 Read the first count before you change the server store. A second client can call the public action to add a todo.
 Check the old count again before you tap Refresh. The new count then verifies both the request and the rendered response.
 Android 36 needs about 7.2 GB of free disk space to create a new emulator, even with a smaller data partition.
+
+The first iPhone starter check observed a tap without checking the returned count.
+Seeding a todo from a second client exposed a truncated request when the headers arrived before its body.
+The server now supplies a socket readiness source when the handler takes the request body.
+The regression test sends headers, verifies that the handler waits, then sends the body and checks its bytes.
