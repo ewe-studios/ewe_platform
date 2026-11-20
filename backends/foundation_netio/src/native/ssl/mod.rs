@@ -28,6 +28,16 @@ pub use config::*;
 #[cfg(all(feature = "ssl-openssl", feature = "ssl-rustls"))]
 use openssl as _;
 
+/// Facts a server-side TLS stream reports after its handshake.
+///
+/// A host handler reads the peer (client) certificate chain through this trait
+/// after the handshake completes. The chain is empty before the handshake, and
+/// when the peer presents no certificate.
+pub trait TlsPeerFacts {
+    /// The peer certificate chain in DER, leaf first.
+    fn peer_certificates(&self) -> Vec<Vec<u8>>;
+}
+
 #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
 pub mod openssl;
 

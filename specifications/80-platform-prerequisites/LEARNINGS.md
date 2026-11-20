@@ -98,3 +98,15 @@ files for optional reverse edges. Cargo checks the package graph, not the enable
 - **The local D1 harness works.** `wrangler dev --local` on port 8789 with
   `CF_INTEGRATION_TEST=1` runs the migration tests against Cloudflare D1 (transaction rollback
   and idempotent apply).
+## 2026-11-21: transport facts
+
+- `build_ctx` built a fresh `Extensions` map instead of using the request's.
+  The request owns `Option<Extensions>`; move a clone into
+  `RequestContext::for_dispatch` or the handler never sees the value.
+- The rustls server handshake is lazy. `acceptor.accept` returns before the
+  handshake, so the peer chain is empty at accept time. Capture it after the
+  first successful protocol peek, when the handshake has completed.
+- The optional `ssl-openssl` and `ssl-native-tls` features are not in the CI
+  runs, so they rotted. A feature that CI never builds is not supported.
+  Issue #630 records both.
+
