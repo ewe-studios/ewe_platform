@@ -38,8 +38,7 @@ A developer writes one template for every platform. `html!` accepts the ten core
 (`<Stack>`, `<Text>`, …) with checked properties, and `on:` bindings that name an action
 struct, so a wrong name is a compile error. A lowering function turns the `Html` tree into
 operation units of the frame schema (D42, D44). `html!` has three forms (D51): pure,
-reactive, and reactive with a state field. The macro writes to a receiver, which collects the
-operations; there is no `Response` type (D52). A behaviour marker lowers to one shared
+reactive, and reactive with a state field. All three yield `Html`. The receiver forms also queue operations; there is no `Response` type (D52). A behaviour marker lowers to one shared
 `UiBehaviour` or one web `WebBehaviour`, and not to a script node (D56).
 
 ## 2. Story
@@ -407,7 +406,22 @@ The macro counts the top-level fields before the template (D51):
 | one field, then `<template>` | — | The existing error for a bad form |
 | `ctx, receiver, <template>` | Reactive | The existing reactive output (D40) |
 | `ctx, receiver, None, <template>` | Reactive | The same as the two-field form |
-| `ctx, receiver, Some(&state), <template>` | Reactive with state | The reactive output, then one pending value and its distinct target nodes |
+| `ctx, receiver, Some(&state), <template>` | Reactive with state | An `Html` value. The receiver holds the operations and one pending state value with its targets. |
+
+The existing macro returns `Html` in both forms. The state form must preserve this result on success.
+A helper that propagates a render error can return `Result<Html, ErrorTrace<ActionError>>`.
+The action can discard the tree after a successful update to its component target.
+
+| Existing form | What happens to the result |
+|---|---|
+| Without a receiver | The tree holds the output. Return it for composition or pass it to a mount function. Discarding it queues no view operations. |
+| With a receiver | The macro queues the build and registers effects before it returns. The tree carries the root’s runtime identifier. Dropping it leaves queued operations and live context effects intact. |
+
+For a new standalone view, `app.mount(tree)` attaches its root to the document body.
+For a child view, `mount_fragment` uses the returned root identifier to append it under its parent without rebuilding it.
+The existing instruction receiver encodes and sends its queued operations on flush.
+Test that discarding the tree before flush preserves the initial operations and later signal updates.
+For the proposed state form, also check that dropping the tree preserves the pending attachment targets.
 
 Detection, before the reactive split: if the first token is `<`, it is the pure form. Else
 split at top-level commas; there must be two or three fields before the template. Any other

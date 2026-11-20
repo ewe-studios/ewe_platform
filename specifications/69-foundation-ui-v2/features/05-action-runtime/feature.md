@@ -32,9 +32,9 @@ fn todo_row(item: &str) -> Html {
     html! { <Text>{ item }</Text> }
 }
 
-fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
+fn todo_page(ctx: &Context, list: &TodoList) -> Result<Html, ErrorTrace<ActionError>> {
     let out = ctx.receiver();
-    html! { ctx, out, Some(list),
+    let view = html! { ctx, out, Some(list),
         <Stack>
             <List>
                 { list.items.iter().map(String::as_str).map(todo_row) }
@@ -42,7 +42,7 @@ fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
             <TextInput primal::state on:submit={add_todo} />
         </Stack>
     };
-    Ok(())
+    Ok(view)
 }
 ```
 
@@ -60,13 +60,15 @@ async fn add_todo(
 ) -> Result<(), ErrorTrace<ActionError>> {
     let mut next = event.state;
     next.items.push(event.input_value);
-    todo_page(ctx, &next)
+    todo_page(ctx, &next)?;
+    Ok(())
 }
 ```
 
 The action starts with a verified, decoded list. The submitted text is the new item.
 Calling `todo_page(ctx, &next)` writes the new todo section to the action’s receiver.
-The frontend applies those instructions to the section. Each attachment describes the state supplied to that render.
+The frontend applies those instructions to the section. The helper returns `Html` for callers that compose views. This action discards the tree after a successful render.
+The receiver keeps the update for the existing component target. Each attachment describes the state supplied to that render.
 
 ### 3. Connect the page and action handlers
 

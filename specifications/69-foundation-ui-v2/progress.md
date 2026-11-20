@@ -311,3 +311,5 @@ is recorded here as passed.
 - The owner approved feature 04. Features 05 and 08 show how the receiver selects the todo list. Only the renderer writes the reserved state attachment.
 
 - The todo route and action share one render function. The author chooses the page or section to emit. Feature 08 tests a section-only render.
+
+- Features 05 and 08 now distinguish the returned tree, receiver output and root placement. The todo helper returns its tree to callers that compose views.

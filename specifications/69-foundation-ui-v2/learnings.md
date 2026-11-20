@@ -421,3 +421,5 @@ ASD-STE100.
 - A template marker selects a destination during rendering. Signing once gives each marked control identical bytes, even with a randomized signer.
 
 - A signed attachment describes one render. A later action can reuse the same render function with a new value.
+
+- The receiver form of html! queues operations before returning Html. The tree carries the root identifier for later placement. Flush performs delivery.

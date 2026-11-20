@@ -357,6 +357,7 @@ fn reactive_slot_renders_and_updates() {
     let tree = html! { m.ctx, m.receiver, <div><span>{count.get()}</span></div> };
     assert_eq!(tree.parts.len(), 1, "parts still recorded");
 
+    drop(tree); // The receiver owns the queued operations. The context owns the effect.
     m.signals.stabilize(); // flushes the build ops + initial effect renders
     let ops = all_ops(&m.sent);
 
