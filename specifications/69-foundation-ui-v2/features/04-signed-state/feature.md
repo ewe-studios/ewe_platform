@@ -28,6 +28,19 @@ are._
 (AEAD); WebAssembly (WASM); random number generator (RNG); identifier (id); AeroSpace and
 Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
+## Envelope compatibility decision for review
+
+Invariant I2 covers changes to fields. Its test also covers unused alignment bytes.
+The authentication tag covers field values and omits alignment bytes.
+Two encodings of identical fields can therefore share a valid tag.
+
+The proposed contract accepts any verified encoding with authenticated field values.
+Test mutations to each authenticated field and the tag. Accept a different padding value when all decoded fields remain identical.
+This preserves compatibility with other FlatBuffers writers. The alternative requires the exact bytes produced by the pinned Rust writer.
+
+Private state uses authenticated encryption. Test that the named fixture hides its plaintext and opens to its original body.
+A universal ban on matching eight-byte sequences is impossible because encrypted bytes can match a plaintext sequence by chance.
+
 ## 1. Goal
 
 A new crate, `backends/foundation_ui_runtime`, has a `state` module. A server seals the state
@@ -583,7 +596,8 @@ python3 scripts/ci/ci.py plan
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] A reviewer confirms by reading `open` that one HMAC and one compare run on every path
       before the first `Err` after the shape check (I7).
-- [ ] `Cargo.lock` holds one version of `hmac`, `sha2` and `subtle`.
+- [ ] The runtime uses the workspace versions of `hmac`, `sha2` and `subtle`.
+      The workspace manifest identifies each upstream dependency that requires an older version.
 - [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
 - [ ] The check list of the `story-driven-specification` skill passes.
 

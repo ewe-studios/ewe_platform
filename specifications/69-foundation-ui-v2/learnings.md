@@ -370,3 +370,4 @@ ASD-STE100.
 
 - The new HMAC library requires the `KeyInit` trait for key construction. Existing authentication tests cover this change.
 - BoringTun still needs the older digest interface for its BLAKE2 implementation. The workspace manifest records this dependency constraint.
+- The new digest output lacks hexadecimal formatting. The shared hexadecimal encoder preserves lower-case output in authentication, code generation and deployment exports.

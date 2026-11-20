@@ -263,6 +263,9 @@ is recorded here as passed.
 - Issue #617 fixed two fixture lint errors. All 23 Rust tests and 11 browser fixture tests pass on Linux and macOS.
 - The host authentication and compact library tests pass with the shared cryptography dependencies and explicit nonce support.
 
+- Commit `6d4faf280` adds explicit nonce encryption and fallible context accessors. Issue #549 is closed.
+- Features 03 and 04 each have a proposed contract change for owner review. Other checks continue.
+
 ## Next
 
 1. The owner approved all remaining listed features. Features 02 and 04 are in progress.

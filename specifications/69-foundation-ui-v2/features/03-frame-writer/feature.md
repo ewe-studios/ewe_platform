@@ -373,6 +373,23 @@ Every writer function and `table_frames` builds a `FrameT` of kind
 `FrameKindT::FrameMessage(Box::new(FrameMessageT { ack, messages }))` and calls
 `finish_frame`. An error from `finish_frame` becomes `WriteError::Wire` with `?`.
 
+#### Proposed API amendment
+
+`write_messages` accepts an owned `ColumnarBatchT`. A producer needs a function to build
+that batch from the shared operations it selects. Add
+`pub fn columnar_batch(rows: &[UiOperationT]) -> Result<ColumnarBatchT, ColumnarError>`.
+An operation that requires its normal form returns `UnsupportedOp { row, code }`.
+An invalid scalar or property value returns `InvalidValue { row }`.
+A blob offset that does not fit in a `u32` returns `BlobTooLarge { row }`.
+`write_messages` and `gate` return `WriteError::Columnar { message_index, error: ColumnarError }`
+when supplied columns cannot be decoded. The writer checks and gates the decoded rows before
+it builds the aligned columns. This keeps the same property, state and vocabulary checks
+for both forms. Use the generated builders for tables with aligned vectors. Finish that
+buffer with the same `EWF1` identifier that `finish_frame` uses. Keep the existing sequence
+saturation. Use acknowledgement 5 when the test writes the published columnar fixture.
+The writer emits canonical blob offsets. If that changes the fixture bytes, update the
+Rust and TypeScript fixture tests together.
+
 ### 6.2 The steps of `write_messages`
 
 ```mermaid
@@ -526,7 +543,7 @@ All in `backends/foundation_ui_wire/tests/`. Use `ClientCaps::web_current()` and
 | Scenario: An old client gets a fallback kind | `writer_gate_tests.rs::unknown_kind_becomes_fallback` (uses a test-only `ClientCaps` with `vocabulary_version` 1 and an operation with kind 11) | example |
 | Scenario: A version 1 client gets no behaviour | `writer_gate_tests.rs::version_1_client_gets_no_behaviour` | example |
 | Fault: column length | `writer_table_tests.rs::bad_column_length_fails_before_first_frame` (asserts `sequencer.last() == 0`) | fault |
-| The fixture `frame_columnar_3rows.bin` of feature 01 equals `write_messages` output | `writer_columnar_tests.rs::columnar_fixture_matches` (header 7/20/0) — update the fixture and the feature 01 test if the bytes differ, and record it | example |
+| The fixture `frame_columnar_3rows.bin` of feature 01 equals `write_messages` output | `writer_columnar_tests.rs::columnar_fixture_matches` (header 7/20/5) — update the fixture and the feature 01 test if the bytes differ, and record it | example |
 
 ## 8. Tasks
 
