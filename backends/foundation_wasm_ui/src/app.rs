@@ -223,6 +223,10 @@ impl App {
     /// stream covers head AND the bottom of body. It is the same
     /// [`mount_fragment`](crate::mount_fragment) machinery `<Fragment>` uses — a
     /// root mount is just a fragment spliced under body.
+    #[expect(
+        clippy::must_use_candidate,
+        reason = "A caller can mount a component and discard its root identifier."
+    )]
     pub fn mount(&self, root: Html) -> u32 {
         crate::mount_fragment(&self.ctx, &self.receiver, root, BODY_NODE_ID)
     }

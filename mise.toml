@@ -141,6 +141,10 @@ run = "bash scripts/toolchain/wire_test.sh"
 description = "Check Xcode and compile the UniFFI Swift binding for the iOS simulator"
 run = ["bash scripts/toolchain/check.sh --scope apple", "bash scripts/toolchain/proof.sh --scope apple"]
 
+[tasks."ui-web:test"]
+description = "Test the browser runtime and compare both instruction encoders"
+run = "node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js"
+
 [tasks."ui-wire:generate"]
 description = "Generate and bundle the user interface wire bindings"
 run = "bash scripts/ui_wire/generate.sh"
@@ -253,8 +257,17 @@ echo "✓ firefox installed"
 alias = "test-browser"
 description = "Run the pure-Rust browser test suite against a real Chromium (spec-43)"
 run = """
-echo "Running foundation_browser suite (needs chromium — run 'mise run test:browsers')..."
-cargo test -p foundation_browser --features browser-tests --test smoke
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$(uname -s)" == Darwin && -z "${PRIMAL_TEST_CHROMIUM_BIN:-}" ]]; then
+  for app in "/Applications/Chromium.app/Contents/MacOS/Chromium" "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; do
+    if [[ -x "$app" ]]; then export PRIMAL_TEST_CHROMIUM_BIN="$app"; break; fi
+  done
+fi
+echo "Running the Chromium browser tests..."
+cargo test -p foundation_browser --profile uat --features browser-tests --test smoke
+examples/ui_todo/build-module.sh
+cargo test -p ui_todo --profile uat --features browser-tests --test todo_browser_tests
 echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
 """
 

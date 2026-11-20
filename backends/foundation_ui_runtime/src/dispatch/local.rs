@@ -11,6 +11,18 @@ pub struct LocalDispatcher {
 }
 
 impl LocalDispatcher {
+    /// Claims the request now. The returned task keeps its dispatch context until completion.
+    pub fn submit_owned(self: std::sync::Arc<Self>, frame: &[u8]) -> TransportFuture<'static> {
+        let admission = self.dispatcher.admit(&self.connection, frame);
+        Box::pin(async move {
+            Ok(Some(
+                self.dispatcher
+                    .finish(&self.ctx, &self.connection, admission)
+                    .await,
+            ))
+        })
+    }
+
     #[must_use]
     pub fn new(dispatcher: Dispatcher, ctx: Ctx, connection: Connection) -> Self {
         Self {

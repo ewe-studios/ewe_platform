@@ -681,3 +681,22 @@ fn firefox_primal_test_helper_and_reactive_settle() {
 fn alloc_str(s: &str) -> String {
     s.to_string()
 }
+
+/// Deliver Rust frame bytes over server-sent events and apply them in Chromium.
+#[test]
+fn ewf1_stream_updates_the_browser() {
+    let html = include_str!("fixtures/ewf1-page.html");
+    let harness = Harness::setup(TestConfig {
+        html: html.into(),
+        ..TestConfig::default()
+    })
+    .expect("start the test page");
+    harness.run("ewf1_stream_updates_the_browser", |server, page| {
+        server.broadcaster().send(include_bytes!(
+            "../../foundation_ui_wire/fixtures/frame_ops_counter.bin"
+        ));
+        page.locator("#count").expect().to_have_text("1")?;
+        page.locator("#local-result").expect().to_have_text("ok")?;
+        Ok(())
+    });
+}

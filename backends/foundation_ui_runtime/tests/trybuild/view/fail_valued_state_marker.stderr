@@ -1,0 +1,5 @@
+error: html!: primal::state is a bare marker; remove its value
+ --> tests/trybuild/view/fail_valued_state_marker.rs:4:32
+  |
+4 |     let _view = html! { <input primal::state="private"/> };
+  |                                ^^^^^^

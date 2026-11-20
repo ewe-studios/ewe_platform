@@ -68,3 +68,136 @@ foundation_wasm_ui = { workspace = true }
 Design history, gap analyses, and per-feature verification live in
 [`specifications/39-foundation-wasm-ui/`](../../specifications/39-foundation-wasm-ui/)
 and [`specifications/42-ui-component/`](../../specifications/42-ui-component/).
+
+## Browser actions
+
+Install the frame reader before wiring a server or browser action. Serve its JavaScript modules from the same directory.
+
+```js
+import * as ui from "./foundation-wasm-ui.js";
+import * as behaviours from "./foundation-ui-behaviours.js";
+import {installFrameRuntime} from "./foundation-ui-frames.js";
+import {FetchActionTransport, JsActionRegistry, installActionRuntime} from "./foundation-ui-actions.js";
+
+const frames = installFrameRuntime(ui);
+const registry = new JsActionRegistry();
+registry.declare("server", "add_todo");
+registry.registerHost("notify", ({node}) => node.focus());
+const server = new FetchActionTransport({
+  url: "/action",
+  hello: () => manager.hello(),
+  requestSignal: () => AbortSignal.timeout(5000),
+});
+const manager = installActionRuntime(ui, {frames, registry, server, behaviours});
+```
+
+Bind a control to `server:add_todo` or `host:notify`. On each event, the manager reads that control’s input and signed attachment.
+An HTTP action sends one request. A retry requires an explicit policy. A socket action finishes its send when the open socket accepts the message.
+Pass later binary replies to `manager.receive(bytes)`.
+
+A compiled host action uses `WasmActionTransport`. Install its completion import before creating the WebAssembly instance.
+Forward `env.ewe_ui_action_done(call, slot)` to `transport.complete(call, slot)`. Call `transport.close()` when the instance shuts down.
+
+Run the shared route vectors and transport checks from the repository root.
+
+```sh
+node --test backends/foundation_wasm_ui/integration/test/actions-*.test.js
+```
+
+### Run a Rust action in a browser
+
+The application supplies its request context, registered actions, connection and executor seed.
+The context supplies the signer used to verify and issue state.
+Call this function from the WebAssembly module's entry point.
+
+```rust
+#[cfg(target_family = "wasm")]
+fn install_actions(
+    ctx: foundation_core::valtron::Ctx,
+    seed: u64,
+    registry: std::sync::Arc<foundation_ui_runtime::action::ActionRegistry>,
+    connection: foundation_ui_runtime::dispatch::Connection,
+) {
+    use foundation_core::valtron::single;
+    use foundation_ui_runtime::action::Origin;
+    use foundation_ui_runtime::dispatch::{DispatcherBuilder, LocalDispatcher};
+    use foundation_wasm_ui::actions::install_local_dispatcher;
+
+    single::initialize_pool_with_ctx(seed, ctx.clone());
+    let dispatcher = DispatcherBuilder::new(Origin::Host, registry).build();
+    install_local_dispatcher(LocalDispatcher::new(dispatcher, ctx, connection));
+}
+```
+
+The JavaScript bridge transfers its request allocation to Rust when it calls `ewe_ui_action`.
+Rust releases that allocation before it returns the start status. A zero status means that Valtron accepted the task.
+When the action waits, Valtron returns control to the browser. A wake schedules a microtask to poll the action again.
+Rust passes the call number and reply allocation to `env.ewe_ui_action_done`. JavaScript copies the reply and releases the allocation.
+The missing-reply value is the unsigned 64-bit maximum. The first arena allocation can have number zero.
+Call the transport's `close()` when the module stops. It rejects pending promises and drops the corresponding Rust futures.
+
+## Apply a frame in a browser
+
+A frame is one FlatBuffers message with the four-byte identifier `EWF1`.
+The identifier starts at byte four. The browser shares one node registry with the existing document renderer.
+A registry maps each numeric node identifier to its document node.
+
+Install the reader before registering the mount elements. This page receives binary frames through server-sent events (SSE).
+The server sends one base64-encoded frame in each event.
+
+```html
+<mount-stream api="/updates" transport="sse" protocol="frame"></mount-stream>
+<script type="module">
+  import * as ui from "/__primal/foundation-wasm-ui.js";
+  import { installFrameRuntime } from "/__primal/foundation-ui-frames.js";
+
+  const frames = installFrameRuntime(ui, {
+    document,
+    onReport: report => console.error(report.code, report),
+    onGap: gap => console.warn("Request a replay after", gap.resumeFrom),
+  });
+  ui.registerWebComponents();
+</script>
+```
+
+An HTTP response with content type `application/primal-frame` starts each frame with its four-byte, little-endian byte count.
+A WebSocket binary message carries one frame directly. The default frame limit is four mebibytes.
+Set `maxFrameBytes` in the installation options to change that limit.
+
+The reader applies shared node, property, text, binding, placement, behaviour and signed-state operations.
+It sends data tables to application code through the `ewe:data` event.
+A placement accepts a numeric node identifier or one unique browser selector.
+A child selector for before or after must match one direct child.
+Use `frames.registerUnmount(element, dispose)` to release a local reactive scope when its component leaves the document.
+
+### Write a message by hand
+
+The following module builds a complete message with the generated types. The browser body has registry identifier 1.
+Use this example with the installed `frames` reader above.
+
+```js
+import * as w from "/__primal/foundation-ui-wire.js";
+
+const create = new w.OperationT(w.UiOperation.CreateNode, new w.CreateNodeT(42, w.NodeKind.TEXT));
+const text = new w.OperationT(w.UiOperation.SetText, new w.SetTextT(42, "Buy milk"));
+const append = new w.OperationT(w.UiOperation.AppendChild, new w.AppendChildT(1, 42));
+const messages = [create, text, append].map(op => new w.MessageT(op));
+const value = new w.FrameT(1, 1n, 0n, w.FrameKind.FrameMessage, new w.FrameMessageT(0n, messages));
+const builder = new w.Builder();
+w.Frame.finishFrameBuffer(builder, value.pack(builder));
+frames.receive(builder.asUint8Array());
+```
+
+Only `AttachState` writes the reserved `primal::state` attribute. It copies the signer's bytes to the specified element.
+The browser uses unpadded base64url so the attribute can carry any byte sequence.
+
+The Rust fixture test encodes all 19 document operations with both writers.
+It also writes the shared operations as individual rows and as one column batch.
+The browser tests read the saved bytes and compare the resulting nodes, properties and registry entries.
+
+```sh
+UPDATE_FRAME_FIXTURES=1 cargo test -p foundation_wasm_ui --test frame_parity_fixtures_tests
+mise run ui-web:test
+```
+
+[Wire format and Rust writer](../foundation_ui_wire/README.md) · [Browser fixtures](./integration/fixtures/frames)

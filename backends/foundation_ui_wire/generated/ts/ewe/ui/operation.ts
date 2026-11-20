@@ -16,6 +16,7 @@ import { MobileBehaviour, MobileBehaviourT } from '../../ewe/ui/mobile-behaviour
 import { MobileOperation, unionToMobileOperation, unionListToMobileOperation } from '../../ewe/ui/mobile-operation.js';
 import { MountWebView, MountWebViewT } from '../../ewe/ui/mount-web-view.js';
 import { NativeCommand, NativeCommandT } from '../../ewe/ui/native-command.js';
+import { Place, PlaceT } from '../../ewe/ui/place.js';
 import { Remove, RemoveT } from '../../ewe/ui/remove.js';
 import { ReplaceSubtree, ReplaceSubtreeT } from '../../ewe/ui/replace-subtree.js';
 import { ScriptNode, ScriptNodeT } from '../../ewe/ui/script-node.js';
@@ -27,6 +28,7 @@ import { UnbindAction, UnbindActionT } from '../../ewe/ui/unbind-action.js';
 import { WebAddClass, WebAddClassT } from '../../ewe/ui/web-add-class.js';
 import { WebAddListener, WebAddListenerT } from '../../ewe/ui/web-add-listener.js';
 import { WebBehaviour, WebBehaviourT } from '../../ewe/ui/web-behaviour.js';
+import { WebDetachChild, WebDetachChildT } from '../../ewe/ui/web-detach-child.js';
 import { WebElement, WebElementT } from '../../ewe/ui/web-element.js';
 import { WebOperation, unionToWebOperation, unionListToWebOperation } from '../../ewe/ui/web-operation.js';
 import { WebProperty, WebPropertyT } from '../../ewe/ui/web-property.js';
@@ -183,9 +185,9 @@ unpackTo(_o: OperationT): void {
 export class OperationT implements flatbuffers.IGeneratedObject {
 constructor(
   public uiType: UiOperation = UiOperation.NONE,
-  public ui: AppendChildT|AttachStateT|BindActionT|CreateNodeT|InsertBeforeT|LiveMountT|RemoveT|ReplaceSubtreeT|SetPropT|SetTextT|UiBehaviourT|UnbindActionT|null = null,
+  public ui: AppendChildT|AttachStateT|BindActionT|CreateNodeT|InsertBeforeT|LiveMountT|PlaceT|RemoveT|ReplaceSubtreeT|SetPropT|SetTextT|UiBehaviourT|UnbindActionT|null = null,
   public webType: WebOperation = WebOperation.NONE,
-  public web: HtmlMorphT|ScriptNodeT|WebAddClassT|WebAddListenerT|WebBehaviourT|WebElementT|WebPropertyT|WebRegisterNodeT|WebRemoveAttributeT|WebRemoveClassT|WebRemoveListenerT|WebReplaceNodeT|WebSetAttributeT|WebStyleT|WebTextT|WebUnregisterNodeT|null = null,
+  public web: HtmlMorphT|ScriptNodeT|WebAddClassT|WebAddListenerT|WebBehaviourT|WebDetachChildT|WebElementT|WebPropertyT|WebRegisterNodeT|WebRemoveAttributeT|WebRemoveClassT|WebRemoveListenerT|WebReplaceNodeT|WebSetAttributeT|WebStyleT|WebTextT|WebUnregisterNodeT|null = null,
   public mobileType: MobileOperation = MobileOperation.NONE,
   public mobile: MobileBehaviourT|MountWebViewT|NativeCommandT|null = null,
   public columnar: ColumnarBatchT|null = null

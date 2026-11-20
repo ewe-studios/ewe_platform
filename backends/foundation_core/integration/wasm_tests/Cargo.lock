@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -451,7 +451,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "base85rs",
  "brotli",

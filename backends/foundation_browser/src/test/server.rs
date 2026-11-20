@@ -236,6 +236,22 @@ impl TestServer {
         let primal_test: Arc<dyn Serve> =
             Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
+        use foundation_wasm_ui::embedded::{
+            FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS,
+            FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
+        };
+        for (name, source) in [
+            ("foundation-ui-actions.js", FOUNDATION_UI_ACTIONS_JS),
+            ("foundation-ui-frames.js", FOUNDATION_UI_FRAMES_JS),
+            ("foundation-ui-wire.js", FOUNDATION_UI_WIRE_JS),
+            ("foundation-ui-vocab.js", FOUNDATION_UI_VOCAB_JS),
+            ("foundation-ui-behaviours.js", FOUNDATION_UI_BEHAVIOURS_JS),
+        ] {
+            let handler: Arc<dyn Serve> =
+                Arc::new(StaticAssetHandler::new(source.as_bytes(), js_ct));
+            app.router
+                .add_route_any(&format!("/__primal/{name}"), &handler);
+        }
         app.router.add_route_any(ARROW_LIB_PATH, &arrow_lib);
         app.router.add_route_any(PRIMAL_TEST_PATH, &primal_test);
         for sm in statics {

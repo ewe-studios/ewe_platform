@@ -8,6 +8,7 @@ import { BindAction, BindActionT } from '../../ewe/ui/bind-action.js';
 import { CreateNode, CreateNodeT } from '../../ewe/ui/create-node.js';
 import { InsertBefore, InsertBeforeT } from '../../ewe/ui/insert-before.js';
 import { LiveMount, LiveMountT } from '../../ewe/ui/live-mount.js';
+import { Place, PlaceT } from '../../ewe/ui/place.js';
 import { Remove, RemoveT } from '../../ewe/ui/remove.js';
 import { ReplaceSubtree, ReplaceSubtreeT } from '../../ewe/ui/replace-subtree.js';
 import { SetProp, SetPropT } from '../../ewe/ui/set-prop.js';
@@ -29,13 +30,14 @@ export enum UiOperation {
   UnbindAction = 9,
   AttachState = 10,
   LiveMount = 11,
-  UiBehaviour = 12
+  UiBehaviour = 12,
+  Place = 13
 }
 
 export function unionToUiOperation(
   type: UiOperation,
-  accessor: (obj:AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction) => AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null
-): AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null {
+  accessor: (obj:AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Place|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction) => AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Place|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null
+): AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Place|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null {
   switch(UiOperation[type]) {
     case 'NONE': return null; 
     case 'CreateNode': return accessor(new CreateNode())! as CreateNode;
@@ -50,15 +52,16 @@ export function unionToUiOperation(
     case 'AttachState': return accessor(new AttachState())! as AttachState;
     case 'LiveMount': return accessor(new LiveMount())! as LiveMount;
     case 'UiBehaviour': return accessor(new UiBehaviour())! as UiBehaviour;
+    case 'Place': return accessor(new Place())! as Place;
     default: return null;
   }
 }
 
 export function unionListToUiOperation(
   type: UiOperation, 
-  accessor: (index: number, obj:AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction) => AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null, 
+  accessor: (index: number, obj:AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Place|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction) => AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Place|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null, 
   index: number
-): AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null {
+): AppendChild|AttachState|BindAction|CreateNode|InsertBefore|LiveMount|Place|Remove|ReplaceSubtree|SetProp|SetText|UiBehaviour|UnbindAction|null {
   switch(UiOperation[type]) {
     case 'NONE': return null; 
     case 'CreateNode': return accessor(index, new CreateNode())! as CreateNode;
@@ -73,6 +76,7 @@ export function unionListToUiOperation(
     case 'AttachState': return accessor(index, new AttachState())! as AttachState;
     case 'LiveMount': return accessor(index, new LiveMount())! as LiveMount;
     case 'UiBehaviour': return accessor(index, new UiBehaviour())! as UiBehaviour;
+    case 'Place': return accessor(index, new Place())! as Place;
     default: return null;
   }
 }

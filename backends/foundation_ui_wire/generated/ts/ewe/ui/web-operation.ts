@@ -7,6 +7,7 @@ import { ScriptNode, ScriptNodeT } from '../../ewe/ui/script-node.js';
 import { WebAddClass, WebAddClassT } from '../../ewe/ui/web-add-class.js';
 import { WebAddListener, WebAddListenerT } from '../../ewe/ui/web-add-listener.js';
 import { WebBehaviour, WebBehaviourT } from '../../ewe/ui/web-behaviour.js';
+import { WebDetachChild, WebDetachChildT } from '../../ewe/ui/web-detach-child.js';
 import { WebElement, WebElementT } from '../../ewe/ui/web-element.js';
 import { WebProperty, WebPropertyT } from '../../ewe/ui/web-property.js';
 import { WebRegisterNode, WebRegisterNodeT } from '../../ewe/ui/web-register-node.js';
@@ -37,13 +38,14 @@ export enum WebOperation {
   WebRegisterNode = 13,
   WebUnregisterNode = 14,
   ScriptNode = 15,
-  WebBehaviour = 16
+  WebBehaviour = 16,
+  WebDetachChild = 17
 }
 
 export function unionToWebOperation(
   type: WebOperation,
-  accessor: (obj:HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode) => HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null
-): HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null {
+  accessor: (obj:HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebDetachChild|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode) => HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebDetachChild|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null
+): HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebDetachChild|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null {
   switch(WebOperation[type]) {
     case 'NONE': return null; 
     case 'WebElement': return accessor(new WebElement())! as WebElement;
@@ -62,15 +64,16 @@ export function unionToWebOperation(
     case 'WebUnregisterNode': return accessor(new WebUnregisterNode())! as WebUnregisterNode;
     case 'ScriptNode': return accessor(new ScriptNode())! as ScriptNode;
     case 'WebBehaviour': return accessor(new WebBehaviour())! as WebBehaviour;
+    case 'WebDetachChild': return accessor(new WebDetachChild())! as WebDetachChild;
     default: return null;
   }
 }
 
 export function unionListToWebOperation(
   type: WebOperation, 
-  accessor: (index: number, obj:HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode) => HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null, 
+  accessor: (index: number, obj:HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebDetachChild|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode) => HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebDetachChild|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null, 
   index: number
-): HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null {
+): HtmlMorph|ScriptNode|WebAddClass|WebAddListener|WebBehaviour|WebDetachChild|WebElement|WebProperty|WebRegisterNode|WebRemoveAttribute|WebRemoveClass|WebRemoveListener|WebReplaceNode|WebSetAttribute|WebStyle|WebText|WebUnregisterNode|null {
   switch(WebOperation[type]) {
     case 'NONE': return null; 
     case 'WebElement': return accessor(index, new WebElement())! as WebElement;
@@ -89,6 +92,7 @@ export function unionListToWebOperation(
     case 'WebUnregisterNode': return accessor(index, new WebUnregisterNode())! as WebUnregisterNode;
     case 'ScriptNode': return accessor(index, new ScriptNode())! as ScriptNode;
     case 'WebBehaviour': return accessor(index, new WebBehaviour())! as WebBehaviour;
+    case 'WebDetachChild': return accessor(index, new WebDetachChild())! as WebDetachChild;
     default: return null;
   }
 }

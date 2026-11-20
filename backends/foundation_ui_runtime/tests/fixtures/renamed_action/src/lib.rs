@@ -25,3 +25,9 @@ pub fn register(registry: &mut ActionRegistry) -> Result<(), RegistrationError> 
     registry.register(increment)?;
     registry.register(clear)
 }
+
+pub fn render_form(ctx: &Context) -> ActionResult {
+    ui::html! { ctx, ctx.receiver(), <Button on:tap={focus}>Focus</Button> };
+    ui::html_add! { "main", ctx, ctx.receiver(), <Text>Message</Text> }?;
+    Ok(())
+}

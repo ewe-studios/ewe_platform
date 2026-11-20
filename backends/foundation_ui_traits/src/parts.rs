@@ -25,6 +25,23 @@ pub enum Part {
     Event(EventPart),
 }
 
+impl Part {
+    /// Request signed state on this node. The template stores this request in its metadata.
+    #[must_use]
+    pub fn state_marker(node_id: u32) -> Self {
+        Self::Attribute(AttrPart {
+            node_id,
+            attr_name: String::from("primal::state"),
+        })
+    }
+
+    /// Check whether this part requests signed state for the given local node.
+    #[must_use]
+    pub fn marks_state_on(&self, id: u32) -> bool {
+        matches!(self, Self::Attribute(part) if part.node_id == id && part.attr_name == "primal::state")
+    }
+}
+
 /// A dynamic text content slot.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TextPart {

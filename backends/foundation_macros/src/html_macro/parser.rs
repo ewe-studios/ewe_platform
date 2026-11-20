@@ -31,7 +31,7 @@ pub(crate) struct ParseError {
 }
 
 impl ParseError {
-    fn new(span: Span, message: impl Into<String>) -> Self {
+    pub(super) fn new(span: Span, message: impl Into<String>) -> Self {
         Self {
             span,
             message: message.into(),
@@ -75,17 +75,52 @@ pub(crate) enum ParsedNode {
     },
 }
 
+pub(super) fn core_tag(tag: &str) -> bool {
+    matches!(
+        tag,
+        "Stack"
+            | "Text"
+            | "Image"
+            | "Button"
+            | "TextInput"
+            | "Toggle"
+            | "List"
+            | "Scroll"
+            | "Spacer"
+            | "Overlay"
+    )
+}
+
+pub(super) enum ActionTarget {
+    Rust(syn::Path),
+    Host(String),
+}
+
 /// One parsed attribute.
 pub(crate) enum ParsedAttr {
+    Action {
+        event: String,
+        target: ActionTarget,
+    },
+    StateMarker(Span),
     /// `name="value"` or bare boolean `name` (value "true").
-    Static { name: String, value: String },
+    Static {
+        name: String,
+        value: String,
+    },
     /// `name={expr}` — REACTIVE: re-evaluated in an effect on signal change.
-    Dynamic { name: String, tokens: TokenStream },
+    Dynamic {
+        name: String,
+        tokens: TokenStream,
+    },
     /// `name=[expr]` — STATIC-once: evaluated a single time at build (no
     /// effect). For runtime-but-non-reactive values (config `Cow`s, computed
     /// classes) — avoids the `FnMut` move that forces `{expr}` callers to
     /// `.clone()`, and emits no per-render effect.
-    StaticDynamic { name: String, tokens: TokenStream },
+    StaticDynamic {
+        name: String,
+        tokens: TokenStream,
+    },
     /// `primal:onX={handler}` — `event_name` is X with the prefix stripped.
     Event {
         event_name: String,
@@ -275,7 +310,7 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
     // Capitalized tags are RESERVED compile-time built-ins (spec-42
     // feature 00 §6) — never DOM elements (real tags are lowercase; custom
     // elements require a dash).
-    if tag.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
+    if !core_tag(&tag) && tag.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
         if tag == "Fragment" {
             return parse_fragment(cursor, tag_span);
         }
@@ -289,7 +324,7 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
             tag_span,
             format!(
                 "html!: unknown built-in '<{tag}>' — capitalized tags are reserved \
-                 (available: Fragment, Show, For); custom elements need a dash (e.g. <my-{}>)",
+                 for shared elements, Fragment, Show, and For; custom elements need a dash (e.g. <my-{}>)",
                 tag.to_lowercase()
             ),
         ));
@@ -399,7 +434,14 @@ fn parse_builtin_attrs(
             ParsedAttr::Dynamic { name, tokens } if allowed.contains(&name.as_str()) => {
                 out.push((name, tokens));
             }
-            ParsedAttr::Dynamic { name, .. }
+            ParsedAttr::StateMarker(span) => {
+                return Err(ParseError::new(
+                    span,
+                    "html!: primal::state must mark an element",
+                ))
+            }
+            ParsedAttr::Action { event: name, .. }
+            | ParsedAttr::Dynamic { name, .. }
             | ParsedAttr::StaticDynamic { name, .. }
             | ParsedAttr::Static { name, .. }
             | ParsedAttr::Event {
@@ -560,33 +602,32 @@ fn parse_attributes(
             ));
         };
 
-        // `primal:` namespace: only `primal:on*` is meaningful in templates.
-        if let Some(rest) = name.strip_prefix("primal:") {
-            if let Some(event) = rest.strip_prefix("on") {
-                if !cursor.eat_punct('=') {
-                    return Err(ParseError::new(
-                        name_span,
-                        format!("html!: attribute '{name}' has '=' but no value"),
-                    ));
-                }
-                let tokens = parse_brace_value(cursor, &name, name_span)?;
-                attrs.push(ParsedAttr::Event {
-                    event_name: event.to_string(),
-                    tokens,
-                });
-                continue;
+        if name == "primal" && cursor.eat_punct(':') {
+            if !cursor.eat_punct(':')
+                || !matches!(cursor.next(), Some(TokenTree::Ident(id)) if id == "state")
+            {
+                return Err(ParseError::new(name_span, "html!: unknown primal marker"));
             }
-            if rest == "style" || rest == "script" {
-                attrs.push(ParsedAttr::Static {
-                    name,
-                    value: String::from("true"),
-                });
-                continue;
+            if cursor.is_punct('=') {
+                return Err(ParseError::new(
+                    name_span,
+                    "html!: primal::state is a bare marker; remove its value",
+                ));
             }
-            return Err(ParseError::new(
-                name_span,
-                format!("html!: unknown primal attribute '{name}'"),
-            ));
+            attrs.push(ParsedAttr::StateMarker(name_span));
+            continue;
+        }
+        if let Some(event) = name.strip_prefix("on:") {
+            attrs.push(parse_action(cursor, event, name_span)?);
+            continue;
+        }
+        if core_tag(tag) {
+            check_core_property(cursor, tag, &name, name_span)?;
+        }
+
+        if name.starts_with("primal:") {
+            attrs.push(parse_primal_attribute(cursor, name, name_span)?);
+            continue;
         }
 
         if cursor.eat_punct('=') {
@@ -639,6 +680,35 @@ fn parse_attributes(
             });
         }
     }
+}
+
+fn parse_primal_attribute(
+    cursor: &mut Cursor,
+    name: String,
+    span: Span,
+) -> ParseResult<ParsedAttr> {
+    if let Some(event) = name.strip_prefix("primal:on") {
+        if !cursor.eat_punct('=') {
+            return Err(ParseError::new(
+                span,
+                format!("html!: attribute '{name}' has '=' but no value"),
+            ));
+        }
+        return Ok(ParsedAttr::Event {
+            event_name: event.to_owned(),
+            tokens: parse_brace_value(cursor, &name, span)?,
+        });
+    }
+    if matches!(name.as_str(), "primal:style" | "primal:script") {
+        return Ok(ParsedAttr::Static {
+            name,
+            value: String::from("true"),
+        });
+    }
+    Err(ParseError::new(
+        span,
+        format!("html!: unknown primal attribute '{name}'"),
+    ))
 }
 
 /// `={ ... }` value for event handlers (always brace-delimited).
@@ -696,86 +766,126 @@ fn consume_closing_tag(cursor: &mut Cursor, expected: &str, open_span: Span) -> 
 // `proc-macro = true` crate may only export procedural macros — the parser
 // cannot be reached from an integration test, and asserting exact messages
 // from `tests/` would require a compile-fail harness (new dependency).
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use quote::quote;
 
-    fn err(stream: TokenStream) -> String {
-        match parse_template(stream) {
-            Err(e) => e.message,
-            Ok(_) => panic!("expected a parse error"),
+fn parse_action(cursor: &mut Cursor, event: &str, span: Span) -> ParseResult<ParsedAttr> {
+    if !matches!(event, "tap" | "change" | "submit" | "focus" | "blur") {
+        return Err(ParseError::new(
+            span,
+            format!("html!: unknown event `{event}`; use tap, change, submit, focus or blur"),
+        ));
+    }
+    if !cursor.eat_punct('=') {
+        return Err(ParseError::new(
+            span,
+            "html!: an action binding requires a value",
+        ));
+    }
+    let value_span = cursor.span();
+    let target = match cursor.next() {
+        Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace => {
+            let path = syn::parse2(group.stream()).map_err(|_| {
+                ParseError::new(
+                    value_span,
+                    "html!: a brace action is a Rust action path, for example on:tap={add_todo}",
+                )
+            })?;
+            ActionTarget::Rust(path)
         }
-    }
+        Some(TokenTree::Literal(lit)) => {
+            let value = syn::parse2::<syn::LitStr>(quote::quote!(#lit))
+                .ok()
+                .map(|s| s.value());
+            let valid = value
+                .as_deref()
+                .and_then(|s| s.strip_prefix("host:"))
+                .is_some_and(|s| {
+                    !s.is_empty()
+                        && s.len() <= 128
+                        && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
+                });
+            if !valid {
+                return Err(ParseError::new(value_span, "html!: a string action reference must start with `host:` and contain a valid name"));
+            }
+            ActionTarget::Host(value.unwrap())
+        }
+        _ => {
+            return Err(ParseError::new(
+                value_span,
+                "html!: an action binding requires a Rust path in braces or a host string",
+            ))
+        }
+    };
+    Ok(ParsedAttr::Action {
+        event: event.to_owned(),
+        target,
+    })
+}
 
-    /// Spec test 35.
-    #[test]
-    fn unclosed_tag() {
-        assert_eq!(err(quote! { <div> }), "html!: unclosed tag '<div>'");
+fn check_core_property(cursor: &Cursor, tag: &str, name: &str, span: Span) -> ParseResult<()> {
+    if name.starts_with("primal:on") {
+        return Err(ParseError::new(
+            span,
+            "html!: use on:<event> on a core element, not primal:on<event>",
+        ));
     }
-
-    /// Spec test 36.
-    #[test]
-    fn mismatched_closing_tag() {
-        assert_eq!(
-            err(quote! { <div></span> }),
-            "html!: expected closing '</div>', found '</span>'"
-        );
+    if !matches!(
+        name,
+        "padding"
+            | "spacing"
+            | "width"
+            | "height"
+            | "align"
+            | "axis"
+            | "enabled"
+            | "checked"
+            | "hidden"
+            | "key"
+            | "a11y_label"
+            | "color"
+            | "font"
+            | "background"
+            | "source"
+            | "placeholder"
+            | "value"
+    ) {
+        return Err(ParseError::new(
+            span,
+            format!("html!: `{name}` is not a property of <{tag}>"),
+        ));
     }
-
-    /// Spec test 37.
-    #[test]
-    fn empty_input() {
-        assert_eq!(err(TokenStream::new()), "html!: empty input");
-    }
-
-    /// Spec test 38.
-    #[test]
-    fn unclosed_nested_tag() {
-        assert_eq!(err(quote! { <div><p></p> }), "html!: unclosed tag '<div>'");
-    }
-
-    /// Spec test 39.
-    #[test]
-    fn equals_without_value() {
-        assert_eq!(
-            err(quote! { <div class= ></div> }),
-            "html!: attribute 'class' has '=' but no value"
-        );
-    }
-
-    #[test]
-    fn multiple_roots_rejected() {
-        assert_eq!(
-            err(quote! { <div></div><span></span> }),
-            "html!: multiple root elements — wrap in a parent"
-        );
-    }
-
-    #[test]
-    fn unknown_primal_attribute() {
-        assert_eq!(
-            err(quote! { <div primal:bogus="x"></div> }),
-            "html!: unknown primal attribute 'primal:bogus'"
-        );
-    }
-
-    #[test]
-    fn void_elements_need_no_close() {
-        let node = parse_template(quote! { <div><br><img /><hr></div> }).unwrap();
-        let ParsedNode::Element { children, .. } = node else {
-            panic!("root must be an element");
+    let (value, value_span) = if cursor.is_punct('=') {
+        let Some(TokenTree::Literal(lit)) = cursor.peek2() else {
+            return Ok(());
         };
-        assert_eq!(children.len(), 3);
-    }
-
-    #[test]
-    fn bare_text_keeps_punct_glue() {
-        let node = parse_template(quote! { <b>Count: {n}</b> }).unwrap();
-        let ParsedNode::Element { children, .. } = node else {
-            panic!()
+        let Ok(literal) = syn::parse2::<syn::LitStr>(quote::quote!(#lit)) else {
+            return Ok(());
         };
-        assert!(matches!(&children[0], ParsedNode::Text(t) if t == "Count:"));
-        assert!(matches!(&children[1], ParsedNode::Slot(_)));
-    }
+        (literal.value(), literal.span())
+    } else {
+        (String::from("true"), span)
+    };
+    let error = match name {
+        "padding" | "spacing" | "width" | "height"
+            if value != "auto"
+                && !value
+                    .strip_suffix('%')
+                    .unwrap_or(&value)
+                    .parse::<f32>()
+                    .is_ok_and(f32::is_finite) =>
+        {
+            "a number, a percent such as \"50%\" or \"auto\""
+        }
+        "align" if !matches!(value.as_str(), "start" | "center" | "end" | "stretch") => {
+            "start, center, end or stretch"
+        }
+        "axis" if !matches!(value.as_str(), "vertical" | "horizontal") => "vertical or horizontal",
+        "enabled" | "checked" | "hidden" if !matches!(value.as_str(), "true" | "false") => {
+            "true or false"
+        }
+        _ => return Ok(()),
+    };
+    Err(ParseError::new(
+        value_span,
+        format!("html!: `{name}` needs {error}"),
+    ))
 }

@@ -305,7 +305,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "base85rs",
  "brotli",
@@ -332,12 +332,13 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_ui_runtime"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "foundation_compact",
  "foundation_context",
  "foundation_errstacks",
  "foundation_macros",
+ "foundation_ui_traits",
  "foundation_ui_wire",
  "hmac",
  "serde",
@@ -350,11 +351,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_traits"
-version = "0.0.4"
+version = "0.0.5"
 
 [[package]]
 name = "foundation_ui_wire"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "flatbuffers",
  "foundation_ui_traits",

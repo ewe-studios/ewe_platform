@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_wire"
-version = "0.0.4"
+version = "0.0.5"
 autotests = false
 edition.workspace = true
 rust-version.workspace = true
@@ -15,7 +15,7 @@ std = ["flatbuffers/std"]
 
 [dependencies]
 flatbuffers = { workspace = true }
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.5" }
 
 [dev-dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }

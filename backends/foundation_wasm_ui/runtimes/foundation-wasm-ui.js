@@ -867,6 +867,7 @@ export function parseCallbackId(ref) {
  *   4. otherwise                              → console.warn, no listener
  */
 export class EventDispatcher {
+  static actionHook = null;
   /**
    * @param {(callbackId:number, eventData:object) => void} deliver
    * @param {{ deliverSignal?:(setterId:number, eventData:object)=>void,
@@ -919,6 +920,12 @@ export class EventDispatcher {
   }
 
   #buildListener(el, eventType, handlerRef) {
+    if (/^(server|host):/.test(String(handlerRef))) {
+      return event => {
+        if (EventDispatcher.actionHook) return EventDispatcher.actionHook(String(handlerRef), el, event, eventType);
+        console.warn("No action runtime for", handlerRef);
+      };
+    }
     const callbackId = parseCallbackId(handlerRef);
     if (callbackId !== null) {
       return (event) => this.deliver(callbackId, buildEventData(eventType, event, el));
@@ -1902,6 +1909,7 @@ export class Transport {
  * a typed error (NEVER a silent json attempt).
  */
 export function decodeEnvelopeFrame(bytes) {
+  if (ProtocolHandler.frameHook?.isFrame(bytes)) return { type: "frame", frames: [bytes] };
   if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
   if (bytes.byteLength < 6) {
     console.error("decodeEnvelopeFrame: truncated header", bytes.byteLength);
@@ -1948,6 +1956,7 @@ function base64ToBytes(text) {
 }
 
 function streamEventResult(kind, raw) {
+  if (kind === "frame") return { type: "frame", frames: [base64ToBytes(raw)] };
   if (kind === "json") {
     try {
       return routeJson(JSON.parse(raw));
@@ -2089,10 +2098,31 @@ export class RawHandler {
  *
  * Precedence: attribute > headers/event name > channel default.
  */
+export class FrameHandler {
+  async process(response) {
+    if (!response.ok) throw new Error("Frame request failed with HTTP " + response.status);
+    const hook = ProtocolHandler.frameHook;
+    if (!hook) {
+      console.error("frame received but the frame runtime is not installed");
+      return { type: "raw", text: "" };
+    }
+    const frames = [];
+    let total = 0;
+    for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)) {
+      total += frame.length;
+      if (total > hook.maxFrameBytes) throw new RangeError("Frame reply exceeds byte limit");
+      frames.push(frame);
+    }
+    return { type: "frame", frames };
+  }
+}
+
 export class ProtocolHandler {
+  static frameHook = null;
   /** Explicit handler by name — the mount `protocol` attribute override. */
   static named(name) {
     switch (name) {
+      case "frame": return new FrameHandler();
       case "arrow":
         return new ArrowHandler();
       case "json":
@@ -2107,6 +2137,7 @@ export class ProtocolHandler {
   /** Content-type table (spec §3, G46). */
   static fromContentType(response) {
     const ct = response.headers?.get?.("content-type") || "";
+    if (ct.includes("primal-frame")) return new FrameHandler();
     if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return new ArrowHandler();
     if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
     if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
@@ -2134,10 +2165,11 @@ export function scopeCss(cssText, prefix) {
 }
 
 export class Hydrator {
+  static scopeExtensions = [];
   /** Scoped-script execution scope (spec §5). */
   static createScope(targetElement) {
     const eventCleanups = [];
-    return {
+    const scope = {
       targets: () => targetElement.querySelectorAll("[primal-id]"),
       parent: () => targetElement,
       querySelector: (sel) => targetElement.querySelector(sel),
@@ -2156,6 +2188,8 @@ export class Hydrator {
         eventCleanups.length = 0;
       },
     };
+    for (const extend of Hydrator.scopeExtensions) extend(scope, targetElement);
+    return scope;
   }
 
   /** Styles + scripts. NOT events (F08 owns primal:on*). Browser-leaning. */
@@ -2193,7 +2227,7 @@ export class Hydrator {
 
 export class Patcher {
   /** Injectable seams: the F08 dispatcher, the DomOp applicator, signals. */
-  static runtime = { dispatcher: null, applicator: null, signalBridge: null };
+  static runtime = { dispatcher: null, applicator: null, signalBridge: null, frames: null };
   /** Monotonic count of applied results (the frame instrument; see `route`). */
   static frameSeq = 0;
 
@@ -2248,6 +2282,10 @@ export class Patcher {
   /** Apply one routed result (the actual DOM work; instrumented by `route`). */
   static applyRoute(result, targetEl, doc) {
     switch (result.type) {
+      case "frame":
+        if (!Patcher.runtime.frames) console.error("frame received but the frame runtime is not installed");
+        else for (const frame of result.frames) Patcher.runtime.frames.receive(frame);
+        break;
       case "html":
         Patcher.materialize(result.html, targetEl, doc);
         break;

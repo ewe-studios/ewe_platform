@@ -32,6 +32,7 @@ pub mod server;
 #[cfg(not(target_family = "wasm"))]
 pub use server::{BroadcastSink, BroadcastTx, Broadcaster, FrameTransport};
 
+pub mod actions;
 pub mod app;
 pub mod events;
 pub mod html_macro;

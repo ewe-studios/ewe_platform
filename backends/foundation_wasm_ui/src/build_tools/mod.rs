@@ -24,6 +24,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use std::collections::HashMap;
+use std::fmt::Write;
 
 use foundation_codegen::{AttributeValue, CrateScanner, ItemKind, RegistryExt};
 
@@ -225,6 +226,9 @@ impl WasmBundleGenerator {
     /// (no per-entrypoint `src/bin/*.rs` or `[[bin]]` needed).
     /// The wasm binary is assumed to already be compiled to
     /// `target/wasm32-unknown-unknown/{profile}/{crate_name}.wasm`.
+    ///
+    /// # Errors
+    /// Returns an error if a required artifact cannot be read or an output cannot be written.
     pub fn execute_for_lib_crate(
         &self,
         crate_name: &str,
@@ -247,48 +251,50 @@ impl WasmBundleGenerator {
             written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
         }
 
-        let do_single_js = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
-        if do_single_js {
+        self.write_runtime_assets(skip_runtimes, runtime_assets, &mut written)?;
+        Ok(written)
+    }
+
+    fn write_runtime_assets(
+        &self,
+        skip_runtimes: bool,
+        assets: &[(&str, &Path)],
+        written: &mut Vec<PlannedFile>,
+    ) -> Result<(), WasmBinError> {
+        if self.entrypoints.iter().any(|ep| ep.jsruntime_single) {
             let mut bundle = String::new();
-            for (file_name, source) in runtime_assets {
-                if let Ok(content) = std::fs::read_to_string(source) {
-                    let stripped = content
-                        .lines()
-                        .map(|l| {
-                            let t = l.trim();
-                            if t.starts_with("export ") {
-                                &t[7..]
-                            } else {
-                                l
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\n");
-                    bundle.push_str(&format!(
-                        "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
-                    ));
+            for (file_name, source) in assets {
+                let content = std::fs::read_to_string(source).map_err(|e| io_err(source, e))?;
+                bundle.push_str("\n/* ═════════ ");
+                bundle.push_str(file_name);
+                bundle.push_str(" ═════════ */\n");
+                for line in content.lines() {
+                    bundle.push_str(line.trim().strip_prefix("export ").unwrap_or(line));
+                    bundle.push('\n');
+                }
+                if content.is_empty() {
+                    bundle.push('\n');
                 }
             }
             if !bundle.is_empty() {
-                let dest = self.output_dir.join("bundle.js");
-                std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
+                let path = self.output_dir.join("bundle.js");
+                std::fs::write(&path, bundle).map_err(|e| io_err(&path, e))?;
                 written.push(PlannedFile {
-                    path: dest,
+                    path,
                     kind: "runtime bundle",
                 });
             }
-        }
-        if !skip_runtimes && !do_single_js {
-            for (file_name, source) in runtime_assets {
-                let dest = self.output_dir.join(file_name);
-                std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
+        } else if !skip_runtimes {
+            for (file_name, source) in assets {
+                let path = self.output_dir.join(file_name);
+                std::fs::copy(source, &path).map_err(|e| io_err(&path, e))?;
                 written.push(PlannedFile {
-                    path: dest,
+                    path,
                     kind: "runtime asset",
                 });
             }
         }
-        Ok(written)
+        Ok(())
     }
 
     #[must_use]
@@ -385,47 +391,7 @@ impl WasmBundleGenerator {
             written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
         }
 
-        let do_single_js = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
-        if do_single_js {
-            let mut bundle = String::new();
-            for (file_name, source) in runtime_assets {
-                if let Ok(content) = std::fs::read_to_string(source) {
-                    let stripped = content
-                        .lines()
-                        .map(|l| {
-                            let t = l.trim();
-                            if t.starts_with("export ") {
-                                &t[7..]
-                            } else {
-                                l
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\n");
-                    bundle.push_str(&format!(
-                        "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
-                    ));
-                }
-            }
-            if !bundle.is_empty() {
-                let dest = self.output_dir.join("bundle.js");
-                std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
-                written.push(PlannedFile {
-                    path: dest,
-                    kind: "runtime bundle",
-                });
-            }
-        }
-        if !skip_runtimes && !do_single_js {
-            for (file_name, source) in runtime_assets {
-                let dest = self.output_dir.join(file_name);
-                std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
-                written.push(PlannedFile {
-                    path: dest,
-                    kind: "runtime asset",
-                });
-            }
-        }
+        self.write_runtime_assets(skip_runtimes, runtime_assets, &mut written)?;
 
         // Generate index.html — readable HTML, one <script> per entrypoint.
         let bins: Vec<_> = self
@@ -437,7 +403,8 @@ impl WasmBundleGenerator {
             let mut init_blocks = String::new();
             for ep in &bins {
                 let name = &ep.name;
-                init_blocks.push_str(&format!(
+                write!(
+                    &mut init_blocks,
                     r#"  <script type="module">
     // ── {name} ──
     import {{ init }} from './{name}.js';
@@ -448,7 +415,8 @@ impl WasmBundleGenerator {
     }});
   </script>
 "#
-                ));
+                )
+                .map_err(|error| io_err(&self.output_dir, std::io::Error::other(error)))?;
             }
 
             let html = format!(

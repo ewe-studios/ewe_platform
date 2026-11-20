@@ -28,10 +28,11 @@ are._
 identifier (id); AeroSpace and Defence Industries Association of Europe (ASD), the owner of
 the STE standard ASD-STE100.
 
-## Proposed change of ownership
+## Migration ownership
 
-[Feature 20](../20-migrate-to-frame-writer/feature.md) moves the existing producers and their browser delivery path to the frame writer first.
-Its ownership table supersedes the migration sequence below upon approval.
+Feature 09 supplies the tested browser reader. Feature 20 moves existing producers to the frame writer.
+Feature 11 adds live delivery. Feature 12 removes legacy code after both paths pass their checks.
+[Producer migration plan](../20-migrate-to-frame-writer/feature.md)
 
 ## 1. Goal
 

@@ -1,0 +1,7 @@
+error: html!: empty input
+ --> tests/trybuild/view/fail_empty_input.rs:4:17
+  |
+4 |     let _view = html! {  };
+  |                 ^^^^^^^^^^
+  |
+  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

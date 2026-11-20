@@ -23,6 +23,12 @@ pub enum WriteError {
         limit: usize,
         actual: usize,
     },
+    ReservedStateAttribute {
+        message_index: usize,
+    },
+    InvalidPlacement {
+        message_index: usize,
+    },
     EmptyMessage {
         message_index: usize,
     },
@@ -79,6 +85,14 @@ impl fmt::Display for WriteError {
             } => {
                 write!(formatter, "Message {message_index} has {actual} state bytes and exceeds the {limit}-byte limit.")
             }
+            Self::ReservedStateAttribute { message_index } => write!(
+                formatter,
+                "Message {message_index} writes the reserved state attribute."
+            ),
+            Self::InvalidPlacement { message_index } => write!(
+                formatter,
+                "Message {message_index} has an invalid placement."
+            ),
             Self::EmptyMessage { message_index } => {
                 write!(formatter, "Message {message_index} has no payload.")
             }

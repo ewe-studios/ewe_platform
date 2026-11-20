@@ -1,21 +1,21 @@
 ---
 feature: "html-macro-core-vocabulary"
 description: "html! gains the core elements, typed on: action bindings and an optional third field for the state; a lowering function turns an Html tree into schema operation units."
-status: "pending"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms", "05-action-runtime", "06-action-macro", "07-dispatcher-and-handshake"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-20
+last_updated: 2026-11-21
 author: "Main Agent"
 crates: ["foundation_macros", "foundation_ui_runtime"]
 decisions: ["D10", "D20", "D36", "D37", "D40", "D41", "D42", "D44", "D45", "D50", "D51", "D52", "D56", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 08: `html!` in the core vocabulary
@@ -27,10 +27,11 @@ are._
 Cascading Style Sheets (CSS); JavaScript (JS); identifier (id); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
-## Proposed change of ownership
+## Migration ownership
 
-[Feature 20](../20-migrate-to-frame-writer/feature.md) moves the existing producers and their browser delivery path to the frame writer first.
-Its ownership table supersedes the migration sequence below upon approval.
+Feature 09 supplies the tested browser reader. Feature 20 moves existing producers to the frame writer.
+Feature 11 adds live delivery. Feature 12 removes legacy code after both paths pass their checks.
+[Producer migration plan](../20-migrate-to-frame-writer/feature.md)
 
 ## 1. Goal
 
@@ -91,9 +92,17 @@ the state field of the reactive form; `foundation_ui_runtime::view` (`lower`, `m
 | `mount` | entity | Page render | `lower`, plus the root append and the state |
 | state field (of `html!`) | entity | The reactive form with `Some(&state)` | The template operations, then one pending state value with its target nodes in the receiver |
 
-`lower` and `mount` are pure functions of their arguments. None has a fault table. Their
-failures are `LowerError` values. The state field of `html!` writes to a receiver and
-propagates a `LowerError` as the action error (section 6.5).
+The receiver accepts a complete render after its checks succeed.
+
+| Operation and failed step | What the caller sees | What remains |
+|---|---|---|
+| Parse an unknown property, action form, or event name | A compiler error at the invalid token | No executable template |
+| Lower a bad dynamic property, missing token, or invalid node | A `LowerError` | The input tree. The caller receives no operations. |
+| Mount a tree with invalid markup or a state serialization error | An action error | Earlier receiver items. The failed mount adds no items. |
+| Render an action without a component root | An action error with code `ActionFailed` | Earlier receiver items. The failed render adds no items. |
+| Render with an invalid state or property after reserving node identifiers | An action error | Earlier receiver items. The reserved identifiers stay unused. |
+| Finalize state and the signer fails | The dispatcher returns an error frame | The renderer retains its previous tree. |
+| Apply a placement with a missing target | The renderer records the target error | The existing target tree. Later valid placements can proceed. |
 
 **Words.** "Core element" is an element whose tag is one of the ten core names. "Web
 element" is any other element. "Lower" is to turn a tree into operation units. "Receiver" is
@@ -226,7 +235,7 @@ Feature: html! in the core vocabulary
   Scenario: A click binds to a page function
     Given html! { <button on:tap="host:open_picker">"Pick"</button> }
     When the caller calls lower with id_base 40
-    Then the units hold BindAction(40, TAP, "host:open_picker") in the `web` field
+    Then the units hold BindAction(40, TAP, "host:open_picker") in the `ui` field
 
   Scenario: A shared behaviour marker gives one shared operation and no script
     Given html! { <Stack><div data-ewe-behaviour="scroll_lock"></div></Stack> }
@@ -398,13 +407,18 @@ local handlers. The reactive form therefore carries the attribute through its ex
 
 ### 6.5 The forms of `html!` (`html_macro/mod.rs`)
 
+An action host imports `foundation_ui_runtime::html`. Both receiver forms write complete frame operations, including plain web elements.
+A mounted signal component imports `foundation_wasm_ui::html`. Existing two-field web templates continue to update their reactive receiver.
+Shared elements, typed action bindings, and the state field select the action runtime.
+A pure template produces a tree that another template can compose.
+
 The macro counts the top-level fields before the template (D51):
 
 | Input | Form | Result |
 |---|---|---|
 | `<template>` as the first token | Pure | The existing pure `Html` value |
 | one field, then `<template>` | — | The existing error for a bad form |
-| `ctx, receiver, <template>` | Reactive | The existing reactive output (D40) |
+| `ctx, receiver, <template>` | Receiver | Frame operations in an action. Signal effects in an existing reactive component (D40). |
 | `ctx, receiver, None, <template>` | Reactive | The same as the two-field form |
 | `ctx, receiver, Some(&state), <template>` | Reactive with state | An `Html` value. The receiver holds the operations and one pending state value with its targets. |
 
@@ -562,34 +576,31 @@ Test one action that adds a row and swaps a count in the same frame.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
-| I1; Scenario: the reactive form is unchanged | The existing suites `backends/foundation_wasm_ui/tests/html_macro_tests.rs`, `reactive_structure_tests.rs` and `backends/foundation_ui_components/tests/components_tests.rs` pass with no edit | expected outcome |
-| I2 | `backends/foundation_ui_runtime/tests/view_lower_tests.rs::core_tree_lowers_to_ui_units_only` (a tree with all ten core elements; each unit sets only the `ui` field, and every member is in the twelve shared types) | property |
-| I3 | `view_lower_tests.rs::each_node_is_created_once_before_use` (walk the units of five trees: core, web, mixed, deep, wide) | property |
-| I4 | `view_lower_tests.rs::lower_is_deterministic` | metamorphic |
-| Scenario: core template; colour token; HTML template | `view_lower_tests.rs::core_template_units`, `::color_takes_a_token`, `::html_template_units` | example |
-| I5; Scenario: tap binds by struct | `view_bind_tests.rs::tap_binds_to_action_name` | example |
-| I5, I6, I7, I8 (compile time); Scenarios: misspelled action, string binding, unknown property, bad static length | `backends/foundation_ui_runtime/tests/view_fail_tests.rs` with `trybuild` files `tests/trybuild/view/fail_*.rs`: `fail_unknown_action.rs`, `fail_string_not_host.rs`, `fail_brace_not_path.rs`, `fail_unknown_event.rs`, `fail_unknown_prop.rs`, `fail_bad_length.rs`, `fail_bad_align.rs`, `fail_bad_axis.rs`, `fail_bad_bool.rs`, `fail_primal_on_core.rs`, `fail_form_fields.rs` | expected outcome |
-| Scenario: a click binds to a page function | `view_bind_tests.rs::host_binding_on_web_element_is_primal_onclick` | example |
-| I8 (run time); Scenarios: bad dynamic length, unknown token | `view_lower_tests.rs::bad_dynamic_prop_fails_with_no_units`, `::unknown_token_fails` | expected outcome |
-| I9, I10; Scenarios: third field, no state root, `None` third field | `view_state_tests.rs::third_field_attaches_state`, `::none_third_field_equals_two_fields`, `::third_field_without_root_is_action_error`, `::finalizer_signs_all_attachment_targets` | example |
-| The error conversion of section 6.6 | `view_state_tests.rs::lower_error_becomes_an_action_error` (`from(LowerError::NoComponentRoot)` gives code `ActionFailed` and the `Display` message) | example |
-| `mount` appends the root and attaches the state | `view_state_tests.rs::mount_appends_root_and_state` | example |
-| I11; Scenarios: behaviour marker, scoped script | `view_lower_tests.rs::shared_behaviour_is_one_ui_unit`, `::web_behaviour_is_one_web_unit`, `::scoped_script_is_script_node` | example |
-| End to end with the dispatcher | `view_state_tests.rs::dispatch_seals_the_view_state` (the `#[action]` of the scenario, run through `Dispatcher::dispatch`; the answer opens to `Counter { current: 2 }`) | example |
+| I1. Existing reactive templates | `foundation_wasm_ui/tests/html_macro_tests.rs`, `reactive_structure_tests.rs`, and `foundation_ui_components/tests/components_tests.rs` | Regression |
+| I2–I4. Shared operations, allocation order, deterministic output | `view_macro_tests::pure_core_templates_lower_in_creation_order_and_resolve_property_tokens` and `view_macro_tests::web_and_core_nodes_are_created_before_every_reference_across_tree_shapes` | Property |
+| I5–I6. Rust bindings and host script names | `view_macro_tests::core_and_web_bindings_follow_the_action_declaration` | Example |
+| I5–I8. Invalid action, event, property, state marker, or syntax | `view_fail_tests::invalid_templates_report_the_offending_input` checks the twenty compiler diagnostics in `tests/trybuild/view`. | Compiler errors |
+| I8. Dynamic property values, token lookup, and missing identifiers | `view_lower_tests::rejects_invalid_properties_tokens_ids_and_state` and the shared operations test above | Runtime errors |
+| I9–I10. Root and marked nodes, helper markup, and absent state | `view_macro_tests::state_template_queues_mapped_helpers_and_signed_state_targets`, `::missing_root_is_an_action_error_and_none_matches_the_two_field_form`, and `view_lower_tests::atomic_swap_keeps_root_and_signs_only_explicit_targets` | Example |
+| Mount below a parent and attach state | `view_macro_tests::mount_appends_the_template_and_attaches_verifiable_state` | Example |
+| I11. Shared behaviour, web behaviour, and scoped script | `view_macro_tests::behaviour_markers_apply_to_the_parent_and_script_has_one_operation` | Example |
+| Add and swap in a registered action | `view_macro_tests::dispatcher_returns_add_and_swap_with_their_signed_state_in_one_frame` reads both placements and verifies each state attachment. | End to end |
+
+The view tests live in `backends/foundation_ui_runtime/tests/`. The renamed-package fixture also compiles a template with a host action.
 
 ## 8. Tasks
 
-- [ ] 1. Write the `trybuild` fail files (they fail to match now).
-- [ ] 2. Parser: `on:` attributes and `ParsedAttr::Action`.
-- [ ] 3. Parser: the core tag list, the core attribute check, the static value check.
-- [ ] 4. Codegen: the `Action` attribute in both modes.
-- [ ] 5. Add the targeted macros and wire prerequisites in section 6.7. Add the optional third field and the bare element marker. Test the attachment targets and errors in section 4.6.
-- [ ] 6. `view::lower` for core elements and the behaviour marker, with tests.
-- [ ] 7. `view::lower` for web elements and scripts, with tests.
-- [ ] 8. `view::mount`, with tests.
-- [ ] 9. Bump `foundation_macros` and `foundation_ui_runtime`, and the consumers.
-- [ ] 10. Update `progress.md` and `learnings.md`.
-- [ ] 11. Write or update the package or feature README.
+- [x] 1. Check compiler diagnostics with the `trybuild` fixtures.
+- [x] 2. Parser: `on:` attributes and `ParsedAttr::Action`.
+- [x] 3. Parser: the core tag list, the core attribute check, the static value check.
+- [x] 4. Codegen: the `Action` attribute in both modes.
+- [x] 5. Add the targeted macros and wire prerequisites in section 6.7. Add the optional third field and the bare element marker. Test the attachment targets and errors in section 4.6.
+- [x] 6. `view::lower` for core elements and the behaviour marker, with tests.
+- [x] 7. `view::lower` for web elements and scripts, with tests.
+- [x] 8. `view::mount`, with tests.
+- [x] 9. Bump `foundation_macros` and `foundation_ui_runtime`, and the consumers.
+- [x] 10. Update `progress.md` and `learnings.md`.
+- [x] 11. Write or update the package or feature README.
       Show shared vocabulary markup and a platform-specific form. Check the examples compile.
 
 ## 9. Verify
@@ -607,12 +618,13 @@ cargo check  -p foundation_ui_runtime --profile uat --target wasm32-unknown-unkn
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] No existing test file of `foundation_wasm_ui` or `foundation_ui_components` changed.
-- [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the new code.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All tasks are complete. The section 9 commands pass. Strict Clippy reports no source warnings.
+      Cargo reports unused workspace dependencies and unused patches in the compiler-test project.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] No existing test file of `foundation_wasm_ui` or `foundation_ui_components` changed.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the new code.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

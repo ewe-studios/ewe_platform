@@ -109,8 +109,13 @@ impl OperationGate<'_> {
         }
         changes.replaced_kind |= self.replace_kind(&mut operation.ui);
 
-        if let UiOperationT::ReplaceSubtree(subtree) = &mut operation.ui {
-            if let Some(operations) = subtree.operations.take() {
+        let children = match &mut operation.ui {
+            UiOperationT::ReplaceSubtree(subtree) => Some(&mut subtree.operations),
+            UiOperationT::Place(place) => Some(&mut place.operations),
+            _ => None,
+        };
+        if let Some(children) = children {
+            if let Some(operations) = children.take() {
                 let mut kept = Vec::with_capacity(operations.len());
                 for mut nested in operations {
                     if let Some(reason) = self.apply(&mut nested, changes)? {
@@ -119,7 +124,18 @@ impl OperationGate<'_> {
                         kept.push(nested);
                     }
                 }
-                subtree.operations = Some(kept);
+                *children = Some(kept);
+            }
+        }
+
+        // A content placement needs its new subtree on the selected surface.
+        if let UiOperationT::Place(place) = &operation.ui {
+            if place.kind != crate::PlacementKind::Remove
+                && place.operations.as_deref().is_some_and(<[_]>::is_empty)
+            {
+                if let Some((_, reason)) = changes.first {
+                    return Ok(Some(reason));
+                }
             }
         }
 
@@ -172,6 +188,7 @@ impl OperationGate<'_> {
 
     fn unknown_ui(&self, operation: &UiOperationT) -> bool {
         match operation {
+            UiOperationT::Place(_) => self.version.version < 3,
             UiOperationT::SetProp(prop) => prop.prop.0 > self.version.max_prop_id,
             UiOperationT::BindAction(action) => action.event.0 > self.version.max_event_id,
             UiOperationT::UnbindAction(action) => action.event.0 > self.version.max_event_id,
@@ -184,6 +201,7 @@ impl OperationGate<'_> {
 
     fn unknown_web(&self, operation: &WebOperationT) -> bool {
         let number = match operation {
+            WebOperationT::WebDetachChild(_) => return self.version.version < 3,
             WebOperationT::WebElement(element) => {
                 return element.tag_id > self.version.max_tag_id;
             }

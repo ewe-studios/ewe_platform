@@ -15,7 +15,7 @@
 //!
 //! HOW: Transport-agnostic by design — the broadcaster holds
 //! `Box<dyn FrameTransport + Send>`, so this module depends on NO socket/HTTP
-//! crate; foundation_http (or any server) provides the `FrameTransport` impl.
+//! crate. `foundation_http` (or any server) provides the `FrameTransport` impl.
 //! `BroadcastSink::encode_and_write` does `encode_with_envelope(&encoder, ops)`
 //! (exactly as [`FrameSink`](crate::protocol::FrameSink)) then `tx.send(frame)`.
 //! The wire is the envelope's business: columnar (default), JSON, or Arrow IPC
@@ -33,17 +33,17 @@ use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 use crate::protocol::{HandleResult, ProtocolMethods, SendResult};
 
 /// A live client connection a [`Broadcaster`] fans frames to. The transport
-/// layer implements it — e.g. foundation_http's SSE stream. Each method returns
+/// layer implements it — for example, the event stream in `foundation_http`. Each method returns
 /// `false` when the connection is gone, so the broadcaster can drop it.
 pub trait FrameTransport {
-    /// Deliver a BINARY (envelope-encoded) frame — the DomOp wires (columnar,
+    /// Deliver a BINARY (envelope-encoded) frame — the `DomOp` wires (columnar,
     /// Arrow IPC, JSON). SSE transports base64 it; WebSocket sends it raw.
     fn send_binary(&mut self, frame: &[u8]) -> bool;
     /// Deliver a TEXT frame (raw markup) — the HTML protocol.
     fn send_text(&mut self, text: &str) -> bool;
 }
 
-/// One channel frame: an envelope-encoded DomOp batch, or raw markup (HTML).
+/// One channel frame: an envelope-encoded `DomOp` batch, or raw markup (HTML).
 enum Frame {
     Binary(Vec<u8>),
     Text(String),
@@ -94,6 +94,9 @@ impl Broadcaster {
 
     /// Register a freshly-connected client, replaying the backlog into it so a
     /// late joiner catches up (kills the connect/stabilize race).
+    ///
+    /// # Panics
+    /// Panics if an earlier operation poisoned the broadcaster lock.
     pub fn register(&self, mut conn: impl FrameTransport + Send + 'static) {
         let mut inner = self.inner.lock().expect("broadcaster poisoned");
         if inner.backlog.iter().all(|frame| frame.write(&mut conn)) {
@@ -102,6 +105,9 @@ impl Broadcaster {
     }
 
     /// Drop all connections (teardown closes the sockets).
+    ///
+    /// # Panics
+    /// Panics if an earlier operation poisoned the broadcaster lock.
     pub fn close(&self) {
         self.inner
             .lock()
@@ -111,6 +117,9 @@ impl Broadcaster {
     }
 
     /// Number of frames pushed so far (diagnostics).
+    ///
+    /// # Panics
+    /// Panics if an earlier operation poisoned the broadcaster lock.
     #[must_use]
     pub fn frame_count(&self) -> usize {
         self.inner
@@ -121,6 +130,9 @@ impl Broadcaster {
     }
 
     /// Number of currently-connected clients (diagnostics).
+    ///
+    /// # Panics
+    /// Panics if an earlier operation poisoned the broadcaster lock.
     #[must_use]
     pub fn conn_count(&self) -> usize {
         self.inner.lock().expect("broadcaster poisoned").conns.len()
@@ -141,7 +153,7 @@ pub struct BroadcastTx {
 }
 
 impl BroadcastTx {
-    /// Deliver one BINARY (envelope-encoded) frame — the DomOp wires: columnar,
+    /// Deliver one BINARY (envelope-encoded) frame — the `DomOp` wires: columnar,
     /// Arrow IPC, JSON. The envelope self-describes its protocol/version.
     pub fn send(&self, frame: &[u8]) {
         self.push(Frame::Binary(frame.to_vec()));

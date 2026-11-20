@@ -1,0 +1,7 @@
+error: html!: expected `ctx, receiver, <template>` or `ctx, receiver, Some(&state), <template>`
+ --> tests/trybuild/view/fail_form_fields.rs:4:17
+  |
+4 |     let _view = html! { context, <Text/> };
+  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

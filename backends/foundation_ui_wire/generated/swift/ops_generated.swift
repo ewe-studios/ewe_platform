@@ -56,8 +56,9 @@ public enum ewe_ui_UiOperation: UInt8, UnionEnum {
   case attachstate = 10
   case livemount = 11
   case uibehaviour = 12
+  case place = 13
 
-  public static var max: ewe_ui_UiOperation { return .uibehaviour }
+  public static var max: ewe_ui_UiOperation { return .place }
   public static var min: ewe_ui_UiOperation { return .none_ }
 }
 
@@ -117,8 +118,9 @@ public enum ewe_ui_WebOperation: UInt8, UnionEnum {
   case webunregisternode = 14
   case scriptnode = 15
   case webbehaviour = 16
+  case webdetachchild = 17
 
-  public static var max: ewe_ui_WebOperation { return .webbehaviour }
+  public static var max: ewe_ui_WebOperation { return .webdetachchild }
   public static var min: ewe_ui_WebOperation { return .none_ }
 }
 
@@ -153,6 +155,21 @@ public enum ewe_ui_MobileOperation: UInt8, UnionEnum {
 
   public static var max: ewe_ui_MobileOperation { return .mobilebehaviour }
   public static var min: ewe_ui_MobileOperation { return .none_ }
+}
+
+
+public enum ewe_ui_PlacementKind: UInt8, Enum, Verifiable {
+  public typealias T = UInt8
+  public static var byteSize: Int { return MemoryLayout<UInt8>.size }
+  public var value: UInt8 { return self.rawValue }
+  case append = 0
+  case before = 1
+  case after = 2
+  case swap = 3
+  case remove = 4
+
+  public static var max: ewe_ui_PlacementKind { return .remove }
+  public static var min: ewe_ui_PlacementKind { return .append }
 }
 
 
@@ -1549,6 +1566,47 @@ public struct ewe_ui_WebBehaviour: FlatBufferObject, Verifiable {
   }
 }
 
+public struct ewe_ui_WebDetachChild: FlatBufferObject, Verifiable {
+
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case parentId = 4
+    case childId = 6
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var parentId: UInt32 { let o = _accessor.offset(VTOFFSET.parentId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
+  public var childId: UInt32 { let o = _accessor.offset(VTOFFSET.childId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
+  public static func startWebDetachChild(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
+  public static func add(parentId: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: parentId, def: 0, at: VTOFFSET.parentId.p) }
+  public static func add(childId: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: childId, def: 0, at: VTOFFSET.childId.p) }
+  public static func endWebDetachChild(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createWebDetachChild(
+    _ fbb: inout FlatBufferBuilder,
+    parentId: UInt32 = 0,
+    childId: UInt32 = 0
+  ) -> Offset {
+    let __start = ewe_ui_WebDetachChild.startWebDetachChild(&fbb)
+    ewe_ui_WebDetachChild.add(parentId: parentId, &fbb)
+    ewe_ui_WebDetachChild.add(childId: childId, &fbb)
+    return ewe_ui_WebDetachChild.endWebDetachChild(&fbb, start: __start)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.parentId.p, fieldName: "parentId", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.childId.p, fieldName: "childId", required: false, type: UInt32.self)
+    _v.finish()
+  }
+}
+
 public struct ewe_ui_NativeArg: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
@@ -1861,6 +1919,67 @@ public struct ewe_ui_ColumnarBatch: FlatBufferObject, Verifiable {
   }
 }
 
+public struct ewe_ui_Place: FlatBufferObject, Verifiable {
+
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case kind = 4
+    case target = 6
+    case child = 8
+    case rootNode = 10
+    case operations = 12
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var kind: ewe_ui_PlacementKind { let o = _accessor.offset(VTOFFSET.kind.v); return o == 0 ? .append : ewe_ui_PlacementKind(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .append }
+  public var target: ewe_ui_TargetSelector? { let o = _accessor.offset(VTOFFSET.target.v); return o == 0 ? nil : ewe_ui_TargetSelector(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
+  public var child: ewe_ui_TargetSelector? { let o = _accessor.offset(VTOFFSET.child.v); return o == 0 ? nil : ewe_ui_TargetSelector(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
+  public var rootNode: UInt32 { let o = _accessor.offset(VTOFFSET.rootNode.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
+  public var hasOperations: Bool { let o = _accessor.offset(VTOFFSET.operations.v); return o == 0 ? false : true }
+  public var operationsCount: Int32 { let o = _accessor.offset(VTOFFSET.operations.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public func operations(at index: Int32) -> ewe_ui_Operation? { let o = _accessor.offset(VTOFFSET.operations.v); return o == 0 ? nil : ewe_ui_Operation(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+  public static func startPlace(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 5) }
+  public static func add(kind: ewe_ui_PlacementKind, _ fbb: inout FlatBufferBuilder) { fbb.add(element: kind.rawValue, def: 0, at: VTOFFSET.kind.p) }
+  public static func add(target: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: target, at: VTOFFSET.target.p) }
+  public static func add(child: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: child, at: VTOFFSET.child.p) }
+  public static func add(rootNode: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: rootNode, def: 0, at: VTOFFSET.rootNode.p) }
+  public static func addVectorOf(operations: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: operations, at: VTOFFSET.operations.p) }
+  public static func endPlace(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createPlace(
+    _ fbb: inout FlatBufferBuilder,
+    kind: ewe_ui_PlacementKind = .append,
+    targetOffset target: Offset = Offset(),
+    childOffset child: Offset = Offset(),
+    rootNode: UInt32 = 0,
+    operationsVectorOffset operations: Offset = Offset()
+  ) -> Offset {
+    let __start = ewe_ui_Place.startPlace(&fbb)
+    ewe_ui_Place.add(kind: kind, &fbb)
+    ewe_ui_Place.add(target: target, &fbb)
+    ewe_ui_Place.add(child: child, &fbb)
+    ewe_ui_Place.add(rootNode: rootNode, &fbb)
+    ewe_ui_Place.addVectorOf(operations: operations, &fbb)
+    return ewe_ui_Place.endPlace(&fbb, start: __start)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.kind.p, fieldName: "kind", required: false, type: ewe_ui_PlacementKind.self)
+    try _v.visit(field: VTOFFSET.target.p, fieldName: "target", required: false, type: ForwardOffset<ewe_ui_TargetSelector>.self)
+    try _v.visit(field: VTOFFSET.child.p, fieldName: "child", required: false, type: ForwardOffset<ewe_ui_TargetSelector>.self)
+    try _v.visit(field: VTOFFSET.rootNode.p, fieldName: "rootNode", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.operations.p, fieldName: "operations", required: false, type: ForwardOffset<Vector<ForwardOffset<ewe_ui_Operation>, ewe_ui_Operation>>.self)
+    _v.finish()
+  }
+}
+
 public struct ewe_ui_ReplaceSubtree: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
@@ -1992,6 +2111,8 @@ public struct ewe_ui_Operation: FlatBufferObject, Verifiable {
         try ForwardOffset<ewe_ui_LiveMount>.verify(&verifier, at: pos, of: ewe_ui_LiveMount.self)
       case .uibehaviour:
         try ForwardOffset<ewe_ui_UiBehaviour>.verify(&verifier, at: pos, of: ewe_ui_UiBehaviour.self)
+      case .place:
+        try ForwardOffset<ewe_ui_Place>.verify(&verifier, at: pos, of: ewe_ui_Place.self)
       }
     })
     try _v.visit(unionKey: VTOFFSET.webType.p, unionField: VTOFFSET.web.p, unionKeyName: "webType", fieldName: "web", required: false, completion: { (verifier, key: ewe_ui_WebOperation, pos) in
@@ -2030,6 +2151,8 @@ public struct ewe_ui_Operation: FlatBufferObject, Verifiable {
         try ForwardOffset<ewe_ui_ScriptNode>.verify(&verifier, at: pos, of: ewe_ui_ScriptNode.self)
       case .webbehaviour:
         try ForwardOffset<ewe_ui_WebBehaviour>.verify(&verifier, at: pos, of: ewe_ui_WebBehaviour.self)
+      case .webdetachchild:
+        try ForwardOffset<ewe_ui_WebDetachChild>.verify(&verifier, at: pos, of: ewe_ui_WebDetachChild.self)
       }
     })
     try _v.visit(unionKey: VTOFFSET.mobileType.p, unionField: VTOFFSET.mobile.p, unionKeyName: "mobileType", fieldName: "mobile", required: false, completion: { (verifier, key: ewe_ui_MobileOperation, pos) in

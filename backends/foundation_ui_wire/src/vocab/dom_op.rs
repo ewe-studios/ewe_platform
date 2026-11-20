@@ -30,9 +30,15 @@ pub fn web_form(op: &DomOp) -> WireForm {
             child_id: *child_id,
         }))),
         DomOp::RemoveChild {
-            child_id: node_id, ..
-        }
-        | DomOp::RemoveNode { node_id } => WireForm::Ui(UiOperationT::Remove(Box::new(RemoveT {
+            parent_id,
+            child_id,
+        } => WireForm::Web(WebOperationT::WebDetachChild(Box::new(
+            crate::WebDetachChildT {
+                parent_id: *parent_id,
+                child_id: *child_id,
+            },
+        ))),
+        DomOp::RemoveNode { node_id } => WireForm::Ui(UiOperationT::Remove(Box::new(RemoveT {
             node_id: *node_id,
         }))),
         DomOp::InsertBefore {
@@ -207,6 +213,10 @@ fn web_dom_op(op: &WebOperationT) -> Option<DomOp> {
         },
         WebOperationT::WebRegisterNode(table) => DomOp::RegisterNode {
             node_id: table.node_id,
+        },
+        WebOperationT::WebDetachChild(table) => DomOp::RemoveChild {
+            parent_id: table.parent_id,
+            child_id: table.child_id,
         },
         WebOperationT::WebUnregisterNode(table) => DomOp::UnregisterNode {
             node_id: table.node_id,

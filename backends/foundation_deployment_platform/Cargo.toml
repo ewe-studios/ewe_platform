@@ -12,7 +12,7 @@ keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"
 [dependencies]
 hex = { workspace = true, optional = true }
 # Foundation crates
-foundation_core = { path = "../foundation_core", version = "0.0.22" }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
@@ -102,7 +102,7 @@ all-providers = ["vms", "docker"]
 tracing-subscriber = "0.3"
 # `SimulatedClock` for the clock-injection tests. The feature is additive, so
 # the normal dependency above stays as it is.
-foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.9", default-features = false }
 foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.6" }
 

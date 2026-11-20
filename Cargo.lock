@@ -4781,7 +4781,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -5563,7 +5563,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -6022,7 +6022,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -6446,7 +6446,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_runtime"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "foundation_auth",
  "foundation_compact",
@@ -6454,6 +6454,7 @@ dependencies = [
  "foundation_core",
  "foundation_errstacks",
  "foundation_macros",
+ "foundation_ui_traits",
  "foundation_ui_wire",
  "hmac 0.13.0",
  "serde",
@@ -6467,11 +6468,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_traits"
-version = "0.0.4"
+version = "0.0.5"
 
 [[package]]
 name = "foundation_ui_wire"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "flatbuffers",
  "foundation_errstacks",
@@ -6524,16 +6525,19 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "clap",
  "foundation_arrow",
  "foundation_codegen",
+ "foundation_core",
  "foundation_macros",
  "foundation_nostd",
  "foundation_signals",
  "foundation_theme",
+ "foundation_ui_runtime",
  "foundation_ui_traits",
+ "foundation_ui_wire",
  "foundation_wasm",
  "serde_json",
  "tracing",
@@ -15640,6 +15644,23 @@ dependencies = [
  "serde",
  "thiserror 1.0.69",
  "ug",
+]
+
+[[package]]
+name = "ui_todo"
+version = "0.0.1"
+dependencies = [
+ "base64 0.22.1",
+ "foundation_browser",
+ "foundation_context",
+ "foundation_core",
+ "foundation_errstacks",
+ "foundation_http",
+ "foundation_netio",
+ "foundation_ui_runtime",
+ "foundation_ui_wire",
+ "futures-lite",
+ "serde",
 ]
 
 [[package]]

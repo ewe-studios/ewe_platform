@@ -1,6 +1,6 @@
 ---
 feature: "migrate-to-frame-writer"
-status: "revised plan for review"
+status: "approved"
 depends_on: ["03-frame-writer"]
 ---
 
@@ -22,7 +22,7 @@ An application updates a text node through a reactive template. Its receiver que
 The local browser and a remote browser both apply that operation through the frame protocol.
 Application authors can use the same template syntax throughout the migration.
 
-This is the next feature after the writer. Complete its feature 03 prerequisite before switching a caller.
+Features 03 and 09 supply the writer and browser reader. Verify browser parity before switching a caller.
 Move the existing browser delivery path into this feature so its first migrated caller has a working reader.
 
 ```mermaid

@@ -198,9 +198,9 @@ Seven of 19 features are complete. Feature 07 is implemented. Its repository clo
 | 05 | action-runtime | Sonnet | complete |
 | 06 | action-macro | Sonnet | complete |
 | 07 | dispatcher-and-handshake | Sonnet | implemented |
-| 08 | html-macro-core-vocabulary | Sonnet | pending |
-| 09 | web-frame-applicator | Sonnet | pending |
-| 10 | web-action-manager | Sonnet | pending |
+| 08 | html-macro-core-vocabulary | Sonnet | complete |
+| 09 | web-frame-applicator | Sonnet | implemented |
+| 10 | web-action-manager | Sonnet | complete |
 | 11 | live-mounts-and-server-streams | Sonnet | pending |
 | 12 | legacy-wire-retirement | Sonnet | pending |
 | 13 | native-core-and-commands | Sonnet | pending |
@@ -209,9 +209,9 @@ Seven of 19 features are complete. Feature 07 is implemented. Its repository clo
 | 16 | behaviour-matrix | Sonnet | pending |
 | 17 | toolchain-and-ci | Sonnet | complete |
 | 19 | native-package-releases | Sonnet | approved |
-| 20 | migrate-to-frame-writer | Sonnet | revised plan for review |
+| 20 | migrate-to-frame-writer | Sonnet | approved |
 
-The plans for features 08 through 16 have prior revisions. Their implementation is pending. Feature 12 now follows feature 20 for legacy removal.
+Features 08 and 10 are complete. Feature 09 verifies local scope disposal. Implementation of features 11 through 16 is pending. Feature 12 now follows feature 20 for legacy removal.
 
 **Phase gate for feature 13:** not open. It opens when the browser scenario of feature 10
 is recorded here as passed.
@@ -281,7 +281,7 @@ is recorded here as passed.
 
 ## Next
 
-1. Review [feature 20](./features/20-migrate-to-frame-writer/feature.md). It is the next feature after the frame writer prerequisite.
+1. Review [feature 20](./features/20-migrate-to-frame-writer/feature.md). Its implementation depends on browser parity checks.
 2. Apply the reviewed migration stages before switching the default browser protocol.
 3. Apply the browser acceptance gate before native implementation.
 
@@ -361,4 +361,36 @@ The [package example](../../backends/foundation_ui_runtime/README.md#negotiate-a
 Feature 20 review found a blocking browser parity case before the producer switch.
 Child detachment and node deletion need distinct semantics. The current default still uses the legacy protocol. [Issue 629](https://github.com/ewe-studios/ewe_platform/issues/629)
 
-Feature 20 now defines crate ownership, compatibility stages and browser checks. The revised plan awaits review before implementation.
+Feature 20 now defines crate ownership, compatibility stages and browser checks. The owner approved the revised plan with the remaining features.
+
+## 2026-11-21. Templates, browser frames and actions
+
+Feature 08 is complete. Features 09 and 10 are in progress in this worktree.
+
+- The template macros emit shared operations. Targeted renders keep the selector and its new subtree together.
+- Vocabulary version 3 adds placement and child detachment. The writer filters both for older clients.
+- The browser action manager passes 30 JavaScript checks. They cover shared routing vectors, state attachments, transport errors and pending calls.
+- The template tests cover all ten shared elements and the five placement macros.
+- One registered action appends a row and replaces a section in one frame. The test verifies all signed state values.
+- The browser task export passes native tests for reverse-order wakes, teardown, and allocation ownership.
+- The todo example passes its browser checks. Feature 09 also checks disposal of local signal scopes.
+
+After features 08–10, proceed with the remaining features in dependency order. Feature 12 requires feature 20.
+
+### Feature 09 browser verification, 2026-11-21
+
+The browser applies EWF1 frames through its existing node registry. Both encoders agree on all 19 legacy operations.
+The Rust test confirms the committed fixtures. The browser checks row and column encodings for every eligible shared operation.
+Chromium received the Rust counter frame over server-sent events. A morph kept focus and released only the discarded local scope.
+The browser and component JavaScript suites passed. The optional legacy megatron binary was absent.
+The `foundation_wasm_ui` and `foundation_browser` UAT Rust tests passed. The strict `foundation_wasm_ui` Clippy check passed.
+Issues [547](https://github.com/ewe-studios/ewe_platform/issues/547) and [629](https://github.com/ewe-studios/ewe_platform/issues/629) are closed.
+
+The macOS toolchain check passes under mise, including Xcode, the Android packages, Gradle and the FlatBuffers compiler.
+
+## Browser action acceptance
+
+The feature 10 todo scenario passes in Chromium. A local WebAssembly action opens the dialog.
+The server adds a todo and updates the live count. Local filtering and server toggling both work.
+A second delete of the same item reports the domain error. The browser task passes all 19 smoke tests and the todo scenario.
+This result opens the feature 13 native core gate.

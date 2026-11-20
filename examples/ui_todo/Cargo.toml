@@ -1,0 +1,39 @@
+[package]
+name = "ui_todo"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+autotests = false
+
+[dependencies]
+foundation_context = { path = "../../backends/foundation_context" }
+foundation_errstacks = { path = "../../backends/foundation_errstacks" }
+foundation_ui_runtime = { path = "../../backends/foundation_ui_runtime" }
+foundation_ui_wire = { path = "../../backends/foundation_ui_wire" }
+serde = { workspace = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_core = { path = "../../backends/foundation_core" }
+foundation_http = { path = "../../backends/foundation_http" }
+foundation_netio = { path = "../../backends/foundation_netio" }
+base64 = "0.22"
+futures-lite = "2"
+
+foundation_browser = { path = "../../backends/foundation_browser" }
+
+[lints]
+workspace = true
+
+[features]
+browser-tests = []
+
+[[test]]
+name = "todo_browser_tests"
+path = "tests/todo_browser_tests.rs"
+required-features = ["browser-tests"]
+
+[[test]]
+name = "actions"
+path = "tests/mod.rs"

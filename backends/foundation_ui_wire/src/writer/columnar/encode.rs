@@ -94,7 +94,8 @@ fn fields(op: &UiOperationT, row: usize) -> Result<Fields<'_>, ColumnarError> {
                 .ok_or(ColumnarError::InvalidValue { row })?,
             ..Fields::default()
         },
-        UiOperationT::ReplaceSubtree(_)
+        UiOperationT::Place(_)
+        | UiOperationT::ReplaceSubtree(_)
         | UiOperationT::LiveMount(_)
         | UiOperationT::UiBehaviour(_) => {
             return Err(ColumnarError::UnsupportedOp {

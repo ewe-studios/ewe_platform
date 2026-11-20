@@ -239,6 +239,11 @@ jobs:
           scripts/toolchain/check.sh
           scripts/toolchain/wire_test.sh
 
+      - name: Test the browser frame and action runtimes
+        if: matrix.package == 'foundation_wasm_ui' || matrix.package == 'foundation_ui_components'
+        shell: bash
+        run: node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js
+
       - name: Verify the wire bindings and browser fixtures
         if: matrix.package == 'foundation_ui_wire'
         shell: bash
@@ -401,6 +406,11 @@ jobs:
         run: |
           docker exec ci scripts/toolchain/check.sh
           docker exec ci scripts/toolchain/wire_test.sh
+
+      - name: Test the browser frame and action runtimes
+        if: matrix.package == 'foundation_wasm_ui' || matrix.package == 'foundation_ui_components'
+        shell: bash
+        run: docker exec ci sh -c 'node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js'
 
       - name: Verify the wire bindings and browser fixtures
         if: matrix.package == 'foundation_ui_wire'

@@ -18,13 +18,13 @@ pub const ENUM_MIN_WEB_OPERATION: u8 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_WEB_OPERATION: u8 = 16;
+pub const ENUM_MAX_WEB_OPERATION: u8 = 17;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_WEB_OPERATION: [WebOperation; 17] = [
+pub const ENUM_VALUES_WEB_OPERATION: [WebOperation; 18] = [
     WebOperation::NONE,
     WebOperation::WebElement,
     WebOperation::WebText,
@@ -42,6 +42,7 @@ pub const ENUM_VALUES_WEB_OPERATION: [WebOperation; 17] = [
     WebOperation::WebUnregisterNode,
     WebOperation::ScriptNode,
     WebOperation::WebBehaviour,
+    WebOperation::WebDetachChild,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -66,9 +67,10 @@ impl WebOperation {
     pub const WebUnregisterNode: Self = Self(14);
     pub const ScriptNode: Self = Self(15);
     pub const WebBehaviour: Self = Self(16);
+    pub const WebDetachChild: Self = Self(17);
 
     pub const ENUM_MIN: u8 = 0;
-    pub const ENUM_MAX: u8 = 16;
+    pub const ENUM_MAX: u8 = 17;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::NONE,
         Self::WebElement,
@@ -87,6 +89,7 @@ impl WebOperation {
         Self::WebUnregisterNode,
         Self::ScriptNode,
         Self::WebBehaviour,
+        Self::WebDetachChild,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -108,6 +111,7 @@ impl WebOperation {
             Self::WebUnregisterNode => Some("WebUnregisterNode"),
             Self::ScriptNode => Some("ScriptNode"),
             Self::WebBehaviour => Some("WebBehaviour"),
+            Self::WebDetachChild => Some("WebDetachChild"),
             _ => None,
         }
     }
@@ -189,6 +193,7 @@ pub enum WebOperationT {
     WebUnregisterNode(Box<WebUnregisterNodeT>),
     ScriptNode(Box<ScriptNodeT>),
     WebBehaviour(Box<WebBehaviourT>),
+    WebDetachChild(Box<WebDetachChildT>),
 }
 impl Default for WebOperationT {
     fn default() -> Self {
@@ -215,6 +220,7 @@ impl WebOperationT {
             Self::WebUnregisterNode(_) => WebOperation::WebUnregisterNode,
             Self::ScriptNode(_) => WebOperation::ScriptNode,
             Self::WebBehaviour(_) => WebOperation::WebBehaviour,
+            Self::WebDetachChild(_) => WebOperation::WebDetachChild,
         }
     }
     pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
@@ -239,6 +245,7 @@ impl WebOperationT {
             Self::WebUnregisterNode(v) => Some(v.pack(fbb).as_union_value()),
             Self::ScriptNode(v) => Some(v.pack(fbb).as_union_value()),
             Self::WebBehaviour(v) => Some(v.pack(fbb).as_union_value()),
+            Self::WebDetachChild(v) => Some(v.pack(fbb).as_union_value()),
         }
     }
     /// If the union variant matches, return the owned WebElementT, setting the union to NONE.
@@ -700,6 +707,35 @@ impl WebOperationT {
     /// If the union variant matches, return a mutable reference to the WebBehaviourT.
     pub fn as_web_behaviour_mut(&mut self) -> Option<&mut WebBehaviourT> {
         if let Self::WebBehaviour(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
+    }
+    /// If the union variant matches, return the owned WebDetachChildT, setting the union to NONE.
+    pub fn take_web_detach_child(&mut self) -> Option<Box<WebDetachChildT>> {
+        if let Self::WebDetachChild(_) = self {
+            let v = core::mem::replace(self, Self::NONE);
+            if let Self::WebDetachChild(w) = v {
+                Some(w)
+            } else {
+                unreachable!()
+            }
+        } else {
+            None
+        }
+    }
+    /// If the union variant matches, return a reference to the WebDetachChildT.
+    pub fn as_web_detach_child(&self) -> Option<&WebDetachChildT> {
+        if let Self::WebDetachChild(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
+    }
+    /// If the union variant matches, return a mutable reference to the WebDetachChildT.
+    pub fn as_web_detach_child_mut(&mut self) -> Option<&mut WebDetachChildT> {
+        if let Self::WebDetachChild(v) = self {
             Some(v.as_mut())
         } else {
             None

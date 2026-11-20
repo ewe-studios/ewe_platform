@@ -961,7 +961,44 @@ pub fn proxy(input: TokenStream) -> TokenStream {
 /// See `foundation_macros::html_macro` module docs for the full walkthrough.
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
-    html_macro::html(input.into()).into()
+    html_macro::html(input.into(), false).into()
+}
+
+/// Builds a template for the action receiver.
+#[doc(hidden)]
+#[proc_macro]
+pub fn html_view(input: TokenStream) -> TokenStream {
+    html_macro::html(input.into(), true).into()
+}
+
+/// Appends template content to the selected parent.
+#[proc_macro]
+pub fn html_add(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Append).into()
+}
+
+/// Inserts template content before a direct child.
+#[proc_macro]
+pub fn html_add_before(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Before).into()
+}
+
+/// Inserts template content after a direct child.
+#[proc_macro]
+pub fn html_add_after(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::After).into()
+}
+
+/// Replaces the selected node with template content.
+#[proc_macro]
+pub fn html_swap(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Swap).into()
+}
+
+/// Removes the selected node and its descendants.
+#[proc_macro]
+pub fn html_remove(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Remove).into()
 }
 
 /// `#[derive(ThemeTokens)]` — compile-time theme CSS from `#[token(...)]`

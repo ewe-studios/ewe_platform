@@ -475,3 +475,22 @@ The columnar-native receiver writes directly to column buffers. A row-batch adap
 The wire vocabulary uses tag and attribute names from the traits crate independently of the legacy converter. Keep the wire-to-traits dependency after migration.
 
 The feature headers, requirements totals and progress table track the same 19 features. Count full completion separately from implementation with an open verification check.
+
+## Templates and browser actions
+
+- Slot zero is a valid WebAssembly allocation. The action bridge uses the maximum unsigned 64-bit integer for a missing reply.
+- A detach operation keeps the node handle. A later operation can attach the same node to another parent.
+- The bound control supplies its signed state. The parent node number describes the tree and does not select state.
+- The frame reader delivers errors and capabilities through its control callbacks. This gives action replies and streamed updates one control path.
+
+- The signal API supports exhaustive matches on `Part`. Signed-state requests use attribute metadata with an owning node identifier.
+- A local action claims its request sequence before Valtron polls it. Browser wake order can differ from request order.
+
+### Feature 09 browser frame reader, 2026-11-21
+
+A child detachment must retain its registry entry. Node deletion must remove the entry.
+The parity test now checks reattachment, lookup after deletion and a mismatched parent in both readers.
+Resolve a placement child against direct children. A matching grandchild can occur before the correct child.
+A typed array needs an aligned byte offset. A frame received in an unaligned network slice uses a copy for its numeric columns.
+Chromium initially timed out during target attachment. The protocol engine shared its 30-second command budget with each socket read.
+The existing configurable socket timeout from specification 68 fixes the browser harness. The underlying transport issue remains open.

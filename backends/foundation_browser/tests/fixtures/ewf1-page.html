@@ -1,0 +1,40 @@
+<!doctype html>
+<meta charset="utf-8">
+<p id="count">0</p>
+<section id="region"><input id="keep" value="draft"><span id="drop"></span></section>
+<p id="local-result"></p>
+<mount-stream api="/__primal/stream" transport="sse" protocol="frame"></mount-stream>
+<script type="module">
+  import * as ui from "/__primal/foundation-wasm-ui.js";
+  import * as wire from "/__primal/foundation-ui-wire.js";
+  import { installFrameRuntime } from "/__primal/foundation-ui-frames.js";
+
+  const frames = installFrameRuntime(ui, { document, schedule: run => run() });
+  frames.registry.register(42, document.getElementById("count"));
+  const region = document.getElementById("region");
+  frames.registry.register(43, region);
+  const input = document.getElementById("keep");
+  input.focus();
+  input.value = "edited";
+  let released = 0;
+  frames.registerUnmount(document.getElementById("drop"), () => released++);
+  frames.registerUnmount(input, () => { throw Error("A retained input was disposed"); });
+
+  const selector = new wire.TargetSelectorT(wire.SelectorKind.NodeId, 43);
+  const morph = new wire.HtmlMorphT(selector, wire.MorphAction.ReplaceChildren, '<input id="keep" value="draft">');
+  const body = 'scope.parent().dataset.runs = Number(scope.parent().dataset.runs || 0) + 1';
+  const scopedScript = new wire.ScriptNodeT(44, 43, body);
+  const messages = [
+    new wire.OperationT(0, null, wire.WebOperation.HtmlMorph, morph),
+    new wire.OperationT(0, null, wire.WebOperation.ScriptNode, scopedScript),
+  ].map(op => new wire.MessageT(op));
+  const builder = new wire.Builder();
+  const frame = new wire.FrameT(1, 1n, 0n, wire.FrameKind.FrameMessage, new wire.FrameMessageT(0n, messages));
+  wire.Frame.finishFrameBuffer(builder, frame.pack(builder));
+  frames.receive(builder.asUint8Array());
+  ui.Hydrator.hydrate(region, document);
+  const pass = released === 1 && region.dataset.runs === "1" &&
+    input.value === "edited" && input === document.activeElement;
+  document.getElementById("local-result").textContent = pass ? "ok" : "failed";
+  ui.registerWebComponents();
+</script>

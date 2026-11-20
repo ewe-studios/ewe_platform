@@ -1,21 +1,21 @@
 ---
 feature: "web-frame-applicator"
 description: "The web renderer for the new wire: the generated reader bundle, one apply loop for the ui, web, mobile and columnar operation fields, the core-to-HTML mapping, state on each target element, ordering, and the seams in the current runtime."
-status: "pending"
+status: "implemented"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms", "03-frame-writer"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-20
+last_updated: 2026-11-21
 author: "Main Agent"
 crates: ["foundation_wasm_ui", "foundation_browser"]
 decisions: ["D4", "D8", "D10", "D12", "D24", "D27", "D29", "D36", "D40", "D41", "D42", "D44", "D45", "D47", "D53", "D56", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 13
+  completed: 13
+  uncompleted: 0
   total: 13
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 09: The web frame applicator
@@ -29,10 +29,11 @@ WebAssembly (WASM); Server-Sent Events (SSE); continuous integration (CI); ident
 AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
 ASD-STE100.
 
-## Proposed change of ownership
+## Migration ownership
 
-[Feature 20](../20-migrate-to-frame-writer/feature.md) moves the existing producers and their browser delivery path to the frame writer first.
-Its ownership table supersedes the migration sequence below upon approval.
+Feature 09 supplies the tested browser reader. Feature 20 moves existing producers to the frame writer.
+Feature 11 adds live delivery. Feature 12 removes legacy code after both paths pass their checks.
+[Producer migration plan](../20-migrate-to-frame-writer/feature.md)
 
 ## 1. Goal
 
@@ -461,6 +462,7 @@ the column into a new array with `DataView` and count `copiedColumns`; else coun
 | `AppendChild` | `parent.appendChild(child)`; the child may be staged (`expectOrStaged`) |
 | `InsertBefore` | `parent.insertBefore(child, before)` |
 | `Remove` | Remove the node from its parent; unregister it and every descendant that has a `primal-id` |
+| `Place` | Resolve one target and each named direct child before creating nodes. Apply append, before, after, swap or remove. See feature 08 section 6.7. |
 | `ReplaceSubtree` | Run local unmount hooks for removed components, unregister descendants, then apply nested units (feature 08 section 6.6) |
 | `BindAction` | Set the attribute `primal:on<dom event>` (from `vocab.WEB_EVENTS`) to the action text; call `dispatcher.scanAndWire(el)` when a dispatcher exists |
 | `UnbindAction` | Remove that attribute; call `dispatcher.off(el, domEvent)` when it exists |
@@ -479,6 +481,7 @@ the column into a new array with `DataView` and count `copiedColumns`; else coun
 | `WebProperty` | As `Op.SET_PROPERTY` (JSON parse with raw-string fallback) |
 | `WebAddListener` | As `Op.ADD_EVENT_LISTENER` |
 | `WebRemoveListener` | As `Op.REMOVE_EVENT_LISTENER` |
+| `WebDetachChild` | Remove the child from the specified parent. Keep its registry entry for reattachment. A parent mismatch reports an error. |
 | `WebReplaceNode` | As `Op.REPLACE_NODE` |
 | `WebStyle` | As `Op.SET_STYLE` |
 | `WebAddClass` | `classList.add` |
@@ -609,43 +612,37 @@ import list. `foundation-ui-vocab.js` does not change its export list.
 
 ## 7. Tests
 
-| Law or scenario | Test (`integration/test/…`) | Oracle |
-|---|---|---|
-| I1 | `frames-columnar.test.js` "ui units and a columnar operation give the same DOM": for each eligible shared member, a fixture pair written by `frame_parity_fixtures_tests.rs`, one as `ui` units and one as a `columnar` operation | metamorphic |
-| I2 | `frames-parity.test.js` "message form equals columnar form for each DomOp" (19 cases) | metamorphic |
-| I3; Scenario: a mobile field | `frames-apply.test.js` "a mobile field is reported and skipped" | example |
-| I4; Scenario: a missing node | `frames-apply.test.js` "a missing node is reported and the list continues" | example |
-| I5; Scenarios: order, gap, duplicate | `frames-order.test.js` "live frames apply in order", "a gap asks for a resume", "a duplicate is ignored" (injected `schedule` and `timer`) | stateful model |
-| I6; Scenario: an answer frame | `frames-order.test.js` "an answer frame applies at once" | example |
-| I7; Scenarios: zero copy, unaligned | `frames-columnar.test.js` "columns are views", "an unaligned buffer is copied" | example |
-| I8; Scenario: state on each target | `frames-apply.test.js` "both targets store the signed state"; "base64url round trip" for lengths 0 to 64 | example, property |
-| I9; Scenario: HTML morph | `frames-apply.test.js` "html morph keeps a focused input", "a script node runs once" | example |
-| I10; Scenarios: shared behaviour, unknown behaviour | `frames-apply.test.js` "a shared behaviour goes to the registry", "an unknown behaviour is reported" | example |
-| I10; Section 6.9 | `frames-apply.test.js` "a web-only behaviour reaches WEB_ONLY", "registerWebBehaviour adds a name", "a behaviour applied twice matches once" | example, property |
-| I11 | The whole directory `integration/test/` passes | expected outcome |
-| I12 | `frames-apply.test.js` "no fetch and no wasm": `globalThis.fetch` and `WebAssembly.instantiate` are replaced by functions that throw | fault |
-| I13; Scenario: a request frame | `frames-apply.test.js` "a request frame is rejected" | fault |
-| Scenarios: text update, core stack | `frames-apply.test.js` "a text update reaches the DOM", "a core stack becomes a flex div", plus one case for each core kind and each property | example |
-| Scenarios: routing | `frames-routing.test.js` "websocket binary", "old envelope still routes", "sse frame event", "content type primal-frame", "protocol=frame attribute" | example |
-| `frame_ops_all_forms.bin` applies with reports only for the three mobile members | `frames-apply.test.js` "all forms fixture" | example |
-| Fault: bad bytes never throw | `frames-apply.test.js` "receive never throws": every prefix of a valid frame | property |
-| Data field | `frames-apply.test.js` "a table dispatches ewe:data with typed arrays" | example |
+| Law or scenario | Test and expected result |
+|---|---|
+| I1, I7 | `frames-apply.test.js` compares both Rust encodings and checks aligned and unaligned columns. |
+| I2 | `frames-parity.test.js` compares all 19 legacy operations with Rust frame fixtures. |
+| I3, I4 | The all-forms test reports only the three mobile fields. A missing node permits later operations. |
+| I5, I6 | Injected clocks and queues check replay, gaps, duplicates and acknowledgements. |
+| I8 | The browser copies the exact signed bytes. Generic writes and removals report an error. |
+| I9 | `ewf1_stream_updates_the_browser` retains a focused input and its scope, releases a discarded scope, and runs its script once. |
+| I10 | Shared dismiss, web composite and custom behaviours install once and release listeners on removal. |
+| I11 | `mise run ui-web:test` runs the browser and component suites. |
+| I12, I13 | Frame application succeeds when fetch and WebAssembly calls throw. A request frame is rejected. |
+| Routing | The streaming HTTP reader handles split size prefixes. Chromium updates a real node from an SSE frame. |
+| Rendering | Tests check every core kind and property, typed data columns, errors and opaque state. |
+| Placement | Ambiguous parents or direct children skip the complete instruction. Swap keeps its sibling position. |
+| Invalid frames | Every truncated prefix returns or reports without throwing. The reader rejects oversized frames. |
 
 ## 8. Tasks
 
-- [ ] 1. Add `ui-web:test` and the CI step (issue #547).
-- [ ] 2. Write `frame_parity_fixtures_tests.rs`; create the fixtures.
-- [ ] 3. `isFrame`, `splitFrames`, base64url helpers, with tests.
-- [ ] 4. `FrameApplicator`: constructor, `receive`, ordering, `flush`, with the order tests.
-- [ ] 5. The `ui` adapter and the twelve shared members.
-- [ ] 6. The `web` adapter and the sixteen web members; the parity test.
-- [ ] 7. The `columnar` adapter and the alignment counters.
-- [ ] 8. The `data` and `control` fields.
-- [ ] 9. The six seams in `foundation-wasm-ui.js`; `installFrameRuntime`; the routing tests.
-- [ ] 10. `foundation-ui-behaviours.js` (section 6.9) and its tests; `embedded.rs`; serve the new JS files from the `foundation_browser` test server.
-- [ ] 11. Bump the crate versions that gained public API.
-- [ ] 12. Update `progress.md` and `learnings.md`.
-- [ ] 13. Write or update the package or feature README.
+- [x] 1. Add `ui-web:test` and the CI step (issue #547).
+- [x] 2. Write `frame_parity_fixtures_tests.rs`; create the fixtures.
+- [x] 3. `isFrame`, `splitFrames`, base64url helpers, with tests.
+- [x] 4. `FrameApplicator`: constructor, `receive`, ordering, `flush`, with the order tests.
+- [x] 5. The `ui` adapter and the thirteen shared members.
+- [x] 6. The `web` adapter and the seventeen web members; the parity test.
+- [x] 7. The `columnar` adapter and the alignment counters.
+- [x] 8. The `data` and `control` fields.
+- [x] 9. The six seams in `foundation-wasm-ui.js`; `installFrameRuntime`; the routing tests.
+- [x] 10. `foundation-ui-behaviours.js` (section 6.9) and its tests; `embedded.rs`; serve the new JS files from the `foundation_browser` test server.
+- [x] 11. Bump the crate versions that gained public API.
+- [x] 12. Update `progress.md` and `learnings.md`.
+- [x] 13. Write or update the package or feature README.
       Show how to apply a frame in a browser. Use a recorded frame in the validation.
 
 ## 9. Verify
@@ -663,13 +660,13 @@ grep -c "^import" backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js   #
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] `git diff` of `foundation-wasm-ui.js` shows only the six seams of section 6.6.
-- [ ] No existing JS test file changed.
-- [ ] Issue #547 is closed by this change.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All feature tasks and section 9 commands pass. Cargo reports three existing unused workspace dependencies.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] The frame changes in `foundation-wasm-ui.js` use the six seams of section 6.6. The legacy module has zero imports.
+- [x] No existing JS test file changed.
+- [x] Issue #547 is closed by this change.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

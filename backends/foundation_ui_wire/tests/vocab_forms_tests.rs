@@ -58,6 +58,10 @@ const SHARED: &[(&str, &[&str])] = &[
         include_str!("../src/generated/ewe/ui/ui_behaviour.rs"),
         &["NODE_ID", "BEHAVIOUR", "ARGS"],
     ),
+    (
+        include_str!("../src/generated/ewe/ui/place.rs"),
+        &["KIND", "TARGET", "CHILD", "ROOT_NODE", "OPERATIONS"],
+    ),
 ];
 
 fn generated_fields(source: &str) -> Vec<&str> {
@@ -88,7 +92,7 @@ fn each_form_is_in_one_union() {
     for name in names {
         assert!(seen.insert(name), "Repeated form name {name}");
     }
-    assert_eq!(seen.len(), 31);
+    assert_eq!(seen.len(), 33);
 }
 
 #[test]
@@ -183,6 +187,10 @@ fn platform_forms_hold_only_their_fields() {
         (
             include_str!("../src/generated/ewe/ui/script_node.rs"),
             &["NODE_ID", "PARENT_ID", "BODY"][..],
+        ),
+        (
+            include_str!("../src/generated/ewe/ui/web_detach_child.rs"),
+            &["PARENT_ID", "CHILD_ID"],
         ),
         (
             include_str!("../src/generated/ewe/ui/web_behaviour.rs"),

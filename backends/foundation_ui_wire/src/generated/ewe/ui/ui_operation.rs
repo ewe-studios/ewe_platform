@@ -18,13 +18,13 @@ pub const ENUM_MIN_UI_OPERATION: u8 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_UI_OPERATION: u8 = 12;
+pub const ENUM_MAX_UI_OPERATION: u8 = 13;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_UI_OPERATION: [UiOperation; 13] = [
+pub const ENUM_VALUES_UI_OPERATION: [UiOperation; 14] = [
     UiOperation::NONE,
     UiOperation::CreateNode,
     UiOperation::SetText,
@@ -38,6 +38,7 @@ pub const ENUM_VALUES_UI_OPERATION: [UiOperation; 13] = [
     UiOperation::AttachState,
     UiOperation::LiveMount,
     UiOperation::UiBehaviour,
+    UiOperation::Place,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -58,9 +59,10 @@ impl UiOperation {
     pub const AttachState: Self = Self(10);
     pub const LiveMount: Self = Self(11);
     pub const UiBehaviour: Self = Self(12);
+    pub const Place: Self = Self(13);
 
     pub const ENUM_MIN: u8 = 0;
-    pub const ENUM_MAX: u8 = 12;
+    pub const ENUM_MAX: u8 = 13;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::NONE,
         Self::CreateNode,
@@ -75,6 +77,7 @@ impl UiOperation {
         Self::AttachState,
         Self::LiveMount,
         Self::UiBehaviour,
+        Self::Place,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -92,6 +95,7 @@ impl UiOperation {
             Self::AttachState => Some("AttachState"),
             Self::LiveMount => Some("LiveMount"),
             Self::UiBehaviour => Some("UiBehaviour"),
+            Self::Place => Some("Place"),
             _ => None,
         }
     }
@@ -169,6 +173,7 @@ pub enum UiOperationT {
     AttachState(Box<AttachStateT>),
     LiveMount(Box<LiveMountT>),
     UiBehaviour(Box<UiBehaviourT>),
+    Place(Box<PlaceT>),
 }
 impl Default for UiOperationT {
     fn default() -> Self {
@@ -191,6 +196,7 @@ impl UiOperationT {
             Self::AttachState(_) => UiOperation::AttachState,
             Self::LiveMount(_) => UiOperation::LiveMount,
             Self::UiBehaviour(_) => UiOperation::UiBehaviour,
+            Self::Place(_) => UiOperation::Place,
         }
     }
     pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
@@ -211,6 +217,7 @@ impl UiOperationT {
             Self::AttachState(v) => Some(v.pack(fbb).as_union_value()),
             Self::LiveMount(v) => Some(v.pack(fbb).as_union_value()),
             Self::UiBehaviour(v) => Some(v.pack(fbb).as_union_value()),
+            Self::Place(v) => Some(v.pack(fbb).as_union_value()),
         }
     }
     /// If the union variant matches, return the owned CreateNodeT, setting the union to NONE.
@@ -556,6 +563,35 @@ impl UiOperationT {
     /// If the union variant matches, return a mutable reference to the UiBehaviourT.
     pub fn as_ui_behaviour_mut(&mut self) -> Option<&mut UiBehaviourT> {
         if let Self::UiBehaviour(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
+    }
+    /// If the union variant matches, return the owned PlaceT, setting the union to NONE.
+    pub fn take_place(&mut self) -> Option<Box<PlaceT>> {
+        if let Self::Place(_) = self {
+            let v = core::mem::replace(self, Self::NONE);
+            if let Self::Place(w) = v {
+                Some(w)
+            } else {
+                unreachable!()
+            }
+        } else {
+            None
+        }
+    }
+    /// If the union variant matches, return a reference to the PlaceT.
+    pub fn as_place(&self) -> Option<&PlaceT> {
+        if let Self::Place(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
+    }
+    /// If the union variant matches, return a mutable reference to the PlaceT.
+    pub fn as_place_mut(&mut self) -> Option<&mut PlaceT> {
+        if let Self::Place(v) = self {
             Some(v.as_mut())
         } else {
             None

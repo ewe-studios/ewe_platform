@@ -10,7 +10,7 @@ description = "Per-machine agent RPC model server: load a model once, serve name
 keywords = ["agent", "rpc", "connectrpc", "grpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.

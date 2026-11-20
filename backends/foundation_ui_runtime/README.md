@@ -137,9 +137,21 @@ On success, `encode_updates` signs queued state and writes one frame.
 
 ### Render the updated list
 
-Feature 08 specifies the template syntax in this example. A hand-written handler runs in the [todo integration test](tests/action_flow_tests.rs).
+A shared page function renders the initial list and the result of each action.
 
-```text
+```rust
+use foundation_ui_runtime::{action, html};
+use foundation_ui_runtime::action::{ActionResult, Context, Interaction};
+use foundation_ui_runtime::view::template_types::Html;
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize, Serialize)]
+struct TodoList { items: Vec<String> }
+
+fn todo_row(item: &String) -> Html {
+    html! { <Text>{ item.as_str() }</Text> }
+}
+
 #[action]
 async fn add_todo(ctx: &Context, event: Interaction<TodoList>) -> ActionResult {
     let mut list = event.state;
@@ -165,6 +177,35 @@ The next submit carries the bytes on the input. Ordinary element attributes rema
 If the action queues state and then returns an error, the host receives the error and drops the queued output.
 For example, a title check can return `Err(ErrorTrace::new(ActionError::new(ErrorCode::ActionFailed, "Enter a todo title")))`.
 The client retains its previous view and attachment. The integration test exercises this case while another caller completes a submit.
+
+### Place a view at a specific target
+
+A pure `html! { <Text>Milk</Text> }` returns an owned template. It writes no output.
+The form with a context and receiver writes the complete tree and returns its root identifier in `Html.runtime_id`.
+An action render replaces its trusted component root. An initial render creates the nodes.
+Use `view::mount` to attach a pure tree below an existing parent.
+
+```rust
+use foundation_ui_runtime::{html_add, html_remove};
+use foundation_ui_runtime::action::{ActionResult, Context};
+
+fn update_rows(ctx: &Context, list: u32, old_row: u32) -> ActionResult {
+    let out = ctx.receiver();
+    html_remove! { old_row, ctx, out }?;
+    html_add! { list, ctx, out, <Text>Buy milk</Text> }?;
+    Ok(())
+}
+```
+
+The targeted macros queue one placement each. The receiver writes all placements to the same response frame.
+`html_swap!` replaces the target. `html_add_before!` and `html_add_after!` take a parent and an optional child.
+A missing child argument selects the first or last position. A missing named target skips its placement.
+Node identifiers work across platforms. Web renderers also accept selector strings.
+
+Install `view::ViewIds::new(first_free_id)` on the base context before deriving request contexts for one mounted view.
+All writers for that view must allocate distinct identifiers. Install a shared allocator with `ViewIds::with_allocator` when multiple hosts write into the view.
+A single context without this entry starts its own sequence at one.
+Install a `view::TokenTable` in the context when templates use named color or font tokens.
 
 ## Negotiate a connection and dispatch an action
 

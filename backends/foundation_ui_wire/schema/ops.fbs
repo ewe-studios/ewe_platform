@@ -22,7 +22,7 @@ table UiBehaviour { node_id: uint; behaviour: BehaviourId; args: [BehaviourArg];
 
 union UiOperation {
   CreateNode, SetText, SetProp, AppendChild, InsertBefore, Remove, ReplaceSubtree,
-  BindAction, UnbindAction, AttachState, LiveMount, UiBehaviour
+  BindAction, UnbindAction, AttachState, LiveMount, UiBehaviour, Place
 }
 
 // ---- web forms (D53) ----
@@ -49,11 +49,13 @@ table WebReplaceNode { old_id: uint; new_id: uint; }
 table WebBehaviour { node_id: uint; behaviour: WebBehaviourId; custom: string;
   args: [BehaviourArg]; }
 
+table WebDetachChild { parent_id: uint; child_id: uint; }
+
 union WebOperation {
   WebElement, WebText, WebSetAttribute, WebRemoveAttribute, WebProperty,
   WebAddListener, WebRemoveListener, WebReplaceNode, WebStyle, WebAddClass,
   WebRemoveClass, HtmlMorph, WebRegisterNode, WebUnregisterNode, ScriptNode,
-  WebBehaviour
+  WebBehaviour, WebDetachChild
 }
 
 // ---- mobile forms ----
@@ -82,6 +84,10 @@ table ColumnarBatch {
 }
 
 // A subtree swap carries operations of any group, in order.
+enum PlacementKind : ubyte { Append, Before, After, Swap, Remove }
+table Place { kind: PlacementKind; target: TargetSelector; child: TargetSelector;
+  root_node: uint; operations: [Operation]; }
+
 table ReplaceSubtree { node_id: uint; operations: [Operation]; }
 
 // ---- the one unit of a frame (D42, D44, D45) ----

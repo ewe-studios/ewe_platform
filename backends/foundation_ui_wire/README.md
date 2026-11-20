@@ -9,7 +9,7 @@ For a Rust crate under `backends/`, add the local dependency to its `Cargo.toml`
 
 ```toml
 [dependencies]
-foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.4" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.5" }
 ```
 
 The generated types and read functions are exported directly from `foundation_ui_wire`.
@@ -66,15 +66,19 @@ The host uses the request signer to verify the returned bytes. Structural frame 
 The `EWS1` functions serve callers that explicitly choose that envelope.
 [Action input](schema/action.fbs) · [Shared vocabulary](schema/common.fbs) · [Runtime routing design](../../specifications/69-foundation-ui-v2/features/10-web-action-manager/feature.md)
 
-An **operation** is a typed instruction in a reply. The schema defines 31 operation forms.
+An **operation** is a typed instruction in a reply. The schema defines 33 operation forms.
 
 | Group | Forms |
 |---|---|
-| Shared tree and content | `CreateNode`, `SetText`, `SetProp`, `AppendChild`, `InsertBefore`, `Remove`, `ReplaceSubtree` |
+| Shared tree and content | `CreateNode`, `SetText`, `SetProp`, `AppendChild`, `InsertBefore`, `Remove`, `ReplaceSubtree`, `Place` |
 | Shared events and lifecycle | `BindAction`, `UnbindAction`, `AttachState`, `LiveMount`, `UiBehaviour` |
-| Web nodes and markup | `WebElement`, `WebText`, `WebReplaceNode`, `HtmlMorph`, `WebRegisterNode`, `WebUnregisterNode`, `ScriptNode` |
+| Web nodes and markup | `WebElement`, `WebText`, `WebReplaceNode`, `HtmlMorph`, `WebRegisterNode`, `WebUnregisterNode`, `WebDetachChild`, `ScriptNode` |
 | Web attributes and behavior | `WebSetAttribute`, `WebRemoveAttribute`, `WebProperty`, `WebAddListener`, `WebRemoveListener`, `WebStyle`, `WebAddClass`, `WebRemoveClass`, `WebBehaviour` |
 | Mobile | `MountWebView`, `NativeCommand`, `MobileBehaviour`. The command identifiers are `HAPTIC`, `OPEN_URL` and `SHARE`. |
+
+Vocabulary version 3 adds `Place` and `WebDetachChild`. A placement carries a selector and its complete render.
+Detach removes a child from its parent and keeps its node handle available for reuse.
+The writer reports these operations as filtered for older clients.
 
 A `ColumnarBatch` carries multiple shared operations in parallel vectors. Each row uses the numeric tag from `UiOperation`.
 The writer aligns numeric columns to eight-byte boundaries in the frame.
@@ -207,7 +211,7 @@ A **fixture** is a checked-in binary with known inputs and expected fields. Rust
 
 | Fixture files in [fixtures/](fixtures/) | What they exercise |
 |---|---|
-| `frame_ops_counter.bin`, `frame_ops_all_forms.bin` | One text change and all 31 operation forms. |
+| `frame_ops_counter.bin`, `frame_ops_all_forms.bin` | One text change and the 31 original operation forms. |
 | `frame_columnar_3rows.bin`, `frame_data_table.bin` | Aligned numeric vectors and typed application data. |
 | `frame_error.bin`, `frame_state_expired.bin`, `caps_actions.bin` | Action failure, expired state and advertised server actions. |
 | `action_increment.bin`, `hello_web.bin`, `state_counter.bin` | Action with embedded state, stream handshake and the separate state envelope. |

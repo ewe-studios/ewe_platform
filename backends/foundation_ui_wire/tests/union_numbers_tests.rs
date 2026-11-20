@@ -16,12 +16,12 @@ macro_rules! assert_numbers {
 fn union_numbers_are_frozen() {
     assert_numbers!(UiOperation;
         NONE, CreateNode, SetText, SetProp, AppendChild, InsertBefore, Remove, ReplaceSubtree,
-        BindAction, UnbindAction, AttachState, LiveMount, UiBehaviour,
+        BindAction, UnbindAction, AttachState, LiveMount, UiBehaviour, Place,
     );
     assert_numbers!(WebOperation;
         NONE, WebElement, WebText, WebSetAttribute, WebRemoveAttribute, WebProperty, WebAddListener,
         WebRemoveListener, WebReplaceNode, WebStyle, WebAddClass, WebRemoveClass, HtmlMorph,
-        WebRegisterNode, WebUnregisterNode, ScriptNode, WebBehaviour,
+        WebRegisterNode, WebUnregisterNode, ScriptNode, WebBehaviour, WebDetachChild,
     );
     assert_numbers!(MobileOperation; NONE, MountWebView, NativeCommand, MobileBehaviour);
     assert_numbers!(ColumnData; NONE, I32, I64, F64, Bool, Utf8);

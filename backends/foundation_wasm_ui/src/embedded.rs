@@ -20,6 +20,16 @@ pub const FOUNDATION_UI_WIRE_JS: &str = include_str!("../runtimes/foundation-ui-
 /// The generated JavaScript tables for the wire vocabulary.
 pub const FOUNDATION_UI_VOCAB_JS: &str = include_str!("../runtimes/foundation-ui-vocab.js");
 
+/// Read message frames and apply their operations to the document.
+pub const FOUNDATION_UI_FRAMES_JS: &str = include_str!("../runtimes/foundation-ui-frames.js");
+
+/// Dispatch browser actions to local and remote hosts.
+pub const FOUNDATION_UI_ACTIONS_JS: &str = include_str!("../runtimes/foundation-ui-actions.js");
+
+/// Install and remove shared and browser behaviours.
+pub const FOUNDATION_UI_BEHAVIOURS_JS: &str =
+    include_str!("../runtimes/foundation-ui-behaviours.js");
+
 /// The bundled Apache Arrow JS library (`runtimes/apache-arrow.js`, G3/G25 —
 /// feature 20): the reader for wire VERSION 2 (real Arrow IPC) payloads on
 /// server content types (`application/primal-arrow` v2, SSE). The wasm loop's

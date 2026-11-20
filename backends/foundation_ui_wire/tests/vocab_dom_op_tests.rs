@@ -48,12 +48,7 @@ fn each_dom_op_round_trips() {
         DomOp::UnregisterNode { node_id: id },
     ];
     for op in cases {
-        let expected = if let DomOp::RemoveChild { child_id, .. } = op {
-            DomOp::RemoveNode { node_id: child_id }
-        } else {
-            op.clone()
-        };
-        assert_eq!(dom_op(&web_form(&op)), Some(expected));
+        assert_eq!(dom_op(&web_form(&op)), Some(op));
     }
     for attr in [name, custom_name] {
         for op in [

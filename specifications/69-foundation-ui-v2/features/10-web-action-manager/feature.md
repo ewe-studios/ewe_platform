@@ -1,21 +1,21 @@
 ---
 feature: "web-action-manager"
 description: "The web action manager and the JS registry: server: and host: references on events, the state harvest, the request frame path to the server and to the local host, the host fall-forward to the server, the server action list for adapt down, and the todo list example."
-status: "pending"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["05-action-runtime", "07-dispatcher-and-handshake", "09-web-frame-applicator"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-20
+last_updated: 2026-11-21
 author: "Main Agent"
 crates: ["foundation_wasm_ui", "foundation_browser"]
 decisions: ["D5", "D12", "D22", "D23", "D25", "D29", "D31", "D40", "D41", "D45", "D46", "D47", "D48", "D50", "D52", "D54", "D55"]
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 10: The web action manager
@@ -656,19 +656,19 @@ Check that nodes 40 and 42 receive the bytes of `state_counter_custom.json` and 
 
 ## 8. Tasks
 
-- [ ] 1. `parseReference`, `route` with the D50 (8) fall-forward, and the route-vector test.
-- [ ] 2. `JsActionRegistry` with the origin rules and the bound; its tests.
-- [ ] 3. `WebActionManager.trigger` for `host:` page functions and local WASM actions, with tests.
-- [ ] 4. The state harvest, the request frame builder, the in-flight set, the host fall-forward
+- [x] 1. `parseReference`, `route` with the D50 (8) fall-forward, and the route-vector test.
+- [x] 2. `JsActionRegistry` with the origin rules and the bound; its tests.
+- [x] 3. `WebActionManager.trigger` for `host:` page functions and local WASM actions, with tests.
+- [x] 4. The state harvest, the request frame builder, the in-flight set, the host fall-forward
       (D50 (8)), `applyCaps` adapt down, with tests.
-- [ ] 5. `FetchActionTransport` and `WasmActionTransport`.
-- [ ] 6. The two seams, `scope.behaviour` and `installActionRuntime`.
-- [ ] 7. `actions.rs` and `ewe_ui_action` with its tests.
-- [ ] 8. `embedded.rs`; serve the file from the `foundation_browser` test server.
-- [ ] 9. The `ui_todo` example and its browser test.
-- [ ] 10. Bump crate versions; add `examples/ui_todo` to `ci/packages.toml` if a default does not fit.
-- [ ] 11. Update `progress.md` and `learnings.md`.
-- [ ] 12. Write or update the package or feature README.
+- [x] 5. `FetchActionTransport` and `WasmActionTransport`.
+- [x] 6. The two seams, `scope.behaviour` and `installActionRuntime`.
+- [x] 7. `actions.rs` and `ewe_ui_action` with its tests.
+- [x] 8. `embedded.rs`; serve the file from the `foundation_browser` test server.
+- [x] 9. The `ui_todo` example and its browser test.
+- [x] 10. Bump crate versions; add `examples/ui_todo` to `ci/packages.toml` if a default does not fit.
+- [x] 11. Update `progress.md` and `learnings.md`.
+- [x] 12. Write or update the package or feature README.
       Show a server action and a host action in a browser. Run the example routing checks.
 
 ## 9. Verify
@@ -688,11 +688,11 @@ mise run test:browser
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The browser scenario passes. Record it in `progress.md`: it opens the phase gate for
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All feature checks pass. Cargo reports existing workspace manifest notices.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] The browser scenario passes. Record it in `progress.md`: it opens the phase gate for
       feature 13.
-- [ ] `git diff` of `foundation-wasm-ui.js` for this feature shows only the two seams.
-- [ ] No existing JS or Rust test file changed.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] `git diff` of `foundation-wasm-ui.js` for this feature shows only the two seams.
+- [x] No existing JS or Rust test file changed.
+- [x] The check list of the `story-driven-specification` skill passes.

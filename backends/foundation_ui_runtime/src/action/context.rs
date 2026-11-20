@@ -7,7 +7,7 @@ use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_ui_wire::writer::{write_messages, ClientCaps, FrameHeader, WriterConfig};
 use foundation_ui_wire::{
-    AttachStateT, DataT, ErrorCode, MessagePackBlobT, MessageT, MountSurface, OperationT,
+    AttachStateT, DataT, ErrorCode, MessagePackBlobT, MessageT, MountSurface, OperationT, PlaceT,
     UiOperation, UiOperationT,
 };
 use serde::Serialize;
@@ -20,6 +20,7 @@ pub struct Context {
     inner: Ctx,
     surface: MountSurface,
     state_root: Option<u32>,
+    is_action: bool,
     receiver: ActionReceiver,
 }
 
@@ -33,7 +34,13 @@ impl Context {
     /// Starts a render on the selected surface.
     #[must_use]
     pub fn for_render_on(inner: Ctx, surface: MountSurface) -> Self {
-        Self::for_action(inner, surface, None)
+        Self {
+            inner,
+            surface,
+            state_root: None,
+            is_action: false,
+            receiver: ActionReceiver::default(),
+        }
     }
 
     /// Starts an action with the component root supplied by the host.
@@ -43,8 +50,13 @@ impl Context {
             inner,
             surface,
             state_root,
+            is_action: true,
             receiver: ActionReceiver::default(),
         }
+    }
+
+    pub(crate) fn is_action(&self) -> bool {
+        self.is_action
     }
 
     /// Returns the host context used to start this call.
@@ -79,8 +91,57 @@ pub struct ReceiverItem(Output);
 
 enum Output {
     View(OperationT),
-    State { targets: Vec<u32>, body: Vec<u8> },
-    Data { target: u32, bytes: Vec<u8> },
+    State(PendingState),
+    Placement {
+        place: PlaceT,
+        state: Option<PendingState>,
+    },
+    Data {
+        target: u32,
+        bytes: Vec<u8>,
+    },
+}
+
+struct PendingState {
+    targets: Vec<u32>,
+    body: Vec<u8>,
+}
+
+impl PendingState {
+    fn new<T: Serialize + ?Sized>(
+        targets: &[u32],
+        value: &T,
+    ) -> Result<Self, ErrorTrace<ActionError>> {
+        if targets.is_empty() {
+            return Err(output_error("Component state needs at least one target"));
+        }
+        let body = serde_json::to_vec(value)
+            .map_err(|e| output_error("Cannot encode component state").attach(e))?;
+        let mut seen = BTreeSet::new();
+        let targets = targets
+            .iter()
+            .copied()
+            .filter(|id| seen.insert(*id))
+            .collect();
+        Ok(Self { targets, body })
+    }
+
+    fn attachments(self, ctx: &Ctx) -> Result<Vec<OperationT>, ErrorTrace<ActionError>> {
+        let signed = sign_state(ctx, &self.body)
+            .map_err(|e| output_error("Cannot sign component state").attach(e))?;
+        Ok(self
+            .targets
+            .into_iter()
+            .map(|target| {
+                let mut attachment = AttachStateT::default();
+                attachment.root_node = target;
+                attachment.state = Some(signed.clone());
+                let mut operation = OperationT::default();
+                operation.ui = UiOperationT::AttachState(Box::new(attachment));
+                operation
+            })
+            .collect())
+    }
 }
 
 /// Stores pending updates in the order of their calls.
@@ -106,18 +167,7 @@ impl ActionReceiver {
     ///
     /// Returns an action error if the target list is empty or serialization fails.
     pub fn state_for<T: Serialize + ?Sized>(&self, targets: &[u32], value: &T) -> ActionResult {
-        if targets.is_empty() {
-            return Err(output_error("State requires at least one target."));
-        }
-        let body = serde_json::to_vec(value)
-            .map_err(|error| output_error("Cannot encode component state").attach(error))?;
-        let mut seen = BTreeSet::new();
-        let targets = targets
-            .iter()
-            .copied()
-            .filter(|id| seen.insert(*id))
-            .collect();
-        self.push(Output::State { targets, body });
+        self.push(Output::State(PendingState::new(targets, value)?));
         Ok(())
     }
 
@@ -130,6 +180,27 @@ impl ActionReceiver {
     #[doc(hidden)]
     pub fn render_op(&self, operation: OperationT) {
         self.push(Output::View(operation));
+    }
+
+    pub(crate) fn render_tree<S: Serialize + ?Sized>(
+        &self,
+        ops: Vec<OperationT>,
+        placement: Option<PlaceT>,
+        targets: &[u32],
+        state: Option<&S>,
+    ) -> ActionResult {
+        let state = state.map(|s| PendingState::new(targets, s)).transpose()?;
+        let mut items = self.items.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(mut place) = placement {
+            place.operations = Some(ops);
+            items.push(ReceiverItem(Output::Placement { place, state }));
+        } else {
+            items.extend(ops.into_iter().map(|op| ReceiverItem(Output::View(op))));
+            if let Some(s) = state {
+                items.push(ReceiverItem(Output::State(s)));
+            }
+        }
+        Ok(())
     }
 
     fn push(&self, output: Output) {
@@ -183,17 +254,20 @@ pub fn prepare_messages(
                 }
                 messages.push(operation_message(operation));
             }
-            Output::State { targets, body } => {
-                let signed = sign_state(ctx, &body)
-                    .map_err(|error| output_error("Cannot sign component state").attach(error))?;
-                for target in targets {
-                    let mut attachment = AttachStateT::default();
-                    attachment.root_node = target;
-                    attachment.state = Some(signed.clone());
-                    let mut operation = OperationT::default();
-                    operation.ui = UiOperationT::AttachState(Box::new(attachment));
-                    messages.push(operation_message(operation));
+            Output::State(state) => {
+                messages.extend(state.attachments(ctx)?.into_iter().map(operation_message));
+            }
+            Output::Placement { mut place, state } => {
+                let ops = place.operations.get_or_insert_with(Vec::new);
+                if ops.iter().any(contains_state_attachment) {
+                    return Err(output_error("Use the receiver to attach component state."));
                 }
+                if let Some(state) = state {
+                    ops.extend(state.attachments(ctx)?);
+                }
+                let mut operation = OperationT::default();
+                operation.ui = UiOperationT::Place(Box::new(place));
+                messages.push(operation_message(operation));
             }
             Output::Data { target, bytes } => {
                 let mut blob = MessagePackBlobT::default();
@@ -222,6 +296,10 @@ fn contains_state_attachment(operation: &OperationT) -> bool {
     }
     match &operation.ui {
         UiOperationT::AttachState(_) => true,
+        UiOperationT::Place(place) => place
+            .operations
+            .as_deref()
+            .is_some_and(|ops| ops.iter().any(contains_state_attachment)),
         UiOperationT::ReplaceSubtree(tree) => tree
             .operations
             .as_deref()

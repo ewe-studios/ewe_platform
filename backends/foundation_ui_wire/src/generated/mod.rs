@@ -44,6 +44,8 @@ pub mod ewe {
         pub use self::native_command_id::*;
         mod mobile_operation;
         pub use self::mobile_operation::*;
+        mod placement_kind;
+        pub use self::placement_kind::*;
         mod column_data;
         pub use self::column_data::*;
         mod caps_status;
@@ -126,6 +128,8 @@ pub mod ewe {
         pub use self::web_replace_node::*;
         mod web_behaviour;
         pub use self::web_behaviour::*;
+        mod web_detach_child;
+        pub use self::web_detach_child::*;
         mod native_arg;
         pub use self::native_arg::*;
         mod mount_web_view;
@@ -136,6 +140,8 @@ pub mod ewe {
         pub use self::mobile_behaviour::*;
         mod columnar_batch;
         pub use self::columnar_batch::*;
+        mod place;
+        pub use self::place::*;
         mod replace_subtree;
         pub use self::replace_subtree::*;
         mod operation;

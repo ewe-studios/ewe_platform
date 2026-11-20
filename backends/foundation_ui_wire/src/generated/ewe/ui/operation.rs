@@ -126,6 +126,11 @@ impl<'a> Operation<'a> {
                     .expect("Invalid union table, expected `UiOperation::UiBehaviour`.")
                     .unpack(),
             )),
+            UiOperation::Place => UiOperationT::Place(Box::new(
+                self.ui_as_place()
+                    .expect("Invalid union table, expected `UiOperation::Place`.")
+                    .unpack(),
+            )),
             _ => UiOperationT::NONE,
         };
         let web = match self.web_type() {
@@ -208,6 +213,11 @@ impl<'a> Operation<'a> {
             WebOperation::WebBehaviour => WebOperationT::WebBehaviour(Box::new(
                 self.web_as_web_behaviour()
                     .expect("Invalid union table, expected `WebOperation::WebBehaviour`.")
+                    .unpack(),
+            )),
+            WebOperation::WebDetachChild => WebOperationT::WebDetachChild(Box::new(
+                self.web_as_web_detach_child()
+                    .expect("Invalid union table, expected `WebOperation::WebDetachChild`.")
                     .unpack(),
             )),
             _ => WebOperationT::NONE,
@@ -501,6 +511,21 @@ impl<'a> Operation<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
+    pub fn ui_as_place(&self) -> Option<Place<'a>> {
+        if self.ui_type() == UiOperation::Place {
+            self.ui().map(|t| {
+                // Safety:
+                // Created from a valid Table for this object
+                // Which contains a valid union in this slot
+                unsafe { Place::init_from_table(t) }
+            })
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
     pub fn web_as_web_element(&self) -> Option<WebElement<'a>> {
         if self.web_type() == WebOperation::WebElement {
             self.web().map(|t| {
@@ -741,6 +766,21 @@ impl<'a> Operation<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
+    pub fn web_as_web_detach_child(&self) -> Option<WebDetachChild<'a>> {
+        if self.web_type() == WebOperation::WebDetachChild {
+            self.web().map(|t| {
+                // Safety:
+                // Created from a valid Table for this object
+                // Which contains a valid union in this slot
+                unsafe { WebDetachChild::init_from_table(t) }
+            })
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
     pub fn mobile_as_mount_web_view(&self) -> Option<MountWebView<'a>> {
         if self.mobile_type() == MobileOperation::MountWebView {
             self.mobile().map(|t| {
@@ -860,6 +900,11 @@ impl flatbuffers::Verifiable for Operation<'_> {
                             "UiOperation::UiBehaviour",
                             pos,
                         ),
+                    UiOperation::Place => v
+                        .verify_union_variant::<flatbuffers::ForwardsUOffset<Place>>(
+                            "UiOperation::Place",
+                            pos,
+                        ),
                     _ => crate::read::verify_opaque_union(v, pos),
                 },
             )?
@@ -948,6 +993,11 @@ impl flatbuffers::Verifiable for Operation<'_> {
                     WebOperation::WebBehaviour => v
                         .verify_union_variant::<flatbuffers::ForwardsUOffset<WebBehaviour>>(
                             "WebOperation::WebBehaviour",
+                            pos,
+                        ),
+                    WebOperation::WebDetachChild => v
+                        .verify_union_variant::<flatbuffers::ForwardsUOffset<WebDetachChild>>(
+                            "WebOperation::WebDetachChild",
                             pos,
                         ),
                     _ => crate::read::verify_opaque_union(v, pos),
@@ -1197,6 +1247,16 @@ impl core::fmt::Debug for Operation<'_> {
                     )
                 }
             }
+            UiOperation::Place => {
+                if let Some(x) = self.ui_as_place() {
+                    ds.field("ui", &x)
+                } else {
+                    ds.field(
+                        "ui",
+                        &"InvalidFlatbuffer: Union discriminant does not match value.",
+                    )
+                }
+            }
             _ => {
                 let x: Option<()> = None;
                 ds.field("ui", &x)
@@ -1356,6 +1416,16 @@ impl core::fmt::Debug for Operation<'_> {
             }
             WebOperation::WebBehaviour => {
                 if let Some(x) = self.web_as_web_behaviour() {
+                    ds.field("web", &x)
+                } else {
+                    ds.field(
+                        "web",
+                        &"InvalidFlatbuffer: Union discriminant does not match value.",
+                    )
+                }
+            }
+            WebOperation::WebDetachChild => {
+                if let Some(x) = self.web_as_web_detach_child() {
                     ds.field("web", &x)
                 } else {
                     ds.field(

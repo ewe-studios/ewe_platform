@@ -43,6 +43,14 @@ fn validate_operation(
     if operation_is_empty(operation) {
         return Err(WriteError::EmptyMessage { message_index });
     }
+    let attribute = match &operation.web {
+        crate::WebOperationT::WebSetAttribute(attr) => attr.custom_attr.as_deref(),
+        crate::WebOperationT::WebRemoveAttribute(attr) => attr.custom_attr.as_deref(),
+        _ => None,
+    };
+    if attribute.is_some_and(|name| name.eq_ignore_ascii_case("primal::state")) {
+        return Err(WriteError::ReservedStateAttribute { message_index });
+    }
     validate_ui(&operation.ui, message_index, config)?;
     if let Some(batch) = &operation.columnar {
         for row in decode_batch(batch, message_index)? {
@@ -76,6 +84,34 @@ fn validate_ui(
                     limit,
                     actual: state.len(),
                 });
+            }
+        }
+        UiOperationT::Place(place) => {
+            use crate::{PlacementKind as Kind, SelectorKind, TargetSelectorT};
+            let valid_selector = |selector: &TargetSelectorT| match selector.kind {
+                SelectorKind::NodeId => selector.text.is_none(),
+                SelectorKind::Id | SelectorKind::Class | SelectorKind::Query => selector
+                    .text
+                    .as_deref()
+                    .is_some_and(|text| !text.is_empty()),
+                _ => false,
+            };
+            let children = place.operations.as_deref().unwrap_or_default();
+            let valid_content = match place.kind {
+                Kind::Remove => children.is_empty() && place.root_node == 0,
+                Kind::Append | Kind::Before | Kind::After | Kind::Swap => !children.is_empty(),
+                _ => false,
+            };
+            if !valid_content
+                || !place.target.as_deref().is_some_and(valid_selector)
+                || place.child.as_deref().is_some_and(|child| {
+                    !matches!(place.kind, Kind::Before | Kind::After) || !valid_selector(child)
+                })
+            {
+                return Err(WriteError::InvalidPlacement { message_index });
+            }
+            for child in children {
+                validate_operation(child, message_index, config)?;
             }
         }
         UiOperationT::ReplaceSubtree(subtree) => {

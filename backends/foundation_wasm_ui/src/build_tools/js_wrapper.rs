@@ -28,7 +28,7 @@ pub fn bin_wrapper(name: &str) -> String {
     bin_wrapper_with_bundle(name, false)
 }
 
-/// `wasm_bin` with jsruntime_single support.
+/// `wasm_bin` with `jsruntime_single` support.
 #[must_use]
 pub fn bin_wrapper_with_bundle(name: &str, use_bundle: bool) -> String {
     let imports = if use_bundle {

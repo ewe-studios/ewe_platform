@@ -501,3 +501,79 @@ fn morph() -> Web {
         content: Some("<b>x</b>".into())
     })))
 }
+
+#[test]
+fn placement_and_detach_require_vocabulary_three() {
+    use foundation_ui_wire::{PlaceT, PlacementKind, TargetSelectorT};
+    let place = Ui::Place(Box::new(table!(PlaceT {
+        kind: PlacementKind::Remove,
+        target: Some(Box::new(TargetSelectorT::default()))
+    })));
+    let messages = vec![
+        message(table!(OperationT { ui: place })),
+        message(table!(OperationT {
+            web: Web::WebDetachChild(Box::default())
+        })),
+    ];
+    let mut caps = ClientCaps::web_current();
+    assert_eq!(gate(messages.clone(), &caps).unwrap().0.len(), 2);
+    caps.vocabulary_version = 2;
+    let (kept, removed) = gate(messages, &caps).unwrap();
+    assert!(kept.is_empty());
+    assert_eq!(removed.len(), 2);
+}
+
+#[test]
+fn writer_validates_placement_and_protects_nested_state_attributes() {
+    use foundation_ui_wire::{PlaceT, PlacementKind, TargetSelectorT};
+    let write = |ui| {
+        write_messages(
+            vec![message(table!(OperationT { ui: ui }))],
+            &ClientCaps::web_current(),
+            HEADER,
+            &WriterConfig::default(),
+        )
+    };
+    let mut place = table!(PlaceT {
+        kind: PlacementKind::Append,
+        target: Some(Box::new(TargetSelectorT::default()))
+    });
+    assert_eq!(
+        write(Ui::Place(Box::new(place.clone()))).unwrap_err(),
+        WriteError::InvalidPlacement { message_index: 0 }
+    );
+    for web in [
+        Web::WebSetAttribute(Box::new(table!(WebSetAttributeT {
+            custom_attr: Some("primal::state".into())
+        }))),
+        Web::WebRemoveAttribute(Box::new(table!(WebRemoveAttributeT {
+            custom_attr: Some("PRIMAL::STATE".into())
+        }))),
+    ] {
+        place.operations = Some(vec![table!(OperationT { web: web })]);
+        assert_eq!(
+            write(Ui::Place(Box::new(place.clone()))).unwrap_err(),
+            WriteError::ReservedStateAttribute { message_index: 0 }
+        );
+    }
+}
+
+#[test]
+fn native_gate_drops_a_swap_when_all_its_content_is_web_only() {
+    use foundation_ui_wire::{PlaceT, PlacementKind, TargetSelectorT};
+    let web_element = table!(OperationT {
+        web: Web::WebElement(Box::new(table!(WebElementT { node_id: 8 })))
+    });
+    let swap = table!(PlaceT {
+        kind: PlacementKind::Swap,
+        target: Some(Box::new(TargetSelectorT::default())),
+        root_node: 8,
+        operations: Some(vec![web_element])
+    });
+    let message = message(table!(OperationT {
+        ui: Ui::Place(Box::new(swap))
+    }));
+    let (messages, filtered) = gate(vec![message], &native()).unwrap();
+    assert!(messages.is_empty());
+    assert_eq!(filtered[0].reason, FilterReason::OtherPlatform);
+}

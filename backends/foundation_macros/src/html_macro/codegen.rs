@@ -34,9 +34,11 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::parser::{ParseError, ParsedAttr, ParsedNode};
+use super::parser::{core_tag, ActionTarget, ParseError, ParsedAttr, ParsedNode};
 use super::scoped_css::transform_scoped_css;
-use crate::crate_paths::{foundation_ui_traits_path, foundation_wasm_ui_path};
+use crate::crate_paths::{
+    foundation_ui_runtime_path, foundation_ui_traits_path, foundation_wasm_ui_path,
+};
 
 /// A compile-time-transformed scoped style block (feature 09, decision 019):
 /// extracted from `<style primal:style>` children, combined per parent (§4),
@@ -291,7 +293,7 @@ fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
 }
 
 /// Generate the PURE form: one `Html` expression.
-pub(crate) fn generate_pure(mut root: ParsedNode) -> TokenStream {
+pub(crate) fn generate_pure(mut root: ParsedNode, frame_view: bool) -> TokenStream {
     let styles = match extract_scoped_styles(&mut root) {
         Ok(styles) => styles,
         Err(err) => {
@@ -308,16 +310,28 @@ pub(crate) fn generate_pure(mut root: ParsedNode) -> TokenStream {
     collect_handler_bindings(&numbered, &mut prelude, &mut handler_index);
 
     let mut handler_cursor = 0usize;
-    let html = gen_html_node(&numbered, &ui, Mode::Pure, &mut handler_cursor);
+    let html = gen_html_node(
+        &numbered,
+        &ui,
+        Mode::Pure {
+            synthetic_base: frame_view.then_some(plan.next_element),
+        },
+        &mut handler_cursor,
+    );
     let parts = gen_parts(&plan.parts, &ui);
 
-    let style_children = styles.iter().map(|style| {
+    let style_children = styles.iter().enumerate().map(|(index, style)| {
+        let id = (u64::from(plan.next_element) + u64::from(plan.next_runtime) + index as u64)
+            .to_string();
+        let attr = frame_view.then(
+            || quote!((#ui::AttrName::from_static("primal-id"), #ui::__macro::Cow::Borrowed(#id)),),
+        );
         let css = &style.css;
         quote! {
             __html.children.push(#ui::Html {
                 runtime_id: ::core::option::Option::None,
                 tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("style")),
-                attributes: #ui::__macro::vec![(
+                attributes: #ui::__macro::vec![#attr (
                     #ui::AttrName::from_static("data-primal-scoped"),
                     #ui::__macro::Cow::Borrowed("true"),
                 )],
@@ -331,7 +345,7 @@ pub(crate) fn generate_pure(mut root: ParsedNode) -> TokenStream {
     quote! {{
         #prelude
         let mut __html = #html;
-        __html.parts = #parts;
+        __html.parts.append(&mut #parts);
         #(#style_children)*
         __html
     }}
@@ -420,7 +434,7 @@ pub(crate) fn generate_reactive(
 
 #[derive(Clone, Copy)]
 enum Mode {
-    Pure,
+    Pure { synthetic_base: Option<u32> },
     Reactive,
 }
 
@@ -464,7 +478,7 @@ fn gen_html_node(
 
             // primal-id: compile id (pure) or runtime block id (reactive).
             let pid_value = match mode {
-                Mode::Pure => {
+                Mode::Pure { .. } => {
                     let s = element_id.to_string();
                     quote! { #ui::__macro::Cow::Borrowed(#s) }
                 }
@@ -485,6 +499,7 @@ fn gen_html_node(
 
             for attr in attrs {
                 match attr {
+                    ParsedAttr::StateMarker(_) => {}
                     ParsedAttr::Static { name, value } => {
                         attr_stmts.push(quote! {
                             __attrs.push((
@@ -500,7 +515,7 @@ fn gen_html_node(
                     | ParsedAttr::StaticDynamic { name, tokens } => match mode {
                         // Pure: evaluate once; `None` omits the attribute
                         // (presence contract, §8.2), `Some` sets it.
-                        Mode::Pure => attr_stmts.push(quote! {
+                        Mode::Pure { .. } => attr_stmts.push(quote! {
                             if let ::core::option::Option::Some(__v) =
                                 #ui::IntoAttrValue::into_attr_value((#tokens))
                             {
@@ -516,6 +531,12 @@ fn gen_html_node(
                             ));
                         }),
                     },
+                    ParsedAttr::Action { event, target } => {
+                        let (name, value) = action_attribute(tag, event, target, ui);
+                        attr_stmts.push(quote! {
+                            __attrs.push((#ui::AttrName::from_static(#name), #value));
+                        });
+                    }
                     ParsedAttr::Event { event_name, .. } => {
                         let marker = format!("primal:on{event_name}");
                         let cb = format_ident!("__cb{handler_cursor}");
@@ -541,8 +562,19 @@ fn gen_html_node(
             let children: Vec<TokenStream> = node
                 .children
                 .iter()
-                .map(|c| gen_html_node(c, ui, mode, handler_cursor))
+                .map(|child| {
+                    if core_tag(tag) && matches!(mode, Mode::Pure { .. }) {
+                        if let ParsedNode::Slot(tokens) = &child.node {
+                            return quote!(#ui::IntoHtml::into_html((#tokens)));
+                        }
+                    }
+                    gen_html_node(child, ui, mode, handler_cursor)
+                })
                 .collect();
+            let marker = attrs.iter().find_map(|attr| {
+                matches!(attr, ParsedAttr::StateMarker(_))
+                    .then(|| quote!(#ui::Part::state_marker(#element_id)))
+            });
 
             quote! {{
                 let mut __attrs: #ui::__macro::Vec<(
@@ -555,7 +587,7 @@ fn gen_html_node(
                     attributes: __attrs,
                     children: #ui::__macro::vec![#(#children),*],
                     text: ::core::option::Option::None,
-                    parts: #ui::__macro::Vec::new(),
+                    parts: #ui::__macro::vec![#marker],
                     runtime_id: ::core::option::Option::None,
                 }
             }}
@@ -565,21 +597,27 @@ fn gen_html_node(
             // Pure: text-shaped values wrap in the slot <span> (the morph
             // contract — spec-42 feature 00 §4: BOTH forms render text slots
             // as spans); element/fragment values inline as before.
-            Mode::Pure => quote! {{
-                let __v = #ui::IntoHtml::into_html((#tokens));
-                if __v.tag.is_none() && __v.children.is_empty() {
-                    #ui::Html {
-                        tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("span")),
-                        attributes: #ui::__macro::Vec::new(),
-                        children: #ui::__macro::vec![__v],
-                        text: ::core::option::Option::None,
-                        parts: #ui::__macro::Vec::new(),
-                        runtime_id: ::core::option::Option::None,
+            Mode::Pure { synthetic_base } => {
+                let attr = synthetic_base.map(|base| {
+                    let id = (u64::from(base) + u64::from(node.runtime_index)).to_string();
+                    quote!((#ui::AttrName::from_static("primal-id"), #ui::__macro::Cow::Borrowed(#id)))
+                });
+                quote! {{
+                    let __v = #ui::IntoHtml::into_html((#tokens));
+                    if __v.tag.is_none() && __v.children.is_empty() {
+                        #ui::Html {
+                            tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("span")),
+                            attributes: #ui::__macro::vec![#attr],
+                            children: #ui::__macro::vec![__v],
+                            text: ::core::option::Option::None,
+                            parts: #ui::__macro::Vec::new(),
+                            runtime_id: ::core::option::Option::None,
+                        }
+                    } else {
+                        __v
                     }
-                } else {
-                    __v
-                }
-            }},
+                }}
+            }
             // Reactive: span placeholder — the slot effect renders into it.
             Mode::Reactive => quote! { #ui::Html {
                 tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("span")),
@@ -594,7 +632,7 @@ fn gen_html_node(
             // Structural reactivity needs a receiver to mount through; a
             // pure tree is a VALUE — conditionals/lists in pure trees are
             // plain Rust around the macro (feature 01 §4).
-            Mode::Pure => {
+            Mode::Pure { .. } => {
                 let message =
                     "html!: <Show>/<For> require the reactive form (html! { ctx, receiver, … })";
                 quote::quote_spanned! {*span=> compile_error!(#message) }
@@ -604,7 +642,7 @@ fn gen_html_node(
         ParsedNode::Fragment { exprs } => match mode {
             // Pure: inline — a tagless wrapper, same shape Vec<Html> slots
             // produce (to_markup flattens it transparently).
-            Mode::Pure => quote! { #ui::Html {
+            Mode::Pure { .. } => quote! { #ui::Html {
                 tag: ::core::option::Option::None,
                 attributes: #ui::__macro::Vec::new(),
                 children: #ui::__macro::vec![
@@ -697,7 +735,17 @@ fn gen_mount_ops(
                             });
                         });
                     }
-                    ParsedAttr::Static { .. } => {}
+                    ParsedAttr::Action { event, target } => {
+                        let (name, value) = action_attribute(tag, event, target, ui);
+                        ops.extend(quote! {
+                            __rcv.queue(#ui::DomOp::SetAttribute {
+                                node_id: __base + #ridx,
+                                name: #ui::AttrName::from_static(#name),
+                                value: #value,
+                            });
+                        });
+                    }
+                    ParsedAttr::StateMarker(_) | ParsedAttr::Static { .. } => {}
                     ParsedAttr::StaticDynamic { name, tokens } => {
                         // `name=[expr]`: evaluate ONCE at mount, no effect. The
                         // expression is moved exactly once (no `FnMut`), so
@@ -878,4 +926,29 @@ fn gen_mount_ops(
             }
         }
     }
+}
+
+fn action_attribute(
+    tag: &str,
+    event: &str,
+    target: &ActionTarget,
+    ui: &TokenStream,
+) -> (String, TokenStream) {
+    let name = if core_tag(tag) {
+        format!("ewe:on:{event}")
+    } else {
+        let dom_event = if event == "tap" { "click" } else { event };
+        format!("primal:on{dom_event}")
+    };
+    let value = match target {
+        ActionTarget::Rust(path) => {
+            let runtime = foundation_ui_runtime_path();
+            quote!(#ui::__macro::Cow::Owned(#runtime::view::action_reference(
+                <#path as #runtime::action::Action>::origin(),
+                <#path as #runtime::action::Action>::NAME,
+            )))
+        }
+        ActionTarget::Host(name) => quote!(#ui::__macro::Cow::Borrowed(#name)),
+    };
+    (name, value)
 }

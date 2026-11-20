@@ -241,7 +241,7 @@ pub struct Declaration {
 enum Implementation {
     Absent,
     Page,
-    Rust(Box<dyn ErasedAction>),
+    Rust(std::sync::Arc<dyn ErasedAction>),
 }
 
 struct Entry {
@@ -271,7 +271,7 @@ impl ActionRegistry {
             A::origin(),
             A::NAME,
             A::scope(),
-            Implementation::Rust(Box::new(Adapter(action))),
+            Implementation::Rust(std::sync::Arc::new(Adapter(action))),
         )
     }
 
@@ -390,8 +390,18 @@ impl ActionRegistry {
         name: &str,
         surface: Surface,
     ) -> Result<&dyn ErasedAction, LookupError> {
+        self.handle(origin, name, surface)
+            .map(std::sync::Arc::as_ref)
+    }
+
+    pub(crate) fn handle(
+        &self,
+        origin: Origin,
+        name: &str,
+        surface: Surface,
+    ) -> Result<&std::sync::Arc<dyn ErasedAction>, LookupError> {
         match &self.entry(origin, name, surface)?.implementation {
-            Implementation::Rust(action) => Ok(action.as_ref()),
+            Implementation::Rust(action) => Ok(action),
             _ => Err(LookupError::UnavailableOrigin),
         }
     }

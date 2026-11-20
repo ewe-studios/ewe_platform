@@ -258,8 +258,7 @@ fn build_subtree(
             .attributes
             .iter()
             .find(|(name, _)| name.name() == Some("class"))
-            .map(|(_, value)| value.clone())
-            .unwrap_or_default();
+            .map_or_else(Default::default, |(_, value)| value.clone());
         rcv.queue(DomOp::CreateElement {
             node_id: id,
             tag: tag.clone(),

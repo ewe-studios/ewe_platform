@@ -18,5 +18,6 @@ class UiOperation private constructor() {
         const val AttachState: UByte = 10u
         const val LiveMount: UByte = 11u
         const val UiBehaviour: UByte = 12u
+        const val Place: UByte = 13u
     }
 }

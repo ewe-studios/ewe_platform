@@ -22,5 +22,6 @@ class WebOperation private constructor() {
         const val WebUnregisterNode: UByte = 14u
         const val ScriptNode: UByte = 15u
         const val WebBehaviour: UByte = 16u
+        const val WebDetachChild: UByte = 17u
     }
 }

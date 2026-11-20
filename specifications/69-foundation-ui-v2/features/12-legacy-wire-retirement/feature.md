@@ -4,7 +4,7 @@ description: "Prove that the frame wire delivers the same web function, switch t
 status: "pending"
 priority: "medium"
 model: "sonnet"
-depends_on: ["08-html-macro-core-vocabulary", "09-web-frame-applicator", "10-web-action-manager", "11-live-mounts-and-server-streams"]
+depends_on: ["08-html-macro-core-vocabulary", "09-web-frame-applicator", "10-web-action-manager", "11-live-mounts-and-server-streams", "20-migrate-to-frame-writer"]
 estimated_effort: "large"
 created: 2026-11-13
 last_updated: 2026-11-21
@@ -28,10 +28,11 @@ are._
 (IPC); continuous integration (CI); identifier (id); AeroSpace and Defence Industries
 Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
-## Proposed change of ownership
+## Migration ownership
 
-[Feature 20](../20-migrate-to-frame-writer/feature.md) moves the existing producers and their browser delivery path to the frame writer first.
-Its ownership table supersedes the migration sequence below upon approval.
+Feature 09 supplies the tested browser reader. Feature 20 moves existing producers to the frame writer.
+Feature 11 adds live delivery. Feature 12 removes legacy code after both paths pass their checks.
+[Producer migration plan](../20-migrate-to-frame-writer/feature.md)
 
 ## 1. Goal
 
