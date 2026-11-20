@@ -13,8 +13,8 @@ crates: ["foundation_wasm_ui", "foundation_browser"]
 decisions: ["D5", "D12", "D22", "D23", "D25", "D29", "D31", "D40", "D41", "D45", "D46", "D47", "D48", "D50", "D52", "D54", "D55"]
 tasks:
   completed: 0
-  uncompleted: 11
-  total: 11
+  uncompleted: 12
+  total: 12
   completion_percentage: 0
 ---
 
@@ -708,6 +708,8 @@ Add the test to the `test:browser` mise task set.
 - [ ] 9. The `ui_todo` example and its browser test.
 - [ ] 10. Bump crate versions; add `examples/ui_todo` to `ci/packages.toml` if a default does not fit.
 - [ ] 11. Update `progress.md` and `learnings.md`.
+- [ ] 12. Write or update the package or feature README.
+      Show a server action and a host action in a browser. Run the example routing checks.
 
 ## 9. Verify
 
@@ -726,6 +728,7 @@ mise run test:browser
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The browser scenario passes. Record it in `progress.md`: it opens the phase gate for

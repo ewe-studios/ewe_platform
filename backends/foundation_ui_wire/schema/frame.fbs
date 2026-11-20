@@ -1,0 +1,70 @@
+include "common.fbs";
+include "ops.fbs";
+include "action.fbs";
+include "hello.fbs";
+namespace ewe.ui;
+
+// ---- data for the app's own code (D45) ----
+table I32s { values: [int] (force_align: 8); }
+table I64s { values: [long] (force_align: 8); }
+table F64s { values: [double] (force_align: 8); }
+table Bools { values: [bool]; }
+table Strings { values: [string]; }
+union ColumnData { I32: I32s, I64: I64s, F64: F64s, Bool: Bools, Utf8: Strings }
+table Column { name: string; data: ColumnData; validity: [ubyte]; }
+table DataTable { target_node: uint; rows: ulong; columns: [Column]; }
+
+table ArrowIpcBlob { target_node: uint; bytes: [ubyte] (force_align: 8); }
+table MessagePackBlob { target_node: uint; bytes: [ubyte]; }
+
+table Data { target_node: uint; arrow: ArrowIpcBlob; table: DataTable;
+  msgpack: MessagePackBlob; }
+
+// ---- control messages about the connection or the request (D45, D54) ----
+enum CapsStatus : ubyte { Ok = 0, UpdateRequired = 1 }
+table ServerAction { hash: ulong; name: string; }   // hash: first 8 bytes of SHA-256, big-endian
+table ServerCaps { status: CapsStatus; schema_version: ushort; vocabulary_version: uint;
+  stream_id: ulong; resume_from: ulong; actions: [ServerAction]; }
+
+enum ErrorCode : ushort { Unknown = 0, BadRequest = 1, UnknownAction = 2,
+  UnavailableOrigin = 3, UnsupportedAction = 4, StateRejected = 5, StateExpired = 6,
+  RateLimited = 7, ActionFailed = 8, UpdateRequired = 9, UnsupportedPlatformOp = 10 }
+// StateExpired and UpdateRequired are host-facing codes only. On the wire the control
+// members `state_expired` and `update_required` carry them (D43, D45). The platform host
+// reports both through its own error callback, with these codes.
+table ActionError { code: ErrorCode; message: string; row_index: uint; }
+table StateExpired { token_issued_at: ulong; }      // the client reloads its state
+table UpdateRequired { client_schema_version: ushort; server_schema_version: ushort; }
+table Control { caps: ServerCaps; state_expired: StateExpired;
+  update_required: UpdateRequired; error: ActionError; }
+
+// ---- the one unit and the one list (D41, D44, D45) ----
+table Message { operation: Operation; data: Data; control: Control; }
+
+// ---- the one frame, in its two kinds (D47) ----
+// A message goes from the logic to a client. `ack` is the sequence_id of the request that
+// this answers, and 0 for a push.
+table FrameMessage {
+  ack: ulong;
+  messages: [Message];     // the list order is the apply order
+}
+
+// A request goes from a client to the logic. One field is set: `action` for a call, `hello`
+// for a hello. A hello asks for a stream, so its `Frame.stream_id` is 0.
+table FrameRequest {
+  action: ActionRequest;
+  hello: ClientHello;
+}
+
+union FrameKind { FrameRequest, FrameMessage }
+
+// The one root. The identifier says that the buffer is ours; `kind` says what it is (D47).
+// `stream_id` is 0 only on a hello that asks for a new stream.
+table Frame {
+  schema_version: ushort;
+  stream_id: ulong;
+  sequence_id: ulong;      // strictly increasing for one stream_id
+  kind: FrameKind;
+}
+root_type Frame;
+file_identifier "EWF1";

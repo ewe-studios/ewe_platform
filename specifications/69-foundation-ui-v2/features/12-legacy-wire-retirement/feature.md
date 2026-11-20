@@ -13,8 +13,8 @@ crates: ["foundation_ui_traits", "foundation_ui_wire", "foundation_wasm_ui", "fo
 decisions: ["D8", "D9", "D10", "D27", "D28", "D29", "D40", "D41", "D42", "D44", "D45", "D55", "D59"]
 tasks:
   completed: 0
-  uncompleted: 14
-  total: 14
+  uncompleted: 15
+  total: 15
   completion_percentage: 0
 ---
 
@@ -378,6 +378,8 @@ went away (the plan guard fails on an unknown feature, rule 15).
 - [ ] 12. Step C: docs, `ci/packages.toml`, version bumps; verify; commit.
 - [ ] 13. Close the GitHub issues that this removal fixes, if any name the removed code.
 - [ ] 14. Update `progress.md` and `learnings.md`.
+- [ ] 15. Write or update the package or feature README.
+      Show how to replace a legacy producer and consumer. Validate the example on the current wire.
 
 ## 9. Verify
 
@@ -413,6 +415,7 @@ override (its reason says so).
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] The evidence table is in `progress.md`, with every gate item passed, dated before the
       first deletion commit.

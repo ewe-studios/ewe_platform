@@ -83,6 +83,8 @@ cc = { version = "1.2.49" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }
 walrus = "0.23"
+# Match the wire compiler pin. Arrow IPC also accepts this release.
+flatbuffers = { version = "=25.9.23", default-features = false }
 portpicker = "0.1"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 fs_extra = "1.3"

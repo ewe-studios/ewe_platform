@@ -1,0 +1,10 @@
+[package]
+name = "wire-text-update"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+foundation_ui_wire = { path = "../../backends/foundation_ui_wire" }
+
+[workspace]

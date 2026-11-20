@@ -13,8 +13,8 @@ crates: ["foundation_macros", "foundation_ui_runtime"]
 decisions: ["D18", "D19", "D23", "D31", "D37", "A7", "A8", "R7", "D49", "D50", "D52"]
 tasks:
   completed: 0
-  uncompleted: 8
-  total: 8
+  uncompleted: 9
+  total: 9
   completion_percentage: 0
 ---
 
@@ -358,6 +358,8 @@ it to `[workspace.dependencies]` (rule 17).
 - [ ] 6. Write `action_macro_tests.rs`; record the `.stderr` files with `TRYBUILD=overwrite` and read each one.
 - [ ] 7. Bump `foundation_macros` and `foundation_ui_runtime` versions and every consumer of `foundation_macros` (AGENTS reminder 12).
 - [ ] 8. Update `progress.md` and `learnings.md`.
+- [ ] 9. Write or update the package or feature README.
+      Show how to declare an action with the macro. Include a compile check for the example.
 
 ## 9. Verify
 
@@ -374,6 +376,7 @@ cargo tree -i foundation_macros --workspace --depth 1     # then test each crate
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] Each of the 12 error rows has a `.stderr` file whose text holds the message of the row.

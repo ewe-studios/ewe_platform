@@ -323,3 +323,45 @@ ASD-STE100.
 
 - A linter and a test cannot see a renamed example crate. Run the verify commands of each
   feature after a rename; `cargo test -p ui_counter` fails only when a person runs it.
+
+- The dedicated spec branch includes decisions D41 to D59. Feature 01 requires the toolchain check from feature 17.
+
+<!-- uniffi-proof:start -->
+## UniFFI toolchain proof
+
+- Rust: rustc 1.100.0-nightly (feaadeeac 2026-09-19)
+- UniFFI: 0.32.2
+- Swift: Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)
+- Xcode: Xcode 27.2
+- iOS simulator SDK: 27.2
+- Kotlin: info: kotlinc-jvm 2.4.21 (JRE 25.0.5+8-LTS)
+<!-- uniffi-proof:end -->
+
+## Feature 17 platform checks
+
+- The FlatBuffers compiler 25.9.23 generates Rust, TypeScript, Swift and Kotlin bindings from the same test schema.
+- Xcode 27.2 includes the simulator kit. The Apple proof selects full Xcode for its process when the host selects Command Line Tools.
+- The full host check reads the Java Development Kit from `JAVA_HOME`. A host Java executable can take precedence on the shell search path.
+- Gradle 9.9.1 builds a debug Android application with platform 36 and build tools 36.0.0. The test verifies the signature and the launcher.
+- A second package installation finds the platform tools, platform 36, build tools and native development kit 27.0.12077973 already present.
+- The Android project for feature 15 does not exist yet. Test fixtures verify the wrapper and catalog checks until that project exists.
+
+- The original Android installer accepts a wrong lock checksum. The direct download backend rejects it on a clean install.
+- The Android Gradle Plugin uses an older Kotlin plugin by default. Selecting the pinned Kotlin plugin removes the Gradle deprecation warning (issue #615).
+- The borrowed FlatBuffers operation tag preserves unknown numbers. The generated object maps an unknown operation to `NONE` during unpacking.
+- A generator input that includes the frame and state schemas gives one Rust module index with all 92 generated type files.
+
+- Feature 18 is reserved for the WebView control. Feature 19 owns native package publication and tests installation from clean starter applications.
+
+## Feature 01 verification
+
+- FlatBuffers 25.9.23 preserves the numeric tag on borrowed unknown operations. Unpacking returns the empty member.
+- Generation adds an outer table check for unknown union members. The drift test covers this step.
+- The generated Rust writer does not align every numeric column to eight bytes. Feature 03 must use the aligned vector helper.
+- The Rust runtime pin also satisfies the Arrow library dependency. The Arrow tests pass with this shared version.
+- Node 24.21.0 runs the fixture tests with an explicit file name. Its test runner rejects the directory argument.
+- Cargo cannot list package contents directly in this linked checkout. An isolated package listing confirms the browser runtime archive includes the new module.
+- Workspace manifest warnings for unused dependencies remain tracked in issue #596. The wire crate passes strict Clippy checks.
+
+- A standalone consumer example uses the generated public constructors and defaults. The test-only table macro is unavailable to consumers.
+- The FlatBuffers compiler can encode and decode a hand-written action request with the frame schema and an explicit union tag.

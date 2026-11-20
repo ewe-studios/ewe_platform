@@ -13,8 +13,8 @@ crates: ["foundation_ui_wire"]
 decisions: ["D8", "D16", "D24", "D27", "D28", "D29", "D36", "A1", "R8", "D41", "D42", "D43", "D44", "D45", "D46", "D53", "D56", "D59"]
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
@@ -540,6 +540,8 @@ All in `backends/foundation_ui_wire/tests/`. Use `ClientCaps::web_current()` and
 - [ ] 8. `table.rs` and its tests; `write_error`, `write_caps`, `write_arrow_ipc`, `write_messagepack`.
 - [ ] 9. Bump `foundation_ui_wire` to `0.0.3`.
 - [ ] 10. Update `progress.md` and `learnings.md`.
+- [ ] 11. Write or update the package or feature README.
+      Show how to write one frame and an aligned column batch. Include fixture validation.
 
 ## 9. Verify
 
@@ -554,6 +556,7 @@ mise run ui-wire:test-ts
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The gate is one function, and every write path of messages calls it.

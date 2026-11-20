@@ -1,0 +1,27 @@
+[package]
+name = "foundation_ui_wire"
+version = "0.0.1"
+autotests = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Verified FlatBuffers readers and writers for the user interface wire format."
+
+[features]
+default = ["std"]
+std = ["flatbuffers/std"]
+
+[dependencies]
+flatbuffers = { workspace = true }
+
+[dev-dependencies]
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

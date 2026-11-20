@@ -1,0 +1,16 @@
+[package]
+name = "uniffi-proof"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bindgen.rs"
+
+[dependencies]
+async-trait = "0.1"
+uniffi = { version = "=0.32.2", features = ["cli"] }

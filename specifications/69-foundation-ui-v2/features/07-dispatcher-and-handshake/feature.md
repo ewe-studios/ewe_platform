@@ -13,8 +13,8 @@ crates: ["foundation_ui_runtime"]
 decisions: ["D13", "D14", "D15", "D16", "D25", "D29", "D32", "D37", "D38", "R1", "R6", "D41", "D42", "D43", "D44", "D45", "D47", "D50", "D52", "D54", "D59"]
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
@@ -552,6 +552,8 @@ features 04 and 05. Add `Probe`-wrapped variants to see if an action ran.
 - [ ] 8. The fuzz-style test of I1.
 - [ ] 9. Bump `foundation_ui_runtime` to `0.0.3`.
 - [ ] 10. Update `progress.md` and `learnings.md`.
+- [ ] 11. Write or update the package or feature README.
+      Show a hello handshake and an action request. Run the example against the dispatch tests.
 
 ## 9. Verify
 
@@ -566,6 +568,7 @@ python3 scripts/ci/check_time_sources.py
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] A reviewer confirms that `Dispatcher` has no field that grows with the number of

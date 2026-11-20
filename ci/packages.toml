@@ -207,6 +207,10 @@ reason = "6 pedantic warnings; clear them and delete this override (#441)"
 clippy-deny-warnings = false
 reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
+[packages.foundation_ui_wire]
+wasm = "enforce"
+fmt = "enforce"
+
 [packages.foundation_ui_components]
 clippy-deny-warnings = false
 reason = "68 pedantic warnings; clear them and delete this override (#441)"

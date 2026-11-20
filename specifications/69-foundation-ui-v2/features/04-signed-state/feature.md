@@ -13,8 +13,8 @@ crates: ["foundation_ui_runtime", "foundation_compact", "foundation_auth"]
 decisions: ["D5", "D6", "D12", "D13", "D14", "A3", "R2", "R3"]
 tasks:
   completed: 0
-  uncompleted: 11
-  total: 11
+  uncompleted: 12
+  total: 12
   completion_percentage: 0
 ---
 
@@ -559,6 +559,8 @@ whose clock can move.
 - [ ] 9. `PlainStateCodec`.
 - [ ] 10. `limiter.rs` and its tests.
 - [ ] 11. Update `progress.md` and `learnings.md`.
+- [ ] 12. Write or update the package or feature README.
+      Show how to seal and open example state. Run the signed-state fixture check.
 
 ## 9. Verify
 
@@ -576,6 +578,7 @@ python3 scripts/ci/ci.py plan
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] A reviewer confirms by reading `open` that one HMAC and one compare run on every path

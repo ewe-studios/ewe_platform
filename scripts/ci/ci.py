@@ -625,6 +625,13 @@ def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dic
                 return everything("ci/packages.toml [defaults] changed")
             for name in names & set(packages):
                 only.setdefault(name, "its section of ci/packages.toml changed")
+        elif "foundation_ui_wire" in packages and (
+            path.startswith("scripts/ui_wire/")
+            or path in ("backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js", "pnpm-lock.yaml", "pnpm-workspace.yaml")
+        ):
+            direct.setdefault("foundation_ui_wire", f"{path} affects the wire bindings")
+            if owner := owning_package(path, packages):
+                direct.setdefault(owner, f"{path} changed")
         elif is_global(path):
             return everything(f"{path} changed")
         elif owner := owning_package(path, packages):

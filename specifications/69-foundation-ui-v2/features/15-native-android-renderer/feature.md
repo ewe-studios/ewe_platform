@@ -14,8 +14,8 @@ packages: ["native/android/ewe-ui", "examples/ui_todo_android"]
 decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D58", "D59", "A4"]
 tasks:
   completed: 0
-  uncompleted: 12
-  total: 12
+  uncompleted: 13
+  total: 13
   completion_percentage: 0
 ---
 
@@ -29,6 +29,11 @@ Events (SSE); hypertext transfer protocol (HTTP); JavaScript Object Notation (JS
 continuous integration (CI); software development kit (SDK); native development kit (NDK);
 browser view embedded in an app (WebView); identifier (id); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Package source location
+
+The [proposed release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-kotlin`.
+On adoption, use that checkout for the package layout below. The public starter resolves the released package by version.
 
 ## 1. Goal
 
@@ -152,7 +157,7 @@ install a package by hand.
 
 ### 4.4 Must do
 
-- Run `scripts/toolchain/check.sh` before the verify commands (feature 17). A check failure
+- Run `scripts/toolchain/check.sh --scope android` before the verify commands (feature 17). A check failure
   is a setup error, not a test failure.
 - Verify every buffer before reading it: check the size limit, the length (8 bytes or
   more) and the identifier `EWF1`, then read through the generated accessors inside a
@@ -451,7 +456,7 @@ posts each frame to the main thread before `onFrame`. `SystemCommandHost`: `HAPT
   the build and emulator commands.
 - CI on the Linux job (every pull request that changes `native/android/**`,
   `backends/foundation_ui_wire/**` or `backends/foundation_ui_native/**`):
-  `scripts/toolchain/check.sh`, `mise run toolchain:android`,
+  `scripts/toolchain/check.sh --scope android`, `mise run toolchain:android`,
   `scripts/ui_native/sync-android.sh --check` and
   `./gradlew -p native/android/ewe-ui :core:test :ui:testDebugUnitTest`. The toolchain pins
   and `mise install` give the JDK 25, Gradle 9.9.1, Kotlin 2.4.21 and the cmdline-tools
@@ -499,11 +504,13 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 - [ ] 10. `binding`, `build-android.sh`, the example app.
 - [ ] 11. The CI steps; the toolchain pins come from feature 17.
 - [ ] 12. Update `progress.md` and `learnings.md`.
+- [ ] 13. Write or update the package and starter README files.
+      Show how to run the Android starter. Include generated bindings and the Kotlin fixture checks.
 
 ## 9. Verify
 
 ```bash
-scripts/toolchain/check.sh
+scripts/toolchain/check.sh --scope android
 mise run toolchain:android
 scripts/ui_native/sync-android.sh --check
 ./gradlew -p native/android/ewe-ui :core:test
@@ -515,6 +522,7 @@ cargo test -p foundation_ui_wire --profile uat --features reference
 
 ## 10. Done when
 
+- [ ] The package and starter README files are current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The Kotlin snapshots equal the reference snapshots for every conformance fixture.

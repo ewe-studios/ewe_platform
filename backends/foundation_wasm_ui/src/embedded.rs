@@ -14,6 +14,9 @@
 /// Self-contained — serve alongside [`FOUNDATION_WASM_JS`].
 pub const FOUNDATION_WASM_UI_JS: &str = include_str!("../runtimes/foundation-wasm-ui.js");
 
+/// The generated FlatBuffers wire bindings and their JavaScript runtime.
+pub const FOUNDATION_UI_WIRE_JS: &str = include_str!("../runtimes/foundation-ui-wire.js");
+
 /// The bundled Apache Arrow JS library (`runtimes/apache-arrow.js`, G3/G25 —
 /// feature 20): the reader for wire VERSION 2 (real Arrow IPC) payloads on
 /// server content types (`application/primal-arrow` v2, SSE). The wasm loop's

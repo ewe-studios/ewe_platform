@@ -1,0 +1,96 @@
+include "common.fbs";
+namespace ewe.ui;
+
+// ---- shared forms: every runtime applies these (D59) ----
+table CreateNode { node_id: uint; kind: NodeKind; }
+table SetText { node_id: uint; text: string; }
+table SetProp { node_id: uint; prop: PropId; value: PropValue; }
+table AppendChild { parent_id: uint; child_id: uint; }
+table InsertBefore { parent_id: uint; child_id: uint; before_id: uint; }
+table Remove { node_id: uint; }
+table BindAction { node_id: uint; event: EventId; action: string; }
+table UnbindAction { node_id: uint; event: EventId; }
+table AttachState { root_node: uint; state: [ubyte]; }   // state: an EWS1 buffer
+
+enum LiveKind : ubyte { Stream = 0, Data = 1 }
+enum LiveTransport : ubyte { Local = 0, Sse = 1, WebSocket = 2, Http = 3 }
+table LiveMount { node_id: uint; kind: LiveKind; channel_id: ulong;
+  transport: LiveTransport; endpoint: string; resume_from: ulong; }
+
+table BehaviourArg { name: string; value: PropValue; }
+table UiBehaviour { node_id: uint; behaviour: BehaviourId; args: [BehaviourArg]; }
+
+union UiOperation {
+  CreateNode, SetText, SetProp, AppendChild, InsertBefore, Remove, ReplaceSubtree,
+  BindAction, UnbindAction, AttachState, LiveMount, UiBehaviour
+}
+
+// ---- web forms (D53) ----
+enum SelectorKind : ubyte { NodeId = 0, Id = 1, Class = 2, Query = 3 }
+enum MorphAction : ubyte { ReplaceChildren = 0, ReplaceElement = 1, InsertBefore = 2,
+  InsertAfter = 3, AppendSibling = 4 }
+table TargetSelector { kind: SelectorKind; node_id: uint; text: string; }
+table HtmlMorph { target: TargetSelector; action: MorphAction; content: string; }
+table ScriptNode { node_id: uint; parent_id: uint; body: string; }
+// tag_id / attr_id / name_id: 0 means "use the custom string". Feature 02 owns the tables.
+table WebElement { node_id: uint; tag_id: ushort; custom_tag: string; class_name: string; }
+table WebText { node_id: uint; content: string; }
+table WebSetAttribute { node_id: uint; attr_id: ushort; custom_attr: string; value: string; }
+table WebRemoveAttribute { node_id: uint; attr_id: ushort; custom_attr: string; }
+table WebProperty { node_id: uint; name_id: ushort; custom_name: string; value: string; }
+table WebStyle { node_id: uint; name_id: ushort; custom_name: string; value: string; }
+table WebAddClass { node_id: uint; class_name: string; }
+table WebRemoveClass { node_id: uint; class_name: string; }
+table WebAddListener { node_id: uint; name_id: ushort; custom_name: string; }
+table WebRemoveListener { node_id: uint; name_id: ushort; custom_name: string; }
+table WebRegisterNode { node_id: uint; }
+table WebUnregisterNode { node_id: uint; }
+table WebReplaceNode { old_id: uint; new_id: uint; }
+table WebBehaviour { node_id: uint; behaviour: WebBehaviourId; custom: string;
+  args: [BehaviourArg]; }
+
+union WebOperation {
+  WebElement, WebText, WebSetAttribute, WebRemoveAttribute, WebProperty,
+  WebAddListener, WebRemoveListener, WebReplaceNode, WebStyle, WebAddClass,
+  WebRemoveClass, HtmlMorph, WebRegisterNode, WebUnregisterNode, ScriptNode,
+  WebBehaviour
+}
+
+// ---- mobile forms ----
+enum NativeCommandId : ushort { UNKNOWN = 0, HAPTIC = 1, OPEN_URL = 2, SHARE = 3 }
+// NativeArg is a command argument. A behaviour argument is a BehaviourArg (D56).
+table NativeArg { name: string; value: PropValue; }
+// The node must exist; a missing node follows the reader's UnknownNode rule. The store
+// records the row and builds no control. Feature 18 builds the control (D46).
+table MountWebView { node_id: uint; parent_id: uint; url: string; }
+table NativeCommand { command: NativeCommandId; args: [NativeArg]; }
+table MobileBehaviour { node_id: uint; behaviour: MobileBehaviourId; custom: string;
+  args: [BehaviourArg]; }
+
+union MobileOperation { MountWebView, NativeCommand, MobileBehaviour }
+
+// ---- columnar form of the shared operations (D27, D41) ----
+// Column i of every vector is row i. op_codes holds the UiOperation union number.
+table ColumnarBatch {
+  op_codes:  [ubyte];
+  node_ids:  [uint] (force_align: 8);
+  arg_a:     [uint] (force_align: 8);
+  arg_b:     [uint] (force_align: 8);
+  blob_a_off:[uint] (force_align: 8);    // rows + 1 offsets into blob_bytes
+  blob_b_off:[uint] (force_align: 8);    // rows + 1 offsets into blob_bytes
+  blob_bytes:[ubyte];                    // every string and byte block, written once
+}
+
+// A subtree swap carries operations of any group, in order.
+table ReplaceSubtree { node_id: uint; operations: [Operation]; }
+
+// ---- the one unit of a frame (D42, D44, D45) ----
+// A unit normally sets one field. `web` and `mobile` may both be set: the same step, done
+// one way on the web and another way on mobile. A reader applies the fields that it cares
+// about and ignores the others.
+table Operation {
+  ui: UiOperation;
+  web: WebOperation;
+  mobile: MobileOperation;
+  columnar: ColumnarBatch;
+}

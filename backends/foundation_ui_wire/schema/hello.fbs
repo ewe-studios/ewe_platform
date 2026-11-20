@@ -1,0 +1,11 @@
+// hello.fbs
+include "common.fbs";
+namespace ewe.ui;
+// The frame holds the schema version and the stream (D47). `stream_id` 0 on the frame asks
+// for a new stream; the server answers with the assigned id in the caps message.
+table ClientHello {
+  vocabulary_version: uint;
+  platform: Platform;
+  mount: MountSurface;
+  resume_from: ulong;              // last sequence_id applied; 0 for none
+}

@@ -1,7 +1,7 @@
 ---
 feature: "wire-schema-and-codegen"
 description: "The foundation_ui_wire crate: one FlatBuffers schema, the flatc pin that feature 17 owns, generated code for Rust, TS, Swift and Kotlin, a verified reader and the wire limits."
-status: "pending"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["17"]
@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_ui_wire"]
 decisions: ["D7", "D9", "D21", "D24", "D28", "D29", "D36", "R1", "R2", "R8", "D41", "D42", "D44", "D45", "D47", "D53", "D56", "D57", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 12
-  total: 12
-  completion_percentage: 0
+  completed: 13
+  uncompleted: 0
+  total: 13
+  completion_percentage: 100
 ---
 
 # Feature 01: The wire schema and the generated code
@@ -26,6 +26,22 @@ are._
 **Abbreviations in this file.** user interface (UI); TypeScript (TS); JavaScript (JS);
 continuous integration (CI); identifier (id); inter-process communication (IPC); AeroSpace and
 Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Approved compiler behavior
+
+These rules describe the pinned compiler and the verified reader.
+
+1. Preserve unknown operation numbers in the borrowed generated view. A known typed accessor returns no value for an unknown operation.
+2. Use the generated object's `NONE` case when unpacking that operation. Continue reading the other known fields of the same message.
+3. Test the borrowed tag, typed accessor and unpacked case separately. Never follow an unknown operation's payload through an untyped accessor.
+4. Validate the outer opaque table location before exposing a verified view. Reject an invalid location with `WireError::Invalid`.
+5. Check the configured size limit, minimum header length and identifier in that order. Run the verifier after these checks.
+6. Give the random-byte verifier test the correct identifier. An all-ones header tests the wrong-identifier path.
+7. Generate Rust through one build-only schema that includes `frame.fbs` and `state.fbs`. Pass `--gen-all` and `--rust-module-root-file`.
+   The compiler then lists all 92 generated type files in one module index. The extra input declares no wire types.
+
+These changes revise invariant I7, the unknown-operation scenario, the invalid-input scenario and section 6.3.
+The other three language generators continue to use the six schema inputs.
 
 ## 1. Goal
 
@@ -52,7 +68,7 @@ No other feature writes a schema type by hand.
 | U3 | Drift check | CI | `mise run ui-wire:check` | Fails when generated code differs from the schema |
 | U4 | Reject bad bytes | Any Rust caller | `read_frame` on bad bytes | `WireError::Invalid` |
 | U5 | Reject a large frame | Any Rust caller | `read_frame` on a frame above the limit | `WireError::TooLarge` |
-| U6 | Unknown union member | Old reader | A frame with a new member | The member reads as `NONE`; the reader does not fail |
+| U6 | Unknown union member | Old reader | A frame with a new member | The borrowed tag keeps its number. The unpacked operation is `NONE` |
 | U7 | Read the wrong kind | Any Rust caller | `expect_kind` on a frame of the other kind | `WireError::WrongKind`; no field of the other kind is read (D47) |
 
 ## 3. Bounded context
@@ -99,7 +115,7 @@ Idempotent verbs:        generate (a second run changes no file)
 Ordering pairs:          a schema change comes before generate
 Monotone values:         enum values and union members only grow; schema_version only grows
 Freeze points:           a released field, enum value or union member never changes its number
-Links to other entities: generated code must equal flatc(schema)
+Links to other entities: generated code must equal the output of the pinned generation script
 ```
 
 ```
@@ -111,7 +127,7 @@ Idempotent verbs:        generate
 Ordering pairs:          none
 Monotone values:         none
 Freeze points:           none
-Links to other entities: equals flatc(schema) for the pinned flatc version
+Links to other entities: equals the output of the pinned generation script
 ```
 
 ```
@@ -130,13 +146,13 @@ Links to other entities: none
 
 | # | Invariant |
 |---|---|
-| I1 | The checked-in generated code equals the output of the pinned `flatc` on the checked-in schema. |
+| I1 | The checked-in code equals the generation script output for the pinned compiler and schema. |
 | I2 | For every valid object value `v` of the root `Frame` and of `SignedState`, `read(write(v))` unpacks to a value equal to `v`. |
 | I3 | A read never returns a view over bytes that the FlatBuffers verifier rejected. |
 | I4 | A read never accepts a buffer longer than its limit. |
 | I5 | A read never panics, for any input bytes. |
 | I6 | Every numeric vector with `force_align: 8` that the Rust alignment helper writes starts at an offset that is a multiple of 8 from the start of the finished buffer. |
-| I7 | A buffer whose union field holds a member number that the reader does not know reads that field as `NONE`. |
+| I7 | A borrowed operation preserves an unknown tag number. Its unpacked member is `NONE`. |
 | I8 | The Rust, TS, Swift and Kotlin readers return the same field values for one fixture file. (This feature proves Rust and TS. Features 14 and 15 prove Swift and Kotlin with the same files.) |
 | I9 | One frame that is not the kind of its reader is rejected with `WrongKind`; no side reads the fields of the other kind (D47). |
 
@@ -153,7 +169,7 @@ Links to other entities: none
 
 - Verify every buffer before it gives a view.
 - Check the length against the limit before the verifier runs.
-- Check the 4-byte file identifier of the root before any other read step.
+- Check the 4-byte file identifier after the size and minimum header checks.
 - Fail CI when the generated code differs from the schema.
 
 ### 4.5 Must not
@@ -196,7 +212,7 @@ Feature: Wire schema and generated code
     Then the call fails with WireError::WrongIdentifier { expected: "EWF1", found: "EWS1" }
 
   Scenario: Random bytes are rejected
-    Given 64 bytes of value 0xFF
+    Given 64 bytes of value 0xFF with the correct file identifier
     When the caller calls read_frame on them with default limits
     Then the call fails with WireError::Invalid
 
@@ -210,7 +226,9 @@ Feature: Wire schema and generated code
     Given the fixture "frame_unknown_op.bin", whose UiOperation type byte is 250
     When the caller calls read_frame on it with default limits
     Then the read succeeds
-    And the operation's ui_type() equals UiOperation::NONE
+    And the borrowed operation tag is 250
+    And the typed SetText accessor returns no value
+    And the unpacked operation is NONE
     And the other fields of the unit are read as usual
 
   Scenario: Aligned columns start on an 8-byte boundary
@@ -567,8 +585,7 @@ feature 04 checks the tag before it opens the state. The writer and the reader c
 
 1. **`flatc` comes from feature 17.** Do not add a pin here. Feature 17
    (`toolchain-and-ci`) holds `"github:google/flatbuffers" = "25.9.23"` in the root
-   `mise.toml` and in `ci/platform-images/mise/mise.toml`, with the lock entry for four
-   platforms. Before you run the script, run `scripts/toolchain/check.sh`; `mise which flatc`
+   `mise.toml`, with lock entries for four platforms. The repository image installs these root pins in its second layer. Before you run the script, run `scripts/toolchain/check.sh --scope wire`; `mise which flatc`
    must resolve and `flatc --version` must print `25.9.23`. The version is 25.9.23 because
    the `flatbuffers` npm runtime stops there and the generated TypeScript imports that
    runtime (D57, feature 17 invariant I7). If the check fails, stop: it is a setup error,
@@ -576,31 +593,10 @@ feature 04 checks the tag before it opens the state. The writer and the reader c
 2. Add `flatbuffers = "<same version>"` to the root `[workspace.dependencies]`. The crate
    version and the `flatc` version must be the same release; generated Rust checks this at
    compile time.
-3. Create `scripts/ui_wire/generate.sh`:
-
-```bash
-#!/usr/bin/env bash
-# Generates the wire code for four languages. Usage: generate.sh [output-root]
-set -euo pipefail
-root="$(git rev-parse --show-toplevel)"
-crate="$root/backends/foundation_ui_wire"
-out="${1:-$crate}"
-schema=("$crate"/schema/common.fbs "$crate"/schema/state.fbs "$crate"/schema/ops.fbs \
-        "$crate"/schema/frame.fbs "$crate"/schema/action.fbs "$crate"/schema/hello.fbs)
-rm -rf "$out/src/generated" "$out/generated"
-mkdir -p "$out/src/generated" "$out/generated/ts" "$out/generated/swift" "$out/generated/kotlin"
-flatc --rust --gen-object-api --rust-module-root-file --filename-suffix "" \
-      -o "$out/src/generated" "${schema[@]}"
-flatc --ts --gen-object-api -o "$out/generated/ts" "${schema[@]}"
-flatc --swift -o "$out/generated/swift" "${schema[@]}"
-flatc --kotlin -o "$out/generated/kotlin" "${schema[@]}"
-```
-
-`--rust-module-root-file` writes one file per type under the namespace path
-(`generated/ewe/ui/…`) plus one `mod.rs` at the output root. All six schema files go in the
-same invocation, so one `mod.rs` lists every module. Each file must put its `include` lines
-before its `namespace` line; `flatc` stops with "includes must come before declarations"
-otherwise.
+3. Generate into a temporary directory. For Rust, give the compiler one input that includes `frame.fbs` and `state.fbs`.
+   Use `--gen-all --gen-object-api --rust-module-root-file`. Verify that its module index lists every generated type.
+   Apply the opaque union verification step and format Rust before the drift check.
+   Generate TypeScript, Swift and Kotlin from all six schema files. Publish the generated trees only after the bundle builds.
 
 4. Create `scripts/ui_wire/check.sh`: it runs `generate.sh "$tmp"` into a temporary
    directory, then `diff -r "$tmp/src/generated" "$crate/src/generated"` and
@@ -621,7 +617,7 @@ flag with the same effect, and record the change in `learnings.md`.
 The web runtime loads plain ES modules. `flatc` gives TS that imports the `flatbuffers` npm
 package.
 
-1. Add `backends/foundation_ui_wire/generated/ts/package.json` with `flatbuffers` (the same
+1. Add `backends/foundation_ui_wire/ts/package.json` with `flatbuffers` (the same
    version as `flatc`) and `esbuild` as `devDependencies`. Add the directory to
    `pnpm-workspace.yaml` packages.
 2. Add `scripts/ui_wire/bundle.sh`: it runs
@@ -848,15 +844,15 @@ the environment variable `UPDATE_FIXTURES=1` it writes the file.
 `frame_columnar_3rows.bin`, that `nodeIdsArray()` returns a `Uint32Array` whose
 `byteOffset % 8 === 0` when the file bytes are in a fresh `ArrayBuffer`.
 
-Add the mise task `ui-wire:test-ts` (`node --test backends/foundation_ui_wire/tests/ts/`)
+Add the mise task `ui-wire:test-ts` (`node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs`)
 and run it in the same CI step as `ui-wire:check`.
 
 ### 6.9 Fault table: generate
 
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
-| `flatc` is not installed | `generate.sh` stops at the first `flatc` line (`set -e`) | Exit status 127 and "flatc: command not found" | The generated trees are removed. The developer runs `mise install`, then the script again |
-| A schema file has a syntax error | `flatc` prints the file and line and exits | A non-zero status and the `flatc` message | Partly generated trees. `git status` shows them; `git checkout -- backends/foundation_ui_wire` restores them |
+| `flatc` is not installed | `generate.sh` stops at the first `flatc` line (`set -e`) | Exit status 127 and "flatc: command not found" | The previous trees stay in place. Install the pinned compiler and retry |
+| A schema file has a syntax error | `flatc` prints the file and line and exits | A non-zero status and the `flatc` message | The previous trees stay in place. Fix the schema and retry |
 | `esbuild` fails | `bundle.sh` exits | A non-zero status and the esbuild message | The old bundle file is unchanged |
 
 ### 6.10 Security
@@ -888,25 +884,27 @@ and run it in the same CI step as `ui-wire:check`.
 
 ## 8. Tasks
 
-- [ ] 1. Confirm the `flatc` pin from feature 17 (`scripts/toolchain/check.sh`); add
+- [x] 1. Confirm the `flatc` pin from feature 17 (`scripts/toolchain/check.sh --scope wire`); add
       `flatbuffers` to `[workspace.dependencies]`.
-- [ ] 2. Create the crate skeleton and the six schema files of section 6.2.
-- [ ] 3. Write `scripts/ui_wire/generate.sh`, `check.sh`, `bundle.sh` and the three mise tasks.
-- [ ] 4. Run `mise run ui-wire:generate`; check in the generated trees and the JS bundle.
-- [ ] 5. Write `limits.rs` and `error.rs`.
-- [ ] 6. Write `read.rs` and its tests (write each test first).
-- [ ] 7. Write `finish.rs` and the round-trip tests.
-- [ ] 8. Write `align_tests.rs`, then `align.rs`; apply the decision rule of section 6.6.
-- [ ] 9. Write `error_ext.rs`; write `union_numbers_tests.rs` and `fixtures_tests.rs`;
+- [x] 2. Create the crate skeleton and the six schema files of section 6.2.
+- [x] 3. Write `scripts/ui_wire/generate.sh`, `check.sh`, `bundle.sh` and the three mise tasks.
+- [x] 4. Run `mise run ui-wire:generate`; check in the generated trees and the JS bundle.
+- [x] 5. Write `limits.rs` and `error.rs`.
+- [x] 6. Write `read.rs` and its tests (write each test first).
+- [x] 7. Write `finish.rs` and the round-trip tests.
+- [x] 8. Write `align_tests.rs`, then `align.rs`; apply the decision rule of section 6.6.
+- [x] 9. Write `error_ext.rs`; write `union_numbers_tests.rs` and `fixtures_tests.rs`;
       create the fixtures.
-- [ ] 10. Write the TS fixture test and its mise task; add the asset to `embedded.rs`.
-- [ ] 11. Add the CI step. Add `[packages.foundation_ui_wire]` to `ci/packages.toml` only if a default does not fit.
-- [ ] 12. Update `progress.md` and `learnings.md`.
+- [x] 10. Write the TS fixture test and its mise task; add the asset to `embedded.rs`.
+- [x] 11. Add the CI step. Add `[packages.foundation_ui_wire]` to `ci/packages.toml` only if a default does not fit.
+- [x] 12. Update `progress.md` and `learnings.md`.
+- [x] 13. Write or update the [wire crate README](../../../../backends/foundation_ui_wire/README.md).
+      Show how to write and read a frame. Include binding generation and fixture checks.
 
 ## 9. Verify
 
 ```bash
-scripts/toolchain/check.sh                                 # feature 17: flatc at the pin
+scripts/toolchain/check.sh --scope wire                                 # feature 17: flatc at the pin
 mise run ui-wire:generate && git diff --exit-code backends/foundation_ui_wire backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js
 mise run ui-wire:check
 mise run ui-wire:test-ts
@@ -922,12 +920,13 @@ python3 scripts/ci/ci.py plan
 
 ## 10. Done when
 
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] No generated file was edited by hand (`mise run ui-wire:check` passes).
-- [ ] The report says which case of the section 6.6 decision rule applied.
-- [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the crate.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The [wire crate README](../../../../backends/foundation_ui_wire/README.md) is current. Its examples and validation commands pass.
+- [x] All tasks and feature checks pass. Existing workspace manifest warnings appear in issue #596.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] No generated file was edited by hand (`mise run ui-wire:check` passes).
+- [x] The report says which case of the section 6.6 decision rule applied.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the crate.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

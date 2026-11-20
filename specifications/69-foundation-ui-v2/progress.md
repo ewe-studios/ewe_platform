@@ -191,7 +191,7 @@ Status key: pending, in progress, complete. Update this table when a feature cha
 
 | # | Feature | Model | Status |
 |---|---|---|---|
-| 01 | wire-schema-and-codegen | Sonnet | pending |
+| 01 | wire-schema-and-codegen | Sonnet | complete |
 | 02 | vocabulary-and-platform-forms | Sonnet | pending |
 | 03 | frame-writer | Sonnet | pending |
 | 04 | signed-state | Sonnet | pending |
@@ -207,12 +207,15 @@ Status key: pending, in progress, complete. Update this table when a feature cha
 | 14 | native-ios-renderer | Sonnet | pending |
 | 15 | native-android-renderer | Sonnet | pending |
 | 16 | behaviour-matrix | Sonnet | pending |
-| 17 | toolchain-and-ci | Sonnet | pending |
+| 17 | toolchain-and-ci | Sonnet | complete |
+| 19 | native-package-releases | Sonnet | approved |
 
 **Phase gate for feature 13:** not open. It opens when the browser scenario of feature 10
 is recorded here as passed.
 
 ## In progress
+
+- The owner approves features 17 and 01. Feature 17 starts first.
 
 - The owner reviews the adopted items one at a time (17 items: A1 to A8, five design
   choices, `WasmEnvelope`, `NativeBehaviour`, two known gaps). All 17 items are closed.
@@ -244,10 +247,19 @@ is recorded here as passed.
 - The revision pass for D41 to D59 is complete: the 17 feature files and `requirements.md`
   sections 2.2, 2.3, 5.3, 5.4 and 5.6 are updated. The owner reviews the result.
 
+## Current implementation
+
+- Feature 17 passes the full macOS toolchain checks, simulator build and Android debug build.
+- Feature 01 provides verified readers, writers, all four generated language bindings and the embedded browser module.
+- All 23 Rust integration tests and 11 browser module fixture tests pass. The readers share the same 11 binary fixtures.
+- The WebAssembly and standard-library-free builds pass. The generator detects changed output and preserves the last successful output on failure.
+- The release plan for feature 19 is available for owner review. It proposes separate Swift and Kotlin source repositories and public template installation tests.
+
+- The [wire package guide](../../backends/foundation_ui_wire/README.md) documents the schema, actions, manual messages and shared binary fixtures.
+- The Rust example runs in a separate consumer crate. The JSON request encodes to binary and decodes with the original fields.
+- Each feature now requires a README task and a documentation check before completion.
+
 ## Next
 
-1. The owner reads `requirements.md` sections 2.2 and 2.3 and confirms or changes A1 to A8
-   and R1 to R9.
-2. The owner approves the acceptance scenarios of the features, or asks for changes.
-3. After approval: feature 17 starts (the toolchain), then feature 01. Features 02 and 04
-   can start when 01 is complete. Follow the order of the Feature Index.
+1. The owner approves all remaining features. Start features 02 and 04.
+2. Follow the dependency order and the browser acceptance gate before native implementation.

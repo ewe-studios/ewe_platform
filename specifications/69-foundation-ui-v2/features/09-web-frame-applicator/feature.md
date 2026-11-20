@@ -13,8 +13,8 @@ crates: ["foundation_wasm_ui", "foundation_browser"]
 decisions: ["D4", "D8", "D10", "D12", "D24", "D27", "D29", "D36", "D40", "D41", "D42", "D44", "D45", "D47", "D53", "D56", "D59"]
 tasks:
   completed: 0
-  uncompleted: 12
-  total: 12
+  uncompleted: 13
+  total: 13
   completion_percentage: 0
 ---
 
@@ -644,6 +644,8 @@ import list. `foundation-ui-vocab.js` does not change its export list.
 - [ ] 10. `foundation-ui-behaviours.js` (section 6.9) and its tests; `embedded.rs`; serve the new JS files from the `foundation_browser` test server.
 - [ ] 11. Bump the crate versions that gained public API.
 - [ ] 12. Update `progress.md` and `learnings.md`.
+- [ ] 13. Write or update the package or feature README.
+      Show how to apply a frame in a browser. Use a recorded frame in the validation.
 
 ## 9. Verify
 
@@ -660,6 +662,7 @@ grep -c "^import" backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js   #
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] `git diff` of `foundation-wasm-ui.js` shows only the six seams of section 6.6.

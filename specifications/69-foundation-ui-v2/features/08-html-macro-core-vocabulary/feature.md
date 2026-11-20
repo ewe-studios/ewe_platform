@@ -13,8 +13,8 @@ crates: ["foundation_macros", "foundation_ui_runtime"]
 decisions: ["D10", "D20", "D36", "D37", "D40", "D41", "D42", "D44", "D45", "D50", "D51", "D52", "D56", "D59"]
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
@@ -506,6 +506,8 @@ nested units.
 - [ ] 8. `view::mount`, with tests.
 - [ ] 9. Bump `foundation_macros` and `foundation_ui_runtime`, and the consumers.
 - [ ] 10. Update `progress.md` and `learnings.md`.
+- [ ] 11. Write or update the package or feature README.
+      Show shared vocabulary markup and a platform-specific form. Check the examples compile.
 
 ## 9. Verify
 
@@ -522,6 +524,7 @@ cargo check  -p foundation_ui_runtime --profile uat --target wasm32-unknown-unkn
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] No existing test file of `foundation_wasm_ui` or `foundation_ui_components` changed.

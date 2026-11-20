@@ -14,8 +14,8 @@ packages: ["native/ios/EweUI", "examples/ui_todo_ios"]
 decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D59", "A4"]
 tasks:
   completed: 0
-  uncompleted: 13
-  total: 13
+  uncompleted: 14
+  total: 14
   completion_percentage: 0
 ---
 
@@ -28,6 +28,11 @@ are._
 transfer protocol (HTTP); JavaScript Object Notation (JSON); continuous integration (CI);
 browser view embedded in an app (WebView); identifier (id); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Package source location
+
+The [proposed release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-swift`.
+On adoption, use that checkout for the package layout below. The public starter resolves the released package by version.
 
 ## 1. Goal
 
@@ -548,7 +553,7 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
   and simulator commands.
 - CI, on the macOS job of full runs only (rule 16), when `native/ios/**`,
   `backends/foundation_ui_wire/**` or `backends/foundation_ui_native/**` changed:
-  `scripts/toolchain/check.sh`, `scripts/ui_native/sync-ios.sh --check`,
+  `scripts/toolchain/check.sh --scope apple`, `scripts/ui_native/sync-ios.sh --check`,
   `scripts/ui_native/generate-bindings.sh --check`,
   `swift test --package-path native/ios/EweUI`, and `scripts/ui_native/build-ios.sh`
   followed by `xcodebuild build` of the example for the simulator.
@@ -593,11 +598,13 @@ Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
 - [ ] 11. `EweCoreBinding`, `build-ios.sh`, the example app.
 - [ ] 12. The CI step.
 - [ ] 13. Update `progress.md` and `learnings.md`.
+- [ ] 14. Write or update the package and starter README files.
+      Show how to run the iOS starter. Include generated bindings and the Swift fixture checks.
 
 ## 9. Verify
 
 ```bash
-scripts/toolchain/check.sh
+scripts/toolchain/check.sh --scope apple
 cargo test -p foundation_ui_wire --profile uat --features reference
 cargo clippy -p foundation_ui_wire --profile uat --no-deps --features reference -- -D warnings
 scripts/ui_native/sync-ios.sh --check
@@ -613,6 +620,7 @@ two and reports that the Swift commands ran in the pull request's macOS CI job.
 
 ## 10. Done when
 
+- [ ] The package and starter README files are current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The Swift snapshots equal the reference snapshots for every conformance fixture.

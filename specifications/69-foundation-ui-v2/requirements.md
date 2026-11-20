@@ -1,6 +1,6 @@
 ---
 description: "foundation_ui v2: one FlatBuffers contract that carries UI, data and actions across the web, mobile, WebAssembly and compiled Rust; one action model; platform capabilities at the edges; live mounts on every platform."
-status: "awaiting-approval"
+status: "in-progress"
 priority: "high"
 created: 2026-11-13
 author: "Main Agent"
@@ -20,10 +20,10 @@ related_specs:
   - "specifications/52-tauri-foundation-platform"
   - "specifications/76-shared-context"
 features:
-  completed: 0
+  completed: 2
   uncompleted: 16
-  total: 16
-  completion_percentage: 0
+  total: 18
+  completion_percentage: 11
 ---
 
 # Spec 69: foundation_ui v2
@@ -374,6 +374,9 @@ path.
 13. Do not invent an API that this specification does not have. If a gap blocks you, stop and
     report it.
 
+14. Write or update the README for each feature or package. Show concrete usage and provide runnable checks.
+    Include fixture and generation steps when they apply.
+
 ## 7. Feature index
 
 Implement in dependency order. Features in one phase with no dependency between them can run
@@ -381,7 +384,7 @@ in parallel.
 
 | # | Feature | Description | Depends on | Model | Phase | Status |
 |---|---|---|---|---|---|---|
-| 01 | [wire-schema-and-codegen](./features/01-wire-schema-and-codegen/feature.md) | The `foundation_ui_wire` crate, the schema, generated code for four languages from the pinned `flatc`, the reader and limits | 17 | Sonnet | Standard | ⬜ Pending |
+| 01 | [wire-schema-and-codegen](./features/01-wire-schema-and-codegen/feature.md) | The `foundation_ui_wire` crate, the schema, generated code for four languages from the pinned `flatc`, the reader and limits | 17 | Sonnet | Standard | ✅ Complete |
 | 02 | [vocabulary-and-platform-forms](./features/02-vocabulary-and-platform-forms/feature.md) | Core kinds and props, the web and mobile name tables, the behaviour name tables, the vocabulary version | 01 | Sonnet | Standard | ⬜ Pending |
 | 03 | [frame-writer](./features/03-frame-writer/feature.md) | The frame writer, the gate, the sequencer | 01, 02 | Sonnet | Standard | ⬜ Pending |
 | 04 | [signed-state](./features/04-signed-state/feature.md) | The state signer, the key ring, the ordered checks, the failure limiter | 01 | Sonnet | Runtime | ⬜ Pending |
@@ -397,7 +400,10 @@ in parallel.
 | 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ⬜ Pending |
 | 15 | [native-android-renderer](./features/15-native-android-renderer/feature.md) | The Kotlin library: reader, node store, composables, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ⬜ Pending |
 | 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | ⬜ Pending |
-| 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ⬜ Pending |
+| 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
+| 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Sibling Swift and Kotlin packages, tagged releases, registry publication and starter apps | 13, 14, 15, 16, 17 | Sonnet | Release | Approved |
+
+Number 18 is reserved for the later WebView control (D46).
 
 Status key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -427,6 +433,7 @@ flowchart LR
     F14 --> F16[16 behaviours]
     F15 --> F16
     F08 --> F16
+    F16 --> F19[19 native package releases]
     F17[17 toolchain] --> F01
     F17 --> F13
     F17 --> F14
@@ -455,10 +462,14 @@ scripts/ci/linux.sh <crate>              # after the commit, in the Linux CI ima
 A green `cargo check` is not a pass. The executor runs the tests and reports the output
 (AGENTS reminder 10).
 
+Run the README examples and validation commands. Run the fixture and generation commands when they apply.
+A feature is complete when its README task and this verification pass. Record the results in the feature report.
+
 ## 9. Success criteria (spec-wide)
 
-- All 17 features are complete and verified. Feature 17 puts every pinned tool on each
+- All 18 indexed features are complete and verified. Feature 17 puts every pinned tool on each
   host: `scripts/toolchain/check.sh` exits 0 on Linux, macOS and Windows CI.
+- Each feature or package README has concrete examples and runnable validation. The documented checks pass.
 - The todo list example of D48 runs on the web with a `server:` action, a `host:` action that
   runs on every platform and a `host:` page script with scope `web`, and on iOS and Android
   with a `server:` action and a `host:` action.

@@ -14,8 +14,8 @@ packages: ["native/ios/EweUI", "native/android/ewe-ui"]
 decisions: ["D10", "D36", "D37", "D38", "D56", "D59", "A5"]
 tasks:
   completed: 0
-  uncompleted: 12
-  total: 12
+  uncompleted: 13
+  total: 13
   completion_percentage: 0
 ---
 
@@ -519,6 +519,8 @@ temporary directories.
 - [ ] 10. Kotlin: the registry, the four bindings, the store rule, the tests.
 - [ ] 11. The check in the iOS and Android CI steps; version bumps.
 - [ ] 12. Update `progress.md` and `learnings.md`.
+- [ ] 13. Write or update the README for each supported runtime.
+      Show one shared behaviour on web, iOS and Android. Run the applicable conformance checks.
 
 ## 9. Verify
 
@@ -543,6 +545,7 @@ there are run.
 
 ## 10. Done when
 
+- [ ] The README for each supported runtime is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The JS logic of each shared behaviour is identical to its `machinery` source

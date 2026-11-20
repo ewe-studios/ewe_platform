@@ -13,8 +13,8 @@ crates: ["foundation_ui_wire"]
 decisions: ["D8", "D10", "D36", "D37", "D42", "D53", "D56", "D59", "A2", "R4", "R5"]
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
@@ -535,6 +535,8 @@ All tests are in `backends/foundation_ui_wire/tests/`, registered in `tests/mod.
 - [ ] 8. Write `behaviour.rs` and its tests; update the three behaviour maxima in `version.rs`.
 - [ ] 9. Bump `foundation_ui_wire` to `0.0.2` (new public API).
 - [ ] 10. Update `progress.md` and `learnings.md`.
+- [ ] 11. Write or update the package or feature README.
+      Show a vocabulary lookup and a platform compatibility check.
 
 ## 9. Verify
 
@@ -550,6 +552,7 @@ node --check backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The tables of sections 6.3 to 6.5 and 6.7 and the code agree, row for row.

@@ -13,8 +13,8 @@ crates: ["foundation_ui_runtime"]
 decisions: ["D16", "D17", "D18", "D22", "D23", "D31", "D37", "D38", "A6", "A8", "R6", "R7", "D45", "D49", "D50", "D51", "D52", "D54", "D59"]
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
@@ -733,6 +733,8 @@ function runs.
 - [ ] 8. `ActionManager::trigger` and its tests; re-export the public types from `lib.rs`.
 - [ ] 9. Bump `foundation_ui_runtime` to `0.0.2`.
 - [ ] 10. Update `progress.md` and `learnings.md`.
+- [ ] 11. Write or update the package or feature README.
+      Show how to register and call an action. Validate the example with the action tests.
 
 ## 9. Verify
 
@@ -747,6 +749,7 @@ python3 -c "import json;json.load(open('backends/foundation_ui_runtime/fixtures/
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] `Interaction` has exactly four public fields, and no `Response` type exists.

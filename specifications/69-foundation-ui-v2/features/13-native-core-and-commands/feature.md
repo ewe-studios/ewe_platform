@@ -13,8 +13,8 @@ crates: ["foundation_ui_native"]
 decisions: ["D4", "D5", "D22", "D29", "D33", "D37", "D38", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D54", "D56", "D59"]
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 11
+  total: 11
   completion_percentage: 0
 ---
 
@@ -475,6 +475,8 @@ All in `backends/foundation_ui_native/tests/`.
 - [ ] 8. The bindgen binary and `scripts/ui_native/generate-bindings.sh`.
 - [ ] 9. `ci/packages.toml` section; the two compile checks in CI.
 - [ ] 10. Update `progress.md` and `learnings.md`.
+- [ ] 11. Write or update the package or feature README.
+      Show a native host call. Include binding generation and the binding checks.
 
 ## 9. Verify
 
@@ -493,6 +495,7 @@ python3 scripts/ci/ci.py plan
 
 ## 10. Done when
 
+- [ ] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The crate calls no platform API (I6).
