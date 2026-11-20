@@ -560,3 +560,6 @@ The first iPhone starter check observed a tap without checking the returned coun
 Seeding a todo from a second client exposed a truncated request when the headers arrived before its body.
 The server now supplies a socket readiness source when the handler takes the request body.
 The regression test sends headers, verifies that the handler waits, then sends the body and checks its bytes.
+
+The macro tests build their own dependency tree. A source edit during that build can leave one run with different dependency revisions.
+Rerun the affected suite after both crates contain the final change.

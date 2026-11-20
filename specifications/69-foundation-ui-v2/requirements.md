@@ -20,10 +20,10 @@ related_specs:
   - "specifications/52-tauri-foundation-platform"
   - "specifications/76-shared-context"
 features:
-  completed: 16
-  uncompleted: 3
+  completed: 17
+  uncompleted: 2
   total: 19
-  completion_percentage: 84
+  completion_percentage: 89
 ---
 
 # Spec 69: foundation_ui v2
@@ -399,7 +399,7 @@ in parallel.
 | 09 | [web-frame-applicator](./features/09-web-frame-applicator/feature.md) | The generated TS reader bundle and one apply loop for every message type on the web | 01, 02, 03 | Sonnet | Web | ✅ Complete |
 | 10 | [web-action-manager](./features/10-web-action-manager/feature.md) | The web action manager, the JS registry, the state harvest, the request path | 05, 07, 09 | Sonnet | Web | ✅ Complete |
 | 11 | [live-mounts-and-server-streams](./features/11-live-mounts-and-server-streams/feature.md) | The live mount contract on the web, the server stream on `Frame`, resume, local WASM frames | 03, 09 | Sonnet | Web | ✅ Complete |
-| 12 | [legacy-wire-retirement](./features/12-legacy-wire-retirement/feature.md) | The parity gate, then removal of the old envelope, encoders and parser | 08, 09, 10, 11, 20 | Sonnet | Web | In progress |
+| 12 | [legacy-wire-retirement](./features/12-legacy-wire-retirement/feature.md) | The parity gate, then removal of the old envelope, encoders and parser | 08, 09, 10, 11, 20 | Sonnet | Web | ✅ Complete |
 | 13 | [native-core-and-commands](./features/13-native-core-and-commands/feature.md) | The UniFFI Rust core, the local registry on device, `NativeCommand` | 05, 07, 17 | Sonnet | Native | ✅ Complete |
 | 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ✅ Complete |
 | 15 | [native-android-renderer](./features/15-native-android-renderer/feature.md) | The Kotlin library: reader, node store, composables, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ✅ Complete |

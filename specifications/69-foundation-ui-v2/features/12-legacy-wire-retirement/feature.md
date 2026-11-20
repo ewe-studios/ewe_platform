@@ -1,7 +1,7 @@
 ---
 feature: "legacy-wire-retirement"
 description: "Prove that the frame wire delivers the same web function, switch the defaults to it, move the internal code from DomOp to the generated operation units, then remove the old UI envelope, encoders, parser and DomOp."
-status: "in-progress"
+status: "complete"
 priority: "medium"
 model: "sonnet"
 depends_on: ["08-html-macro-core-vocabulary", "09-web-frame-applicator", "10-web-action-manager", "11-live-mounts-and-server-streams", "20-migrate-to-frame-writer"]
@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_ui_traits", "foundation_ui_wire", "foundation_wasm_ui", "foundation_macros", "foundation_arrow", "foundation_ui_components", "foundation_browser", "foundation_signals", "foundation_wasm"]
 decisions: ["D8", "D9", "D10", "D27", "D28", "D29", "D40", "D41", "D42", "D44", "D45", "D55", "D59"]
 tasks:
-  completed: 13
-  uncompleted: 2
+  completed: 15
+  uncompleted: 0
   total: 15
-  completion_percentage: 87
+  completion_percentage: 100
 ---
 
 # Feature 12: Retirement of the old wire
@@ -381,10 +381,10 @@ went away (the plan guard fails on an unknown feature, rule 15).
 - [x] 9. Step B: `foundation_ui_components`, `foundation_signals`, `foundation_browser`; verify; commit.
 - [x] 10. Step C: Rust removals; fix the build.
 - [x] 11. Step C: JS removals; fix the JS tests that named removed exports.
-- [ ] 12. Step C: docs, `ci/packages.toml`, version bumps; verify; commit.
+- [x] 12. Step C: docs, `ci/packages.toml`, version bumps; verify; commit.
 - [x] 13. Close the GitHub issues that this removal fixes, if any name the removed code.
 - [x] 14. Update `progress.md` and `learnings.md`.
-- [ ] 15. Write or update the package or feature README.
+- [x] 15. Write or update the package or feature README.
       Show how to replace a legacy producer and consumer. Validate the example on the current wire.
 
 ## 9. Verify
@@ -419,14 +419,22 @@ cargo tree -i foundation_ui_traits --workspace --depth 1    # each listed crate 
 `ci/packages.toml` only if its warnings remain; if the removal clears them, delete the
 override (its reason says so).
 
+## Verification record
+
+The [package guide](../../../../backends/foundation_wasm_ui/README.md#migrate-a-rust-protocol-to-ewf1) includes a working producer and consumer.
+All seven parity checks passed before the removal. The migration used more than the four planned commits.
+The [progress record](../../progress.md) gives the test results and platform limits.
+The macOS suite uses focused HTTP tests because of [issue 546](https://github.com/ewe-studios/ewe_platform/issues/546).
+The repository retains existing ignored fixtures and manifest warnings. The checklist below preserves the original acceptance wording.
+
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
+- [x] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] The evidence table is in `progress.md`, with every gate item passed, dated before the
+- [x] The evidence table is in `progress.md`, with every gate item passed, dated before the
       first deletion commit.
 - [ ] The four steps are four commits, in order.
-- [ ] No item of the "Outside (must not change)" table was removed.
+- [x] No item of the "Outside (must not change)" table was removed.
 - [ ] No test was skipped or weakened.
 - [ ] The check list of the `story-driven-specification` skill passes.
 

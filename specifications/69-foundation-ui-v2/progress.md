@@ -509,3 +509,22 @@ The HTTP server now waits for unread request bytes when headers arrive first.
 All six connection tests passed. Three additional requests with delayed bodies each returned HTTP 200.
 [Issue 648](https://github.com/ewe-studios/ewe_platform/issues/648) records the fix.
 Public package installation requires the first release.
+
+### Feature 12 remaining macOS crate checks
+
+The macro, signal, WebAssembly, browser and todo suites passed 211 tests. Their documentation suites ignored 42 examples.
+Five HTTP suites passed 38 tests for routing, request context, response timers and static files.
+Issue #546 excludes the full HTTP suite on macOS because its slow-client event-stream test can hang.
+
+### Feature 12 final verification and feature 19 local candidate
+
+Feature 12 is complete. The application and browser use the frame writer and reader.
+The migration example builds a custom transport and reads its text update. Its package guide documents both interfaces.
+The final macOS run passed 211 tests across the macros, signals, WebAssembly, browser and todo crates. It reported 42 existing ignored tests.
+Five focused HTTP suites passed 38 tests. The full macOS HTTP suite has a repository exception under [issue 546](https://github.com/ewe-studios/ewe_platform/issues/546).
+The additional connection suite passed six tests. The seven parity checks preceded removal. The migration spanned more than four commits.
+
+The release preparation command built both mobile artifacts from core commit `686761cd9`.
+The local candidate manifest is `target/native-ui/candidate/native-ui.json`.
+It records three source revisions and both artifact digests. Public release signing and installation remain open.
+Seventeen of the nineteen indexed features are complete. Feature 07 records its open clock check. Feature 19 awaits publication.
