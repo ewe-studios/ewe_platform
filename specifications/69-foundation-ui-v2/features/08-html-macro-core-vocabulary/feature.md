@@ -267,6 +267,14 @@ Feature: html! in the core vocabulary
     And the receiver then holds one AttachState for root 40 whose unsealed body decodes to Counter { current: 2 }
     And the action returns Ok(())
 
+  Scenario: A todo action updates the list and its parent element owns the state
+    Given the list at node 40 owns its state and input 42 explicitly selects owner 40
+    When add_todo renders the updated List with ctx, out and Some(&next)
+    Then the receiver holds the view operations for the list and its rows
+    And its final item holds the next TodoList for node 40
+    And a successful dispatch attaches the signed state once to node 40
+    And the next submit from input 42 returns those exact bytes
+
   Scenario: The third field with no state root is an action error
     Given a Context whose state_root is None
     When an action evaluates the same form
@@ -398,7 +406,8 @@ Expansion for the state field, with `ctx_expr` and `state_expr` from the fields 
 ```
 
 `receiver.state(root, &state)` records one unsealed `AttachState` unit as the next item of
-the receiver. It does not change the view. The `?` propagates a `LowerError` as an
+the receiver. The preceding template operations update the view.
+The call context supplies the author-selected owner, which can be the parent of the rendered children. The `?` propagates a `LowerError` as an
 `ErrorTrace<ActionErrorT>` through the impl of section 6.6. On `Err`, the caller sends only
 the error (D52). The state expression is evaluated one time.
 

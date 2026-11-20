@@ -16,24 +16,40 @@ A user clicks a button. The button's action reference tells the manager where to
 The following example shows the intended interface. Feature 06 supplies the macro. Feature 08 supplies the template binding.
 
 ```rust
-#[derive(serde::Serialize, serde::Deserialize)]
-struct Counter { count: u32 }
+#[action]
+async fn add_todo(
+    ctx: &Context,
+    event: Interaction<TodoList>,
+) -> Result<(), ErrorTrace<ActionError>> {
+    let next = event.state.with_item(&event.input_value);
+    let out = ctx.receiver();
 
-#[action(server)]
-async fn increment(ctx: &Context, event: Interaction<Counter>) -> ActionResult {
-    let next = Counter { count: event.state.count.saturating_add(1) };
-    ctx.receiver().state(event.node_id, &next)?;
+    html! { ctx, out, Some(&next),
+        <List>{ next.items.iter().map(todo_row) }</List>
+    };
     Ok(())
 }
-
-registry.register(increment)?;
-html! { <Button on:tap={increment}>"Add one"</Button> }
 ```
 
-This binding uses the button’s own state, so the action writes the update to `event.node_id`.
-When a binding names another owner, the dispatcher exposes the verified owner in the call context. Write the next state to that owner.
-An action that requires a counter rejects missing state before it runs.
-The application's `Counter` defines the data. The type in `Interaction<Counter>` tells the runtime how to read it.
+`TodoList` is the application's state type. Its `with_item` method produces the updated list. The application’s `todo_row` function renders one item.
+The author registers the action with `registry.register(add_todo)?` and binds an input event to it with `on:submit={add_todo}`.
+
+Suppose the list at node 40 owns the state. The input at node 42 explicitly names 40 as its state owner.
+When the user submits “Buy milk”, the dispatcher gives the action the verified list and the input text.
+The call context identifies node 40 as the output target for this component.
+
+| What the author writes | What the receiver holds after the call |
+|---|---|
+| `html! { ctx, out, Some(&next), <List>…</List> }` | The view operations for the list and its rows, followed by one state item for node 40. |
+| `html! { ctx, out, <List>…</List> }` | Only the view operations. The current attachment stays on node 40. |
+| `out.state(40, &next)?` | Only the next state for node 40. The rendered rows stay as they are. |
+
+Here 40 illustrates the resolved owner. Application code can obtain that node from `ctx.state_root()`.
+The `<List>` represents the parent of the rendered rows. The macro uses the owner supplied by the call context for the state attachment.
+It queues the attachment once for the list. Each row can still own separate state.
+On success, the dispatcher signs the queued state and emits `AttachState` for node 40 after the view operations.
+The next submit from node 42 uses that updated attachment. A trigger without an explicit owner uses its own node.
+
 The proposed default uses Serde to encode and decode JavaScript Object Notation (JSON). A stateless action uses `Interaction<()>`.
 
 ## Stage 1. Define the trait the macro implements
@@ -65,24 +81,24 @@ The macro moves the function body into a private function. It generates this obj
 
 ```rust
 #[allow(non_camel_case_types)]
-struct increment;
+struct add_todo;
 
-impl Action for increment {
-    type State = Counter;
-    const NAME: &'static str = "increment";
-    fn origin() -> Option<Origin> { Some(Origin::Server) }
+impl Action for add_todo {
+    type State = TodoList;
+    const NAME: &'static str = "add_todo";
+    fn origin() -> Option<Origin> { None }
     fn scope() -> Scope { Scope::All }
 
-    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<Counter>) -> ActionFuture<'a> {
-        Box::pin(increment_body(ctx, event))
+    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<TodoList>) -> ActionFuture<'a> {
+        Box::pin(add_todo_body(ctx, event))
     }
 }
 ```
 
-`registry.register(increment)` receives this object. The author supplies neither a component number nor a manual encoder.
+`registry.register(add_todo)` receives this object. The author supplies neither a component number nor a manual encoder.
 
-**Law and test.** Implement `Action` for a small counter by hand in the runtime tests.
-Call it with count 4. Assert that the receiver holds count 5. This test runs before the macro exists.
+**Law and test.** Implement the todo action trait by hand in the runtime tests. Queue a view operation and the updated list.
+Assert their order and state owner. Feature 08 runs the same test through the macro.
 
 ## Stage 2. Register and select an action
 
@@ -94,20 +110,19 @@ A transport carries one action request to the selected runtime.
 |---|---|---|
 | `#[action(server)]` | `server:increment` | Send to the server. |
 | `#[action(host, web)]` | `host:focus_field` | Run on the web host. |
-| `#[action]` | `host:toggle` | Prefer a local implementation. Use the advertised server implementation when the local one is absent. |
+| `#[action]` | `host:add_todo` | Prefer a local implementation. Use the advertised server implementation when the local one is absent. |
 
-For the counter button, the template produces the reference `server:increment`.
-The host supplies the event and the bytes it stored for that button.
+For the unqualified todo action, the template produces `host:add_todo`. The input supplies the submitted text and its selected owner’s bytes.
 
 ```rust
-let frame = manager.trigger("server:increment", TriggerEvent {
-    node_id: button_id,
-    input: tap_input,
-    state: stored_state_bytes,
+let frame = manager.trigger("host:add_todo", TriggerEvent {
+    node_id: input_id,
+    input: submit_input,
+    state: list_state_bytes,
 }).await?;
 ```
 
-The example uses the generated action input for `tap_input`. The host gives the returned frame to its renderer.
+The example uses the generated action input for `submit_input`. The host gives the returned frame to its renderer.
 
 A page script can register a named web host action. A mobile surface cannot select it.
 The registry can hold separate web and mobile implementations of one name when their scopes do not overlap.
@@ -120,21 +135,22 @@ Use recording transports to test each row, including fallback and an explicit ho
 
 ```mermaid
 sequenceDiagram
-    participant Button
+    participant Input
     participant Manager
     participant Dispatcher
     participant Registry
     participant Action
-    Button->>Manager: tap, server:increment, stored state bytes
+    Input->>Manager: submit, host:add_todo, list state bytes
     Manager->>Dispatcher: action request
-    Dispatcher->>Registry: look up increment
+    Dispatcher->>Registry: look up add_todo
     Dispatcher->>Dispatcher: verify state using the signer in Ctx
-    Dispatcher->>Action: call with Interaction of Counter and a fresh receiver
+    Dispatcher->>Action: call with Interaction of TodoList and a fresh receiver
+    Action->>Action: queue list operations and next state for the owner
     Action-->>Dispatcher: Ok or error
-    Dispatcher-->>Button: frame with updates or an error
+    Dispatcher-->>Input: frame with updates or an error
 ```
 
-The registry entry decodes verified bytes into `Counter`. The dispatcher owns the receiver for one call.
+The registry entry decodes verified bytes into `TodoList`. The dispatcher owns the receiver for one call.
 
 | Participant | Responsibility |
 |---|---|
@@ -148,16 +164,17 @@ The registry entry decodes verified bytes into `Counter`. The dispatcher owns th
 The client event supplies untrusted input text. The action validates that input.
 The signer protects the returned component state. Output collection covers UI updates; it cannot undo a database write.
 
-**Laws and tests.** Trigger `server:increment` with verified count 4. Assert one call and one next-state item with count 5.
-Reject invalid signed bytes before decoding. Reject malformed counter data before calling the action.
-Have a second action queue an update and then fail. Assert that the client receives only the error.
+**Laws and tests.** Submit “Buy milk” from node 42. Verify that the returned view displays the new row and node 40 holds the updated list.
+Trigger the action again and check that it receives the updated list.
+Reject invalid signed bytes before decoding. Reject malformed list data before calling the action.
+Queue a view change and state, then fail the action. Assert that the client receives only the error and retains its previous view and state.
 
 ## Delivery and verification
 
 1. Add `Action`, `Interaction`, `Context` and its receiver under `foundation_ui_runtime::action`.
 2. Add the registry adapter, reference parser and manager there. Use generated wire request types at the transport boundary.
 3. Run the three stage tests with hand-written actions. Feature 07 repeats the trigger test through the real dispatcher and writer.
-4. Update the runtime README with registration, a button trigger and the failed-action example.
+4. Update the runtime README with registration, the todo template, a state-only update and the failed-action example.
 5. Align the macro, dispatcher and template plans with these signatures before implementing features 06 through 08.
    Replace their prototype `ComponentState` bounds and hand-assigned type numbers with the typed action contract.
 

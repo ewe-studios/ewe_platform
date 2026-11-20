@@ -301,3 +301,5 @@ is recorded here as passed.
 - The runtime consumer passes 29 integration tests and its documentation example.
 
 - The revised signer plan keeps the optional signing binding in the host context. Render and dispatch apply the same host policy.
+
+- Feature 05 now uses the agreed todo action as its main example. Feature 08 tests its view update and state attachment together.

@@ -409,3 +409,5 @@ ASD-STE100.
 - The generated object packer can produce a valid frame with misaligned numeric data. Tests measure offsets in the finished buffer.
 
 - `Ctx::fork()` copies the typed map. A request can replace its signer entry while sharing the signing key with other contexts.
+
+- The same action receiver accepts state alone or a rendered view followed by its next state. The caller drains both on success.
