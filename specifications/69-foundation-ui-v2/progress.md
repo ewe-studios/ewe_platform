@@ -279,5 +279,12 @@ is recorded here as passed.
 ## Next
 
 1. Review [feature 20](./features/20-migrate-to-frame-writer/feature.md). It is the next feature after the frame writer prerequisite.
-2. Finish the feature 03 writer checks. Feature 04 still has an open envelope compatibility decision.
+2. Finish the feature 03 writer checks. Features 04 and 05 await review of their revised contracts.
 3. Apply the browser acceptance gate before native implementation.
+
+
+## Revised state and action plans
+
+- Feature 04 now proposes a signer installed in the context. The signer owns its output format.
+- Feature 05 follows a counter from registration through a button event to the receiver.
+- The existing state tests verify the earlier prototype. The new signer interfaces and examples are design work.

@@ -393,3 +393,9 @@ ASD-STE100.
 
 - The feature 02 vocabulary example uses the legacy converter. Feature 20 replaces it with a direct writer example.
 - Moving producers also requires the local and streamed browser readers. A change to the Rust operation type alone cannot switch the default protocol.
+
+
+## State and action boundaries
+
+- The wire writer currently parses attached state. Signer-owned formats require it to carry those bytes without parsing them.
+- The later action discussion gives the receiver to the caller. The caller drains it on success and discards it on error.
