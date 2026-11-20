@@ -453,3 +453,48 @@ The live count changed from zero to one and back. A second delete returned `Acti
 The starter resolved the local Maven candidate, displayed zero, and refreshed to one after another app added a todo.
 Kotlin source revision `fc42a81cf668084857ba65f503f6476e97a34ef6` is ready for release staging.
 The final ARM64 and x86-64 binaries match their binding archive members byte for byte. The emulator and the temporary server stopped.
+
+### Feature 16 browser and matrix verification
+
+The three Rust matrix tests check the authoring identifiers, component usage and marker placement.
+Both native source checks found all four shared bindings. Chromium moved focus after the frame installed a focus group.
+The browser tests compare each shared binding with its component source. They also verify the binding registry against the matrix.
+Strict Clippy passed for the wire, runtime, component and WebAssembly UI crates.
+
+### Native iOS renderer and release candidate, 2026-11-21
+
+Swift source commit `577a64abdb86793ace5bd50abcda36e8888b9f8b` passed 11 tests and matched the six Rust snapshots.
+The iPhone 17 simulator ran the todo flow with Xcode 27.2. An outside tap, Escape and a downward swipe each closed the sheet.
+The package-only starter imported EweUI. Its first Refresh check observed new control identifiers.
+A later check changed the count before Refresh. The host reported a truncated request body. The visible count check is in progress.
+The native package manifest records the three source commits, wire versions, package coordinates and binary digests.
+The first local release preview uses core commit `07f90ee83`. Its Apple archive checksum starts with `1c339daa`.
+
+### 2026-11-21 — WebView example bundles
+
+The bundle command builds all three platform examples from their mode attributes.
+The Android package contains the same frames, wrappers and WebAssembly modules as its public assets.
+Chrome loaded the two Android source pages, their two packaged copies and the iOS page.
+Each page rendered its heading. An Android user agent also rewrote the application link on all five pages.
+
+Feature 16 passed 53 component tests, three matrix tests, 68 runtime tests and 91 reference-enabled wire tests.
+The four shared behaviours have bindings on both native platforms. The web suite passed 160 tests with one optional fixture skipped.
+
+### 2026-11-21 — WebAssembly host checks
+
+The default and web feature sets pass strict Clippy for all targets in `foundation_wasm`.
+The package matrix now repeats both checks. The web feature passes 79 Rust tests.
+The rebuilt runtime fixtures pass 74 host integration tests and 145 interface integration tests.
+Twenty-one optional tests skip because their older fixture is absent.
+Issue [#598](https://github.com/ewe-studios/ewe_platform/issues/598) tracks the remaining testbed matrix coverage.
+
+### Feature 19 Android starter runtime check
+
+The standalone package starter passed on a new Android 36 ARM64 emulator.
+Gradle resolved the three modules from the Maven candidate. The app displayed zero open todos.
+A second client added one todo through the public action endpoint. The starter displayed one after the test tapped Refresh.
+The staging script stopped the Rust host and removed the temporary device. Public resolution runs after the first publication.
+
+The release tests built the Swift starter from a clean checkout and the Android starter with an empty Gradle cache.
+The Android device check saw zero, added one todo through the real action endpoint, then saw one after Refresh.
+Kotlin release input `a23e916f12a851ecca9d60fb4e13495912d1321f` adds the default branch to its test workflow.

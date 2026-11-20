@@ -70,6 +70,14 @@ flowchart LR
 
 Each template builds from a published version of the same native release.
 
+## Local candidate
+
+Version `0.1.0` builds from the three revisions in the release record.
+The Swift starter consumes `EweUI`. The Kotlin starter resolves `io.github.ewe-studios:ewe-ui:0.1.0` from staging.
+The release workflow verifies both applications and checks their visible response to a remote action.
+Public installation requires publication of the approved source repositories and Maven namespace.
+[Release procedure](../../../../scripts/ui_native/release/README.md)
+
 ## Build and publication
 
 1. Add `release/native-ui.toml` to the monorepo. Record the version, repository addresses, input revisions, module names and target architectures.
@@ -106,7 +114,7 @@ Each starter renders a screen and calls one Rust-backed action. Keep application
 
 ## README task
 
-- [ ] Write a README for the release tools and for each native package and starter.
+- [x] Write a README for the release tools and for each native package and starter.
   Show how to build a preview and how to install an exact version in each starter.
   Include package generation and the fixture checks that apply to each package.
 

@@ -1,7 +1,7 @@
 ---
 feature: "native-android-renderer"
 description: "The ewe-ui Kotlin library: the generated reader, a node store with one snapshot-state record per node, Jetpack Compose composables for the core kinds, the event bridge, live mounts and native commands, proven against the shared reference model."
-status: "in-progress"
+status: "complete"
 priority: "medium"
 model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]
@@ -13,10 +13,10 @@ crates: ["foundation_ui_wire"]
 packages: ["../ewe-ui-kotlin", "../ewe-ui-kotlin/examples/ui_todo_android"]
 decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D58", "D59", "A4"]
 tasks:
-  completed: 0
-  uncompleted: 13
+  completed: 13
+  uncompleted: 0
   total: 13
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 15: The Android renderer
@@ -518,45 +518,63 @@ All `core` tests are JUnit 5 tests in `../ewe-ui-kotlin/core/src/test/kotlin/`.
 
 ## 8. Tasks
 
-- [ ] 1. The Gradle project, the version catalog, the wrapper; `sync-android.sh`; `WireTest`.
-- [ ] 2. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
-- [ ] 3. `FrameApplier` and the cross-platform rows; `ConformanceTest`.
-- [ ] 4. The columnar member, the mobile rows (`MountWebView`, `NativeCommand`, `MobileBehaviour`), the `UiBehaviour` rows, the web-member reports, the read `try`.
-- [ ] 5. Ordering and the gap timer.
-- [ ] 6. `ActionCore`, `EventBridge`.
-- [ ] 7. `LiveMountHost`; `OkHttpChannelFactory`.
-- [ ] 8. `CommandHost`; `SystemCommandHost`.
-- [ ] 9. The composables, the behaviour bindings and `EweScreen`; `PropMappingTest`.
-- [ ] 10. `binding`, `build-android.sh`, the example app.
-- [ ] 11. The CI steps; the toolchain pins come from feature 17.
-- [ ] 12. Update `progress.md` and `learnings.md`.
-- [ ] 13. Write or update the package and starter README files.
+- [x] 1. The Gradle project, the version catalog, the wrapper; `sync-android.sh`; `WireTest`.
+- [x] 2. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
+- [x] 3. `FrameApplier` and the cross-platform rows; `ConformanceTest`.
+- [x] 4. The columnar member, the mobile rows (`MountWebView`, `NativeCommand`, `MobileBehaviour`), the `UiBehaviour` rows, the web-member reports, the read `try`.
+- [x] 5. Ordering and the gap timer.
+- [x] 6. `ActionCore`, `EventBridge`.
+- [x] 7. `LiveMountHost`; `OkHttpChannelFactory`.
+- [x] 8. `CommandHost`; `SystemCommandHost`.
+- [x] 9. The composables, the behaviour bindings and `EweScreen`; `PropMappingTest`.
+- [x] 10. `binding`, `build-android.sh`, the example app.
+- [x] 11. The CI steps; the toolchain pins come from feature 17.
+- [x] 12. Update `progress.md` and `learnings.md`.
+- [x] 13. Write or update the package and starter README files.
       Show how to run the Android starter. Include generated bindings and the Kotlin fixture checks.
 
 ## 9. Verify
 
 ```bash
-scripts/toolchain/check.sh --scope android
 mise run toolchain:android
+mise exec -- scripts/toolchain/check.sh --scope android
 scripts/ui_native/sync-android.sh --check
-../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :core:test
-../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :ui:testDebugUnitTest
-scripts/ui_native/build-android.sh
-../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin/examples/ui_todo_android assembleDebug
+scripts/ui_native/build-android.sh --with-todo
+mise exec -- "$EWE_UI_KOTLIN/gradlew" -p "$EWE_UI_KOTLIN" :core:test :ui:testDebugUnitTest publishToMavenLocal -Dmaven.repo.local="$PWD/target/native-ui/maven"
+mise exec -- "$EWE_UI_KOTLIN/gradlew" -p "$EWE_UI_KOTLIN/examples/ui_todo_android" -PeweRepository="$PWD/target/native-ui/maven" assembleDebug
 cargo test -p foundation_ui_wire --profile uat --features reference
 ```
 
 ## 10. Done when
 
-- [ ] The package and starter README files are current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The Kotlin snapshots equal the reference snapshots for every conformance fixture.
-- [ ] The example todo list runs in an emulator: an add, a done toggle, a delete with its
+- [x] The package and starter README files are current. Its examples and validation commands pass.
+- [x] All tasks are complete and every command of section 9 passes with no warning.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] The Kotlin snapshots equal the reference snapshots for every conformance fixture.
+- [x] The example todo list runs in an emulator: an add, a done toggle, a delete with its
       second-delete rejection, the filter and the live count; the run is recorded in
       `progress.md` with the date and the API level.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 
 _Created: 2026-11-13_
+
+
+## Build evidence
+
+Compose needs the Android 37.2 compile platform. The managed toolchain installs it beside platform 36.
+The starter still runs on the API 36 emulator. The minimum Android API remains 26.
+
+Maven Central does not publish the Java runtime for FlatBuffers 25.9.23.
+The package stores the original runtime from tag `v25.9.23` with its license.
+Gradle relocates it and the generated reader imports into `ewe.ui.flatbuffers`.
+A consumer test loads the public Maven runtime in the same process.
+
+
+The Kotlin source revision is `fc42a81cf668084857ba65f503f6476e97a34ef6`.
+The package suite passes 11 core tests and two Compose tests.
+The API 36 emulator added, toggled, filtered and deleted a todo. The open count changed from zero to one and back.
+Device instrumentation repeated the delete. The server returned `ActionFailed already deleted`.
+A separate package-only app displayed zero. Its Refresh button displayed one after the todo app added another item.
+Both apps compiled against the staged Maven artifacts. The binding archive contains the verified ARM64 and x86-64 libraries.

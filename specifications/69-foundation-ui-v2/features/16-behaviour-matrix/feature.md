@@ -1,7 +1,7 @@
 ---
 feature: "behaviour-matrix"
 description: "Component behaviours as platform hooks: the authoring enum and its marker, a declared behaviour list for each component, a matrix file, a build check for each platform, and the four native bindings."
-status: "in-progress"
+status: "complete"
 priority: "low"
 model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "08-html-macro-core-vocabulary", "09-web-frame-applicator", "14-native-ios-renderer", "15-native-android-renderer"]
@@ -13,10 +13,10 @@ crates: ["foundation_ui_components", "foundation_ui_wire", "foundation_ui_runtim
 packages: ["../ewe-ui-swift", "../ewe-ui-kotlin"]
 decisions: ["D10", "D36", "D37", "D38", "D56", "D59", "A5"]
 tasks:
-  completed: 0
-  uncompleted: 13
+  completed: 13
+  uncompleted: 0
   total: 13
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 16: The behaviour matrix
@@ -349,9 +349,8 @@ The lowering rule for the marker is feature 08's (section 6.6, the behaviour mar
   `foundation_ui_components`, so it does not call `Behaviour::from_name`.
 - `shared_behaviour(name)` gives `Some(id)` for the four shared names; `is_web_behaviour`
   gives `true` for the seven web names; any other name gives `LowerError::BadProp`.
-- Options of a behaviour ride the marker's `data-*` attributes today. Version 2 sends no
-  arguments from a component; a binding that needs one adds a named `BehaviourArg` with its
-  own change.
+- Gesture and measurement markers carry `data-ewe-mode`. Lowering sends the text value in a `BehaviourArg` named `mode`.
+  The browser installs each mode once per node. Other behaviours use no arguments.
 
 ### 6.5 The web behaviour registry (feature 09)
 
@@ -492,7 +491,7 @@ temporary directories.
 | Law or scenario | Test | Oracle |
 |---|---|---|
 | I1; Scenario: missing from the matrix | `backends/foundation_ui_components/tests/behaviour_matrix_tests.rs::matrix_matches_code` (parses `behaviours.toml` with the workspace `toml` crate; compares with `COMPONENT_BEHAVIOURS` and `Behaviour::ALL`, ids included); `::component_lists_match_machinery_calls` (for each component source file, the set of `machinery::<name>::` module names in its text equals its `BEHAVIOURS`) | example |
-| I2; Scenarios: check passes, unbound behaviour fails | `scripts/ci/tests/test_check_behaviours.py` (five cases) and the two commands of section 9 | expected outcome |
+| I2; Scenarios: check passes, unbound behaviour fails | `scripts/ci/tests/test_ui_behaviours.py` (five cases) and the two commands of section 9 | expected outcome |
 | I3; Scenarios: shared behaviour, web-only behaviour, plain script | `backends/foundation_ui_runtime/tests/view_lower_tests.rs::shared_behaviour_gives_one_form`, `::web_behaviour_keeps_its_name`, `::plain_script_gives_one_form`, `::unknown_behaviour_name_fails` | example |
 | I4, I7; Scenarios: native client, web client, old native client | `backends/foundation_ui_wire/tests/writer_gate_tests.rs::behaviour_goes_to_its_group_only`, `::old_client_gets_no_behaviour` | example |
 | I5; Scenario: the web applies a shared behaviour | Feature 09: `frames-apply.test.js` "a shared behaviour goes to the registry", "an unknown behaviour is reported"; `backends/foundation_ui_components/tests/components_tests.rs` passes with the marker in place of the script | expected outcome |
@@ -503,23 +502,23 @@ temporary directories.
 
 ## 8. Tasks
 
-- [ ] 1. `BehaviourWire`, `Behaviour::wire` (on the tables of feature 02), the marker form of
+- [x] 1. `BehaviourWire`, `Behaviour::wire` (on the tables of feature 02), the marker form of
       `behaviour_script`; switch the machinery modules; update the expected markup.
-- [ ] 2. `BEHAVIOURS` constants and `COMPONENT_BEHAVIOURS`.
-- [ ] 3. Check that feature 02's vocabulary version 2 row and feature 03's gate rule give the
+- [x] 2. `BEHAVIOURS` constants and `COMPONENT_BEHAVIOURS`.
+- [x] 3. Check that feature 02's vocabulary version 2 row and feature 03's gate rule give the
       behaviour results that the scenarios of section 5 expect; add no fixture.
-- [ ] 4. Check the lowering rule of feature 08 against the matrix; add the marker cases that
+- [x] 4. Check the lowering rule of feature 08 against the matrix; add the marker cases that
       section 5 names.
-- [ ] 5. Check the registry of feature 09 section 6.9 against the matrix `web` keys.
-- [ ] 6. The reference model rule and the snapshots.
-- [ ] 7. The matrix file and `behaviour_matrix_tests.rs`.
-- [ ] 8. `check_behaviours.py` and its tests.
-- [ ] 9. Swift: the registry, the four bindings (`DialogBinding`, `DismissBinding`,
+- [x] 5. Check the registry of feature 09 section 6.9 against the matrix `web` keys.
+- [x] 6. The reference model rule and the snapshots.
+- [x] 7. The matrix file and `behaviour_matrix_tests.rs`.
+- [x] 8. `check_behaviours.py` and its tests.
+- [x] 9. Swift: the registry, the four bindings (`DialogBinding`, `DismissBinding`,
       `ScrollLockBinding`, `TransitionBinding`), the store rule, the tests.
-- [ ] 10. Kotlin: the registry, the four bindings, the store rule, the tests.
-- [ ] 11. The check in the iOS and Android CI steps; version bumps.
-- [ ] 12. Update `progress.md` and `learnings.md`.
-- [ ] 13. Write or update the README for each supported runtime.
+- [x] 10. Kotlin: the registry, the four bindings, the store rule, the tests.
+- [x] 11. The check in the iOS and Android CI steps; version bumps.
+- [x] 12. Update `progress.md` and `learnings.md`.
+- [x] 13. Write or update the README for each supported runtime.
       Show one shared behaviour on web, iOS and Android. Run the applicable conformance checks.
 
 ## 9. Verify
@@ -533,24 +532,23 @@ done
 cargo test -p foundation_ui_wire --profile uat --features reference
 python3 scripts/ui/check_behaviours.py ios
 python3 scripts/ui/check_behaviours.py android
-python3 -m pytest scripts/ci/tests/test_check_behaviours.py
+python3 -m unittest discover -s scripts/ci/tests -p test_ui_behaviours.py
 node --test backends/foundation_ui_components/integration/test/
 node --test backends/foundation_wasm_ui/integration/test/
-swift test --package-path ../ewe-ui-swift                 # macOS
-../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :core:test :ui:testDebugUnitTest
+swift test --package-path "$EWE_UI_SWIFT"                # macOS
+mise exec -- "$EWE_UI_KOTLIN/gradlew" -p "$EWE_UI_KOTLIN" :core:test :ui:testDebugUnitTest
 ```
 
-If `scripts/ci/tests` does not use `pytest`, run the new test file the way the other files
-there are run.
+Set both package paths to their sibling source checkouts.
 
 ## 10. Done when
 
-- [ ] The README for each supported runtime is current. Its examples and validation commands pass.
+- [x] The README for each supported runtime is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
 - [ ] The JS logic of each shared behaviour is identical to its `machinery` source
       (`git diff` of `machinery/*.rs` shows only the call that builds the marker).
-- [ ] The matrix has eleven behaviour rows and one row for each component in
+- [x] The matrix has eleven behaviour rows and one row for each component in
       `COMPONENT_BEHAVIOURS`.
 - [ ] The check list of the `story-driven-specification` skill passes.
 

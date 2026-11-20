@@ -532,3 +532,26 @@ The Android demo links the registered Rust actions and native core in one librar
 The generated native wrappers must share the callback registry of the app-specific Rust library. The Kotlin todo selects that library before initialization.
 The package-only starter loads the generic native library directly. It needs no generated files or native build.
 An idle server-sent event stream needs its own read timeout policy. Normal HTTP action requests keep their configured timeout.
+
+### Named behaviour ownership
+
+A named behaviour belongs to the element that contains its marker. Creating a separate marker node loses that owner.
+Bind after a frame inserts its children. A focus group must see its items before it selects the first item.
+Keep the mode in the binding key. A component can install two gesture modes on one element.
+The four shared browser bindings retain the component algorithms. Unmount hooks release observers, listeners and scroll locks.
+
+### WebView bundle entrypoints
+
+The bundle planner found mode attributes, but the Rust target generator scanned for an older attribute.
+Pass the same function path to both generators. A nested-module test covers each supported mode.
+Test the generated wrapper with its actual WebAssembly module. A JavaScript load alone cannot verify their shared calling convention.
+
+The host consumes each completed instruction batch. Keep that ownership in the public call.
+A reply decoder can consume the return hints after the caller records the expected number of values.
+This avoids a second copy of the hints. A pending test future borrows its name until the host schedules another poll.
+
+### Check a package starter on a device
+
+Read the first count before you change the server store. A second client can call the public action to add a todo.
+Check the old count again before you tap Refresh. The new count then verifies both the request and the rendered response.
+Android 36 needs about 7.2 GB of free disk space to create a new emulator, even with a smaller data partition.

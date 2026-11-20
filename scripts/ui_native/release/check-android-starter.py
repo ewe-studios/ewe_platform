@@ -16,12 +16,16 @@ def shell(*args):
 
 
 def wait_for(*labels):
+    snapshot = "/sdcard/ewe-starter.xml"
     deadline = time.monotonic() + timeout
     visible = {}
     while time.monotonic() < deadline:
         try:
-            shell("uiautomator", "dump", "/sdcard/ewe-starter.xml")
-            tree = ET.fromstring(shell("cat", "/sdcard/ewe-starter.xml"))
+            report = shell("uiautomator", "dump", snapshot)
+            if snapshot not in report:
+                time.sleep(1)
+                continue
+            tree = ET.fromstring(shell("cat", snapshot))
             visible = {node.get("text"): node for node in tree.iter("node") if node.get("package") == "ewe.starter"}
             if all(label in visible for label in labels):
                 return visible

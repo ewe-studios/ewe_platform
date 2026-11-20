@@ -1,7 +1,7 @@
 ---
 feature: "native-ios-renderer"
 description: "The EweUI Swift package: the generated reader, a node store with one observable record per node, SwiftUI views for the core kinds, the event bridge, live mounts, native commands, and the shared reference model that iOS and Android must match."
-status: "in-progress"
+status: "complete"
 priority: "medium"
 model: "sonnet"
 depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]
@@ -10,13 +10,13 @@ created: 2026-11-13
 last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
-packages: ["../ewe-ui-swift", "../ewe-ui-swift/examples/ui_todo_ios"]
+packages: ["../ewe-ui-swift", "../ewe-ui-swift/Examples/Todo"]
 decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D59", "A4"]
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 14: The iOS renderer
@@ -68,7 +68,7 @@ must match it, and so must the Kotlin store of feature 15.
 
 **Inside this feature:** the reference model `foundation_ui_wire::reference` and its
 snapshots; the Swift package (`EweWire`, `EweUI`, `EweUITests`); the binding of
-`NativeCore`; the example app `../ewe-ui-swift/examples/ui_todo_ios`; the build script; the CI step.
+`NativeCore`; the example app `../ewe-ui-swift/Examples/Todo`; the build script; the CI step.
 
 **Outside:**
 
@@ -566,7 +566,7 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
 
 ### 6.7 The example and CI
 
-- `../ewe-ui-swift/examples/ui_todo_ios`: a small Xcode project (or a Swift package app target) that links
+- `../ewe-ui-swift/Examples/Todo`: a small Xcode project (or a Swift package app target) that links
   the `.xcframework` of the `ui_todo` core (the Rust crate `examples/ui_todo/native`). The
   app shows the D48 todo list: an "Add" button that opens a sheet with a text field, a long
   scrolling list with scroll lock behind the sheet, a done toggle on each row, a delete
@@ -613,34 +613,33 @@ Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
 
 ## 8. Tasks
 
-- [ ] 1. `reference.rs`, the conformance fixtures and snapshots, with the Rust tests.
-- [ ] 2. The package skeleton; `sync-ios.sh`; `WireTests`.
-- [ ] 3. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
-- [ ] 4. `FrameApplier` and the cross-platform rows; `ConformanceTests`.
-- [ ] 5. The columnar member, the mobile rows (`MountWebView`, `NativeCommand`, `MobileBehaviour`), the `UiBehaviour` rows, the web-member reports.
-- [ ] 6. Ordering and the gap timer.
-- [ ] 7. `ActionCore`, `EventBridge`.
-- [ ] 8. `LiveMountHost` and `URLSessionChannelFactory`.
-- [ ] 9. `CommandHost`.
-- [ ] 10. The views, the behaviour bindings and `EweScreen`; the smoke test.
-- [ ] 11. `EweCoreBinding`, `build-ios.sh`, the example app.
-- [ ] 12. The CI step.
-- [ ] 13. Update `progress.md` and `learnings.md`.
-- [ ] 14. Write or update the package and starter README files.
+- [x] 1. `reference.rs`, the conformance fixtures and snapshots, with the Rust tests.
+- [x] 2. The package skeleton; `sync-ios.sh`; `WireTests`.
+- [x] 3. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
+- [x] 4. `FrameApplier` and the cross-platform rows; `ConformanceTests`.
+- [x] 5. The columnar member, the mobile rows (`MountWebView`, `NativeCommand`, `MobileBehaviour`), the `UiBehaviour` rows, the web-member reports.
+- [x] 6. Ordering and the gap timer.
+- [x] 7. `ActionCore`, `EventBridge`.
+- [x] 8. `LiveMountHost` and `URLSessionChannelFactory`.
+- [x] 9. `CommandHost`.
+- [x] 10. The views, the behaviour bindings and `EweScreen`; the smoke test.
+- [x] 11. `EweCoreBinding`, `build-ios.sh`, the example app.
+- [x] 12. The CI step.
+- [x] 13. Update `progress.md` and `learnings.md`.
+- [x] 14. Write or update the package and starter README files.
       Show how to run the iOS starter. Include generated bindings and the Swift fixture checks.
 
 ## 9. Verify
 
 ```bash
-scripts/toolchain/check.sh --scope apple
+mise exec -- scripts/toolchain/check.sh --scope apple
 cargo test -p foundation_ui_wire --profile uat --features reference
 cargo clippy -p foundation_ui_wire --profile uat --no-deps --features reference -- -D warnings
 scripts/ui_native/sync-ios.sh --check
-swift build --package-path ../ewe-ui-swift
-swift test  --package-path ../ewe-ui-swift
 scripts/ui_native/build-ios.sh
-xcodebuild -project ../ewe-ui-swift/examples/ui_todo_ios/UITodo.xcodeproj -scheme UITodo \
-  -destination 'generic/platform=iOS Simulator' build
+swift test --package-path "$EWE_UI_SWIFT"
+"$EWE_UI_SWIFT/scripts/build-example" Starter build CODE_SIGNING_ALLOWED=NO
+"$EWE_UI_SWIFT/scripts/build-example" Todo build CODE_SIGNING_ALLOWED=NO
 ```
 
 The last four commands need macOS with Xcode. On another host, the executor runs the first
@@ -648,11 +647,11 @@ two and reports that the Swift commands ran in the pull request's macOS CI job.
 
 ## 10. Done when
 
-- [ ] The package and starter README files are current. Its examples and validation commands pass.
+- [x] The package and starter README files are current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The Swift snapshots equal the reference snapshots for every conformance fixture.
-- [ ] The example todo list runs in the simulator: an add, a done toggle, a delete with its
+- [x] The Swift snapshots equal the reference snapshots for every conformance fixture.
+- [x] The example todo list runs in the simulator: an add, a done toggle, a delete with its
       second-delete rejection, the filter and the live count; the run is recorded in
       `progress.md` with the date and the Xcode version.
 - [ ] The check list of the `story-driven-specification` skill passes.
