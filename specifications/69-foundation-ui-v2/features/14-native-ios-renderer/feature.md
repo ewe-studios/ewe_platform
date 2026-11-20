@@ -137,7 +137,7 @@ Links to other entities: none
 | I4 | A change to one record notifies only the observers of that record. |
 | I5 | `receive` returns after the store is edited. No scheduler sits between the reader and the store (research 06 section 3.5). |
 | I6 | Live frames of one stream apply in strictly increasing sequence order; an answer frame (`ack != 0`) applies at once; a frame with sequence 0 is out of band. The rule is the rule of feature 09 section 6.4. |
-| I7 | The state bytes that the event bridge sends equal the bytes of the last `AttachState` of the nearest ancestor-or-self record that has state. |
+| I7 | The state bytes that the event bridge sends equal the triggering record’s last attached bytes. A record without an attachment sends empty bytes, including under a stateful parent. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
 | I10 | The package holds no script engine and loads no code from the network. |
@@ -215,13 +215,18 @@ Feature: iOS renderer
     When the store receives native_replace.bin
     Then the snapshot equals native_replace.expected.json
 
-  Scenario: A tap sends the state of the component root
-    Given a store after native_tree.bin, where record 40 has state bytes S and record 42 has TAP bound to "server:increment_counter"
+  Scenario: A tap sends the triggering control’s own state
+    Given a store after native_tree.bin, where record 42 has state bytes S and TAP bound to "server:increment_counter"
     And a fake ActionCore that answers frame_ops_counter.bin
     When the event bridge sends TAP for record 42
     Then the fake core got reference "server:increment_counter" and EventInput
       { node_id: 42, event_name: "tap", parent_node: 40, state: S }
     And the store applied the answer: record 42 has the text "1"
+
+  Scenario: A child has no attachment
+    Given only parent 40 has attached state and child 42 has a tap action
+    When child 42 triggers the action
+    Then its request contains empty state
 
   Scenario: An unbound event sends nothing
     Given record 41 has no action for TAP
@@ -304,7 +309,7 @@ without it.
 
 | Fixture | Content |
 |---|---|
-| `native_tree.bin` | `CreateNode(40, STACK)`, `SetProp(40, PADDING, 8 Point)`, `SetProp(40, AXIS, Vertical)`, `CreateNode(41, TEXT)`, `SetText(41, "Count")`, `AppendChild(40, 41)`, `CreateNode(42, BUTTON)`, `SetText(42, "0")`, `BindAction(42, TAP, "server:increment_counter")`, `AppendChild(40, 42)`, `AppendChild(1, 40)`, `AttachState(40, state_counter.bin)`; header 7/1/1 |
+| `native_tree.bin` | `CreateNode(40, STACK)`, `SetProp(40, PADDING, 8 Point)`, `SetProp(40, AXIS, Vertical)`, `CreateNode(41, TEXT)`, `SetText(41, "Count")`, `AppendChild(40, 41)`, `CreateNode(42, BUTTON)`, `SetText(42, "0")`, `BindAction(42, TAP, "server:increment_counter")`, `AppendChild(40, 42)`, `AppendChild(1, 40)`, `AttachState(42, state_counter.bin)`; header 7/1/1 |
 | `native_columnar.bin` | The same ops, written with threshold 0 |
 | `native_mixed.bin` | `SetText(42, "a")`, `HtmlMorph(node 40, ReplaceChildren, "<b>x</b>")`, `NativeCommand(HAPTIC)`, `SetText(999, "x")`, `SetText(42, "b")`; header 7/2/2 |
 | `native_replace.bin` | `ReplaceSubtree(40, [CreateNode(43, TEXT), SetText(43, "new"), AppendChild(40, 43)])`; header 7/3/3 |
@@ -498,10 +503,8 @@ Every kind applies `A11Y_LABEL` (`.accessibilityLabel`), `HIDDEN`, `WIDTH` and `
 `FontToken` id `n` comes from a table that the app passes to `EweScreen`. A missing asset
 falls back to the primary colour and the body font.
 
-**The event bridge `send`:** look up `record.actions[event]`; none means return. Find the
-nearest ancestor-or-self with `state != nil` (walk `parent`). Build `EventInput { node_id,
-event_name: lower-case event name, value, checked, parent_node: that root or 0, state: its
-bytes or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
+**The event bridge `send`:** look up `record.actions[event]`; none means return. Read only `record.state`. Build `EventInput { node_id,
+event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: record.state or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
 then `store.receive(frame)` on the main actor. A thrown error goes to `store.onError` with
 code `ActionFailed` and the error text.
 

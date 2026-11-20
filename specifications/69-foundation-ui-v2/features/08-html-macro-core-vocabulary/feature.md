@@ -166,6 +166,9 @@ Links to other entities: an on: attribute value equals action_reference(Action::
 - Do not allow a free-form attribute on a core element (D10: the core has no free-form names).
 - Do not send a `ScriptNode` for a standard behaviour (D56, feature 02).
 
+A state argument attaches to the element that owns that state. A nested control with its own action needs its own attachment.
+A parent attachment never supplies state to a child action.
+
 ## 5. Acceptance scenarios
 
 `TokenTable`: color 1 is `"--color-primary"`. `options = LowerOptions { id_base: 40, tokens: &table }`.

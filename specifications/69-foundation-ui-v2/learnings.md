@@ -400,4 +400,4 @@ ASD-STE100.
 - The wire writer currently parses attached state. Signer-owned formats require it to carry those bytes without parsing them.
 - The later action discussion gives the receiver to the caller. The caller drains it on success and discards it on error.
 
-- The Swift and Kotlin event bridges both read state from the nearest state-bearing node record. The event node can be a child.
+- Web, Swift and Kotlin read attached state from the node that owns the action binding. Parentage supplies no state.

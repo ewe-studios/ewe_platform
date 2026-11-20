@@ -290,3 +290,5 @@ is recorded here as passed.
 - The existing state tests verify the earlier prototype. The new signer interfaces and examples are design work.
 
 - Feature 04 now shows the same state round trip on the web, iOS and Android. The issuing host owns verification.
+
+- Decision D60 makes state local to the triggering element in each user’s view on web, iOS and Android.

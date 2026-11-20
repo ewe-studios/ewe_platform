@@ -134,7 +134,7 @@ Links to other entities: none
 | I4 | A write to one field of one record invalidates only the snapshot readers of that field. |
 | I5 | `receive` returns after the store is edited. |
 | I6 | The ordering of live, answer and out-of-band frames is the rule of feature 09 section 6.4. |
-| I7 | The state bytes that the event bridge sends equal the bytes of the last `AttachState` of the nearest ancestor-or-self record that has state. |
+| I7 | The state bytes that the event bridge sends equal the triggering record’s last attached bytes. A record without an attachment sends empty bytes, including under a stateful parent. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
 | I10 | The library holds no script engine and loads no code from the network. The WebView control is the only place that runs web content, and it is feature 18 (D46). |
@@ -222,12 +222,17 @@ Feature: Android renderer
     When the store receives native_replace.bin
     Then the snapshot equals native_replace.expected.json
 
-  Scenario: A click sends the state of the component root
+  Scenario: A click sends the triggering control’s own state
     Given a store after native_tree.bin and a fake ActionCore that answers frame_ops_counter.bin
     When the event bridge sends TAP for record 42
     Then the fake core got reference "server:increment_counter" and EventInput
       (nodeId 42, eventName "tap", parentNode 40, state = the bytes of state_counter.bin)
     And record 42 has the text "1"
+
+  Scenario: A child has no attachment
+    Given only parent 40 has attached state and child 42 has a tap action
+    When child 42 triggers the action
+    Then its request contains empty state
 
   Scenario: A live mount opens and closes its channel
     Given a fake ChannelFactory
@@ -374,7 +379,7 @@ The apply rules, the ordering and the snapshot format are those of feature 14 se
 and 6.4, with no difference. A `Message` with `control.state_expired` or
 `control.update_required` is recorded in `errors` and calls `onError` with its own code
 (`StateExpired`, `UpdateRequired`); the nodes stay. The event bridge and the live mount host
-follow feature 14 section 6.5: the same harvest rule, the same `EventInput` fields, the
+follow feature 14 section 6.5: read only the triggering record’s state, the same `EventInput` fields, the
 same open and close rule, the same resume parameters (`stream_id`, `resume_from`), and
 `Local` transport opens nothing.
 

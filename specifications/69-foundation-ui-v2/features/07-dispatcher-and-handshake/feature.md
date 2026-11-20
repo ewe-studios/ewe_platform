@@ -196,14 +196,14 @@ Feature: Dispatcher and handshake
     Then the outcome is UpdateRequired
 
   Scenario: An action runs on a replica that never saw the user
-    Given dispatcher A sealed Counter { current: 1 } for "sess-A" on root 40
+    Given dispatcher A sealed Counter { current: 1 } for "sess-A" on button 42
     And dispatcher B was built separately with the same registry, key ring and clock
     And a Connection from B.hello
     When the host calls B.dispatch with a request frame with sequence 5 whose action is
       "server:increment_counter" for node 42 with that state
     Then the answer has ack 5
     And messages holds one Message whose operation.ui is SetText(42, "2")
-    And messages holds one Message whose operation.ui is AttachState for root 40
+    And messages holds one Message whose operation.ui is AttachState for node 42
     And opening that AttachState with B's codec for "sess-A" gives Counter { current: 2 }
 
   Scenario: A forged state is rejected and counted

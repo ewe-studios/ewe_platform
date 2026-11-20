@@ -101,7 +101,7 @@ difference.
 | `hello` | entity | Page start | Builds one `Frame` with a `ClientHello` |
 | `applyCaps` | entity | A `caps` control message | Stores the server action list and marks the controls that are not available |
 
-**Words.** "Harvest" is to copy the `data-ewe-state` text of the nearest component root and
+**Words.** "Harvest" is to copy the `data-ewe-state` text on the element that owns the action binding and
 decode it from base64url to bytes. The manager does not read the bytes. "Host" is the local
 runtime of the page: a JS function or the compiled WASM actions (D50). "Request frame" is one
 root `Frame` whose kind is `FrameRequest`. The manager builds it, and the server, the WASM
@@ -153,7 +153,7 @@ Links to other entities: none
 |---|---|
 | I1 | The route of the JS manager equals the `expect` of every row of `backends/foundation_ui_runtime/fixtures/action_routes.json`. |
 | I2 | Only a `server:` reference reaches the server transport, except the D50 (8) fall-forward of a `host:` reference as `server:<name>`. Only a `host:` reference reaches a host target: a WASM action goes to the WASM transport, and a page function runs in the page. A `host:` reference leaves the page only as that fall-forward. |
-| I3 | The state bytes in a request frame equal the base64url decode of the `data-ewe-state` attribute of the nearest ancestor-or-self with `data-ewe-root`, byte for byte. With no such ancestor, the state is empty. |
+| I3 | The state bytes in a request frame equal the base64url decode of the `data-ewe-state` attribute on the bound element, byte for byte. An absent attribute gives empty state. |
 | I4 | No request is sent before the reference parses, the registry has the action for the web surface or the server action list holds its name (D50 (8)), and a transport for the route exists. |
 | I5 | Each request has a `sequence_id` greater than the one before. |
 | I6 | While a root is in flight, a second `server:` trigger from inside that root is not sent. It is dropped, and `onError` gets `{ code: "Busy" }`. |
@@ -199,8 +199,8 @@ The JS scenarios use the mock DOM and recording transports. `WEB` is
 ```gherkin
 Feature: Web action manager
 
-  Scenario: A server action sends the state of its component root
-    Given <div primal-id="40" data-ewe-root data-ewe-state="AQID"><button primal-id="42"
+  Scenario: A server action sends the bound element’s own state
+    Given <div primal-id="40" data-ewe-root data-ewe-state="BAUG"><button primal-id="42" data-ewe-state="AQID"
       primal:onclick="server:add_todo">Add</button></div>
     And the registry declares server:add_todo with scope all
     And a recording server transport that answers the add frame
@@ -209,8 +209,8 @@ Feature: Web action manager
       node_id 42, sequence_id 1, input.event_name "click", input.parent_node 40 and state bytes [1, 2, 3]
     And the applicator received the add frame
 
-  Scenario: A click on an element with no component root sends an empty state
-    Given <button primal-id="42" primal:onclick="server:add_todo">Add</button> with no data-ewe-root ancestor
+  Scenario: A child without attached state sends empty state
+    Given <button primal-id="42" primal:onclick="server:add_todo">Add</button> inside a parent with data-ewe-state="BAUG"
     When the user clicks the button
     Then the request frame has an empty state
 
@@ -434,7 +434,7 @@ sequenceDiagram
     M->>M: parseReference
     M->>R: lookup(origin, name, WEB)
     M->>M: route(...)
-    M->>M: harvest state from the nearest data-ewe-root
+    M->>M: read the bound element’s own state
     M->>T: send(request frame bytes)
     T-->>M: frames
     M->>F: receive(frame) for each frame
@@ -461,9 +461,9 @@ no local target sends to the server as `server:<name>` (D50 (8))._
    `applyCaps` recorded that `ServerCaps.actions` holds `name`, send the same call as
    `server:<name>` on the server transport (D50 (7), (8)); the plain `#[action]` writes
    `host:name`, and the server lists it. Else `UnavailableOrigin` with origin `"host"`; stop.
-6. **Root**: `root = el.closest("[data-ewe-root]")`. If `root` is in the in-flight set:
+6. **Concurrency group** (used only to prevent duplicate requests): `root = el.closest("[data-ewe-root]")`. If `root` is in the in-flight set:
    `Busy`; stop. Else add `root` (or the element itself when there is no root).
-7. **State**: `root ? base64urlDecode(root.getAttribute("data-ewe-state") ?? "") : empty`.
+7. **State**: `base64urlDecode(el.getAttribute("data-ewe-state") ?? "")`. For a delegated click, `el` is the bound control.
 8. **Request**: build one root `Frame` whose kind is `FrameRequest`, with `action` set and
    `hello` absent (D47):
 
@@ -476,7 +476,7 @@ no local target sends to the server as `server:<name>` (D50 (8))._
    is the reference text, or `server:<name>` after the fall-forward of step 5. `node_id` is
    the number in the `primal-id` of `el` (0 when absent). `input` is `{ event_name:
    eventType, value: el.value ?? "", checked: !!el.checked, key_code: event.keyCode ?? 0,
-   modifiers: alt 1 | ctrl 2 | shift 4 | meta 8, parent_node: the primal-id number of root,
+   modifiers: alt 1 | ctrl 2 | shift 4 | meta 8, parent_node: the immediate parent element’s primal-id number,
    or 0 }`. Finish the frame with `finish_frame`; in the TS bundle the generated `Frame.pack`
    plus `builder.finish(root, "EWF1")` gives the same bytes. A buffer longer than
    `WireLimits::max_action_request_bytes` (`deps.maxRequestBytes`, default 1 MiB) gives

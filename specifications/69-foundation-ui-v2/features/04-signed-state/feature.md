@@ -16,12 +16,13 @@ For a server action, the server signs and verifies. For a local action, the loca
 
 | Renderer | Where the state lives | What happens on a tap |
 |---|---|---|
-| Web | The component root in the document tree | The event handler finds the nearest state-bearing root and returns its bytes. |
-| iOS (SwiftUI) | The component root in the Swift node store | The event bridge reads the nearest state-bearing record and forwards its bytes to the native core. |
-| Android (Compose) | The component root in the Kotlin node store | The event bridge reads the nearest state-bearing record and forwards its bytes to the native core. |
+| Web | The action element in the document tree | The handler reads the attachment on the element that owns the action binding. |
+| iOS (SwiftUI) | The control’s Swift node record | The event bridge sends the bytes on the record that triggered the action. |
+| Android (Compose) | The control’s Kotlin node record | The event bridge sends the bytes on the record that triggered the action. |
 
-For example, a native frame attaches state to root 40 and binds a button at node 42 to `server:increment_counter`.
-A tap on node 42 sends that node number and the exact bytes from root 40. The server verifies the bytes.
+Each stateful component owns its attachment in the current user’s view. A trigger reads only its own attachment.
+For example, attach counter state to button 42 and bind its tap to `server:increment_counter`.
+A tap on button 42 sends node 42 and its exact bytes. An unattached button sends empty state, even inside a stateful parent. The server verifies the bytes.
 For a local action, the native core can complete the same round trip on the device.
 
 ## The contract
@@ -93,7 +94,8 @@ Only the issuing host needs its signing key. A renderer can carry the state with
 
 **Law and test.** Install a small test signer. Send its JSON wrapper through a frame, then verify the returned bytes.
 Share that input with the web, Swift and Kotlin renderer tests in features 10, 14 and 15.
-Each test triggers a child node and compares the returned bytes with the bytes on its component root. With no signer, assert a typed error before calling the action.
+Give a parent, child and sibling different attachments. Trigger each node and compare its request with its own bytes.
+Repeat with an unattached child under the same parent. Expect empty state. Repeat in a separate user session to check isolation. With no signer, assert a typed error before calling the action.
 
 ## Stage 2. Isolate the compact cryptography
 

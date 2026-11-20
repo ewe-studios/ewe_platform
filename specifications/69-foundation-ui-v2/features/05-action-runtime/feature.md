@@ -30,8 +30,8 @@ registry.register(increment)?;
 html! { <Button on:tap={increment}>"Add one"</Button> }
 ```
 
-Here the button owns the state, so its node is also the component root.
-A nested button uses the verified component root from the call context when it writes the next state.
+The button reads and updates its own state at `event.node_id`. This rule also applies to a button inside another stateful component.
+An action that requires a counter rejects missing state before it runs.
 The application's `Counter` defines the data. The type in `Interaction<Counter>` tells the runtime how to read it.
 The proposed default uses Serde to encode and decode JavaScript Object Notation (JSON). A stateless action uses `Interaction<()>`.
 
