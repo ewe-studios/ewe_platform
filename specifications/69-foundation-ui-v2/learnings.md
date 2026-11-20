@@ -471,3 +471,5 @@ The current wire bridge encodes both as the same operation. Its round-trip test 
 A browser parity test must reattach the detached node by identifier. [Issue 629](https://github.com/ewe-studios/ewe_platform/issues/629)
 
 The columnar-native receiver writes directly to column buffers. A row-batch adapter covers only one of the existing receiver paths.
+
+The wire vocabulary uses tag and attribute names from the traits crate independently of the legacy converter. Keep the wire-to-traits dependency after migration.

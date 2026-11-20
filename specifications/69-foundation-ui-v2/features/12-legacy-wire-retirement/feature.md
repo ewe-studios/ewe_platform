@@ -238,7 +238,7 @@ the date.
 | G2 | The `columnar` field and the `ui` units give the same DOM | `mise run ui-web:test` (`frames-columnar`) |
 | G3 | The live channel passes | `cargo test -p foundation_wasm_ui --profile uat live_channel` |
 | G4 | The todo list example passes in a browser with both origins and a live region | `mise run test:browser` (the `ui_todo` tests of features 10 and 11) |
-| G5 | Every existing App test gives the same DOM through `FrameV1` as through the columnar wire | A new test, `backends/foundation_wasm_ui/tests/frame_parity_app_tests.rs`: for each scenario of `tests/app_tests.rs`, `tests/reactive_structure_tests.rs` and `tests/slots_tests.rs` that records sent batches, run the same steps with a recording `FrameV1` protocol and with `MockProtocol`; assert that the `operation` field of each message equals the unit that `web_form` gives for the recorded `DomOp`s |
+| G5 | Every existing App test gives the same DOM through `FrameV1` as through the columnar wire | A new test, `backends/foundation_wasm_ui/tests/frame_parity_app_tests.rs`: for each scenario of `tests/app_tests.rs`, `tests/reactive_structure_tests.rs` and `tests/slots_tests.rs` that records sent batches, run the same steps with a recording `FrameV1` protocol and with `MockProtocol`; compare the applied browser effects with the recorded reference, including child registration after detachment |
 | G6 | The browser smoke tests pass on the frame protocol | Run `backends/foundation_browser/tests/smoke.rs` with the test server switched to `FrameBroadcastSink` and `protocol="frame"` by an environment variable `EWE_UI_WIRE=frame` that the test server reads (add it in this step; remove the variable in step C) |
 | G7 | The component behaviours pass | `node --test backends/foundation_ui_components/integration/test/` with the frame runtime installed in the test setup |
 
@@ -279,7 +279,7 @@ A failed item stops the feature (section 4.4).
 #[must_use] pub fn add_event_listener(node_id: u32, event_name: &AttrName) -> OperationT;
 #[must_use] pub fn remove_event_listener(node_id: u32, event_name: &AttrName) -> OperationT;
 #[must_use] pub fn append_child(parent_id: u32, child_id: u32) -> OperationT;
-#[must_use] pub fn remove_child(parent_id: u32, child_id: u32) -> OperationT;   // gives Remove(child_id)
+#[must_use] pub fn remove_child(parent_id: u32, child_id: u32) -> OperationT;   // detaches from parent and retains the child registration
 #[must_use] pub fn remove_node(node_id: u32) -> OperationT;
 #[must_use] pub fn insert_before(parent_id: u32, child_id: u32, ref_id: u32) -> OperationT;
 #[must_use] pub fn replace_node(old_id: u32, new_id: u32) -> OperationT;
@@ -295,13 +295,13 @@ pub enum MorphTarget<'a> { NodeId(u32), Id(&'a str), Class(&'a str), Query(&'a s
 ```
 
    `MorphAction` is the generated enum. A test asserts that the one union field of
-   `ops::x(args)` equals the unit of `web_form(&DomOp::X { args })` for each function; that
+   `ops::x(args)` preserves the reference browser behavior for each function; that
    test is deleted in step C with `web_form`.
 2. Change each producer, one crate at a time, and run that crate's tests after each:
    `ProtocolMethods<Vec<DomOp>>` becomes `ProtocolMethods<Vec<OperationT>>`;
    `InstructionReceiver` queues `OperationT`; `slots.rs`, `reactive.rs`, `app.rs`,
    `foundation_ui_components`, `foundation_signals` and the reactive codegen of `html!`
-   (`html_macro/codegen.rs`, with a new `foundation_ui_wire_path()` in `crate_paths.rs`)
+   (through the renderer export described in feature 20)
    call `ops::*`. `FrameV1` and `FrameBroadcastSink` take `Vec<OperationT>` and drop their
    `web_form` step.
 3. Tests that compare recorded `DomOp` values compare `OperationT` values built with

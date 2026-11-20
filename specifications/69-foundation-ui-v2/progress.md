@@ -357,3 +357,5 @@ The [package example](../../backends/foundation_ui_runtime/README.md#negotiate-a
 
 Feature 20 review found a blocking browser parity case before the producer switch.
 Child detachment and node deletion need distinct semantics. The current default still uses the legacy protocol. [Issue 629](https://github.com/ewe-studios/ewe_platform/issues/629)
+
+Feature 20 now defines crate ownership, compatibility stages and browser checks. The revised plan awaits review before implementation.

@@ -406,7 +406,7 @@ in parallel.
 | 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | ⬜ Pending |
 | 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
 | 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Sibling Swift and Kotlin packages, tagged releases, registry publication and starter apps | 13, 14, 15, 16, 17 | Sonnet | Release | Approved |
-| 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Move existing UI producers, browser delivery and defaults to the frame writer | 03 | Sonnet | Web | Proposed |
+| 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03 | Sonnet | Web | Revised plan for review |
 
 Feature 20 is the next implementation priority after its writer prerequisite. Its plan transfers producer migration from feature 12.
 
