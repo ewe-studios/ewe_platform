@@ -463,3 +463,11 @@ The receiving control still supplies its own signed state. A wire parent field c
 
 A renderer can encode a state attachment as a direct operation, a nested operation or a columnar row.
 The receiver finalizer rejects all three forms and signs only the state queued through its state methods.
+
+## Feature 20 migration review
+
+The legacy browser keeps a detached child registered. It unregisters a removed node.
+The current wire bridge encodes both as the same operation. Its round-trip test accepts this loss.
+A browser parity test must reattach the detached node by identifier. [Issue 629](https://github.com/ewe-studios/ewe_platform/issues/629)
+
+The columnar-native receiver writes directly to column buffers. A row-batch adapter covers only one of the existing receiver paths.

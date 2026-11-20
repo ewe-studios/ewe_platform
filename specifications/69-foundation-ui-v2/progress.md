@@ -354,3 +354,6 @@ The [package example](../../backends/foundation_ui_runtime/README.md#negotiate-a
 - On macOS, 51 integration tests and five documentation tests pass. Formatting, strict Clippy and the WebAssembly build pass.
 - The repository clock check still reports four existing violations in the agent RPC crate. [Issue 594](https://github.com/ewe-studios/ewe_platform/issues/594)
 - Feature 08 is next. Its template lowering can queue state targets through the receiver.
+
+Feature 20 review found a blocking browser parity case before the producer switch.
+Child detachment and node deletion need distinct semantics. The current default still uses the legacy protocol. [Issue 629](https://github.com/ewe-studios/ewe_platform/issues/629)
