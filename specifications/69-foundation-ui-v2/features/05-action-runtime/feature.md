@@ -16,7 +16,11 @@ A user submits text. The input’s action reference tells the manager where to s
 This is a proposed end-to-end example. Feature 06 supplies `#[action]`. Feature 08 supplies the template.
 Feature 08 proposes a bare marker to attach the component’s signed state to another element.
 
-### 1. Render the owner and bind the input
+### 1. Write the shared render function
+
+The author defines the todo view once. The page route calls `todo_page` with the initial list.
+The submit action can call the same function with the list it just changed.
+Here the function builds the todo section. A render function can also build a whole page.
 
 ```rust
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -61,7 +65,8 @@ async fn add_todo(
 ```
 
 The action starts with a verified, decoded list. The submitted text is the new item.
-The action renders the same component with the new list. This refreshes both the rows and the input’s copy.
+Calling `todo_page(ctx, &next)` writes the new todo section to the action’s receiver.
+The frontend applies those instructions to the section. Each attachment describes the state supplied to that render.
 
 ### 3. Connect the page and action handlers
 

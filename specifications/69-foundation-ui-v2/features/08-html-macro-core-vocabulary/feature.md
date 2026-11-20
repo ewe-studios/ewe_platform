@@ -184,10 +184,12 @@ Reject ordinary wire attribute writes and removals for the reserved name.
 The web renderer stores the signed bytes as encoded text. Native renderers store the bytes on each node record.
 
 On submit, read the attachment on the node with the event binding. An unattached trigger supplies empty bytes.
-Each render that changes shared state must refresh every control that will submit that state.
-The [todo example](../05-action-runtime/feature.md#1-render-the-owner-and-bind-the-input) does this by rendering the same component on initial load and after each submit.
+A marker applies only to the render that contains it. Collect its targets for that render and discard the target list after frame creation.
+The [todo example](../05-action-runtime/feature.md#1-write-the-shared-render-function) uses one render function for initial load and submit.
+An action can render a smaller section. Its frame contains only the operations that the action requested.
 
-Test two independent component instances, two consecutive submits, a marked root, an unmarked control, and a failed sign that emits no frame.
+Render two sections with marked controls. Render only the first section again. Assert that the frame targets only that section.
+Test two consecutive submits, a marked root, an unmarked control, and a failed sign that emits no frame.
 Test that ordinary `state` cannot supply action state and that `primal::state={value}` fails to compile.
 
 ## 5. Acceptance scenarios
@@ -286,7 +288,7 @@ Feature: html! in the core vocabulary
     And the receiver then holds a pending state for root 40 whose body decodes to Counter { current: 2 }
     And the action returns Ok(())
 
-  Scenario: A todo submit refreshes its own copy
+  Scenario: The todo action calls the page render function with the updated list
     Given stack 40 is the root and input 42 has a bare primal::state marker
     When add_todo renders the component with the updated list
     Then the host signs the list once
