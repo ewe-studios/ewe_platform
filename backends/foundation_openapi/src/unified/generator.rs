@@ -1265,7 +1265,7 @@ pub fn group_crate_manifest(
     // The generated module derives `foundation_macros::JsonHash`, whose
     // expansion uses `sha2` for the digest and `base85rs` for the encoding.
     writeln!(manifest, "base85rs = \"0.1\"").unwrap();
-    writeln!(manifest, "sha2 = \"0.10\"").unwrap();
+    writeln!(manifest, "sha2 = {{ workspace = true }}").unwrap();
     writeln!(manifest).unwrap();
     writeln!(manifest, "[lints]").unwrap();
     writeln!(manifest, "workspace = true").unwrap();

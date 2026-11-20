@@ -601,6 +601,7 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_compact]
+runs = ["", "crypto-chacha"]
 # The default run covers the macOS entropy and errno backends and the Windows
 # entropy backend (`BCryptGenRandom`).
 wasm = "enforce"

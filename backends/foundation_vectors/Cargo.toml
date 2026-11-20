@@ -18,7 +18,7 @@ petgraph = { version = "0.8", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["std"], optional = true }
 # Retry jitter reads the platform entropy source through foundation_compact's
 # vendored backend (rule 11), not through rand/getrandom.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false, optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, optional = true }
 futures-lite = { version = "2", optional = true }
 # The portable SQL store writes one scan-cost warning per namespace.
 tracing = { workspace = true, optional = true }

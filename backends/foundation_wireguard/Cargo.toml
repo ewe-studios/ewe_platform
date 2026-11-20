@@ -14,14 +14,14 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 # The shared context (Ctx, Clock) on every target.
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # Seed -> key derivation (decision 03: HKDF-BLAKE2s).
 hkdf = "0.12"
 blake2 = "0.10"
 getrandom = { version = "0.2", features = ["std"] }
 base64 = "0.22"
-hex = "0.4"
-zeroize = "1"
+hex = { workspace = true }
+zeroize = { workspace = true }
 
 tracing = { workspace = true }
 derive_more = { workspace = true }
@@ -50,7 +50,7 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
 # UNIX timestamp conversions for the injected wall clock. `native::node` uses
 # `foundation_compact::time::unix_seconds`; no crate repeats the epoch math.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.

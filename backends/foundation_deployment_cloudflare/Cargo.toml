@@ -3,7 +3,7 @@ path = "../foundation_codegentools"
 version = "0.1.6"
 
 [dependencies]
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 
 # Native only: `dns_ops.rs` and `types.rs` (both `cfg(not(target_family = "wasm"))`).
 [target.'cfg(not(target_family = "wasm"))'.dependencies.chrono]
@@ -21,7 +21,7 @@ version = "0.0.21"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_context]
 path = "../foundation_context"
-version = "0.0.3"
+version = "0.0.4"
 
 # foundation_deployment is only used by the REST API (generated code + client.rs)
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.

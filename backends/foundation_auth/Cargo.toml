@@ -10,23 +10,24 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
+hex = { workspace = true, optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.14", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.8", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.12", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
 # Cryptography
-zeroize = { version = "1" }
+zeroize = { workspace = true }
 chacha20poly1305 = "0.10" # Encrypted session data
-sha1 = "0.10"             # SHA-1 for TOTP (RFC 6238 default)
-sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
-hmac = "0.12"             # TOTP, HMAC, PBKDF2
+sha1 = { workspace = true }             # SHA-1 for TOTP (RFC 6238 default)
+sha2 = { workspace = true }             # SHA256 for PKCE, PBKDF2 HMAC
+hmac = { workspace = true }             # TOTP, HMAC, PBKDF2
 getrandom = { version = "0.2", optional = true }
 
 # Token formats
@@ -88,7 +89,7 @@ web-sys = { version = "0.3", features = [
 foundation_netio = { path = "../foundation_netio", version = "0.0.14", features = ["multi"] }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
-pbkdf2 = "0.12"
+pbkdf2 = { workspace = true }
 
 # NOTE: `default-features = false` is required here. Cargo unions default-features
 # across a crate's dependency declarations, so without it this target line would
@@ -115,7 +116,7 @@ workspace = true
 default = ["turso"]
 turso = ["foundation_db/turso"]
 # IdP server module (pulls in foundation_http + foundation_db for storage)
-server = ["dep:foundation_http", "dep:futures-core", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
+server = ["dep:hex", "dep:foundation_http", "dep:futures-core", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
 # Wasm compatibility — browser crypto and JS time APIs

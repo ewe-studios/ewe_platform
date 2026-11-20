@@ -1,6 +1,6 @@
 [package]
 name = "foundation_context"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,7 +10,7 @@ description = "The shared context: a typed map plus the injected clock, config a
 keywords = ["context", "clock", "wasm", "deterministic"]
 
 [dependencies]
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false, features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }

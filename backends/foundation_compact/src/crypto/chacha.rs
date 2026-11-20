@@ -22,10 +22,24 @@ pub type ChaChaKey = EncryptionKey<32>;
 ///
 /// Returns an error string if cipher initialization or encryption fails.
 pub fn encrypt(key: &ChaChaKey, plaintext: &[u8]) -> Result<Vec<u8>, String> {
+    encrypt_with_nonce(key, generate_nonce(), plaintext)
+}
+
+/// Encrypts a message with a caller-supplied nonce.
+/// Use a unique nonce for each encryption with the same key.
+/// The output contains the nonce, ciphertext and authentication tag.
+///
+/// # Errors
+///
+/// Returns an error if the cipher cannot initialize or encrypt the message.
+pub fn encrypt_with_nonce(
+    key: &ChaChaKey,
+    nonce_bytes: [u8; 12],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, String> {
     let cipher = ChaCha20Poly1305::new_from_slice(key.as_bytes())
         .map_err(|e| format!("cipher init: {e}"))?;
 
-    let nonce_bytes: [u8; 12] = generate_nonce();
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     let ciphertext = cipher

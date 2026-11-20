@@ -11,8 +11,8 @@ description = "Reverse proxy — SSL termination, zero-downtime deploys, health-
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_http = { path = "../foundation_http", version = "0.0.12", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.14", features = ["ssl", "multi"] }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.5" }
@@ -27,7 +27,7 @@ foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.13",
 serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
-sha2 = "0.10"
+sha2 = { workspace = true }
 base64 = "0.22"
 bytes = "1"
 # `flock` for the cross-process state lock (`File::try_lock` needs Rust 1.89;

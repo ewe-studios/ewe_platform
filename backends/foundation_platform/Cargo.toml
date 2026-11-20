@@ -22,9 +22,9 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
 
 # The injected clock every platform wall time comes from (spec 70 feature 134).
 foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # UNIX timestamp conversions from `Clock::wall_now`; no local epoch arithmetic.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 
 # Shared types (dependency-free, compiles for wasm32)
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }

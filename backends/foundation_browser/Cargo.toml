@@ -14,8 +14,8 @@ keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
 # `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
 # (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
 foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.14", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
 # bundled localhost dev cert — for testing secure-context features.
@@ -33,7 +33,7 @@ derive_more = { workspace = true }
 tracing = { workspace = true }
 base64 = "0.22"
 # Holds the dev TLS key zeroized in memory, matching the SSLAcceptor::from_pem API.
-zeroize = "1"
+zeroize = { workspace = true }
 
 [features]
 # Integration tests that require a real Chromium binary opt into this so CI

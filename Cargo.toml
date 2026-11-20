@@ -47,6 +47,18 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+hex = "0.4.3"
+# BoringTun uses SimpleHmac with blake2 0.10. The upstream hkdf 0.12 also needs hmac 0.12.
+hmac = "0.13.0"
+# The upstream scrypt library requires pbkdf2 0.12.
+pbkdf2 = "0.13.0"
+# The upstream fastwebsockets library requires sha1 0.10.
+sha1 = "0.11.0"
+# Upstream crates such as age and ed25519-dalek use sha2 0.10.
+sha2 = "0.11.1"
+subtle = "2.6.1"
+zeroize = "1.9.2"
+
 derive_more = { version = ">=2.0", features = ["full"] }
 
 # core library dependencies
