@@ -9,7 +9,7 @@ repository.workspace = true
 description = "Standalone reactive signal system: R3-style height-ordered graph, bucket-queue stabilize, version-based stale detection. No DOM, no WASM coupling."
 
 [dependencies]
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.5" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 # The reactive graph is `no_std + alloc`. These all turn `std` on by default,
 # so defaults are off here and `std` is forwarded from this crate's `std`.
 serde = { version = "1", default-features = false, features = ["alloc", "derive"] }

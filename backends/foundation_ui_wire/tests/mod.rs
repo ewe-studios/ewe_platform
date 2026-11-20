@@ -15,7 +15,6 @@ mod roundtrip_tests;
 mod sequencer_tests;
 mod union_numbers_tests;
 mod vocab_behaviour_tests;
-mod vocab_dom_op_tests;
 mod vocab_forms_tests;
 mod vocab_js_tests;
 mod vocab_props_tests;

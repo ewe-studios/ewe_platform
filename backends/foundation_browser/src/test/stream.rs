@@ -3,7 +3,7 @@
 //! WHY: Mode 1 streams a native `foundation_wasm_ui` App's protocol-encoded DOM
 //! frames to the real browser. The PROTOCOL-AGNOSTIC fan-out (backlog/replay,
 //! `Send` push handle, the App sink) is a server capability and lives in
-//! `foundation_wasm_ui::server` ([`Broadcaster`]/[`BroadcastTx`]/[`BroadcastSink`]).
+//! `foundation_wasm_ui::server` ([`Broadcaster`] and [`BroadcastTx`]).
 //! What stays HERE is only the foundation_http-specific glue: how an SSE stream
 //! satisfies the broadcaster's [`FrameTransport`] contract, and the `Serve` route
 //! that upgrades a connection and registers it.
@@ -143,12 +143,16 @@ async fn drive_sse(
 /// `Serve` route: upgrade the owned connection to SSE, hand it to the
 /// [`Broadcaster`], and detach.
 pub struct StreamHandler {
+    native: bool,
+    frame_channel: bool,
     config: SseTransportConfig,
 }
 
 impl ServeFactory for StreamHandler {
     fn create(ctx: &Ctx) -> Self {
         Self {
+            frame_channel: true,
+            native: false,
             config: ctx
                 .get::<SseTransportConfig>()
                 .map_or_default(|config| *config),
@@ -156,6 +160,15 @@ impl ServeFactory for StreamHandler {
     }
 }
 
+impl StreamHandler {
+    /// Opens a native frame stream with the transport settings from this host.
+    pub fn native(ctx: &Ctx) -> Self {
+        Self {
+            native: true,
+            ..Self::create(ctx)
+        }
+    }
+}
 impl Serve for StreamHandler {
     fn serve(
         &self,
@@ -167,7 +180,7 @@ impl Serve for StreamHandler {
         let transport = SseTransport { frames };
         let mut replay = Vec::new();
         let mut legacy = None;
-        if let Some(channel) = ctx.get::<LiveChannel>() {
+        if let Some(channel) = ctx.get::<LiveChannel>().filter(|_| self.frame_channel) {
             let queries = req.request_url.queries.as_ref();
             let param = |name: &str| {
                 queries
@@ -193,7 +206,11 @@ impl Serve for StreamHandler {
                     &ctx,
                 );
             }
-            replay = match channel.subscribe_web(transport, cursor.unwrap_or(0)) {
+            replay = match if self.native {
+                channel.subscribe_native(transport, cursor.unwrap_or(0))
+            } else {
+                channel.subscribe_web(transport, cursor.unwrap_or(0))
+            } {
                 Ok(history) => history,
                 Err(error) => {
                     let status = if matches!(error, LiveError::ResumeTooOld { .. }) {
@@ -237,5 +254,27 @@ impl Serve for StreamHandler {
             }
             ServeOutcome::Take
         }))
+    }
+}
+
+/// Serve raw text and binary events through the test broadcaster.
+pub(crate) struct RawStreamHandler(StreamHandler);
+
+impl ServeFactory for RawStreamHandler {
+    fn create(ctx: &Ctx) -> Self {
+        let mut handler = StreamHandler::create(ctx);
+        handler.frame_channel = false;
+        Self(handler)
+    }
+}
+
+impl Serve for RawStreamHandler {
+    fn serve(
+        &self,
+        ctx: Ctx,
+        req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        self.0.serve(ctx, req, conn)
     }
 }

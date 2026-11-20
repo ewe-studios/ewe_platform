@@ -157,35 +157,3 @@ impl InstructionReceiver {
         }
     }
 }
-
-/// The former native column receiver now queues generated operations.
-/// Pass a frame protocol for normal delivery or select a legacy codec explicitly.
-pub struct ColumnarReceiver(InstructionReceiver);
-
-impl ColumnarReceiver {
-    #[must_use]
-    pub fn new(
-        protocol: impl ProtocolMethods<Vec<OperationT>> + 'static,
-        memory: MemoryAllocations,
-    ) -> Self {
-        Self(InstructionReceiver::new(Box::new(protocol), memory))
-    }
-    #[must_use]
-    pub fn with_global_arena(protocol: impl ProtocolMethods<Vec<OperationT>> + 'static) -> Self {
-        Self(InstructionReceiver::with_global_arena(Box::new(protocol)))
-    }
-    pub(crate) fn into_inner(self) -> InstructionReceiver {
-        self.0
-    }
-}
-impl core::ops::Deref for ColumnarReceiver {
-    type Target = InstructionReceiver;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl core::ops::DerefMut for ColumnarReceiver {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}

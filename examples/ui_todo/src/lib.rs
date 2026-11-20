@@ -108,7 +108,7 @@ fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
     let count_view = if web {
         html! {<div id="open-count"><span id="count-value">{count}</span><mount-stream data-channel-id="1" api="/live" protocol="frame" target="#live-sink"/></div>}
     } else {
-        html! {<Text>{count}</Text>}
+        html! {<Text>Open todos</Text>}
     };
     html! { ctx, out, Some(state), <Stack>
         {title}{count_view}
@@ -121,6 +121,33 @@ fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
         <List><div data-ewe-behaviour="scroll_lock"/>{rows}</List>
     </Stack> };
     Ok(())
+}
+
+/// Builds a screen whose only action runs on the server.
+///
+/// # Errors
+/// Returns a view or serialization error.
+pub fn starter_view(ctx: &Context, count: usize) -> ActionResult {
+    html! {ctx, ctx.receiver(), <Stack><Text>Open todos</Text><Text>{count}</Text>
+    <Button on:tap={refresh_count}>Refresh</Button></Stack>};
+    Ok(())
+}
+
+#[action(server)]
+async fn refresh_count(ctx: &Context, _event: Interaction<()>) -> ActionResult {
+    let store = ctx
+        .inner()
+        .get::<TodoStore>()
+        .ok_or_else(|| error("Missing todo store"))?;
+    starter_view(
+        ctx,
+        store
+            .snapshot()
+            .items
+            .iter()
+            .filter(|item| !item.done)
+            .count(),
+    )
 }
 
 /// Renders the shared todo page.
@@ -141,17 +168,17 @@ pub fn web_app(ctx: &Context, state: &TodoApp) -> ActionResult {
 fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
     let shell = Context::for_action(ctx.inner().clone(), ctx.surface(), Some(DIALOG_ROOT));
     let tree = if let Some(id) = state.delete_target {
-        html! { <Overlay><div data-ewe-behaviour="dialog"/><Text>Delete this todo?</Text>
+        html! { <Overlay><div data-ewe-behaviour="dialog"/><div data-ewe-behaviour="dismiss"/><div data-ewe-behaviour="transition"/><Stack><Text>Delete this todo?</Text>
         <Button value={id} on:tap={confirm_delete}>Confirm</Button>
-        <Button on:tap={close_dialog}>Cancel</Button></Overlay> }
+        <Button on:tap={close_dialog}>Cancel</Button></Stack></Overlay> }
     } else if state.add_dialog && ctx.surface() == MountSurface::Web {
-        html! { <Overlay><div data-ewe-behaviour="dialog"/>
-        <form on:submit={add_todo}><input autofocus="autofocus" name="title" aria-label="Todo title" />
+        html! { <Overlay><div data-ewe-behaviour="dialog"/><div data-ewe-behaviour="dismiss"/><div data-ewe-behaviour="transition"/>
+        <Stack><form on:submit={add_todo}><input autofocus="autofocus" name="title" aria-label="Todo title" />
         <button type="submit">Confirm</button></form>
-        <Button on:tap={close_dialog}>Cancel</Button></Overlay> }
+        <Button on:tap={close_dialog}>Cancel</Button></Stack></Overlay> }
     } else if state.add_dialog {
-        html! { <Overlay><div data-ewe-behaviour="dialog"/><TextInput placeholder="Todo title" on:submit={add_todo}/>
-        <Button on:tap={close_dialog}>Cancel</Button></Overlay> }
+        html! { <Overlay><div data-ewe-behaviour="dialog"/><div data-ewe-behaviour="dismiss"/><div data-ewe-behaviour="transition"/><Stack><TextInput placeholder="Todo title" on:submit={add_todo}/>
+        <Button on:tap={close_dialog}>Cancel</Button></Stack></Overlay> }
     } else {
         html! {<Stack/>}
     };
@@ -277,6 +304,7 @@ async fn confirm_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
 /// Returns an invalid or duplicate action declaration.
 pub fn server_registry() -> Result<ActionRegistry, RegistrationError> {
     let mut actions = ActionRegistry::new();
+    actions.register(refresh_count)?;
     actions.register(add_todo)?;
     actions.register(toggle_todo)?;
     actions.register(confirm_delete)?;

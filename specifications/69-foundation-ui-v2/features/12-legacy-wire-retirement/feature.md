@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_ui_traits", "foundation_ui_wire", "foundation_wasm_ui", "foundation_macros", "foundation_arrow", "foundation_ui_components", "foundation_browser", "foundation_signals", "foundation_wasm"]
 decisions: ["D8", "D9", "D10", "D27", "D28", "D29", "D40", "D41", "D42", "D44", "D45", "D55", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 15
+  completed: 13
+  uncompleted: 2
   total: 15
-  completion_percentage: 0
+  completion_percentage: 87
 ---
 
 # Feature 12: Retirement of the old wire
@@ -370,20 +370,20 @@ went away (the plan guard fails on an unknown feature, rule 15).
 
 ## 8. Tasks
 
-- [ ] 1. Measure section 6.1 again; record the numbers in `learnings.md`.
-- [ ] 2. Write the G5 test and the G6 variable.
-- [ ] 3. Run the gate; write the evidence table. Stop if an item fails.
-- [ ] 4. Step A item 1: `App::new()` and `App::columnar()`.
-- [ ] 5. Step A items 2 to 4; verify; commit.
-- [ ] 6. Step B item 1: `foundation_ui_wire::ops` with its equivalence test.
-- [ ] 7. Step B: `foundation_wasm_ui` producers and tests.
-- [ ] 8. Step B: the `html!` reactive codegen.
-- [ ] 9. Step B: `foundation_ui_components`, `foundation_signals`, `foundation_browser`; verify; commit.
-- [ ] 10. Step C: Rust removals; fix the build.
-- [ ] 11. Step C: JS removals; fix the JS tests that named removed exports.
+- [x] 1. Measure section 6.1 again; record the numbers in `learnings.md`.
+- [x] 2. Write the G5 test and the G6 variable.
+- [x] 3. Run the gate; write the evidence table. Stop if an item fails.
+- [x] 4. Step A item 1: `App::new()` and `App::columnar()`.
+- [x] 5. Step A items 2 to 4; verify; commit.
+- [x] 6. Step B item 1: `foundation_ui_wire::ops` with its equivalence test.
+- [x] 7. Step B: `foundation_wasm_ui` producers and tests.
+- [x] 8. Step B: the `html!` reactive codegen.
+- [x] 9. Step B: `foundation_ui_components`, `foundation_signals`, `foundation_browser`; verify; commit.
+- [x] 10. Step C: Rust removals; fix the build.
+- [x] 11. Step C: JS removals; fix the JS tests that named removed exports.
 - [ ] 12. Step C: docs, `ci/packages.toml`, version bumps; verify; commit.
-- [ ] 13. Close the GitHub issues that this removal fixes, if any name the removed code.
-- [ ] 14. Update `progress.md` and `learnings.md`.
+- [x] 13. Close the GitHub issues that this removal fixes, if any name the removed code.
+- [x] 14. Update `progress.md` and `learnings.md`.
 - [ ] 15. Write or update the package or feature README.
       Show how to replace a legacy producer and consumer. Validate the example on the current wire.
 

@@ -6,7 +6,7 @@ a real browser from a native server. Each step links to the deep-dive doc for th
 topic.
 
 > Mental model in one line: **Rust never touches the DOM.** You build a tree, call
-> `stabilize()`, and the runtime ships a minimal batch of typed `DomOp`s to the JS
+> `stabilize()`, and the runtime ships a minimal batch of typed operations to the JS
 > runtime, which applies them. No virtual DOM, no diffing, no wasm-bindgen.
 
 ---
@@ -186,7 +186,7 @@ above is the same for both; only the delivery path changes.
 ### Mode 1: WASM in the browser (client-side)
 
 Your Rust compiles to `.wasm`, loaded by the browser. The `App` runs directly in
-the WASM sandbox — `stabilize()` flushes `DomOp`s to the JS runtime, which
+the WASM sandbox — `stabilize()` flushes generated operations to the JS runtime, which
 applies them to the live DOM. **No `<mount-stream>` needed.** The WASM binary
 talks straight to `foundation-wasm-ui.js`.
 
@@ -203,7 +203,7 @@ talks straight to `foundation-wasm-ui.js`.
 <body>
   <script type="module">
     // The generated init() wrapper fetches the WASM, instantiates it, and wires
-    // the DOM path (protocol 1 → DomOpApplicator → live document). One call, done.
+    // the EWF1 frame reader for the live document.
     import { init } from './myapp.js';
 
     await init();   // ← fetches .wasm, boots runtime, wires DOM, runs Rust entrypoint
@@ -255,7 +255,7 @@ runtime assets automatically.
 The generated wrapper handles the full boot sequence:
 1. Fetches `myapp.wasm` and instantiates it with `FoundationWasm`'s `web_abi`
 2. Binds the WASM instance to the runtime (`rt.init(instance)`)
-3. Installs the EWF1 frame reader and registers the legacy protocol handlers
+3. Installs the EWF1 frame reader and connects it to WebAssembly
 4. Calls your Rust entrypoint (`instance.exports.myapp()`)
 
 Each successful flush from `App::new()` sends one bare EWF1 frame.
@@ -264,7 +264,7 @@ The wrapper installs the reader before the Rust entry point runs.
 ### Mode 2: Native server streams to the browser (fullstack)
 
 Your Rust runs as a **native server binary**. The `App` runs there, and each
-`stabilize()` produces an envelope-framed byte batch. Your server ships those
+`stabilize()` produces a complete EWF1 frame. Your server ships those
 batches to connected browsers over SSE, WebSocket, or any transport. The browser
 side is a single `<mount-stream>` custom element that connects back and applies
 the frames.
@@ -279,16 +279,18 @@ the frames.
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My App</title>
   <script type="module">
-    import { registerWebComponents } from '/foundation-wasm-ui.js';
-    registerWebComponents();
+    import * as ui from '/foundation-wasm-ui.js';
+    import {installFrameRuntime} from '/foundation-ui-frames.js';
+    installFrameRuntime(ui);
+    ui.registerWebComponents();
   </script>
 </head>
 <body>
   <!-- The mount-stream connects to your server and applies EWF1 frames live.
        api = your server's streaming endpoint
        transport = "sse" (default), "ws", "chunked"
-       protocol = "arrow" (binary envelope) or omit for plain HTML frames -->
-  <mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
+       protocol = "frame" (binary frame) or omit for plain HTML frames -->
+  <mount-stream api="/__primal/live" transport="sse" protocol="frame"></mount-stream>
 </body>
 </html>
 ```
@@ -297,17 +299,17 @@ the frames.
 
 ```rust
 use foundation_wasm_ui::{html, App};
-use foundation_wasm_ui::server::{Broadcaster, BroadcastSink};
+use foundation_wasm_ui::server::{LiveChannel, FrameBroadcastSink};
 
-// A broadcaster fans frames to every connected client.
-let broadcaster = Broadcaster::new();
-let app = App::with_protocol(BroadcastSink::new(broadcaster.sender()));
+// The live channel sends frames to connected clients.
+let channel = LiveChannel::new(1, Default::default(), Default::default());
+let app = App::with_protocol(FrameBroadcastSink::new(channel.sender()));
 let (ctx, rcv) = app.context();
 
 let (status, set_status) = ctx.signal(String::from("ready"));
 
 // mount() + stabilize() on the server encodes operations into frames
-// that the broadcaster sends to every connected <mount-stream>.
+// that the channel sends to every connected <mount-stream>.
 app.mount(html! { ctx, rcv, <p id="status" class="status">{status.get()}</p> });
 app.stabilize();                       // initial frame → all clients
 
@@ -346,7 +348,7 @@ let body = html! {
     <main>
         <h1>"Initial content"</h1>
         <!-- When the JS runtime loads, this element connects and starts streaming -->
-        <mount-stream api="/live" transport="sse" protocol="arrow"></mount-stream>
+        <mount-stream api="/live" transport="sse" protocol="frame"></mount-stream>
     </main>
 };
 ```
@@ -356,7 +358,7 @@ let body = html! {
 | | `App::mount()` (WASM mode) | `<mount-stream>` (server mode) |
 |---|---|---|
 | **Where App runs** | Browser (WASM) | Native server |
-| **How operations arrive** | `host_apply` → `dispatcher` → `DomOpApplicator` | EWF1 bytes over the selected stream |
+| **How operations arrive** | `host_apply` → `dispatcher` → the frame reader | EWF1 bytes over the selected stream |
 | **HTML page needs** | `FoundationWasm` + `registerWasmApp(rt)` + `init()` | `<mount-stream>` + `registerWebComponents()` |
 | **JS runtime** | `foundation-wasm.js` + `foundation-wasm-ui.js` | `foundation-wasm-ui.js` |
 | **Live updates** | `stabilize()` → operations → DOM | `stabilize()` → encode → stream → browser applies |

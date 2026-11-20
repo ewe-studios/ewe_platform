@@ -426,3 +426,30 @@ Swift and Kotlin renderer work has started. The release build now assembles devi
 | G7 | Component behaviour tests through the installed frame runtime | All 13 assertions pass. |
 
 Feature 11 and feature 20 are complete. Feature 12 can now remove the old encoders.
+
+### Feature 15. Android package
+
+The sibling package contains the core, binding and renderer modules.
+The Kotlin reader matches all six native snapshots. The Kotlin tests cover gaps, event state, caps, commands and mount ownership.
+The native binding builds for ARM64 and x86-64. The Compose renderer builds against Android 37.2.
+The starter resolves the three local Maven artifacts by coordinates. Device verification is in progress.
+
+### Post-retirement and native checks, 2026-11-21
+
+Feature 12 removes the old browser and Rust encoders after the seven recorded checks.
+The four Rust package suites passed 187 tests. A compile-fail test verifies that the retired operation type has no public import.
+The rebuilt general WebAssembly fixture sends a host message and releases its slot.
+The final frame-only browser suite passed on Chromium and Firefox. Two browser pages also passed the live todo test.
+
+Both native todo applications passed the add, complete, filter and delete flows on the simulator and emulator.
+The Android test repeated a deletion. Rust returned the expected action error.
+Feature 19 validates 15 Maven inputs and the Apple device, simulator and macOS archive.
+Public package verification still requires the first Git tags and Maven publication.
+
+### Feature 15 completion on 2026-11-21
+
+The Android API 36 emulator ran the Kotlin todo and the independent package-only starter. The todo added, toggled, filtered and deleted an item.
+The live count changed from zero to one and back. A second delete returned `ActionFailed already deleted`.
+The starter resolved the local Maven candidate, displayed zero, and refreshed to one after another app added a todo.
+Kotlin source revision `fc42a81cf668084857ba65f503f6476e97a34ef6` is ready for release staging.
+The final ARM64 and x86-64 binaries match their binding archive members byte for byte. The emulator and the temporary server stopped.

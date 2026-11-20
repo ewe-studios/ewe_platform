@@ -50,6 +50,8 @@ test("gap resumes from the last complete render and ignores the old connection",
   assert.equal(retry.searchParams.get("section"),"todo");
   assert.equal(retry.searchParams.get("stream_id"),"7");
   assert.equal(retry.searchParams.get("resume_from"),"10");
+  connections[0].receive(push(11));
+  assert.equal(frames.cursor(7n),10n);
   connections[1].receive(push(11)); connections[1].receive(push(12,43));
   assert.equal(frames.registry.get(42).textContent,"11");
   assert.equal(frames.registry.get(43).textContent,"12");
@@ -94,4 +96,50 @@ test("host_apply copies a frame before acknowledging the actual Rust allocation"
   assert.equal(frames.registry.get(42).textContent,"");
   jobs.shift()();
   assert.equal(frames.registry.get(42).textContent,"copied");
+});
+
+test("a reopened WebSocket requests replay and ignores the old socket", t => {
+  t.mock.timers.enable({apis:["setTimeout"]});
+  const {doc,frames} = page();
+  const sockets = [];
+  const transport = new ui.WebSocketTransport({ wsFactory(url) {
+    const socket = {url, binaryType:"", close() {}};
+    sockets.push(socket);
+    return socket;
+  }});
+  const live = mount(doc, {api:"wss://test.invalid/live",transport:"websocket"}, transport);
+  sockets[0].onmessage({data:frame(1n, "first")});
+  assert.equal(frames.cursor(7n), 1n);
+  sockets[0].onclose();
+  t.mock.timers.tick(ui.reconnectDelay(0));
+  const retry = new URL(sockets[1].url);
+  assert.equal(retry.searchParams.get("resume_from"), "1");
+  assert.equal(retry.searchParams.get("stream_id"), "7");
+  sockets[0].onmessage({data:frame(2n, "old")});
+  assert.equal(frames.cursor(7n), 1n);
+  sockets[1].onmessage({data:frame(2n, "replayed")});
+  assert.equal(frames.registry.get(42).textContent, "replayed");
+  live.close();
+});
+
+test("chunked HTTP emits complete length-prefixed updates before the next chunk", async () => {
+  const {frames} = page();
+  const first = frame(1n,"one"), second = frame(2n,"two");
+  const chunks = [first, second].map(bytes => {
+    const data = new Uint8Array(4+bytes.length);
+    new DataView(data.buffer).setUint32(0,bytes.length,true);
+    data.set(bytes,4);
+    return data;
+  });
+  const stream = new ReadableStream({start(controller) {
+    controller.enqueue(chunks[0].slice(0,2));
+    controller.enqueue(chunks[0].slice(2));
+    controller.enqueue(chunks[1]); controller.close();
+  }});
+  const transport = new ui.ChunkedTransport({protocol:"frame",fetchFn:async()=>new Response(stream)});
+  const received = [];
+  await transport.connect("/live",undefined,result => {
+    frames.receive(result.frames[0]); received.push(frames.registry.get(42).textContent);
+  });
+  assert.deepEqual(received,["one","two"]);
 });

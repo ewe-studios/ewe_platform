@@ -7,7 +7,7 @@
 //! the popup's near edges (machinery.md §M3). Ported here 1:1.
 //!
 //! WHAT: [`HOVER_JS`] (timer open/close + the full safe-polygon close path) +
-//! [`hover_behavior`] (the `<script>` a hover TRIGGER embeds) + the attribute
+//! [`hover_behavior`] (the marker a hover TRIGGER embeds) + the attribute
 //! contract.
 //!
 //! HOW: Embedded INSIDE the trigger (`scope.parent()` = trigger). pointerenter/
@@ -21,7 +21,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Open delay in ms before the trigger opens on hover/focus (`data-hover-delay`).
 pub const DATA_HOVER_DELAY: &str = "data-hover-delay";
@@ -33,7 +33,7 @@ pub const DATA_HOVER_POPUP: &str = "data-hover-popup";
 
 /// The M3 hover-intent + safe-polygon behavior (port of floating-ui-react
 /// `safePolygon.ts` + the hover timer model).
-pub const HOVER_JS: &str = r#"function(scope){
+pub const HOVER_JS: &str = r"function(scope){
   var trig = scope.parent();
   if (!trig || trig.__hover) return; trig.__hover = true;
   var doc = trig.ownerDocument || document;
@@ -136,13 +136,13 @@ pub const HOVER_JS: &str = r#"function(scope){
     scope.addEvent(fl0, 'pointerenter', function(){ clearClose(); removeMove(); });
     scope.addEvent(fl0, 'pointerleave', function(e){ startPolygon(e.clientX, e.clientY); });
   }
-}"#;
+}";
 
-/// The `<script>` a hover trigger embeds (INSIDE the trigger element). The
+/// The marker a hover trigger embeds (INSIDE the trigger element). The
 /// trigger carries the optional `data-hover-delay`/`data-hover-close-delay`; the
 /// popup carries [`DATA_HOVER_POPUP`]; the overlay renders sibling
 /// `[data-hover-open]`/`[data-hover-close]` actions wired to the open signal.
 #[must_use]
 pub fn hover_behavior() -> Html {
-    scoped_script(HOVER_JS)
+    behaviour_script(Behaviour::Hover, HOVER_JS)
 }

@@ -174,24 +174,17 @@ test("browser follows the shared native placement trace", () => {
 
 test("parent-checked detachment keeps the child available for reattachment", () => {
   const {doc, registry, reports, apply} = setup();
-  const legacy = new ui.DomOpApplicator(new ui.NodeRegistry(),doc);
   for (const id of [10,11,12]) {
-    legacy.registry.register(id, doc.createElement("div"));
     apply(operation("CreateNode",id,wire.NodeKind.STACK));
   }
-  legacy.applyOne(ui.Op.APPEND_CHILD,10,"11");
   apply(operation("AppendChild",10,11));
-  assert.throws(()=>legacy.applyOne(ui.Op.REMOVE_CHILD,12,"11"));
   apply(web("WebDetachChild",12,11));
-  for (const table of [legacy.registry,registry]) assert.equal(table.get(11).parentNode,table.get(10));
-  legacy.applyOne(ui.Op.REMOVE_CHILD,10,"11");
+  assert.equal(registry.get(11).parentNode,registry.get(10));
   apply(web("WebDetachChild",10,11));
-  legacy.applyOne(ui.Op.APPEND_CHILD,12,"11");
   apply(operation("AppendChild",12,11));
-  for (const table of [legacy.registry,registry]) assert.equal(table.get(11).parentNode,table.get(12));
-  legacy.applyOne(ui.Op.REMOVE_NODE,11);
+  assert.equal(registry.get(11).parentNode,registry.get(12));
   apply(operation("Remove",11));
-  for (const table of [legacy.registry,registry]) assert.equal(table.get(11),undefined);
+  assert.equal(registry.get(11),undefined);
   assert.equal(reports.length,1);
 });
 test("Rust row and column encodings apply every eligible shared operation", () => {
@@ -303,4 +296,80 @@ test("external frame replacement disposes a real mounted Rust scope through WebA
   assert.equal(instance.exports.local_scope_releases(),1);
   frames.receive(frame([operation("Remove",77)]));
   assert.equal(instance.exports.local_scope_releases(),1);
+});
+
+test("web properties, classes, styles and listeners use generated operation fields", () => {
+  let calls = 0;
+  const {apply,registry,reports} = setup({onEvent(name,id) {
+    assert.equal(name,"click"); assert.equal(id,88); calls++;
+  }});
+  const add = web("WebAddListener",88,0,"click");
+  const remove = web("WebRemoveListener",88,0,"click");
+  apply(web("WebElement",88,0,"button",""),web("WebRegisterNode",88),
+    web("WebProperty",88,0,"disabled","true"),web("WebStyle",88,0,"color","red"),
+    web("WebAddClass",88,"active"),add,add);
+  const button = registry.get(88);
+  assert.equal(button.disabled,true);
+  assert.equal(button.style.color,"red");
+  assert.ok(button.classList.contains("active"));
+  button.dispatchEvent("click");
+  assert.equal(calls,1);
+  apply(remove,web("WebRemoveClass",88,"active"));
+  button.dispatchEvent("click");
+  assert.equal(calls,1);
+  assert.ok(!button.classList.contains("active"));
+  apply(add,operation("Remove",88));
+  button.dispatchEvent("click");
+  assert.equal(calls,1);
+  assert.deepEqual(reports,[]);
+});
+
+test("the application loader delivers a callback reference to the WebAssembly registry", () => {
+  const {doc} = setup();
+  const button = doc.createElement("button");
+  doc.body.appendChild(button);
+  button.setAttribute("primal:onclick","callback-17");
+  const calls = [];
+  ui.registerWasmApp({
+    bridge:{}, dispatcher:{setRawHandler() {}},
+    callbacks:{invoke(id,bytes){calls.push([id,JSON.parse(new TextDecoder().decode(bytes))]);}},
+  }, {document:doc});
+  button.dispatchEvent("click");
+  assert.equal(calls.length,1);
+  assert.equal(calls[0][0],17);
+  assert.equal(calls[0][1].type,"click");
+});
+
+test("bind after child insertion and keep distinct gesture modes on one parent", () => {
+  const {doc,apply,registry,reports} = setup();
+  const modes = [];
+  const stage = doc.createElement("div");
+  registry.register(42,stage);
+  const render = new wire.BehaviourArgT("mode",wire.PropValue.Text,new wire.TextValueT("swipe"));
+  const snap = new wire.BehaviourArgT("mode",wire.PropValue.Text,new wire.TextValueT("snap"));
+  stage.ownerDocument = {defaultView:doc.createElement("window")};
+  stage.style.setProperty = (name,value) => stage.style[name] = value;
+  stage.querySelector = () => null;
+  registerWebBehaviour("probe-after-children", (root) => modes.push(root.children.length));
+  apply(web("WebBehaviour",42,0,"probe-after-children"),operation("CreateNode",43,wire.NodeKind.TEXT),
+    operation("AppendChild",42,43),web("WebBehaviour",42,0,"gestures",[render]),
+    web("WebBehaviour",42,0,"gestures",[snap]),web("WebBehaviour",42,0,"gestures",[snap]));
+  assert.deepEqual(modes,[1]);
+  assert.ok(stage.__swipe && stage.__snap);
+  assert.deepEqual(reports,[]);
+});
+
+test("anonymous scoped functions receive their own element and release their listeners", () => {
+  const {doc} = setup();
+  const parent = doc.createElement("button");
+  const script = doc.createElement("script");
+  script.textContent = "function(scope){scope.addEvent(scope.parent(),'click',()=>scope.parent().textContent+='x')}";
+  parent.appendChild(script);
+  parent.querySelectorAll = query => query.startsWith("script") ? [script] : [];
+  ui.Hydrator.hydrate(parent,doc);
+  parent.dispatchEvent("click");
+  assert.equal(parent.textContent,"x");
+  ui.Patcher.releaseScope(parent);
+  parent.dispatchEvent("click");
+  assert.equal(parent.textContent,"x");
 });

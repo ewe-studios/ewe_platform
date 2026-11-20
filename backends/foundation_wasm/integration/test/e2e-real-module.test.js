@@ -1,6 +1,6 @@
 // End-to-end test: drive foundation-wasm.js against a REAL compiled wasm module
 // (fixtures/foundation_wasm_e2e.wasm). Proves the full WASM→JS transport: the module
-// frames a compact-columnar batch and calls `host_apply`; foundation-wasm.js parses the
+// frames a host message and calls `host_apply`; foundation-wasm.js parses the
 // envelope, routes to the registered handler, and ACKs (frees) the slot.
 //
 // The fixture is committed; rebuild it with ./build-module.sh after changing the
@@ -18,19 +18,16 @@ const here = dirname(fileURLToPath(import.meta.url));
 const wasmPath = join(here, "..", "fixtures", "foundation_wasm_e2e.wasm");
 
 test(
-  "e2e: real wasm module ships a columnar batch through host_apply",
+  "e2e: real wasm module ships a host message through host_apply",
   { skip: existsSync(wasmPath) ? false : "wasm fixture not built (run ./build-module.sh)" },
   () => {
     const bytes = readFileSync(wasmPath);
 
     const rt = new FoundationWasm();
     let captured = null;
-    rt.setProtocolHandler(1, {
+    rt.setProtocolHandler(42, {
       apply: (memoryId, payload) => {
-        // v1.1: [pad_len][shim] then the 8-byte header; row count is its first u32.
-        const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
-        const rows = view.getUint32(1 + view.getUint8(0), true);
-        captured = { memoryId, len: payload.length, rows };
+        captured = { memoryId, text: new TextDecoder().decode(payload) };
       },
     });
 
@@ -40,11 +37,9 @@ test(
     rt.init(instance);
 
     // The module allocates a slot, frames the batch, and calls host_apply.
-    instance.exports.emit_columnar_batch();
+    instance.exports.emit_sample_message();
 
-    assert.ok(captured, "the columnar handler was invoked");
-    assert.equal(captured.rows, 2, "the batch carried both DomOps");
-    assert.ok(captured.len > 0, "payload is non-empty");
+    assert.equal(captured?.text, "host message");
 
     // The slot was ACKed/freed in host_apply's finally — reading it now traps.
     assert.throws(() => rt.memory.get(captured.memoryId));

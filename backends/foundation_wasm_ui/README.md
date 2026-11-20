@@ -58,7 +58,7 @@ steps from hello-world to a native server driving a real browser.
 foundation_wasm_ui = { workspace = true }
 ```
 
-`#![no_std]` on wasm32. The `arrow` feature (Apache Arrow IPC) is on by default;
+`#![no_std]` on wasm32. The frame protocol is the default.
 `embedded-js` exposes the runtime JS as `&str` consts for bundler-less serving.
 
 ---
@@ -161,6 +161,14 @@ The server sends one base64-encoded frame in each event.
 An HTTP response with content type `application/primal-frame` starts each frame with its four-byte, little-endian byte count.
 A WebSocket binary message carries one frame directly. The default frame limit is four mebibytes.
 Set `maxFrameBytes` in the installation options to change that limit.
+The chunked HTTP transport delivers each complete frame independently. Its `maxDocumentBytes` option bounds a single HTML or JSON document.
+
+Keep the mount element in the document while it owns a connection.
+Each frame names its own render target.
+A mount reconnects with the last accepted sequence in `resume_from` and the channel identifier in `stream_id`.
+Remove the mount to stop the connection.
+Set `data-channel-id` and `data-resume-from` to start a new page at a known cursor.
+A local mount uses `transport="local"` and opens no network connection.
 
 The reader applies shared node, property, text, binding, placement, behaviour and signed-state operations.
 It sends data tables to application code through the `ewe:data` event.
@@ -221,7 +229,8 @@ fn mount_clock(app: &App) -> Context {
 ```
 
 Keep the returned context while the component is mounted.
-After loading the WebAssembly instance, call `ui.registerWasmApp(runtime, { document })` in the browser.
+After loading the WebAssembly instance, call `FoundationUiBootstrap.registerFrameApp(runtime, { document })` in the browser.
+The generated application loader calls this function. It installs the frame reader and connects the local allocation bridge.
 The local renderer registers the instance's disposer on each node it creates.
 When a remote frame replaces that node, the reader calls `ewe_ui_dispose_mount` on the same instance.
 The receiver stops its effects and runs scope cleanup once. A fragment with several roots stays active until its last root leaves.
@@ -279,24 +288,7 @@ cargo run -p foundation_wasm_ui --example protocol_migration
 cargo check --manifest-path backends/foundation_wasm_ui/tests/fixtures/renamed_reactive/Cargo.toml
 ```
 
-Choose `App::columnar()`, `App::json()`, or `App::arrow()` for clients that need a legacy codec.
-These codecs accept the original 19 operations. An unsupported operation rejects the entire batch.
-`App::new()`, `App::server()` and `BroadcastSink::new()` send bare EWF1 frames.
-
-### Cost of small text updates
-
-This sample measures a release build on macOS. Each row averages 1,000 writes to an owned arena, including release of each slot.
-The allocation count includes reallocations. The text value is seven bytes. Local build times and machine load affect timing.
-
-| Operations | Format | Bytes | Allocations | Nanoseconds per batch |
-|---:|---|---:|---:|---:|
-| 1 | Legacy columnar | 80 | 2 | 225 |
-| 1 | EWF1 | 136 | 18 | 1,489 |
-| 4 | Legacy columnar | 160 | 2 | 322 |
-| 4 | EWF1 | 288 | 29 | 2,638 |
-| 16 | Legacy columnar | 496 | 2 | 776 |
-| 16 | EWF1 | 864 | 66 | 6,466 |
-
-```sh
-cargo test --release -p foundation_wasm_ui --no-default-features --test frame_cost -- --ignored --nocapture
-```
+The local application, collected server frames and live channel use the EWF1 writer.
+A generated loader installs the frame reader before the application entry point runs.
+To serve a page yourself, import `foundation-ui-frames.js` and install its reader before registering mount elements.
+For a binary mount, set `protocol="frame"`. The same page can also use HTML mounts and JSON signal patches.

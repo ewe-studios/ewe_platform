@@ -1546,7 +1546,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_arrow"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "arrow-array",
  "arrow-buffer",
@@ -1701,7 +1701,7 @@ version = "0.0.9"
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",

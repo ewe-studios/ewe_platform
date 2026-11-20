@@ -764,11 +764,29 @@ export function applyBehaviour(node, id, args = []) {
 }
 
 export function applyWebBehaviour(node, name, args = []) {
-  return apply(node, name, args, Object.hasOwn(WEB_ONLY, name) ? WEB_ONLY[name] : custom.get(name));
+  const mode = (name === "gestures" || name === "measure")
+    ? args?.find(arg => arg.name === "mode")?.value?.v : undefined;
+  const key = mode === undefined ? name : name + ":" + mode;
+  return apply(node, key, args, Object.hasOwn(WEB_ONLY, name) ? WEB_ONLY[name] : custom.get(name));
 }
 
 export function disposeBehaviours(node) {
   const entries = active.get(node);
   active.delete(node);
   if (entries) for (const cleanup of entries.values()) if (typeof cleanup === "function") cleanup();
+}
+
+// First-page markup uses the same parent binding as a frame.
+export function hydrateMarkers(root) {
+  for (const marker of root.querySelectorAll?.("span[data-ewe-behaviour]") ?? []) {
+    const parent = marker.parentElement ?? marker.parentNode;
+    if (!parent) continue;
+    const name = marker.getAttribute("data-ewe-behaviour");
+    const mode = marker.getAttribute("data-ewe-mode");
+    const args = mode === null ? [] : [{name:"mode",value:{v:mode}}];
+    const shared = BehaviourId[name.toUpperCase()];
+    const applied = shared ? applyBehaviour(parent,shared,args) : applyWebBehaviour(parent,name,args);
+    if (!applied) console.error("Unknown component behaviour", name);
+    marker.remove();
+  }
 }

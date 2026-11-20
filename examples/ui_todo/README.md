@@ -1,4 +1,4 @@
-# Todo actions on the web
+# Todo actions on web and native screens
 
 The page uses shared Rust templates, a native Hypertext Transfer Protocol (HTTP) server and a browser WebAssembly module.
 The server owns one in-memory list. Each browser owns its dialog and filter settings.
@@ -59,8 +59,25 @@ examples/ui_todo/build-module.sh
 cargo test --profile uat -p ui_todo --features browser-tests --test todo_browser_tests
 ```
 
+## Native screens
+
+The iOS and Android examples share the Rust actions and the authoritative todo store.
+The remote-only starter reads `/native-starter`. Its Refresh button calls `server:refresh_count`.
+The complete todo app reads `/native-initial` and supplies its own compiled action registry.
+
+The initial endpoint returns one EWF1 frame. The action endpoint uses the four-byte HTTP framing described above.
+The native count is a complete text render at node 44. A live mount at node 43 subscribes to stream 2.
+The endpoint is `/native-live?stream_id=2&resume_from=0`. A reconnect uses the last applied sequence.
+The page and dialog have separate roots. Filters and dialogs can render without replacing the count.
+
+The `ui_todo_native` crate exports `create_todo_core` to Swift and Kotlin.
+Build a simulator package with `scripts/ui_native/prepare-ios-todo.sh /path/to/ewe-ui-swift`.
+The Swift package examples show both the remote-only starter and the application-specific registry.
+
 ## Glossary
 
 - EWF1 identifies a version-one Ewe wire frame.
 - HTTP means Hypertext Transfer Protocol.
 - WebAssembly runs compiled Rust in the browser.
+
+The initial page routes `/initial`, `/native-initial` and `/native-starter` return one bare EWF1 frame with content type `application/vnd.ewe.frame`.

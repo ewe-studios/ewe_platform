@@ -1,5 +1,6 @@
 //! Start the example on a loopback address.
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let _pool = foundation_core::valtron::initialize_pool(0, None);
     let bind = std::env::args()
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:8180".to_owned());

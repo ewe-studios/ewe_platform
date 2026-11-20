@@ -192,3 +192,22 @@ fn a_mounted_signal_sends_complete_app_batches() {
         .filter_map(|msg| msg.operation()?.ui_as_set_text())
         .any(|op| op.text() == Some("5")));
 }
+
+#[test]
+fn native_subscription_filters_replay_and_live_frames() {
+    let channel = channel();
+    channel.sender().push_messages(update()).unwrap();
+    let client = Recorder::default();
+    let replay = channel.subscribe_native(client.clone(), 0).unwrap();
+    assert_eq!(replay.len(), 1);
+    channel.sender().push_messages(update()).unwrap();
+    let live = client.0.lock().unwrap();
+    let limits = WireLimits::default();
+    for (bytes, sequence) in [(replay[0].as_ref(), 1), (live[0].as_slice(), 2)] {
+        let frame = read_frame(bytes, &limits).unwrap();
+        assert_eq!(frame.sequence_id(), sequence);
+        let rows = frame.kind_as_frame_message().unwrap().messages().unwrap();
+        assert_eq!(rows.len(), 1);
+        assert!(rows.get(0).operation().unwrap().ui_as_set_text().is_some());
+    }
+}

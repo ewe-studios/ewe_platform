@@ -137,16 +137,16 @@ pub fn mount_fragment(
     }
 
     let count = count_nodes(&fragment);
-    if count == 0 {
-        return parent_id;
-    }
     let base = ctx.allocate_id_block(count);
     let mut next = base;
     build_subtree(&fragment, parent_id, Attach::Append, rcv, &mut next, None);
 
     // A single-root fragment's root got the first id; tagless multi-child
     // wrappers have no single root.
-    if fragment.tag.is_some() || fragment.is_text() {
+    if count > 0
+        && marker_attribute(&fragment, "primal:script").is_none()
+        && (fragment.tag.is_some() || fragment.is_text())
+    {
         base
     } else {
         parent_id
@@ -169,9 +169,6 @@ pub fn mount_before(
     let mut top_level = alloc::vec::Vec::new();
     if fragment.runtime_id.is_none() {
         let count = count_nodes(&fragment);
-        if count == 0 {
-            return top_level;
-        }
         let base = ctx.allocate_id_block(count);
         let mut next = base;
         build_subtree(
@@ -212,9 +209,18 @@ fn attach_op(parent_id: u32, child_id: u32, attach: Attach) -> foundation_ui_wir
 
 /// Ids needed to build `node` (elements + text nodes; grouping nodes are
 /// transparent).
+fn marker_attribute<'a>(node: &'a Html, key: &str) -> Option<&'a str> {
+    node.attributes
+        .iter()
+        .find_map(|(name, value)| (name.name() == Some(key)).then_some(value.as_ref()))
+}
+
 fn count_nodes(node: &Html) -> u32 {
-    if node.runtime_id.is_some() {
+    if node.runtime_id.is_some() || marker_attribute(node, "data-ewe-behaviour").is_some() {
         return 0; // splices by reference — builds nothing
+    }
+    if marker_attribute(node, "primal:script").is_some() {
+        return 1;
     }
     let own = u32::from(node.tag.is_some() || node.is_text());
     node.children.iter().map(count_nodes).sum::<u32>() + own
@@ -239,6 +245,25 @@ fn build_subtree(
         return;
     }
 
+    if let Some(name) = marker_attribute(node, "data-ewe-behaviour") {
+        rcv.queue(ops::behaviour(
+            parent_id,
+            name,
+            marker_attribute(node, "data-ewe-mode"),
+        ));
+        return;
+    }
+    if marker_attribute(node, "primal:script").is_some() {
+        let id = *next;
+        *next += 1;
+        let body = node
+            .children
+            .iter()
+            .filter_map(|child| child.text.as_deref())
+            .collect();
+        rcv.queue(ops::scoped_script(id, parent_id, body));
+        return;
+    }
     if let Some(tag) = &node.tag {
         let id = *next;
         *next += 1;

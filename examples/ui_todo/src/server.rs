@@ -38,6 +38,7 @@ use std::{net::TcpListener, path::Path, sync::Arc};
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Reply = (Status, &'static str, Vec<u8>);
 const MIME: &str = "application/primal-frame";
+const SINGLE_FRAME: &str = "application/vnd.ewe.frame";
 
 fn encoded(ctx: &Ctx, render: Context) -> Result<Vec<u8>, Error> {
     encode_updates(
@@ -62,45 +63,106 @@ fn http_frame(frame: &[u8]) -> Result<Reply, Error> {
     Ok((Status::OK, MIME, body))
 }
 
+const COUNT_NODE: u32 = 44;
+struct NativeCount(LiveChannel);
+struct NativeStream(StreamHandler, LiveChannel);
+impl Serve for NativeStream {
+    fn serve(
+        &self,
+        ctx: Ctx,
+        req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        let ctx = ctx.fork();
+        ctx.store(self.1.clone());
+        self.0.serve(ctx, req, conn)
+    }
+}
+fn native_count(
+    ctx: &Ctx,
+    out: &foundation_ui_runtime::action::ActionReceiver,
+    count: usize,
+) -> foundation_ui_runtime::action::ActionResult {
+    let view = Context::for_action(ctx.clone(), MountSurface::Native, Some(COUNT_NODE));
+    let ctx = &view;
+    foundation_ui_runtime::html! {ctx,out,<Text>{count}</Text>};
+    Ok(())
+}
 enum Endpoint {
+    Starter,
     NativeInitial,
     Initial,
     Action,
 }
 impl Endpoint {
+    fn native_initial(&self, ctx: &Ctx, store: &TodoStore) -> Result<Reply, Error> {
+        let view = Context::for_action(ctx.clone(), MountSurface::Native, Some(PAGE_ROOT));
+        let roots = if matches!(self, Self::Starter) {
+            vec![PAGE_ROOT]
+        } else {
+            vec![PAGE_ROOT, crate::DIALOG_ROOT, COUNT_NODE]
+        };
+        for root in roots {
+            let mut create = foundation_ui_wire::CreateNodeT::default();
+            create.node_id = root;
+            create.kind = foundation_ui_wire::NodeKind::STACK;
+            let mut op = foundation_ui_wire::OperationT::default();
+            op.ui = foundation_ui_wire::UiOperationT::CreateNode(Box::new(create));
+            view.receiver().render_op(op);
+            view.receiver()
+                .render_op(foundation_ui_wire::ops::append_child(1, root));
+        }
+        let cursor = ctx
+            .get::<NativeCount>()
+            .map(|channel| channel.0.last_sequence());
+        let state = store.snapshot();
+        if matches!(self, Self::NativeInitial) {
+            let channel = ctx
+                .get::<NativeCount>()
+                .ok_or("Missing native count stream")?;
+            let mut mount = foundation_ui_wire::LiveMountT::default();
+            mount.node_id = 43;
+            mount.channel_id = channel.0.stream_id();
+            mount.transport = foundation_ui_wire::LiveTransport::Sse;
+            mount.endpoint = Some("/native-live".into());
+            mount.resume_from = cursor.ok_or("Missing native count cursor")?;
+            let mut op = foundation_ui_wire::OperationT::default();
+            op.ui = foundation_ui_wire::UiOperationT::LiveMount(Box::new(mount));
+            view.receiver().render_op(op);
+            view.receiver()
+                .render_op(foundation_ui_wire::ops::append_child(1, 43));
+            let count = state.items.iter().filter(|item| !item.done).count();
+            native_count(ctx, view.receiver(), count).map_err(|e| format!("{e:?}"))?;
+        }
+        if matches!(self, Self::Starter) {
+            crate::starter_view(&view, state.items.iter().filter(|item| !item.done).count())
+        } else {
+            crate::app(&view, &state)
+        }
+        .map_err(|e| format!("{e:?}"))?;
+        let bytes = encode_updates(
+            ctx,
+            view.into_receiver().drain(),
+            &ClientCaps::native_current(foundation_ui_wire::Platform::Ios),
+            FrameHeader {
+                stream_id: 0,
+                sequence_id: 0,
+                ack: 0,
+            },
+            &WriterConfig::default(),
+        )
+        .map_err(|e| format!("{e:?}"))?;
+        Ok((Status::OK, SINGLE_FRAME, bytes))
+    }
     async fn answer(&self, ctx: &Ctx, req: SimpleIncomingRequest) -> Result<Reply, Error> {
         let store = ctx.get::<TodoStore>().ok_or("Missing todo store")?;
-        if matches!(self, Self::NativeInitial) {
-            let view = Context::for_action(ctx.clone(), MountSurface::Native, Some(PAGE_ROOT));
-            for root in [PAGE_ROOT, crate::DIALOG_ROOT] {
-                let mut create = foundation_ui_wire::CreateNodeT::default();
-                create.node_id = root;
-                create.kind = foundation_ui_wire::NodeKind::STACK;
-                let mut op = foundation_ui_wire::OperationT::default();
-                op.ui = foundation_ui_wire::UiOperationT::CreateNode(Box::new(create));
-                view.receiver().render_op(op);
-                view.receiver()
-                    .render_op(foundation_ui_wire::ops::append_child(1, root));
-            }
-            crate::app(&view, &store.snapshot()).map_err(|e| format!("{e:?}"))?;
-            let bytes = encode_updates(
-                ctx,
-                view.into_receiver().drain(),
-                &ClientCaps::native_current(foundation_ui_wire::Platform::Ios),
-                FrameHeader {
-                    stream_id: 0,
-                    sequence_id: 0,
-                    ack: 0,
-                },
-                &WriterConfig::default(),
-            )
-            .map_err(|e| format!("{e:?}"))?;
-            return Ok((Status::OK, MIME, bytes));
+        if matches!(self, Self::NativeInitial | Self::Starter) {
+            return self.native_initial(ctx, &store);
         }
         if matches!(self, Self::Initial) {
             let view = Context::for_action(ctx.clone(), MountSurface::Web, Some(PAGE_ROOT));
             crate::web_app(&view, &store.snapshot()).map_err(|e| format!("{e:?}"))?;
-            return Ok((Status::OK, MIME, encoded(ctx, view)?));
+            return Ok((Status::OK, SINGLE_FRAME, encoded(ctx, view)?));
         }
         let dispatcher = ctx.get::<Dispatcher>().ok_or("Missing dispatcher")?;
         let limits = ctx.get::<WireLimits>().ok_or("Missing frame limits")?;
@@ -158,6 +220,16 @@ impl Endpoint {
             .is_some_and(|m| m.iter().all(|m| m.control().is_none()))
         {
             let count = store.snapshot().items.iter().filter(|i| !i.done).count();
+            let native = Context::for_render_on(ctx.clone(), MountSurface::Native);
+            native_count(ctx, native.receiver(), count).map_err(|e| format!("{e:?}"))?;
+            ctx.get::<NativeCount>()
+                .ok_or("Missing native count stream")?
+                .0
+                .sender()
+                .push_messages(
+                    prepare_messages(ctx, native.into_receiver().drain())
+                        .map_err(|e| format!("{e:?}"))?,
+                )?;
             let update = Context::for_render(ctx.clone());
             count_update(&update, count).map_err(|e| format!("{e:?}"))?;
             ctx.get::<LiveChannel>()
@@ -183,6 +255,7 @@ impl Serve for Endpoint {
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let endpoint = match self {
+            Self::Starter => Self::Starter,
             Self::Initial => Self::Initial,
             Self::NativeInitial => Self::NativeInitial,
             Self::Action => Self::Action,
@@ -254,6 +327,9 @@ pub fn serve_with_channel(
     ctx.store(TodoStore::default());
     ctx.store(WireLimits::default());
     ctx.store(channel);
+    let native_channel = LiveChannel::new(2, BacklogConfig::default(), WriterConfig::default());
+    ctx.store(NativeCount(native_channel.clone()));
+    let live: Arc<dyn Serve> = Arc::new(NativeStream(StreamHandler::native(ctx), native_channel));
     ctx.store(DispatcherBuilder::new(Origin::Server, Arc::new(crate::server_registry()?)).build());
     let module = std::fs::read(module)?;
     let initial: Arc<dyn Serve> = Arc::new(Endpoint::Initial);
@@ -261,8 +337,11 @@ pub fn serve_with_channel(
     app.router.add_route_any("/initial", &initial);
     let native: Arc<dyn Serve> = Arc::new(Endpoint::NativeInitial);
     app.router.add_route_any("/native-initial", &native);
+    let starter: Arc<dyn Serve> = Arc::new(Endpoint::Starter);
+    app.router.add_route_any("/native-starter", &starter);
     app.router.add_route(SimpleMethod::POST, "/action", action);
     app.route_any::<StreamHandler>("/live");
+    app.router.add_route_any("/native-live", &live);
     for (url, kind, bytes) in [
         (
             "/",

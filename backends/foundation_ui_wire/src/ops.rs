@@ -238,3 +238,40 @@ pub fn morph_node(
         content: Some(content.into()),
     })))
 }
+
+/// Attach a shared or browser behaviour to the owning node.
+#[must_use]
+pub fn behaviour(node_id: u32, name: &str, mode: Option<&str>) -> OperationT {
+    use crate::{BehaviourArgT, PropValueT, TextValueT, UiBehaviourT, WebBehaviourT};
+    let args = mode.map(|mode| {
+        alloc::vec![BehaviourArgT {
+            name: Some("mode".into()),
+            value: PropValueT::Text(Box::new(TextValueT {
+                v: Some(mode.into())
+            })),
+        }]
+    });
+    match crate::vocab::shared_behaviour(name) {
+        Some(behaviour) => shared(UiOperationT::UiBehaviour(Box::new(UiBehaviourT {
+            node_id,
+            behaviour,
+            args,
+        }))),
+        None => web(WebOperationT::WebBehaviour(Box::new(WebBehaviourT {
+            node_id,
+            custom: Some(name.into()),
+            args,
+            ..Default::default()
+        }))),
+    }
+}
+
+/// Run an application script in the scope of its parent node.
+#[must_use]
+pub fn scoped_script(node_id: u32, parent_id: u32, body: String) -> OperationT {
+    web(WebOperationT::ScriptNode(Box::new(crate::ScriptNodeT {
+        node_id,
+        parent_id,
+        body: Some(body),
+    })))
+}

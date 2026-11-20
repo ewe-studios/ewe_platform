@@ -18,15 +18,14 @@
       ui.Patcher.releaseTree(node);
       node.remove(); frames.registry.unregister(88);
     };
-    instance.exports.emit_parity_legacy();
-    const legacy = read(); clear();
     const original = rt.dispatcher.rawHandler;
     rt.dispatcher.setRawHandler(original.matches, input => {
       window.parityBytes = Array.from(input);
       return original.apply(input);
     });
     instance.exports.emit_parity_frame();
-    if (legacy !== read() || frames.registry.get(88).textContent !== "rendered") throw Error("Local output differs");
+    const local = read();
+    if (frames.registry.get(88).textContent !== "rendered") throw Error("Local output differs");
     clear();
     frames.cursors.clear();
     const mount = document.createElement("mount-stream");
@@ -36,7 +35,7 @@
     const result = document.getElementById("result");
     const observer = new MutationObserver(() => {
       if (!frames.registry.get(88)) return;
-      observer.disconnect(); result.textContent = read() === legacy ? "matched" : "different";
+      observer.disconnect(); result.textContent = read() === local ? "matched" : "different";
     });
     observer.observe(document.body,{childList:true});
     result.textContent = "ready";

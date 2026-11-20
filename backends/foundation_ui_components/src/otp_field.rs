@@ -53,7 +53,7 @@ impl Default for OtpConfig {
 
 /// Cell choreography: advance/retreat focus, arrows, paste distribution, and
 /// re-assembly of the hidden aggregate value.
-const OTP_JS: &str = r#"function(scope){
+const OTP_JS: &str = r"function(scope){
   var root = scope.parent();
   if (!root || root.__otp) return; root.__otp = true;
   var cells = Array.prototype.slice.call(root.querySelectorAll('[data-otp-cell]'));
@@ -84,7 +84,7 @@ const OTP_JS: &str = r#"function(scope){
       cells[Math.min(i + text.length, cells.length - 1)].focus();
     });
   });
-}"#;
+}";
 
 /// OTP-field component over a `String` code signal.
 #[must_use]

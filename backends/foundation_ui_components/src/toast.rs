@@ -87,6 +87,7 @@ impl ToastManager {
     }
 
     /// Add a toast; returns its id (auto-assigned if empty).
+    #[must_use]
     pub fn add(&self, mut toast: Toast) -> String {
         if toast.id.is_empty() {
             let n = self.next_id.get();
@@ -119,7 +120,7 @@ impl ToastManager {
 
 /// Auto-dismiss timer for one toast: clicks `[data-toast-close]` after
 /// `data-timeout` ms, pausing while hovered/focused (base-ui's pause-on-hover).
-const TOAST_TIMER_JS: &str = r#"function(scope){
+const TOAST_TIMER_JS: &str = r"function(scope){
   var el = scope.parent();
   if (!el || el.__toastTimer) return; el.__toastTimer = true;
   var win = (el.ownerDocument && el.ownerDocument.defaultView) || window;
@@ -135,7 +136,7 @@ const TOAST_TIMER_JS: &str = r#"function(scope){
   scope.addEvent(el, 'focusin', stop);
   scope.addEvent(el, 'focusout', start);
   start();
-}"#;
+}";
 
 /// Render the toast viewport — a live region rendering the stack via `<For>`.
 #[must_use]
@@ -192,3 +193,6 @@ pub fn toast_viewport(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[crate::behaviour::Behaviour::Gestures];

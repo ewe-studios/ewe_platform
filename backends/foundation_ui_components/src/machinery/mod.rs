@@ -1,25 +1,8 @@
-//! # Machinery — JS-side component behaviors (spec-42 feature 05 §3)
-//!
-//! WHY: Some component behavior is genuinely the browser's job — roving focus
-//! (M5), dismiss (M3), anchored positioning (M1), transitions (M7). Rather than
-//! a monolithic hand-maintained runtime, each behavior's JS is **colocated**
-//! here beside its Rust contract and DELIVERED as a scoped script.
-//!
-//! WHAT: [`scoped_script`] (the delivery primitive) + per-behavior submodules:
-//! [`composite`] (M5 roving focus), [`dismiss`] (M3 light dismiss),
-//! [`position`] (M1 anchored positioning), [`scroll_lock`] (M2 scroll lock),
-//! [`focus_trap`] (M4 focus), [`transition`] (M7 enter/leave). A behavior is
-//! `function(scope){…}` emitted as a `<script scoped primal:script>` node the
-//! component embeds in its root.
-//!
-//! HOW: The existing scoped-script hydrator (spec-39 feature 09 §5) runs the
-//! body ONCE with a `scope` object (`scope.parent()` = the component root),
-//! then removes the script — so it's idempotent across morph/re-insert. Options
-//! ride the component's own `data-*` attributes, read off `scope.parent()`.
-//! Works for SSR (`to_markup`, hydrated at parse) and the reactive runtime
-//! (the MutationObserver hydrates inserted subtrees). No `register_function`,
-//! no `cfg(wasm32)` gating — a behavior is just markup.
+//! Browser and native behaviours for interactive components.
+//! Named helpers return markers. A renderer attaches the behaviour to the marker's parent.
+//! An anonymous scoped script carries an application-specific JavaScript implementation.
 
+pub use crate::behaviour::behaviour_script;
 use alloc::borrow::Cow;
 use alloc::vec;
 use alloc::vec::Vec;

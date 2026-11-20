@@ -513,3 +513,22 @@ A single text update measured 136 bytes and 18 allocations with the frame writer
 A callback can submit another native push. One drain loop preserves the sequence while the callback runs outside the queue lock. Issue #634 has two regression tests.
 
 The browser calls a mount callback again when the mount removes its own placeholder. Issue #635 records the interrupted small-frame delivery.
+
+### Feature 15. Android compiler and reader dependencies
+
+The November 2026 Compose release needs Android compile platform 37.2. Platform 36 remains the emulator target.
+The Google FlatBuffers Java runtime for tag 25.9.23 is absent from Maven Central.
+Gradle builds the tagged source alongside the generated Kotlin. Both use an isolated package to avoid duplicate consumer classes.
+The pinned cargo-ndk accepts `--platform 26` for the minimum Android API. Its lowercase package option takes a crate name.
+
+### Native and browser package checks, 2026-11-21
+
+A single bare startup frame needs a different media type from a length-prefixed response stream.
+The examples use `application/vnd.ewe.frame` for one frame and `application/primal-frame` for a stream.
+A Swift view can retain an old record when a replacement reuses its node identifier.
+The simulator exposed that failure during the add flow. Keep the record identity in the view.
+The Android demo links the registered Rust actions and native core in one library. Both wrappers must use its callback table.
+
+The generated native wrappers must share the callback registry of the app-specific Rust library. The Kotlin todo selects that library before initialization.
+The package-only starter loads the generic native library directly. It needs no generated files or native build.
+An idle server-sent event stream needs its own read timeout policy. Normal HTTP action requests keep their configured timeout.

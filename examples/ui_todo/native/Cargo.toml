@@ -1,0 +1,21 @@
+[package]
+name = "ui_todo_native"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+ui_todo = { path = "..", default-features = false }
+uniffi = { workspace = true }
+foundation_context = { path = "../../../backends/foundation_context" }
+foundation_ui_runtime = { path = "../../../backends/foundation_ui_runtime" }
+foundation_ui_native = { path = "../../../backends/foundation_ui_native" }
+foundation_ui_wire = { path = "../../../backends/foundation_ui_wire" }
+
+[lints]
+workspace = true

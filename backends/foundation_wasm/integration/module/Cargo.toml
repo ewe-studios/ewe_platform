@@ -8,7 +8,6 @@ edition = "2021"
 
 [dependencies]
 foundation_wasm = { path = "../..", features = ["web"] }
-foundation_ui_traits = { path = "../../../foundation_ui_traits" }
 
 [lib]
 crate-type = ["cdylib"]

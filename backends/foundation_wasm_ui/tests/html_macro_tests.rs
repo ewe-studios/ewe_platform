@@ -9,16 +9,17 @@
 //! (proc-macro crates can't export test hooks; see parser.rs).
 //!
 //! HOW: Pure-form trees are inspected structurally (typed `Html`); reactive
-//! runs assert the exact `DomOp` stream the mock captured.
+//! runs assert the exact operation stream the mock captured.
 
-#[path = "support/parity.rs"]
-mod parity;
-use parity::reference;
+use foundation_ui_wire::{OperationT, UiOperationT as Ui, WebOperationT as Web};
+#[path = "support/names.rs"]
+mod names;
+use names::wire_name;
 
 use std::rc::Rc;
 
 use foundation_signals::{Context, EventData, Runtime as SignalsRuntime};
-use foundation_ui_traits::{AttrName, DomOp, Html, HtmlTag, Part};
+use foundation_ui_traits::{AttrName, Html, HtmlTag, Part};
 use foundation_wasm::MemoryAllocations;
 use foundation_wasm_ui::{html, MaybeCallback, MockProtocol, Runtime};
 
@@ -346,8 +347,10 @@ fn reactive_setup() -> Mounted {
 }
 
 /// Flattened view of every op sent so far.
-fn all_ops(sent: &Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().map(reference).collect()
+fn all_ops(
+    sent: &Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>,
+) -> Vec<OperationT> {
+    sent.borrow().iter().flatten().cloned().collect()
 }
 
 /// Tests 40 + 42 — slot effect queues the initial `SetText` and re-renders on
@@ -367,14 +370,22 @@ fn reactive_slot_renders_and_updates() {
 
     // The build created div + span + the slot's dedicated text node, with
     // explicit registration (F01 registry semantics).
-    assert!(matches!(ops[0], DomOp::CreateElement { node_id, .. } if node_id == 16));
+    assert!(
+        matches!(ops[0], OperationT { web: Web::WebElement(ref row), .. } if row.node_id == 16)
+    );
     assert!(ops
         .iter()
-        .any(|op| matches!(op, DomOp::RegisterNode { node_id: 16 })));
+        .any(|op| matches!(op, OperationT { web: Web::WebRegisterNode(ref row), .. } if row.node_id == 16)));
     let initial = ops
         .iter()
         .filter_map(|op| match op {
-            DomOp::SetText { node_id, text } => Some((*node_id, text.to_string())),
+            OperationT {
+                ui: Ui::SetText(ref row),
+                ..
+            } => Some((
+                row.node_id,
+                row.text.as_deref().unwrap_or_default().to_string(),
+            )),
             _ => None,
         })
         .collect::<Vec<_>>();
@@ -390,7 +401,7 @@ fn reactive_slot_renders_and_updates() {
     let after = all_ops(&m.sent);
     let last = after.last().unwrap();
     assert!(
-        matches!(last, DomOp::SetText { node_id: 18, text } if text == "8"),
+        matches!(last, OperationT { ui: Ui::SetText(ref row), .. } if row.node_id == 18 && row.text.as_deref().unwrap_or_default() == "8"),
         "got {last:?}"
     );
 }
@@ -409,12 +420,12 @@ fn reactive_event_wiring() {
 
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::AddEventListener { node_id: 16, event_name } if event_name.name() == Some("change")
+        OperationT { web: Web::WebAddListener(ref row), .. } if row.node_id == 16 && wire_name(row.name_id, row.custom_name.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("change")
     )));
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetAttribute { node_id: 16, name, value }
-            if name.name() == Some("primal:setter") && *value == expected_cb
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if row.node_id == 16 && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("primal:setter") && row.value.as_deref().unwrap_or_default() == expected_cb
     )));
 }
 
@@ -444,8 +455,8 @@ fn reactive_dynamic_attribute() {
     let ops = all_ops(&m.sent);
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetAttribute { node_id: 16, name, value }
-            if name.name() == Some("class") && *value == "on"
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if row.node_id == 16 && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("class") && row.value.as_deref().unwrap_or_default() == "on"
     )));
 
     set_cls.set(String::from("off"));
@@ -453,7 +464,7 @@ fn reactive_dynamic_attribute() {
     let ops = all_ops(&m.sent);
     assert!(matches!(
         ops.last().unwrap(),
-        DomOp::SetAttribute { node_id: 16, value, .. } if *value == "off"
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if row.node_id == 16 && row.value.as_deref().unwrap_or_default() == "off"
     ));
 }
 
@@ -506,10 +517,12 @@ fn static_interpolation_reactive_sets_once() {
     let ops = all_ops(&m.sent);
     let sets: Vec<_> = ops
         .iter()
-        .filter(|op| matches!(op, DomOp::SetAttribute { name, .. } if name.name() == Some("data-label")))
+        .filter(|op| matches!(op, OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-label")))
         .collect();
     assert_eq!(sets.len(), 1, "set once at mount, got {sets:?}");
-    assert!(matches!(sets[0], DomOp::SetAttribute { value, .. } if *value == "hi"));
+    assert!(
+        matches!(sets[0], OperationT { web: Web::WebSetAttribute(ref row), .. } if row.value.as_deref().unwrap_or_default() == "hi")
+    );
 }
 
 /// Option-valued attribute (reactive): toggling the signal emits
@@ -525,8 +538,8 @@ fn reactive_option_attribute_toggles_presence() {
     assert!(
         ops.iter().any(|op| matches!(
             op,
-            DomOp::SetAttribute { node_id: 16, name, value }
-                if name.name() == Some("data-checked") && *value == ""
+            OperationT { web: Web::WebSetAttribute(ref row), .. }
+                if row.node_id == 16 && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-checked") && row.value.as_deref().unwrap_or_default() == ""
         )),
         "Some => SetAttribute, got {ops:?}"
     );
@@ -537,7 +550,7 @@ fn reactive_option_attribute_toggles_presence() {
     assert!(
         matches!(
             ops.last().unwrap(),
-            DomOp::RemoveAttribute { node_id: 16, name } if name.name() == Some("data-checked")
+            OperationT { web: Web::WebRemoveAttribute(ref row), .. } if row.node_id == 16 && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-checked")
         ),
         "None => RemoveAttribute, got {:?}",
         ops.last()
@@ -548,6 +561,6 @@ fn reactive_option_attribute_toggles_presence() {
     let ops = all_ops(&m.sent);
     assert!(matches!(
         ops.last().unwrap(),
-        DomOp::SetAttribute { node_id: 16, name, .. } if name.name() == Some("data-checked")
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if row.node_id == 16 && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-checked")
     ));
 }

@@ -1,7 +1,7 @@
 //! Verify typed operation delivery through the public frame protocol.
 use foundation_ui_wire::{ops, read_frame, WireLimits};
 use foundation_wasm::{MemoryAllocations, ProtocolHandler};
-use foundation_wasm_ui::{ColumnarReceiver, FrameV1, ProtocolError, ProtocolMethods};
+use foundation_wasm_ui::{FrameV1, InstructionReceiver, ProtocolError, ProtocolMethods};
 
 #[test]
 fn delivery_errors_keep_sequence_and_header() {
@@ -46,8 +46,8 @@ fn handoff_owns_one_complete_slot_until_acknowledged() {
 }
 
 #[test]
-fn columnar_receiver_can_send_the_same_bare_frame() {
-    let mut out = ColumnarReceiver::new(FrameV1::new(3), MemoryAllocations::new());
+fn instruction_receiver_sends_a_bare_frame() {
+    let mut out = InstructionReceiver::new(Box::new(FrameV1::new(3)), MemoryAllocations::new());
     out.queue(ops::set_text(6, "ready"));
     let sent = out.flush().unwrap().unwrap();
     let slot = out.memory().unwrap().get(sent.memory_id).unwrap();
@@ -62,8 +62,15 @@ fn rejected_batch_skips_delivery_and_leaves_next_sequence_available() {
     let config = WriterConfig::default().limits(WireLimits::default().max_frame_bytes(200));
     let codec = FrameV1::with_config(41, ClientCaps::web_current(), config);
     let too_big = vec![ops::set_text(2, &"x".repeat(512))];
-    let result = codec.deliver(too_big, 0, |_| -> Result<(), ProtocolError> {panic!("invalid batch sent")});
-    assert!(matches!(result,Err(ProtocolError::Writer(_))));
-    let bytes=codec.deliver(vec![ops::set_text(2,"ok")],0,Ok).unwrap();
-    assert_eq!(read_frame(&bytes,&WireLimits::default()).unwrap().sequence_id(),1);
+    let result = codec.deliver(too_big, 0, |_| -> Result<(), ProtocolError> {
+        panic!("invalid batch sent")
+    });
+    assert!(matches!(result, Err(ProtocolError::Writer(_))));
+    let bytes = codec.deliver(vec![ops::set_text(2, "ok")], 0, Ok).unwrap();
+    assert_eq!(
+        read_frame(&bytes, &WireLimits::default())
+            .unwrap()
+            .sequence_id(),
+        1
+    );
 }

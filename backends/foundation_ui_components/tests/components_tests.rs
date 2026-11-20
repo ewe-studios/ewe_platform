@@ -7,33 +7,33 @@
 //! FieldBinding callbacks invoked through the runtime).
 //!
 //! HOW: pure components are inspected as `Html`; reactive ones mount through
-//! `App::mock`, `stabilize`, and assert the captured `DomOp`s / signal values.
+//! `App::mock`, `stabilize`, and assert the captured operations / signal values.
 
-#[path = "../../foundation_wasm_ui/tests/support/parity.rs"]
-mod parity;
-use parity::reference;
+use foundation_ui_wire::{OperationT, UiOperationT as Ui, WebOperationT as Web};
+#[path = "../../foundation_wasm_ui/tests/support/names.rs"]
+mod names;
+use names::wire_name;
 
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use foundation_signals::{Context, EventData};
+use foundation_signals::EventData;
 use foundation_ui_components::{
     accordion, autocomplete, avatar, button, button_with_click, checkbox, collapsible, combobox,
-    context_menu, dialog, field, fieldset, form, input, menu, menubar, meter, navigation_menu,
-    number_field, otp_field, parent_check_state, popover, progress, radio_group, scroll_area,
-    select, separator, skeleton, slider, switch, tabs, toast_viewport, toggle, toolbar, tooltip,
-    AccordionConfig, AccordionItem, AvatarConfig, AvatarSlots, ButtonConfig, ButtonSlots,
-    CheckState, CheckboxConfig, CheckboxSlots, CollapsibleConfig, CollapsibleSlots, DialogConfig,
-    DialogSlots, FieldConfig, FieldSlots, FieldsetConfig, FieldsetSlots, FormConfig, InputConfig,
-    ItemConfig, MenuConfig, MenuEntry, NavItem, NavMenuConfig, NumberFieldConfig, OtpConfig,
-    PickItem, PopoverConfig, PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem,
-    ScrollAreaConfig, SelectConfig, SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig,
-    TabDef, TabsConfig, Toast, ToastManager, ToggleConfig, ToggleSlots, ToolbarConfig,
-    ValidationMode,
+    dialog, field, fieldset, form, input, menu, menubar, meter, navigation_menu, number_field,
+    otp_field, parent_check_state, popover, progress, radio_group, scroll_area, select, separator,
+    skeleton, slider, switch, tabs, toast_viewport, toggle, toolbar, tooltip, AccordionConfig,
+    AccordionItem, AvatarConfig, AvatarSlots, ButtonConfig, ButtonSlots, CheckState,
+    CheckboxConfig, CheckboxSlots, CollapsibleConfig, CollapsibleSlots, DialogConfig, DialogSlots,
+    FieldConfig, FieldSlots, FieldsetConfig, FieldsetSlots, FormConfig, InputConfig, ItemConfig,
+    MenuConfig, MenuEntry, NavItem, NavMenuConfig, NumberFieldConfig, OtpConfig, PickItem,
+    PopoverConfig, PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem, ScrollAreaConfig,
+    SelectConfig, SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig, TabDef, TabsConfig,
+    Toast, ToastManager, ToggleConfig, ToggleSlots, ToolbarConfig, ValidationMode,
 };
-use foundation_ui_traits::{DomOp, Html};
-use foundation_wasm_ui::{html, App, SharedInstructionReceiver, Slot};
+use foundation_ui_traits::Html;
+use foundation_wasm_ui::{html, App, Slot};
 
 fn attr<'a>(h: &'a Html, name: &str) -> Option<&'a str> {
     h.attributes
@@ -42,8 +42,8 @@ fn attr<'a>(h: &'a Html, name: &str) -> Option<&'a str> {
         .map(|(_, v)| v.as_ref())
 }
 
-fn all_ops(sent: &Rc<RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().map(reference).collect()
+fn all_ops(sent: &Rc<RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>) -> Vec<OperationT> {
+    sent.borrow().iter().flatten().cloned().collect()
 }
 
 // ─── separator (pure) ──────────────────────────────────────────────────────────
@@ -86,13 +86,13 @@ fn toggle_reflects_pressed_signal_as_presence_attr() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-            DomOp::SetAttribute { name, value, .. }
-                if name.name() == Some("aria-pressed") && *value == "false")),
+            OperationT { web: Web::WebSetAttribute(ref row), .. }
+                if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-pressed") && row.value.as_deref().unwrap_or_default() == "false")),
         "aria-pressed=false initially"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-            DomOp::RemoveAttribute { name, .. } if name.name() == Some("data-pressed"))),
+            OperationT { web: Web::WebRemoveAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-pressed"))),
         "data-pressed absent when unpressed"
     );
 
@@ -102,8 +102,8 @@ fn toggle_reflects_pressed_signal_as_presence_attr() {
     let ops = all_ops(&sent);
     assert!(
         matches!(ops.last().unwrap(),
-            DomOp::SetAttribute { name, value, .. }
-                if name.name() == Some("data-pressed") && *value == ""),
+            OperationT { web: Web::WebSetAttribute(ref row), .. }
+                if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-pressed") && row.value.as_deref().unwrap_or_default() == ""),
         "data-pressed present when pressed, got {:?}",
         ops.last()
     );
@@ -209,18 +209,18 @@ fn dialog_syncs_open_and_wires_aria_and_driver() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-dialog-mode") && *value == "modal")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-dialog-mode") && row.value.as_deref().unwrap_or_default() == "modal")),
         "modal driver mode"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("aria-labelledby"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-labelledby"))),
         "title wires aria-labelledby"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        OperationT {ui:Ui::UiBehaviour(row),..} if row.behaviour == foundation_ui_wire::BehaviourId::DIALOG)),
         "dialog driver emitted"
     );
 
@@ -229,8 +229,8 @@ fn dialog_syncs_open_and_wires_aria_and_driver() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-open") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-open") && row.value.as_deref().unwrap_or_default() == "")),
         "open flips data-open"
     );
 }
@@ -259,31 +259,31 @@ fn popover_wires_trigger_positioner_and_modal_machinery() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("aria-controls"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-controls"))),
         "trigger controls popup"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-anchor") && value.starts_with("popover-trigger-"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-anchor") && row.value.as_deref().unwrap_or_default().starts_with("popover-trigger-"))),
         "positioner anchored"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-scroll-lock") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-scroll-lock") && row.value.as_deref().unwrap_or_default() == "true")),
         "modal → scroll lock"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-focus-trap") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-focus-trap") && row.value.as_deref().unwrap_or_default() == "true")),
         "modal → focus trap"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-dismiss") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-dismiss") && row.value.as_deref().unwrap_or_default() == "true")),
         "popup is light-dismissable"
     );
 }
@@ -333,16 +333,16 @@ fn tooltip_is_hover_describe_popover() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "tooltip")), "tooltip role");
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "tooltip")), "tooltip role");
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("aria-describedby"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-describedby"))),
         "describe link"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-hover-delay") && *value == "600")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-hover-delay") && row.value.as_deref().unwrap_or_default() == "600")),
         "600ms tooltip delay"
     );
 }
@@ -360,8 +360,8 @@ fn toast_manager_adds_and_closes_over_the_list() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-toast") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-toast") && row.value.as_deref().unwrap_or_default() == "true")),
         "a toast rendered"
     );
     assert_eq!(manager.toasts().get().len(), 1, "one toast queued");
@@ -394,16 +394,16 @@ fn switch_reflects_checked_as_presence_pair() {
     let ops = all_ops(&sent);
     // unchecked → data-unchecked present, data-checked removed.
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-unchecked") && *value == "")));
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-unchecked") && row.value.as_deref().unwrap_or_default() == "")));
 
     set_checked.set(true);
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-checked") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-checked") && row.value.as_deref().unwrap_or_default() == "")),
         "data-checked present when on"
     );
 }
@@ -426,20 +426,20 @@ fn checkbox_three_state_drives_aria_and_data() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-checked") && *value == "mixed")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-checked") && row.value.as_deref().unwrap_or_default() == "mixed")),
         "indeterminate → mixed"
     );
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-indeterminate") && *value == "")));
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-indeterminate") && row.value.as_deref().unwrap_or_default() == "")));
 
     set_state.set(CheckState::Checked);
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-checked") && *value == "true")));
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-checked") && row.value.as_deref().unwrap_or_default() == "true")));
 }
 
 #[test]
@@ -495,8 +495,8 @@ fn radio_group_marks_selected_item_checked() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-checked") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-checked") && row.value.as_deref().unwrap_or_default() == "")),
         "selecting an item sets data-checked"
     );
 }
@@ -518,7 +518,12 @@ fn scoped_script_builds_primal_script_node() {
 fn composite_behavior_is_a_roving_script() {
     use foundation_ui_components::machinery::composite::{composite_behavior, COMPOSITE_JS};
     let s = composite_behavior();
-    let body = s.children[0].text.as_deref().unwrap();
+    assert!(s.children.is_empty());
+    assert!(s
+        .attributes
+        .iter()
+        .any(|(name, value)| name.name() == Some("data-ewe-behaviour") && value == "composite"));
+    let body = COMPOSITE_JS;
     assert!(body.contains("keydown"), "wires keydown");
     assert!(body.contains("data-composite-item"), "finds items");
     assert!(
@@ -584,13 +589,13 @@ fn toggle_group_embeds_composite_machinery_and_marks_items() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-            DomOp::SetAttribute { name, value, .. }
-                if name.name() == Some("data-composite-item") && *value == "true")),
+            OperationT { web: Web::WebSetAttribute(ref row), .. }
+                if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-composite-item") && row.value.as_deref().unwrap_or_default() == "true")),
         "items marked for roving"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-            DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+            OperationT {web:Web::WebBehaviour(row),..} if row.custom.as_deref() == Some("composite"))),
         "composite behavior script emitted"
     );
 }
@@ -625,21 +630,21 @@ fn radio_group_wires_roving_and_move_and_select() {
     // Group opts into the radio "move AND select" composite pattern.
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-composite-select") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-composite-select") && row.value.as_deref().unwrap_or_default() == "true")),
         "radiogroup opts into move-and-select"
     );
     // Inputs are roving members.
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-composite-item") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-composite-item") && row.value.as_deref().unwrap_or_default() == "true")),
         "radio inputs marked as composite items"
     );
     // The composite roving script is embedded.
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        OperationT {web:Web::WebBehaviour(row),..} if row.custom.as_deref() == Some("composite"))),
         "composite behavior script emitted into the radiogroup"
     );
 }
@@ -650,7 +655,12 @@ fn radio_group_wires_roving_and_move_and_select() {
 fn dismiss_behavior_is_a_light_dismiss_script() {
     use foundation_ui_components::machinery::dismiss::{dismiss_behavior, DISMISS_JS};
     let s = dismiss_behavior();
-    let body = s.children[0].text.as_deref().unwrap();
+    assert!(s.children.is_empty());
+    assert!(s
+        .attributes
+        .iter()
+        .any(|(name, value)| name.name() == Some("data-ewe-behaviour") && value == "dismiss"));
+    let body = DISMISS_JS;
     assert!(body.contains("Escape"), "Escape closes");
     assert!(body.contains("pointerdown"), "outside pointer closes");
     assert!(
@@ -671,7 +681,12 @@ fn dismiss_behavior_is_a_light_dismiss_script() {
 fn position_behavior_emits_placement_and_var_contract() {
     use foundation_ui_components::machinery::position::{position_behavior, POSITION_JS};
     let s = position_behavior();
-    let body = s.children[0].text.as_deref().unwrap();
+    assert!(s.children.is_empty());
+    assert!(s
+        .attributes
+        .iter()
+        .any(|(name, value)| name.name() == Some("data-ewe-behaviour") && value == "position"));
+    let body = POSITION_JS;
     assert!(
         body.contains("data-side") && body.contains("data-align"),
         "reflects final placement"
@@ -696,7 +711,12 @@ fn position_behavior_emits_placement_and_var_contract() {
 fn transition_behavior_manages_starting_and_ending_styles() {
     use foundation_ui_components::machinery::transition::{transition_behavior, TRANSITION_JS};
     let s = transition_behavior();
-    let body = s.children[0].text.as_deref().unwrap();
+    assert!(s.children.is_empty());
+    assert!(s
+        .attributes
+        .iter()
+        .any(|(name, value)| name.name() == Some("data-ewe-behaviour") && value == "transition"));
+    let body = TRANSITION_JS;
     assert!(
         body.contains("data-starting-style"),
         "stamps enter baseline"
@@ -714,7 +734,12 @@ fn transition_behavior_manages_starting_and_ending_styles() {
 fn scroll_lock_behavior_locks_and_restores() {
     use foundation_ui_components::machinery::scroll_lock::{scroll_lock_behavior, SCROLL_LOCK_JS};
     let s = scroll_lock_behavior();
-    let body = s.children[0].text.as_deref().unwrap();
+    assert!(s.children.is_empty());
+    assert!(s
+        .attributes
+        .iter()
+        .any(|(name, value)| name.name() == Some("data-ewe-behaviour") && value == "scroll_lock"));
+    let body = SCROLL_LOCK_JS;
     assert!(body.contains("overflowY"), "toggles overflow-y");
     assert!(
         body.contains("scrollbar-gutter") || body.contains("scrollbarGutter"),
@@ -764,16 +789,16 @@ fn menu_renders_roled_items_and_listbox_machinery() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-haspopup") && *value == "menu")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-haspopup") && row.value.as_deref().unwrap_or_default() == "menu")),
         "trigger announces a menu popup");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "menuitem")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "menuitem")),
         "command item role");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "menuitemcheckbox")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "menuitemcheckbox")),
         "checkbox item role");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-list-item") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-list-item") && row.value.as_deref().unwrap_or_default() == "true")),
         "items are list members for virtual highlight");
 }
 
@@ -795,9 +820,9 @@ fn toolbar_marks_children_as_composite_members() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "toolbar")));
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "toolbar")));
     let marked = ops.iter().filter(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-composite-item") && *value == "true")).count();
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-composite-item") && row.value.as_deref().unwrap_or_default() == "true")).count();
     assert_eq!(marked, 2, "each child becomes a roving member");
 }
 
@@ -821,20 +846,20 @@ fn select_renders_listbox_options_and_hidden_input() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-haspopup") && *value == "listbox")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-haspopup") && row.value.as_deref().unwrap_or_default() == "listbox")),
         "select trigger opens a listbox");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "option")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "option")),
         "options rendered");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "hidden")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("type") && row.value.as_deref().unwrap_or_default() == "hidden")),
         "hidden input serializes the value");
     // Item-alignment positioning (base-ui alignItemWithTrigger) is the default.
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-align-item") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-align-item") && row.value.as_deref().unwrap_or_default() == "true")),
         "selected item aligns over the trigger");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-select-scroll") && *value == "up")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-select-scroll") && row.value.as_deref().unwrap_or_default() == "up")),
         "scroll arrows present");
     use foundation_ui_components::pickers::SELECT_ALIGN_JS;
     assert!(
@@ -865,12 +890,12 @@ fn select_is_generic_over_t_with_to_form_value() {
     // Hidden input serializes via to_form_value (the City id, not its label).
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("value") && *value == "7")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("value") && row.value.as_deref().unwrap_or_default() == "7")),
         "value serialized through to_form_value"
     );
     // Selection compares by PartialEq → the selected option is marked.
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-selected") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-selected") && row.value.as_deref().unwrap_or_default() == "true")),
         "the equal-by-PartialEq item is selected");
 }
 
@@ -906,14 +931,14 @@ fn navigation_menu_is_nav_with_linked_panels() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-controls") && value.starts_with("nav-panel-"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-controls") && row.value.as_deref().unwrap_or_default().starts_with("nav-panel-"))),
         "trigger controls its panel");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-current") && *value == "page")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-current") && row.value.as_deref().unwrap_or_default() == "page")),
         "current link marked");
     // Shared morphing Viewport (one popup, content swaps).
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nav-content") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-nav-content") && row.value.as_deref().unwrap_or_default() == "true")),
         "contents live in the shared viewport");
     use foundation_ui_components::nav_menu::NAV_MENU_JS;
     assert!(
@@ -933,14 +958,14 @@ fn progress_reflects_value_and_indeterminate() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "progressbar")));
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "progressbar")));
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-valuenow") && *value == "50")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-valuenow") && row.value.as_deref().unwrap_or_default() == "50")),
         "valuenow reflects the value");
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("style") && value.contains("--progress-value:50"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("style") && row.value.as_deref().unwrap_or_default().contains("--progress-value:50"))),
         "var published"
     );
 
@@ -948,7 +973,7 @@ fn progress_reflects_value_and_indeterminate() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-indeterminate") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-indeterminate") && row.value.as_deref().unwrap_or_default() == "")),
         "None → indeterminate");
 }
 
@@ -962,12 +987,12 @@ fn slider_publishes_percent_and_hidden_range_input() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("style") && value.contains("--slider-percent:25"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("style") && row.value.as_deref().unwrap_or_default().contains("--slider-percent:25"))),
         "percent var published"
     );
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "range")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("type") && row.value.as_deref().unwrap_or_default() == "range")),
         "hidden range input carries focus/form/AT");
 }
 
@@ -1020,11 +1045,11 @@ fn input_reflects_value_and_is_field_aware() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("value") && *value == "hi")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("value") && row.value.as_deref().unwrap_or_default() == "hi")),
         "input renders its value"
     );
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "text")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("type") && row.value.as_deref().unwrap_or_default() == "text")),
         "default text type");
 }
 
@@ -1048,13 +1073,13 @@ fn number_field_emits_spinbutton_structure() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "spinbutton")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "spinbutton")),
         "input is a spinbutton");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nf-increment") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-nf-increment") && row.value.as_deref().unwrap_or_default() == "true")),
         "increment affordance present");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-valuenow") && *value == "3")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-valuenow") && row.value.as_deref().unwrap_or_default() == "3")),
         "aria-valuenow reflects the value");
 }
 
@@ -1095,10 +1120,10 @@ fn number_field_drives_full_m8_behavior() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nf-scrub") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-nf-scrub") && row.value.as_deref().unwrap_or_default() == "true")),
         "scrub area rendered when configured");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-allow-wheel") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-allow-wheel") && row.value.as_deref().unwrap_or_default() == "true")),
         "wheel scrub enabled");
 }
 
@@ -1118,7 +1143,7 @@ fn slider_wires_drag_machinery() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-slider-control") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-slider-control") && row.value.as_deref().unwrap_or_default() == "true")),
         "control is the drag surface");
 }
 
@@ -1158,10 +1183,10 @@ fn drawer_snap_points_wired() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-snap-points") && *value == "0.4,1")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-snap-points") && row.value.as_deref().unwrap_or_default() == "0.4,1")),
         "snap points serialized");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-snap-input") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-snap-input") && row.value.as_deref().unwrap_or_default() == "true")),
         "snap index reports back via hidden input");
 }
 
@@ -1185,7 +1210,7 @@ fn toast_swipe_to_dismiss_wired() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-swipe-direction") && *value == "right")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-swipe-direction") && row.value.as_deref().unwrap_or_default() == "right")),
         "toast swipes right to dismiss");
 }
 
@@ -1206,10 +1231,10 @@ fn otp_field_emits_cells_and_hidden_aggregate() {
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     let cell_count = ops.iter().filter(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-otp-cell") && *value == "true")).count();
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-otp-cell") && row.value.as_deref().unwrap_or_default() == "true")).count();
     assert_eq!(cell_count, 4, "one input per cell");
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-otp-value") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-otp-value") && row.value.as_deref().unwrap_or_default() == "true")),
         "hidden aggregate present");
 }
 
@@ -1232,20 +1257,20 @@ fn collapsible_toggles_expanded_and_hidden() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-expanded") && *value == "false")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-expanded") && row.value.as_deref().unwrap_or_default() == "false")),
         "closed → aria-expanded false"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("hidden"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("hidden"))),
         "closed panel is hidden"
     );
     // Embeds M7 + measurement.
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-size-var") && *value == "--collapsible-panel")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-size-var") && row.value.as_deref().unwrap_or_default() == "--collapsible-panel")),
         "panel measured"
     );
 
@@ -1254,13 +1279,13 @@ fn collapsible_toggles_expanded_and_hidden() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-expanded") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-expanded") && row.value.as_deref().unwrap_or_default() == "true")),
         "open → aria-expanded true"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::RemoveAttribute { name, .. } if name.name() == Some("hidden"))),
+        OperationT { web: Web::WebRemoveAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("hidden"))),
         "open panel un-hidden"
     );
 }
@@ -1297,8 +1322,8 @@ fn accordion_reflects_open_item_and_ties_aria() {
     // Panel↔trigger wiring present.
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-controls") && value.starts_with("accordion-panel-"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-controls") && row.value.as_deref().unwrap_or_default().starts_with("accordion-panel-"))),
         "trigger controls its panel"
     );
 
@@ -1307,8 +1332,8 @@ fn accordion_reflects_open_item_and_ties_aria() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-expanded") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-expanded") && row.value.as_deref().unwrap_or_default() == "true")),
         "opened item is expanded"
     );
 }
@@ -1347,18 +1372,18 @@ fn tabs_selection_drives_aria_and_automatic_mode_selects() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-selected") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-selected") && row.value.as_deref().unwrap_or_default() == "true")),
         "selected tab is aria-selected"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-composite-select") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-composite-select") && row.value.as_deref().unwrap_or_default() == "true")),
         "automatic mode → arrows move-and-select"
     );
     assert!(ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "tabpanel")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "tabpanel")),
         "panels carry the tabpanel role");
 }
 
@@ -1366,7 +1391,12 @@ fn tabs_selection_drives_aria_and_automatic_mode_selects() {
 fn focus_trap_behavior_traps_and_restores() {
     use foundation_ui_components::machinery::focus_trap::{focus_trap_behavior, FOCUS_TRAP_JS};
     let s = focus_trap_behavior();
-    let body = s.children[0].text.as_deref().unwrap();
+    assert!(s.children.is_empty());
+    assert!(s
+        .attributes
+        .iter()
+        .any(|(name, value)| name.name() == Some("data-ewe-behaviour") && value == "focus_trap"));
+    let body = FOCUS_TRAP_JS;
     assert!(body.contains("Tab"), "wraps Tab");
     assert!(
         body.contains("data-initial-focus"),
@@ -1419,19 +1449,19 @@ fn avatar_wires_image_events_and_hides_fallback_on_loaded() {
     // src present → loading status starts at Loading, fallback visible.
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-loading-status") && *value == "loading")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-loading-status") && row.value.as_deref().unwrap_or_default() == "loading")),
         "starts loading"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("src") )),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("src") )),
         "img src set"
     );
     // Fallback is NOT hidden yet (status != Loaded).
     assert!(
         !ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("data-hidden"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-hidden"))),
         "fallback visible while loading"
     );
 }
@@ -1454,8 +1484,8 @@ fn avatar_fallback_delay_emitted_as_css_var() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("style") && value.contains("--avatar-fallback-delay: 300ms"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("style") && row.value.as_deref().unwrap_or_default().contains("--avatar-fallback-delay: 300ms"))),
         "fallback delay emitted as CSS var"
     );
 }
@@ -1482,26 +1512,26 @@ fn button_reflects_disabled_and_loading() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("disabled") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("disabled") && row.value.as_deref().unwrap_or_default() == "")),
         "disabled attr present"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-disabled") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-disabled") && row.value.as_deref().unwrap_or_default() == "true")),
         "aria-disabled"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-disabled") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-disabled") && row.value.as_deref().unwrap_or_default() == "")),
         "data-disabled"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::RemoveAttribute { name, .. }
-            if name.name() == Some("data-loading"))),
+        OperationT { web: Web::WebRemoveAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-loading"))),
         "data-loading initially absent"
     );
 
@@ -1510,14 +1540,14 @@ fn button_reflects_disabled_and_loading() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-loading") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-loading") && row.value.as_deref().unwrap_or_default() == "")),
         "data-loading present when on"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-busy") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-busy") && row.value.as_deref().unwrap_or_default() == "true")),
         "aria-busy true"
     );
 }
@@ -1542,14 +1572,14 @@ fn button_focusable_when_disabled() {
     // (stays in tab order; announced as disabled but still focusable).
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-disabled") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-disabled") && row.value.as_deref().unwrap_or_default() == "true")),
         "aria-disabled present"
     );
     assert!(
         !ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("disabled") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("disabled") && row.value.as_deref().unwrap_or_default() == "")),
         "native disabled ABSENT"
     );
 }
@@ -1571,7 +1601,7 @@ fn button_with_click_wires_onclick() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::AddEventListener { event_name, .. } if event_name.name() == Some("click"))),
+        OperationT { web: Web::WebAddListener(ref row), .. } if wire_name(row.name_id, row.custom_name.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("click"))),
         "click listener wired"
     );
 }
@@ -1605,25 +1635,25 @@ fn menubar_is_role_menubar_with_composite_roving() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("role") && *value == "menubar")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "menubar")),
         "role=menubar"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-composite") && *value == "true")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-composite") && row.value.as_deref().unwrap_or_default() == "true")),
         "composite roving"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-orientation") && *value == "horizontal")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-orientation") && row.value.as_deref().unwrap_or_default() == "horizontal")),
         "horizontal"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        OperationT {web:Web::WebBehaviour(row),..} if row.custom.as_deref() == Some("composite"))),
         "composite script emitted"
     );
 }
@@ -1668,17 +1698,17 @@ fn context_menu_wires_surface_and_contextmenu() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("data-cm-surface"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-cm-surface"))),
         "surface element present"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("data-cm-open"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-cm-open"))),
         "hidden open button"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        OperationT { web: Web::ScriptNode(row), .. } if row.body.as_deref() == Some(CONTEXT_MENU_JS))),
         "contextmenu script emitted"
     );
 }
@@ -1713,20 +1743,20 @@ fn combobox_filters_by_query_and_publishes_count() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("role") && *value == "combobox")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "combobox")),
         "role=combobox"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-haspopup") && *value == "listbox")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-haspopup") && row.value.as_deref().unwrap_or_default() == "listbox")),
         "haspopup=listbox"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-autocomplete") && *value == "list")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-autocomplete") && row.value.as_deref().unwrap_or_default() == "list")),
         "autocomplete=list"
     );
 
@@ -1737,8 +1767,8 @@ fn combobox_filters_by_query_and_publishes_count() {
     // Filtering is verified by the rendered list (combobox renders <For> over filtered).
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-live") && *value == "polite")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-live") && row.value.as_deref().unwrap_or_default() == "polite")),
         "live region"
     );
 }
@@ -1770,8 +1800,8 @@ fn autocomplete_is_combobox_with_value_equals_query() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("role") && *value == "combobox")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "combobox")),
         "role=combobox"
     );
     // Selecting "Ap" → status shows 2 results (Apple, Apricot).
@@ -1780,7 +1810,7 @@ fn autocomplete_is_combobox_with_value_equals_query() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetText { text, .. } if text == "2 results")),
+        OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default() == "2 results")),
         "filtered count"
     );
 }
@@ -1807,19 +1837,19 @@ fn fieldset_renders_legend_and_disabled() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("disabled") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("disabled") && row.value.as_deref().unwrap_or_default() == "")),
         "fieldset disabled"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("data-disabled") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-disabled") && row.value.as_deref().unwrap_or_default() == "")),
         "data-disabled"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::CreateElement { tag, .. } if tag.name() == Some("legend"))),
+        OperationT { web: Web::WebElement(ref row), .. } if wire_name(row.tag_id, row.custom_tag.as_deref(), foundation_ui_traits::TAG_NAMES) == Some("legend"))),
         "legend element"
     );
 }
@@ -1844,13 +1874,13 @@ fn form_wires_submit_and_novalidate() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("novalidate") && *value == "")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("novalidate") && row.value.as_deref().unwrap_or_default() == "")),
         "novalidate present (default)"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::AddEventListener { event_name, .. } if event_name.name() == Some("submit"))),
+        OperationT { web: Web::WebAddListener(ref row), .. } if wire_name(row.name_id, row.custom_name.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("submit"))),
         "submit event listener wired"
     );
 }
@@ -1867,26 +1897,26 @@ fn meter_reflects_value_as_determinate() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("role") && *value == "meter")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("role") && row.value.as_deref().unwrap_or_default() == "meter")),
         "role=meter"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-valuenow") && *value == "75")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-valuenow") && row.value.as_deref().unwrap_or_default() == "75")),
         "valuenow=75"
     );
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("style") && value.contains("--meter-value:75"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("style") && row.value.as_deref().unwrap_or_default().contains("--meter-value:75"))),
         "meter var"
     );
     // Meter is always determinate — no data-indeterminate.
     assert!(
         !ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, .. } if name.name() == Some("data-indeterminate"))),
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-indeterminate"))),
         "meter is never indeterminate"
     );
 
@@ -1895,8 +1925,8 @@ fn meter_reflects_value_as_determinate() {
     let ops = all_ops(&sent);
     assert!(
         ops.iter().any(|op| matches!(op,
-        DomOp::SetAttribute { name, value, .. }
-            if name.name() == Some("aria-valuenow") && *value == "0")),
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("aria-valuenow") && row.value.as_deref().unwrap_or_default() == "0")),
         "min value"
     );
 }

@@ -15,14 +15,14 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{marker, Behaviour};
 
 /// Slider drag: pointer-down on `[data-slider-control]` computes the value from
 /// the finger position and writes the hidden `[data-slider-input]` (→ change →
 /// the Rust setter); PageUp/PageDown step by `data-large-step`. Single-thumb
 /// (range swap/stop is the multi-thumb follow-up). Ported from base-ui
 /// `SliderControl.getFingerState`.
-pub const SLIDER_DRAG_JS: &str = r#"function(scope){
+pub const SLIDER_DRAG_JS: &str = r"function(scope){
   var root = scope.parent();
   if (!root || root.__slider) return; root.__slider = true;
   var win = (root.ownerDocument && root.ownerDocument.defaultView) || window;
@@ -62,7 +62,7 @@ pub const SLIDER_DRAG_JS: &str = r#"function(scope){
     if (e.key === 'PageUp') { e.preventDefault(); commit(clampV(cur + largeStep)); }
     else if (e.key === 'PageDown') { e.preventDefault(); commit(clampV(cur - largeStep)); }
   });
-}"#;
+}";
 
 /// Swipe-to-dismiss for drawer/toast: tracks pointer movement along the swipe
 /// axis, publishing `--<prefix>-swipe-movement-x/y` (+ `--drawer-swipe-progress`
@@ -70,7 +70,7 @@ pub const SLIDER_DRAG_JS: &str = r#"function(scope){
 /// `[data-swipe-dismiss]` (the wired close), otherwise it snaps back. Reads
 /// `data-swipe-direction` (`down|up|left|right`) and `data-swipe-prefix`. Ported
 /// from base-ui's drawer/toast swipe handling.
-pub const SWIPE_JS: &str = r#"function(scope){
+pub const SWIPE_JS: &str = r"function(scope){
   var el = scope.parent();
   if (!el || el.__swipe) return; el.__swipe = true;
   var win = (el.ownerDocument && el.ownerDocument.defaultView) || window;
@@ -114,7 +114,7 @@ pub const SWIPE_JS: &str = r#"function(scope){
     }
     reset();
   });
-}"#;
+}";
 
 /// Drawer snap points (OUR design — base-ui has no drawer; vaul-inspired). The
 /// drawer drags along its swipe axis and rests at fractional-open heights
@@ -122,7 +122,7 @@ pub const SWIPE_JS: &str = r#"function(scope){
 /// point (or the next/prev with `data-snap-sequential`), dragging below the
 /// smallest point dismisses. Publishes `--drawer-offset` + `--drawer-snap-progress`
 /// and reports the resting index via `[data-snap-input]` (→ a `usize` signal).
-pub const SNAP_JS: &str = r#"function(scope){
+pub const SNAP_JS: &str = r"function(scope){
   var el = scope.parent();
   if (!el || el.__snap) return; el.__snap = true;
   var dir = el.getAttribute('data-swipe-direction') || 'bottom';
@@ -166,29 +166,29 @@ pub const SNAP_JS: &str = r#"function(scope){
     setOffset(toOffset(points[curIdx]));
     if (snapInput) { snapInput.value = String(curIdx); snapInput.dispatchEvent(new Event('change', { bubbles: true })); }
   });
-}"#;
+}";
 
-/// The `<script>` a slider Root embeds for M8 pointer drag. The Root must carry
+/// The marker a slider Root embeds for M8 pointer drag. The Root must carry
 /// `data-min`/`data-max`/`data-step`/`data-large-step`/`data-orientation`, mark
 /// the track `[data-slider-control]` and the hidden range `[data-slider-input]`.
 #[must_use]
 pub fn slider_drag_behavior() -> Html {
-    scoped_script(SLIDER_DRAG_JS)
+    marker(Behaviour::Gestures, Some("slider"))
 }
 
-/// The `<script>` a drawer/toast embeds for M8 swipe-to-dismiss. The root must
+/// The marker a drawer/toast embeds for M8 swipe-to-dismiss. The root must
 /// carry `data-swipe-direction`/`data-swipe-prefix` and a hidden
 /// `[data-swipe-dismiss]` wired to its close.
 #[must_use]
 pub fn swipe_behavior() -> Html {
-    scoped_script(SWIPE_JS)
+    marker(Behaviour::Gestures, Some("swipe"))
 }
 
-/// The `<script>` a drawer with snap points embeds. The drawer must carry
+/// The marker a drawer with snap points embeds. The drawer must carry
 /// `data-swipe-direction`/`data-snap-points` (+ optional `data-snap-sequential`)
 /// and a hidden `[data-snap-input]` wired to a `usize` snap-index signal +
 /// `[data-swipe-dismiss]` for the dismiss-below-lowest path.
 #[must_use]
 pub fn snap_behavior() -> Html {
-    scoped_script(SNAP_JS)
+    marker(Behaviour::Gestures, Some("snap"))
 }

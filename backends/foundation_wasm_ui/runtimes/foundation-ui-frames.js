@@ -3,7 +3,7 @@ import { bindLiveMounts } from "./foundation-ui-live.js";
 import * as wire from "./foundation-ui-wire.js";
 import * as vocab from "./foundation-ui-vocab.js";
 import * as registryBehaviours from "./foundation-ui-behaviours.js";
-import { DomOpApplicator, Op, Patcher } from "./foundation-wasm-ui.js";
+import { Patcher } from "./foundation-wasm-ui.js";
 
 const asBytes = input => ArrayBuffer.isView(input)
   ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength)
@@ -167,7 +167,8 @@ export class FrameApplicator {
     this.deps = deps;
     this.document = deps.document;
     this.registry = deps.registry;
-    this.legacy = deps.applicator ?? new DomOpApplicator(deps.registry, deps.document, deps.onEvent);
+    this.elementListeners = new WeakMap();
+    this.bindings = [];
     this.maxFrameBytes = deps.maxFrameBytes ?? defaultFrameBytes;
     this.gapTimeoutMs = deps.gapTimeoutMs ?? 1000;
     this.maxPendingFrames = deps.maxPendingFrames ?? 128;
@@ -273,6 +274,14 @@ export class FrameApplicator {
           if (m.control()) this.applyControl(m.control());
         } catch (e) { this.report(e.report?.code ?? "BadFrame", { unitIndex: i, ...(e.report ?? {}), detail: e.message }); }
       }
+      for (const {node, id, index, name, args, shared} of this.bindings.splice(0)) {
+        if (this.registry.get(id) !== node) continue;
+        const registry = this.deps.behaviours ?? registryBehaviours;
+        try {
+          const applied = shared ? registry.applyBehaviour(node, name, args) : registry.applyWebBehaviour(node, name, args);
+          if (!applied) this.report("UnknownBehaviour", {unitIndex:index,node:id,name:String(name)});
+        } catch (error) { this.report("BadFrame",{unitIndex:index,node:id,detail:error.message}); }
+      }
       this.origin = previousOrigin;
       this.deps.onApplied?.();
     }
@@ -321,14 +330,11 @@ export class FrameApplicator {
     const id = this.nodeIds.get(node) ?? node.getAttribute?.("primal-id");
     if (id != null && this.registry.get(Number(id)) === node) {
       this.registry.unregister(Number(id));
-      for (const [key, handler] of this.legacy.listeners) {
-        const prefix = String(id) + ":";
-        if (key.startsWith(prefix)) {
-          node.removeEventListener(key.slice(prefix.length), handler);
-          this.legacy.listeners.delete(key);
-        }
-      }
     }
+    for (const [name, handler] of this.elementListeners.get(node) ?? []) {
+      node.removeEventListener(name, handler);
+    }
+    this.elementListeners.delete(node);
     this.nodeIds.delete(node);
   }
   selectorQuery(selector) {
@@ -418,9 +424,7 @@ export class FrameApplicator {
       }
       case "AttachState": this.node(m.rootNode).setAttribute("primal::state", base64urlEncode(m.state ?? [])); break;
       case "UiBehaviour":
-        if (!(this.deps.behaviours ?? registryBehaviours).applyBehaviour(this.node(m.nodeId), m.behaviour, m.args)) {
-          this.report("UnknownBehaviour", { unitIndex: index, node: m.nodeId, name: String(m.behaviour) });
-        }
+        this.bindings.push({node:this.node(m.nodeId),id:m.nodeId,index,name:m.behaviour,args:m.args,shared:true});
         break;
       case "LiveMount": {
         const el = d.createElement(m.kind === wire.LiveKind.Stream ? "mount-stream" : "mount-data");
@@ -443,7 +447,6 @@ export class FrameApplicator {
       return value;
     };
     const property = () => resolveName(m.nameId, m.customName, vocab.ATTR_NAMES);
-    const one = (op, attr, value, text) => this.legacy.applyOne(op, id, attr, value, text);
     switch (name) {
       case "WebElement": {
         const el = d.createElement(resolveName(m.tagId, m.customTag, vocab.TAG_NAMES));
@@ -480,8 +483,23 @@ export class FrameApplicator {
           const removed = new Set(previous.filter(n => !target.contains(n)));
           for (const n of removed) if (!removed.has(n.parentNode)) this.discard(n);
         } else {
-          if (m.action === wire.MorphAction.ReplaceElement) this.discard(target);
-          this.legacy.applyMorph(m.target.nodeId, [m.action, m.target.kind, m.target.text ?? ""].join(":"), m.content);
+          switch (m.action) {
+            case wire.MorphAction.ReplaceChildren:
+              for (const child of Array.from(target.childNodes ?? [])) this.discard(child);
+              target.innerHTML = m.content;
+              break;
+            case wire.MorphAction.ReplaceElement:
+              target.insertAdjacentHTML("afterend", m.content);
+              this.discard(target);
+              target.remove();
+              break;
+            case wire.MorphAction.InsertBefore: target.insertAdjacentHTML("beforebegin", m.content); break;
+            case wire.MorphAction.InsertAfter: target.insertAdjacentHTML("afterend", m.content); break;
+            case wire.MorphAction.AppendSibling:
+              (target.parentNode ?? target.parent)?.insertAdjacentHTML("beforeend", m.content);
+              break;
+            default: throw problem("Morph");
+          }
         }
         break;
       }
@@ -496,22 +514,34 @@ export class FrameApplicator {
         this.deps.hydrate?.(parent, d); break;
       }
       case "WebBehaviour": {
-        const applied = (this.deps.behaviours ?? registryBehaviours).applyWebBehaviour(this.node(id), m.custom, m.args);
-        if (!applied) this.report("UnknownBehaviour", { unitIndex: index, node: id, name: m.custom });
+        this.bindings.push({node:this.node(id),id,index,name:m.custom,args:m.args,shared:false});
         break;
       }
-      default: {
-        this.node(id);
-        switch (name) {
-          case "WebProperty": one(Op.SET_PROPERTY, property(), m.value); break;
-          case "WebStyle": one(Op.SET_STYLE, property(), m.value); break;
-          case "WebAddClass": one(Op.ADD_CLASS, "", m.className); break;
-          case "WebRemoveClass": one(Op.REMOVE_CLASS, "", m.className); break;
-          case "WebAddListener": one(Op.ADD_EVENT_LISTENER, "", property()); break;
-          case "WebRemoveListener": one(Op.REMOVE_EVENT_LISTENER, "", property()); break;
-          default: throw problem("UnknownOp", { field: "web" });
-        }
+      case "WebProperty": {
+        let value = m.value;
+        try { value = JSON.parse(value); } catch { /* A plain string is a valid property. */ }
+        this.node(id)[property()] = value;
+        break;
       }
+      case "WebStyle": this.node(id).style[property()] = m.value; break;
+      case "WebAddClass": this.node(id).classList.add(m.className); break;
+      case "WebRemoveClass": this.node(id).classList.remove(m.className); break;
+      case "WebAddListener": case "WebRemoveListener": {
+        const node = this.node(id), event = property();
+        let listeners = this.elementListeners.get(node);
+        if (!listeners) this.elementListeners.set(node, listeners = new Map());
+        if (name === "WebAddListener" && !listeners.has(event)) {
+          const deliver = this.origin?.onEvent ?? this.deps.onEvent;
+          const handler = value => deliver?.(event, id, value, node);
+          listeners.set(event, handler);
+          node.addEventListener(event, handler);
+        } else if (name === "WebRemoveListener" && listeners.has(event)) {
+          node.removeEventListener(event, listeners.get(event));
+          listeners.delete(event);
+        }
+        break;
+      }
+      default: throw problem("UnknownOp", {field:"web"});
     }
   }
   applyColumnar(batch, index) {
@@ -602,14 +632,15 @@ export function installFrameRuntime(wasmUi, options = {}) {
   const doc = options.document ?? globalThis.document;
   const runtime = wasmUi.Patcher.runtime;
   if (runtime.frames?.document === doc) return runtime.frames;
-  if (runtime.applicator?.document && runtime.applicator.document !== doc) {
-    runtime.applicator = null;
-  }
-  const base = wasmUi.Patcher.ensureApplicator(doc);
-  runtime.frames = new FrameApplicator({document: doc, registry: base.registry, applicator: base,
+  if (runtime.document && runtime.document !== doc) runtime.dispatcher = null;
+  runtime.frames = new FrameApplicator({document: doc, registry: wasmUi.Patcher.ensureRegistry(doc),
     morph: wasmUi.MorphDom.morph, hydrate: wasmUi.Hydrator.hydrate, runtime, onApplied: wasmUi.Patcher.markApplied,
     ...options });
   bindLiveMounts(runtime, runtime.frames);
+  wasmUi.Hydrator.behaviourMarkers = registryBehaviours.hydrateMarkers;
+  if (doc.body) registryBehaviours.hydrateMarkers(doc.body);
   wasmUi.ProtocolHandler.frameHook = {isFrame, splitFrames, readFrames, maxFrameBytes: runtime.frames.maxFrameBytes};
   return runtime.frames;
 }
+
+globalThis.EweFrames = {installFrameRuntime};

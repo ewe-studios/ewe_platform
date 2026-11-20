@@ -14,7 +14,7 @@ use alloc::string::String;
 
 /// Describes a dynamic slot in an [`crate::Html`] tree.
 ///
-/// Each `Part` becomes one `Effect` that reads a signal and queues a `DomOp`.
+/// Each `Part` becomes one `Effect` that reads a signal and queues a frame operation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Part {
     /// Dynamic text content — `{signal}` inside an element.

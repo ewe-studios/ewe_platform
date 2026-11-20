@@ -29,10 +29,10 @@ fn parse_rejects_non_ewe() {
 // ── Protocol selection ───────────────────────────────────────
 
 #[test]
-fn select_default_columnar() {
+fn select_default_binary() {
     assert_eq!(
         select_protocol(&ProtocolHint::Default, None, b"hello"),
-        Protocol::Columnar
+        Protocol::CustomBinary
     );
 }
 
@@ -58,6 +58,14 @@ fn select_decision_overrides_query() {
         select_protocol(&ProtocolHint::Json, Some(&"arrow".into()), b"hello"),
         Protocol::Json
     );
+}
+
+#[test]
+fn select_detects_a_length_prefixed_frame() {
+    let frame = b"\x08\0\0\0\x04\0\0\0EWF1";
+    assert_eq!(select_protocol(&ProtocolHint::Default, None, frame), Protocol::Frame);
+    let incomplete = b"\x09\0\0\0\x04\0\0\0EWF1";
+    assert_eq!(select_protocol(&ProtocolHint::Default, None, incomplete), Protocol::CustomBinary);
 }
 
 #[test]
@@ -87,10 +95,10 @@ fn select_detects_arrow_ipc() {
 }
 
 #[test]
-fn select_unknown_falls_to_columnar() {
+fn select_unknown_falls_to_binary() {
     assert_eq!(
         select_protocol(&ProtocolHint::Default, None, b"\x00\x01"),
-        Protocol::Columnar
+        Protocol::CustomBinary
     );
 }
 
@@ -98,7 +106,7 @@ fn select_unknown_falls_to_columnar() {
 fn all_protocol_hints_map_correctly() {
     assert_eq!(
         protocol_from_hint(&ProtocolHint::Default),
-        Protocol::Columnar
+        Protocol::CustomBinary
     );
     assert_eq!(protocol_from_hint(&ProtocolHint::Arrow), Protocol::Arrow);
     assert_eq!(
@@ -111,7 +119,7 @@ fn all_protocol_hints_map_correctly() {
 
 #[test]
 fn all_query_hints() {
-    assert_eq!(protocol_from_query("columnar"), Some(Protocol::Columnar));
+    assert_eq!(protocol_from_query("frame"), Some(Protocol::Frame));
     assert_eq!(protocol_from_query("arrow"), Some(Protocol::Arrow));
     assert_eq!(protocol_from_query("arrow-ipc"), Some(Protocol::ArrowIpc));
     assert_eq!(protocol_from_query("json"), Some(Protocol::Json));
@@ -123,16 +131,16 @@ fn all_query_hints() {
 
 #[test]
 fn encode_preserves_bytes() {
-    let (bytes, ct) = encode_protocol(&Protocol::Columnar, b"hello");
+    let (bytes, ct) = encode_protocol(&Protocol::Frame, b"hello");
     assert_eq!(bytes, b"hello");
-    assert_eq!(ct, "application/primal-columnar");
+    assert_eq!(ct, "application/primal-frame");
 }
 
 #[test]
 fn encode_all_content_types() {
     assert_eq!(
-        encode_protocol(&Protocol::Columnar, b"").1,
-        "application/primal-columnar"
+        encode_protocol(&Protocol::Frame, b"").1,
+        "application/primal-frame"
     );
     assert_eq!(
         encode_protocol(&Protocol::Arrow, b"").1,

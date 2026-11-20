@@ -18,7 +18,7 @@ reference = ["std", "dep:serde", "dep:serde_json"]
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 flatbuffers = { workspace = true }
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.5" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 
 [dev-dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }

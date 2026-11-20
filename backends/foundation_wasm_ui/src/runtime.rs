@@ -26,8 +26,8 @@ use foundation_signals::{Context, NotificationManager, SignalGetter};
 use foundation_ui_wire::OperationT;
 use foundation_wasm::{MemoryAllocations, MemoryId};
 
-use crate::instruction::{ColumnarReceiver, InstructionReceiver};
-use crate::protocol::{FrameV1, ProtocolError, ProtocolMethods, SendResult};
+use crate::instruction::InstructionReceiver;
+use crate::protocol::{ProtocolError, ProtocolMethods, SendResult};
 
 // ─── SharedInstructionReceiver ─────────────────────────────────────────────────
 
@@ -50,12 +50,6 @@ impl SharedInstructionReceiver {
             failure: Rc::default(),
             mounts: crate::mounted_scopes::Mounts::default(),
         }
-    }
-
-    /// Wrap a columnar-native receiver (feature 19).
-    #[must_use]
-    pub fn columnar(receiver: ColumnarReceiver) -> Self {
-        Self::new(receiver.into_inner())
     }
 
     /// Bind a reactive scope to its roots. Removing its final root disposes the scope.
@@ -132,7 +126,6 @@ impl Runtime {
             protocol: None,
             memory: None,
             global_arena: false,
-            columnar: false,
         }
     }
 
@@ -171,12 +164,10 @@ pub struct RuntimeBuilder {
     protocol: Option<Box<dyn ProtocolMethods<Vec<OperationT>>>>,
     memory: Option<MemoryAllocations>,
     global_arena: bool,
-    columnar: bool,
 }
 
 impl RuntimeBuilder {
-    /// The wire protocol (`ColumnarV1` / `BatchInstructionsV1` / `JsonV1` /
-    /// `MockProtocol`).
+    /// Set the protocol that writes generated operations.
     #[must_use]
     pub fn protocol(mut self, protocol: impl ProtocolMethods<Vec<OperationT>> + 'static) -> Self {
         self.protocol = Some(Box::new(protocol));
@@ -198,14 +189,6 @@ impl RuntimeBuilder {
         self
     }
 
-    /// Use the frame writer for the former columnar receiver path.
-    /// Use `protocol(ColumnarV1::new())` to select the legacy codec.
-    #[must_use]
-    pub fn columnar(mut self) -> Self {
-        self.columnar = true;
-        self
-    }
-
     /// Build the runtime.
     ///
     /// # Panics
@@ -214,25 +197,6 @@ impl RuntimeBuilder {
     /// chosen (the spec's required-fields contract).
     #[must_use]
     pub fn build(self) -> Runtime {
-        if self.columnar {
-            assert!(
-                self.protocol.is_none(),
-                "columnar() selects FrameV1 — do not also set protocol(..)"
-            );
-            let receiver = if self.global_arena {
-                assert!(
-                    self.memory.is_none(),
-                    "choose either memory(..) or global_arena(), not both"
-                );
-                ColumnarReceiver::with_global_arena(FrameV1::new(0))
-            } else {
-                let memory = self.memory.expect("memory is required");
-                ColumnarReceiver::new(FrameV1::new(0), memory)
-            };
-            return Runtime {
-                receiver: SharedInstructionReceiver::columnar(receiver),
-            };
-        }
         let protocol = self.protocol.expect("protocol is required");
         let receiver = if self.global_arena {
             assert!(

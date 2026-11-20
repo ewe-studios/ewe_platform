@@ -239,10 +239,6 @@ reason = "2 pedantic warnings; clear them and delete this override (#441)"
 clippy-deny-warnings = false
 reason = "20 pedantic warnings; clear them and delete this override (#441)"
 
-[packages.foundation_ui_traits]
-clippy-deny-warnings = false
-reason = "2 pedantic warnings; clear them and delete this override (#441)"
-
 [packages.platform_demo]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"

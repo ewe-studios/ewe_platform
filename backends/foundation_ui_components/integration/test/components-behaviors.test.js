@@ -397,3 +397,12 @@ test("M3 dismiss: data-dismiss-outside=false disables outside pointer", () => {
   doc.dispatchEvent("pointerdown", { target: outside });
   assert.ok(!clicked(), "outside pointer ignored when data-dismiss-outside=false");
 });
+
+test("every shipped matrix entry names a real browser binding", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { SHARED, WEB_ONLY } = await import("../../../foundation_wasm_ui/runtimes/foundation-ui-behaviours.js");
+  const text = readFileSync(new URL("../../behaviours.toml",import.meta.url),"utf8");
+  const names = [...text.matchAll(/^\[behaviours\.(\w+)\]$/gm)].map(match => match[1]);
+  const browser = [...Object.keys(SHARED).map(name => name.toLowerCase()), ...Object.keys(WEB_ONLY)];
+  assert.deepEqual(names.sort(),browser.sort());
+});

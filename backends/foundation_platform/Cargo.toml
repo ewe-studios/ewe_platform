@@ -1,6 +1,6 @@
 [package]
 name = "foundation_platform"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -27,7 +27,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 
 # Shared types (dependency-free, compiles for wasm32)
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.5" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 
 # WASM UI build pipeline — WasmBundleGenerator (native-only, target-gated)
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.7", features = ["embedded-js"] }

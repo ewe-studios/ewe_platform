@@ -165,15 +165,40 @@ impl LiveChannel {
         client: impl FrameTransport + Send + 'static,
         resume_from: u64,
     ) -> Result<Vec<Arc<[u8]>>, LiveError> {
+        self.subscribe(client, &ClientCaps::web_current(), resume_from)
+    }
+
+    /// Subscribes a native renderer and returns its replay before its live frames.
+    ///
+    /// # Errors
+    /// Returns an error if the client cannot resume from this cursor.
+    pub fn subscribe_native(
+        &self,
+        client: impl FrameTransport + Send + 'static,
+        resume_from: u64,
+    ) -> Result<Vec<Arc<[u8]>>, LiveError> {
+        self.subscribe(
+            client,
+            &ClientCaps::native_current(Platform::Unknown),
+            resume_from,
+        )
+    }
+
+    fn subscribe(
+        &self,
+        client: impl FrameTransport + Send + 'static,
+        caps: &ClientCaps,
+        resume_from: u64,
+    ) -> Result<Vec<Arc<[u8]>>, LiveError> {
         let mut inner = self.lock();
-        inner.validate(&ClientCaps::web_current(), resume_from)?;
+        inner.validate(caps, resume_from)?;
         let replay = inner
             .history
             .iter()
             .filter(|frame| frame.sequence > resume_from)
-            .map(|frame| Arc::clone(&frame.web))
+            .map(|frame| Arc::clone(frame.bytes(caps.mount)))
             .collect();
-        inner.clients.push((MountSurface::Web, Box::new(client)));
+        inner.clients.push((caps.mount, Box::new(client)));
         Ok(replay)
     }
 

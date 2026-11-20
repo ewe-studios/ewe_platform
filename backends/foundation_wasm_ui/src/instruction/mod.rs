@@ -8,4 +8,4 @@
 
 mod receiver;
 
-pub use receiver::{ColumnarReceiver, InstructionReceiver};
+pub use receiver::InstructionReceiver;

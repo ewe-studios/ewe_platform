@@ -2,6 +2,7 @@
 <meta charset="utf-8">
 <p id="count">0</p>
 <section id="region"><input id="keep" value="draft"><span id="drop"></span></section>
+<div id="toolbar"><button data-composite-item>First</button><button data-composite-item>Second</button><span data-ewe-behaviour="composite"></span></div>
 <p id="local-result"></p>
 <mount-stream api="/__primal/stream" transport="sse" protocol="frame"></mount-stream>
 <script type="module">
@@ -11,6 +12,10 @@
 
   const frames = installFrameRuntime(ui, { document, schedule: run => run() });
   frames.registry.register(42, document.getElementById("count"));
+  const toolbar = document.querySelector("#toolbar");
+  toolbar.children[0].focus();
+  toolbar.children[0].dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true}));
+  const hydrated = toolbar.children.length === 2 && document.activeElement === toolbar.children[1];
   const region = document.getElementById("region");
   frames.registry.register(43, region);
   const input = document.getElementById("keep");
@@ -33,7 +38,7 @@
   wire.Frame.finishFrameBuffer(builder, frame.pack(builder));
   frames.receive(builder.asUint8Array());
   ui.Hydrator.hydrate(region, document);
-  const pass = released === 1 && region.dataset.runs === "1" &&
+  const pass = hydrated && released === 1 && region.dataset.runs === "1" &&
     input.value === "edited" && input === document.activeElement;
   document.getElementById("local-result").textContent = pass ? "ok" : "failed";
   ui.registerWebComponents();

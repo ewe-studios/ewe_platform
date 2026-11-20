@@ -5,9 +5,8 @@ use super::{
 use foundation_ui_traits::{AttrName, Html, HtmlTag};
 use foundation_ui_wire::{
     vocab::{is_web_behaviour, shared_behaviour, WEB_EVENTS},
-    AppendChildT, BindActionT, CreateNodeT, EventId, OperationT, ScriptNodeT, SetTextT,
-    UiBehaviourT, UiOperationT, WebBehaviourT, WebElementT, WebOperationT, WebRegisterNodeT,
-    WebSetAttributeT, WebTextT,
+    AppendChildT, BindActionT, CreateNodeT, EventId, OperationT, SetTextT, UiOperationT,
+    WebElementT, WebOperationT, WebRegisterNodeT, WebSetAttributeT, WebTextT,
 };
 use std::collections::BTreeSet;
 
@@ -83,7 +82,9 @@ impl Layout {
             if attr(html, "data-ewe-behaviour").is_some() {
                 return Ok(());
             }
-            if !self.known.insert(local_id(html)?) {
+            let anonymous =
+                attr(html, "primal:script").is_some() && attr(html, "primal-id").is_none();
+            if anonymous || !self.known.insert(local_id(html)?) {
                 self.extra = self.extra.checked_add(1).ok_or(LowerError::IdOverflow)?;
             }
             if attr(html, "primal:script").is_some() {
@@ -156,15 +157,21 @@ impl Builder<'_> {
     ) -> Result<Option<u32>, LowerError> {
         if let Some(name) = attr(html, "data-ewe-behaviour") {
             let parent = parent.ok_or(LowerError::NoRootElement)?;
-            self.behaviour(parent, name)?;
+            self.behaviour(parent, name, attr(html, "data-ewe-mode"))?;
             return Ok(None);
         }
         let tag = html.tag.as_ref().ok_or(LowerError::NoRootElement)?;
-        let local = local_id(html)?;
-        let id = self.id(local, root)?;
-        if html.parts.iter().any(|part| part.marks_state_on(local)) {
-            self.markers.push(id);
-        }
+        let script = attr(html, "primal:script").is_some();
+        let id = if script && attr(html, "primal-id").is_none() {
+            self.next_id()?
+        } else {
+            let local = local_id(html)?;
+            let id = self.id(local, root)?;
+            if html.parts.iter().any(|part| part.marks_state_on(local)) {
+                self.markers.push(id);
+            }
+            id
+        };
         if html.attributes.iter().any(|(k, _)| {
             k.name()
                 .is_some_and(|n| n.eq_ignore_ascii_case("primal::state"))
@@ -172,14 +179,12 @@ impl Builder<'_> {
             return Err(LowerError::ReservedAttribute);
         }
         let children = flattened(&html.children);
-        if attr(html, "primal:script").is_some() {
-            let script = table!(ScriptNodeT {
-                node_id: id,
-                parent_id: parent.unwrap_or(0),
-                body: Some(text_content(&children))
-            });
-            self.ops
-                .push(web(WebOperationT::ScriptNode(Box::new(script))));
+        if script {
+            self.ops.push(foundation_ui_wire::ops::scoped_script(
+                id,
+                parent.unwrap_or(0),
+                text_content(&children),
+            ));
             // ScriptNode attaches itself to its own parent.
             return Ok(parent.is_none().then_some(id));
         }
@@ -298,27 +303,16 @@ impl Builder<'_> {
         Ok(())
     }
 
-    fn behaviour(&mut self, id: u32, name: &str) -> Result<(), LowerError> {
-        let op = if let Some(behaviour) = shared_behaviour(name) {
-            ui(UiOperationT::UiBehaviour(Box::new(table!(UiBehaviourT {
-                node_id: id,
-                behaviour: behaviour
-            }))))
-        } else if is_web_behaviour(name) {
-            web(WebOperationT::WebBehaviour(Box::new(table!(
-                WebBehaviourT {
-                    node_id: id,
-                    custom: Some(name.into())
-                }
-            ))))
-        } else {
+    fn behaviour(&mut self, id: u32, name: &str, mode: Option<&str>) -> Result<(), LowerError> {
+        if shared_behaviour(name).is_none() && !is_web_behaviour(name) {
             return Err(LowerError::BadProp {
                 node_id: id,
                 prop: "data-ewe-behaviour".into(),
                 value: name.into(),
             });
-        };
-        self.ops.push(op);
+        }
+        self.ops
+            .push(foundation_ui_wire::ops::behaviour(id, name, mode));
         Ok(())
     }
 }

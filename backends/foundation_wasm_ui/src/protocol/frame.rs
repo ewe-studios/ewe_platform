@@ -1,6 +1,6 @@
 //! Send generated operations as complete frames.
 
-use super::{ship, LegacyProtocolMethods, SendResult};
+use super::{ship, SendResult};
 use alloc::{string::String, vec::Vec};
 use core::{cell::RefCell, fmt};
 use foundation_ui_wire::{
@@ -18,7 +18,6 @@ pub enum ProtocolError {
     Writer(WriteError),
     Wire(WireError),
     Allocation(MemoryAllocationError),
-    Legacy(foundation_ui_traits::DecodeError),
     UnsupportedOperation,
     SequenceExhausted,
     Delivery(String),
@@ -45,7 +44,6 @@ impl fmt::Display for ProtocolError {
             Self::Writer(e) => e.fmt(f),
             Self::Wire(e) => e.fmt(f),
             Self::Allocation(e) => e.fmt(f),
-            Self::Legacy(e) => write!(f, "Legacy protocol error: {e:?}"),
             Self::UnsupportedOperation => {
                 f.write_str("The selected protocol cannot carry this operation.")
             }
@@ -105,43 +103,6 @@ pub fn decode_frame(bytes: &[u8], limits: &WireLimits) -> HandleResult {
                 .ok_or(ProtocolError::UnsupportedOperation)
         })
         .collect()
-}
-
-/// Use a legacy codec only when the application explicitly selects it.
-impl<P: LegacyProtocolMethods<Vec<foundation_ui_traits::DomOp>>> ProtocolMethods<Vec<OperationT>>
-    for P
-{
-    fn encode_and_write(
-        &self,
-        ops: Vec<OperationT>,
-        memory: &mut MemoryAllocations,
-    ) -> WrittenBatch {
-        let legacy = ops
-            .into_iter()
-            .map(|o| {
-                use foundation_ui_wire::vocab::{dom_op, WireForm};
-                let form =
-                    WireForm::try_from(o).map_err(|()| ProtocolError::UnsupportedOperation)?;
-                dom_op(&form).ok_or(ProtocolError::UnsupportedOperation)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(LegacyProtocolMethods::encode_and_write(
-            self, legacy, memory,
-        ))
-    }
-    fn handle_received(&self, bytes: &[u8]) -> HandleResult {
-        let ops = LegacyProtocolMethods::handle_received(
-            self,
-            MemoryId::new(0, 0),
-            bytes.as_ptr(),
-            bytes.len(),
-        )
-        .map_err(ProtocolError::Legacy)?;
-        Ok(ops
-            .iter()
-            .map(|op| foundation_ui_wire::vocab::web_form(op).into())
-            .collect())
-    }
 }
 
 /// Write one bare frame per flush. Successful writes advance this stream's sequence.

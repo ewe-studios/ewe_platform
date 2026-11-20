@@ -3,37 +3,47 @@
 //! disposal, anchored ordering, and the no-move fast path (spec-42
 //! feature 01 §6).
 //!
-//! WHAT: The acceptance suite over `App::mock`, asserting exact `DomOp`
+//! WHAT: The acceptance suite over `App::mock`, asserting exact frame
 //! streams — including the §5 risk (effect creation inside a running
 //! watcher effect, made legal by `Runtime::untracked`).
 
-#[path = "support/app_parity.rs"]
-pub mod app_parity;
-#[path = "support/parity.rs"]
-mod parity;
-use parity::reference;
+use foundation_ui_wire::{OperationT, UiOperationT as Ui, WebOperationT as Web};
+#[path = "support/names.rs"]
+mod names;
+use names::wire_name;
 
 use foundation_signals::Context;
-use foundation_ui_traits::{DomOp, Html};
-use foundation_wasm_ui::{html, SentBatches, SharedInstructionReceiver, Slot};
+use foundation_ui_traits::Html;
+use foundation_wasm_ui::{html, App, SentBatches, SharedInstructionReceiver, Slot};
 
-fn ops_of(sent: &SentBatches) -> Vec<DomOp> {
-    sent.borrow().iter().flatten().map(reference).collect()
+fn ops_of(sent: &SentBatches) -> Vec<OperationT> {
+    sent.borrow().iter().flatten().cloned().collect()
 }
 
-fn created_tags(ops: &[DomOp]) -> Vec<String> {
+fn created_tags(ops: &[OperationT]) -> Vec<String> {
     ops.iter()
         .filter_map(|op| match op {
-            DomOp::CreateElement { tag, .. } => tag.name().map(String::from),
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } => wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            )
+            .map(String::from),
             _ => None,
         })
         .collect()
 }
 
-fn removed_ids(ops: &[DomOp]) -> Vec<u32> {
+fn removed_ids(ops: &[OperationT]) -> Vec<u32> {
     ops.iter()
         .filter_map(|op| match op {
-            DomOp::RemoveNode { node_id } => Some(*node_id),
+            OperationT {
+                ui: Ui::Remove(ref row),
+                ..
+            } => Some(row.node_id),
             _ => None,
         })
         .collect()
@@ -43,7 +53,7 @@ fn removed_ids(ops: &[DomOp]) -> Vec<u32> {
 
 #[test]
 fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (open, set_open) = ctx.signal(false);
 
@@ -66,14 +76,28 @@ fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
         "mounted on true"
     );
     // Inserted BEFORE the region anchor, not appended blind.
-    assert!(ops
-        .iter()
-        .any(|op| matches!(op, DomOp::InsertBefore { .. })));
+    assert!(ops.iter().any(|op| matches!(
+        op,
+        OperationT {
+            ui: Ui::InsertBefore(_),
+            ..
+        }
+    )));
 
     let em_id = ops
         .iter()
         .find_map(|op| match op {
-            DomOp::CreateElement { node_id, tag, .. } if tag.name() == Some("em") => Some(*node_id),
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } if wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            ) == Some("em") =>
+            {
+                Some(row.node_id)
+            }
             _ => None,
         })
         .expect("em id");
@@ -89,7 +113,7 @@ fn show_mounts_on_rising_edge_and_unmounts_on_falling() {
 /// The instance's own effects DIE with the instance (scope disposal).
 #[test]
 fn hide_disposes_the_interior_effects() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (open, set_open) = ctx.signal(true);
     let (count, set_count) = ctx.signal(0i64);
@@ -126,7 +150,7 @@ fn hide_disposes_the_interior_effects() {
 /// Toggling content signals must NOT remount the region (untracked mount).
 #[test]
 fn content_signals_do_not_become_watcher_dependencies() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (open, _set_open) = ctx.signal(true);
     let (count, set_count) = ctx.signal(0i64);
@@ -155,13 +179,13 @@ fn content_signals_do_not_become_watcher_dependencies() {
     assert_eq!(mounts_before, mounts_after, "content change ≠ remount");
     assert!(ops_of(&sent)
         .iter()
-        .any(|op| matches!(op, DomOp::SetText { text, .. } if text == "5")));
+        .any(|op| matches!(op, OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default() == "5")));
 }
 
 /// Re-show mounts a FRESH instance; static Html content works (Render).
 #[test]
 fn reshow_is_a_fresh_instance_and_static_content_renders() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (open, set_open) = ctx.signal(true);
 
@@ -194,10 +218,13 @@ fn todo_item(c: &Context, r: &SharedInstructionReceiver, t: &Todo) -> Html {
     html! { c, r, <li>{label}</li> }
 }
 
-fn texts_in_order(ops: &[DomOp]) -> Vec<String> {
+fn texts_in_order(ops: &[OperationT]) -> Vec<String> {
     ops.iter()
         .filter_map(|op| match op {
-            DomOp::SetText { text, .. } => Some(text.to_string()),
+            OperationT {
+                ui: Ui::SetText(ref row),
+                ..
+            } => Some(row.text.as_deref().unwrap_or_default().to_string()),
             _ => None,
         })
         .collect()
@@ -205,7 +232,7 @@ fn texts_in_order(ops: &[DomOp]) -> Vec<String> {
 
 #[test]
 fn for_renders_appends_and_removes_without_moves() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (todos, set_todos) =
         ctx.signal(vec![Todo { id: 1, label: "a" }, Todo { id: 2, label: "b" }]);
@@ -228,7 +255,15 @@ fn for_renders_appends_and_removes_without_moves() {
     // count the ops before and after.
     let moves_before = ops
         .iter()
-        .filter(|op| matches!(op, DomOp::InsertBefore { .. }))
+        .filter(|op| {
+            matches!(
+                op,
+                OperationT {
+                    ui: Ui::InsertBefore(_),
+                    ..
+                }
+            )
+        })
         .count();
     set_todos.set(vec![
         Todo { id: 1, label: "a" },
@@ -239,7 +274,15 @@ fn for_renders_appends_and_removes_without_moves() {
     let ops = ops_of(&sent);
     let new_moves = ops
         .iter()
-        .filter(|op| matches!(op, DomOp::InsertBefore { .. }))
+        .filter(|op| {
+            matches!(
+                op,
+                OperationT {
+                    ui: Ui::InsertBefore(_),
+                    ..
+                }
+            )
+        })
         .count()
         - moves_before;
     assert_eq!(new_moves, 1, "ONE insert for the new item, zero moves");
@@ -253,7 +296,7 @@ fn for_renders_appends_and_removes_without_moves() {
 
 #[test]
 fn for_reorders_with_insert_before() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (todos, set_todos) = ctx.signal(vec![
         Todo { id: 1, label: "a" },
@@ -281,7 +324,13 @@ fn for_reorders_with_insert_before() {
     );
     assert!(
         ops.iter()
-            .filter(|op| matches!(op, DomOp::InsertBefore { .. }))
+            .filter(|op| matches!(
+                op,
+                OperationT {
+                    ui: Ui::InsertBefore(_),
+                    ..
+                }
+            ))
             .count()
             > 3,
         "order restored via InsertBefore moves"
@@ -290,7 +339,7 @@ fn for_reorders_with_insert_before() {
 
 #[test]
 fn for_empty_filled_empty_round_trip() {
-    let (app, sent) = app_parity::app();
+    let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (todos, set_todos) = ctx.signal(Vec::<Todo>::new());
 
@@ -328,7 +377,7 @@ fn for_empty_filled_empty_round_trip() {
 #[test]
 fn remote_unmount_disposes_a_whole_fragment_once() {
     use std::{cell::Cell, rc::Rc};
-    let (app, _) = app_parity::app();
+    let (app, _) = App::mock();
     let receiver = app.receiver();
     let scope = app.ctx().child();
     let (value, set_value) = app.ctx().signal(0u32);
@@ -337,7 +386,7 @@ fn remote_unmount_disposes_a_whole_fragment_once() {
     scope.effect({
         let runs = Rc::clone(&runs);
         move || {
-            value.get();
+            let _tracked = value.get();
             runs.set(runs.get() + 1);
         }
     });
@@ -363,7 +412,7 @@ fn local_bridge_teardown_is_thread_local() {
         events::ewe_ui_dispose_mount, install_app_bridge, uninstall_event_bridge,
     };
     use std::{cell::Cell, rc::Rc};
-    let (app, _) = app_parity::app();
+    let (app, _) = App::mock();
     install_app_bridge(&app);
     let scope = app.ctx().child();
     let removed = Rc::new(Cell::new(false));
@@ -373,7 +422,7 @@ fn local_bridge_teardown_is_thread_local() {
     });
     app.receiver().register_scope(&[42], &scope);
     std::thread::spawn(|| {
-        let (other, _) = app_parity::app();
+        let (other, _) = App::mock();
         install_app_bridge(&other);
         ewe_ui_dispose_mount(42);
         uninstall_event_bridge();

@@ -1,13 +1,9 @@
 //! A custom protocol can delegate storage and delivery to an existing codec.
-use foundation_ui_traits::DomOp;
 use foundation_ui_wire::{ops, OperationT, UiOperationT};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
-use foundation_wasm_ui::{
-    protocol::WrittenBatch, ColumnarV1, FrameV1, HandleResult, LegacyHandleResult,
-    LegacyProtocolMethods, ProtocolMethods, SendResult,
-};
+use foundation_wasm_ui::{protocol::WrittenBatch, FrameV1, HandleResult, ProtocolMethods};
 
-// Both versions delegate the same host and allocation lifecycle.
+// Delegate the host and allocation lifecycle to the frame protocol.
 struct Transport<P>(P);
 
 impl<P: ProtocolHandler> ProtocolHandler for Transport<P> {
@@ -28,21 +24,6 @@ impl<P: ProtocolHandler> ProtocolHandler for Transport<P> {
     }
 }
 
-// Before migration, this interface took DomOp and decoded a payload pointer.
-impl LegacyProtocolMethods<Vec<DomOp>> for Transport<ColumnarV1> {
-    fn encode_and_write(
-        &self,
-        ops: Vec<DomOp>,
-        memory: &mut MemoryAllocations,
-    ) -> (SendResult, *const u8, usize) {
-        LegacyProtocolMethods::encode_and_write(&self.0, ops, memory)
-    }
-    fn handle_received(&self, id: MemoryId, ptr: *const u8, len: usize) -> LegacyHandleResult {
-        LegacyProtocolMethods::handle_received(&self.0, id, ptr, len)
-    }
-}
-
-// A migrated protocol accepts generated operations and returns encoding errors.
 impl ProtocolMethods<Vec<OperationT>> for Transport<FrameV1> {
     fn encode_and_write(
         &self,
@@ -58,17 +39,6 @@ impl ProtocolMethods<Vec<OperationT>> for Transport<FrameV1> {
 
 fn main() -> Result<(), foundation_wasm_ui::ProtocolError> {
     let mut memory = MemoryAllocations::new();
-    let old = Transport(ColumnarV1::new());
-    let (slot, _, _) = LegacyProtocolMethods::encode_and_write(
-        &old,
-        vec![DomOp::SetText {
-            node_id: 7,
-            text: "ready".into(),
-        }],
-        &mut memory,
-    );
-    old.ack(slot.memory_id, &mut memory);
-
     let new = Transport(FrameV1::new(1));
     let (slot, _, _) = new.encode_and_write(vec![ops::set_text(7, "ready")], &mut memory)?;
     let allocation = memory.get(slot.memory_id)?;
