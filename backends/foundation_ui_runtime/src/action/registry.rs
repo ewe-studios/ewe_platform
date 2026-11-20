@@ -2,8 +2,9 @@
 
 use super::Context;
 use foundation_errstacks::ErrorTrace;
-use foundation_ui_wire::ErrorCode;
+use foundation_ui_wire::{ErrorCode, ServerActionT};
 use serde::{de::DeserializeOwned, Serialize};
+use sha2::{Digest, Sha256};
 use std::{any::TypeId, collections::BTreeMap, fmt, future::Future, pin::Pin};
 
 pub use foundation_ui_wire::MountSurface as Surface;
@@ -360,6 +361,25 @@ impl ActionRegistry {
         })
     }
 
+    /// Lists callable server actions for this surface in name order.
+    #[must_use]
+    pub fn server_actions(&self, surface: Surface) -> Vec<ServerActionT> {
+        self.entries
+            .iter()
+            .filter_map(|(name, entries)| {
+                let entry = entries.iter().find(|entry| {
+                    entry.origin != Some(Origin::Host)
+                        && entry.scope.supports(surface)
+                        && matches!(entry.implementation, Implementation::Rust(_))
+                })?;
+                let mut declaration = ServerActionT::default();
+                declaration.name = Some(name.clone());
+                declaration.hash = declaration_hash(entry.origin, name, entry.scope);
+                Some(declaration)
+            })
+            .collect()
+    }
+
     /// Selects the Rust implementation that the dispatcher can call.
     ///
     /// # Errors
@@ -375,4 +395,28 @@ impl ActionRegistry {
             _ => Err(LookupError::UnavailableOrigin),
         }
     }
+}
+
+/// Hash the lowercase origin, name and scope with one colon between fields.
+fn declaration_hash(origin: Option<Origin>, name: &str, scope: Scope) -> u64 {
+    let origin = match origin {
+        None => "any",
+        Some(Origin::Host) => "host",
+        Some(Origin::Server) => "server",
+    };
+    let scope = match scope {
+        Scope::All => "all",
+        Scope::Web => "web",
+        Scope::Mobile => "mobile",
+    };
+    let hash = Sha256::new()
+        .chain_update(origin)
+        .chain_update(":")
+        .chain_update(name)
+        .chain_update(":")
+        .chain_update(scope)
+        .finalize();
+    let mut first = [0; 8];
+    first.copy_from_slice(&hash[..8]);
+    u64::from_be_bytes(first)
 }

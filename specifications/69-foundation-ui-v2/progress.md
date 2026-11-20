@@ -341,3 +341,16 @@ The paired macro and core packages now use version 0.0.22.
 - The renamed consumer builds for macOS and WebAssembly. The WebAssembly action retains a local reference across an await.
 - Strict Clippy and workspace formatting pass. Six generator manifest tests pass.
 - Feature 07 is next. Its dispatcher can invoke the registered action with the host context.
+
+## 2026-11-21. Handshake and action dispatch
+
+Feature 07 ships in runtime 0.0.5. Server and local hosts use the same action dispatcher.
+The [package example](../../backends/foundation_ui_runtime/README.md#negotiate-a-connection-and-dispatch-an-action) runs a hello and submits an action.
+
+- Accepted connections advertise scoped server actions. Resumed connections keep independent request and reply counters.
+- The host selects a render target per request or looks it up for each control on a persistent host.
+- Independent replicas exchange signed counter state. Concurrent users retain separate bindings, render targets and receivers.
+- Raw view operations cannot supply signed attachments. The regression covers direct, nested and columnar operations. [Issue 628](https://github.com/ewe-studios/ewe_platform/issues/628)
+- On macOS, 51 integration tests and five documentation tests pass. Formatting, strict Clippy and the WebAssembly build pass.
+- The repository clock check still reports four existing violations in the agent RPC crate. [Issue 594](https://github.com/ewe-studios/ewe_platform/issues/594)
+- Feature 08 is next. Its template lowering can queue state targets through the receiver.

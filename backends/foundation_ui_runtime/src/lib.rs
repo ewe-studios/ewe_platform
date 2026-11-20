@@ -4,4 +4,5 @@ extern crate self as foundation_ui_runtime;
 
 pub use foundation_macros::action;
 pub mod action;
+pub mod dispatch;
 pub mod state;

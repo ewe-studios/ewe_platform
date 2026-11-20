@@ -1,21 +1,21 @@
 ---
 feature: "dispatcher-and-handshake"
 description: "The shared stateless dispatcher: handshake over schema and vocabulary versions, the ServerCaps action list, verify state, run the action through the receiver, seal the new state, encode the messages and answer with one frame."
-status: "pending"
+status: "implemented"
 priority: "high"
 model: "sonnet"
 depends_on: ["03-frame-writer", "04-signed-state", "05-action-runtime"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-14
+last_updated: 2026-11-21
 author: "Main Agent"
 crates: ["foundation_ui_runtime"]
 decisions: ["D13", "D14", "D15", "D16", "D25", "D29", "D32", "D37", "D38", "R1", "R6", "D41", "D42", "D43", "D44", "D45", "D47", "D50", "D52", "D54", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 07: The dispatcher and the handshake
@@ -191,7 +191,7 @@ Feature: Dispatcher and handshake
     When the host calls hello
     Then the outcome is UpdateRequired
     And the caps frame has status UpdateRequired
-    And caps.actions is empty
+    And caps.actions lists the callable server actions for the requested surface
 
   Scenario: A hello with another schema version needs an update
     Given a request frame with schema_version 2 whose hello holds the current vocabulary version
@@ -276,8 +276,8 @@ Feature: Dispatcher and handshake
 
 ```
 backends/foundation_ui_runtime/src/dispatch/
-├── mod.rs
-├── dispatcher.rs   Dispatcher, DispatcherBuilder, dispatch
+├── mod.rs          Dispatcher, DispatcherBuilder, RenderTarget
+├── dispatcher.rs   Request admission and action dispatch
 ├── hello.rs        Connection, HelloOutcome, Dispatcher::hello
 ├── delivery.rs     DeliveryHandler, DefaultDelivery
 ├── local.rs        LocalDispatcher
@@ -329,6 +329,9 @@ pub enum HelloError {
     Wire(WireError),
     /// The frame is a request, but it holds no `hello` field.
     NotAHello,
+    MissingRng,
+    InvalidResume,
+    Write(WriteError),
 }
 impl From<WireError> for HelloError { /* gives `Wire` */ }
 
@@ -373,11 +376,14 @@ Let `frame` be the read `Frame`, and `client_hello` its `FrameRequest.hello`.
 5. Add server action enumeration to the feature 05 registry for this handshake.
    Include callable Rust entries whose origin permits the server and whose scope accepts the mount.
    Omit client declarations without an implementation. Sort by name and encode each declaration fingerprint in the generated `ServerActionT` (D54).
+   Hash the UTF-8 text `origin:name:scope` with SHA-256. Use `any` for an unqualified action.
+   Take the first eight bytes as a big-endian integer. For `server:increment_counter:all`, the fingerprint is `0x4ea9737a00bf1f19`.
 6. `stream_id`: if `frame.stream_id() != 0`, keep it and start the sequencer with
    `StreamSequencer::resume(stream_id, client_hello.resume_from())`. Else take a `u64` from
-   `ctx.rng()`; if it is 0, use 1.
+   the random number generator in the context. Use 1 if it returns zero. A new stream starts at reply zero.
+   Refuse a resume at the largest sequence number. The host retires a stream when its reply counter reaches that number.
 7. Build `ServerCapsT { status: Ok, schema_version: SCHEMA_VERSION, vocabulary_version: vocab,
-   stream_id, resume_from: client_hello.resume_from(), actions }` and `write_caps` with
+   stream_id, resume_from: effective_resume_from, actions }` and `write_caps` with
    `FrameHeader { stream_id, sequence_id: 0, ack: 0 }`. A caps frame has sequence 0:
    it is not part of the ordered stream.
 8. Return `Accepted` with `check_request_order = true`.
@@ -429,18 +435,21 @@ Details:
    `last_request`; on success store the new value (`fetch_max`).
 4. **Reference.** `ActionRef::parse(action_request.action())`.
 5. **Look-up.** `registry.get(origin, name, connection.surface())`.
-6. **Target.** Resolve the component render target from the host's routing information.
+6. **Target.** Read `RenderTarget(root)` from the caller's context when present. The host installs it from trusted routing information.
+   A persistent host can install a lookup with `DispatcherBuilder::render_target`. It receives the caller context, action name and trigger identifier.
+   The host selects the root from its own bindings. The claimed parent cannot select it.
 7. **Invoke.** Await `invoke_action(ctx, entry, connection.surface(), root, request)` with the owned request.
    It verifies the attachment before it decodes the state. It returns collected output only when the handler succeeds.
 8. **Errors.** Map `InvokeError::State` and `InvokeError::Action` using the table below.
 9. **Header.** Take the next header from the connection sequencer. Release its lock before delivery.
 10. **Sign.** Pass the collected items and the same context to `prepare_messages(ctx, items)`.
+    Reject a raw view operation that supplies its own state attachment. Apply this check to nested operations and columnar batches.
 11. **Messages.** Pass the resulting messages in receiver order. A signing failure returns one control error.
 12. **Deliver.** `delivery.messages(messages, caps, header)`. A `WriteError` gives a
     `Control{error}` message with code `ActionFailed` and the message of the error.
 13. **Control messages.** `write_error`, `write_caps` or a helper for `state_expired` and
     `update_required` with the same header. If the message makes the frame too large, write
-    it again with an empty message.
+    it again without the message text. Even a limit below the protocol minimum produces a scalar-only control frame.
 
 **Control mapping**
 
@@ -492,42 +501,30 @@ dispatcher has no sync twin.
 
 ## 7. Tests
 
-All in `backends/foundation_ui_runtime/tests/`. Reuse the test actions and `test_ctx` of
-features 04 and 05. Add `Probe`-wrapped variants to see if an action ran.
-
-| Law or scenario | Test | Oracle |
+| Contract | Test | Check |
 |---|---|---|
-| I1; Scenario: bytes that are not a request | `dispatch_fuzz_tests.rs::every_input_gives_one_valid_frame` (each prefix of a valid request, each single bit flip of its first 128 bytes, and 200 seeded random buffers; `read_frame` must accept each answer) | property |
-| I2 | `dispatch_errors_tests.rs::action_never_runs_when_a_check_fails` (one case for each exit of steps 1 to 7; the `Probe` stays false) | fault |
-| I3; Scenario: a server refuses a host reference | `dispatch_errors_tests.rs::server_refuses_host_reference`, `::local_refuses_server_reference` | expected outcome |
-| I4, I7; Scenario: a replica that never saw the user | `dispatch_tests.rs::any_replica_answers` | metamorphic |
-| I5; Scenarios: forged state, expired state | `dispatch_errors_tests.rs::forged_state_is_rejected`, `::expired_state_skips_action` | expected outcome |
-| I6; Scenario: native connection gets no web field | `dispatch_delivery_tests.rs::native_answer_has_no_web_field` | example |
-| I8 | Review dispatcher fields and run concurrent user contexts | isolation |
-| I9; Scenarios: three hello cases | `dispatch_hello_tests.rs::current_versions_are_accepted`, `::unknown_vocabulary_needs_update`, `::other_schema_version_needs_update`, `::resume_keeps_stream_and_sequence` | example |
-| I10; Scenario: repeated sequence id | `dispatch_errors_tests.rs::repeated_sequence_is_refused`, `::stateless_connection_does_not_check_order` | expected outcome |
-| I11; Scenario: hello lists the actions | `dispatch_hello_tests.rs::caps_actions_are_sorted_and_hashed` | example |
-| I12; Scenario: action error | `dispatch_errors_tests.rs::action_error_drops_the_receiver` | expected outcome |
-| I13; Scenario: expired state | `dispatch_errors_tests.rs::expired_state_sends_state_expired` (asserts `control.state_expired.is_some()` and `control.error.is_none()`) | expected outcome |
-| Scenarios: unknown action, data message | `dispatch_errors_tests.rs::unknown_action_is_typed`; `dispatch_delivery_tests.rs::data_goes_in_a_data_message`, `::custom_delivery_is_used` | example |
-| Scenario: local dispatcher | `dispatch_local_tests.rs::manager_triggers_local_action` | example |
-| Fault: seal fails | `dispatch_errors_tests.rs::seal_failure_gives_action_failed` (an action that writes a state of 5000 bytes) | fault |
-| Frame sequence increases | `dispatch_tests.rs::answers_have_increasing_sequence` | property |
-| The finalizer signs once and emits the same bytes to each selected target | `dispatch_tests.rs::sign_once_for_marked_targets` | example |
+| I1 | `dispatch_fuzz_tests::every_input_gives_one_valid_frame` tries every prefix, individual bit changes and seeded input buffers. | Decoded control frame |
+| I2, I3, I5, I12, I13 | `dispatch_errors_tests` checks input, origin, state verification, handler failure and size limits. | Public control code and handler call count |
+| I4, I7 | `dispatch_tests::independent_replicas_sign_once_per_render_and_accept_each_others_state` submits twice to separate hosts. | Verified state, signed once on root and input |
+| I6 and custom delivery | `dispatch_delivery_tests` checks signed state, data order, native filtering and encoder failure. | Decoded wire messages |
+| I8 | `dispatch_tests::concurrent_requests_keep_their_bindings_and_render_targets` overlaps two users on one dispatcher. | Distinct roots and binding-specific signatures |
+| I9, I11 and resume | `dispatch_hello_tests` checks accepted and incompatible versions, sorted fingerprints and separate sequence counters. | Decoded capabilities and acknowledgement |
+| I10 | `dispatch_errors_tests::concurrent_duplicate_runs_once_and_stateless_requests_run_independently` submits the same sequence twice. | Handler count and reply sequence |
+| Local actions | `dispatch_local_tests` triggers through the manager and polls two accepted sends in reverse order. | Correct reply for each request |
 
 ## 8. Tasks
 
-- [ ] 1. Test signed attachments through the feature 05 receiver and the injected delivery handler.
-- [ ] 2. `delivery.rs` and its tests.
-- [ ] 3. `errors.rs`: the control mapping table as one function, with a table test.
-- [ ] 4. `hello.rs`, the action list and its tests.
-- [ ] 5. `dispatcher.rs`: steps 1 to 7 and the error tests.
-- [ ] 6. Steps 8 to 13 and the success tests.
-- [ ] 7. `local.rs` and its test.
-- [ ] 8. The fuzz-style test of I1.
-- [ ] 9. Bump `foundation_ui_runtime` to `0.0.3`.
-- [ ] 10. Update `progress.md` and `learnings.md`.
-- [ ] 11. Write or update the package or feature README.
+- [x] 1. Test signed attachments through the feature 05 receiver and the injected delivery handler.
+- [x] 2. `delivery.rs` and its tests.
+- [x] 3. `errors.rs`: the control mapping table as one function, with a table test.
+- [x] 4. `hello.rs`, the action list and its tests.
+- [x] 5. `dispatcher.rs`: steps 1 to 7 and the error tests.
+- [x] 6. Steps 8 to 13 and the success tests.
+- [x] 7. `local.rs` and its test.
+- [x] 8. The fuzz-style test of I1.
+- [x] 9. Bump `foundation_ui_runtime` from `0.0.4` to `0.0.5`.
+- [x] 10. Update `progress.md` and `learnings.md`.
+- [x] 11. Write or update the package or feature README.
       Show a hello handshake and an action request. Run the example against the dispatch tests.
 
 ## 9. Verify
@@ -543,15 +540,17 @@ python3 scripts/ci/check_time_sources.py
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] A reviewer confirms that `Dispatcher` has no field that grows with the number of
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All implementation tasks are complete. The runtime tests, documentation tests, native and WebAssembly builds, strict Clippy and formatting pass.
+- [ ] The repository clock check passes. Four direct reads in the agent RPC crate still fail that check on this branch.
+      [Issue 594](https://github.com/ewe-studios/ewe_platform/issues/594) tracks those reads. The scan reports no violation in the UI runtime.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] A reviewer confirms that `Dispatcher` has no field that grows with the number of
       users (I8).
-- [ ] No lock is held across an `.await`.
-- [ ] `backends/foundation_wasm_ui/src/server/mod.rs` is unchanged.
-- [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] No lock is held across an `.await`.
+- [x] `backends/foundation_wasm_ui/src/server/mod.rs` is unchanged.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

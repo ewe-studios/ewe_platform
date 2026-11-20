@@ -452,3 +452,14 @@ The expansion checks the author's declared return type, including early returns.
 The native compiler rejects a reference-counted local value held across an await. The same handler can compile for WebAssembly.
 
 The release configuration pairs the macro crate and the core crate. Generated Cloudflare manifests now read the shared macro dependency from the workspace.
+
+## 2026-11-21. Negotiated connections and trusted render targets
+
+The resume counter describes outgoing replies. A client can resume after reply 19 and submit request 1.
+The dispatcher acknowledges request 1 in reply 20. Local transport admits ordered requests before their futures can be polled in a different order.
+
+The host owns the mapping from a triggering control to its render target. One persistent context can serve several components with a host lookup.
+The receiving control still supplies its own signed state. A wire parent field cannot change the mapping.
+
+A renderer can encode a state attachment as a direct operation, a nested operation or a columnar row.
+The receiver finalizer rejects all three forms and signs only the state queued through its state methods.

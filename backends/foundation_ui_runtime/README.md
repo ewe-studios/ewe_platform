@@ -165,3 +165,96 @@ The next submit carries the bytes on the input. Ordinary element attributes rema
 If the action queues state and then returns an error, the host receives the error and drops the queued output.
 For example, a title check can return `Err(ErrorTrace::new(ActionError::new(ErrorCode::ActionFailed, "Enter a todo title")))`.
 The client retains its previous view and attachment. The integration test exercises this case while another caller completes a submit.
+
+## Negotiate a connection and dispatch an action
+
+Build one dispatcher at startup. Pass the caller’s context on each request.
+The hello reply advertises callable server actions for the client’s surface. Keep the accepted connection for that stream.
+
+This example sends a hello followed by a stateless action. The action returns the `MessagePack` value `true` to node 42.
+
+```rust
+use std::sync::Arc;
+use foundation_context::Ctx;
+use foundation_ui_runtime::action;
+use foundation_ui_runtime::action::{ActionRegistry, ActionResult, Context, Interaction, Origin};
+use foundation_ui_runtime::dispatch::{DispatcherBuilder, HelloOutcome};
+use foundation_ui_wire::{
+    finish_frame, read_frame, ActionRequestT, ClientHelloT, FrameKindT, FrameRequestT, FrameT,
+    MountSurface, Platform, WireLimits, SCHEMA_VERSION,
+};
+use foundation_ui_wire::vocab::VOCABULARY_VERSION;
+
+#[action(server)]
+async fn confirm(ctx: &Context, event: Interaction<()>) -> ActionResult {
+    ctx.receiver().data(event.node_id, vec![0xc3]);
+    Ok(())
+}
+
+fn encode(request: FrameRequestT, stream: u64, sequence: u64) -> Vec<u8> {
+    let mut frame = FrameT::default();
+    frame.schema_version = SCHEMA_VERSION;
+    frame.stream_id = stream;
+    frame.sequence_id = sequence;
+    frame.kind = FrameKindT::FrameRequest(Box::new(request));
+    finish_frame(&frame).unwrap()
+}
+
+#[foundation_core::valtron::valtron]
+async fn main() {
+    let ctx = Ctx::try_host().unwrap();
+    let mut registry = ActionRegistry::new();
+    registry.register(confirm).unwrap();
+    let dispatcher = DispatcherBuilder::new(Origin::Server, Arc::new(registry)).build();
+
+    let mut hello = ClientHelloT::default();
+    hello.platform = Platform::Web;
+    hello.mount = MountSurface::Web;
+    hello.vocabulary_version = VOCABULARY_VERSION;
+    let mut request = FrameRequestT::default();
+    request.hello = Some(Box::new(hello));
+    let (connection, caps_frame) = match dispatcher.hello(&ctx, &encode(request, 0, 0)).unwrap() {
+        HelloOutcome::Accepted { connection, caps_frame } => (connection, caps_frame),
+        HelloOutcome::UpdateRequired { .. } => return,
+    };
+    let caps = read_frame(&caps_frame, &WireLimits::default()).unwrap();
+    assert_eq!(caps.sequence_id(), 0);
+
+    let mut action = ActionRequestT::default();
+    action.action = Some("server:confirm".into());
+    action.node_id = 42;
+    let mut request = FrameRequestT::default();
+    request.action = Some(Box::new(action));
+    let input = encode(request, connection.stream_id(), 1);
+    let reply = dispatcher.dispatch(&ctx, &connection, &input).await;
+    let frame = read_frame(&reply, &WireLimits::default()).unwrap();
+    let result = frame.kind_as_frame_message().unwrap();
+    assert_eq!(result.ack(), 1);
+    assert_eq!(result.messages().unwrap().get(0).data().unwrap().target_node(), 42);
+}
+```
+
+For an authenticated action, pass the context that holds the verified user and bound signer.
+If the action renders a component, the host stores `RenderTarget(component_root)` in that request context.
+The action reads it through `ctx.state_root()`. The submitting control supplies its own signed attachment.
+A persistent host can keep one context and use its own table of component roots for each call.
+
+```rust
+# use std::sync::Arc;
+# use foundation_ui_runtime::{action::{ActionRegistry, Origin}, dispatch::DispatcherBuilder};
+# fn build(registry: Arc<ActionRegistry>) -> foundation_ui_runtime::dispatch::Dispatcher {
+let bindings = [("confirm", 42, 40), ("confirm", 82, 80)];
+DispatcherBuilder::new(Origin::Server, registry)
+    .render_target(move |_, action, trigger| {
+        bindings.iter().find(|&&(name, node, _)| name == action && node == trigger)
+            .map(|&(_, _, root)| root)
+    })
+    .build()
+# }
+```
+
+Here each tuple contains an action name, a triggering node and the root that the host rendered for it.
+
+For independent requests, use `Connection::stateless(caps, surface, stream_id)`. A negotiated connection also checks request order.
+A local host can give its dispatcher and context to `LocalDispatcher` and install that transport on the action manager.
+The [replica test](tests/dispatch_tests.rs) sends a signed counter between two independently configured hosts.

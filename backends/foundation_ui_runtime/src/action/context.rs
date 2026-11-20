@@ -8,7 +8,7 @@ use foundation_errstacks::ErrorTrace;
 use foundation_ui_wire::writer::{write_messages, ClientCaps, FrameHeader, WriterConfig};
 use foundation_ui_wire::{
     AttachStateT, DataT, ErrorCode, MessagePackBlobT, MessageT, MountSurface, OperationT,
-    UiOperationT,
+    UiOperation, UiOperationT,
 };
 use serde::Serialize;
 
@@ -169,7 +169,7 @@ pub fn encode_updates(
 ///
 /// # Errors
 ///
-/// Returns an action error if the context signer rejects an item.
+/// Returns an action error if signing fails or a view operation contains a state attachment.
 pub fn prepare_messages(
     ctx: &Ctx,
     items: Vec<ReceiverItem>,
@@ -177,7 +177,12 @@ pub fn prepare_messages(
     let mut messages = Vec::with_capacity(items.len());
     for ReceiverItem(output) in items {
         match output {
-            Output::View(operation) => messages.push(operation_message(operation)),
+            Output::View(operation) => {
+                if contains_state_attachment(&operation) {
+                    return Err(output_error("Use the receiver to attach component state."));
+                }
+                messages.push(operation_message(operation));
+            }
             Output::State { targets, body } => {
                 let signed = sign_state(ctx, &body)
                     .map_err(|error| output_error("Cannot sign component state").attach(error))?;
@@ -204,6 +209,25 @@ pub fn prepare_messages(
         }
     }
     Ok(messages)
+}
+
+fn contains_state_attachment(operation: &OperationT) -> bool {
+    if operation
+        .columnar
+        .as_deref()
+        .and_then(|batch| batch.op_codes.as_deref())
+        .is_some_and(|codes| codes.contains(&UiOperation::AttachState.0))
+    {
+        return true;
+    }
+    match &operation.ui {
+        UiOperationT::AttachState(_) => true,
+        UiOperationT::ReplaceSubtree(tree) => tree
+            .operations
+            .as_deref()
+            .is_some_and(|children| children.iter().any(contains_state_attachment)),
+        _ => false,
+    }
 }
 
 fn operation_message(operation: OperationT) -> MessageT {

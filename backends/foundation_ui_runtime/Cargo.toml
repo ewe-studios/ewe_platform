@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_runtime"
-version = "0.0.4"
+version = "0.0.5"
 autotests = false
 edition.workspace = true
 rust-version.workspace = true
@@ -10,6 +10,7 @@ repository.workspace = true
 description = "State signing, action registration, and event routing for user interfaces."
 
 [dependencies]
+tracing = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std", "crypto-chacha"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }

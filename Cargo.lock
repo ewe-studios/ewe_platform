@@ -6446,7 +6446,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_runtime"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "foundation_auth",
  "foundation_compact",
@@ -6460,6 +6460,7 @@ dependencies = [
  "serde_json",
  "sha2 0.11.1",
  "subtle",
+ "tracing",
  "trybuild",
  "zeroize",
 ]
