@@ -407,3 +407,5 @@ ASD-STE100.
 - Four offsets changed from zero to six in the three-row fixture. The reader also accepts the earlier encoding.
 - A table slice needs its target on the outer data message and on the inner table. Issue #621 covers this case.
 - The generated object packer can produce a valid frame with misaligned numeric data. Tests measure offsets in the finished buffer.
+
+- `Ctx::fork()` copies the typed map. A request can replace its signer entry while sharing the signing key with other contexts.

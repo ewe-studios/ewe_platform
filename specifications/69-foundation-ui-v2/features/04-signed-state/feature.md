@@ -33,29 +33,34 @@ An explicit owner must resolve inside the current user’s view. If it is missin
 
 ## The contract
 
-The host installs one `StateSigner` in its context (`Ctx`). The dispatcher uses two methods.
+The host installs a signer in its context (`Ctx`). It can also supply a **signing binding**: stable bytes that restrict where state verifies.
+The component’s action binding selects a node. The signing binding selects which host context can verify its bytes.
+
 These are proposed Rust interfaces.
 
 ```rust
 pub trait StateSigner: Send + Sync {
-    fn sign(&self, ctx: &Ctx, binding: &StateBinding, body: &[u8])
+    fn sign(&self, ctx: &Ctx, binding: Option<&[u8]>, body: &[u8])
         -> Result<Vec<u8>, StateError>;
 
-    fn verify(&self, ctx: &Ctx, binding: &StateBinding, signed: &[u8])
+    fn verify(&self, ctx: &Ctx, binding: Option<&[u8]>, signed: &[u8])
         -> Result<Vec<u8>, StateError>;
 }
 
-pub struct StateBinding {
-    pub session: String,
-    pub purpose: String,
+pub struct SignerEntry {
+    signer: Arc<dyn StateSigner>,
+    binding: Option<Arc<[u8]>>,
 }
-
-pub struct SignerEntry(pub Arc<dyn StateSigner>);
 ```
 
-A binding identifies where the state belongs. The issuing host supplies the session from its trusted context.
-The application supplies a stable purpose, such as `"counter"`, for both rendering and handling that component.
-The issuing host uses these expected values when it verifies the bytes.
+| Host policy | Binding supplied by the host | Effect |
+|---|---|---|
+| Public counter | `None` | The issuing signer can verify the public state without a caller identity. |
+| Per-user state | Authenticated user identifier | The same user can return the state across sign-ins while the key and state remain valid. |
+| Per-session state | Current trusted session identifier | A new session cannot use the old session’s state. |
+
+The host can use another application value. It must obtain the expected value independently of the submitted state.
+A binding can be public. The signing key remains secret.
 
 | Host choice | What each renderer receives | What verification does |
 |---|---|---|
@@ -69,40 +74,49 @@ Each renderer stores and returns the original wrapper bytes.
 
 ## Stage 1. Install the signer and use it
 
-At startup, the host creates the signer with its key. The existing typed map in `foundation_context::Ctx` stores the entry.
-The runtime adds a lookup helper. A missing entry returns `StateError::MissingSigner`.
+At startup, install one signer with an absent binding. For public state, use this context directly.
+For scoped state, fork the context and replace its signer entry. `Ctx::fork()` copies the entry map and shares the existing services.
 
 ```rust
-fn state_signer(ctx: &Ctx) -> Result<Arc<dyn StateSigner>, StateError> {
-    let entry = ctx.get::<SignerEntry>().ok_or(StateError::MissingSigner)?;
-    Ok(Arc::clone(&entry.0))
+// Proposed helper in foundation_ui_runtime. The key stays with the signer.
+fn with_state_binding(base: &Ctx, value: &[u8]) -> Result<Ctx, StateError> {
+    let entry = base.get::<SignerEntry>().ok_or(StateError::MissingSigner)?;
+    let child = base.fork();
+    child.store(SignerEntry {
+        signer: Arc::clone(&entry.signer),
+        binding: Some(Arc::from(value)),
+    });
+    Ok(child)
 }
 ```
 
+The host runs the same policy before rendering a component and before dispatching a later action.
+For example, a signed-in route requires an authenticated user and derives its context from that user’s identifier:
+
 ```rust
-// Host startup. This host installs its signer once.
-let ctx = Ctx::try_host()?;
-let signer = HmacStateSigner::new(key, config)?;
-ctx.store(SignerEntry(Arc::new(signer)));
+// Initial render
+let render_ctx = with_state_binding(&base, authenticated_user.id_bytes())?;
+render_counter(&render_ctx, counter)?;
 
-// Initial render. The dispatcher puts these bytes in AttachState.state.
-let binding = StateBinding { session: session.id().to_owned(), purpose: "counter".into() };
-let signer = state_signer(&ctx)?;
-let signed = signer.sign(&ctx, &binding, br#"{"count":4}"#)?;
-
-// Later request. The dispatcher obtains the same binding from trusted inputs.
-let body = signer.verify(&ctx, &binding, &request_state)?;
-let counter: Counter = serde_json::from_slice(&body)?;
+// A later request. Authentication resolves the user again.
+let action_ctx = with_state_binding(&base, request_user.id_bytes())?;
+dispatcher.dispatch(&action_ctx, request).await?;
 ```
 
-`request_state` contains the bytes the client returned in `ActionRequest.state`. The action receives `counter`.
-Only the issuing host needs its signing key. A renderer can carry the state without reading its contents.
+Inside the runtime, rendering calls `entry.signer.sign(ctx, entry.binding.as_deref(), body)`.
+Dispatch calls `entry.signer.verify(ctx, entry.binding.as_deref(), signed)` before decoding state.
+It passes the same context to the action and uses it to sign the next state when it drains the receiver.
+The component sees its ordinary typed state on web, iOS and Android.
 
 **Law and test.** Install a small test signer. Send its JSON wrapper through a frame, then verify the returned bytes.
 Share that input with the web, Swift and Kotlin renderer tests in features 10, 14 and 15.
 Give a parent, child and sibling different attachments. Trigger each node and compare its request with its own bytes.
 Bind a sibling explicitly to the parent. Expect the parent’s bytes and the sibling’s trigger identity.
-Repeat with an unattached child and no explicit owner. Expect empty state. Repeat in a separate user session to check isolation. With no signer, assert a typed error before calling the action.
+Repeat with an unattached child and no explicit owner. Expect empty state. With no signer, assert a typed error before calling the action.
+
+Derive two contexts from one base for users A and B. Render for A, dispatch as A and verify A’s next state.
+Verification as B or with the public context must fail. Public state must round-trip with the base context.
+Run both users concurrently. Confirm that neither request changes the base or the other user’s binding.
 
 ## Stage 2. Isolate the compact cryptography
 
@@ -131,14 +145,14 @@ A changed tag fails. Exercise the native helper and each supported Wasm host pat
 
 1. Put the signers in `foundation_ui_runtime::state`. Reuse the existing HMAC verification and compact encryption helpers.
 2. Authenticate the body, binding and expiry. Both built-in signers use the injected clock and configurable lifetime. The default is 24 hours.
-3. Use an unambiguous encoding for variable-length fields. For ChaCha, authenticate the binding inside the encrypted payload or as associated data.
+3. Encode binding presence and length explicitly. Distinguish an absent binding from a supplied empty value. For ChaCha, authenticate the binding inside the encrypted payload or as associated data.
 4. Check configured size limits before allocating or decoding. Return the body only after all checks pass.
 5. Treat `AttachState.state` and `ActionRequest.state` as byte vectors in the wire writer, schema comments and package guide.
    The current writer requires an `EWS1` table with a tag. Move format validation into the selected signer.
 6. Keep the existing `EWS1` fixtures as examples of that format. Test a second signer with a different format.
 7. Update the runtime README with one readable counter and one private counter. Run both examples.
 
-**Laws and tests.** Each signer restores the original body. Reject a changed body, wrong session, wrong purpose, expired state or wrong key.
+**Laws and tests.** Each signer restores the original body. Reject a changed body, wrong binding, expired state or wrong key.
 Advance the injected test clock to the expiry time. Check that repeated private signatures use fresh nonces and decrypt to the same value.
 
 ## Scope and verification

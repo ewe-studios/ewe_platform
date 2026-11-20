@@ -299,3 +299,5 @@ is recorded here as passed.
 - All 87 Rust wire tests pass with and without default features. All 11 TypeScript fixture tests pass.
 - Formatting, strict Clippy, WebAssembly checks, binding drift checks and the executable writer example pass.
 - The runtime consumer passes 29 integration tests and its documentation example.
+
+- The revised signer plan keeps the optional signing binding in the host context. Render and dispatch apply the same host policy.

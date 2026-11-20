@@ -27,6 +27,13 @@ are._
 WebAssembly (WASM); random number generator (RNG); identifier (id); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
+## Context for state signing
+
+The revised [signer contract](../04-signed-state/feature.md) takes precedence over the prototype session and codec calls below.
+The host passes its public or scoped context to the dispatcher. Use that context for verification, the action call and signing the collected state.
+A session identifier is one optional host binding. The dispatcher obtains the signer and binding from the context.
+
+
 ## 1. Goal
 
 `foundation_ui_runtime::dispatch` is the one implementation of the action lifecycle. It takes

@@ -139,7 +139,7 @@ The registry entry decodes verified bytes into `Counter`. The dispatcher owns th
 | Participant | Responsibility |
 |---|---|
 | Manager | Build the request from the event, node and original state bytes. Route it once. |
-| Dispatcher (feature 07) | Look up the action. Resolve the trusted session and component purpose. Verify state through feature 04. |
+| Dispatcher (feature 07) | Use the context supplied by the host to verify state, call the action and sign its next state. |
 | Registry entry | Decode the action's state type. Call the function. For `()`, accept absent state. |
 | Action | Write generated user interface (UI) operations, next state or application data to `ctx.receiver()`. |
 | Dispatcher on success | Drain items in order. Sign new state. Pass the messages to the frame writer. |
