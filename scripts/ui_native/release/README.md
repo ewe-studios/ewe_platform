@@ -36,7 +36,19 @@ scripts/ui_native/release/verify.sh --candidate dist/native-ui --templates both
 The prepare command validates the Apple archive, Maven archives and Maven dependency declarations.
 It writes the inputs and their SHA-256 digests to `native-ui.json`.
 Verification builds the Swift starter with the candidate archive. It builds the Android starter using a temporary Maven repository.
-Each Android verification uses a fresh Gradle cache.
+The public Android check uses a fresh Gradle cache.
+
+Run the package-only Android starter on an emulator with the local Maven candidate.
+
+```sh
+mise exec -- scripts/ui_native/release/test-android-starter.sh --maven "$PWD/target/native-ui/maven"
+```
+
+Omit `--maven` to resolve the release version from Maven Central.
+The script creates a temporary Android 36 emulator and starts the Rust todo host.
+It checks the visible count, adds one todo through the public action endpoint, and taps **Refresh**.
+The test passes when the count changes from zero to one.
+Linux runners need read and write access to `/dev/kvm` for hardware acceleration.
 
 ## Publish one version
 

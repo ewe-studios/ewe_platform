@@ -19,6 +19,17 @@ done
 for repo in "$root" "$EWE_UI_SWIFT" "$EWE_UI_KOTLIN"; do
     [[ -z $(git -C "$repo" status --porcelain) ]] || { echo "Commit the changes in $repo" >&2; exit 1; }
 done
+python3 - "$EWE_UI_SWIFT" "$EWE_UI_KOTLIN" <<'PYPINS'
+from pathlib import Path
+import subprocess, sys, tomllib
+pins = tomllib.loads(Path("release/native-ui.toml").read_text())
+for name, checkout in zip(("swift", "kotlin"), sys.argv[1:]):
+    commit = subprocess.check_output(["git", "-C", checkout, "rev-parse", "HEAD"], text=True).strip()
+    if pins[name + "_revision"] != commit:
+        raise SystemExit(f"Check out the pinned {name} revision before building")
+PYPINS
+mise exec -- scripts/toolchain/check.sh --scope apple
+mise exec -- scripts/toolchain/check.sh --scope android
 inputs=$(mktemp -d)
 trap 'rm -rf "$inputs"' EXIT
 scripts/ui_native/build-ios.sh "$inputs/apple"

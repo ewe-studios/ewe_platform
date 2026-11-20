@@ -153,3 +153,36 @@ jobs:
           mise install --yes java gradle http:android-sdk python
           mise run toolchain:android
           mise exec -- scripts/ui_native/release/verify.sh --candidate ../candidate --templates both --public
+          mise exec -- scripts/ui_native/release/test-ios-starter.sh
+
+  android-device:
+    needs: [preview, publish]
+    runs-on: ubuntu-latest
+    env:
+      EWE_UI_KOTLIN: ${{ github.workspace }}/kotlin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: core
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ needs.preview.outputs.kotlin_repo }}
+          ref: ${{ needs.preview.outputs.kotlin_rev }}
+          path: kotlin
+          persist-credentials: false
+      - uses: jdx/mise-action@v5.2.10
+        with:
+          install: false
+          working_directory: core
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run the public Android starter
+        working-directory: core
+        run: |
+          sudo chmod a+rw /dev/kvm
+          mise trust --yes mise.toml
+          mise install --yes java gradle http:android-sdk python
+          mise run toolchain:android
+          mise exec -- scripts/ui_native/release/test-android-starter.sh

@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import plistlib
 import re
@@ -127,6 +128,21 @@ def wire_version(file, name):
     return int(match.group(1))
 
 
+def apple_tools():
+    env = os.environ.copy()
+    default = Path("/Applications/Xcode.app/Contents/Developer")
+    if not env.get("DEVELOPER_DIR") and default.is_dir():
+        env["DEVELOPER_DIR"] = str(default)
+    def output(*args):
+        return subprocess.check_output(args, env=env, text=True).strip()
+    return {
+        "xcode": output("xcodebuild", "-version"),
+        "iphoneos_sdk": output("xcrun", "--sdk", "iphoneos", "--show-sdk-version"),
+        "iphonesimulator_sdk": output("xcrun", "--sdk", "iphonesimulator", "--show-sdk-version"),
+        "swift": output("xcrun", "swift", "--version").splitlines()[0],
+    }
+
+
 def stage_release(args):
     config = tomllib.loads(CONFIG.read_text())
     revisions = {key: revision(path) for key, path in
@@ -153,6 +169,7 @@ def stage_release(args):
             "vocabulary_version": wire_version("backends/foundation_ui_wire/src/vocab/version.rs", "VOCABULARY_VERSION"),
             "swift_tag_revision": swift_commit, "swift_manifest": swift_manifest,
             "rust_toolchain": tomllib.loads((ROOT / "rust-toolchain.toml").read_text())["toolchain"]["channel"],
+            "apple_tools": apple_tools(),
             "platform_tools": {k: v for k, v in mise["env"].items() if k in ("ANDROID_NDK", "ANDROID_UI_COMPILE_SDK", "ANDROID_GRADLE_PLUGIN", "XCODE_MIN")},
             "tools": {k: v for k, v in mise["tools"].items() if k in ("java","gradle","kotlin") or "flatbuffers" in k},
             "swift_product": config["swift_product"],
