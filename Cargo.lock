@@ -5987,7 +5987,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -6169,7 +6169,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "async-trait",
  "aws-lc-rs",

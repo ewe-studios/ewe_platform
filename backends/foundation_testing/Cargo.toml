@@ -15,7 +15,7 @@ categories = ["development-tools::testing"]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.9", features = ["std"] }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.14" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.5", optional = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }

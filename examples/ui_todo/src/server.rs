@@ -14,12 +14,9 @@ use foundation_http::{
 };
 use foundation_netio::{
     netcap::RawStream,
-    shared::{
-        client::body_reader::AsyncSendSafeBody,
-        http::{
-            Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-            SimpleOutgoingResponse, Status,
-        },
+    shared::http::{
+        Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+        SimpleOutgoingResponse, Status,
     },
 };
 use foundation_ui_runtime::{
@@ -154,7 +151,7 @@ impl Endpoint {
         .map_err(|e| format!("{e:?}"))?;
         Ok((Status::OK, SINGLE_FRAME, bytes))
     }
-    async fn answer(&self, ctx: &Ctx, req: SimpleIncomingRequest) -> Result<Reply, Error> {
+    async fn answer(&self, ctx: &Ctx, mut req: SimpleIncomingRequest) -> Result<Reply, Error> {
         let store = ctx.get::<TodoStore>().ok_or("Missing todo store")?;
         if matches!(self, Self::NativeInitial | Self::Starter) {
             return self.native_initial(ctx, &store);
@@ -181,7 +178,7 @@ impl Endpoint {
             return Err("Hello exceeds limit".into());
         }
         let hello = URL_SAFE_NO_PAD.decode(hello)?;
-        let mut stream = AsyncSendSafeBody::from(req.body.ok_or("Missing request body")?);
+        let mut stream = req.take_async_body().ok_or("Missing request body")?;
         let mut body = Vec::new();
         while let Some(chunk) = stream.next().await {
             let bytes = chunk.map_err(|e| e.to_string())?;
