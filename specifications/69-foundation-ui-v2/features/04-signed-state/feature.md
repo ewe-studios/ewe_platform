@@ -8,8 +8,21 @@ crates: ["foundation_ui_runtime", "foundation_compact", "foundation_ui_wire"]
 
 # Feature 04. Get a state signer from the context
 
-A counter page sends its state to the browser. On the next click, the browser sends those bytes back.
-The server must know that it issued the state before it uses the count.
+A user taps a counter on the web, iOS or Android. Each renderer returns the state bytes attached to that counter.
+The host that issued those bytes verifies them before the action reads the count.
+
+A host is the runtime that owns the action and its signing key. A renderer displays components and collects input.
+For a server action, the server signs and verifies. For a local action, the local runtime can use its own signer and key.
+
+| Renderer | Where the state lives | What happens on a tap |
+|---|---|---|
+| Web | The component root in the document tree | The event handler finds the nearest state-bearing root and returns its bytes. |
+| iOS (SwiftUI) | The component root in the Swift node store | The event bridge reads the nearest state-bearing record and forwards its bytes to the native core. |
+| Android (Compose) | The component root in the Kotlin node store | The event bridge reads the nearest state-bearing record and forwards its bytes to the native core. |
+
+For example, a native frame attaches state to root 40 and binds a button at node 42 to `server:increment_counter`.
+A tap on node 42 sends that node number and the exact bytes from root 40. The server verifies the bytes.
+For a local action, the native core can complete the same round trip on the device.
 
 ## The contract
 
@@ -33,11 +46,11 @@ pub struct StateBinding {
 pub struct SignerEntry(pub Arc<dyn StateSigner>);
 ```
 
-A binding identifies where the state belongs. The server supplies the session from the authenticated request.
+A binding identifies where the state belongs. The issuing host supplies the session from its trusted context.
 The application supplies a stable purpose, such as `"counter"`, for both rendering and handling that component.
-The server uses these expected values when it verifies the bytes.
+The issuing host uses these expected values when it verifies the bytes.
 
-| Host choice | What the browser receives | What verification does |
+| Host choice | What each renderer receives | What verification does |
 |---|---|---|
 | `HmacStateSigner` | Readable state and a tag. HMAC means hash-based message authentication code. | Check the tag and binding. Return the original state bytes. |
 | `ChaChaStateSigner` | State encrypted with ChaCha20-Poly1305, a nonce and an authentication tag. A nonce is a value used once per key. | Authenticate the binding and encrypted state. Return the decrypted bytes. |
@@ -45,7 +58,7 @@ The server uses these expected values when it verifies the bytes.
 
 A readable signer can put `{"count":4}` in a wrapper with its tag.
 It must define the exact bytes covered by the tag. A change to the count must fail verification.
-The browser stores and returns the original wrapper bytes.
+Each renderer stores and returns the original wrapper bytes.
 
 ## Stage 1. Install the signer and use it
 
@@ -76,10 +89,11 @@ let counter: Counter = serde_json::from_slice(&body)?;
 ```
 
 `request_state` contains the bytes the client returned in `ActionRequest.state`. The action receives `counter`.
-The template and the browser need no server key.
+Only the issuing host needs its signing key. A renderer can carry the state without reading its contents.
 
 **Law and test.** Install a small test signer. Send its JSON wrapper through a frame, then verify the returned bytes.
-Assert byte equality at each boundary. With no signer, assert a typed error before calling the action.
+Share that input with the web, Swift and Kotlin renderer tests in features 10, 14 and 15.
+Each test triggers a child node and compares the returned bytes with the bytes on its component root. With no signer, assert a typed error before calling the action.
 
 ## Stage 2. Isolate the compact cryptography
 
@@ -94,12 +108,12 @@ assert_eq!(recovered.as_slice(), body);
 
 | Execution environment | Source of fresh randomness |
 |---|---|
-| Native server | The host seeds the context from operating system entropy. |
+| Native server or on-device Rust host (iOS and Android) | The host seeds the context from operating system entropy. |
 | Browser WebAssembly (Wasm) with `wasm-bindgen` | The host uses Web Crypto through the JavaScript bindings. |
 | Wasm with `host-abi` | The embedding application supplies the entropy import through its application binary interface (ABI). |
 | Host without secure entropy | Forward signing to the server. Propagate a local initialization error if local encryption is required. |
 
-Use a fixed seed only in tests. A browser that only returns signed state needs neither key access nor an entropy import for this task.
+Use a fixed seed only in tests. A renderer that only returns state bytes needs no randomness for this task.
 
 **Law and tests.** The same test key, nonce and body give the same encrypted bytes. Decryption restores the body.
 A changed tag fails. Exercise the native helper and each supported Wasm host path. A target build alone cannot test an entropy import.

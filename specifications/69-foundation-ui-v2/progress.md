@@ -288,3 +288,5 @@ is recorded here as passed.
 - Feature 04 now proposes a signer installed in the context. The signer owns its output format.
 - Feature 05 follows a counter from registration through a button event to the receiver.
 - The existing state tests verify the earlier prototype. The new signer interfaces and examples are design work.
+
+- Feature 04 now shows the same state round trip on the web, iOS and Android. The issuing host owns verification.
