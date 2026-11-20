@@ -253,13 +253,17 @@ is recorded here as passed.
 - Feature 01 provides verified readers, writers, all four generated language bindings and the embedded browser module.
 - All 23 Rust integration tests and 11 browser module fixture tests pass. The readers share the same 11 binary fixtures.
 - The WebAssembly and standard-library-free builds pass. The generator detects changed output and preserves the last successful output on failure.
-- The release plan for feature 19 is available for owner review. It proposes separate Swift and Kotlin source repositories and public template installation tests.
+- The owner approved the release plan for feature 19. It specifies separate Swift and Kotlin source repositories and public template installation tests.
 
 - The [wire package guide](../../backends/foundation_ui_wire/README.md) documents the schema, actions, manual messages and shared binary fixtures.
 - The Rust example runs in a separate consumer crate. The JSON request encodes to binary and decodes with the original fields.
 - Each feature now requires a README task and a documentation check before completion.
 
+- Commit `c359d7274` records the wire format, package guide, example and native toolchain.
+- Issue #617 fixed two fixture lint errors. All 23 Rust tests and 11 browser fixture tests pass on Linux and macOS.
+- The host authentication and compact library tests pass with the shared cryptography dependencies and explicit nonce support.
+
 ## Next
 
-1. The owner approves all remaining features. Start features 02 and 04.
+1. The owner approved all remaining listed features. Features 02 and 04 are in progress.
 2. Follow the dependency order and the browser acceptance gate before native implementation.

@@ -365,3 +365,8 @@ ASD-STE100.
 
 - A standalone consumer example uses the generated public constructors and defaults. The test-only table macro is unavailable to consumers.
 - The FlatBuffers compiler can encode and decode a hand-written action request with the frame schema and an explicit union tag.
+
+## Signed state dependencies
+
+- The new HMAC library requires the `KeyInit` trait for key construction. Existing authentication tests cover this change.
+- BoringTun still needs the older digest interface for its BLAKE2 implementation. The workspace manifest records this dependency constraint.

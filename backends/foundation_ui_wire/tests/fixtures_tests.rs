@@ -45,12 +45,9 @@ fn counter_frame() -> FrameT {
     }))])
 }
 
-pub(super) fn all_forms_frame() -> FrameT {
-    use MobileOperationT as Mobile;
+fn shared_forms() -> [UiOperationT; 12] {
     use UiOperationT as Ui;
-    use WebOperationT as Web;
-
-    let shared = [
+    [
         Ui::CreateNode(Box::new(table!(CreateNodeT {
             node_id: 1,
             kind: NodeKind::TEXT
@@ -99,8 +96,12 @@ pub(super) fn all_forms_frame() -> FrameT {
             node_id: 1,
             behaviour: BehaviourId::DIALOG
         }))),
-    ];
-    let web = [
+    ]
+}
+
+fn web_forms() -> [WebOperationT; 16] {
+    use WebOperationT as Web;
+    [
         Web::WebElement(Box::new(table!(WebElementT {
             node_id: 1,
             custom_tag: Some("div".into())
@@ -163,8 +164,12 @@ pub(super) fn all_forms_frame() -> FrameT {
             node_id: 1,
             custom: Some("a".into())
         }))),
-    ];
-    let mobile = [
+    ]
+}
+
+fn mobile_forms() -> [MobileOperationT; 3] {
+    use MobileOperationT as Mobile;
+    [
         Mobile::MountWebView(Box::new(table!(MountWebViewT {
             node_id: 2,
             parent_id: 1,
@@ -177,17 +182,20 @@ pub(super) fn all_forms_frame() -> FrameT {
             node_id: 1,
             custom: Some("a".into())
         }))),
-    ];
+    ]
+}
 
-    let messages = shared
+pub(super) fn all_forms_frame() -> FrameT {
+    let messages = shared_forms()
         .into_iter()
         .map(|ui| message(table!(OperationT { ui: ui })))
         .chain(
-            web.into_iter()
+            web_forms()
+                .into_iter()
                 .map(|web| message(table!(OperationT { web: web }))),
         )
         .chain(
-            mobile
+            mobile_forms()
                 .into_iter()
                 .map(|mobile| message(table!(OperationT { mobile: mobile }))),
         )
@@ -201,8 +209,8 @@ fn columnar_bytes() -> Vec<u8> {
     let node_ids = create_aligned_vector(&mut builder, &[1, 2, 3]);
     let arg_a = create_aligned_vector(&mut builder, &[0; 3]);
     let arg_b = create_aligned_vector(&mut builder, &[0; 3]);
-    let blob_a_off = create_aligned_vector(&mut builder, &[0, 1, 3, 6]);
-    let blob_b_off = create_aligned_vector(&mut builder, &[0; 4]);
+    let text_offsets = create_aligned_vector(&mut builder, &[0, 1, 3, 6]);
+    let empty_offsets = create_aligned_vector(&mut builder, &[0; 4]);
     let blob_bytes = builder.create_vector(b"abbccc");
     let batch = ColumnarBatch::create(
         &mut builder,
@@ -211,8 +219,8 @@ fn columnar_bytes() -> Vec<u8> {
             node_ids: Some(node_ids),
             arg_a: Some(arg_a),
             arg_b: Some(arg_b),
-            blob_a_off: Some(blob_a_off),
-            blob_b_off: Some(blob_b_off),
+            blob_a_off: Some(text_offsets),
+            blob_b_off: Some(empty_offsets),
             blob_bytes: Some(blob_bytes),
         },
     );
