@@ -16,12 +16,18 @@ A user clicks a button. The button's action reference tells the manager where to
 The following example shows the intended interface. Feature 06 supplies the macro. Feature 08 supplies the template binding.
 
 ```rust
+#[derive(serde::Serialize, serde::Deserialize)]
+struct TodoList {
+    items: Vec<String>,
+}
+
 #[action]
 async fn add_todo(
     ctx: &Context,
     event: Interaction<TodoList>,
 ) -> Result<(), ErrorTrace<ActionError>> {
-    let next = event.state.with_item(&event.input_value);
+    let mut next = event.state;
+    next.items.push(event.input_value);
     let out = ctx.receiver();
 
     html! { ctx, out, Some(&next),
@@ -31,7 +37,10 @@ async fn add_todo(
 }
 ```
 
-`TodoList` is the application's state type. Its `with_item` method produces the updated list. The application’s `todo_row` function renders one item.
+The registry adapter has already decoded the verified bytes into `event.state: TodoList`.
+The first line moves that list into `next`. The second appends the text from this submit event.
+For example, an existing list containing “Buy milk” and an input value of “Get eggs” produce a list with both items.
+The application’s `todo_row` function renders one item. The receiver serializes the updated list when it records the next state.
 The author registers the action with `registry.register(add_todo)?` and binds an input event to it with `on:submit={add_todo}`.
 
 Suppose the list at node 40 owns the state. The input at node 42 explicitly names 40 as its state owner.
@@ -131,26 +140,53 @@ The registry can hold separate web and mobile implementations of one name when t
 An unknown name, wrong scope or unavailable required origin returns a typed error. Verify that no transport receives the rejected request.
 Use recording transports to test each row, including fallback and an explicit host action with no local implementation.
 
-## Stage 3. Trigger the action and collect its output
+## Stage 3. Pass the request context to the action
+
+Registration happens once at startup. It stores the callable for `add_todo`.
+The selected registry entry receives the caller’s context **when the action executes**. This lets concurrent requests use the same registry.
+
+| Lifetime | Value | Owner |
+|---|---|---|
+| Host | Base `foundation_context::Ctx`, authentication service and registry | The application at startup |
+| Request | Forked `Ctx` with the verified user and signer binding | The protected route in [feature 04](../04-signed-state/feature.md#at-the-protected-route) |
+| Action call | UI `Context` containing that request context, verified state owner and fresh receiver | The dispatcher |
 
 ```mermaid
 sequenceDiagram
-    participant Input
-    participant Manager
-    participant Dispatcher
-    participant Registry
-    participant Action
-    Input->>Manager: submit, host:add_todo, list state bytes
-    Manager->>Dispatcher: action request
-    Dispatcher->>Registry: look up add_todo
-    Dispatcher->>Dispatcher: verify state using the signer in Ctx
-    Dispatcher->>Action: call with Interaction of TodoList and a fresh receiver
-    Action->>Action: queue list operations and next state for the owner
-    Action-->>Dispatcher: Ok or error
-    Dispatcher-->>Input: frame with updates or an error
+    participant Route as Protected action route
+    participant D as Dispatcher
+    participant R as Shared registry
+    participant A as Registered add_todo
+    Route->>Route: Authenticate and derive request_ctx
+    Route->>D: dispatch(request_ctx, connection, frame)
+    D->>R: Look up name, origin and surface
+    R-->>D: Callable entry for add_todo
+    D->>D: Verify bytes with request_ctx and build call_ctx
+    D->>A: entry.call_raw(&call_ctx, verified_event)
+    A->>A: Queue list operations and next state
+    A-->>D: Ok or error
+    D-->>Route: Frame with signed updates or one error
 ```
 
-The registry entry decodes verified bytes into `TodoList`. The dispatcher owns the receiver for one call.
+The dispatcher passes the context explicitly. The following sketch shows the successful path inside dispatch.
+The registry adapter decodes the verified body into `TodoList` and calls the generated `add_todo.call(&call_ctx, event)`.
+
+```rust
+let entry = self.registry.get(origin, name, surface)?;
+let verified = verify_event(request_ctx, entry.as_ref(), request)?;
+let call_ctx = Context::for_action(request_ctx.clone(), surface, verified.owner);
+entry.call_raw(&call_ctx, verified.event).await?;
+let items = call_ctx.into_receiver().drain();
+encode_updates(request_ctx, items)
+```
+
+`Context::for_action` is a proposed constructor. It creates an empty receiver and retains the supplied request handle.
+The action reads that receiver through `ctx.receiver()`. Application services can read the same `CurrentUser` through the underlying context.
+On success, `encode_updates` signs queued state using the request signer that verified the incoming bytes.
+On error, the caller drops the receiver and builds the error frame.
+
+A network transport carries the action frame. The receiving host authenticates it through its request handler and creates its own context.
+An in-process host passes its local request context directly. The template, component and registry need no cookie or binding-selection code.
 
 | Participant | Responsibility |
 |---|---|
@@ -167,6 +203,8 @@ The signer protects the returned component state. Output collection covers UI up
 **Laws and tests.** Submit “Buy milk” from node 42. Verify that the returned view displays the new row and node 40 holds the updated list.
 Trigger the action again and check that it receives the updated list.
 Reject invalid signed bytes before decoding. Reject malformed list data before calling the action.
+Run two authenticated users through one registry at the same time. Check each action sees its own user and returns state verifiable in that user’s context.
+Reject an invalid session before lookup. Reject another user’s signed state before the action runs.
 Queue a view change and state, then fail the action. Assert that the client receives only the error and retains its previous view and state.
 
 ## Delivery and verification

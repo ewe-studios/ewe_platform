@@ -30,7 +30,8 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 ## Context for state signing
 
 The revised [signer contract](../04-signed-state/feature.md) takes precedence over the prototype session and codec calls below.
-The host passes its public or scoped context to the dispatcher. Use that context for verification, the action call and signing the collected state.
+The [protected route](../04-signed-state/feature.md#at-the-protected-route) passes its request context to the dispatcher.
+The [action invocation](../05-action-runtime/feature.md#stage-3-pass-the-request-context-to-the-action) specifies the handoff to the registry entry. Use that context for verification, the action call and signing the collected state.
 A session identifier is one optional host binding. The dispatcher obtains the signer and binding from the context.
 
 

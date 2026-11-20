@@ -74,11 +74,57 @@ Each renderer stores and returns the original wrapper bytes.
 
 ## Stage 1. Install the signer and use it
 
-At startup, install one signer with an absent binding. For public state, use this context directly.
-For scoped state, fork the context and replace its signer entry. `Ctx::fork()` copies the entry map and shares the existing services.
+### At host startup
+
+The login worker already creates a host context with `foundation_context::Ctx::try_host()`.
+It gives that context to `SessionManager::new`. Its dashboard handler reads the session cookie and calls `get_session`.
+A successful lookup gives the handler a trusted `session.user_id`.
+See the [worker setup and dashboard handler](../../../../examples/cf-login-app/src/lib.rs) and [session lookup](../../../../backends/foundation_auth/src/shared/session.rs).
+
+Extend that setup as shown below. `App` is the application's long-lived state. The signer and dispatcher interfaces are proposed.
+The host configuration supplies the state signing key. Restarts and replicas that serve the same state need compatible keys.
 
 ```rust
-// Proposed helper in foundation_ui_runtime. The key stays with the signer.
+let base = foundation_context::Ctx::try_host()?;
+let sessions = SessionManager::new(storage, session_config, session_key, base.clone())?;
+let signer = HmacStateSigner::new(state_key, state_config)?;
+install_state_signer(&base, Arc::new(signer));
+
+let mut registry = ActionRegistry::new();
+registry.register(add_todo)?;
+let app = App { base, sessions, dispatcher: Dispatcher::new(registry) };
+```
+
+The proposed `install_state_signer` helper stores a `SignerEntry` with the supplied signer and an absent binding.
+
+### At the protected route
+
+The application uses the same request helper on the todo page and its action endpoint.
+This example uses the worker’s cookie helpers. `RouteError` is the application's error type.
+
+```rust
+struct CurrentUser { id: String }
+
+async fn todo_request_ctx(app: &App, req: &web_sys::Request) -> Result<Ctx, RouteError> {
+    let cookie = get_cookie_header(req).ok_or(RouteError::LoginRequired)?;
+    let token = extract_session_token_from_cookie(&[cookie])
+        .ok_or(RouteError::LoginRequired)?;
+    let session = app.sessions.get_session(&token).await?
+        .ok_or(RouteError::LoginRequired)?;
+
+    let ctx = with_state_binding(&app.base, session.user_id.as_bytes())?;
+    ctx.store(CurrentUser { id: session.user_id });
+    Ok(ctx)
+}
+```
+
+`get_session` checks the stored token, revocation and expiry. A missing or invalid session stops the protected route.
+The page can redirect to login. The action endpoint can return an unauthenticated error. A storage failure takes the service error path.
+The cookie proves the session through lookup. The verified user identifier supplies the signing binding.
+The application stores `CurrentUser` on the same fork so its data access code can authorize the list read and later updates.
+
+```rust
+// Proposed runtime helper. Ctx::fork, get and store already exist.
 fn with_state_binding(base: &Ctx, value: &[u8]) -> Result<Ctx, StateError> {
     let entry = base.get::<SignerEntry>().ok_or(StateError::MissingSigner)?;
     let child = base.fork();
@@ -90,23 +136,28 @@ fn with_state_binding(base: &Ctx, value: &[u8]) -> Result<Ctx, StateError> {
 }
 ```
 
-The host runs the same policy before rendering a component and before dispatching a later action.
-For example, a signed-in route requires an authenticated user and derives its context from that user’s identifier:
+`Ctx::fork()` copies the typed entry map and shares the existing clock and other services.
+A plain clone shares the map. Use the fork before installing anything specific to a request.
+
+### On the first render and the next submit
 
 ```rust
-// Initial render
-let render_ctx = with_state_binding(&base, authenticated_user.id_bytes())?;
-render_counter(&render_ctx, counter)?;
+// Page handler. The application loads this user's list.
+let ctx = todo_request_ctx(app, req).await?;
+let user = ctx.get::<CurrentUser>().ok_or(RouteError::LoginRequired)?;
+let list = todos.load_for(&user.id).await?;
+render_todo_page(&ctx, &list)?;
 
-// A later request. Authentication resolves the user again.
-let action_ctx = with_state_binding(&base, request_user.id_bytes())?;
-dispatcher.dispatch(&action_ctx, request).await?;
+// Action handler, on a separate request. Authenticate the request again.
+let ctx = todo_request_ctx(app, req).await?;
+let reply = app.dispatcher.dispatch(&ctx, &connection, &request_frame).await;
 ```
 
-Inside the runtime, rendering calls `entry.signer.sign(ctx, entry.binding.as_deref(), body)`.
-Dispatch calls `entry.signer.verify(ctx, entry.binding.as_deref(), signed)` before decoding state.
-It passes the same context to the action and uses it to sign the next state when it drains the receiver.
-The component sees its ordinary typed state on web, iOS and Android.
+The render helper uses the signer entry from its argument to sign the list before attaching its bytes.
+The action handler supplies its own request context, the negotiated connection and the bounded incoming frame.
+The two handlers create separate contexts. Their trusted user identifiers produce equal binding bytes.
+A public route can use the base signer directly. A native host can derive a fork from its own authenticated account.
+Feature 05 follows the [context through the registry call](../05-action-runtime/feature.md#stage-3-pass-the-request-context-to-the-action).
 
 **Law and test.** Install a small test signer. Send its JSON wrapper through a frame, then verify the returned bytes.
 Share that input with the web, Swift and Kotlin renderer tests in features 10, 14 and 15.
@@ -114,6 +165,7 @@ Give a parent, child and sibling different attachments. Trigger each node and co
 Bind a sibling explicitly to the parent. Expect the parent’s bytes and the sibling’s trigger identity.
 Repeat with an unattached child and no explicit owner. Expect empty state. With no signer, assert a typed error before calling the action.
 
+Test a missing cookie, revoked session and session-store error. Assert zero list reads, renders and action calls.
 Derive two contexts from one base for users A and B. Render for A, dispatch as A and verify A’s next state.
 Verification as B or with the public context must fail. Public state must round-trip with the base context.
 Run both users concurrently. Confirm that neither request changes the base or the other user’s binding.

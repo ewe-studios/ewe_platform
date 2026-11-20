@@ -411,3 +411,5 @@ ASD-STE100.
 - `Ctx::fork()` copies the typed map. A request can replace its signer entry while sharing the signing key with other contexts.
 
 - The same action receiver accepts state alone or a rendered view followed by its next state. The caller drains both on success.
+
+- The login worker already resolves a trusted user through its session manager. A context fork isolates each request’s signer entry and current user.

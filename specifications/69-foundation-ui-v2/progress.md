@@ -303,3 +303,5 @@ is recorded here as passed.
 - The revised signer plan keeps the optional signing binding in the host context. Render and dispatch apply the same host policy.
 
 - Feature 05 now uses the agreed todo action as its main example. Feature 08 tests its view update and state attachment together.
+
+- Features 04 and 05 now trace the protected todo route from worker startup through session lookup, rendering and action invocation.
