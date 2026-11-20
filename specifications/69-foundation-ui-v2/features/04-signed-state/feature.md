@@ -1,7 +1,7 @@
 ---
 feature: "signed-state"
 description: "The foundation_ui_runtime crate starts here: the state codec that seals and opens SignedState, the key ring, the ordered checks and the failure limiter."
-status: "pending"
+status: "in-progress"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen"]
@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_ui_runtime", "foundation_compact", "foundation_auth"]
 decisions: ["D5", "D6", "D12", "D13", "D14", "A3", "R2", "R3"]
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 9
+  uncompleted: 3
   total: 12
-  completion_percentage: 0
+  completion_percentage: 75
 ---
 
 # Feature 04: Signed state
@@ -561,18 +561,18 @@ whose clock can move.
 
 ## 8. Tasks
 
-- [ ] 1. Move `hmac`, `sha2`, `subtle` (and `zeroize` if shared) to `[workspace.dependencies]`; update `foundation_auth`.
-- [ ] 2. Add `encrypt_with_nonce` to `foundation_compact` with its test; bump versions; close issue #549 in this change.
-- [ ] 3. Create the `foundation_ui_runtime` crate; add its `ci/packages.toml` section (`wasm = "enforce"`).
-- [ ] 4. `error.rs`, `config.rs`, `keys.rs`, `Session`.
-- [ ] 5. `mac_input.rs` with a test of the exact byte layout.
-- [ ] 6. `HmacStateCodec::seal` and the round-trip tests.
+- [x] 1. Move `hmac`, `sha2`, `subtle` (and `zeroize` if shared) to `[workspace.dependencies]`; update `foundation_auth`.
+- [x] 2. Add `encrypt_with_nonce` to `foundation_compact` with its test; bump versions; close issue #549 in this change.
+- [x] 3. Create the `foundation_ui_runtime` crate; add its `ci/packages.toml` section (`wasm = "enforce"`).
+- [x] 4. `error.rs`, `config.rs`, `keys.rs`, `Session`.
+- [x] 5. `mac_input.rs` with a test of the exact byte layout.
+- [x] 6. `HmacStateCodec::seal` and the round-trip tests.
 - [ ] 7. `HmacStateCodec::open` and the tamper tests.
-- [ ] 8. Private state.
-- [ ] 9. `PlainStateCodec`.
-- [ ] 10. `limiter.rs` and its tests.
-- [ ] 11. Update `progress.md` and `learnings.md`.
-- [ ] 12. Write or update the package or feature README.
+- [x] 8. Private state.
+- [x] 9. `PlainStateCodec`.
+- [x] 10. `limiter.rs` and its tests.
+- [x] 11. Update `progress.md` and `learnings.md`.
+- [x] 12. Write or update the package or feature README.
       Show how to seal and open example state. Run the signed-state fixture check.
 
 ## 9. Verify
@@ -591,14 +591,14 @@ python3 scripts/ci/ci.py plan
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
+- [x] The package or feature README is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] A reviewer confirms by reading `open` that one HMAC and one compare run on every path
+- [x] A reviewer confirms by reading `open` that one HMAC and one compare run on every path
       before the first `Err` after the shape check (I7).
-- [ ] The runtime uses the workspace versions of `hmac`, `sha2` and `subtle`.
+- [x] The runtime uses the workspace versions of `hmac`, `sha2` and `subtle`.
       The workspace manifest identifies each upstream dependency that requires an older version.
-- [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
 - [ ] The check list of the `story-driven-specification` skill passes.
 
 ---

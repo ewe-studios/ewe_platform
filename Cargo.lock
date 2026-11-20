@@ -6445,6 +6445,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_ui_runtime"
+version = "0.0.1"
+dependencies = [
+ "flatbuffers",
+ "foundation_compact",
+ "foundation_context",
+ "foundation_ui_wire",
+ "hmac 0.13.0",
+ "sha2 0.11.1",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "foundation_ui_traits"
 version = "0.0.4"
 

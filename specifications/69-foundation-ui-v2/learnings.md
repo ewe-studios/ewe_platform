@@ -381,3 +381,10 @@ ASD-STE100.
 - The test writes the browser vocabulary module from the Rust tables.
   The browser module keeps numeric indexes for properties, node kinds and events.
 - The vocabulary classifies forms. The frame writer applies the mount filter in feature 03.
+
+## Signed state verification
+
+- A tag over decoded fields cannot detect a change to unused FlatBuffers padding.
+- Private state adds a nonce and an authentication tag. The envelope limit includes these bytes and the table overhead.
+- The runtime opens a private body larger than one mebibyte when the host raises the body limit.
+- Issue #619 tracks direct failure recording with a missing clock. The dispatcher checks the same context before it records a failure.

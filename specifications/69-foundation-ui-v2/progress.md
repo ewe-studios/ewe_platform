@@ -272,6 +272,10 @@ is recorded here as passed.
   The browser package tests pass with the embedded vocabulary.
   The [wire package guide](../../backends/foundation_ui_wire/README.md) includes a runnable vocabulary example.
 
+- Feature 04 passes 29 runtime integration tests and its package guide example. The host and WebAssembly checks pass.
+- Signed state verifies each field and the tag. The owner must decide how the reader treats equivalent encodings.
+- The authentication, keychain, context and generator tests pass. Issue #594 tracks four existing clock reads outside the runtime.
+
 ## Next
 
 1. The owner approved all remaining listed features. Feature 04 is in progress.
