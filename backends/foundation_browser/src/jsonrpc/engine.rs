@@ -17,6 +17,56 @@ use crate::runtime::ensure_runtime;
 /// A subscription to a protocol event method — a receiver of the event `params`.
 pub type EventSub = Receiver<Value>;
 
+/// Timeouts for the protocol channel.
+#[derive(Debug, Clone, Copy)]
+pub struct RpcConfig {
+    /// How long one command waits for its response. Default: 30 s.
+    pub call_timeout: Duration,
+    /// How long one socket read may block before the task re-polls its outbound
+    /// pipe. Default: 5 ms.
+    ///
+    /// The netio WebSocket task drains one outbound message per poll and does
+    /// not wake on a send (#610). A long read therefore adds its length to every
+    /// command. 5 ms bounds that delay and costs 200 polls per second per idle
+    /// connection. Raise it when #610 is fixed.
+    pub read_timeout: Duration,
+    /// The pause between idle polls when the socket has no data. Default: 1 ms.
+    pub sleep_timeout: Duration,
+}
+
+impl Default for RpcConfig {
+    fn default() -> Self {
+        Self {
+            call_timeout: Duration::from_secs(30),
+            read_timeout: Duration::from_millis(5),
+            sleep_timeout: Duration::from_millis(1),
+        }
+    }
+}
+
+impl RpcConfig {
+    /// Set the deadline for one command response.
+    #[must_use]
+    pub fn call_timeout(mut self, timeout: Duration) -> Self {
+        self.call_timeout = timeout;
+        self
+    }
+
+    /// Set how long one socket read may block.
+    #[must_use]
+    pub fn read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = timeout;
+        self
+    }
+
+    /// Set the pause between idle polls.
+    #[must_use]
+    pub fn sleep_timeout(mut self, timeout: Duration) -> Self {
+        self.sleep_timeout = timeout;
+        self
+    }
+}
+
 type Pending = Arc<Mutex<HashMap<u64, SyncSender<Result<Value>>>>>;
 type Subs = Arc<Mutex<HashMap<String, Vec<Sender<Value>>>>>;
 
@@ -52,9 +102,26 @@ impl RpcEngine {
     /// # Errors
     /// [`BrowserError::Connect`] if the WebSocket handshake fails.
     pub fn connect(ws_url: &str, call_timeout: Duration) -> Result<Self> {
+        Self::connect_with(
+            ws_url,
+            RpcConfig {
+                call_timeout,
+                ..RpcConfig::default()
+            },
+        )
+    }
+
+    /// Connect with explicit channel timeouts.
+    ///
+    /// # Errors
+    /// [`BrowserError::Connect`] if the WebSocket handshake fails.
+    pub(crate) fn connect_with(ws_url: &str, config: RpcConfig) -> Result<Self> {
         ensure_runtime(None);
-        let read_timeout = Duration::from_secs(30);
-        let sleep_timeout = Duration::from_millis(1);
+        let RpcConfig {
+            call_timeout,
+            read_timeout,
+            sleep_timeout,
+        } = config;
         let (mut client, delivery) =
             WebSocketClient::connect(SystemDnsResolver, ws_url, read_timeout, sleep_timeout)
                 .map_err(|e| BrowserError::Connect(e.to_string()))?;

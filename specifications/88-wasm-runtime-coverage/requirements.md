@@ -26,13 +26,13 @@ metadata:
   tools: []
 has_features: true
 has_fundamentals: false
-builds_on: "specifications/68-valtron-wasm-web-tests"
+builds_on: "specifications/completed/68-valtron-wasm-web-tests"
 related_specs:
   - "specifications/85-wasm-fetch-transport"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/completed/43-rust-browser-testing"
   - "specifications/completed/44-embedded-deno-runtime"
-  - "specifications/68-valtron-wasm-web-tests"
+  - "specifications/completed/68-valtron-wasm-web-tests"
 features:
   completed: 0
   uncompleted: 4
