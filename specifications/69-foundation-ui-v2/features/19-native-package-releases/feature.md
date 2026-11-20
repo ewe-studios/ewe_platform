@@ -120,7 +120,7 @@ Each starter renders a screen and calls one Rust-backed action. Keep application
 
 ## Local verification
 
-The package-only starters ran on an iPhone 17 simulator and an Android 36 emulator.
+The package-only starters ran on an iPhone 18 Pro simulator and an Android 36 emulator.
 Each starter showed zero todos. A second client added a todo. Refresh then displayed one.
 The clean starter builds used local release artifacts. Public dependency resolution requires the first release.
 

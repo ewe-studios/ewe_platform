@@ -501,7 +501,7 @@ Kotlin release input `a23e916f12a851ecca9d60fb4e13495912d1321f` adds the default
 
 ### Feature 19 iPhone starter and request body check
 
-The standalone Swift starter passed on an iPhone 17 simulator running iOS 27.
+The standalone Swift starter passed on an iPhone 18 Pro simulator running iOS 27.
 The app displayed zero. A second client added a todo. Tapping Refresh changed the count to one.
 The Android and iOS checks both used the public action endpoint and the local package candidate.
 
