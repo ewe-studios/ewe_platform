@@ -1,7 +1,7 @@
 ---
 feature: "live-mounts-and-server-streams"
 description: "The live mount contract on the web and the server: a live channel that sends Frames of Messages in sequence order with a replay backlog and resume, the mount elements on the frame protocol, and bare frames from local WASM logic."
-status: "pending"
+status: "in-progress"
 priority: "high"
 model: "sonnet"
 depends_on: ["03-frame-writer", "09-web-frame-applicator"]
@@ -225,7 +225,7 @@ Feature: Live mounts and server streams
     When a connection registers with ClientCaps whose vocabulary_version is 0
     Then register fails with LiveError::UpdateRequired
 
-  Scenario: The App sink turns DomOps into messages
+  Scenario: The App sink sends generated operations as messages
     Given an App built with FrameBroadcastSink over a LiveChannel with a recording web connection
     When the App mounts <span>{count}</span> and sets count to 5 and stabilizes
     Then the recording connection received frames
@@ -358,7 +358,7 @@ impl LiveTx {
 pub struct FrameBroadcastSink { /* tx: LiveTx, next_id: Cell<u32> */ }
 impl FrameBroadcastSink { #[must_use] pub fn new(tx: LiveTx) -> Self; }
 impl ProtocolHandler for FrameBroadcastSink { /* protocol_byte 3, version 1; the other methods are no-ops, as in BroadcastSink */ }
-impl ProtocolMethods<Vec<DomOp>> for FrameBroadcastSink { /* section 6.4 */ }
+impl ProtocolMethods<Vec<OperationT>> for FrameBroadcastSink { /* section 6.4 */ }
 ```
 
 `LiveInner { conns: Vec<(MountSurface, Box<dyn FrameTransport + Send>)>,
@@ -380,8 +380,8 @@ sequenceDiagram
     participant L as LiveChannel (lock)
     participant C1 as Web connection
     participant C2 as Native connection
-    A->>S: encode_and_write(DomOps)
-    S->>S: web_form for each DomOp, then one Message per form
+    A->>S: encode_and_write(operations)
+    S->>S: Wrap each generated operation in a message
     S->>L: push_messages(messages)
     L->>L: seq = last + 1; gate + write_messages for web and for native
     L->>L: store StoredFrame; advance the sequencer; drop the oldest if over the limit
@@ -414,12 +414,9 @@ register cannot run between them._
    return gives `ConnectionClosed`, and the connection is not added.
 4. Add the connection.
 
-**`FrameBroadcastSink::encode_and_write`**: map each `DomOp` with `web_form`; wrap each
-`WireForm` member in one `MessageT` with its `operation` field set (`ui` or `web`); call
-`tx.push_messages`; on an error, log it with `tracing::error!` and report zero bytes in the
-`SendResult` (the trait returns no error; this matches how `BroadcastSink` cannot fail).
-Return `(SendResult { memory_id: MemoryId::new(id, 0), op_count, encoded_bytes }, null, 0)`
-as `BroadcastSink` does.
+The sink wraps each generated operation in a `MessageT` and calls `LiveTx::push_messages`.
+A delivery error returns to the application through the fallible protocol interface from feature 20.
+A successful push returns its operation count and encoded byte count.
 
 ### 6.5 The web side (`foundation-ui-frames.js`)
 
@@ -455,7 +452,7 @@ depend on them (D25).
 **Rust (`protocol/frame.rs`)**
 
 ```rust
-/// Layer 3 protocol that ships each DomOp batch as one bare `Frame` (no WasmEnvelope).
+/// Layer 3 protocol that ships each operation batch as one bare `Frame` (no WasmEnvelope).
 pub struct FrameV1 { /* sequencer: RefCell<StreamSequencer>, config: WriterConfig */ }
 impl FrameV1 {
     /// `stream_id` names the local channel. Use 0 for the page's default stream.
@@ -463,8 +460,8 @@ impl FrameV1 {
 }
 pub const PROTOCOL_FRAME: u8 = 3;
 impl ProtocolHandler for FrameV1 { /* protocol_byte PROTOCOL_FRAME, version 1; send_to_js = ship */ }
-impl ProtocolMethods<Vec<DomOp>> for FrameV1 {
-    // encode_and_write: web_form each op, wrap each form in one MessageT; write_messages(
+impl ProtocolMethods<Vec<OperationT>> for FrameV1 {
+    // encode_and_write: wrap each operation in one MessageT; write_messages(
     //   messages, &ClientCaps::web_current(), sequencer.header(0), &config); allocate one
     //   arena slot of the frame length; copy the frame bytes into it with no header;
     //   return (SendResult, ptr, len).
@@ -474,10 +471,7 @@ impl App { /// An App that ships frames to the page (D29).
     #[must_use] pub fn frames() -> Self { Self::with_protocol(FrameV1::new(0)) } }
 ```
 
-A `write_messages` error here is a bug in the message list (for example a frame above the
-limit). `encode_and_write` cannot return it, so it logs with `tracing::error!`, ships
-nothing, and returns a `SendResult` with `op_count: 0`. The arena calls keep the `expect`
-style of `ColumnarV1::write_batch`.
+The writer and allocation errors return to the caller. A failed write sends no bytes and preserves the stream cursor.
 
 The slot address may not be 8-aligned. Then the applicator copies the columns and counts
 them (feature 09 I7). This is correct, and it is visible in `stats`.
@@ -545,7 +539,7 @@ as the first statement inside the `try`:
 | I5; Scenario: dead connection | `live_channel_tests.rs::dead_connection_is_dropped` | fault |
 | I6; Scenario: resume too old | `live_channel_tests.rs::resume_too_old_is_refused`, `::bounded_backlog_drops_oldest` | expected outcome |
 | Scenario: older vocabulary | `live_channel_tests.rs::older_vocabulary_is_refused` | expected outcome |
-| Scenario: App sink | `live_channel_tests.rs::app_sink_turns_dom_ops_into_messages` (decode with `read_frame` and `columnar_rows`; compare with `web_form` of the DomOps that a `MockProtocol` App records for the same steps) | metamorphic |
+| Scenario: App sink | `live_channel_tests.rs::app_sink_sends_generated_operations` (decode with `read_frame` and `columnar_rows`; compare with the generated operations that a `MockProtocol` App records for the same steps) | metamorphic |
 | I10 | `live_channel_tests.rs::every_message_holds_one_operation_field` (read the frame with `read_frame`; each `Message` sets exactly one of `ui`, `web`, `mobile`, `columnar`) | expected outcome |
 | Fault: encode error leaves the sequencer | `live_channel_tests.rs::write_error_uses_no_sequence` (a `WriterConfig` with `max_frame_bytes` 64) | fault |
 | I7; Scenarios: mount-stream, mount-data | `integration/test/frames-live.test.js` "mount-stream applies every frame", "mount-data applies a complete render", "list and footer both apply before one flush" | example |

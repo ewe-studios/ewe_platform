@@ -10,7 +10,7 @@ created: 2026-11-13
 last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_components", "foundation_ui_wire", "foundation_ui_runtime"]
-packages: ["native/ios/EweUI", "native/android/ewe-ui"]
+packages: ["../ewe-ui-swift", "../ewe-ui-kotlin"]
 decisions: ["D10", "D36", "D37", "D38", "D56", "D59", "A5"]
 tasks:
   completed: 0
@@ -474,8 +474,8 @@ usage: check_behaviours.py <ios|android> [--matrix PATH]
    row has no key for the platform, print
    ``<component>: behaviour `<name>` has no <platform> form``.
 3. For each behaviour row that has the platform key: the file
-   `native/ios/EweUI/Sources/EweUI/Behaviours/<Type>.swift` or
-   `native/android/ewe-ui/ui/src/main/kotlin/ewe/ui/compose/behaviours/<Type>.kt` must
+   `../ewe-ui-swift/Sources/EweUI/Behaviours/<Type>.swift` or
+   `../ewe-ui-kotlin/ui/src/main/kotlin/ewe/ui/compose/behaviours/<Type>.kt` must
    exist and hold the text `<Type>`; else print
    ``<name>: <platform> binding `<Type>` not found``.
 4. A behaviour name in a component row that has no behaviour row prints
@@ -536,8 +536,8 @@ python3 scripts/ui/check_behaviours.py android
 python3 -m pytest scripts/ci/tests/test_check_behaviours.py
 node --test backends/foundation_ui_components/integration/test/
 node --test backends/foundation_wasm_ui/integration/test/
-swift test --package-path native/ios/EweUI                 # macOS
-./gradlew -p native/android/ewe-ui :core:test :ui:testDebugUnitTest
+swift test --package-path ../ewe-ui-swift                 # macOS
+../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :core:test :ui:testDebugUnitTest
 ```
 
 If `scripts/ci/tests` does not use `pytest`, run the new test file the way the other files

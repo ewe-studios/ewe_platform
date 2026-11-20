@@ -1,7 +1,7 @@
 ---
 feature: "web-frame-applicator"
 description: "The web renderer for the new wire: the generated reader bundle, one apply loop for the ui, web, mobile and columnar operation fields, the core-to-HTML mapping, state on each target element, ordering, and the seams in the current runtime."
-status: "implemented"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms", "03-frame-writer"]

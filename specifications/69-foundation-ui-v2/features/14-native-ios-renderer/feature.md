@@ -10,7 +10,7 @@ created: 2026-11-13
 last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
-packages: ["native/ios/EweUI", "examples/ui_todo_ios"]
+packages: ["../ewe-ui-swift", "../ewe-ui-swift/examples/ui_todo_ios"]
 decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D59", "A4"]
 tasks:
   completed: 0
@@ -31,12 +31,12 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 
 ## Package source location
 
-The [proposed release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-swift`.
-On adoption, use that checkout for the package layout below. The public starter resolves the released package by version.
+The [release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-swift`.
+Use that checkout for library sources, tests and the starter app. The public starter resolves the released package by version.
 
 ## 1. Goal
 
-A Swift package, `native/ios/EweUI`, renders frames with SwiftUI. A generated reader edits a
+A Swift package, `../ewe-ui-swift`, renders frames with SwiftUI. A generated reader edits a
 node store. Each node is one observable record, so a change to node 42 recomposes only the
 view of node 42. Native controls give focus, gestures and accessibility. Events go to the
 action core of feature 13. Live mounts open channels with the same semantics as the web.
@@ -68,7 +68,7 @@ must match it, and so must the Kotlin store of feature 15.
 
 **Inside this feature:** the reference model `foundation_ui_wire::reference` and its
 snapshots; the Swift package (`EweWire`, `EweUI`, `EweUITests`); the binding of
-`NativeCore`; the example app `examples/ui_todo_ios`; the build script; the CI step.
+`NativeCore`; the example app `../ewe-ui-swift/examples/ui_todo_ios`; the build script; the CI step.
 
 **Outside:**
 
@@ -401,7 +401,7 @@ whitespace does not matter.
 ### 6.5 The Swift package
 
 ```
-native/ios/EweUI/
+../ewe-ui-swift/
 ├── Package.swift
 ├── Sources/
 │   ├── EweWire/                 generated Swift, copied from backends/foundation_ui_wire/generated/swift
@@ -566,7 +566,7 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
 
 ### 6.7 The example and CI
 
-- `examples/ui_todo_ios`: a small Xcode project (or a Swift package app target) that links
+- `../ewe-ui-swift/examples/ui_todo_ios`: a small Xcode project (or a Swift package app target) that links
   the `.xcframework` of the `ui_todo` core (the Rust crate `examples/ui_todo/native`). The
   app shows the D48 todo list: an "Add" button that opens a sheet with a text field, a long
   scrolling list with scroll lock behind the sheet, a done toggle on each row, a delete
@@ -575,11 +575,11 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
   in the core, and a count of open items that follows a live mount. The dialog, dismiss,
   scroll lock and transition behaviours come from feature 16. Its `README.md` gives the build
   and simulator commands.
-- CI, on the macOS job of full runs only (rule 16), when `native/ios/**`,
-  `backends/foundation_ui_wire/**` or `backends/foundation_ui_native/**` changed:
+- Run the macOS job for Swift package full runs and for monorepo full runs that change the wire or native core.
+  Check out the Swift package beside the monorepo at the revision declared by the build. Run:
   `scripts/toolchain/check.sh --scope apple`, `scripts/ui_native/sync-ios.sh --check`,
   `scripts/ui_native/generate-bindings.sh --check`,
-  `swift test --package-path native/ios/EweUI`, and `scripts/ui_native/build-ios.sh`
+  `swift test --package-path ../ewe-ui-swift`, and `scripts/ui_native/build-ios.sh`
   followed by `xcodebuild build` of the example for the simulator.
 
 Use `frame_state_custom.bin` and `action_increment_custom.bin` from the wire fixtures.
@@ -588,7 +588,7 @@ Check that nodes 40 and 42 receive the bytes of `state_counter_custom.json` and 
 ## 7. Tests
 
 Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
-`native/ios/EweUI/Tests/EweUITests/`.
+`../ewe-ui-swift/Tests/EweUITests/`.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
@@ -636,10 +636,10 @@ scripts/toolchain/check.sh --scope apple
 cargo test -p foundation_ui_wire --profile uat --features reference
 cargo clippy -p foundation_ui_wire --profile uat --no-deps --features reference -- -D warnings
 scripts/ui_native/sync-ios.sh --check
-swift build --package-path native/ios/EweUI
-swift test  --package-path native/ios/EweUI
+swift build --package-path ../ewe-ui-swift
+swift test  --package-path ../ewe-ui-swift
 scripts/ui_native/build-ios.sh
-xcodebuild -project examples/ui_todo_ios/UITodo.xcodeproj -scheme UITodo \
+xcodebuild -project ../ewe-ui-swift/examples/ui_todo_ios/UITodo.xcodeproj -scheme UITodo \
   -destination 'generic/platform=iOS Simulator' build
 ```
 

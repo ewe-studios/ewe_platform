@@ -49,7 +49,7 @@ fn create_anchor(ctx: &Context, rcv: &SharedInstructionReceiver, parent_id: u32)
 }
 
 fn unmount(rcv: &SharedInstructionReceiver, ids: &[u32]) {
-    for id in ids {
+    for id in ids.iter().filter(|id| rcv.owns_mount(**id)) {
         rcv.queue(DomOp::RemoveNode { node_id: *id });
     }
 }
@@ -68,9 +68,11 @@ pub fn mount_show(
     let anchor = create_anchor(ctx, rcv, parent_id);
     let state: Rc<RefCell<ShowInstance>> = Rc::new(RefCell::new(None));
 
-    let scope_parent = ctx.clone();
+    let region = ctx.child();
+    rcv.register_scope(&[anchor], &region);
+    let scope_parent = region.clone();
     let rcv = rcv.clone();
-    ctx.effect(move || {
+    region.effect(move || {
         let want = when(); // the watcher's ONLY tracked read
         scope_parent.untracked(|| {
             let mut state = state.borrow_mut();
@@ -78,6 +80,7 @@ pub fn mount_show(
                 let scope = scope_parent.child();
                 let html = content.render(&scope, &rcv);
                 let ids = mount_before(&scope, &rcv, html, parent_id, anchor);
+                rcv.register_scope(&ids, &scope);
                 *state = Some((ids, scope));
             } else if !want {
                 if let Some((ids, scope)) = state.take() {
@@ -120,9 +123,11 @@ pub fn mount_for<T, K>(
     let anchor = create_anchor(ctx, rcv, parent_id);
     let entries: Rc<RefCell<Vec<Entry<K>>>> = Rc::new(RefCell::new(Vec::new()));
 
-    let scope_parent = ctx.clone();
+    let region = ctx.child();
+    rcv.register_scope(&[anchor], &region);
+    let scope_parent = region.clone();
     let rcv = rcv.clone();
-    ctx.effect(move || {
+    region.effect(move || {
         let items = each(); // the watcher's ONLY tracked read
         scope_parent.untracked(|| {
             let mut entries = entries.borrow_mut();
@@ -134,7 +139,8 @@ pub fn mount_for<T, K>(
             }
 
             // 1. Unmount removed keys.
-            entries.retain(|entry| {
+            entries.retain_mut(|entry| {
+                entry.ids.retain(|id| rcv.owns_mount(*id));
                 let keep = new_keys.contains(&entry.key);
                 if !keep {
                     unmount(&rcv, &entry.ids);
@@ -173,6 +179,7 @@ pub fn mount_for<T, K>(
                 let scope = scope_parent.child();
                 let html = render(&scope, &rcv, item);
                 let ids = mount_before(&scope, &rcv, html, parent_id, ref_id);
+                rcv.register_scope(&ids, &scope);
                 new_entries[i] = Some(Entry {
                     key: k.clone(),
                     ids,

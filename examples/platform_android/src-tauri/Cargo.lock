@@ -1690,7 +1690,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_signals"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "foundation_ui_traits",
  "serde",

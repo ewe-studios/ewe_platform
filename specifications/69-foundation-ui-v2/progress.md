@@ -199,17 +199,17 @@ Seven of 19 features are complete. Feature 07 is implemented. Its repository clo
 | 06 | action-macro | Sonnet | complete |
 | 07 | dispatcher-and-handshake | Sonnet | implemented |
 | 08 | html-macro-core-vocabulary | Sonnet | complete |
-| 09 | web-frame-applicator | Sonnet | implemented |
+| 09 | web-frame-applicator | Sonnet | complete |
 | 10 | web-action-manager | Sonnet | complete |
-| 11 | live-mounts-and-server-streams | Sonnet | pending |
+| 11 | live-mounts-and-server-streams | Sonnet | in progress |
 | 12 | legacy-wire-retirement | Sonnet | pending |
-| 13 | native-core-and-commands | Sonnet | pending |
+| 13 | native-core-and-commands | Sonnet | in progress |
 | 14 | native-ios-renderer | Sonnet | pending |
 | 15 | native-android-renderer | Sonnet | pending |
 | 16 | behaviour-matrix | Sonnet | pending |
 | 17 | toolchain-and-ci | Sonnet | complete |
 | 19 | native-package-releases | Sonnet | approved |
-| 20 | migrate-to-frame-writer | Sonnet | approved |
+| 20 | migrate-to-frame-writer | Sonnet | in progress |
 
 Features 08 and 10 are complete. Feature 09 verifies local scope disposal. Implementation of features 11 through 16 is pending. Feature 12 now follows feature 20 for legacy removal.
 
@@ -394,3 +394,10 @@ The feature 10 todo scenario passes in Chromium. A local WebAssembly action open
 The server adds a todo and updates the live count. Local filtering and server toggling both work.
 A second delete of the same item reports the domain error. The browser task passes all 19 smoke tests and the todo scenario.
 This result opens the feature 13 native core gate.
+
+The compiled WebAssembly fixture verifies external signal cleanup for feature 09. Features 11, 13 and 20 are in progress.
+
+
+The compiled WebAssembly fixture registers a real Rust scope on a button. A remote frame replaces the button.
+The `ewe_ui_dispose_mount` export runs its registered cleanup once. Removing the replacement leaves the count unchanged.
+The local bridge isolates native threads. Removing a captured child scope releases the graph borrow before its destructor runs.

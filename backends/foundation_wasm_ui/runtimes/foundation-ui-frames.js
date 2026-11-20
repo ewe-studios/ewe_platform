@@ -2,7 +2,7 @@
 import * as wire from "./foundation-ui-wire.js";
 import * as vocab from "./foundation-ui-vocab.js";
 import * as registryBehaviours from "./foundation-ui-behaviours.js";
-import { DomOpApplicator, Op } from "./foundation-wasm-ui.js";
+import { DomOpApplicator, Op, Patcher } from "./foundation-wasm-ui.js";
 
 const asBytes = input => ArrayBuffer.isView(input)
   ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength)
@@ -178,7 +178,6 @@ export class FrameApplicator {
     this.queue = [];
     this.scheduled = false;
     this.cssInstalled = false;
-    this.unmountHooks = new WeakMap();
     this.nodeIds = new WeakMap();
   }
   cursor(stream) { return this.cursors.get(stream); }
@@ -188,7 +187,7 @@ export class FrameApplicator {
     this.gaps.delete(stream);
     this.cursors.set(stream, sequence);
   }
-  registerUnmount(node, hook) { this.unmountHooks.set(node, hook); }
+  registerUnmount(node, hook) { Patcher.registerUnmount(node, hook); }
   report(code, fields = {}) {
     this.stats.reports++;
     const report = { code, ...fields };
@@ -302,8 +301,7 @@ export class FrameApplicator {
   }
   discard(node) {
     for (const child of Array.from(node.childNodes ?? [])) this.discard(child);
-    this.unmountHooks.get(node)?.();
-    this.unmountHooks.delete(node);
+    Patcher.releaseScope(node);
     registryBehaviours.disposeBehaviours(node);
     this.deps.onUnmount?.(node);
     (this.deps.dispatcher ?? this.deps.runtime?.dispatcher)?.off?.(node);

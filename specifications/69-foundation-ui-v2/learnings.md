@@ -494,3 +494,10 @@ Resolve a placement child against direct children. A matching grandchild can occ
 A typed array needs an aligned byte offset. A frame received in an unaligned network slice uses a copy for its numeric columns.
 Chromium initially timed out during target attachment. The protocol engine shared its 30-second command budget with each socket read.
 The existing configurable socket timeout from specification 68 fixes the browser harness. The underlying transport issue remains open.
+
+A frame replacement can end a local Rust signal scope. The renderer calls the WebAssembly instance that owns the removed node.
+
+
+A server frame cannot dispose a Rust scope through a JavaScript observer alone. The local renderer associates each node with its originating WebAssembly instance.
+The receiver tracks every root in a fragment. A partial removal keeps the scope alive. The last root releases it.
+Dropping an effect closure can drop a captured child context. The graph must release its mutable borrow before running those destructors.

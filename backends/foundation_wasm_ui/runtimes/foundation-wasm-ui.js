@@ -701,6 +701,7 @@ export class DomOpApplicator {
         break;
       case Op.REMOVE_NODE: {
         const node = reg.expect(nodeId);
+        Patcher.releaseTree(node);
         node.remove();
         reg.unregister(nodeId); // implicit unregister
         break;
@@ -711,9 +712,11 @@ export class DomOpApplicator {
         const newId = Number(attribute);
         const oldNode = reg.expect(nodeId);
         const newNode = reg.expectOrStaged(newId);
+        Patcher.releaseTree(oldNode);
         oldNode.replaceWith(newNode);
         reg.unregister(nodeId);
         reg.register(newId, newNode);
+        this.onMount?.(newId, newNode);
         break;
       }
       case Op.SET_STYLE:
@@ -729,7 +732,7 @@ export class DomOpApplicator {
         this.applyMorph(nodeId, attribute, textVal);
         break;
       case Op.REGISTER_NODE:
-        reg.applyRegister(nodeId, this.document);
+        { const el = reg.applyRegister(nodeId, this.document); this.onMount?.(nodeId, el); }
         break;
       case Op.UNREGISTER_NODE:
         reg.unregister(nodeId); // registry only — DOM untouched
@@ -2230,6 +2233,26 @@ export class Patcher {
   static runtime = { dispatcher: null, applicator: null, signalBridge: null, frames: null };
   /** Monotonic count of applied results (the frame instrument; see `route`). */
   static frameSeq = 0;
+  static localScopes = new WeakMap();
+
+  static registerUnmount(node, dispose) {
+    let hooks = Patcher.localScopes.get(node);
+    if (!hooks) Patcher.localScopes.set(node, hooks = new Set());
+    hooks.add(dispose);
+  }
+
+  static releaseScope(node) {
+    const hooks = Patcher.localScopes.get(node);
+    Patcher.localScopes.delete(node);
+    if (hooks) for (const dispose of hooks) {
+      try { dispose(); } catch (error) { console.error("Component cleanup failed", error); }
+    }
+  }
+
+  static releaseTree(node) {
+    for (const child of Array.from(node.childNodes ?? [])) Patcher.releaseTree(child);
+    Patcher.releaseScope(node);
+  }
 
   static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
     if (typeof doc?.createRange === "function") {
@@ -2471,10 +2494,11 @@ export function registerWasmApp(runtime, opts = {}) {
     console.error("registerWasmApp: no document available (non-browser environment)");
     return;
   }
-  const registry = new NodeRegistry().seedDocument(doc);
+  const bridge = runtime.bridge ?? runtime;
+  const registry = Patcher.ensureApplicator(doc).registry;
   const dispatcher = new EventDispatcher(
     (_id, _data) => {}, // registry callback delivery handled by signalDeliver below
-    { deliverSignal: signalDeliver(runtime, jsonEncodeEventData) },
+    { deliverSignal: signalDeliver(bridge, jsonEncodeEventData) },
   );
   const applicator = new DomOpApplicator(registry, doc, (eventName, nodeId, event, el) => {
     dispatcher.deliver(
@@ -2482,6 +2506,13 @@ export function registerWasmApp(runtime, opts = {}) {
       buildEventData(eventName, event, el),
     );
   });
+  const owned = new WeakSet();
+  applicator.onMount = (id, node) => {
+    if (!owned.has(node) && bridge.exports?.ewe_ui_dispose_mount) {
+      owned.add(node);
+      Patcher.registerUnmount(node, () => bridge.exports.ewe_ui_dispose_mount(id));
+    }
+  };
   runtime.dispatcher.setHandler(1, columnarHandler(applicator));
   // Initial scan + observer: wires primal:on* attrs that exist on page load.
   initEventRuntime(dispatcher, doc);

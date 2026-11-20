@@ -1,7 +1,7 @@
 ---
 feature: "native-core-and-commands"
 description: "The device Rust core: a UniFFI surface over the shared action manager and local dispatcher, a host transport for server actions, a frame listener for local logic, and NativeCommand as data."
-status: "pending"
+status: "in-progress"
 priority: "medium"
 model: "sonnet"
 depends_on: ["05-action-runtime", "07-dispatcher-and-handshake", "17"]
@@ -280,11 +280,10 @@ backends/foundation_ui_native/
 scripts/ui_native/generate-bindings.sh
 ```
 
-`scripts/ui_native/generate-bindings.sh` builds the crate for the host and runs the
-bindgen binary in library mode to write Swift to `native/ios/EweUI/Sources/EweCoreFFI/`
-and Kotlin to `native/android/ewe-ui/core/src/main/kotlin/`. Features 14 and 15 call it.
-The generated bindings are checked in, with the same drift check pattern as
-`scripts/ui_wire/check.sh`.
+Generate Swift and Kotlin bindings with `scripts/ui_native/generate-bindings.sh --out DIR`.
+The generator uses the same Rust library revision as the native binaries.
+The package build reads the generated directory. Feature 19 assigns ownership of package sources to the sibling repositories.
+Verify reproducibility by generating into two clean directories and comparing their files.
 
 ### 6.3 Public API
 
@@ -293,8 +292,8 @@ The generated bindings are checked in, with the same drift check pattern as
 pub struct CoreConfig {
     pub ctx: foundation_context::Ctx,
     pub registry: Arc<ActionRegistry>,
-    /// Ios or Android.
-    pub platform: Platform,
+    /// NativePlatform accepts iOS and Android.
+    pub platform: NativePlatform,
     pub writer: WriterConfig,
 }
 
@@ -377,8 +376,8 @@ the dependency.
 
 **How the app exposes the core.** The app's own Rust crate builds the registry and the
 `CoreConfig`, and exports one function with `#[uniffi::export]` that returns
-`Arc<NativeCore>` and takes the host's `Arc<dyn HostTransport>`. The framework crate does
-not hold a global core.
+`Arc<NativeCore>` and takes the host's `Arc<dyn HostTransport>`. The application owns the core.
+A foreign constructor also supports applications that use only server actions. These applications install the package without building Rust.
 
 ### 6.4 Behaviour
 
@@ -437,7 +436,7 @@ The app declares plain actions even when their implementation lives only on the 
 Test that an advertised plain action falls back. An explicit host action without a local implementation must fail.
 
 **Local logic and signals.** A device `App` (`foundation_wasm_ui::App`) lives on one thread
-because signals are not `Send`. After feature 12 it takes a `ProtocolMethods<Vec<OperationT>>`.
+because signals are not `Send`. After the feature 20 producer migration it takes a `ProtocolMethods<Vec<OperationT>>`.
 Give it a sink whose `encode_and_write` calls `core.push_ops(ops)`:
 `pub struct CoreSink { core: Arc<NativeCore> }` in `core.rs`, with the same shape as
 `FrameBroadcastSink` of feature 11. It needs `foundation_wasm_ui` as an optional
@@ -503,7 +502,7 @@ All in `backends/foundation_ui_native/tests/`.
 - [ ] 5. `push_ops`, the listener methods, with tests. The test also proves that a
   `UiBehaviour` and a `MobileBehaviour` pass the gate, and a `WebBehaviour` does not.
 - [ ] 6. `command.rs` with a test.
-- [ ] 7. `CoreSink` behind the `app` feature (after feature 12).
+- [ ] 7. `CoreSink` behind the `app` feature (after the feature 20 producer migration).
 - [ ] 8. The bindgen binary and `scripts/ui_native/generate-bindings.sh`.
 - [ ] 9. `ci/packages.toml` section; the two compile checks in CI.
 - [ ] 10. Update `progress.md` and `learnings.md`.

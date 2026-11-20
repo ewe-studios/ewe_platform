@@ -10,7 +10,7 @@ created: 2026-11-13
 last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
-packages: ["native/android/ewe-ui", "examples/ui_todo_android"]
+packages: ["../ewe-ui-kotlin", "../ewe-ui-kotlin/examples/ui_todo_android"]
 decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D58", "D59", "A4"]
 tasks:
   completed: 0
@@ -32,12 +32,12 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 
 ## Package source location
 
-The [proposed release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-kotlin`.
-On adoption, use that checkout for the package layout below. The public starter resolves the released package by version.
+The [release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-kotlin`.
+Use that checkout for library sources, tests and the starter app. The public starter resolves the released package by version.
 
 ## 1. Goal
 
-A Kotlin library, `native/android/ewe-ui`, renders frames with Jetpack Compose. It has the
+A Kotlin library, `../ewe-ui-kotlin`, renders frames with Jetpack Compose. It has the
 same contract as the iOS renderer of feature 14: a generated reader edits a node store, each
 node is one snapshot-state record, events go to the action core of feature 13, and live
 mounts follow the same rules. Its store must give the same snapshots as the reference model
@@ -303,7 +303,7 @@ records them in `learnings.md`.
 ### 6.2 The project
 
 ```
-native/android/ewe-ui/
+../ewe-ui-kotlin/
 ├── settings.gradle.kts, build.gradle.kts, gradle/libs.versions.toml, gradlew (wrapper, checked in)
 ├── core/                                   Kotlin JVM library
 │   ├── src/main/kotlin/ewe/ui/wire/        generated Kotlin, copied from backends/foundation_ui_wire/generated/kotlin
@@ -468,8 +468,7 @@ posts each frame to the main thread before `onFrame`. `SystemCommandHost`: `HAPT
 
 ### 6.6 The example and CI
 
-- `examples/ui_todo_android`: a Gradle app that depends on `:ui` and `:binding` by a
-  composite build, uses the same `examples/ui_todo/native` Rust crate as the iOS example,
+- `../ewe-ui-kotlin/examples/ui_todo_android`: a Gradle app that resolves the published renderer and binding. A maintainer can select an explicit local build. It uses the same `examples/ui_todo/native` Rust crate as the iOS example,
   and shows the D48 todo list: an "Add" button that opens a dialog with a text field, a long
   scrolling list with scroll lock behind the dialog, a done toggle on each row, a delete
   button that opens a confirm dialog and whose second delete the domain rejects, a
@@ -477,25 +476,25 @@ posts each frame to the main thread before `onFrame`. `SystemCommandHost`: `HAPT
   action in the core, and a count of open items that follows a live mount. The dialog,
   dismiss, scroll lock and transition behaviours come from feature 16. Its `README.md` gives
   the build and emulator commands.
-- CI on the Linux job (every pull request that changes `native/android/**`,
-  `backends/foundation_ui_wire/**` or `backends/foundation_ui_native/**`):
+- Run the Linux job for Kotlin package changes and for monorepo changes to the wire or native core.
+  Check out the Kotlin package beside the monorepo at the revision declared by the build. Run:
   `scripts/toolchain/check.sh --scope android`, `mise run toolchain:android`,
   `scripts/ui_native/sync-android.sh --check` and
-  `./gradlew -p native/android/ewe-ui :core:test :ui:testDebugUnitTest`. The toolchain pins
+  `../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :core:test :ui:testDebugUnitTest`. The toolchain pins
   and `mise install` give the JDK 25, Gradle 9.9.1, Kotlin 2.4.21 and the cmdline-tools
   (feature 17, D58). Gradle runs with `JAVA_HOME` at the pinned JDK. If the Linux CI image
   cannot hold the Android SDK within the free runner disk, run `:core:test` only on pull
   requests and the `:ui` compile on the nightly full run; record which case applies in
   `learnings.md`.
 - On full runs: `scripts/ui_native/build-android.sh` and
-  `./gradlew -p examples/ui_todo_android assembleDebug`.
+  `../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin/examples/ui_todo_android assembleDebug`.
 
 Use `frame_state_custom.bin` and `action_increment_custom.bin` from the wire fixtures.
 Check that nodes 40 and 42 receive the bytes of `state_counter_custom.json` and that a submit on node 42 returns them unchanged.
 
 ## 7. Tests
 
-All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotlin/`.
+All `core` tests are JUnit 5 tests in `../ewe-ui-kotlin/core/src/test/kotlin/`.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
@@ -540,10 +539,10 @@ All `core` tests are JUnit 5 tests in `native/android/ewe-ui/core/src/test/kotli
 scripts/toolchain/check.sh --scope android
 mise run toolchain:android
 scripts/ui_native/sync-android.sh --check
-./gradlew -p native/android/ewe-ui :core:test
-./gradlew -p native/android/ewe-ui :ui:testDebugUnitTest
+../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :core:test
+../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin :ui:testDebugUnitTest
 scripts/ui_native/build-android.sh
-./gradlew -p examples/ui_todo_android assembleDebug
+../ewe-ui-kotlin/gradlew -p ../ewe-ui-kotlin/examples/ui_todo_android assembleDebug
 cargo test -p foundation_ui_wire --profile uat --features reference
 ```
 

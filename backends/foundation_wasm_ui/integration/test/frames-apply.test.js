@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {FoundationWasm} from "../../../foundation_wasm/runtime/foundation-wasm.js";
 import * as wire from "../../runtimes/foundation-ui-wire.js";
 import * as ui from "../../runtimes/foundation-wasm-ui.js";
 import {FrameApplicator, installFrameRuntime, base64urlDecode, splitFrames} from "../../runtimes/foundation-ui-frames.js";
@@ -280,4 +281,26 @@ test("shared dismiss and web composite install listeners once and release them",
   assert.equal(doc.root.listenerCount("pointerdown"),0);
   assert.equal(el.listenerCount("keydown"),0);
   assert.deepEqual(reports,[]);
+});
+
+test("external frame replacement disposes a real mounted Rust scope through WebAssembly", () => {
+  const {doc} = setup();
+  const frames = installFrameRuntime(ui,{document:doc,schedule:fn=>fn()});
+  const runtime = new FoundationWasm();
+  const wasm = readFileSync(new URL("../fixtures/foundation_wasm_ui_e2e.wasm",import.meta.url));
+  const heap = new ui.DomHeap({window:null,document:null});
+  const instance = new WebAssembly.Instance(new WebAssembly.Module(wasm), {
+    abi:{...runtime.web_abi, ...ui.domAbi(runtime,heap)}
+  });
+  runtime.init(instance);
+  ui.registerWasmApp(runtime,{document:doc});
+  instance.exports.mount_scoped_button();
+  assert.equal(frames.registry.get(77).parentNode,doc.body);
+  const target = new wire.TargetSelectorT(wire.SelectorKind.NodeId,77);
+  const next = operation("CreateNode",77,wire.NodeKind.TEXT);
+  frames.receive(frame([operation("Place",wire.PlacementKind.Swap,target,null,77,[next])]));
+  assert.equal(frames.registry.get(77).tag,"span");
+  assert.equal(instance.exports.local_scope_releases(),1);
+  frames.receive(frame([operation("Remove",77)]));
+  assert.equal(instance.exports.local_scope_releases(),1);
 });

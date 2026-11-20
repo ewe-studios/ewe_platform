@@ -318,3 +318,64 @@ fn for_empty_filled_empty_round_trip() {
         "refill mounts a fresh instance"
     );
 }
+
+#[test]
+fn remote_unmount_disposes_a_whole_fragment_once() {
+    use std::{cell::Cell, rc::Rc};
+    let (app, _) = App::mock();
+    let receiver = app.receiver();
+    let scope = app.ctx().child();
+    let (value, set_value) = app.ctx().signal(0u32);
+    let runs = Rc::new(Cell::new(0));
+    let disposed = Rc::new(Cell::new(0));
+    scope.effect({
+        let runs = Rc::clone(&runs);
+        move || {
+            value.get();
+            runs.set(runs.get() + 1);
+        }
+    });
+    scope.on_dispose({
+        let disposed = Rc::clone(&disposed);
+        move || disposed.set(disposed.get() + 1)
+    });
+    receiver.register_scope(&[40, 41], &scope);
+    receiver.dispose_mount(40);
+    assert_eq!(disposed.get(), 0);
+    receiver.dispose_mount(41);
+    receiver.dispose_mount(41);
+    set_value.set(3);
+    app.stabilize();
+    drop(scope);
+    assert_eq!(runs.get(), 1);
+    assert_eq!(disposed.get(), 1);
+}
+
+#[test]
+fn local_bridge_teardown_is_thread_local() {
+    use foundation_wasm_ui::{
+        events::ewe_ui_dispose_mount, install_app_bridge, uninstall_event_bridge,
+    };
+    use std::{cell::Cell, rc::Rc};
+    let (app, _) = App::mock();
+    install_app_bridge(&app);
+    let scope = app.ctx().child();
+    let removed = Rc::new(Cell::new(false));
+    scope.on_dispose({
+        let removed = Rc::clone(&removed);
+        move || removed.set(true)
+    });
+    app.receiver().register_scope(&[42], &scope);
+    std::thread::spawn(|| {
+        let (other, _) = App::mock();
+        install_app_bridge(&other);
+        ewe_ui_dispose_mount(42);
+        uninstall_event_bridge();
+    })
+    .join()
+    .unwrap();
+    assert!(!removed.get());
+    ewe_ui_dispose_mount(42);
+    assert!(removed.get());
+    uninstall_event_bridge();
+}

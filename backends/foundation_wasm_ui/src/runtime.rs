@@ -36,6 +36,7 @@ use crate::protocol::{ColumnarV1, ProtocolMethods, SendResult};
 #[derive(Clone)]
 pub struct SharedInstructionReceiver {
     inner: Rc<RefCell<AnyReceiver>>,
+    mounts: crate::mounted_scopes::Mounts,
 }
 
 /// The two accumulation strategies behind the shared handle.
@@ -53,6 +54,7 @@ impl SharedInstructionReceiver {
     pub fn new(receiver: InstructionReceiver) -> Self {
         Self {
             inner: Rc::new(RefCell::new(AnyReceiver::Rows(receiver))),
+            mounts: crate::mounted_scopes::Mounts::default(),
         }
     }
 
@@ -61,7 +63,22 @@ impl SharedInstructionReceiver {
     pub fn columnar(receiver: ColumnarReceiver) -> Self {
         Self {
             inner: Rc::new(RefCell::new(AnyReceiver::Columnar(receiver))),
+            mounts: crate::mounted_scopes::Mounts::default(),
         }
+    }
+
+    /// Bind a reactive scope to its roots. Removing its final root disposes the scope.
+    pub fn register_scope(&self, roots: &[u32], scope: &Context) {
+        self.mounts.register(roots, scope);
+    }
+
+    pub(crate) fn owns_mount(&self, id: u32) -> bool {
+        self.mounts.contains(id)
+    }
+
+    /// Release the scopes of a removed node. Repeated calls have no effect.
+    pub fn dispose_mount(&self, node_id: u32) {
+        self.mounts.release(node_id);
     }
 
     /// Queue one op for the next flush.

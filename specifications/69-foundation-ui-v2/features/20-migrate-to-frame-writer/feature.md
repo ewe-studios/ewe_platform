@@ -1,7 +1,7 @@
 ---
 feature: "migrate-to-frame-writer"
-status: "approved"
-depends_on: ["03-frame-writer"]
+status: "in-progress"
+depends_on: ["03-frame-writer", "09-web-frame-applicator"]
 ---
 
 # Feature 20. Move existing callers to the frame writer

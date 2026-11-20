@@ -67,3 +67,34 @@ pub extern "C" fn emit_columnar_dom_ops() {
     let _ = receiver.flush();
 }
 
+std::thread_local! {
+    static RELEASES: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+    static SCOPED_APP: std::cell::RefCell<Option<foundation_wasm_ui::App>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Mount one local scope through the same Rust receiver and event bridge as a browser app.
+#[no_mangle]
+pub extern "C" fn mount_scoped_button() {
+    let (app, _) = foundation_wasm_ui::App::mock();
+    foundation_wasm_ui::install_app_bridge(&app);
+    app.ctx().on_dispose(|| RELEASES.set(RELEASES.get() + 1));
+    app.receiver().register_scope(&[77], app.ctx());
+    SCOPED_APP.replace(Some(app));
+    let mut receiver = ColumnarReceiver::with_global_arena(ColumnarV1::new());
+    receiver.queue(&DomOp::CreateElement {
+        node_id: 77,
+        tag: foundation_ui_traits::HtmlTag::from_static("button"),
+        class: "".into(),
+    });
+    receiver.queue(&DomOp::RegisterNode { node_id: 77 });
+    receiver.queue(&DomOp::AppendChild {
+        parent_id: 1,
+        child_id: 77,
+    });
+    assert!(receiver.flush().is_some());
+}
+
+#[no_mangle]
+pub extern "C" fn local_scope_releases() -> u32 {
+    RELEASES.get()
+}

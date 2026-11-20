@@ -37,6 +37,7 @@ pub mod app;
 pub mod events;
 pub mod html_macro;
 pub mod instruction;
+mod mounted_scopes;
 pub mod protocol;
 pub mod reactive;
 pub mod runtime;
@@ -48,7 +49,9 @@ pub mod wasm;
 pub mod embedded;
 
 pub use app::{App, SentBatches};
-pub use events::{install_event_bridge, invoke_signal_callback, uninstall_event_bridge};
+pub use events::{
+    install_app_bridge, install_event_bridge, invoke_signal_callback, uninstall_event_bridge,
+};
 pub use html_macro::MaybeCallback;
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 pub use reactive::{mount_for, mount_show};

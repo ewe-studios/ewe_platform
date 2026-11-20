@@ -201,3 +201,36 @@ mise run ui-web:test
 ```
 
 [Wire format and Rust writer](../foundation_ui_wire/README.md) · [Browser fixtures](./integration/fixtures/frames)
+
+### Dispose a local Rust scope when a frame removes its node
+
+A reactive scope owns the effects that watch local signals. The WebAssembly app installs its event bridge at startup.
+`<Show>` and `<For>` register their local scopes automatically. An app can register its own component in the same receiver.
+
+```rust
+use foundation_signals::Context;
+use foundation_wasm_ui::{html, install_app_bridge, App};
+
+fn mount_clock(app: &App) -> Context {
+    install_app_bridge(app);
+    let scope = app.ctx().child();
+    let receiver = app.receiver();
+    let view = html! { scope, receiver, <span>Clock</span> };
+    let root = app.mount(view);
+    receiver.register_scope(&[root], &scope);
+    scope
+}
+```
+
+Keep the returned context while the component is mounted.
+After loading the WebAssembly instance, call `ui.registerWasmApp(runtime, { document })` in the browser.
+The local renderer registers the instance's disposer on each node it creates.
+When a remote frame replaces that node, the reader calls `ewe_ui_dispose_mount` on the same instance.
+The receiver stops its effects and runs scope cleanup once. A fragment with several roots stays active until its last root leaves.
+A keyed node that survives a morph keeps its scope. A host-owned JavaScript component can supply its own cleanup.
+
+```js
+const observer = new ResizeObserver(updateLayout);
+observer.observe(componentRoot);
+frames.registerUnmount(componentRoot, () => observer.disconnect());
+```
