@@ -203,14 +203,14 @@ pub(super) fn all_forms_frame() -> FrameT {
     message_frame(messages)
 }
 
-fn columnar_bytes() -> Vec<u8> {
+pub(super) fn columnar_bytes(second_blob_start: u32) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();
     let op_codes = builder.create_vector(&[UiOperation::SetText.0; 3]);
     let node_ids = create_aligned_vector(&mut builder, &[1, 2, 3]);
     let arg_a = create_aligned_vector(&mut builder, &[0; 3]);
     let arg_b = create_aligned_vector(&mut builder, &[0; 3]);
     let text_offsets = create_aligned_vector(&mut builder, &[0, 1, 3, 6]);
-    let empty_offsets = create_aligned_vector(&mut builder, &[0; 4]);
+    let empty_offsets = create_aligned_vector(&mut builder, &[second_blob_start; 4]);
     let blob_bytes = builder.create_vector(b"abbccc");
     let batch = ColumnarBatch::create(
         &mut builder,
@@ -332,7 +332,7 @@ fn fixtures_match_built_values() {
             "frame_ops_all_forms.bin",
             finish_frame(&all_forms_frame()).unwrap(),
         ),
-        ("frame_columnar_3rows.bin", columnar_bytes()),
+        ("frame_columnar_3rows.bin", columnar_bytes(6)),
         ("frame_data_table.bin", finish_frame(&data_frame()).unwrap()),
         (
             "frame_error.bin",

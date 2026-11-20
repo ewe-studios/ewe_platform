@@ -9,7 +9,7 @@ For a Rust crate under `backends/`, add the local dependency to its `Cargo.toml`
 
 ```toml
 [dependencies]
-foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.1" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.3" }
 ```
 
 The generated types and read functions are exported directly from `foundation_ui_wire`.
@@ -73,8 +73,32 @@ An **operation** is a typed instruction in a reply. The schema defines 31 operat
 | Mobile | `MountWebView`, `NativeCommand`, `MobileBehaviour`. The command identifiers are `HAPTIC`, `OPEN_URL` and `SHARE`. |
 
 A `ColumnarBatch` carries multiple shared operations in parallel vectors. Each row uses the numeric tag from `UiOperation`.
-Use `create_aligned_vector` when building numeric columns that require eight-byte alignment. The generated object writer alone cannot guarantee that alignment.
+The writer aligns numeric columns to eight-byte boundaries in the frame.
+Use `create_aligned_vector` when you build these vectors directly with a FlatBuffers builder.
 The [operation schema](schema/ops.fbs) gives the exact field layout and union order. The [fixture writer](tests/fixtures_tests.rs) builds a three-row batch.
+
+## Write an update for a client
+
+Use `writer::write_messages` to validate operations and select the forms for the client's mount.
+`ClientCaps` identifies the client platform, mount and vocabulary version.
+`StreamSequencer` supplies the stream and sequence numbers. Use `resume` to continue an existing stream.
+Pass the request sequence as the acknowledgement for a reply. Pass zero for a push.
+
+For a single text update, put `UiOperationT::SetText` in a message and pass the message to `write_messages`.
+For a batch, pass the shared operations to `columnar_batch` and put the result in `OperationT::columnar`.
+The writer aligns the numeric columns when it encodes the frame.
+A native caller uses `ClientCaps::native_current(Platform::Ios)` or `ClientCaps::native_current(Platform::Android)`.
+The same shared `SetText` rows are valid on web and native mounts.
+Use `columnar_rows` to read the shared operations back from a verified batch.
+
+Run the [writer example](examples/frame_writer.rs) from the repository root.
+It checks the text reply, the batch sequence, the alignment and the decoded rows.
+
+```sh
+cargo run --locked -p foundation_ui_wire --profile uat --example frame_writer
+cargo test --locked -p foundation_ui_wire --profile uat --test integration fixtures_match_built_values
+mise run ui-wire:test-ts
+```
 
 ## Write a wire message by hand
 

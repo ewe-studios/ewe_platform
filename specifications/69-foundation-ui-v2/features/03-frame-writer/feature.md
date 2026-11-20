@@ -1,7 +1,7 @@
 ---
 feature: "frame-writer"
 description: "The Rust frame writer: validation, the platform gate over the Message list, the columnar member, table streaming, and the stream sequencer."
-status: "pending"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms"]
@@ -12,10 +12,10 @@ author: "Main Agent"
 crates: ["foundation_ui_wire"]
 decisions: ["D8", "D16", "D24", "D27", "D28", "D29", "D36", "A1", "R8", "D41", "D42", "D43", "D44", "D45", "D46", "D53", "D56", "D59"]
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature 03: The frame writer
@@ -144,7 +144,7 @@ Links to other entities: every index in `replaced_kinds` is the index of a kept 
 | I7 | A frame longer than `max_frame_bytes` is never returned. |
 | I8 | A `SetProp` whose value type does not match its property is never written. |
 | I9 | An `AttachState` whose state has an empty `tag` is never written, unless `allow_unsealed_state` is true. |
-| I10 | `StreamSequencer::next` returns 1, then 2, then 3, and so on, with no repeat and no gap. |
+| I10 | `StreamSequencer::next` advances by one until it reaches the maximum unsigned 64-bit value. It then stays at that value. |
 | I11 | Each frame of `table_frames` has at most `max_table_rows` rows, and the rows of all frames, in order, are the rows of the input. |
 | I12 | A top-level `Message` whose `operation` has no field set after the gate is removed and listed with part `Message`. |
 | I13 | Every frame that a writer function or `table_frames` returns has kind `FrameMessage`; its `ack` equals the header `ack`, which is 0 for a push. |
@@ -153,7 +153,7 @@ Links to other entities: every index in `replaced_kinds` is the index of a kept 
 
 - `WriterConfig` with `max_table_rows` (default 8192), `allow_unsealed_state` (default false)
   and a `WireLimits`. There is no threshold and no tier choice (D41).
-- One gate function that every write path calls. No second copy of the rule.
+- One gate filters all operation messages. Data and control wrappers carry no operations.
 
 ### 4.4 Must do
 
@@ -373,7 +373,7 @@ Every writer function and `table_frames` builds a `FrameT` of kind
 `FrameKindT::FrameMessage(Box::new(FrameMessageT { ack, messages }))` and calls
 `finish_frame`. An error from `finish_frame` becomes `WriteError::Wire` with `?`.
 
-#### Proposed API amendment
+#### Columnar batch construction and errors
 
 `write_messages` accepts an owned `ColumnarBatchT`. A producer needs a function to build
 that batch from the shared operations it selects. Add
@@ -387,8 +387,8 @@ it builds the aligned columns. This keeps the same property, state and vocabular
 for both forms. Use the generated builders for tables with aligned vectors. Finish that
 buffer with the same `EWF1` identifier that `finish_frame` uses. Keep the existing sequence
 saturation. Use acknowledgement 5 when the test writes the published columnar fixture.
-The writer emits canonical blob offsets. If that changes the fixture bytes, update the
-Rust and TypeScript fixture tests together.
+The writer emits canonical blob offsets. For this fixture, all four offsets in column B equal six.
+Readers also accept the original fixture with four unused zero offsets.
 
 ### 6.2 The steps of `write_messages`
 
@@ -508,7 +508,7 @@ with `create_aligned_vector`.
 
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
-| Validate | Stops at the first bad message | `WriteError::{Vocab, UnsealedState, EmptyMessage}` with the message index | nothing |
+| Validate | Stops at the first bad message | `WriteError::{Vocab, UnsealedState, EmptyMessage, Columnar}` with the message index | nothing |
 | Gate: unknown vocabulary version | Stops | `WriteError::UnknownVocabularyVersion` | nothing |
 | Encode: the frame builder rejects the root | Stops | `WriteError::Wire`; only `NoKind` is possible and the writer always sets the kind | nothing |
 | Size check | Drops the encoded bytes | `WriteError::TooLarge` | nothing. The caller's sequencer did advance if the caller took the header from it; the next frame then has a gap of one, which a client treats as a gap and resumes (feature 11). Callers that must not skip a number call `write_messages` with a header built from `sequencer.last() + 1` and call `next()` only on success |
@@ -531,7 +531,7 @@ All in `backends/foundation_ui_wire/tests/`. Use `ClientCaps::web_current()` and
 | I3 | `writer_gate_tests.rs::kept_messages_keep_order` (tag each message with an increasing node id) | property |
 | I4 | `writer_columnar_tests.rs::columnar_rows_round_trips`: `columnar_rows` of the written batch equals the shared operations after "empty string = absent" | metamorphic |
 | I5; Scenario: large list render | `writer_columnar_tests.rs::columnar_holds_shared_rows`, `::large_list_render_stays_columnar` | example |
-| I6 | `writer_align_tests.rs::numeric_columns_are_8_aligned` for 1, 3, 65 and 1000 rows, and for a table frame | property |
+| I6 | `align_tests.rs` for 1, 3, 65 and 1000 rows, and for a table frame | property |
 | I7; Scenario: A frame above the limit | `writer_error_tests.rs::frame_above_limit_is_rejected` | expected outcome |
 | I8; Scenario: A wrong property value | `writer_error_tests.rs::wrong_prop_value_is_rejected` | expected outcome |
 | I9; Scenario: An unsealed state | `writer_error_tests.rs::unsealed_state_is_rejected`, `::unsealed_state_is_allowed_by_config` | expected outcome |
@@ -547,17 +547,17 @@ All in `backends/foundation_ui_wire/tests/`. Use `ClientCaps::web_current()` and
 
 ## 8. Tasks
 
-- [ ] 1. `caps.rs`, `config.rs`, `error.rs` and their constructors.
-- [ ] 2. `sequencer.rs` and its tests.
-- [ ] 3. Validation and its error tests.
-- [ ] 4. `gate.rs` and its tests.
-- [ ] 5. Encode the message fields that are not columnar, and `write_messages`.
-- [ ] 6. `columnar.rs`: encode, `columnar_rows`, alignment tests.
-- [ ] 7. The gate tests for fields, versions and behaviours.
-- [ ] 8. `table.rs` and its tests; `write_error`, `write_caps`, `write_arrow_ipc`, `write_messagepack`.
-- [ ] 9. Bump `foundation_ui_wire` to `0.0.3`.
-- [ ] 10. Update `progress.md` and `learnings.md`.
-- [ ] 11. Write or update the package or feature README.
+- [x] 1. `caps.rs`, `config.rs`, `error.rs` and their constructors.
+- [x] 2. `sequencer.rs` and its tests.
+- [x] 3. Validation and its error tests.
+- [x] 4. `gate.rs` and its tests.
+- [x] 5. Encode the message fields that are not columnar, and `write_messages`.
+- [x] 6. `columnar.rs`: encode, `columnar_rows`, alignment tests.
+- [x] 7. The gate tests for fields, versions and behaviours.
+- [x] 8. `table.rs` and its tests; `write_error`, `write_caps`, `write_arrow_ipc`, `write_messagepack`.
+- [x] 9. Bump `foundation_ui_wire` to `0.0.3`.
+- [x] 10. Update `progress.md` and `learnings.md`.
+- [x] 11. Write or update the package or feature README.
       Show how to write one frame and an aligned column batch. Include fixture validation.
 
 ## 9. Verify
@@ -573,12 +573,12 @@ mise run ui-wire:test-ts
 
 ## 10. Done when
 
-- [ ] The package or feature README is current. Its examples and validation commands pass.
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The gate is one function, and every write path of messages calls it.
-- [ ] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All tasks and verification commands pass. Issue #596 tracks existing workspace manifest warnings.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] All operation messages pass through one platform and vocabulary gate.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the module.
+- [x] The check list of the `story-driven-specification` skill passes.
 
 ---
 

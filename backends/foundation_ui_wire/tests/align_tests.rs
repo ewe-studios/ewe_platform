@@ -1,5 +1,10 @@
 use flatbuffers::{EndianScalar, FlatBufferBuilder, Follow, Vector, Verifiable};
-use foundation_ui_wire::create_aligned_vector;
+use foundation_ui_wire::{
+    create_aligned_vector, finish_frame, read_frame, ArrowIpcBlobT, ColumnDataT, ColumnT,
+    ColumnarBatch, ColumnarBatchT, DataT, DataTableT, F64sT, FrameKindT, FrameMessageT, FrameT,
+    I32sT, I64sT, MessageT, OperationT, ReplaceSubtreeT, UiOperationT, WireLimits,
+    FRAME_IDENTIFIER, SCHEMA_VERSION,
+};
 
 #[test]
 fn aligned_vector_starts_on_8_bytes() {
@@ -27,37 +32,12 @@ where
 
 #[test]
 fn generated_pack_can_misalign_a_columnar_vector() {
-    use foundation_ui_wire::{
-        finish_frame, read_frame, ColumnarBatchT, FrameKindT, FrameMessageT, FrameT, MessageT,
-        OperationT, WireLimits, SCHEMA_VERSION,
-    };
-
-    let batch = table!(ColumnarBatchT {
-        op_codes: Some(vec![2; 3]),
-        node_ids: Some(vec![1, 2, 3]),
-        arg_a: Some(vec![0; 3]),
-        arg_b: Some(vec![0; 3]),
-        blob_a_off: Some(vec![0, 1, 3, 6]),
-        blob_b_off: Some(vec![0; 4]),
-        blob_bytes: Some(b"abbccc".to_vec()),
-    });
-    let operation = table!(OperationT {
-        columnar: Some(Box::new(batch)),
-    });
-    let message = table!(MessageT {
-        operation: Some(Box::new(operation)),
-    });
-    let body = table!(FrameMessageT {
-        messages: Some(vec![message]),
-    });
-    let frame = table!(FrameT {
-        schema_version: SCHEMA_VERSION,
-        stream_id: 7,
-        sequence_id: 20,
-        kind: FrameKindT::FrameMessage(Box::new(body)),
-    });
-    let bytes = finish_frame(&frame).unwrap();
-    let batch = read_frame(&bytes, &WireLimits::default())
+    let frame = message_frame(operation_message(columnar_operation(3)));
+    let mut builder = FlatBufferBuilder::new();
+    let root = frame.pack(&mut builder);
+    builder.finish(root, Some(FRAME_IDENTIFIER));
+    let bytes = builder.finished_data();
+    let operation = read_frame(bytes, &WireLimits::default())
         .unwrap()
         .kind_as_frame_message()
         .unwrap()
@@ -65,19 +45,188 @@ fn generated_pack_can_misalign_a_columnar_vector() {
         .unwrap()
         .get(0)
         .operation()
-        .unwrap()
-        .columnar()
         .unwrap();
-    let columns = [
+    let offsets = columnar_offsets(bytes, operation.columnar().unwrap());
+    assert!(offsets.iter().any(|offset| offset % 8 != 0), "{offsets:?}");
+}
+
+#[test]
+fn finish_frame_aligns_top_level_and_nested_columnar_vectors() {
+    for rows in [0, 1, 3, 65, 1000] {
+        let nested = table!(OperationT {
+            ui: UiOperationT::ReplaceSubtree(Box::new(table!(ReplaceSubtreeT {
+                node_id: 2,
+                operations: Some(vec![columnar_operation(rows)]),
+            }))),
+            columnar: Some(Box::new(columnar_batch(rows))),
+        });
+        let frame = message_frame(operation_message(nested));
+        let bytes = finish_frame(&frame).unwrap();
+        let decoded = read_frame(&bytes, &WireLimits::default()).unwrap();
+        assert_eq!(decoded.unpack(), frame);
+
+        let operation = decoded
+            .kind_as_frame_message()
+            .unwrap()
+            .messages()
+            .unwrap()
+            .get(0)
+            .operation()
+            .unwrap();
+        let nested_operation = operation
+            .ui_as_replace_subtree()
+            .unwrap()
+            .operations()
+            .unwrap()
+            .get(0);
+        for batch in [operation.columnar(), nested_operation.columnar()] {
+            let offsets = columnar_offsets(&bytes, batch.unwrap());
+            assert!(offsets.iter().all(|offset| offset % 8 == 0), "{offsets:?}");
+        }
+    }
+}
+
+#[test]
+fn finish_frame_aligns_table_columns_and_arrow_bytes() {
+    for length in [0, 1, 5, 65] {
+        let columns = vec![
+            table!(ColumnT {
+                name: Some("i32".into()),
+                data: ColumnDataT::I32(Box::new(table!(I32sT {
+                    values: Some(vec![1; length])
+                }))),
+            }),
+            table!(ColumnT {
+                name: Some("i64".into()),
+                data: ColumnDataT::I64(Box::new(table!(I64sT {
+                    values: Some(vec![2; length])
+                }))),
+            }),
+            table!(ColumnT {
+                name: Some("f64".into()),
+                data: ColumnDataT::F64(Box::new(table!(F64sT {
+                    values: Some(vec![3.5; length])
+                }))),
+            }),
+        ];
+        let data = table!(DataT {
+            table: Some(Box::new(table!(DataTableT {
+                target_node: 9,
+                rows: length as u64,
+                columns: Some(columns),
+            }))),
+            arrow: Some(Box::new(table!(ArrowIpcBlobT {
+                target_node: 9,
+                bytes: Some(vec![5; length]),
+            }))),
+        });
+        let frame = message_frame(table!(MessageT {
+            data: Some(Box::new(data))
+        }));
+        let bytes = finish_frame(&frame).unwrap();
+        let decoded = read_frame(&bytes, &WireLimits::default()).unwrap();
+        assert_eq!(decoded.unpack(), frame);
+
+        let data = decoded
+            .kind_as_frame_message()
+            .unwrap()
+            .messages()
+            .unwrap()
+            .get(0)
+            .data()
+            .unwrap();
+        let columns = data.table().unwrap().columns().unwrap();
+        let payloads = [
+            columns
+                .get(0)
+                .data_as_i32()
+                .unwrap()
+                .values()
+                .unwrap()
+                .bytes(),
+            columns
+                .get(1)
+                .data_as_i64()
+                .unwrap()
+                .values()
+                .unwrap()
+                .bytes(),
+            columns
+                .get(2)
+                .data_as_f64()
+                .unwrap()
+                .values()
+                .unwrap()
+                .bytes(),
+            data.arrow().unwrap().bytes().unwrap().bytes(),
+        ];
+        let offsets = payloads.map(|payload| payload_offset(&bytes, payload));
+        assert!(offsets.iter().all(|offset| offset % 8 == 0), "{offsets:?}");
+    }
+}
+
+#[test]
+fn finish_frame_preserves_published_fixtures() {
+    let fixtures: [&[u8]; 4] = [
+        include_bytes!("../fixtures/frame_columnar_3rows.bin"),
+        include_bytes!("../fixtures/frame_data_table.bin"),
+        include_bytes!("../fixtures/frame_ops_all_forms.bin"),
+        include_bytes!("../fixtures/action_increment.bin"),
+    ];
+    for fixture in fixtures {
+        let frame = read_frame(fixture, &WireLimits::default())
+            .unwrap()
+            .unpack();
+        assert_eq!(finish_frame(&frame).unwrap(), fixture);
+    }
+}
+
+fn payload_offset(bytes: &[u8], payload: &[u8]) -> usize {
+    payload.as_ptr().addr() - bytes.as_ptr().addr()
+}
+
+fn columnar_offsets(bytes: &[u8], batch: ColumnarBatch<'_>) -> [usize; 5] {
+    [
         batch.node_ids(),
         batch.arg_a(),
         batch.arg_b(),
         batch.blob_a_off(),
         batch.blob_b_off(),
-    ];
-    let offsets =
-        columns.map(|column| column.unwrap().bytes().as_ptr().addr() - bytes.as_ptr().addr());
+    ]
+    .map(|column| payload_offset(bytes, column.unwrap().bytes()))
+}
 
-    // The pinned compiler needs the alignment helper for columnar writes.
-    assert!(offsets.iter().any(|offset| offset % 8 != 0), "{offsets:?}");
+fn message_frame(message: MessageT) -> FrameT {
+    table!(FrameT {
+        schema_version: SCHEMA_VERSION,
+        stream_id: 7,
+        sequence_id: 20,
+        kind: FrameKindT::FrameMessage(Box::new(table!(FrameMessageT {
+            messages: Some(vec![message]),
+        }))),
+    })
+}
+
+fn operation_message(operation: OperationT) -> MessageT {
+    table!(MessageT {
+        operation: Some(Box::new(operation)),
+    })
+}
+
+fn columnar_operation(rows: usize) -> OperationT {
+    table!(OperationT {
+        columnar: Some(Box::new(columnar_batch(rows))),
+    })
+}
+
+fn columnar_batch(rows: usize) -> ColumnarBatchT {
+    table!(ColumnarBatchT {
+        op_codes: Some(vec![2; rows]),
+        node_ids: Some(vec![1; rows]),
+        arg_a: Some(vec![0; rows]),
+        arg_b: Some(vec![0; rows]),
+        blob_a_off: Some(vec![0; rows + 1]),
+        blob_b_off: Some(vec![0; rows + 1]),
+        blob_bytes: Some(vec![]),
+    })
 }

@@ -18,6 +18,7 @@ mod generated;
 mod limits;
 mod read;
 pub mod vocab;
+pub mod writer;
 
 pub use align::{create_aligned_vector, Aligned8};
 pub use error::{FrameKindName, WireError};

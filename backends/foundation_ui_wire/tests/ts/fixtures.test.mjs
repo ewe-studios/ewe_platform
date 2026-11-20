@@ -125,7 +125,7 @@ test('columnar text rows retain their values and start on an eight-byte boundary
   assert.deepEqual(value.argA, [0, 0, 0]);
   assert.deepEqual(value.argB, [0, 0, 0]);
   assert.deepEqual(value.blobAOff, [0, 1, 3, 6]);
-  assert.deepEqual(value.blobBOff, [0, 0, 0, 0]);
+  assert.deepEqual(value.blobBOff, [6, 6, 6, 6]);
   const data = new Uint8Array(value.blobBytes);
   const decoder = new TextDecoder();
   assert.deepEqual(

@@ -279,7 +279,7 @@ is recorded here as passed.
 ## Next
 
 1. Review [feature 20](./features/20-migrate-to-frame-writer/feature.md). It is the next feature after the frame writer prerequisite.
-2. Finish the feature 03 writer checks. Features 04 and 05 await review of their revised contracts.
+2. Features 02 and 03 are complete. Features 04 and 05 await review of their revised contracts.
 3. Apply the browser acceptance gate before native implementation.
 
 
@@ -292,3 +292,10 @@ is recorded here as passed.
 - Feature 04 now shows the same state round trip on the web, iOS and Android. The issuing host owns verification.
 
 - Decision D60 lets the author choose the state owner on web, iOS and Android. A separate trigger can explicitly reference that owner.
+
+## Feature 03 verification
+
+- Version 0.0.3 provides the frame writer, aligned columnar batches and lazy table frames.
+- All 87 Rust wire tests pass with and without default features. All 11 TypeScript fixture tests pass.
+- Formatting, strict Clippy, WebAssembly checks, binding drift checks and the executable writer example pass.
+- The runtime consumer passes 29 integration tests and its documentation example.

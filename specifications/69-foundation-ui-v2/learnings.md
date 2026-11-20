@@ -401,3 +401,9 @@ ASD-STE100.
 - The later action discussion gives the receiver to the caller. The caller drains it on success and discards it on error.
 
 - Web, Swift and Kotlin use the triggering node by default. A binding can explicitly name another state owner in the same user’s view.
+
+## Frame writer
+
+- Four offsets changed from zero to six in the three-row fixture. The reader also accepts the earlier encoding.
+- A table slice needs its target on the outer data message and on the inner table. Issue #621 covers this case.
+- The generated object packer can produce a valid frame with misaligned numeric data. Tests measure offsets in the finished buffer.
