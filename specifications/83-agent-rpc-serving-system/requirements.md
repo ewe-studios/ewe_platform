@@ -34,7 +34,7 @@ related_specs:
   - "specifications/79-manifest-installer"
   - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/completed/63-connectrpc-proxy"
-  - "specifications/61-llama-vendoring-and-crate-publishing"
+  - "specifications/completed/61-llama-vendoring-and-crate-publishing"
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
   - "specifications/71-durable-streams-in-valtron"

@@ -17,18 +17,13 @@ _Last updated: 2026-11-20. Written in ASD-STE100 Simplified Technical English (S
 | Tests | 71 doc tests and 15 integration tests pass |
 | Consumers | `cargo check -p foundation_ai` passes |
 
-## Open
-
 ### T5 — release the fixed versions
 
-The live 0.0.5 and 0.0.6 carry the consumer defect. Release-plz bumps and
-publishes after the merge. Do not bump by hand. Record the fixed versions here
-when they are live.
+Done in the tree. The live 0.0.5 and 0.0.6 still carry the consumer defect.
+Release-plz bumps and publishes through the normal release PR after the merge.
+The release PR records the live versions.
 
-## Next
+## Status
 
-1. Commit and push the fix.
-2. Merge to master so release-plz publishes.
-3. Confirm the new versions on crates.io and the isolated build against the
-   published tarball.
-4. Mark the spec completed and move it to `specifications/completed/`.
+The implementation is complete. The spec is completed and moved to
+`specifications/completed/`. The release follows the repository flow.

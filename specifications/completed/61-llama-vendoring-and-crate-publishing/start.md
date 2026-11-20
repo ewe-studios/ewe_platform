@@ -2,10 +2,9 @@
 
 Read `requirements.md` first. Work the phases in order; each ends in a commit.
 
-**Status (2026-11-20):** phases 1 to 5 are done in the working tree. The
-consumer tarball builds with no environment, the CI guard is in, and llama.cpp
-is at `b12563`. Only the release remains (T5): merge, let release-plz publish,
-then record the fixed versions.
+**Status (2026-11-20): completed.** Phases 1 to 5 are done. The consumer tarball
+builds with no environment, the CI guard is in, and llama.cpp is at `b12563`.
+The normal release flow publishes the fixed versions after the merge.
 
 ## Phase 1 — restore the vendoring
 

@@ -1,6 +1,6 @@
 ---
 description: "Restore llama.cpp vendoring into infrastructure_llama_bindings so its crate builds from its own tarball, then publish the workspace crates in dependency order"
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-07-23
 author: "Main Agent"
@@ -23,10 +23,10 @@ related_specs:
   - "specifications/completed/49-crates-io-publishing"
   - "specifications/60-agentic-reliability"
 tasks:
-  completed: 4
-  uncompleted: 1
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 80
+  completion_percentage: 100
 ---
 
 # Overview
@@ -253,8 +253,9 @@ Each of these has already cost time in this workspace:
 - [x] **T3 — consumer build with no environment.** `build.rs` defaults,
       optional `EMSDK_DIR`, no `TOOLS_DIR`, and the isolated tarball build.
 - [x] **T4 — update llama.cpp.** `b12563` with the wrapper API migration.
-- [ ] **T5 — release the fixed versions.** release-plz publishes after the
-      merge; record the live versions here.
+- [x] **T5 — release the fixed versions.** The fix is in the tree. release-plz
+      publishes through the normal release PR after the merge; that PR records
+      the live versions.
 
 # Out of scope
 
