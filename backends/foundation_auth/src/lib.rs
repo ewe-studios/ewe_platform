@@ -75,13 +75,17 @@ pub use shared::two_factor::{
     BackupCodeSet, TOTPSecret, TotpAlgorithm, TwoFactorChallenge, TwoFactorError,
 };
 
+// Auth primitives shared by every server (spec 86).
+pub use server_credential::{
+    bearer_header, AuthError, AuthFuture, AuthInfo, AuthMethod, CallCredentials, ClientAuth,
+    Principal, Secret, StaticToken,
+};
 // One constant-time comparison for the whole workspace (spec 86).
 pub use shared::constant_time_eq;
 
-pub use server_credential::{
-    AuthError, AuthFuture, AuthInfo, AuthMethod, CallCredentials, ClientAuth, ConfidentialText,
-    Principal, Secret,
-};
+/// The old name of [`Secret`]. It is an alias for one release, then it is
+/// removed.
+pub use server_credential::ConfidentialText;
 
 // Re-export platform-specific OAuth wrappers.
 #[cfg(not(target_family = "wasm"))]

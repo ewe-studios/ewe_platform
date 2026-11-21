@@ -1,51 +1,111 @@
 # Spec 86 Progress: Auth Primitives
 
-_Last updated: 2026-11-15._
+_Last updated: 2026-11-22._
+
+**Abbreviations.** Continuous integration (CI); Application programming
+interface (API); mutual Transport Layer Security (mTLS); Rust package (crate).
 
 ## Status at a glance
 
 | Task | State |
 |---|---|
-| T1 — `Secret`, the `ConfidentialText` alias, redacted output, `ct_eq` | ⬜ Pending |
-| T2 — One `constant_time_eq`; delete the four copies | ⬜ Pending |
-| T3 — `extract_bearer_token` over `Secret::from_bearer`; `bearer_header` | ⬜ Pending |
-| T4 — `AuthInfo` moves to `foundation_auth`; connectrpc re-exports it | ⬜ Pending |
-| T5 — `RequestFacts`, `ClientAuth`, `AuthError` | ⬜ Pending |
-| T6 — `StaticToken`; version bumps and consumers | ⬜ Pending |
+| T1 — `Secret`, the `ConfidentialText` alias, redacted output, `ct_eq` | ✅ Done |
+| T2 — One `constant_time_eq`; delete the copies | ✅ Done |
+| T3 — `extract_bearer_token` over `Secret::from_bearer`; `bearer_header` | ✅ Done |
+| T4 — `AuthInfo` moves to `foundation_auth`; connectrpc re-exports it | ✅ Done |
+| T5 — `CallCredentials`, `ClientAuth`, `AuthError`, `Principal`, `AuthMethod` | ✅ Done |
+| T6 — `StaticToken`; version bumps and consumers | ✅ Done |
 
-## No product code exists
+## What landed
 
-This specification is a plan in a pull request for the owner's review. No file under
-`backends/` changes until the owner approves it.
+### T2 — one constant-time comparison
 
-## Where this specification came from
+- `foundation_auth/src/shared/mod.rs` holds `pub fn constant_time_eq`.
+- `shared/two_factor.rs` re-exports it, so the existing path stays.
+- `server/models/client.rs`, `server/models/token.rs` and
+  `shared/password_hash.rs` call the shared function.
+- `foundation_keychain/src/core/crypto.rs` re-exports the shared function. It
+  was a fifth copy that the specification did not list.
+- `tests/auth_primitives_tests.rs` holds `one_constant_time_eq`, a source scan.
 
-The owner reviewed six conflicts on 2026-11-15. Two of them are this specification:
+### T1 — `Secret`
 
-- Spec 77 feature 00 defined `pub struct Secret(String)` and feature 02 defined `check_bearer`,
-  while spec 81 owned client auth with no static-token provider. The workspace would get two
-  secret types and two bearer parsers.
-- Spec 81 owned `AuthInfo` and the providers, but a sandbox server cannot use them without the
-  whole of spec 81.
+- `server_credential/secret.rs` holds `Secret`, `expose`, `is_empty`, `ct_eq`,
+  `from_bearer`, redacted `Debug` and `Display`, constant-time `PartialEq`, and
+  serde. `ConfidentialText` is an alias for one release.
+- `shared/types.rs` re-exports the alias.
+- Every old `ConfidentialText::get()` call site uses `expose()`.
 
-Owner direction: "lets have another small spec own this and implement all the need bits into
-foundation_auth, then others depend on it and refine it as needed."
+### T3 — bearer parser
 
-## Next steps
+- `server_credential/bearer.rs` holds `extract_bearer_token` and
+  `bearer_header`.
+- `shared/middleware.rs::extract_bearer_token` keeps its path and delegates to
+  the new parser.
 
-1. T2 first: one comparison, and the four copies go. It has no new type and it is easy to test.
-2. T1 next: `Secret` and the alias. It uses T2.
-3. T3: the bearer parser over T1.
-4. T4: the move of `AuthInfo`. It is a mechanical move plus one shim.
-5. T5: the trait. It needs T4 for `AuthInfo`.
-6. T6: `StaticToken` over T1, T3 and T5.
+### T4 — `AuthInfo` has one home
 
-## Known issues to record
+- `server_credential/client_auth.rs` holds `AuthInfo`.
+- `foundation_connectrpc/src/shared/auth.rs` re-exports
+  `foundation_auth::AuthInfo`. `AuthFunc` and the interceptors do not change.
+- `foundation_connectrpc/tests/auth_tests.rs` holds `auth_info_single_home`.
+
+### T5 — the client-auth trait
+
+- `server_credential/call.rs` holds `CallCredentials`.
+- `server_credential/client_auth.rs` holds `AuthInfo`, `Principal`,
+  `AuthMethod`, `AuthFuture`, `ClientAuth` and `AuthError`.
+- `AuthMethod` has the `SharedToken` variant.
+
+### T6 — `StaticToken` and versions
+
+- `server_credential/static_token.rs` holds the `StaticToken` provider.
+- `foundation_auth` moves from `0.0.8` to `0.0.9`.
+- `foundation_ai`, `foundation_keychain`, `foundation_connectrpc` and
+  `examples/cf-login-app` name the new requirement.
+
+## The test file
+
+All `foundation_auth` tests are in
+`backends/foundation_auth/tests/auth_primitives_tests.rs`:
+
+`one_constant_time_eq`, `secret_is_redacted`, `secret_eq`,
+`secret_serde_round_trip`, `bearer_case_insensitive`, `bearer_control_byte`,
+`bearer_no_space`, `bearer_round_trip`, `static_token_no_header_is_none`,
+`static_token_missing`, `static_token_accepts_match`,
+`static_token_constant_time`, `auth_error_no_secret`, `auth_info_artifacts` and
+`client_auth_is_object_safe`.
+
+`auth_info_single_home` is in
+`backends/foundation_connectrpc/tests/auth_tests.rs`, because only a connectrpc
+test can name both `AuthInfo` paths.
+
+## Verify (2026-11-22, macOS, profile `uat`)
+
+| Command | Result |
+|---|---|
+| `cargo test -p foundation_auth --profile uat` | Pass. 65 tests. |
+| `cargo test -p foundation_connectrpc --profile uat auth` | Pass. `auth_tests`: 15 tests. |
+| `cargo clippy -p foundation_auth -p foundation_connectrpc --profile uat -- -D warnings` | Pass, no warnings. The command also checks the path dependencies; none warned. |
+| `cargo check -p foundation_ai --profile uat --no-default-features` | PENDING |
+| `cargo check -p foundation_keychain --profile uat` | PENDING |
+| `cargo fmt --all -- --check` | Pass. |
+| `grep -rn "fn constant_time_eq" backends/` | One hit: `foundation_auth/src/shared/mod.rs`. |
+| `grep -rn "struct Secret" backends/` | Many hits. See issue #674. |
+
+## Known issues
 
 | Finding | Severity | State |
 |---|---|---|
-| Four private copies of `constant_time_eq` in `foundation_auth` | low | [#554](https://github.com/ewe-studios/ewe_platform/issues/554); T2 closes it |
-| `ConfidentialText::Display` shows the first character and the length of the secret | low | [#555](https://github.com/ewe-studios/ewe_platform/issues/555); T1 closes it |
+| Four private copies of `constant_time_eq` in `foundation_auth` | low | [#554](https://github.com/ewe-studios/ewe_platform/issues/554); closed by T2 |
+| `ConfidentialText::Display` shows the first character and the length | low | [#555](https://github.com/ewe-studios/ewe_platform/issues/555); closed by T1 |
+| The section 8 `struct Secret` grep matches generated and test types | low | [#674](https://github.com/ewe-studios/ewe_platform/issues/674); open |
+
+## Next steps
+
+1. Merge the branch after the owner reviews it.
+2. Close #554 and #555 in this change.
+3. Do not push or open a pull request from this worktree.
 
 ## Open questions
 
