@@ -2,8 +2,7 @@
 # Synchronize generated Kotlin readers, native bindings and shared fixtures.
 set -euo pipefail
 worktree="$(cd "$(dirname "$0")/../.." && pwd)"
-checkout="$(git -C "$worktree" rev-parse --path-format=absolute --git-common-dir)"
-package="${EWE_UI_KOTLIN:-$(dirname "$(dirname "$checkout")")/ewe-ui-kotlin}"
+package="$worktree/mobile/android"
 mode="${1:-}"
 stage="$(mktemp -d)"
 trap 'rm -rf "$stage"' EXIT
@@ -40,5 +39,5 @@ for line in Path(sys.argv[1]).read_text().splitlines():
                 print(f)
 PY
 )
-target/uat/uniffi-bindgen generate --library "$library" --crate ui_todo_native --language kotlin --out-dir "$stage/todo" --no-format
-sync_tree "$stage/todo" "$package/examples/ui_todo_android/app/src/main/generated"
+"${CARGO_TARGET_DIR:-$worktree/target}/uat/uniffi-bindgen" generate --library "$library" --crate ui_todo_native --language kotlin --out-dir "$stage/todo" --no-format
+sync_tree "$stage/todo" "$worktree/examples/ui_todo/android/generated"

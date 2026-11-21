@@ -2,11 +2,14 @@
 # Build the two native libraries for the Android binding.
 set -euo pipefail
 worktree="$(cd "$(dirname "$0")/../.." && pwd)"
-checkout="$(git -C "$worktree" rev-parse --path-format=absolute --git-common-dir)"
-package="${EWE_UI_KOTLIN:-$(dirname "$(dirname "$checkout")")/ewe-ui-kotlin}"
+package="$worktree/mobile/android"
 demo="${1:-}"
 cd "$worktree"
-mise exec -- bash -euc '
+case "$demo" in
+    ""|--with-todo) ;;
+    *) echo "Usage: $0 [--with-todo]" >&2; exit 2 ;;
+esac
+mise exec -- bash -seu -- "$package" "$demo" <<'BASH'
     export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$ANDROID_NDK"
     rustup target add aarch64-linux-android x86_64-linux-android
     build_native() {
@@ -14,6 +17,13 @@ mise exec -- bash -euc '
     }
     build_native foundation_ui_native "$1/binding/src/main/jniLibs"
     if [[ "$2" == "--with-todo" ]]; then
-        build_native ui_todo_native "$1/examples/ui_todo_android/app/src/main/jniLibs"
+        stage="$(mktemp -d)"
+        trap 'rm -rf "$stage"' EXIT
+        build_native ui_todo_native "$stage"
+        for example in todo_server todo_on_device; do
+            dest="$PWD/examples/ui_todo/android/$example/app/src/main/jniLibs"
+            mkdir -p "$dest"
+            rsync -a --delete "$stage/" "$dest/"
+        done
     fi
-' _ "$package" "$demo"
+BASH

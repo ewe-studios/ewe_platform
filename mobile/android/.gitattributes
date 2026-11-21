@@ -1,0 +1,5 @@
+# Preserve upstream and generated files exactly for byte-level drift checks.
+**/src/generated/** -whitespace linguist-generated
+**/src/main/generated/** -whitespace linguist-generated
+core/src/vendor/** -whitespace linguist-vendored
+gradlew.bat -whitespace

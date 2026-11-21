@@ -2,9 +2,13 @@
 # Install the package-only starter on a private Android virtual device and check a server action.
 set -euo pipefail
 root=$(cd "$(dirname "$0")/../../.." && pwd)
-: "${EWE_UI_KOTLIN:?Set EWE_UI_KOTLIN to the Kotlin package checkout}"
 : "${ANDROID_HOME:?Set ANDROID_HOME to the Android SDK}"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
+mode=starter
+if [[ ${1:-} == --todo ]]; then
+    mode=todo
+    shift
+fi
 case $# in
     0) repository= ;;
     2) [[ $1 == --maven ]] || { echo "Expected --maven DIRECTORY" >&2; exit 2; }
@@ -41,6 +45,9 @@ cleanup() {
         done
     fi
     if [[ -n $host_pid ]]; then kill "$host_pid" 2>/dev/null || true; wait "$host_pid" 2>/dev/null || true; fi
+    if [[ -n ${host_port:-} && -n ${serial:-} ]]; then
+        "$adb" -s "$serial" reverse --remove "tcp:$host_port" 2>/dev/null || true
+    fi
     if [[ -n $emulator_pid ]]; then kill "$emulator_pid" 2>/dev/null || true; wait "$emulator_pid" 2>/dev/null || true; fi
     rm -r "$stage"
     exit "$result"
@@ -48,8 +55,6 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
-git -C "$EWE_UI_KOTLIN" archive HEAD examples/starter_android | tar -x -C "$stage"
-project="$stage/examples/starter_android"
 version=$(python3 -c 'import tomllib; print(tomllib.load(open("release/native-ui.toml","rb"))["version"])')
 args=("-PeweVersion=$version")
 if [[ -n $repository ]]; then
@@ -57,13 +62,25 @@ if [[ -n $repository ]]; then
 else
     export GRADLE_USER_HOME="$stage/gradle"
 fi
-"$EWE_UI_KOTLIN/gradlew" -p "$project" "${args[@]}" :app:assembleDebug
+if [[ $mode == todo ]]; then
+    for app in todo_on_device todo_server; do
+        "$root/mobile/android/gradlew" -p "$root/examples/ui_todo/android/$app" "${args[@]}" :app:assembleDebug
+    done
+    server="$root/examples/ui_todo/android/todo_server"
+    "$root/mobile/android/gradlew" -p "$server" "${args[@]}" :app:assembleDebugAndroidTest
+else
+    mkdir -p "$stage/starter"
+    rsync -a --exclude build --exclude .gradle --exclude .kotlin --exclude local.properties         "$root/examples/mobile_starter/android/" "$stage/starter/"
+    project="$stage/starter"
+    "$root/mobile/android/gradlew" -p "$project" "${args[@]}" :app:assembleDebug
+fi
 if [[ -z ${EWE_TODO_BIN:-} ]]; then
     cargo build --profile uat -p ui_todo
     EWE_TODO_BIN="${CARGO_TARGET_DIR:-$root/target}/uat/ui_todo"
 fi
-"$EWE_TODO_BIN" 127.0.0.1:0 >"$stage/host.log" 2>&1 &
-host_pid=$!
+if [[ -n ${EWE_ANDROID_SERIAL:-} ]]; then
+    serial="$EWE_ANDROID_SERIAL"
+else
 export ANDROID_AVD_HOME="$stage/avd"
 mkdir -p "$ANDROID_AVD_HOME"
 echo no | "$avdmanager" create avd --name ewe-release --package "$image" --device pixel
@@ -110,9 +127,43 @@ until [[ $("$adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr
     fi
     sleep 2
 done
-url=$(awk '/^Open http:/ { print $2;exit }' "$stage/host.log")
+fi
+
+if [[ $mode == todo ]]; then
+    local_app="$root/examples/ui_todo/android/todo_on_device"
+    "$adb" -s "$serial" install -r "$local_app/app/build/outputs/apk/debug/app-debug.apk"
+    "$adb" -s "$serial" install -r "$server/app/build/outputs/apk/debug/app-debug.apk"
+    "$adb" -s "$serial" install -r "$server/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+    "$adb" -s "$serial" shell am force-stop ewe.todo.local
+    "$adb" -s "$serial" shell am start -n ewe.todo.local/.MainActivity
+    python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" offline
+fi
+
+"$EWE_TODO_BIN" 127.0.0.1:0 >"$stage/host.log" 2>&1 &
+host_pid=$!
+deadline=$((SECONDS + 30))
+until url=$(awk '/^Open http:/ { print $2;exit }' "$stage/host.log") && [[ -n $url ]]; do
+    if ((SECONDS >= deadline)) || ! kill -0 "$host_pid" 2>/dev/null; then
+        echo "The todo server did not start." >&2
+        exit 1
+    fi
+    sleep 1
+done
 host_port=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.urlsplit(sys.argv[1]).port or sys.exit("No host port"))' "$url")
 "$adb" -s "$serial" reverse "tcp:$host_port" "tcp:$host_port"
-"$adb" -s "$serial" install -r "$project/app/build/outputs/apk/debug/app-debug.apk"
-"$adb" -s "$serial" shell am start -n ewe.starter/.MainActivity --es server "$url"
-python3 "$root/scripts/ui_native/release/check-android-starter.py" "$adb" "$serial" "$url"
+if [[ $mode == todo ]]; then
+    "$adb" -s "$serial" shell am force-stop ewe.todo
+    "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url"
+    python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" server
+    replay=$("$adb" -s "$serial" shell am instrument -w -e server "$url" ewe.todo.test/ewe.todo.ReplayCheck)
+    printf '%s\n' "$replay"
+    [[ $replay == *"Second delete refused:"* ]] || exit 1
+    "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url"
+    python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" server-delete
+    "$adb" -s "$serial" shell am start -n ewe.todo.local/.MainActivity
+    python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" isolation
+else
+    "$adb" -s "$serial" install -r "$project/app/build/outputs/apk/debug/app-debug.apk"
+    "$adb" -s "$serial" shell am start -n ewe.starter/.MainActivity --es server "$url"
+    python3 "$root/scripts/ui_native/release/check-android-starter.py" "$adb" "$serial" "$url"
+fi
