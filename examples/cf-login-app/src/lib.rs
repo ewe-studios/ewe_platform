@@ -25,7 +25,7 @@ use argon2::{
 };
 use foundation_auth::{CredentialStorage, SessionConfig, SessionManager};
 use foundation_db::{
-    core::schema::{MIGRATIONS, MigrationRunner},
+    core::schema::{MigrationRunner, DB_CORE},
     core::storage_provider::DataValue,
     D1WasmStorage, KeyValueStore, QueryStore, StorageBackend, StorageProvider,
 };
@@ -59,9 +59,9 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
     let storage = Arc::new(D1WasmStorage::new(Arc::clone(&db), "app"));
 
     // Run migrations to create user tables.
-    let runner = MigrationRunner::new(MIGRATIONS);
+    let runner = MigrationRunner::from_static(&DB_CORE);
     runner
-        .run_async(&*storage)
+        .run_async(&foundation_db::EmptyFs::new(), &*storage)
         .await
         .map_err(|e| format!("migration failed: {e:?}"))?;
 

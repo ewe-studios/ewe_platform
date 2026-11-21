@@ -1,19 +1,19 @@
 ---
 feature: "Migration Groups"
 description: "foundation_db migrations as ordered groups per database (shared, then specific), declared in code or by directory, each numbered from 1 and recorded by group, plus a FleetRunner across databases."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 part_of: "specifications/83-agent-rpc-serving-system/agent-rpc-architecture.md"
 estimated_effort: "medium"
 created: 2026-10-27
-last_updated: 2026-11-14
+last_updated: 2026-11-21
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 1
+  completed: 1
+  uncompleted: 0
   total: 1
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Migration Groups

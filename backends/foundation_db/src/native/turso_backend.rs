@@ -7,7 +7,7 @@
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
-use crate::core::schema::{MigrationRunner, MIGRATIONS};
+use crate::core::schema::{MigrationRunner, DB_CORE};
 use crate::core::storage_provider::{
     AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
     RateLimiterStore, SqlRow,
@@ -137,7 +137,10 @@ impl TursoStorage {
         // `kv_store`/`_migrations`, so every other table — including `documents`
         // — was never created on the native sync path. The runner is idempotent
         // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
-        MigrationRunner::new(MIGRATIONS).run_async(self).await?;
+        // The core group is in code, so it reads no file.
+        MigrationRunner::from_static(&DB_CORE)
+            .run_async(&foundation_vfs::EmptyFs::new(), self)
+            .await?;
         Ok(())
     }
 
@@ -722,6 +725,10 @@ impl QueryStore for TursoStorage {
             return Err(self.rollback_after(e.to_string()).await);
         }
         Ok(())
+    }
+
+    fn batch_is_transactional(&self) -> bool {
+        true
     }
 }
 

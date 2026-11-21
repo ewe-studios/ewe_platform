@@ -5626,7 +5626,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -5639,7 +5639,10 @@ dependencies = [
  "foundation_context",
  "foundation_core",
  "foundation_db",
+ "foundation_macros",
+ "foundation_nativeapis",
  "foundation_netio",
+ "foundation_vfs",
  "futures-core",
  "futures-lite",
  "futures-util",
@@ -6034,13 +6037,14 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
  "flate2",
  "foundation_arrow",
  "foundation_connectrpc",
+ "foundation_db",
  "foundation_jsonschema",
  "foundation_nostd",
  "foundation_theme",
@@ -6079,6 +6083,7 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "foundation_reactor",
+ "foundation_vfs",
  "fuser",
  "futures-lite",
  "hex",
@@ -6486,6 +6491,18 @@ dependencies = [
  "tree-sitter-python",
  "tree-sitter-rust",
  "tree-sitter-typescript",
+]
+
+[[package]]
+name = "foundation_vfs"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "derive_more",
+ "foundation_compact",
+ "foundation_context",
+ "foundation_errstacks",
+ "serde",
 ]
 
 [[package]]
@@ -16786,14 +16803,14 @@ version = "0.26.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "521bc38abb08001b01866da9f51eb7c5d647a19260e00054a8c7fd5f9e57f7a9"
 dependencies = [
- "webpki-roots 1.0.9",
+ "webpki-roots 1.0.12",
 ]
 
 [[package]]
 name = "webpki-roots"
-version = "1.0.9"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dcd9d09a39985f5344844e66b0c530a33843579125f23e21e9f0f220850f22a"
+checksum = "7265c9301c16a8711c992c2d8da90ee77ef54b1ed51482d6dfeb00dc756b1297"
 dependencies = [
  "rustls-pki-types",
 ]

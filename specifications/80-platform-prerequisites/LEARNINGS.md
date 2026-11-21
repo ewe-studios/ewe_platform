@@ -62,6 +62,42 @@ wasm host is given a `Directory` group. The readers stay gated, because they are
 The rule: a `cfg` goes on a private inner type, a method, a module or a dependency. It never
 changes the variants of a public enum.
 
+## A Cargo cycle hides behind an optional dependency (2026-11-21)
+
+`migrations.md` gave `foundation_db` a dependency on `foundation_nativeapis` to name
+`AsyncVfsFileSystem`. That dependency cannot exist. `foundation_nativeapis` declares
+`foundation_db` as an **optional** dependency for `vfs-d1`, `vfs-r2` and `vfs-fjall`. Cargo
+rejects the package cycle even when no feature turns the optional edge on, and even when the
+edge is target-gated.
+
+The fix is a small crate, `foundation_vfs`, that holds `async_traits.rs`, `error.rs` and
+`types.rs`. `foundation_nativeapis` re-exports them, so no public path changes.
+`foundation_db` depends on `foundation_vfs`. The tests still use `MemoryFs` from
+`foundation_nativeapis` as a dev-dependency; a dev-only cycle is allowed.
+
+The lesson: before a design adds an edge between two large crates, read both `Cargo.toml`
+files for optional reverse edges. Cargo checks the package graph, not the enabled features.
+
+## Other findings from task T25 (2026-11-21)
+
+- **Turso `execute` rejects a statement that returns rows.** A test migration that used
+  `SELECT 1` failed with "unexpected row during execution". Migrations are data definition
+  language (DDL) or data manipulation language (DML) statements; the statement splitter sends
+  each statement through `execute_batch_statements`.
+- **D1 batch errors lost their text.** `D1Store::execute_batch_statements` reported only
+  "one or more statements failed". The migration runner needs "UNIQUE constraint failed" to
+  tell a primary-key conflict from a real SQL error, so the message now includes the API error
+  messages.
+- **trybuild builds a scratch crate in `target/tests/trybuild`.** Its `CARGO_MANIFEST_DIR` is
+  not the crate under test, and an environment variable set in the test did not reach the
+  proc macro. The macro now tries the manifest directory first and then walks up to the
+  workspace root. The test file names the data directory from the workspace root.
+- **`proc-macro-crate` reports `FoundCrate::Itself` for an integration test** of the same
+  package, where `crate` is the test target, not the library. The macro compares
+  `CARGO_CRATE_NAME` with the package name and emits `::foundation_db` for the test target.
+- **The local D1 harness works.** `wrangler dev --local` on port 8789 with
+  `CF_INTEGRATION_TEST=1` runs the migration tests against Cloudflare D1 (transaction rollback
+  and idempotent apply).
 ## 2026-11-21: transport facts
 
 - `build_ctx` built a fresh `Extensions` map instead of using the request's.

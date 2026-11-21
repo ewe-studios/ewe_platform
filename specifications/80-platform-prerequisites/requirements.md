@@ -30,10 +30,10 @@ related_specs:
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:
-  completed: 1
-  uncompleted: 1
+  completed: 2
+  uncompleted: 0
   total: 2
-  completion_percentage: 50
+  completion_percentage: 100
 ---
 
 # Platform Prerequisites
@@ -91,7 +91,7 @@ done with the commit and write no code. A second context design is a defect.
 | # | Feature | Description | Depends on | Status |
 |---|---|---|---|---|
 | 00 | [Transport Prerequisites](./features/00-transport-prerequisites/feature.md) | connectrpc keeps request extensions and uses the `Ctx` clock for deadlines; foundation_http reports the TLS peer certificates | Spec 76, spec 84 | ✅ Completed |
-| 01 | [Migration Groups](./features/01-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | Spec 76 | ⬜ Pending |
+| 01 | [Migration Groups](./features/01-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | Spec 76 | ✅ Completed |
 
 The features keep tasks T3 and T4 (feature 00) and T25 (feature 01) from the original spec 83.
 
