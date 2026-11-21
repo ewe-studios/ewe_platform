@@ -15,12 +15,12 @@ cd "$root"
 export DEVELOPER_DIR=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}
 arch=$(uname -m)
 case "$arch" in arm64) target=aarch64-apple-ios-sim ;; x86_64) target=x86_64-apple-ios ;; *) echo "Unsupported simulator CPU $arch" >&2; exit 1 ;; esac
-cargo build --locked --profile uat -p ui_todo_native -p foundation_ui_native --features foundation_ui_native/bindgen
+cargo build --locked --profile uat -p ui_todo -p foundation_ui_native --no-default-features --features ui_todo/mobile,foundation_ui_native/bindgen
 stage=$(mktemp -d "$out/.build-XXXXXX")
 trap 'rm -rf "$stage"' EXIT
 mkdir -p "$stage/headers" "$out/examples/ui_todo/ios/Bridge" "$out/mobile/ios"
-for crate in foundation_ui_native ui_todo_native; do
-    "$target_dir/uat/uniffi-bindgen" generate --library "$target_dir/uat/libui_todo_native.dylib" --crate "$crate" \
+for crate in foundation_ui_native ui_todo; do
+    "$target_dir/uat/uniffi-bindgen" generate --library "$target_dir/uat/libui_todo.dylib" --crate "$crate" \
         --language swift --out-dir "$stage/generated" --no-format
 done
 # The generated application module references the shared native module.
@@ -45,10 +45,10 @@ MAP
 build_slice() {
     local sdk=$1 rust_target=$2
     SDKROOT=$(xcrun --sdk "$sdk" --show-sdk-path) IPHONEOS_DEPLOYMENT_TARGET=17.0 \
-        cargo build --locked --release -p ui_todo_native --lib --target "$rust_target"
+        cargo build --locked --release -p ui_todo --lib --no-default-features --features mobile --target "$rust_target"
     mkdir -p "$stage/$sdk"
-    ln "$target_dir/$rust_target/release/libui_todo_native.a" "$stage/$sdk/libEweCoreFFI.a" ||
-        cp "$target_dir/$rust_target/release/libui_todo_native.a" "$stage/$sdk/libEweCoreFFI.a"
+    ln "$target_dir/$rust_target/release/libui_todo.a" "$stage/$sdk/libEweCoreFFI.a" ||
+        cp "$target_dir/$rust_target/release/libui_todo.a" "$stage/$sdk/libEweCoreFFI.a"
 }
 build_slice iphonesimulator "$target"
 build_slice iphoneos aarch64-apple-ios

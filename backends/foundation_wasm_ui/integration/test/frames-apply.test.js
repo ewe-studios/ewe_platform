@@ -267,7 +267,7 @@ test("all vocabulary kinds and property types map to browser controls", () => {
     apply(operation("SetProp",40,wire.PropId[prop],wire.PropValue[kind],val));
     assert.equal(el.style[attr],expected);
   }
-  for(const [prop,attr] of [["SOURCE","src"],["PLACEHOLDER","placeholder"],["A11Y_LABEL","aria-label"],["PRESENTATION","data-ewe-presentation"]]) {
+  for(const [prop,attr] of [["SOURCE","src"],["PLACEHOLDER","placeholder"],["A11Y_LABEL","aria-label"]]) {
     apply(operation("SetProp",40,wire.PropId[prop],wire.PropValue.Text,new wire.TextValueT("label")));
     assert.equal(el.getAttribute(attr),"label");
   }
@@ -392,4 +392,18 @@ test("anonymous scoped functions receive their own element and release their lis
   ui.Patcher.releaseScope(parent);
   parent.dispatchEvent("click");
   assert.equal(parent.textContent,"x");
+});
+
+test("shared controls retain browser classes and skip mobile overrides", () => {
+  const {apply,registry,reports} = setup();
+  const classes = value => operation("SetProp",42,wire.PropId.UTILITY_CLASSES,wire.PropValue.Text,new wire.TextValueT(value));
+  apply(operation("CreateNode",42,wire.NodeKind.TEXT),classes("text-primary p-md ios-p-lg android-p-sm custom"),operation("SetText",42,"Buy milk"));
+  const el = registry.get(42);
+  assert.equal(el.textContent,"Buy milk");
+  for (const name of ["text-primary","p-md","custom"]) assert.equal(el.classList.contains(name),true);
+  for (const name of ["ios-p-lg","android-p-sm"]) assert.equal(el.classList.contains(name),false);
+  apply(classes("web-p-lg p-sm p-md"));
+  assert.equal(el.classList.contains("p-lg"),true);
+  assert.equal(el.classList.contains("p-md"),true);
+  assert.deepEqual(reports,[]);
 });

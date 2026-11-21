@@ -19,6 +19,18 @@ internal object Names {
             NodeKind.OVERLAY to "OVERLAY",
             NodeKind.MODAL to "MODAL",
             NodeKind.BOTTOM_SHEET to "BOTTOM_SHEET",
+            NodeKind.NAVIGATION_TITLE to "NAVIGATION_TITLE",
+            NodeKind.TOOLBAR_BUTTON to "TOOLBAR_BUTTON",
+            NodeKind.SEGMENTED_CONTROL to "SEGMENTED_CONTROL",
+            NodeKind.INSET_LIST to "INSET_LIST",
+            NodeKind.CHECKLIST_ROW to "CHECKLIST_ROW",
+            NodeKind.CHECKMARK_BUTTON to "CHECKMARK_BUTTON",
+            NodeKind.DESTRUCTIVE_BUTTON to "DESTRUCTIVE_BUTTON",
+            NodeKind.LIST_FOOTER to "LIST_FOOTER",
+            NodeKind.CONFIRMATION_DIALOG to "CONFIRMATION_DIALOG",
+            NodeKind.SHEET_TITLE to "SHEET_TITLE",
+            NodeKind.SUBMIT_BUTTON to "SUBMIT_BUTTON",
+            NodeKind.CANCEL_BUTTON to "CANCEL_BUTTON",
         )
     val propId =
         mapOf(
@@ -40,7 +52,6 @@ internal object Names {
             PropId.HEIGHT to "HEIGHT",
             PropId.HIDDEN to "HIDDEN",
             PropId.UTILITY_CLASSES to "UTILITY_CLASSES",
-            PropId.PRESENTATION to "PRESENTATION",
         )
     val eventId =
         mapOf(

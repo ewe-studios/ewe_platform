@@ -99,3 +99,38 @@ fn invalid_control_properties_and_html_names_fail() {
         assert_eq!(output.len(), 0);
     }
 }
+
+#[test]
+fn explicit_controls_keep_their_document_elements_and_children() {
+    for (name, tag, class) in [
+        ("NavigationTitle", "h1", "ewe-navigation-title"),
+        ("ToolbarButton", "button", "ewe-toolbar-button"),
+        ("SegmentedControl", "div", "ewe-segmented-control"),
+        ("InsetList", "ul", "ewe-inset-list"),
+        ("ChecklistRow", "li", "ewe-checklist-row"),
+        ("CheckmarkButton", "button", "ewe-checkmark-button"),
+        ("DestructiveButton", "button", "ewe-destructive-button"),
+        ("ListFooter", "p", "ewe-list-footer"),
+        ("ConfirmationDialog", "dialog", "ewe-confirmation-dialog"),
+        ("SheetTitle", "h2", "ewe-sheet-title"),
+        ("SubmitButton", "button", "ewe-submit-button"),
+        ("CancelButton", "button", "ewe-cancel-button"),
+    ] {
+        let tree = element(
+            name,
+            &[("class", "text-primary ios-p-md android-p-sm web-p-lg")],
+            vec![Html::text("Child")],
+        );
+        let mut output = Vec::new();
+        session()
+            .body(Response::html(tree))
+            .write_body(&mut output)
+            .unwrap();
+        let html = String::from_utf8(output).unwrap();
+        assert!(
+            html.starts_with(&format!("<{tag} class=\"{class} text-primary p-lg\"")),
+            "{html}"
+        );
+        assert!(html.contains(&format!(">Child</{tag}>")), "{html}");
+    }
+}

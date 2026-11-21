@@ -65,7 +65,6 @@ pub fn prop_kind(prop: PropId) -> Option<PropKind> {
         | PropId::VALUE
         | PropId::SOURCE
         | PropId::PLACEHOLDER
-        | PropId::PRESENTATION
         | PropId::UTILITY_CLASSES => PropKind::Text,
         PropId::AXIS => PropKind::Axis,
         _ => return None,

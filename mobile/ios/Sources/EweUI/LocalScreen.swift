@@ -9,17 +9,19 @@ import SwiftUI
     @State private var presenter = PresentationAnchor()
   #endif
   private let load: Loader
-  @State private var screen: EweScreen?
+  @State private var connection: EventBridge?
+    private let theme: EweTheme
   @State private var issue: String?
 
-  public init(load: @escaping Loader) {
+  public init(theme: EweTheme = EweTheme(), load: @escaping Loader) {
+    self.theme = theme
     self.load = load
   }
 
   public var body: some View {
     Group {
-      if let screen {
-        screen.safeAreaInset(edge: .bottom) {
+      if let connection {
+        EweScreen(store: connection.store, bridge: connection, theme: theme).safeAreaInset(edge: .bottom) {
           if let issue { Text(issue) }
         }
       } else if let issue {
@@ -32,7 +34,7 @@ import SwiftUI
       .background(HostAnchor(anchor: presenter).frame(width: 0, height: 0))
     #endif
     .task {
-      guard screen == nil else { return }
+      guard connection == nil else { return }
       let store = NodeStore()
       #if os(iOS)
         store.commands = presenter.commandHost()
@@ -43,7 +45,7 @@ import SwiftUI
         try Task.checkCancellation()
         let bridge = EventBridge(store: store, core: core)
         guard store.receive(first) else { throw CocoaError(.fileReadCorruptFile) }
-        screen = EweScreen(store: store, bridge: bridge)
+        connection = bridge
       } catch {
         if !Task.isCancelled { issue = error.localizedDescription }
       }

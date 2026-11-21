@@ -21,7 +21,7 @@ fun interface CommandHost {
 class NodeStore(
     private val timer: GapTimer,
     private val gapTimeoutMs: Long = 1000,
-    private val maxFrameBytes: Int = 4 * 1024 * 1024,
+    val maxFrameBytes: Int = 4 * 1024 * 1024,
     internal val commands: CommandHost? = null,
     val supportsBehaviour: (String) -> Boolean = {
         it in Names.behaviourId.values && it != "UNKNOWN"

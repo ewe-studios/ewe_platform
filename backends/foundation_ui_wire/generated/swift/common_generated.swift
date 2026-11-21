@@ -52,8 +52,20 @@ public enum ewe_ui_NodeKind: UInt16, Enum, Verifiable {
   case overlay = 10
   case modal = 11
   case bottomSheet = 12
+  case navigationTitle = 13
+  case toolbarButton = 14
+  case segmentedControl = 15
+  case insetList = 16
+  case checklistRow = 17
+  case checkmarkButton = 18
+  case destructiveButton = 19
+  case listFooter = 20
+  case confirmationDialog = 21
+  case sheetTitle = 22
+  case submitButton = 23
+  case cancelButton = 24
 
-  public static var max: ewe_ui_NodeKind { return .bottomSheet }
+  public static var max: ewe_ui_NodeKind { return .cancelButton }
   public static var min: ewe_ui_NodeKind { return .unknown }
 }
 

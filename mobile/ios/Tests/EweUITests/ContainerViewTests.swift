@@ -31,10 +31,9 @@ final class ContainerViewTests: XCTestCase {
     store.insert(nested.id, modal.id, 0)
     store.insert(panel.id, modal.id, 0)
 
-    let nestedCancel = try XCTUnwrap(store.make(13, .button, 0))
-    let cancel = try XCTUnwrap(store.make(14, .button, 0))
+    let nestedCancel = try XCTUnwrap(store.make(13, .cancelButton, 0))
+    let cancel = try XCTUnwrap(store.make(14, .cancelButton, 0))
     for node in [nestedCancel, cancel] {
-      node.props[.presentation] = .text("cancel-action")
       node.actions[.tap] = "host:close"
     }
     store.insert(nestedCancel.id, nested.id, 0)
@@ -50,7 +49,7 @@ final class ContainerViewTests: XCTestCase {
     let screen = EweScreen(store: store, bridge: EventBridge(store: store, core: ContainerTestCore()))
     let panel = try XCTUnwrap(store.make(10, .bottomSheet, 0))
     let field = try XCTUnwrap(store.make(11, .textInput, 0))
-    let submit = try XCTUnwrap(store.make(12, .button, 0))
+    let submit = try XCTUnwrap(store.make(12, .submitButton, 0))
     field.actions[.submit] = "server:add"
     store.insert(field.id, panel.id, 0)
     store.insert(submit.id, panel.id, 0)
@@ -71,12 +70,11 @@ final class ContainerViewTests: XCTestCase {
     let screen = EweScreen(store: store, bridge: EventBridge(store: store, core: core))
     let panel = try XCTUnwrap(store.make(10, .bottomSheet, 0))
     let field = try XCTUnwrap(store.make(11, .textInput, 0))
-    let button = try XCTUnwrap(store.make(12, .button, 0))
+    let button = try XCTUnwrap(store.make(12, .submitButton, 0))
     store.insert(field.id, panel.id, 0)
     store.insert(button.id, panel.id, 0)
     field.actions[.submit] = "server:add"
     field.state = Data([7])
-    button.props[.presentation] = .text("submit-action")
     let draft = SheetDraft()
     draft.set("Milk", for: field)
 
@@ -125,6 +123,43 @@ final class ContainerViewTests: XCTestCase {
   }
 
   #if os(iOS)
+    @MainActor func testThemeChangePreservesTheEditedField() async throws {
+      let store = NodeStore()
+      let core = ContainerTestCore()
+      let bridge = EventBridge(store: store, core: core)
+      let input = try XCTUnwrap(store.make(32, .textInput, 0))
+      input.props[.utilityClasses] = .text("p-md ios-p-lg web-only")
+      store.insert(input.id, 1, 0)
+      let draft = SheetDraft()
+      func screen(_ theme: EweTheme) -> some View {
+        EweScreen(store: store, bridge: bridge, theme: theme).environment(\.eweSheetDraft, draft)
+      }
+      let host = UIHostingController(rootView: screen(EweTheme()))
+      let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 640))
+      window.rootViewController = host
+      window.makeKeyAndVisible()
+      defer { window.isHidden = true }
+      func textField(_ view: UIView) -> UITextField? {
+        if let field = view as? UITextField { return field }
+        return view.subviews.lazy.compactMap(textField).first
+      }
+      host.view.layoutIfNeeded()
+      let field = try XCTUnwrap(textField(host.view))
+      XCTAssertTrue(field.becomeFirstResponder())
+      draft.set("Buy milk", for: input)
+      host.view.layoutIfNeeded()
+      await Task.yield()
+      XCTAssertEqual(field.text, "Buy milk")
+      let json = Data(#"{"p-lg":{"padding":["16px","16px"]}}"#.utf8)
+      host.rootView = screen(try EweTheme(manifest: json))
+      host.view.layoutIfNeeded()
+      let after = try XCTUnwrap(textField(host.view))
+      XCTAssertIdentical(field, after)
+      XCTAssertTrue(after.isFirstResponder)
+      XCTAssertEqual(after.text, "Buy milk")
+      XCTAssertTrue(core.events.isEmpty)
+    }
+
     @MainActor func testBottomSheetMeasuresTheSuppliedChildHeight() {
       func measured(_ height: CGFloat) -> CGFloat {
         let host = UIHostingController(rootView: EweBottomSheet {

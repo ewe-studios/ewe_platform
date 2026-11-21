@@ -9,7 +9,9 @@ target_dir=${CARGO_TARGET_DIR:-$root/target}
 products="$root/target/native-ui/ios-todo-tests"
 mkdir -p "$products"
 server=
+data_server=
 cleanup() {
+    if [[ -n "$data_server" ]]; then kill "$data_server" 2>/dev/null || true; wait "$data_server" 2>/dev/null || true; fi
     if [[ -n "$server" ]]; then kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true; fi
 }
 trap cleanup EXIT
@@ -40,7 +42,16 @@ for ((i=0; i<100; i++)); do
     sleep 0.2
 done
 [[ -n "$base" && -s "$products/first.bin" ]] || { cat "$products/server.log" >&2; exit 1; }
-TEST_RUNNER_EWE_TODO_URL="$base" test_app todo_server TodoServer
+"$target_dir/uat/ui_todo" 127.0.0.1:0 --data-only >"$products/data-server.log" 2>&1 &
+data_server=$!
+for ((i=0; i<100; i++)); do
+    kill -0 "$data_server"
+    data_url=$(awk '/^Open http:/ {print $2; exit}' "$products/data-server.log")
+    [[ -z "$data_url" ]] || break
+    sleep 0.1
+done
+[[ -n "$data_url" ]]
+TEST_RUNNER_EWE_DATA_URL="$data_url" TEST_RUNNER_EWE_TODO_URL="$base" test_app todo_server TodoServer
 curl -fsS --max-time 5 "$base/native-initial" -o "$products/second.bin"
 LC_ALL=C grep -aFq 'Server integration task' "$products/second.bin"
 if LC_ALL=C grep -aFq 'Device-only task' "$products/second.bin"; then

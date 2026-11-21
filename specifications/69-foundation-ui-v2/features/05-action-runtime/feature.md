@@ -315,3 +315,24 @@ cargo check -p foundation_ui_runtime --target wasm32-unknown-unknown
 
 The [original action research](../../research/10-action-model.md) introduces the typed event.
 The [owner decisions D50 to D52](../../requirements.md) define registration, template binding and receiver ownership.
+
+### Approved change. Access host services directly
+
+An action receives a user interface (UI) runtime `Context`. It holds the host `Ctx` for the call.
+Expose the public, nonconflicting instance methods of `Ctx` through `Context`.
+Preserve their argument types, return types, shared entries, and error behavior.
+Give each method a forwarding implementation. Keep `inner()` for code that needs a reference to the host itself.
+
+```rust
+ctx.store(TodoStore::default());
+let todos = ctx.get::<TodoStore>();
+```
+
+- Forward `get`, `store`, `insert`, `get_and_store`, `get_cloned`, `get_or_insert`, `remove`, and `contains`.
+- Add `set(value)` as an alias for `store(value)`. The host calls its existing write method `store`.
+- Forward `clock`, `try_clock`, `config`, `rng`, `try_rng`, and `assert_minimum`.
+- Forward `fork`, `with_empty_map`, `rebase`, and `with_clock`. Each returns the host type `Ctx`.
+- Keep constructors on their owning types. Keep existing UI methods when names conflict.
+- Replace chained host method calls in applications, templates, tests, and guides. Preserve explicit host references and host clones.
+- Test reads and writes from both handles. Verify replacement, removal, missing values, and the return types of derived contexts.
+- Update the runtime README with an action that reads a service directly.

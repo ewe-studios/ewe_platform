@@ -33,6 +33,52 @@ struct Bridge {
 
 std::thread_local! { static BRIDGE: RefCell<Bridge> = RefCell::default(); }
 
+/// Owns the action dispatcher for one browser application.
+pub struct LocalApp(foundation_ui_runtime::dispatch::LocalDispatcher);
+
+/// Keeps the application context and actions until startup.
+pub struct LocalAppBuilder {
+    ctx: foundation_core::valtron::Ctx,
+    actions: foundation_ui_runtime::action::ActionRegistry,
+}
+
+impl LocalApp {
+    #[must_use]
+    pub fn builder(
+        ctx: foundation_core::valtron::Ctx,
+        actions: foundation_ui_runtime::action::ActionRegistry,
+    ) -> LocalAppBuilder {
+        LocalAppBuilder { ctx, actions }
+    }
+
+    /// Starts the browser task pool and installs the action dispatcher.
+    #[cfg(target_family = "wasm")]
+    pub fn install(self) {
+        single::initialize_pool_with_ctx(0, self.0.context().clone());
+        install_local_dispatcher(self.0);
+    }
+
+    /// Gives a custom host the prepared dispatcher.
+    #[must_use]
+    pub fn into_dispatcher(self) -> foundation_ui_runtime::dispatch::LocalDispatcher {
+        self.0
+    }
+}
+
+impl LocalAppBuilder {
+    #[must_use]
+    pub fn build(self) -> LocalApp {
+        use foundation_ui_runtime::{
+            action::Origin,
+            dispatch::{Connection, DispatcherBuilder, LocalDispatcher},
+        };
+        use foundation_ui_wire::{writer::ClientCaps, MountSurface};
+        let dispatcher = DispatcherBuilder::new(Origin::Host, Arc::new(self.actions)).build();
+        let conn = Connection::stateless(ClientCaps::web_current(), MountSurface::Web, 2);
+        LocalApp(LocalDispatcher::new(dispatcher, self.ctx, conn))
+    }
+}
+
 /// Install the browser dispatcher after the host initializes the thread's Valtron pool.
 #[cfg(target_family = "wasm")]
 pub fn install_local_dispatcher(local: foundation_ui_runtime::dispatch::LocalDispatcher) {

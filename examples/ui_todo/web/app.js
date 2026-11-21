@@ -4,6 +4,16 @@ import * as behaviours from "./foundation-ui-behaviours.js";
 import { installFrameRuntime, base64urlEncode, readViewResponse } from "./foundation-ui-frames.js";
 import { FetchActionTransport, WasmActionTransport, JsActionRegistry, installActionRuntime } from "./foundation-ui-actions.js";
 
+async function connectSender() {
+    const { default: initialize, BrowserConnectSender } = await import("/rpc/foundation_ui_connectrpc.js");
+    await initialize();
+    const sender = new BrowserConnectSender(location.origin, window.fetch.bind(window));
+    return { async send(bytes) {
+        const reply = await sender.exchange(bytes);
+        return reply === undefined ? [] : [reply];
+    } };
+}
+
 async function boot() {
     const runtime = new FoundationWasm();
     const dom = new ui.DomHeap({ window, document });
@@ -26,7 +36,9 @@ async function boot() {
     const frames = installFrameRuntime(ui, { onReport: report, viewMount: document.querySelector("#page") });
     ui.registerWebComponents();
     frames.registry.register(41, document.querySelector("#dialog"));
-    const server = new FetchActionTransport({ url: "/action", hello: () => manager.hello() });
+    const server = new URL(location.href).searchParams.has("rpc")
+        ? await connectSender()
+        : new FetchActionTransport({ url: "/action", hello: () => manager.hello() });
     const manager = installActionRuntime(ui, { registry, frames, server, local, behaviours, document, onError: report });
     const scope = ui.Hydrator.createScope(document.body);
     scope.action("notify", () => { notice.value = "Todo added"; });
@@ -44,6 +56,6 @@ async function boot() {
     window.todoReady = true;
 }
 boot().catch(error => {
-    document.querySelector("#notice").value = error.message;
+    document.querySelector("#notice").value = error?.message ?? String(error);
     console.error(error);
 });

@@ -1,15 +1,17 @@
 //! Native core construction, delivery and frame validation.
-use crate::{host::Adapter, CoreError, EventInput, FrameListener, HostTransport};
+use crate::{
+    action_sender, CoreError, EventInput, FrameListener, HostTransport, HostTransportProvider,
+    ServiceError,
+};
 use foundation_context::Ctx;
 use foundation_ui_runtime::{
     action::{ActionManager, ActionRegistry, Origin, Scope},
-    dispatch::{Connection, DispatcherBuilder, LocalDispatcher},
+    network::{client_hello, client_manager, reply_message, server_capabilities},
 };
 use foundation_ui_wire::{
-    finish_frame, read_frame,
+    read_frame,
     writer::{write_messages, ClientCaps, FrameHeader, StreamSequencer, WriterConfig},
-    ClientHelloT, FrameKindT, FrameMessage, FrameRequestT, FrameT, MountSurface, Operation,
-    OperationT, Platform, WebOperation, SCHEMA_VERSION,
+    OperationT, Platform,
 };
 use std::sync::{Arc, Mutex, PoisonError};
 
@@ -34,6 +36,43 @@ pub struct CoreConfig {
     pub platform: NativePlatform,
     pub writer: WriterConfig,
 }
+/// Sets up one mobile core for a screen.
+pub struct NativeCoreBuilder {
+    config: CoreConfig,
+    transport: Option<Arc<dyn HostTransport>>,
+}
+
+impl NativeCoreBuilder {
+    #[must_use]
+    pub fn with_host_transport(mut self, transport: Arc<dyn HostTransport>) -> Self {
+        self.transport = Some(transport);
+        self
+    }
+
+    /// Looks up the sender once and keeps it for this screen.
+    ///
+    /// # Errors
+    /// Returns the native service lookup error.
+    pub async fn with_service(
+        self,
+        provider: &dyn HostTransportProvider,
+        service: String,
+    ) -> Result<Self, ServiceError> {
+        Ok(self.with_host_transport(provider.action_transport(service).await?.transport.clone()))
+    }
+
+    #[must_use]
+    pub fn with_writer(mut self, writer: WriterConfig) -> Self {
+        self.config.writer = writer;
+        self
+    }
+
+    #[must_use]
+    pub fn build(self) -> Arc<NativeCore> {
+        NativeCore::new(self.config, self.transport)
+    }
+}
+
 pub(crate) struct Push {
     #[cfg(feature = "app")]
     pub ticket: u64,
@@ -59,22 +98,28 @@ pub struct NativeCore {
 }
 impl NativeCore {
     #[must_use]
+    pub fn builder(
+        platform: NativePlatform,
+        ctx: Ctx,
+        actions: ActionRegistry,
+    ) -> NativeCoreBuilder {
+        NativeCoreBuilder {
+            config: CoreConfig {
+                platform,
+                ctx,
+                registry: Arc::new(actions),
+                writer: WriterConfig::default(),
+            },
+            transport: None,
+        }
+    }
+
+    #[must_use]
     pub fn new(config: CoreConfig, server: Option<Arc<dyn HostTransport>>) -> Arc<Self> {
         let caps = ClientCaps::native_current(config.platform.into());
-        let dispatcher = DispatcherBuilder::new(Origin::Host, config.registry.clone())
-            .writer_config(config.writer.clone())
-            .build();
-        let connection = Connection::stateless(caps.clone(), MountSurface::Native, 0);
-        let local = LocalDispatcher::new(dispatcher, config.ctx, connection);
-        let mut manager = ActionManager::new(
-            config.registry,
-            MountSurface::Native,
-            0,
-            *config.writer.wire_limits(),
-        )
-        .with_host(Arc::new(local));
+        let mut manager = client_manager(config.ctx, config.registry, &caps, &config.writer);
         if let Some(server) = server {
-            manager = manager.with_server(Arc::new(Adapter(server)));
+            manager = manager.with_server(action_sender(server));
         }
         Arc::new(Self {
             manager,
@@ -181,42 +226,6 @@ impl NativeCore {
         }
         sequence
     }
-
-    fn message<'a>(&self, bytes: &'a [u8]) -> Result<FrameMessage<'a>, CoreError> {
-        let frame = read_frame(bytes, self.limits()).map_err(CoreError::write)?;
-        if frame.schema_version() != SCHEMA_VERSION {
-            return Err(CoreError::write("Unsupported frame schema"));
-        }
-        let body = frame
-            .kind_as_frame_message()
-            .ok_or_else(|| CoreError::write("Expected a message frame"))?;
-        for msg in body.messages().into_iter().flatten() {
-            let fields = u8::from(msg.operation().is_some())
-                + u8::from(msg.control().is_some())
-                + u8::from(msg.data().is_some());
-            if fields != 1 {
-                return Err(CoreError::write("A message must have exactly one body"));
-            }
-            if let Some(op) = msg.operation() {
-                validate_native(op)?;
-            }
-        }
-        Ok(body)
-    }
-}
-
-fn validate_native(op: Operation<'_>) -> Result<(), CoreError> {
-    if op.web_type() != WebOperation::NONE {
-        return Err(CoreError::write("Web operation on a native mount"));
-    }
-    let children = op
-        .ui_as_replace_subtree()
-        .and_then(|tree| tree.operations())
-        .or_else(|| op.ui_as_place().and_then(|tree| tree.operations()));
-    for child in children.into_iter().flatten() {
-        validate_native(child)?;
-    }
-    Ok(())
 }
 
 #[uniffi::export]
@@ -256,17 +265,7 @@ impl NativeCore {
     /// Panics if the generated schema can no longer encode its fixed-size hello.
     #[must_use]
     pub fn hello(&self) -> Vec<u8> {
-        let mut hello = ClientHelloT::default();
-        hello.platform = self.caps.platform;
-        hello.mount = MountSurface::Native;
-        hello.vocabulary_version = self.caps.vocabulary_version;
-        let mut request = FrameRequestT::default();
-        request.hello = Some(Box::new(hello));
-        let mut frame = FrameT::default();
-        frame.schema_version = SCHEMA_VERSION;
-        frame.sequence_id = 1;
-        frame.kind = FrameKindT::FrameRequest(Box::new(request));
-        finish_frame(&frame).expect("Fixed-size native hello fits the wire format")
+        client_hello(&self.caps)
     }
     /// Replaces the advertised server actions after validating the complete frame.
     ///
@@ -277,39 +276,9 @@ impl NativeCore {
         reason = "Foreign callers pass an owned byte buffer through UniFFI."
     )]
     pub fn apply_caps_frame(&self, frame: Vec<u8>) -> Result<(), CoreError> {
-        let body = self.message(&frame)?;
-        let mut lists = body
-            .messages()
-            .into_iter()
-            .flatten()
-            .filter_map(|m| m.control().and_then(|c| c.caps()));
-        let caps = lists
-            .next()
-            .ok_or_else(|| CoreError::write("Missing server capabilities"))?;
-        if lists.next().is_some() {
-            return Err(CoreError::write("Duplicate server capabilities"));
-        }
-        match caps.status() {
-            foundation_ui_wire::CapsStatus::Ok
-                if caps.schema_version() == SCHEMA_VERSION
-                    && foundation_ui_wire::vocab::vocab_version(caps.vocabulary_version())
-                        .is_some() => {}
-            foundation_ui_wire::CapsStatus::UpdateRequired => {}
-            _ => return Err(CoreError::write("Invalid server capability versions")),
-        }
-        let mut names = std::collections::BTreeSet::new();
-        for action in caps.actions().into_iter().flatten() {
-            let name = action
-                .name()
-                .ok_or_else(|| CoreError::write("Missing advertised action name"))?;
-            let reference = format!("server:{name}");
-            foundation_ui_runtime::action::ActionRef::parse(&reference)
-                .map_err(CoreError::write)?;
-            if !names.insert(name) {
-                return Err(CoreError::write("Duplicate advertised action"));
-            }
-        }
-        self.manager.apply_caps(&caps.unpack());
+        let caps = server_capabilities(&frame, self.limits(), self.caps.mount)
+            .map_err(CoreError::write)?;
+        self.manager.apply_caps(&caps);
         Ok(())
     }
     /// Runs a local action or sends one request to the server.
@@ -327,7 +296,7 @@ impl NativeCore {
             .await
             .map_err(|e| CoreError::manager(e, &reference))?;
         if let Some(bytes) = &reply {
-            self.message(bytes)?;
+            reply_message(bytes, self.limits(), self.caps.mount).map_err(CoreError::write)?;
         }
         Ok(reply)
     }

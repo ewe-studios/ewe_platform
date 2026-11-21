@@ -98,6 +98,18 @@ pub(super) fn core_tag(tag: &str) -> bool {
             | "Overlay"
             | "Modal"
             | "BottomSheet"
+            | "NavigationTitle"
+            | "ToolbarButton"
+            | "SegmentedControl"
+            | "InsetList"
+            | "ChecklistRow"
+            | "CheckmarkButton"
+            | "DestructiveButton"
+            | "ListFooter"
+            | "ConfirmationDialog"
+            | "SheetTitle"
+            | "SubmitButton"
+            | "CancelButton"
     )
 }
 
@@ -906,6 +918,31 @@ fn parse_action(cursor: &mut Cursor, event: &str, span: Span) -> ParseResult<Par
 }
 
 fn check_core_property(cursor: &Cursor, tag: &str, name: &str, span: Span) -> ParseResult<()> {
+    if name == "presentation" {
+        let value = cursor
+            .peek2()
+            .and_then(|token| syn::parse2::<syn::LitStr>(quote::quote!(#token)).ok());
+        let replacement = match value.as_ref().map(syn::LitStr::value).as_deref() {
+            Some("navigation-title") => "<NavigationTitle>",
+            Some("toolbar-action") => "<ToolbarButton>",
+            Some("segmented-control") => "<SegmentedControl>",
+            Some("inset-list") => "<InsetList>",
+            Some("checklist-row") => "<ChecklistRow>",
+            Some("checkmark-action") => "<CheckmarkButton>",
+            Some("destructive-action") => "<DestructiveButton>",
+            Some("list-footer") => "<ListFooter>",
+            Some("confirmation-dialog") => "<ConfirmationDialog>",
+            Some("sheet-title") => "<SheetTitle>",
+            Some("submit-action") => "<SubmitButton>",
+            Some("cancel-action") => "<CancelButton>",
+            Some("form-sheet") => "<Modal><BottomSheet>",
+            _ => "an explicit control tag",
+        };
+        return Err(ParseError::new(
+            span,
+            format!("html!: use {replacement} instead of the presentation property"),
+        ));
+    }
     if name.starts_with("primal:on") {
         return Err(ParseError::new(
             span,
@@ -915,6 +952,7 @@ fn check_core_property(cursor: &Cursor, tag: &str, name: &str, span: Span) -> Pa
     if !matches!(
         name,
         "padding"
+            | "class"
             | "spacing"
             | "width"
             | "height"
@@ -930,7 +968,6 @@ fn check_core_property(cursor: &Cursor, tag: &str, name: &str, span: Span) -> Pa
             | "background"
             | "source"
             | "placeholder"
-            | "presentation"
             | "value"
     ) {
         return Err(ParseError::new(

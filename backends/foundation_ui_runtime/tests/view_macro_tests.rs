@@ -435,13 +435,12 @@ fn either_builds_only_the_selected_children_and_preserves_their_bindings() -> Ac
         );
         let signed = ops
             .iter()
-            .filter_map(|op| match &op.ui {
+            .find_map(|op| match &op.ui {
                 UiOperationT::AttachState(state) if state.root_node == button.node_id => {
                     Some(state)
                 }
                 _ => None,
             })
-            .next()
             .unwrap();
         assert_eq!(
             verify_state(&base, signed.state.as_deref().unwrap()).unwrap(),
@@ -466,4 +465,25 @@ fn either_supports_a_root_or_empty_branch_and_nested_conditions() {
         nested.children[0].children[0].text.as_deref(),
         Some("Selected")
     );
+}
+
+#[test]
+fn shared_control_keeps_utility_names_and_unsupported_styles() {
+    use foundation_ui_runtime::view::{lower, LowerOptions, TokenTable};
+    use foundation_ui_wire::{PropId, PropValueT, UiOperationT};
+    let view =
+        html! { <Text class="text-primary p-md ios-p-lg android-p-sm web-only">Buy milk</Text> };
+    let ops = lower(
+        &view,
+        &LowerOptions {
+            id_base: 10,
+            tokens: &TokenTable::default(),
+        },
+    )
+    .unwrap();
+    assert!(ops
+        .iter()
+        .any(|op| matches!(&op.ui, UiOperationT::SetProp(prop)
+        if prop.prop == PropId::UTILITY_CLASSES && matches!(&prop.value, PropValueT::Text(text)
+            if text.v.as_deref() == Some("text-primary p-md ios-p-lg android-p-sm web-only")))));
 }

@@ -1,5 +1,5 @@
-error: html!: `class` is not a property of <Stack>
+error: html!: `bogus` is not a property of <Stack>
  --> tests/trybuild/view/fail_unknown_prop.rs:4:32
   |
-4 |     let _view = html! { <Stack class="page"/> };
+4 |     let _view = html! { <Stack bogus="page"/> };
   |                                ^^^^^

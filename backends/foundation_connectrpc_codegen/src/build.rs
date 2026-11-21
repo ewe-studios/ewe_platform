@@ -108,3 +108,41 @@ impl Config {
         Ok(())
     }
 }
+
+/// Generate owned Protobuf messages and service clients from one descriptor set.
+///
+/// # Errors
+/// Returns a compiler, descriptor, or file error.
+pub fn compile_service(
+    root: &str,
+    name: &str,
+    service: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let proto = format!("{name}.proto");
+    let source = format!("{root}/{proto}");
+    println!("cargo:rerun-if-changed={source}");
+    println!("cargo:rerun-if-env-changed=PROTOC");
+    let out = PathBuf::from(std::env::var_os("OUT_DIR").ok_or("Missing build output directory")?);
+    let path = out.join(format!("{name}.bin"));
+    let status =
+        std::process::Command::new(std::env::var_os("PROTOC").unwrap_or_else(|| "protoc".into()))
+            .arg(format!("--descriptor_set_out={}", path.display()))
+            .arg(format!("-I{root}"))
+            .arg(source)
+            .status()?;
+    if !status.success() {
+        return Err("Cannot generate the action descriptor".into());
+    }
+    buffa_build::Config::new()
+        .descriptor_set(&path)
+        .files(&[proto.as_str()])
+        .generate_json(true)
+        .generate_views(false)
+        .compile()?;
+    let descriptors = prost_types::FileDescriptorSet::decode(std::fs::read(path)?.as_slice())?;
+    std::fs::write(
+        out.join(service),
+        crate::generate_services(&descriptors.file),
+    )?;
+    Ok(())
+}

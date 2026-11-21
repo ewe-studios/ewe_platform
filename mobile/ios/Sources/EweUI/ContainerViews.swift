@@ -82,7 +82,7 @@ extension View {
 
   func cancelControl(in container: NodeRecord) -> NodeRecord? {
     for child in screen.records(container) {
-      if child.props[.presentation] == .text("cancel-action"), child.actions[.tap] != nil,
+      if child.kind == .cancelButton, child.actions[.tap] != nil,
         child.props[.enabled] != .bool(false) { return child }
       if child.kind != .modal, let cancel = cancelControl(in: child) { return cancel }
     }
@@ -153,9 +153,41 @@ extension EnvironmentValues {
   }
 }
 
+/// Keep the input and its actions in the same draft scope.
+@MainActor struct EweSheetChildren<Child: View>: View {
+  let nodes: [NodeRecord]
+  @ViewBuilder let child: (NodeRecord) -> Child
+
+  var body: some View {
+    let pair = zip(nodes, nodes.dropFirst()).first { first, second in
+      Set([first.kind, second.kind]) == [.cancelButton, .submitButton]
+    }
+    ForEach(nodes, id: \.identity) { node in
+      if let (first, second) = pair, node === first {
+        let cancelFirst = first.kind == .cancelButton
+        let cancel = cancelFirst ? first : second
+        let submit = cancelFirst ? second : first
+        ViewThatFits(in: .horizontal) {
+          HStack(spacing: 12) {
+            child(cancel)
+            child(submit)
+          }.fixedSize()
+          VStack(alignment: .trailing) {
+            child(cancel)
+            child(submit)
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+      } else if node !== pair?.1 {
+        child(node)
+      }
+    }
+  }
+}
+
 @MainActor extension EweScreen {
   func sendButton(_ button: NodeRecord, draft: SheetDraft?) {
-    guard let draft, button.props[.presentation] == .text("submit-action") else {
+    guard let draft, button.kind == .submitButton else {
       bridge.send(.tap, node: button.id, value: button.props[.value]?.description ?? "")
       return
     }

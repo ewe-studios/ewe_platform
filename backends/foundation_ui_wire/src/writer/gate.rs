@@ -192,7 +192,10 @@ impl OperationGate<'_> {
                 self.version.version < 6
             }
             UiOperationT::Place(_) => self.version.version < 3,
-            UiOperationT::SetProp(prop) => prop.prop.0 > self.version.max_prop_id,
+            UiOperationT::SetProp(prop) => {
+                prop.prop.0 > self.version.max_prop_id
+                    || crate::vocab::prop_kind(prop.prop).is_none()
+            }
             UiOperationT::BindAction(action) => action.event.0 > self.version.max_event_id,
             UiOperationT::UnbindAction(action) => action.event.0 > self.version.max_event_id,
             UiOperationT::UiBehaviour(behaviour) => {

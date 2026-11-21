@@ -87,6 +87,78 @@ pub static WEB_KINDS: &[WebKind] = &[
         class: "ewe-bottom-sheet",
         attrs: &[],
     },
+    WebKind {
+        kind: NodeKind::NAVIGATION_TITLE,
+        tag: "h1",
+        class: "ewe-navigation-title",
+        attrs: &[],
+    },
+    WebKind {
+        kind: NodeKind::TOOLBAR_BUTTON,
+        tag: "button",
+        class: "ewe-toolbar-button",
+        attrs: &[("type", "button")],
+    },
+    WebKind {
+        kind: NodeKind::SEGMENTED_CONTROL,
+        tag: "div",
+        class: "ewe-segmented-control",
+        attrs: &[("role", "group")],
+    },
+    WebKind {
+        kind: NodeKind::INSET_LIST,
+        tag: "ul",
+        class: "ewe-inset-list",
+        attrs: &[],
+    },
+    WebKind {
+        kind: NodeKind::CHECKLIST_ROW,
+        tag: "li",
+        class: "ewe-checklist-row",
+        attrs: &[],
+    },
+    WebKind {
+        kind: NodeKind::CHECKMARK_BUTTON,
+        tag: "button",
+        class: "ewe-checkmark-button",
+        attrs: &[("type", "button")],
+    },
+    WebKind {
+        kind: NodeKind::DESTRUCTIVE_BUTTON,
+        tag: "button",
+        class: "ewe-destructive-button",
+        attrs: &[("type", "button")],
+    },
+    WebKind {
+        kind: NodeKind::LIST_FOOTER,
+        tag: "p",
+        class: "ewe-list-footer",
+        attrs: &[],
+    },
+    WebKind {
+        kind: NodeKind::CONFIRMATION_DIALOG,
+        tag: "dialog",
+        class: "ewe-confirmation-dialog",
+        attrs: &[("role", "alertdialog")],
+    },
+    WebKind {
+        kind: NodeKind::SHEET_TITLE,
+        tag: "h2",
+        class: "ewe-sheet-title",
+        attrs: &[],
+    },
+    WebKind {
+        kind: NodeKind::SUBMIT_BUTTON,
+        tag: "button",
+        class: "ewe-submit-button",
+        attrs: &[("type", "submit")],
+    },
+    WebKind {
+        kind: NodeKind::CANCEL_BUTTON,
+        tag: "button",
+        class: "ewe-cancel-button",
+        attrs: &[("type", "button")],
+    },
 ];
 
 pub static WEB_EVENTS: &[(EventId, &str)] = &[
@@ -103,6 +175,21 @@ pub const CORE_CSS: &str = "\
 .ewe-list{display:flex;flex-direction:column}
 .ewe-scroll{overflow:auto}
 .ewe-spacer{flex:1 1 auto}
+.ewe-navigation-title,.ewe-sheet-title{font-family:system-ui,sans-serif;line-height:1.2;letter-spacing:-.025em;margin:.3em 0}
+.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}
+.ewe-toolbar-button,.ewe-submit-button{align-self:flex-start;background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText))}
+.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}
+.ewe-destructive-button{background:Canvas;color:var(--color-error,#a51f26)}
+.ewe-segmented-control,.ewe-checklist-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45em}
+.ewe-segmented-control{margin-block:.75em}
+.ewe-checklist-row{padding-block:.6em;border-block-end:1px solid color-mix(in srgb,CanvasText 15%,Canvas)}
+.ewe-checklist-row>.ewe-text{flex:1 1 auto}
+.ewe-inset-list{padding-inline-start:0;list-style:none;margin-block:.5em}
+.ewe-list-footer{font-size:.9em}
+.ewe-segmented-control button[aria-pressed=true]{background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText));font-weight:600}
+.ewe-confirmation-dialog,.ewe-modal{font:inherit;color:CanvasText;background:Canvas;border:1px solid ButtonBorder;border-radius:.75em}
+.ewe-confirmation-dialog::backdrop,.ewe-modal::backdrop{background:rgb(0 0 0 / .35)}
+.ewe-confirmation-dialog>.ewe-sheet-title{margin-block-end:.8em}
 .ewe-overlay{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;pointer-events:none}
 .ewe-overlay[popover]{margin:0;border:0;padding:0;inline-size:auto;block-size:auto;overflow:visible;background:transparent;color:inherit}
 .ewe-overlay[popover]:not(:popover-open){display:none}
@@ -110,6 +197,11 @@ pub const CORE_CSS: &str = "\
 .ewe-modal{max-block-size:100dvh;box-sizing:border-box}
 .ewe-modal:has(>.ewe-bottom-sheet){inset:auto 0 0;margin:0;inline-size:100%;max-inline-size:none;padding:0;border:0}
 .ewe-bottom-sheet{display:flex;flex-direction:column;margin-block-start:auto;max-block-size:100dvh;overflow:auto;padding-block-end:env(safe-area-inset-bottom);box-sizing:border-box;background:Canvas;color:CanvasText}
+.ewe-bottom-sheet:has(>.ewe-submit-button){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8em;padding:1.25em max(1.25em,calc((100% - 36em)/2)) max(1.25em,env(safe-area-inset-bottom))}
+.ewe-bottom-sheet:has(>.ewe-submit-button)>*{grid-column:1/-1}
+.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-cancel-button{grid-column:1;justify-self:end}
+.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-submit-button{grid-column:2}
+.ewe-bottom-sheet>.ewe-text-input{font:inherit;padding:.65em .8em;border:1px solid GrayText;border-radius:.5em}
 ";
 
 /// Generate the browser vocabulary module from these tables.

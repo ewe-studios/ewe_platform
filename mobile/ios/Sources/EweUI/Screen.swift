@@ -4,16 +4,19 @@ import SwiftUI
 @MainActor public struct EweScreen: View {
   public let store: NodeStore
   public let bridge: EventBridge
-  private let colors: [UInt32: Color]
-  private let fonts: [UInt32: Font]
+  let theme: EweTheme
   public init(
     store: NodeStore, bridge: EventBridge, colors: [UInt32: Color] = [:],
     fonts: [UInt32: Font] = [:]
   ) {
     self.store = store
     self.bridge = bridge
-    self.colors = colors
-    self.fonts = fonts
+    self.theme = EweTheme(colors: colors, fonts: fonts)
+  }
+  public init(store: NodeStore, bridge: EventBridge, theme: EweTheme) {
+    self.store = store
+    self.bridge = bridge
+    self.theme = theme
   }
   public var body: some View {
     root.frame(maxWidth: .infinity, maxHeight: .infinity).eweLayerHost()
@@ -44,10 +47,10 @@ import SwiftUI
     var body: some View {
       #if os(iOS)
         if n.props[.hidden] != .bool(true), let presentation = screen.presentation(n) {
-          return presentation
+          return AnyView(presentation.modifier(EweNodeStyle(theme: screen.theme, node: n)))
         }
       #endif
-      if n.kind == .overlay, !n.behaviours.contains("DIALOG"), n.props[.presentation] == nil {
+      if n.kind == .overlay, !n.behaviours.contains("DIALOG") {
         return AnyView(EweOverlay(identity: n.identity) { ordinary })
       }
       return AnyView(ordinary)
@@ -71,7 +74,9 @@ import SwiftUI
       case .modal:
         content = AnyView(EweModal(screen: screen, node: n) { screen.children(n) })
       case .bottomSheet:
-        content = AnyView(EweBottomSheet { screen.children(n) })
+        content = AnyView(EweBottomSheet {
+          EweSheetChildren(nodes: screen.records(n)) { RecordView(screen: screen, n: $0) }
+        })
       case .scroll: content = AnyView(ScrollView { screen.children(n) })
       case .list:
         content = AnyView(
@@ -80,13 +85,10 @@ import SwiftUI
               screen.children(n)
             }
           })
-      case .text:
-        let text = Text(n.text ?? "")
-        if sheetDraft != nil, n.props[.presentation] == .text("sheet-title") {
-          content = AnyView(text.font(.headline).accessibilityAddTraits(.isHeader))
-        } else {
-          content = AnyView(text)
-        }
+      case .text: content = AnyView(Text(n.text ?? ""))
+      case .sheetTitle: content = AnyView(EweSheetTitle(node: n))
+      case .navigationTitle: content = AnyView(EweNavigationTitle(node: n))
+      case .listFooter: content = AnyView(EweListFooter(node: n))
       case .image:
         if case .text(let source) = n.props[.source] {
           content = AnyView(AsyncImage(url: URL(string: source)))
@@ -94,14 +96,19 @@ import SwiftUI
           content = AnyView(EmptyView())
         }
       case .button:
-        let button = Button(n.text ?? "") {
+        content = AnyView(Button(n.text ?? "") { screen.sendButton(n, draft: sheetDraft) })
+      case .submitButton:
+        content = AnyView(EweSubmitButton(node: n) { screen.sendButton(n, draft: sheetDraft) })
+      case .cancelButton:
+        content = AnyView(EweCancelButton(node: n) { screen.sendButton(n, draft: sheetDraft) })
+      case .destructiveButton:
+        content = AnyView(EweDestructiveButton(node: n) { screen.sendButton(n, draft: sheetDraft) })
+      case .toolbarButton:
+        content = AnyView(EweToolbarButton(node: n) { screen.sendButton(n, draft: sheetDraft) })
+      case .checkmarkButton:
+        content = AnyView(EweCheckmarkButton(node: n, checked: n.props[.checked] == .bool(true)) {
           screen.sendButton(n, draft: sheetDraft)
-        }
-        if sheetDraft != nil, n.props[.presentation] == .text("submit-action") {
-          content = AnyView(button.buttonStyle(.borderedProminent))
-        } else {
-          content = AnyView(button)
-        }
+        })
       case .textInput:
         let text = Binding<String>(
           get: { sheetDraft?.value(for: n) ?? input },
@@ -137,10 +144,7 @@ import SwiftUI
       default: identified = content
       }
       let styled = identified.modifier(NodeSize(node: n))
-        .padding(n.points(.padding) ?? 0)
-        .foregroundStyle(screen.color(n.props[.color]) ?? .primary)
-        .background(screen.color(n.props[.background]) ?? .clear)
-        .font(screen.font(n.props[.font]))
+        .modifier(EweNodeStyle(theme: screen.theme, node: n))
         .disabled(n.props[.enabled] == .bool(false))
         .accessibilityIdentifier("ewe-node-\(n.id)")
       let accessible: AnyView
@@ -154,14 +158,7 @@ import SwiftUI
       }
     }
   }
-  private func color(_ prop: Value?) -> Color? {
-    guard case .color(let id) = prop else { return nil }
-    return colors[id]
-  }
-  private func font(_ prop: Value?) -> Font? {
-    guard case .font(let id) = prop else { return nil }
-    return fonts[id] ?? .body
-  }
+
 }
 @MainActor private struct NodeSize: ViewModifier {
   let node: NodeRecord

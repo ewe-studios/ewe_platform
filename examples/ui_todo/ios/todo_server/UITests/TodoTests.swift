@@ -1,10 +1,26 @@
 import XCTest
+import EweCore
+import EweTodoCore
+import EweUI
 
 final class TodoTests: XCTestCase {
+  func testOrdinaryDataService() async throws {
+    let base = try XCTUnwrap(ProcessInfo.processInfo.environment["EWE_DATA_URL"])
+    let client = NativeHttpClient(client: URLSessionRpcClient())
+    let todo = try await getTodo(client: client, baseUrl: base, id: 42)
+    XCTAssertEqual(todo.id, 42)
+    XCTAssertEqual(todo.title, "Buy milk")
+    do {
+      _ = try await getTodo(client: client, baseUrl: base, id: 999)
+      XCTFail("Expected the service to return NotFound")
+    } catch TodoServiceError.NotFound { }
+  }
+
   func testAddTaskToFreshServerStore() {
     let app = XCUIApplication()
     app.launchEnvironment["EWE_TODO_URL"] =
       ProcessInfo.processInfo.environment["EWE_TODO_URL"] ?? "http://127.0.0.1:8080"
+    app.launchEnvironment["EWE_TODO_RPC"] = ProcessInfo.processInfo.environment["EWE_TODO_RPC"]
     app.launch()
     let add = app.navigationBars["Todos"].buttons["Add"]
     XCTAssertTrue(add.waitForExistence(timeout: 20))

@@ -20,15 +20,20 @@ const PROPS: &[(PropId, PropKind)] = &[
     (PropId::WIDTH, PropKind::Length),
     (PropId::HEIGHT, PropKind::Length),
     (PropId::HIDDEN, PropKind::Bool),
-    (PropId::PRESENTATION, PropKind::Text),
+    (PropId::UTILITY_CLASSES, PropKind::Text),
 ];
 
 #[test]
-fn every_prop_has_a_kind() {
+fn every_supported_prop_has_a_kind() {
     assert_eq!(prop_kind(PropId::UNKNOWN), None);
+    assert_eq!(prop_kind(PropId::PRESENTATION), None);
     assert_eq!(prop_kind(PropId(u16::MAX)), None);
     assert_eq!(
-        PropId::ENUM_VALUES,
+        PropId::ENUM_VALUES
+            .iter()
+            .copied()
+            .filter(|p| *p != PropId::PRESENTATION)
+            .collect::<Vec<_>>(),
         [PropId::UNKNOWN]
             .into_iter()
             .chain(PROPS.iter().map(|(prop, _)| *prop))

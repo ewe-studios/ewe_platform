@@ -145,8 +145,7 @@ test("a sheet button with its own action keeps its state and submits the sibling
   const sheet = element(60);
   const button = element(62, "BQ", sheet);
   const field = {tagName: "INPUT", value: "Read chapter three", hasAttribute: key => key === "primal:onsubmit"};
-  const attr = button.getAttribute;
-  button.getAttribute = key => key === "data-ewe-presentation" ? "submit-action" : attr(key);
+  button.classList = {contains: name => name === "ewe-submit-button"};
   button.closest = selector => selector === ".ewe-bottom-sheet" ? sheet : null;
   button.parentElement = sheet;
   sheet.children = [field, button];

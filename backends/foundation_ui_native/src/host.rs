@@ -89,6 +89,47 @@ pub trait HostTransport: Send + Sync {
 pub trait FrameListener: Send + Sync {
     fn on_frame(&self, frame: Vec<u8>);
 }
+/// Reports a failure to obtain the native sender for a named service.
+#[derive(uniffi::Error, thiserror::Error, Debug)]
+pub enum ServiceError {
+    #[error("Unknown service {name}")]
+    UnknownService { name: String },
+    #[error("Cannot open service: {detail}")]
+    Unavailable { detail: String },
+}
+
+/// Keeps a native action sender alive across the language boundary.
+#[derive(uniffi::Object)]
+pub struct NativeSender {
+    pub(crate) transport: Arc<dyn HostTransport>,
+}
+
+#[uniffi::export]
+impl NativeSender {
+    #[uniffi::constructor]
+    #[must_use]
+    pub fn new(transport: Arc<dyn HostTransport>) -> Arc<Self> {
+        Arc::new(Self { transport })
+    }
+}
+
+/// Selects a native sender when the application sets up a screen.
+#[uniffi::export(with_foreign)]
+#[async_trait::async_trait]
+pub trait HostTransportProvider: Send + Sync {
+    /// Returns the configured sender for this service.
+    ///
+    /// # Errors
+    /// Returns a service lookup error.
+    async fn action_transport(&self, service: String) -> Result<Arc<NativeSender>, ServiceError>;
+}
+
+/// Adapts a native sender for use with the shared Rust network client.
+#[must_use]
+pub fn action_sender(transport: Arc<dyn HostTransport>) -> Arc<dyn ActionTransport + Send + Sync> {
+    Arc::new(Adapter(transport))
+}
+
 pub(crate) struct Adapter(pub Arc<dyn HostTransport>);
 impl ActionTransport for Adapter {
     fn send(&self, frame: Vec<u8>) -> TransportFuture<'_> {

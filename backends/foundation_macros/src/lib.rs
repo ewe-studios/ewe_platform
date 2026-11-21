@@ -1143,11 +1143,12 @@ macro_rules! http_attributes {
 http_attributes!(http_get => "GET", http_post => "POST", http_put => "PUT", http_patch => "PATCH",
     http_delete => "DELETE", http_head => "HEAD", http_options => "OPTIONS");
 
-
 mod view_http;
 
 /// Registers a native view handler for GET requests.
 #[proc_macro_attribute]
 pub fn ui_http_get(attr: TokenStream, item: TokenStream) -> TokenStream {
-    view_http::expand(attr.into(), item.into()).unwrap_or_else(syn::Error::into_compile_error).into()
+    view_http::expand(attr.into(), item.into())
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }

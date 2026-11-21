@@ -91,3 +91,16 @@ The runtime types use the Swift module `EweCore` and the Kotlin package `io.gith
 The remote action test uses `frame_ops_counter.bin` as the transport reply and compares all returned bytes.
 The tests build additional messages with the generated Rust tables. They include mobile commands, behaviours, nested web operations and invalid replies.
 See the [native acceptance tests](tests/core_tests.rs) and the [wire message and fixture guide](../foundation_ui_wire/README.md).
+
+## Create a core for one screen
+
+The builder owns the registered actions and the prepared context. An on-device screen calls `build()` directly.
+
+```rust,ignore
+let core = NativeCore::builder(platform, ctx, registry)
+    .with_host_transport(sender)
+    .build();
+```
+
+For a named service, use `with_service(&provider, service).await?` in place of `with_host_transport(sender)`.
+The provider selects the native sender once. The core keeps that sender for subsequent actions.

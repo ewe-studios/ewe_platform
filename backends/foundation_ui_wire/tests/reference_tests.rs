@@ -127,25 +127,12 @@ fn native_packages_share_reference_snapshots() {
         node_id: 40,
         behaviour: BehaviourId::SCROLL_LOCK
     }))));
-    let presentation = shared(UiOperationT::SetProp(Box::new(table!(SetPropT {
-        node_id: 41,
-        prop: PropId::PRESENTATION,
-        value: PropValueT::Text(Box::new(table!(TextValueT {
-            v: Some("navigation-title".into())
-        })))
-    }))));
-    let presentation_columns = table!(OperationT {
-        columnar: Some(Box::new(
-            columnar_batch(&[UiOperationT::SetProp(Box::new(table!(SetPropT {
-                node_id: 42,
-                prop: PropId::PRESENTATION,
-                value: PropValueT::Text(Box::new(table!(TextValueT {
-                    v: Some("toolbar-action".into())
-                })))
-            })))])
-            .unwrap()
-        ))
-    });
+    let mut controls = Vec::new();
+    for (index, kind) in NodeKind::ENUM_VALUES.iter().copied().enumerate().skip(11) {
+        let id = 100 + u32::try_from(index).unwrap();
+        controls.push(create(id, kind));
+        controls.push(ops::append_child(40, id));
+    }
     let mut typed_snapshot = None;
     for (name, bytes, needs_tree) in [
         ("native_tree", base.clone(), false),
@@ -178,11 +165,7 @@ fn native_packages_share_reference_snapshots() {
             false,
         ),
         ("native_behaviour", encode(vec![behaviour], 5, false), true),
-        (
-            "native_presentation",
-            encode(vec![presentation, presentation_columns], 6, false),
-            true,
-        ),
+        ("native_presentation", encode(controls, 6, false), true),
     ] {
         let mut store = RefStore::new();
         if needs_tree {

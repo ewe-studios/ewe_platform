@@ -27,12 +27,19 @@ class ContainerActionTest {
                 return null
             }
         }
+        val theme = androidx.compose.runtime.mutableStateOf(EweTheme())
+        store.record(4u)!!.props[PropId.UTILITY_CLASSES] = Property.Text("p-md web-only")
         compose.setContent {
             val scope = rememberCoroutineScope()
-            EweScreen(store, androidx.compose.runtime.remember { EventBridge(store, core, scope) })
+            EweScreen(store, androidx.compose.runtime.remember { EventBridge(store, core, scope) }, theme = theme.value)
         }
         val field = compose.onNode(hasSetTextAction())
         field.performTextInput("Buy milk")
+        compose.runOnIdle {
+            theme.value = EweTheme.fromManifest("""{"p-md":{"padding":["8px","8px"]}}""")
+        }
+        field.assertIsFocused().assertTextEquals("Buy milk")
+        assertTrue(calls.isEmpty())
         compose.onNodeWithText("Add").performClick()
         field.performImeAction()
         compose.runOnIdle {
@@ -63,11 +70,9 @@ class ContainerActionTest {
         add(1u, 2u, NodeKind.MODAL)
         add(2u, 3u, NodeKind.BOTTOM_SHEET)
         add(3u, 4u, NodeKind.TEXT_INPUT)
-        add(3u, 5u, NodeKind.BUTTON)
+        add(3u, 5u, NodeKind.SUBMIT_BUTTON)
         emit(UiOperation.BindAction, BindAction.createBindAction(b, 4u, EventId.SUBMIT, b.createString("host:add")))
         emit(UiOperation.SetText, SetText.createSetText(b, 5u, b.createString("Add")))
-        val role = TextValue.createTextValue(b, b.createString("submit-action"))
-        emit(UiOperation.SetProp, SetProp.createSetProp(b, 5u, PropId.PRESENTATION, PropValue.Text, role))
         val body = FrameMessage.createFrameMessage(b, 0uL, FrameMessage.createMessagesVector(b, rows.toIntArray()))
         Frame.finishFrameBuffer(b, Frame.createFrame(b, 1u, 0u, 0uL, FrameKind.FrameMessage, body))
         return b.sizedByteArray()

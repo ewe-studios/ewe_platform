@@ -1,10 +1,16 @@
 package ewe.ui.compose
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import ewe.ui.android.OkHttpRpcClient
+import io.github.ewe_studios.ewe.core.ConnectSender
+import io.github.ewe_studios.ewe.core.NativeHttpClient
+import io.github.ewe_studios.ewe.core.NativePlatform
 import ewe.ui.android.CoreBinding
 import ewe.ui.android.HttpActionConnection
 import ewe.ui.android.MainGapTimer
@@ -26,16 +32,29 @@ fun RemoteEweScreen(
     createCore: (HostTransport) -> NativeCore,
     modifier: Modifier = Modifier,
     actionPath: String = "action",
+    theme: EweTheme = EweTheme(),
+    rpcBase: HttpUrl? = null,
 ) {
-    EweHost(listOf(endpoint, initialPath, actionPath), "Connecting…", modifier) { host ->
+    EweHost(listOf(endpoint, initialPath, actionPath, rpcBase ?: ""), "Connecting…", modifier, theme) { host ->
         val client = OkHttpClient()
         host.onClose {
             client.dispatcher.cancelAll()
             client.connectionPool.evictAll()
         }
         val connection = HttpActionConnection(client, endpoint, actionPath)
-        val binding = host.attach(createCore(connection), OkHttpChannelFactory(client, endpoint))
-        host.apply(connection.negotiate(binding), "capabilities")
+        val sender = if (rpcBase == null) connection else {
+            val network = NativeHttpClient(OkHttpRpcClient(client))
+            host.onClose(network::close)
+            val rpc = ConnectSender(network, rpcBase.toString(), NativePlatform.ANDROID, host.store.maxFrameBytes.toUInt(), 16_384u)
+            host.onClose(rpc::close)
+            object : HostTransport {
+                override suspend fun send(request: ByteArray): ByteArray? = rpc.exchange(request)
+            }
+        }
+        val binding = host.attach(createCore(sender), OkHttpChannelFactory(client, endpoint))
+        val hello = binding.hello()
+        connection.configure(hello)
+        host.apply(requireNotNull(sender.send(hello)) { "Missing server capabilities" }, "capabilities")
         host.applyInitial(connection.initial(initialPath))
     }
 }
@@ -46,8 +65,9 @@ fun LocalEweScreen(
     createCore: () -> NativeCore,
     initialFrame: suspend (NativeCore) -> ByteArray,
     modifier: Modifier = Modifier,
+    theme: EweTheme = EweTheme(),
 ) {
-    EweHost(emptyList(), "Loading…", modifier) { host ->
+    EweHost(emptyList(), "Loading…", modifier, theme) { host ->
         val core = createCore()
         host.attach(core, null)
         host.applyInitial(initialFrame(core))
@@ -59,6 +79,7 @@ private fun EweHost(
     config: List<Any>,
     loading: String,
     modifier: Modifier,
+    theme: EweTheme,
     start: suspend (ScreenHost) -> Unit,
 ) {
     val view = LocalView.current
@@ -74,11 +95,13 @@ private fun EweHost(
         host.start(setup)
         onDispose { host.close() }
     }
-    Column(modifier) {
-        val host = current
-        val status = host?.status ?: loading
-        if (status.isNotEmpty()) Text(status)
-        host?.bridge?.let { EweScreen(host.store, it, behaviours = registry) }
+    Surface(modifier.fillMaxSize()) {
+        Column {
+            val host = current
+            val status = host?.status ?: loading
+            if (status.isNotEmpty()) Text(status)
+            host?.bridge?.let { EweScreen(host.store, it, behaviours = registry, theme = theme) }
+        }
     }
 }
 

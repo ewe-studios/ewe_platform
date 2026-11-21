@@ -117,9 +117,9 @@ fn overlapping_calls_share_services_and_discard_only_their_own_output() {
     let (ctx, _) = test_ctx(WALL);
     let failed = Context::for_action(ctx.clone(), MountSurface::Web, Some(40));
     let live = Context::for_action(ctx.clone(), MountSurface::Web, Some(50));
-    failed.inner().store(123_u32);
+    failed.store(123_u32);
     assert_eq!(*ctx.get::<u32>().unwrap(), 123);
-    assert_eq!(*live.inner().get::<u32>().unwrap(), 123);
+    assert_eq!(*live.get::<u32>().unwrap(), 123);
     assert_eq!(live.state_root(), Some(50));
     failed.receiver().data(40, vec![1]);
     live.receiver().data(50, vec![2]);
@@ -167,4 +167,42 @@ fn signing_or_writer_failure_returns_no_partial_frame() {
         &WriterConfig::default()
     )
     .is_err());
+}
+
+#[test]
+fn direct_host_access_shares_entries_and_preserves_derived_contexts() {
+    let (host, _) = test_ctx(WALL);
+    let ctx = Context::for_render(host.clone());
+    assert!(ctx.get::<String>().is_none());
+    let first = Arc::new(String::from("first"));
+    assert!(ctx.insert(first.clone()).is_none());
+    assert!(Arc::ptr_eq(&host.get::<String>().unwrap(), &first));
+    assert!(Arc::ptr_eq(&ctx.get_or_insert(String::new()), &first));
+    assert!(Arc::ptr_eq(
+        &ctx.get_and_store(String::from("next")).unwrap(),
+        &first
+    ));
+    ctx.set(2u64);
+    host.store(3u64);
+    assert_eq!(ctx.get_cloned::<u64>(), Some(3));
+    ctx.store(4u64);
+    let fork: Ctx = ctx.fork();
+    assert_eq!(fork.get_cloned::<u64>(), Some(4));
+    assert_eq!(ctx.remove::<u64>().as_deref(), Some(&4));
+    assert!(!host.contains::<u64>());
+    assert!(fork.contains::<u64>());
+    let empty: Ctx = ctx.with_empty_map();
+    assert!(!empty.contains::<String>());
+    let (other, _) = test_ctx(WALL);
+    let rebased: Ctx = ctx.rebase(&other);
+    assert!(rebased.contains::<String>());
+    assert!(Arc::ptr_eq(&rebased.clock(), &other.clock()));
+    let clocked: Ctx = ctx.with_clock(other.clock());
+    assert!(Arc::ptr_eq(&clocked.clock(), &other.clock()));
+    assert!(Arc::ptr_eq(&ctx.try_clock().unwrap(), &host.clock()));
+    assert!(Arc::ptr_eq(&ctx.clock(), &host.clock()));
+    assert!(Arc::ptr_eq(&ctx.config(), &host.config()));
+    assert!(Arc::ptr_eq(&ctx.try_rng().unwrap(), &host.rng()));
+    assert!(Arc::ptr_eq(&ctx.rng(), &host.rng()));
+    ctx.assert_minimum();
 }

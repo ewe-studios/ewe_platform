@@ -18,8 +18,7 @@ use std::sync::{
 
 #[action(server)]
 async fn count(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    ctx.inner()
-        .get::<AtomicUsize>()
+    ctx.get::<AtomicUsize>()
         .unwrap()
         .fetch_add(1, Ordering::SeqCst);
     Ok(())

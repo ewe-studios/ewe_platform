@@ -26,8 +26,7 @@ use super::support::{test_ctx, TTL, WALL};
 
 #[action(server, web)]
 async fn count(ctx: &Context, event: Interaction<u32>) -> ActionResult {
-    ctx.inner()
-        .get::<AtomicUsize>()
+    ctx.get::<AtomicUsize>()
         .unwrap()
         .fetch_add(1, Ordering::Relaxed);
     ctx.receiver().state(event.node_id, &event.state)
@@ -35,8 +34,7 @@ async fn count(ctx: &Context, event: Interaction<u32>) -> ActionResult {
 
 #[action(server)]
 async fn ping(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    ctx.inner()
-        .get::<AtomicUsize>()
+    ctx.get::<AtomicUsize>()
         .unwrap()
         .fetch_add(1, Ordering::Relaxed);
     Ok(())
@@ -269,11 +267,8 @@ fn concurrent_duplicate_runs_once_and_stateless_requests_run_independently() {
 #[action(server)]
 async fn render_view(ctx: &Context, event: Interaction<()>) -> ActionResult {
     ctx.receiver().data(event.node_id, vec![1]);
-    ctx.receiver().render_op(
-        ctx.inner()
-            .get_cloned::<foundation_ui_wire::OperationT>()
-            .unwrap(),
-    );
+    ctx.receiver()
+        .render_op(ctx.get_cloned::<foundation_ui_wire::OperationT>().unwrap());
     Ok(())
 }
 

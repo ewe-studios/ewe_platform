@@ -1,6 +1,6 @@
 ---
 feature: "native-design-and-themes"
-status: "in-progress"
+status: "complete"
 depends_on: ["02", "14", "15", "21", "22"]
 skills: [android-material-design, ios-human-interface-design]
 ---
@@ -92,7 +92,7 @@ html! { <Text class="text-primary p-md ios-p-lg android-p-sm">Buy milk</Text> }
 All three renderers resolve primary from the active theme. Web applies medium padding. iOS applies large padding. Android applies small padding.
 This example assumes the theme defines primary and the three spacing sizes. It specifies the proposed behavior for shared controls.
 
-Today, the browser uses generated Cascading Style Sheets (CSS). The shared frame lowerer checks class as an ordinary property and rejects it.
+The browser uses generated Cascading Style Sheets (CSS). Vocabulary 7 carries shared control classes in UTILITY_CLASSES.
 Reuse foundation_theme token definitions and utility names. Give the shared lowering path a utility resolver before ordinary property validation.
 Describe each utility's property, token category, valid units, supported platforms, and any equivalent native operation in one mapping.
 Generate or validate platform mappings against that description. Keep theme identity available when a host changes its theme.
@@ -154,8 +154,29 @@ Each renderer applies the supported styles to the node that owns the class list.
 | Theme change during a form | Typed text and focus survive. Changing the theme sends no action and starts no new connection. |
 | Large text and long task names | The task name wraps. Filters and actions stay reachable at narrow widths and with the keyboard open. |
 | Screen readers | VoiceOver and TalkBack announce each action, selected filter and completion state. Delete is reachable without a swipe. |
+| iOS and Android entry sheets | Place Cancel and Add on one row below the field. Put Cancel first. Keep both buttons visible above the keyboard. Allow wrapping when larger text needs more room. |
+| Android delete confirmation | Show Cancel and Confirm side by side when both fit. Cancel preserves the item. Confirm deletes it. |
 | Visual review | Capture real pixels on each simulator in light, dark and branded appearances. Include the list, entry sheet and delete confirmation. |
 
 Use the [Android skill](../../../../.agents/skills/android-material-design/SKILL.md) and [iOS skill](../../../../.agents/skills/ios-human-interface-design/SKILL.md) during review.
 Record the device, operating system, text size and theme with each capture.
 The host token limitation is tracked in [issue 652](https://github.com/ewe-studios/ewe_platform/issues/652).
+
+### Device captures
+
+The iPhone 17 simulator runs iOS 27.0. The Pixel emulator runs Android 16 with Google APIs.
+Light and dark use the default text size. Branded uses a larger text size and the Rust primary color.
+The iPhone uses accessibility large text. The Pixel uses a font scale of 1.4.
+
+| Device and theme | List | Entry | Confirmation |
+|---|---|---|---|
+| iPhone light | [List](design/ios-light-list.png) | [Entry](design/ios-light-entry.png) | [Confirmation](design/ios-light-confirmation.png) |
+| iPhone dark | [List](design/ios-dark-list.png) | [Entry](design/ios-dark-entry.png) | [Confirmation](design/ios-dark-confirmation.png) |
+| iPhone branded | [List](design/ios-branded-list.png) | [Entry](design/ios-branded-entry.png) | [Confirmation](design/ios-branded-confirmation.png) |
+| Pixel light | [List](design/android-light-list.png) | [Entry](design/android-light-entry.png) | [Confirmation](design/android-light-confirmation.png) |
+| Pixel dark | [List](design/android-dark-list.png) | [Entry](design/android-dark-entry.png) | [Confirmation](design/android-dark-confirmation.png) |
+| Pixel branded | [List](design/android-branded-list.png) | [Entry](design/android-branded-entry.png) | [Confirmation](design/android-branded-confirmation.png) |
+
+Use `TEST_RUNNER_EWE_REVIEW_THEMES=1` with `scripts/ui_native/test-ios-todo.sh DEVICE` to record the iPhone attachments.
+Use `EWE_THEME_CAPTURES=DIRECTORY` with `scripts/ui_native/test-android-todo.sh` to record the Pixel images.
+Set `EWE_ANDROID_SERIAL` to reuse a running emulator. Use a full system image for screenshots.

@@ -135,6 +135,31 @@ It passes the context, entry, surface, trusted render target and owned request t
 The helper verifies the attachment before the registry decodes it. An action with state type `()` accepts an absent attachment.
 On success, `encode_updates` signs queued state and writes one frame.
 
+### Read a host service from an action
+
+The host stores a service with `host.store(TitleLimit(80))`. Each action can read it from its call context.
+
+```rust
+use foundation_errstacks::ErrorTrace;
+use foundation_ui_runtime::{action, action::{ActionError, ActionResult, Context, Interaction}};
+use foundation_ui_wire::ErrorCode;
+
+struct TitleLimit(usize);
+
+#[action]
+async fn validate_title(ctx: &Context, event: Interaction<()>) -> ActionResult {
+    if let Some(limit) = ctx.get::<TitleLimit>() {
+        if event.input_value.chars().count() > limit.0 {
+            return Err(ErrorTrace::new(ActionError::new(ErrorCode::ActionFailed, "Title exceeds the limit")));
+        }
+    }
+    Ok(())
+}
+```
+
+A call to `ctx.set(value)` replaces the service for both handles.
+Use `ctx.inner()` when a function takes a reference to the host `Ctx`.
+
 ### Render the updated list
 
 A shared page function renders the initial list and the result of each action.
@@ -335,3 +360,20 @@ assert!(tree.tag.is_some());
 
 A full view needs no target. When later actions address a region by number, use `view::anchor(id, tree)` for that region.
 Use identifiers above two. Reserve each stable identifier once within a mounted tree.
+
+## Connect a Rust application to a server
+
+The application supplies its local context, registry and server sender.
+
+```rust,ignore
+use foundation_ui_runtime::network::NetworkApp;
+
+let app = NetworkApp::builder(ctx, actions, caps, surface)
+    .with_server_transport(sender)
+    .build();
+app.connect().await?;
+let reply = app.trigger("server:save", event).await?;
+```
+
+An immediate hello reply supplies the server action names. For a deferred reply, call `app.receive_capabilities(&bytes)?` when it arrives.
+A local action uses the supplied context and runs without a network request.

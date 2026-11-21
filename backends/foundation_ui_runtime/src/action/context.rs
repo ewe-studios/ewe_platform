@@ -1,5 +1,7 @@
 //! Collect one render or action call and write its updates in order.
 
+mod host;
+
 use std::collections::BTreeSet;
 use std::sync::{Mutex, PoisonError};
 

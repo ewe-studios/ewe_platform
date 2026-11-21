@@ -1,5 +1,5 @@
 /// The version of the vocabulary in a new frame.
-pub const VOCABULARY_VERSION: u32 = 6;
+pub const VOCABULARY_VERSION: u32 = 8;
 
 /// The highest vocabulary numbers that one version supports.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,9 +79,33 @@ pub static VOCAB_VERSIONS: &[VocabVersion] = &[
         max_mobile_behaviour: 0,
     },
     VocabVersion {
-        version: VOCABULARY_VERSION,
+        version: 6,
         max_node_kind: 12,
         max_prop_id: 17,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: 7,
+        max_node_kind: 12,
+        max_prop_id: 18,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: VOCABULARY_VERSION,
+        max_node_kind: 24,
+        max_prop_id: 18,
         max_event_id: 5,
         max_tag_id: 114,
         max_attr_id: 81,

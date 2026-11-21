@@ -18,9 +18,12 @@ import okhttp3.OkHttpClient
 class ReplayCheck : Instrumentation() {
     private var base = "http://127.0.0.1:8180/"
 
+    private var dataOnly = false
+
     override fun onCreate(arguments: Bundle?) {
         super.onCreate(arguments)
         base = arguments?.getString("server") ?: base
+        dataOnly = arguments?.getString("data") == "true"
         start()
     }
 
@@ -28,6 +31,20 @@ class ReplayCheck : Instrumentation() {
         val results = Bundle()
         try {
             runBlocking {
+                if (dataOnly) {
+                    System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
+                    val transport = ewe.ui.android.OkHttpRpcClient(OkHttpClient())
+                    io.github.ewe_studios.ewe.core.NativeHttpClient(transport).use { client ->
+                        val todo = io.github.ewe_studios.ewe.todo.getTodo(client, base, 42uL)
+                        check(todo.id == 42uL && todo.title == "Buy milk")
+                        try {
+                            io.github.ewe_studios.ewe.todo.getTodo(client, base, 999uL)
+                            error("Expected NotFound")
+                        } catch (_: io.github.ewe_studios.ewe.todo.TodoServiceException.NotFound) { }
+                    }
+                    results.putString("stream", "GetTodo returned 42, Buy milk, and NotFound.")
+                    return@runBlocking
+                }
                 val connection = HttpActionConnection(OkHttpClient(), base.toHttpUrl())
                 val store = NodeStore(GapTimer { _, _ -> Cancel {} })
                 val native =

@@ -113,6 +113,32 @@ internal object ModalComponent {
 /** Measure the panel from its children. A modal parent can supply the Material sheet surface. */
 internal object BottomSheetComponent {
     @Composable
+    fun Children(nodes: List<NodeRecord>, child: @Composable (NodeRecord) -> Unit) {
+        val pair = nodes.zipWithNext().firstOrNull { (first, second) ->
+            setOf(first.kind, second.kind) ==
+                setOf(NodeKind.CANCEL_BUTTON, NodeKind.SUBMIT_BUTTON)
+        }
+        for (node in nodes) key(node.id) {
+            when (node) {
+                pair?.first -> {
+                    val cancelFirst = node.kind == NodeKind.CANCEL_BUTTON
+                    val cancel = if (cancelFirst) node else pair.second
+                    val submit = if (cancelFirst) pair.second else node
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    ) {
+                        child(cancel)
+                        child(submit)
+                    }
+                }
+                pair?.second -> Unit
+                else -> child(node)
+            }
+        }
+    }
+
+    @Composable
     fun Render(modifier: Modifier, children: @Composable () -> Unit) {
         val anchor = LocalOverlayAlignment.current?.let { scope ->
             with(scope) { Modifier.align(Alignment.BottomCenter) }
@@ -167,7 +193,7 @@ private fun findCancelAction(root: NodeRecord, lookup: (UInt) -> NodeRecord?): N
     for (id in root.children) {
         val child = lookup(id) ?: continue
         if (child.kind == NodeKind.MODAL) continue
-        if (child.props[PropId.PRESENTATION]?.label == "cancel-action" &&
+        if (child.kind == NodeKind.CANCEL_BUTTON &&
             !child.disabled && EventId.TAP in child.actions) {
             return child
         }

@@ -12,24 +12,52 @@
     #endif
     let base: URL
     let initial: String
-    let create: CoreFactory
+    let prepare: @MainActor (URLActionTransport, NodeStore) async throws -> NativeActionCore
     let session: URLSession
-    @State private var screen: EweScreen?
+    @State private var connection: EventBridge?
+    private let theme: EweTheme
     @State private var issue: String?
     @State private var attempt = 0
 
     public init(
-      base: URL, initial: String, session: URLSession = .shared,
+      base: URL, initial: String, session: URLSession = .shared, theme: EweTheme = EweTheme(),
       create: @escaping CoreFactory
+    ) {
+      self.theme = theme
+      self.base = base
+      self.initial = initial
+      self.session = session
+      self.prepare = { transport, store in
+        let core = try create(transport, store)
+        try await core.negotiate(transport)
+        return core
+      }
+    }
+
+    public init(
+      base: URL, initial: String, rpcBase: URL, session: URLSession = .shared, theme: EweTheme = EweTheme(),
+      create: @escaping @MainActor (HostTransport, NodeStore) throws -> NativeActionCore
     ) {
       self.base = base
       self.initial = initial
       self.session = session
-      self.create = create
+      self.theme = theme
+      self.prepare = { viewTransport, store in
+        let sender = try ConnectActionSender(base: rpcBase, client: URLSessionRpcClient(session: session),
+          maxFrameBytes: UInt32(store.maxFrameBytes))
+        let core = try create(sender, store)
+        let hello = core.raw.hello()
+        viewTransport.configure(hello: hello)
+        guard let caps = try await sender.send(request: hello) else {
+          throw CoreError.Transport(detail: "Missing Connect capabilities")
+        }
+        try core.applyCapsFrame(caps)
+        return core
+      }
     }
 
-    public init(base: URL, initial: String, actions: [String], session: URLSession = .shared) {
-      self.init(base: base, initial: initial, session: session) { transport, store in
+    public init(base: URL, initial: String, actions: [String], session: URLSession = .shared, theme: EweTheme = EweTheme()) {
+      self.init(base: base, initial: initial, session: session, theme: theme) { transport, store in
         let core = try NativeCore.remote(platform: .ios, names: actions, transport: transport)
         return NativeActionCore(core, store: store)
       }
@@ -37,8 +65,8 @@
 
     public var body: some View {
       Group {
-        if let screen {
-          screen.safeAreaInset(edge: .bottom) {
+        if let connection {
+          EweScreen(store: connection.store, bridge: connection, theme: theme).safeAreaInset(edge: .bottom) {
             if let issue { connectionIssue(issue) }
           }
         } else if let issue {
@@ -50,7 +78,7 @@
       #if os(iOS)
         .background(HostAnchor(anchor: presenter).frame(width: 0, height: 0))
       #endif
-      .task(id: attempt) { await connect() }.onDisappear { screen?.store.liveHost?.close() }
+      .task(id: attempt) { await connect() }.onDisappear { connection?.store.liveHost?.close() }
     }
 
     private func connectionIssue(_ message: String) -> some View {
@@ -61,7 +89,7 @@
     }
 
     private func connect() async {
-      screen?.store.liveHost?.close()
+      connection?.store.liveHost?.close()
       issue = nil
       let live = LiveMountHost(factory: URLSessionChannelFactory(session: session, baseURL: base))
       let store = NodeStore(live: live)
@@ -73,8 +101,7 @@
         let transport = URLActionTransport(maxFrameBytes: store.maxFrameBytes, session: session) {
           URLRequest(url: endpoint)
         }
-        let core = try create(transport, store)
-        try await core.negotiate(transport)
+        let core = try await prepare(transport, store)
         let bridge = EventBridge(store: store, core: core)
         let (bytes, response) = try await session.bytes(for: transport.viewRequest(base.appending(path: initial)))
         guard let status = (response as? HTTPURLResponse)?.statusCode, (200..<300).contains(status)
@@ -88,7 +115,7 @@
         }
         guard store.receive(first) else { throw URLError(.cannotParseResponse) }
         store.onError = { code, message in self.issue = code + " " + message }
-        screen = EweScreen(store: store, bridge: bridge)
+        connection = bridge
       } catch { if !Task.isCancelled { issue = error.localizedDescription } }
     }
   }

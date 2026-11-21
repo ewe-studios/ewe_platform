@@ -1,0 +1,41 @@
+[package]
+name = "foundation_ui_connectrpc"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Foundation UI frames over a generated Connect service."
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[features]
+browser = ["dep:wasm-bindgen", "dep:js-sys", "dep:wasm-bindgen-futures", "dep:futures-channel", "dep:futures-util", "dep:serde_json", "dep:foundation_netio"]
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_netio = { path = "../foundation_netio", default-features = false, features = ["wasm-fetch"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+js-sys = { version = "0.3", optional = true }
+futures-channel = { version = "0.3", optional = true }
+futures-util = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+
+[dependencies]
+foundation_connectrpc = { path = "../foundation_connectrpc", default-features = false }
+foundation_context = { path = "../foundation_context" }
+foundation_ui_runtime = { path = "../foundation_ui_runtime" }
+foundation_ui_wire = { path = "../foundation_ui_wire" }
+serde = { workspace = true }
+buffa = { workspace = true, features = ["json"] }
+
+[build-dependencies]
+foundation_connectrpc_codegen = { path = "../foundation_connectrpc_codegen" }
+
+[dev-dependencies]
+foundation_core = { path = "../foundation_core", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio" }
+futures = "0.3"
+
+[lints]
+workspace = true

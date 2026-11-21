@@ -1,6 +1,6 @@
 ---
 feature: "connectrpc-transport"
-status: "proposed"
+status: "complete"
 depends_on: ["07", "10", "13", "21", "22"]
 ---
 
@@ -19,6 +19,24 @@ depends_on: ["07", "10", "13", "21", "22"]
 | WebAssembly (Wasm) | The format that runs compiled Rust code inside the browser. |
 | UniFFI | The binding generator that connects Rust to Swift and Kotlin. |
 | Exchange | The HTTP request and response for one call. A host network client can serve many exchanges. |
+
+## Primary outcome on mobile
+
+An iOS or Android application can call its own Connect service and receive typed application data.
+The application can make this call before it creates a screen. Only the optional UI action adapter handles Foundation frames.
+
+For example, an application defines this procedure in its service schema:
+
+```protobuf
+message GetTodoRequest { uint64 id = 1; }
+message Todo { uint64 id = 1; string title = 2; }
+service Todos { rpc GetTodo(GetTodoRequest) returns (Todo); }
+```
+
+Swift or Kotlin calls an application method exposed by its Rust library.
+That method calls the generated Rust client through the injected native network client.
+Rust decodes the service reply into a typed `Todo`. The native caller can read its title directly.
+The same transport can serve an application that uses only ordinary procedures.
 
 ## What works today
 
@@ -53,7 +71,7 @@ flowchart LR
 
 Application clients can reuse the transport for their own generated procedures.
 Native code can supply the network client directly. Rust can also request that client from a native provider by service name.
-Both paths use the same Connect client and action sender. [Provider setup](../27-single-todo-package/feature.md#obtain-a-transport-from-the-native-host)
+Each generated client can use either setup path. Only the UI client needs the action sender. [Provider setup](../27-single-todo-package/feature.md#obtain-a-transport-from-the-native-host)
 
 ## Stage 1. Inject an HTTP exchange
 
@@ -130,5 +148,12 @@ Use the browser action manager to apply that frame once. [Native core](../../../
 8. Update each package README with setup code, the schema, limits, and commands for running the example.
 9. Document how to inject a custom HTTP client and consume a generated server stream one message at a time.
 
-This proposal covers the Connect UI action procedure and reusable host transport.
+### Mobile acceptance test for ordinary data
+
+Run the example service and seed a todo with a known identifier and title.
+Call `GetTodo` from Swift on iOS and Kotlin on Android through their real native network clients.
+Assert that each native caller receives the expected identifier and title. Repeat with an unknown identifier and verify the service error.
+Run these tests without a screen, UI handshake, action registry, frame decoder, or frame-shaped reply.
+Document both native calls beside the UI example. Report the application call and frame exchange results separately.
+
 Applications define their own streaming procedures. Mapping a live UI mount to an RPC subscription remains a separate design choice.

@@ -56,7 +56,7 @@ setContent { MaterialTheme { EweScreen(store, bridge) } }
 
 The renderer supports stacks, text, images, buttons, text input, toggles, lists, scroll containers, spacers and overlays.
 Supply composable image and web-view renderers with `EweScreen`.
-Presentation properties select native styles for titles, toolbar actions, filters, task rows and form sheets.
+Use NavigationTitle, ToolbarButton, SegmentedControl, InsetList, ChecklistRow, CheckmarkButton and ListFooter for shared list controls.
 
 ## Containers
 
@@ -77,6 +77,30 @@ html! { <Modal><BottomSheet><Text>New todo</Text></BottomSheet></Modal> }
 
 This composition opens one Material modal bottom sheet. Its controls retain their original action bindings.
 Provide a button with the cancel action for system dismissal.
+
+```rust
+html! {
+    <Modal><BottomSheet>
+        <SheetTitle>New todo</SheetTitle>
+        <TextInput placeholder="Title" on:submit={add_todo}/>
+        <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
+        <SubmitButton>Add</SubmitButton>
+    </BottomSheet></Modal>
+}
+```
+
+The input owns the submit action. The keyboard and Add submit its current text.
+Cancel calls its own action. An explicit tap binding on Add takes priority.
+
+```rust
+html! {
+    <ConfirmationDialog>
+        <SheetTitle>Delete this todo?</SheetTitle>
+        <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
+        <DestructiveButton on:tap={confirm_delete}>Delete</DestructiveButton>
+    </ConfirmationDialog>
+}
+```
 
 ## Wire format and actions
 
@@ -150,3 +174,44 @@ The pinned tools are Gradle 9.9.1, Kotlin 2.4.21 and Java 25. Compose builds wit
 - A frame is a complete binary message for a renderer or action host.
 - A fixture is a saved test input and its expected output.
 - A cursor is the last sequence number that a store applied to one stream.
+
+## Style the public hosts
+
+Both hosts inherit Material colors and typography. Supply a theme to use Rust utility values and explicit node tokens.
+
+```kotlin
+val theme = EweTheme.fromManifest(todoThemeManifest())
+LocalEweScreen(::makeLocalCore, ::firstFrame, theme = theme)
+RemoteEweScreen(endpoint, "native-initial", ::makeServerCore, theme = theme)
+```
+
+Enable the `native-manifest` feature of `foundation_theme`. The application binding above returns `theme.native_manifest()`.
+The same Rust theme creates the browser stylesheet. Omit `theme` for Material defaults.
+Use `EweTheme(colors = colors, fonts = fonts)` for existing numeric node properties.
+Changing the theme redraws the active store. The host keeps its connection and input.
+Set the boolean activity extra `branded` to test the todo theme.
+
+On Android 12 and later, pass `dynamicLightColorScheme(context)` or `dynamicDarkColorScheme(context)` to `MaterialTheme`.
+Choose the scheme for the current appearance. Use your ordinary light or dark scheme on earlier versions.
+See the [utility mapping](../../backends/foundation_theme/README.md#shared-control-utilities).
+
+
+A bottom sheet groups adjacent cancel and submit buttons into an action row.
+Cancel comes first. Both controls retain their original node, state, and action.
+When the labels need more space, the controls wrap onto separate rows.
+The software keyboard leaves the action row visible.
+
+## Call a typed Connect service
+
+The Kotlin application can pass its own OkHttp client to an application procedure.
+
+```kotlin
+NativeHttpClient(OkHttpRpcClient(okHttpClient)).use { network ->
+    val item = getTodo(network, baseUrl, 42uL)
+    println(item.title)
+}
+```
+
+The example method belongs to the todo application binding. A missing identifier throws `TodoServiceException.NotFound`.
+To send UI actions through Connect, pass `rpcBase` to `RemoteEweScreen`.
+[Service setup and stream limits](../../backends/foundation_ui_connectrpc/README.md)

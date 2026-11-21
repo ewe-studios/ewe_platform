@@ -1,6 +1,6 @@
 ---
 feature: "single-todo-package"
-status: "proposed"
+status: "complete"
 depends_on: ["16", "21", "22"]
 ---
 

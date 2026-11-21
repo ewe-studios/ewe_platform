@@ -1,0 +1,77 @@
+error: html!: use <NavigationTitle> instead of the presentation property
+ --> tests/trybuild/view/fail_presentation.rs:4:29
+  |
+4 |     let _ = html! { <Button presentation="navigation-title"/> };
+  |                             ^^^^^^^^^^^^
+
+error: html!: use <ToolbarButton> instead of the presentation property
+ --> tests/trybuild/view/fail_presentation.rs:5:29
+  |
+5 |     let _ = html! { <Button presentation="toolbar-action"/> };
+  |                             ^^^^^^^^^^^^
+
+error: html!: use <SegmentedControl> instead of the presentation property
+ --> tests/trybuild/view/fail_presentation.rs:6:29
+  |
+6 |     let _ = html! { <Button presentation="segmented-control"/> };
+  |                             ^^^^^^^^^^^^
+
+error: html!: use <InsetList> instead of the presentation property
+ --> tests/trybuild/view/fail_presentation.rs:7:29
+  |
+7 |     let _ = html! { <Button presentation="inset-list"/> };
+  |                             ^^^^^^^^^^^^
+
+error: html!: use <ChecklistRow> instead of the presentation property
+ --> tests/trybuild/view/fail_presentation.rs:8:29
+  |
+8 |     let _ = html! { <Button presentation="checklist-row"/> };
+  |                             ^^^^^^^^^^^^
+
+error: html!: use <CheckmarkButton> instead of the presentation property
+ --> tests/trybuild/view/fail_presentation.rs:9:29
+  |
+9 |     let _ = html! { <Button presentation="checkmark-action"/> };
+  |                             ^^^^^^^^^^^^
+
+error: html!: use <DestructiveButton> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:10:29
+   |
+10 |     let _ = html! { <Button presentation="destructive-action"/> };
+   |                             ^^^^^^^^^^^^
+
+error: html!: use <ListFooter> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:11:29
+   |
+11 |     let _ = html! { <Button presentation="list-footer"/> };
+   |                             ^^^^^^^^^^^^
+
+error: html!: use <ConfirmationDialog> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:12:29
+   |
+12 |     let _ = html! { <Button presentation="confirmation-dialog"/> };
+   |                             ^^^^^^^^^^^^
+
+error: html!: use <SheetTitle> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:13:29
+   |
+13 |     let _ = html! { <Button presentation="sheet-title"/> };
+   |                             ^^^^^^^^^^^^
+
+error: html!: use <SubmitButton> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:14:29
+   |
+14 |     let _ = html! { <Button presentation="submit-action"/> };
+   |                             ^^^^^^^^^^^^
+
+error: html!: use <CancelButton> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:15:29
+   |
+15 |     let _ = html! { <Button presentation="cancel-action"/> };
+   |                             ^^^^^^^^^^^^
+
+error: html!: use <Modal><BottomSheet> instead of the presentation property
+  --> tests/trybuild/view/fail_presentation.rs:16:30
+   |
+16 |     let _ = html! { <Overlay presentation="form-sheet"/> };
+   |                              ^^^^^^^^^^^^

@@ -151,6 +151,39 @@ function problem(code, fields = {}) {
   return Object.assign(new Error(code), { report: { code, ...fields } });
 }
 
+const utilityClasses = new WeakMap();
+function applyClasses(node, classes) {
+  const previous = utilityClasses.get(node) ?? [];
+  for (const cls of previous) node.classList.remove(cls);
+  const words = (classes ?? "").split(/\s+/).filter(Boolean);
+  const shared = words.filter(word => !/^(ios|android|web)-/.test(word));
+  const overrides = words.filter(word => word.startsWith("web-")).map(word => word.slice(4));
+  const ordered = [...shared, ...overrides];
+  const applied = [];
+  for (const word of ordered) {
+    if (!node.classList.contains(word)) {
+      node.classList.add(word);
+      applied.push(word);
+    }
+  }
+  node.setAttribute("data-ewe-themed", "");
+  for (const [prefix, categories, field] of [
+    ["text-", ["color"], "color"], ["text-", ["font-size"], "font-size"],
+    ["bg-", ["color"], "background"], ["p-", ["padding", "spacing"], "padding"],
+  ]) {
+    let value = "";
+    for (const word of ordered) {
+      const name = word.slice(prefix.length);
+      if (!word.startsWith(prefix) || !/^[a-zA-Z0-9_-]+$/.test(name)) continue;
+      for (const category of categories) value = "var(--" + category + "-" + name + (value ? "," + value : "") + ")";
+    }
+    const property = "--ewe-utility-" + field;
+    if (value) node.style.setProperty?.(property, value);
+    else node.style.removeProperty?.(property);
+  }
+  utilityClasses.set(node, applied);
+}
+
 const propStyles = { PADDING: "padding", SPACING: "gap", WIDTH: "width", HEIGHT: "height" };
 function applyProp(node, id, type, value) {
   if (!value || wire.PropValue[type] !== vocab.PROP_KIND[id]) throw problem("BadFrame");
@@ -173,12 +206,15 @@ function applyProp(node, id, type, value) {
       else node.removeAttribute(attr);
       break;
     }
-    case "PRESENTATION": node.setAttribute("data-ewe-presentation", v ?? ""); break;
+    case "UTILITY_CLASSES": applyClasses(node, v); break;
     case "A11Y_LABEL": node.setAttribute("aria-label", v ?? ""); break;
     case "SOURCE": node.setAttribute("src", v ?? ""); break;
     case "PLACEHOLDER": node.setAttribute("placeholder", v ?? ""); break;
     case "VALUE": node.value = v ?? ""; break;
-    case "CHECKED": node.checked = v; break;
+    case "CHECKED":
+      node.checked = v;
+      if (node.tagName === "BUTTON") node.setAttribute("aria-pressed", String(v));
+      break;
     default: throw problem("UnknownOp");
   }
 }
@@ -190,7 +226,7 @@ function dispatchEvent(target, name, detail) {
 
 // A submit button can use the value of one enabled sibling field.
 export function sheetSubmitField(button) {
-  if (button.getAttribute?.("data-ewe-presentation") !== "submit-action" || !button.closest?.(".ewe-bottom-sheet")) return null;
+  if (!button.classList?.contains("ewe-submit-button") || !button.closest?.(".ewe-bottom-sheet")) return null;
   const fields = Array.from(button.parentElement.children).filter(node =>
     node.tagName === "INPUT" && !node.disabled && !node.hidden && node.hasAttribute("primal:onsubmit"));
   return fields.length === 1 ? fields[0] : null;
@@ -212,7 +248,7 @@ function wireBottomSheet(sheet, options) {
     if (!event.repeat) submit(input);
   }, options);
   sheet.addEventListener("click", event => {
-    const button = event.target.closest?.('button[data-ewe-presentation="submit-action"]');
+    const button = event.target.closest?.('button.ewe-submit-button');
     if (!button || button.closest(".ewe-bottom-sheet") !== sheet || button.hasAttribute("primal:onclick")) return;
     submit(sheetSubmitField(button));
   }, options);
@@ -483,16 +519,16 @@ export class FrameApplicator {
           el.setAttribute("popover", "manual");
           this.layers.add(el);
         }
-        if (m.kind === wire.NodeKind.MODAL || m.kind === wire.NodeKind.BOTTOM_SHEET) {
+        if ([wire.NodeKind.MODAL, wire.NodeKind.CONFIRMATION_DIALOG, wire.NodeKind.BOTTOM_SHEET].includes(m.kind)) {
           const Controller = d.defaultView?.AbortController ?? globalThis.AbortController;
           const controller = new Controller();
           this.containerEvents.set(el, controller);
           const options = { signal: controller.signal };
-          if (m.kind === wire.NodeKind.MODAL) {
+          if (m.kind !== wire.NodeKind.BOTTOM_SHEET) {
             this.layers.add(el);
             el.addEventListener("cancel", event => {
               event.preventDefault();
-              const cancel = Array.from(el.querySelectorAll('[data-ewe-presentation="cancel-action"]'))
+              const cancel = Array.from(el.querySelectorAll('.ewe-cancel-button'))
                 .find(node => node.closest("dialog") === el && !node.disabled && !node.closest("[hidden]")
                   && node.hasAttribute("primal:onclick"));
               cancel?.click();

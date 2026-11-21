@@ -137,14 +137,13 @@ fn frame_tree(
         minimum
     };
     let ids = ctx
-        .inner()
         .get::<ViewIds>()
-        .unwrap_or_else(|| ctx.inner().get_or_insert(ViewIds::default()));
+        .unwrap_or_else(|| ctx.get_or_insert(ViewIds::default()));
     let base = ids.0.reserve(minimum, count)?;
     if base < minimum || base.checked_add(count - 1).is_none() {
         return Err(LowerError::IdOverflow);
     }
-    let tokens = ctx.inner().get::<TokenTable>();
+    let tokens = ctx.get::<TokenTable>();
     let empty = TokenTable::default();
     build(
         html,

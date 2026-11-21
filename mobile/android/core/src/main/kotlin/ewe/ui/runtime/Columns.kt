@@ -89,7 +89,7 @@ internal fun FrameApplier.applyColumns(batch: ColumnarBatch, start: Int) {
 
 private fun columnProp(id: UShort, unit: UInt, bits: UInt, blob: ByteArray): Property {
     val length = id in listOf(PropId.PADDING, PropId.SPACING, PropId.WIDTH, PropId.HEIGHT)
-    val text = id in listOf(PropId.VALUE, PropId.PLACEHOLDER, PropId.A11Y_LABEL, PropId.SOURCE, PropId.PRESENTATION, PropId.UTILITY_CLASSES)
+    val text = id in listOf(PropId.VALUE, PropId.PLACEHOLDER, PropId.A11Y_LABEL, PropId.SOURCE, PropId.UTILITY_CLASSES)
     require((length || unit == 0u) && (text || blob.isEmpty()))
     return when {
         length -> {

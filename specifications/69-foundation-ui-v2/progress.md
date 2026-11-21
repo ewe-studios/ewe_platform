@@ -666,3 +666,74 @@ The HTTP, wire, runtime, and signal suites pass. The generator reproduces the ch
 Feature 30 is complete.
 
 Feature 23 now requires shared utility classes and platform-specific overrides from one theme.
+
+### Feature 23. Shared classes and native hosts
+
+Vocabulary 7 carries the class list on a shared control. Earlier vocabulary rows stay fixed.
+One Rust theme supplies the browser stylesheet and the mobile utility manifest.
+Both public hosts accept a theme. Changes preserve the screen connection.
+Android uses a Material top app bar, segmented buttons, list items, and checkboxes.
+The runtime and wire suites pass. Chrome verified computed color and padding on a real todo row.
+The iPhone and Android application checks cover local and server actions.
+Visual checks and device tests for a live theme change continue.
+
+The revised entry sheet design places Cancel and Add on one row on iOS and Android. The user approves the entry sheet layout on both platforms.
+
+The Material confirmation dialog now places Cancel and Confirm beside each other.
+The Pixel checks passed in light, dark, and branded appearances.
+Each check compares the button positions, cancels once, and then confirms deletion.
+The [device captures](features/23-native-design-and-themes/feature.md#device-captures) show each result.
+
+Both entry sheets now group Cancel and Add below the input. The controls keep their node identifiers.
+The iPhone and Pixel tests verified both buttons above the software keyboard in all three appearances.
+Cancel discards the typed draft. The submit button and keyboard retain the original input binding.
+The six entry captures show the revised layout. The Pixel test also checks its keyboard inset.
+
+Feature 23 is complete. Twenty Swift simulator tests and six Android device tests passed.
+The on-device and server applications passed on both platforms after the sheet change.
+The browser verified theme changes on the displayed row. The wire, runtime, and theme suites passed.
+The accessibility checks used the platform control trees. No person reviewed synthesized speech.
+Feature 27 starts with the single todo package. Keep the three platform outputs and existing application calls.
+
+### Feature 27. One todo package
+
+The server, browser and both mobile hosts build from one manifest. The public mobile constructors keep their names.
+The browser loaded the new Wasm module and ran local and remote actions. Both iOS and Android application suites passed.
+The Rust network client passed immediate and deferred negotiation, local service access, and invalid reply tests.
+The native provider looked up each service once. Two actions used the same native handle.
+Feature 27 stays open for the Connect service provider from Feature 26.
+
+Feature 31 proposes shared control tags. Feature 05 proposes direct host service access. Both design changes await approval.
+
+The user approves direct host service access in Feature 05 and all control tags in Feature 31. The current implementation agent owns both changes.
+
+Feature 26 now requires an ordinary typed service call from Swift and Kotlin through their native network clients.
+
+### Feature 26. Connect through a platform client
+
+The generated Actions and Todos clients use the same platform HTTP transport.
+The example serves ordinary typed data on a separate router with one procedure.
+Android instrumentation received task 42 and a typed NotFound error from that service.
+The Android Connect screen passed add, filter, delete and isolation checks.
+The generated streaming test received two messages before the response ended.
+Swift and browser verification continues.
+
+Feature 32 defines named placement for all applications. The todo migration verifies one live endpoint across three platforms.
+
+Swift and Kotlin each called the generated GetTodo procedure through the native network client.
+Both received task 42, “Buy milk”, and a typed missing-task error for 999.
+The service ran without a screen or a Foundation frame.
+Both mobile application suites passed. Chrome passed remote actions, local actions, and event-stream replay.
+Features 26 and 27 are complete. Work starts on direct host methods in Feature 05.
+Issue 668 tracks view recovery after live replay history expires.
+
+Feature 05 exposes the host context methods on the action context. Applications and tests now use those methods.
+The runtime passed 75 integration tests, nine documentation tests, Clippy, and its WebAssembly build check.
+Feature 31 adds twelve node kinds. The existing Modal and BottomSheet composition covers the thirteenth control.
+The wire tests and the Android library build pass. Device and browser checks continue.
+
+Feature 33 proposes automatic recovery for a view after replay expires. Issue 668 remains open until platform verification passes.
+
+Feature 32 specifies two shared screen routes. The full todo screen uses /initial. The count screen uses /open-count.
+
+The user approves Feature 32 with both shared screen routes. Implementation is queued.

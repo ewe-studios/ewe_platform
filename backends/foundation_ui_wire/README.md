@@ -83,27 +83,47 @@ The writer reports these operations as filtered for older clients.
 Vocabulary version 5 adds the shared node kinds `MODAL` (11) and `BOTTOM_SHEET` (12).
 The existing `OVERLAY` keeps its identifier (10). Each container owns its children through ordinary child operations.
 
-Vocabulary version 4 adds the optional `PRESENTATION` text property.
-It selects a native presentation for a standard control. A client with an earlier vocabulary receives the standard control.
+Vocabulary version 8 adds node kinds 13 to 24. Property number 17 is reserved.
+Each control has its own node kind. Each child keeps its identifier and action bindings.
 
-| Property value | Control | Presentation |
-| --- | --- | --- |
-| `navigation-title` | Text | Title in the navigation bar |
-| `toolbar-action` | Button | Action in the navigation bar |
-| `segmented-control` | Stack | One choice from its child buttons. `CHECKED` marks the current choice. |
-| `inset-list` | List | List with inset margins |
-| `checklist-row` | Stack | Row with completion state from `CHECKED` |
-| `checkmark-action` | Button | Action to change the completion state |
-| `destructive-action` | Button | Action with a destructive effect |
-| `form-sheet` | Overlay | Sheet that contains a form |
-| `confirmation-dialog` | Overlay | Alert that asks the user to confirm an action |
-| `sheet-title` | Text | Title of a sheet or alert |
-| `submit-action` | Button | Label for form submission. The input supplies the submission action. |
-| `cancel-action` | Button | Action to close a sheet or alert |
-| `list-footer` | Text | Text below an inset list |
+| Control | Browser element |
+|---|---|
+| `NavigationTitle` | `h1` |
+| `ToolbarButton` | `button` |
+| `SegmentedControl` | `div` |
+| `InsetList` | `ul` |
+| `ChecklistRow` | `li` |
+| `CheckmarkButton` | `button` |
+| `DestructiveButton` | `button` |
+| `ListFooter` | `p` |
+| `ConfirmationDialog` | `dialog` |
+| `SheetTitle` | `h2` |
+| `SubmitButton` | `button` |
+| `CancelButton` | `button` |
 
-A renderer uses the standard control when it does not recognize a value.
+```rust
+html! {
+    <Modal><BottomSheet>
+        <SheetTitle>New todo</SheetTitle>
+        <TextInput placeholder="Title" on:submit={add_todo}/>
+        <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
+        <SubmitButton>Add</SubmitButton>
+    </BottomSheet></Modal>
+}
+```
 
+The input owns the submit action. The keyboard and Add submit its current text.
+Cancel calls its own action. An explicit tap binding on Add takes priority.
+
+```rust
+html! {
+    <ConfirmationDialog>
+        <SheetTitle>Delete this todo?</SheetTitle>
+        <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
+        <DestructiveButton on:tap={confirm_delete}>Delete</DestructiveButton>
+    </ConfirmationDialog>
+}
+```
 
 A `ColumnarBatch` carries multiple shared operations in parallel vectors. Each row uses the numeric tag from `UiOperation`.
 The writer aligns numeric columns to eight-byte boundaries in the frame.

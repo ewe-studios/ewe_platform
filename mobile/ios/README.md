@@ -104,7 +104,7 @@ store.behaviours.register("pull_to_refresh") { view, _ in
 
 ## Fixtures and checks
 
-The Rust reference model creates binary fixtures and their expected JSON snapshots. They cover row and column encoding, replacement, mixed platform operations, behaviours, presentation roles and an unknown node kind. Some fixtures extend the initial tree. The Swift tests apply each fixture in the same order and compare the complete snapshots.
+The Rust reference model creates binary fixtures and their expected JSON snapshots. They cover row and column encoding, replacement, mixed platform operations, behaviours, explicit controls and an unknown node kind. Some fixtures extend the initial tree. The Swift tests apply each fixture in the same order and compare the complete snapshots.
 
 Change the Rust fixture builder first. Run the reference tests with `UPDATE_FIXTURES=1`. Run the synchronization script from the platform checkout to refresh generated inputs. The script updates the package's generated sources and fixtures.
 
@@ -135,17 +135,11 @@ Use `EweScreen(store:bridge:)` when the application already owns the node store 
 
 ## Present native controls
 
-Use the `PRESENTATION` text property to select a native control. Frames without this property use ordinary SwiftUI controls.
-
-| Role | Control |
-|---|---|
-| `navigation-title`, `toolbar-action` | The navigation title and its toolbar buttons. |
-| `segmented-control` | A picker. The selected child button has its checked property set. |
-| `inset-list`, `checklist-row`, `checkmark-action` | An inset list with a completion button for each row. |
-| `destructive-action`, `confirmation-dialog` | A swipe action and its confirmation alert. |
-| `form-sheet`, `sheet-title` | A sheet with a title and a text field. |
-| `cancel-action`, `submit-action` | The sheet buttons. A submit button sends its tap action with the entered text. If unbound, it sends the single field's submit action. |
-| `list-footer` | The list footer. |
+The Rust view declares each control by tag. SwiftUI maps each tag to its native control.
+Use `NavigationTitle` and `ToolbarButton` in a screen header.
+Use `SegmentedControl` for a picker. Its selected button has `checked={true}`.
+An `InsetList` can contain a `ChecklistRow` with a `CheckmarkButton` and a `DestructiveButton`.
+Use `ListFooter` for supporting text.
 
 ### Explicit containers
 
@@ -169,16 +163,26 @@ This message appears over the screen. A user can still tap controls outside the 
 ```rust
 html! {
     <Modal><BottomSheet>
-        <Text>New todo</Text>
+        <SheetTitle>New todo</SheetTitle>
         <TextInput placeholder="Title" on:submit={add_todo}/>
-        <Button presentation="submit-action">Add</Button>
-        <Button presentation="cancel-action" on:tap={close_dialog}>Cancel</Button>
+        <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
+        <SubmitButton>Add</SubmitButton>
     </BottomSheet></Modal>
 }
 ```
 
-This editor consumes input in its modal surface. The sheet accepts arbitrary children.
-The Add button submits the entered value from its sibling input. The keyboard submits the same input.
+The input owns the submit action. The keyboard and Add submit its current text.
+Cancel calls its own action. An explicit tap binding on Add takes priority.
+
+```rust
+html! {
+    <ConfirmationDialog>
+        <SheetTitle>Delete this todo?</SheetTitle>
+        <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
+        <DestructiveButton on:tap={confirm_delete}>Delete</DestructiveButton>
+    </ConfirmationDialog>
+}
+```
 
 ## Run the todo apps
 
@@ -208,3 +212,45 @@ swift test
 ```
 
 The local archive supplies the native core before the first public package release.
+
+## Style the public hosts
+
+Build one theme in Rust. Use its stylesheet on the web. Enable the `native-manifest` feature of `foundation_theme`.
+Pass the text from `theme.native_manifest()` to Swift through your application binding.
+
+```swift
+let theme = try EweTheme(manifest: Data(todoThemeManifest().utf8))
+LocalScreen(theme: theme, load: load)
+ServerScreen(base: url, initial: "native-initial", theme: theme, create: makeCore)
+```
+
+Omit `theme` for the system appearance. Changing this value redraws the active store.
+Use `colors` and `fonts` in the initializer for an explicit numeric property.
+The todo applications read the optional launch environment value `EWE_TODO_THEME=branded`.
+
+```rust
+html! { <Text class="text-primary p-md ios-p-lg android-p-sm">Buy milk</Text> }
+```
+
+The iPhone uses the primary color and large padding. Android selects small padding. The browser selects medium padding.
+Each host reads the same named tokens. See the [utility mapping](../../backends/foundation_theme/README.md#shared-control-utilities).
+
+
+A bottom sheet groups adjacent cancel and submit buttons into an action row.
+Cancel comes first. Both controls retain their original node, state, and action.
+When the labels need more space, the controls wrap onto separate rows.
+The software keyboard leaves the action row visible.
+
+## Call a typed Connect service
+
+The Swift application can pass its own URLSession to a generated application client.
+
+```swift
+let client = NativeHttpClient(client: URLSessionRpcClient(session: session))
+let item = try await getTodo(client: client, baseUrl: base.absoluteString, id: 42)
+print(item.title)
+```
+
+The example method belongs to EweTodoCore. A missing identifier throws `TodoServiceError.NotFound`.
+A UI screen can separately select `ServerScreen(base:initial:rpcBase:session:theme:create:)` to send its actions through Connect.
+[Service setup and stream limits](../../backends/foundation_ui_connectrpc/README.md)

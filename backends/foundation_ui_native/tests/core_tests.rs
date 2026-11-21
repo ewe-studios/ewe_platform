@@ -456,3 +456,57 @@ fn reversed_staged_sends_and_cancellation_have_no_sequence_gap() {
         [(1, NativeCommandId::SHARE), (2, NativeCommandId::OPEN_URL)]
     );
 }
+
+#[valtron_test]
+async fn native_provider_selects_the_service_once_per_screen() {
+    use foundation_ui_native::{HostTransportProvider, NativeSender, ServiceError};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    struct Provider(Arc<Recorder>, AtomicUsize);
+    #[async_trait::async_trait]
+    impl HostTransportProvider for Provider {
+        async fn action_transport(
+            &self,
+            service: String,
+        ) -> Result<Arc<NativeSender>, ServiceError> {
+            self.1.fetch_add(1, Ordering::Relaxed);
+            if service == "todos" {
+                Ok(NativeSender::new(self.0.clone()))
+            } else {
+                Err(ServiceError::UnknownService { name: service })
+            }
+        }
+    }
+
+    let recorder = Arc::new(Recorder::default());
+    let provider = Provider(recorder.clone(), AtomicUsize::new(0));
+    let builder = || {
+        let mut registry = ActionRegistry::new();
+        registry
+            .declare(Some(Origin::Server), "save", Scope::All)
+            .unwrap();
+        NativeCore::builder(NativePlatform::Android, Ctx::host(), registry)
+    };
+    assert!(matches!(
+        builder().with_service(&provider, "missing".into()).await,
+        Err(ServiceError::UnknownService { .. })
+    ));
+    assert!(recorder.requests.lock().unwrap().is_empty());
+    let core = builder()
+        .with_service(&provider, "todos".into())
+        .await
+        .unwrap()
+        .build();
+    let direct = builder().with_host_transport(recorder.clone()).build();
+    for screen in [&core, &direct] {
+        for _ in 0..2 {
+            assert_eq!(
+                screen.trigger("server:save".into(), event()).await.unwrap(),
+                None
+            );
+        }
+    }
+    let sent = recorder.requests.lock().unwrap();
+    assert_eq!(sent.len(), 4);
+    assert_eq!(sent[0..2], sent[2..4]);
+    assert_eq!(provider.1.load(Ordering::Relaxed), 2);
+}

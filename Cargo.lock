@@ -5638,6 +5638,7 @@ dependencies = [
 name = "foundation_connectrpc_codegen"
 version = "0.0.5"
 dependencies = [
+ "buffa-build",
  "prost 0.12.6",
  "prost-build",
  "prost-types 0.12.6",
@@ -6505,6 +6506,9 @@ dependencies = [
 [[package]]
 name = "foundation_theme"
 version = "0.0.4"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "foundation_toolings"
@@ -6543,6 +6547,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_ui_connectrpc"
+version = "0.1.0"
+dependencies = [
+ "buffa",
+ "foundation_connectrpc",
+ "foundation_connectrpc_codegen",
+ "foundation_context",
+ "foundation_core",
+ "foundation_netio",
+ "foundation_ui_runtime",
+ "foundation_ui_wire",
+ "futures",
+ "futures-channel",
+ "futures-util",
+ "js-sys",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
 name = "foundation_ui_http"
 version = "0.1.0"
 dependencies = [
@@ -6565,12 +6591,16 @@ name = "foundation_ui_native"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "foundation_connectrpc",
  "foundation_context",
  "foundation_core",
+ "foundation_netio",
+ "foundation_ui_connectrpc",
  "foundation_ui_runtime",
  "foundation_ui_wire",
  "foundation_wasm",
  "foundation_wasm_ui",
+ "futures-util",
  "thiserror 2.0.19",
  "uniffi",
 ]
@@ -15925,29 +15955,25 @@ dependencies = [
 name = "ui_todo"
 version = "0.0.2"
 dependencies = [
+ "async-trait",
+ "buffa",
  "foundation_browser",
+ "foundation_connectrpc",
+ "foundation_connectrpc_codegen",
  "foundation_context",
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
+ "foundation_theme",
+ "foundation_ui_connectrpc",
  "foundation_ui_http",
- "foundation_ui_runtime",
- "foundation_ui_wire",
- "futures-lite",
- "serde",
-]
-
-[[package]]
-name = "ui_todo_native"
-version = "0.1.1"
-dependencies = [
- "async-trait",
- "foundation_context",
- "foundation_core",
  "foundation_ui_native",
  "foundation_ui_runtime",
  "foundation_ui_wire",
- "ui_todo",
+ "foundation_wasm_ui",
+ "futures-lite",
+ "serde",
+ "thiserror 2.0.19",
  "uniffi",
 ]
 

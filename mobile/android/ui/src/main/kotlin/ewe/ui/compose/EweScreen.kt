@@ -2,6 +2,7 @@ package ewe.ui.compose
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +20,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import ewe.ui.EventId
@@ -28,11 +30,12 @@ import ewe.ui.compose.behaviours.BehaviourRegistry
 import ewe.ui.runtime.*
 
 data class ScreenStyle(
-    val colors: (UInt) -> Color,
-    val fonts: (UInt) -> TextStyle,
+    val colors: (UInt) -> Color?,
+    val fonts: (UInt) -> TextStyle?,
     val image: @Composable (String, Modifier) -> Unit,
     val webView: @Composable (WebViewSpec, Modifier) -> Unit,
     val behaviours: BehaviourRegistry,
+    val theme: EweTheme = EweTheme(),
 )
 
 @Composable
@@ -45,21 +48,21 @@ fun EweScreen(
     webView: @Composable (WebViewSpec, Modifier) -> Unit = { _, m -> Spacer(m) },
     colors: ((UInt) -> Color)? = null,
     fonts: ((UInt) -> TextStyle)? = null,
+    theme: EweTheme = EweTheme(),
 ) {
-    val defaultColor = MaterialTheme.colorScheme.onSurface
-    val defaultFont = MaterialTheme.typography.bodyMedium
     val style =
         ScreenStyle(
-            colors ?: { defaultColor },
-            fonts ?: { defaultFont },
+            colors ?: theme.colors::get,
+            fonts ?: theme.fonts::get,
             imageLoader,
             webView,
             behaviours,
+            theme,
         )
     NodeView(store, bridge, 1u, style, modifier.fillMaxSize())
 }
 
-private fun NodeRecord.flag(key: UShort, fallback: Boolean = false) =
+internal fun NodeRecord.flag(key: UShort, fallback: Boolean = false) =
     (props[key] as? Property.Flag)?.value ?: fallback
 
 private fun NodeRecord.length(key: UShort) = (props[key] as? Property.Length)?.number ?: 0f
@@ -99,13 +102,11 @@ private fun RenderNode(
 ) {
     val record = store.record(id) ?: return
     val bindings = record.behaviours.sorted().mapNotNull(style.behaviours::get)
-    val presentation = record.props[PropId.PRESENTATION]?.label
     val hidden = record.flag(PropId.HIDDEN)
     if (hidden && bindings.none { it.transition }) return
     val enabled = record.flag(PropId.ENABLED, true)
     val scroll = bindings.all { it.scrollEnabled }
     val parent = record.parent?.let(store::record)
-    val parentPresentation = parent?.props?.get(PropId.PRESENTATION)?.label
     val formInputs = FormInputs.current
     var m =
         modifier
@@ -115,16 +116,16 @@ private fun RenderNode(
         val label = it.label
         m = m.semantics { contentDescription = label }
     }
-    (record.props[PropId.BACKGROUND] as? Property.Color)?.let {
-        m = m.background(style.colors(it.token))
-    }
-    m = when (presentation) {
-        "inset-list" -> m.fillMaxWidth()
-        "segmented-control" -> m.selectableGroup()
-        "checklist-row" -> m.fillMaxWidth().padding(vertical = 4.dp)
+    val dark = isSystemInDarkTheme()
+    val appearance = NodeAppearance(record, style, dark)
+    appearance.background?.let { m = m.background(it) }
+    m = when (record.kind) {
+        NodeKind.INSET_LIST -> m.fillMaxWidth()
+        NodeKind.SEGMENTED_CONTROL -> m.selectableGroup()
+        NodeKind.CHECKLIST_ROW -> m.fillMaxWidth().padding(vertical = 4.dp)
         else -> m
     }
-    m = m.padding(record.length(PropId.PADDING).coerceAtLeast(0f).dp)
+    m = m.padding(appearance.padding.coerceAtLeast(0f).dp)
     bindings.forEach { m = m.then(it.modifier(record)) }
     val content: @Composable () -> Unit = {
         val web = record.webView
@@ -137,29 +138,32 @@ private fun RenderNode(
         if (web != null) style.webView(web, m)
         else
             when (record.kind) {
-                NodeKind.STACK -> {
+                NodeKind.STACK, NodeKind.SEGMENTED_CONTROL, NodeKind.CHECKLIST_ROW -> {
                     val align = record.props[PropId.ALIGN]?.label
-                    if (presentation == "segmented-control" || record.props[PropId.AXIS]?.label == "Horizontal")
-                        Row(
-                            m,
-                            horizontalArrangement = spacing,
-                            verticalAlignment =
-                                when (align) {
-                                    "Center" -> Alignment.CenterVertically
-                                    "End" -> Alignment.Bottom
-                                    else -> Alignment.Top
-                                },
-                        ) {
-                            if (presentation == "checklist-row") {
-                                record.children.forEach { child ->
-                                    key(child) {
-                                        val width = if (store.record(child)?.kind == NodeKind.TEXT)
-                                            Modifier.weight(1f) else Modifier
-                                        RenderNode(store, bridge, child, style, width)
-                                    }
-                                }
-                            } else children()
+                    val nodes = record.children.mapNotNull(store::record)
+                    val title = nodes.firstOrNull { it.kind == NodeKind.NAVIGATION_TITLE }
+                    if (title != null) {
+                        val actions = nodes.filter { it.kind == NodeKind.TOOLBAR_BUTTON }
+                        Column(m.fillMaxWidth()) {
+                            TopAppBar(
+                                title = { RenderNode(store, bridge, title.id, style) },
+                                actions = { actions.forEach { RenderNode(store, bridge, it.id, style) } },
+                            )
+                            nodes.filter { it !== title && it !in actions }.forEach { child ->
+                                key(child.id) { RenderNode(store, bridge, child.id, style, Modifier.padding(horizontal = 16.dp)) }
+                            }
                         }
+                    } else if (record.kind == NodeKind.SEGMENTED_CONTROL && nodes.all { it.kind == NodeKind.BUTTON }) {
+                        SegmentedControl(nodes, bridge, style, dark, m)
+                    } else if (record.kind == NodeKind.CHECKLIST_ROW) {
+                        ChecklistRow(record, nodes, bridge, m) { RenderNode(store, bridge, it.id, style) }
+                    } else if (record.props[PropId.AXIS]?.label == "Horizontal") {
+                        Row(m, horizontalArrangement = spacing, verticalAlignment = when (align) {
+                            "Center" -> Alignment.CenterVertically
+                            "End" -> Alignment.Bottom
+                            else -> Alignment.Top
+                        }) { children() }
+                    }
                     else if (record.children.lastOrNull()?.let(store::record)?.kind == NodeKind.BOTTOM_SHEET) {
                         val sheetId = record.children.last()
                         InlineSheetLayout(
@@ -187,41 +191,25 @@ private fun RenderNode(
                             children()
                         }
                 }
-                NodeKind.TEXT ->
-                    Text(
-                        record.text.orEmpty(),
-                        m,
-                        color =
-                            (record.props[PropId.COLOR] as? Property.Color)?.let {
-                                style.colors(it.token)
-                            } ?: MaterialTheme.colorScheme.onSurface,
-                        textDecoration =
-                            if (parentPresentation == "checklist-row" && parent.flag(PropId.CHECKED))
-                                TextDecoration.LineThrough else null,
-                        style =
-                            (record.props[PropId.FONT] as? Property.Font)?.let {
-                                style.fonts(it.token)
-                            } ?: when (presentation) {
-                                "navigation-title" -> MaterialTheme.typography.headlineMedium
-                                "list-footer" -> MaterialTheme.typography.labelLarge
-                                "sheet-title" -> MaterialTheme.typography.titleLarge
-                                else -> MaterialTheme.typography.bodyMedium
-                            },
-                    )
+                NodeKind.TEXT -> ControlText(record, m, appearance, MaterialTheme.typography.bodyMedium,
+                    if (parent?.kind == NodeKind.CHECKLIST_ROW && parent.flag(PropId.CHECKED)) TextDecoration.LineThrough else null)
+                NodeKind.NAVIGATION_TITLE -> NavigationTitle(record, m, appearance)
+                NodeKind.SHEET_TITLE -> SheetTitle(record, m, appearance)
+                NodeKind.LIST_FOOTER -> ListFooter(record, m, appearance)
                 NodeKind.IMAGE -> style.image(record.props[PropId.SOURCE]?.label.orEmpty(), m)
-                NodeKind.BUTTON -> {
+                NodeKind.BUTTON, NodeKind.TOOLBAR_BUTTON, NodeKind.SUBMIT_BUTTON, NodeKind.CANCEL_BUTTON, NodeKind.DESTRUCTIVE_BUTTON, NodeKind.CHECKMARK_BUTTON -> {
                     val onTap: () -> Unit = {
-                        if (presentation == "submit-action" && formInputs != null) {
+                        if (record.kind == NodeKind.SUBMIT_BUTTON && formInputs != null) {
                             formInputs.submit(record, parent, store::record, bridge)
                         } else {
                             bridge.send(EventId.TAP, id, record.props[PropId.VALUE]?.label.orEmpty())
                         }
                     }
                     val label: @Composable () -> Unit = {
-                        Text(record.text.orEmpty())
+                        StyledLabel(record, appearance, enabled)
                         children()
                     }
-                    if (parentPresentation == "segmented-control") {
+                    if (parent?.kind == NodeKind.SEGMENTED_CONTROL) {
                         FilterChip(
                             selected = record.flag(PropId.CHECKED),
                             onClick = onTap,
@@ -229,15 +217,12 @@ private fun RenderNode(
                             modifier = m,
                             enabled = enabled,
                         )
-                    } else when (presentation) {
-                        "destructive-action" -> TextButton(
-                            onTap, m, enabled,
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error,
-                            ),
-                        ) { label() }
-                        "toolbar-action" -> FilledTonalButton(onTap, m, enabled) { label() }
-                        "checkmark-action", "cancel-action" -> OutlinedButton(onTap, m, enabled) { label() }
+                    } else when (record.kind) {
+                        NodeKind.DESTRUCTIVE_BUTTON -> DestructiveButton(onTap, m, enabled, label)
+                        NodeKind.TOOLBAR_BUTTON -> ToolbarButton(onTap, m, enabled, label)
+                        NodeKind.CANCEL_BUTTON -> CancelButton(onTap, m, enabled, label)
+                        NodeKind.SUBMIT_BUTTON -> SubmitButton(onTap, m, enabled, label)
+                        NodeKind.CHECKMARK_BUTTON -> CheckmarkButton(record, record.flag(PropId.CHECKED), onTap)
                         else -> Button(onTap, m, enabled) { label() }
                     }
                 }
@@ -270,12 +255,8 @@ private fun RenderNode(
                         m,
                         enabled = enabled,
                     )
-                NodeKind.LIST ->
-                    LazyColumn(m, verticalArrangement = spacing, userScrollEnabled = scroll) {
-                        items(record.children, key = { it.toLong() }) { child ->
-                            RenderNode(store, bridge, child, style)
-                        }
-                    }
+                NodeKind.LIST, NodeKind.INSET_LIST ->
+                    InsetList(record.children, m, spacing, scroll) { RenderNode(store, bridge, it, style) }
                 NodeKind.SCROLL ->
                     Column(m.verticalScroll(rememberScrollState(), enabled = scroll)) { children() }
                 NodeKind.SPACER -> Spacer(m)
@@ -283,20 +264,14 @@ private fun RenderNode(
                     ModalComponent.Render(record, store, bridge, m, children)
                 }
                 NodeKind.BOTTOM_SHEET -> {
-                    BottomSheetComponent.Render(m, children)
-                }
-                NodeKind.OVERLAY -> when (presentation) {
-                    "form-sheet", "confirmation-dialog" -> {
-                        Surface(m, shape = MaterialTheme.shapes.large) {
-                            Column(
-                                Modifier.fillMaxWidth().padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) { children() }
+                    BottomSheetComponent.Render(m) {
+                        BottomSheetComponent.Children(record.children.mapNotNull(store::record)) { node ->
+                            RenderNode(store, bridge, node.id, style)
                         }
                     }
-                    else -> if (bindings.any { it.dialog }) Box(m) { children() }
-                    else OverlayComponent.Render(m, children)
                 }
+                NodeKind.OVERLAY -> if (bindings.any { it.dialog }) Box(m) { children() }
+                    else OverlayComponent.Render(m, children)
                 else ->
                     Column(m) {
                         Text("Unsupported node ${record.kind}")
@@ -310,14 +285,12 @@ private fun RenderNode(
     }
     val dismiss = {
         record.children.mapNotNull(store::record)
-            .firstOrNull { it.props[PropId.PRESENTATION]?.label == "cancel-action" }
+            .firstOrNull { it.kind == NodeKind.CANCEL_BUTTON }
             ?.let { bridge.send(EventId.TAP, it.id) }
         Unit
     }
-    if (presentation == "form-sheet") {
-        ModalBottomSheet(onDismissRequest = dismiss) { FormScope(display) }
-    } else if (presentation == "confirmation-dialog") {
-        Dialog(onDismissRequest = dismiss) { display() }
+    if (record.kind == NodeKind.CONFIRMATION_DIALOG) {
+        ConfirmationDialog(record.children.mapNotNull(store::record), m, dismiss) { RenderNode(store, bridge, it.id, style) }
     } else if (bindings.any { it.dialog }) {
         var open by remember(record) { mutableStateOf(true) }
         if (open)
@@ -325,4 +298,15 @@ private fun RenderNode(
                 display()
             }
     } else display()
+}
+
+
+@Composable
+internal fun StyledLabel(record: NodeRecord, appearance: NodeAppearance, enabled: Boolean) {
+    Text(
+        record.text.orEmpty(),
+        color = if (enabled) appearance.foreground ?: Color.Unspecified else Color.Unspecified,
+        style = appearance.font ?: LocalTextStyle.current,
+        fontSize = appearance.fontSize?.sp ?: androidx.compose.ui.unit.TextUnit.Unspecified,
+    )
 }

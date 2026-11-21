@@ -21,6 +21,18 @@ pub fn core_kind(tag: &str) -> Option<NodeKind> {
         "Overlay" => NodeKind::OVERLAY,
         "Modal" => NodeKind::MODAL,
         "BottomSheet" => NodeKind::BOTTOM_SHEET,
+        "NavigationTitle" => NodeKind::NAVIGATION_TITLE,
+        "ToolbarButton" => NodeKind::TOOLBAR_BUTTON,
+        "SegmentedControl" => NodeKind::SEGMENTED_CONTROL,
+        "InsetList" => NodeKind::INSET_LIST,
+        "ChecklistRow" => NodeKind::CHECKLIST_ROW,
+        "CheckmarkButton" => NodeKind::CHECKMARK_BUTTON,
+        "DestructiveButton" => NodeKind::DESTRUCTIVE_BUTTON,
+        "ListFooter" => NodeKind::LIST_FOOTER,
+        "ConfirmationDialog" => NodeKind::CONFIRMATION_DIALOG,
+        "SheetTitle" => NodeKind::SHEET_TITLE,
+        "SubmitButton" => NodeKind::SUBMIT_BUTTON,
+        "CancelButton" => NodeKind::CANCEL_BUTTON,
         _ => return None,
     })
 }
@@ -44,7 +56,11 @@ pub fn property(
         node_id: id,
         name: value.into(),
     };
-    let wire_name = if name == "class" { "utility_classes" } else { name };
+    let wire_name = if name == "class" {
+        "utility_classes"
+    } else {
+        name
+    };
     let prop = PropId::ENUM_VALUES
         .iter()
         .copied()

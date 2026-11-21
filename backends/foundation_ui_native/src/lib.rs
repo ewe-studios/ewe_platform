@@ -4,8 +4,12 @@ uniffi::setup_scaffolding!();
 pub mod command;
 mod core;
 mod host;
-pub use core::{CoreConfig, NativeCore, NativePlatform};
-pub use host::{CoreError, EventInput, FrameListener, HostTransport};
+pub mod rpc;
+pub use core::{CoreConfig, NativeCore, NativeCoreBuilder, NativePlatform};
+pub use host::{
+    action_sender, CoreError, EventInput, FrameListener, HostTransport, HostTransportProvider,
+    NativeSender, ServiceError,
+};
 
 #[cfg(feature = "app")]
 mod sink;

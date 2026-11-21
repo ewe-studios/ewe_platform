@@ -42,7 +42,7 @@ impl Action for AddTodo {
             self.0.fetch_add(1, Ordering::Relaxed);
             assert_eq!(event.event_name, "submit");
             assert_eq!(event.node_id, 42);
-            let user = ctx.inner().get::<CurrentUser>().unwrap();
+            let user = ctx.get::<CurrentUser>().unwrap();
             let root = ctx.state_root().unwrap();
             let fail = event.input_value.is_empty();
             let mut todos = event.state;

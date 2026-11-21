@@ -63,7 +63,7 @@ if [[ -z "$axe" ]]; then
 fi
 
 cargo build --locked --profile uat -p ui_todo --bin ui_todo
-if [[ ! -s examples/ui_todo/module/target/wasm32-unknown-unknown/uat/ui_todo_web.wasm ]]; then
+if [[ ! -s examples/ui_todo/target/web/ui_todo.wasm ]]; then
     examples/ui_todo/build-module.sh
 fi
 "${CARGO_TARGET_DIR:-$root/target}/uat/ui_todo" 127.0.0.1:0 >"$stage/host.log" 2>&1 &

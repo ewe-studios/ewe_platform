@@ -8,7 +8,6 @@ members = [
   "infrastructure/*",
   "examples/platform_demo",
   "examples/ui_todo",
-  "examples/ui_todo/native",
   "apps/answerme-agent",
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
   # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/
@@ -49,6 +48,11 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+buffa = "0.9.2"
+buffa-build = "0.9.2"
+# Service code generation uses the descriptor types from prost 0.12.
+prost = "0.12"
+prost-types = "0.12"
 futures-lite = "2.6"
 async-channel = "2.5"
 blocking = "1.6"

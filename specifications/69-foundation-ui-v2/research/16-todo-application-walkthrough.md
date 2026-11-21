@@ -415,3 +415,127 @@ For add_todo, input_value contains the submitted title and state is unit. The ha
 The browser theme generates utility classes. Shared controls currently encode explicit color and font properties for native renderers.
 
 On shared controls, Feature 23 proposes one class list for all three platforms. Matching platform prefixes override the corresponding shared property.
+
+### What does the submitting tab see after Add?
+
+The action stores the new item and takes a snapshot of the list.
+The page function uses that snapshot to build the list for the submitting tab.
+The dialog function queues an empty dialog for that same tab.
+Other tabs that subscribe to the count receive the new count through the server feed.
+
+### Why does the page take a web flag?
+
+The example uses the flag to select one of two page trees.
+The browser tree includes a count subscription. The mobile tree supplies a segmented filter and checklist rows.
+Both trees use the same render call. The local flag separately identifies the on-device host.
+
+### What does the OnDevice check tell the page?
+
+OnDevice is an empty type in the todo example. The local registry stores it in the application context.
+The page checks for this marker to select the local action bindings and show the local count.
+Two phones can use different hosts. The marker records how the application starts.
+
+### Why does the todo tree still use presentation?
+
+Feature 23 adds explicit containers for the entry sheet. The sheet still reads child roles for its title and buttons.
+The delete confirmation still uses an overlay with a confirmation role. The migration covers only part of the tree.
+
+### Why does an action call ctx.inner().get()?
+
+An action receives a Context. Its inner() method returns a reference to the host Ctx.
+The host Ctx provides get() for typed entries. The action Context has no forwarding get() method.
+
+### How does an action return updates when it returns unit?
+
+The action queues output in its call receiver. It returns success when its work completes.
+The runtime takes the receiver and drains its items after success. The dispatcher prepares those items for the caller.
+
+### How does the browser apply the Add reply?
+
+The action manager passes each reply to the frame reader.
+The todo app registers its page mount and dialog element during startup.
+The renderer uses the supplied targets to update the list and clear the dialog in the submitting tab.
+
+### Why does the server keep two live channels for one count?
+
+Each channel owns a stream number, subscribers, and a bounded history for replay.
+The browser feed swaps the element named count-value. The native feed renders a footer at node 44.
+Both mobile platforms subscribe to the native feed. The on-device example computes its own count.
+One shared count target and one portable update would let all three clients use one channel.
+
+### Can every client subscribe to /live?
+
+Yes. Use one count target, one channel, and one route.
+The current route chooses the subscriber surface when the server installs its handler.
+A shared handler can select the surface for each subscription if the encodings differ.
+Each client still owns its connection and resume position.
+
+### Does the platform change the frame format?
+
+Both clients receive the same frame format. The writer can omit operations that apply only to another surface.
+A shared text update at a shared node needs no platform choice. Each renderer draws that instruction using its own controls.
+
+### How does a subscriber catch up after a disconnect?
+
+A cursor records the last sequence number the subscriber has applied.
+When a subscriber resumes from seven, the channel returns retained frames after seven in order.
+The channel registers the subscriber for future updates while it selects this history under the same lock.
+
+### What happens when replay history expires?
+
+The server returns status 410. The browser stream retries. The native stream reports a failure.
+The todo app has no automatic view refresh for this response. Issue 668 tracks recovery from a fresh snapshot and cursor.
+
+### Who reloads a view after replay expires?
+
+Proposed flow: the host remembers the view loader when it first mounts the view.
+A typed replay error reaches the subscription owner. That owner asks the host to refresh its view.
+The loader returns fresh content and a resume position from the same application revision.
+The host replaces the affected mount, drops late deliveries from the old subscription, and subscribes after that position.
+
+### Why are there three initial routes?
+
+The browser and mobile todo clients load different versions of the full todo screen.
+The separate mobile starter apps load a smaller screen with a count and a Refresh button.
+A shared todo view can use one initial route. The count-only demo chooses a separate view because it shows different content.
+
+### What happens when someone taps Refresh on the count screen?
+
+The button invokes the server action refresh_count. The action reads the store, counts open items, and renders the count screen again.
+
+### What does the small phone app register?
+
+The starter gives its host the server address, initial screen path, and remote action name.
+The frame binds Refresh to that action. The server registry holds the Rust implementation.
+
+### Does hello advertise the server actions?
+
+Yes. The server lists registered actions for the requesting surface in its capabilities reply.
+The action manager accepts an advertised server action even if the client has no declaration for that name.
+The starter supplies an explicit name, but a successful handshake already supplies it.
+
+### How does a native button discover a local action?
+
+Rust registers local handlers when the on-device core starts. Each rendered control carries its own action reference.
+Swift and Kotlin forward that reference and the event to the core. Local dispatch needs no exchange of action lists.
+
+### Which todo does Complete change?
+
+Each completion button carries the todo identifier in its value. Its action reference selects the handler.
+The native event bridge sends the event to the core. The Rust handler reads the value to select the todo.
+
+### How does a label appear without an action?
+
+Rust lowers a Text tag and its content into shared instructions.
+The browser creates a text element. SwiftUI and Android Compose draw a label from their local node records.
+
+### How can one app display two hosts?
+
+A SwiftUI TabView can contain a LocalScreen for drafts and a ServerScreen for team todos.
+Each tab uses the core factory from its corresponding example. The local tab gets its first frame from Rust.
+The server tab supplies its base address and initial route. Its core receives the transport from ServerScreen.
+
+### How does one screen use local and remote actions?
+
+The server-backed todo screen opens its entry sheet through a host action.
+Submitting the form calls the server action add_todo. The screen keeps the same core for both events.

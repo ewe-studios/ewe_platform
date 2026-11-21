@@ -21,6 +21,7 @@ pub mod frame;
 // (F51/F52), so they are cross-platform. The native-only H2/H3 transports live in
 // [`crate::native::transport`].
 pub mod h1;
+pub mod platform;
 pub mod wasm;
 pub mod ws;
 

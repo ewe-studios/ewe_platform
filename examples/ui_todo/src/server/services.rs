@@ -67,3 +67,34 @@ pub(super) fn install(ctx: &Ctx, web: LiveChannel) -> Result<TodoChannels, Error
 pub(super) fn channel(id: u64) -> LiveChannel {
     LiveChannel::new(id, BacklogConfig::default(), WriterConfig::default())
 }
+
+pub(super) struct Todos;
+impl crate::todo_rpc::Todos for Todos {
+    #[expect(
+        clippy::unused_async_trait_impl,
+        reason = "The generated service has an asynchronous contract."
+    )]
+    async fn get_todo(
+        &self,
+        ctx: foundation_connectrpc::RpcCtx,
+        request: foundation_connectrpc::Request<crate::todo_rpc::GetTodoRequest>,
+    ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<crate::todo_rpc::Todo>>
+    {
+        use foundation_connectrpc::{ConnectError, Response};
+        let store = ctx
+            .ctx
+            .get::<TodoStore>()
+            .ok_or_else(|| ConnectError::internal("Missing todo store"))?;
+        let todo = store
+            .snapshot()
+            .items
+            .into_iter()
+            .find(|todo| todo.id == request.msg.id)
+            .ok_or_else(|| ConnectError::not_found("Todo not found"))?;
+        Ok(Response::new(crate::todo_rpc::Todo {
+            id: todo.id,
+            title: todo.text,
+            ..Default::default()
+        }))
+    }
+}

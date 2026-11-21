@@ -612,7 +612,7 @@ fn native_gate_drops_a_swap_when_all_its_content_is_web_only() {
 }
 
 #[test]
-fn earlier_clients_keep_controls_without_presentation() {
+fn reserved_presentation_property_is_rejected_for_each_client() {
     use foundation_ui_wire::{PropId, PropValueT, SetPropT, TextValueT};
     let control = table!(OperationT {
         ui: Ui::CreateNode(Box::new(table!(CreateNodeT {
@@ -632,26 +632,19 @@ fn earlier_clients_keep_controls_without_presentation() {
     let full = message(table!(OperationT {
         ui: subtree(vec![control.clone(), role])
     }));
-    let (_, current) = write(vec![full.clone()], &native());
-    assert_eq!(current.filtered, []);
-
-    let previous = ClientCaps {
-        vocabulary_version: 3,
-        ..native()
-    };
-    let (kept, report) = write(vec![full], &previous);
-    assert_eq!(
-        kept,
-        [message(table!(OperationT {
-            ui: subtree(vec![control])
-        }))],
-    );
-    assert_eq!(
-        report.filtered,
-        [removed(
-            0,
-            FilteredPart::NestedOperation,
-            FilterReason::UnknownVocabulary
-        )],
-    );
+    for caps in [
+        native(),
+        ClientCaps {
+            vocabulary_version: 3,
+            ..native()
+        },
+    ] {
+        assert!(matches!(
+            write_messages(vec![full.clone()], &caps, HEADER, &WriterConfig::default()),
+            Err(WriteError::Vocab {
+                error: foundation_ui_wire::vocab::VocabError::UnknownProp { prop: 17 },
+                ..
+            })
+        ));
+    }
 }

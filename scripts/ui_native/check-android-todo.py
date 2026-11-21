@@ -1,6 +1,7 @@
 """Check the two visible Android todo screens and their independent stores."""
 
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
@@ -55,7 +56,7 @@ def tap(text, *also_visible):
 def create(title):
     tap("Add", "Todos")
     tap("Todo title", "New todo")
-    shell("input", "text", title.replace(" ", "%s"))
+    shell("input", "text", title.replace(" ", "%s"), command_timeout=timeout)
     tap("Add", "New todo")
     wait_for(title, absent=("New todo",))
 
@@ -102,5 +103,75 @@ elif phase == "server-delete":
 elif phase == "isolation":
     wait_for(local_title, "1 open todo", absent=(server_title,))
     print("Offline app retained its own todo after the server app submitted a todo.")
+elif phase == "theme-review":
+    output = Path(os.environ["EWE_THEME_CAPTURES"])
+    output.mkdir(parents=True, exist_ok=True)
+    old_timeout = shell("settings", "get", "system", "screen_off_timeout").strip()
+    old_scale = shell("settings", "get", "system", "font_scale").strip()
+    old_night = shell("cmd", "uimode", "night").strip().split()[-1]
+
+    def capture(name):
+        data = subprocess.check_output([adb, "-s", device, "exec-out", "screencap", "-p"])
+        (output / (name + ".png")).write_bytes(data)
+
+    try:
+        shell("settings", "put", "system", "screen_off_timeout", str(timeout * 10000))
+        for mode in ("light", "dark", "branded"):
+            shell("input", "keyevent", "KEYCODE_WAKEUP")
+            shell("wm", "dismiss-keyguard")
+            shell("am", "force-stop", app)
+            shell("cmd", "uimode", "night", "yes" if mode == "dark" else "no")
+            shell("settings", "put", "system", "font_scale", "1.4" if mode == "branded" else "1.0")
+            shell("am", "start", "-n", app + "/.MainActivity", "--ez", "branded", str(mode == "branded").lower())
+            tap("Add", "Todos")
+            tap("Todo title", "New todo")
+            title = "Buy milk and collect the groceries for dinner"
+            shell("input", "text", title.replace(" ", "%s"), command_timeout=timeout)
+            controls = wait_for(title, "Cancel", "Add")
+            cancel = [int(n) for n in re.findall(r"-?\d+", controls["Cancel"].get("bounds"))]
+            submit = [int(n) for n in re.findall(r"-?\d+", controls["Add"].get("bounds"))]
+            assert cancel[2] <= submit[0] and min(cancel[3], submit[3]) > max(cancel[1], submit[1]), (mode, cancel, submit)
+            windows = shell("dumpsys", "input_method")
+            assert "mInputShown=true" in windows, "The entry review needs the software keyboard"
+            inset = re.search(r"type=ime frame=\[\d+,(\d+)\]\[\d+,\d+\][^\n]* visible=true", shell("dumpsys", "window"))
+            assert inset and max(cancel[3], submit[3]) <= int(inset.group(1)), (mode, cancel, submit)
+            print(f"{mode} entry controls passed. Cancel {cancel}, Add {submit}, keyboard top {inset.group(1)}.", flush=True)
+            capture("android-" + mode + "-entry")
+            tap("Cancel", title)
+            wait_for("0 open todos", absent=(title, "New todo"))
+            tap("Add", "Todos")
+            tap("Todo title", "New todo")
+            shell("input", "text", title.replace(" ", "%s"), command_timeout=timeout)
+            if mode == "branded":
+                tap("Add", title)
+            else:
+                shell("input", "keyevent", "KEYCODE_ENTER")
+            wait_for(title, "Complete", absent=("New todo",))
+            tap("Complete")
+            wait_for(title, "Reopen")
+            capture("android-" + mode + "-list")
+            tap("Delete")
+            controls = wait_for("Confirm", "Cancel", "Delete this todo?")
+            cancel = [int(n) for n in re.findall(r"-?\d+", controls["Cancel"].get("bounds"))]
+            confirm = [int(n) for n in re.findall(r"-?\d+", controls["Confirm"].get("bounds"))]
+            assert min(cancel[3], confirm[3]) > max(cancel[1], confirm[1]), (mode, cancel, confirm)
+            assert cancel[2] <= confirm[0] or confirm[2] <= cancel[0], (mode, cancel, confirm)
+            capture("android-" + mode + "-confirmation")
+            tap("Cancel")
+            wait_for(title, absent=("Delete this todo?",))
+            tap("Delete")
+            tap("Confirm", "Delete this todo?")
+            wait_for("0 open todos", absent=(title, "Delete this todo?"))
+            print(f"{mode} confirmation controls passed. Cancel {cancel}, Confirm {confirm}.", flush=True)
+    finally:
+        if old_timeout == "null":
+            shell("settings", "delete", "system", "screen_off_timeout")
+        else:
+            shell("settings", "put", "system", "screen_off_timeout", old_timeout)
+        if old_scale == "null":
+            shell("settings", "delete", "system", "font_scale")
+        else:
+            shell("settings", "put", "system", "font_scale", old_scale)
+        shell("cmd", "uimode", "night", old_night)
 else:
     raise SystemExit(f"Unsupported test phase {phase}")

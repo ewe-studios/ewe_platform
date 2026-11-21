@@ -7,6 +7,8 @@ mod error;
 mod error_ext;
 mod finish;
 // The FlatBuffers compiler generates this module.
+#[cfg(feature = "std")]
+mod framing;
 #[allow(
     clippy::all,
     clippy::pedantic,
@@ -16,9 +18,9 @@ mod finish;
 )]
 mod generated;
 #[cfg(feature = "std")]
-mod framing;
-#[cfg(feature = "std")]
-pub use framing::{AsyncFrameReader, FrameReader, Framing, FramingError, OwnedFrame, StreamFrameWriter};
+pub use framing::{
+    AsyncFrameReader, FrameReader, Framing, FramingError, OwnedFrame, StreamFrameWriter,
+};
 mod limits;
 pub mod ops;
 mod read;

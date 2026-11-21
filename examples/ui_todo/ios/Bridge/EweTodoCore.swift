@@ -27,13 +27,13 @@ fileprivate extension RustBuffer {
     }
 
     static func from(_ ptr: UnsafeBufferPointer<UInt8>) -> RustBuffer {
-        try! rustCall { ffi_ui_todo_native_rustbuffer_from_bytes(ForeignBytes(bufferPointer: ptr), $0) }
+        try! rustCall { ffi_ui_todo_rustbuffer_from_bytes(ForeignBytes(bufferPointer: ptr), $0) }
     }
 
     // Frees the buffer in place.
     // The buffer must not be used after this is called.
     func deallocate() {
-        try! rustCall { ffi_ui_todo_native_rustbuffer_free(self, $0) }
+        try! rustCall { ffi_ui_todo_rustbuffer_free(self, $0) }
     }
 }
 
@@ -329,7 +329,7 @@ private func makeRustCall<T, E: Swift.Error>(
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T,
     errorHandler: ((RustBuffer) throws -> E)?
 ) throws -> T {
-    uniffiEnsureUiTodoNativeInitialized()
+    uniffiEnsureUiTodoInitialized()
     var callStatus = RustCallStatus.init()
     let returnedVal = callback(&callStatus)
     try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: errorHandler)
@@ -467,6 +467,22 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
+    typealias FfiType = UInt64
+    typealias SwiftType = UInt64
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt64 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -527,6 +543,144 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
         writeBytes(&buf, value)
     }
 }
+
+
+/**
+ * A todo returned by the example service.
+ */
+public struct TodoResult: Equatable, Hashable {
+    public var id: UInt64
+    public var title: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: UInt64, title: String) {
+        self.id = id
+        self.title = title
+    }
+
+    
+
+    
+}
+
+#if compiler(>=6)
+extension TodoResult: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeTodoResult: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TodoResult {
+        return
+            try TodoResult(
+                id: FfiConverterUInt64.read(from: &buf), 
+                title: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: TodoResult, into buf: inout [UInt8]) {
+        FfiConverterUInt64.write(value.id, into: &buf)
+        FfiConverterString.write(value.title, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTodoResult_lift(_ buf: RustBuffer) throws -> TodoResult {
+    return try FfiConverterTypeTodoResult.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTodoResult_lower(_ value: TodoResult) -> RustBuffer {
+    return FfiConverterTypeTodoResult.lower(value)
+}
+
+
+public 
+enum TodoServiceError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
+
+    
+    
+    case NotFound
+    case Failed(detail: String
+    )
+
+    
+
+    
+
+    
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+    
+}
+
+#if compiler(>=6)
+extension TodoServiceError: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeTodoServiceError: FfiConverterRustBuffer {
+    typealias SwiftType = TodoServiceError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TodoServiceError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .NotFound
+        case 2: return .Failed(
+            detail: try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: TodoServiceError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case .NotFound:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .Failed(detail):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(detail, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTodoServiceError_lift(_ buf: RustBuffer) throws -> TodoServiceError {
+    return try FfiConverterTypeTodoServiceError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTodoServiceError_lower(_ value: TodoServiceError) -> RustBuffer {
+    return FfiConverterTypeTodoServiceError.lower(value)
+}
 private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
 private let UNIFFI_RUST_FUTURE_POLL_WAKE: Int8 = 1
 
@@ -542,7 +696,7 @@ fileprivate func uniffiRustCallAsync<F, T>(
 ) async throws -> T {
     // Make sure to call the ensure init function since future creation doesn't have a
     // RustCallStatus param, so doesn't use makeRustCall()
-    uniffiEnsureUiTodoNativeInitialized()
+    uniffiEnsureUiTodoInitialized()
     let rustFuture = rustFutureFunc()
     defer {
         freeFunc(rustFuture)
@@ -584,7 +738,7 @@ fileprivate func uniffiFutureContinuationCallback(handle: UInt64, pollResult: In
 public func createLocalTodoCore(platform: NativePlatform)throws  -> NativeCore  {
     return try  FfiConverterTypeNativeCore_lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
         uniffiCallStatus in
-    uniffi_ui_todo_native_fn_func_create_local_todo_core(
+    uniffi_ui_todo_fn_func_create_local_todo_core(
         FfiConverterTypeNativePlatform_lower(platform),uniffiCallStatus
     )
 })
@@ -598,11 +752,31 @@ public func createLocalTodoCore(platform: NativePlatform)throws  -> NativeCore  
 public func createTodoCore(platform: NativePlatform, transport: HostTransport)throws  -> NativeCore  {
     return try  FfiConverterTypeNativeCore_lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
         uniffiCallStatus in
-    uniffi_ui_todo_native_fn_func_create_todo_core(
+    uniffi_ui_todo_fn_func_create_todo_core(
         FfiConverterTypeNativePlatform_lower(platform),
         FfiConverterTypeHostTransport_lower(transport),uniffiCallStatus
     )
 })
+}
+/**
+ * Read typed data with the application's native HTTP client.
+ *
+ * # Errors
+ * Returns the service status when the item is absent or a request fails.
+ */
+public func getTodo(client: NativeHttpClient, baseUrl: String, id: UInt64)async throws  -> TodoResult  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_ui_todo_fn_func_get_todo(FfiConverterTypeNativeHttpClient_lower(client),FfiConverterString.lower(baseUrl),FfiConverterUInt64.lower(id)
+                )
+            },
+            pollFunc: ffi_ui_todo_rust_future_poll_rust_buffer,
+            completeFunc: ffi_ui_todo_rust_future_complete_rust_buffer,
+            freeFunc: ffi_ui_todo_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterTypeTodoResult_lift,
+            errorHandler: FfiConverterTypeTodoServiceError_lift
+        )
 }
 /**
  * Returns the first frame for an on-device screen.
@@ -614,15 +788,25 @@ public func initialTodoFrame(core: NativeCore)async throws  -> Data  {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
-                uniffi_ui_todo_native_fn_func_initial_todo_frame(FfiConverterTypeNativeCore_lower(core)
+                uniffi_ui_todo_fn_func_initial_todo_frame(FfiConverterTypeNativeCore_lower(core)
                 )
             },
-            pollFunc: ffi_ui_todo_native_rust_future_poll_rust_buffer,
-            completeFunc: ffi_ui_todo_native_rust_future_complete_rust_buffer,
-            freeFunc: ffi_ui_todo_native_rust_future_free_rust_buffer,
+            pollFunc: ffi_ui_todo_rust_future_poll_rust_buffer,
+            completeFunc: ffi_ui_todo_rust_future_complete_rust_buffer,
+            freeFunc: ffi_ui_todo_rust_future_free_rust_buffer,
             liftFunc: FfiConverterData.lift,
             errorHandler: FfiConverterTypeCoreError_lift
         )
+}
+/**
+ * Returns the optional native theme from the shared Rust application.
+ */
+public func todoThemeManifest() -> String  {
+    return try!  FfiConverterString.lift(try! rustCall() {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_func_todo_theme_manifest(uniffiCallStatus
+    )
+})
 }
 
 private enum InitializationResult {
@@ -636,17 +820,23 @@ private let initializationResult: InitializationResult = {
     // Get the bindings contract version from our ComponentInterface
     let bindings_contract_version = 30
     // Get the scaffolding contract version by calling the into the dylib
-    let scaffolding_contract_version = ffi_ui_todo_native_uniffi_contract_version()
+    let scaffolding_contract_version = ffi_ui_todo_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_ui_todo_native_checksum_func_create_local_todo_core() != 26995) {
+    if (uniffi_ui_todo_checksum_func_create_local_todo_core() != 57934) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_ui_todo_native_checksum_func_create_todo_core() != 35494) {
+    if (uniffi_ui_todo_checksum_func_create_todo_core() != 12558) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_ui_todo_native_checksum_func_initial_todo_frame() != 42225) {
+    if (uniffi_ui_todo_checksum_func_get_todo() != 60222) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_func_initial_todo_frame() != 35916) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_func_todo_theme_manifest() != 5251) {
         return InitializationResult.apiChecksumMismatch
     }
 
@@ -656,7 +846,7 @@ private let initializationResult: InitializationResult = {
 
 // Make the ensure init function public so that other modules which have external type references to
 // our types can call it.
-public func uniffiEnsureUiTodoNativeInitialized() {
+public func uniffiEnsureUiTodoInitialized() {
     switch initializationResult {
     case .ok:
         break

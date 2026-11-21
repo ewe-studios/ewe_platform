@@ -133,7 +133,10 @@ fn template(input: TokenStream, action_view: bool) -> ParseResult<TokenStream> {
     let (fields, input) = fields(input)?;
     if let [Expr::Assign(binding)] = fields.as_slice() {
         let state = &binding.right;
-        if action_view && matches!(binding.left.as_ref(), Expr::Path(key) if key.path.is_ident("state")) && !input.is_empty() {
+        if action_view
+            && matches!(binding.left.as_ref(), Expr::Path(key) if key.path.is_ident("state"))
+            && !input.is_empty()
+        {
             let html = codegen::generate_pure(parser::parse_template(input)?, true);
             return Ok(quote! { (#html, #state) });
         }

@@ -17,6 +17,10 @@ bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
 
 [dependencies]
+foundation_ui_connectrpc = { path = "../foundation_ui_connectrpc" }
+foundation_connectrpc = { path = "../foundation_connectrpc", default-features = false }
+foundation_netio = { path = "../foundation_netio", default-features = false }
+futures-util = { workspace = true }
 async-trait = { workspace = true }
 uniffi = { workspace = true }
 thiserror = { workspace = true }

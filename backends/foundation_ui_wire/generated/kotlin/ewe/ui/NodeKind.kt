@@ -18,5 +18,17 @@ class NodeKind private constructor() {
         const val OVERLAY: UShort = 10u
         const val MODAL: UShort = 11u
         const val BOTTOM_SHEET: UShort = 12u
+        const val NAVIGATION_TITLE: UShort = 13u
+        const val TOOLBAR_BUTTON: UShort = 14u
+        const val SEGMENTED_CONTROL: UShort = 15u
+        const val INSET_LIST: UShort = 16u
+        const val CHECKLIST_ROW: UShort = 17u
+        const val CHECKMARK_BUTTON: UShort = 18u
+        const val DESTRUCTIVE_BUTTON: UShort = 19u
+        const val LIST_FOOTER: UShort = 20u
+        const val CONFIRMATION_DIALOG: UShort = 21u
+        const val SHEET_TITLE: UShort = 22u
+        const val SUBMIT_BUTTON: UShort = 23u
+        const val CANCEL_BUTTON: UShort = 24u
     }
 }

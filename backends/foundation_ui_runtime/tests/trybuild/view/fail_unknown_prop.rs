@@ -1,5 +1,5 @@
 use foundation_ui_runtime::html;
 
 fn main() {
-    let _view = html! { <Stack class="page"/> };
+    let _view = html! { <Stack bogus="page"/> };
 }

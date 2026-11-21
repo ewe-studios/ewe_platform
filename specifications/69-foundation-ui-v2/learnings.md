@@ -676,3 +676,51 @@ A failure after the first chunk closes the response without a successful stream 
 The state argument in a pure template uses an explicit name, `state = value`.
 This preserves the compile-time diagnostic when a receiver argument is missing.
 The iOS and Android applications must advertise the complete-view vocabulary before requesting their initial content.
+
+The macro validates shared properties before lowering. Both checks must accept the class attribute.
+Native hosts retain the connection and apply the current theme during rendering.
+Changing the theme must preserve the identity of the text input.
+An Android automated test device can pass interaction tests and still produce a black screenshot.
+Use a full system image for visual review. Use the device appearance control for iPhone dark screenshots.
+
+The light entry screenshots show stacked buttons on both platforms. Check the button positions with the keyboard open on each device.
+
+Use the action slots on a Material alert dialog. A column inside a generic dialog stacks its children.
+The confirmation check compares the visible button bounds. It also verifies the outcome of each button.
+
+Group sheet buttons when rendering the children. Their parent in the store still identifies the text input.
+The iPhone test reads the keyboard frame and captures the full screen, including the separate keyboard window.
+The Pixel test reads the visible input-method inset and compares it with the button bounds.
+
+The standalone browser package used release optimization in its test profile. The workspace test profile enables debug information.
+The browser build now uses the workspace release profile. The resulting module is about one megabyte.
+A native provider returns a concrete UniFFI sender handle. The handle keeps the underlying Swift or Kotlin callback alive.
+Returning a raw callback trait from an asynchronous foreign callback failed Rust lifetime checks.
+
+The action context wraps a host context. The host names its typed write method store. The mobile renderers consume thirteen presentation roles.
+
+A successful UI frame exchange verifies only the UI adapter. A separate native application call verifies ordinary typed replies.
+
+Fetch and URLSession decode HTTP content encoding before they return response bytes.
+The Connect adapter removes that encoding header after platform decoding. Connect message compression keeps its own header.
+A reserved Swift callback name produced backticks in a generated C header. The callback now uses newExchange.
+A generated client now joins a base address ending in a slash to one procedure path. Issue 667 tracks the fix.
+
+Portable placement needs view-scoped identity in each renderer. Sharing an endpoint alone cannot make different application targets equivalent.
+
+### Mobile procedure calls
+
+URLSession and Fetch decompress the response body before Rust receives it.
+Their adapters remove the consumed HTTP encoding and length headers. The Connect envelope keeps its own compression settings.
+A separate service-only router lets each native test verify application data without starting the screen.
+An expired replay cursor requires a fresh baseline. Reconnecting with the same cursor cannot recover discarded history.
+
+### Direct host methods and shared controls
+
+A derived host context keeps its existing type and sharing rules when called from an action context.
+The host random number generator uses a target-specific mutex. Expose that mutex type through the forwarding method.
+A reserved property fails writer validation before the writer filters operations for the client.
+
+Snapshot content and stream cursors must describe the same revision. Separate reads can capture a change under the wrong cursor.
+
+The starter requests a rendered count and a Refresh button. Its route name describes the screen content across platforms.

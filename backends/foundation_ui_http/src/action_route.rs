@@ -5,15 +5,10 @@ use foundation_ui_runtime::{
     action::{ActionError, ActionRef, ActionRegistry, Origin},
     dispatch::{Connection, Dispatcher, DispatcherBuilder, HelloOutcome},
 };
-use foundation_ui_wire::{ActionRequest, AsyncFrameReader, ErrorCode, OwnedFrame, WireLimits};
+use foundation_ui_wire::{AsyncFrameReader, ErrorCode, OwnedFrame, WireLimits};
 use std::sync::Arc;
 
-/// A host policy that runs after frame validation and before the action.
-pub trait ActionRequestPolicy: Send + Sync + 'static {
-    /// # Errors
-    /// Returns a protocol error when this request cannot run.
-    fn check(&self, ctx: &http::Ctx, request: ActionRequest<'_>) -> Result<(), ActionError>;
-}
+pub use foundation_ui_runtime::dispatch::ActionRequestPolicy;
 
 /// A shared server dispatcher for action requests.
 #[derive(Clone)]
@@ -38,6 +33,11 @@ impl ActionRegistryRouteHandler {
     pub fn new(registry: ActionRegistry) -> Self {
         Self::from_dispatcher(DispatcherBuilder::new(Origin::Server, Arc::new(registry)).build())
     }
+    #[must_use]
+    pub fn dispatcher(&self) -> Arc<Dispatcher> {
+        self.0.clone()
+    }
+
     #[must_use]
     pub fn from_dispatcher(dispatcher: Dispatcher) -> Self {
         Self(Arc::new(dispatcher))
@@ -164,8 +164,6 @@ async fn action(
                 ErrorCode::BadRequest,
                 "Action name differs from the route",
             ))
-        } else if let Some(policy) = ctx.get::<Arc<dyn ActionRequestPolicy>>() {
-            policy.check(ctx, action)
         } else {
             Ok(())
         };

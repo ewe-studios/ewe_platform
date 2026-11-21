@@ -27,17 +27,17 @@ for name in frame_state_custom.bin state_counter_custom.json action_increment_cu
 done
 sync_tree "$stage/fixtures" "$package/core/src/test/resources/signed"
 cd "$worktree"
-cargo build --locked --profile uat -p ui_todo_native --lib --message-format=json-render-diagnostics >"$stage/todo-build.json"
+cargo build --locked --profile uat -p ui_todo --lib --no-default-features --features mobile --message-format=json-render-diagnostics >"$stage/todo-build.json"
 library=$(python3 - "$stage/todo-build.json" <<'PY'
 from pathlib import Path
 import sys, json
 for line in Path(sys.argv[1]).read_text().splitlines():
     item = json.loads(line)
-    if item.get("target", {}).get("name") == "ui_todo_native":
+    if item.get("target", {}).get("name") == "ui_todo":
         for f in item.get("filenames", []):
             if Path(f).suffix in (".so", ".dylib", ".dll"):
                 print(f)
 PY
 )
-"${CARGO_TARGET_DIR:-$worktree/target}/uat/uniffi-bindgen" generate --library "$library" --crate ui_todo_native --language kotlin --out-dir "$stage/todo" --no-format
+"${CARGO_TARGET_DIR:-$worktree/target}/uat/uniffi-bindgen" generate --library "$library" --crate ui_todo --language kotlin --out-dir "$stage/todo" --no-format
 sync_tree "$stage/todo" "$worktree/examples/ui_todo/android/generated"

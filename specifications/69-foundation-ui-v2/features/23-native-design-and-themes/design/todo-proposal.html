@@ -85,6 +85,8 @@ dialog[data-kind="entry"]::before { content:""; display:block; width:36px; heigh
 dialog h4 { font-size:22px; margin:0 0 18px }
 dialog input { color:var(--ink); background:var(--surface); border:1px solid var(--line); padding:12px; width:100%; border-radius:8px }
 .actions { justify-content:flex-end; gap:8px; margin-top:15px }
+dialog[data-kind="entry"] .actions { flex-flow:row wrap }
+dialog[data-kind="entry"] .actions button { flex:none }
 .actions button { min-height:48px; min-width:48px; padding:0 8px; color:var(--accent); font-weight:600 }
 .actions .destructive { color:var(--danger) }
 @media(max-width:720px) { .pair { grid-template-columns: minmax(0,1fr); gap:8px } main { max-width:450px; padding:18px 12px } .screen { min-height:370px } }

@@ -10,8 +10,7 @@ use std::{net::TcpListener, path::Path, sync::Arc};
 
 #[test]
 fn server_and_host_actions_work() {
-    let module = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("module/target/wasm32-unknown-unknown/uat/ui_todo_web.wasm");
+    let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
     assert!(
         module.exists(),
         "Build examples/ui_todo/build-module.sh first"
@@ -29,7 +28,16 @@ fn server_and_host_actions_work() {
         Ok::<_, Box<dyn std::error::Error + Send + Sync>>(())
     });
     let outcome = std::panic::catch_unwind(|| {
-        let driver = BrowserDriver::launch(LaunchConfig::default().ctx(Ctx::host())).unwrap();
+        // Both test tabs must deliver stream events while Chrome displays the other tab.
+        let config = LaunchConfig {
+            extra_args: vec![
+                "--disable-background-timer-throttling".into(),
+                "--disable-renderer-backgrounding".into(),
+                "--disable-backgrounding-occluded-windows".into(),
+            ],
+            ..LaunchConfig::default().ctx(Ctx::host())
+        };
+        let driver = BrowserDriver::launch(config).unwrap();
         let other = driver.new_page().unwrap();
         other.goto(&url).unwrap();
         let shared_count = other.locator("#count-value");
@@ -49,6 +57,42 @@ fn server_and_host_actions_work() {
             .unwrap_or_else(|e| panic!("{e:?}; {:?}", page.eval("document.body.innerText")));
         let toggle = page.locator(&button("server:toggle_todo"));
         toggle.expect().to_have_text("Complete").unwrap();
+        capture_page(&page, "list");
+        assert_eq!(
+            page.eval(
+                r##"(() => {
+                const title = document.querySelector(".ewe-text.text-primary");
+                const style = getComputedStyle(title);
+                return [style.color, style.paddingLeft].join("|");
+            })()"##
+            )
+            .unwrap()
+            .as_str(),
+            if page
+                .eval("matchMedia('(prefers-color-scheme: dark)').matches")
+                .unwrap()
+                .as_bool()
+                == Some(true)
+            {
+                Some("rgb(154, 228, 216)|8px")
+            } else {
+                Some("rgb(21, 95, 89)|8px")
+            }
+        );
+        assert_eq!(
+            page.eval(
+                r##"(() => {
+                const title = document.querySelector(".ewe-text.text-primary");
+                document.documentElement.style.setProperty("--spacing-md", "17px");
+                document.documentElement.style.setProperty("--color-primary", "#663399");
+                return [getComputedStyle(title).color, getComputedStyle(title).paddingLeft,
+                    title === document.querySelector(".ewe-text.text-primary")].join("|");
+            })()"##
+            )
+            .unwrap()
+            .as_str(),
+            Some("rgb(102, 51, 153)|17px|true")
+        );
         shared_count.expect().to_have_text("1").unwrap();
         submit_with_keyboard(&page, &add, "second todo");
         shared_count.expect().to_have_text("2").unwrap();
@@ -74,14 +118,26 @@ fn server_and_host_actions_work() {
             const fetch = window.fetch.bind(window);
             window.fetch = (url, options) => {
                 if (String(url).includes('/live')) window.replayUrl = String(url);
-                return fetch(url, options);
+                const pending = fetch(url, options);
+                if (String(url).includes('/live')) pending.then(r => window.replayStatus = r.status, e => window.replayStatus=String(e));
+                return pending;
             };
         }",
             )
             .unwrap();
         channel.close();
         toggle.click().unwrap();
-        shared_count.expect().to_have_text("0").unwrap();
+        shared_count
+            .expect()
+            .timeout(std::time::Duration::from_secs(20))
+            .to_have_text("0")
+            .unwrap_or_else(|err| {
+                panic!(
+                    "{err:?}; primary {:?}; observer {:?}",
+                    page.eval("document.body.innerText"),
+                    other.eval("[document.body.innerText,window.replayUrl,window.replayStatus]")
+                )
+            });
         assert_eq!(
             other
                 .eval("new URL(window.replayUrl, location.href).searchParams.get('resume_from')")
@@ -98,6 +154,8 @@ fn server_and_host_actions_work() {
             .unwrap();
         let confirm = page.locator(&button("server:confirm_delete"));
         confirm.expect().to_be_visible().unwrap();
+        capture_page(&page, "confirmation");
+        confirm.expect().to_be_visible().unwrap();
         page.eval(r"window.staleTodoButton = Array.from(document.querySelectorAll('button')).find(el => el.getAttribute('primal:onclick') === 'server:confirm_delete').cloneNode(true); true").unwrap();
         confirm.click().unwrap();
         toggle.expect().to_have_count(0).unwrap();
@@ -110,6 +168,24 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_text("ActionFailed")
             .unwrap();
+        // A separate page sends typed Connect requests through the browser's Fetch client.
+        let rpc = driver.new_page().unwrap();
+        rpc.goto(&format!("{url}?rpc")).unwrap();
+        let open = rpc.locator(&button("host:open_add_dialog"));
+        open.expect().to_be_visible().unwrap();
+        let calls = "performance.getEntriesByType('resource').filter(e => new URL(e.name).pathname === '/ewe.ui.v1.Actions/Exchange').length";
+        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(1));
+        open.click().unwrap();
+        let input = rpc.locator("dialog:modal input");
+        input.expect().to_be_visible().unwrap();
+        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(1));
+        input.fill("RPC task").unwrap();
+        input.press("Enter").unwrap();
+        rpc.locator("#open-count")
+            .expect()
+            .to_have_text("1")
+            .unwrap();
+        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(2));
     });
     shutdown.turn_on();
     worker.join().unwrap().unwrap();
@@ -157,7 +233,8 @@ fn check_cancel_and_submit(
     add.click().unwrap();
     input.expect().to_be_visible().unwrap();
     input.fill("buy milk").unwrap();
-    page.locator("dialog:modal [data-ewe-presentation=submit-action]")
+    capture_page(page, "entry");
+    page.locator("dialog:modal .ewe-submit-button")
         .click()
         .unwrap();
 }
@@ -233,4 +310,13 @@ fn check_container_layout(page: &foundation_browser::Page<'_>) {
         .expect()
         .to_have_count(0)
         .unwrap();
+}
+
+fn capture_page(page: &foundation_browser::Page<'_>, state: &str) {
+    if let Some(output) = std::env::var_os("EWE_WEB_CAPTURES") {
+        let output = std::path::PathBuf::from(output);
+        std::fs::create_dir_all(&output).unwrap();
+        page.screenshot(output.join(format!("web-{state}.png")))
+            .unwrap();
+    }
 }

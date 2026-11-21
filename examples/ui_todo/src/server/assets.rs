@@ -18,6 +18,16 @@ pub(super) fn register(
         "/module.wasm",
         get(StaticFileHandler::file(module, StaticFileConfig::default())),
     )?;
+    if let Some(root) = module.parent() {
+        router.at("/rpc/*", get(StaticFileHandler::new(root)))?;
+    }
+    router.at(
+        "/theme.css",
+        get(StaticAssetHandler::new(
+            crate::todo_theme().to_css().as_bytes(),
+            "text/css; charset=utf-8",
+        )),
+    )?;
     for (url, kind, bytes) in [
         (
             "/",

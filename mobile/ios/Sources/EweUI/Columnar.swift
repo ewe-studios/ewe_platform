@@ -36,7 +36,7 @@ import Foundation
         if let string = string() { get(id, row)?.text = string } else { report("BadFrame", row) }
       case .setprop:
         guard let node = get(id, row), let prop = PropId(rawValue: UInt16(truncatingIfNeeded: arg)),
-          prop != .unknown
+          prop != .unknown, prop != .presentation
         else {
           report("UnknownProp", row, id)
           continue

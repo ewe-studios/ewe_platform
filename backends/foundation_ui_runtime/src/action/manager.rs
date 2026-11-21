@@ -38,9 +38,9 @@ pub trait ActionTransport {
 }
 
 #[cfg(not(target_family = "wasm"))]
-type Transport = dyn ActionTransport + Send + Sync;
+pub type Transport = dyn ActionTransport + Send + Sync;
 #[cfg(target_family = "wasm")]
-type Transport = dyn ActionTransport;
+pub type Transport = dyn ActionTransport;
 
 /// Reports a routing, encoding or transport failure to the caller.
 #[derive(Debug)]

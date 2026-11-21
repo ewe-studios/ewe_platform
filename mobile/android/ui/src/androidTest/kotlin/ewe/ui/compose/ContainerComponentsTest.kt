@@ -83,8 +83,10 @@ class ContainerComponentsTest {
         }
         compose.onNodeWithText("Modal contents").assertIsDisplayed()
         compose.onAllNodes(isDialog()).assertCountEquals(1)
-        InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
-        compose.waitUntil { !shown.value }
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent KEYCODE_BACK"))
+            .use { it.readBytes() }
+        compose.waitUntil(timeoutMillis = 5000) { !shown.value }
         compose.runOnIdle { assertEquals(1, dismissals) }
         compose.onNodeWithText("Modal contents").assertDoesNotExist()
     }

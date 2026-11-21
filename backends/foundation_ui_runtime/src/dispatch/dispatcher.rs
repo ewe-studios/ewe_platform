@@ -28,12 +28,12 @@ impl Dispatcher {
         connection: &'a Connection,
         bytes: &[u8],
     ) -> impl Future<Output = Vec<u8>> + 'a {
-        self.finish(ctx, connection, self.admit(connection, bytes))
+        self.finish(ctx, connection, self.admit(ctx, connection, bytes))
     }
 
-    pub(super) fn admit(&self, connection: &Connection, bytes: &[u8]) -> Admission {
+    pub(super) fn admit(&self, ctx: &Ctx, connection: &Connection, bytes: &[u8]) -> Admission {
         match read_frame(bytes, self.wire_limits()) {
-            Ok(frame) => self.admit_verified(connection, frame),
+            Ok(frame) => self.admit_verified(ctx, connection, frame),
             Err(_) => Admission {
                 ack: 0,
                 selected: Err(Failure::bad_request()),
@@ -47,9 +47,10 @@ impl Dispatcher {
         self.config.wire_limits()
     }
 
-    fn admit_verified(&self, connection: &Connection, frame: Frame<'_>) -> Admission {
+    fn admit_verified(&self, ctx: &Ctx, connection: &Connection, frame: Frame<'_>) -> Admission {
         let ack = frame.sequence_id();
         let selected = self.select(
+            ctx,
             connection,
             ack,
             frame.schema_version(),
@@ -65,7 +66,7 @@ impl Dispatcher {
         connection: &Connection,
         frame: Frame<'_>,
     ) -> Vec<u8> {
-        self.finish(ctx, connection, self.admit_verified(connection, frame))
+        self.finish(ctx, connection, self.admit_verified(ctx, connection, frame))
             .await
     }
 
@@ -114,6 +115,7 @@ impl Dispatcher {
 
     fn select(
         &self,
+        ctx: &Ctx,
         connection: &Connection,
         sequence: u64,
         schema_version: u16,
@@ -138,6 +140,11 @@ impl Dispatcher {
             .handle(reference.origin, reference.name, connection.surface())?;
         if entry.requires_state() && action.state().is_none() {
             return Err(Failure::bad_request());
+        }
+        if self.accept == crate::action::Origin::Server {
+            if let Some(policy) = ctx.get::<std::sync::Arc<dyn super::ActionRequestPolicy>>() {
+                policy.check(ctx, action).map_err(Failure::Error)?;
+            }
         }
         Ok((entry.clone(), action.unpack()))
     }

@@ -18,13 +18,13 @@ pub const ENUM_MIN_NODE_KIND: u16 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_NODE_KIND: u16 = 12;
+pub const ENUM_MAX_NODE_KIND: u16 = 24;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_NODE_KIND: [NodeKind; 13] = [
+pub const ENUM_VALUES_NODE_KIND: [NodeKind; 25] = [
     NodeKind::UNKNOWN,
     NodeKind::STACK,
     NodeKind::TEXT,
@@ -38,6 +38,18 @@ pub const ENUM_VALUES_NODE_KIND: [NodeKind; 13] = [
     NodeKind::OVERLAY,
     NodeKind::MODAL,
     NodeKind::BOTTOM_SHEET,
+    NodeKind::NAVIGATION_TITLE,
+    NodeKind::TOOLBAR_BUTTON,
+    NodeKind::SEGMENTED_CONTROL,
+    NodeKind::INSET_LIST,
+    NodeKind::CHECKLIST_ROW,
+    NodeKind::CHECKMARK_BUTTON,
+    NodeKind::DESTRUCTIVE_BUTTON,
+    NodeKind::LIST_FOOTER,
+    NodeKind::CONFIRMATION_DIALOG,
+    NodeKind::SHEET_TITLE,
+    NodeKind::SUBMIT_BUTTON,
+    NodeKind::CANCEL_BUTTON,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -58,9 +70,21 @@ impl NodeKind {
     pub const OVERLAY: Self = Self(10);
     pub const MODAL: Self = Self(11);
     pub const BOTTOM_SHEET: Self = Self(12);
+    pub const NAVIGATION_TITLE: Self = Self(13);
+    pub const TOOLBAR_BUTTON: Self = Self(14);
+    pub const SEGMENTED_CONTROL: Self = Self(15);
+    pub const INSET_LIST: Self = Self(16);
+    pub const CHECKLIST_ROW: Self = Self(17);
+    pub const CHECKMARK_BUTTON: Self = Self(18);
+    pub const DESTRUCTIVE_BUTTON: Self = Self(19);
+    pub const LIST_FOOTER: Self = Self(20);
+    pub const CONFIRMATION_DIALOG: Self = Self(21);
+    pub const SHEET_TITLE: Self = Self(22);
+    pub const SUBMIT_BUTTON: Self = Self(23);
+    pub const CANCEL_BUTTON: Self = Self(24);
 
     pub const ENUM_MIN: u16 = 0;
-    pub const ENUM_MAX: u16 = 12;
+    pub const ENUM_MAX: u16 = 24;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::UNKNOWN,
         Self::STACK,
@@ -75,6 +99,18 @@ impl NodeKind {
         Self::OVERLAY,
         Self::MODAL,
         Self::BOTTOM_SHEET,
+        Self::NAVIGATION_TITLE,
+        Self::TOOLBAR_BUTTON,
+        Self::SEGMENTED_CONTROL,
+        Self::INSET_LIST,
+        Self::CHECKLIST_ROW,
+        Self::CHECKMARK_BUTTON,
+        Self::DESTRUCTIVE_BUTTON,
+        Self::LIST_FOOTER,
+        Self::CONFIRMATION_DIALOG,
+        Self::SHEET_TITLE,
+        Self::SUBMIT_BUTTON,
+        Self::CANCEL_BUTTON,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -92,6 +128,18 @@ impl NodeKind {
             Self::OVERLAY => Some("OVERLAY"),
             Self::MODAL => Some("MODAL"),
             Self::BOTTOM_SHEET => Some("BOTTOM_SHEET"),
+            Self::NAVIGATION_TITLE => Some("NAVIGATION_TITLE"),
+            Self::TOOLBAR_BUTTON => Some("TOOLBAR_BUTTON"),
+            Self::SEGMENTED_CONTROL => Some("SEGMENTED_CONTROL"),
+            Self::INSET_LIST => Some("INSET_LIST"),
+            Self::CHECKLIST_ROW => Some("CHECKLIST_ROW"),
+            Self::CHECKMARK_BUTTON => Some("CHECKMARK_BUTTON"),
+            Self::DESTRUCTIVE_BUTTON => Some("DESTRUCTIVE_BUTTON"),
+            Self::LIST_FOOTER => Some("LIST_FOOTER"),
+            Self::CONFIRMATION_DIALOG => Some("CONFIRMATION_DIALOG"),
+            Self::SHEET_TITLE => Some("SHEET_TITLE"),
+            Self::SUBMIT_BUTTON => Some("SUBMIT_BUTTON"),
+            Self::CANCEL_BUTTON => Some("CANCEL_BUTTON"),
             _ => None,
         }
     }

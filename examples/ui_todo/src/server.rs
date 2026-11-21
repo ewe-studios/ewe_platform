@@ -74,7 +74,28 @@ fn register(
     ctx: &Ctx,
     channels: TodoChannels,
 ) -> Result<(), Error> {
-    router.mount(ActionRegistryRouteHandler::new(crate::server_registry()?))?;
+    let actions = ActionRegistryRouteHandler::new(crate::server_registry()?);
+    let mut rpc = foundation_connectrpc::Router::new();
+    foundation_ui_connectrpc::v1::register_actions(
+        &mut rpc,
+        Arc::new(foundation_ui_connectrpc::ActionService::new(
+            actions.dispatcher(),
+        )),
+    );
+    crate::todo_rpc::register_todos(&mut rpc, Arc::new(services::Todos));
+    let handler = Arc::new(rpc.into_handler());
+    for path in [
+        foundation_ui_connectrpc::v1::procedure::EXCHANGE,
+        crate::todo_rpc::procedure::GET_TODO,
+    ] {
+        router.at(
+            path,
+            foundation_http::post(foundation_connectrpc::ConnectRpcServe::from_arc(
+                handler.clone(),
+            )),
+        )?;
+    }
+    router.mount(actions)?;
     router.mount(initial)?;
     router.mount(native_initial)?;
     router.mount(native_starter)?;
@@ -87,4 +108,26 @@ fn register(
         get(StreamHandler::native(ctx).with_channel(channels.native)),
     )?;
     Ok(())
+}
+
+/// Starts the plain data service with one known todo. Only the generated data procedure is mounted.
+///
+/// # Errors
+/// Returns the route registration error.
+pub fn data_app() -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    let mut app = HttpApp::new_serve();
+    app.context().store(TodoStore::with_item(crate::Todo {
+        id: 42,
+        text: "Buy milk".into(),
+        done: false,
+    }));
+    let mut rpc = foundation_connectrpc::Router::new();
+    crate::todo_rpc::register_todos(&mut rpc, Arc::new(services::Todos));
+    app.router.at(
+        crate::todo_rpc::procedure::GET_TODO,
+        foundation_http::post(foundation_connectrpc::ConnectRpcServe::new(
+            rpc.into_handler(),
+        )),
+    )?;
+    Ok(app)
 }

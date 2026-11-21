@@ -91,6 +91,13 @@ fn web_tree(node: &mut Html, tokens: &TokenTable) -> Result<(), ViewError> {
                 let prop = property(local_id.unwrap_or_default(), name, &value, tokens)
                     .map_err(|err| ViewError::Render(err.to_string()))?;
                 web_property(&mut attrs, &mut styles, prop.prop, &prop.value, value)?;
+                if prop.prop == PropId::CHECKED
+                    && node.tag.as_ref().and_then(|tag| tag.name()) == Some("button")
+                {
+                    if let PropValueT::Bool(flag) = prop.value {
+                        attrs.push(("aria-pressed".into(), flag.v.to_string().into()));
+                    }
+                }
             } else if kind.is_none() || name != "key" {
                 attrs.push((key, value));
             }
@@ -131,7 +138,22 @@ fn web_property(
                 PropId::SOURCE => "src",
                 PropId::PLACEHOLDER => "placeholder",
                 PropId::VALUE => "value",
-                PropId::PRESENTATION => "data-ewe-presentation",
+                PropId::UTILITY_CLASSES => {
+                    if let Some((_, classes)) = attrs
+                        .iter_mut()
+                        .find(|(key, _)| key.name() == Some("class"))
+                    {
+                        for class in value.split_ascii_whitespace().filter(|class| {
+                            !class.starts_with("ios-") && !class.starts_with("android-")
+                        }) {
+                            classes.to_mut().push(' ');
+                            classes
+                                .to_mut()
+                                .push_str(class.strip_prefix("web-").unwrap_or(class));
+                        }
+                    }
+                    return Ok(());
+                }
                 _ => return Err(ViewError::Render("Unknown web text property".into())),
             };
             attrs.push((name.into(), value));

@@ -21,6 +21,8 @@ mod dispatch_local_tests;
 mod dispatch_support;
 #[cfg(not(target_family = "wasm"))]
 mod dispatch_tests;
+#[cfg(not(target_family = "wasm"))]
+mod network_app_tests;
 mod placement_order_tests;
 #[cfg(not(target_family = "wasm"))]
 mod protected_route_tests;

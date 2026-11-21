@@ -93,3 +93,42 @@ The binary binds the listener. The application builder installs its services and
 The initial routes return the page tree and its state. The response adapter signs state and writes the frame when the body is requested.
 A successful mutation publishes a count to each live channel. The action endpoint validates and dispatches the request.
 The test can supply its own web channel to disconnect a subscriber and check replay.
+
+## Native todo registry
+
+This crate builds the example's Rust action registry. Its `create_todo_core` function accepts a native platform and a transport. Swift and Kotlin use the generated bindings to call it.
+
+The host handles `open_add_dialog`, `close_dialog`, `open_delete_dialog` and `filter_todos`. The server handles `add_todo`, `toggle_todo` and `confirm_delete`. The example signs presentation state. Business actions read the server's store and reject attached presentation state.
+
+On-device apps call `create_local_todo_core` with a platform. Call `initial_todo_frame` once to mount its first screen.
+The core owns an in-memory store for the app session. Its action registry runs add, complete, reopen and delete on the device.
+Each reply updates the list and count. The on-device core requires no transport.
+
+The compiler links the domain actions and native core into one library. Swift and Kotlin refer to that same library for callback handles and Rust buffers. The independent starter uses the package's remote factory.
+
+The transport sends one EWF1 frame per request. Strip the four-byte HTTP length before returning a response to the core. The renderer returns each trigger's signed bytes unchanged. See the wire crate README for hand-written frames and fixture generation.
+
+## Build outputs from one package
+
+The shared directory `src/shared` contains the store, actions, and views.
+The package selects one entry point for each host.
+
+| Host | Source | Build command from the repository root | Artifact |
+|---|---|---|---|
+| Server | `src/bin/server.rs` | `cargo build --profile uat -p ui_todo --bin ui_todo` | `target/uat/ui_todo` |
+| Browser | `src/web.rs` | `examples/ui_todo/build-module.sh` | `examples/ui_todo/target/web/ui_todo.wasm` |
+| iOS | `src/mobile.rs` | `scripts/ui_native/prepare-ios-todo.sh` | `target/native-ui/ios-todo/.build-inputs/EweCoreFFI.xcframework` |
+| Android | `src/mobile.rs` | `scripts/ui_native/build-android.sh --with-todo` | Each example gets `app/src/main/jniLibs/<abi>/libui_todo.so`. |
+
+The server is the default Cargo feature. The browser script selects `web`. The mobile scripts select `mobile`.
+Swift imports `EweTodoCore`. Kotlin imports the actions from `io.github.ewe_studios.ewe.todo`.
+
+## Ordinary data and UI actions over Connect
+
+Start the data-only example with `cargo run --profile uat -p ui_todo -- 127.0.0.1:8180 --data-only`.
+The generated Todos client reads task 42 and returns its identifier and title. Task 999 returns NotFound.
+The native integration suites run this procedure in a separate process from the screen test.
+
+The normal server also exposes the generated Actions service. Open `/?rpc` to use it from the browser.
+Run the native tests with `TEST_RUNNER_EWE_TODO_RPC=1` on iOS or `EWE_TODO_RPC=true` on Android to use it for UI actions.
+[Typed Swift and Kotlin examples](../../backends/foundation_ui_connectrpc/README.md)

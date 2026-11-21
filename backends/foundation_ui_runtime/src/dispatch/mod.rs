@@ -92,3 +92,14 @@ pub struct Dispatcher {
     target_lookup: TargetLookup,
     delivery: Arc<dyn DeliveryHandler>,
 }
+
+/// A host policy that runs after frame validation and before the action.
+pub trait ActionRequestPolicy: Send + Sync + 'static {
+    /// # Errors
+    /// Returns a protocol error when this request cannot run.
+    fn check(
+        &self,
+        ctx: &foundation_context::Ctx,
+        request: foundation_ui_wire::ActionRequest<'_>,
+    ) -> Result<(), crate::action::ActionError>;
+}

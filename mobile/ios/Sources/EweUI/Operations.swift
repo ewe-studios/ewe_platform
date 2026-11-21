@@ -44,7 +44,7 @@ private func value(_ op: any WireValue) -> Value? {
     case .settext: if let v = op.ui(type: ewe_ui_SetText.self) { get(v.nodeId, row)?.text = v.text }
     case .setprop:
       if let v = op.ui(type: ewe_ui_SetProp.self), let n = get(v.nodeId, row) {
-        if v.prop != .unknown, let prop = value(v) {
+        if v.prop != .unknown, v.prop != .presentation, let prop = value(v) {
           n.props[v.prop] = prop
         } else {
           report("UnknownProp", row, n.id)

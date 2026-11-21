@@ -6,8 +6,13 @@ rust-version.workspace = true
 license.workspace = true
 publish = false
 autotests = false
+autobins = false
+
+[lib]
+crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
+foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
 foundation_context = { path = "../../backends/foundation_context" }
 foundation_errstacks = { path = "../../backends/foundation_errstacks" }
 foundation_ui_runtime = { path = "../../backends/foundation_ui_runtime" }
@@ -17,22 +22,42 @@ serde = { workspace = true }
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_core = { path = "../../backends/foundation_core", optional = true }
 foundation_http = { path = "../../backends/foundation_http", optional = true }
+buffa = { workspace = true, features = ["json"], optional = true }
+foundation_ui_connectrpc = { path = "../../backends/foundation_ui_connectrpc", optional = true }
+foundation_connectrpc = { path = "../../backends/foundation_connectrpc", default-features = false, optional = true }
 foundation_ui_http = { path = "../../backends/foundation_ui_http", optional = true }
 futures-lite = { workspace = true, optional = true }
 
 foundation_browser = { path = "../../backends/foundation_browser", optional = true }
+
+foundation_ui_native = { path = "../../backends/foundation_ui_native", optional = true }
+uniffi = { workspace = true, optional = true }
+thiserror = { workspace = true, optional = true }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_core = { path = "../../backends/foundation_core", optional = true, features = ["js-foundation-wasm"] }
+foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+async-trait = { workspace = true }
+foundation_core = { path = "../../backends/foundation_core" }
+
+[build-dependencies]
+foundation_connectrpc_codegen = { path = "../../backends/foundation_connectrpc_codegen", optional = true }
 
 [lints]
 workspace = true
 
 [features]
 default = ["server"]
-server = ["dep:foundation_browser", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+server = ["dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "dep:foundation_browser", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+web = ["dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
+mobile = ["dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
 browser-tests = ["server"]
 
 [[bin]]
 name = "ui_todo"
-path = "src/main.rs"
+path = "src/bin/server.rs"
 required-features = ["server"]
 
 [[test]]
@@ -44,3 +69,8 @@ required-features = ["browser-tests"]
 name = "actions"
 path = "tests/mod.rs"
 required-features = ["server"]
+
+[[test]]
+name = "mobile"
+path = "tests/mobile.rs"
+required-features = ["mobile"]

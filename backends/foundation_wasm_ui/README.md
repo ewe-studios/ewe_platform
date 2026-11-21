@@ -306,3 +306,14 @@ html! { <Modal><BottomSheet><Text>New todo</Text></BottomSheet></Modal> }
 
 The second tree opens one modal. A button with the cancel action handles the dialog's Escape request.
 A text input can bind a submit action inside a sheet. A submit button or the Enter key sends its value once.
+
+## Start a browser action host
+
+Prepare the context with application services and register the local actions. Then install the browser bridge.
+
+```rust,ignore
+use foundation_wasm_ui::actions::LocalApp;
+LocalApp::builder(ctx, actions).build().install();
+```
+
+The bridge retains the dispatcher and context. Closing the bridge ends each pending call once.

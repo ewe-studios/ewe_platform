@@ -1244,6 +1244,8 @@ export class FetchEventSource {
     try {
       response = await this.fetchFn(this.options.nextUrl?.(this.url) ?? this.url, {
         method: this.options.method ?? "GET",
+        // Each open stream needs its own response, even when two URLs match.
+        cache: "no-store",
         headers,
         body: this.options.body,
         signal: this.abort?.signal,

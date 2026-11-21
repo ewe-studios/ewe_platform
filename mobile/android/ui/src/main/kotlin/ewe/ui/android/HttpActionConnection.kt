@@ -25,6 +25,8 @@ class HttpActionConnection(
 ) : HostTransport {
     private lateinit var hello: ByteArray
 
+    fun configure(frame: ByteArray) { hello = frame.copyOf() }
+
     suspend fun negotiate(core: ActionCore): ByteArray {
         hello = core.hello()
         return post(hello)

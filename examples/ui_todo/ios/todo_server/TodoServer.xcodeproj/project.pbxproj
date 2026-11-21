@@ -13,6 +13,8 @@
 		7DF26539FAB5A03767555C17 /* EweTodoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 687EA8B759975BC70FBB8399 /* EweTodoCore */; };
 		9AABEF70D9842747AE1C2CD5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
 		B2B2BF5C8E18935DC868A4D5 /* EweUI in Frameworks */ = {isa = PBXBuildFile; productRef = 060C0C2EEDC602A7049569F2 /* EweUI */; };
+        738FB54552474BE1B1FDBA10 /* EweUI in Frameworks */ = {isa = PBXBuildFile; productRef = 060C0C2EEDC602A7049569F2 /* EweUI */; };
+        A0F9BED98D6340C2ACAC987D /* EweTodoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 687EA8B759975BC70FBB8399 /* EweTodoCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,7 +40,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AABEF70D9842747AE1C2CD5 /* Foundation.framework in Frameworks */,
+				738FB54552474BE1B1FDBA10 /* EweUI in Frameworks */,
+                A0F9BED98D6340C2ACAC987D /* EweTodoCore in Frameworks */,
+                9AABEF70D9842747AE1C2CD5 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,6 +150,7 @@
 				C542DCA8F98839FA4BBCEC9B /* PBXTargetDependency */,
 			);
 			name = TodoServerUITests;
+            packageProductDependencies = (060C0C2EEDC602A7049569F2 /* EweUI */, 687EA8B759975BC70FBB8399 /* EweTodoCore */);
 			productName = TodoServerUITests;
 			productReference = 35DBB79263E15025D7F23DAA /* TodoServerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
