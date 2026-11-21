@@ -582,3 +582,10 @@ Vocabulary version 3 drops the optional version 4 presentation property and reta
 A transitive Android manifest can add network permission during packaging. Inspect the installed package to verify offline operation.
 At accessibility text sizes, the iPhone form uses the large sheet height before the keyboard opens.
 The full-height change passed the iPhone simulator tests in dark appearance with large text.
+
+### Mobile styles and public hosts
+
+The Rust template already sends numeric color and font tokens. A theme can change their native values without another frame.
+The low-level renderers accept mappings. The public host screens currently create these renderers without passing application mappings.
+Swift also renders recognized presentation roles before it applies ordinary node modifiers. Check both rendering paths with the same token.
+See [issue 652](https://github.com/ewe-studios/ewe_platform/issues/652).

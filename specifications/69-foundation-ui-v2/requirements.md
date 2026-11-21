@@ -21,9 +21,9 @@ related_specs:
   - "specifications/76-shared-context"
 features:
   completed: 19
-  uncompleted: 2
-  total: 21
-  completion_percentage: 90
+  uncompleted: 3
+  total: 22
+  completion_percentage: 86
 ---
 
 # Spec 69: foundation_ui v2
@@ -409,6 +409,7 @@ in parallel.
 | 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03, 09 | Sonnet | Web | ✅ Complete |
 | 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | ✅ Complete |
 | 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | ✅ Complete |
+| 23 | [native-design-and-themes](./features/23-native-design-and-themes/feature.md) | Platform controls and application themes in both mobile libraries | 02, 14, 15, 21, 22 | Sonnet | Native | Proposed |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 
@@ -484,7 +485,7 @@ A feature is complete when its README task and this verification pass. Record th
 
 ## 9. Success criteria (spec-wide)
 
-- All 21 indexed features are complete and verified. Feature 17 puts every pinned tool on each
+- All 22 indexed features are complete and verified. Feature 17 puts every pinned tool on each
   host: `scripts/toolchain/check.sh` exits 0 on Linux, macOS and Windows CI.
 - Each feature or package README has concrete examples and runnable validation. The documented checks pass.
 - iOS and Android each ship two independent todo examples. Todo Server uses the remote store.
