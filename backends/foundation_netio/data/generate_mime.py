@@ -12,6 +12,7 @@ The rule for an extension with several candidate types (rule R7):
 3. Then prefer a candidate whose `source` is "apache".
 4. Then prefer any other candidate.
 5. Inside one rank, prefer the alphabetically first media type.
+6. Then apply the reviewed override list in `OVERRIDES`.
 
 The writer sorts the extensions and uses two spaces of indent with one pair
 per line, so a new mime-db version gives a diff of data rows only.
@@ -28,6 +29,13 @@ RANK_IANA = 0
 RANK_UNLISTED = 1
 RANK_APACHE = 2
 RANK_OTHER = 3
+
+# Reviewed overrides for a known bad ambiguity (issue #593). The rule
+# above picks `application/mp4`; a browser expects `video/mp4`.
+OVERRIDES = {
+    "mp4": "video/mp4",
+    "mpg4": "video/mp4",
+}
 
 
 def source_rank(source):
@@ -53,6 +61,7 @@ def build(db):
 
     # The tuple order breaks a tie inside one rank by media type.
     chosen = {key: min(options)[1] for key, options in candidates.items()}
+    chosen.update(OVERRIDES)
     ambiguous = sum(1 for options in candidates.values() if len(options) > 1)
     return chosen, ambiguous
 

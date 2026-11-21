@@ -28,6 +28,17 @@ ambiguity with a written rule, never with the file order:
 3. Then prefer a candidate whose `source` is `"apache"`.
 4. Then prefer any other candidate.
 5. Inside one rank, prefer the alphabetically first media type.
+6. Then apply the reviewed override list `OVERRIDES` in `generate_mime.py`.
+
+### Reviewed overrides
+
+A known ambiguity can get a reviewed override. The list is `OVERRIDES` in
+`generate_mime.py`. The generator applies it after its rule.
+
+| Extension | Media type | Why |
+|---|---|---|
+| `mp4` | `video/mp4` | Browsers expect the video type; issue #593 |
+| `mpg4` | `video/mp4` | The same container and the same ambiguity |
 
 ## Regenerate the file
 

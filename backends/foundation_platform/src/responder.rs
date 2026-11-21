@@ -50,6 +50,18 @@ impl<A: MobileDisk + Send + Sync + 'static> MobileApp<A> {
     }
 }
 
+/// The content type for `path`, from the one shared table.
+///
+/// The table returns a bare media type. This caller adds the UTF-8 parameter
+/// to `text/html`, and keeps HTML as the unknown-name fallback.
+fn content_type(path: &Path) -> &'static str {
+    match foundation_netio::shared::mime::from_path(path) {
+        Some("text/html") => "text/html; charset=utf-8",
+        Some(media_type) => media_type,
+        None => "text/html; charset=utf-8",
+    }
+}
+
 fn serve_response(assets: &impl MobileDisk, intent: &NavigationIntent) -> Response<Vec<u8>> {
     let path = pattern::extract_path(&intent.url)
         .trim_start_matches('/')
@@ -76,11 +88,7 @@ fn serve_response(assets: &impl MobileDisk, intent: &NavigationIntent) -> Respon
             format!("{root}/index.html")
         }
     };
-    let ct = match Path::new(&file).extension().and_then(|e| e.to_str()) {
-        Some("wasm") => "application/wasm",
-        Some("js") => "application/javascript",
-        _ => "text/html; charset=utf-8",
-    };
+    let ct = content_type(Path::new(&file));
     match assets.read_utf8_for(&file) {
         Some(data) => Response::builder()
             .status(StatusCode::OK)

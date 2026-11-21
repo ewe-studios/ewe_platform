@@ -83,7 +83,8 @@ The owner's words (2026-11-16), shortened:
 - **R6.** The table holds a bare media type. It never holds a parameter such as `charset`. A
   caller that needs one appends it.
 - **R7.** Ambiguity is resolved by a written rule, not by file order. The rule prefers the IANA
-  entry, then the unlisted-source entry, then the alphabetically first type.
+  entry, then the unlisted-source entry, then the alphabetically first type. A small reviewed
+  override list corrects a known bad result: `mp4` and `mpg4` map to `video/mp4` (issue #593).
 
 ## 6. Decisions
 

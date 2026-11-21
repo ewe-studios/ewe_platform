@@ -192,3 +192,14 @@ not satisfy `0.0.8`. Cargo ignores the version while the path exists, so a
 local build passes; `cargo package` fails. Issue #595 records it and holds the
 audit command. The fix lands after this pull request, because both change the
 same manifests.
+
+## The mp4 tie-break (2026-11-21)
+
+Rule R7 chose `application/mp4` for `mp4`, because both candidates are IANA and the
+type name sorts first. A browser expects `video/mp4`. A reviewed override list is
+smaller and safer than a new tie-break: it changes only the known bad rows. The
+list holds `mp4` and `mpg4`.
+
+The second extension map in `foundation_platform` survived the first review. It
+served `.mjs` as HTML. A consumer call site can keep a map after the shared module
+lands, so the review must read every consumer, not only the files in the plan.

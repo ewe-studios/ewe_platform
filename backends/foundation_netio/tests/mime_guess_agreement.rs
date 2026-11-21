@@ -5,22 +5,19 @@
 //! different rule. This test names the extensions where the two agree, so a
 //! change to either table shows up here.
 //!
-//! Two common extensions are deliberately absent:
+//! One common extension is deliberately absent:
 //!
 //! - `mjs`: the shared table picks `text/javascript` (the Internet Assigned
 //!   Numbers Authority (IANA) entry, and the reason for issue #578).
 //!   `new_mime_guess` picks `application/javascript`.
-//! - `mp4`: the shared table picks `application/mp4`, because rule R7 breaks a
-//!   tie between two IANA entries by the alphabetically first type.
-//!   `new_mime_guess` picks `video/mp4`.
 
 use foundation_netio::shared::mime::from_extension;
 use new_mime_guess::MimeGuess;
 
-/// Twenty common extensions where both tables give the same answer.
-const COMMON: [&str; 20] = [
+/// Twenty-two common extensions where both tables give the same answer.
+const COMMON: [&str; 22] = [
     "html", "htm", "css", "js", "json", "png", "jpg", "jpeg", "gif", "svg", "ico", "woff", "woff2",
-    "ttf", "txt", "xml", "pdf", "zip", "wasm", "webp",
+    "ttf", "txt", "xml", "pdf", "zip", "wasm", "webp", "mp4", "mpg4",
 ];
 
 #[test]

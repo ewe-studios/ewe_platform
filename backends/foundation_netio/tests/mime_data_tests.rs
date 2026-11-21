@@ -109,5 +109,7 @@ fn known_rows_hold() {
     assert_eq!(lookup("wasm"), Some("application/wasm"));
     assert_eq!(lookup("map"), Some("application/json"));
     assert_eq!(lookup("md"), Some("text/markdown"));
+    assert_eq!(lookup("mp4"), Some("video/mp4"));
+    assert_eq!(lookup("mpg4"), Some("video/mp4"));
     assert_eq!(lookup("ts"), Some("video/mp2t"));
 }

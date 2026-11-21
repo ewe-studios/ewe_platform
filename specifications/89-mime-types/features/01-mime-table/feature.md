@@ -202,7 +202,8 @@ Python 3 and no other package. The rule from R7:
 3. for an extension with several, keep the first by this order: `source == "iana"`, then no
    `source` key, then `source == "apache"`, then any other source; inside one rank, take the
    alphabetically first media type;
-4. write a flat object, sorted by extension, two-space indent, one pair per line.
+4. apply the reviewed overrides: `mp4` and `mpg4` become `video/mp4` (issue #593);
+5. write a flat object, sorted by extension, two-space indent, one pair per line.
 
 Measured with this rule on mime-db 1.54.0 (2026-11-16):
 
@@ -214,6 +215,8 @@ Measured with this rule on mime-db 1.54.0 (2026-11-16):
 | `map` | `application/json` | the only IANA candidate |
 | `md` | `text/markdown` | the only IANA candidate |
 | `ts` | `video/mp2t` | the only IANA candidate; see the out-of-scope note |
+| `mp4` | `video/mp4` | reviewed override; browsers expect the video type (issue #593) |
+| `mpg4` | `video/mp4` | the same container and ambiguity (issue #593) |
 
 `README.md` holds the source Uniform Resource Identifier (URI), the version, the download date,
 the rule and the command:
@@ -317,7 +320,7 @@ rg -n 'Some\("html" \| "htm"\)|"application/javascript"' backends --glob '*.rs'
 | R4, I3 | case, leading dot, no extension, unknown name, `.bashrc` | expected outcome |
 | I5 | `cargo check -p foundation_netio --target wasm32-unknown-unknown` | the compiler |
 | 6.4 | the data file shape and the known rows | the rule and mime-db |
-| T6 | 20 extensions agree with `new_mime_guess` | example |
+| T6 | 22 extensions agree with `new_mime_guess` | example |
 
 The data test also checks: every key is lowercase ASCII, every value matches
 `[a-z0-9.+-]+/[a-z0-9.+-]+`, the file holds at least 1,200 rows, and the keys are sorted.
@@ -329,6 +332,7 @@ cargo test -p foundation_macros --test include_json --test include_yaml --profil
 cargo test -p foundation_netio --profile uat --test mime_tests --test mime_data_tests \
   --test mime_guess_agreement
 cargo test -p foundation_http --features multi --profile uat --test static_file_tests
+cargo test -p foundation_platform --profile uat --test content_type_tests
 cargo check -p foundation_netio --target wasm32-unknown-unknown \
   --no-default-features --features wasm-fetch
 cargo clippy -p foundation_netio -p foundation_macros -p foundation_nostd --profile uat --all-targets

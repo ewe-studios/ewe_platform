@@ -13,7 +13,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Owner approval of the plan | **approved 2026-11-16**: spec 89; the table is a `phf::Map`; an unknown name returns `None` |
 | Implementation | **done 2026-11-16** on branch `spec/89-mime-types` |
 | The Main Agent's review | **done 2026-11-16**: pass, with four findings recorded below |
-| Pull request | not open yet; the owner decides on #592 and #593 first |
+| Pull request | draft #656 opened 2026-11-21; merge after the review fixes |
 
 ## The feature
 
@@ -89,17 +89,15 @@ tie-break. The record is in `LEARNINGS.md`.
 | Issue | Severity | Summary |
 |---|---|---|
 | #591 | low | The plan's mime-db counts were wrong. Fixed in this branch. |
-| #592 | medium | `foundation_platform/src/responder.rs` keeps a second extension map. |
-| #593 | medium | Rule R7 maps `mp4` to `application/mp4`, not `video/mp4`. |
-| #595 | low | 22 manifests carry stale version requirements for a path dependency. It predates this specification. |
+| #592 | medium | fixed 2026-11-21: `foundation_platform` now calls the shared table, with a test. |
+| #593 | medium | fixed 2026-11-21: a reviewed override maps `mp4` and `mpg4` to `video/mp4`. |
+| #595 | low | open: 22 manifests carry stale version requirements. It waits for its own change. |
 
 ## Next steps
 
-1. The owner decides on #593 (the `mp4` row) and on #592 (the second map in
-   `foundation_platform`). Both change the approved plan, so each needs an answer first.
-2. The Main Agent opens the pull request after that answer.
-3. The full continuous integration (CI) run proves Linux, macOS and Windows.
-4. The review of spec 88 feature 00 continues in its own track (spec 88 `progress.md`).
+1. Merge pull request #656 after its tests and the full continuous integration (CI) run.
+2. Fix #595 in its own change, because both touch the same manifests.
+3. The review of spec 88 feature 00 continues in its own track (spec 88 `progress.md`).
 
 ---
 
