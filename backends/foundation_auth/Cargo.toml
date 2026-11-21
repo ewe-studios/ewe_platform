@@ -88,7 +88,7 @@ web-sys = { version = "0.3", features = [
 foundation_netio = { path = "../foundation_netio", version = "0.0.14", features = ["multi"] }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
-pbkdf2 = "0.12"
+pbkdf2 = "0.13"
 
 # NOTE: `default-features = false` is required here. Cargo unions default-features
 # across a crate's dependency declarations, so without it this target line would
