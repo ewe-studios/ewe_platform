@@ -10,8 +10,10 @@
 //! these types. They do not define a second secret type, a second bearer
 //! parser or a second comparison.
 
+mod bearer;
 mod secret;
 
+pub use bearer::{bearer_header, extract_bearer_token};
 pub use secret::{ConfidentialText, Secret};
 
 pub use crate::shared::constant_time_eq;

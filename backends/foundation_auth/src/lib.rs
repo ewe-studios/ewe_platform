@@ -78,7 +78,7 @@ pub use shared::two_factor::{
 // One constant-time comparison for the whole workspace (spec 86).
 pub use shared::constant_time_eq;
 
-pub use server_credential::{ConfidentialText, Secret};
+pub use server_credential::{bearer_header, ConfidentialText, Secret};
 
 // Re-export platform-specific OAuth wrappers.
 #[cfg(not(target_family = "wasm"))]
