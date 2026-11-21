@@ -80,6 +80,11 @@ pub use server_credential::{
     bearer_header, AuthError, AuthFuture, AuthInfo, AuthMethod, CallCredentials, ClientAuth,
     Principal, Secret, StaticToken,
 };
+
+// Mutual TLS (spec 87): the certificate authority. The trust store, the rustls
+// verifier and the mTLS providers follow in their own tasks.
+#[cfg(not(target_family = "wasm"))]
+pub mod pki;
 // One constant-time comparison for the whole workspace (spec 86).
 pub use shared::constant_time_eq;
 

@@ -4703,7 +4703,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "argon2",
  "async-trait",
@@ -4722,6 +4722,7 @@ dependencies = [
  "foundation_testing",
  "futures-core",
  "futures-lite",
+ "futures-util",
  "getrandom 0.2.17",
  "hmac",
  "js-sys",
@@ -4729,6 +4730,9 @@ dependencies = [
  "ntest",
  "openssl",
  "pbkdf2",
+ "rcgen",
+ "rustls 0.23.40",
+ "rustls-pemfile",
  "serde",
  "serde_cbor",
  "serde_json",
@@ -4736,6 +4740,7 @@ dependencies = [
  "sha1",
  "sha2 0.10.9",
  "tempfile",
+ "time",
  "tracing",
  "url",
  "urlencoding",
@@ -4744,6 +4749,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "webauthn-rs",
+ "x509-parser",
  "zeroize",
 ]
 
