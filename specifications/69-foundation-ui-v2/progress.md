@@ -558,3 +558,5 @@ The project now has local design skills for Android and iPhone.
 Feature 23 proposes native defaults, application themes and checks for both host types.
 The design preview and baseline captures are ready for owner review.
 Nineteen of 22 indexed features are complete. Features 07, 19 and 23 have open work.
+
+The specification now links to both skills in the main project’s shared agent submodule.

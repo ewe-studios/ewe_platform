@@ -589,3 +589,5 @@ The Rust template already sends numeric color and font tokens. A theme can chang
 The low-level renderers accept mappings. The public host screens currently create these renderers without passing application mappings.
 Swift also renders recognized presentation roles before it applies ordinary node modifiers. Check both rendering paths with the same token.
 See [issue 652](https://github.com/ewe-studios/ewe_platform/issues/652).
+
+Each worktree pins its own agent submodule revision. Use the same revision so relative skill links resolve in each checkout.

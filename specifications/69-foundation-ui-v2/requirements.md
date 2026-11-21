@@ -9,7 +9,7 @@ metadata:
   last_updated: 2026-11-21
   estimated_effort: "large"
   tags: [ui, flatbuffers, wire, actions, signed-state, web, native, live-mounts]
-  skills: [story-driven-specification, specifications-management, rust-clean-code, rust-valtron-usage, test-driven-development]
+  skills: [story-driven-specification, specifications-management, rust-clean-code, rust-valtron-usage, test-driven-development, android-material-design, ios-human-interface-design]
   tools: [flatc, cargo, node, pnpm, swift, gradle]
 has_features: true
 has_fundamentals: false
@@ -380,6 +380,12 @@ path.
 
 14. Write or update the README for each feature or package. Show concrete usage and provide runnable checks.
     Include fixture and generation steps when they apply.
+
+## Native design standards
+
+Use the shared [Android Material Design guide](../../.agents/skills/android-material-design/SKILL.md) for Compose controls.
+Use the shared [iPhone design guide](../../.agents/skills/ios-human-interface-design/SKILL.md) for SwiftUI controls.
+[Feature 23](./features/23-native-design-and-themes/feature.md) applies these guides to the renderers and application themes.
 
 ## 7. Feature index
 
