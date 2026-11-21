@@ -8,6 +8,8 @@
 
 pub mod shared;
 
+pub mod server_credential;
+
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
@@ -29,8 +31,8 @@ pub use shared::credential_store::{
 };
 pub use shared::types::{
     AuthCredential, AuthProviderEndpoint, Authenticated, AuthenticationErrors,
-    AuthenticationResult, AuthenticationStates, ConfidentialText, JwtCredential, OAuthCredential,
-    OnAuthData, SessionCredential,
+    AuthenticationResult, AuthenticationStates, JwtCredential, OAuthCredential, OnAuthData,
+    SessionCredential,
 };
 
 // Feature 01: JWT Verifier
@@ -72,6 +74,11 @@ pub use shared::session::{Session, SessionConfig, SessionError, SessionManager};
 pub use shared::two_factor::{
     BackupCodeSet, TOTPSecret, TotpAlgorithm, TwoFactorChallenge, TwoFactorError,
 };
+
+// One constant-time comparison for the whole workspace (spec 86).
+pub use shared::constant_time_eq;
+
+pub use server_credential::{ConfidentialText, Secret};
 
 // Re-export platform-specific OAuth wrappers.
 #[cfg(not(target_family = "wasm"))]

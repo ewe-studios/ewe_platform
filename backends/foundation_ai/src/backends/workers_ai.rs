@@ -356,7 +356,7 @@ impl WorkersAiModel {
         if let Some(token) = &self.api_token {
             headers.insert(
                 SimpleHeader::AUTHORIZATION,
-                vec![format!("Bearer {}", token.get())],
+                vec![format!("Bearer {}", token.expose())],
             );
         }
         headers.insert(

@@ -170,7 +170,7 @@ async fn agent_session_builder_takes_a_provider() {
 
 fn secret(auth: Option<&foundation_auth::AuthCredential>) -> String {
     match auth {
-        Some(foundation_auth::AuthCredential::SecretOnly(text)) => text.get(),
+        Some(foundation_auth::AuthCredential::SecretOnly(text)) => text.expose().to_owned(),
         other => panic!("expected SecretOnly, got {other:?}"),
     }
 }

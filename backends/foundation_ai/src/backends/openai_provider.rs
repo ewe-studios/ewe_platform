@@ -286,7 +286,7 @@ impl OpenAIProvider {
         if let Some(key) = &self.api_key {
             headers.insert(
                 SimpleHeader::AUTHORIZATION,
-                vec![format!("Bearer {}", key.get())],
+                vec![format!("Bearer {}", key.expose())],
             );
         }
         headers.insert(
@@ -619,7 +619,7 @@ impl OpenAIModel {
         if let Some(key) = &self.api_key {
             headers.insert(
                 SimpleHeader::AUTHORIZATION,
-                vec![format!("Bearer {}", key.get())],
+                vec![format!("Bearer {}", key.expose())],
             );
         }
         headers.insert(

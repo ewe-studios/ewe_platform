@@ -182,7 +182,7 @@ impl HuggingFaceCandleProvider {
                     .auth
                     .as_ref()
                     .map(|a| match a {
-                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                        foundation_auth::AuthCredential::SecretOnly(t) => t.expose().to_owned(),
                         _ => String::new(),
                     })
                     .unwrap_or_default(),
