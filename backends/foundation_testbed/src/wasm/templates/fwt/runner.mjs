@@ -45,7 +45,10 @@ function report(passed, failed, ignored) {
 
 async function runCase(moduleCompiled, testCase) {
   const rt = new FoundationWasm();
-  const instance = new WebAssembly.Instance(moduleCompiled, { abi: rt.web_abi });
+  // Async instantiate for the same 8 MB main-thread rule as the compile above.
+  // A compiled module resolves to the instance; only buffer input resolves to
+  // `{ module, instance }`.
+  const instance = await WebAssembly.instantiate(moduleCompiled, { abi: rt.web_abi });
   rt.init(instance);
 
   let trapped = false;
@@ -78,7 +81,10 @@ async function runCase(moduleCompiled, testCase) {
 
 async function main() {
   const cases = JSON.parse(new TextDecoder().decode(await loadBytes(here("./cases.json"))));
-  const moduleCompiled = new WebAssembly.Module(await loadBytes(here("./module.wasm")));
+  // Async compile: Chrome refuses a synchronous compile on the main thread for a
+  // buffer larger than 8 MB (a debug wasm is larger). `WebAssembly.compile` works
+  // on every host, embedded Deno included.
+  const moduleCompiled = await WebAssembly.compile(await loadBytes(here("./module.wasm")));
 
   let passed = 0;
   let failed = 0;

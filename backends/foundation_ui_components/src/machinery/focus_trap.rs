@@ -16,7 +16,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Popup marker: present on a modal popup whose focus should be trapped while
 /// open (`data-focus-trap`).
@@ -73,10 +73,10 @@ pub const FOCUS_TRAP_JS: &str = r#"function(scope){
   mo.observe(el, { attributes: true, attributeFilter: ['data-open', 'data-closed'] });
 }"#;
 
-/// The `<script>` node a modal popup embeds to trap focus while open. The popup
+/// The marker node a modal popup embeds to trap focus while open. The popup
 /// root must carry [`DATA_FOCUS_TRAP`], toggle `data-open`, and (for restore)
 /// carry `data-anchor` pointing at its trigger.
 #[must_use]
 pub fn focus_trap_behavior() -> Html {
-    scoped_script(FOCUS_TRAP_JS)
+    behaviour_script(Behaviour::FocusTrap, FOCUS_TRAP_JS)
 }

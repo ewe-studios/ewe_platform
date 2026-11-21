@@ -1,0 +1,7 @@
+[bindings.swift]
+module_name = "EweCore"
+ffi_module_name = "EweCoreFFI"
+
+[bindings.kotlin]
+package_name = "io.github.ewe_studios.ewe.core"
+cdylib_name = "foundation_ui_native"

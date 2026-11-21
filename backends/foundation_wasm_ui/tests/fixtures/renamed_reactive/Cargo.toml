@@ -1,0 +1,12 @@
+[package]
+name = "renamed_reactive_consumer"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+renderer = { package = "foundation_wasm_ui", path = "../../..", default-features = false }
+template = { package = "foundation_ui_traits", path = "../../../../foundation_ui_traits" }
+signals = { package = "foundation_signals", path = "../../../../foundation_signals", default-features = false, features = ["single_threaded"] }
+
+[workspace]

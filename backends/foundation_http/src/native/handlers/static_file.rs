@@ -37,7 +37,7 @@ fn mime_type(path: &Path) -> &str {
     match path.extension().and_then(|e| e.to_str()) {
         Some("html" | "htm") => "text/html",
         Some("css") => "text/css",
-        Some("js") => "application/javascript",
+        Some("js" | "mjs") => "application/javascript",
         Some("json") => "application/json",
         Some("png") => "image/png",
         Some("jpg" | "jpeg") => "image/jpeg",

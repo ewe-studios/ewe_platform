@@ -147,3 +147,26 @@ fn cli_flags_parse() {
         "my-crate"
     );
 }
+
+#[test]
+fn scanned_modes_generate_the_same_rust_sources_that_build_uses() {
+    use foundation_wasm_ui::build_tools::WasmBundleGenerator;
+    use std::fs;
+    let fixture = std::env::temp_dir().join(format!("ewe-bundle-modes-{}", std::process::id()));
+    fs::create_dir(&fixture).unwrap();
+    fs::create_dir(fixture.join("src")).unwrap();
+    fs::write(fixture.join("Cargo.toml"), "[workspace]\n[package]\nname='sample'\nversion='1.0.0'\nedition='2021'\n[lib]\ncrate-type=['cdylib','rlib']\n").unwrap();
+    fs::write(fixture.join("src/lib.rs"), "pub mod screen;\n").unwrap();
+    fs::write(fixture.join("src/screen.rs"), "#[wasm_bin]\npub fn dashboard(){}\n#[wasm_worker]\npub fn background(){}\n#[wasm_service]\npub fn service(){}\n").unwrap();
+    let generator = WasmBundleGenerator::new(&fixture, &fixture.join("out")).unwrap();
+    let plan = generator.generate_sources().unwrap();
+    assert_eq!(plan.entrypoints.len(), 3);
+    for name in ["dashboard", "background", "service"] {
+        let entry = plan.entrypoints.iter().find(|e| e.name == name).unwrap();
+        assert_eq!(entry.qualified_path, format!("sample::screen::{name}"));
+        assert!(entry.source_file.ends_with("screen.rs"));
+        let main = fs::read_to_string(fixture.join(format!("bin/{name}/main.rs"))).unwrap();
+        assert!(main.contains(&format!("use sample::screen::{name};")));
+    }
+    fs::remove_dir_all(fixture).unwrap();
+}

@@ -25,7 +25,7 @@ use foundation_wasm_ui::html;
 use crate::machinery::scoped_script;
 
 /// Scroll-area presentation behavior (overflow/edge attrs + thumb size vars).
-const SCROLL_AREA_JS: &str = r#"function(scope){
+const SCROLL_AREA_JS: &str = r"function(scope){
   var root = scope.parent();
   if (!root || root.__scrollArea) return; root.__scrollArea = true;
   var win = (root.ownerDocument && root.ownerDocument.defaultView) || window;
@@ -54,22 +54,21 @@ const SCROLL_AREA_JS: &str = r#"function(scope){
   scope.addEvent(root, 'pointerleave', function(){ root.removeAttribute('data-hovering'); });
   if (win.ResizeObserver) { var ro = new win.ResizeObserver(update); ro.observe(vp); }
   update();
-}"#;
+}";
 
 /// Static config for a scroll-area.
+#[derive(Default)]
 pub struct ScrollAreaConfig {
     /// Class override (default `"scroll-area"`).
     pub class: Option<Cow<'static, str>>,
 }
 
-impl Default for ScrollAreaConfig {
-    fn default() -> Self {
-        Self { class: None }
-    }
-}
-
 /// Scroll-area — custom scrollbars over a native scroller. PURE (no signals).
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 pub fn scroll_area(config: ScrollAreaConfig, children: Vec<Html>) -> Html {
     let class = config.class.unwrap_or(Cow::Borrowed("scroll-area"));
     html! {

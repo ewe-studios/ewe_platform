@@ -17,7 +17,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Container marker: present on the composite root (`data-composite`).
 pub const DATA_COMPOSITE: &str = "data-composite";
@@ -34,7 +34,7 @@ pub const DATA_COMPOSITE_SELECT: &str = "data-composite-select";
 /// The M5 roving-focus behavior (orientation-aware arrows, Home/End, loop,
 /// roving `tabindex`, disabled-skipping). Reads `data-orientation`/`data-loop`
 /// off the container.
-pub const COMPOSITE_JS: &str = r#"function(scope){
+pub const COMPOSITE_JS: &str = r"function(scope){
   var root = scope.parent();
   if (!root || root.__composite) return; root.__composite = true;
   var orientation = root.getAttribute('data-orientation') || 'horizontal';
@@ -98,13 +98,13 @@ pub const COMPOSITE_JS: &str = r#"function(scope){
     move(next);
   });
   seed();
-}"#;
+}";
 
-/// The `<script>` node a composite container embeds to get roving focus.
+/// The marker node a composite container embeds to get roving focus.
 /// The container must also carry `data-composite` + `data-orientation`
 /// (+ optional `data-loop="false"`), and mark each member with
 /// `data-composite-item`.
 #[must_use]
 pub fn composite_behavior() -> Html {
-    scoped_script(COMPOSITE_JS)
+    behaviour_script(Behaviour::Composite, COMPOSITE_JS)
 }

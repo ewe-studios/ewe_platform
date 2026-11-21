@@ -16,16 +16,22 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::task::{Context, Poll};
+use std::task::{Context, Poll, Wake, Waker};
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    single::{initialize_pool, run_until_complete, spawn},
+    run_future_iter,
+    single::{fork_ctx, initialize_pool, run_until_complete, spawn},
     wasm::{JSThreadYielder, WaitStatus},
-    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
+    Ctx, FnReady, NotificationItem, NotifyQueue, NotifyQueueStreamIterator, ProcessController,
+    Stream, StreamCollectFuture, StreamIteratorExt, StreamNextStream, StreamPendingFuture,
+    StreamReadyFuture, TaskIterator, TaskStatus, ThreadedValue, WakeRegistry,
 };
-use foundation_macros::wasm_test;
+// `.next().await` on the `futures_core::Stream` bridges (futures-lite, via core).
+use foundation_core::valtron::StreamExt as _;
+use foundation_macros::{valtron_wasm_test, wasm_test};
 use foundation_wasm::abi::web::{invoke_as_f64, register_function};
+use futures_core::Stream as FuturesStream;
 
 /// Milliseconds since the epoch, via a registered host function (owned ABI).
 fn now_ms() -> f64 {
@@ -222,7 +228,7 @@ async fn no_deadlock_with_js_yield() {
 }
 
 // ---------------------------------------------------------------------------
-// Spec 68 / spec 65 feature 06 T5: event-driven park → wake → resume.
+// Spec 68 / spec 83 feature 06 T5: event-driven park → wake → resume.
 //
 // A task parked on a readiness signal must not be re-polled while it waits, the
 // executor must hand the thread back to the JS event loop (not spin), and the
@@ -520,4 +526,391 @@ async fn timeout_task_ends_at_its_timeout() {
 #[wasm_test]
 fn waitgroup_idle_wait_timeout_reads_the_clock() {
     wake::waitgroup_idle_wait_timeout();
+}
+
+// ---------------------------------------------------------------------------
+// Spec 68: the stream-to-future bridge contract on the owned wasm path.
+//
+// The native template (`tests/valtron/bridge_park.rs`) is gated `not(wasm)`.
+// These cases re-prove the same contract with the real producer: NotifyQueue
+// push and close fire its WakeRegistry, and a CountingWaker proves the park.
+
+/// A `std::task::Wake` whose shared counter records every wake.
+struct CountingWaker {
+    count: Arc<AtomicUsize>,
+}
+
+impl Wake for CountingWaker {
+    fn wake(self: Arc<Self>) {
+        self.count.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+fn counting_waker() -> (Waker, Arc<AtomicUsize>) {
+    let count = Arc::new(AtomicUsize::new(0));
+    let waker = Waker::from(Arc::new(CountingWaker {
+        count: Arc::clone(&count),
+    }));
+    (waker, count)
+}
+
+fn poll_future<F: Future + Unpin>(f: &mut F, waker: &Waker) -> Poll<F::Output> {
+    Pin::new(f).poll(&mut Context::from_waker(waker))
+}
+
+fn poll_next<S: FuturesStream + Unpin>(s: &mut S, waker: &Waker) -> Poll<Option<S::Item>> {
+    Pin::new(s).poll_next(&mut Context::from_waker(waker))
+}
+
+type WakingIter<D, P> = (
+    NotifyQueueStreamIterator<D, P>,
+    Arc<NotifyQueue<Stream<D, P>>>,
+);
+
+/// A queue whose empty `next()` yields `Stream::Wait`, plus its producer handle.
+/// The bridges call `announce()` on the first poll, so the empty path does not
+/// wait on the queue's condvar.
+fn waking_iter<D, P>() -> WakingIter<D, P> {
+    let queue = Arc::new(NotifyQueue::unbounded());
+    queue.set_max_spins(1);
+    let iterator = NotifyQueueStreamIterator::new(
+        Arc::clone(&queue),
+        5,
+        Duration::from_micros(50),
+        fork_ctx(),
+    );
+    (iterator, queue)
+}
+
+/// `StreamReadyFuture` parks with no self-wake, a push fires one wake, and the
+/// re-poll resolves.
+#[valtron_wasm_test]
+fn parking_bridge_ready_future_parks_then_wakes() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut future = StreamReadyFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    assert!(queue.push(Stream::Next(42)).is_ok());
+    assert_eq!(count.load(Ordering::SeqCst), 1, "push fired the wake");
+
+    match poll_future(&mut future, &waker) {
+        Poll::Ready(Some((42, _))) => {}
+        _ => panic!("expected Ready(Some((42, _)))"),
+    }
+}
+
+/// `StreamCollectFuture` drains pushed items, re-parks, and a close resolves it.
+#[valtron_wasm_test]
+fn parking_bridge_collect_future_parks_then_wakes() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut future = StreamCollectFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    assert!(queue.push(Stream::Next(7)).is_ok());
+    assert!(queue.push(Stream::Next(8)).is_ok());
+    assert_eq!(count.load(Ordering::SeqCst), 1, "one registered wake fires");
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 1, "re-park, no self-wake");
+
+    assert!(queue.close());
+    assert_eq!(count.load(Ordering::SeqCst), 2, "close fired the wake");
+    match poll_future(&mut future, &waker) {
+        Poll::Ready(vec) => assert_eq!(vec, vec![7, 8]),
+        _ => panic!("expected Ready(vec![7, 8]) on close"),
+    }
+}
+
+/// `StreamNextStream` parks and surfaces the first pushed payload.
+#[valtron_wasm_test]
+fn parking_bridge_next_stream_parks_then_wakes() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut stream = StreamNextStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    assert!(queue.push(Stream::Next(5)).is_ok());
+    assert_eq!(count.load(Ordering::SeqCst), 1, "push fired the wake");
+
+    match poll_next(&mut stream, &waker) {
+        Poll::Ready(Some(5)) => {}
+        _ => panic!("expected Ready(Some(5))"),
+    }
+}
+
+/// The full-enum lens from `into_future_stream` parks over a control state and
+/// yields the pushed item as-is.
+#[valtron_wasm_test]
+fn parking_bridge_future_stream_parks_then_wakes() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut stream = iterator.into_future_stream();
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    assert!(queue.push(Stream::Next(9)).is_ok());
+    assert_eq!(count.load(Ordering::SeqCst), 1, "push fired the wake");
+
+    match poll_next(&mut stream, &waker) {
+        Poll::Ready(Some(Stream::Next(9))) => {}
+        _ => panic!("expected Ready(Some(Stream::Next(9)))"),
+    }
+}
+
+/// A producer that runs on a host timer wakes the parked bridge across a real
+/// JavaScript event-loop turn.
+#[valtron_wasm_test]
+async fn parking_bridge_wakes_from_a_host_timer() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut future = StreamReadyFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    register_schedule(20.0, move || {
+        assert!(queue.push(Stream::Next(11)).is_ok());
+    });
+
+    let waited = Arc::clone(&count);
+    WaitUntil::new(move || waited.load(Ordering::SeqCst) >= 1).await;
+
+    match poll_future(&mut future, &waker) {
+        Poll::Ready(Some((11, _))) => {}
+        _ => panic!("expected Ready(Some((11, _))) after the host timer"),
+    }
+}
+
+/// The raw lens forwards `Wait` and `Next` as items and never parks.
+#[wasm_test]
+fn pure_future_stream_forwards_control_items() {
+    let iterator = vec![Stream::<i32, &'static str>::Wait, Stream::Next(7)]
+        .into_iter()
+        .into_stream_iter();
+    let mut stream = iterator.into_pure_future_stream();
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(
+        poll_next(&mut stream, &waker),
+        Poll::Ready(Some(Stream::Wait))
+    ));
+    assert!(matches!(
+        poll_next(&mut stream, &waker),
+        Poll::Ready(Some(Stream::Next(7)))
+    ));
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Ready(None)));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "the raw lens never wakes");
+}
+
+/// `StreamPendingFuture` consumes a spurious `Next`, re-parks, re-registers,
+/// and resolves on the real `Pending`.
+#[valtron_wasm_test]
+fn pending_future_spurious_wake_reparks() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut future = StreamPendingFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    assert!(queue.push(Stream::Next(99)).is_ok());
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        1,
+        "spurious push fired a wake"
+    );
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 1, "spurious item re-parks");
+
+    assert!(queue.push(Stream::Pending("ctx")).is_ok());
+    assert_eq!(count.load(Ordering::SeqCst), 2, "re-registered wake fired");
+
+    match poll_future(&mut future, &waker) {
+        Poll::Ready(Some(("ctx", _))) => {}
+        _ => panic!("expected Ready(Some((\"ctx\", _)))"),
+    }
+}
+
+/// `WakeRegistry` fires each waiter once and clears its list.
+#[wasm_test]
+fn wake_registry_fires_each_waiter_once() {
+    let registry = WakeRegistry::new();
+    let first = Arc::new(AtomicUsize::new(0));
+    let second = Arc::new(AtomicUsize::new(0));
+
+    let f = Arc::clone(&first);
+    registry.register(Box::new(move || {
+        f.fetch_add(1, Ordering::SeqCst);
+    }));
+    let s = Arc::clone(&second);
+    registry.register(Box::new(move || {
+        s.fetch_add(1, Ordering::SeqCst);
+    }));
+    assert_eq!(registry.pending_len(), 2);
+
+    registry.fire();
+    assert_eq!(first.load(Ordering::SeqCst), 1);
+    assert_eq!(second.load(Ordering::SeqCst), 1);
+    assert_eq!(registry.pending_len(), 0);
+
+    registry.fire();
+    assert_eq!(
+        first.load(Ordering::SeqCst),
+        1,
+        "second fire has no waiters"
+    );
+    assert_eq!(second.load(Ordering::SeqCst), 1);
+}
+
+/// A `NotSupported` iterator self-wakes on `Init` and still resolves.
+#[wasm_test]
+fn not_supported_stream_self_wakes() {
+    let iterator = vec![Stream::<i32, &'static str>::Init, Stream::Next(7)]
+        .into_iter()
+        .into_stream_iter();
+    let mut future = StreamReadyFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_future(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 1, "NotSupported self-wakes");
+
+    match poll_future(&mut future, &waker) {
+        Poll::Ready(Some((7, _))) => {}
+        _ => panic!("expected Ready(Some((7, _)))"),
+    }
+}
+
+/// The lazy `run_future_iter` makes progress on one iterator: `Waiting`, then
+/// the values.
+#[valtron_wasm_test]
+fn run_future_iter_makes_progress_on_wasm() {
+    let mut polls = 0u8;
+    let iter = match run_future_iter(
+        move || async move {
+            std::future::poll_fn(move |_cx| {
+                polls += 1;
+                if polls < 2 {
+                    Poll::Pending
+                } else {
+                    Poll::Ready(Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2)].into_iter()))
+                }
+            })
+            .await
+        },
+        None,
+        None,
+        fork_ctx(),
+    ) {
+        Ok(iter) => iter,
+        Err(_) => panic!("run_future_iter returned an error"),
+    };
+
+    let values: Vec<ThreadedValue<i32, ()>> = iter.collect();
+    assert_eq!(values.len(), 3);
+    assert!(matches!(values[0], ThreadedValue::Waiting));
+    assert!(matches!(values[1], ThreadedValue::Value(Ok(1))));
+    assert!(matches!(values[2], ThreadedValue::Value(Ok(2))));
+}
+
+/// The queue's waiting path runs on wasm. On the old wiring this reaches std's
+/// `CondVar`, whose `wait_timeout` panics in `thread::sleep` (#605).
+#[valtron_wasm_test]
+fn notify_queue_wait_returns_after_timeout() {
+    let queue: NotifyQueue<Stream<i32, &'static str>> = NotifyQueue::unbounded();
+    queue.set_max_spins(1);
+    let ctx = fork_ctx();
+
+    match queue.wait_for_item(Duration::from_millis(1), &ctx) {
+        Some(NotificationItem::None) => {}
+        _ => panic!("expected NotificationItem::None after the timeout"),
+    }
+
+    assert!(queue.push(Stream::Next(7)).is_ok());
+    match queue.wait_for_item(Duration::from_millis(1), &ctx) {
+        Some(NotificationItem::Ready(Stream::Next(7))) => {}
+        _ => panic!("expected Ready(Next(7))"),
+    }
+
+    assert!(queue.close());
+    assert!(queue
+        .wait_for_item(Duration::from_millis(1), &ctx)
+        .is_none());
+}
+
+// ---------------------------------------------------------------------------
+// Standard async functions: `.await` on the bridges, no manual polling.
+//
+// The `#[wasm_test]` harness drives the async body. When a bridge parks, it
+// registers the executor waker; the host timer's push fires it, and the harness
+// re-polls the body. Nothing calls `poll()` here.
+
+/// `into_ready_future().await` resolves from a host-timer push.
+#[valtron_wasm_test]
+async fn async_ready_future_awaits_a_host_push() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    register_schedule(20.0, move || {
+        assert!(queue.push(Stream::Next(42)).is_ok());
+    });
+
+    match iterator.into_ready_future().await {
+        Some((42, _)) => {}
+        _ => panic!("expected Some((42, _)) from the awaited ready future"),
+    }
+}
+
+/// `into_next_stream()` + `.next().await` yields a pushed value, then ends on a
+/// host-timer close.
+#[valtron_wasm_test]
+async fn async_next_stream_yields_values() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let push_queue = Arc::clone(&queue);
+    register_schedule(20.0, move || {
+        assert!(push_queue.push(Stream::Next(7)).is_ok());
+    });
+    register_schedule(40.0, move || {
+        assert!(queue.close());
+    });
+
+    let mut stream = iterator.into_next_stream();
+    assert_eq!(stream.next().await, Some(7));
+    assert_eq!(stream.next().await, None);
+}
+
+/// `into_future_stream()` + `.next().await` yields the full-enum item.
+#[valtron_wasm_test]
+async fn async_future_stream_forwards_items() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    register_schedule(20.0, move || {
+        assert!(queue.push(Stream::Next(9)).is_ok());
+    });
+
+    let mut stream = iterator.into_future_stream();
+    match stream.next().await {
+        Some(Stream::Next(9)) => {}
+        _ => panic!("expected Some(Stream::Next(9)) from the awaited stream"),
+    }
+}
+
+/// `into_collect_future().await` collects pushed items and ends on close.
+#[valtron_wasm_test]
+async fn async_collect_future_collects_pushed_items() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    register_schedule(20.0, move || {
+        assert!(queue.push(Stream::Next(7)).is_ok());
+        assert!(queue.push(Stream::Next(8)).is_ok());
+        assert!(queue.close());
+    });
+
+    let values = iterator.into_collect_future().await;
+    assert_eq!(values, vec![7, 8]);
 }

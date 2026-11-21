@@ -12,6 +12,14 @@
 
 [env]
 CARGO_TERM_COLOR = "always"
+ANDROID_HOME = { value = '{% if tools["http:android-sdk"] is defined %}{{ tools["http:android-sdk"].path }}{% else %}{{ env.ANDROID_HOME | default(value="") }}{% endif %}', tools = true }
+ANDROID_COMPILE_SDK = "36"
+ANDROID_UI_COMPILE_SDK = "37.2"
+ANDROID_BUILD_TOOLS = "36.0.0"
+ANDROID_GRADLE_PLUGIN = "9.5.1"
+ANDROID_KOTLIN_VERSION = { value = '{% if tools.kotlin is defined %}{{ tools.kotlin.version }}{% endif %}', tools = true }
+ANDROID_NDK = "27.0.12077973"
+XCODE_MIN = "26.2"
 # The wrangler the Cloudflare integration tests run. Pinned: they use its local
 # explorer REST API (/cdn-cgi/local/explorer/api), which is beta and may change.
 # `package.json` carries an older wrangler for other uses.
@@ -59,7 +67,9 @@ LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
 # the Windows/macOS images installs exactly the same versions. Only [tools]
 # (and [settings]) feed the CI image, so editing tasks or env doesn't rebuild
 # it. After changing a version, refresh the lock (needs GitHub API access):
-#   mise lock --platform linux-x64,windows-x64,macos-x64
+#   mise lock --platform linux-x64,macos-arm64,macos-x64,windows-x64
+#   python3 scripts/toolchain/android_lock.py
+#   bash scripts/toolchain/lock_test.sh
 # The shared versions match ci/platform-images/images/linux/mise/mise.toml.
 
 [tools]
@@ -91,9 +101,66 @@ pitchfork = { version = "2.30.1", os = ["linux", "windows"] }
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.
 
+# User interface schema and native build tools (feature 17).
+"github:google/flatbuffers" = "25.9.23"
+java = "temurin-25.0.5+8.0.LTS"
+gradle = "9.9.1"
+kotlin = "2.4.21"
+# Use the upstream binaries so the lock records each download and checksum.
+"github:bbqsrc/cargo-ndk" = "4.1.2"
+
+# Use direct downloads so mise verifies the lock checksum on installation.
+[tools."http:android-sdk"]
+version = "23.0"
+strip_components = 0
+bin_path = "cmdline-tools/bin"
+
+[tools."http:android-sdk".platforms]
+linux-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip" }
+macos-arm64 = { url = "https://dl.google.com/android/repository/commandlinetools-mac_arm64-16111833_latest.zip" }
+macos-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-mac_x86_64-16111833_latest.zip" }
+windows-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-win-16111833_latest.zip" }
+
 # =============================================================================
 # Tasks - Setup
 # =============================================================================
+
+[tasks."toolchain:android"]
+description = "Install the Android Software Development Kit packages"
+run = "bash scripts/toolchain/android.sh"
+
+[tasks."toolchain:android-build"]
+description = "Build and verify a sample Android application"
+depends = ["toolchain:android"]
+run = "bash scripts/toolchain/android_build.sh"
+
+[tasks."toolchain:wire"]
+description = "Verify the FlatBuffers schema compiler"
+run = "bash scripts/toolchain/wire_test.sh"
+
+[tasks."toolchain:apple"]
+description = "Check Xcode and compile the UniFFI Swift binding for the iOS simulator"
+run = ["bash scripts/toolchain/check.sh --scope apple", "bash scripts/toolchain/proof.sh --scope apple"]
+
+[tasks."ui-web:bundle"]
+description = "Build the self-contained browser runtime"
+run = "bash scripts/ui_web/bundle.sh"
+
+[tasks."ui-web:test"]
+description = "Test the browser runtime and compare both instruction encoders"
+run = "node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js"
+
+[tasks."ui-wire:generate"]
+description = "Generate and bundle the user interface wire bindings"
+run = "bash scripts/ui_wire/generate.sh"
+
+[tasks."ui-wire:check"]
+description = "Check the user interface wire bindings for drift"
+run = "bash scripts/ui_wire/check.sh"
+
+[tasks."ui-wire:test-ts"]
+description = "Read the Rust wire fixtures with the TypeScript bindings"
+run = "node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs"
 
 [tasks.setup]
 description = "Install all dev tools and WASM targets for this OS"
@@ -142,21 +209,10 @@ rustup target add wasm32-wasip2
 echo "✓ WASM targets installed (unknown-unknown, emscripten, wasip1, wasip2)"
 """
 
-[tasks."setup:playwright"]
-alias = "setup-playwright"
-description = "Install Playwright + chromium for the owned wasm-testbed web runner (spec-39 feature 12)"
-dir = "backends/foundation_testbed/integration"
-run = """
-echo "Installing Playwright (browser runner for wasm-testbed web)..."
-npm install
-npx playwright install --with-deps chromium
-echo "✓ Playwright + chromium installed"
-"""
-
-# ── spec-43: pure-Rust browser testing (no node/Playwright) ──────────────────
-# The foundation_browser driver speaks CDP directly to a system Chromium; these
-# tasks install it per-distro and run the suite. Set PRIMAL_TEST_CHROMIUM_BIN to
-# point at a specific binary.
+# ── spec-43: pure-Rust browser testing (no node) ─────────────────────────────
+# The foundation_browser driver speaks the Chrome DevTools Protocol (CDP)
+# directly to a Chromium binary; these tasks install one and run the suite. Set
+# PRIMAL_TEST_CHROMIUM_BIN to point at a specific binary.
 [tasks."test:browsers"]
 alias = "test-browsers"
 description = "Install browsers for the pure-Rust browser test driver (spec-43)"
@@ -164,17 +220,58 @@ depends = ["test:browsers:chromium", "test:browsers:firefox"]
 run = 'echo "✓ test browsers installed"'
 
 [tasks."test:browsers:chromium"]
-description = "Install Chromium for foundation_browser tests (per-distro)"
+description = "Install chrome-headless-shell for the pure-Rust CDP driver (Linux and macOS, no sudo)"
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
-case "$(. /etc/os-release; echo "$ID")" in
-  arch)          sudo pacman -S --needed --noconfirm chromium ;;
-  debian|ubuntu) sudo apt-get update && (sudo apt-get install -y chromium || sudo apt-get install -y chromium-browser) ;;
-  fedora)        sudo dnf install -y chromium ;;
-  *) echo "Install a Chromium build and set PRIMAL_TEST_CHROMIUM_BIN" >&2; exit 1 ;;
+
+# Pinned Chrome for Testing build. Bump this line to move to a newer build.
+CHROME_VERSION="157.0.8103.51"
+CACHE_DIR="${FOUNDATION_CHROMIUM_DIR:-$HOME/.cache/foundation/chromium}"
+BINARY="$CACHE_DIR/chrome"
+
+# 1. A binary named by the environment wins; a run never installs over it.
+if [ -n "${PRIMAL_TEST_CHROMIUM_BIN:-}" ] && [ -f "$PRIMAL_TEST_CHROMIUM_BIN" ]; then
+  echo "chromium: $PRIMAL_TEST_CHROMIUM_BIN (PRIMAL_TEST_CHROMIUM_BIN)"
+  exit 0
+fi
+
+# 2. The cache path. The second run prints it and downloads nothing.
+if [ -f "$BINARY" ]; then
+  echo "chromium: $BINARY (cached)"
+  exit 0
+fi
+
+# 3. Download a pinned headless build into the cache. It needs no sudo and reads
+#    no /etc/os-release. A Linux developer with a system Chromium already has it
+#    on PATH, so the driver finds it before this task is needed.
+case "$(uname -s)" in
+  Darwin)
+    case "$(uname -m)" in
+      arm64) PLATFORM="mac-arm64" ;;
+      *)     PLATFORM="mac-x64" ;;
+    esac
+    ;;
+  Linux) PLATFORM="linux64" ;;
+  *)
+    echo "Unsupported OS $(uname -s): install a Chromium build and set PRIMAL_TEST_CHROMIUM_BIN" >&2
+    exit 1
+    ;;
 esac
-echo "✓ chromium installed"
+
+URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/${PLATFORM}/chrome-headless-shell-${PLATFORM}.zip"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+echo "downloading chrome-headless-shell ${CHROME_VERSION} (${PLATFORM})..."
+curl -fsSL "$URL" -o "$TMP_DIR/chrome.zip"
+unzip -q "$TMP_DIR/chrome.zip" -d "$TMP_DIR"
+
+# Move the binary into place in one rename, so a partial download never looks
+# like an installed browser. The download itself stays in the temporary dir.
+mkdir -p "$CACHE_DIR"
+install -m 0755 "$TMP_DIR/chrome-headless-shell-${PLATFORM}/chrome-headless-shell" "$BINARY"
+echo "chrome-headless-shell ${CHROME_VERSION}: $("$BINARY" --version)"
 """
 
 [tasks."test:browsers:firefox"]
@@ -195,8 +292,17 @@ echo "✓ firefox installed"
 alias = "test-browser"
 description = "Run the pure-Rust browser test suite against a real Chromium (spec-43)"
 run = """
-echo "Running foundation_browser suite (needs chromium — run 'mise run test:browsers')..."
-cargo test -p foundation_browser --features browser-tests --test smoke
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$(uname -s)" == Darwin && -z "${PRIMAL_TEST_CHROMIUM_BIN:-}" ]]; then
+  for app in "/Applications/Chromium.app/Contents/MacOS/Chromium" "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; do
+    if [[ -x "$app" ]]; then export PRIMAL_TEST_CHROMIUM_BIN="$app"; break; fi
+  done
+fi
+echo "Running the Chromium browser tests..."
+cargo test -p foundation_browser --profile uat --features browser-tests --test smoke
+examples/ui_todo/build-module.sh
+cargo test -p ui_todo --profile uat --features browser-tests --test todo_browser_tests
 echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
 """
 
@@ -1077,16 +1183,16 @@ echo "Running stress tests..."
 cargo test --package foundation_testing --release -- stress
 """
 
-[tasks."test:wasm-testbed:web"]
-alias = "test-wasm-testbed-web"
-description = "Owned #[wasm_test] harness e2e in the browser (Playwright, headless chromium)"
-depends = ["setup:playwright"]
+[tasks."test:wasm-testbed:browser"]
+alias = "test-wasm-testbed-browser"
+description = "Owned #[wasm_test] harness e2e in headless Chromium (pure-Rust CDP driver)"
+depends = ["test:browsers:chromium"]
 run = """
 echo "Owned wasm-testbed sample in the browser (headless chromium)..."
-cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- web backends/foundation_testbed/integration/module --filter passes --headless
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- browser backends/foundation_testbed/integration/module --filter passes --headless
 echo "foundation_core valtron wasm tests in the browser (headless chromium)..."
-cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- web backends/foundation_core/integration/wasm_tests --headless
-echo "✓ owned web harness green"
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- browser backends/foundation_core/integration/wasm_tests --headless
+echo "✓ owned browser harness green"
 """
 
 [tasks."test:wasm-testbed:wrangler"]

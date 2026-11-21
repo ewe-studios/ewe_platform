@@ -5,11 +5,10 @@
 //!
 //! `std` crate (default allocator + panic handler); the library crates stay `no_std`.
 
-use foundation_ui_traits::DomOp;
+use foundation_wasm_ui::ops;
 use foundation_wasm::abi::web::register_function;
 use foundation_wasm::ExternalPointer;
 use foundation_wasm_ui::wasm::dom::{allocate_dom_reference, drop_dom_reference, DomInvoke};
-use foundation_wasm_ui::{BatchInstructionsV1, ColumnarReceiver, ColumnarV1, InstructionReceiver};
 
 /// Pre-allocate a DOM-heap slot (`dom_allocate_external_pointer`) → its handle.
 /// Slots 0–4 are reserved (self/heap/window/document/body), so the first
@@ -34,36 +33,41 @@ pub extern "C" fn dom_drop(handle: u64) {
     drop_dom_reference(ExternalPointer::pointer(handle));
 }
 
-/// Ship a DomOp batch over the CUSTOM BINARY protocol (byte 0 = the batch
-/// instructions format, decision 022) through the LIVE LOOP: a global-arena
-/// InstructionReceiver (decision 030) flushes once, BatchInstructionsV1 packs the
-/// Operations stream + texts pool into one envelope slot, and host_apply ships it —
-/// the JS dispatcher routes byte 0 into the BatchInstructions runtime, where the
-/// registered BATCH_OP_APPLY_DOM operation applies each op to the DOM.
-#[no_mangle]
-pub extern "C" fn emit_batch_dom_ops() {
-    let mut receiver = InstructionReceiver::with_global_arena(Box::new(BatchInstructionsV1::new()));
-    receiver.queue(DomOp::SetText {
-        node_id: 5,
-        text: "batch hi".into(),
-    });
-    receiver.queue(DomOp::RemoveNode { node_id: 6 });
-    receiver.flush();
+std::thread_local! {
+    static RELEASES: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+    static SCOPED_APP: std::cell::RefCell<Option<foundation_wasm_ui::App>> = const { std::cell::RefCell::new(None) };
 }
 
-/// Ship a DomOp batch over the COLUMNAR protocol (byte 1, wire v1.1) through
-/// the columnar-native path: ColumnarReceiver accumulates straight into column
-/// buffers (no Vec<DomOp>), and ColumnarV1's framing computes the alignment
-/// shim against the ABSOLUTE arena address — the JS ColumnarParser must get
-/// TRUE zero-copy TypedArray views (feature 19).
+/// Mount one local scope through the same Rust receiver and event bridge as a browser app.
 #[no_mangle]
-pub extern "C" fn emit_columnar_dom_ops() {
-    let mut receiver = ColumnarReceiver::with_global_arena(ColumnarV1::new());
-    receiver.queue(&DomOp::SetText {
-        node_id: 5,
-        text: "columnar hi".into(),
-    });
-    receiver.queue(&DomOp::RemoveNode { node_id: 6 });
-    let _ = receiver.flush();
+pub extern "C" fn mount_scoped_button() {
+    let app = foundation_wasm_ui::App::new();
+    foundation_wasm_ui::install_app_bridge(&app);
+    app.ctx().on_dispose(|| RELEASES.set(RELEASES.get() + 1));
+    app.receiver().register_scope(&[77], app.ctx());
+    let receiver = app.receiver();
+    receiver.queue(ops::create_element(77, &foundation_ui_traits::HtmlTag::from_static("button"), ""));
+    receiver.queue(ops::register_node(77));
+    receiver.queue(ops::append_child(1, 77));
+    app.stabilize().expect("deliver local button");
+    SCOPED_APP.replace(Some(app));
 }
 
+#[no_mangle]
+pub extern "C" fn local_scope_releases() -> u32 {
+    RELEASES.get()
+}
+
+/// Render the same button with either public transport.
+fn emit_parity(app: foundation_wasm_ui::App) {
+    let receiver = app.receiver();
+    let button = foundation_ui_traits::HtmlTag::from_static("button");
+    receiver.queue(ops::create_element(88, &button, "parity"));
+    receiver.queue(ops::register_node(88));
+    receiver.queue(ops::set_text(88, "rendered"));
+    receiver.queue(ops::append_child(foundation_wasm_ui::BODY_NODE_ID,88));
+    app.stabilize().expect("deliver parity button");
+}
+
+#[no_mangle]
+pub extern "C" fn emit_parity_frame() { emit_parity(foundation_wasm_ui::App::new()); }

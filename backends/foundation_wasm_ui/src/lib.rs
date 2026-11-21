@@ -1,17 +1,4 @@
-//! # `foundation_wasm_ui`
-//!
-//! WHY: `foundation_wasm` is the pure WASM↔JS ABI — memory, binary messaging,
-//! function invocation — with no DOM concepts. UI applications still need DOM/window
-//! bindings and protocol implementations; those live here so the ABI layer stays
-//! generic and reusable (decision 015, feature 00).
-//!
-//! WHAT: Owns all DOM/window/animation bindings and the WASM protocol
-//! implementations that compose `foundation_ui_traits` encoders (Layer 1) with the
-//! `foundation_wasm` transport (Layer 2).
-//!
-//! HOW: Depends on `foundation_wasm` (ABI + transport) and `foundation_ui_traits`
-//! (encoders). Adds `wasm::dom` (DOM references), and — in later feature work —
-//! protocol impls (`ColumnarV1`/`BatchInstructionsV1`/`JsonV1`) and the `InstructionReceiver`.
+//! A web host for typed user interface frames, signals, and templates.
 
 #![no_std]
 
@@ -30,12 +17,14 @@ pub mod cli;
 #[cfg(not(target_family = "wasm"))]
 pub mod server;
 #[cfg(not(target_family = "wasm"))]
-pub use server::{BroadcastSink, BroadcastTx, Broadcaster, FrameTransport};
+pub use server::{BroadcastTx, Broadcaster, FrameBroadcastSink, FrameTransport, LiveChannel};
 
+pub mod actions;
 pub mod app;
 pub mod events;
 pub mod html_macro;
 pub mod instruction;
+mod mounted_scopes;
 pub mod protocol;
 pub mod reactive;
 pub mod runtime;
@@ -47,9 +36,12 @@ pub mod wasm;
 pub mod embedded;
 
 pub use app::{App, SentBatches};
-pub use events::{install_event_bridge, invoke_signal_callback, uninstall_event_bridge};
+pub use events::{
+    install_app_bridge, install_event_bridge, invoke_signal_callback, uninstall_event_bridge,
+};
+pub use foundation_ui_wire::{ops, OperationT};
 pub use html_macro::MaybeCallback;
-pub use instruction::{ColumnarReceiver, InstructionReceiver};
+pub use instruction::InstructionReceiver;
 pub use reactive::{mount_for, mount_show};
 pub use slots::{mount_before, mount_fragment, mount_into, Render, Slot};
 // The html! proc macro itself — re-exported so users write
@@ -58,15 +50,9 @@ pub use foundation_macros::{html, theme, ThemeTokens};
 // Theme token model + runtime builder, re-exported so `theme!{}` output and
 // the no-macro `Theme` builder are reachable from one import path.
 pub use foundation_theme::{GeneratedTheme, Theme, ThemeToken};
-#[cfg(feature = "arrow")]
-pub use protocol::ArrowIpcV2;
 pub use protocol::{
-    BatchInstructionsV1, CollectedFrames, ColumnarV1, DomOpsBatch, FrameSinkV1, HandleResult,
-    JsonV1, MockProtocol, ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
+    BatchInstructionsV1, CollectedFrames, FrameV1, HandleResult, MockProtocol, ProtocolError,
+    ProtocolMethods, SendResult,
 };
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use theme::{inject_theme_css, BODY_NODE_ID, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
-// The Arrow IPC Layer-1 encoder (wire v2), re-exported so a server sink can pick
-// it without a direct foundation_arrow dependency.
-#[cfg(feature = "arrow")]
-pub use foundation_arrow::ArrowIpcEncoder;

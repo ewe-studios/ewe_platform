@@ -322,7 +322,7 @@ pub fn select<T: Clone + PartialEq + 'static>(
                 <span class="select-value">{trigger_label()}</span>
             </button>
             <input type="hidden" name=[config.name]
-                   value={h_value.get().map(|v| tfv(&v)).unwrap_or_default()} />
+                   value={h_value.get().map_or_else(String::new, |v| tfv(&v))} />
             <div class="select-positioner"
                  data-anchor=[anchor_attr]
                  data-align-item=[align_item.then_some("true")]
@@ -376,6 +376,10 @@ pub fn combobox<T: Clone + PartialEq + 'static>(
 /// Autocomplete — a combobox whose value IS the input text (suggestions list,
 /// no separate value signal). The input is the form field. String-valued.
 #[must_use]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "The component takes separate read and write handles for each signal."
+)]
 pub fn autocomplete(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -394,6 +398,10 @@ pub fn autocomplete(
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 fn combobox_impl<T: Clone + PartialEq + 'static>(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -548,3 +556,12 @@ fn combobox_impl<T: Clone + PartialEq + 'static>(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Dismiss,
+    crate::behaviour::Behaviour::Listbox,
+    crate::behaviour::Behaviour::Position,
+    crate::behaviour::Behaviour::ScrollLock,
+    crate::behaviour::Behaviour::Transition,
+];

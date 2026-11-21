@@ -1,0 +1,38 @@
+[package]
+name = "foundation_ui_runtime"
+version = "0.0.7"
+autotests = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "State signing, action registration, and event routing for user interfaces."
+
+[dependencies]
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
+tracing = { workspace = true }
+foundation_macros = { workspace = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std", "crypto-chacha"] }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+subtle = { workspace = true }
+zeroize = { workspace = true }
+
+serde = { workspace = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
+serde_json = { workspace = true }
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+trybuild = { workspace = true }
+foundation_auth = { path = "../foundation_auth", version = "0.0.8", default-features = false }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }

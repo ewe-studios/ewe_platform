@@ -1,0 +1,22 @@
+[package]
+name = "foundation_vfs"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Virtual file system (VFS) traits and shared types. `foundation_nativeapis` re-exports them and adds the implementations."
+keywords = ["vfs", "filesystem", "async"]
+
+[dependencies]
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+
+derive_more = { workspace = true }
+serde = { workspace = true }
+async-trait = "0.1"
+
+[lints]
+workspace = true

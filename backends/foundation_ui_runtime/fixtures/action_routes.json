@@ -1,0 +1,18 @@
+[
+  {"reference":"server:save","declaration":"server","scope":"all","surface":"web","transports":["server"],"advertised":true,"expect":"server:save"},
+  {"reference":"host:save","declaration":"plain-local","scope":"all","surface":"web","transports":["host","server"],"advertised":true,"expect":"host:save"},
+  {"reference":"host:save","declaration":"plain","scope":"all","surface":"mobile","transports":["host","server"],"advertised":true,"expect":"server:save"},
+  {"reference":"host:save","declaration":"plain","scope":"all","surface":"web","transports":["server"],"advertised":false,"expect":"UnavailableOrigin"},
+  {"reference":"host:save","declaration":"host","scope":"all","surface":"web","transports":["host","server"],"advertised":true,"expect":"UnavailableOrigin"},
+  {"reference":"host:save","declaration":"page","scope":"web","surface":"web","transports":["host"],"advertised":false,"expect":"host:save"},
+  {"reference":"host:save","declaration":"page","scope":"web","surface":"mobile","transports":["host","server"],"advertised":true,"expect":"UnsupportedAction"},
+  {"reference":"host:save","declaration":"none","scope":"all","surface":"web","transports":["host","server"],"advertised":true,"expect":"UnknownAction"},
+  {"reference":"server:save","declaration":"none","scope":"all","surface":"web","transports":["server"],"advertised":true,"expect":"server:save"},
+  {"reference":"server:save","declaration":"none","scope":"all","surface":"web","transports":["server"],"advertised":false,"expect":"UnknownAction"},
+  {"reference":"server:save","declaration":"server","scope":"web","surface":"mobile","transports":["server"],"advertised":true,"expect":"UnsupportedAction"},
+  {"reference":"server:save","declaration":"server","scope":"all","surface":"mobile","transports":[],"advertised":true,"expect":"UnavailableOrigin"},
+  {"reference":"server:save","declaration":"server","scope":"all","surface":"web","transports":["server"],"advertised":false,"expect":"UnavailableOrigin"},
+  {"reference":"host:save","declaration":"server","scope":"all","surface":"web","transports":["host","server"],"advertised":true,"expect":"UnavailableOrigin"},
+  {"reference":"host:save","declaration":"plain-local","scope":"all","surface":"web","transports":["server"],"advertised":true,"expect":"UnavailableOrigin"},
+  {"reference":"native:save","declaration":"plain-local","scope":"all","surface":"mobile","transports":["host"],"advertised":false,"expect":"InvalidReference"}
+]

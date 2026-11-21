@@ -46,20 +46,12 @@ pub struct NavItem {
 }
 
 /// Static config for a navigation menu.
+#[derive(Default)]
 pub struct NavMenuConfig {
     /// Class override (default `"navigation-menu"`).
     pub class: Option<Cow<'static, str>>,
     /// `aria-label` for the `<nav>`.
     pub aria_label: Option<Cow<'static, str>>,
-}
-
-impl Default for NavMenuConfig {
-    fn default() -> Self {
-        Self {
-            class: None,
-            aria_label: None,
-        }
-    }
 }
 
 /// Shared-Viewport behavior: measure the active content → `--popup-width/height`
@@ -101,6 +93,14 @@ pub const NAV_MENU_JS: &str = r#"function(scope){
 
 /// Navigation-menu component.
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The component keeps its template beside its reactive bindings."
+)]
 pub fn navigation_menu(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -221,3 +221,10 @@ pub fn navigation_menu(
         </nav>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Composite,
+    crate::behaviour::Behaviour::Position,
+    crate::behaviour::Behaviour::Transition,
+];

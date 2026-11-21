@@ -230,6 +230,10 @@ pub enum LlamaModelLoadError {
     /// Failed to convert the path to a rust str. This means the path was not valid unicode
     #[error("failed to convert path {0} to str")]
     PathToStrError(PathBuf),
+    /// The file does not exist (checked before handing the path to llama.cpp,
+    /// which would only report a null result).
+    #[error("file not found: {0}")]
+    FileNotFound(PathBuf),
 }
 
 /// An error that can occur when loading a model.
@@ -244,6 +248,10 @@ pub enum LlamaLoraAdapterInitError {
     /// Failed to convert the path to a rust str. This means the path was not valid unicode
     #[error("failed to convert path {0} to str")]
     PathToStrError(PathBuf),
+    /// The file does not exist (checked before handing the path to llama.cpp,
+    /// which would only report a null result).
+    #[error("file not found: {0}")]
+    FileNotFound(PathBuf),
 }
 
 /// An error that can occur when loading a model.

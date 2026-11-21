@@ -6,7 +6,7 @@
 //! typeahead — the algorithm pinned in machinery.md §M5 (750 ms buffer reset,
 //! locale-lowercased prefix match, same-letter cycling).
 //!
-//! WHAT: [`LISTBOX_JS`] (the behavior) + [`listbox_behavior`] (the `<script>` a
+//! WHAT: [`LISTBOX_JS`] (the behavior) + [`listbox_behavior`] (the marker a
 //! popup embeds) + the attribute contract.
 //!
 //! HOW: Attaches to the popup (`scope.parent()`, which must be focusable —
@@ -19,7 +19,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Item marker: a navigable list member (`data-list-item`).
 pub const DATA_LIST_ITEM: &str = "data-list-item";
@@ -31,7 +31,7 @@ pub const DATA_HIGHLIGHTED: &str = "data-highlighted";
 pub const DATA_LABEL: &str = "data-label";
 
 /// The M5 virtual-highlight + typeahead behavior for menus/listboxes.
-pub const LISTBOX_JS: &str = r#"function(scope){
+pub const LISTBOX_JS: &str = r"function(scope){
   var pop = scope.parent();
   if (!pop || pop.__listbox) return; pop.__listbox = true;
   var loop = pop.getAttribute('data-loop') !== 'false';
@@ -89,11 +89,11 @@ pub const LISTBOX_JS: &str = r#"function(scope){
   var active = -1;
   for (var i = 0; i < l.length; i++) if (l[i].hasAttribute('data-active-item')) { active = i; break; }
   setHL(active);
-}"#;
+}";
 
-/// The `<script>` a menu/listbox popup embeds for virtual highlight + typeahead.
+/// The marker a menu/listbox popup embeds for virtual highlight + typeahead.
 /// The popup must be focusable (`tabindex=0`) and mark members `data-list-item`.
 #[must_use]
 pub fn listbox_behavior() -> Html {
-    scoped_script(LISTBOX_JS)
+    behaviour_script(Behaviour::Listbox, LISTBOX_JS)
 }

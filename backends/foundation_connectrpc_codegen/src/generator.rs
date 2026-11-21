@@ -278,28 +278,28 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
         // nested `impl Trait` inside the `Output` binding is illegal (E0562).
         match ty {
             MethodKind::Unary => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, _ctx: foundation_connectrpc::RpcCtx, _request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::ServerStream => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, _ctx: foundation_connectrpc::RpcCtx, _request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::ClientStream => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, _ctx: foundation_connectrpc::RpcCtx, _requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::BidiStream => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, _ctx: foundation_connectrpc::RpcCtx, _requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
@@ -548,9 +548,11 @@ fn generate_client_trait(
         "/// Trait for {svc_name} client behaviour (supports mocking/testing)."
     )
     .expect(WRITE_ERR);
+    // A mocking seam: the trait uses `async fn`, and each implementor chooses
+    // its own `Send` bounds, so silence the lint on the generated trait.
     writeln!(
         out,
-        "pub trait {client_trait_name}: Send + Sync + 'static {{"
+        "#[allow(async_fn_in_trait)]\npub trait {client_trait_name}: Send + Sync + 'static {{"
     )
     .expect(WRITE_ERR);
 

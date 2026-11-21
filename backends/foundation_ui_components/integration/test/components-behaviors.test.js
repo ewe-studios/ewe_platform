@@ -5,12 +5,9 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const srcDir = join(here, "..", "..", "src", "machinery");
+import * as wire from "../../../foundation_wasm_ui/runtimes/foundation-ui-wire.js";
+import * as ui from "../../../foundation_wasm_ui/runtimes/foundation-wasm-ui.js";
+import { installFrameRuntime } from "../../../foundation_wasm_ui/runtimes/foundation-ui-frames.js";
 
 // ─── Mock DOM ────────────────────────────────────────────────────────────────
 
@@ -81,32 +78,25 @@ class MockDocument {
   }
 }
 
-// ─── Mock scope (the scoped-script hydrator contract) ────────────────────────
-
-class MockScope {
-  constructor(parent, doc) {
-    this._parent = parent;
-    this._doc = doc;
-  }
-  parent() { return this._parent; }
-  targets() { return [this._parent]; }
-  addEvent(target, type, handler) {
-    target.addEventListener(type, handler);
-  }
-  querySelector(sel) { return this._parent.querySelector(sel); }
+// Use the same wire messages and behaviour registry as the browser.
+function applyBehaviour(document, element, operation) {
+  const frames = installFrameRuntime(ui, {document, schedule: run => run()});
+  frames.registry.register(42, element);
+  const message = new wire.FrameMessageT(0n, [new wire.MessageT(operation)]);
+  const frame = new wire.FrameT(1, 1n, 0n, wire.FrameKind.FrameMessage, message);
+  const builder = new wire.Builder();
+  wire.Frame.finishFrameBuffer(builder, frame.pack(builder));
+  frames.receive(builder.asUint8Array());
 }
 
-// ─── Run JS ──────────────────────────────────────────────────────────────────
-
-function runJs(jsSource, scope) {
-  new Function("scope", `(${jsSource})(scope)`)(scope);
+function composite(document, root) {
+  applyBehaviour(document, root, new wire.OperationT(0, null, wire.WebOperation.WebBehaviour,
+    new wire.WebBehaviourT(42, wire.WebBehaviourId.UNKNOWN, "composite")));
 }
 
-function readJs(name) {
-  const src = readFileSync(join(srcDir, `${name}.rs`), "utf8");
-  const start = src.indexOf('r#"') + 3;
-  const end = src.indexOf('"#', start);
-  return src.slice(start, end);
+function dismiss(document, popup) {
+  applyBehaviour(document, popup, new wire.OperationT(wire.UiOperation.UiBehaviour,
+    new wire.UiBehaviourT(42, wire.BehaviourId.DISMISS)));
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -153,7 +143,7 @@ function clickTracker(el) {
 
 // ─── M5: Composite roving focus ──────────────────────────────────────────────
 
-const COMPOSITE_JS = readJs("composite");
+
 
 test("M5 composite: arrows move roving tabindex horizontally", () => {
   const doc = new MockDocument();
@@ -169,7 +159,7 @@ test("M5 composite: arrows move roving tabindex horizontally", () => {
     return el;
   });
   doc.body.appendChild(root);
-  runJs(COMPOSITE_JS, new MockScope(root, doc));
+  composite(doc, root);
 
   assert.equal(items[0].tabIndex, 0, "first item seeded as active");
   assert.equal(items[1].tabIndex, -1);
@@ -194,7 +184,7 @@ test("M5 composite: Home/End jump to first/last", () => {
     return el;
   });
   doc.body.appendChild(root);
-  runJs(COMPOSITE_JS, new MockScope(root, doc));
+  composite(doc, root);
   doc.activeElement = items[0];
 
   root.dispatchEvent("keydown", { key: "End" });
@@ -218,7 +208,7 @@ test("M5 composite: disabled items are skipped", () => {
   });
   items[1].setAttribute("aria-disabled", "true");
   doc.body.appendChild(root);
-  runJs(COMPOSITE_JS, new MockScope(root, doc));
+  composite(doc, root);
   doc.activeElement = items[0];
 
   root.dispatchEvent("keydown", { key: "ArrowRight" });
@@ -239,7 +229,7 @@ test("M5 composite: typeahead prefix match", () => {
     return el;
   });
   doc.body.appendChild(root);
-  runJs(COMPOSITE_JS, new MockScope(root, doc));
+  composite(doc, root);
   doc.activeElement = items[0];
 
   root.dispatchEvent("keydown", { key: "b" });
@@ -259,7 +249,7 @@ test("M5 composite: vertical orientation maps to up/down", () => {
     return el;
   });
   doc.body.appendChild(root);
-  runJs(COMPOSITE_JS, new MockScope(root, doc));
+  composite(doc, root);
   doc.activeElement = items[0];
 
   root.dispatchEvent("keydown", { key: "ArrowDown" });
@@ -281,7 +271,7 @@ test("M5 composite: data-composite-select clicks on move", () => {
   });
   const wasClicked = [clickTracker(items[0]), clickTracker(items[1])];
   doc.body.appendChild(root);
-  runJs(COMPOSITE_JS, new MockScope(root, doc));
+  composite(doc, root);
   doc.activeElement = items[0];
 
   root.dispatchEvent("keydown", { key: "ArrowRight" });
@@ -290,7 +280,7 @@ test("M5 composite: data-composite-select clicks on move", () => {
 
 // ─── M3: Dismiss (Escape + outside pointer) ──────────────────────────────────
 
-const DISMISS_JS = readJs("dismiss");
+
 
 test("M3 dismiss: Escape clicks the action", () => {
   const doc = new MockDocument();
@@ -302,7 +292,7 @@ test("M3 dismiss: Escape clicks the action", () => {
   const clicked = clickTracker(action);
   popup.appendChild(action);
   doc.body.appendChild(popup);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("keydown", { key: "Escape" });
   assert.ok(clicked(), "Escape triggered the dismiss action");
@@ -319,7 +309,7 @@ test("M3 dismiss: outside pointer clicks the action", () => {
   const outside = doc.createElement("div");
   doc.body.appendChild(popup);
   doc.body.appendChild(outside);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("pointerdown", { target: outside });
   assert.ok(clicked(), "outside pointer triggered the dismiss action");
@@ -334,7 +324,7 @@ test("M3 dismiss: pointer inside popup does NOT dismiss", () => {
   const clicked = clickTracker(action);
   popup.appendChild(action);
   doc.body.appendChild(popup);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("pointerdown", { target: popup });
   assert.ok(!clicked(), "inside pointer did NOT dismiss");
@@ -353,7 +343,7 @@ test("M3 dismiss: pointer on trigger (anchor) does NOT dismiss", () => {
   trigger.id = "trigger-1";
   doc.body.appendChild(popup);
   doc.body.appendChild(trigger);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("pointerdown", { target: trigger });
   assert.ok(!clicked(), "trigger pointer did NOT dismiss");
@@ -367,7 +357,7 @@ test("M3 dismiss: stamps dismiss reason on the action", () => {
   action.setAttribute("data-dismiss-action", "");
   popup.appendChild(action);
   doc.body.appendChild(popup);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("keydown", { key: "Escape" });
   assert.equal(action.getAttribute("data-dismiss-reason"), "escape-key",
@@ -384,7 +374,7 @@ test("M3 dismiss: data-dismiss-escape=false disables Escape", () => {
   const clicked = clickTracker(action);
   popup.appendChild(action);
   doc.body.appendChild(popup);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("keydown", { key: "Escape" });
   assert.ok(!clicked(), "Escape ignored when data-dismiss-escape=false");
@@ -402,8 +392,34 @@ test("M3 dismiss: data-dismiss-outside=false disables outside pointer", () => {
   const outside = doc.createElement("div");
   doc.body.appendChild(popup);
   doc.body.appendChild(outside);
-  runJs(DISMISS_JS, new MockScope(popup, doc));
+  dismiss(doc, popup);
 
   doc.dispatchEvent("pointerdown", { target: outside });
   assert.ok(!clicked(), "outside pointer ignored when data-dismiss-outside=false");
+});
+
+test("every shipped matrix entry names a real browser binding", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { SHARED, WEB_ONLY } = await import("../../../foundation_wasm_ui/runtimes/foundation-ui-behaviours.js");
+  const text = readFileSync(new URL("../../behaviours.toml",import.meta.url),"utf8");
+  const names = [...text.matchAll(/^\[behaviours\.(\w+)\]$/gm)].map(match => match[1]);
+  const browser = [...Object.keys(SHARED).map(name => name.toLowerCase()), ...Object.keys(WEB_ONLY)];
+  assert.deepEqual(names.sort(),browser.sort());
+});
+
+test("shared browser bindings retain the component machinery logic", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const read = path => readFile(new URL(path, import.meta.url), "utf8");
+  const browser = await read("../../../foundation_wasm_ui/runtimes/foundation-ui-behaviours.js");
+  for (const name of ["dialog", "dismiss", "scroll_lock", "transition"]) {
+    const rust = await read(`../../src/machinery/${name}.rs`);
+    const original = rust.match(/pub const \w+_JS: &str = r(#*)"(.*?)"\1;/s)[2];
+    const definition = new RegExp(`^function ${name}\\(scope\\)(.*?^\\})`, "ms");
+    const body = browser.match(definition)[1];
+    // The frame owner releases observers, unlocks the page and removes its listener on unmount.
+    const logic = body
+      .replace(/^  scope\.onDispose\((?:unlock|\(\) => mo\.disconnect\(\))\);\n/gm, "")
+      .replace("scope.addEvent(el, 'transitionend', onEnd)", "el.addEventListener('transitionend', onEnd)");
+    assert.equal(`function(scope)${logic}`, original, name);
+  }
 });

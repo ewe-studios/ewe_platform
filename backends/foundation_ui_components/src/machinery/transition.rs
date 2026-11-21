@@ -22,7 +22,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Present on the popup while logically open (`data-open`) — toggled by the
 /// component's open-signal effect; this behavior watches it.
@@ -43,7 +43,7 @@ pub const DATA_TRANSITION_COMPLETE: &str = "data-transition-complete";
 /// The M7 transition behavior. Observes `data-open` toggling and manages the
 /// `data-starting-style`/`data-ending-style` attributes + `transitionend`
 /// completion, honoring `data-instant`.
-pub const TRANSITION_JS: &str = r#"function(scope){
+pub const TRANSITION_JS: &str = r"function(scope){
   var el = scope.parent();
   if (!el || el.__transition) return; el.__transition = true;
   var win = (el.ownerDocument && el.ownerDocument.defaultView) || window;
@@ -77,13 +77,13 @@ pub const TRANSITION_JS: &str = r#"function(scope){
     if (now) enter(); else leave();
   });
   mo.observe(el, { attributes: true, attributeFilter: ['data-open', 'data-closed'] });
-}"#;
+}";
 
-/// The `<script>` node a popup embeds to get M7 enter/leave transitions. The
+/// The marker node a popup embeds to get M7 enter/leave transitions. The
 /// popup root's open signal must toggle [`DATA_OPEN`]/[`DATA_CLOSED`]; the body
 /// manages the starting/ending styles. Optionally render a hidden
 /// [`DATA_TRANSITION_COMPLETE`] element to receive the post-exit callback.
 #[must_use]
 pub fn transition_behavior() -> Html {
-    scoped_script(TRANSITION_JS)
+    behaviour_script(Behaviour::Transition, TRANSITION_JS)
 }

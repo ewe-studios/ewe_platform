@@ -306,3 +306,87 @@ fn an_idle_keepalive_connection_parks_on_its_socket() {
         _ => panic!("the parked handler did not read the request"),
     }
 }
+
+#[cfg(unix)]
+#[test]
+fn incoming_request_parks_until_the_remaining_body_arrives() {
+    use foundation_http::shared::serve::ServeOutcome;
+    use foundation_netio::shared::client::body_reader::collect_bytes_async;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::mpsc;
+    use std::time::Instant;
+
+    struct ReadBody {
+        started: Arc<AtomicBool>,
+        received: mpsc::Sender<Vec<u8>>,
+    }
+
+    impl Serve for ReadBody {
+        fn serve(
+            &self,
+            _ctx: Ctx,
+            mut req: SimpleIncomingRequest,
+            _conn: SharedByteBufferStream<RawStream>,
+        ) -> ConnectionResult {
+            let body = req.take_async_body().expect("request has a body");
+            let started = self.started.clone();
+            let received = self.received.clone();
+            ConnectionResult::Async(Box::pin(async move {
+                started.store(true, Ordering::SeqCst);
+                received
+                    .send(collect_bytes_async(body).await.expect("complete body"))
+                    .unwrap();
+                ServeOutcome::Close(None)
+            }))
+        }
+    }
+
+    let ctx = Ctx::host();
+    let (mut client, stream) = silent_tcp_pair();
+    let (send, receive) = mpsc::channel();
+    let started = Arc::new(AtomicBool::new(false));
+    let route: Arc<dyn Serve> = Arc::new(ReadBody {
+        started: started.clone(),
+        received: send,
+    });
+    let mut app = HttpApp::<Arc<dyn Serve>>::with_ctx(ctx.clone());
+    app.router.add_route(SimpleMethod::POST, "/read", route);
+    let mut handler = build_handler(
+        Arc::new(app),
+        stream,
+        &KeepAliveConfig::defaults(),
+        ctx.clone(),
+    );
+
+    client
+        .write_all(b"POST /read HTTP/1.1\r\nHost: localhost\r\nContent-Length: 7\r\n\r\n")
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(3);
+    let wait = loop {
+        let status = handler.next_status(ctx.clone()).expect("open handler");
+        if let TaskStatus::Depends(wait) = status {
+            if started.load(Ordering::SeqCst) {
+                break wait;
+            }
+        }
+        assert!(
+            Instant::now() < deadline,
+            "request never reached the body reader"
+        );
+    };
+    assert!(
+        !wait.is_ready(None),
+        "an empty body read must wait for socket readiness"
+    );
+
+    client.write_all(b"delayed").unwrap();
+    while !wait.is_ready(None) {
+        assert!(
+            Instant::now() < deadline,
+            "socket bytes did not wake the body reader"
+        );
+        std::thread::yield_now();
+    }
+    assert!(drive_until_closed(&mut handler, &ctx, 16));
+    assert_eq!(receive.try_recv().unwrap(), b"delayed");
+}

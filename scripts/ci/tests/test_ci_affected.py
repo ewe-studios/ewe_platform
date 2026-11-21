@@ -104,6 +104,15 @@ class Affected(unittest.TestCase):
         for path in ("rust-toolchain.toml", ".cargo/config.toml", "scripts/ci/ci.py", "mise.toml"):
             self.assertEqual(set(self.reasons([path])), set(self.packages), path)
 
+    def test_wire_generator_and_embedded_bundle_select_their_packages(self):
+        wire = "foundation_ui_wire"
+        host = "foundation_wasm_ui"
+        for name in (wire, host):
+            self.packages[name] = self.ci.Package(name, f"backends/{name}", False)
+        self.assertEqual(set(self.reasons(["scripts/ui_wire/generate.sh"])), {wire})
+        asset = f"backends/{host}/runtimes/foundation-ui-wire.js"
+        self.assertEqual(set(self.reasons([asset])), {wire, host})
+
     def test_a_docs_or_prose_change_marks_nothing(self):
         self.assertEqual(self.reasons(["docs/a.txt", "specifications/x/y.rs", "README.md", "crates/leaf/README.md"]), {})
 

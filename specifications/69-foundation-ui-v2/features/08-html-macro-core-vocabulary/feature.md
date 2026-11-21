@@ -1,0 +1,631 @@
+---
+feature: "html-macro-core-vocabulary"
+description: "html! gains the core elements, typed on: action bindings and an optional third field for the state; a lowering function turns an Html tree into schema operation units."
+status: "complete"
+priority: "high"
+model: "sonnet"
+depends_on: ["01-wire-schema-and-codegen", "02-vocabulary-and-platform-forms", "05-action-runtime", "06-action-macro", "07-dispatcher-and-handshake"]
+estimated_effort: "large"
+created: 2026-11-13
+last_updated: 2026-11-21
+author: "Main Agent"
+crates: ["foundation_macros", "foundation_ui_runtime"]
+decisions: ["D10", "D20", "D36", "D37", "D40", "D41", "D42", "D44", "D45", "D50", "D51", "D52", "D56", "D59"]
+tasks:
+  completed: 11
+  uncompleted: 0
+  total: 11
+  completion_percentage: 100
+---
+
+# Feature 08: `html!` in the core vocabulary
+
+_Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
+are._
+
+**Abbreviations in this file.** user interface (UI); HyperText Markup Language (HTML);
+Cascading Style Sheets (CSS); JavaScript (JS); identifier (id); AeroSpace and Defence
+Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Migration ownership
+
+Feature 09 supplies the tested browser reader. Feature 20 moves existing producers to the frame writer.
+Feature 11 adds live delivery. Feature 12 removes legacy code after both paths pass their checks.
+[Producer migration plan](../20-migrate-to-frame-writer/feature.md)
+
+## 1. Goal
+
+A developer writes one template for every platform. `html!` accepts the ten core elements
+(`<Stack>`, `<Text>`, …) with checked properties, and `on:` bindings that name an action
+struct, so a wrong name is a compile error. A lowering function turns the `Html` tree into
+operation units of the frame schema (D42, D44). `html!` has three forms (D51): pure,
+reactive, and reactive with a state field. All three yield `Html`. The receiver forms also queue operations; there is no `Response` type (D52). A behaviour marker lowers to one shared
+`UiBehaviour` or one web `WebBehaviour`, and not to a script node (D56).
+
+## 2. Story
+
+- **S1**: "A developer writes a core template, and it becomes operations that every platform
+  applies."
+- **S2**: "A developer binds a tap to an action by its struct."
+- **S3**: "A developer binds a click to a page JavaScript function by its `host:` name."
+- **S4**: "An action writes the new view of its component and the new state to its receiver."
+- **S5**: "A developer keeps an HTML template, and it becomes web operations."
+- **S6**: "A developer misspells an action, a property or an event, and the code does not
+  compile."
+- **S7**: "A dynamic property value has the wrong shape at run time."
+
+| # | Use case | Actor | Trigger | Result |
+|---|---|---|---|---|
+| U1 | Core template | Developer | `html! { <Stack padding="8">…</Stack> }` | An `Html` tree with core tags |
+| U2 | Bind an action | Developer | `on:tap={increment_counter}` | The attribute `ewe:on:tap="server:increment_counter"`, or `host:` for a host action |
+| U3 | Lower | Runtime code | `lower(&html, &options)` | `Vec<OperationT>`, or `LowerError` |
+| U4 | View with state | Action | `html! { ctx, receiver, Some(&next), … }` | The template operations and one pending state value with its target nodes, all in the receiver |
+| U5 | Mount | Page render code | `mount(&html, &options, parent, out, state)` | The receiver holds the tree, its parent link and any pending state |
+
+## 3. Bounded context
+
+**Inside this feature:** the `on:` attribute and the core-tag checks in the `html!` parser;
+the state field of the reactive form; `foundation_ui_runtime::view` (`lower`, `mount`,
+`LowerOptions`, `LowerError`); the behaviour marker row of `lower`.
+
+**Outside:**
+
+| Thing | Owner |
+|---|---|
+| The pure form `html! { <…> }` and the reactive form `html! { ctx, receiver, <…> }`; `primal:on*` local handlers; `primal-id` numbering; scoped styles and scripts | `foundation_macros::html_macro` (spec 39). Their `DomOp` output does not change (D40); feature 12 moves it |
+| `Html`, `HtmlTag`, `AttrName`, `TAG_NAMES`, `ATTR_NAMES` | `foundation_ui_traits` |
+| Core names, `PropKind`, `TokenTable`, `web_form` rules, the three operation unions | Feature 02 |
+| `Action::NAME`, `Action::origin()`, `Context`, `ActionReceiver` | Feature 05 |
+| The receiver (`ctx.receiver()`), its `state` method, the sealing of the state | Features 05 and 07 |
+| Behaviour names, the marker text, the shared and web sets | Feature 02 (section 6.7) |
+| Applying the operations | Features 09, 14, 15 |
+
+| Entity | Meaning | Owner (the one writer) |
+|---|---|---|
+| `Html` tree | The in-memory view description | `html!` |
+| Lowered operations | `Vec<OperationT>` for one tree; each unit sets its `ui` or `web` field | `view::lower` |
+| Node ids of a lowered tree | `id_base + primal-id` | `view::lower`, from `LowerOptions::id_base` |
+
+| Verb | Kind | Trigger | Effect |
+|---|---|---|---|
+| `lower` | entity | Runtime code | A pure function from a tree to operation units |
+| `mount` | entity | Page render | `lower`, plus the root append and the state |
+| state field (of `html!`) | entity | The reactive form with `Some(&state)` | The template operations, then one pending state value with its target nodes in the receiver |
+
+The receiver accepts a complete render after its checks succeed.
+
+| Operation and failed step | What the caller sees | What remains |
+|---|---|---|
+| Parse an unknown property, action form, or event name | A compiler error at the invalid token | No executable template |
+| Lower a bad dynamic property, missing token, or invalid node | A `LowerError` | The input tree. The caller receives no operations. |
+| Mount a tree with invalid markup or a state serialization error | An action error | Earlier receiver items. The failed mount adds no items. |
+| Render an action without a component root | An action error with code `ActionFailed` | Earlier receiver items. The failed render adds no items. |
+| Render with an invalid state or property after reserving node identifiers | An action error | Earlier receiver items. The reserved identifiers stay unused. |
+| Finalize state and the signer fails | The dispatcher returns an error frame | The renderer retains its previous tree. |
+| Apply a placement with a missing target | The renderer records the target error | The existing target tree. Later valid placements can proceed. |
+
+**Words.** "Core element" is an element whose tag is one of the ten core names. "Web
+element" is any other element. "Lower" is to turn a tree into operation units. "Receiver" is
+the collector of the operations of one action response (D52).
+
+## 4. Rules
+
+### 4.1 Law worksheet
+
+```
+Entity: Lowered operations
+Conserved value:         one creating unit for each node of the tree; one AppendChild for each parent-child pair
+Bound:                   node ids are id_base + n, with n below the node count of the tree
+Inverse pairs:           none
+Idempotent verbs:        lower (the same tree and options give the same units)
+Ordering pairs:          a node is created before any unit names it; a child is created before it is appended
+Monotone values:         none
+Freeze points:           none
+Links to other entities: a core element gives a `ui` unit only; AttachState.root_node identifies the attachment target
+```
+
+```
+Entity: Html tree
+Conserved value:         the two existing forms give the same tree as before this feature, for every template that compiled before
+Bound:                   none
+Inverse pairs:           none
+Idempotent verbs:        none
+Ordering pairs:          none
+Monotone values:         none
+Freeze points:           none
+Links to other entities: an on: attribute value equals action_reference(Action::origin(), Action::NAME)
+```
+
+### 4.2 Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | Every template that compiled before this feature still compiles and gives an equal `Html` value. |
+| I2 | A tree of only core elements lowers to `ui` units only, and every member is one of the twelve shared types (D59). |
+| I3 | In the units of `lower`, each node id is created exactly one time, and before the first unit that names it. |
+| I4 | `lower` gives the same units for the same tree and options. |
+| I5 | An `on:` binding with a path compiles only if the path is a type that implements `Action`; its value at run time is `action_reference(Action::origin(), Action::NAME)`, so `server:name`, `host:name`, or `host:name` when the action has no limit (D50 (8)). |
+| I6 | An `on:` binding with a string compiles only for the `host:` origin. |
+| I7 | A core element accepts only the property names of section 6.3, `on:` bindings and `key`; any other attribute is a compile error. |
+| I8 | A static property value of the wrong shape is a compile error. A dynamic one gives `LowerError::BadProp` and no units. |
+| I9 | The form `html! { ctx, receiver, Some(&state), … }` writes the template units to the receiver, then one pending state value for the root and marked nodes. A missing root gives `LowerError::NoComponentRoot`, and the action returns `Err`. The receiver also records the marked nodes (section 4.6). |
+| I10 | Only the host finalizer writes signed bytes to a delivery frame. It signs each pending value once. |
+| I11 | A shared behaviour marker gives one `UiBehaviour` and no `ScriptNode`. A web-only behaviour gives one `WebBehaviour` and no `ScriptNode`. A plain scoped script still gives `ScriptNode` (D56). |
+
+### 4.3 Must have
+
+- The module `backends/foundation_ui_runtime/src/view/`.
+- The parser case for `on:` and the check for core tags in
+  `backends/foundation_macros/src/html_macro/parser.rs`.
+- The optional state field of the reactive form in
+  `backends/foundation_macros/src/html_macro/mod.rs`.
+
+### 4.4 Must do
+
+- Keep the string `primal:on<event>` attributes and the `primal:setter` path as they are.
+- Put each new compile error on the span of the wrong token.
+- Write the state field as a receiver item, not as a returned value (D52).
+
+### 4.5 Must not
+
+- Do not sign state in the template (research 10 section 3.5).
+- Do not change `html! { ctx, receiver, <…> }` or its `DomOp` output. Feature 12 moves it.
+- Do not give a core element a web twin (D36). `<Stack>` is always `CreateNode(STACK)`.
+- Do not allow a free-form attribute on a core element (D10: the core has no free-form names).
+- Do not send a `ScriptNode` for a standard behaviour (D56, feature 02).
+
+### 4.6 Attach state to an element
+
+Write `html! { ctx, out, Some(list), <Stack><TextInput primal::state /></Stack> }`.
+The third argument supplies the component state. The root receives it automatically.
+The bare `primal::state` marker requests a copy on that input. Only the runtime supplies the value.
+A plain `state={value}` follows ordinary attribute or property rules.
+
+Recognize the exact token sequence `primal :: state` before ordinary attribute parsing.
+The current parser joins a single colon and an identifier. Keep existing single-colon forms intact.
+Reject a value on the marker. Reject a marker without component state before sending any output.
+Lower each marker to a target node number in the current component instance. Do not emit the marker as a normal attribute.
+
+After rendering succeeds, serialize and sign the state once. Append `AttachState(node, bytes)` for the root and each marked node before finalizing the frame.
+Emit one attachment per distinct target, including when the root itself has a marker.
+Reject ordinary wire attribute writes and removals for the reserved name.
+The web renderer stores the signed bytes as encoded text. Native renderers store the bytes on each node record.
+
+On submit, read the attachment on the node with the event binding. An unattached trigger supplies empty bytes.
+A marker applies only to the render that contains it. Collect its targets for that render and discard the target list after frame creation.
+The [todo example](../05-action-runtime/feature.md#1-write-the-shared-render-function) uses one render function for initial load and submit.
+An action can render a smaller section. Its frame contains only the operations that the action requested.
+
+Render two sections with marked controls. Render only the first section again. Assert that the frame targets only that section.
+Test two consecutive submits, a marked root, an unmarked control, and a failed sign that emits no frame.
+Test that ordinary `state` cannot supply action state and that `primal::state={value}` fails to compile.
+
+## 5. Acceptance scenarios
+
+`TokenTable`: color 1 is `"--color-primary"`. `options = LowerOptions { id_base: 40, tokens: &table }`.
+
+```gherkin
+Feature: html! in the core vocabulary
+
+  Scenario: A core template lowers to cross-platform forms
+    Given html! { <Stack padding="8" axis="horizontal"><Text>"0"</Text></Stack> }
+    When the caller calls lower with id_base 40
+    Then the ops are
+      | CreateNode(40, STACK)                       |
+      | SetProp(40, PADDING, Length 8 Point)        |
+      | SetProp(40, AXIS, Axis Horizontal)          |
+      | CreateNode(41, TEXT)                        |
+      | SetText(41, "0")                            |
+      | AppendChild(40, 41)                         |
+
+  Scenario: A tap binds to an action by its struct
+    Given #[action(server)] async fn increment_counter
+    And html! { <Button on:tap={increment_counter}>"Add"</Button> }
+    When the caller calls lower with id_base 40
+    Then the units hold BindAction(40, TAP, "server:increment_counter") in the `ui` field
+
+  Scenario: A misspelled action does not compile
+    Given html! { <Button on:tap={incremnt_counter}>"Add"</Button> }
+    Then the build fails with an error that names `incremnt_counter`
+
+  Scenario: A string binding is for page JavaScript only
+    Given html! { <Button on:tap="server:increment_counter">"Add"</Button> }
+    Then the build fails with "html!: a string action reference must start with `host:`"
+
+  Scenario: A click binds to a page function
+    Given html! { <button on:tap="host:open_picker">"Pick"</button> }
+    When the caller calls lower with id_base 40
+    Then the units hold BindAction(40, TAP, "host:open_picker") in the `ui` field
+
+  Scenario: A shared behaviour marker gives one shared operation and no script
+    Given html! { <Stack><div data-ewe-behaviour="scroll_lock"></div></Stack> }
+    When the caller calls lower with id_base 40
+    Then the units hold UiBehaviour(40, SCROLL_LOCK, []) in the `ui` field
+    And the units hold no ScriptNode
+
+  Scenario: A plain scoped script still gives a script node
+    Given html! { <script scoped primal:script>"start()"</script> }
+    When the caller calls lower with id_base 40
+    Then the units hold ScriptNode(40, parent 0, "start()") in the `web` field
+
+  Scenario: An unknown property on a core element does not compile
+    Given html! { <Stack class="row"></Stack> }
+    Then the build fails with "html!: `class` is not a property of <Stack>"
+
+  Scenario: A bad static length does not compile
+    Given html! { <Stack padding="8px"></Stack> }
+    Then the build fails with "html!: `padding` needs a number, a percent such as \"50%\" or \"auto\""
+
+  Scenario: A bad dynamic length fails at lower
+    Given let p = "wide"; and html! { <Stack padding={p}></Stack> }
+    When the caller calls lower
+    Then the call fails with LowerError::BadProp { node_id: 40, prop: "padding", value: "wide" }
+
+  Scenario: A colour property takes a token name
+    Given html! { <Text color="--color-primary">"x"</Text> }
+    When the caller calls lower
+    Then the ops hold SetProp(40, COLOR, ColorToken 1)
+
+  Scenario: An unknown token is an error
+    Given html! { <Text color="--nope">"x"</Text> }
+    When the caller calls lower
+    Then the call fails with LowerError::UnknownToken { node_id: 40, name: "--nope" }
+
+  Scenario: An HTML template lowers to web operations
+    Given html! { <div class="card"><span>"hi"</span></div> }
+    When the caller calls lower with id_base 40
+    Then the units are
+      | WebElement(40, tag div, class "card")   |
+      | WebRegisterNode(40)                     |
+      | WebSetAttribute(40, primal-id, "40")    |
+      | WebElement(41, tag span, class "")      |
+      | WebRegisterNode(41)                     |
+      | WebSetAttribute(41, primal-id, "41")    |
+      | WebText(42, "hi")                       |
+      | WebRegisterNode(42)                     |
+      | AppendChild(41, 42)                     |
+      | AppendChild(40, 41)                     |
+
+  Scenario: The third field attaches the state to the receiver
+    Given a Context whose state_root is 40
+    And let receiver = ctx.receiver()
+    And let next = Counter { current: 2 };
+    When the action evaluates
+      html! { ctx, receiver, Some(&next), <Button on:tap={increment_counter}>"Count: " {next.current}</Button> }
+    Then the receiver holds BindAction(40, TAP, "server:increment_counter") and SetText(40, "Count: 2")
+    And the receiver then holds a pending state for root 40 whose body decodes to Counter { current: 2 }
+    And the action returns Ok(())
+
+  Scenario: The todo action calls the page render function with the updated list
+    Given stack 40 is the root and input 42 has a bare primal::state marker
+    When add_todo renders the component with the updated list
+    Then the host signs the list once
+    And the reply attaches identical bytes to 40 and 42
+    And the next submit reads the bytes from 42
+
+  Scenario: The third field with no state root is an action error
+    Given a Context whose state_root is None
+    When an action evaluates the same form
+    Then the action returns Err with an ActionError of code ActionFailed and message "view has no component root"
+    And the dispatcher sends only the error and no operation
+
+  Scenario: None in the third field equals the two-field form
+    Given html! { ctx, receiver, None, <div><span>{count.get()}</span></div> }
+    Then the receiver holds the same items as the two-field form
+
+  Scenario: The existing reactive form is unchanged
+    Given html! { ctx, receiver, <div><span>{count.get()}</span></div> }
+    Then the existing tests of backends/foundation_wasm_ui/tests/html_macro_tests.rs pass with no change
+```
+
+## 6. Technical breakdown
+
+```mermaid
+flowchart LR
+    T["html! template"] --> P["parser: core tags, on: bindings, checks"]
+    P --> H["Html tree"]
+    H -->|"lower / mount"| O["Operation units<br/>ui, web or mobile field"]
+    H -->|"third field Some(&state)"| R["Queue state for root and marked nodes"]
+    O --> RC["the action's receiver"]
+    R --> RC
+    H -->|"existing reactive form"| X["DomOp effects (unchanged)"]
+```
+
+_The diagram shows the two ways from a template to operation units, and the existing
+reactive form, which does not change._
+
+### 6.1 Measured facts
+
+| Fact | Source |
+|---|---|
+| `html!` picks its form by the first token: `<` is the pure form; else it splits `ctx, receiver, <template>` at two top-level commas | `backends/foundation_macros/src/html_macro/mod.rs:40-56`, `:68-101` |
+| `ParsedAttr` has `Static`, `Dynamic`, `StaticDynamic`, `Event` | `html_macro/parser.rs:79-95` |
+| The parser reads compound names such as `primal:onclick`; `primal:` allows only `on*`, `style`, `script` | `html_macro/parser.rs:510`, `:563-594` |
+| The pure form writes `primal-id` as the compile-time element id (root element = 0, depth-first over elements only); static attributes are `Cow::Borrowed`; a dynamic attribute goes through `IntoAttrValue` and `None` omits it | `html_macro/codegen.rs:22-23`, `:465-510` |
+| `Html` has `tag`, `attributes`, `children`, `text`, `parts`, `runtime_id` | `backends/foundation_ui_traits/src/html.rs:397-411` |
+| A scoped script is an `Html` node with tag `script` and the attributes `primal:script="true"` and `scoped` | `backends/foundation_ui_components/src/machinery/mod.rs:46-61` |
+
+### 6.2 Parser changes (`html_macro/parser.rs`)
+
+1. **Core tags.** `const CORE_TAGS: &[&str] = ["Stack", "Text", "Image", "Button",
+   "TextInput", "Toggle", "List", "Scroll", "Spacer", "Overlay"]`. They are case-sensitive.
+   `Fragment`, `Show` and `For` keep their current meaning.
+2. **`on:` attributes.** In `parse_attributes`, before the `primal:` branch: a name that
+   starts with `on:` has the event `rest`. `rest` must be one of `tap`, `change`, `submit`,
+   `focus`, `blur`; else the error
+   ``html!: unknown event `<rest>`; use tap, change, submit, focus or blur``. Then `=` and:
+   - a brace group whose tokens are one Rust path: push
+     `ParsedAttr::Action { event, target: ActionTarget::Path(tokens) }`. The origin comes
+     from the action struct at run time (`Action::origin()`), so the template writes no
+     origin prefix (D50);
+   - a brace group with any other shape: the error
+     ``html!: a brace action is a Rust action path, for example on:tap={add_todo}``;
+   - a string literal that starts with `host:` and whose rest matches `[A-Za-z0-9_]{1,128}`:
+     `ActionTarget::Host(name)`;
+   - another string literal: the error
+     ``html!: a string action reference must start with `host:` ``.
+3. **Core attribute check**, after the attributes of a core element are parsed: each
+   attribute must be an `Action`, or have the name `key` or a property name of section 6.3;
+   else ``html!: `<name>` is not a property of <Tag>``. A `ParsedAttr::Event`
+   (`primal:on*`) on a core element is the error
+   ``html!: use on:<event> on a core element, not primal:on<event>``.
+4. **Static value check** for a `Static` property on a core element, by the `PropKind` of
+   section 6.3. The messages:
+
+| Kind | Accepts | Message |
+|---|---|---|
+| Length | a decimal number, a decimal number followed by `%`, or `auto` | ``html!: `<name>` needs a number, a percent such as "50%" or "auto"`` |
+| Alignment | `start`, `center`, `end`, `stretch` | ``html!: `<name>` needs start, center, end or stretch`` |
+| Axis | `vertical`, `horizontal` | ``html!: `<name>` needs vertical or horizontal`` |
+| Bool | `true`, `false` | ``html!: `<name>` needs true or false`` |
+| ColorToken, FontToken, Text | any text | — |
+
+### 6.3 The property names of a core element
+
+The attribute name is the lower-case `PropId` name: `padding`, `spacing`, `align`, `color`,
+`font`, `enabled`, `a11y_label`, `axis`, `value`, `checked`, `source`, `placeholder`,
+`background`, `width`, `height`, `hidden`. Every core element accepts every property in
+version 1. The kinds are those of feature 02 section 6.3.
+
+### 6.4 Codegen changes (`html_macro/codegen.rs`)
+
+For `ParsedAttr::Action`, in both modes, push one attribute:
+
+- Core element: name `ewe:on:<event>`.
+- Web element: name `primal:on<dom event>`, with the DOM event of feature 02 section 6.5
+  (`tap` gives `primal:onclick`).
+- Value for `ActionTarget::Path`:
+  `Cow::Owned(#rt::action_reference(<#path as #rt::Action>::origin(),
+  <#path as #rt::Action>::NAME))`, with `#rt` from `foundation_ui_runtime_path()`. A plain
+  `#[action]` gives `host:name`; the host tries it first and the manager falls forward to
+  the server (D50 (7), (8)).
+- Value for `ActionTarget::Host(name)`: `Cow::Borrowed("host:<name>")`.
+
+`collect_handler_bindings` and the `__cb` counter skip `Action` attributes; they are not
+local handlers. The reactive form therefore carries the attribute through its existing
+`SetAttribute` path with no other change.
+
+### 6.5 The forms of `html!` (`html_macro/mod.rs`)
+
+An action host imports `foundation_ui_runtime::html`. Both receiver forms write complete frame operations, including plain web elements.
+A mounted signal component imports `foundation_wasm_ui::html`. Existing two-field web templates continue to update their reactive receiver.
+Shared elements, typed action bindings, and the state field select the action runtime.
+A pure template produces a tree that another template can compose.
+
+The macro counts the top-level fields before the template (D51):
+
+| Input | Form | Result |
+|---|---|---|
+| `<template>` as the first token | Pure | The existing pure `Html` value |
+| one field, then `<template>` | — | The existing error for a bad form |
+| `ctx, receiver, <template>` | Receiver | Frame operations in an action. Signal effects in an existing reactive component (D40). |
+| `ctx, receiver, None, <template>` | Reactive | The same as the two-field form |
+| `ctx, receiver, Some(&state), <template>` | Reactive with state | An `Html` value. The receiver holds the operations and one pending state value with its targets. |
+
+The existing macro returns `Html` in both forms. The state form must preserve this result on success.
+A helper that propagates a render error can return `Result<Html, ErrorTrace<ActionError>>`.
+The action can discard the tree after a successful update to its component target.
+
+| Existing form | What happens to the result |
+|---|---|
+| Without a receiver | The tree holds the output. Return it for composition or pass it to a mount function. Discarding it queues no view operations. |
+| With a receiver | The macro queues the build and registers effects before it returns. The tree carries the root’s runtime identifier. Dropping it leaves queued operations and live context effects intact. |
+
+For a new standalone view, `app.mount(tree)` attaches its root to the document body.
+For a child view, `mount_fragment` uses the returned root identifier to append it under its parent without rebuilding it.
+The existing instruction receiver encodes and sends its queued operations on flush.
+Test that discarding the tree before flush preserves the initial operations and later signal updates.
+For the proposed state form, also check that dropping the tree preserves the pending attachment targets.
+
+Detection, before the reactive split: if the first token is `<`, it is the pure form. Else
+split at top-level commas; there must be two or three fields before the template. Any other
+count gives ``html!: expected `ctx, receiver, <template>` or `ctx, receiver,
+Some(&state), <template>` ``.
+
+During initial render, lowering allocates the component root. During an action render, the call context supplies the existing root.
+Collect the root and all marked node numbers as the template emits its operations. Evaluate the state expression once.
+Queue one pending receiver item with the value and distinct target numbers. The host finalizer applies section 4.6.
+An action render without a component root returns `LowerError::NoComponentRoot`. Discard the pending operations on error.
+
+The pure `lower` and `mount` functions remain for a page render (section 6.6). They are not
+used by the state field.
+
+**Render boundary (D61).** The outer page render or action collects the output of its template helpers.
+Its finalizer writes one frame for that render. The selected section can contain one element, several rows, or a whole page.
+For `<Text>{count.get()}</Text>`, the runtime tracks the signal read. A later change can queue a text operation during stabilization.
+That operation implements the author’s template. It leaves other elements and their signed state alone.
+
+**Acceptance test.** Render a todo section with two row helpers and a marked input. Record calls to the frame sink.
+Expect one frame containing the rows, the input binding and all requested attachments. Expect zero sends from the row helpers.
+
+### 6.6 `foundation_ui_runtime::view`
+
+Add `foundation_ui_traits` and `foundation_ui_wire` as dependencies of
+`foundation_ui_runtime`.
+
+```rust
+#[derive(Clone, Copy, Debug)]
+pub struct LowerOptions<'a> {
+    /// The node id of the root element. Element n of the template gets id_base + n.
+    pub id_base: u32,
+    pub tokens: &'a TokenTable,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum LowerError {
+    /// An element has no primal-id attribute, or it is not a number.
+    MissingId,
+    BadProp { node_id: u32, prop: String, value: String },
+    UnknownToken { node_id: u32, name: String },
+    /// A tree whose root is a text node or a fragment.
+    NoRootElement,
+    /// The state field was used with a context that has no state root.
+    NoComponentRoot,
+    /// id_base + n does not fit in a u32.
+    IdOverflow,
+}
+impl core::fmt::Display for LowerError { /* one short sentence for each case */ }
+impl core::error::Error for LowerError {}
+
+/// A lowering failure inside an action is an action failure (D52). The code is
+/// `ActionFailed`; the message is the short sentence of `Display`, never a Rust detail.
+impl From<LowerError> for ErrorTrace<ActionError> {
+    fn from(error: LowerError) -> Self {
+        let message = error.to_string();
+        ErrorTrace::new(error).change_context(ActionError::new(ErrorCode::ActionFailed, message))
+    }
+}
+
+/// The operation units that create the tree. Each unit sets its `ui` or `web` field.
+/// The root is not appended to anything.
+pub fn lower(html: &Html, options: &LowerOptions<'_>) -> Result<Vec<OperationT>, LowerError>;
+
+/// Queue the tree and its signed-state targets in the render receiver.
+pub fn mount<S: serde::Serialize>(html: &Html, options: &LowerOptions<'_>, parent: u32,
+    out: &ActionReceiver, state: Option<&S>) -> ActionResult;
+```
+
+**`lower` rules.** Walk the tree depth-first. `n` is the `primal-id` of an element as a
+number. A node with no `primal-id` (a static text node) gets the next free id:
+`id_base + element_count + k`, where `element_count` is the number of elements in the tree
+and `k` counts the text nodes of web elements in walk order, from 0.
+
+| Node | Units, in this order |
+|---|---|
+| Core element | `CreateNode(id, kind)`; one `SetProp` for each property attribute, in attribute order; one `BindAction(id, event, value)` for each `ewe:on:<event>` attribute; if it has text children: one `SetText(id, text)` with the texts joined in order; then each element child (its own units, then `AppendChild(id, child)`). Every member is in the `ui` field |
+| Behaviour marker `data-ewe-behaviour="<name>"` | Feature 02 section 6.7 gives the name table. A shared name gives one `UiBehaviour{node_id: parent, behaviour: id}` in `ui`; a web name gives one `WebBehaviour{node_id: parent, behaviour: UNKNOWN, custom: name}` in `web`. An unknown name gives `LowerError::BadProp`. No `ScriptNode`. The marker element is not sent |
+| Web element with `primal:script` | `ScriptNode { node_id: id, parent_id: id of the parent element (0 for a root), body: the joined text children }` in `web`. No other unit |
+| Other web element | `WebElement(id, tag, class)` with the value of the `class` attribute or `""` in `web`; `WebRegisterNode(id)`; one `WebSetAttribute` for each other attribute, in order, with `primal-id` rewritten to the decimal text of `id`; one `BindAction(id, event, value)` in `ui` for each `on:` attribute; then each child: an element child (its units, then `AppendChild`), or a text child (`WebText(tid, text)`, `WebRegisterNode(tid)`, `AppendChild(id, tid)`) |
+| Fragment (`tag == None`, no text) under an element | Its children are treated as children of that element |
+| Fragment or text at the root | `NoRootElement` |
+
+The `key` attribute of a core element is not lowered in version 1; it is kept for list
+identity in native renderers (features 14 and 15 read nothing from it yet).
+
+Property text to value: `Length`: a number gives `Point`; `N%` gives `Percent`; `auto`
+gives `Auto` with value 0. `ColorToken` and `FontToken`: `tokens.color_id(text)` or
+`font_id`; `None` gives `UnknownToken`. The other kinds parse as in section 6.2 item 4. A
+dynamic attribute that evaluated to `None` is not in the tree, so it gives no unit.
+
+**Mount order.** Queue the lowered operations, then append the root to the parent.
+For `Some(state)`, call `out.state_for(&targets, state)?` with the root and all marked nodes.
+The finalizer signs once and attaches the same bytes to each distinct target.
+
+`ReplaceSubtree` semantics, which features 09, 14 and 15 implement: remove every
+descendant of `node_id` from the id table and from the view; keep `node_id`; then apply the
+nested units.
+
+When the renderer removes a mounted local component, dispose the signal scope owned by that component.
+Use the same local unmount hook for endpoint replacement and local removal. Dispose it once before reusing its node identifiers.
+A retained component keeps its scope. Closing a local mount releases its subscription. The producer manages its own graph.
+Test an externally replaced section with a locally reactive child and an untouched sibling.
+Change both signals after replacement. Only the retained sibling can emit an update.
+See the [scope evidence and proposed test](../../research/15-actions-signals-and-rendering.md).
+
+### 6.7 Targeted output from an action
+
+A local or remote action can change a mounted region without retaining a signal scope.
+Each macro queues one placement instruction in the action receiver and yields `Result<(), RenderError>`.
+The dispatcher delivers all instructions from the successful action in one frame.
+
+| Proposed macro | Effect |
+|---|---|
+| `html_add! { parent, ctx, out, <Row/> }` | Append the new content inside the parent. |
+| `html_add_before! { parent, Some(child), ctx, out, <Row/> }` | Insert inside the parent immediately before the named direct child. |
+| `html_add_after! { parent, Some(child), ctx, out, <Row/> }` | Insert inside the parent immediately after the named direct child. |
+| `html_swap! { target, ctx, out, <Row/> }` | Replace the target itself at its current sibling position. |
+| `html_remove! { target, ctx, out }` | Remove the target and its descendants. |
+
+`<Row/>` stands for a template rooted in a supported element, such as `<Text>`.
+The four content forms accept optional `Some(&state)` after `out`, using the same root and marker rules as `html!`.
+A swap obtains attachments from its new content. A remove takes neither content nor state.
+With `None` as the child, before inserts first and after inserts last. Both work with an empty parent.
+
+Resolve a portable target by its mounted node identifier in the current view. A web renderer can also resolve a CSS selector.
+Require exactly one parent or target. Resolve a supplied child among that parent’s direct children.
+A missing or ambiguous match reports a renderer error and skips the whole instruction, including node creation, bindings and attachments.
+Later independent instructions still apply. Swap and remove run the local unmount hook for discarded components.
+
+The current shared wire has numeric node operations. A selector and its nested operations need a shared placement instruction.
+Define its schema, capability negotiation, generated readers and writer checks before adding the macros.
+Resolve selectors on the renderer before applying nested operations. A native renderer must report an unsupported web selector.
+Test the same ordered children on web and native after each operation. Include missing targets, a wrong parent and both absent-child cases.
+Test one action that adds a row and swaps a count in the same frame.
+
+## 7. Tests
+
+| Law or scenario | Test | Oracle |
+|---|---|---|
+| I1. Existing reactive templates | `foundation_wasm_ui/tests/html_macro_tests.rs`, `reactive_structure_tests.rs`, and `foundation_ui_components/tests/components_tests.rs` | Regression |
+| I2–I4. Shared operations, allocation order, deterministic output | `view_macro_tests::pure_core_templates_lower_in_creation_order_and_resolve_property_tokens` and `view_macro_tests::web_and_core_nodes_are_created_before_every_reference_across_tree_shapes` | Property |
+| I5–I6. Rust bindings and host script names | `view_macro_tests::core_and_web_bindings_follow_the_action_declaration` | Example |
+| I5–I8. Invalid action, event, property, state marker, or syntax | `view_fail_tests::invalid_templates_report_the_offending_input` checks the twenty compiler diagnostics in `tests/trybuild/view`. | Compiler errors |
+| I8. Dynamic property values, token lookup, and missing identifiers | `view_lower_tests::rejects_invalid_properties_tokens_ids_and_state` and the shared operations test above | Runtime errors |
+| I9–I10. Root and marked nodes, helper markup, and absent state | `view_macro_tests::state_template_queues_mapped_helpers_and_signed_state_targets`, `::missing_root_is_an_action_error_and_none_matches_the_two_field_form`, and `view_lower_tests::atomic_swap_keeps_root_and_signs_only_explicit_targets` | Example |
+| Mount below a parent and attach state | `view_macro_tests::mount_appends_the_template_and_attaches_verifiable_state` | Example |
+| I11. Shared behaviour, web behaviour, and scoped script | `view_macro_tests::behaviour_markers_apply_to_the_parent_and_script_has_one_operation` | Example |
+| Add and swap in a registered action | `view_macro_tests::dispatcher_returns_add_and_swap_with_their_signed_state_in_one_frame` reads both placements and verifies each state attachment. | End to end |
+
+The view tests live in `backends/foundation_ui_runtime/tests/`. The renamed-package fixture also compiles a template with a host action.
+
+## 8. Tasks
+
+- [x] 1. Check compiler diagnostics with the `trybuild` fixtures.
+- [x] 2. Parser: `on:` attributes and `ParsedAttr::Action`.
+- [x] 3. Parser: the core tag list, the core attribute check, the static value check.
+- [x] 4. Codegen: the `Action` attribute in both modes.
+- [x] 5. Add the targeted macros and wire prerequisites in section 6.7. Add the optional third field and the bare element marker. Test the attachment targets and errors in section 4.6.
+- [x] 6. `view::lower` for core elements and the behaviour marker, with tests.
+- [x] 7. `view::lower` for web elements and scripts, with tests.
+- [x] 8. `view::mount`, with tests.
+- [x] 9. Bump `foundation_macros` and `foundation_ui_runtime`, and the consumers.
+- [x] 10. Update `progress.md` and `learnings.md`.
+- [x] 11. Write or update the package or feature README.
+      Show shared vocabulary markup and a platform-specific form. Check the examples compile.
+
+## 9. Verify
+
+```bash
+cargo fmt --all -- --check
+cargo clippy -p foundation_macros --profile uat --no-deps -- -D warnings
+cargo test   -p foundation_macros --profile uat
+cargo clippy -p foundation_ui_runtime --profile uat --no-deps -- -D warnings
+cargo test   -p foundation_ui_runtime --profile uat
+cargo test   -p foundation_wasm_ui --profile uat
+cargo test   -p foundation_ui_components --profile uat
+cargo check  -p foundation_ui_runtime --profile uat --target wasm32-unknown-unknown
+```
+
+## 10. Done when
+
+- [x] The package or feature README is current. Its examples and validation commands pass.
+- [x] All tasks are complete. The section 9 commands pass. Strict Clippy reports no source warnings.
+      Cargo reports unused workspace dependencies and unused patches in the compiler-test project.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] No existing test file of `foundation_wasm_ui` or `foundation_ui_components` changed.
+- [x] No `TODO`, `FIXME`, `todo!()` or `unimplemented!()` is in the new code.
+- [x] The check list of the `story-driven-specification` skill passes.
+
+---
+
+_Created: 2026-11-13_

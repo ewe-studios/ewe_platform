@@ -180,7 +180,7 @@ fn snapshot_chunks() -> Vec<Messages> {
     .collect()
 }
 
-/// Regression (spec 65 feature 06 T5 smoke test): the loop detector ran on the
+/// Regression (spec 83 feature 06 T5 smoke test): the loop detector ran on the
 /// raw chunks, so consecutive snapshots looked like a repeating answer. A
 /// one-line reply took four model calls and ended in `LoopDetected`, and
 /// `Turn::text` concatenated every snapshot. One generation, one answer.

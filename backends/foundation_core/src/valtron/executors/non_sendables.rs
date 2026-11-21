@@ -168,16 +168,8 @@ use crate::valtron::ReadyValues;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::StreamTask;
 #[cfg(any(feature = "std", feature = "alloc"))]
-#[cfg(not(all(
-    target_family = "wasm",
-    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
-)))]
 use crate::valtron::ThreadedIterFuture;
 #[cfg(any(feature = "std", feature = "alloc"))]
-#[cfg(not(all(
-    target_family = "wasm",
-    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
-)))]
 use crate::valtron::ThreadedValue;
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
@@ -616,14 +608,13 @@ where
 ///
 /// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
 /// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
+/// # Lazy on every target
+///
+/// The single-threaded body polls the future once per `next()` call. It returns
+/// [`ThreadedValue::Waiting`] on `Poll::Pending` and keeps the future, so the
+/// next call re-polls it. A consumer must stop on `Waiting` and let the host
+/// run. A synchronous loop starves the JS event loop.
 #[cfg(any(feature = "std", feature = "alloc"))]
-/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
-/// it would block the isolate's only thread, so the I/O it waits on could never
-/// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(
-    target_family = "wasm",
-    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
-)))]
 ///
 /// # Errors
 /// This function does not return an error. The result is always `Ok`.

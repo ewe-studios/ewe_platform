@@ -151,7 +151,7 @@ impl LlamaModel {
     #[must_use]
     pub fn n_ctx_train(&self) -> u32 {
         let n_ctx_train =
-            unsafe { infrastructure_llama_bindings::llama_n_ctx_train(self.model.as_ptr()) };
+            unsafe { infrastructure_llama_bindings::llama_model_n_ctx_train(self.model.as_ptr()) };
         u32::try_from(n_ctx_train).expect("n_ctx_train fits into an u32")
     }
 
@@ -184,28 +184,28 @@ impl LlamaModel {
     /// Get the beginning of stream token.
     #[must_use]
     pub fn token_bos(&self) -> LlamaToken {
-        let token = unsafe { infrastructure_llama_bindings::llama_token_bos(self.vocab_ptr()) };
+        let token = unsafe { infrastructure_llama_bindings::llama_vocab_bos(self.vocab_ptr()) };
         LlamaToken(token)
     }
 
     /// Get the end of stream token.
     #[must_use]
     pub fn token_eos(&self) -> LlamaToken {
-        let token = unsafe { infrastructure_llama_bindings::llama_token_eos(self.vocab_ptr()) };
+        let token = unsafe { infrastructure_llama_bindings::llama_vocab_eos(self.vocab_ptr()) };
         LlamaToken(token)
     }
 
     /// Get the newline token.
     #[must_use]
     pub fn token_nl(&self) -> LlamaToken {
-        let token = unsafe { infrastructure_llama_bindings::llama_token_nl(self.vocab_ptr()) };
+        let token = unsafe { infrastructure_llama_bindings::llama_vocab_nl(self.vocab_ptr()) };
         LlamaToken(token)
     }
 
     /// Check if a token represents the end of generation (end of turn, end of sequence, etc.)
     #[must_use]
     pub fn is_eog_token(&self, token: LlamaToken) -> bool {
-        unsafe { infrastructure_llama_bindings::llama_token_is_eog(self.vocab_ptr(), token.0) }
+        unsafe { infrastructure_llama_bindings::llama_vocab_is_eog(self.vocab_ptr(), token.0) }
     }
 
     /// Get the decoder start token.
@@ -373,7 +373,7 @@ impl LlamaModel {
     #[must_use]
     pub fn token_attr(&self, LlamaToken(id): LlamaToken) -> LlamaTokenAttrs {
         let token_type =
-            unsafe { infrastructure_llama_bindings::llama_token_get_attr(self.vocab_ptr(), id) };
+            unsafe { infrastructure_llama_bindings::llama_vocab_get_attr(self.vocab_ptr(), id) };
         LlamaTokenAttrs::try_from(token_type).expect("token type is valid")
     }
 
@@ -477,7 +477,7 @@ impl LlamaModel {
     /// without issue.
     #[must_use]
     pub fn n_vocab(&self) -> i32 {
-        unsafe { infrastructure_llama_bindings::llama_n_vocab(self.vocab_ptr()) }
+        unsafe { infrastructure_llama_bindings::llama_vocab_n_tokens(self.vocab_ptr()) }
     }
 
     /// The type of vocab the model was trained on.
@@ -497,7 +497,7 @@ impl LlamaModel {
     /// without issue.
     #[must_use]
     pub fn n_embd(&self) -> c_int {
-        unsafe { infrastructure_llama_bindings::llama_n_embd(self.model.as_ptr()) }
+        unsafe { infrastructure_llama_bindings::llama_model_n_embd(self.model.as_ptr()) }
     }
 
     /// Returns the total size of all the tensors in the model in bytes.
@@ -668,14 +668,16 @@ impl LlamaModel {
         params: &LlamaModelParams,
     ) -> Result<Self, LlamaModelLoadError> {
         let path = path.as_ref();
-        debug_assert!(Path::new(path).exists(), "{path:?} does not exist");
+        if !path.exists() {
+            return Err(LlamaModelLoadError::FileNotFound(path.to_path_buf()));
+        }
         let path = path
             .to_str()
             .ok_or(LlamaModelLoadError::PathToStrError(path.to_path_buf()))?;
 
         let cstr = CString::new(path)?;
         let llama_model = unsafe {
-            infrastructure_llama_bindings::llama_load_model_from_file(cstr.as_ptr(), params.params)
+            infrastructure_llama_bindings::llama_model_load_from_file(cstr.as_ptr(), params.params)
         };
 
         let model = NonNull::new(llama_model).ok_or(LlamaModelLoadError::NullResult)?;
@@ -694,7 +696,9 @@ impl LlamaModel {
         path: impl AsRef<Path>,
     ) -> Result<LlamaLoraAdapter, LlamaLoraAdapterInitError> {
         let path = path.as_ref();
-        debug_assert!(Path::new(path).exists(), "{path:?} does not exist");
+        if !path.exists() {
+            return Err(LlamaLoraAdapterInitError::FileNotFound(path.to_path_buf()));
+        }
 
         let path = path
             .to_str()
@@ -732,7 +736,7 @@ impl LlamaModel {
     ) -> Result<LlamaModelContext<'a>, LlamaContextLoadError> {
         let context_params = params.context_params;
         let context = unsafe {
-            infrastructure_llama_bindings::llama_new_context_with_model(
+            infrastructure_llama_bindings::llama_init_from_model(
                 self.model.as_ptr(),
                 context_params,
             )
@@ -929,7 +933,7 @@ where
 
 impl Drop for LlamaModel {
     fn drop(&mut self) {
-        unsafe { infrastructure_llama_bindings::llama_free_model(self.model.as_ptr()) }
+        unsafe { infrastructure_llama_bindings::llama_model_free(self.model.as_ptr()) }
     }
 }
 

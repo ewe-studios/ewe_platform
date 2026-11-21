@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Ewe UI core</title><h1>Ewe UI core</h1>
+<p><code>NodeStore(timer)</code> creates a screen with root identifier 1. Call <code>receive(frame)</code> on the main thread. It returns true on acceptance. Read <code>reports</code> for row errors.</p>
+<p><code>EventBridge.send(event, node, value, checked)</code> reads the action reference and signed state from that control. The bridge sends these values to <code>ActionCore.trigger</code>. An immediate reply goes back to the store.</p>
+<p><code>LiveMountHost</code> opens a channel when its live node is attached. It closes the channel when the node is removed. Supply a <code>ChannelFactory</code> for your transport.</p>
+<p>Use <code>snapshotJson()</code> to compare the current store with a Rust reference fixture. Snapshots contain state lengths. The event bridge retains the original state bytes.</p>

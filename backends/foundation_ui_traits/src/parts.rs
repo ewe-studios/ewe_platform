@@ -14,7 +14,7 @@ use alloc::string::String;
 
 /// Describes a dynamic slot in an [`crate::Html`] tree.
 ///
-/// Each `Part` becomes one `Effect` that reads a signal and queues a `DomOp`.
+/// Each `Part` becomes one `Effect` that reads a signal and queues a frame operation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Part {
     /// Dynamic text content — `{signal}` inside an element.
@@ -23,6 +23,23 @@ pub enum Part {
     Attribute(AttrPart),
     /// Event handler — `primal:onclick={handler}`, etc.
     Event(EventPart),
+}
+
+impl Part {
+    /// Request signed state on this node. The template stores this request in its metadata.
+    #[must_use]
+    pub fn state_marker(node_id: u32) -> Self {
+        Self::Attribute(AttrPart {
+            node_id,
+            attr_name: String::from("primal::state"),
+        })
+    }
+
+    /// Check whether this part requests signed state for the given local node.
+    #[must_use]
+    pub fn marks_state_on(&self, id: u32) -> bool {
+        matches!(self, Self::Attribute(part) if part.node_id == id && part.attr_name == "primal::state")
+    }
 }
 
 /// A dynamic text content slot.

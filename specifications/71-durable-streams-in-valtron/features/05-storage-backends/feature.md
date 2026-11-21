@@ -28,8 +28,8 @@ and satisfies the same DST scenario.
 | In-memory | `BTreeMap<StreamName, Vec<Chunk>>` + a notifier | a monotonic per-stream integer | DST and tests; seeded and replayable |
 | File + LMDB | a native log file + LMDB metadata | a monotonic per-stream integer in LMDB | the native `foundation_log` tail; group commit as config |
 | R2 / S3 segments | `foundation_db::BlobStore` + the `foundation_log` key layout | a padded last-sequence, epoch-prefixed (see [tiered-store.md section 6.2](../../../research/edge-data/tiered-store.md#62-key-layout-lunoras-archive-keys)) | the sealed tier; immutable, `If-None-Match: *` fencing |
-| DO SQLite | `DoSqlStore` (`QueryStore`/`KeyValueStore`) | a per-stream SQL sequence | spec 65 T0 |
-| D1 | `D1WasmStorage` | a per-stream SQL sequence | spec 65 T1 |
+| DO SQLite | `DoSqlStore` (`QueryStore`/`KeyValueStore`) | a per-stream SQL sequence | spec 83 T0 |
+| D1 | `D1WasmStorage` | a per-stream SQL sequence | spec 83 T1 |
 
 ## 3. Requirements
 
@@ -57,7 +57,7 @@ and satisfies the same DST scenario.
 - [ ] **T3 — R2/S3 backend.** Uses `foundation_db::BlobStore` and the `foundation_log` key layout.
       Immutable segments, `If-None-Match: *` fencing, range `GET` reads. Passes the DST scenario.
 - [ ] **T4 — DO SQLite and D1 backends.** Use `DoSqlStore` and `D1WasmStorage`. A doc comment maps
-      each to the spec 65 T0/T1 tiers. Passes the DST scenario where the seam is available in CI.
+      each to the spec 83 T0/T1 tiers. Passes the DST scenario where the seam is available in CI.
 
 ## 5. Success criteria
 

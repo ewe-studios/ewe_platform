@@ -68,10 +68,9 @@ export class MockNode {
 
   removeChild(child) {
     const i = this.children.indexOf(child);
-    if (i >= 0) {
-      this.children.splice(i, 1);
-      child.parent = null;
-    }
+    if (i < 0) throw new Error("Node is not a child of this parent");
+    this.children.splice(i, 1);
+    child.parent = null;
     return child;
   }
 

@@ -1,0 +1,30 @@
+[package]
+name = "ui_todo_native"
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+autotests = false
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+ui_todo = { path = "..", default-features = false }
+uniffi = { workspace = true }
+foundation_context = { path = "../../../backends/foundation_context" }
+foundation_ui_runtime = { path = "../../../backends/foundation_ui_runtime" }
+foundation_ui_native = { path = "../../../backends/foundation_ui_native" }
+foundation_ui_wire = { path = "../../../backends/foundation_ui_wire" }
+
+[dev-dependencies]
+async-trait = { workspace = true }
+foundation_core = { path = "../../../backends/foundation_core" }
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

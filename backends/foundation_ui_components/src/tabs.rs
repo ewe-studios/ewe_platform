@@ -72,6 +72,10 @@ pub struct TabDef {
 ///
 /// Signal: `selected`. Static: `orientation`, `activate_on_focus`, `loop_focus`.
 #[must_use]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The component keeps its template beside its reactive bindings."
+)]
 pub fn tabs(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -219,3 +223,10 @@ pub fn tabs(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Composite,
+    crate::behaviour::Behaviour::Measure,
+    crate::behaviour::Behaviour::Transition,
+];

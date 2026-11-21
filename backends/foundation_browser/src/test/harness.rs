@@ -70,7 +70,7 @@ impl Default for TestConfig {
             static_dir: None,
             static_mount: "/assets".into(),
             headers: Vec::new(),
-            encoding: Encoding::Json,
+            encoding: Encoding::Frame,
             browser: Browser::Chromium,
             headless: true,
             window_size: None,
@@ -101,6 +101,7 @@ impl TestConfig {
             extra_args,
             ctx: Some(self.ctx.clone()),
             wait: crate::pause::WaitConfig::default(),
+            rpc: crate::jsonrpc::RpcConfig::default(),
         }
     }
 

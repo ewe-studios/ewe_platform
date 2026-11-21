@@ -625,6 +625,13 @@ def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dic
                 return everything("ci/packages.toml [defaults] changed")
             for name in names & set(packages):
                 only.setdefault(name, "its section of ci/packages.toml changed")
+        elif "foundation_ui_wire" in packages and (
+            path.startswith("scripts/ui_wire/")
+            or path in ("backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js", "pnpm-lock.yaml", "pnpm-workspace.yaml")
+        ):
+            direct.setdefault("foundation_ui_wire", f"{path} affects the wire bindings")
+            if owner := owning_package(path, packages):
+                direct.setdefault(owner, f"{path} changed")
         elif is_global(path):
             return everything(f"{path} changed")
         elif owner := owning_package(path, packages):
@@ -815,6 +822,11 @@ def commands(
         # never from the global. The allowlist names every remaining offender.
         plan["build"].append(
             [sys.executable, "scripts/ci/check_time_sources.py", "--check"]
+        )
+        # Spec 76 feature 06: a crate takes a `Ctx`, not a bare `Arc<dyn Clock>`,
+        # and only a host entry point builds `MonotonicClock`.
+        plan["build"].append(
+            [sys.executable, "scripts/ci/check_clock_params.py", "--check"]
         )
         plan["build"].append([sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci/tests"])
     if s.build != "off":
