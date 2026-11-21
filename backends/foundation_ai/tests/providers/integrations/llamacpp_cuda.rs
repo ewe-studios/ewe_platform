@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! CUDA offload for the llama.cpp backend (spec-60 F20, B3/W4).
 //!
 //! WHY: the backend plumbs `n_gpu_layers` through to llama.cpp but defaults to

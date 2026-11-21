@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Integration tests for `ResponsesProvider` against a running llama-server.
 //!
 //! These tests are #[ignore]-gated and require:

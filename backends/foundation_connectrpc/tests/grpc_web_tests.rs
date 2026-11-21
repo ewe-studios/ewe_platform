@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! gRPC-Web tests (spec-41 F20 / Decision 05): status trailer build/parse with
 //! the details-bin preference (P9), streaming base64 (fragmented boundaries), and
 //! binary + text streaming round-trips through both reader/writer stacks.

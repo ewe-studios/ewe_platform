@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `build_chat_request` / `parse_chat_response` message-shape handling.
 //!
 //! WHY: these two functions are the wire boundary — everything the model is

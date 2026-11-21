@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Regression tests for the session wiring fixes: shared stores, builder-owned
 //! tools, context message order, chunk coalescing, text-protocol tool calls,
 //! argument validation, and access-provider enforcement.

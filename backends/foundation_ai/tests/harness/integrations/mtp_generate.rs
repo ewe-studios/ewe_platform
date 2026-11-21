@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! MTP end-to-end speculative-generation integration test (spec-51 Phase 2).
 //!
 //! WHY: Phase 2 wires the C++ `common/speculative.h` engine (via

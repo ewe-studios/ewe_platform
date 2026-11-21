@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Integration tests for valtron's cooperative sleep (`sleep`, `sleep_async`).
 
 use foundation_compact::Instant;

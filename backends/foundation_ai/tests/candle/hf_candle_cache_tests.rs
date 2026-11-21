@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `HuggingFaceCandleProvider::download_model` — the cache short-circuit.
 //!
 //! WHY: `download_model` returns early when the destination already holds a

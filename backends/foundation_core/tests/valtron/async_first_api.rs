@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The async-first valtron API, on native AND wasm: `.values()`, `.items()`,
 //! `.collect_async()`, `.first()`, `TaskStatus::from_stream`, `next_values`.
 //!

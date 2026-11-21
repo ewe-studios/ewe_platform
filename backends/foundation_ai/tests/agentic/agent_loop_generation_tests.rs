@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `AgentLoop` inner-loop coverage — the states a real turn passes through.
 //!
 //! WHY: `agent_loop_tests.rs` builds its harness with an EMPTY `ProviderRouter`,

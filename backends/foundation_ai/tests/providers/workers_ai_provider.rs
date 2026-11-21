@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Integration tests for `WorkersAiProvider` against a real HTTP server,
 //! verifying the Workers AI REST API (`ai/run`) — both the non-streaming
 //! (`generate`) and SSE streaming (`stream`) paths.

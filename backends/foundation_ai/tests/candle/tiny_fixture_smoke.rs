@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Smoke test: the committed tiny-random fixtures load through `CandleBackend`.
 //!
 //! WHY: `artefacts/test-models/` costs ~54 MB of permanent repo history. That is

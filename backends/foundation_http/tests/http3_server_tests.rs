@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! End-to-end HTTP/3 server test (F19) — a real QUIC client talks to the
 //! `foundation_http` H3 server over loopback UDP, and an echo `H3Serve` handler
 //! reflects the request body. Proves the H3 serving layer works, not stubs.

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! End-to-end `AgentSession::run_turn` tests against a real local model.
 //!
 //! WHY: `run_turn` is the session's primary API — everything an agent does goes

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Integration tests for the full JS yield stack:
 //! valtron executor -> JS yield -> Promise resolution -> executor re-entry -> task completion.
 //!

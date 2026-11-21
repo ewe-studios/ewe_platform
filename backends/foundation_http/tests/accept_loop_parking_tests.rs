@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The accept loop parks on listener readiness instead of sleeping (Feature 05).
 //!
 //! `serve_loop` used to `thread::sleep(would_block_sleep)` on every

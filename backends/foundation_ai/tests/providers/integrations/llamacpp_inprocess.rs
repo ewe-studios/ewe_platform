@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! In-process llama.cpp coverage against a LOCAL GGUF — the code paths where
 //! docs/fixes/006 and 007 lived.
 //!

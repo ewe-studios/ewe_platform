@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 use foundation_ai::agentic::memory::*;
 use foundation_ai::agentic::memory_coordinator::MemoryCoordinator;
 use foundation_ai::agentic::memory_store::KvMemoryStore;

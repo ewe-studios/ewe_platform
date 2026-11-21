@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! An async consumer of a single-thread `DrivenStreamIterator` is woken when a
 //! parked task becomes ready, even if nothing is pushed to the output queue
 //! (spec 70 feature 46).

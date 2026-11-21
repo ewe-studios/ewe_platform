@@ -1,3 +1,7 @@
+// An example measures its own wall time for a local echo run; it is not core
+// logic (spec 84, section 6).
+#![allow(clippy::disallowed_methods)]
+
 //! `WireGuard` mesh + HTTP over the overlay — proof that `Connection::Overlay`
 //! carries real HTTP traffic through the encrypted tunnel (spec-55, F11).
 //!

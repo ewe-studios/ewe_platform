@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Candle registry + local-load error paths.
 //!
 //! WHY: I had written these off as "GPU paths". They are not. Candle has no

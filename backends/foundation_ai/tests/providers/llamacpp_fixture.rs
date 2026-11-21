@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Always-run in-process llama.cpp coverage on a COMMITTED tiny GGUF fixture.
 //!
 //! WHY: `backends/llamacpp.rs` — where every docs/fixes/006 and 007 bug lived —

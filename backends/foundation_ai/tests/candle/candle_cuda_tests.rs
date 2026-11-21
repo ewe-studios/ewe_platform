@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! CUDA execution for the candle backend (spec-60 F20).
 //!
 //! WHY: the `Cuda` variant existed with no constructor, so `candle-cuda`

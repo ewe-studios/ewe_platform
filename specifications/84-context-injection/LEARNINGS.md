@@ -117,6 +117,14 @@ Most crates write `name = { path = …, version = … }`. A few use
 broken requirement behind, and Cargo reports it as a version conflict. Search both forms when
 a crate version moves.
 
+## The test exemption cannot be a nested `clippy.toml` (2026-11-22)
+
+An integration test is part of its package, so Clippy reads the package
+`clippy.toml` for the test target too. A second `clippy.toml` under `tests/` has
+no effect. The exemption of section 6, item 2 is therefore a file-level
+`#![allow(clippy::disallowed_methods)]` with a comment in each test file that
+builds an effect on purpose. This matters because CI lints with `--all-targets`.
+
 ## A missing `Env` is a `FailedAction` record in the agent loop (2026-11-22)
 
 `AgentLoop::next_status` returns `Option<TaskStatus>`, not a `Result`. A missing `Env` becomes

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Deferred SSE transport-error mapping (feature 06 T4).
 //!
 //! `HttpClient::send_sse` is lazy on wasm, so a fetch failure is surfaced in-band

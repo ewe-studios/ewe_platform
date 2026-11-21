@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! OpenRouter (OpenAI-compatible) — exercises the `OpenAIProvider` send + SSE
 //! parse paths against a real service. Self-skips without `OPENROUTER_API_KEY`.
 

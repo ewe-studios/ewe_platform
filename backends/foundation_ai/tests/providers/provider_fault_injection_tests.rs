@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! HTTP fault injection against the provider request path.
 //!
 //! WHY: the provider error branches — non-2xx handling, vendor error-body

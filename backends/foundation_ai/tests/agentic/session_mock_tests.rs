@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `AgentSession` API driven by a `MockModelProvider` — deterministic, no model.
 //!
 //! WHY: `session_tests.rs` only covers the builder + preflight; `run_turn`,

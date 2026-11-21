@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Model-call and memory timestamps read the injected `Clock` (spec 70 feature 133).
 //!
 //! WHY: the agentic memory stores and the model providers stamped their

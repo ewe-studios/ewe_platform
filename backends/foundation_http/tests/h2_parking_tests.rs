@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! An idle HTTP/2 connection task parks on its socket instead of polling.
 //!
 //! `H2ConnectionHandler` used to re-poll every 10 ms (1 ms during the

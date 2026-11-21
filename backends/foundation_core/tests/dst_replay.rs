@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! A DST run repeats from one seed (spec 84 T6).
 //!
 //! The full trace, IDs and wait deadlines, must be equal on a second run. The

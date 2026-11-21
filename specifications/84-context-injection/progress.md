@@ -64,6 +64,11 @@ and `foundation_ai`. The planned `foundation_platform_sandbox` crate does not
 exist yet (spec 77), so it has no file. The `no_global_clock_in_core` test in
 `foundation_core/tests` proves the configuration in the five crates.
 
+The test exemption of section 6, item 2 is a file-level
+`#![allow(clippy::disallowed_methods)]` in each test file that builds an effect
+on purpose. An integration test belongs to its package, so it shares the package
+`clippy.toml`; a nested `clippy.toml` would not apply.
+
 ### T5 — `foundation_ai`
 
 `SessionId::from_id` exists. The agent loop, the memory hierarchy, the

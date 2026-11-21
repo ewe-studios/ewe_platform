@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The effect lint is active in every core crate (spec 84 T4).
 //!
 //! A source scan proves that each crate carries a `clippy.toml` that disallows

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Regression test for issue #340: `PoolGuard::shutdown_within` must bound
 //! both shutdown phases by one deadline.
 //!

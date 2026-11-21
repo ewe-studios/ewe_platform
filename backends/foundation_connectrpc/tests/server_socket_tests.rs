@@ -1,3 +1,5 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
 // Test/example code casts small, known values (lengths, counters, status
 // codes), so the value is always in range for the target type.
 #![allow(

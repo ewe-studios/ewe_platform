@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Local llama.cpp embedding integration test (spec 67).
 //!
 //! WHY: the llama.cpp embedding branch used to return `EmbeddingsError::NotEnabled`

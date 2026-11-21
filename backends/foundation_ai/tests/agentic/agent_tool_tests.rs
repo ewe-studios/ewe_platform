@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The `agent` tool (sub-agent delegation): definitions, argument checks and
 //! the start / check / result / pause / resume / stop cycle over a mock
 //! provider. Moved here from the inline module in `src/agentic/tools/agent.rs`.
