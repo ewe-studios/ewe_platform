@@ -26,7 +26,7 @@ fn ca_issues_certificate() {
     let (ca, _pem) = CertificateAuthority::generate(&CaConfig::new("test CA"), &ctx).expect("CA");
     let (_key_pem, csr_pem) = generate_csr("laptop").expect("CSR");
 
-    let lifetime = Duration::from_secs(30 * 24 * 60 * 60);
+    let lifetime = Duration::from_hours(30 * 24);
     let issued = ca
         .sign_client_csr(&csr_pem, "laptop", lifetime)
         .expect("sign");
@@ -148,7 +148,7 @@ fn certificate_within_ca_lifetime() {
         .issue_server_identity(
             &key,
             &["localhost".to_string()],
-            Duration::from_secs(90 * 24 * 60 * 60),
+            Duration::from_hours(90 * 24),
         )
         .expect("server identity");
 
@@ -222,7 +222,9 @@ fn pem_with(label: &str, der: &[u8]) -> String {
         out.push_str(std::str::from_utf8(chunk).expect("base64 is ASCII"));
         out.push('\n');
     }
-    out.push_str(&format!("-----END {label}-----\n"));
+    out.push_str("-----END ");
+    out.push_str(label);
+    out.push_str("-----\n");
     out
 }
 
