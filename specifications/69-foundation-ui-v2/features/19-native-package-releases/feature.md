@@ -7,10 +7,9 @@ depends_on: ["13", "14", "15", "16", "17", "21", "22"]
 
 # Feature 19. Native package releases and starter applications
 
-## Proposed change for review
+## Monorepo layout and example applications
 
-This change moves both native source trees into the monorepo and revises the iPhone todo screen.
-The release contract below describes the proposed single-repository workflow.
+The monorepo contains both libraries and four todo apps. The release workflow uses the same source commit for both packages.
 
 1. Build the [iOS library](../21-mobile-ios-package/feature.md) from `mobile/ios/`.
    Build the [Android library](../22-mobile-android-package/feature.md) from `mobile/android/`.
@@ -93,6 +92,12 @@ flowchart LR
 
 Each template builds from a published version of the same native release.
 
+## Monorepo candidate
+
+The preparation command staged version `0.1.0` from commit `8c5243b26` in `target/native-ui/mobile-release-preview/`.
+Its manifest records the source revision, Swift checksum commit and both archive digests.
+Public installation requires a signed release and a verified Maven namespace.
+
 ## Earlier local candidate
 
 Version `0.1.0` builds from the three revisions in the release record.
@@ -137,9 +142,12 @@ Each starter renders a screen and calls one Rust-backed action. Keep application
 
 ## README task
 
-- [ ] Update the README for the release tools and for each native package and starter.
+- [x] Update the README for the release tools and for each native package and starter.
   Show how to build a preview and how to install an exact version in each starter.
   Include package generation and the fixture checks that apply to each package.
+
+The [updated iPhone screen](design/todo-after.png) shows the native list and toolbar.
+The [dark appearance screenshot](design/todo-dark-large-text.png) shows the same screen with accessibility text sizes.
 
 ## Local verification
 

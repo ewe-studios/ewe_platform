@@ -11,3 +11,6 @@
 - The unsigned build for a physical iPhone passed. Signing and physical installation require a development team.
 - The [simulator screenshot](../19-native-package-releases/design/todo-after.png) shows the updated screen.
 - Exact tag installation requires the first public package release.
+
+The full on-device test also passed with dark appearance and accessibility-extra-large text.
+VoiceOver exposed the form field, Add and Cancel with their control types and labels.

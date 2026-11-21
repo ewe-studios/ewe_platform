@@ -20,10 +20,10 @@ related_specs:
   - "specifications/52-tauri-foundation-platform"
   - "specifications/76-shared-context"
 features:
-  completed: 17
-  uncompleted: 4
+  completed: 19
+  uncompleted: 2
   total: 21
-  completion_percentage: 81
+  completion_percentage: 90
 ---
 
 # Spec 69: foundation_ui v2
@@ -407,8 +407,8 @@ in parallel.
 | 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
 | 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Native libraries in mobile/, monorepo releases, registry publication and starter apps | 13, 14, 15, 16, 17, 21, 22 | Sonnet | Release | In progress |
 | 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03, 09 | Sonnet | Web | ✅ Complete |
-| 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | Planned |
-| 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | Planned |
+| 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | ✅ Complete |
+| 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | ✅ Complete |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 

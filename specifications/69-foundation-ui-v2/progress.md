@@ -532,3 +532,22 @@ Feature 19 now specifies GitHub Releases and Swift package tags in ewe_platform.
 Features 21 and 22 specify the installable libraries under mobile/ios and mobile/android. Feature 19 releases both. The example apps consume them.
 
 Features 21 and 22 now specify four runnable todo apps. Each platform has Todo Server and Todo On Device. The package-only starters remain release checks.
+
+### Features 21 and 22. Mobile packages and four todo applications
+
+Both libraries and all four applications now live in ewe_platform. Both packages passed clean consumer builds from candidate `8c5243b26`.
+The Swift package passed eleven tests. The Kotlin library passed thirteen tests.
+The Rust suites passed 92 wire tests, one server test and one offline action test for both platform configurations.
+The browser integration suites passed 145 and 160 tests. Each suite skipped one optional fixture.
+
+Todo On Device rendered its first screen and completed its task flow on each simulator with the test server stopped.
+Android also verified that the installed application has no network permission.
+Todo Server ran on both platforms. A second client read the saved task. Each on-device app kept its own store.
+Both package-only starters displayed zero, sent Refresh, and displayed one after a second client changed the server store.
+The iPhone simulator tests also passed with dark appearance and accessibility-extra-large text.
+The unsigned physical iPhone build passed. Physical device execution was outside the simulator test run.
+
+The monorepo candidate is in `target/native-ui/mobile-release-preview/`. Its manifest records both archive digests.
+Swift built from a clean candidate package. The Android starter executed all 36 build tasks using a fresh Gradle cache.
+Feature 19 still requires public publication and public dependency resolution.
+Nineteen of 21 indexed features are complete. Feature 07 retains its repository clock check.

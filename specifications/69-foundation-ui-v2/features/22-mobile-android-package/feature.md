@@ -1,6 +1,6 @@
 ---
 feature: "mobile-android-package"
-status: "planned"
+status: "complete"
 depends_on: ["13", "15", "16", "17"]
 ---
 
@@ -86,3 +86,10 @@ Render all Foundation controls through the library. Use the shared vocabulary fo
 - Dispose and recreate the screen. Check that the old host releases subscriptions and the new screen receives each event once.
 - Write `mobile/android/README.md`. Document installation, imports, controls, actions, wire frames, fixtures and a hand-written frame example.
 - Run the README examples from a checkout without sibling repositories. Resolve the public coordinate after release.
+
+## Implementation evidence
+
+The library passed 13 Kotlin tests. A clean consumer resolved the renderer and its dependencies from the staged Maven repository.
+Both apps ran on one Android 36 emulator. The installed local app excluded the network permission.
+The server app preserved its task after screen recreation. A second client read the task.
+The on-device app retained its separate list. The package-only starter changed its visible count after Refresh.

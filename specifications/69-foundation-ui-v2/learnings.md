@@ -571,3 +571,14 @@ The public Swift manifest can point its targets at the example sources in the sa
 The Android starter and todo activity repeat host setup. The Android package can own that lifecycle while each app supplies its Rust actions.
 
 A local filter in the server example does not prove offline operation. The on-device test must cover initial rendering, task mutations and count updates with zero network calls.
+
+### Two native execution modes
+
+Rendering the first screen in local Rust removes the server from the on-device startup path.
+Keep the device store and its filter in the core across actions. Applications declare controls and supply business actions.
+The renderer interprets presentation roles and delivers events with the state attached to each control.
+Vocabulary version 3 drops the optional version 4 presentation property and retains the underlying controls.
+
+A transitive Android manifest can add network permission during packaging. Inspect the installed package to verify offline operation.
+At accessibility text sizes, the iPhone form uses the large sheet height before the keyboard opens.
+The full-height change passed the iPhone simulator tests in dark appearance with large text.
