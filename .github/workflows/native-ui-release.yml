@@ -18,6 +18,10 @@ on:
     paths: *native-paths
   workflow_dispatch:
 
+env:
+  # Install only the tools that each job uses.
+  MISE_AUTO_INSTALL: "false"
+
 permissions:
   contents: read
 concurrency:
@@ -47,7 +51,7 @@ jobs:
         run: |
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
-          mise install --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
           mise run toolchain:android
       - name: Check platform bindings and build the starter applications
         run: |
@@ -80,7 +84,7 @@ jobs:
         run: |
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
-          mise install --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
           mise run toolchain:android
           scripts/ui_native/sync-android.sh --check
           scripts/ui_native/build-android.sh --with-todo
@@ -142,7 +146,7 @@ jobs:
         run: |
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
-          mise install --yes java gradle http:android-sdk python
+          mise install --locked --yes java gradle http:android-sdk python node
           mise run toolchain:android
           mise exec -- scripts/ui_native/release/verify.sh --candidate candidate --templates both --public
           mise exec -- scripts/ui_native/release/test-ios-starter.sh
@@ -164,6 +168,6 @@ jobs:
         run: |
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
-          mise install --yes java gradle http:android-sdk python
+          mise install --locked --yes java gradle http:android-sdk python node
           mise run toolchain:android
           mise exec -- scripts/ui_native/release/test-android-starter.sh
