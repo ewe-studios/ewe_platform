@@ -148,6 +148,7 @@ function applyProp(node, id, type, value) {
       else node.removeAttribute(attr);
       break;
     }
+    case "PRESENTATION": node.setAttribute("data-ewe-presentation", v ?? ""); break;
     case "A11Y_LABEL": node.setAttribute("aria-label", v ?? ""); break;
     case "SOURCE": node.setAttribute("src", v ?? ""); break;
     case "PLACEHOLDER": node.setAttribute("placeholder", v ?? ""); break;

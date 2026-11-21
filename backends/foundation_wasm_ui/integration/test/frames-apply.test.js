@@ -247,7 +247,7 @@ test("all vocabulary kinds and property types map to browser controls", () => {
     apply(operation("SetProp",40,wire.PropId[prop],wire.PropValue[kind],val));
     assert.equal(el.style[attr],expected);
   }
-  for(const [prop,attr] of [["SOURCE","src"],["PLACEHOLDER","placeholder"],["A11Y_LABEL","aria-label"]]) {
+  for(const [prop,attr] of [["SOURCE","src"],["PLACEHOLDER","placeholder"],["A11Y_LABEL","aria-label"],["PRESENTATION","data-ewe-presentation"]]) {
     apply(operation("SetProp",40,wire.PropId[prop],wire.PropValue.Text,new wire.TextValueT("label")));
     assert.equal(el.getAttribute(attr),"label");
   }
