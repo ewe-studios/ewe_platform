@@ -34,7 +34,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
 # optional: native builds no longer compile foundation_wasm and its native-only
 # CLI tooling (clap, toml_edit, foundation_codegen, ...).
 foundation_wasm = { path = "../foundation_wasm", version = "0.0.9", optional = true }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false, optional = true }

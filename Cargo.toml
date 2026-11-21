@@ -68,6 +68,23 @@ serde_json = { version = "1.0.114" }
 toml = { version = "0.9" }
 toml_edit = { version = "0.22" }
 
+# One media type table for the platform (spec 89).
+# `phf` builds a perfect hash map at compile time. It needs no `std`, so the
+# wasm builds of `foundation_netio` stay clean. `foundation_nostd` re-exports it
+# and no other crate names it directly.
+# `Cargo.lock` also holds phf 0.13.1 and 0.11.3, which upstream crates force:
+# cssparser (through tauri and dom_query) needs 0.13, and doxygen-rs (through
+# lmdb-master-sys) needs 0.11. They cannot use 0.14.
+phf = { version = "0.14", default-features = false }
+# `phf_codegen` writes the `phf::Map` literal that `include_json!` and
+# `include_yaml!` expand to.
+phf_codegen = "0.14"
+# The YAML parser behind `include_yaml!`.
+serde_yaml_ng = "0.10.0"
+# The second media type table. The agreement test proves both tables give the
+# same answer for common extensions; the embedders keep using this one.
+new_mime_guess = "4.0.4"
+
 regex = "1.12.2"
 concurrent-queue = { version = "2.5.0"}
 # The concrete RNG type that `Ctx` names. The workspace pins it here, so a consumer

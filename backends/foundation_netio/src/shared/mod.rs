@@ -5,3 +5,4 @@ pub mod context;
 pub mod core;
 pub mod errors;
 pub mod http;
+pub mod mime;

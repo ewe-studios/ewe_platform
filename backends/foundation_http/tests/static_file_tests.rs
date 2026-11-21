@@ -642,8 +642,8 @@ fn mjs_file_is_served_as_javascript() {
         })
         .unwrap_or_else(|| panic!("no Content-Type in head: {head:?}"));
     assert!(
-        content_type.starts_with("application/javascript"),
-        ".mjs content type was {content_type:?}, expected application/javascript"
+        content_type.starts_with("text/javascript"),
+        ".mjs content type was {content_type:?}, expected text/javascript"
     );
     h.stop();
 }

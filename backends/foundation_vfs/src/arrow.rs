@@ -14,7 +14,7 @@ use foundation_arrow::arrow_schema::{ArrowError, DataType, Field, Schema};
 use foundation_arrow::{ArrowIpcError, ArrowSchema, ArrowValue, FromArrow, IpcResult, ToArrow};
 use foundation_errstacks::ErrorTrace;
 
-use crate::shared::vfs::types::{
+use crate::types::{
     Checksum, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata,
 };
 
@@ -430,10 +430,10 @@ impl ArrowSchema for VfsMetadata {
 
 fn system_time_to_ms(t: Option<SystemTime>) -> Option<i64> {
     t.and_then(|t| t.duration_since(SystemTime::UNIX_EPOCH).ok())
-        .map(|d| d.as_millis() as i64)
+        .map(|d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX))
 }
 fn ms_to_system_time(ms: Option<i64>) -> Option<SystemTime> {
-    ms.map(|ms| SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(ms as u64))
+    ms.map(|ms| SystemTime::UNIX_EPOCH + std::time::Duration::from_millis(ms.cast_unsigned()))
 }
 
 impl ToArrow for VfsMetadata {
@@ -453,8 +453,8 @@ impl ToArrow for VfsMetadata {
             .collect();
         let permissions: foundation_arrow::arrow_array::UInt32Array =
             values.iter().map(|v| Some(v.permissions)).collect();
-        let owner_uid: UInt64Array = values.iter().map(|v| Some(v.owner.0 as u64)).collect();
-        let owner_gid: UInt64Array = values.iter().map(|v| Some(v.owner.1 as u64)).collect();
+        let uid: UInt64Array = values.iter().map(|v| Some(u64::from(v.owner.0))).collect();
+        let gid: UInt64Array = values.iter().map(|v| Some(u64::from(v.owner.1))).collect();
         let created_ms: Int64Array = values
             .iter()
             .map(|v| system_time_to_ms(v.created))
@@ -496,8 +496,8 @@ impl ToArrow for VfsMetadata {
                 Arc::new(size) as ArrayRef,
                 Arc::new(file_type) as ArrayRef,
                 Arc::new(permissions) as ArrayRef,
-                Arc::new(owner_uid) as ArrayRef,
-                Arc::new(owner_gid) as ArrayRef,
+                Arc::new(uid) as ArrayRef,
+                Arc::new(gid) as ArrayRef,
                 Arc::new(created_ms) as ArrayRef,
                 Arc::new(modified_ms) as ArrayRef,
                 Arc::new(accessed_ms) as ArrayRef,
@@ -543,8 +543,16 @@ impl FromArrow for VfsMetadata {
             },
             permissions,
             owner: (
-                batch.column(4).arrow_value(idx).unwrap_or(0) as u32,
-                batch.column(5).arrow_value(idx).unwrap_or(0) as u32,
+                batch
+                    .column(4)
+                    .arrow_value(idx)
+                    .unwrap_or(0i32)
+                    .cast_unsigned(),
+                batch
+                    .column(5)
+                    .arrow_value(idx)
+                    .unwrap_or(0i32)
+                    .cast_unsigned(),
             ),
             created: ms_to_system_time(batch.column(6).arrow_value(idx)),
             modified: ms_to_system_time(batch.column(7).arrow_value(idx)),
@@ -589,8 +597,16 @@ impl FromArrow for VfsMetadata {
                     },
                     permissions,
                     owner: (
-                        batch.column(4).arrow_value(idx).unwrap_or(0) as u32,
-                        batch.column(5).arrow_value(idx).unwrap_or(0) as u32,
+                        batch
+                            .column(4)
+                            .arrow_value(idx)
+                            .unwrap_or(0i32)
+                            .cast_unsigned(),
+                        batch
+                            .column(5)
+                            .arrow_value(idx)
+                            .unwrap_or(0i32)
+                            .cast_unsigned(),
                     ),
                     created: ms_to_system_time(batch.column(6).arrow_value(idx)),
                     modified: ms_to_system_time(batch.column(7).arrow_value(idx)),
