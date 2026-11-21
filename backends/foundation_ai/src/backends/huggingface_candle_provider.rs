@@ -2,6 +2,10 @@
 //!
 //! Wraps [`CandleBackend`] with automatic safetensors model downloading from
 //! `HuggingFace` Hub, mirroring the [`HuggingFaceGGUFProvider`] pattern for GGUF models.
+// The local backend path still mints message ids with the global generator,
+// so a DST run does not repeat them here. Issue #677 injects `Env` into the
+// provider constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use std::path::PathBuf;
 
@@ -177,16 +181,10 @@ impl HuggingFaceCandleProvider {
     /// Returns [`GenerationError`] if the model cannot be loaded.
     pub fn new(config: HuggingFaceCandleConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
-            .token(
-                config
-                    .auth
-                    .as_ref()
-                    .map(|a| match a {
-                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
-                        _ => String::new(),
-                    })
-                    .unwrap_or_default(),
-            )
+            .token(config.auth.as_ref().map_or_default(|a| match a {
+                foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                _ => String::new(),
+            }))
             .build()
             .map_err(|e| {
                 ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(

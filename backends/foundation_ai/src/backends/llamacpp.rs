@@ -9,6 +9,10 @@
 //! - [`LlamaBackendConfig`] - Configuration with builder pattern for provider initialization
 //! - [`LlamaModels`] - `Model` trait implementation with interior mutability
 //! - [`LlamaCppStream`] - `StreamIterator` implementation for token-by-token streaming
+// The local backend path still mints message ids with the global generator,
+// so a DST run does not repeat them here. Issue #677 injects `Env` into the
+// provider constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, LlamaPoolingType};
 use infrastructure_llama_cpp::context::LlamaModelContext;
@@ -1306,10 +1310,9 @@ fn apply_chat_template(
                     ModelOutput::ToolCall {
                         name, arguments, ..
                     } => {
-                        let args_str = arguments
-                            .as_ref()
-                            .map(|a| serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string()))
-                            .unwrap_or_default();
+                        let args_str = arguments.as_ref().map_or_default(|a| {
+                            serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string())
+                        });
                         format!("[Tool call: {name}({args_str})]")
                     }
                     ModelOutput::ThinkingContent { thinking, .. } => thinking.clone(),
