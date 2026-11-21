@@ -17,7 +17,7 @@ foundation_http = { path = "../foundation_http", version = "0.0.13", features = 
 foundation_netio = { path = "../foundation_netio", version = "0.0.15", features = ["ssl", "multi"] }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.5" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15", features = ["fd"] }
-foundation_db = { path = "../foundation_db", version = "0.0.8" }
+foundation_db = { path = "../foundation_db", version = "0.0.9" }
 foundation_macros = { workspace = true }
 # T3/T4: the proxy's H2 upstream leg reuses connectrpc's streaming H2 client
 # (`H2Transport`) — the only H2 client in the tree with trailing-HEADERS support.
@@ -46,7 +46,7 @@ rcgen = { version = "0.13", default-features = false, features = ["ring", "pem",
 # and DNS wait are async, and block_on re-polls after each yield).
 futures-lite = "2"
 # Stream combinators (`StreamExt`) and `join` for the async H2 forward relays.
-futures-util = "0.3"
+futures-util = { workspace = true }
 
 [dev-dependencies]
 # The clock injection test moves a `SimulatedClock`; `test-clock` exposes it.

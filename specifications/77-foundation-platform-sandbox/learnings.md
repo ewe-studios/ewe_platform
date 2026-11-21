@@ -303,9 +303,14 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
 - Since version 1.0, `@cloudflare/sandbox` has only file helpers that work through
   `exec()` of a static helper program. The DO class is application code.
 
-### 4.2 The Rust `worker` crate (version 0.8.5, in this workspace's `Cargo.lock`)
+### 4.2 The Rust `worker` crate (0.8.5 in the lock; 0.8.7 is the target)
 
-- `State::container() -> Option<Container>` (`src/durable.rs` line 258).
+Observed on 0.8.5. Re-checked against `worker-0.8.7` on 2026-11-14. `container.rs` and
+`fetcher.rs` have the same lines in both versions. `State::container()` moved from line 258 to
+line 281.
+
+- `State::container() -> Option<Container>` (`src/durable.rs` line 281 in 0.8.7; line 258 in
+  0.8.5).
 - `Container`: `running()`, `start(Option<ContainerStartupOptions>)`, `wait_for_exit()`,
   `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`
   (`src/container.rs` lines 13 to 41).
@@ -324,7 +329,7 @@ Sources: `cloudflare/sandbox-sdk` at `61cac81` (`README.md`, `docs/architecture.
   with its own workspace root and `worker-build`.
 - `foundation_connectrpc`: the router and the client are in `shared/` (all targets). The
   `fetch` client transport is only a capability constant today
-  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 65 feature 05
+  (`shared/transport/wasm.rs`: no request streaming, no full duplex). Spec 83 feature 05
   plans a general one.
 - `backends/foundation_cloudflare_workers` has generated calls for
   `GET /accounts/{account_id}/containers` and the registry credentials call. They list and
@@ -472,3 +477,261 @@ version v1; its home is `docker/sandboxes-api`).
 - Which template name is the best default. Candidates from the documents:
   `docker.io/sbx/shell-image:latest` and `docker/sandbox-templates:claude-code-minimal`.
 
+## 9. The Cloudflare merge (2026-11-14)
+
+### 9.1 The conflict
+
+Spec 83 feature 06 (then "Cloudflare Deployment") and this spec said opposite things:
+
+| Question | Spec 77 | Spec 83 feature 06 |
+|---|---|---|
+| Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare`. |
+| Who owns the container surface? | The private `ContainerApi` of the Cloudflare DO (feature 07, section 6). | A public `ContainersDeploy` in `foundation_deployment_cloudflare`. |
+| Is there a handle for the container? | No. The `SandboxHandle` is the only handle. | No. `ContainersDeploy` takes a `ContainerSpec` with undefined fields. |
+
+Both texts were correct about one artifact and wrong about the other. The owner merged them.
+
+### 9.2 What the Cloudflare Rust API can and cannot do
+
+Checked against `worker` 0.8.7 in the `cloudflare/workers-rs` source (2026-11-13):
+
+- `State::container()` returns a `Container` (`durable.rs:281`).
+- `Container` has `running`, `start`, `wait_for_exit`, `destroy`, `signal` and
+  `get_tcp_port` (`container.rs:13-41`).
+- `ContainerStartOptions` has `entrypoint`, `enable_internet` and `env`
+  (`container.rs:86-112`). It has no image field and no instance type.
+- The image comes from `wrangler.toml` `containers[].image`. So a deploy from Rust must
+  write the Worker configuration, not call a container "create" API.
+- A port fetch before the server listens fails with text that contains
+  `the container is not listening`.
+- The container architecture is `linux/amd64`.
+- There is no exit code and no log call through `Container`.
+
+Consequence: the container handle on Cloudflare is truthful about its limits. It reports
+`exec: true` only when the sandbox slave endpoint exists. It reports `logs: false`. It
+cannot fetch a port by itself, because the slave owns that path.
+
+### 9.3 Why one handle, not two
+
+The `SandboxHandle` is the unit that runs programs. A container is a possible substrate under it.
+Two unconnected handles would let a caller start a container with no sandbox record, or
+destroy the substrate under a live sandbox. So the two are joined:
+
+- `ContainerControl::start` creates a container and returns a handle. It creates no sandbox
+  record. A caller that only needs a container uses this.
+- `SandboxHandle::container()` and `SubstrateHandle::container()` return the container of a live
+  sandbox, or `None`. A sandbox caller never builds a second handle.
+- `ContainerHandle` methods that change state go through `ContainerOps`. On Cloudflare, the
+  DO is the single writer (invariant I12). `destroy` on the substrate handle and on the
+  sandbox handle reach the same container, and the second call is idempotent.
+
+So there is one container type and one set of capability rules. The sandbox is the owner
+when a sandbox exists; the standalone control is the path when it does not.
+
+### 9.4 Why both deploy paths stay
+
+The Rust deployer is the primary path because it is typed, testable and it records the
+plan. The `wrangler` path stays supported because:
+
+- The Cloudflare Worker configuration holds fields that a new API version can change. The
+  `wrangler` program follows the API.
+- An operator can deploy by hand when the Rust client is out of date or when a CI job has
+  no credentials.
+- The Cloudflare Sandbox product documents its own `wrangler.product.toml`. Feature 17
+  keeps that file as the manual adapter's view.
+
+Both adapters take the same `DeploymentPlan`, so a test proves parity: the plan that
+`FoundationCloudflareDeployer` applies and the `wrangler.toml` that
+`WranglerCloudflareDeployer` writes must carry the same bindings, migrations, container
+class, routes and secret names.
+
+### 9.5 Dead end: a second container service
+
+The first design gave the Cloudflare container handle its own HTTP service in the Worker.
+The DO already runs the control service that the sandbox slave talks to. A second service
+would add a second token, a second route and a second place to start a container. The
+feature uses the existing service with new methods instead (invariant I14).
+
+
+## 10. The handle doctrine and the six-conflict review (2026-11-15)
+
+The owner reviewed six conflicts across the plan and gave one direction for each. This section
+records the two rules that the review set for this specification.
+
+### 10.1 Every outside caller uses a handle from a wrapper that holds the `Ctx`
+
+Owner direction: "Whether containers (docker, cloudflare,...etc), everything should be through
+a handle that whatever central wrapper over Ctx or exposed via Ctx.get provides and whatever is
+returned specifically provides the necessary methods to interact with the relevant underlying
+infrastructure... whether its using RPC internally or directly talks to the resource is not our
+concern. The benefit of this is, once sandbox is build, we just provide the Arc<SandboxProvider>
+to agent-rpc/agent-slave and it uses that and thats it, same for Containers and others."
+
+So two levels have the same shape:
+
+| Level | Factory | Handle |
+|---|---|---|
+| Sandbox | `SandboxProvider` | `SandboxHandle` |
+| Container | `ContainerControl` | `ContainerHandle` |
+
+The handles come in a wrapper value, not in a `Ctx` entry and not in a new `Ctx` method. The
+owner corrected the first design on 2026-11-15: "we wont go edit foundation_context, but rather
+wrap Ctx with whatever the cloudflare part needs that provides the other cloudflare specific
+handles", and "same for others".
+
+So each part has one wrapper struct that holds the `Ctx` and the handles of that part:
+`NativePlatform` (Firecracker and libkrun), `DockerPlatform` and `CloudflarePlatform`. They
+share the `Platform` trait (`ctx`, `sandboxes`, `containers`, `kind`, `as_any`) and a
+`PlatformKind` enum, with `as_native`, `as_docker` and `as_cloudflare` helpers for the downcast.
+A function for one part takes the concrete type; a function that serves several takes
+`&dyn Platform`. A boundary builds the wrapper; `agent-rpc` and `agent-slave` take a reference
+to it. They do not start a sandbox, pick a driver or build a container control.
+
+The owner added a third note: "just wrap the js with a SendWrapper to make it look Send, wasm is
+non-send anyway". For one pass that note applied to a `RuntimeFetch` field on
+`CloudflarePlatform`. The owner then replaced that whole direction (section 10.4): the wrapper
+carries no HTTP client at all, because `DynNetClient` and `H1Transport` already work on both
+targets. The note still governs the `worker` adapters of feature 07.
+
+The two mistakes that pass made, and the owner caught both:
+
+- `Arc<dyn Fetcher>` does not compile, because `Fetcher` is not `Send`. A JS value crosses a
+  `Send` slot only inside `foundation_compact::SendWrapper`.
+- The type was first made wasm-only, "because `cloudflare/` is". That is wrong:
+  `CloudflareContainerControl` is generic over `ContainerApi` and lives in
+  `shared/cloudflare/`, so only `WorkerContainer` and its neighbours are wasm. A native host
+  that manages a Cloudflare container needs the same wrapper. Owner rule: "this should properly
+  separate whats wasm and native, so the same API services both".
+- The deployer was in the wrapper for one pass. It does not belong there: both deployers are
+  native values in the deployment crate, and deployment touches no sandbox or container handle.
+
+The lasting rule from that review, and the one a new part wrapper must follow: a `cfg` belongs
+on a private inner type, a method, a module or a dependency. It never changes the shape of a
+public type.
+
+The same seam applies to every wasm adapter of a `Send + Sync` trait. `ContainerApi`,
+`DoStorage` and `DoAlarm` all require both bounds, and their `worker` values are `!Send`, so
+`WorkerContainer`, `WorkerStorage` and `WorkerAlarm` hold their values in `SendWrapper` too
+(feature 07 section 6.3). Keep one rule: a JavaScript value or future crosses a `Send` slot
+only inside `SendWrapper`.
+
+**The same class of error elsewhere (audit 2026-11-15).** The owner asked: "can you check where
+else you have made similar mistake". The two shapes of the mistake are (a) a public type whose
+shape or bounds change per target, and (b) a `!Send` value in a `Send + Sync` slot. The audit
+found and fixed these:
+
+| Place | Defect | Fix |
+|---|---|---|
+| Spec 77 requirements section 2.4 | `src/cloudflare/` was listed with the driver, the control, the transport, the store and the request handler. Feature 07 puts all of them in `shared/cloudflare/` (`all`). | The row now lists only `WorkerContainer`, `WorkerStorage`, `WorkerAlarm` and `CloudflareHost::from_state`; a new row describes `shared/cloudflare/`. |
+| Spec 77 feature 00 | The `cloudflare` feature said "wasm32 only". | It gates `shared/cloudflare/` on every target and the `worker` adapters on wasm only. |
+| Spec 85 section 4 (first draft) | `FetchTransport` held `fetcher: Rc<F>` while `Transport` requires `Send + Sync + 'static`, and the whole type repeated `H1Transport`. | The type is gone (2026-11-15). Spec 85 fills the gaps inside `HttpClient` and `H1Transport`, which are `Send + Sync` on both targets. |
+| Spec 81 section 4.4 | `KeySource::File(PathBuf)` was a `cfg(not(wasm))` variant, so the public enum changed shape per target. | The variant exists on every target, and a wasm host returns the new `KeyLoadError::NoFileSystem`. |
+| Spec 80 feature 01 | `MigrationSource::Directory(PathBuf)` was a `cfg(not(wasm))` variant. | The variant exists everywhere; `plan` reports the new `MigrationProblem::NoFileSystem` on wasm; the readers stay native-only. |
+| Spec 83 feature 08 | `SealFuture` was a `Send` alias on native and a `!Send` alias on wasm. | One `Send` alias on every target; a wasm sealer wraps its future in `SendWrapper`. |
+| Spec 83 architecture, section 3.2 | `foundation_core` owned the "`Env` bundle" and `Ctx`; both are in `foundation_context`. The `foundation_auth` row called `client_auth` target-neutral, but `client_auth::cloudflare` is wasm and `client_auth::mtls` is native. | Both rows are corrected, and `foundation_context` has its own row. |
+
+Two more bounds were missing rather than wrong, and both now name the bound: `DockerApi` is
+`Send + Sync + 'static` because `DockerPlatform` holds it in an `Arc<dyn ..>`, and
+`ContainerApi`/`DoStorage`/`DoAlarm` adapters show the wrapper in feature 07 section 6.3.
+
+The lesson: a `cfg` belongs on an inner type, a method, a module or a dependency, never on the
+shape of a public type. When a target cannot have a value, make the value-unconstructible inner
+type private, keep the outer type the same, and name the missing capability in a typed error.
+
+The reason is a boundary rule, not a style rule. Without a shared value, every consumer repeats
+the host detection, the driver order and the container control construction, and each copy can
+pick a different driver for the same host. With the wrapper, the boundary makes that decision
+once.
+
+Two dead ends, recorded so a later pass does not repeat them:
+
+- A `Platform` entry in the `Ctx` (`Ctx::insert::<Platform>(..)`) needs an extension trait for
+  the read side, because `foundation_context` must not depend on this crate. The trait works,
+  but it puts a look-up that can fail in the path of every handle use, and it invites a second
+  entry for each part. The wrapper is a value the compiler checks.
+- Putting the `Ctx` inside the entry makes a cycle: the entry lives in the `Ctx`. The wrapper
+  holds the `Ctx`, so the wrapper cannot be an entry.
+
+### 10.2 One owner for each shared block
+
+The review found three blocks planned in two or three specifications at once: the wasm fetch
+pump, the secret and bearer check, and mutual TLS. Each block is now in one specification that
+lands before its consumers:
+
+| Block | Owner | Consumers here |
+|---|---|---|
+| The wasm gaps: the streaming wasm client, the streaming bridges and sink, `StubHttpClient` | Spec 85 | Features 07 and 08 |
+| `Secret`, `constant_time_eq`, the bearer parser | Spec 86 | Features 00 and 02 |
+| The CA, the trust store, the verifiers, the mTLS providers | Spec 87 | Feature 06 (native listener), question Q4 |
+| The `Env` entry and the `IdSource` trait | Spec 84 | Feature 02 (the id policy) |
+
+The lesson repeats the one from the `Env` split: a shared block that two specifications plan
+is a block that two implementations will write. One owner with a date is cheaper than a
+reconcile.
+
+### 10.3 Why the names changed
+
+| Old | New | Reason |
+|---|---|---|
+| `SandboxControl` | `SandboxProvider` | "Control" names the lower level in the container rows (`ContainerControl`). The sandbox level is the provider of sandboxes. |
+| `Sandbox` | `SandboxHandle` | The struct is the live object, not the concept. The handle doctrine names it that way. |
+| `SandboxProvider` (feature 06) | `SandboxDeploymentProvider` | It would clash with the control trait. It is a `Provider` facade for deployment, and its handle is `SandboxDeploymentHandle`. |
+| `IdSource` (feature 02 enum) | `SandboxIdPolicy` | `IdSource` is the spec 84 trait. Two types with one name across specifications is the defect the review removed. |
+| `check_bearer` | `authorize` over spec 86's `Secret` | The bearer parse and the constant-time compare are primitives, not sandbox code. |
+
+### 10.4 The HTTP client is `DynNetClient`, and nothing else (2026-11-15)
+
+The owner asked three times, in stronger words each time: "if it is using API should it not use
+our Http api that properly abstract out wasm/web fetch vs native http as well? the `DynHttpClient`
+trait from foundation_netio or is this something else?", then "there is a `DynHttpClient` which
+encapsulates http across native, wasm, use that", then "the core idea is `DynNetClient` is the
+platform agnostic way", and "and connectrpc already builds on it".
+
+The final answer is that the workspace has one client abstraction, and this specification must
+hold it rather than wrap it:
+
+| Layer | Type | File |
+|---|---|---|
+| The trait | `HttpClient: Send + Sync` | `foundation_netio/src/shared/client/http_client.rs:65` |
+| The handle | `DynNetClient = Arc<dyn NetClient>` | `foundation_netio/src/network_client.rs:41` |
+| The choice per target | `HttpClientBuilder::build()` | `foundation_netio/src/network_client.rs:440` |
+| The RPC transport | `H1Transport`, in `shared/`, on both targets | `foundation_connectrpc/src/shared/transport/h1.rs:61` |
+
+There is no `DynHttpClient` type. The names are `HttpClient` and `DynNetClient`; the owner means
+the abstraction, and it is these two.
+
+The first answer here was wrong. It said `RuntimeFetch` held the raw JavaScript `fetch` because
+`HttpClient` buffers a wasm response (`wasm/client/client.rs:334`) and so cannot carry a streamed
+RPC response. That observation is true and it is issue #557, but the conclusion was not: the fix
+belongs inside `FetchHttpClient`, which is where every wasm caller already goes. Adding a second
+client above it gave a caller two ways to send a request and a second place to keep honest.
+
+So, on 2026-11-15, `RuntimeFetch` is removed:
+
+- `CloudflarePlatform` holds the `Ctx`, `sandboxes`, `containers` and `control`. It carries no
+  HTTP client and no `fetch` field.
+- A caller that sends a request holds a `DynNetClient`. On wasm that is `FetchHttpClient`, from
+  `HttpClientBuilder::build()`.
+- An RPC call is `H1Transport::new(client)`, on every host.
+- `ContainerPortTransport` is a thin wrapper over `H1Transport` over a port `NetClient`
+  (feature 07 section 6.5).
+- The Worker entry is `foundation_http`'s `HttpApp<Arc<dyn CfServe>>` (feature 08).
+- The Worker's calls to a Durable Object are `H1Transport::new(StubHttpClient)` (spec 85
+  section 4.5).
+
+The same mistake had a second form, in this specification's own first draft: it planned a body
+pump of about 80 lines for the container port, with the sentence "It does not wait for it". That
+sentence is the defect. `H1Transport` already streams a request body on wasm and a response body
+after spec 85 T1, so the pump has nothing left to do.
+
+The lesson, for this spec and for the next one: when a plan is about to add a "platform seam",
+first list the types the workspace already has for that job. Here every row of that list already
+existed, and three specifications had planned the same pump. The remaining real work was four
+small gaps inside `foundation_netio`, `foundation_http` and `foundation_connectrpc`, which is
+what spec 85 now contains.
+
+The two defects of the client itself are recorded, not hidden:
+
+- Issue #557 (high): the wasm `HttpClient` reads whole bodies. Spec 85 T1 fixes it.
+- Issue #558 (medium): `WASM_FETCH_CAPABILITIES` says the wasm client cannot stream a request
+  body, but it can. Spec 85 T2 corrects the constant.

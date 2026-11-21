@@ -7,6 +7,7 @@ mod bindgen_test;
 mod connectrpc_service;
 mod crate_paths;
 mod docker_container;
+mod embed_migrations;
 mod embedders;
 mod from_arrow;
 mod html_macro;
@@ -43,6 +44,35 @@ mod wireguard;
 #[proc_macro_attribute]
 pub fn action(attr: TokenStream, item: TokenStream) -> TokenStream {
     action::expand(attr.into(), item.into()).into()
+}
+
+// ── Migration macros ──
+
+/// Embed a directory of migration files as one `MigrationSet` at build time.
+///
+/// The group name is the last path segment unless `group = "name"` is given.
+/// A gap, a repeat, a short number or a bad name fails the build.
+///
+/// ```ignore
+/// static SHARED: MigrationSet = foundation_db::embed_migrations!("migrations/shared");
+/// ```
+#[proc_macro]
+pub fn embed_migrations(input: TokenStream) -> TokenStream {
+    embed_migrations::embed_migrations_impl(input)
+}
+
+/// Embed a directory layout as an `EmbeddedLayout` at build time.
+///
+/// Each folder under the root is one group. The folders named in
+/// `templates = [...]` (default `["shared"]`) apply first to every database.
+///
+/// ```ignore
+/// static LAYOUT: EmbeddedLayout =
+///     foundation_db::embed_migration_layout!("database", templates = ["shared"]);
+/// ```
+#[proc_macro]
+pub fn embed_migration_layout(input: TokenStream) -> TokenStream {
+    embed_migrations::embed_migration_layout_impl(input)
 }
 
 // ── Embed macros ──

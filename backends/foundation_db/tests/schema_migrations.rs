@@ -3,7 +3,7 @@ use foundation_db::MIGRATIONS;
 #[test]
 fn test_migrations_defined() {
     assert!(!MIGRATIONS.is_empty());
-    assert_eq!(MIGRATIONS.len(), 27);
+    assert_eq!(MIGRATIONS.len(), 28);
 }
 
 #[test]
@@ -16,6 +16,15 @@ fn test_social_login_migrations_present() {
     assert!(
         ids.contains(&"025_create_user_provider_links"),
         "025_create_user_provider_links must be registered"
+    );
+}
+
+#[test]
+fn test_vectors_migration_present() {
+    let ids: Vec<&str> = MIGRATIONS.iter().map(|m| m.id).collect();
+    assert!(
+        ids.contains(&"023_create_vectors"),
+        "023_create_vectors must be registered: the upgrade repair needs it"
     );
 }
 

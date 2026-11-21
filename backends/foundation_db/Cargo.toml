@@ -1,6 +1,6 @@
 [package]
 name = "foundation_db"
-version = "0.0.8"
+version = "0.0.9"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -15,6 +15,10 @@ keywords = ["database", "storage", "turso", "foundation"]
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["std"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", features = ["crypto-chacha"] }
+# `embed_migrations!` and `embed_migration_layout!` are re-exported from here.
+foundation_macros = { workspace = true }
+# The VFS trait that reads a migration directory. `vfs` builds on wasm too.
+foundation_vfs = { workspace = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -36,6 +40,7 @@ chrono = { workspace = true }
 tracing = "0.1"
 futures-core = "0.3"
 futures-lite = "2"
+futures-util = { workspace = true }
 async-trait = "0.1"
 
 # Optional wasm-bindgen dependencies
@@ -73,13 +78,17 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
-futures-util = "0.3"
 libc = "0.2"
 # Turns on the `test-hooks` feature for this crate's own test targets only.
 foundation_db = { path = ".", features = ["test-hooks"] }
 # `test-clock` provides `SimulatedClock`, so a test proves that a stored row
 # carries the simulated `created_at`, not the real time.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["std", "multi", "test-clock"] }
+# Tests read migration directories through `MemoryFs`. The dependency is a
+# dev-dependency: `foundation_nativeapis` has an optional normal dependency on
+# `foundation_db`, so a normal edge would make a package cycle. A dev-only
+# cycle is allowed.
+foundation_nativeapis = { workspace = true }
 
 [features]
 # Test-only hooks (for example `inject_rollback_failure`). Off by default; the
@@ -107,6 +116,11 @@ wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futur
 
 # workers-rs interop: From<worker::D1Database> for foundation_db::D1Database
 workers-rs = ["dep:worker"]
+
+# Migration-group tests live in one target with a module tree.
+[[test]]
+name = "migrations"
+path = "tests/migrations/mod.rs"
 
 [lints]
 workspace = true

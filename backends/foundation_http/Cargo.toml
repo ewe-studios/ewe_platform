@@ -64,7 +64,7 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.8", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.9", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a server
@@ -84,6 +84,10 @@ async-trait = "0.1"
 libc = "0.2"
 # SHA-256 of the received body in the static file byte-exact test.
 sha2 = { workspace = true }
+# mTLS peer-info test: generate a CA, a server certificate and a client
+# certificate, then drive a real rustls handshake.
+rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 
 [features]
 default = []

@@ -67,7 +67,7 @@ the drivers (05, 07, 09, 10); `foundation_connectrpc` (the RPC engine, used as i
 | `SandboxId`, `ExecId`, `UploadId`, `DriverId` | Identifiers. | `shared::ids` |
 | `Capabilities`, `HostReport` | What a driver can do here. | each driver (defined here) |
 | `SandboxDriver`, `SubstrateHandle`, `SlaveEndpoint` | The driver interface. | defined here; implemented in 05, 07, 09, 10, 11, 16 |
-| `SandboxControl` | The control-plane interface. | defined here; implemented in 02 and 06 |
+| `SandboxProvider` | The control-plane interface. | defined here; implemented in 02 and 06 |
 | `SandboxHost`, `SlaveHost` | The side-effect bundles. | defined here; built only by boundaries |
 
 | Verb | Kind | Trigger | Effect |
@@ -147,6 +147,7 @@ Links to other entities: ExecInput.seq and FileWriteChunk.offset are checked by 
 - The module tree `shared/`, `native/`, `cloudflare/`, `cli/` (the last three empty except
   for their `mod.rs` and target gates).
 - Both service traits with the `#[service]` macro.
+- `ContainerControl`, `ContainerHandle` and `ContainerOps` with their types (section 6.13).
 - Every `SandboxError` variant of requirements section 6.2.
 
 ### 4.4 Must do
@@ -230,7 +231,7 @@ licence.
 | `firecracker` | The Firecracker driver (features 04, 05). Linux only. | on |
 | `libkrun` | The libkrun driver (feature 09). Linux and macOS. | off |
 | `docker` | The Docker driver (feature 10). | off |
-| `cloudflare` | The Cloudflare modules (feature 07). wasm32 only. | off |
+| `cloudflare` | The Cloudflare part (feature 07): `shared/cloudflare/` on every target, plus the `worker` adapters on wasm32. | off |
 | `cli` | The command structures (feature 06). Native only. | off |
 | `testing` | The simulation helpers as a public module (feature 02). | off |
 
@@ -251,10 +252,15 @@ src/
   shared/rpc/mod.rs     the two #[service] traits
   shared/rpc/messages.rs  every request and response type
   shared/driver.rs      SandboxDriver, Substrate, SubstrateHandle, SlaveEndpoint, Capabilities, HostReport, CreateProgress
-  shared/control.rs     SandboxControl, Sandbox (the handle type), SandboxInfo, SandboxState, ExitReport
+  shared/control.rs     SandboxProvider, SandboxHandle (the handle type), SandboxInfo, SandboxState, ExitReport
+  shared/container.rs    ContainerControl, ContainerHandle, ContainerSpec, ContainerInfo, port types
   shared/host.rs        SandboxHost, SlaveHost and their traits
+  shared/platform.rs    Platform (the trait), PlatformKind (the as_* helpers live in their part)
+  shared/cloudflare/mod.rs  #[cfg(feature = "cloudflare")] the traits, CloudflareHost, CloudflareConfig (feature 07)
+  shared/cloudflare/platform.rs  #[cfg(feature = "cloudflare")] CloudflarePlatform
   native/mod.rs         #[cfg(not(target_family = "wasm"))]
-  cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))]
+  native/platform.rs    NativePlatform (features 05 and 09), DockerPlatform (feature 10)
+  cloudflare/mod.rs     #[cfg(all(target_family = "wasm", feature = "cloudflare"))] WorkerContainer, WorkerStorage, WorkerAlarm, CloudflareHost::from_state
   cli/mod.rs            #[cfg(all(not(target_family = "wasm"), feature = "cli"))]
 ```
 
@@ -487,7 +493,7 @@ impl SandboxError {
 |---|---|
 | `InvalidSpec`, `UnsupportedRootFs`, `UnsupportedNetwork`, `UnsupportedMount`, `SocketPathTooLong` | `InvalidArgument` |
 | `NotFound`, `SlaveError` with code `NotFound` | `NotFound` |
-| `SandboxStopped`, `HostNotConfigured`, `NoDriver`, `DriverUnavailable`, `BinaryNotFound`, `LibraryNotFound`, `LibraryTooOld`, `NotSigned` | `FailedPrecondition` |
+| `SandboxStopped`, `HostNotConfigured`, `NoDriver`, `DriverUnavailable`, `BinaryNotFound`, `LibraryNotFound`, `LibraryTooOld`, `NotSigned`, `UnsupportedCapability`, `PlatformMismatch` | `FailedPrecondition` |
 | `BootTimeout`, `ExecTimeout` | `DeadlineExceeded` |
 | `TooManySessions`, `InputQueueFull` | `ResourceExhausted` |
 | `SequenceGap` | `OutOfRange` |
@@ -538,6 +544,10 @@ pub trait SandboxDriver: Send + Sync + 'static {
     /// with the control plane's process returns `Ok(None)` and removes what is left of
     /// that sandbox on the host.
     fn attach(&self, ctx: Ctx, record: &StoredRecord) -> BoxFuture<'_, SandboxResult<Option<Substrate>>>;
+    /// The container control of this driver, when it can run a container with no sandbox.
+    /// The default is `None` for a microVM driver. `SandboxManager::containers` returns the
+    /// control of the first driver in its order that has one.
+    fn containers(&self) -> Option<Arc<dyn ContainerControl>> { None }
 }
 
 /// What a control plane keeps about one sandbox outside its memory.
@@ -572,6 +582,9 @@ pub trait SubstrateHandle: Send + Sync + 'static {
     fn log_tail(&self, max: usize) -> BoxFuture<'_, Vec<u8>>;
     /// Removes every host resource. Safe to call two times.
     fn cleanup(&self) -> BoxFuture<'_, SandboxResult<()>>;
+    /// The container under this substrate, when the substrate is a container.
+    /// The default is `None` for a microVM or a process.
+    fn container(&self) -> Option<ContainerHandle> { None }
     /// The error for a substrate that stopped during a start. The default is
     /// `SubstrateExited { code, log_tail }`. A driver whose exit codes have a meaning
     /// (libkrun, feature 09) gives a more exact error.
@@ -663,10 +676,8 @@ pub type ExecEventStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<Exec
 pub type FileChunkStream = Pin<Box<dyn futures::Stream<Item = SandboxResult<FileChunk>> + Send>>;
 /// `impl ByteStream` in a signature means: any `futures::Stream<Item = SandboxResult<Vec<u8>>> + Send + 'static`.
 
-/// A secret text. `Debug` and `Display` print "<redacted>". No workspace crate has such a
-/// type that this crate can use without a new dependency, so it is defined here.
-pub struct Secret(String);
-impl Secret { pub fn new(value: String) -> Self; pub fn expose(&self) -> &str; }
+// The redacted secret is spec 86's `foundation_auth::Secret`. Do not define one here.
+// Use `Secret::new`, `Secret::expose`, `Secret::ct_eq` and `extract_bearer_token`.
 
 impl SandboxSpec { pub fn new(rootfs: RootFs) -> Self; }                  // every other field has its default
 impl Command { pub fn new<I, S>(argv: I) -> Self where I: IntoIterator<Item = S>, S: Into<String>; }
@@ -687,6 +698,8 @@ Fields of the `SandboxError` variants:
 | `BinaryNotFound`, `LibraryNotFound` | `name: String` |
 | `LibraryTooOld` | `symbol: String` |
 | `InvalidSpec` | `field: String, reason: String` |
+| `UnsupportedCapability` | `capability: String` |
+| `PlatformMismatch` | `expected: PlatformKind, actual: PlatformKind` |
 | `SocketPathTooLong` | `path: String, max: usize` |
 | `SubstrateExited` | `code: Option<i32>, log_tail: Vec<u8>` |
 | `SubstrateApi` | `status: u16, message: String` |
@@ -712,8 +725,10 @@ definition and its tests.
 | Feature | Addition |
 |---|---|
 | 03 | `HostFs::rename`, `HostFs::create_file`; `ArtifactLimits`; `HostConfig.artifact_limits` |
+| 07 | The Cloudflare `ContainerControl` and `ContainerOps`; the DO-level `ContainerApi` stays a private trait |
+| 08 | `CloudflareDeployer`, `DeploymentPlan`, `DeploymentOutcome`, `DeploymentStatus`, `DeployError` |
 | 09 | `DriverId::Libkrun` is already here; no new type |
-| 10 | `HostConfig`: nothing; `FileRecordStore` in `native/` |
+| 10 | `DockerContainerControl` and `DockerContainerOps`; `HostConfig`: nothing; `FileRecordStore` in `native/` |
 | 16 | `DriverId::DockerSbx` (display string `docker-sbx`); `HostConfig.sbx_path` |
 | 17 | nothing |
 | 11 | `SandboxSpec.parent`, `SandboxSpec.nested_host`, `DriverId::Nested`, `SlaveEndpoint::Parent`, `Substrate.calls` |
@@ -722,9 +737,9 @@ definition and its tests.
 `DriverId::Nested` and the enum variants above are added by their feature, with a version
 bump of the crate.
 
-### 6.12 `SandboxControl` and `Sandbox`
+### 6.12 `SandboxProvider` and `SandboxHandle`
 
-Requirements section 6 has the trait. `Sandbox` is a struct that holds an
+Requirements section 6 has the trait. `SandboxHandle` is a struct that holds an
 `Arc<dyn SandboxOps>`:
 
 ```rust
@@ -735,14 +750,133 @@ pub trait SandboxOps: Send + Sync + 'static {
     fn read_file(&self, path: String) -> BoxFuture<'_, SandboxResult<FileStream>>;
     fn stop(&self) -> BoxFuture<'_, SandboxResult<ExitReport>>;
     fn kill(&self) -> BoxFuture<'_, SandboxResult<ExitReport>>;
+    /// The container under this sandbox, when the substrate is a container.
+    fn container(&self) -> Option<ContainerHandle> { None }
     /// The low-level calls of this sandbox (feature 02, section 6.6). `ControlService`
     /// uses them to pass a remote caller's calls through with no change.
     fn calls(&self) -> Arc<dyn ExecFileCalls>;
 }
 ```
 
-`ExecHandle` and `FileStream` get their bodies in feature 02. `Sandbox::run` is a provided
-function on top of `exec` (feature 02).
+`ExecHandle` and `FileStream` get their bodies in feature 02. `SandboxHandle::run` is a provided
+function on top of `exec` (feature 02). `SandboxHandle::container()` returns
+`self.ops.container()`. It is the bridge from the command surface to the container surface.
+
+### 6.13 Container control
+
+A container is the substrate of a sandbox, and it is also a first-class object. A caller can
+start a container, talk to it, and stop it without a sandbox. This is the surface that the
+agent-rpc Cloudflare host (spec 83 feature 06) uses. The sandbox handle and the container
+handle have the same shape: a small object over a trait, with methods that take no `Ctx`.
+
+```rust
+/// A container runtime that the platform can drive. Docker and Cloudflare implement it.
+pub trait ContainerControl: Send + Sync + 'static {
+    /// Starts one container and returns its handle. The handle owns the container until
+    /// `destroy`.
+    fn start(&self, ctx: Ctx, spec: ContainerSpec) -> BoxFuture<'_, SandboxResult<ContainerHandle>>;
+    /// Finds a container that this control started, after a restart. It never starts one.
+    fn get(&self, ctx: Ctx, id: &ContainerId) -> BoxFuture<'_, SandboxResult<Option<ContainerHandle>>>;
+    /// Lists the containers that this control knows.
+    fn list(&self, ctx: Ctx) -> BoxFuture<'_, SandboxResult<Vec<ContainerInfo>>>;
+}
+
+/// A cheap handle to one container. `SandboxHandle` has the same shape for commands and files.
+#[derive(Clone)]
+pub struct ContainerHandle { id: ContainerId, ops: Arc<dyn ContainerOps> }
+pub trait ContainerOps: Send + Sync + 'static {
+    fn info(&self) -> ContainerInfo;
+    fn capabilities(&self) -> ContainerCapabilities;
+    /// Sends one HTTP request to a port in the container. The response body streams.
+    fn fetch(&self, port: u16, request: PortRequest) -> BoxFuture<'_, SandboxResult<PortResponse>>;
+    /// Runs one command. `UnsupportedCapability { capability: "exec" }` when the runtime
+    /// cannot run a command. Cloudflare runs commands through the sandbox slave; Docker
+    /// uses the Docker Engine.
+    fn exec(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecHandle>>;
+    fn signal(&self, signo: i32) -> BoxFuture<'_, SandboxResult<()>>;
+    /// Completes when the container exits by itself.
+    fn wait(&self) -> BoxFuture<'_, SandboxResult<SubstrateExit>>;
+    /// Stops the container with a grace period, then forces it.
+    fn stop(&self, grace: Duration) -> BoxFuture<'_, SandboxResult<SubstrateExit>>;
+    /// Removes the container and every resource it holds. Safe to call two times.
+    fn destroy(&self) -> BoxFuture<'_, SandboxResult<()>>;
+    /// The last bytes of the container log, for error messages.
+    fn log_tail(&self, max: usize) -> BoxFuture<'_, SandboxResult<Vec<u8>>>;
+}
+impl ContainerHandle {
+    pub fn new(id: ContainerId, ops: Arc<dyn ContainerOps>) -> Self;
+    pub fn id(&self) -> &ContainerId;
+    pub fn info(&self) -> ContainerInfo;
+    pub fn capabilities(&self) -> ContainerCapabilities;
+    pub async fn fetch(&self, port: u16, request: PortRequest) -> SandboxResult<PortResponse>;
+    pub async fn exec(&self, command: Command) -> SandboxResult<ExecHandle>;
+    pub async fn signal(&self, signo: i32) -> SandboxResult<()>;
+    pub async fn wait(&self) -> SandboxResult<SubstrateExit>;
+    pub async fn stop(&self, grace: Duration) -> SandboxResult<SubstrateExit>;
+    pub async fn destroy(&self) -> SandboxResult<()>;
+    pub async fn log_tail(&self, max: usize) -> SandboxResult<Vec<u8>>;
+}
+
+pub struct ContainerSpec {
+    pub image: String,                       // Docker tag, or the image name that the Worker config sets
+    pub entrypoint: Vec<String>,             // empty: the image default
+    pub env: Vec<(String, String)>,          // no secret is ever put in the image
+    pub network: NetworkMode,                // Host enables the container network
+    pub resources: ContainerResources,
+    pub labels: Vec<(String, String)>,
+}
+pub struct ContainerResources {
+    pub vcpus: Option<u8>,                   // Docker only
+    pub memory_mib: Option<u32>,             // Docker only
+    pub instance_type: Option<String>,       // Cloudflare only; "lite" is the minimum
+}
+pub struct ContainerInfo {
+    pub id: ContainerId,
+    pub driver: DriverId,
+    pub image: String,
+    pub status: ContainerStatus,
+    pub created_unix_ms: u64,
+    pub resources: ContainerResources,
+}
+pub enum ContainerStatus { Starting, Running, Stopped, Failed }
+pub struct ContainerCapabilities {
+    pub exec: bool,
+    pub port_fetch: bool,
+    pub signal: bool,
+    pub logs: bool,
+}
+pub struct ContainerId(String);              // 1 to 64 characters: [A-Za-z0-9_.-]
+impl ContainerId { pub fn new(value: String) -> SandboxResult<Self>; pub fn as_str(&self) -> &str; }
+
+pub struct PortRequest { pub method: String, pub path: String, pub headers: Vec<(String, String)>, pub body: Vec<u8> }
+pub struct PortResponse { pub status: u16, pub headers: Vec<(String, String)>, pub body: BoxByteStream }
+pub enum PortError { NotListening, Other(String) }   // Other text is cut to max_error_message
+```
+
+Rules:
+
+- A `ContainerHandle` is the only writer of its container. Two handles for one container
+  (after a restart) share the same `ContainerId`; the runtime makes the operations
+  idempotent.
+- `start` is the only operation that creates a container. `get` never starts one.
+- `destroy` is idempotent. After it, every other call fails with `NotFound`.
+- `stop` is a graceful stop with a forced end after the grace period. `stop(Duration::ZERO)`
+  is the forced form; there is no separate `kill`.
+- The response body of `fetch` streams. The request body is one small message, at most
+  `max_message_bytes` (a Worker cannot stream a request body).
+- `PortError::{NotListening, Other}` is the error of the adapter's private port call.
+  `ContainerOps::fetch` maps it to `SandboxError::Rpc { code: Unavailable, message }` and
+  keeps the platform's text, cut to `max_error_message`.
+- `ContainerSpec.env` is the container environment. It is not the sandbox environment.
+  Secrets come from the deployer or the operator, never from the image.
+- `ContainerCapabilities` says what the runtime can do. A caller checks it before it calls
+  a method that may be absent. An absent method returns
+  `UnsupportedCapability { capability }`.
+- `SandboxHandle::container()` returns the handle of a container-backed sandbox, or `None` for a
+  microVM. `SubstrateHandle::container()` has a default that returns `None`.
+- `SandboxManager::containers()` returns the `ContainerControl` of its first driver that
+  has one, so a local caller starts a container with no sandbox. A remote caller builds a
+  `DoContainerClient` over its transport instead. Feature 07 has both.
 
 ## 7. Tests
 
@@ -767,6 +901,10 @@ seed.
 | `ExitStatus` | `exit_status_one_of` (the two constructors `ExitStatus::code(n)` and `ExitStatus::signal(n)` are the only way to make one; exactly one field is `Some`) | example |
 | `Secret` | `secret_is_redacted` | expected outcome |
 | `HostReport` over RPC | `host_report_roundtrip` | identity |
+| Container handle, law L11 | `container_handle_roundtrip` (a fake `ContainerOps`: start, fetch, exec, wait, stop, destroy) | identity |
+| `UnsupportedCapability`, "An error keeps its type across RPC" | `unsupported_capability` (a handle with `exec: false` gives the error; it keeps its type over RPC) | expected outcome |
+| `ContainerId` | `container_id_shape` (1 to 64 characters; a path separator or a space is refused) | bound |
+| Port response body | `port_response_streams` (a 10 MiB body arrives in chunks; the fake never holds more than 2 chunks) | bound |
 
 ## 8. Verify
 

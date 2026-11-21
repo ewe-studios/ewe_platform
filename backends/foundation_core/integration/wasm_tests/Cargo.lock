@@ -439,6 +439,7 @@ dependencies = [
  "foundation_core",
  "foundation_macros",
  "foundation_wasm",
+ "futures-core",
 ]
 
 [[package]]

@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Write every response in ASD-STE100 Simplified Technical English (STE). Rules: at most 20 words in a step sentence and 25 words in a description sentence; active voice; simple present tense; one idea in each sentence; common words, each word with one meaning; no idioms; spell out each abbreviation at its first use in each document. This applies to all text for the user: explanations, plans, reports, specification documents, code comments, commit messages and pull request text.\"}}'"
+          }
+        ]
+      }
+    ]
+  }
+}

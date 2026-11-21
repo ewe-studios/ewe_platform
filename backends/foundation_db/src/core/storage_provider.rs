@@ -323,6 +323,16 @@ pub trait QueryStore: Send + Sync {
         }
         Ok(())
     }
+
+    /// Whether [`QueryStore::execute_batch_statements`] is all-or-nothing for
+    /// this store.
+    ///
+    /// The migration runner reads this value. When it is `false`, the runner
+    /// applies the migration and then records it, and it logs a warning that
+    /// the migrations must be safe to run twice. The default is `false`.
+    fn batch_is_transactional(&self) -> bool {
+        false
+    }
 }
 
 /// Async key-value store operations — for wasm backends where the underlying

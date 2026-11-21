@@ -100,7 +100,7 @@ impl<'a> BrowserDriver<'a> {
         let process = BrowserProcess::launch(config, ctx.ctx_ref())?;
         // Firefox's remote agent takes a beat to start listening; CDP's endpoint
         // is ready as soon as DevToolsActivePort appears, so one shot suffices.
-        let engine = connect_with_retry_config(
+        let engine = connect_with_retry(
             process.ws_url(),
             browser,
             &config.wait,
@@ -143,15 +143,6 @@ impl<'a> BrowserDriver<'a> {
 /// The last connect error when the deadline passes.
 #[doc(hidden)]
 pub fn connect_with_retry(
-    ws_url: &str,
-    browser: Browser,
-    wait: &WaitConfig,
-    ctx: &Ctx,
-) -> Result<RpcEngine> {
-    connect_with_retry_config(ws_url, browser, wait, &RpcConfig::default(), ctx)
-}
-
-fn connect_with_retry_config(
     ws_url: &str,
     browser: Browser,
     wait: &WaitConfig,

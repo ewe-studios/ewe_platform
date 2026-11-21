@@ -15,7 +15,7 @@ builds_on:
   - "Branch fix/foundational-readiness: HTTP/3 and HTTP/2 parking (two commits) and work in progress"
 related_specs:
   - "specifications/50-valtron-async-readiness"
-  - "specifications/65-agent-rpc-serving-system"
+  - "specifications/83-agent-rpc-serving-system"
 tasks:
   completed: 118
   uncompleted: 0

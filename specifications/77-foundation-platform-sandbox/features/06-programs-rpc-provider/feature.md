@@ -26,7 +26,7 @@ Give the core its boundaries on a host:
 1. The command structures of `agent-sandbox` and `agent-slave`, in the library
    (`foundation_platform_sandbox::cli`).
 2. The `SandboxService` server (the control plane over RPC) and `SandboxRpcClient`, which
-   implements `SandboxControl` for a remote control plane.
+   implements `SandboxProvider` for a remote control plane.
 3. The two program entry points.
 4. The `Provider` facade in `foundation_deployment_platform`.
 5. The CI job that runs the real Firecracker tests.
@@ -53,16 +53,16 @@ This feature completes MVP-A: a person runs
 |---|---|---|---|---|
 | U1 | Run one command | person | `agent-sandbox run ...` | Output streams; the exit code is the program's. |
 | U2 | Serve | operator | `agent-sandbox serve --listen ...` | `SandboxService` on a UDS or TCP. |
-| U3 | Remote control | program | `SandboxRpcClient` | Every `SandboxControl` and `Sandbox` call, over RPC. |
+| U3 | Remote control | program | `SandboxRpcClient` | Every `SandboxProvider` and `SandboxHandle` call, over RPC. |
 | U4 | Manage | person | `agent-sandbox create | exec | list | stop | kill` with `--connect` | The same calls from a shell. |
 | U5 | Doctor | person | `agent-sandbox doctor` | One report for each driver. |
-| U6 | Provider | orchestration code | `Provider::launch` and others | A `SandboxHandle`. |
+| U6 | Provider | orchestration code | `Provider::launch` and others | A `SandboxDeploymentHandle`. |
 | U7 | Slave start | kernel, container, test | `agent-slave [--listen ...]` | The slave serves. |
 
 ## 3. Bounded context
 
 **Inside this feature:** argument parsing, the mapping between `SandboxService` messages
-and `SandboxControl` calls (both directions), token checks, the `Provider` adapter, the
+and `SandboxProvider` calls (both directions), token checks, the `Provider` adapter, the
 programs' `main` functions, the CI job, the user documentation.
 
 **Outside:** all sandbox behaviour (features 01, 02, 05). A boundary translates. It does
@@ -74,17 +74,17 @@ not decide.
 | `ControlService`, `SandboxRpcClient` | Defined in feature 02; served and connected here. | feature 02 |
 | `ConnectAddr` | Where a remote control plane is. | `cli` |
 | Access token | A shared secret for TCP listeners. | the operator; read by the boundary |
-| `SandboxProvider`, `SandboxHandle` | The `Provider` adapter and its handle. | `foundation_deployment_platform::providers::sandbox` |
+| `SandboxDeploymentProvider`, `SandboxDeploymentHandle` | The `Provider` adapter and its handle. | `foundation_deployment_platform::providers::sandbox` |
 | `ProviderId` | The identifier of a provider kind. | `foundation_deployment_platform::providers` |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
 | parse | entity | program start | Arguments to a command value, or a usage error. |
 | serve | entity | `serve` | Binds a listener; routes calls to `ControlService`. |
-| translate in | entity | an RPC call | A `SandboxControl` call with the same data. |
+| translate in | entity | an RPC call | A `SandboxProvider` call with the same data. |
 | translate out | entity | a `SandboxRpcClient` call | An RPC call with the same data. |
 | authorise | entity | each call on TCP | Compares the bearer token in constant time. |
-| adapt | entity | a `Provider` method | Blocks on the matching `SandboxControl` call. |
+| adapt | entity | a `Provider` method | Blocks on the matching `SandboxProvider` call. |
 
 **The driver rule.** `ControlService`, `SandboxRpcClient`, the CLI and the `Provider` hold
 no rule about sandboxes. A check, a retry or a time-out that appears only in one of them is
@@ -146,7 +146,7 @@ Links to other entities: CLI exit code = the program's exit code, or 128 + signa
 | I4 | A UDS listener file has mode `0600`. |
 | I5 | `agent-sandbox run` stops its sandbox on every exit path: normal end, an error, `SIGINT` and `SIGTERM`. |
 | I6 | `agent-sandbox run` exits with the program's exit code, or `128 + signal` when a signal ended the program. Its own failures use 125. |
-| I7 | A `Provider` method has the outcome of the `SandboxControl` call that it wraps; the error is the same typed error. |
+| I7 | A `Provider` method has the outcome of the `SandboxProvider` call that it wraps; the error is the same typed error. |
 | I8 | `is_running(handle)` is true exactly when the sandbox state is `Ready`. |
 | I9 | Without the `sandbox` feature, `foundation_deployment_platform` builds and tests as before. |
 | I10 | The boundaries have no sandbox logic: a source scan finds no spec validation, retry loop or time-out constant in `cli/`, `service.rs`, `rpc_client.rs`, the `Provider` module and the `main` files. |
@@ -159,7 +159,7 @@ Links to other entities: CLI exit code = the program's exit code, or 128 + signa
   `kill`, `doctor`.
 - `agent-slave`.
 - `ControlService`, `SandboxRpcClient`.
-- `ProviderId::Firecracker`, `SandboxProvider`, `SandboxHandle`.
+- `ProviderId::Firecracker`, `SandboxDeploymentProvider`, `SandboxDeploymentHandle`.
 - The CI job, the README, `docs/sandbox.md`.
 
 ### 4.4 Must do
@@ -231,7 +231,7 @@ Feature: Programs, RPC and Provider
     And its exit code is 1
 
   Scenario: A provider launches and stops a sandbox
-    Given a SandboxProvider on a simulated manager
+    Given a SandboxDeploymentProvider on a simulated manager
     When launch is called with a valid spec
     Then a handle is returned and is_running is true
     When stop is called
@@ -372,15 +372,16 @@ and the `Url` as given.
   a connect that works means another server is there, which is exit code 69 with the
   message `address in use`; bind; mode `0600`. No token.
 - `tcp:<host>:<port>`: needs `auth = Some(token)`. An interceptor
-  (`foundation_connectrpc` `shared/interceptor`) calls `check_bearer` (feature 02,
+  (`foundation_connectrpc` `shared/interceptor`) calls `authorize` (feature 02,
   section 6.10) with the request's `Authorization` header. The check runs before the
   handler.
 - HTTP/1.1, `ConnectRpcServe` on `HttpServer` (as in feature 01, section 6.4).
 - The token file is read one time at start: the first line, trimmed. An empty file is a
   usage error. The token is never logged.
 
-Requirements question Q4: mutual TLS comes with the agent-rpc work. A TCP listener is for
-`127.0.0.1` or a private network until then; the README says so.
+Requirements question Q4: mutual TLS comes from [spec 87](../../../87-mutual-tls/requirements.md).
+The native listener adds it with `ServerTlsConfig` and `MtlsAuth` when spec 87 lands. A TCP
+listener is for `127.0.0.1` or a private network until then; the README says so.
 
 ### 6.6 `agent-slave`
 
@@ -417,15 +418,15 @@ looks for beside `agent-sandbox` when both are installed in one directory.
 
 ```rust
 /// A running sandbox, as a `Provider` handle.
-pub struct SandboxHandle { pub sandbox: Sandbox, pub provider_id: ProviderId }
-impl std::ops::Deref for SandboxHandle { type Target = Sandbox; /* ... */ }
+pub struct SandboxDeploymentHandle { pub sandbox: SandboxHandle, pub provider_id: ProviderId }
+impl std::ops::Deref for SandboxDeploymentHandle { type Target = SandboxHandle; /* ... */ }
 
 /// A `Provider` on any control plane. `driver` fixes which driver each launch uses.
-pub struct SandboxProvider { control: Arc<dyn SandboxControl>, driver: DriverId }
+pub struct SandboxDeploymentProvider { control: Arc<dyn SandboxProvider>, driver: DriverId }
 
-impl SandboxProvider {
-    pub fn firecracker(control: Arc<dyn SandboxControl>) -> Self;
-    pub fn new(control: Arc<dyn SandboxControl>, driver: DriverId) -> Self;
+impl SandboxDeploymentProvider {
+    pub fn firecracker(control: Arc<dyn SandboxProvider>) -> Self;
+    pub fn new(control: Arc<dyn SandboxProvider>, driver: DriverId) -> Self;
 }
 ```
 
@@ -433,7 +434,7 @@ impl SandboxProvider {
 `CloudflareContainer`, `Libkrun` and `DockerSandbox`. Update each `match` on `ProviderId`
 (`grep -rn "ProviderId::" --include=*.rs .`).
 
-`impl Provider for SandboxProvider` with `Handle = SandboxHandle`, `Config = SandboxSpec`,
+`impl Provider for SandboxDeploymentProvider` with `Handle = SandboxDeploymentHandle`, `Config = SandboxSpec`,
 `Error = ErrorTrace<SandboxError>`:
 
 | Method | Body |
@@ -447,9 +448,9 @@ impl SandboxProvider {
 
 `block_on_future` is `foundation_core::valtron::block_on_future`
 (`executors/sendables.rs`, line 1004). The doc comment of the type says: "Async callers use
-`SandboxControl` directly."
+`SandboxProvider` directly."
 
-Because the provider takes any `SandboxControl`, the same type works on a local
+Because the provider takes any `SandboxProvider`, the same type works on a local
 `SandboxManager` and on a `SandboxRpcClient`.
 
 ### 6.8 CI

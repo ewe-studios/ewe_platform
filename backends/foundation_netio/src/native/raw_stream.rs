@@ -210,6 +210,40 @@ impl RawStream {
         )))
     }
 
+    /// The peer certificate chain the TLS handshake produced.
+    ///
+    /// `None` on a clear stream, before the handshake completes, or when the
+    /// peer presents no certificate.
+    #[must_use]
+    pub fn tls_info(&self) -> Option<crate::shared::context::TlsInfo> {
+        #[cfg(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        ))]
+        {
+            use crate::native::ssl::TlsPeerFacts as _;
+            if let RawStreamInner::ServerTls(reader, _) = &self.inner {
+                let certs = reader.get_inner_ref().get_inner_ref().peer_certificates();
+                if !certs.is_empty() {
+                    return Some(crate::shared::context::TlsInfo {
+                        peer_certificates: certs,
+                        ..crate::shared::context::TlsInfo::default()
+                    });
+                }
+            }
+            None
+        }
+        #[cfg(not(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )))]
+        {
+            None
+        }
+    }
+
     /// `from_client_tls` creates a `RawStream` from a client generated TLS Connection wrapped
     /// by the [`ClientSSLStream`] type. Generally this is generated from [`TcpStream`] or equivalent
     /// that connects to a remote endpoint.

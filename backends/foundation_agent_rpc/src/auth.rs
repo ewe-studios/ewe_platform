@@ -1,7 +1,7 @@
 //! Client-facing auth: signed bootstrap secret → client certificate → mutual
 //! TLS, with a durable record of every enrolled client.
 //!
-//! WHY: agent-rpc owns how its clients authenticate (spec 65: the proxy never
+//! WHY: agent-rpc owns how its clients authenticate (spec 83: the proxy never
 //! sees this channel). A client starts with nothing but a signed, time-boxed
 //! secret handed to it out of band; after one enrollment it holds a
 //! certificate, and from then on every call is authenticated by mutual TLS
@@ -28,9 +28,10 @@
 
 use std::path::Path;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 
 use foundation_connectrpc::{ConnectResult, Request, Response, RpcCtx};
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use rcgen::{
@@ -414,12 +415,14 @@ impl MtlsConfig {
         let ca = CertificateAuthority::load_or_generate(state_dir, Self::DEFAULT_CA_NAME)?;
         let (key, origin) = SigningKey::load_or_generate(signing_key)?;
         tracing::debug!(?origin, "bootstrap signing key ready");
-        let trusted =
-            TrustedClientStore::open_sqlite(TrustedClientStore::default_path(state_dir), ctx)
-                .await?;
+        let trusted = TrustedClientStore::open_sqlite(
+            TrustedClientStore::default_path(state_dir),
+            ctx.clone(),
+        )
+        .await?;
         Ok(Self::new(
             Arc::new(ca),
-            Arc::new(BootstrapSecrets::new(key)),
+            Arc::new(BootstrapSecrets::new(key, ctx.clone())),
             trusted,
         ))
     }
@@ -492,6 +495,7 @@ pub struct EnrollmentService {
     ca: Arc<CertificateAuthority>,
     client_cert_lifetime: Duration,
     max_enrollments: u32,
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for EnrollmentService {
@@ -503,13 +507,14 @@ impl std::fmt::Debug for EnrollmentService {
 impl EnrollmentService {
     /// Enroll clients under `config`'s policy.
     #[must_use]
-    pub fn new(config: &MtlsConfig) -> Self {
+    pub fn new(config: &MtlsConfig, ctx: Ctx) -> Self {
         Self {
             secrets: Arc::clone(&config.secrets),
             trusted: Arc::clone(&config.trusted),
             ca: Arc::clone(&config.ca),
             client_cert_lifetime: config.client_cert_lifetime,
             max_enrollments: config.max_enrollments,
+            ctx,
         }
     }
 
@@ -544,7 +549,7 @@ impl EnrollmentService {
     /// [`AgentRpcError::Storage`] when the store fails.
     pub async fn enroll_client(&self, req: &EnrollRequest) -> AgentRpcResult<EnrollResponse> {
         validate_client_name(&req.client_name)?;
-        let now = unix_secs(SystemTime::now());
+        let now = unix_secs(self.ctx.clock().wall_now());
         let verified = self.secrets.verify_at(&req.token, now).inspect_err(|e| {
             tracing::warn!(client = %req.client_name, reason = %e.current_context(), "enrollment refused");
         })?;

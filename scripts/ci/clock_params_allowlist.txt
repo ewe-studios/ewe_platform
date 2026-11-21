@@ -1,0 +1,26 @@
+# Sites allowed to take a bare clock (spec 76 feature 06).
+# Each entry: path, then `#` and the reason. A trailing `/` allows a directory.
+# The guard fails an entry that matches no hit: delete the entry with its fix.
+#
+# The clock's own crates are skipped in the script: foundation_context,
+# foundation_compact, foundation_nostd, and foundation_core/src/valtron.
+
+# Getters that return the clock held by the context. They are the kept API
+# surface from waves 2 and 3; the caller passes the Ctx.
+backends/foundation_connectrpc/src/shared/context/mod.rs  # RpcCtx::clock() getter
+backends/foundation_core/src/synca/sleepers.rs  # sleeper::clock() getter
+backends/foundation_deployment/src/provider_client.rs  # ProviderClient::clock() getter
+backends/foundation_deployment_platform/src/bootstrap/logger.rs  # BootstrapLogger::clock() getter
+backends/foundation_deployment_platform/src/winrm/mod.rs  # WinRM::clock() getter
+backends/foundation_sshkit/src/pool.rs  # ConnectionPool::clock() getter
+backends/foundation_testbed/src/docker.rs  # DockerControl::clock() getter
+
+# Host entry points build the first real clock.
+backends/foundation_codegentools/src/cli/normalize.rs  # CLI entry builds the host clock
+backends/foundation_macros/src/platform_test.rs  # macro-generated test entry point
+backends/foundation_macros/src/valtron_entry.rs  # macro-generated host entry point
+
+# The reactor's own poll timing sits below the context layer.
+backends/foundation_reactor/src/poll/sys/unix/selector/epoll.rs  # reactor poll timing
+backends/foundation_reactor/src/poll/sys/unix/selector/kqueue.rs  # reactor poll timing
+backends/foundation_reactor/src/poll/sys/unix/selector/uring.rs  # reactor poll timing
