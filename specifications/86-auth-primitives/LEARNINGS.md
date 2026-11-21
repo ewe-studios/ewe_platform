@@ -105,7 +105,7 @@ section 8 now find one definition.
 ### `get()` was the alias's real cost
 
 `ConfidentialText::get()` returned an owned `String`, and about twenty call
-sites used it. Two used it as a function value: `.map(ConfidentialText::get)`.
+sites used it. Three used it as a function value: `.map(ConfidentialText::get)`.
 An alias to `Secret` cannot keep `get()` and also make `expose()` the only
 reader, so every call site moved to `expose()`. A mapped call becomes a closure
 that owns the text, for example `.map(|token| token.expose().to_owned())`.

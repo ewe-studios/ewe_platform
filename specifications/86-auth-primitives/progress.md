@@ -87,25 +87,42 @@ test can name both `AuthInfo` paths.
 | `cargo test -p foundation_auth --profile uat` | Pass. 65 tests. |
 | `cargo test -p foundation_connectrpc --profile uat auth` | Pass. `auth_tests`: 15 tests. |
 | `cargo clippy -p foundation_auth -p foundation_connectrpc --profile uat -- -D warnings` | Pass, no warnings. The command also checks the path dependencies; none warned. |
-| `cargo check -p foundation_ai --profile uat --no-default-features` | PENDING |
-| `cargo check -p foundation_keychain --profile uat` | PENDING |
+| `cargo check -p foundation_ai --profile uat --no-default-features` | Pass. The four always-compiled providers compile. |
+| `cargo check -p foundation_keychain --profile uat` | Pass. |
 | `cargo fmt --all -- --check` | Pass. |
 | `grep -rn "fn constant_time_eq" backends/` | One hit: `foundation_auth/src/shared/mod.rs`. |
-| `grep -rn "struct Secret" backends/` | Many hits. See issue #674. |
+| `grep -rn "struct Secret" backends/` | 18 hits. One is the credential type in `foundation_auth/src/server_credential/secret.rs`. See issue #674. |
+
+The `foundation_ai` check leaves `llamacpp` and `candle` off. The two
+one-line changes in `huggingface_gguf_provider` and
+`huggingface_candle_provider` need those heavy features, so this check does
+not compile them. Both use the same `SecretOnly(t) => t.expose().to_owned()`
+form as the compiled code.
+
+## Commits (branch `spec/86-auth-primitives`)
+
+| Task | Commit |
+|---|---|
+| T2 — one `constant_time_eq` | `f0bc921ab` |
+| T1 — `Secret` | `cd6c17dfb` |
+| T3 — bearer parser | `d8d872097` |
+| T4 — `AuthInfo` move | `4ef299ebc` |
+| T5 — `ClientAuth` trait | `a2b94660b` |
+| T6 — `StaticToken` and versions | `23e932596` |
 
 ## Known issues
 
 | Finding | Severity | State |
 |---|---|---|
-| Four private copies of `constant_time_eq` in `foundation_auth` | low | [#554](https://github.com/ewe-studios/ewe_platform/issues/554); closed by T2 |
+| Four private copies of `constant_time_eq` in `foundation_auth`, and a fifth in `foundation_keychain` | low | [#554](https://github.com/ewe-studios/ewe_platform/issues/554); closed by T2 |
 | `ConfidentialText::Display` shows the first character and the length | low | [#555](https://github.com/ewe-studios/ewe_platform/issues/555); closed by T1 |
 | The section 8 `struct Secret` grep matches generated and test types | low | [#674](https://github.com/ewe-studios/ewe_platform/issues/674); open |
 
 ## Next steps
 
 1. Merge the branch after the owner reviews it.
-2. Close #554 and #555 in this change.
-3. Do not push or open a pull request from this worktree.
+2. #554 and #555 are closed in this change.
+3. #674 is a low-severity documentation defect. It does not block this work.
 
 ## Open questions
 
