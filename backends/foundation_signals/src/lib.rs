@@ -1,6 +1,6 @@
 //! WHY: Fine-grained reactive state for any Rust target — native, WASM, server
 //! — with no DOM or transport coupling (decision 002). The UI layers build on
-//! top: effects queue `DomOp`s, the `html!` macro reads setter callback ids,
+//! top: effects queue operations, the `html!` macro reads setter callback ids,
 //! but this crate knows nothing about either.
 //!
 //! WHAT: An R3-style reactive graph: height-ordered topological processing

@@ -3,7 +3,7 @@ name = "cf-cloud-provider"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "foundation_ai on Cloudflare Workers: a chat page streaming OpenRouter replies via FetchHttpClient (spec 65 T5)"
+description = "foundation_ai on Cloudflare Workers: a chat page streaming OpenRouter replies via FetchHttpClient (spec 83 T5)"
 license = "Apache-2.0"
 
 [lib]

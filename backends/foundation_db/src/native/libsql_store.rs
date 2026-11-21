@@ -27,7 +27,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
-use crate::core::schema::{MigrationRunner, MIGRATIONS};
+use crate::core::schema::{MigrationRunner, DB_CORE};
 use crate::native::conn_gate::{is_read_only_sql, ConnGate, ReadGuard, WriteGuard};
 
 use crate::core::state::traits::{StateStore, StateStoreStream};
@@ -263,7 +263,10 @@ impl LibsqlStore {
     /// Returns a `StorageError` if the database can't be opened or migrated.
     pub async fn in_memory(ctx: Ctx) -> StorageResult<Self> {
         let store = Self::new_kv(":memory:", None, ctx.clone()).await?;
-        MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
+        // The core group is in code, so it reads no file.
+        MigrationRunner::from_static(&DB_CORE)
+            .run_async(&foundation_vfs::EmptyFs::new(), &store)
+            .await?;
         Ok(store)
     }
 
@@ -1246,6 +1249,10 @@ impl QueryStore for LibsqlStore {
             return Err(self.rollback_after(e.to_string()).await);
         }
         Ok(())
+    }
+
+    fn batch_is_transactional(&self) -> bool {
+        true
     }
 }
 

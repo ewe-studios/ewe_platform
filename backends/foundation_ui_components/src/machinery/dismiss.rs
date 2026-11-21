@@ -5,7 +5,7 @@
 //! (machinery.md §M3). Native `<dialog>`/`popover="auto"` get this for free;
 //! everything on the M1/M3 fallback path needs it delivered as behavior.
 //!
-//! WHAT: [`DISMISS_JS`] (the behavior) + [`dismiss_behavior`] (the `<script>`
+//! WHAT: [`DISMISS_JS`] (the behavior) + [`dismiss_behavior`] (the marker
 //! node a popup embeds) + the data-attribute contract constants. Hover-intent
 //! open/close + the safe-polygon state machine are a documented follow-up
 //! (machinery.md §M3) — this module ships the dismiss half the catalog needs
@@ -22,7 +22,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Popup marker: present on a light-dismissable popup root (`data-dismiss`).
 pub const DATA_DISMISS: &str = "data-dismiss";
@@ -43,7 +43,7 @@ pub const DATA_DISMISS_OUTSIDE: &str = "data-dismiss-outside";
 /// `[data-dismiss-action]`). Reads `data-anchor` (trigger id, so clicks on
 /// the trigger don't dismiss) and the `data-dismiss-escape/outside` opt-outs
 /// off the popup root.
-pub const DISMISS_JS: &str = r#"function(scope){
+pub const DISMISS_JS: &str = r"function(scope){
   var popup = scope.parent();
   if (!popup || popup.__dismiss) return; popup.__dismiss = true;
   var doc = popup.ownerDocument || document;
@@ -71,13 +71,13 @@ pub const DISMISS_JS: &str = r#"function(scope){
       dismiss('outside-press');
     });
   }
-}"#;
+}";
 
-/// The `<script>` node a light-dismissable popup embeds. The popup root must
+/// The marker node a light-dismissable popup embeds. The popup root must
 /// carry [`DATA_DISMISS`] (+ optional `data-anchor` / `data-dismiss-escape` /
 /// `data-dismiss-outside`) and render a hidden [`DATA_DISMISS_ACTION`] element
 /// whose `primal:onclick` writes `set_open(false)`.
 #[must_use]
 pub fn dismiss_behavior() -> Html {
-    scoped_script(DISMISS_JS)
+    behaviour_script(Behaviour::Dismiss, DISMISS_JS)
 }

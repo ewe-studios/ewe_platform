@@ -51,10 +51,7 @@ fn builder_chain_overrides_defaults() {
 
 #[test]
 fn protocol_content_type_is_correct() {
-    assert_eq!(
-        Protocol::Columnar.content_type(),
-        "application/primal-columnar"
-    );
+    assert_eq!(Protocol::Frame.content_type(), "application/primal-frame");
     assert_eq!(Protocol::Arrow.content_type(), "application/primal-arrow");
     assert_eq!(
         Protocol::ArrowIpc.content_type(),

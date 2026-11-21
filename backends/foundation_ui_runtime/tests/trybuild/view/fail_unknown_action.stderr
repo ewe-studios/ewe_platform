@@ -1,0 +1,5 @@
+error[E0425]: cannot find type `missing_action` in this scope
+ --> tests/trybuild/view/fail_unknown_action.rs:4:41
+  |
+4 |     let _view = html! { <Button on:tap={missing_action} /> };
+  |                                         ^^^^^^^^^^^^^^ not found in this scope

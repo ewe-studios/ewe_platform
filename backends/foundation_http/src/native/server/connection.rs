@@ -377,7 +377,7 @@ impl ConnectionHandler {
         tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
 
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
-            Some(Ok(req)) => {
+            Some(Ok(mut req)) => {
                 // Version gate, before the body is read and before any
                 // middleware or route lookup can observe the request.
                 if !Self::is_supported_proto(&req.proto) {
@@ -395,6 +395,12 @@ impl ConnectionHandler {
                     ));
                 }
 
+                if Self::has_body(&req) {
+                    let conn = self.conn.clone();
+                    req.set_body_read_wake_source(move || {
+                        conn.with_inner_ref(RawStream::open_read_wake_source)
+                    });
+                }
                 let should_close = Self::should_close_after(&req);
 
                 tracing::trace!(

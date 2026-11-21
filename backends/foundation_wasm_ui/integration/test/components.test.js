@@ -12,7 +12,6 @@ import {
   FetchTransport,
   SSETransport,
   ProtocolHandler,
-  ArrowHandler,
   JsonHandler,
   HtmlHandler,
   RawHandler,
@@ -73,7 +72,7 @@ test("FetchTransport rejects on 500", async () => {
 test("ProtocolHandler.fromContentType selects per the table", () => {
   const pick = (ct) => ProtocolHandler.fromContentType(fakeResponse({ contentType: ct }));
   assert.ok(pick("application/primal-html") instanceof HtmlHandler);
-  assert.ok(pick("application/primal-arrow") instanceof ArrowHandler);
+  assert.equal(pick("application/primal-arrow"), ProtocolHandler.named("arrow"));
   assert.ok(pick("application/primal-json") instanceof JsonHandler);
   assert.ok(pick("text/event-stream-html") instanceof HtmlHandler);
   assert.ok(pick("text/html; charset=utf-8") instanceof HtmlHandler);

@@ -1,0 +1,5 @@
+error: html!: a brace action is a Rust action path, for example on:tap={add_todo}
+ --> tests/trybuild/view/fail_brace_not_path.rs:4:40
+  |
+4 |     let _view = html! { <Button on:tap={confirm()} /> };
+  |                                        ^^^^^^^^^^^

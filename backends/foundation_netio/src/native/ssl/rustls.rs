@@ -137,6 +137,21 @@ pub fn default_client_config() -> Arc<ClientConfig> {
 #[derive(Debug)]
 pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
+impl super::TlsPeerFacts for RustlsStream<rustls::ServerConnection> {
+    fn peer_certificates(&self) -> Vec<Vec<u8>> {
+        let guard = self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        guard
+            .conn
+            .peer_certificates()
+            .map_or_else(Vec::new, |chain| {
+                chain.iter().map(|cert| cert.as_ref().to_vec()).collect()
+            })
+    }
+}
+
 /// Expose the fd of the TCP socket the TLS session wraps so the connection can
 /// be registered with the reactor (Decision 12 §12). Readiness lives on the
 /// socket, not the TLS layer. Unix-only (native-socket).
@@ -615,6 +630,17 @@ pub type RustTlsServerStream = RustlsStream<rustls::ServerConnection>;
 pub struct RustlsAcceptor(Arc<rustls::ServerConfig>);
 
 impl RustlsAcceptor {
+    /// Creates an acceptor from a caller-built `ServerConfig` — the server-side
+    /// twin of [`RustlsConnector::with_config`].
+    ///
+    /// Use this for anything [`from_pem`](Self::from_pem) cannot express, such
+    /// as **mutual TLS** (a `ServerConfig` built with a client-certificate
+    /// verifier) or ALPN protocols.
+    #[must_use]
+    pub fn with_config(config: Arc<rustls::ServerConfig>) -> Self {
+        Self(config)
+    }
+
     ///
     /// # Errors
     ///

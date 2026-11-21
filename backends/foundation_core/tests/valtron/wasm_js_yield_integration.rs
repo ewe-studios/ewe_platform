@@ -281,7 +281,7 @@ fn no_deadlock_with_js_yield() {
 }
 
 // ---------------------------------------------------------------------------
-// Spec 68 / spec 65 feature 06 T5: event-driven park → wake → resume on the
+// Spec 68 / spec 83 feature 06 T5: event-driven park → wake → resume on the
 // wasm-bindgen backend (the one `cf-cloud-provider` runs on).
 
 use std::cell::RefCell;

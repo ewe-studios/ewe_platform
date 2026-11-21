@@ -7,7 +7,7 @@
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
-use crate::core::schema::{MigrationRunner, MIGRATIONS};
+use crate::core::schema::{MigrationRunner, DB_CORE};
 use crate::core::storage_provider::{
     AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
     RateLimiterStore, SqlRow,
@@ -99,6 +99,33 @@ impl TursoStorage {
         })
     }
 
+    /// Open (creating if needed) a local database without blocking: the async
+    /// counterpart of [`new`](Self::new), for callers already inside a
+    /// future (e.g. a valtron task), where `new`'s internal block-on would
+    /// park a worker. `url` is a file path or `:memory:`. `ctx` supplies the
+    /// connection gate, as in [`new`](Self::new).
+    ///
+    /// Only the connection is opened; run any schema the caller needs
+    /// through [`AsyncQueryStore`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database cannot be opened or connected.
+    pub async fn open(url: &str, ctx: Ctx) -> StorageResult<Self> {
+        let db = Builder::new_local(url)
+            .build()
+            .await
+            .map_err(|e| StorageError::Backend(format!("Open failed: {e}")))?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        Ok(Self {
+            conn: Arc::new(conn),
+            gate: ConnGate::new(ctx),
+            encryption_key: None,
+        })
+    }
+
     /// Initialize the database schema.
     ///
     /// # Errors
@@ -110,7 +137,10 @@ impl TursoStorage {
         // `kv_store`/`_migrations`, so every other table — including `documents`
         // — was never created on the native sync path. The runner is idempotent
         // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
-        MigrationRunner::new(MIGRATIONS).run_async(self).await?;
+        // The core group is in code, so it reads no file.
+        MigrationRunner::from_static(&DB_CORE)
+            .run_async(&foundation_vfs::EmptyFs::new(), self)
+            .await?;
         Ok(())
     }
 
@@ -695,6 +725,10 @@ impl QueryStore for TursoStorage {
             return Err(self.rollback_after(e.to_string()).await);
         }
         Ok(())
+    }
+
+    fn batch_is_transactional(&self) -> bool {
+        true
     }
 }
 

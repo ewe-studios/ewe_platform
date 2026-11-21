@@ -687,10 +687,11 @@ pub fn parse_grpc_error_trailer(trailers: &SimpleHeaders) -> Option<ErrorTrace<C
         .cloned()
         .unwrap_or_default();
     let decoded = percent_decode(&message);
-    // Use the checked conversion. A value outside 1..=16 becomes Unknown, per
-    // the gRPC status code specification.
+    // The status came from the peer: a wire error, like the Connect and
+    // gRPC-Web decoders produce. Use the checked conversion; a value outside
+    // 1..=16 becomes Unknown, per the gRPC status code specification.
     let code = Code::from_u32(status).unwrap_or(Code::Unknown);
-    Some(ErrorTrace::new(ConnectError::new(code, decoded)))
+    Some(ErrorTrace::new(ConnectError::wire(code, decoded)))
 }
 
 /// Percent-decode a `grpc-message` value (spec: space and non-ASCII are

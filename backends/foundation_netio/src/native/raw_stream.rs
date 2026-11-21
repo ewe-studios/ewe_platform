@@ -210,6 +210,40 @@ impl RawStream {
         )))
     }
 
+    /// The peer certificate chain the TLS handshake produced.
+    ///
+    /// `None` on a clear stream, before the handshake completes, or when the
+    /// peer presents no certificate.
+    #[must_use]
+    pub fn tls_info(&self) -> Option<crate::shared::context::TlsInfo> {
+        #[cfg(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        ))]
+        {
+            use crate::native::ssl::TlsPeerFacts as _;
+            if let RawStreamInner::ServerTls(reader, _) = &self.inner {
+                let certs = reader.get_inner_ref().get_inner_ref().peer_certificates();
+                if !certs.is_empty() {
+                    return Some(crate::shared::context::TlsInfo {
+                        peer_certificates: certs,
+                        ..crate::shared::context::TlsInfo::default()
+                    });
+                }
+            }
+            None
+        }
+        #[cfg(not(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )))]
+        {
+            None
+        }
+    }
+
     /// `from_client_tls` creates a `RawStream` from a client generated TLS Connection wrapped
     /// by the [`ClientSSLStream`] type. Generally this is generated from [`TcpStream`] or equivalent
     /// that connects to a remote endpoint.
@@ -495,14 +529,17 @@ impl RawStream {
         if let Some(source) = self.read_wake.get() {
             return Some(source.clone());
         }
-        let source = self.build_read_wake_source()?;
+        let source = self.open_read_wake_source()?;
         // `RawStream` is moved between threads but never shared as `&`, so no
         // two calls build a source at the same time.
         Some(self.read_wake.get_or_init(|| source).clone())
     }
 
-    /// Build the read wake source for this transport, or `None` when it has no
-    /// readiness wait. Called once by [`Self::read_wake_source`].
+    /// Opens a readiness registration for one body reader.
+    ///
+    /// Accepting servers release this registration before the next keep-alive request.
+    /// A transport without socket readiness returns `None`.
+    #[must_use]
     // Without a TLS feature `Plain` is the only variant, so the pattern below is
     // irrefutable. Keep one code path for every feature set.
     #[cfg_attr(
@@ -516,7 +553,7 @@ impl RawStream {
             reason = "Plain is the only variant without TLS"
         )
     )]
-    fn build_read_wake_source(&self) -> Option<ReadWakeSource> {
+    pub fn open_read_wake_source(&self) -> Option<ReadWakeSource> {
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.
         if let RawStreamInner::Plain(inner, _) = &self.inner {
             if let Connection::Overlay(o) = inner.get_core_ref() {

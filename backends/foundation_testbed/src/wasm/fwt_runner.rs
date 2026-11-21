@@ -210,9 +210,12 @@ pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
 
     // The summary line is the verdict (the browser cannot set an exit code).
     let exit_code = i32::from(!browser_output.test_result.contains("test result: ok"));
-    println!("{}", browser_output.test_result);
+    print!("{}", browser_output.output);
+    if !browser_output.output.ends_with('\n') {
+        println!();
+    }
     Ok(RunOutcome {
-        output: browser_output.test_result,
+        output: browser_output.output,
         exit_code,
         cases,
     })

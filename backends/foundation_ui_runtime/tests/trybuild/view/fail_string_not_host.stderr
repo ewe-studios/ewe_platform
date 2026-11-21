@@ -1,0 +1,5 @@
+error: html!: a string action reference must start with `host:` and contain a valid name
+ --> tests/trybuild/view/fail_string_not_host.rs:4:40
+  |
+4 |     let _view = html! { <button on:tap="server:confirm" /> };
+  |                                        ^^^^^^^^^^^^^^^^

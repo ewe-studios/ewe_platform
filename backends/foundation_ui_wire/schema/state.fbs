@@ -1,0 +1,17 @@
+namespace ewe.ui;
+
+// flags bit 0: the body is encrypted (private state). Other bits are 0.
+table SignedState {
+  format_version: ushort;
+  flags: ubyte;
+  key_id: uint;
+  issued_at: ulong;          // seconds since the Unix epoch
+  expires_at: ulong;         // seconds since the Unix epoch
+  component_type: uint;
+  root_node: uint;
+  session_binding: [ubyte];  // 32 bytes, or empty before the state is sealed
+  body: [ubyte];
+  tag: [ubyte];              // 32 bytes, or empty before the state is sealed
+}
+root_type SignedState;
+file_identifier "EWS1";

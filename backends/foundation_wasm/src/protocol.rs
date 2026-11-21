@@ -1,18 +1,6 @@
-//! WHY: Encoded protocol bytes (produced by `foundation_ui_traits` encoders) have
-//! to cross the WASM↔JS boundary through arena memory and the uniform `host_apply`
-//! FFI. That transport contract is WASM-specific, so it lives here in
-//! `foundation_wasm` rather than in the dependency-free encoding crate.
-//!
-//! WHAT: Layer 2 of the three-layer protocol architecture (decisions 014/028/030).
-//! Defines the [`ProtocolHandler`] transport trait, the 14-byte [`WasmEnvelope`]
-//! (the 6-byte base `Envelope` extended with the arena `memory_id`), a
-//! [`ProtocolHandlerRegistry`], and [`dispatch_message`] which demuxes an incoming
-//! message to the correct handler by protocol byte.
-//!
-//! HOW: Every message is `[protocol:1][version:1][memory_id:8 LE][length:4 LE]
-//! [payload...]`. The first byte selects the handler; the `memory_id` tells JS
-//! which arena slot to `dispose_allocation` after processing. One slot, one ACK,
-//! for all protocols.
+//! Transport general WebAssembly messages between Rust and the JavaScript host.
+//! Each allocation has an identifier. The host releases that allocation after delivery.
+//! A general message carries a 14-byte envelope. A user interface frame carries its own header.
 
 // Generated protocol dispatch — large matching functions by protocol byte.
 // MSB/LSB naming, identical arms (const discriminants), and pass-by-value
@@ -40,18 +28,10 @@ use crate::{
 
 // ─── ProtocolHandler trait ─────────────────────────────────────────────────────
 
-/// WHY: The router needs a uniform contract to ship/receive a protocol payload
-/// without knowing the format inside the arena slot.
-///
-/// WHAT: The bidirectional WASM transport contract. Both directions follow the
-/// same loan pattern — the producer allocates an arena slot, the consumer ACKs by
-/// calling `dispose_allocation`.
-///
-/// HOW: Implementors (in `foundation_wasm_ui`: `ColumnarV1`, `BatchInstructionsV1`,
-/// `JsonV1`) wrap the uniform 3-param `host_apply` FFI for `send_to_js`, and read
-/// + deallocate the arena slot for `handle_from_js`.
+/// Send and receive messages through the shared WebAssembly arena.
+/// The producer owns the allocation until the consumer acknowledges delivery.
 pub trait ProtocolHandler {
-    /// Protocol discriminant: `0` = Custom Binary, `1` = Arrow, `2` = JSON.
+    /// Return the protocol number for this handler.
     fn protocol_byte(&self) -> u8;
 
     /// Protocol version for backward compatibility.
@@ -81,20 +61,12 @@ pub trait ProtocolHandler {
 
 // ─── WasmEnvelope (14-byte WASM-specific header) ───────────────────────────────
 
-/// WHY: The 6-byte base `Envelope` (in `foundation_ui_traits`) has no arena id —
-/// fine for HTTP/SSE/WebSocket, but the JS side needs the `memory_id` to ACK a
-/// WASM arena slot. This header carries it.
-///
-/// WHAT: The 14-byte WASM message header:
-/// `[protocol:1][version:1][memory_id:8 LE][length:4 LE]`, followed by `length`
-/// payload bytes.
-///
-/// HOW: `write` frames a payload; `parse` splits it back. All multi-byte fields
-/// are little-endian. `memory_id` is `MemoryId::as_u64()` (index in the high 32
-/// bits, generation in the low 32).
+/// A general WebAssembly message header followed by its payload.
+/// The fields contain the protocol byte, version byte, eight-byte allocation identifier and four-byte payload length.
+/// Multi-byte fields use little-endian byte order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WasmEnvelope {
-    /// Protocol discriminant (`0` custom binary, `1` arrow, `2` json).
+    /// Protocol number used to select the host handler.
     pub protocol: u8,
     /// Protocol version.
     pub version: u8,
@@ -112,7 +84,7 @@ impl WasmEnvelope {
     ///
     /// # Panics
     /// Panics if `payload` is larger than `u32::MAX` (~4 GiB) — the length field is a
-    /// `u32`, so a bigger payload can't be framed. This never happens for a DOM batch.
+    /// `u32`, so a bigger payload can't be framed. The caller must keep each message within that limit.
     #[must_use]
     pub fn write(protocol: u8, version: u8, memory_id: u64, payload: &[u8]) -> Vec<u8> {
         // Checked so the length can't silently truncate on a 64-bit target.

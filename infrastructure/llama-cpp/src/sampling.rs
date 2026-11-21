@@ -330,7 +330,7 @@ impl LlamaSampler {
             trigger_words.iter().map(|cs| cs.as_ptr()).collect();
 
         let sampler = unsafe {
-            infrastructure_llama_bindings::llama_sampler_init_grammar_lazy(
+            infrastructure_llama_bindings::llama_sampler_init_grammar_lazy_patterns(
                 model.vocab_ptr(),
                 grammar_str.as_ptr(),
                 grammar_root.as_ptr(),

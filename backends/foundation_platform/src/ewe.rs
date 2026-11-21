@@ -265,26 +265,26 @@ pub fn select_protocol(
     if let Some(p) = detect_protocol(content) {
         return p;
     }
-    Protocol::Columnar
+    Protocol::CustomBinary
 }
 
 #[must_use]
 #[allow(clippy::match_same_arms)]
 pub fn protocol_from_hint(hint: &ProtocolHint) -> Protocol {
     match hint {
-        ProtocolHint::Columnar => Protocol::Columnar,
+        ProtocolHint::Frame => Protocol::Frame,
         ProtocolHint::Arrow => Protocol::Arrow,
         ProtocolHint::ArrowIpc => Protocol::ArrowIpc,
         ProtocolHint::Json => Protocol::Json,
         ProtocolHint::Html => Protocol::Html,
-        ProtocolHint::Default => Protocol::Columnar,
+        ProtocolHint::Default => Protocol::CustomBinary,
     }
 }
 
 #[must_use]
 pub fn protocol_from_query(hint: &str) -> Option<Protocol> {
     match hint {
-        "columnar" => Some(Protocol::Columnar),
+        "frame" => Some(Protocol::Frame),
         "arrow" => Some(Protocol::Arrow),
         "arrow-ipc" => Some(Protocol::ArrowIpc),
         "json" => Some(Protocol::Json),
@@ -296,6 +296,14 @@ pub fn protocol_from_query(hint: &str) -> Option<Protocol> {
 fn detect_protocol(content: &[u8]) -> Option<Protocol> {
     if content.is_empty() {
         return None;
+    }
+    if content.get(8..12) == Some(b"EWF1")
+        && content.first_chunk::<4>().is_some_and(|prefix| {
+            let length = u32::from_le_bytes(*prefix) as usize;
+            (8..=content.len() - 4).contains(&length)
+        })
+    {
+        return Some(Protocol::Frame);
     }
     if content.len() >= 8 && &content[..4] == b"\xFF\xFF\xFF\xFF" {
         return Some(Protocol::ArrowIpc);

@@ -2029,7 +2029,36 @@ impl core::fmt::Debug for SimpleIncomingRequest {
     }
 }
 
+struct IncomingBodyReadWake(Arc<dyn Fn() -> Option<ReadWakeSource> + Send + Sync>);
+
 impl SimpleIncomingRequest {
+    /// Supplies a readiness registration when the handler starts reading this body's bytes.
+    pub fn set_body_read_wake_source(
+        &mut self,
+        open: impl Fn() -> Option<ReadWakeSource> + Send + Sync + 'static,
+    ) {
+        self.extensions
+            .get_or_insert_with(ClientExtensions::default)
+            .insert(IncomingBodyReadWake(Arc::new(open)));
+    }
+
+    /// Takes the incoming body and parks reads until the connection has more bytes.
+    ///
+    /// A request built in memory can supply a body without a socket readiness source.
+    #[must_use]
+    pub fn take_async_body(&mut self) -> Option<AsyncSendSafeBody> {
+        let body = AsyncSendSafeBody::from(self.body.take()?);
+        let source = self
+            .extensions
+            .as_ref()
+            .and_then(|extensions| extensions.get::<IncomingBodyReadWake>())
+            .and_then(|source| (source.0)());
+        Some(match source {
+            Some(source) => body.with_read_wake(source),
+            None => body,
+        })
+    }
+
     #[must_use]
     pub fn builder() -> SimpleIncomingRequestBuilder {
         SimpleIncomingRequestBuilder::default()

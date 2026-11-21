@@ -1,0 +1,5 @@
+error: an action cannot be `const`, `unsafe` or `extern`
+ --> tests/trybuild/action/fail_05_unsafe_function.rs:4:7
+  |
+4 | async unsafe fn submit(_ctx: &Context, _event: Interaction<()>) -> ActionResult {
+  |       ^^^^^^

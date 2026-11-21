@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Ewe UI binding</title><h1>Ewe UI binding</h1>
+<p><code>CoreBinding(native, store, scope)</code> adapts the generated UniFFI <code>NativeCore</code> to the Kotlin <code>ActionCore</code> interface. Supply a main-thread coroutine scope.</p>
+<p>Use <code>hello()</code> for negotiation. Deliver the reply to the node store. Use <code>EventBridge</code> for action requests. A later frame from a native callback enters the same store through the supplied scope.</p>
+<p><code>close()</code> removes the frame listener and releases the native object. The Android archive contains ARM64 and x86-64 native libraries.</p>

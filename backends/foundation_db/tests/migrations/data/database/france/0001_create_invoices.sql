@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS invoices (
+    id     INTEGER PRIMARY KEY,
+    amount INTEGER NOT NULL
+);

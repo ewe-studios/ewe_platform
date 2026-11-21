@@ -6,7 +6,7 @@
 //! (`ConnectionResult::Take`) needs. Response headers + the wire encoding are
 //! declared up front (the browser runtime negotiates off them).
 //!
-//! WHAT: [`PageSource`] (inline HTML or a file), [`Encoding`] (json/columnar),
+//! WHAT: [`PageSource`] (inline HTML or a file), [`Encoding`] (EWF1),
 //! [`TestServer`] — boot an `HttpApp` serving the page at `/`, a static dir, and
 //! the channel-A stream at [`STREAM_PATH`](crate::test::stream::STREAM_PATH);
 //! `broadcaster()` pushes frames; RAII `Drop` stops the server.
@@ -39,7 +39,14 @@ use foundation_netio::shared::http::{
 };
 use zeroize::Zeroizing;
 
-use foundation_wasm_ui::server::{BroadcastSink, BroadcastTx, Broadcaster};
+use foundation_ui_wire::writer::WriterConfig;
+use foundation_wasm_ui::embedded::{
+    FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS,
+    FOUNDATION_UI_LIVE_JS, FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
+};
+use foundation_wasm_ui::server::{
+    BacklogConfig, BroadcastTx, Broadcaster, FrameBroadcastSink, LiveChannel,
+};
 
 use crate::error::{BrowserError, Result};
 use crate::test::stream::{StreamHandler, STREAM_PATH};
@@ -48,19 +55,11 @@ use crate::test::stream::{StreamHandler, STREAM_PATH};
 /// `<mount-stream>` works without a build step. Served at [`RUNTIME_PATH`].
 const RUNTIME_JS: &str = foundation_wasm_ui::embedded::FOUNDATION_WASM_UI_JS;
 
-/// The bundled Apache Arrow JS library — the Arrow IPC (wire v2) reader the page
-/// registers as `ProtocolHandler.arrowIpcReader`. Served at [`ARROW_LIB_PATH`].
-const APACHE_ARROW_JS: &str = foundation_wasm_ui::embedded::APACHE_ARROW_JS;
-
 /// The injected test helper (`window.__primalTest`). Served at [`PRIMAL_TEST_PATH`].
 const PRIMAL_TEST_JS: &str = foundation_wasm_ui::embedded::PRIMAL_TEST_JS;
 
 /// Where the embedded runtime is served (the page imports it).
 pub const RUNTIME_PATH: &str = "/__primal/foundation-wasm-ui.js";
-
-/// Where the bundled Apache Arrow library is served (the page loads it for the
-/// Arrow IPC protocol).
-pub const ARROW_LIB_PATH: &str = "/__primal/apache-arrow.js";
 
 /// Where the injected test helper is served (`import`/`<script>` it for the
 /// in-page `window.__primalTest` API).
@@ -76,35 +75,26 @@ const DEV_KEY_PEM: &[u8] = include_bytes!("fixtures/key.pem");
 /// The wire encoding the App streams in (and that the browser runtime decodes).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Encoding {
-    /// UTF-8 JSON frames — debuggable; the recommended first cut over SSE.
+    /// EWF1 application frames.
     #[default]
-    Json,
-    /// Compact columnar binary frames (our owned wire, protocol 1 v1).
-    Columnar,
-    /// Apache Arrow IPC frames (protocol 1 v2) — ecosystem interop.
-    Arrow,
+    Frame,
 }
 
 impl Encoding {
     /// The token announced via the `X-Primal-Encoding` header.
     #[must_use]
     pub fn token(self) -> &'static str {
-        match self {
-            Encoding::Json => "json",
-            Encoding::Columnar => "columnar",
-            Encoding::Arrow => "arrow",
-        }
+        "frame"
     }
 }
 
 impl core::str::FromStr for Encoding {
     type Err = String;
     fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
-        match s {
-            "json" | "Json" | "JSON" => Ok(Encoding::Json),
-            "columnar" | "Columnar" => Ok(Encoding::Columnar),
-            "arrow" | "Arrow" => Ok(Encoding::Arrow),
-            other => Err(format!("unknown encoding `{other}` (json|columnar|arrow)")),
+        if s.eq_ignore_ascii_case("frame") {
+            Ok(Self::Frame)
+        } else {
+            Err(format!("unknown encoding `{s}` (frame)"))
         }
     }
 }
@@ -188,6 +178,7 @@ pub struct TestServer {
     https: bool,
     page: Arc<PageState>,
     broadcaster: Broadcaster,
+    live: LiveChannel,
     shutdown: Arc<ShutdownSignal>,
     handle: Option<JoinHandle<()>>,
 }
@@ -218,25 +209,38 @@ impl TestServer {
             headers,
         });
         let broadcaster = Broadcaster::new();
+        let live = LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default());
 
         let mut app = HttpApp::new_serve();
         // PageState + Broadcaster are read out of the ctx by the handlers; the
         // Arc/clone share the same state the TestServer holds.
         app.context().store(SharedState(page_state.clone()));
         app.context().store(broadcaster.clone());
+        app.context().store(live.clone());
         app.route_any::<PageHandler>("/");
-        app.route_any::<StreamHandler>(STREAM_PATH);
+        app.route_any::<crate::test::stream::RawStreamHandler>(STREAM_PATH);
+        app.route_any::<StreamHandler>("/__primal/live");
         // Embedded JS assets via foundation_http's StaticAssetHandler — supply the
         // bytes + content type, register on a path. No per-asset Serve impl.
         let js_ct = "text/javascript; charset=utf-8";
         let runtime: Arc<dyn Serve> =
             Arc::new(StaticAssetHandler::new(RUNTIME_JS.as_bytes(), js_ct));
-        let arrow_lib: Arc<dyn Serve> =
-            Arc::new(StaticAssetHandler::new(APACHE_ARROW_JS.as_bytes(), js_ct));
         let primal_test: Arc<dyn Serve> =
             Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
-        app.router.add_route_any(ARROW_LIB_PATH, &arrow_lib);
+        for (name, source) in [
+            ("foundation-ui-actions.js", FOUNDATION_UI_ACTIONS_JS),
+            ("foundation-ui-frames.js", FOUNDATION_UI_FRAMES_JS),
+            ("foundation-ui-live.js", FOUNDATION_UI_LIVE_JS),
+            ("foundation-ui-wire.js", FOUNDATION_UI_WIRE_JS),
+            ("foundation-ui-vocab.js", FOUNDATION_UI_VOCAB_JS),
+            ("foundation-ui-behaviours.js", FOUNDATION_UI_BEHAVIOURS_JS),
+        ] {
+            let handler: Arc<dyn Serve> =
+                Arc::new(StaticAssetHandler::new(source.as_bytes(), js_ct));
+            app.router
+                .add_route_any(&format!("/__primal/{name}"), &handler);
+        }
         app.router.add_route_any(PRIMAL_TEST_PATH, &primal_test);
         for sm in statics {
             let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(sm.dir.clone()));
@@ -276,6 +280,7 @@ impl TestServer {
             https,
             page: page_state,
             broadcaster,
+            live,
             shutdown,
             handle: Some(handle),
         })
@@ -328,10 +333,10 @@ impl TestServer {
 
     /// The App's protocol sink (Mode 1): wire it into `App::with_protocol(...)`,
     /// then `stabilize()` streams encoded frames to the browser's `<mount-stream>`.
-    /// Columnar by default (matches `<mount-stream protocol="arrow">`).
+    /// The frame endpoint is `/__primal/live`.
     #[must_use]
-    pub fn broadcast_sink(&self) -> BroadcastSink {
-        BroadcastSink::new(self.broadcaster.sender())
+    pub fn broadcast_sink(&self) -> FrameBroadcastSink {
+        FrameBroadcastSink::new(self.live.sender())
     }
 }
 
@@ -351,6 +356,7 @@ impl Drop for TestServer {
         // Unblock the streaming handlers first (drop their senders → recv errors
         // → the handlers return → their valtron workers are freed), THEN stop
         // the accept loop and join.
+        self.live.close();
         self.broadcaster.close();
         self.shutdown.turn_on();
         if let Some(handle) = self.handle.take() {

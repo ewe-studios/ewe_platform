@@ -13,9 +13,9 @@ categories = ["development-tools::testing"]
 [dependencies]
 # Foundation primitives being tested
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.9", features = ["std"] }
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.14" }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.5", optional = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }
@@ -25,11 +25,11 @@ criterion = { version = "0.5", features = ["html_reports"] }
 
 # WebSocket test server dependencies
 base64 = "0.22"
-sha1 = { version = "0.10", features = ["std"] }
+sha1 = { workspace = true }
 
 # TLS test server dependencies
 rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "logging", "ring"] }
-zeroize = "1"
+zeroize = { workspace = true }
 
 # SSE test server dependencies (for TCP RST in abrupt drop tests)
 socket2 = "0.6"
@@ -41,7 +41,7 @@ tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.21"
+version = "0.0.23"
 features = ["test-clock"]
 
 

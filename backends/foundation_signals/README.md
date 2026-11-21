@@ -111,6 +111,27 @@ without any global registry or thread-local magic (decision 003).
 
 ---
 
+### Dispose a scope when its mounted view leaves
+
+A renderer can hold the callback returned by `Context::disposer`. The callback holds weak references to the scope and its runtime.
+Call it when the renderer removes that component. Register a scope cleanup with `on_dispose` even when an effect is running.
+
+```rust
+use foundation_signals::{Context, Runtime};
+use std::{cell::Cell, rc::Rc};
+
+let parent = Context::new(Rc::new(Runtime::new()));
+let child = parent.child();
+let calls = Rc::new(Cell::new(0));
+let observed = calls.clone();
+child.on_dispose(move || observed.set(observed.get() + 1));
+
+let unmount = child.disposer();
+unmount();
+drop(child);
+assert_eq!(calls.get(), 1);
+```
+
 ## `signal` — `(getter, setter)`
 
 `ctx.signal(initial)` returns a `(SignalGetter<T>, SignalSetter<T>)` tuple

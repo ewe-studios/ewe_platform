@@ -207,9 +207,18 @@ reason = "6 pedantic warnings; clear them and delete this override (#441)"
 clippy-deny-warnings = false
 reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
-[packages.foundation_ui_components]
-clippy-deny-warnings = false
-reason = "68 pedantic warnings; clear them and delete this override (#441)"
+[packages.foundation_ui_native]
+runs = ["", "app"]
+wasm = "off"
+reason = "Swift and Kotlin use this crate on native devices."
+
+[packages.foundation_ui_runtime]
+wasm = "enforce"
+
+[packages.foundation_ui_wire]
+runs = ["", "reference"]
+wasm = "enforce"
+fmt = "enforce"
 
 [packages.foundation_sshkit]
 clippy-deny-warnings = false
@@ -219,14 +228,6 @@ reason = "17 pedantic warnings; clear them and delete this override (#441)"
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
-clippy-deny-warnings = false
-reason = "2 pedantic warnings; clear them and delete this override (#441)"
-
-[packages.foundation_wasm_ui]
-clippy-deny-warnings = false
-reason = "20 pedantic warnings; clear them and delete this override (#441)"
-
-[packages.foundation_ui_traits]
 clippy-deny-warnings = false
 reason = "2 pedantic warnings; clear them and delete this override (#441)"
 
@@ -260,7 +261,7 @@ runs = ["testing", "--no-default-features --features testing"]
 macos-tests = "none"
 macos-reason = "Apple-vendor code is the Candle Metal and llama.cpp Metal backends; they need an Apple GPU and model downloads."
 timeout-minutes = 90
-# Wasm gate (spec 65 00-foundation): the agentic layer + cloud providers must
+# Wasm gate (spec 83 00-foundation): the agentic layer + cloud providers must
 # compile to wasm32 with no local (llamacpp/candle) backends.
 wasm = "enforce"
 wasm-runs = ["--no-default-features"]
@@ -316,6 +317,12 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # the only tree to lint.
 clippy-deny-warnings = true
 
+[packages.foundation_agent_rpc]
+# Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
+# tests/gguf_share_tests.rs (one GGUF model shared by concurrent sessions)
+# against the CPU build of llama.cpp.
+runs = ["", "gguf"]
+
 [packages.foundation_jsonschema]
 # 14 pedantic warnings; clear them and delete this override (#441).
 clippy-deny-warnings = false
@@ -365,7 +372,9 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # never ran. Test that configuration as well. The real-daemon tests stay
 # behind `integration-tests`; that target is built (`--no-run`) so it cannot
 # silently rot, but never run — daemon-backed runs stay manual.
-runs = ["", "docker", "--no-run --features docker,integration-tests"]
+# `docker buildkit` also builds the generated BuildKit client (buffa-build
+# codegen must match the buffa runtime; a skew went unnoticed).
+runs = ["", "docker", "docker buildkit", "--no-run --features docker,integration-tests"]
 # Lint every feature set and fail on a warning, so the docker clippy debt
 # cannot return (spec 70 feature 49 E3).
 clippy-runs = ["", "--all-features"]
@@ -390,7 +399,7 @@ wasm = "enforce"
 wasm-runs = ["", "--no-default-features --features workers"]
 
 # ---------------------------------------------------------------------------
-# Wasm32 compile gates (spec 65 00-foundation / spec 28 feature 07).
+# Wasm32 compile gates (spec 83 00-foundation / spec 28 feature 07).
 #
 # The foundation crates that must compile for Cloudflare Workers get a
 # `cargo check --target wasm32-unknown-unknown` gate on their wasm-relevant
@@ -589,6 +598,7 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_compact]
+runs = ["", "crypto-chacha"]
 # The default run covers the macOS entropy and errno backends and the Windows
 # entropy backend (`BCryptGenRandom`).
 wasm = "enforce"
@@ -649,6 +659,11 @@ wasm = "off"
 
 # ---------------------------------------------------------------------------
 # Wasm runtime test suites (feature 22 E4).
+
+# The web feature enables the host calls used by both WebAssembly fixtures.
+[packages.foundation_wasm]
+clippy-runs = ["", "web"]
+clippy-deny-warnings = true
 
 [packages.wasm-tests]
 macos-tests = "none"

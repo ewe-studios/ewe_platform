@@ -2,7 +2,13 @@
 
 Procedural macros for the ewe_platform foundation crates: the `#[valtron]` /
 `#[valtron_test]` test-harness macros, `#[theme!]` / `#[derive(ThemeTokens)]`,
-`#[derive(TypeUuid)]`, and the compression/mime helpers.
+`#[derive(TypeUuid)]`, the `#[action]` attribute, and the compression/mime helpers.
+
+## Declare an action
+
+Use the attribute from `foundation_ui_runtime`. Its generated value implements the runtime's `Action` trait.
+The action receives a typed event and writes its output to the context receiver.
+See the [tested counter example](../foundation_ui_runtime/README.md#register-and-run-an-action) for declaration and registration.
 
 ## Publishing
 

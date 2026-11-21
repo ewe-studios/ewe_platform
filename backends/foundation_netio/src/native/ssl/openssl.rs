@@ -188,6 +188,23 @@ impl Write for OpenSslStream {
 /// An OpenSSL stream which has been split into two mutually exclusive streams (e.g. for read / write)
 pub struct SplitOpenSslStream(Arc<Mutex<OpenSslStream>>);
 
+impl super::TlsPeerFacts for SplitOpenSslStream {
+    fn peer_certificates(&self) -> Vec<Vec<u8>> {
+        let Ok(guard) = self.0.lock() else {
+            return Vec::new();
+        };
+        match guard.state.as_ref() {
+            Some(OpenSslState::Ready(stream)) => stream
+                .ssl()
+                .peer_cert_chain()
+                .map_or_else(Vec::new, |chain| {
+                    chain.iter().filter_map(|cert| cert.to_der().ok()).collect()
+                }),
+            _ => Vec::new(),
+        }
+    }
+}
+
 /// Expose the fd of the TCP socket the TLS session wraps so the connection can
 /// be registered with the reactor (Decision 12 §12). Readiness lives on the
 /// socket, not the TLS layer. Unix-only (native-socket).

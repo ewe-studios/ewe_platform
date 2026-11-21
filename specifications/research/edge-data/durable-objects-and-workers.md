@@ -26,7 +26,7 @@ build on them.
 | Hibernatable WebSockets with `serializeAttachment()` | An idle socket costs almost nothing | GED p.1, p.11 |
 | `deleteAll()` also deletes the alarm (compatibility date 2026-02-24 or later) | Surprise in clean-up code | GED p.2 |
 
-Feature 07 of spec 65 already follows the first three: one DO for each agent instance, SQLite
+Feature 07 of spec 83 already follows the first three: one DO for each agent instance, SQLite
 storage through `DoSqlStore`, the session runs inside the DO.
 
 ## 2. Insights

@@ -1,0 +1,10 @@
+[package]
+name = "renamed_action_consumer"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ui = { package = "foundation_ui_runtime", path = "../../.." }
+
+[workspace]

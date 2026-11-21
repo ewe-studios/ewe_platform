@@ -34,6 +34,6 @@ fn hello_dashboard() {
     };
 
     app.mount(page);
-    app.stabilize();
+    app.stabilize().expect("send the initial view");
     core::mem::forget(app);
 }
