@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Check the native behaviour declarations against a sibling renderer checkout."""
+"""Check the native behaviour declarations against the mobile renderer sources."""
 import argparse
 from pathlib import Path
 import re
-import subprocess
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,11 +38,7 @@ def main():
     parser.add_argument("--matrix", type=Path, default=DEFAULT_MATRIX)
     parser.add_argument("--package", type=Path)
     args = parser.parse_args()
-    package = args.package
-    if package is None:
-        common = subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--path-format=absolute", "--git-common-dir"],text=True).strip()
-        sibling = "ewe-ui-swift" if args.platform == "ios" else "ewe-ui-kotlin"
-        package = Path(common).parent.parent / sibling
+    package = args.package or ROOT / "mobile" / args.platform
     problems = check(tomllib.loads(args.matrix.read_text()), args.platform, package)
     for problem in problems:
         print(problem)

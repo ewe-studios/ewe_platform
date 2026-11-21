@@ -13,21 +13,9 @@ concurrency:
 jobs:
   preview:
     runs-on: macos-26
-    outputs:
-      swift_repo: ${{ steps.inputs.outputs.swift_repository }}
-      swift_rev: ${{ steps.inputs.outputs.swift_revision }}
-      kotlin_repo: ${{ steps.inputs.outputs.kotlin_repository }}
-      kotlin_rev: ${{ steps.inputs.outputs.kotlin_revision }}
-    env:
-      EWE_UI_SWIFT: ${{ github.workspace }}/swift
-      EWE_UI_KOTLIN: ${{ github.workspace }}/kotlin
-    defaults:
-      run:
-        working-directory: core
     steps:
       - uses: actions/checkout@v4
         with:
-          path: core
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -35,30 +23,11 @@ jobs:
       - id: inputs
         run: |
           python3 - <<'PY'
-          import os, re, tomllib
+          import os, tomllib
           c = tomllib.load(open("release/native-ui.toml", "rb"))
           if os.environ["GITHUB_REF_TYPE"] == "tag" and os.environ["GITHUB_REF_NAME"] != "native-ui-v" + c["version"]:
               raise SystemExit("Tag differs from release version")
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              for platform in ("swift", "kotlin"):
-                  rev = c[platform + "_revision"]
-                  if not re.fullmatch("[a-f0-9]{40}", rev):
-                      raise SystemExit("Set the exact source revision for " + platform)
-                  for key in (platform + "_revision", platform + "_repository"):
-                      print(key + "=" + c[key], file=f)
           PY
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ steps.inputs.outputs.swift_repository }}
-          ref: ${{ steps.inputs.outputs.swift_revision }}
-          path: swift
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ steps.inputs.outputs.kotlin_repository }}
-          ref: ${{ steps.inputs.outputs.kotlin_revision }}
-          path: kotlin
-          persist-credentials: false
       - name: Install pinned tools
         run: |
           command -v mise >/dev/null || brew install mise
@@ -69,14 +38,14 @@ jobs:
         run: |
           scripts/ui_native/sync-ios.sh --check
           scripts/ui_native/sync-android.sh --check
-          python3 scripts/ui/check_behaviours.py ios --package "$EWE_UI_SWIFT"
-          python3 scripts/ui/check_behaviours.py android --package "$EWE_UI_KOTLIN"
+          python3 scripts/ui/check_behaviours.py ios
+          python3 scripts/ui/check_behaviours.py android
           scripts/ui_native/release/prepare.sh --output target/native-ui/candidate
           scripts/ui_native/release/verify.sh --candidate target/native-ui/candidate --templates both
       - uses: actions/upload-artifact@v4
         with:
           name: native-candidate
-          path: core/target/native-ui/candidate/
+          path: target/native-ui/candidate/
           if-no-files-found: error
 
   publish:
@@ -121,65 +90,37 @@ jobs:
   public-install:
     needs: [preview, publish]
     runs-on: macos-26
-    env:
-      EWE_UI_SWIFT: ${{ github.workspace }}/swift
-      EWE_UI_KOTLIN: ${{ github.workspace }}/kotlin
     steps:
       - uses: actions/checkout@v4
         with:
-          path: core
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ needs.preview.outputs.swift_repo }}
-          ref: ${{ needs.preview.outputs.swift_rev }}
-          path: swift
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ needs.preview.outputs.kotlin_repo }}
-          ref: ${{ needs.preview.outputs.kotlin_rev }}
-          path: kotlin
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
           name: native-candidate
           path: candidate
       - name: Resolve both public packages
-        working-directory: core
         run: |
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
           mise install --yes java gradle http:android-sdk python
           mise run toolchain:android
-          mise exec -- scripts/ui_native/release/verify.sh --candidate ../candidate --templates both --public
+          mise exec -- scripts/ui_native/release/verify.sh --candidate candidate --templates both --public
           mise exec -- scripts/ui_native/release/test-ios-starter.sh
 
   android-device:
     needs: [preview, publish]
     runs-on: ubuntu-latest
-    env:
-      EWE_UI_KOTLIN: ${{ github.workspace }}/kotlin
     steps:
       - uses: actions/checkout@v4
         with:
-          path: core
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ needs.preview.outputs.kotlin_repo }}
-          ref: ${{ needs.preview.outputs.kotlin_rev }}
-          path: kotlin
           persist-credentials: false
       - uses: jdx/mise-action@v5.2.10
         with:
           install: false
-          working_directory: core
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Run the public Android starter
-        working-directory: core
         run: |
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml

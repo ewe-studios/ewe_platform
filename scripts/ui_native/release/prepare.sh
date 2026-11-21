@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a native package candidate from three clean source checkouts.
+# Build a native package candidate from a clean monorepo checkout.
 set -euo pipefail
 root=$(cd "$(dirname "$0")/../../.." && pwd)
 cd "$root"
@@ -14,29 +14,16 @@ while (($#)); do
     shift 2
 done
 [[ "$config" == release/native-ui.toml ]] || { echo "Use release/native-ui.toml" >&2; exit 2; }
-: "${EWE_UI_SWIFT:?Set EWE_UI_SWIFT to the Swift source checkout}"
-: "${EWE_UI_KOTLIN:?Set EWE_UI_KOTLIN to the Kotlin source checkout}"
 core_revision=$(git rev-parse HEAD)
-for repo in "$root" "$EWE_UI_SWIFT" "$EWE_UI_KOTLIN"; do
-    [[ -z $(git -C "$repo" status --porcelain) ]] || { echo "Commit the changes in $repo" >&2; exit 1; }
-done
-python3 - "$EWE_UI_SWIFT" "$EWE_UI_KOTLIN" <<'PYPINS'
-from pathlib import Path
-import subprocess, sys, tomllib
-pins = tomllib.loads(Path("release/native-ui.toml").read_text())
-for name, checkout in zip(("swift", "kotlin"), sys.argv[1:]):
-    commit = subprocess.check_output(["git", "-C", checkout, "rev-parse", "HEAD"], text=True).strip()
-    if pins[name + "_revision"] != commit:
-        raise SystemExit(f"Check out the pinned {name} revision before building")
-PYPINS
+[[ -z $(git status --porcelain) ]] || { echo "Commit the release inputs before building" >&2; exit 1; }
 mise exec -- scripts/toolchain/check.sh --scope apple
 mise exec -- scripts/toolchain/check.sh --scope android
 inputs=$(mktemp -d)
 trap 'rm -rf "$inputs"' EXIT
 scripts/ui_native/build-ios.sh "$inputs/apple"
 scripts/ui_native/build-android.sh
-mise exec -- "$EWE_UI_KOTLIN/gradlew" -p "$EWE_UI_KOTLIN" :core:test :ui:testDebugUnitTest publishToMavenLocal "-Dmaven.repo.local=$inputs/maven"
-args=(--swift "$EWE_UI_SWIFT" --kotlin "$EWE_UI_KOTLIN" --maven "$inputs/maven" --apple "$inputs/apple/EweCoreFFI.xcframework.zip" --out "$out")
+mise exec -- mobile/android/gradlew -p mobile/android :core:test :ui:testDebugUnitTest publishToMavenLocal "-Dmaven.repo.local=$inputs/maven"
+args=(--maven "$inputs/maven" --apple "$inputs/apple/EweCoreFFI.xcframework.zip" --out "$out")
 if [[ -n ${NATIVE_SIGNING_KEY:-} ]]; then args+=(--signing-key "$NATIVE_SIGNING_KEY"); fi
 if [[ $(git rev-parse HEAD) != "$core_revision" ]]; then
     echo "The core revision changed during the build" >&2

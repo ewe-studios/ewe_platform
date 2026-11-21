@@ -40,8 +40,8 @@ class PublicationTests(unittest.TestCase):
                 file.write_text(file.name)
             record = {
                 "repositories": {k: v for k, v in cfg.items() if k.endswith("repository")},
-                "version": cfg["version"], "revisions": {"core": "a", "swift_source": "b", "kotlin": "c"},
-                "swift_tag_revision": "b", "central_signed": True,
+                "version": cfg["version"], "source_revision": "a",
+                "swift_tag_revision": "a", "central_signed": True,
                 "sha256": {f.name: publication.digest(f) for f in files},
             }
             manifest = directory / "native-ui.json"

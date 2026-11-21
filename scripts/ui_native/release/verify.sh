@@ -28,22 +28,33 @@ for name, digest in record["sha256"].items():
         if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
             raise SystemExit("Artifact digest mismatch: " + name)
 PY
+# Read files from the commit used to build these artifacts.
+source_revision=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["source_revision"])' "$candidate/native-ui.json")
 if [[ "$templates" != android ]]; then
-    : "${EWE_UI_SWIFT:?Set EWE_UI_SWIFT to the Swift checkout}"
     export DEVELOPER_DIR=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}
-    git -C "$EWE_UI_SWIFT" archive HEAD Examples/Starter | tar -x -C "$stage"
-    project="$stage/Examples/Starter/Starter.xcodeproj"
+    git archive "$source_revision" examples/mobile_starter/ios | tar -x -C "$stage"
+    project="$stage/examples/mobile_starter/ios/Starter.xcodeproj"
     if ! "$public"; then
-        git clone --quiet --local "$EWE_UI_SWIFT" "$stage/swift"
         mkdir -p "$stage/swift/.build-inputs"
+        git archive "$source_revision" Package.swift mobile/ios | tar -x -C "$stage/swift"
         unzip -q "$candidate/EweCoreFFI.xcframework.zip" -d "$stage/swift/.build-inputs"
-        python3 - "$candidate/native-ui.json" "$stage/swift/Package.swift" <<'PYMETA'
+        python3 - "$candidate/native-ui.json" "$stage/swift" "$project/project.pbxproj" <<'PYMETA'
 from pathlib import Path
-import sys, json
-Path(sys.argv[2]).write_text(json.loads(Path(sys.argv[1]).read_text())["swift_manifest"])
+import sys, json, re
+candidate, package, project = map(Path, sys.argv[1:])
+record = json.loads(candidate.read_text())
+(package / "Package.swift").write_text(record["swift_manifest"])
+text = project.read_text()
+url = "https://github.com/" + record["repositories"]["repository"] + ".git"
+pattern = r'repositoryURL = "' + re.escape(url) + r'";\s*requirement = \{[^}]*version = ' + re.escape(record["version"]) + r';[^}]*\};'
+text, count = re.subn(pattern, 'relativePath = ' + json.dumps(str(package)) + ';', text)
+if count != 1:
+    raise SystemExit("Expected the starter to declare the public package at the release version")
+project.write_text(text.replace("XCRemoteSwiftPackageReference", "XCLocalSwiftPackageReference"))
 PYMETA
         swift test --package-path "$stage/swift"
-        EWE_UI_PACKAGE="$stage/swift" "$stage/swift/scripts/build-example" Starter CODE_SIGNING_ALLOWED=NO build
+        xcodebuild -project "$project" -scheme Starter -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$stage/products" CODE_SIGNING_ALLOWED=NO build
     else
         for destination in 'generic/platform=iOS' 'generic/platform=iOS Simulator'; do
             xcodebuild -project "$project" -scheme Starter -destination "$destination" -derivedDataPath "$stage/products" CODE_SIGNING_ALLOWED=NO build
@@ -51,13 +62,12 @@ PYMETA
     fi
 fi
 if [[ "$templates" != ios ]]; then
-    : "${EWE_UI_KOTLIN:?Set EWE_UI_KOTLIN to the Kotlin checkout}"
-    git -C "$EWE_UI_KOTLIN" archive HEAD examples/starter_android | tar -x -C "$stage"
+    git archive "$source_revision" examples/mobile_starter/android | tar -x -C "$stage"
     extra=()
     if ! "$public"; then
         unzip -q "$candidate/android-publication.zip" -d "$stage/maven"
         extra+=("-PeweRepository=$stage/maven")
     fi
-    GRADLE_USER_HOME="$stage/gradle" mise exec -- gradle --no-daemon -p "$stage/examples/starter_android" \
+    GRADLE_USER_HOME="$stage/gradle" mise exec -- gradle --no-daemon -p "$stage/examples/mobile_starter/android" \
         "${extra[@]}" :app:assembleDebug
 fi

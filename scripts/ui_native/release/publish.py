@@ -77,7 +77,7 @@ def publish(directory, timeout, interval):
     rec = json.loads(manifest.read_text())
     repo, version = cfg["repository"], cfg["version"]
     tag = "native-ui-v" + version
-    revisions = rec["revisions"]
+    source = rec["source_revision"]
     if rec["version"] != version or rec["repositories"] != {k: v for k, v in cfg.items() if k.endswith("repository")}:
         raise ValueError("Release configuration differs from the candidate")
     names = {cfg["apple_archive"], "android-publication.zip"}
@@ -87,14 +87,12 @@ def publish(directory, timeout, interval):
         if digest(directory / name) != rec["sha256"][name]:
             raise ValueError(f"Invalid candidate digest: {name}")
     token = base64.b64encode((os.environ["CENTRAL_USERNAME"] + ":" + os.environ["CENTRAL_PASSWORD"]).encode()).decode()
-    tags = [(repo, tag, revisions["core"]), (cfg["swift_repository"], version, rec["swift_tag_revision"]),
-            (cfg["kotlin_repository"], version, revisions["kotlin"])]
-    metadata_commit = rec["swift_tag_revision"] != revisions["swift_source"]
+    tags = [(repo, tag, source), (repo, version, rec["swift_tag_revision"])]
+    metadata_commit = rec["swift_tag_revision"] != source
     for target, name, sha in tags:
         check_tag(target, name, sha)
-        input_sha = revisions["swift_source"] if target == cfg["swift_repository"] else sha
-        if lookup(f"repos/{target}/git/commits/{input_sha}") is None:
-            raise ValueError(f"Missing commit in {target}: {sha}")
+    if lookup(f"repos/{repo}/git/commits/{source}") is None:
+        raise ValueError(f"Missing commit in {repo}: {source}")
     release = lookup(f"repos/{repo}/releases/tags/{tag}")
     files = [directory / "android-publication.zip", directory / cfg["apple_archive"], manifest]
     if release is None:
@@ -142,13 +140,12 @@ def publish(directory, timeout, interval):
     if metadata_commit and not check_tag(swift_repo, swift_tag, swift_commit):
         with tempfile.TemporaryDirectory() as temp:
             subprocess.run(["git", "clone", "--quiet", "--no-checkout", f"https://github.com/{swift_repo}.git", temp], check=True)
-            if build_commit(temp, revisions["swift_source"], rec["swift_manifest"]) != swift_commit:
+            if build_commit(temp, source, rec["swift_manifest"]) != swift_commit:
                 raise ValueError("Swift release metadata differs from the staged commit")
             subprocess.run(["git", "-C", temp, "-c", "credential.helper=", "-c", "credential.helper=!gh auth git-credential",
                             "push", "origin", swift_commit + ":refs/tags/" + swift_tag], check=True)
     else:
         add_tag(*tags[1])
-    add_tag(*tags[2])
 
 
 if __name__ == "__main__":

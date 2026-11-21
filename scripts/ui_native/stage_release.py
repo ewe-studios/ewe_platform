@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify and stage one native release from the three source checkouts."""
+"""Verify and stage one native release from one source revision."""
 import argparse
 import hashlib
 import json
@@ -145,17 +145,13 @@ def apple_tools():
 
 def stage_release(args):
     config = tomllib.loads(CONFIG.read_text())
-    revisions = {key: revision(path) for key, path in
-                 (("core", ROOT), ("swift_source", args.swift), ("kotlin", args.kotlin))}
+    source_revision = revision(ROOT)
     config_version = tomllib.loads((ROOT / "backends/foundation_ui_native/Cargo.toml").read_text())["package"]["version"]
     if config_version != config["version"]:
         raise ValueError("The native crate and release versions differ")
     verify_apple(args.apple, config)
     url = f"https://github.com/{config['repository']}/releases/download/native-ui-v{config['version']}/{args.apple.name}"
-    for key, revision_key in (("swift_revision", "swift_source"), ("kotlin_revision", "kotlin")):
-        if revisions[revision_key] != config[key]:
-            raise ValueError(f"Source does not match {key}")
-    swift_commit, swift_manifest = release_manifest(args.swift, revisions["swift_source"], url, sha(args.apple))
+    swift_commit, swift_manifest = release_manifest(ROOT, source_revision, url, sha(args.apple))
     args.out.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=args.out) as temp:
         stage = Path(temp)
@@ -165,7 +161,7 @@ def stage_release(args):
         mise = tomllib.loads((ROOT / "mise.toml").read_text())
         record = {
             "version": config["version"], "repositories": {k: v for k, v in config.items() if k.endswith("repository")},
-            "revisions": revisions, "schema_version": wire_version("backends/foundation_ui_wire/src/lib.rs", "SCHEMA_VERSION"),
+            "source_revision": source_revision, "schema_version": wire_version("backends/foundation_ui_wire/src/lib.rs", "SCHEMA_VERSION"),
             "vocabulary_version": wire_version("backends/foundation_ui_wire/src/vocab/version.rs", "VOCABULARY_VERSION"),
             "swift_tag_revision": swift_commit, "swift_manifest": swift_manifest,
             "rust_toolchain": tomllib.loads((ROOT / "rust-toolchain.toml").read_text())["toolchain"]["channel"],
@@ -189,7 +185,7 @@ def stage_release(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for opt in ("swift", "kotlin", "maven", "apple", "out"):
+    for opt in ("maven", "apple", "out"):
         parser.add_argument("--" + opt, type=Path, required=True)
     parser.add_argument("--signing-key", help="Fingerprint of the OpenPGP release key")
     try:

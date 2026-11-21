@@ -61,18 +61,23 @@ cargo test --profile uat -p ui_todo --features browser-tests --test todo_browser
 
 ## Native screens
 
-The iOS and Android examples share the Rust actions and the authoritative todo store.
-The remote-only starter reads `/native-starter`. Its Refresh button calls `server:refresh_count`.
-The complete todo app reads `/native-initial` and supplies its own compiled action registry.
+Both native examples render the Rust view with the platform library. Each example has its own application identifier.
 
-The initial endpoint returns one EWF1 frame. The action endpoint uses the four-byte HTTP framing described above.
-The native count is a complete text render at node 44. A live mount at node 43 subscribes to stream 2.
-The endpoint is `/native-live?stream_id=2&resume_from=0`. A reconnect uses the last applied sequence.
-The page and dialog have separate roots. Filters and dialogs can render without replacing the count.
+| App | iOS | Android | Where the first screen and task changes come from |
+|---|---|---|---|
+| Todo Server | [Swift app](ios/todo_server/README.md) | [Kotlin app](android/todo_server/README.md) | The Rust server sends the first frame and handles task changes. The device handles filters and dialogs. |
+| Todo On Device | [Swift app](ios/todo_on_device/README.md) | [Kotlin app](android/todo_on_device/README.md) | The app calls Rust in its own process. Its store, actions and count updates work with the server stopped. |
 
-The `ui_todo_native` crate exports `create_todo_core` to Swift and Kotlin.
-Build a simulator package with `scripts/ui_native/prepare-ios-todo.sh /path/to/ewe-ui-swift`.
-The Swift package examples show both the remote-only starter and the application-specific registry.
+The [Swift library](../../mobile/ios/README.md) and [Kotlin library](../../mobile/android/README.md) own the native controls and event delivery.
+This example owns the task store, the Rust action handlers, the view and its application bindings.
+The package-only starters exercise a remote Refresh action. See the [iOS starter](../mobile_starter/ios/README.md) and [Android starter](../mobile_starter/android/README.md).
+
+To run Todo Server, start the example Rust host and open either server app.
+The app reads `/native-initial` and sends mutations to `/action`.
+The count subscribes to `/native-live?stream_id=2&resume_from=0`. A reconnect uses the last applied sequence.
+Follow the linked app guide for the address used by each simulator.
+
+To run Todo On Device, launch its own target on the device. Rust supplies the initial frame before the first tap.
 
 ## Glossary
 
