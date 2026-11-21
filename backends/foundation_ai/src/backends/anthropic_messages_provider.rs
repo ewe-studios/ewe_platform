@@ -195,7 +195,7 @@ impl AnthropicConfig {
         if let Some(key) = api_key {
             headers.insert(
                 SimpleHeader::from("x-api-key".to_string()),
-                vec![key.get().clone()],
+                vec![key.expose().to_owned()],
             );
         }
         headers.insert(

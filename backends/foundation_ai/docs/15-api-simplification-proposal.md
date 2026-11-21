@@ -1155,7 +1155,7 @@ Proposed:
 ```rust
 impl AnthropicConfig {
     pub fn api_key(key: impl Into<String>) -> Self {
-        Self::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key.into())))
+        Self::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)))
     }
     /// Reads `ANTHROPIC_API_KEY`.
     pub fn from_env() -> Result<Self, std::env::VarError> {

@@ -91,3 +91,46 @@ codes of that table.
 3. Compare a token with `==`. Use `Secret::ct_eq` or `constant_time_eq`.
 4. Put a credential in an error message. `AuthError` has the reason only.
 5. Build `Bearer ` with `format!`. Use `bearer_header`.
+
+## What the implementation found (2026-11-22)
+
+### The fifth comparison
+
+The specification counted four copies of `constant_time_eq` in `foundation_auth`.
+The tree had a fifth public copy in `foundation_keychain::core::crypto`. That
+crate already depends on `foundation_auth`, so its function became a `pub use`
+re-export of the shared one. The source scan in the tests and the `grep` in
+section 8 now find one definition.
+
+### `get()` was the alias's real cost
+
+`ConfidentialText::get()` returned an owned `String`, and about twenty call
+sites used it. Three used it as a function value: `.map(ConfidentialText::get)`.
+An alias to `Secret` cannot keep `get()` and also make `expose()` the only
+reader, so every call site moved to `expose()`. A mapped call becomes a closure
+that owns the text, for example `.map(|token| token.expose().to_owned())`.
+
+### The S6 test lives in connectrpc
+
+`auth_info_single_home` needs both `foundation_auth::AuthInfo` and
+`foundation_connectrpc::AuthInfo`. Only a connectrpc test can name both paths
+without a dev-dependency cycle from `foundation_auth` back to connectrpc. The
+test is in `backends/foundation_connectrpc/tests/auth_tests.rs`.
+
+### The timing test measures the comparison, not the provider
+
+A measurement that includes `Box::pin`, an allocation and the future poll has
+too much noise. `static_token_constant_time` checks `AuthError::Invalid` through
+the provider, then measures `Secret::ct_eq` for a first-byte difference and a
+last-byte difference over 1000 samples. A bounded ratio of 0.25 to 4.0 catches
+an early-return comparison, which is about 32 times faster on the first byte,
+and tolerates a loaded machine.
+
+### The section 8 `struct Secret` grep is too broad
+
+`grep -rn "struct Secret" backends/` matches the generated Docker API type
+`foundation_deployment_docker::...::Secret`, its related `Secret*` types, the
+Cloudflare secrets store types, and two test-only `SecretHandler` structs. The
+one credential type is `foundation_auth::server_credential::Secret`. The
+command cannot show "one hit" without a narrower pattern. Issue #674 records
+the command defect.
