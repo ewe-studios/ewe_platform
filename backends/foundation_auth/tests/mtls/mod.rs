@@ -4,7 +4,7 @@
 //! The module names let the verify commands of the specification select one
 //! group: `cargo test -p foundation_auth pki` runs `pki::*`.
 
-mod client_auth;
 mod mtls;
+mod mtls_providers;
 mod pki;
 mod trust;
