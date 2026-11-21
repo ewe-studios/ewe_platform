@@ -158,3 +158,14 @@ A live mount can share that session when its endpoint and lifetime agree. Removi
 ### Connection sharing and resume
 
 The connection manager owns connection lifetime. Each subscriber owns its applied cursor and requests replay through the application protocol. WebSocket can carry that request directly. SSE needs a separate upstream request because its event response flows from server to client.
+
+### How does a live mount indicate its position today?
+
+A frame mount sends its stream identifier and sequence position in the request query.
+On web, set `data-channel-id="1"` and `data-resume-from="42"` to request stream 1 after frame 42.
+The native wire declaration carries `channel_id` and `resume_from`. Both mobile adapters send the same query parameters.
+The browser event reader also sends `Last-Event-ID` on reconnect when a server event supplies an identifier.
+
+### Proposed connection sharing defaults
+
+A default server-sent events (SSE) mount opens its own response. Set `data-connection-shared="true"` to join a live feed without requesting replay. WebSocket users share by default. Set `data-connection-shared="false"` to give one mount its own socket.

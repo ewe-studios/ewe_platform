@@ -613,3 +613,7 @@ The browser already sends action frames over WebSocket. Mobile packages can reus
 ### Connection sharing and resume
 
 The existing mobile channels add stream and cursor values to the endpoint query. Shared connections need subscription-level resume messages.
+
+### Proposed connection sharing defaults
+
+Sharing and replay are separate choices. A late listener can receive new events without changing the position of existing listeners.

@@ -583,3 +583,7 @@ Feature 25 proposes WebSocket action delivery for Swift and Kotlin. The specific
 ### Connection sharing and resume
 
 Feature 25 now specifies shared connections on all three platforms. Each subscription resumes through a protocol message.
+
+### Proposed connection sharing defaults
+
+Feature 25 now defines the sharing attribute and its transport defaults on all three platforms.

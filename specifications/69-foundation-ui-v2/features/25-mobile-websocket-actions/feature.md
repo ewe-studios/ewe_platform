@@ -19,13 +19,28 @@ depends_on: ["07", "10", "11", "13", "21", "22"]
 | HTTP | Hypertext Transfer Protocol. |
 | SSE | Server-sent events. A server sends events through an open HTTP response. |
 
-## Example
+## Select a connection
 
-Two components subscribe to the same event feed at `/live`. Each receives a handle from the same manager.
-Removing one component releases its handle. The other component continues to receive messages.
+The same attribute applies on web, iOS, and Android. It selects connection ownership for a mount.
 
-A third component can submit an action through a shared WebSocket. Its send handle keeps the socket available after the last mount leaves.
-An ordinary HTTP action uses the configured client to make one request per call.
+| Transport | Attribute absent | `data-connection-shared="true"` | `data-connection-shared="false"` |
+|---|---|---|---|
+| SSE | Open a dedicated event response for this mount. | Join the live feed for this endpoint. | Open a dedicated event response for this mount. |
+| WebSocket | Use the shared socket for the endpoint. | Use the shared socket for the endpoint. | Open a dedicated socket for this element. |
+
+```html
+<mount-stream transport="sse" api="/live" data-connection-shared="true"></mount-stream>
+<mount-stream transport="websocket" api="/live"></mount-stream>
+<mount-stream transport="websocket" api="/live" data-connection-shared="false"></mount-stream>
+```
+
+The first shared SSE listener opens the response. Later listeners receive matching events from the time they join.
+Joining requires no cursor or replay. Removing the last listener closes the response under the default lifetime policy.
+Removing a dedicated SSE mount closes its own response.
+
+WebSocket actions and mounts use the application's configured socket endpoint by default.
+An explicit different endpoint selects a separate socket. An explicit dedicated mount gets a separate socket even at the same endpoint.
+Closing that mount leaves shared users connected. Ordinary HTTP actions still use one request per call.
 
 ## Stage 1. Separate ownership from use
 
@@ -44,10 +59,13 @@ Wrappers use handles. The manager owns the underlying connections.
 - Allow wrappers to accept an existing handle. A custom wrapper can implement its own message selection or encoding.
 - Reuse the browser, Swift and Kotlin transport implementations. Share one underlying reader for each connection.
 - Share connections with compatible transport, resolved endpoint, protocol settings, and authentication context. Keep credentials out of map keys and logs.
+- Preserve the endpoint query. For example, `/live` and `/live?before=42` identify different feeds.
+- Carry the sharing choice through Rust lowering and the wire as three values: transport default, shared, and dedicated.
+- Decode an absent field as the transport default. Parse the text `false` as a dedicated request on all three platforms.
 - Acquire concurrent handles atomically. Release each handle once. Count send handles and receive handles when deciding whether to close.
 - Support a default close-on-last-release policy and an explicit keep-alive policy.
 - Let Rust select the policy in the live mount declaration. Extend the schema and platform readers with a backward-compatible default.
-- Keep an explicit keep-alive entry until its owner releases the retention policy or the manager shuts down.
+- Open a retained connection on first use. Keep it until its owner releases retention or the manager shuts down.
 - With no listeners, drain incoming transport data and discard application messages before application decoding. Maintain transport framing and required control traffic.
 - Close affected connections on sign-out or manager shutdown. Ignore callbacks from an earlier connection after replacement.
 
@@ -63,7 +81,7 @@ A Kotlin `ByteArray` or browser typed array can expose mutable storage even thro
 ## Stage 3. Resume through the application protocol
 
 A subscription owns its cursor. Advance it after successful application.
-A physical connection has no stream cursor. Its reuse key excludes stream identifiers, sequence numbers, and resume positions.
+A physical connection has no stream cursor. Subscription cursors do not change the connection key. Explicit endpoint query parameters remain part of the address.
 Opening and closing a connection must work for custom protocols that have no resume concept.
 
 The following notation shows message contents. The wire schema must define the encoding.
@@ -73,7 +91,7 @@ Consumer A → server: Resume(subscription=A, stream=tasks, after=42)
 Consumer B → server: Resume(subscription=B, stream=tasks, after=97)
 ```
 
-Both consumers keep the shared connection. The server identifies the subscription when it returns replay frames.
+This example applies to consumers that explicitly request replay. An ordinary shared SSE listener receives new events without sending either message. The server identifies the subscription when it returns replay frames.
 A replay for A must never rewind B. Define the subscription identifier within the authenticated session and check it on the server.
 If retained history is insufficient, return a resynchronization result to the affected consumer.
 The subscription requests a fresh snapshot. The connection stays available to other consumers.
@@ -100,7 +118,11 @@ Report disconnects. Never replay a submitted action automatically. Local Rust ha
 
 | Test | Expected result |
 |---|---|
-| Two mounts acquire the same feed concurrently | The manager opens one physical connection. Both mounts receive matching messages. |
+| Two default SSE mounts open `/live` | Each opens its own response. Removing either closes only that response. |
+| Two shared SSE mounts open `/live` concurrently | The first listener opens one response. Both receive new events. Final release closes it once. |
+| A listener joins an active shared SSE feed | The manager sends no resume request. Earlier listeners continue without interruption. |
+| Shared mounts use `/live` and `/live?before=42` | The manager opens two feeds. |
+| An action and a mount use the default WebSocket endpoint | Both use one socket. A different endpoint or an explicit dedicated mount gets a separate socket. |
 | One sender and two readers share a socket | Each release affects only its handle. Final release closes the default connection once. |
 | Rust requests keep-alive | The connection stays open with zero consumers. A later subscription reuses it. |
 | No listeners receive application data | The application decoder and screen store receive zero calls. |
