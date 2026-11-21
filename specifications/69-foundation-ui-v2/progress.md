@@ -587,3 +587,7 @@ Feature 25 now specifies shared connections on all three platforms. Each subscri
 ### Proposed connection sharing defaults
 
 Feature 25 now defines the sharing attribute and its transport defaults on all three platforms.
+
+### ConnectRPC transport proposal
+
+Feature 26 proposes host network adapters for Connect remote procedure calls on mobile and WebAssembly. Implementation awaits design review.

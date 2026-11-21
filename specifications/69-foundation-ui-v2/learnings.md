@@ -617,3 +617,7 @@ The existing mobile channels add stream and cursor values to the endpoint query.
 ### Proposed connection sharing defaults
 
 Sharing and replay are separate choices. A late listener can receive new events without changing the position of existing listeners.
+
+### Two transport interfaces
+
+The native action transport exchanges encoded user interface frames. The Connect transport opens an exchange with a response head and streamed body. The adapter must preserve both contracts.

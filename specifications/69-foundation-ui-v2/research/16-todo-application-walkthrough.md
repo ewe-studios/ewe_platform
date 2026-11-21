@@ -169,3 +169,13 @@ The browser event reader also sends `Last-Event-ID` on reconnect when a server e
 ### Proposed connection sharing defaults
 
 A default server-sent events (SSE) mount opens its own response. Set `data-connection-shared="true"` to join a live feed without requesting replay. WebSocket users share by default. Set `data-connection-shared="false"` to give one mount its own socket.
+
+### Can the host supply the network connection for ConnectRPC?
+
+Rust can already accept a transport for a typed remote procedure call. [Feature 26](../features/26-connectrpc-transport/feature.md) proposes adapters for mobile hosts and WebAssembly.
+
+### Can one Rust package serve all three targets?
+
+The main package owns the todo state, views, and action registries. Both adapter packages import it with the server feature disabled.
+The mobile adapter exports constructors to Swift and Kotlin. The browser adapter exports the WebAssembly startup function.
+One package can use target-specific modules for both entry points. That change also requires updates to build scripts and binding generation.
