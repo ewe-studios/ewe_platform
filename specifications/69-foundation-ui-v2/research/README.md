@@ -256,3 +256,7 @@ Findings become GitHub issues with a severity label (`CLAUDE.md` rule 9).
 | "Break down the current architecture to allow reuse across platform but also set out specific capabilities that maybe only for one platform type" | D38; [13](./13-platform-capabilities.md) §3.1, §3.3 |
 | "We should be supporting the ideas of mount-streams, mount-data as well for mobile … all local, SSE, websocket or a plain http requests" | D39; [06](./06-native-rendering.md) §3.7; [13](./13-platform-capabilities.md) §3.4 |
 | "We should not go mad and redesign everything … take all the cool stuff we have here and in the current shape and make it make sense" | D40; [README](./README.md) §1; all idea files keep the earlier decisions |
+
+## Application walkthrough
+
+Follow the [Todo application walkthrough](16-todo-application-walkthrough.md) from the mobile entry points to the Rust handlers.

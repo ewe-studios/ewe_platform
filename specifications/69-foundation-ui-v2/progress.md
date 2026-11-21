@@ -571,3 +571,11 @@ The feature branch now includes current master and release changes.
 Cargo resolves 116 workspace packages. The release script verifies 22 nested lockfiles.
 Three macOS key provisioning tests pass with age 0.12.
 The release checks still need to pass on all three systems.
+
+### Todo application walkthrough
+
+Part 1 records the Android and iOS entry points. The next part follows the screen into the Rust core.
+
+### Mobile WebSocket actions
+
+Feature 25 proposes WebSocket action delivery for Swift and Kotlin. The specification and the walkthrough link to the delivery contract.

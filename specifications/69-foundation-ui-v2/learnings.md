@@ -600,3 +600,12 @@ The platform generator embeds templates from bin/platform/templates during its b
 
 The standalone toolchain proof needs its own workspace declaration for a locked Cargo metadata check.
 The Android toolchain test needs both platform directories in its fixture.
+
+### Mobile entry points
+
+Android uses the manifest to select the first activity. Swift uses the application type marked with `@main`.
+Both Todo Server entry points supply a Rust core constructor to the screen.
+
+### Mobile WebSocket actions
+
+The browser already sends action frames over WebSocket. Mobile packages can reuse the same frame format and return no immediate reply.
