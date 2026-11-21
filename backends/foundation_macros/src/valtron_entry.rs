@@ -456,11 +456,11 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             Some(expr) => quote! { #fc::valtron::__private::env_from((#expr)) },
             None if is_test => quote! {
                 #fc::valtron::__private::env_from(
-                    #fc::env::simulated(&__valtron_ctx, __valtron_seed)
+                    #fc::valtron::__private::simulated(&__valtron_ctx, __valtron_seed)
                 )
             },
             None => quote! {
-                #fc::valtron::__private::env_from(#fc::env::system(&__valtron_ctx))
+                #fc::valtron::__private::env_from(#fc::valtron::__private::system(&__valtron_ctx))
             },
         };
         quote! {

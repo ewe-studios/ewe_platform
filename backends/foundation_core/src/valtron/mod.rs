@@ -173,7 +173,7 @@ mod blocking_boundary_probe {
 #[doc(hidden)]
 pub mod __private {
     pub use super::executors::block_on_future_unchecked as block_on_future;
-    pub use crate::env::IntoEnv;
+    pub use crate::env::{simulated, system, IntoEnv};
 
     /// Convert an `env = ...` macro expression into an [`Env`](crate::env::Env).
     pub fn env_from(value: impl crate::env::IntoEnv) -> crate::env::Env {
