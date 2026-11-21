@@ -2,9 +2,9 @@
 
 use std::io::{Read, Write};
 
+use age::secrecy::SecretString;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use secrecy::SecretString;
 use ssh_key::{Algorithm, LineEnding, PrivateKey};
 
 use crate::core::error::{AppError, AppResult};
@@ -53,7 +53,7 @@ pub fn generate(key_type: &str, comment: &str) -> AppResult<GeneratedKey> {
 ///
 /// Returns an error if the operation fails.
 pub fn encrypt(master_key: &str, plaintext: &[u8]) -> AppResult<String> {
-    let encryptor = age::Encryptor::with_user_passphrase(SecretString::new(master_key.to_string()));
+    let encryptor = age::Encryptor::with_user_passphrase(SecretString::from(master_key));
     let mut encrypted = Vec::new();
     let mut writer = encryptor
         .wrap_output(&mut encrypted)
@@ -76,16 +76,14 @@ pub fn decrypt(master_key: &str, ciphertext_b64: &str) -> AppResult<Vec<u8>> {
     let ciphertext = STANDARD
         .decode(ciphertext_b64)
         .map_err(|e| AppError::Internal(format!("age b64 decode: {e}")))?;
-    let decryptor = match age::Decryptor::new(&ciphertext[..])
-        .map_err(|e| AppError::Internal(format!("age decryptor: {e}")))?
-    {
-        age::Decryptor::Passphrase(d) => d,
-        age::Decryptor::Recipients(_) => {
-            return Err(AppError::Internal("age: expected passphrase ciphertext".into()).into())
-        }
-    };
+    let decryptor = age::Decryptor::new_buffered(&ciphertext[..])
+        .map_err(|e| AppError::Internal(format!("age decryptor: {e}")))?;
+    if !decryptor.is_scrypt() {
+        return Err(AppError::Internal("age: expected passphrase ciphertext".into()).into());
+    }
+    let identity = age::scrypt::Identity::new(SecretString::from(master_key));
     let mut reader = decryptor
-        .decrypt(&SecretString::new(master_key.to_string()), None)
+        .decrypt(std::iter::once(&identity as &dyn age::Identity))
         .map_err(|_| AppError::Internal("age decrypt failed (wrong master key?)".into()))?;
     let mut out = Vec::new();
     reader
