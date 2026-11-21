@@ -759,3 +759,5 @@ Feature 28 is complete. All 78 runtime tests and 97 wire tests pass. Swift passe
 The user approves Features 28 through 35 for implementation. Feature 24 is in progress.
 
 The user approves Feature 25 for implementation after the current mobile template work.
+
+Feature 36 proposes Mathalley as a second todo view. The user schedules it after every other feature.

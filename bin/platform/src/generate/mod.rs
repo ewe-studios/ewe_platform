@@ -13,6 +13,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[derive(EmbedDirectoryAs, Default)]
 #[source = "$OUT_DIR/templates/"]
+#[always_embed]
 struct ProjectTemplates;
 
 /// Provides a means of generating custom configurator for the underlying project.

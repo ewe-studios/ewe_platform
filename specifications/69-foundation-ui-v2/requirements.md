@@ -428,6 +428,7 @@ in parallel.
 | 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | Approved |
 | 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Approved |
 | 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Approved |
+| 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | Proposed; implement last |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 

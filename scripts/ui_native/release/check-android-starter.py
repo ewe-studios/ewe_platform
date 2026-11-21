@@ -7,7 +7,8 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 
-adb, device, url = sys.argv[1:]
+adb, device, url = sys.argv[1:4]
+package = sys.argv[4] if len(sys.argv) > 4 else "ewe.starter"
 timeout = int(os.environ.get("EWE_ANDROID_VIEW_TIMEOUT", "60"))
 
 
@@ -26,7 +27,7 @@ def wait_for(*labels):
                 time.sleep(1)
                 continue
             tree = ET.fromstring(shell("cat", snapshot))
-            visible = {node.get("text"): node for node in tree.iter("node") if node.get("package") == "ewe.starter"}
+            visible = {node.get("text"): node for node in tree.iter("node") if node.get("package") == package}
             if all(label in visible for label in labels):
                 return visible
         except (ET.ParseError, subprocess.CalledProcessError):

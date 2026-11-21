@@ -739,3 +739,5 @@ The ewe_gamify browser host supplies a canvas. Rust opens the device and queue. 
 A local action can convey readiness and a lease. Safe reuse also requires completion of outstanding device commands.
 
 Feature 28 requires a presence check on the optional structured input field. The TypeScript object generator otherwise writes an empty vector for absent input. Test both field presence and byte content. Decode action input before awaiting the handler to release temporary values on native hosts.
+
+The Mathalley reference separates game rules and scene construction from its browser canvas and audio implementation.

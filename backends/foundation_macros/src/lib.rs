@@ -126,9 +126,10 @@ pub fn embed_migration_layout(input: TokenStream) -> TokenStream {
 ///
 /// ```
 ///
+/// Add `#[always_embed]` to keep the file bytes in debug and release binaries.
 #[proc_macro_derive(
     EmbedDirectoryAs,
-    attributes(source, gzip_compression, brottli_compression, with_utf16)
+    attributes(source, gzip_compression, brottli_compression, with_utf16, always_embed)
 )]
 pub fn embed_directory_as(item: TokenStream) -> TokenStream {
     embedders::embed_directory_on_struct(item)
