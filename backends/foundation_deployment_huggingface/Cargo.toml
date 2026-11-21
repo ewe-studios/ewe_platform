@@ -25,7 +25,7 @@ chrono = {workspace = true }
 tracing = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.21" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.14" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 
 [dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }

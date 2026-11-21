@@ -21,11 +21,11 @@ foundation_packager = { path = "../../backends/foundation_packager", version = "
 foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.10" }
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.21", features = ["multi"] }
 foundation_context = { path = "../../backends/foundation_context", version = "0.0.3" }
-foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.14", features = ["ssl", "multi"] }
+foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.15", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.9" }
 foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.22" }
 # Referenced by the code `foundation_macros::EmbedDirectoryAs` expands to.
-foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.10" }
 
 # base crates
 tracing = { workspace = true }
