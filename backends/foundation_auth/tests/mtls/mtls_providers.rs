@@ -179,3 +179,103 @@ async fn expired_at_simulated_clock() {
         AuthError::Expired
     );
 }
+
+// ---------------------------------------------------------------------------
+// The Cloudflare provider (spec 87 T5).
+
+use foundation_auth::client_auth::{CfMtlsAuth, CfTlsClientAuth};
+
+fn cf_facts(fingerprint: &str) -> CfTlsClientAuth {
+    CfTlsClientAuth {
+        cert_presented: true,
+        cert_verified: "SUCCESS".to_string(),
+        cert_fingerprint_sha256: fingerprint.to_string(),
+        cert_subject_dn: "CN=laptop".to_string(),
+        cert_not_after: "2030-01-01T00:00:00Z".to_string(),
+        cert_serial: "01".to_string(),
+    }
+}
+
+async fn cf_setup(leaf: &[u8]) -> Arc<CfMtlsAuth> {
+    let (ctx, _clock) = ctx_at(1_700_000_000);
+    let store: Arc<dyn TrustStore> = Arc::new(MemoryTrustStore::new());
+    let trusted = TrustedClients::open(store, &ctx, TrustConfig::default())
+        .await
+        .expect("trust store");
+    enrolled_client(&trusted, leaf, u64::MAX).await;
+    Arc::new(CfMtlsAuth::new(trusted, &ctx))
+}
+
+#[valtron_test]
+async fn cf_mtls_success() {
+    let leaf = b"a-worker-client-certificate";
+    let auth = cf_setup(leaf).await;
+    let mut extensions = Extensions::new();
+    extensions.insert(cf_facts(&sha256_hex(leaf)));
+    let headers = SimpleHeaders::new();
+    let connection = ConnectionContext::default();
+    let call = foundation_auth::server_credential::CallCredentials {
+        procedure: "/ewe.test.v1.Service/Call",
+        headers: &headers,
+        connection: &connection,
+        extensions: &extensions,
+    };
+    let info = auth
+        .authenticate(call)
+        .await
+        .expect("Cloudflare facts")
+        .expect("a known client");
+    let principal = info.artifacts.get::<Principal>().expect("principal");
+    assert_eq!(principal.subject, "laptop");
+    assert_eq!(
+        principal.method,
+        AuthMethod::CloudflareMtls {
+            fingerprint_sha256: sha256_hex(leaf)
+        }
+    );
+}
+
+#[valtron_test]
+async fn cf_mtls_not_presented() {
+    let leaf = b"a-worker-client-certificate";
+    let auth = cf_setup(leaf).await;
+    let mut facts = cf_facts(&sha256_hex(leaf));
+    facts.cert_presented = false;
+    let mut extensions = Extensions::new();
+    extensions.insert(facts);
+    let headers = SimpleHeaders::new();
+    let connection = ConnectionContext::default();
+    let call = foundation_auth::server_credential::CallCredentials {
+        procedure: "/ewe.test.v1.Service/Call",
+        headers: &headers,
+        connection: &connection,
+        extensions: &extensions,
+    };
+    assert!(auth
+        .authenticate(call)
+        .await
+        .expect("no certificate")
+        .is_none());
+}
+
+#[valtron_test]
+async fn cf_mtls_failed() {
+    let leaf = b"a-worker-client-certificate";
+    let auth = cf_setup(leaf).await;
+    let mut facts = cf_facts(&sha256_hex(leaf));
+    facts.cert_verified = "FAILED:expired".to_string();
+    let mut extensions = Extensions::new();
+    extensions.insert(facts);
+    let headers = SimpleHeaders::new();
+    let connection = ConnectionContext::default();
+    let call = foundation_auth::server_credential::CallCredentials {
+        procedure: "/ewe.test.v1.Service/Call",
+        headers: &headers,
+        connection: &connection,
+        extensions: &extensions,
+    };
+    assert!(matches!(
+        auth.authenticate(call).await.expect_err("not verified"),
+        AuthError::Invalid(reason) if reason.contains("FAILED")
+    ));
+}

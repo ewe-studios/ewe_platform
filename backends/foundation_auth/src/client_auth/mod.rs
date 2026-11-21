@@ -8,5 +8,6 @@ pub mod cloudflare;
 #[cfg(not(target_family = "wasm"))]
 pub mod mtls;
 
+pub use cloudflare::{CfMtlsAuth, CfTlsClientAuth};
 #[cfg(not(target_family = "wasm"))]
 pub use mtls::{MtlsAuth, SeenErrorPolicy};
