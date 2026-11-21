@@ -71,6 +71,8 @@ with open(sys.argv[1], "rb") as source:
     env = tomllib.load(source)["env"]
 print("platform-tools")
 print("platforms/android-" + env["ANDROID_COMPILE_SDK"])
+if env.get("ANDROID_UI_COMPILE_SDK"):
+    print("platforms/android-" + env["ANDROID_UI_COMPILE_SDK"])
 print("build-tools/" + env["ANDROID_BUILD_TOOLS"])
 print("ndk/" + env["ANDROID_NDK"])
 PYTHON
