@@ -2,6 +2,10 @@
 //!
 //! Implements the `/v1/messages` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
+// The provider path still mints message ids with the global generator, so a
+// DST run does not repeat them here. Issue #677 injects `Env` into the provider
+// constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use foundation_compact::SendWrapper;
 use std::sync::{Arc, Mutex};
@@ -667,7 +671,7 @@ impl ModelProvider for AnthropicMessagesProvider {
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
             models_cache: Arc::clone(&self.models_cache),
-            pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+            pricing: self.describe().ok().map_or_default(|d| d.cost),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             ctx: self.ctx.clone(),
         })

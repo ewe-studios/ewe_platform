@@ -86,7 +86,7 @@ optional = true
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.22"
+version = "0.0.23"
 
 [dependencies.foundation_netio]
 features = [

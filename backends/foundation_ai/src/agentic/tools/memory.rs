@@ -46,13 +46,17 @@ fn fact_arg() -> foundation_jsonschema::ValidationOptions {
         .build()
 }
 
-fn new_fact(text: String, ctx: &Ctx) -> MemoryFact {
-    MemoryFact {
+fn new_fact(text: String, ctx: &Ctx) -> Result<MemoryFact, ToolError> {
+    Ok(MemoryFact {
         fact: text,
         asserted_at: ctx.clock().wall_now(),
-        source_message_id: foundation_compact::ids::new_scru128(),
+        source_message_id: ctx
+            .require_env()
+            .map_err(|error| exec_err(format!("effect environment: {error}")))?
+            .ids()
+            .next_id(),
         confidence: 1.0,
-    }
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +120,7 @@ impl MemoryTool {
     async fn add(&self, args: ToolArgs<'_>) -> Result<ToolCallResult, ToolError> {
         let fact = args.str("fact")?.to_string();
         let (mut facts, version) = self.current_working().await?;
-        facts.push(new_fact(fact.clone(), &self.ctx));
+        facts.push(new_fact(fact.clone(), &self.ctx)?);
         self.write(facts, version).await?;
         Ok(ToolCallResult::text(format!("Remembered: {fact}")))
     }

@@ -75,6 +75,16 @@ impl SessionId {
         ))
     }
 
+    /// An id from an injected effect environment (spec 84).
+    ///
+    /// A caller that holds an [`Env`](foundation_context::env::Env) builds a
+    /// session id from `env.ids().next_id()`. A simulation then repeats the
+    /// same id on the same seed.
+    #[must_use]
+    pub fn from_id(id: Id) -> Self {
+        Self(id)
+    }
+
     /// The 48-bit unix-ms timestamp embedded in this id.
     #[must_use]
     pub fn timestamp_ms(&self) -> u64 {
@@ -291,6 +301,10 @@ pub struct TimeRange {
     pub to: SystemTime,
 }
 
+// A serde default has no `Env`: it fills an id for a legacy fixture that
+// predates per-record ids. The provider and session paths use `Env` instead
+// (issue #677 tracks the remaining direct calls).
+#[allow(clippy::disallowed_methods)]
 fn fresh_record_id() -> Id {
     foundation_compact::ids::new_scru128()
 }

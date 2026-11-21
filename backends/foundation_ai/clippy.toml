@@ -1,0 +1,10 @@
+# Effect lint (spec 84, section 6). Core logic must read the clock, the entropy
+# source and the ID source from `Ctx`, never from a global function.
+disallowed-methods = [
+  { path = "std::time::SystemTime::now", reason = "read ctx.clock().wall_now()" },
+  { path = "std::time::Instant::now", reason = "read ctx.clock().now()" },
+  { path = "rand::thread_rng", reason = "read ctx.rng() or ctx.require_env()?.entropy()" },
+  { path = "foundation_compact::entropy::fill", reason = "read ctx.require_env()?.entropy()" },
+  { path = "foundation_compact::ids::new_scru128", reason = "read ctx.require_env()?.ids()" },
+  { path = "foundation_compact::ids::new_scru128_string", reason = "read ctx.require_env()?.ids()" },
+]

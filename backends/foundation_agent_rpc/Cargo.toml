@@ -14,7 +14,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.22", features = 
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.
-foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi"] }
 # Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
 # SQLite default (`TrustedClientStore::open_sqlite`).
 foundation_db = { path = "../foundation_db", version = "0.0.9", default-features = false, features = ["turso"] }
@@ -63,7 +63,7 @@ prost-types = "0.12"
 [dev-dependencies]
 tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
-foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi", "testing"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi", "testing"] }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 # State directories (CA, signing key, trusted-client DB) per test.
 tempfile = "3"

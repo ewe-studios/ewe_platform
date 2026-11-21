@@ -29,9 +29,19 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, ToolArguments, UserModelContent,
 };
+use foundation_context::env::{CounterSource, Env, IdSource, SeededEntropy};
 use foundation_context::Ctx;
+use foundation_core::env::ValtronTimer;
 use foundation_core::valtron::{EventQueue, TaskIterator, TaskSpread, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+/// A context with the seeded effect environment that the agent loop needs.
+fn effect_ctx() -> foundation_context::Ctx {
+    let ctx = foundation_context::Ctx::host();
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
+}
 
 type TestMemStore = KvMemoryStore<MemoryStorage>;
 type TestDocStore = MemoryDocumentStore;
@@ -102,9 +112,14 @@ fn harness_with_models(
         ),
         ledger.clone(),
         MemoryConfig::default(),
-        foundation_context::Ctx::fixed(std::sync::Arc::new(
-            foundation_context::MonotonicClock::new(),
-        )),
+        {
+            let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            ));
+            foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+                .expect("a seeded effect environment");
+            ctx
+        },
     );
 
     let tool_manager = ToolCallManager::new(session_id.clone());
@@ -155,7 +170,7 @@ fn user_msg(text: &str) -> Messages {
 fn drive(h: &mut Harness) -> Vec<SessionRecord> {
     let mut records = Vec::new();
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::host()) {
+        match h.agent.next_status(effect_ctx()) {
             None => return records,
             Some(TaskStatus::Ready(record)) => records.push(record),
             Some(TaskStatus::Spread(items)) => {
@@ -252,7 +267,7 @@ fn loop_terminates_and_yields_none() {
 
     drive(&mut h);
     assert!(
-        h.agent.next_status(Ctx::host()).is_none(),
+        h.agent.next_status(effect_ctx()).is_none(),
         "a completed loop must keep yielding None"
     );
 }
@@ -1144,7 +1159,7 @@ fn a_priority_message_during_generation_discards_and_reassembles() {
     let mut saw_mid_gen_steering = false;
 
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::host()) {
+        match h.agent.next_status(effect_ctx()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 // The loop is now inside InnerGenerate. Inject here so the
@@ -1187,7 +1202,7 @@ fn mid_generation_steering_drains_the_priority_queue() {
 
     let mut injected = false;
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::host()) {
+        match h.agent.next_status(effect_ctx()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 if !injected {
@@ -1355,4 +1370,49 @@ fn a_model_stuck_on_junk_stops_being_asked_and_never_fails_the_turn() {
         assistant_texts(&records).iter().any(|t| t.contains('.')),
         "the last attempt should still reach the caller: {records:?}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// The loop reads its IDs from the injected Env (spec 84 T5)
+
+/// A context whose Env mints IDs from a counter, and the counter itself.
+fn counter_ctx() -> (Ctx, Arc<CounterSource>) {
+    let counter = Arc::new(CounterSource::new(1));
+    let env = Env::new(
+        Arc::new(ValtronTimer),
+        Arc::new(SeededEntropy::new(1)),
+        Arc::clone(&counter) as Arc<dyn IdSource>,
+    );
+    let ctx = Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new()));
+    ctx.store(env);
+    (ctx, counter)
+}
+
+/// Drive one vacuous-then-good turn and return the next counter value.
+fn ids_used_by_one_turn() -> u128 {
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![mock_text(".")]);
+    mock.on_any(vec![mock_text("Paris")]);
+
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
+    let _ = h.follow_up.push(user_msg("What is the capital of France?"));
+
+    let (ctx, counter) = counter_ctx();
+    for _ in 0..2_000 {
+        if h.agent.next_status(ctx.clone()).is_none() {
+            break;
+        }
+    }
+    counter.next_id().to_u128()
+}
+
+#[test]
+fn the_loop_mints_ids_from_the_env_and_repeats_them() {
+    let first = ids_used_by_one_turn();
+    let second = ids_used_by_one_turn();
+    assert_eq!(
+        first, second,
+        "a simulated Env gives the same IDs on every run"
+    );
+    assert!(first > 1, "the loop must mint its IDs from the Env");
 }
