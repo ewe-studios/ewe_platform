@@ -82,7 +82,7 @@ fn native_count(
 ) -> foundation_ui_runtime::action::ActionResult {
     let view = Context::for_action(ctx.clone(), MountSurface::Native, Some(COUNT_NODE));
     let ctx = &view;
-    foundation_ui_runtime::html! {ctx,out,<Text>{count}</Text>};
+    foundation_ui_runtime::view::render(ctx, out, crate::open_count(count), None::<&()>)?;
     Ok(())
 }
 enum Endpoint {

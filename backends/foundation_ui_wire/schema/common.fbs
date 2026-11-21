@@ -8,7 +8,7 @@ enum NodeKind : ushort { UNKNOWN = 0, STACK = 1, TEXT = 2, IMAGE = 3, BUTTON = 4
   TEXT_INPUT = 5, TOGGLE = 6, LIST = 7, SCROLL = 8, SPACER = 9, OVERLAY = 10 }
 enum PropId : ushort { UNKNOWN = 0, PADDING = 1, SPACING = 2, ALIGN = 3, COLOR = 4,
   FONT = 5, ENABLED = 6, A11Y_LABEL = 7, AXIS = 8, VALUE = 9, CHECKED = 10, SOURCE = 11,
-  PLACEHOLDER = 12, BACKGROUND = 13, WIDTH = 14, HEIGHT = 15, HIDDEN = 16 }
+  PLACEHOLDER = 12, BACKGROUND = 13, WIDTH = 14, HEIGHT = 15, HIDDEN = 16, PRESENTATION = 17 }
 enum EventId : ushort { UNKNOWN = 0, TAP = 1, CHANGE = 2, SUBMIT = 3, FOCUS = 4, BLUR = 5 }
 
 // Behaviour enums (D56). 0 is always UNKNOWN. Append only. Feature 02 owns the meaning.

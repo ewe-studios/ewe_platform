@@ -6568,7 +6568,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_wire"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "flatbuffers",
  "foundation_errstacks",
@@ -15807,7 +15807,7 @@ dependencies = [
 
 [[package]]
 name = "ui_todo"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "foundation_browser",
@@ -15824,9 +15824,11 @@ dependencies = [
 
 [[package]]
 name = "ui_todo_native"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
+ "async-trait",
  "foundation_context",
+ "foundation_core",
  "foundation_ui_native",
  "foundation_ui_runtime",
  "foundation_ui_wire",

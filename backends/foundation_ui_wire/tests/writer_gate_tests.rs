@@ -519,7 +519,7 @@ fn placement_and_detach_require_vocabulary_three() {
     assert_eq!(gate(messages.clone(), &caps).unwrap().0.len(), 2);
     caps.vocabulary_version = 2;
     let (kept, removed) = gate(messages, &caps).unwrap();
-    assert!(kept.is_empty());
+    assert_eq!(kept, []);
     assert_eq!(removed.len(), 2);
 }
 
@@ -574,6 +574,51 @@ fn native_gate_drops_a_swap_when_all_its_content_is_web_only() {
         ui: Ui::Place(Box::new(swap))
     }));
     let (messages, filtered) = gate(vec![message], &native()).unwrap();
-    assert!(messages.is_empty());
+    assert_eq!(messages, []);
     assert_eq!(filtered[0].reason, FilterReason::OtherPlatform);
+}
+
+#[test]
+fn earlier_clients_keep_controls_without_presentation() {
+    use foundation_ui_wire::{PropId, PropValueT, SetPropT, TextValueT};
+    let control = table!(OperationT {
+        ui: Ui::CreateNode(Box::new(table!(CreateNodeT {
+            node_id: 9,
+            kind: NodeKind::TEXT
+        })))
+    });
+    let role = table!(OperationT {
+        ui: Ui::SetProp(Box::new(table!(SetPropT {
+            node_id: 9,
+            prop: PropId::PRESENTATION,
+            value: PropValueT::Text(Box::new(table!(TextValueT {
+                v: Some("navigation-title".into())
+            })))
+        })))
+    });
+    let full = message(table!(OperationT {
+        ui: subtree(vec![control.clone(), role])
+    }));
+    let (_, current) = write(vec![full.clone()], &native());
+    assert_eq!(current.filtered, []);
+
+    let previous = ClientCaps {
+        vocabulary_version: 3,
+        ..native()
+    };
+    let (kept, report) = write(vec![full], &previous);
+    assert_eq!(
+        kept,
+        [message(table!(OperationT {
+            ui: subtree(vec![control])
+        }))],
+    );
+    assert_eq!(
+        report.filtered,
+        [removed(
+            0,
+            FilteredPart::NestedOperation,
+            FilterReason::UnknownVocabulary
+        )],
+    );
 }

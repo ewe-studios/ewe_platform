@@ -80,6 +80,28 @@ Vocabulary version 3 adds `Place` and `WebDetachChild`. A placement carries a se
 Detach removes a child from its parent and keeps its node handle available for reuse.
 The writer reports these operations as filtered for older clients.
 
+Vocabulary version 4 adds the optional `PRESENTATION` text property.
+It selects a native presentation for a standard control. A client with an earlier vocabulary receives the standard control.
+
+| Property value | Control | Presentation |
+| --- | --- | --- |
+| `navigation-title` | Text | Title in the navigation bar |
+| `toolbar-action` | Button | Action in the navigation bar |
+| `segmented-control` | Stack | One choice from its child buttons. `CHECKED` marks the current choice. |
+| `inset-list` | List | List with inset margins |
+| `checklist-row` | Stack | Row with completion state from `CHECKED` |
+| `checkmark-action` | Button | Action to change the completion state |
+| `destructive-action` | Button | Action with a destructive effect |
+| `form-sheet` | Overlay | Sheet that contains a form |
+| `confirmation-dialog` | Overlay | Alert that asks the user to confirm an action |
+| `sheet-title` | Text | Title of a sheet or alert |
+| `submit-action` | Button | Label for form submission. The input supplies the submission action. |
+| `cancel-action` | Button | Action to close a sheet or alert |
+| `list-footer` | Text | Text below an inset list |
+
+A renderer uses the standard control when it does not recognize a value.
+
+
 A `ColumnarBatch` carries multiple shared operations in parallel vectors. Each row uses the numeric tag from `UiOperation`.
 The writer aligns numeric columns to eight-byte boundaries in the frame.
 Use `create_aligned_vector` when you build these vectors directly with a FlatBuffers builder.

@@ -4,6 +4,10 @@ This crate builds the example's Rust action registry. Its `create_todo_core` fun
 
 The host handles `open_add_dialog`, `close_dialog`, `open_delete_dialog` and `filter_todos`. The server handles `add_todo`, `toggle_todo` and `confirm_delete`. The example signs presentation state. Business actions read the server's store and reject attached presentation state.
 
+On-device apps call `create_local_todo_core` with a platform. Call `initial_todo_frame` once to mount its first screen.
+The core owns an in-memory store for the app session. Its action registry runs add, complete, reopen and delete on the device.
+Each reply updates the list and count. The on-device core requires no transport.
+
 The compiler links the domain actions and native core into one library. Swift and Kotlin refer to that same library for callback handles and Rust buffers. The independent starter uses the package's remote factory.
 
 The transport sends one EWF1 frame per request. Strip the four-byte HTTP length before returning a response to the core. The renderer returns each trigger's signed bytes unchanged. See the parent README for server routes. See the wire crate README for hand-written frames and fixture generation.

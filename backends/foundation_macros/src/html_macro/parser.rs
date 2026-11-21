@@ -846,6 +846,7 @@ fn check_core_property(cursor: &Cursor, tag: &str, name: &str, span: Span) -> Pa
             | "background"
             | "source"
             | "placeholder"
+            | "presentation"
             | "value"
     ) {
         return Err(ParseError::new(

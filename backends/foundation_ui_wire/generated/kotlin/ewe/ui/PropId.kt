@@ -22,5 +22,6 @@ class PropId private constructor() {
         const val WIDTH: UShort = 14u
         const val HEIGHT: UShort = 15u
         const val HIDDEN: UShort = 16u
+        const val PRESENTATION: UShort = 17u
     }
 }

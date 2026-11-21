@@ -77,8 +77,9 @@ public enum ewe_ui_PropId: UInt16, Enum, Verifiable {
   case width = 14
   case height = 15
   case hidden = 16
+  case presentation = 17
 
-  public static var max: ewe_ui_PropId { return .hidden }
+  public static var max: ewe_ui_PropId { return .presentation }
   public static var min: ewe_ui_PropId { return .unknown }
 }
 

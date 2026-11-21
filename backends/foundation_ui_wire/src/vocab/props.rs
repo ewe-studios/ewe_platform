@@ -61,7 +61,11 @@ pub fn prop_kind(prop: PropId) -> Option<PropKind> {
         PropId::COLOR | PropId::BACKGROUND => PropKind::ColorToken,
         PropId::FONT => PropKind::FontToken,
         PropId::ENABLED | PropId::CHECKED | PropId::HIDDEN => PropKind::Bool,
-        PropId::A11Y_LABEL | PropId::VALUE | PropId::SOURCE | PropId::PLACEHOLDER => PropKind::Text,
+        PropId::A11Y_LABEL
+        | PropId::VALUE
+        | PropId::SOURCE
+        | PropId::PLACEHOLDER
+        | PropId::PRESENTATION => PropKind::Text,
         PropId::AXIS => PropKind::Axis,
         _ => return None,
     };
