@@ -22,18 +22,13 @@ class CoreBinding(private val native: NativeCore, store: NodeStore, scope: Corou
 
     override fun applyCapsFrame(frame: ByteArray) = native.applyCapsFrame(frame)
 
-    override suspend fun trigger(reference: String, event: EventInput): ByteArray? =
-        native.trigger(
-            reference,
-            io.github.ewe_studios.ewe.core.EventInput(
-                event.nodeId,
-                event.eventName,
-                event.value,
-                event.checked,
-                event.parentNode,
-                event.state,
-            ),
+    override suspend fun trigger(reference: String, event: EventInput): ByteArray? {
+        val input = io.github.ewe_studios.ewe.core.EventInput(
+            event.nodeId, event.eventName, event.value, event.checked, event.parentNode, event.state
         )
+        val json = event.json ?: return native.trigger(reference, input)
+        return native.triggerStructured(reference, input, json)
+    }
 
     override fun close() {
         try {

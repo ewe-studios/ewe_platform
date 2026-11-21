@@ -1,5 +1,13 @@
 # Ewe UI for Swift
 
+Generate a standalone application in the current directory.
+
+```sh
+ewe_platform generate -t ios-app -p FieldNotes -l plain --app-id com.example.fieldnotes --host server
+```
+
+Use `--host on-device` to include a Rust counter. The generated guide gives the build and launch commands.
+
 Ewe UI draws portable wire frames with SwiftUI. A frame contains the complete changes for one render. The Rust native core verifies local actions and sends remote actions through the application transport.
 
 ## Glossary
@@ -254,3 +262,16 @@ print(item.title)
 The example method belongs to EweTodoCore. A missing identifier throws `TodoServiceError.NotFound`.
 A UI screen can separately select `ServerScreen(base:initial:rpcBase:session:theme:create:)` to send its actions through Connect.
 [Service setup and stream limits](../../backends/foundation_ui_connectrpc/README.md)
+
+### Submit typed input
+
+A text control sends its own text through `bridge.send(.submit, node: fieldID, value: "Buy milk")`.
+For a custom form, define the payload and pass it to the same event bridge.
+
+```swift
+struct AddItem: Encodable { let title: String; let list_id: UInt64 }
+try bridge.sendStructured(.submit, node: fieldID, value: AddItem(title: "Buy milk", list_id: 7))
+```
+
+The bridge encodes the payload once and supplies the signed state attached to the field.
+Rust receives `Interaction<S, AddItem>`. A remote host must negotiate vocabulary 9 or later.

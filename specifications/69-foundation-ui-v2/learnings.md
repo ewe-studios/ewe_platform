@@ -724,3 +724,18 @@ A reserved property fails writer validation before the writer filters operations
 Snapshot content and stream cursors must describe the same revision. Separate reads can capture a change under the wrong cursor.
 
 The starter requests a rendered count and a Refresh button. Its route name describes the screen content across platforms.
+
+- A simulator can expose an off-screen keyboard in the accessibility tree. Check its visible bounds before recording an entry sheet.
+- The Android binding owns the core library. Each todo app owns its application library. Copying all build outputs duplicated the core library.
+
+- XCTest can attach a hardware keyboard during `typeText`. Taps on software keys keep the keyboard visible throughout the capture.
+
+The ewe_gamify browser host supplies a canvas. Rust opens the device and queue. Compute jobs can run without a surface.
+
+- The TypeScript generator normally writes an empty vector for an absent object field. Action input needs field presence to select its encoding.
+  The generation step preserves absence when it packs and unpacks the structured field.
+- A typed template binding can infer the action input type from the action type. It does not need an action instance.
+
+A local action can convey readiness and a lease. Safe reuse also requires completion of outstanding device commands.
+
+Feature 28 requires a presence check on the optional structured input field. The TypeScript object generator otherwise writes an empty vector for absent input. Test both field presence and byte content. Decode action input before awaiting the handler to release temporary values on native hosts.

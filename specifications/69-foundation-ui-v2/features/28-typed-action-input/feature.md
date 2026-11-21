@@ -1,6 +1,6 @@
 ---
 feature: "typed-action-input"
-status: "proposed"
+status: "complete"
 depends_on: ["01", "05", "06", "07", "10", "13"]
 ---
 

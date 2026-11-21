@@ -131,6 +131,15 @@ impl Dispatcher {
         if !connection.claim_request(sequence) {
             return Err(Failure::bad_request());
         }
+        if action.input().and_then(|input| input.json()).is_some()
+            && connection.caps().vocabulary_version
+                < foundation_ui_wire::vocab::STRUCTURED_INPUT_VERSION
+        {
+            return Err(Failure::Error(crate::action::ActionError::new(
+                foundation_ui_wire::ErrorCode::UnsupportedAction,
+                "The peer did not negotiate structured action input",
+            )));
+        }
         let reference = ActionRef::parse(action.action().ok_or_else(Failure::bad_request)?)?;
         if reference.origin != self.accept {
             return Err(LookupError::UnavailableOrigin.into());

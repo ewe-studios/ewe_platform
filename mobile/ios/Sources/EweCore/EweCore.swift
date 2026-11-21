@@ -2073,6 +2073,14 @@ public protocol NativeCoreProtocol: AnyObject, Sendable {
      */
     func trigger(reference: String, event: EventInput) async throws  -> Data?
     
+    /**
+     * Send application JSON bytes with the state and event metadata from the triggering node.
+     *
+     * # Errors
+     * Reports unsupported input, routing and transport failures.
+     */
+    func triggerStructured(reference: String, event: EventInput, json: Data) async throws  -> Data?
+    
 }
 open class NativeCore: NativeCoreProtocol, @unchecked Sendable {
     fileprivate let handle: UInt64
@@ -2203,6 +2211,28 @@ open func trigger(reference: String, event: EventInput)async throws  -> Data?  {
             rustFutureFunc: {
                 uniffi_foundation_ui_native_fn_method_nativecore_trigger(
                         self.uniffiCloneHandle(),FfiConverterString.lower(reference),FfiConverterTypeEventInput_lower(event)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionData.lift,
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+    /**
+     * Send application JSON bytes with the state and event metadata from the triggering node.
+     *
+     * # Errors
+     * Reports unsupported input, routing and transport failures.
+     */
+open func triggerStructured(reference: String, event: EventInput, json: Data)async throws  -> Data?  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativecore_trigger_structured(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(reference),FfiConverterTypeEventInput_lower(event),FfiConverterData.lower(json)
                 )
             },
             pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
@@ -2699,6 +2729,9 @@ enum CoreError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
     case NoListener
     case Write(detail: String
     )
+    case InvalidInput(detail: String
+    )
+    case UnsupportedInput
 
     
 
@@ -2747,6 +2780,10 @@ public struct FfiConverterTypeCoreError: FfiConverterRustBuffer {
         case 7: return .Write(
             detail: try FfiConverterString.read(from: &buf)
             )
+        case 8: return .InvalidInput(
+            detail: try FfiConverterString.read(from: &buf)
+            )
+        case 9: return .UnsupportedInput
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2792,6 +2829,15 @@ public struct FfiConverterTypeCoreError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(7))
             FfiConverterString.write(detail, into: &buf)
             
+        
+        case let .InvalidInput(detail):
+            writeInt(&buf, Int32(8))
+            FfiConverterString.write(detail, into: &buf)
+            
+        
+        case .UnsupportedInput:
+            writeInt(&buf, Int32(9))
+        
         }
     }
 }
@@ -3205,6 +3251,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_foundation_ui_native_checksum_method_nativecore_trigger() != 39596) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_trigger_structured() != 32894) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_foundation_ui_native_checksum_method_framelistener_on_frame() != 10664) {

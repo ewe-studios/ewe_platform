@@ -317,3 +317,16 @@ LocalApp::builder(ctx, actions).build().install();
 ```
 
 The bridge retains the dispatcher and context. Closing the bridge ends each pending call once.
+
+### Send structured input from a browser form
+
+Use `manager.trigger("server:save", field, event)` to send the ordinary text value.
+Use the explicit method to send the fields that the form author selects.
+
+```js
+await manager.triggerStructured("server:save", field, {
+  title: field.value, list_id: 7
+}, event, "submit");
+```
+
+The manager uses the signed state on the triggering field. Structured submission requires vocabulary 9 or later on a remote peer.

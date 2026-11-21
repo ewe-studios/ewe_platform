@@ -1,3 +1,4 @@
+mod mobile;
 use clap::ValueEnum;
 use foundation_core::extensions::strings_ext::TryIntoString;
 use foundation_macros::EmbedDirectoryAs;
@@ -204,6 +205,9 @@ pub fn register(command: clap::Command) -> clap::Command {
                     .value_parser(clap::builder::EnumValueParser::<LanguageSupport>::new())
                     .default_value("simple-rust"),
             )
+            .arg(clap::Arg::new("app-id").long("app-id").help("Application identifier for mobile projects"))
+            .arg(clap::Arg::new("host").long("host").help("Host for a mobile project")
+                .value_parser(["server", "on-device"]))
             .arg_required_else_help(true),
     )
 }
@@ -226,6 +230,19 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let output_directory = args
         .get_one::<std::path::PathBuf>("output")
         .unwrap_or(&current_dir);
+
+    if matches!(template_name.as_str(), "ios-app" | "android-app") {
+        let id = args
+            .get_one::<String>("app-id")
+            .ok_or("--app-id is required for mobile projects")?;
+        let host = args
+            .get_one::<String>("host")
+            .map_or("server", String::as_str);
+        return mobile::generate(template_name, project_name, output_directory, id, host);
+    }
+    if args.contains_id("app-id") || args.contains_id("host") {
+        return Err("--app-id and --host apply only to mobile projects".into());
+    }
 
     let root_project_cargo_file = args.get_one::<std::path::PathBuf>("cargo_file").cloned();
 

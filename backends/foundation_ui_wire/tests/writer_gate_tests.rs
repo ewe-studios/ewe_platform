@@ -548,7 +548,7 @@ fn full_view_requires_version_six_and_a_client_owned_target() {
         ..caps
     };
     assert_eq!(write(vec![frame(place.clone())], &caps).0.len(), 1);
-    assert!(write(vec![frame(place.clone())], &old_caps).0.is_empty());
+    assert_eq!(write(vec![frame(place.clone())], &old_caps).0, Vec::new());
     place.target = Some(Box::new(TargetSelectorT::default()));
     assert!(matches!(
         write_messages(vec![frame(place)], &caps, HEADER, &WriterConfig::default()),

@@ -312,3 +312,49 @@ fn stateless_control_omits_the_signed_state_field() {
         .state()
         .is_none());
 }
+
+#[test]
+fn structured_input_requires_negotiation_for_remote_calls() {
+    use foundation_ui_wire::vocab::STRUCTURED_INPUT_VERSION;
+    let mut registry = ActionRegistry::new();
+    registry.register(Save).unwrap();
+    let host = Arc::new(RecordingTransport::default());
+    let server = Arc::new(RecordingTransport::default());
+    let manager = ActionManager::new(Arc::new(registry), Surface::Web, 7, WireLimits::default())
+        .with_host(host.clone())
+        .with_server(server.clone());
+    let payload = serde_json::json!({"list":{"id":7},"title":"Buy milk"});
+    let mut advertised = caps(true);
+    for version in [None, Some(STRUCTURED_INPUT_VERSION - 1)] {
+        if let Some(v) = version {
+            advertised.vocabulary_version = v;
+            manager.apply_caps(&advertised);
+        }
+        assert!(matches!(
+            immediate(manager.trigger_structured("server:save", event(), &payload)),
+            Err(ManagerError::UnsupportedInput)
+        ));
+    }
+    assert!(server.requests.lock().unwrap().is_empty());
+    immediate(manager.trigger_structured("host:save", event(), &payload)).unwrap();
+    advertised.vocabulary_version = STRUCTURED_INPUT_VERSION;
+    manager.apply_caps(&advertised);
+    immediate(manager.trigger_structured("server:save", event(), &payload)).unwrap();
+    for transport in [host, server] {
+        let requests = transport.requests.lock().unwrap();
+        assert_eq!(requests.len(), 1);
+        let frame = read_frame(&requests[0], &WireLimits::default()).unwrap();
+        let input = frame
+            .kind_as_frame_request()
+            .unwrap()
+            .action()
+            .unwrap()
+            .input()
+            .unwrap();
+        assert!(input.value().is_none());
+        assert_eq!(
+            serde_json::from_slice::<serde_json::Value>(input.json().unwrap().bytes()).unwrap(),
+            payload
+        );
+    }
+}

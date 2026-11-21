@@ -1,5 +1,13 @@
 # Ewe UI for Kotlin and Android
 
+Generate a standalone application in the current directory.
+
+```sh
+ewe_platform generate -t android-app -p FieldNotes -l plain --app-id com.example.fieldnotes --host server
+```
+
+Use `--host on-device` to include a Rust counter. The generated guide gives the build and launch commands.
+
 Ewe UI reads a binary frame and displays its nodes with Jetpack Compose. An event on a control can call a local Rust action or a remote action.
 
 | Module | Maven artifact | Function |
@@ -215,3 +223,18 @@ NativeHttpClient(OkHttpRpcClient(okHttpClient)).use { network ->
 The example method belongs to the todo application binding. A missing identifier throws `TodoServiceException.NotFound`.
 To send UI actions through Connect, pass `rpcBase` to `RemoteEweScreen`.
 [Service setup and stream limits](../../backends/foundation_ui_connectrpc/README.md)
+
+### Submit typed input
+
+A text control calls `bridge.send(EventId.SUBMIT, fieldId, value = "Buy milk")`.
+For a custom form, pass the value and its serializer to the event bridge.
+
+```kotlin
+data class AddItem(val title: String, val listId: Long)
+bridge.sendStructured(EventId.SUBMIT, fieldId, AddItem("Buy milk", 7)) { item ->
+    org.json.JSONObject().put("title", item.title).put("list_id", item.listId).toString()
+}
+```
+
+The bridge keeps the state attached to this field. Rust decodes the payload as the declared action input.
+A remote host must negotiate vocabulary 9 or later.

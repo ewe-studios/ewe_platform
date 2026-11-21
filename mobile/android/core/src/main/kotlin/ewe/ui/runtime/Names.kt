@@ -119,5 +119,6 @@ internal object Names {
             ErrorCode.ActionFailed to "ActionFailed",
             ErrorCode.UpdateRequired to "UpdateRequired",
             ErrorCode.UnsupportedPlatformOp to "UnsupportedPlatformOp",
+            ErrorCode.InvalidInput to "InvalidInput",
         )
 }

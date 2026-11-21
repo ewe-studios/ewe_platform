@@ -11,6 +11,7 @@ data class EventInput(
     val checked: Boolean,
     val parentNode: UInt,
     val state: ByteArray,
+    val json: ByteArray? = null,
 )
 
 interface ActionCore {
@@ -37,10 +38,19 @@ class EventBridge(
     }
 
     fun send(event: UShort, node: UInt, value: String = "", checked: Boolean = false) {
+        submit(event, node, value, checked, null)
+    }
+
+    /** Encode one application value with the serializer supplied by the form author. */
+    fun <T> sendStructured(event: UShort, node: UInt, value: T, encode: (T) -> String) {
+        submit(event, node, "", false, encode(value).encodeToByteArray())
+    }
+
+    private fun submit(event: UShort, node: UInt, value: String, checked: Boolean, json: ByteArray?) {
         val record = store.record(node) ?: return
         val reference = record.actions[event] ?: return
         val name = Names.eventId[event]?.lowercase() ?: return
-        val input = EventInput(node, name, value, checked, record.parent ?: 0u, record.state)
+        val input = EventInput(node, name, value, checked, record.parent ?: 0u, record.state, json)
         scope.launch {
             try {
                 core.trigger(reference, input)?.let { store.receive(it) }

@@ -58,8 +58,23 @@ parentNode():number {
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
+json(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+}
+
+jsonLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+jsonArray():Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
 static startActionInput(builder:flatbuffers.Builder) {
-  builder.startObject(6);
+  builder.startObject(7);
 }
 
 static addEventName(builder:flatbuffers.Builder, eventNameOffset:flatbuffers.Offset) {
@@ -86,12 +101,28 @@ static addParentNode(builder:flatbuffers.Builder, parentNode:number) {
   builder.addFieldInt32(5, parentNode, 0);
 }
 
+static addJson(builder:flatbuffers.Builder, jsonOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(6, jsonOffset, 0);
+}
+
+static createJsonVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startJsonVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+}
+
 static endActionInput(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createActionInput(builder:flatbuffers.Builder, eventNameOffset:flatbuffers.Offset, valueOffset:flatbuffers.Offset, checked:boolean, keyCode:number, modifiers:number, parentNode:number):flatbuffers.Offset {
+static createActionInput(builder:flatbuffers.Builder, eventNameOffset:flatbuffers.Offset, valueOffset:flatbuffers.Offset, checked:boolean, keyCode:number, modifiers:number, parentNode:number, jsonOffset:flatbuffers.Offset):flatbuffers.Offset {
   ActionInput.startActionInput(builder);
   ActionInput.addEventName(builder, eventNameOffset);
   ActionInput.addValue(builder, valueOffset);
@@ -99,6 +130,7 @@ static createActionInput(builder:flatbuffers.Builder, eventNameOffset:flatbuffer
   ActionInput.addKeyCode(builder, keyCode);
   ActionInput.addModifiers(builder, modifiers);
   ActionInput.addParentNode(builder, parentNode);
+  ActionInput.addJson(builder, jsonOffset);
   return ActionInput.endActionInput(builder);
 }
 
@@ -109,7 +141,8 @@ unpack(): ActionInputT {
     this.checked(),
     this.keyCode(),
     this.modifiers(),
-    this.parentNode()
+    this.parentNode(),
+    this.jsonArray() === null ? null : Array.from(this.jsonArray()!)
   );
 }
 
@@ -121,6 +154,7 @@ unpackTo(_o: ActionInputT): void {
   _o.keyCode = this.keyCode();
   _o.modifiers = this.modifiers();
   _o.parentNode = this.parentNode();
+  _o.json = this.jsonArray() === null ? null : Array.from(this.jsonArray()!);
 }
 }
 
@@ -131,13 +165,15 @@ constructor(
   public checked: boolean = false,
   public keyCode: number = 0,
   public modifiers: number = 0,
-  public parentNode: number = 0
+  public parentNode: number = 0,
+  public json: number[]|null = null
 ){}
 
 
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const eventName = (this.eventName !== null ? builder.createString(this.eventName!) : 0);
   const value = (this.value !== null ? builder.createString(this.value!) : 0);
+  const json = this.json === null ? 0 : ActionInput.createJsonVector(builder, this.json);
 
   return ActionInput.createActionInput(builder,
     eventName,
@@ -145,7 +181,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.checked,
     this.keyCode,
     this.modifiers,
-    this.parentNode
+    this.parentNode,
+    json
   );
 }
 }

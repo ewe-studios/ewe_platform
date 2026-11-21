@@ -4,9 +4,9 @@ use std::fmt;
 
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
-use foundation_ui_wire::{ActionRequestT, MountSurface};
+use foundation_ui_wire::{ActionRequestT, ErrorCode, MountSurface};
 
-use super::{ActionError, Context, ErasedAction, RawInteraction, ReceiverItem};
+use super::{ActionError, Context, ErasedAction, RawInput, RawInteraction, ReceiverItem};
 use crate::state::{verify_state, StateError};
 
 /// The host can distinguish a failed signature check from a handler or decode error.
@@ -50,7 +50,17 @@ pub async fn invoke_action(
     let event = RawInteraction {
         node_id: request.node_id,
         event_name: input.event_name.unwrap_or_default(),
-        input_value: input.value.unwrap_or_default(),
+        input_value: match (input.value, input.json) {
+            (Some(value), None) => RawInput::Text(value),
+            (None, Some(bytes)) => RawInput::Json(bytes),
+            (None, None) => RawInput::Missing,
+            (Some(_), Some(_)) => {
+                return Err(InvokeError::Action(ErrorTrace::new(ActionError::new(
+                    ErrorCode::InvalidInput,
+                    "The event supplied two input encodings",
+                ))))
+            }
+        },
         state_body,
     };
     let call = Context::for_action(ctx.clone(), surface, state_root);

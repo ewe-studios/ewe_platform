@@ -45,6 +45,10 @@ pub enum CoreError {
     NoListener,
     #[error("{detail}")]
     Write { detail: String },
+    #[error("Invalid input: {detail}")]
+    InvalidInput { detail: String },
+    #[error("The peer did not negotiate structured action input")]
+    UnsupportedInput,
 }
 
 impl CoreError {
@@ -67,6 +71,8 @@ impl CoreError {
             ManagerError::Lookup(LookupError::UnavailableOrigin) => Self::UnavailableOrigin {
                 origin: reference.split(':').next().unwrap_or(reference).into(),
             },
+            ManagerError::InvalidInput(detail) => Self::InvalidInput { detail },
+            ManagerError::UnsupportedInput => Self::UnsupportedInput,
             ManagerError::Wire(_) | ManagerError::SequenceExhausted => Self::write(error),
             ManagerError::Transport(detail) => Self::Transport { detail },
             ManagerError::SubmissionPoisoned => Self::Transport {

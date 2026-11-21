@@ -737,3 +737,25 @@ Feature 33 proposes automatic recovery for a view after replay expires. Issue 66
 Feature 32 specifies two shared screen routes. The full todo screen uses /initial. The count screen uses /open-count.
 
 The user approves Feature 32 with both shared screen routes. Implementation is queued.
+
+Android ran all six renderer tests and both todo applications after the control migration.
+The nine new captures preserved the approved layouts. Each theme passed the entry and confirmation button checks.
+
+Feature 31 is complete. The iPhone 17 ran 20 Swift package tests and all three theme reviews.
+The entry screenshots show the keyboard, Cancel and Add. The shared controls passed on web, iOS and Android.
+
+Feature 34 proposes optional host graphics services on web, iOS, and Android. It awaits review.
+
+The user approves Feature 34. The implementation agent adds it to the existing queue.
+
+Feature 28 adds structured input to actions. Text remains the default.
+Rust accepts a second input type. The browser, Swift, and Kotlin bridges expose explicit structured submission.
+The wire fixture records nested input. Rust tests cover signed state, unit state, aliases, and decode failures.
+
+Feature 35 proposes existing device access. Rust requests the device. The host invokes the configured local Rust action when ready.
+
+Feature 28 is complete. All 78 runtime tests and 97 wire tests pass. Swift passes 21 simulator tests. Android passes its unit and emulator suites. Browser action tests, WebAssembly compilation, generated files, and strict Clippy checks pass. Feature 24 is in progress.
+
+The user approves Features 28 through 35 for implementation. Feature 24 is in progress.
+
+The user approves Feature 25 for implementation after the current mobile template work.

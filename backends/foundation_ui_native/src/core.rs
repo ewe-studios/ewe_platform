@@ -290,20 +290,45 @@ impl NativeCore {
         reference: String,
         event: EventInput,
     ) -> Result<Option<Vec<u8>>, CoreError> {
-        let reply = self
-            .manager
-            .trigger(&reference, event.into())
-            .await
-            .map_err(|e| CoreError::manager(e, &reference))?;
-        if let Some(bytes) = &reply {
-            reply_message(bytes, self.limits(), self.caps.mount).map_err(CoreError::write)?;
-        }
-        Ok(reply)
+        self.send_event(reference, event.into()).await
+    }
+    /// Send application JSON bytes with the state and event metadata from the triggering node.
+    ///
+    /// # Errors
+    /// Reports unsupported input, routing and transport failures.
+    pub async fn trigger_structured(
+        &self,
+        reference: String,
+        event: EventInput,
+        json: Vec<u8>,
+    ) -> Result<Option<Vec<u8>>, CoreError> {
+        let mut event = foundation_ui_runtime::action::TriggerEvent::from(event);
+        event.input.value = None;
+        event.input.json = Some(json);
+        self.send_event(reference, event).await
     }
     pub fn set_frame_listener(&self, listener: Arc<dyn FrameListener>) {
         *self.listener.lock().unwrap_or_else(PoisonError::into_inner) = Some(listener);
     }
     pub fn clear_frame_listener(&self) {
         *self.listener.lock().unwrap_or_else(PoisonError::into_inner) = None;
+    }
+}
+
+impl NativeCore {
+    async fn send_event(
+        &self,
+        reference: String,
+        event: foundation_ui_runtime::action::TriggerEvent,
+    ) -> Result<Option<Vec<u8>>, CoreError> {
+        let reply = self
+            .manager
+            .trigger(&reference, event)
+            .await
+            .map_err(|e| CoreError::manager(e, &reference))?;
+        if let Some(bytes) = &reply {
+            reply_message(bytes, self.limits(), self.caps.mount).map_err(CoreError::write)?;
+        }
+        Ok(reply)
     }
 }

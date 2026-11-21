@@ -377,3 +377,38 @@ let reply = app.trigger("server:save", event).await?;
 
 An immediate hello reply supplies the server action names. For a deferred reply, call `app.receive_capabilities(&bytes)?` when it arrives.
 A local action uses the supplied context and runs without a network request.
+
+### Typed action input
+
+Use `Interaction<S>` for text. Its `input_value` is a String. An empty field gives an empty string.
+Use `Interaction<S, E>` when the caller supplies a value of type `E`. The host verifies `state` separately.
+
+```rust
+use foundation_ui_runtime::action;
+use foundation_ui_runtime::action::{
+    ActionManager, ActionRegistry, ActionResult, Context, Interaction, ManagerError,
+    RegistrationError, TriggerEvent,
+};
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct AddItem { title: String, list_id: u64 }
+
+#[action(server)]
+async fn add_item(ctx: &Context, event: Interaction<(), AddItem>) -> ActionResult {
+    ctx.store((event.input_value.list_id, event.input_value.title));
+    Ok(())
+}
+
+fn register(registry: &mut ActionRegistry) -> Result<(), RegistrationError> {
+    registry.register(add_item)
+}
+
+async fn submit(manager: &ActionManager, trigger: TriggerEvent) -> Result<Option<Vec<u8>>, ManagerError> {
+    let value = AddItem { title: "Buy milk".into(), list_id: 7 };
+    manager.trigger_structured("server:add_item", trigger, &value).await
+}
+```
+
+Here `trigger` contains the event name, source node and its signed state.
+The manager checks the negotiated vocabulary before sending structured input to a remote peer.
+The dispatcher returns `InvalidInput` when decoding fails. The handler runs only after a successful decode.

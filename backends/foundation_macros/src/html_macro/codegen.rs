@@ -1026,10 +1026,7 @@ fn action_attribute(
     let value = match target {
         ActionTarget::Rust(path) => {
             let runtime = foundation_ui_runtime_path();
-            quote!(#ui::__macro::Cow::Owned(#runtime::view::action_reference(
-                <#path as #runtime::action::Action>::origin(),
-                <#path as #runtime::action::Action>::NAME,
-            )))
+            quote!(#ui::__macro::Cow::Owned(#runtime::view::typed_action_reference::<#path, _>()))
         }
         ActionTarget::Host(name) => quote!(#ui::__macro::Cow::Borrowed(#name)),
     };

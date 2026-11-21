@@ -157,3 +157,22 @@ test("a sheet button with its own action keeps its state and submits the sibling
   assert.deepEqual([...action.stateArray()], [5]);
   assert.equal(action.input().value(), "Read chapter three");
 });
+
+test("structured events preserve field presence and require negotiated support", async () => {
+  const { manager, errors, requests } = setup();
+  const el = element(42, "_wA", {});
+  const payload = {title:"Buy milk", list:{id:7}};
+  await manager.triggerStructured("server:save", el, payload, {type:"submit"});
+  manager.applyCaps({status:wire.CapsStatus.Ok, vocabularyVersion:8, streamId:7n, actions:[{name:"save"}]});
+  await manager.triggerStructured("server:save", el, payload, {type:"submit"});
+  assert.deepEqual(errors, ["UnsupportedAction","UnsupportedAction"]);
+  assert.equal(requests.length, 0);
+  manager.applyCaps({status:wire.CapsStatus.Ok, vocabularyVersion:9, streamId:7n, actions:[{name:"save"}]});
+  await manager.triggerStructured("server:save", el, payload, {type:"submit"});
+  await manager.trigger("server:save", el, {type:"submit"});
+  const [structured, text] = requests.map(r => r.kind(new wire.FrameRequest()).action().input());
+  assert.equal(structured.value(), null);
+  assert.deepEqual(JSON.parse(new TextDecoder().decode(structured.jsonArray())), payload);
+  assert.equal(text.jsonArray(), null);
+  assert.equal(text.value(), "buy milk");
+});

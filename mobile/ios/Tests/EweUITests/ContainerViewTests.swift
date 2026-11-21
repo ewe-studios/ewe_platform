@@ -89,6 +89,25 @@ final class ContainerViewTests: XCTestCase {
     XCTAssertEqual(event.state, field.state)
   }
 
+  @MainActor func testStructuredEventUsesTheTriggeringState() async throws {
+    struct Input: Codable, Equatable { let title: String; let list: [String: Int] }
+    let store = NodeStore()
+    let core = ContainerTestCore()
+    let bridge = EventBridge(store: store, core: core)
+    let field = try XCTUnwrap(store.make(11, .textInput, 0))
+    field.actions[.submit] = "server:add"
+    field.state = Data([42])
+    let received = expectation(description: "structured event")
+    core.onEvent = { received.fulfill() }
+    let value = Input(title: "Milk", list: ["id": 7])
+    try bridge.sendStructured(.submit, node: field.id, value: value)
+    await fulfillment(of: [received], timeout: 2)
+    let input = try XCTUnwrap(core.events.first)
+    XCTAssertEqual(input.state, field.state)
+    XCTAssertEqual(input.nodeId, field.id)
+    XCTAssertEqual(try JSONDecoder().decode(Input.self, from: XCTUnwrap(input.json)), value)
+  }
+
   @MainActor func testStackPinsItsTrailingSheetToTheBottom() throws {
     let store = NodeStore()
     let screen = EweScreen(store: store,

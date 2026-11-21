@@ -50,6 +50,8 @@ pub enum ManagerError {
     SequenceExhausted,
     Transport(String),
     SubmissionPoisoned,
+    InvalidInput(String),
+    UnsupportedInput,
 }
 
 impl fmt::Display for ManagerError {
@@ -59,6 +61,10 @@ impl fmt::Display for ManagerError {
             Self::Wire(error) => fmt::Display::fmt(error, f),
             Self::SequenceExhausted => f.write_str("The stream used its last request number."),
             Self::Transport(detail) => write!(f, "Action transport failed. {detail}"),
+            Self::InvalidInput(detail) => write!(f, "Invalid action input. {detail}"),
+            Self::UnsupportedInput => {
+                f.write_str("The peer did not negotiate structured action input.")
+            }
             Self::SubmissionPoisoned => {
                 f.write_str("An earlier request panicked during submission.")
             }
@@ -82,6 +88,11 @@ impl From<LookupError> for ManagerError {
     }
 }
 
+struct ServerActions {
+    names: BTreeSet<String>,
+    structured: bool,
+}
+
 /// Shares the action declarations and assigns request numbers for one stream.
 pub struct ActionManager {
     registry: Arc<ActionRegistry>,
@@ -89,7 +100,7 @@ pub struct ActionManager {
     stream_id: u64,
     last_sequence: Mutex<u64>,
     limits: WireLimits,
-    server_actions: RwLock<Option<BTreeSet<String>>>,
+    server_actions: RwLock<Option<ServerActions>>,
     host: Option<Arc<Transport>>,
     server: Option<Arc<Transport>>,
 }
@@ -140,16 +151,21 @@ impl ActionManager {
         *self
             .server_actions
             .write()
-            .unwrap_or_else(PoisonError::into_inner) = Some(names);
+            .unwrap_or_else(PoisonError::into_inner) = Some(ServerActions {
+            names,
+            structured: caps.status == CapsStatus::Ok
+                && caps.vocabulary_version >= foundation_ui_wire::vocab::STRUCTURED_INPUT_VERSION,
+        });
     }
 
-    fn route(&self, reference: &ActionRef<'_>) -> Result<(Origin, &Transport), LookupError> {
-        let available = self
+    fn route(&self, reference: &ActionRef<'_>) -> Result<(Origin, &Transport, bool), LookupError> {
+        let advertised = self
             .server_actions
             .read()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(PoisonError::into_inner);
+        let available = advertised
             .as_ref()
-            .map(|names| names.contains(reference.name));
+            .map(|caps| caps.names.contains(reference.name));
         let declaration = self
             .registry
             .lookup(reference.origin, reference.name, self.surface);
@@ -174,7 +190,29 @@ impl ActionManager {
             Origin::Host => self.host.as_deref(),
             Origin::Server => self.server.as_deref(),
         };
-        Ok((origin, transport.ok_or(LookupError::UnavailableOrigin)?))
+        let structured =
+            origin == Origin::Host || advertised.as_ref().is_some_and(|caps| caps.structured);
+        Ok((
+            origin,
+            transport.ok_or(LookupError::UnavailableOrigin)?,
+            structured,
+        ))
+    }
+
+    /// Encode a structured value for an action. Text events use `trigger`.
+    ///
+    /// # Errors
+    /// Returns an encoding, routing or transport error.
+    pub async fn trigger_structured<E: serde::Serialize>(
+        &self,
+        reference: &str,
+        mut event: TriggerEvent,
+        value: &E,
+    ) -> Result<Option<Vec<u8>>, ManagerError> {
+        event.input.value = None;
+        event.input.json =
+            Some(serde_json::to_vec(value).map_err(|e| ManagerError::InvalidInput(e.to_string()))?);
+        self.trigger(reference, event).await
     }
 
     /// Send one request. A socket can accept it before a reply exists.
@@ -189,7 +227,17 @@ impl ActionManager {
         event: TriggerEvent,
     ) -> Result<Option<Vec<u8>>, ManagerError> {
         let reference = ActionRef::parse(reference)?;
-        let (origin, transport) = self.route(&reference)?;
+        let (origin, transport, structured) = self.route(&reference)?;
+        if event.input.json.is_some() {
+            if event.input.value.is_some() {
+                return Err(ManagerError::InvalidInput(
+                    "The event supplied two input encodings".into(),
+                ));
+            }
+            if !structured {
+                return Err(ManagerError::UnsupportedInput);
+            }
+        }
         let prefix = match origin {
             Origin::Host => "host:",
             Origin::Server => "server:",
@@ -204,6 +252,7 @@ impl ActionManager {
             event.state.len(),
             event.input.event_name.as_deref().unwrap_or_default().len(),
             event.input.value.as_deref().unwrap_or_default().len(),
+            event.input.json.as_deref().unwrap_or_default().len(),
         ]
         .into_iter()
         .fold(0usize, usize::saturating_add);

@@ -70,6 +70,20 @@ class ActionInput : Table() {
             val o = __offset(14)
             return if(o != 0) bb.getInt(o + bb_pos).toUInt() else 0u
         }
+    fun json(j: Int) : UByte {
+        val o = __offset(16)
+        return if (o != 0) {
+            bb.get(__vector(o) + j * 1).toUByte()
+        } else {
+            0u
+        }
+    }
+    val jsonLength : Int
+        get() {
+            val o = __offset(16); return if (o != 0) __vector_len(o) else 0
+        }
+    val jsonAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(16, 1)
+    fun jsonInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 16, 1)
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsActionInput(_bb: ByteBuffer): ActionInput = getRootAsActionInput(_bb, ActionInput())
@@ -77,8 +91,9 @@ class ActionInput : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createActionInput(builder: FlatBufferBuilder, eventNameOffset: Int, valueOffset: Int, checked: Boolean, keyCode: UInt, modifiers: UByte, parentNode: UInt) : Int {
-            builder.startTable(6)
+        fun createActionInput(builder: FlatBufferBuilder, eventNameOffset: Int, valueOffset: Int, checked: Boolean, keyCode: UInt, modifiers: UByte, parentNode: UInt, jsonOffset: Int) : Int {
+            builder.startTable(7)
+            addJson(builder, jsonOffset)
             addParentNode(builder, parentNode)
             addKeyCode(builder, keyCode)
             addValue(builder, valueOffset)
@@ -87,13 +102,23 @@ class ActionInput : Table() {
             addChecked(builder, checked)
             return endActionInput(builder)
         }
-        fun startActionInput(builder: FlatBufferBuilder) = builder.startTable(6)
+        fun startActionInput(builder: FlatBufferBuilder) = builder.startTable(7)
         fun addEventName(builder: FlatBufferBuilder, eventName: Int) = builder.addOffset(0, eventName, 0)
         fun addValue(builder: FlatBufferBuilder, value: Int) = builder.addOffset(1, value, 0)
         fun addChecked(builder: FlatBufferBuilder, checked: Boolean) = builder.addBoolean(2, checked, false)
         fun addKeyCode(builder: FlatBufferBuilder, keyCode: UInt) = builder.addInt(3, keyCode.toInt(), 0)
         fun addModifiers(builder: FlatBufferBuilder, modifiers: UByte) = builder.addByte(4, modifiers.toByte(), 0)
         fun addParentNode(builder: FlatBufferBuilder, parentNode: UInt) = builder.addInt(5, parentNode.toInt(), 0)
+        fun addJson(builder: FlatBufferBuilder, json: Int) = builder.addOffset(6, json, 0)
+        @kotlin.ExperimentalUnsignedTypes
+        fun createJsonVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+            builder.startVector(1, data.size, 1)
+            for (i in data.size - 1 downTo 0) {
+                builder.addByte(data[i].toByte())
+            }
+            return builder.endVector()
+        }
+        fun startJsonVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
         fun endActionInput(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

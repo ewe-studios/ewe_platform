@@ -1,5 +1,7 @@
 # Feature 32. Target views and elements by name
 
+Status: Approved for implementation.
+
 ## Glossary
 
 A view is a content area that a host registers with a renderer.

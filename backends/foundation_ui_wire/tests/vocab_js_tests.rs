@@ -113,6 +113,10 @@ fn web_mapping_matches_the_core_names() {
     for (row, expected) in WEB_KINDS.iter().zip(rows) {
         assert_eq!((row.kind, row.tag, row.class, row.attrs), expected);
     }
+}
+
+#[test]
+fn web_tables_cover_all_kinds_and_events() {
     assert_eq!(
         WEB_KINDS.iter().map(|row| row.kind).collect::<Vec<_>>(),
         &NodeKind::ENUM_VALUES[1..],

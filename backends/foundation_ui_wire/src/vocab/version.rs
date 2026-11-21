@@ -1,5 +1,8 @@
-/// The version of the vocabulary in a new frame.
-pub const VOCABULARY_VERSION: u32 = 8;
+/// The first vocabulary that accepts structured action input.
+pub const STRUCTURED_INPUT_VERSION: u32 = 9;
+
+/// The current vocabulary includes structured action input.
+pub const VOCABULARY_VERSION: u32 = STRUCTURED_INPUT_VERSION;
 
 /// The highest vocabulary numbers that one version supports.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -93,6 +96,18 @@ pub static VOCAB_VERSIONS: &[VocabVersion] = &[
     VocabVersion {
         version: 7,
         max_node_kind: 12,
+        max_prop_id: 18,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: 8,
+        max_node_kind: 24,
         max_prop_id: 18,
         max_event_id: 5,
         max_tag_id: 114,

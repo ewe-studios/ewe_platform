@@ -12,11 +12,13 @@
     }
 
     public func trigger(reference: String, event: EventInput) async throws -> Data? {
-      try await raw.trigger(
-        reference: reference,
-        event: EweCore.EventInput(
-          nodeId: event.nodeId, eventName: event.eventName, value: event.value,
-          checked: event.checked, parentNode: event.parentNode, state: event.state))
+      let input = EweCore.EventInput(
+        nodeId: event.nodeId, eventName: event.eventName, value: event.value,
+        checked: event.checked, parentNode: event.parentNode, state: event.state)
+      if let json = event.json {
+        return try await raw.triggerStructured(reference: reference, event: input, json: json)
+      }
+      return try await raw.trigger(reference: reference, event: input)
     }
 
     public func applyCapsFrame(_ frame: Data) throws { try raw.applyCapsFrame(frame: frame) }

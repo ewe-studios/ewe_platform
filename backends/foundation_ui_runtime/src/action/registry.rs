@@ -73,10 +73,10 @@ impl<'a> ActionRef<'a> {
 
 /// The input and decoded component state for one action.
 #[derive(Debug)]
-pub struct Interaction<T> {
+pub struct Interaction<T, E = String> {
     pub node_id: u32,
     pub event_name: String,
-    pub input_value: String,
+    pub input_value: E,
     pub state: T,
 }
 
@@ -113,20 +113,60 @@ pub type ActionFuture<'a> = Pin<Box<dyn Future<Output = ActionResult> + Send + '
 pub type ActionFuture<'a> = Pin<Box<dyn Future<Output = ActionResult> + 'a>>;
 
 /// The action macro implements this trait for the author's function.
-pub trait Action: Send + Sync + 'static {
+pub trait Action<E = String>: Send + Sync + 'static {
     type State: Serialize + DeserializeOwned + Send + 'static;
     const NAME: &'static str;
     fn origin() -> Option<Origin>;
     fn scope() -> Scope;
-    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<Self::State>) -> ActionFuture<'a>;
+    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<Self::State, E>)
+        -> ActionFuture<'a>;
 }
 
 /// The dispatcher supplies these fields after it verifies the signed bytes.
 pub struct RawInteraction {
     pub node_id: u32,
     pub event_name: String,
-    pub input_value: String,
+    pub input_value: RawInput,
     pub state_body: Option<Vec<u8>>,
+}
+
+/// The encoding that the sender selected for one event.
+pub enum RawInput {
+    Missing,
+    Text(String),
+    Json(Vec<u8>),
+}
+
+impl From<String> for RawInput {
+    fn from(value: String) -> Self {
+        Self::Text(value)
+    }
+}
+
+impl From<&str> for RawInput {
+    fn from(value: &str) -> Self {
+        Self::Text(value.to_owned())
+    }
+}
+
+impl RawInput {
+    fn decode<E: DeserializeOwned + 'static>(self) -> Result<E, ErrorTrace<ActionError>> {
+        let invalid = |message| ErrorTrace::new(ActionError::new(ErrorCode::InvalidInput, message));
+        if TypeId::of::<E>() == TypeId::of::<String>() {
+            let text = match self {
+                Self::Missing => String::new(),
+                Self::Text(value) => value,
+                Self::Json(_) => return Err(invalid("The action requires text input")),
+            };
+            let value = serde::de::value::StringDeserializer::<serde::de::value::Error>::new(text);
+            return E::deserialize(value).map_err(|e| invalid("Invalid text input").attach(e));
+        }
+        match self {
+            Self::Json(bytes) => serde_json::from_slice(&bytes)
+                .map_err(|error| invalid("Invalid structured action input").attach(error)),
+            _ => Err(invalid("The action requires structured input")),
+        }
+    }
 }
 
 /// A registered Rust action with its concrete state type hidden.
@@ -138,9 +178,9 @@ pub trait ErasedAction: Send + Sync {
     fn call_raw<'a>(&'a self, ctx: &'a Context, event: RawInteraction) -> ActionFuture<'a>;
 }
 
-struct Adapter<A>(A);
+struct Adapter<A, E>(A, std::marker::PhantomData<fn() -> E>);
 
-impl<A: Action> ErasedAction for Adapter<A> {
+impl<A: Action<E>, E: DeserializeOwned + 'static> ErasedAction for Adapter<A, E> {
     fn name(&self) -> &'static str {
         A::NAME
     }
@@ -173,17 +213,13 @@ impl<A: Action> ErasedAction for Adapter<A> {
                 ))
                 .attach(error)
             })?;
-            self.0
-                .call(
-                    ctx,
-                    Interaction {
-                        node_id: event.node_id,
-                        event_name: event.event_name,
-                        input_value: event.input_value,
-                        state,
-                    },
-                )
-                .await
+            let event = Interaction {
+                node_id: event.node_id,
+                event_name: event.event_name,
+                input_value: event.input_value.decode()?,
+                state,
+            };
+            self.0.call(ctx, event).await
         })
     }
 }
@@ -266,12 +302,19 @@ impl ActionRegistry {
     ///
     /// # Errors
     /// Rejects an invalid name or an overlapping registration.
-    pub fn register<A: Action>(&mut self, action: A) -> Result<(), RegistrationError> {
+    pub fn register<A, E>(&mut self, action: A) -> Result<(), RegistrationError>
+    where
+        A: Action<E>,
+        E: DeserializeOwned + 'static,
+    {
         self.insert(
             A::origin(),
             A::NAME,
             A::scope(),
-            Implementation::Rust(std::sync::Arc::new(Adapter(action))),
+            Implementation::Rust(std::sync::Arc::new(Adapter(
+                action,
+                std::marker::PhantomData,
+            ))),
         )
     }
 

@@ -416,16 +416,18 @@ in parallel.
 | 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | ✅ Complete |
 | 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | ✅ Complete |
 | 23 | [native-design-and-themes](./features/23-native-design-and-themes/feature.md) | Platform controls and application themes in both mobile libraries | 02, 14, 15, 21, 22 | Sonnet | Native | ✅ Complete |
-| 24 | [mobile-project-templates](./features/24-mobile-project-templates/feature.md) | Generate standalone iOS and Android applications with the platform generator | 19, 21, 22 | Sonnet | Native | Proposed |
-| 25 | [mobile-websocket-actions](./features/25-mobile-websocket-actions/feature.md) | Share live connections, resume subscriptions by message, and send WebSocket actions | 07, 10, 11, 13, 21, 22 | Sonnet | Cross-platform | Proposed |
+| 24 | [mobile-project-templates](./features/24-mobile-project-templates/feature.md) | Generate standalone iOS and Android applications with the platform generator | 19, 21, 22 | Sonnet | Native | In progress |
+| 25 | [mobile-websocket-actions](./features/25-mobile-websocket-actions/feature.md) | Share live connections, resume subscriptions by message, and send WebSocket actions | 07, 10, 11, 13, 21, 22 | Sonnet | Cross-platform | Approved |
 | 26 | [connectrpc-transport](./features/26-connectrpc-transport/feature.md) | Connect remote procedure calls through a host network adapter on mobile and WebAssembly | 07, 10, 13, 21, 22 | Sonnet | Cross-platform | Complete |
 | 27 | [single-todo-package](./features/27-single-todo-package/feature.md) | Build the todo server, browser module, and mobile library from one package | 16, 21, 22 | Sonnet | Cross-platform | Complete |
-| 28 | [typed-action-input](./features/28-typed-action-input/feature.md) | Declare structured action input and preserve plain text | 01, 05, 06, 07, 10, 13 | Sonnet | Cross-platform | Proposed |
+| 28 | [typed-action-input](./features/28-typed-action-input/feature.md) | Declare structured action input and preserve plain text | 01, 05, 06, 07, 10, 13 | Sonnet | Cross-platform | Complete |
 | 29 | [thread-safe-signals](./features/29-thread-safe-signals/feature.md) | Share native signals between threads and preserve local WebAssembly scopes | Existing foundation_signals | Sonnet | Cross-platform | ✅ Complete |
 | 30 | [frame-readers-and-http-routes](./features/30-frame-readers-and-http-routes/feature.md) | Read verified frames from streams and register ordinary server handlers | 01, 03, 05, 07 | Sonnet | Cross-platform | ✅ Complete |
-| 31 | [explicit-control-tags](./features/31-explicit-control-tags/feature.md) | Replace presentation roles with shared control tags | 02, 08, 23 | Sonnet | Cross-platform | In progress |
+| 31 | [explicit-control-tags](./features/31-explicit-control-tags/feature.md) | Replace presentation roles with shared control tags | 02, 08, 23 | Sonnet | Cross-platform | ✅ Complete |
 | 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | Approved |
-| 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | Proposed |
+| 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | Approved |
+| 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Approved |
+| 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Approved |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 

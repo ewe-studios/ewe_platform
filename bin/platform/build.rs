@@ -69,5 +69,20 @@ fn main() -> io::Result<()> {
     if output_directory.exists() {
         fs::remove_dir_all(&output_directory)?;
     }
+    let release = package_directory.join("../../release/native-ui.toml");
+    let packaged_release = package_directory.join("mobile-release.toml");
+    println!("cargo:rerun-if-changed=mobile-release.toml");
+    let settings = if release.is_file() {
+        println!("cargo:rerun-if-changed={}", release.display());
+        if fs::read(&release)? != fs::read(&packaged_release)? {
+            return Err(io::Error::other(
+                "Update bin/platform/mobile-release.toml from release/native-ui.toml",
+            ));
+        }
+        release
+    } else {
+        packaged_release
+    };
+    fs::copy(settings, out_directory.join("mobile-release.toml"))?;
     copy_dir(&source_directory, &output_directory)
 }

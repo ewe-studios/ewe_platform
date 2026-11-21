@@ -1,6 +1,6 @@
 // Route browser actions through the negotiated frame protocol.
 import * as wire from "./foundation-ui-wire.js";
-import { VOCABULARY_VERSION } from "./foundation-ui-vocab.js";
+import { VOCABULARY_VERSION, STRUCTURED_INPUT_VERSION } from "./foundation-ui-vocab.js";
 import { base64urlDecode, base64urlEncode, readFrames, sheetSubmitField } from "./foundation-ui-frames.js";
 import { buildEventData } from "./foundation-wasm-ui.js";
 
@@ -101,12 +101,12 @@ function finishRequest(builder, request, stream, sequence) {
   return builder.asUint8Array();
 }
 
-function encodeAction(name, el, event, type, state, stream, sequence) {
+function encodeAction(name, el, event, type, state, stream, sequence, json) {
   const id = element => Number(element?.getAttribute("primal-id") ?? 0);
   const b = new wire.Builder();
   const mods = Number(!!event.altKey) | Number(!!event.ctrlKey) << 1 | Number(!!event.shiftKey) << 2 | Number(!!event.metaKey) << 3;
   const value = event.type === "click" ? sheetSubmitField(el)?.value ?? el.value : el.value;
-  const input = new wire.ActionInputT(type, String(value ?? ""), !!el.checked, event.keyCode ?? 0, mods, id(el.parentElement)).pack(b);
+  const input = new wire.ActionInputT(type, json === null ? String(value ?? "") : null, !!el.checked, event.keyCode ?? 0, mods, id(el.parentElement), json).pack(b);
   const ref = b.createString(name);
   const attachment = state && wire.ActionRequest.createStateVector(b, state);
   wire.ActionRequest.startActionRequest(b);
@@ -123,6 +123,7 @@ function encodeAction(name, el, event, type, state, stream, sequence) {
 export class WebActionManager {
   #busy = new Set();
   #advertised;
+  #structured = false;
   #next = 1n;
   #reloaded = false;
 
@@ -159,6 +160,7 @@ export class WebActionManager {
 
   applyCaps(caps) {
     caps = caps.unpack?.() ?? caps;
+    this.#structured = caps.status === wire.CapsStatus.Ok && caps.vocabularyVersion >= STRUCTURED_INPUT_VERSION;
     this.#advertised = new Set((caps.actions ?? []).map(a => a.name));
     this.setStreamId(caps.streamId);
     const doc = this.deps.document ?? globalThis.document;
@@ -182,6 +184,15 @@ export class WebActionManager {
   }
 
   async trigger(reference, el, event = {}, type = event.type) {
+    return this.#submit(reference, el, event, type, undefined);
+  }
+
+  async triggerStructured(reference, el, payload, event = {}, type = event.type) {
+    if (payload === undefined) return this.onError({ code: "InvalidInput" });
+    return this.#submit(reference, el, event, type, payload);
+  }
+
+  async #submit(reference, el, event, type, payload) {
     let claimed;
     let fault = "BadRequest";
     try {
@@ -198,19 +209,29 @@ export class WebActionManager {
         host: page ? true : !entry.page && !!this.deps.local, server: !!this.deps.server,
       }, name => this.#advertised?.has(name));
       if (choice.error) return this.onError({ code: choice.error });
+      if (payload !== undefined && choice.route === "server" && !this.#structured) {
+        return this.onError({ code: "UnsupportedAction", detail: "The peer did not negotiate structured input." });
+      }
       const root = el.closest("[data-ewe-root]") ?? el;
       if (this.#busy.has(root)) return this.onError({ code: "Busy" });
       claimed = root;
       this.#busy.add(root);
       if (choice.route === "host" && page) {
         fault = "HostThrew";
-        const result = await page.call(el, { node: el, parent: el.parentElement, event, data: buildEventData(type, event, el) });
+        const result = await page.call(el, { node: el, parent: el.parentElement, event, data: payload === undefined ? buildEventData(type, event, el) : payload });
         for (const bytes of (Array.isArray(result) ? result : [result])) if (bytes instanceof Uint8Array) await this.receive(bytes);
         return;
       }
       const state = stateBytes(el.getAttribute("primal::state"), this.limit);
       if (this.#next > 0xffffffffffffffffn) throw new Error("Request sequence exhausted");
-      const bytes = encodeAction(choice.route + ":" + ref.name, el, event, type, state, this.streamId, this.#next);
+      let json = null;
+      if (payload !== undefined) {
+        fault = "InvalidInput";
+        const encoded = JSON.stringify(payload);
+        if (encoded === undefined) throw new Error("The payload cannot be encoded as JSON.");
+        json = new TextEncoder().encode(encoded);
+      }
+      const bytes = encodeAction(choice.route + ":" + ref.name, el, event, type, state, this.streamId, this.#next, json);
       if (bytes.length > this.limit) throw new Error("Request too large");
       ++this.#next;
       fault = "Transport";

@@ -3,7 +3,7 @@
 // for a project.
 
 use core::str;
-use foundation_core::extensions::strings_ext::{TryIntoStr, TryIntoString};
+use foundation_core::extensions::strings_ext::TryIntoString;
 use foundation_nostd::embeddable::EmbeddableDirectory;
 use std::{io::Write, path::PathBuf, sync};
 
@@ -132,14 +132,11 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
 
         for relevant_path in items {
             let relevant_file = self.store.read_utf8_for(&relevant_path).unwrap();
-            let relevant_file_data = relevant_file.try_into_str().expect("should be string");
+            let Ok(source) = String::from_utf8(relevant_file) else {
+                continue;
+            };
             jinja_env
-                .add_template_owned(
-                    relevant_path,
-                    relevant_file_data
-                        .try_into_string()
-                        .expect("convert into String"),
-                )
+                .add_template_owned(relevant_path, source)
                 .expect("should store template");
         }
 
@@ -767,12 +764,18 @@ impl<T: PackageDirectorate> PackageGenerator<T> {
                 rewritten_template_dir,
             );
 
+            let content = if file_templates.get_template(template_file).is_ok() {
+                FileContent::Jinja(template_file.clone(), file_templates.clone())
+            } else {
+                FileContent::Bytes(
+                    self.templates
+                        .get_file(template_file)
+                        .ok_or_else(|| PackageGenError::NoTemplateFound(template_file.clone()))?,
+                )
+            };
             packager.add(FileSystemCommand::DirPath(
                 PathBuf::from(rewritten_template_dir),
-                vec![FileSystemCommand::File(
-                    template_file_name,
-                    FileContent::Jinja(template_file.clone(), file_templates.clone()),
-                )],
+                vec![FileSystemCommand::File(template_file_name, content)],
             ));
         }
 

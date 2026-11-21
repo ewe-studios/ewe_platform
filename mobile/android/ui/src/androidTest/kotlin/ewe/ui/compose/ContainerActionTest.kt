@@ -27,11 +27,13 @@ class ContainerActionTest {
                 return null
             }
         }
+        lateinit var bridge: EventBridge
         val theme = androidx.compose.runtime.mutableStateOf(EweTheme())
         store.record(4u)!!.props[PropId.UTILITY_CLASSES] = Property.Text("p-md web-only")
         compose.setContent {
             val scope = rememberCoroutineScope()
-            EweScreen(store, androidx.compose.runtime.remember { EventBridge(store, core, scope) }, theme = theme.value)
+            bridge = androidx.compose.runtime.remember { EventBridge(store, core, scope) }
+            EweScreen(store, bridge, theme = theme.value)
         }
         val field = compose.onNode(hasSetTextAction())
         field.performTextInput("Buy milk")
@@ -53,6 +55,17 @@ class ContainerActionTest {
             assertEquals(5u, calls.last().nodeId)
             assertEquals("tap", calls.last().eventName)
             assertEquals("Buy milk", calls.last().value)
+            bridge.sendStructured(EventId.SUBMIT, 4u, "Buy milk") { title ->
+                org.json.JSONObject().put("title", title).put("list", org.json.JSONObject().put("id", 7)).toString()
+            }
+        }
+        compose.runOnIdle {
+            val event = calls.last()
+            val payload = org.json.JSONObject(requireNotNull(event.json).decodeToString())
+            assertEquals(4, calls.size)
+            assertEquals(4u, event.nodeId)
+            assertEquals("Buy milk", payload.getString("title"))
+            assertEquals(7, payload.getJSONObject("list").getInt("id"))
         }
     }
 

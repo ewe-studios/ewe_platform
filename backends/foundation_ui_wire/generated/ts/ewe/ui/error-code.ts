@@ -13,5 +13,6 @@ export enum ErrorCode {
   RateLimited = 7,
   ActionFailed = 8,
   UpdateRequired = 9,
-  UnsupportedPlatformOp = 10
+  UnsupportedPlatformOp = 10,
+  InvalidInput = 11
 }

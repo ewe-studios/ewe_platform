@@ -332,3 +332,34 @@ async fn raw_view_operations_cannot_supply_state_attachments() {
     assert!(messages.get(0).data().is_some());
     assert_eq!(messages.get(1).operation().unwrap().unpack(), ordinary);
 }
+
+#[valtron_test]
+async fn structured_request_on_an_older_connection_never_reaches_the_action() {
+    use foundation_ui_wire::vocab::STRUCTURED_INPUT_VERSION;
+    use foundation_ui_wire::{ActionInputT, ActionRequestT};
+    let (ctx, _) = test_ctx(WALL);
+    ctx.store(AtomicUsize::new(0));
+    let dispatcher = dispatcher(WriterConfig::default());
+    let mut caps = ClientCaps::web_current();
+    caps.vocabulary_version = STRUCTURED_INPUT_VERSION - 1;
+    let connection = Connection::stateless(caps, Surface::Web, 7);
+    let mut input = ActionInputT::default();
+    input.json = Some(br#"{"nested":1}"#.to_vec());
+    let mut action = ActionRequestT::default();
+    action.action = Some("server:ping".into());
+    action.input = Some(Box::new(input));
+    let mut request = FrameRequestT::default();
+    request.action = Some(Box::new(action));
+    let bytes = envelope(request, 1);
+    let reply = dispatcher.dispatch(&ctx, &connection, &bytes).await;
+    assert_eq!(
+        control(&reply, 1).error.unwrap().code,
+        ErrorCode::UnsupportedAction
+    );
+    let current = dispatcher.dispatch(&ctx, &stateless(), &bytes).await;
+    assert_eq!(
+        control(&current, 1).error.unwrap().code,
+        ErrorCode::InvalidInput
+    );
+    assert_eq!(ctx.get::<AtomicUsize>().unwrap().load(Ordering::Relaxed), 0);
+}

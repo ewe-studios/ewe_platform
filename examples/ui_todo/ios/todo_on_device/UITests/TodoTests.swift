@@ -47,6 +47,7 @@ final class TodoTests: XCTestCase {
 
   func testThemeReviewScreens() throws {
     try XCTSkipUnless(ProcessInfo.processInfo.environment["EWE_REVIEW_THEMES"] == "1")
+    continueAfterFailure = false
     let originalAppearance = XCUIDevice.shared.appearance
     defer { XCUIDevice.shared.appearance = originalAppearance }
     for mode in ["light", "dark", "branded"] {
@@ -65,11 +66,21 @@ final class TodoTests: XCTestCase {
       XCTAssertTrue(input.waitForExistence(timeout: 5))
       input.tap()
       let title = "Buy milk and collect the groceries for dinner"
-      input.typeText(title)
-      input.tap()
       let keyboard = app.keyboards.firstMatch
       XCTAssertTrue(keyboard.waitForExistence(timeout: 5), "The entry review needs the software keyboard")
-      XCTAssertTrue(keyboard.keys.firstMatch.isHittable, "A software key must accept a tap")
+      let visibleKeyboard = NSPredicate { _, _ in
+        app.frame.intersection(keyboard.frame).height > 100
+      }
+      let visible = expectation(for: visibleKeyboard, evaluatedWith: keyboard)
+      wait(for: [visible], timeout: 5)
+      XCTAssertTrue(keyboard.keys.allElementsBoundByIndex.contains { $0.isHittable })
+      // XCTest attaches a hardware keyboard for typeText. Tap the software keys for this review.
+      for character in title {
+        let label = character == " " ? "space" : String(character)
+        let key = keyboard.keys.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
+        XCTAssertTrue(key.exists, "Missing software key \(label)")
+        key.tap()
+      }
       XCTAssertGreaterThan(app.frame.intersection(keyboard.frame).height, 100)
       let cancelButton = app.buttons["Cancel"]
       let submitButton = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable })

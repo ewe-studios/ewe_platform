@@ -24,6 +24,7 @@ public struct ewe_ui_ActionInput: FlatBufferObject, Verifiable {
     case keyCode = 10
     case modifiers = 12
     case parentNode = 14
+    case json = 16
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -36,7 +37,12 @@ public struct ewe_ui_ActionInput: FlatBufferObject, Verifiable {
   public var keyCode: UInt32 { let o = _accessor.offset(VTOFFSET.keyCode.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
   public var modifiers: UInt8 { let o = _accessor.offset(VTOFFSET.modifiers.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt8.self, at: o) }
   public var parentNode: UInt32 { let o = _accessor.offset(VTOFFSET.parentNode.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
-  public static func startActionInput(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
+  public var hasJson: Bool { let o = _accessor.offset(VTOFFSET.json.v); return o == 0 ? false : true }
+  public var jsonCount: Int32 { let o = _accessor.offset(VTOFFSET.json.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public func json(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.json.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
+  public var json: [UInt8] { return _accessor.getVector(at: VTOFFSET.json.v) ?? [] }
+  public func withUnsafePointerToJson<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.json.v, body: body) }
+  public static func startActionInput(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
   public static func add(eventName: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: eventName, at: VTOFFSET.eventName.p) }
   public static func add(value: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: value, at: VTOFFSET.value.p) }
   public static func add(checked: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: checked, def: false,
@@ -44,6 +50,7 @@ public struct ewe_ui_ActionInput: FlatBufferObject, Verifiable {
   public static func add(keyCode: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: keyCode, def: 0, at: VTOFFSET.keyCode.p) }
   public static func add(modifiers: UInt8, _ fbb: inout FlatBufferBuilder) { fbb.add(element: modifiers, def: 0, at: VTOFFSET.modifiers.p) }
   public static func add(parentNode: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: parentNode, def: 0, at: VTOFFSET.parentNode.p) }
+  public static func addVectorOf(json: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: json, at: VTOFFSET.json.p) }
   public static func endActionInput(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createActionInput(
     _ fbb: inout FlatBufferBuilder,
@@ -52,7 +59,8 @@ public struct ewe_ui_ActionInput: FlatBufferObject, Verifiable {
     checked: Bool = false,
     keyCode: UInt32 = 0,
     modifiers: UInt8 = 0,
-    parentNode: UInt32 = 0
+    parentNode: UInt32 = 0,
+    jsonVectorOffset json: Offset = Offset()
   ) -> Offset {
     let __start = ewe_ui_ActionInput.startActionInput(&fbb)
     ewe_ui_ActionInput.add(eventName: eventName, &fbb)
@@ -61,6 +69,7 @@ public struct ewe_ui_ActionInput: FlatBufferObject, Verifiable {
     ewe_ui_ActionInput.add(keyCode: keyCode, &fbb)
     ewe_ui_ActionInput.add(modifiers: modifiers, &fbb)
     ewe_ui_ActionInput.add(parentNode: parentNode, &fbb)
+    ewe_ui_ActionInput.addVectorOf(json: json, &fbb)
     return ewe_ui_ActionInput.endActionInput(&fbb, start: __start)
   }
 
@@ -72,6 +81,7 @@ public struct ewe_ui_ActionInput: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.keyCode.p, fieldName: "keyCode", required: false, type: UInt32.self)
     try _v.visit(field: VTOFFSET.modifiers.p, fieldName: "modifiers", required: false, type: UInt8.self)
     try _v.visit(field: VTOFFSET.parentNode.p, fieldName: "parentNode", required: false, type: UInt32.self)
+    try _v.visit(field: VTOFFSET.json.p, fieldName: "json", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     _v.finish()
   }
 }

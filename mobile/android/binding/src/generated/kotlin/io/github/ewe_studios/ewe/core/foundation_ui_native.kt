@@ -820,6 +820,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_trigger(
     ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_trigger_structured(
+    ): Int
     external fun uniffi_foundation_ui_native_checksum_method_framelistener_on_frame(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_hosttransport_send(
@@ -886,6 +888,8 @@ internal object UniffiLib {
     external fun uniffi_foundation_ui_native_fn_method_nativecore_set_frame_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_foundation_ui_native_fn_method_nativecore_trigger(`ptr`: Long,`reference`: RustBuffer.ByValue,`event`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_trigger_structured(`ptr`: Long,`reference`: RustBuffer.ByValue,`event`: RustBuffer.ByValue,`json`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_foundation_ui_native_fn_clone_framelistener(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -1085,6 +1089,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_trigger() and 0xFFFF) != 39596) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_trigger_structured() and 0xFFFF) != 32894) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_method_framelistener_on_frame() and 0xFFFF) != 10664) {
@@ -3889,6 +3896,14 @@ public interface NativeCoreInterface {
      */
     suspend fun `trigger`(`reference`: kotlin.String, `event`: EventInput): kotlin.ByteArray?
     
+    /**
+     * Send application JSON bytes with the state and event metadata from the triggering node.
+     *
+     * # Errors
+     * Reports unsupported input, routing and transport failures.
+     */
+    suspend fun `triggerStructured`(`reference`: kotlin.String, `event`: EventInput, `json`: kotlin.ByteArray): kotlin.ByteArray?
+    
     companion object
 }
 
@@ -4074,6 +4089,36 @@ open class NativeCore: Disposable, AutoCloseable, NativeCoreInterface
                 
         FfiConverterString.lower(`reference`),
         FfiConverterTypeEventInput.lower(`event`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalByteArray.lift(it) },
+        // Error FFI converter
+        CoreException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Send application JSON bytes with the state and event metadata from the triggering node.
+     *
+     * # Errors
+     * Reports unsupported input, routing and transport failures.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `triggerStructured`(`reference`: kotlin.String, `event`: EventInput, `json`: kotlin.ByteArray) : kotlin.ByteArray? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_trigger_structured(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`reference`),
+        FfiConverterTypeEventInput.lower(`event`),
+        FfiConverterByteArray.lower(`json`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -4847,6 +4892,20 @@ sealed class CoreException: kotlin.Exception() {
             get() = "detail=${ `detail` }"
     }
     
+    class InvalidInput(
+        
+        val `detail`: kotlin.String
+        ) : CoreException() {
+        override val message
+            get() = "detail=${ `detail` }"
+    }
+    
+    class UnsupportedInput(
+        ) : CoreException() {
+        override val message
+            get() = ""
+    }
+    
 
     
 
@@ -4885,6 +4944,10 @@ public object FfiConverterTypeCoreError : FfiConverterRustBuffer<CoreException> 
             7 -> CoreException.Write(
                 FfiConverterString.read(buf),
                 )
+            8 -> CoreException.InvalidInput(
+                FfiConverterString.read(buf),
+                )
+            9 -> CoreException.UnsupportedInput()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -4925,6 +4988,15 @@ public object FfiConverterTypeCoreError : FfiConverterRustBuffer<CoreException> 
                 4UL
                 + FfiConverterString.allocationSize(value.`detail`)
             )
+            is CoreException.InvalidInput -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`detail`)
+            )
+            is CoreException.UnsupportedInput -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
         }
     }
 
@@ -4962,6 +5034,15 @@ public object FfiConverterTypeCoreError : FfiConverterRustBuffer<CoreException> 
             is CoreException.Write -> {
                 buf.putInt(7)
                 FfiConverterString.write(value.`detail`, buf)
+                Unit
+            }
+            is CoreException.InvalidInput -> {
+                buf.putInt(8)
+                FfiConverterString.write(value.`detail`, buf)
+                Unit
+            }
+            is CoreException.UnsupportedInput -> {
+                buf.putInt(9)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }

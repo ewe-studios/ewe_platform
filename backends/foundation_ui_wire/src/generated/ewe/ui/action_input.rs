@@ -33,6 +33,7 @@ impl<'a> ActionInput<'a> {
     pub const VT_KEY_CODE: flatbuffers::VOffsetT = 10;
     pub const VT_MODIFIERS: flatbuffers::VOffsetT = 12;
     pub const VT_PARENT_NODE: flatbuffers::VOffsetT = 14;
+    pub const VT_JSON: flatbuffers::VOffsetT = 16;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -44,6 +45,9 @@ impl<'a> ActionInput<'a> {
         args: &'args ActionInputArgs<'args>,
     ) -> flatbuffers::WIPOffset<ActionInput<'bldr>> {
         let mut builder = ActionInputBuilder::new(_fbb);
+        if let Some(x) = args.json {
+            builder.add_json(x);
+        }
         builder.add_parent_node(args.parent_node);
         builder.add_key_code(args.key_code);
         if let Some(x) = args.value {
@@ -64,6 +68,7 @@ impl<'a> ActionInput<'a> {
         let key_code = self.key_code();
         let modifiers = self.modifiers();
         let parent_node = self.parent_node();
+        let json = self.json().map(|x| x.into_iter().collect());
         ActionInputT {
             event_name,
             value,
@@ -71,6 +76,7 @@ impl<'a> ActionInput<'a> {
             key_code,
             modifiers,
             parent_node,
+            json,
         }
     }
 
@@ -138,6 +144,19 @@ impl<'a> ActionInput<'a> {
                 .unwrap()
         }
     }
+    #[inline]
+    pub fn json(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(
+                    ActionInput::VT_JSON,
+                    None,
+                )
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for ActionInput<'_> {
@@ -158,6 +177,11 @@ impl flatbuffers::Verifiable for ActionInput<'_> {
             .visit_field::<u32>("key_code", Self::VT_KEY_CODE, false)?
             .visit_field::<u8>("modifiers", Self::VT_MODIFIERS, false)?
             .visit_field::<u32>("parent_node", Self::VT_PARENT_NODE, false)?
+            .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(
+                "json",
+                Self::VT_JSON,
+                false,
+            )?
             .finish();
         Ok(())
     }
@@ -169,6 +193,7 @@ pub struct ActionInputArgs<'a> {
     pub key_code: u32,
     pub modifiers: u8,
     pub parent_node: u32,
+    pub json: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
 }
 impl<'a> Default for ActionInputArgs<'a> {
     #[inline]
@@ -180,6 +205,7 @@ impl<'a> Default for ActionInputArgs<'a> {
             key_code: 0,
             modifiers: 0,
             parent_node: 0,
+            json: None,
         }
     }
 }
@@ -220,6 +246,11 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ActionInputBuilder<'a, 'b, A> {
             .push_slot::<u32>(ActionInput::VT_PARENT_NODE, parent_node, 0);
     }
     #[inline]
+    pub fn add_json(&mut self, json: flatbuffers::WIPOffset<flatbuffers::Vector<'b, u8>>) {
+        self.fbb_
+            .push_slot_always::<flatbuffers::WIPOffset<_>>(ActionInput::VT_JSON, json);
+    }
+    #[inline]
     pub fn new(
         _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     ) -> ActionInputBuilder<'a, 'b, A> {
@@ -245,6 +276,7 @@ impl core::fmt::Debug for ActionInput<'_> {
         ds.field("key_code", &self.key_code());
         ds.field("modifiers", &self.modifiers());
         ds.field("parent_node", &self.parent_node());
+        ds.field("json", &self.json());
         ds.finish()
     }
 }
@@ -257,6 +289,7 @@ pub struct ActionInputT {
     pub key_code: u32,
     pub modifiers: u8,
     pub parent_node: u32,
+    pub json: Option<Vec<u8>>,
 }
 impl Default for ActionInputT {
     fn default() -> Self {
@@ -267,6 +300,7 @@ impl Default for ActionInputT {
             key_code: 0,
             modifiers: 0,
             parent_node: 0,
+            json: None,
         }
     }
 }
@@ -281,6 +315,7 @@ impl ActionInputT {
         let key_code = self.key_code;
         let modifiers = self.modifiers;
         let parent_node = self.parent_node;
+        let json = self.json.as_ref().map(|x| _fbb.create_vector(x));
         ActionInput::create(
             _fbb,
             &ActionInputArgs {
@@ -290,6 +325,7 @@ impl ActionInputT {
                 key_code,
                 modifiers,
                 parent_node,
+                json,
             },
         )
     }

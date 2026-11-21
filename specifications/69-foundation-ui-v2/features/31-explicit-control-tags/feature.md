@@ -1,6 +1,6 @@
 # Feature 31. Explicit control tags
 
-Status: Approved for implementation.
+Status: Complete.
 
 ## Glossary
 
@@ -77,3 +77,25 @@ Each renderer receives the same control identity.
 - Keep Cancel and Add on one row above the keyboard when they fit. Test large text and all three approved themes.
 
 This feature replaces the role-based instructions in Feature 23. The existing mobile screenshots define the expected appearance.
+
+## Verification
+
+Chrome ran the shared list, entry form and confirmation through the browser frame renderer.
+The document writer test also renders each control as an HTML element.
+[Browser list](design/web-list.png) · [Browser entry](design/web-entry.png) · [Browser confirmation](design/web-confirmation.png)
+
+The Android 16 emulator ran both todo applications. The installed application carried one copy of each native library per processor.
+Six Compose tests passed. Cancel and Add appeared on one row above the software keyboard in all three themes.
+Cancel and Confirm appeared side by side in each alert. The nine images matched the approved layout.
+The largest mean pixel difference was 0.024 percent of the color range.
+
+The iPhone simulator completed local and remote todo actions. The list and confirmation matched the approved layout.
+The entry review also checks that a software key accepts a tap and that the keyboard covers part of the screen.
+
+All 20 Swift package tests passed on the iPhone 17 simulator. The entry test tapped each software key.
+All three images show Cancel and Add above the open keyboard. The branded test uses the large accessibility text size.
+
+| Platform | Light | Dark | Branded |
+|---|---|---|---|
+| iOS | [Light entry](design/ios-light-entry.png) | [Dark entry](design/ios-dark-entry.png) | [Branded entry](design/ios-branded-entry.png) |
+| Android | [Light entry](design/android-light-entry.png) | [Dark entry](design/android-dark-entry.png) | [Branded entry](design/android-branded-entry.png) |

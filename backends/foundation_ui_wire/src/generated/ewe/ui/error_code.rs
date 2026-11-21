@@ -18,13 +18,13 @@ pub const ENUM_MIN_ERROR_CODE: u16 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_ERROR_CODE: u16 = 10;
+pub const ENUM_MAX_ERROR_CODE: u16 = 11;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ERROR_CODE: [ErrorCode; 11] = [
+pub const ENUM_VALUES_ERROR_CODE: [ErrorCode; 12] = [
     ErrorCode::Unknown,
     ErrorCode::BadRequest,
     ErrorCode::UnknownAction,
@@ -36,6 +36,7 @@ pub const ENUM_VALUES_ERROR_CODE: [ErrorCode; 11] = [
     ErrorCode::ActionFailed,
     ErrorCode::UpdateRequired,
     ErrorCode::UnsupportedPlatformOp,
+    ErrorCode::InvalidInput,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -54,9 +55,10 @@ impl ErrorCode {
     pub const ActionFailed: Self = Self(8);
     pub const UpdateRequired: Self = Self(9);
     pub const UnsupportedPlatformOp: Self = Self(10);
+    pub const InvalidInput: Self = Self(11);
 
     pub const ENUM_MIN: u16 = 0;
-    pub const ENUM_MAX: u16 = 10;
+    pub const ENUM_MAX: u16 = 11;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::Unknown,
         Self::BadRequest,
@@ -69,6 +71,7 @@ impl ErrorCode {
         Self::ActionFailed,
         Self::UpdateRequired,
         Self::UnsupportedPlatformOp,
+        Self::InvalidInput,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -84,6 +87,7 @@ impl ErrorCode {
             Self::ActionFailed => Some("ActionFailed"),
             Self::UpdateRequired => Some("UpdateRequired"),
             Self::UnsupportedPlatformOp => Some("UnsupportedPlatformOp"),
+            Self::InvalidInput => Some("InvalidInput"),
             _ => None,
         }
     }

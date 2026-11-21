@@ -12,8 +12,9 @@ public struct EventInput: Sendable {
   public let checked: Bool
   public let parentNode: UInt32
   public let state: Data
+  public let json: Data?
   public init(
-    nodeId: UInt32, eventName: String, value: String, checked: Bool, parentNode: UInt32, state: Data
+    nodeId: UInt32, eventName: String, value: String, checked: Bool, parentNode: UInt32, state: Data, json: Data? = nil
   ) {
     self.nodeId = nodeId
     self.eventName = eventName
@@ -21,6 +22,7 @@ public struct EventInput: Sendable {
     self.checked = checked
     self.parentNode = parentNode
     self.state = state
+    self.json = json
   }
 }
 @MainActor public protocol ActionCore: AnyObject {
@@ -40,10 +42,20 @@ public struct EventInput: Sendable {
     }
   }
   public func send(_ event: EventId, node: UInt32, value: String = "", checked: Bool = false) {
+    submit(event, node: node, value: value, checked: checked, json: nil)
+  }
+
+  /// Submit a value defined by the form author with the state of the triggering control.
+  public func sendStructured<E: Encodable>(_ event: EventId, node: UInt32, value: E) throws {
+    let data = try JSONEncoder().encode(value)
+    submit(event, node: node, value: "", checked: false, json: data)
+  }
+
+  private func submit(_ event: EventId, node: UInt32, value: String, checked: Bool, json: Data?) {
     guard let n = store.record(node), let reference = n.actions[event] else { return }
     let input = EventInput(
       nodeId: node, eventName: String(describing: event), value: value, checked: checked,
-      parentNode: n.parent ?? 0, state: n.state)
+      parentNode: n.parent ?? 0, state: n.state, json: json)
     Task {
       do {
         if let reply = try await core.trigger(reference: reference, event: input) {

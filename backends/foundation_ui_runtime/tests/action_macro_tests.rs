@@ -159,3 +159,104 @@ async fn registered_action_returns_signed_state_and_preserves_handler_errors() {
         if error.current_context().code == ErrorCode::ActionFailed
         && error.current_context().message == "Counter is full"));
 }
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+struct TodoInput {
+    title: String,
+    counter: Counter,
+}
+
+#[action]
+async fn save_input(ctx: &Context, event: Interaction<Counter, TodoInput>) -> ActionResult {
+    ctx.store((event.state.current, event.input_value));
+    Ok(())
+}
+
+type PlainText = String;
+
+#[action]
+async fn save_text(ctx: &Context, event: Interaction<(), PlainText>) -> ActionResult {
+    ctx.store(event.input_value);
+    Ok(())
+}
+
+#[action]
+async fn save_unit(ctx: &Context, event: Interaction<(), TodoInput>) -> ActionResult {
+    ctx.store(event.input_value);
+    Ok(())
+}
+
+#[valtron_test]
+async fn typed_action_decodes_the_declared_input_after_verifying_state() {
+    use foundation_ui_wire::ActionInputT;
+    let (ctx, _) = test_ctx(WALL);
+    install_state_signer(
+        &ctx,
+        Arc::new(HmacStateSigner::new([9; 32], StateConfig::default()).unwrap()),
+    );
+    let mut registry = ActionRegistry::new();
+    registry.register(save_input).unwrap();
+    registry.register(save_unit).unwrap();
+    registry.register(save_text).unwrap();
+    let signed = sign_state(&ctx, br#"{"current":42}"#).unwrap();
+    let payload = br#"{"title":"Buy milk","counter":{"current":7}}"#;
+    let make = |value: Option<&str>, json: Option<&[u8]>, state: Option<Vec<u8>>| {
+        let mut input = ActionInputT::default();
+        input.value = value.map(str::to_owned);
+        input.json = json.map(<[u8]>::to_vec);
+        let mut req = ActionRequestT::default();
+        req.input = Some(Box::new(input));
+        req.state = state;
+        req
+    };
+    for origin in [Origin::Host, Origin::Server] {
+        let entry = registry.get(origin, "save_input", Surface::Native).unwrap();
+        let req = make(None, Some(payload), Some(signed.clone()));
+        invoke_action(&ctx, entry, Surface::Native, None, req)
+            .await
+            .unwrap();
+        let received = ctx.get::<(u32, TodoInput)>().unwrap();
+        assert_eq!(received.0, 42);
+        assert_eq!(received.1, serde_json::from_slice(payload).unwrap());
+    }
+    let entry = registry
+        .get(Origin::Host, "save_unit", Surface::Web)
+        .unwrap();
+    for (text, json) in [
+        (None, None),
+        (Some("text"), None),
+        (Some("both"), Some(payload.as_slice())),
+        (None, Some(b"".as_slice())),
+        (None, Some(b"{".as_slice())),
+        (None, Some(b"{}".as_slice())),
+    ] {
+        let result = invoke_action(&ctx, entry, Surface::Web, None, make(text, json, None)).await;
+        assert!(
+            matches!(result, Err(InvokeError::Action(e)) if e.current_context().code == ErrorCode::InvalidInput)
+        );
+        assert!(ctx.get::<TodoInput>().is_none());
+    }
+    invoke_action(
+        &ctx,
+        entry,
+        Surface::Web,
+        None,
+        make(None, Some(payload), None),
+    )
+    .await
+    .unwrap();
+    assert_eq!(ctx.get::<TodoInput>().unwrap().title, "Buy milk");
+    let text = registry
+        .get(Origin::Host, "save_text", Surface::Web)
+        .unwrap();
+    for value in [None, Some(""), Some("plain"), Some("\"quoted\"")] {
+        invoke_action(&ctx, text, Surface::Web, None, make(value, None, None))
+            .await
+            .unwrap();
+        assert_eq!(ctx.get::<String>().unwrap().as_str(), value.unwrap_or(""));
+    }
+    assert!(
+        matches!(invoke_action(&ctx, text, Surface::Web, None, make(None, Some(payload), None)).await,
+        Err(InvokeError::Action(e)) if e.current_context().code == ErrorCode::InvalidInput)
+    );
+}

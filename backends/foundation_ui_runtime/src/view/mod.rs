@@ -92,6 +92,12 @@ impl From<LowerError> for ErrorTrace<ActionError> {
     }
 }
 
+/// Resolves a Rust action binding with its declared input type.
+#[must_use]
+pub fn typed_action_reference<A: crate::action::Action<E>, E>() -> String {
+    action_reference(A::origin(), A::NAME)
+}
+
 /// Returns the action reference stored by a typed event binding.
 #[must_use]
 pub fn action_reference(origin: Option<Origin>, name: &str) -> String {

@@ -41,12 +41,13 @@ fn expand_checked(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
             "the first parameter of an action must be a shared reference, for example &Context",
         ));
     };
-    let state = state_type(&event.ty).ok_or_else(|| {
+    let (state, input) = interaction_types(&event.ty).ok_or_else(|| {
         Error::new_spanned(
             &event.ty,
-            "the second parameter of an action must be `Interaction<T>`",
+            "the second parameter must be `Interaction<State>` or `Interaction<State, Input>`",
         )
     })?;
+    let input = input.map_or_else(|| quote!(::std::string::String), |typ| quote!(#typ));
     let ReturnType::Type(_, result) = &sig.output else {
         return Err(Error::new_spanned(
             &sig,
@@ -71,7 +72,7 @@ fn expand_checked(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
         #vis struct #name;
 
         #(#gates_and_lints)*
-        impl #runtime::action::Action for #name {
+        impl #runtime::action::Action<#input> for #name {
             const NAME: &'static str = #action_name;
             type State = #state;
 
@@ -187,7 +188,7 @@ fn parameters(sig: &Signature) -> syn::Result<[&PatType; 2]> {
     Ok([context, event])
 }
 
-fn state_type(event: &Type) -> Option<&Type> {
+fn interaction_types(event: &Type) -> Option<(&Type, Option<&Type>)> {
     let Type::Path(event) = event else {
         return None;
     };
@@ -199,8 +200,11 @@ fn state_type(event: &Type) -> Option<&Type> {
         return None;
     };
     let mut args = arguments.args.iter();
-    match (args.next(), args.next()) {
-        (Some(GenericArgument::Type(state)), None) => Some(state),
+    match (args.next(), args.next(), args.next()) {
+        (Some(GenericArgument::Type(state)), None, None) => Some((state, None)),
+        (Some(GenericArgument::Type(state)), Some(GenericArgument::Type(input)), None) => {
+            Some((state, Some(input)))
+        }
         _ => None,
     }
 }

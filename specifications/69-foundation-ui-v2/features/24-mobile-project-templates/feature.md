@@ -1,6 +1,6 @@
 ---
 feature: "mobile-project-templates"
-status: "proposed"
+status: "in-progress"
 depends_on: ["19", "21", "22"]
 ---
 

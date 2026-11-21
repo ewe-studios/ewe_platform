@@ -3,7 +3,7 @@ include "common.fbs";
 namespace ewe.ui;
 // modifiers bits: 1 alt, 2 ctrl, 4 shift, 8 meta.
 table ActionInput { event_name: string; value: string; checked: bool; key_code: uint;
-  modifiers: ubyte; parent_node: uint; }
+  modifiers: ubyte; parent_node: uint; json: [ubyte]; }
 // The frame holds the schema version, the stream and the sequence, so this table does not
 // repeat them (D47). The triggering node returns the signer bytes from its attachment, or empty bytes.
 table ActionRequest {

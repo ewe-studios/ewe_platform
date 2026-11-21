@@ -28,7 +28,7 @@ table ServerCaps { status: CapsStatus; schema_version: ushort; vocabulary_versio
 
 enum ErrorCode : ushort { Unknown = 0, BadRequest = 1, UnknownAction = 2,
   UnavailableOrigin = 3, UnsupportedAction = 4, StateRejected = 5, StateExpired = 6,
-  RateLimited = 7, ActionFailed = 8, UpdateRequired = 9, UnsupportedPlatformOp = 10 }
+  RateLimited = 7, ActionFailed = 8, UpdateRequired = 9, UnsupportedPlatformOp = 10, InvalidInput = 11 }
 // StateExpired and UpdateRequired are host-facing codes only. On the wire the control
 // members `state_expired` and `update_required` carry them (D43, D45). The platform host
 // reports both through its own error callback, with these codes.

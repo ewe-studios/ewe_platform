@@ -94,6 +94,12 @@ async fn local(ctx: &Context, event: Interaction<u32>) -> ActionResult {
     Ok(())
 }
 
+#[action(host)]
+async fn local_numbers(ctx: &Context, event: Interaction<(), Vec<u32>>) -> ActionResult {
+    ctx.store(event.input_value);
+    Ok(())
+}
+
 fn core(host: Option<Arc<dyn HostTransport>>) -> (Ctx, Arc<NativeCore>) {
     let ctx = Ctx::host();
     install_state_signer(
@@ -102,6 +108,7 @@ fn core(host: Option<Arc<dyn HostTransport>>) -> (Ctx, Arc<NativeCore>) {
     );
     let mut registry = ActionRegistry::new();
     registry.register(local).unwrap();
+    registry.register(local_numbers).unwrap();
     registry.declare(None, "advertised", Scope::All).unwrap();
     registry
         .declare(Some(Origin::Host), "picker", Scope::Web)
@@ -509,4 +516,54 @@ async fn native_provider_selects_the_service_once_per_screen() {
     assert_eq!(sent.len(), 4);
     assert_eq!(sent[0..2], sent[2..4]);
     assert_eq!(provider.1.load(Ordering::Relaxed), 2);
+}
+
+#[valtron_test]
+async fn native_structured_submission_reaches_the_local_handler_and_the_selected_transport() {
+    let host = Arc::new(Recorder::default());
+    let (ctx, core) = core(Some(host.clone()));
+    let json = b"[3,7]".to_vec();
+    core.trigger_structured("host:local_numbers".into(), event(), json.clone())
+        .await
+        .unwrap();
+    assert_eq!(ctx.get::<Vec<u32>>().unwrap().as_slice(), [3, 7]);
+    assert_eq!(
+        core.trigger_structured("server:save".into(), event(), json.clone())
+            .await,
+        Err(CoreError::UnsupportedInput)
+    );
+    let mut caps = ServerCapsT::default();
+    let mut action = ServerActionT::default();
+    action.name = Some("save".into());
+    caps.actions = Some(vec![action]);
+    caps.schema_version = SCHEMA_VERSION;
+    caps.vocabulary_version = foundation_ui_wire::vocab::STRUCTURED_INPUT_VERSION;
+    core.apply_caps_frame(
+        write_caps(
+            &caps,
+            FrameHeader {
+                stream_id: 7,
+                ack: 0,
+                sequence_id: 1,
+            },
+            &WriterConfig::default(),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    core.trigger_structured("server:save".into(), event(), json.clone())
+        .await
+        .unwrap();
+    let requests = host.requests.lock().unwrap();
+    assert_eq!(requests.len(), 1);
+    let received = read_frame(&requests[0], &WireLimits::default())
+        .unwrap()
+        .kind_as_frame_request()
+        .unwrap()
+        .action()
+        .unwrap()
+        .input()
+        .unwrap();
+    assert_eq!(received.json().unwrap().bytes(), json);
+    assert_eq!(received.value(), None);
 }

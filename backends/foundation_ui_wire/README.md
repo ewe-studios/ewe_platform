@@ -383,3 +383,16 @@ Use `AsyncFrameReader::raw(body, limits).next_frame().await?` on a fallible stre
 The Hypertext Transfer Protocol (HTTP) adapter obtains this stream from `request.take_async_body()`.
 Use `StreamFrameWriter::length_prefixed(writer).write_frame(&frame)?` for an action reply.
 Use `StreamFrameWriter::raw(writer)` for an initial view.
+
+### Text and structured action input
+
+Vocabulary 9 adds an optional `ActionInput.json` byte vector. It carries UTF-8 JavaScript Object Notation (JSON).
+Set `value` for text. A quoted text value keeps its quotes. Missing text becomes the empty string for a text handler.
+For a structured request, omit `value` and set `json`. The [structured request fixture](fixtures/action_structured.bin) uses this payload.
+
+```json
+{"list":{"id":7},"title":"Buy milk"}
+```
+
+A receiver reports `InvalidInput` if both fields exist, the encoding conflicts with the handler, or the payload cannot decode.
+An empty vector counts as a present field. Send structured input to a remote peer after vocabulary 9 or later is negotiated.

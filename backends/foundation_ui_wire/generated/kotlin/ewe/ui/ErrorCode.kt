@@ -16,5 +16,6 @@ class ErrorCode private constructor() {
         const val ActionFailed: UShort = 8u
         const val UpdateRequired: UShort = 9u
         const val UnsupportedPlatformOp: UShort = 10u
+        const val InvalidInput: UShort = 11u
     }
 }

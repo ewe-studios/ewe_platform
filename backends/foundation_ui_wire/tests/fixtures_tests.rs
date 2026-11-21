@@ -401,6 +401,24 @@ fn fixtures_match_built_values() {
         ("frame_unknown_op.bin", unknown),
         ("action_increment.bin", counter_action_bytes(state.clone())),
         (
+            "action_structured.bin",
+            finish_frame(&request_frame(
+                7,
+                6,
+                table!(FrameRequestT {
+                    action: Some(Box::new(table!(ActionRequestT {
+                        action: Some("server:add_todo".into()),
+                        node_id: 42,
+                        input: Some(Box::new(table!(ActionInputT {
+                            event_name: Some("submit".into()),
+                            json: Some(br#"{"list":{"id":7},"title":"Buy milk"}"#.to_vec()),
+                        }))),
+                    }))),
+                }),
+            ))
+            .unwrap(),
+        ),
+        (
             "action_increment_custom.bin",
             counter_action_bytes(custom_state.to_vec()),
         ),

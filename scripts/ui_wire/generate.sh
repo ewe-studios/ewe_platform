@@ -31,6 +31,7 @@ python3 -I "$script_dir/verify_unknown_unions.py" "$scratch/src/generated"
 rustfmt --edition 2021 --config-path "$scratch/rustfmt.toml" "$scratch/src/generated/mod.rs"
 
 flatc --ts --gen-object-api -o "$scratch/generated/ts" "${schema[@]}"
+python3 -I "$script_dir/action_input_presence.py" "$scratch/generated/ts"
 flatc --swift -o "$scratch/generated/swift" "${schema[@]}"
 python3 -I "$script_dir/swift_raw_ids.py" "$scratch/generated/swift"
 flatc --kotlin -o "$scratch/generated/kotlin" "${schema[@]}"

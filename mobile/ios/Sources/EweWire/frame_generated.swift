@@ -56,8 +56,9 @@ public enum ewe_ui_ErrorCode: UInt16, Enum, Verifiable {
   case actionfailed = 8
   case updaterequired = 9
   case unsupportedplatformop = 10
+  case invalidinput = 11
 
-  public static var max: ewe_ui_ErrorCode { return .unsupportedplatformop }
+  public static var max: ewe_ui_ErrorCode { return .invalidinput }
   public static var min: ewe_ui_ErrorCode { return .unknown }
 }
 
