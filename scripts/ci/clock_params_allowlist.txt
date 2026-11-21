@@ -28,3 +28,7 @@ backends/foundation_reactor/src/poll/sys/unix/selector/uring.rs  # reactor poll 
 # The migration runner keeps the clock it stamps rows with; a spec 76 follow-up
 # moves it onto Ctx.
 backends/foundation_db/src/core/schema/migrations.rs  # migration runner clock
+
+# Effects and the deterministic simulation harness build the first Ctx.
+backends/foundation_core/src/env.rs  # host Ctx example in a doc comment
+backends/foundation_testing/src/dst.rs  # DST harness builds the simulated clock
