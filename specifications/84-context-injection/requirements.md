@@ -437,9 +437,9 @@ fn work(ctx: Ctx) -> WorkResult {
 fn test_work() { ... }
 ```
 
-`#[valtron(env = name)]` inserts `let name = ctx.require_env()?;` after the `ctx` binding. The
-function's error type must convert `EnvError`; `EnvError: std::error::Error`, so `?` works for
-any error type with a `From` impl. `#[valtron_test(env = .., seed = ..)]` builds
+`env` takes an expression that gives `Env` or `Result<Env, E>`. The macro installs it in the
+pool's root `Ctx` before the body runs, as [env.md](./env.md) section 8 specifies. Spec 82 uses
+this form: `#[valtron(env = Env::system())]`. `#[valtron_test(env = .., seed = ..)]` builds
 `foundation_core::env::simulated` from the seed, stores it, and runs the task on a pool that
 uses that `Ctx`.
 
