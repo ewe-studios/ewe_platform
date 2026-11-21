@@ -102,6 +102,10 @@ def dev_dependency_cycles(packages: list[dict]) -> list[list[str]]:
         for dep in package.get("dependencies", []):
             if dep.get("kind") == "dev" or dep["name"] not in names:
                 continue
+            # An optional dependency is absent unless its feature is on, so it
+            # cannot close a publish cycle by itself.
+            if dep.get("optional"):
+                continue
             if dep["name"] not in edges[package["name"]]:
                 edges[package["name"]].append(dep["name"])
 

@@ -10,8 +10,12 @@ fn every_sql_file_is_a_core_migration() {
     let mut files: Vec<String> = std::fs::read_dir(&dir)
         .unwrap()
         .map(|entry| entry.unwrap().file_name().into_string().unwrap())
-        .filter(|name| name.ends_with(".sql"))
-        .map(|name| name.trim_end_matches(".sql").to_string())
+        .filter(|name| {
+            std::path::Path::new(name)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("sql"))
+        })
+        .map(|name| name[..name.len() - 4].to_string())
         .collect();
     files.sort();
     let mut ids: Vec<String> = MIGRATIONS

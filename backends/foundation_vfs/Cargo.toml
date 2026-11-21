@@ -13,10 +13,16 @@ keywords = ["vfs", "filesystem", "async"]
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
 foundation_context = { path = "../foundation_context", version = "0.0.3" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
 
 derive_more = { workspace = true }
 serde = { workspace = true }
 async-trait = "0.1"
+
+[features]
+# Arrow serialization of the VFS types. The implementations live here
+# because the types are local to this crate (the orphan rule).
+arrow = ["dep:foundation_arrow"]
 
 [lints]
 workspace = true

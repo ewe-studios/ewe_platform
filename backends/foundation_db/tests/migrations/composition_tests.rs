@@ -42,5 +42,5 @@ async fn the_second_run_applies_nothing() {
     let runner = MigrationRunner::from_static(&SHARED).add_from_static(&TENANT_A);
     runner.run_async(&EmptyFs::new(), &store).await.unwrap();
     let summary = runner.run_async(&EmptyFs::new(), &store).await.unwrap();
-    assert!(summary.applied.is_empty());
+    assert_eq!(summary.applied, Vec::new());
 }

@@ -11,9 +11,7 @@ mod cf_common;
 use std::borrow::Cow;
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{
-    Migration, MigrationConfig, MigrationRunner, MigrationSet, MigrationSource, QueryStore,
-};
+use foundation_db::{Migration, MigrationConfig, MigrationRunner, MigrationSet, MigrationSource};
 use foundation_vfs::EmptyFs;
 
 use crate::common::{count, table_exists, TENANT_B};
@@ -56,7 +54,7 @@ async fn d1_applies_each_migration_once() {
     );
 
     let second = runner.run_async(&EmptyFs::new(), &store).await.unwrap();
-    assert!(second.applied.is_empty());
+    assert_eq!(second.applied, Vec::new());
 }
 
 #[valtron_test]

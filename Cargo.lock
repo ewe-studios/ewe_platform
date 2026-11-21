@@ -121,7 +121,7 @@ dependencies = [
  "io_tee",
  "nom 8.0.0",
  "rand 0.8.5",
- "secrecy 0.10.3",
+ "secrecy",
  "sha2 0.10.9",
 ]
 
@@ -6013,7 +6013,7 @@ dependencies = [
  "foundation_netio",
  "pbkdf2",
  "rmp-serde",
- "secrecy 0.8.0",
+ "secrecy",
  "serde",
  "serde_json",
  "serde_repr",
@@ -6504,6 +6504,7 @@ version = "0.0.1"
 dependencies = [
  "async-trait",
  "derive_more",
+ "foundation_arrow",
  "foundation_compact",
  "foundation_context",
  "foundation_errstacks",
@@ -12987,15 +12988,6 @@ dependencies = [
  "generic-array",
  "pkcs8 0.10.2",
  "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "secrecy"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bd1c54ea06cfd2f6b63219704de0b9b4f72dcc2b8fdef820be6cd799780e91e"
-dependencies = [
  "zeroize",
 ]
 

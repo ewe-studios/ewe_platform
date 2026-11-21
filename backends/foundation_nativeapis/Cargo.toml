@@ -387,7 +387,7 @@ vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "dep:futures-lite", "fou
 vfs-r2 = ["vfs", "dep:foundation_db", "dep:serde_json", "dep:futures-lite", "foundation_db/r2"]
 
 # Arrow serialization for VFS types
-vfs-arrow = ["vfs", "dep:foundation_arrow"]
+vfs-arrow = ["vfs", "dep:foundation_arrow", "foundation_vfs/arrow"]
 
 # VFS IPC daemon/client over the message bus
 vfs-ipc = ["vfs", "ipc", "dep:foundation_macros"]

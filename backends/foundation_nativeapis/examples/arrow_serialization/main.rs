@@ -1,8 +1,8 @@
 use foundation_arrow::arrow_schema::Schema;
 /// Example: Arrow Serialization for VFS Types.
 ///
-/// Demonstrates how VfsMetadata and VfsDirEntry can be serialized to/from
-/// Arrow IPC format using foundation_arrow. This enables zero-copy batch
+/// Demonstrates how `VfsMetadata` and `VfsDirEntry` can be serialized to/from
+/// Arrow IPC format using `foundation_arrow`. This enables zero-copy batch
 /// operations on VFS metadata — useful for indexing, replication, and
 /// analytics pipelines.
 use foundation_arrow::{ArrowSchema, FromArrow, ToArrow};
