@@ -23,7 +23,7 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 Let one container give many sandboxes. A slave that runs in a container (Docker or
 Cloudflare) also serves `SandboxService`, with the same `SandboxManager` and the
 Firecracker driver inside it. The outer control plane then creates microVMs in that
-container through the slave, and uses them through the same `Sandbox` API.
+container through the slave, and uses them through the same `SandboxHandle` API.
 
 ```mermaid
 graph LR

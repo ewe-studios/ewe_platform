@@ -1162,11 +1162,22 @@ impl QueryStore for D1Store {
                 .iter()
                 .any(|stmt| stmt.success != Some(true));
         if any_failed {
-            return Err(StorageError::Backend(
-                "D1 batch: one or more statements failed".to_string(),
-            ));
+            // Keep the message of the API. The migration runner reads it to
+            // tell a primary-key conflict from a real SQL error.
+            let mut message = String::from("D1 batch: one or more statements failed");
+            for error in &response.errors {
+                if let Some(serde_json::Value::String(text)) = error.get("message") {
+                    message.push_str(": ");
+                    message.push_str(text);
+                }
+            }
+            return Err(StorageError::Backend(message));
         }
         Ok(())
+    }
+
+    fn batch_is_transactional(&self) -> bool {
+        true
     }
 }
 

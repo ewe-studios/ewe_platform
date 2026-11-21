@@ -142,7 +142,7 @@ Links to other entities: attach finds it by its name
 - `SbxDriver`, `SbxDriverConfig`, `SbxApi`, `SbxCli` in `src/native/sbx/`, behind the
   crate feature `docker-sbx`.
 - `DriverId::DockerSbx` (display string `docker-sbx`), `HostConfig.sbx_path`.
-- `ProviderId::DockerSbx`, `SandboxProvider::docker_sbx`.
+- `ProviderId::DockerSbx`, `SandboxDeploymentProvider::docker_sbx`.
 - The `agent-sandbox` option `--driver docker-sbx`, and its report in `doctor`.
 
 ### 4.4 Must do

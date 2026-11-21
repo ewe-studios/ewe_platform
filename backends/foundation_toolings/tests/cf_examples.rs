@@ -1,8 +1,8 @@
-//! Spec 65 feature 00 T6: the Cloudflare Worker examples under miniflare
+//! Spec 83 feature 00 T6: the Cloudflare Worker examples under miniflare
 //! (`wrangler dev --local`), against a mocked vendor — no live keys.
 //!
 //! WHY: the examples run `foundation_ai` inside a single-threaded wasm isolate,
-//! where a blocking call or a busy-polling task freezes the whole Worker (spec 65
+//! where a blocking call or a busy-polling task freezes the whole Worker (spec 83
 //! feature 06 T5). Compile gates cannot see that; only running the Worker can.
 //!
 //! WHAT: for each example, build it with `worker-build --release`, start an

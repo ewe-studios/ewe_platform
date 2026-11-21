@@ -222,6 +222,12 @@ sequenceDiagram
 
 _Caption: the driver never calls libkrun; the runner process does, because `krun_start_enter` takes over its process; the control plane reaches the slave through a socket that libkrun makes._
 
+The wrapper of this part is `NativePlatform` of feature 05 section 6.10, the same as for
+Firecracker: a libkrun host registers `LibkrunDriver` instead of `FirecrackerDriver` in the
+`SandboxManager`, and the wrapper carries that manager. Nothing in the wrapper names a
+driver, so this feature adds no type of its own for injection. The `Ctx` and
+`foundation_context` do not change (requirements section 6.0).
+
 ## 3. The runner (`bin/sandbox_krun`)
 
 A host program. One run is one VM. It reads a JSON file, calls libkrun, and never returns
@@ -526,7 +532,7 @@ records the date, the host and the libkrun version. The Linux run is added to th
 
 - Each scenario of section D and each row of section 7 passes; the real microVM tests pass
   on Linux with KVM and on macOS with Apple silicon, and `progress.md` records both runs.
-- `ProviderId::Libkrun` and `SandboxProvider::libkrun(control)` exist
+- `ProviderId::Libkrun` and `SandboxDeploymentProvider::libkrun(control)` exist
   (`foundation_deployment_platform`), with one test on the simulated manager.
 - `agent-sandbox` has the libkrun driver when it is built with the feature, and
   `agent-sandbox doctor` shows its report.

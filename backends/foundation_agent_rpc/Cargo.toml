@@ -1,6 +1,6 @@
 [package]
 name = "foundation_agent_rpc"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,7 +17,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi"] }
 # Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
 # SQLite default (`TrustedClientStore::open_sqlite`).
-foundation_db = { path = "../foundation_db", version = "0.0.8", default-features = false, features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.9", default-features = false, features = ["turso"] }
 # The side-effect bundle (`Ctx`) the trusted-client store needs: clocks, entropy
 # and the connection gate. The host builds it; callers pass it in.
 foundation_context = { path = "../foundation_context", version = "0.0.3" }

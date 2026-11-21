@@ -19,9 +19,10 @@
 //! network call.
 
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 
 use foundation_connectrpc::{ClientOptions, H1Transport, Request, RpcCtx, Transport};
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::netcap::ssl::SSLConnector;
 use foundation_netio::HttpClientBuilder;
@@ -127,12 +128,13 @@ pub async fn enroll(
 ///
 /// # Errors
 /// `invalid_argument` for a malformed payload or secret (bad signature
-/// included); `unauthenticated` for a secret outside its validity window by
-/// this machine's clock; enrollment errors as in [`enroll`];
-/// `failed_precondition` for unusable certificate material.
+/// included); `unauthenticated` for a secret outside its validity window by the
+/// `ctx` clock; enrollment errors as in [`enroll`]; `failed_precondition` for
+/// unusable certificate material.
 pub async fn connect_with_payload(
     encoded_payload: &str,
     client_name: &str,
+    ctx: &Ctx,
 ) -> foundation_connectrpc::ConnectResult<(AgentServiceClient, ClientIdentity)> {
     let payload =
         crate::bootstrap::decode(encoded_payload).map_err(|e| e.current_context().clone())?;
@@ -140,7 +142,7 @@ pub async fn connect_with_payload(
     if !secret.verify_self_signed() {
         return Err(AgentRpcError::Codec("bootstrap secret signature is invalid".into()).into());
     }
-    if !secret.is_valid_at(unix_secs(SystemTime::now())) {
+    if !secret.is_valid_at(unix_secs(ctx.clock().wall_now())) {
         return Err(AgentRpcError::Auth(
             "bootstrap secret is outside its validity window (expired, or this clock is off)"
                 .into(),

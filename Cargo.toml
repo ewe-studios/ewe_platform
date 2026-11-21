@@ -49,6 +49,19 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 [workspace.dependencies]
 derive_more = { version = ">=2.0", features = ["full"] }
 
+# Async stream combinators (bounded concurrency in the migration fleet runner).
+futures-util = "0.3"
+
+# Virtual file system (VFS) traits and shared types. `foundation_nativeapis`
+# re-exports them and adds the implementations. The split keeps `foundation_db`
+# free of a package cycle: `foundation_nativeapis` has optional Cloudflare
+# delta stores that depend on `foundation_db`.
+foundation_vfs = { path = "backends/foundation_vfs", version = "0.0.1" }
+
+# Virtual file system (VFS) implementations. The `vfs` feature builds on wasm
+# too; only `NativeFs` is native. `foundation_db` tests use `MemoryFs`.
+foundation_nativeapis = { path = "backends/foundation_nativeapis", version = "0.0.15", default-features = false, features = ["vfs"] }
+
 # core library dependencies
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
@@ -95,7 +108,10 @@ thiserror = { version = "2"}
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
-bindgen = { version = "0.73.2" }
+# 0.73.2 accepts syn 3 (`syn = ">=2, <4"`), but `prettyplease` 0.2 uses syn 2.
+# The default `prettyplease` feature then fails to compile. Drop it; the
+# generated bindings are unformatted, which changes nothing in their meaning.
+bindgen = { version = "0.73.2", default-features = false, features = ["logging", "runtime"] }
 cc = { version = "1.2.49" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }

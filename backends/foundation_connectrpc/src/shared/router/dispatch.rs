@@ -1119,12 +1119,15 @@ pub(crate) fn build_ctx(
             .map_or_default(|a| format!("{a:?}")),
         protocol: protocol_name(protocol.kind()).to_string(),
     };
+    // The request owns its extension map (host facts, middleware values).
+    // Move a clone of it into the call context, or the handler cannot read it.
+    let extensions = request.extensions.clone().unwrap_or_default();
     let request_context = RequestContext::for_dispatch(
         spec,
         peer,
         request.headers.clone(),
         deadline,
-        foundation_netio::shared::http::Extensions::new(),
+        extensions,
         request.connection.clone(),
         cancel,
         app_ctx.clone(),

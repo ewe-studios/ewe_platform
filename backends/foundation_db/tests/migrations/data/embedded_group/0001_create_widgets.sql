@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS widgets (
+    id   INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+);

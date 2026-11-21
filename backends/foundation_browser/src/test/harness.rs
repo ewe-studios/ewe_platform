@@ -101,6 +101,7 @@ impl TestConfig {
             extra_args,
             ctx: Some(self.ctx.clone()),
             wait: crate::pause::WaitConfig::default(),
+            rpc: crate::jsonrpc::RpcConfig::default(),
         }
     }
 

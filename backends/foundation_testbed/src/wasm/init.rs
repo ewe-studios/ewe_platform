@@ -129,11 +129,7 @@ fn warn_missing_tools(init_type: &InitType) {
             // (spec-44) — no node/deno install. Just needs cargo + wasm32.
             ("cargo", "builds #[wasm_test] crates to wasm32"),
         ],
-        InitType::Web => &[
-            ("cargo", "builds the wasm module"),
-            ("node", "drives Playwright"),
-            ("npm", "installs Playwright (`mise run setup:playwright`)"),
-        ],
+        InitType::Web => &[("cargo", "builds the wasm module")],
         InitType::Deno => &[
             ("cargo", "builds the wasm module"),
             ("deno", "runs the harness (https://deno.land)"),

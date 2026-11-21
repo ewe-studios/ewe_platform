@@ -194,3 +194,5 @@ is recorded here as passed.
 2. The owner approves the acceptance scenarios of the features, or asks for changes.
 3. After approval: feature 01 starts. Features 02 and 04 can start when 01 is complete.
    Follow the order of the Feature Index.
+
+- Feature 17 is available for review in the feature index. Its plan comes from the dedicated spec branch.

@@ -1,6 +1,7 @@
 //! T9 — the bootstrap payload: base64 + QR, and a client that connects from
 //! the payload alone.
 
+use foundation_context::Ctx;
 use std::time::Duration;
 
 use foundation_agent_rpc::auth::MtlsConfig;
@@ -121,7 +122,7 @@ async fn a_client_connects_from_the_payload_alone() {
     // The whole payload — addresses, pin, signed secret — still fits a QR code.
     bootstrap::qr_text(&encoded).expect("QR");
 
-    let (client, _identity) = connect_with_payload(&encoded, "phone")
+    let (client, _identity) = connect_with_payload(&encoded, "phone", &Ctx::host())
         .await
         .expect("connect from the payload");
     assert_eq!(
@@ -165,7 +166,7 @@ async fn the_client_checks_the_secret_before_dialling() {
     use foundation_agent_rpc::secret::{BootstrapSecrets, SigningKey};
     use std::time::SystemTime;
 
-    let secrets = BootstrapSecrets::new(SigningKey::generate().expect("key"));
+    let secrets = BootstrapSecrets::new(SigningKey::generate().expect("key"), Ctx::host());
     let past = SystemTime::now() - Duration::from_secs(600);
     let mut payload = sample();
     // Unroutable addresses: a network attempt would fail differently.
@@ -177,7 +178,7 @@ async fn the_client_checks_the_secret_before_dialling() {
         .expect("issue")
         .encode()
         .to_string();
-    let err = connect_with_payload(&bootstrap::encode(&payload), "phone")
+    let err = connect_with_payload(&bootstrap::encode(&payload), "phone", &Ctx::host())
         .await
         .err()
         .expect("expired");
@@ -194,7 +195,7 @@ async fn the_client_checks_the_secret_before_dialling() {
 
     let good = secrets.issue().expect("issue").encode().to_string();
     payload.token = format!("{}AA", &good[..good.len() - 2]);
-    let err = connect_with_payload(&bootstrap::encode(&payload), "phone")
+    let err = connect_with_payload(&bootstrap::encode(&payload), "phone", &Ctx::host())
         .await
         .err()
         .expect("corrupted");

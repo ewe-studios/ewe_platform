@@ -20,7 +20,10 @@ use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
 
 #[derive(Debug)]
 pub struct BrowserOutput {
+    /// The `test result:` summary line, the verdict.
     pub test_result: String,
+    /// Every line the runner printed (per-case lines and the summary).
+    pub output: String,
     pub console_logs: Vec<String>,
     pub exit_code: i32,
 }
@@ -99,11 +102,19 @@ pub fn run(url: &str, browser: &Browser, headless: bool, ctx: &Ctx) -> Result<Br
         pause(ctx, RESULT_POLL, &wait);
     };
 
-    let test_result = output.lines().next().unwrap_or("").trim().to_string();
+    // The page prints one line per case, then the summary. The summary is the
+    // verdict; taking the first line read `ok <case>` as a failure.
+    let test_result = output
+        .lines()
+        .find(|line| line.contains("test result:"))
+        .unwrap_or("")
+        .trim()
+        .to_string();
     debug!("Browser test result: {test_result}");
 
     Ok(BrowserOutput {
         test_result,
+        output,
         console_logs: Vec::new(),
         exit_code: 0,
     })

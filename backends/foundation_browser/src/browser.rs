@@ -21,7 +21,7 @@ use crate::bidi::backend::BiDiBackend;
 use crate::cdp::backend::CdpBackend;
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};
-use crate::jsonrpc::RpcEngine;
+use crate::jsonrpc::{RpcConfig, RpcEngine};
 use crate::pause::{pause, WaitConfig};
 use crate::supervisor::BrowserProcess;
 
@@ -100,7 +100,13 @@ impl<'a> BrowserDriver<'a> {
         let process = BrowserProcess::launch(config, ctx.ctx_ref())?;
         // Firefox's remote agent takes a beat to start listening; CDP's endpoint
         // is ready as soon as DevToolsActivePort appears, so one shot suffices.
-        let engine = connect_with_retry(process.ws_url(), browser, &config.wait, ctx.ctx_ref())?;
+        let engine = connect_with_retry(
+            process.ws_url(),
+            browser,
+            &config.wait,
+            &config.rpc,
+            ctx.ctx_ref(),
+        )?;
         // BiDi is connection-scoped: open the session once, up front.
         if browser == Browser::Firefox {
             crate::bidi::new_session(&engine)?;
@@ -140,15 +146,15 @@ pub fn connect_with_retry(
     ws_url: &str,
     browser: Browser,
     wait: &WaitConfig,
+    rpc: &RpcConfig,
     ctx: &Ctx,
 ) -> Result<RpcEngine> {
-    let call_timeout = Duration::from_secs(30);
     if browser == Browser::Chromium {
-        return RpcEngine::connect(ws_url, call_timeout);
+        return RpcEngine::connect_with(ws_url, *rpc);
     }
     let deadline = ctx.clock().now() + Duration::from_secs(20);
     loop {
-        match RpcEngine::connect(ws_url, call_timeout) {
+        match RpcEngine::connect_with(ws_url, *rpc) {
             Ok(engine) => return Ok(engine),
             Err(e) if ctx.clock().now() >= deadline => return Err(e),
             Err(_) => pause(ctx, wait.poll_interval, wait),
