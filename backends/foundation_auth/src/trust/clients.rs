@@ -160,6 +160,37 @@ impl TrustedClients {
         Ok(())
     }
 
+    /// Every enrolled client, oldest enrollment first. A snapshot for an
+    /// operator view; the trust decision uses [`TrustedClients::get`].
+    ///
+    /// # Errors
+    /// [`TrustError::Storage`] when the store read fails.
+    pub async fn clients(&self) -> Result<Vec<TrustedClient>, TrustError> {
+        if self.config.index == IndexMode::StoreOnly {
+            let mut clients = Vec::new();
+            let mut stream = self.store.clients().await?;
+            while let Some(client) = stream.next().await {
+                clients.push(client?);
+            }
+            clients.sort_by(|a, b| {
+                (a.enrolled_at, &a.fingerprint_sha256).cmp(&(b.enrolled_at, &b.fingerprint_sha256))
+            });
+            return Ok(clients);
+        }
+        let mut clients: Vec<TrustedClient> = self
+            .index
+            .0
+            .read()
+            .unwrap_or_else(PoisonError::into_inner)
+            .values()
+            .cloned()
+            .collect();
+        clients.sort_by(|a, b| {
+            (a.enrolled_at, &a.fingerprint_sha256).cmp(&(b.enrolled_at, &b.fingerprint_sha256))
+        });
+        Ok(clients)
+    }
+
     /// The client, from the index or (in [`IndexMode::StoreOnly`]) from the
     /// store.
     ///

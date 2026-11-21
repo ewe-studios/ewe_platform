@@ -1,6 +1,6 @@
 [package]
 name = "foundation_agent_rpc"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -28,16 +28,13 @@ foundation_http = { path = "../foundation_http", version = "0.0.12", features = 
 foundation_netio = { path = "../foundation_netio", version = "0.0.15", features = ["ssl", "multi"] }
 # Entropy for bootstrap secrets (the cross-platform substrate).
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
-# Client auth: CA + client/server certificates (ring backend, as
-# foundation_proxy), mutual-TLS server configs, fingerprints, secret hygiene.
-rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
-rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
+# Client auth: the certificate authority, the trust store and the mutual-TLS
+# (mTLS) verifier and configuration builders (spec 87).
+foundation_auth = { path = "../foundation_auth", version = "0.0.10" }
 # Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
 ring = "0.17"
-sha2 = "0.10"
 base64 = "0.22"
 zeroize = "1"
-time = "0.3"
 # Bootstrap payload as a QR code (terminal + SVG renderers; no image codecs).
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 derive_more = { version = "2.1", features = ["display", "error"] }

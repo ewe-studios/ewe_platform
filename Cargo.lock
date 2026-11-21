@@ -4612,13 +4612,14 @@ dependencies = [
 
 [[package]]
 name = "foundation_agent_rpc"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "base64 0.22.1",
  "buffa",
  "buffa-build",
  "derive_more",
  "foundation_ai",
+ "foundation_auth",
  "foundation_compact",
  "foundation_connectrpc",
  "foundation_connectrpc_codegen",
@@ -4632,14 +4633,10 @@ dependencies = [
  "prost 0.12.6",
  "prost-types 0.12.6",
  "qrcode",
- "rcgen",
  "ring",
- "rustls 0.23.40",
  "serde",
  "serde_json",
- "sha2 0.10.9",
  "tempfile",
- "time",
  "tracing",
  "tracing-subscriber",
  "tracing-test",
