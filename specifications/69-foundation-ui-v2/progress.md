@@ -579,3 +579,7 @@ Part 1 records the Android and iOS entry points. The next part follows the scree
 ### Mobile WebSocket actions
 
 Feature 25 proposes WebSocket action delivery for Swift and Kotlin. The specification and the walkthrough link to the delivery contract.
+
+### Connection sharing and resume
+
+Feature 25 now specifies shared connections on all three platforms. Each subscription resumes through a protocol message.

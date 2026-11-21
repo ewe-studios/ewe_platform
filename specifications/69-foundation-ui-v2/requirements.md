@@ -417,7 +417,7 @@ in parallel.
 | 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | ✅ Complete |
 | 23 | [native-design-and-themes](./features/23-native-design-and-themes/feature.md) | Platform controls and application themes in both mobile libraries | 02, 14, 15, 21, 22 | Sonnet | Native | Proposed |
 | 24 | [mobile-project-templates](./features/24-mobile-project-templates/feature.md) | Generate standalone iOS and Android applications with the platform generator | 19, 21, 22 | Sonnet | Native | Proposed |
-| 25 | [mobile-websocket-actions](./features/25-mobile-websocket-actions/feature.md) | Send mobile actions over WebSocket and receive later updates | 07, 10, 13, 21, 22 | Sonnet | Native | Proposed |
+| 25 | [mobile-websocket-actions](./features/25-mobile-websocket-actions/feature.md) | Share live connections, resume subscriptions by message, and send WebSocket actions | 07, 10, 11, 13, 21, 22 | Sonnet | Cross-platform | Proposed |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 

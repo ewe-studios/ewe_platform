@@ -1,89 +1,120 @@
 ---
 feature: "mobile-websocket-actions"
 status: "proposed"
-depends_on: ["07", "10", "13", "21", "22"]
+depends_on: ["07", "10", "11", "13", "21", "22"]
 ---
 
-# Feature 25. Send mobile actions over WebSocket
+# Feature 25. Share live connections and send WebSocket actions
 
 ## Glossary
 
 | Term | Meaning |
 |---|---|
-| Frame | One encoded Foundation message. A request frame can carry a hello or an action. |
-| Transport | The connection that carries encoded frames between the application and the server. |
-| Dispatcher | The Rust component that selects and runs a registered action. |
-| Capabilities | The server reply that identifies the supported actions and protocol settings. |
-| HTTP | Hypertext Transfer Protocol. The mobile hosts currently use it for remote actions. |
+| Transport | An adapter that moves bytes using a protocol such as WebSocket. |
+| Connection manager | The owner that opens, shares, and closes connections for an application. |
+| Handle | A reference that lets one caller send or receive through a managed connection. |
+| Subscription | A consumer’s request for messages of interest. |
+| Cursor | The last sequence number a consumer successfully applied to a logical stream. |
+| Frame | One encoded Foundation message. |
+| HTTP | Hypertext Transfer Protocol. |
+| SSE | Server-sent events. A server sends events through an open HTTP response. |
 
-## User story
+## Example
 
-A developer selects WebSocket when creating a server screen in Swift or Kotlin.
-The application can still use its own Rust core with both local handlers and remote action declarations.
+Two components subscribe to the same event feed at `/live`. Each receives a handle from the same manager.
+Removing one component releases its handle. The other component continues to receive messages.
 
-In Todo Server, **Add** opens the form on the device. Submitting **Buy milk** sends one action frame over the socket.
-The server saves the task. A later frame updates the same screen.
+A third component can submit an action through a shared WebSocket. Its send handle keeps the socket available after the last mount leaves.
+An ordinary HTTP action uses the configured client to make one request per call.
 
-## Stage 1. Select the transport when creating the screen
-
-- Add a WebSocket option to Swift `ServerScreen` and Kotlin `RemoteEweScreen`. Keep HTTP as the default.
-- Let the application supply the socket endpoint and connection credentials. Keep credentials in the host configuration.
-- Retain the existing initial page request and live mount settings. This option selects the connection for actions.
-- In Swift, the current core factory requires `URLActionTransport`. Add a factory path that accepts either implementation. Preserve existing initializers.
-- In Kotlin, the core factory already accepts `HostTransport`. Supply the selected implementation from `EweHost.kt`.
-- Include one working call in each package guide. Show the endpoint, the transport selection and the existing todo core factory.
-
-## Stage 2. Use the existing frames
+## Stage 1. Separate ownership from use
 
 ```mermaid
-sequenceDiagram
-    participant App as Mobile screen
-    participant Core as Rust core
-    participant Socket as Screen socket
-    participant Server as Rust server
-    Socket->>Server: Send client hello
-    Server-->>Socket: Return capabilities
-    Socket->>Core: Apply capabilities
-    App->>Core: Submit Buy milk
-    Core->>Socket: Send encoded action request
-    Socket->>Server: Send one binary message
-    Socket-->>Core: Return no immediate frame
-    Server-->>Socket: Send update or error frame
-    Socket->>App: Deliver through the screen receive path
+flowchart LR
+    Action["Action sender"] --> Manager["Connection manager"]
+    Mount["Live subscription"] --> Manager
+    Custom["Application wrapper"] --> Manager
+    Manager --> Adapter["Registered transport adapter"]
+    Adapter --> Peer["Remote endpoint"]
 ```
 
-The socket carries requests and later updates in separate messages.
+Wrappers use handles. The manager owns the underlying connections.
 
-1. Open the socket for this screen. Send the existing hello frame and apply the capabilities before enabling remote actions.
-2. Bind the negotiated connection to the host’s authenticated request context on the server.
-3. Send the encoded `FrameRequest.action` as one binary WebSocket message. Use the WebSocket message boundary directly.
-4. Complete the send when the socket accepts the message. Return `nil` in Swift or `null` in Kotlin.
-5. Dispatch the request on the server. Deliver any returned `FrameMessage` through the socket receive path exactly once.
-6. Apply incoming frames only to the owning screen. Report action errors through its existing error handler.
-7. On disconnect, report the connection loss. A new connection must negotiate again. Never replay an earlier action automatically.
-8. Close the socket and cancel its reader when the screen closes. Ignore late callbacks from a replaced connection.
+- Provide interfaces for opening, receiving, sending where supported, and closing. Register custom adapters through the same interfaces as built-in adapters.
+- Allow wrappers to accept an existing handle. A custom wrapper can implement its own message selection or encoding.
+- Reuse the browser, Swift and Kotlin transport implementations. Share one underlying reader for each connection.
+- Share connections with compatible transport, resolved endpoint, protocol settings, and authentication context. Keep credentials out of map keys and logs.
+- Acquire concurrent handles atomically. Release each handle once. Count send handles and receive handles when deciding whether to close.
+- Support a default close-on-last-release policy and an explicit keep-alive policy.
+- Let Rust select the policy in the live mount declaration. Extend the schema and platform readers with a backward-compatible default.
+- Keep an explicit keep-alive entry until its owner releases the retention policy or the manager shuts down.
+- With no listeners, drain incoming transport data and discard application messages before application decoding. Maintain transport framing and required control traffic.
+- Close affected connections on sign-out or manager shutdown. Ignore callbacks from an earlier connection after replacement.
 
-Use the configured frame limits for incoming and outgoing messages. Reject invalid frames and unsupported message types before dispatch.
-Keep local `host:` actions on the device. Use the existing `server:` prefix for remote actions.
+## Stage 2. Deliver messages without shared mutation
 
-## Stage 3. Connect the example and verify delivery
+Give each subscriber the same message contents. Support all messages and filtered subscriptions.
+A subscriber can observe a frame without applying it to a screen.
+Route action replies to their originating screen. Two observers of one store must never apply the same update twice.
 
-Add a binary WebSocket endpoint to the todo server. Reuse its dispatcher, action registrations and state checks.
-Keep the negotiated connection for the socket lifetime. Route capability, update and error frames through one reader on the client.
-Make the existing Todo Server applications selectable between HTTP and WebSocket.
+Use read-only message storage where the platform enforces it. Give independent copies to consumers that can mutate the underlying bytes.
+A Kotlin `ByteArray` or browser typed array can expose mutable storage even through a read-only reference.
 
-| Check | Expected result |
+## Stage 3. Resume through the application protocol
+
+A subscription owns its cursor. Advance it after successful application.
+A physical connection has no stream cursor. Its reuse key excludes stream identifiers, sequence numbers, and resume positions.
+Opening and closing a connection must work for custom protocols that have no resume concept.
+
+The following notation shows message contents. The wire schema must define the encoding.
+
+```text
+Consumer A → server: Resume(subscription=A, stream=tasks, after=42)
+Consumer B → server: Resume(subscription=B, stream=tasks, after=97)
+```
+
+Both consumers keep the shared connection. The server identifies the subscription when it returns replay frames.
+A replay for A must never rewind B. Define the subscription identifier within the authenticated session and check it on the server.
+If retained history is insufficient, return a resynchronization result to the affected consumer.
+The subscription requests a fresh snapshot. The connection stays available to other consumers.
+
+- On WebSocket, send the resume request as a protocol message on the open socket.
+- On SSE or a streamed HTTP response, send it through a separate authenticated HTTP request.
+- Correlate that request with the active delivery session and subscription. Return the requested frames through the existing downstream connection.
+- On connection loss, notify consumers. After reconnection, each consumer can send its own resume request.
+- A keep-alive connection that drops unobserved frames does not advance any subscriber’s cursor.
+- Preserve the current query-based behavior for existing endpoints. Negotiate message-based resume before using it with a peer.
+- Extend the wire request and reply types where needed. Existing hello and live mount cursor fields alone cannot identify two subscribers to one stream.
+
+## Stage 4. Use shared handles for actions
+
+Keep HTTP as the default for Swift and Kotlin server screens. Let applications select WebSocket or supply a compatible transport.
+Use the same manager for browser actions and live mounts when the application supplies compatible settings.
+Keep the initial page request separately configurable.
+
+Negotiate capabilities before enabling remote actions. Send the existing action request frame as one binary WebSocket message.
+Complete the send when the socket accepts the message. Deliver any later update or error through the receive path.
+Report disconnects. Never replay a submitted action automatically. Local Rust handlers still run on the device.
+
+## Stage 5. Verify the contract
+
+| Test | Expected result |
 |---|---|
-| Open the form and submit once | Opening the form sends no action over the socket. Submitting sends one binary request and creates one task. |
-| Delay the server response | The send completes first. The later frame updates the screen once. |
-| Reject an action | The server sends an error frame. The screen reports the error and keeps the current list. |
-| Lose the connection after a send | Reconnection sends a fresh hello. The client sends no duplicate request. |
-| Open two screens | Each screen receives its own reply. Closing one screen leaves the other connection open. |
-| Invalid input | Test an action before the hello, an oversized message, a text message and a malformed frame. |
-| Existing applications | Run the HTTP and on-device examples. Their actions still work with the existing setup calls. |
+| Two mounts acquire the same feed concurrently | The manager opens one physical connection. Both mounts receive matching messages. |
+| One sender and two readers share a socket | Each release affects only its handle. Final release closes the default connection once. |
+| Rust requests keep-alive | The connection stays open with zero consumers. A later subscription reuses it. |
+| No listeners receive application data | The application decoder and screen store receive zero calls. |
+| One consumer attempts mutation | Other consumers read the original bytes. |
+| Two consumers request different cursors | Both keep the same connection. Each receives its own replay without duplicate screen updates. |
+| SSE consumer requests resume | The control request leaves the existing event response open. Verify routing to the requesting subscription. |
+| Network loss during an action | Reconnect and negotiate. Resume subscriptions independently. Send zero duplicate actions. |
+| Two accounts use the same endpoint | Each authenticated context gets its own connection and replies. |
+| Application supplies a custom adapter | The same mount wrapper works with the custom adapter and releases its handle. |
 
-Run the WebSocket example on an iPhone simulator and an Android emulator. Verify the saved task in the server store.
-Document the message format, a decoded action example, the build commands and the checks in both package guides.
+Run the shared contract checks on web, iOS, and Android. Exercise a real endpoint for SSE and WebSocket on each platform.
+Extend Todo Server with a binary WebSocket endpoint that uses the existing dispatcher.
+Show two subscriptions, local form opening, remote submission, and the resulting screen update.
+Keep existing HTTP and on-device examples working. Document the configuration, frames, lifecycle, and verification commands in each platform guide.
 
 ## Related code
 

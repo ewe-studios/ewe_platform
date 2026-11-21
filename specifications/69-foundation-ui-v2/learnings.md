@@ -609,3 +609,7 @@ Both Todo Server entry points supply a Rust core constructor to the screen.
 ### Mobile WebSocket actions
 
 The browser already sends action frames over WebSocket. Mobile packages can reuse the same frame format and return no immediate reply.
+
+### Connection sharing and resume
+
+The existing mobile channels add stream and cursor values to the endpoint query. Shared connections need subscription-level resume messages.

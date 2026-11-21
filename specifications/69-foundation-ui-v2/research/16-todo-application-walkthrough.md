@@ -147,3 +147,14 @@ The mobile libraries already read WebSocket updates. A built-in mobile sender ca
 The server must accept binary requests on that socket and pass them to the action dispatcher. Reconnection must not replay a submitted action.
 
 [Feature 25](../features/25-mobile-websocket-actions/feature.md) proposes built-in mobile WebSocket action delivery.
+
+### Can actions reuse the existing WebSocket implementation?
+
+Yes. The current live channel opens a socket and delivers incoming frames. Its public handle exposes a close operation.
+The Rust core sends actions through a different interface called `HostTransport`.
+A screen can own one socket session that implements both operations. One reader delivers incoming frames once.
+A live mount can share that session when its endpoint and lifetime agree. Removing the mount must preserve the screen’s action connection.
+
+### Connection sharing and resume
+
+The connection manager owns connection lifetime. Each subscriber owns its applied cursor and requests replay through the application protocol. WebSocket can carry that request directly. SSE needs a separate upstream request because its event response flows from server to client.
