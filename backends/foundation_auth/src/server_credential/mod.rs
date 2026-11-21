@@ -11,11 +11,13 @@
 //! parser or a second comparison.
 
 mod bearer;
+mod call;
 mod client_auth;
 mod secret;
 
 pub use bearer::{bearer_header, extract_bearer_token};
-pub use client_auth::AuthInfo;
+pub use call::CallCredentials;
+pub use client_auth::{AuthError, AuthFuture, AuthInfo, AuthMethod, ClientAuth, Principal};
 pub use secret::{ConfidentialText, Secret};
 
 pub use crate::shared::constant_time_eq;
