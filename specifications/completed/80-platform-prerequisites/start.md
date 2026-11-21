@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/80-platform-prerequisites"
-this_file: "specifications/80-platform-prerequisites/start.md"
+spec_directory: "specifications/completed/80-platform-prerequisites"
+this_file: "specifications/completed/80-platform-prerequisites/start.md"
 created: 2026-11-14
 ---
 
