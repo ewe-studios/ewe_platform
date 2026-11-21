@@ -987,7 +987,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -999,9 +999,12 @@ dependencies = [
  "foundation_compact",
  "foundation_context",
  "foundation_core",
+ "foundation_macros",
  "foundation_netio",
+ "foundation_vfs",
  "futures-core",
  "futures-lite",
+ "futures-util",
  "hex",
  "js-sys",
  "libc",
@@ -1013,6 +1016,14 @@ dependencies = [
  "wasm-bindgen-futures",
  "worker",
  "zeroize",
+]
+
+[[package]]
+name = "foundation_errstacks"
+version = "0.0.4"
+dependencies = [
+ "derive_more",
+ "tracing",
 ]
 
 [[package]]
@@ -1092,6 +1103,18 @@ dependencies = [
 [[package]]
 name = "foundation_theme"
 version = "0.0.4"
+
+[[package]]
+name = "foundation_vfs"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "derive_more",
+ "foundation_compact",
+ "foundation_context",
+ "foundation_errstacks",
+ "serde",
+]
 
 [[package]]
 name = "fs_extra"

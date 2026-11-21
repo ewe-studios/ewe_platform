@@ -14,3 +14,5 @@ path = "src/bindgen.rs"
 [dependencies]
 async-trait = "0.1"
 uniffi = { version = "=0.32.2", features = ["cli"] }
+
+[workspace]
