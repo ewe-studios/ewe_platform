@@ -591,3 +591,7 @@ Swift also renders recognized presentation roles before it applies ordinary node
 See [issue 652](https://github.com/ewe-studios/ewe_platform/issues/652).
 
 Each worktree pins its own agent submodule revision. Use the same revision so relative skill links resolve in each checkout.
+
+### Mobile project templates
+
+The platform generator embeds templates from bin/platform/templates during its build. The plain configurator supplies project values without adding Rust workspace settings.

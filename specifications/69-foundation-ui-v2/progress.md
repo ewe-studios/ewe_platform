@@ -560,3 +560,7 @@ The design preview and baseline captures are ready for owner review.
 Nineteen of 22 indexed features are complete. Features 07, 19 and 23 have open work.
 
 The specification now links to both skills in the main project’s shared agent submodule.
+
+### Mobile project templates
+
+Feature 24 proposes two mobile templates for the existing project generator. Each supports a server or on-device Rust host. Implementation awaits review.
