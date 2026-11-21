@@ -524,3 +524,9 @@ It records three source revisions and both artifact digests.
 Both standalone starters built from these artifacts. Swift passed eleven package tests. Android completed all 36 build tasks with an empty Gradle cache.
 Public release signing and installation remain open.
 Seventeen of the nineteen indexed features are complete. Feature 07 records its open clock check. Feature 19 awaits publication.
+
+Feature 19 has a proposed monorepo source layout and iPhone todo design. Both await owner review.
+
+Feature 19 now specifies GitHub Releases and Swift package tags in ewe_platform. Implementation awaits plan approval.
+
+Features 21 and 22 specify the installable libraries under mobile/ios and mobile/android. Feature 19 releases both. The example apps consume them.

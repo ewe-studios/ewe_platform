@@ -563,3 +563,9 @@ The regression test sends headers, verifies that the handler waits, then sends t
 
 The macro tests build their own dependency tree. A source edit during that build can leave one run with different dependency revisions.
 Rerun the affected suite after both crates contain the final change.
+
+The Swift package serves consumers through a repository root manifest. Its distribution URL can remain separate from its development source.
+
+The public Swift manifest can point its targets at the example sources in the same repository.
+
+The Android starter and todo activity repeat host setup. The Android package can own that lifecycle while each app supplies its Rust actions.
