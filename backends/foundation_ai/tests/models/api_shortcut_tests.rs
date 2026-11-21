@@ -86,9 +86,7 @@ fn anthropic() -> foundation_ai::backends::anthropic_messages_provider::Anthropi
     };
     use foundation_auth::{AuthCredential, ConfidentialText};
     AnthropicMessagesProvider::with_config(
-        AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-            "k",
-        ))),
+        AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new("k"))),
         test_clock(),
     )
 }
@@ -97,9 +95,7 @@ fn openai() -> foundation_ai::backends::openai_provider::OpenAIProvider {
     use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
     use foundation_auth::{AuthCredential, ConfidentialText};
     OpenAIProvider::with_config(
-        OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-            "k",
-        ))),
+        OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new("k"))),
         test_clock(),
     )
 }
