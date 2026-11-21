@@ -5,7 +5,15 @@ plugins {
 android {
     namespace = "ewe.todo"
     compileSdk { version = release(37) { minorApiLevel = 2 } }
-    defaultConfig { testInstrumentationRunner = "ewe.todo.ReplayCheck"; applicationId = "ewe.todo"; minSdk = 26; targetSdk = 36; versionCode = 1; versionName = "0.1.0" }
+    defaultConfig {
+        testInstrumentationRunner = "ewe.todo.ReplayCheck"
+        applicationId = "ewe.todo"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 1
+        versionName = "0.1.0"
+        ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
+    }
     sourceSets["main"].kotlin.directories.add("../../generated")
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
