@@ -181,6 +181,7 @@
   @MainActor private struct FormPresentation: View {
     let screen: EweScreen
     let node: NodeRecord
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var presented = false
     var body: some View {
       let controls = screen.presentationContent(node)
@@ -191,7 +192,7 @@
           if screen.store.record(node.id) === node, let cancel { screen.sendTap(cancel) }
         }) {
           sheet(controls)
-            .presentationDetents([.medium, .large])
+            .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled(cancel == nil)
         }
