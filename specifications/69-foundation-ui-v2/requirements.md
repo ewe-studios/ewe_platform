@@ -407,8 +407,8 @@ in parallel.
 | 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
 | 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Native libraries in mobile/, monorepo releases, registry publication and starter apps | 13, 14, 15, 16, 17, 21, 22 | Sonnet | Release | In progress |
 | 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03, 09 | Sonnet | Web | ✅ Complete |
-| 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library and iPhone example | 13, 14, 16, 17 | Sonnet | Native | Planned |
-| 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library and Android example | 13, 15, 16, 17 | Sonnet | Native | Planned |
+| 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | Planned |
+| 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | Planned |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 
@@ -487,6 +487,8 @@ A feature is complete when its README task and this verification pass. Record th
 - All 21 indexed features are complete and verified. Feature 17 puts every pinned tool on each
   host: `scripts/toolchain/check.sh` exits 0 on Linux, macOS and Windows CI.
 - Each feature or package README has concrete examples and runnable validation. The documented checks pass.
+- iOS and Android each ship two independent todo examples. Todo Server uses the remote store.
+  Todo On Device renders its first frame and handles every mutation in local Rust with networking disabled.
 - The todo list example of D48 runs on the web with a `server:` action, a `host:` action that
   runs on every platform and a `host:` page script with scope `web`, and on iOS and Android
   with a `server:` action and a `host:` action.

@@ -530,3 +530,5 @@ Feature 19 has a proposed monorepo source layout and iPhone todo design. Both aw
 Feature 19 now specifies GitHub Releases and Swift package tags in ewe_platform. Implementation awaits plan approval.
 
 Features 21 and 22 specify the installable libraries under mobile/ios and mobile/android. Feature 19 releases both. The example apps consume them.
+
+Features 21 and 22 now specify four runnable todo apps. Each platform has Todo Server and Todo On Device. The package-only starters remain release checks.

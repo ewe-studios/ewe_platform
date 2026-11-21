@@ -569,3 +569,5 @@ The Swift package serves consumers through a repository root manifest. Its distr
 The public Swift manifest can point its targets at the example sources in the same repository.
 
 The Android starter and todo activity repeat host setup. The Android package can own that lifecycle while each app supplies its Rust actions.
+
+A local filter in the server example does not prove offline operation. The on-device test must cover initial rendering, task mutations and count updates with zero network calls.

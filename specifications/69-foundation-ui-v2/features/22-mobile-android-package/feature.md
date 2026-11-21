@@ -42,18 +42,41 @@ import ewe.ui.compose.EweScreen
 EweScreen(store, bridge)
 ```
 
-## Stage 2. Separate the example
+## Stage 2. Provide two runnable todo apps
 
-Put the Android todo app under `examples/ui_todo/android/`. Put the package-only starter under `examples/mobile_starter/android/`.
+| Gradle application project | Example directory | Owner of task data |
+|---|---|---|
+| `TodoServer` | `examples/ui_todo/android/todo_server/` | Rust server |
+| `TodoOnDevice` | `examples/ui_todo/android/todo_on_device/` | Rust core inside the app |
+
+Give each app its own application identifier. Both apps must install on the same Android emulator.
+Use **Todo Server** and **Todo On Device** as their display names.
+Keep the package-only installation test under `examples/mobile_starter/android/`.
+
+**Todo Server.** The app loads its initial frame from the server. Submit, complete and delete go to server actions.
+The device can still execute presentation actions such as opening a sheet and selecting a filter.
+
+**Todo On Device.** The app starts its own Rust core, creates its task store and asks Rust for the initial frame.
+Register all todo actions in the local host registry. Bind task mutations to that registry when constructing the view.
+Return update frames and count changes directly to the renderer. The app requires no endpoint, socket listener or remote count subscription.
+Keep the Rust store alive across actions for the app session. Reuse the Rust mutation and view functions in both modes.
+Both examples use the same Kotlin library controls.
 Move the repeated setup from their activities into the library. Provide a screen host for an endpoint or application core factory.
 The host owns frame negotiation, application of the initial frame, event delivery, errors and live subscriptions.
 Tie resource cleanup to the host lifecycle. Release only the resources the host owns.
 Keep the lower-level renderer available for hosts that provide local frames directly.
-The todo app selects its endpoint, initial screen and Rust factory. Keep its native library and generated application bindings with the example.
+The server example selects its endpoint, initial screen and Rust factory. Keep its native library and generated application bindings with the example.
 Keep shared Rust business logic under `examples/ui_todo/`. Both mobile apps call the same actions.
 Render all Foundation controls through the library. Use the shared vocabulary for any presentation roles added by feature 21.
 
 ## Acceptance
+
+- Build and install both named apps independently on the same Android emulator.
+- Start Todo On Device with the server stopped and a test transport that fails on any network call.
+  Verify the first screen, add, complete, filter, reopen, delete and count updates. Assert zero transport calls.
+- Start Todo Server against a fresh store. Submit a task and read it back from a second server client.
+  Confirm that the on-device app has its own list.
+- Update project names, build scripts, test selectors and README commands. Document how to launch each example.
 
 - Run `./gradlew :core:test :ui:testDebugUnitTest` from `mobile/android/`. Replay the shared renderer fixtures.
 - Stage the modules in a temporary Maven repository. Build a clean consumer with an empty Gradle cache and one dependency.

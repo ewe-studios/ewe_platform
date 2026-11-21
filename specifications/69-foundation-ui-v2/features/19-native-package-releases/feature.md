@@ -26,7 +26,7 @@ The release contract below describes the proposed single-repository workflow.
    Bind each control to its rendered node and existing Rust action. Keep one task list and one action registry.
    Map presentation roles through the Swift renderer. Identify controls by role, independent of labels and generated node numbers.
 5. Run Swift package tests and Android tests. Build both starter applications using the new paths.
-   Exercise add, complete, filter, reopen and delete on the iPhone simulator.
+   Exercise both todo apps on each platform. Run Todo On Device with the server stopped.
    Compare screenshots with the design and check large text. Run the Android todo smoke test for shared frame changes.
 
 The [current simulator screenshot](design/todo-before.png) shows the compact controls and detached count.
@@ -52,7 +52,7 @@ The developer can build the app without a Rust installation or a checkout of any
 |---|---|
 | `mobile/ios/` | Reusable Swift controls, renderer, bindings and tests |
 | `mobile/android/` | Reusable Compose controls, renderer, bindings and tests |
-| `examples/ui_todo/{ios,android}/` | Native application entry points and application-specific bindings |
+| `examples/ui_todo/{ios,android}/` | Independent `todo_server/` and `todo_on_device/` apps with application-specific bindings |
 | `examples/mobile_starter/{ios,android}/` | Package-only consumers |
 | `examples/ui_todo/` | Shared Rust actions, native bridge and example server |
 | `Package.swift` | Public package entry point with target paths into the mobile/ios tree |
