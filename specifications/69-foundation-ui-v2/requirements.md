@@ -18,7 +18,7 @@ related_specs:
   - "specifications/completed/39-foundation-wasm-ui"
   - "specifications/completed/42-ui-component"
   - "specifications/52-tauri-foundation-platform"
-  - "specifications/76-shared-context"
+  - "specifications/completed/76-shared-context"
 features:
   completed: 0
   uncompleted: 17

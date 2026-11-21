@@ -1,6 +1,6 @@
 ---
 description: "The shared platform seams that the agent RPC server, the proxy and the auth library both need: the transport facts that connectrpc and foundation_http must expose, and migration groups for foundation_db. It builds on spec 76 and spec 84, and writes only the delta."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-14
 author: "Main Agent"
@@ -75,8 +75,9 @@ specification builds on it.
 1. **Spec 76 is the base.** It already built `foundation_context::Ctx`, moved the clock and RNG
    into it, and renamed connectrpc's context to `RpcCtx`. Each feature here starts with a task
    that verifies what 76 landed on master and records only the remaining delta.
-2. **Spec 84 lands before this specification.** It adds the `Env` entry to `Ctx` (timer,
-   entropy, ids). Feature 00 reads the clock from `Ctx` and needs no `Env` field.
+2. **Spec 84 stays a separate design.** It adds the `Env` entry to `Ctx` (timer, entropy,
+   ids). Feature 00 reads the clock from `Ctx` and needs no `Env` field. Both features here
+   landed while spec 84 was still in progress, because neither needs `Env`.
 3. **Feature 00 and feature 01 are independent.** Either may run first. The numbering keeps the
    old task IDs stable.
 4. **This specification unblocks 81, 82, 83 and 87.** The auth library needs the TLS peer facts
@@ -155,7 +156,7 @@ _The diagram shows the two seams: transport facts on the request, and grouped mi
 - `backends/foundation_connectrpc/src/shared/` — `RpcCtx`, handlers.
 - `backends/foundation_netio/src/shared/context.rs` — `ConnectionContext`, `TlsInfo`.
 - `backends/foundation_db/` — migrations and storage traits.
-- `specifications/80-platform-prerequisites/features/01-migration-groups/migrations.md` — the
+- `specifications/completed/80-platform-prerequisites/features/01-migration-groups/migrations.md` — the
   full migration design, moved from spec 83.
 
 ---
@@ -164,3 +165,6 @@ _Created: 2026-11-14_
 _Last revised: 2026-11-15 (feature 00 moved to spec 84; this spec keeps the transport facts and
 the migration groups)._
 _Structure: Feature-based (has_features: true)_
+
+_Completed: 2026-11-21._
+

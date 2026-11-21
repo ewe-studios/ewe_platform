@@ -30,7 +30,7 @@ related_specs:
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/77-foundation-platform-sandbox"
-  - "specifications/80-platform-prerequisites"
+  - "specifications/completed/80-platform-prerequisites"
   - "specifications/84-context-injection"
 tasks:
   completed: 0
