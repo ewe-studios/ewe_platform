@@ -15,9 +15,10 @@ packages=(
 if [[ -n "${ANDROID_UI_COMPILE_SDK:-}" && "$ANDROID_UI_COMPILE_SDK" != "$ANDROID_COMPILE_SDK" ]]; then
   packages+=("platforms;android-$ANDROID_UI_COMPILE_SDK")
 fi
+separator=/
 missing=()
 for package in "${packages[@]}"; do
-  if [[ ! -f "$ANDROID_HOME/${package/;/\/}/source.properties" ]]; then
+  if [[ ! -f "$ANDROID_HOME/${package/;/$separator}/source.properties" ]]; then
     missing+=("$package")
   fi
 done
@@ -36,7 +37,7 @@ fi
 sdkmanager "--sdk_root=$ANDROID_HOME" --install "${missing[@]}"
 
 for package in "${missing[@]}"; do
-  if [[ ! -f "$ANDROID_HOME/${package/;/\/}/source.properties" ]]; then
+  if [[ ! -f "$ANDROID_HOME/${package/;/$separator}/source.properties" ]]; then
     printf 'FAIL android packages: sdkmanager did not install %s\n' "$package" >&2
     exit 1
   fi

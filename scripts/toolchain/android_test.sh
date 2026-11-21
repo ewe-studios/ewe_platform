@@ -31,7 +31,7 @@ case "$1" in
     shift
     for package in "$@"; do
       printf '%s\n' "$package" >> "$SDK_LOG"
-      directory="$ANDROID_HOME/${package/;/\/}"
+      directory="$ANDROID_HOME/$(tr ';' '/' <<< "$package")"
       mkdir -p "$directory"
       touch "$directory/source.properties"
     done
