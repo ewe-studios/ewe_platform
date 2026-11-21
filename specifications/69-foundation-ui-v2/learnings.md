@@ -595,3 +595,8 @@ Each worktree pins its own agent submodule revision. Use the same revision so re
 ### Mobile project templates
 
 The platform generator embeds templates from bin/platform/templates during its build. The plain configurator supplies project values without adding Rust workspace settings.
+
+### Release integration
+
+The standalone toolchain proof needs its own workspace declaration for a locked Cargo metadata check.
+The Android toolchain test needs both platform directories in its fixture.

@@ -564,3 +564,10 @@ The specification now links to both skills in the main project’s shared agent 
 ### Mobile project templates
 
 Feature 24 proposes two mobile templates for the existing project generator. Each supports a server or on-device Rust host. Implementation awaits review.
+
+### Release integration checks
+
+The feature branch now includes current master and release changes.
+Cargo resolves 116 workspace packages. The release script verifies 22 nested lockfiles.
+Three macOS key provisioning tests pass with age 0.12.
+The release checks still need to pass on all three systems.
