@@ -1,6 +1,7 @@
 //! Refresh token entity for the `IdP` server.
 
 use crate::shared::clock::now_millis;
+use crate::shared::constant_time_eq;
 use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 
@@ -33,14 +34,4 @@ impl RefreshToken {
     pub fn is_rotated(&self) -> bool {
         self.rotated_at.is_some()
     }
-}
-
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
-    a.iter()
-        .zip(b.iter())
-        .fold(0u8, |acc, (x, y)| acc | (x ^ y))
-        == 0
 }

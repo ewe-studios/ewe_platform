@@ -11,6 +11,11 @@
 
 use zeroize::Zeroizing;
 
+// The verifiers below compare in constant time. The comparison is the one
+// shared copy; this import is present only on the targets that verify.
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-pbkdf2"))]
+use crate::shared::constant_time_eq;
+
 // ===========================================================================
 // KDF type constants (matching Bitwarden wire format)
 // ===========================================================================
@@ -230,21 +235,6 @@ impl Pbkdf2Key {
     pub fn into_bytes(self) -> Vec<u8> {
         (*self.0).clone()
     }
-}
-
-/// Constant-time byte comparison to prevent timing attacks.
-///
-/// Used by the native argon2/pbkdf2 verifiers and the wasm-pbkdf2 verifier.
-#[cfg(any(not(target_family = "wasm"), feature = "wasm-pbkdf2"))]
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
-    let mut diff = 0u8;
-    for (x, y) in a.iter().zip(b.iter()) {
-        diff |= x ^ y;
-    }
-    diff == 0
 }
 
 /// Crypto errors (WASM only — native operations are infallible).
