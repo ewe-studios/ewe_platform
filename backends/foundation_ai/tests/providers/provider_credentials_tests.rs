@@ -29,20 +29,20 @@ use foundation_auth::{AuthCredential, ConfidentialText, OAuthCredential};
 // ---------------------------------------------------------------------------
 
 fn secret_only() -> AuthCredential {
-    AuthCredential::SecretOnly(ConfidentialText::new("sk-secret".into()))
+    AuthCredential::SecretOnly(ConfidentialText::new("sk-secret"))
 }
 
 fn client_secret() -> AuthCredential {
     AuthCredential::ClientSecret {
-        client_id: ConfidentialText::new("client-id".into()),
-        client_secret: ConfidentialText::new("sk-client-secret".into()),
+        client_id: ConfidentialText::new("client-id"),
+        client_secret: ConfidentialText::new("sk-client-secret"),
     }
 }
 
 fn oauth() -> AuthCredential {
     AuthCredential::OAuth(OAuthCredential {
         expires: 0,
-        access_token: ConfidentialText::new("sk-oauth".into()),
+        access_token: ConfidentialText::new("sk-oauth"),
         refresh_token: None,
     })
 }
@@ -58,7 +58,7 @@ type CredentialCase = (&'static str, fn() -> AuthCredential);
 fn username_password() -> AuthCredential {
     AuthCredential::UsernameAndPassword {
         username: "user".into(),
-        password: ConfidentialText::new("pw".into()),
+        password: ConfidentialText::new("pw"),
     }
 }
 

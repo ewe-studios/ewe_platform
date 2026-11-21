@@ -2,8 +2,6 @@
 
 use derive_more::From;
 use foundation_core::valtron::StreamIterator;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zeroize::Zeroizing;
 
 use foundation_netio::shared::client::Cookie;
 
@@ -13,49 +11,10 @@ use super::oauth::OAuthError;
 use super::session::SessionError;
 
 /// Confidential text that is zeroized on drop.
-#[derive(From, Clone)]
-pub struct ConfidentialText(Zeroizing<String>);
-
-impl ConfidentialText {
-    #[must_use]
-    pub fn new(value: String) -> Self {
-        Self(Zeroizing::new(value))
-    }
-
-    #[must_use]
-    pub fn get(&self) -> String {
-        (*self.0).clone()
-    }
-}
-
-impl Serialize for ConfidentialText {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.get().serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for ConfidentialText {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = String::deserialize(deserializer)?;
-        Ok(Self::new(value))
-    }
-}
-
-impl core::fmt::Debug for ConfidentialText {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:}")
-    }
-}
-
-impl core::fmt::Display for ConfidentialText {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let value = &(*self.0);
-        let first_char = value.chars().next().unwrap_or('*');
-        let remaining = value.len().saturating_sub(1);
-        let stars = "*".repeat(remaining);
-        write!(f, "Confidential({first_char}{stars})")
-    }
-}
+///
+/// This is the old name of [`crate::Secret`]. It is an alias for one release,
+/// then it is removed. Use `Secret` in new code.
+pub use crate::server_credential::ConfidentialText;
 
 /// OAuth credential (post-authentication token set).
 #[derive(From, Debug, Clone)]

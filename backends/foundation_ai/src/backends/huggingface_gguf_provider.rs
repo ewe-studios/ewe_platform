@@ -208,7 +208,7 @@ impl HuggingFaceGGUFConfigBuilder {
     #[must_use]
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.config.auth = Some(foundation_auth::AuthCredential::SecretOnly(
-            foundation_auth::ConfidentialText::new(token.into()),
+            foundation_auth::ConfidentialText::new(token),
         ));
         self
     }
@@ -288,10 +288,17 @@ impl HuggingFaceGGUFProvider {
     /// Returns an error if the `HFClient` cannot be initialized.
     pub fn new(config: HuggingFaceGGUFConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
-            .token(config.auth.as_ref().map_or_default(|a| match a {
-                foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
-                _ => String::new(),
-            }))
+
+            .token(
+                config
+                    .auth
+                    .as_ref()
+                    .map(|a| match a {
+                        foundation_auth::AuthCredential::SecretOnly(t) => t.expose().to_owned(),
+                        _ => String::new(),
+                    })
+                    .unwrap_or_default(),
+            )
             .build()
             .map_err(|e| {
                 ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(

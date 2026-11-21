@@ -90,7 +90,7 @@ fn anthropic() -> foundation_ai::backends::anthropic_messages_provider::Anthropi
     use foundation_auth::{AuthCredential, ConfidentialText};
     AnthropicMessagesProvider::with_config(
         AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-            "k".into(),
+            "k",
         ))),
         test_clock(),
     )
@@ -101,7 +101,7 @@ fn openai() -> foundation_ai::backends::openai_provider::OpenAIProvider {
     use foundation_auth::{AuthCredential, ConfidentialText};
     OpenAIProvider::with_config(
         OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-            "k".into(),
+            "k",
         ))),
         test_clock(),
     )
@@ -173,7 +173,7 @@ async fn agent_session_builder_takes_a_provider() {
 
 fn secret(auth: Option<&foundation_auth::AuthCredential>) -> String {
     match auth {
-        Some(foundation_auth::AuthCredential::SecretOnly(text)) => text.get(),
+        Some(foundation_auth::AuthCredential::SecretOnly(text)) => text.expose().to_owned(),
         other => panic!("expected SecretOnly, got {other:?}"),
     }
 }

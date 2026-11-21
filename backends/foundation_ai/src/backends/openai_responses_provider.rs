@@ -440,7 +440,7 @@ impl ResponsesProvider {
         if let Some(key) = &self.api_key {
             headers.insert(
                 SimpleHeader::AUTHORIZATION,
-                vec![format!("Bearer {}", key.get())],
+                vec![format!("Bearer {}", key.expose())],
             );
         }
         headers.insert(
@@ -742,7 +742,7 @@ impl ResponsesModel {
         if let Some(key) = &self.api_key {
             headers.insert(
                 SimpleHeader::AUTHORIZATION,
-                vec![format!("Bearer {}", key.get())],
+                vec![format!("Bearer {}", key.expose())],
             );
         }
         headers.insert(
