@@ -40,7 +40,17 @@ pub struct ValtronTimer;
 
 impl Timer for ValtronTimer {
     fn sleep_until(&self, ctx: Ctx, deadline: Instant) -> TimerFuture {
-        Box::pin(crate::valtron::sleep_until_async(deadline, &ctx))
+        Box::pin(async move {
+            #[cfg(all(feature = "std", not(target_family = "wasm")))]
+            crate::valtron::sleep_until_async(deadline, &ctx).await;
+
+            // A single-threaded wasm host has no threads, so the `!Send` valtron
+            // task future is safe to assert as `Send` here (spec 84, section
+            // 6.6). The worker runs the timer on the JavaScript event loop.
+            #[cfg(target_family = "wasm")]
+            foundation_compact::SendWrapper::new(crate::valtron::sleep_until_async(deadline, &ctx))
+                .await;
+        })
     }
 }
 

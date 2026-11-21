@@ -48,7 +48,7 @@ impl IdSource for Scru128Source {
     fn next_id(&self) -> Id {
         self.generator
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
             .generate()
     }
 }

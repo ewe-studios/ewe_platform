@@ -61,7 +61,7 @@ impl EntropySource for SeededEntropy {
     fn fill(&self, dest: &mut [u8]) -> Result<(), entropy::Error> {
         self.rng
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
             .fill_bytes(dest);
         Ok(())
     }
