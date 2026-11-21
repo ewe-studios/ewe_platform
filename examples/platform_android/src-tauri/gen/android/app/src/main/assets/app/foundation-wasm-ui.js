@@ -1,199 +1,8 @@
-// foundation-wasm-ui.js — DOM layer of the runtime (built on foundation-wasm.js).
-//
-// WHY: foundation-wasm.js is the pure ABI (memory, transport, timers). The DOM half
-// lives here so the ABI stays reusable by non-DOM hosts — mirroring the
-// foundation_wasm / foundation_wasm_ui crate split.
-//
-// WHAT: the first DOM increment —
-//   - ColumnarParser        : decodes the Arrow columnar payload (the exact layout
-//                          `foundation_ui_traits::ColumnarEncoder` produces)
-//   - NodeRegistry       : primal-id (u32) → DOM node
-//   - DomOpApplicator : applies a parsed batch to a DOM `document`
-//   - columnarHandler()     : a ProtocolDispatcher handler that ties parse → apply
-//
-// HOW: register `columnarHandler(...)` on a FoundationWasm dispatcher for protocol byte
-// 1; when WASM ships an Arrow batch via host_apply, it's parsed and applied here.
-//
-// The op codes match decision 010 (shared with the Rust encoders).
-
-// ─── Operation codes (decision 010) ─────────────────────────────────────────────
-
-export const Op = Object.freeze({
-  CREATE_ELEMENT: 0,
-  CREATE_TEXT_NODE: 1,
-  SET_TEXT_CONTENT: 2,
-  SET_ATTRIBUTE: 3,
-  REMOVE_ATTRIBUTE: 4,
-  SET_PROPERTY: 5,
-  ADD_EVENT_LISTENER: 6,
-  REMOVE_EVENT_LISTENER: 7,
-  APPEND_CHILD: 8,
-  REMOVE_CHILD: 9,
-  REMOVE_NODE: 10,
-  INSERT_BEFORE: 11,
-  REPLACE_NODE: 12,
-  SET_STYLE: 13,
-  ADD_CLASS: 14,
-  REMOVE_CLASS: 15,
-  MORPH_NODE: 16,
-  REGISTER_NODE: 17,
-  UNREGISTER_NODE: 18,
-});
+// Browser document registry, events, transport and component lifecycle.
 
 // Reserved node ids (gap inventory G1): 0=<head>, 1=<body>, 2=<html>. Macro ids ≥ 1000.
 export const RESERVED = Object.freeze({ HEAD: 0, BODY: 1, HTML: 2 });
 
-// ─── Known tag/attribute id tables (decision G12/G13/G14) ───────────────────
-//
-// EXACT mirrors of `foundation_ui_traits::html::TAG_NAMES` / `ATTR_NAMES`:
-// index + 1 == wire id, `"id:<n>"` strings in the columns resolve here.
-// Append-only — ORDER IS ABI. Regenerate from html.rs when extending.
-
-export const TAG_NAMES = Object.freeze([
-  "div", "span", "input", "button", "html", "head", "body", "title", "base",
-  "link", "meta", "style", "script", "noscript", "template", "slot", "main", "section",
-  "nav", "article", "aside", "header", "footer", "address", "h1", "h2", "h3",
-  "h4", "h5", "h6", "hgroup", "p", "hr", "pre", "blockquote", "ol",
-  "ul", "menu", "li", "dl", "dt", "dd", "figure", "figcaption", "search",
-  "a", "em", "strong", "small", "s", "cite", "q", "dfn", "abbr",
-  "ruby", "rt", "rp", "data", "time", "code", "var", "samp", "kbd",
-  "sub", "sup", "i", "b", "u", "mark", "bdi", "bdo", "br",
-  "wbr", "ins", "del", "picture", "source", "img", "iframe", "embed", "object",
-  "video", "audio", "track", "map", "area", "svg", "math", "canvas", "table",
-  "caption", "colgroup", "col", "tbody", "thead", "tfoot", "tr", "td", "th",
-  "form", "label", "select", "datalist", "optgroup", "option", "textarea", "output", "progress",
-  "meter", "fieldset", "legend", "details", "summary", "dialog",
-]);
-
-export const ATTR_NAMES = Object.freeze([
-  "class", "id", "style", "value", "title", "lang", "dir", "hidden", "tabindex",
-  "accesskey", "draggable", "contenteditable", "spellcheck", "translate", "role", "slot", "part", "is",
-  "href", "src", "srcset", "sizes", "alt", "rel", "target", "download", "referrerpolicy",
-  "crossorigin", "integrity", "loading", "media", "type", "name", "placeholder", "disabled", "readonly",
-  "required", "checked", "selected", "multiple", "min", "max", "step", "pattern", "minlength",
-  "maxlength", "autocomplete", "autofocus", "for", "form", "action", "method", "enctype", "novalidate",
-  "accept", "rows", "cols", "wrap", "list", "size", "colspan", "rowspan", "headers",
-  "scope", "width", "height", "controls", "autoplay", "loop", "muted", "preload", "poster",
-  "playsinline", "charset", "content", "http-equiv", "open", "label", "datetime", "cite", "data",
-]);
-
-/**
- * Resolve a decision-010 string-column name: `"id:<n>"` looks up `table`
- * (1-based), anything else is already the literal name.
- * @param {string} wire @param {readonly string[]} table
- */
-export function resolveWireName(wire, table) {
-  if (wire.startsWith("id:")) {
-    const id = Number(wire.slice(3));
-    if (Number.isInteger(id) && id >= 1 && id <= table.length) return table[id - 1];
-  }
-  return wire;
-}
-
-
-// ─── ColumnarParser (compact columnar payload — protocol 1, wire v1) ─────────────
-
-/**
- * Decode the COMPACT COLUMNAR payload v1.1 (protocol byte 1, wire VERSION 1 —
- * the owned layout; wire version 2 is real Arrow IPC, server-side). Layout
- * (little-endian), mirroring `foundation_ui_traits::ColumnarBatch::serialize`:
- *
- *   [pad_len:u8][0x00 × pad_len]      // alignment shim
- *   [row_count:u32][flags:u32]        // 8-byte header — 8-ALIGNED by contract
- *   [op_id:    u32 × N]
- *   [node_id:  u32 × N]
- *   [operation:u8  × N][pad to 4]
- *   [attribute column][value column][text_val column]
- *
- * A column is `[(N+1) offsets:u32][data_len:u32][utf8 bytes][pad to 4]`.
- *
- * ZERO-COPY (feature 19): every producer pads so the header lands 8-aligned —
- * the pure encoder relative to the payload, the wasm framing layer against the
- * ABSOLUTE arena address. When that holds here (`byteOffset` math), the u32
- * columns become TRUE TypedArray views sharing the payload's buffer
- * (`zeroCopy: true`); otherwise we fall back to copying (correct everywhere).
- */
-export class ColumnarParser {
-  /**
-   * @param {Uint8Array} payload
-   * @returns {{ count:number, opIds:Uint32Array, nodeIds:Uint32Array,
-   *            operations:Uint8Array, attribute:string[], value:string[],
-   *            textVal:string[], zeroCopy:boolean }}
-   */
-  static parse(payload) {
-    const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
-    const padLen = view.getUint8(0);
-    const headerAt = 1 + padLen;
-    // Column alignment is relative to the header; the producers' shim makes it
-    // absolute. Verify — views need absolute 4-alignment.
-    const aligned = (payload.byteOffset + headerAt) % 4 === 0;
-
-    let off = headerAt;
-    const u32 = () => {
-      const v = view.getUint32(off, true);
-      off += 4;
-      return v;
-    };
-    const pad4 = () => {
-      off += (4 - ((off - headerAt) % 4)) % 4;
-    };
-
-    const count = u32();
-    u32(); // flags (reserved — future cached-string demux)
-
-    const u32Column = () => {
-      let column;
-      if (aligned) {
-        // TRUE view — shares the payload's buffer, zero copies.
-        column = new Uint32Array(payload.buffer, payload.byteOffset + off, count);
-      } else {
-        column = new Uint32Array(count);
-        for (let i = 0; i < count; i++) column[i] = view.getUint32(off + i * 4, true);
-      }
-      off += count * 4;
-      return column;
-    };
-
-    const opIds = u32Column();
-    const nodeIds = u32Column();
-    // u8 views have no alignment requirement — always zero-copy.
-    const operations = new Uint8Array(payload.buffer, payload.byteOffset + off, count);
-    off += count;
-    pad4();
-
-    const decoder = new TextDecoder();
-    const readStringColumn = () => {
-      const offsets = u32Column.call(null);
-      // (count+1) offsets — u32Column read `count`; read the extra one.
-      const last = u32();
-      const dataLen = u32();
-      const base = payload.byteOffset + off;
-      const out = new Array(count);
-      for (let i = 0; i < count; i++) {
-        const end = i + 1 < count ? offsets[i + 1] : last;
-        out[i] = decoder.decode(
-          new Uint8Array(payload.buffer, base + offsets[i], end - offsets[i]),
-        );
-      }
-      off += dataLen;
-      pad4();
-      return out;
-    };
-
-    const attribute = readStringColumn();
-    const value = readStringColumn();
-    const textVal = readStringColumn();
-
-    return { count, opIds, nodeIds, operations, attribute, value, textVal, zeroCopy: aligned };
-  }
-}
-
-// ─── NodeRegistry ────────────────────────────────────────────────────────────
-
-/**
- * Maps primal-ids (u32) to DOM nodes. CreateElement/Text register; RemoveNode and
- * ReplaceNode unregister. Reserved ids 0-2 map to head/body/html when seeded.
- */
 export class NodeRegistry {
   constructor() {
     this.nodes = new Map();
@@ -602,211 +411,6 @@ export class MorphDom {
   }
 }
 
-// ─── DomOpApplicator ──────────────────────────────────────────────────────
-
-/**
- * Applies a parsed Arrow batch to a DOM. `document` must provide `createElement`,
- * `createTextNode`; nodes must provide the usual mutation API. Designed so a minimal
- * stub (tests) or a real `document` both work.
- */
-export class DomOpApplicator {
-  /**
-   * @param {NodeRegistry} registry @param {Document} document
-   * @param {(eventName:string, nodeId:number, event:Event, el:Element)=>void} [onEvent]
-   *   dispatch hook for ADD_EVENT_LISTENER-bound listeners (feature 08 wires WASM).
-   */
-  constructor(registry, document, onEvent) {
-    this.registry = registry;
-    this.document = document;
-    this.onEvent = onEvent;
-    this.listeners = new Map(); // `${nodeId}:${event}` -> bound handler
-  }
-
-  /** Apply a full batch (output of {@link ColumnarParser.parse}). */
-  apply(batch) {
-    const { count, nodeIds, operations, attribute, value, textVal } = batch;
-    for (let i = 0; i < count; i++) {
-      this.applyOne(operations[i], nodeIds[i], attribute[i], value[i], textVal[i]);
-    }
-  }
-
-  applyOne(op, nodeId, attribute, value, textVal) {
-    const reg = this.registry;
-    switch (op) {
-      case Op.CREATE_ELEMENT: {
-        // attribute = tag (id: form or literal), value = class.
-        const el = this.document.createElement(resolveWireName(attribute, TAG_NAMES));
-        if (value) el.className = value;
-        reg.stage(nodeId, el); // NO auto-register — REGISTER_NODE promotes.
-        break;
-      }
-      case Op.CREATE_TEXT_NODE:
-        reg.stage(nodeId, this.document.createTextNode(textVal));
-        break;
-      case Op.SET_TEXT_CONTENT:
-        reg.expect(nodeId).textContent = textVal;
-        break;
-      case Op.SET_ATTRIBUTE:
-        reg.expect(nodeId).setAttribute(resolveWireName(attribute, ATTR_NAMES), value);
-        break;
-      case Op.REMOVE_ATTRIBUTE:
-        reg.expect(nodeId).removeAttribute(resolveWireName(attribute, ATTR_NAMES));
-        break;
-      case Op.SET_PROPERTY: {
-        // value is the SERIALIZED property value; JSON covers the primitive
-        // cases (numbers, booleans, quoted strings) with raw-string fallback.
-        let parsed = value;
-        try {
-          parsed = JSON.parse(value);
-        } catch {
-          /* raw string property */
-        }
-        reg.expect(nodeId)[resolveWireName(attribute, ATTR_NAMES)] = parsed;
-        break;
-      }
-      case Op.ADD_EVENT_LISTENER: {
-        // value = event name. The bound listener forwards into the runtime's
-        // event dispatch hook (feature 08 wires the WASM callback path).
-        const eventName = resolveWireName(value, ATTR_NAMES);
-        const el = reg.expect(nodeId);
-        const key = `${nodeId}:${eventName}`;
-        if (!this.listeners.has(key)) {
-          const handler = (event) => this.onEvent?.(eventName, nodeId, event, el);
-          this.listeners.set(key, handler);
-          el.addEventListener(eventName, handler);
-        }
-        break;
-      }
-      case Op.REMOVE_EVENT_LISTENER: {
-        const eventName = resolveWireName(value, ATTR_NAMES);
-        const el = reg.expect(nodeId);
-        const key = `${nodeId}:${eventName}`;
-        const handler = this.listeners.get(key);
-        if (handler) {
-          el.removeEventListener(eventName, handler);
-          this.listeners.delete(key);
-        }
-        break;
-      }
-      case Op.APPEND_CHILD:
-        reg.expect(nodeId).appendChild(reg.expect(Number(attribute))); // attribute = child id
-        break;
-      case Op.REMOVE_CHILD:
-        reg.expect(nodeId).removeChild(reg.expect(Number(attribute)));
-        break;
-      case Op.INSERT_BEFORE:
-        reg
-          .expect(nodeId)
-          .insertBefore(reg.expect(Number(attribute)), reg.expect(Number(textVal))); // text_val = ref id
-        break;
-      case Op.REMOVE_NODE: {
-        const node = reg.expect(nodeId);
-        node.remove();
-        reg.unregister(nodeId); // implicit unregister
-        break;
-      }
-      case Op.REPLACE_NODE: {
-        // attribute = new id. Implicitly unregisters old, registers new — the
-        // replacement may still be staged (no REGISTER_NODE needed for it).
-        const newId = Number(attribute);
-        const oldNode = reg.expect(nodeId);
-        const newNode = reg.expectOrStaged(newId);
-        oldNode.replaceWith(newNode);
-        reg.unregister(nodeId);
-        reg.register(newId, newNode);
-        break;
-      }
-      case Op.SET_STYLE:
-        reg.expect(nodeId).style[resolveWireName(attribute, ATTR_NAMES)] = value;
-        break;
-      case Op.ADD_CLASS:
-        reg.expect(nodeId).classList.add(value); // value = class
-        break;
-      case Op.REMOVE_CLASS:
-        reg.expect(nodeId).classList.remove(value);
-        break;
-      case Op.MORPH_NODE:
-        this.applyMorph(nodeId, attribute, textVal);
-        break;
-      case Op.REGISTER_NODE:
-        reg.applyRegister(nodeId, this.document);
-        break;
-      case Op.UNREGISTER_NODE:
-        reg.unregister(nodeId); // registry only — DOM untouched
-        break;
-      default:
-        throw new Error(`DomOpApplicator: unknown operation ${op}`);
-    }
-  }
-
-  /**
-   * MORPH_NODE (op 16): `packed` is `"<action>:<kind>:<selector>"` (split only
-   * the first two colons — CSS queries contain `:`); `nodeId` carries the
-   * target for kind 0. Minimal application — full Datastar-style morphing with
-   * state preservation is feature 07 (decision 027).
-   */
-  applyMorph(nodeId, packed, content) {
-    const first = packed.indexOf(":");
-    const second = packed.indexOf(":", first + 1);
-    if (first < 0 || second < 0) {
-      throw new Error(`DomOpApplicator: malformed morph packing \`${packed}\``);
-    }
-    const action = Number(packed.slice(0, first));
-    const kind = packed.slice(first + 1, second);
-    const selector = packed.slice(second + 1);
-
-    let target;
-    if (kind === "0") target = this.registry.expect(nodeId);
-    else if (kind === "1") target = this.document.querySelector(`#${selector}`);
-    else if (kind === "2") target = this.document.querySelector(`.${selector}`);
-    else if (kind === "3") target = this.document.querySelector(selector);
-    else throw new Error(`DomOpApplicator: unknown morph selector kind ${kind}`);
-    if (!target) throw new Error(`DomOpApplicator: morph target not found (${kind}:${selector})`);
-
-    switch (action) {
-      case 0: // ReplaceChildren — full morph (decision 027) when the document
-        // can parse HTML; innerHTML fallback otherwise (test mocks).
-        if (typeof this.document.createRange === "function") {
-          const fragment = this.document.createRange().createContextualFragment(content);
-          MorphDom.morph(target, fragment, this.document);
-        } else {
-          target.innerHTML = content;
-        }
-        break;
-      case 1: // ReplaceElement
-        target.insertAdjacentHTML("afterend", content);
-        target.remove();
-        break;
-      case 2: // InsertBefore
-        target.insertAdjacentHTML("beforebegin", content);
-        break;
-      case 3: // InsertAfter
-        target.insertAdjacentHTML("afterend", content);
-        break;
-      case 4: // AppendSibling — last child of the target's parent
-        (target.parent ?? target.parentNode)?.insertAdjacentHTML("beforeend", content);
-        break;
-      default:
-        throw new Error(`DomOpApplicator: unknown morph action ${action}`);
-    }
-  }
-}
-
-// ─── Protocol handler factory ────────────────────────────────────────────────
-
-/**
- * Build a ProtocolDispatcher handler (`{ apply(memoryId, payload) }`) for
- * protocol byte 1 wire v1 (compact columnar): parse + apply to the DOM.
- * @param {DomOpApplicator} applicator
- */
-export function columnarHandler(applicator) {
-  return {
-    apply(_memoryId, payload) {
-      applicator.apply(ColumnarParser.parse(payload));
-    },
-  };
-}
-
 // ─── EventDispatcher (primal:on* → WASM callbacks) ───────────────────────────────
 
 const PRIMAL_ON = "primal:on";
@@ -867,6 +471,7 @@ export function parseCallbackId(ref) {
  *   4. otherwise                              → console.warn, no listener
  */
 export class EventDispatcher {
+  static actionHook = null;
   /**
    * @param {(callbackId:number, eventData:object) => void} deliver
    * @param {{ deliverSignal?:(setterId:number, eventData:object)=>void,
@@ -919,6 +524,12 @@ export class EventDispatcher {
   }
 
   #buildListener(el, eventType, handlerRef) {
+    if (/^(server|host):/.test(String(handlerRef))) {
+      return event => {
+        if (EventDispatcher.actionHook) return EventDispatcher.actionHook(String(handlerRef), el, event, eventType);
+        console.warn("No action runtime for", handlerRef);
+      };
+    }
     const callbackId = parseCallbackId(handlerRef);
     if (callbackId !== null) {
       return (event) => this.deliver(callbackId, buildEventData(eventType, event, el));
@@ -1149,57 +760,14 @@ export function signalDeliver(bridge, encode = jsonEncodeEventData) {
     const bytes = encode(eventData);
     const memId = bridge.exports.create_allocation(BigInt(bytes.length));
     const ptr = Number(bridge.exports.allocation_start_pointer(memId));
-    new Uint8Array(bridge.memory().buffer, ptr, bytes.length).set(bytes);
+    const memory = typeof bridge.memory === "function" ? bridge.memory() : bridge.memory;
+    new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
     bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
   };
 }
 
 function jsonEncodeEventData(eventData) {
   return new TextEncoder().encode(JSON.stringify(eventData));
-}
-
-// ─── DomOps over the batch protocol (Custom Binary, byte 0) ────────────────────────
-
-/**
- * The registered batch opcode carrying one DomOp row:
- * `[BATCH_OP_APPLY_DOM][ArgStart (operation, nodeId, attribute, value, textVal)
- * ArgStop][Operations.End]` — params quantized (V2), strings via the texts pool.
- * Mirrors `foundation_wasm_ui::BATCH_OP_APPLY_DOM` on the Rust side.
- */
-export const BATCH_OP_APPLY_DOM = 10;
-
-/**
- * Register the DomOp batch operation on a core runtime: byte-0 batch messages
- * carrying [`BATCH_OP_APPLY_DOM`] ops apply straight to the DOM through the same
- * applicator Arrow uses. This is the selective-opt-in pattern of the batch system
- * (`BatchInstructions.registerOperation`) — other processes register their own
- * opcodes the same way.
- *
- * @param {{batches:{registerOperation:Function, params:object}}} rt  core runtime
- * @param {DomOpApplicator} applicator
- */
-export function registerDomBatchOperation(rt, applicator) {
-  rt.batches.registerOperation(BATCH_OP_APPLY_DOM, (batch, _opId, i, view, texts) => {
-    // Markers are the shared cross-language contract: ArgumentOperations.Start = 1,
-    // Operations.End = 254 (foundation_wasm base.rs).
-    if (view.getUint8(i) !== 1) {
-      throw new Error(`dom batch op: expected ArgumentOperations.Start, got ${view.getUint8(i)}`);
-    }
-    i += 1;
-    let args;
-    [i, args] = batch.params.parseParams(view, i, texts);
-    if (view.getUint8(i) !== 254) {
-      throw new Error(`dom batch op: expected Operations.End, got ${view.getUint8(i)}`);
-    }
-    i += 1;
-    const [operation, nodeId, attribute, value, textVal] = args;
-    const thunk = () => {
-      applicator.applyOne(operation, nodeId, attribute, value, textVal);
-      return null;
-    };
-    return [i, thunk];
-  });
-  return rt;
 }
 
 // ─── DomHeap (DOM external-pointer arena, = megatron DOMArena) ────────────────────
@@ -1411,7 +979,7 @@ export function parseBatchEntry(entry) {
     return { id: entry.id, ...routeHtml(String(entry.body)) };
   }
   if (ct.includes("primal-arrow")) {
-    return { id: entry.id, type: "arrow", columns: ColumnarParser.parse(new Uint8Array(entry.body)) };
+    return {id:entry.id, ...removedArrow()};
   }
   return { id: entry.id, type: "raw", text: String(entry.body ?? "") };
 }
@@ -1674,7 +1242,7 @@ export class FetchEventSource {
 
     let response;
     try {
-      response = await this.fetchFn(this.url, {
+      response = await this.fetchFn(this.options.nextUrl?.(this.url) ?? this.url, {
         method: this.options.method ?? "GET",
         headers,
         body: this.options.body,
@@ -1761,6 +1329,7 @@ export class SSETransport {
       onEvent: (event) =>
         onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data)),
       onError: this.config.onError,
+      nextUrl: this.config.nextUrl,
     });
     return this.source.connect();
   }
@@ -1789,12 +1358,14 @@ export class WebSocketTransport {
     this.closed = false;
     this.url = url;
     this.onResult = onResult;
-    this.ws = factory(url);
+    const socket = factory(this.config.nextUrl?.(url) ?? url);
+    this.ws = socket;
     // Binary frames carry the ENVELOPE — its header tells the protocol
     // (feature 04); text frames fall back to the declared protocol, else
     // json (the pre-feature-04 behavior, preserved as the text default).
     if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
     this.ws.onmessage = (event) => {
+      if (this.ws !== socket || this.closed) return;
       const { data } = event;
       if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
         const result = decodeEnvelopeFrame(
@@ -1806,11 +1377,11 @@ export class WebSocketTransport {
       onResult(streamEventResult(this.config.protocol ?? "json", data));
     };
     this.ws.onclose = () => {
-      if (this.closed) return;
+      if (this.closed || this.ws !== socket) return;
       const delay = reconnectDelay(this.attempt);
       this.attempt += 1;
       setTimeout(() => {
-        if (!this.closed) this.connect(this.url, undefined, this.onResult);
+        if (!this.closed && this.ws === socket) this.connect(this.url, undefined, this.onResult);
       }, delay);
     };
   }
@@ -1840,13 +1411,24 @@ export class ChunkedTransport {
       body: data === undefined ? undefined : JSON.stringify(data),
       signal: this.abort.signal,
     });
-    const handler =
-      ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
-    const reader = response.body.getReader();
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      onChunk(await handler.processChunk(value));
+    if (!response.ok) throw new Error("Stream request failed with HTTP " + response.status);
+    const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
+    if (handler instanceof FrameHandler) {
+      const hook = ProtocolHandler.frameHook;
+      if (!hook) throw new Error("Install the frame runtime before opening a frame stream");
+      for await (const frame of hook.readFrames(response.body,hook.maxFrameBytes)) {
+        onChunk({type:"frame",frames:[frame]});
+      }
+    } else {
+      // A single document can span several network chunks.
+      const limit = this.config.maxDocumentBytes ?? ProtocolHandler.frameHook?.maxFrameBytes ?? 4 * 1024 * 1024;
+      let size = 0;
+      const body = response.body.pipeThrough(new TransformStream({transform(bytes, controller) {
+        size += bytes.byteLength;
+        if (size > limit) throw new RangeError("Streamed document exceeds byte limit");
+        controller.enqueue(bytes);
+      }}));
+      onChunk(await handler.process(new Response(body,{headers:response.headers})));
     }
   }
 
@@ -1880,7 +1462,7 @@ export class Transport {
     switch (config.transport) {
       case "sse":
         return new SSETransport(config);
-      case "ws":
+      case "ws": case "websocket":
         return new WebSocketTransport(config);
       case "chunked":
         return new ChunkedTransport(config);
@@ -1894,14 +1476,9 @@ export class Transport {
 
 // ─── Protocol handlers (decision 022 content types) ───────────────────────────
 
-/**
- * Decode one envelope-framed wire message (feature 04): the 6-byte header
- * `[protocol][version][length:4 LE]` is AUTHORITATIVE — this is how
- * header-less channels (WebSocket binary frames, base64 SSE `arrow`
- * events) self-describe. Returns a routed result, or null after surfacing
- * a typed error (NEVER a silent json attempt).
- */
+// A binary message carries one EWF1 frame or a generic JSON envelope.
 export function decodeEnvelopeFrame(bytes) {
+  if (ProtocolHandler.frameHook?.isFrame(bytes)) return { type: "frame", frames: [bytes] };
   if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
   if (bytes.byteLength < 6) {
     console.error("decodeEnvelopeFrame: truncated header", bytes.byteLength);
@@ -1914,18 +1491,6 @@ export function decodeEnvelopeFrame(bytes) {
   const payload = bytes.subarray(6);
   if (payload.byteLength !== length) {
     console.error(`decodeEnvelopeFrame: length mismatch (header ${length}, payload ${payload.byteLength})`);
-    return null;
-  }
-  if (protocol === 1 && version === 1) {
-    return { type: "arrow", columns: ColumnarParser.parse(payload) };
-  }
-  if (protocol === 1 && version === 2) {
-    // Real Arrow IPC needs the apache-arrow reader (embedded asset); the
-    // core runtime stays lean — consumers register a reader.
-    if (typeof ProtocolHandler.arrowIpcReader === "function") {
-      return { type: "arrow-ipc", table: ProtocolHandler.arrowIpcReader(payload) };
-    }
-    console.error("decodeEnvelopeFrame: wire v2 (Arrow IPC) frame received but no reader is registered — set ProtocolHandler.arrowIpcReader (e.g. apache-arrow tableFromIPC)");
     return null;
   }
   if (protocol === 2) {
@@ -1948,6 +1513,7 @@ function base64ToBytes(text) {
 }
 
 function streamEventResult(kind, raw) {
+  if (kind === "frame") return { type: "frame", frames: [base64ToBytes(raw)] };
   if (kind === "json") {
     try {
       return routeJson(JSON.parse(raw));
@@ -1955,89 +1521,13 @@ function streamEventResult(kind, raw) {
       return { type: "raw", text: String(raw) };
     }
   }
-  if (kind === "arrow") {
-    // SSE is text — arrow frames arrive base64'd, envelope included
-    // (feature 04; completes the F11 follow-up note that used to live here).
-    try {
-      return decodeEnvelopeFrame(base64ToBytes(raw)) ?? { type: "raw", text: String(raw) };
-    } catch (error) {
-      console.error("streamEventResult: arrow event was not valid base64", error);
-      return { type: "raw", text: String(raw) };
-    }
-  }
+  if (kind === "arrow") return removedArrow();
   return routeHtml(String(raw));
 }
 
-/**
- * Convert a JSON `DomOp` batch (the {@link JsonEncoder} flat-row form:
- * `[{op_id, node_id, operation, attribute, value, text_val}, …]`) into the same
- * batch shape {@link DomOpApplicator#apply} consumes, so the JSON and columnar
- * wires share ONE apply path. `null` columns map to `""` (what `applyOne` /
- * `resolveWireName` expect); `operation`/`node_id` are numeric.
- */
-function jsonRowsToBatch(rows) {
-  return {
-    count: rows.length,
-    nodeIds: rows.map((r) => r.node_id >>> 0),
-    operations: rows.map((r) => r.operation),
-    attribute: rows.map((r) => r.attribute ?? ""),
-    value: rows.map((r) => r.value ?? ""),
-    textVal: rows.map((r) => r.text_val ?? ""),
-  };
-}
-
-/**
- * Convert a decoded Apache Arrow IPC table (wire VERSION 2, read via
- * `ProtocolHandler.arrowIpcReader`, e.g. apache-arrow `tableFromIPC`) into the
- * batch shape {@link DomOpApplicator#apply} consumes — the SAME shape the
- * columnar and JSON wires produce. Reads the canonical DomOp columns
- * (`operation`, `node_id`, `attribute`, `value`, `text_val`); null Utf8 cells
- * become `""`. Works with any table exposing `numRows` + `getChild(name).get(i)`.
- */
-function arrowTableToBatch(table) {
-  const count = table.numRows;
-  const col = (name) => table.getChild(name);
-  const op = col("operation");
-  const nid = col("node_id");
-  const attr = col("attribute");
-  const val = col("value");
-  const txt = col("text_val");
-  const nodeIds = new Array(count);
-  const operations = new Array(count);
-  const attribute = new Array(count);
-  const value = new Array(count);
-  const textVal = new Array(count);
-  for (let i = 0; i < count; i += 1) {
-    operations[i] = Number(op.get(i));
-    nodeIds[i] = Number(nid.get(i)) >>> 0;
-    attribute[i] = attr.get(i) ?? "";
-    value[i] = val.get(i) ?? "";
-    textVal[i] = txt.get(i) ?? "";
-  }
-  return { count, nodeIds, operations, attribute, value, textVal };
-}
-
-/** A JSON `DomOp` batch is a non-empty array whose rows carry `operation`. */
-function isJsonDomOpBatch(value) {
-  return (
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value[0] != null &&
-    typeof value[0] === "object" &&
-    "operation" in value[0]
-  );
-}
-
-/** JSON morph-wrapper / DomOp-batch detection (spec §3). */
 function routeJson(value) {
   if (value && typeof value === "object" && value.morph) {
     return { type: "json-morph", morph: value.morph };
-  }
-  // A JSON-encoded DomOp batch applies through the SAME applicator the columnar
-  // ("arrow") wire uses — the envelope's protocol byte is the only difference, so
-  // a mount renders identically whichever wire it streamed over.
-  if (isJsonDomOpBatch(value)) {
-    return { type: "arrow", columns: jsonRowsToBatch(value) };
   }
   return { type: "json", patches: value };
 }
@@ -2051,12 +1541,14 @@ function routeHtml(html) {
   return { type: "html", html };
 }
 
-export class ArrowHandler {
-  async process(response) {
-    const buffer = await response.arrayBuffer();
-    return { type: "arrow", columns: ColumnarParser.parse(new Uint8Array(buffer)) };
-  }
+function removedArrow() {
+  console.error('mount: protocol "arrow" was removed; use "frame"');
+  return {type:"raw", text:""};
 }
+
+const emptyProtocolHandler = {
+  process: async () => ({type:"raw", text:""}),
+};
 
 export class JsonHandler {
   async process(response) {
@@ -2082,19 +1574,41 @@ export class RawHandler {
  * | channel      | decided by                                                  |
  * |--------------|--------------------------------------------------------------|
  * | HTTP fetch   | response `content-type` (`fromContentType` below)            |
- * | SSE          | per-message `event:` name (html/json/arrow; unnamed = html)  |
- * | WS binary    | the ENVELOPE header (protocol byte + version — authoritative)|
+ * | SSE          | per-message `event:` name (html/json/frame; unnamed = html)  |
+ * | WS binary    | the EWF1 identifier or the generic JSON envelope|
  * | WS text      | declared `protocol` attr, else json                          |
  * | `protocol=`  | mount attribute OVERRIDES headers/event names entirely       |
  *
  * Precedence: attribute > headers/event name > channel default.
  */
+export class FrameHandler {
+  async process(response) {
+    if (!response.ok) throw new Error("Frame request failed with HTTP " + response.status);
+    const hook = ProtocolHandler.frameHook;
+    if (!hook) {
+      console.error("frame received but the frame runtime is not installed");
+      return { type: "raw", text: "" };
+    }
+    const frames = [];
+    let total = 0;
+    for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)) {
+      total += frame.length;
+      if (total > hook.maxFrameBytes) throw new RangeError("Frame reply exceeds byte limit");
+      frames.push(frame);
+    }
+    return { type: "frame", frames };
+  }
+}
+
 export class ProtocolHandler {
+  static frameHook = null;
   /** Explicit handler by name — the mount `protocol` attribute override. */
   static named(name) {
     switch (name) {
+      case "frame": return new FrameHandler();
       case "arrow":
-        return new ArrowHandler();
+        removedArrow();
+        return emptyProtocolHandler;
       case "json":
         return new JsonHandler();
       case "html":
@@ -2107,7 +1621,8 @@ export class ProtocolHandler {
   /** Content-type table (spec §3, G46). */
   static fromContentType(response) {
     const ct = response.headers?.get?.("content-type") || "";
-    if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return new ArrowHandler();
+    if (ct.includes("primal-frame")) return new FrameHandler();
+    if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return ProtocolHandler.named("arrow");
     if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
     if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
       return new HtmlHandler();
@@ -2134,33 +1649,36 @@ export function scopeCss(cssText, prefix) {
 }
 
 export class Hydrator {
+  static scopeExtensions = [];
+  static behaviourMarkers = null;
   /** Scoped-script execution scope (spec §5). */
   static createScope(targetElement) {
     const eventCleanups = [];
-    return {
+    const scope = {
       targets: () => targetElement.querySelectorAll("[primal-id]"),
       parent: () => targetElement,
       querySelector: (sel) => targetElement.querySelector(sel),
       querySelectorAll: (sel) => targetElement.querySelectorAll(sel),
-      addEvent(sel, event, handler) {
-        const el = targetElement.querySelector(sel);
+      addEvent(target, event, handler, options) {
+        const el = typeof target === "string" ? targetElement.querySelector(target) : target;
         if (el) {
-          el.addEventListener(event, handler);
-          eventCleanups.push({ el, event, handler });
+          el.addEventListener(event, handler, options);
+          eventCleanups.push(() => el.removeEventListener(event, handler, options));
         }
       },
+      onDispose(dispose) { eventCleanups.push(dispose); },
       cleanup() {
-        for (const { el, event, handler } of eventCleanups) {
-          el.removeEventListener(event, handler);
-        }
-        eventCleanups.length = 0;
+        for (const cleanup of eventCleanups.splice(0)) cleanup();
       },
     };
+    for (const extend of Hydrator.scopeExtensions) extend(scope, targetElement);
+    return scope;
   }
 
   /** Styles + scripts. NOT events (F08 owns primal:on*). Browser-leaning. */
   static hydrate(root, doc = root.ownerDocument ?? globalThis.document) {
     if (typeof root.querySelectorAll !== "function") return;
+    Hydrator.behaviourMarkers?.(root);
     // Styles: scope + adopt.
     for (const style of root.querySelectorAll("style[primal\\:style]")) {
       const prefix = root.id ? `#${root.id}` : `[primal-id="${root.getAttribute?.("primal-id") ?? ""}"]`;
@@ -2178,10 +1696,14 @@ export class Hydrator {
     // many components scopes each script to its component root, not the subtree.
     for (const script of root.querySelectorAll("script[primal\\:script]")) {
       const owner = script.parentElement ?? root;
+      const scope = Hydrator.createScope(owner);
       try {
-        const fn = new Function("scope", script.textContent);
-        fn(Hydrator.createScope(owner));
+        const source = script.textContent.trim();
+        const body = /^(?:async\s+)?function\s*\(/.test(source) ? `(${source})(scope)` : source;
+        new Function("scope", body)(scope);
+        Patcher.registerUnmount(owner, () => scope.cleanup());
       } catch (error) {
+        scope.cleanup();
         console.error("Hydrator: scoped script failed", error);
       }
       script.remove?.();
@@ -2192,10 +1714,30 @@ export class Hydrator {
 // ─── Patcher ───────────────────────────────────────────────────────────────────
 
 export class Patcher {
-  /** Injectable seams: the F08 dispatcher, the DomOp applicator, signals. */
-  static runtime = { dispatcher: null, applicator: null, signalBridge: null };
+  /** Document registry, event dispatcher, signal bridge and frame reader. */
+  static runtime = { dispatcher: null, registry: null, signalBridge: null, frames: null };
   /** Monotonic count of applied results (the frame instrument; see `route`). */
   static frameSeq = 0;
+  static localScopes = new WeakMap();
+
+  static registerUnmount(node, dispose) {
+    let hooks = Patcher.localScopes.get(node);
+    if (!hooks) Patcher.localScopes.set(node, hooks = new Set());
+    hooks.add(dispose);
+  }
+
+  static releaseScope(node) {
+    const hooks = Patcher.localScopes.get(node);
+    Patcher.localScopes.delete(node);
+    if (hooks) for (const dispose of hooks) {
+      try { dispose(); } catch (error) { console.error("Component cleanup failed", error); }
+    }
+  }
+
+  static releaseTree(node) {
+    for (const child of Array.from(node.childNodes ?? [])) Patcher.releaseTree(child);
+    Patcher.releaseScope(node);
+  }
 
   static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
     if (typeof doc?.createRange === "function") {
@@ -2208,22 +1750,12 @@ export class Patcher {
     Patcher.runtime.dispatcher?.scanAndWire?.(target); // F08 (idempotent)
   }
 
-  static applyDomOps(columns) {
-    Patcher.runtime.applicator?.apply?.(columns);
-  }
-
-  /**
-   * Lazily install the Arrow DOM-op applicator the streaming path needs. A
-   * native App (Mode 1) ships absolute primal-ids and appends its root onto a
-   * reserved ambient node, so the applicator's NodeRegistry MUST be seeded with
-   * the live document (head=0, body=1, html=2). Idempotent; a host that wants a
-   * custom registry/onEvent hook can pre-set `Patcher.runtime.applicator`.
-   */
-  static ensureApplicator(doc) {
-    if (!Patcher.runtime.applicator) {
-      Patcher.runtime.applicator = new DomOpApplicator(new NodeRegistry().seedDocument(doc), doc);
+  static ensureRegistry(doc) {
+    if (Patcher.runtime.document !== doc) {
+      Patcher.runtime.document = doc;
+      Patcher.runtime.registry = new NodeRegistry().seedDocument(doc);
     }
-    return Patcher.runtime.applicator;
+    return Patcher.runtime.registry;
   }
 
   static applySignalPatches(patches) {
@@ -2235,6 +1767,10 @@ export class Patcher {
   /** Route one ProtocolHandler result to the DOM (shared by both mounts). */
   static route(result, targetEl, doc) {
     Patcher.applyRoute(result, targetEl, doc);
+    if (result.type !== "frame") Patcher.markApplied();
+  }
+
+  static markApplied() {
     // Frame instrument: every applied result bumps a sequence + timestamp. Cheap,
     // always-on, broadly useful — a server-driven client (or a test driver) can
     // poll `globalThis.__primalFrames` to know the DOM has caught up.
@@ -2248,6 +1784,10 @@ export class Patcher {
   /** Apply one routed result (the actual DOM work; instrumented by `route`). */
   static applyRoute(result, targetEl, doc) {
     switch (result.type) {
+      case "frame":
+        if (!Patcher.runtime.frames) console.error("frame received but the frame runtime is not installed");
+        else for (const frame of result.frames) Patcher.runtime.frames.receive(frame);
+        break;
       case "html":
         Patcher.materialize(result.html, targetEl, doc);
         break;
@@ -2267,16 +1807,6 @@ export class Patcher {
       }
       case "json":
         Patcher.applySignalPatches(result.patches);
-        break;
-      case "arrow":
-        Patcher.ensureApplicator(doc);
-        Patcher.applyDomOps(result.columns);
-        break;
-      case "arrow-ipc":
-        // Apache Arrow IPC (wire v2): the decoded table carries the same DomOp
-        // columns — read them into a batch and apply through the SAME applicator.
-        Patcher.ensureApplicator(doc);
-        Patcher.applyDomOps(arrowTableToBatch(result.table));
         break;
       default:
         targetEl.textContent = result.text ?? "";
@@ -2355,37 +1885,68 @@ export class MountDataComponent extends BaseElement {
   async connectedCallback() {
     const doc = this.ownerDocument ?? globalThis.document;
     try {
+      const binding = Patcher.runtime.onMountConnect?.(this, false);
+      this._frameMount = binding;
+      if (binding?.local) return;
       const { api, data, transport, target } = mountSetup(this);
       this._transport = transport;
       const method = this.getAttribute("method") || "POST";
-      const result = await transport.send(api, method, data);
-      const targetEl = resolveMountTarget(this, target, doc);
-      Patcher.route(result, targetEl, doc);
+      const result = await transport.send(binding ? binding.url(api) : api, method, data);
+      if (binding) binding.receive(result);
+      else Patcher.route(result, resolveMountTarget(this, target, doc), doc);
     } catch (error) {
       console.error("mount-data:", error);
     }
   }
 
   disconnectedCallback() {
+    this._frameMount?.close();
     this._transport?.disconnect?.();
   }
 }
 
-/** `<mount-stream>` — continuous results until disconnect (spec §8). */
+/** Open a stream while its element is connected. */
 export class MountStreamComponent extends BaseElement {
   connectedCallback() {
     const doc = this.ownerDocument ?? globalThis.document;
     try {
-      const { api, data, transport, target } = mountSetup(this, { transport: "sse" });
-      this._transport = transport;
-      const targetEl = resolveMountTarget(this, target, doc);
-      transport.connect(api, data, (result) => Patcher.route(result, targetEl, doc));
+      const binding = Patcher.runtime.onMountConnect?.(this, true);
+      this._frameMount = binding;
+      if (binding?.local) return;
+      let generation = 0;
+      const open = () => {
+        const current = ++generation;
+        const { api, data, transport, target } = mountSetup(this, { transport: "sse" });
+        // Frame operations name their own targets. The mount owns the connection.
+        const targetEl = binding ? null : resolveMountTarget(this, target, doc);
+        this._transport = transport;
+        if (!binding && this.isConnected === false && targetEl?.isConnected && !this._targetObserver) {
+          // Legacy markup replaces its placeholder. Its replacement owns the connection.
+          this._targetObserver = new MutationObserver(() => {
+            if (!targetEl.isConnected) this.disconnectedCallback();
+          });
+          this._targetObserver.observe(doc, { childList: true, subtree: true });
+        }
+        if (binding && transport.config) transport.config.nextUrl = url => binding.url(url);
+        const payload = binding && this.getAttribute("data") === null ? undefined : data;
+        transport.connect(binding ? binding.url(api) : api, payload, result => {
+          if (current !== generation || transport !== this._transport) return;
+          if (binding) binding.receive(result);
+          else Patcher.route(result, targetEl, doc);
+        });
+      };
+      this._restartFrameStream = () => { this._transport?.disconnect?.(); open(); };
+      open();
     } catch (error) {
       console.error("mount-stream:", error);
     }
   }
 
   disconnectedCallback() {
+    this._frameMount?.close();
+    this._restartFrameStream = null;
+    this._targetObserver?.disconnect();
+    this._targetObserver = null;
     this._transport?.disconnect?.();
     this._transport = null;
   }
@@ -2399,71 +1960,37 @@ export function registerWebComponents() {
   if (!customElements.get("mount-stream")) customElements.define("mount-stream", MountStreamComponent);
 }
 
-/**
- * Wire a `FoundationWasm` runtime for direct WASM→DOM UI (mode 1 / client-side).
- *
- * The `FoundationWasm` core only registers protocol byte 0 (batch instructions).
- * `App::new()` (the compact columnar wire, protocol byte 1) needs an explicit
- * `columnarHandler` on the dispatcher — otherwise `host_apply` throws
- * `"unknown protocol: 1"` and every `stabilize()` drops its DomOps.
- *
- * This ONE call sets up the full DOM path:
- *   NodeRegistry(seed document) → DomOpApplicator → EventDispatcher → rAF scan
- * and registers `columnarHandler(applicator)` on protocol byte 1.
- *
- * ```js
- * import { FoundationWasm } from './foundation-wasm.js';
- * import { registerWasmApp } from './foundation-wasm-ui.js';
- *
- * const rt = new FoundationWasm();
- * const imports = { abi: rt.web_abi };
- * const { instance } = await WebAssembly.instantiate(wasmBytes, imports);
- * rt.init(instance);
- * registerWasmApp(rt);          // ← wires protocol 1 → DOM
- * instance.exports.myapp();     // ← Rust code can now stabilize() into the DOM
- * ```
- *
- * @param {{dispatcher: ProtocolDispatcher}} runtime  a FoundationWasm instance
- *   (anything with `.dispatcher.setHandler(protocol, handler)`)
- * @param {{document?: Document}} [opts]  override for tests/SSR
- */
+// Connect WebAssembly allocations, event delivery and local scope disposal.
 export function registerWasmApp(runtime, opts = {}) {
   const doc = opts.document ?? globalThis.document;
   if (!doc) {
     console.error("registerWasmApp: no document available (non-browser environment)");
     return;
   }
-  const registry = new NodeRegistry().seedDocument(doc);
-  const dispatcher = new EventDispatcher(
-    (_id, _data) => {}, // registry callback delivery handled by signalDeliver below
-    { deliverSignal: signalDeliver(runtime, jsonEncodeEventData) },
-  );
-  const applicator = new DomOpApplicator(registry, doc, (eventName, nodeId, event, el) => {
-    dispatcher.deliver(
-      parseCallbackId(el.getAttribute?.("primal:setter") ?? ""),
-      buildEventData(eventName, event, el),
-    );
+  const bridge = runtime.bridge ?? runtime;
+  const frames = globalThis.EweFrames?.installFrameRuntime(globalThis.FoundationWasmUiRuntime, opts);
+  if (!frames) throw new Error("registerWasmApp requires foundation-ui-frames.js");
+  const dispatcher = Patcher.runtime.dispatcher ?? new EventDispatcher(callbackDeliver(runtime.callbacks));
+  dispatcher.deliver = callbackDeliver(runtime.callbacks);
+  dispatcher.deliverSignal = signalDeliver(bridge);
+  Patcher.runtime.dispatcher = dispatcher;
+  const owned = new WeakSet();
+  const onMount = (id, node) => {
+    if (!owned.has(node) && bridge.exports?.ewe_ui_dispose_mount) {
+      owned.add(node);
+      Patcher.registerUnmount(node, () => bridge.exports.ewe_ui_dispose_mount(id));
+    }
+  };
+  const onEvent = (name, id, event, el) => {
+    const setter = parseCallbackId(el.getAttribute?.("primal:setter"));
+    if (setter !== null) dispatcher.deliverSignal(setter, buildEventData(name, event, el));
+  };
+  runtime.dispatcher.setRawHandler(ProtocolHandler.frameHook.isFrame, bytes => {
+    if (bytes.byteLength > frames.maxFrameBytes) return frames.receive(bytes);
+    return frames.receive(Uint8Array.from(bytes), {onMount, onEvent});
   });
-  runtime.dispatcher.setHandler(1, columnarHandler(applicator));
   // Initial scan + observer: wires primal:on* attrs that exist on page load.
   initEventRuntime(dispatcher, doc);
-}
-
-/**
- * Register the Apache Arrow IPC (wire v2) reader so streamed `arrow-ipc` frames
- * decode through {@link decodeEnvelopeFrame}. `arrow` defaults to the global the
- * bundled `apache-arrow.js` UMD sets (`globalThis.Arrow`); pass a module if you
- * load it another way. This is the ONE framework call a consumer makes for Arrow
- * IPC — the `tableFromIPC` wiring stays in the runtime, not in each page.
- */
-export function registerArrowIpc(arrow = globalThis.Arrow) {
-  if (!arrow || typeof arrow.tableFromIPC !== "function") {
-    console.error(
-      "registerArrowIpc: no apache-arrow `tableFromIPC` available — load apache-arrow.js first",
-    );
-    return;
-  }
-  ProtocolHandler.arrowIpcReader = (bytes) => arrow.tableFromIPC(bytes);
 }
 
 /**
@@ -2512,19 +2039,15 @@ export function createPrimal({ dispatcher, doc = globalThis.document } = {}) {
 }
 
 if (typeof window !== "undefined") {
-  registerWebComponents();
+  queueMicrotask(registerWebComponents);
   window.primal ??= createPrimal({});
 }
 
 // mirror lets classic (non-module) scripts on the same page reach the DOM runtime as
 // `globalThis.FoundationWasmUiRuntime` once the module has loaded.
 globalThis.FoundationWasmUiRuntime = Object.freeze({
-  Op,
   RESERVED,
-  ColumnarParser,
   NodeRegistry,
-  DomOpApplicator,
-  columnarHandler,
   MorphDom,
   moveBefore,
   buildEventData,
@@ -2558,6 +2081,4 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   createPrimal,
   DomHeap,
   domAbi,
-  BATCH_OP_APPLY_DOM,
-  registerDomBatchOperation,
 });

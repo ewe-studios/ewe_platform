@@ -1,0 +1,7 @@
+error[E0432]: unresolved import `foundation_ui_traits::DomOp`
+ --> tests/trybuild/fail_dom_op_removed.rs:1:5
+  |
+1 | use foundation_ui_traits::DomOp;
+  |     ^^^^^^^^^^^^^^^^^^^^^^-----
+  |                           |
+  |                           no `DomOp` in the root

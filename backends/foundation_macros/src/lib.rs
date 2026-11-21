@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 
+mod action;
 mod arrow_json_schema;
 mod arrow_schema;
 mod bindgen_test;
@@ -35,6 +36,15 @@ mod wireguard;
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
 // Import from foundation_nostd::macros.
+
+/// Marks an asynchronous function as a user interface action.
+/// The host registers the generated value by its function name.
+/// Use `#[action(server)]` or `#[action(host)]` to select an origin.
+/// Add `web` or `mobile` after the origin to select a surface.
+#[proc_macro_attribute]
+pub fn action(attr: TokenStream, item: TokenStream) -> TokenStream {
+    action::expand(attr.into(), item.into()).into()
+}
 
 // ── Migration macros ──
 
@@ -975,13 +985,50 @@ pub fn proxy(input: TokenStream) -> TokenStream {
 /// Two forms:
 /// - `html! { <div>..</div> }` — a pure `Html` value.
 /// - `html! { ctx, receiver, <div>..</div> }` — additionally queues the DOM
-///   build as `DomOp`s on `receiver` and creates one effect per dynamic
+///   build as generated operations on `receiver` and creates one effect per dynamic
 ///   slot/attribute (effects run immediately).
 ///
 /// See `foundation_macros::html_macro` module docs for the full walkthrough.
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
-    html_macro::html(input.into()).into()
+    html_macro::html(input.into(), false).into()
+}
+
+/// Builds a template for the action receiver.
+#[doc(hidden)]
+#[proc_macro]
+pub fn html_view(input: TokenStream) -> TokenStream {
+    html_macro::html(input.into(), true).into()
+}
+
+/// Appends template content to the selected parent.
+#[proc_macro]
+pub fn html_add(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Append).into()
+}
+
+/// Inserts template content before a direct child.
+#[proc_macro]
+pub fn html_add_before(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Before).into()
+}
+
+/// Inserts template content after a direct child.
+#[proc_macro]
+pub fn html_add_after(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::After).into()
+}
+
+/// Replaces the selected node with template content.
+#[proc_macro]
+pub fn html_swap(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Swap).into()
+}
+
+/// Removes the selected node and its descendants.
+#[proc_macro]
+pub fn html_remove(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Remove).into()
 }
 
 /// `#[derive(ThemeTokens)]` — compile-time theme CSS from `#[token(...)]`

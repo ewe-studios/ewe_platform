@@ -1,0 +1,43 @@
+<!doctype html>
+<meta charset="utf-8">
+<p id="result">loading</p>
+<script src="/foundation_wasm_ui/runtimes/foundation-ui-runtime.js"></script>
+<script type="module">
+  try {
+    const ui = globalThis.FoundationWasmUiRuntime;
+    const rt = new FoundationWasmRuntime.FoundationWasm();
+    const response = await fetch("/foundation_wasm_ui/integration/fixtures/foundation_wasm_ui_e2e.wasm");
+    const abi = { ...rt.web_abi, ...ui.domAbi(rt, new ui.DomHeap({window, document})) };
+    const bytes = await response.arrayBuffer();
+    const {instance} = await WebAssembly.instantiate(bytes, {abi});
+    rt.init(instance);
+    const frames = FoundationUiBootstrap.registerFrameApp(rt, {document, schedule: run => run()});
+    const read = () => frames.registry.get(88).outerHTML;
+    const clear = () => {
+      const node = frames.registry.get(88);
+      ui.Patcher.releaseTree(node);
+      node.remove(); frames.registry.unregister(88);
+    };
+    const original = rt.dispatcher.rawHandler;
+    rt.dispatcher.setRawHandler(original.matches, input => {
+      window.parityBytes = Array.from(input);
+      return original.apply(input);
+    });
+    instance.exports.emit_parity_frame();
+    const local = read();
+    if (frames.registry.get(88).textContent !== "rendered") throw Error("Local output differs");
+    clear();
+    frames.cursors.clear();
+    const mount = document.createElement("mount-stream");
+    mount.setAttribute("protocol","frame"); mount.setAttribute("transport","sse");
+    mount.setAttribute("api","/__primal/stream");
+    document.body.appendChild(mount);
+    const result = document.getElementById("result");
+    const observer = new MutationObserver(() => {
+      if (!frames.registry.get(88)) return;
+      observer.disconnect(); result.textContent = read() === local ? "matched" : "different";
+    });
+    observer.observe(document.body,{childList:true});
+    result.textContent = "ready";
+  } catch(error) { document.getElementById("result").textContent = String(error); }
+</script>

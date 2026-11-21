@@ -107,6 +107,8 @@ action registry, the capability hooks and the live mounts work together. Read it
 the idea file that you need. The design specification comes after the owner answers the
 remaining questions.
 
+The [actions, signals and rendering study](15-actions-signals-and-rendering.md) traces the working update paths and records the v2 transport decisions.
+
 ## 3. Owner decisions (fixed input)
 
 | # | Decision |

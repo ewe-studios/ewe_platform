@@ -1,6 +1,6 @@
 [package]
 name = "foundation_compact"
-version = "0.2.6"
+version = "0.2.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -18,7 +18,7 @@ foldhash = { version = "0.2", default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 forkguard = { version = "0.1", optional = true }
 chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"], optional = true }
-zeroize = { version = "1.8", features = ["derive"] }
+zeroize = { workspace = true, features = ["derive"] }
 # `default-features = false` keeps `uuid` as a pure no_std value/formatting type:
 # entropy comes from `crate::entropy`, not from `uuid`'s `rng`/`js`/`getrandom` path.
 uuid = { version = "1", default-features = false }
@@ -98,3 +98,10 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [lints.clippy]
 pedantic = "warn"
+
+# The integration harness builds this module for each supported WebAssembly host.
+[[example]]
+name = "compact_crypto_probe"
+path = "tests/wasm_hosts/probe.rs"
+crate-type = ["cdylib"]
+required-features = ["crypto-chacha"]

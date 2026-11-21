@@ -70,6 +70,10 @@ fn percent(value: f64, min: f64, max: f64) -> f64 {
 
 /// Slider component over a single `f64` value.
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 pub fn slider(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -124,3 +128,6 @@ pub fn slider(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[crate::behaviour::Behaviour::Gestures];

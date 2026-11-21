@@ -218,3 +218,6 @@ backends/*/integrations/bindgen-*/
 # Python bytecode caches
 __pycache__/
 *.pyc
+
+# Local Swift package binary input
+/.build-inputs/

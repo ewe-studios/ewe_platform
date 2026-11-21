@@ -10,14 +10,14 @@ description = "Development tooling server: reverse proxy, file watcher, hot relo
 keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15" }
-foundation_http = { path = "../foundation_http", version = "0.0.12" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.14" }
+foundation_http = { path = "../foundation_http", version = "0.0.13" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 
 tracing.workspace = true
 derive_more.workspace = true
@@ -42,8 +42,8 @@ tracing-test.workspace = true
 tracing-subscriber.workspace = true
 # The SSE reload test drives the handler's async continuation on the
 # multi-threaded valtron executor, as a serving server does.
-foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi", "test-clock"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi", "test-clock"] }
+foundation_macros = { workspace = true }
 
 [lints]
 workspace = true

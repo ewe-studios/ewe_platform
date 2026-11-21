@@ -17,7 +17,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Popup marker: present on a modal popup that should lock page scroll while
 /// open (`data-scroll-lock`). The behavior engages when the popup also has
@@ -27,7 +27,7 @@ pub const DATA_SCROLL_LOCK: &str = "data-scroll-lock";
 /// The M2 scroll-lock behavior. Locks the scroll container while the popup is
 /// open and restores it on close, preserving the gutter so the page doesn't
 /// shift.
-pub const SCROLL_LOCK_JS: &str = r#"function(scope){
+pub const SCROLL_LOCK_JS: &str = r"function(scope){
   var el = scope.parent();
   if (!el || el.__scrollLock) return; el.__scrollLock = true;
   var doc = el.ownerDocument || document;
@@ -62,11 +62,11 @@ pub const SCROLL_LOCK_JS: &str = r#"function(scope){
   sync();
   var mo = new MutationObserver(sync);
   mo.observe(el, { attributes: true, attributeFilter: ['data-open', 'data-closed'] });
-}"#;
+}";
 
-/// The `<script>` node a modal popup embeds to lock page scroll while open.
+/// The marker node a modal popup embeds to lock page scroll while open.
 /// The popup root must carry [`DATA_SCROLL_LOCK`] and toggle `data-open`.
 #[must_use]
 pub fn scroll_lock_behavior() -> Html {
-    scoped_script(SCROLL_LOCK_JS)
+    behaviour_script(Behaviour::ScrollLock, SCROLL_LOCK_JS)
 }

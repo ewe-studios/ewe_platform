@@ -12,7 +12,7 @@ use alloc::rc::Rc;
 use alloc::vec::Vec;
 use core::cell::{Cell, RefCell};
 
-use foundation_ui_traits::DomOp;
+use foundation_ui_wire::OperationT;
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
 use super::{HandleResult, ProtocolMethods, SendResult};
@@ -20,7 +20,7 @@ use super::{HandleResult, ProtocolMethods, SendResult};
 /// Recording protocol for tests (protocol byte `255` — reserved).
 #[derive(Default)]
 pub struct MockProtocol {
-    sent_batches: Rc<RefCell<Vec<Vec<DomOp>>>>,
+    sent_batches: Rc<RefCell<Vec<Vec<OperationT>>>>,
     acked_ids: Rc<RefCell<Vec<MemoryId>>>,
     next_id: Cell<u32>,
 }
@@ -34,7 +34,7 @@ impl MockProtocol {
     /// Shared handle to every batch sent, in order. Clone this BEFORE boxing
     /// the mock into a receiver.
     #[must_use]
-    pub fn sent_batches(&self) -> Rc<RefCell<Vec<Vec<DomOp>>>> {
+    pub fn sent_batches(&self) -> Rc<RefCell<Vec<Vec<OperationT>>>> {
         Rc::clone(&self.sent_batches)
     }
 
@@ -63,17 +63,17 @@ impl ProtocolHandler for MockProtocol {
     }
 }
 
-impl ProtocolMethods<Vec<DomOp>> for MockProtocol {
+impl ProtocolMethods<Vec<OperationT>> for MockProtocol {
     fn encode_and_write(
         &self,
-        ops: Vec<DomOp>,
+        ops: Vec<OperationT>,
         _memory: &mut MemoryAllocations,
-    ) -> (SendResult, *const u8, usize) {
+    ) -> super::WrittenBatch {
         let op_count = ops.len();
         self.sent_batches.borrow_mut().push(ops);
         let id = self.next_id.get();
         self.next_id.set(id + 1);
-        (
+        Ok((
             SendResult {
                 memory_id: MemoryId::new(id, 0),
                 op_count,
@@ -81,10 +81,10 @@ impl ProtocolMethods<Vec<DomOp>> for MockProtocol {
             },
             core::ptr::null(),
             0,
-        )
+        ))
     }
 
-    fn handle_received(&self, _memory_id: MemoryId, _ptr: *const u8, _len: usize) -> HandleResult {
+    fn handle_received(&self, _bytes: &[u8]) -> HandleResult {
         Ok(Vec::new())
     }
 }

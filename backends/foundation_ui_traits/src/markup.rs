@@ -1,6 +1,6 @@
 //! WHY: One rendering contract, any target (spec-42 feature 00 §5): a server
 //! must be able to emit first-paint HTML from the SAME `Html` values that
-//! drive the `DomOp` channel — otherwise the morph contract (server markup vs
+//! drive the frame operation channel — otherwise the morph contract (server markup vs
 //! live DOM diffing cleanly) is unenforceable.
 //!
 //! WHAT: [`Html::to_markup`] — serialize an `Html` tree to an HTML string:

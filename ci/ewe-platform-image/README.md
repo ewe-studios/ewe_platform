@@ -107,8 +107,9 @@ image, `link-submodules` fetches the new SHA and warns.
 next run builds an image with the new nightly.
 
 **Bump a tool:** edit `mise.toml`, then `mise lock --platform
-linux-x64,windows-x64,macos-x64` to refresh `mise.lock` (needs
-GitHub API access). For wasm-bindgen, keep it equal to the `wasm-bindgen`
+linux-x64,macos-arm64,macos-x64,windows-x64` to refresh `mise.lock` (needs
+GitHub API access). Run `python3 scripts/toolchain/android_lock.py` to add the Android archive checksums.
+Run `bash scripts/toolchain/lock_test.sh` to verify the four platforms. For wasm-bindgen, keep it equal to the `wasm-bindgen`
 crate in Cargo.lock (the image build fails otherwise).
 
 **Bake another submodule / change build args:** edit [`config.toml`](config.toml).

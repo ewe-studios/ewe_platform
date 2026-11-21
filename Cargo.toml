@@ -7,6 +7,8 @@ members = [
   "backends/*",
   "infrastructure/*",
   "examples/platform_demo",
+  "examples/ui_todo",
+  "examples/ui_todo/native",
   "apps/answerme-agent",
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
   # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/
@@ -47,6 +49,22 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+uniffi = { version = "=0.32.2", default-features = false }
+async-trait = "0.1"
+foundation_macros = { path = "backends/foundation_macros", version = "0.0.24" }
+trybuild = "1.0.125"
+hex = "0.4.3"
+# BoringTun uses SimpleHmac with blake2 0.10. The upstream hkdf 0.12 also needs hmac 0.12.
+hmac = "0.13.0"
+# The upstream scrypt library requires pbkdf2 0.12.
+pbkdf2 = "0.13.0"
+# The upstream fastwebsockets library requires sha1 0.10.
+sha1 = "0.11.0"
+# Upstream crates such as age and ed25519-dalek use sha2 0.10.
+sha2 = "0.11.1"
+subtle = "2.6.1"
+zeroize = "1.9.2"
+
 derive_more = { version = ">=2.0", features = ["full"] }
 
 # Async stream combinators (bounded concurrency in the migration fleet runner).
@@ -99,6 +117,8 @@ cc = { version = "1.2.49" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }
 walrus = "0.23"
+# Match the wire compiler pin. Arrow IPC also accepts this release.
+flatbuffers = { version = "=25.9.23", default-features = false }
 portpicker = "0.1"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 fs_extra = "1.3"

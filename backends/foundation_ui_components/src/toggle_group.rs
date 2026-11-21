@@ -165,3 +165,6 @@ pub fn toggle_group(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[crate::behaviour::Behaviour::Composite];

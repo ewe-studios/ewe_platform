@@ -38,6 +38,8 @@ pub struct Runtime {
     graph: RefCell<Graph>,
 }
 
+type EventCallback = Box<dyn FnMut(EventData)>;
+
 /// All mutable graph state, behind the one cell.
 pub(crate) struct Graph {
     pub(crate) nodes: Arena,
@@ -58,7 +60,7 @@ pub(crate) struct Graph {
     /// True while stabilize's dirty loop runs (routes disposals to deferral).
     stabilizing: bool,
     /// JS-interop callback registry (G17). Ids are NEVER reused.
-    callbacks: BTreeMap<u64, Box<dyn FnMut(EventData)>>,
+    callbacks: BTreeMap<u64, EventCallback>,
     next_callback_id: u64,
     /// Monotonic instance-id allocator for `html!` mounts (G20).
     next_instance_id: u32,
@@ -311,7 +313,8 @@ impl Runtime {
         // Deferred disposals (mid-stabilize context drops).
         let removals = core::mem::take(&mut self.graph().pending_removals);
         for id in removals {
-            self.graph().unlink_and_remove(id);
+            let retired = self.graph().unlink_and_remove(id);
+            drop(retired);
         }
 
         // Notification managers: after the loop, registration order, borrow
@@ -477,7 +480,9 @@ impl Runtime {
         if graph.stabilizing {
             graph.pending_removals.push(id);
         } else {
-            graph.unlink_and_remove(id);
+            let retired = graph.unlink_and_remove(id);
+            drop(graph);
+            drop(retired);
         }
     }
 }
@@ -556,14 +561,20 @@ impl Graph {
 
     /// Remove `id` from the graph: detach from deps' observer lists and
     /// observers' dep lists, drop its interop callback, free the slot.
-    pub(crate) fn unlink_and_remove(&mut self, id: NodeId) {
-        let Some(node) = self.nodes.remove(id) else {
-            return; // already gone (double dispose) — no-op
-        };
-        let (deps, observers, callback_id) = match node {
-            Node::Signal(n) => (Vec::new(), n.observers, Some(n.callback_id)),
-            Node::Computed(n) => (n.deps, n.observers, None),
-            Node::Effect(n) => (n.deps, Vec::new(), None),
+    fn unlink_and_remove(&mut self, id: NodeId) -> Option<(Node, Option<EventCallback>)> {
+        let mut node = self.nodes.remove(id)?;
+        let (deps, observers, callback_id) = match &mut node {
+            Node::Signal(n) => (
+                Vec::new(),
+                core::mem::take(&mut n.observers),
+                Some(n.callback_id),
+            ),
+            Node::Computed(n) => (
+                core::mem::take(&mut n.deps),
+                core::mem::take(&mut n.observers),
+                None,
+            ),
+            Node::Effect(n) => (core::mem::take(&mut n.deps), Vec::new(), None),
         };
         for dep in deps {
             if let Some(list) = self.nodes.get_mut(dep).and_then(Node::observers_mut) {
@@ -575,8 +586,7 @@ impl Graph {
                 list.retain(|d| *d != id);
             }
         }
-        if let Some(callback_id) = callback_id {
-            self.callbacks.remove(&callback_id);
-        }
+        let callback = callback_id.and_then(|key| self.callbacks.remove(&key));
+        Some((node, callback))
     }
 }

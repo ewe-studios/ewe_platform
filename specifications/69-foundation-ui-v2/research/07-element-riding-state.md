@@ -59,6 +59,8 @@ The current model is the opposite: the server holds state.
 | Decision: "No signal values need to be synced or embedded" | same file, line 40 |
 | Components put plain, unsigned `data-*` flags on elements for CSS | `backends/foundation_ui_components/src/lib.rs:7-10` |
 
+Decision D60 supersedes the earlier ancestor lookup described below. See the [current contract](../features/04-signed-state/feature.md).
+
 ## 3. The new way
 
 ### 3.1 One signed state per component, not per element

@@ -248,6 +248,29 @@ impl Context {
         }
     }
 
+    /// Return a callback that disposes this scope and its children once.
+    /// The callback does not keep the scope or its runtime alive.
+    pub fn disposer(&self) -> impl FnOnce() + 'static {
+        let runtime = Rc::downgrade(&self.runtime);
+        let inner = Rc::downgrade(&self.inner);
+        move || {
+            if let (Some(runtime), Some(inner)) = (runtime.upgrade(), inner.upgrade()) {
+                dispose_inner(&runtime, &inner);
+            }
+        }
+    }
+
+    /// Run a callback when this scope ends, including during an effect evaluation.
+    pub fn on_dispose(&self, cleanup: impl FnOnce() + 'static) {
+        let mut inner = self.inner.borrow_mut();
+        if inner.disposed {
+            drop(inner);
+            cleanup();
+        } else {
+            inner.cleanups.push(Box::new(cleanup));
+        }
+    }
+
     fn own(&self, id: crate::NodeId) {
         self.inner.borrow_mut().owned.push(id);
     }

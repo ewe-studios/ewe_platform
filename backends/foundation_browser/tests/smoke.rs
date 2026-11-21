@@ -189,22 +189,6 @@ fn channel_a_streams_a_frame_to_the_browser() {
     );
 }
 
-// Mode 1 — a NATIVE foundation_wasm_ui App streams to a REAL browser. The App
-// runs in this test thread; its protocol sink ships frames over channel-A SSE;
-// the page's <mount-stream> applies them. We drive a signal in Rust and watch
-// the browser DOM cycle through the MESSAGES. Headful + an 800×800 window when
-// PRIMAL_TEST_HEADFUL is set — watch it!
-//
-// All FOUR protocols render the SAME component in real Chromium over the real
-// foundation_http server, each with its own page <title>/<h1>:
-//   * columnar  — our compact binary wire (protocol 1 v1)
-//   * arrow     — Apache Arrow IPC (protocol 1 v2), via the bundled apache-arrow
-//   * json      — JSON DomOp batch (protocol 2)
-//   * html      — raw markup (island morph), the non-DomOp delivery
-// The three DomOp wires share ONE applicator (the envelope's protocol byte is
-// the only difference); html rides `routeHtml`. Nothing bespoke in the test —
-// every capability is foundation_wasm_ui / foundation_http machinery.
-
 /// The messages the live browser cycles through (mounted, then live updates).
 const MESSAGES: [&str; 4] = [
     "Hello from Rust 👋",
@@ -226,28 +210,24 @@ fn watch_pause(headful: bool) {
     }
 }
 
-/// A Mode-1 page: a `<title>`/`<h1>` naming the protocol, plus the `<mount-stream>`
-/// and runtime. `mount_attrs` selects the wire path; `extra_head`/`extra_module`
-/// carry per-protocol setup (e.g. apache-arrow + `registerArrowIpc()`).
-fn protocol_page(
-    title: &str,
-    mount_attrs: &str,
-    body_extra: &str,
-    extra_head: &str,
-    extra_module: &str,
-) -> String {
+fn protocol_page(title: &str, frame: bool, body: &str) -> String {
+    let (api, protocol) = if frame {
+        ("/__primal/live", "frame")
+    } else {
+        ("/__primal/stream", "html")
+    };
     format!(
-        "<!doctype html><html><head><meta charset=utf-8><title>{title}</title>{extra_head}</head>\
-<body>\n<h1>{title}</h1>\n{body_extra}\n\
-<mount-stream api=\"/__primal/stream\" transport=\"sse\" {mount_attrs}></mount-stream>\n\
-<script type=\"module\">\n\
-  import {{ registerWebComponents, registerArrowIpc }} from '/__primal/foundation-wasm-ui.js';\n\
-  registerWebComponents();\n  {extra_module}\n\
-</script>\n</body></html>"
+        r#"<!doctype html><meta charset=utf-8><title>{title}</title><h1>{title}</h1>{body}
+<mount-stream api="{api}" transport="sse" protocol="{protocol}"></mount-stream>
+<script type="module">
+  import * as ui from '/__primal/foundation-wasm-ui.js';
+  import {{installFrameRuntime}} from '/__primal/foundation-ui-frames.js';
+  installFrameRuntime(ui); ui.registerWebComponents();
+</script>"#
     )
 }
 
-/// Drive the greeting component over a DomOp wire: mount, then flip the signal
+/// Mount the greeting with EWF1 and update its signal
 /// through every message, asserting each lands in the real browser.
 fn drive_greeting(
     app: foundation_wasm_ui::App,
@@ -264,7 +244,7 @@ fn drive_greeting(
     app.mount(html! { ctx, rcv,
         <div id="greeting" class="greeting">{t.get()}</div>
     });
-    app.stabilize(); // initial mount → SSE → browser applies it
+    app.stabilize().unwrap(); // initial mount → SSE → browser applies it
     page.locator("#greeting")
         .expect()
         .to_have_text(MESSAGES[0])?;
@@ -272,7 +252,7 @@ fn drive_greeting(
 
     for msg in &MESSAGES[1..] {
         set_title.set(alloc_str(msg)); // drive a SIGNAL in Rust
-        app.stabilize(); // the SetText op streams → DOM updates live
+        app.stabilize().unwrap(); // the SetText op streams → DOM updates live
         page.locator("#greeting").expect().to_have_text(msg)?;
         watch_pause(headful);
     }
@@ -280,88 +260,31 @@ fn drive_greeting(
 }
 
 #[test]
-fn mode1_columnar_binary_streams_to_real_browser() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_ui_traits::ColumnarEncoder;
-    use foundation_wasm_ui::App;
-
+fn frame_updates_a_real_browser() {
     let headful = is_headful();
-    let page = protocol_page("columnar (custom binary)", "protocol=\"arrow\"", "", "", "");
     let harness = Harness::setup(TestConfig {
-        html: page,
-        encoding: Encoding::Columnar,
+        html: protocol_page("Live frames", true, ""),
         headless: !headful,
         window_size: WINDOW,
         ..TestConfig::default()
     })
-    .expect("setup");
-
-    harness.run("mode1_columnar", |server, page| {
-        let sink = BroadcastSink::with_encoder(ColumnarEncoder, server.broadcaster());
-        drive_greeting(App::with_protocol(sink), page, headful)
-    });
-}
-
-#[test]
-fn mode1_arrow_ipc_streams_to_real_browser() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_wasm_ui::{App, ArrowIpcEncoder};
-
-    let headful = is_headful();
-    // Arrow IPC needs the apache-arrow reader — loaded as a classic script (sets
-    // globalThis.Arrow) then wired by the framework's `registerArrowIpc()`.
-    let page = protocol_page(
-        "arrow (Apache Arrow IPC)",
-        "protocol=\"arrow\"",
-        "",
-        "<script src=\"/__primal/apache-arrow.js\"></script>",
-        "registerArrowIpc();",
-    );
-    let harness = Harness::setup(TestConfig {
-        html: page,
-        encoding: Encoding::Arrow,
-        headless: !headful,
-        window_size: WINDOW,
-        ..TestConfig::default()
-    })
-    .expect("setup");
-
-    harness.run("mode1_arrow_ipc", |server, page| {
-        let sink = BroadcastSink::with_encoder(ArrowIpcEncoder, server.broadcaster());
-        drive_greeting(App::with_protocol(sink), page, headful)
-    });
-}
-
-#[test]
-fn mode1_json_streams_to_real_browser() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_ui_traits::JsonEncoder;
-    use foundation_wasm_ui::App;
-
-    let headful = is_headful();
-    let page = protocol_page("json", "protocol=\"arrow\"", "", "", "");
-    let harness = Harness::setup(TestConfig {
-        html: page,
-        encoding: Encoding::Json,
-        headless: !headful,
-        window_size: WINDOW,
-        ..TestConfig::default()
-    })
-    .expect("setup");
-
-    harness.run("mode1_json", |server, page| {
-        let sink = BroadcastSink::with_encoder(JsonEncoder, server.broadcaster());
-        drive_greeting(App::with_protocol(sink), page, headful)
+    .unwrap();
+    harness.run("frame_updates_a_real_browser", |server, page| {
+        drive_greeting(
+            foundation_wasm_ui::App::with_protocol(server.broadcast_sink()),
+            page,
+            headful,
+        )
     });
 }
 
 #[test]
 fn mode1_html_streams_to_real_browser() {
     let headful = is_headful();
-    // HTML is the non-DomOp delivery: the server streams markup, the runtime's
+    // The server can deliver HTML directly: the server streams markup, the runtime's
     // routeHtml morphs it into a stable `#stage`. No App / encoder here — the
     // broadcaster's text frame is the whole story.
-    let page = protocol_page("html (markup)", "", "<div id=\"stage\"></div>", "", "");
+    let page = protocol_page("html (markup)", false, "<div id=\"stage\"></div>");
     let harness = Harness::setup(TestConfig {
         html: page,
         headless: !headful,
@@ -415,42 +338,40 @@ fn https_serves_a_secure_context() {
 // `window.__primalTest` API.
 #[test]
 fn primal_test_helper_and_reactive_settle() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_ui_traits::ColumnarEncoder;
     use foundation_wasm_ui::{html, App};
 
     // Page loads the runtime AND the injected helper (proves both are served).
     let page_html = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
-<mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
+<mount-stream api="/__primal/live" transport="sse" protocol="frame"></mount-stream>
 <script type="module">
-  import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
+  import * as ui from '/__primal/foundation-wasm-ui.js';
+  import {installFrameRuntime} from '/__primal/foundation-ui-frames.js';
   import { installPrimalTest } from '/__primal/primal-test.js';
-  registerWebComponents();
+  installFrameRuntime(ui); ui.registerWebComponents();
   installPrimalTest();
 </script>
 </body></html>"##;
 
     let harness = Harness::setup(TestConfig {
         html: page_html.into(),
-        encoding: Encoding::Columnar,
         ..TestConfig::default()
     })
     .expect("setup");
 
     harness.run("primal_test_helper_and_reactive_settle", |server, page| {
-        let app = App::with_protocol(BroadcastSink::with_encoder(ColumnarEncoder, server.broadcaster()));
+        let app = App::with_protocol(server.broadcast_sink());
         let (ctx, rcv) = app.context();
         let (label, set_label) = ctx.signal(alloc_str("one"));
         let l = label.clone();
         app.mount(html! { ctx, rcv, <p id="p">{l.get()}</p> });
-        app.stabilize();
+        app.stabilize().unwrap();
 
         // Driver-side: wait until the streamed frame has settled, no in-page helper needed.
         assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after the mount frame");
         page.locator("#p").expect().to_have_text("one")?;
 
         set_label.set(alloc_str("two"));
-        app.stabilize();
+        app.stabilize().unwrap();
         assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after the update frame");
         page.locator("#p").expect().to_have_text("two")?;
 
@@ -540,76 +461,29 @@ fn firefox_locator_geometry_attributes_style_and_input() {
     );
 }
 
-/// Run a Mode-1 DomOp-protocol parity test on Firefox: identical `drive_greeting`
-/// assertions as the Chromium mode1 tests, only the browser + encoder differ.
-fn firefox_mode1(
-    name: &'static str,
-    encoding: foundation_browser::test::Encoding,
-    page: String,
-    sink: impl FnOnce(foundation_browser::test::BroadcastTx) -> foundation_wasm_ui::App,
-) {
+#[test]
+fn firefox_frame_updates_a_real_browser() {
+    let headful = is_headful();
     let Some(harness) = firefox_or_skip(TestConfig {
-        html: page,
-        encoding,
-        headless: !is_headful(),
+        html: protocol_page("Firefox live frames", true, ""),
+        headless: !headful,
         window_size: WINDOW,
         ..TestConfig::default()
     }) else {
         return;
     };
-    let headful = is_headful();
-    harness.run(name, |server, page| {
-        drive_greeting(sink(server.broadcaster()), page, headful)
+    harness.run("firefox_frame_updates_a_real_browser", |server, page| {
+        drive_greeting(
+            foundation_wasm_ui::App::with_protocol(server.broadcast_sink()),
+            page,
+            headful,
+        )
     });
 }
 
 #[test]
-fn firefox_mode1_columnar_streams_to_real_browser() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_ui_traits::ColumnarEncoder;
-    use foundation_wasm_ui::App;
-    firefox_mode1(
-        "firefox_mode1_columnar",
-        Encoding::Columnar,
-        protocol_page("firefox · columnar", "protocol=\"arrow\"", "", "", ""),
-        |tx| App::with_protocol(BroadcastSink::with_encoder(ColumnarEncoder, tx)),
-    );
-}
-
-#[test]
-fn firefox_mode1_arrow_ipc_streams_to_real_browser() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_wasm_ui::{App, ArrowIpcEncoder};
-    firefox_mode1(
-        "firefox_mode1_arrow_ipc",
-        Encoding::Arrow,
-        protocol_page(
-            "firefox · arrow IPC",
-            "protocol=\"arrow\"",
-            "",
-            "<script src=\"/__primal/apache-arrow.js\"></script>",
-            "registerArrowIpc();",
-        ),
-        |tx| App::with_protocol(BroadcastSink::with_encoder(ArrowIpcEncoder, tx)),
-    );
-}
-
-#[test]
-fn firefox_mode1_json_streams_to_real_browser() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_ui_traits::JsonEncoder;
-    use foundation_wasm_ui::App;
-    firefox_mode1(
-        "firefox_mode1_json",
-        Encoding::Json,
-        protocol_page("firefox · json", "protocol=\"arrow\"", "", "", ""),
-        |tx| App::with_protocol(BroadcastSink::with_encoder(JsonEncoder, tx)),
-    );
-}
-
-#[test]
 fn firefox_mode1_html_streams_to_real_browser() {
-    let page = protocol_page("firefox · html", "", "<div id=\"stage\"></div>", "", "");
+    let page = protocol_page("firefox · html", false, "<div id=\"stage\"></div>");
     let Some(harness) = firefox_or_skip(TestConfig {
         html: page,
         headless: !is_headful(),
@@ -634,39 +508,37 @@ fn firefox_mode1_html_streams_to_real_browser() {
 
 #[test]
 fn firefox_primal_test_helper_and_reactive_settle() {
-    use foundation_browser::test::{BroadcastSink, Encoding};
-    use foundation_ui_traits::ColumnarEncoder;
     use foundation_wasm_ui::{html, App};
 
     let page_html = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
-<mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
+<mount-stream api="/__primal/live" transport="sse" protocol="frame"></mount-stream>
 <script type="module">
-  import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
+  import * as ui from '/__primal/foundation-wasm-ui.js';
+  import {installFrameRuntime} from '/__primal/foundation-ui-frames.js';
   import { installPrimalTest } from '/__primal/primal-test.js';
-  registerWebComponents();
+  installFrameRuntime(ui); ui.registerWebComponents();
   installPrimalTest();
 </script>
 </body></html>"##;
     let Some(harness) = firefox_or_skip(TestConfig {
         html: page_html.into(),
-        encoding: Encoding::Columnar,
         ..TestConfig::default()
     }) else {
         return;
     };
 
     harness.run("firefox_primal_test_helper_and_reactive_settle", |server, page| {
-        let app = App::with_protocol(BroadcastSink::with_encoder(ColumnarEncoder, server.broadcaster()));
+        let app = App::with_protocol(server.broadcast_sink());
         let (ctx, rcv) = app.context();
         let (label, set_label) = ctx.signal(alloc_str("one"));
         let l = label.clone();
         app.mount(html! { ctx, rcv, <p id="p">{l.get()}</p> });
-        app.stabilize();
+        app.stabilize().unwrap();
         assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after mount (BiDi)");
         page.locator("#p").expect().to_have_text("one")?;
 
         set_label.set(alloc_str("two"));
-        app.stabilize();
+        app.stabilize().unwrap();
         assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after update (BiDi)");
         page.locator("#p").expect().to_have_text("two")?;
 
@@ -680,4 +552,46 @@ fn firefox_primal_test_helper_and_reactive_settle() {
 
 fn alloc_str(s: &str) -> String {
     s.to_string()
+}
+
+/// Deliver Rust frame bytes over server-sent events and apply them in Chromium.
+#[test]
+fn ewf1_stream_updates_the_browser() {
+    let html = include_str!("fixtures/ewf1-page.html");
+    let harness = Harness::setup(TestConfig {
+        html: html.into(),
+        ..TestConfig::default()
+    })
+    .expect("start the test page");
+    harness.run("ewf1_stream_updates_the_browser", |server, page| {
+        server.broadcaster().send(include_bytes!(
+            "../../foundation_ui_wire/fixtures/frame_ops_counter.bin"
+        ));
+        page.locator("#count").expect().to_have_text("1")?;
+        page.locator("#local-result").expect().to_have_text("ok")?;
+        Ok(())
+    });
+}
+
+/// Compare local and streamed delivery of the same Rust frame.
+#[test]
+fn wasm_and_sse_render_the_same_button() {
+    let backends = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap();
+    let harness = Harness::setup(TestConfig {
+        html: include_str!("fixtures/wire-parity.html").into(),
+        static_dir: Some(backends.into()),
+        static_mount: "/foundation_wasm_ui".into(),
+        ..TestConfig::default()
+    })
+    .unwrap();
+    harness.run("wasm_and_sse_render_the_same_button", |server, page| {
+        page.locator("#result").expect().to_have_text("ready")?;
+        let bytes: Vec<u8> = serde_json::from_value(page.eval("window.parityBytes")?).unwrap();
+        assert_eq!(bytes.get(4..8), Some(&b"EWF1"[..]));
+        server.broadcaster().send(&bytes);
+        page.locator("#result").expect().to_have_text("matched")?;
+        Ok(())
+    });
 }

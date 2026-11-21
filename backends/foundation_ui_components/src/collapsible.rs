@@ -27,6 +27,7 @@ use crate::machinery::measure::panel_size_behavior;
 use crate::machinery::transition::transition_behavior;
 
 /// Static config for a collapsible.
+#[derive(Default)]
 pub struct CollapsibleConfig {
     /// Whether the trigger is disabled.
     pub disabled: bool,
@@ -37,31 +38,13 @@ pub struct CollapsibleConfig {
     pub class: Option<Cow<'static, str>>,
 }
 
-impl Default for CollapsibleConfig {
-    fn default() -> Self {
-        Self {
-            disabled: false,
-            hidden_until_found: false,
-            class: None,
-        }
-    }
-}
-
 /// Slots for a collapsible: the trigger content and the panel content.
+#[derive(Default)]
 pub struct CollapsibleSlots {
     /// Trigger (button) content.
     pub trigger: Vec<Slot>,
     /// Panel content.
     pub children: Vec<Slot>,
-}
-
-impl Default for CollapsibleSlots {
-    fn default() -> Self {
-        Self {
-            trigger: Vec::new(),
-            children: Vec::new(),
-        }
-    }
 }
 
 /// Collapsible component — a disclosure with a signal-driven panel.
@@ -145,3 +128,9 @@ pub fn collapsible(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Measure,
+    crate::behaviour::Behaviour::Transition,
+];

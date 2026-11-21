@@ -12,6 +12,14 @@
 
 [env]
 CARGO_TERM_COLOR = "always"
+ANDROID_HOME = { value = '{% if tools["http:android-sdk"] is defined %}{{ tools["http:android-sdk"].path }}{% else %}{{ env.ANDROID_HOME | default(value="") }}{% endif %}', tools = true }
+ANDROID_COMPILE_SDK = "36"
+ANDROID_UI_COMPILE_SDK = "37.2"
+ANDROID_BUILD_TOOLS = "36.0.0"
+ANDROID_GRADLE_PLUGIN = "9.5.1"
+ANDROID_KOTLIN_VERSION = { value = '{% if tools.kotlin is defined %}{{ tools.kotlin.version }}{% endif %}', tools = true }
+ANDROID_NDK = "27.0.12077973"
+XCODE_MIN = "26.2"
 # The wrangler the Cloudflare integration tests run. Pinned: they use its local
 # explorer REST API (/cdn-cgi/local/explorer/api), which is beta and may change.
 # `package.json` carries an older wrangler for other uses.
@@ -59,7 +67,9 @@ LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
 # the Windows/macOS images installs exactly the same versions. Only [tools]
 # (and [settings]) feed the CI image, so editing tasks or env doesn't rebuild
 # it. After changing a version, refresh the lock (needs GitHub API access):
-#   mise lock --platform linux-x64,windows-x64,macos-x64
+#   mise lock --platform linux-x64,macos-arm64,macos-x64,windows-x64
+#   python3 scripts/toolchain/android_lock.py
+#   bash scripts/toolchain/lock_test.sh
 # The shared versions match ci/platform-images/images/linux/mise/mise.toml.
 
 [tools]
@@ -91,9 +101,66 @@ pitchfork = { version = "2.30.1", os = ["linux", "windows"] }
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.
 
+# User interface schema and native build tools (feature 17).
+"github:google/flatbuffers" = "25.9.23"
+java = "temurin-25.0.5+8.0.LTS"
+gradle = "9.9.1"
+kotlin = "2.4.21"
+# Use the upstream binaries so the lock records each download and checksum.
+"github:bbqsrc/cargo-ndk" = "4.1.2"
+
+# Use direct downloads so mise verifies the lock checksum on installation.
+[tools."http:android-sdk"]
+version = "23.0"
+strip_components = 0
+bin_path = "cmdline-tools/bin"
+
+[tools."http:android-sdk".platforms]
+linux-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip" }
+macos-arm64 = { url = "https://dl.google.com/android/repository/commandlinetools-mac_arm64-16111833_latest.zip" }
+macos-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-mac_x86_64-16111833_latest.zip" }
+windows-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-win-16111833_latest.zip" }
+
 # =============================================================================
 # Tasks - Setup
 # =============================================================================
+
+[tasks."toolchain:android"]
+description = "Install the Android Software Development Kit packages"
+run = "bash scripts/toolchain/android.sh"
+
+[tasks."toolchain:android-build"]
+description = "Build and verify a sample Android application"
+depends = ["toolchain:android"]
+run = "bash scripts/toolchain/android_build.sh"
+
+[tasks."toolchain:wire"]
+description = "Verify the FlatBuffers schema compiler"
+run = "bash scripts/toolchain/wire_test.sh"
+
+[tasks."toolchain:apple"]
+description = "Check Xcode and compile the UniFFI Swift binding for the iOS simulator"
+run = ["bash scripts/toolchain/check.sh --scope apple", "bash scripts/toolchain/proof.sh --scope apple"]
+
+[tasks."ui-web:bundle"]
+description = "Build the self-contained browser runtime"
+run = "bash scripts/ui_web/bundle.sh"
+
+[tasks."ui-web:test"]
+description = "Test the browser runtime and compare both instruction encoders"
+run = "node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js"
+
+[tasks."ui-wire:generate"]
+description = "Generate and bundle the user interface wire bindings"
+run = "bash scripts/ui_wire/generate.sh"
+
+[tasks."ui-wire:check"]
+description = "Check the user interface wire bindings for drift"
+run = "bash scripts/ui_wire/check.sh"
+
+[tasks."ui-wire:test-ts"]
+description = "Read the Rust wire fixtures with the TypeScript bindings"
+run = "node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs"
 
 [tasks.setup]
 description = "Install all dev tools and WASM targets for this OS"
@@ -225,8 +292,17 @@ echo "✓ firefox installed"
 alias = "test-browser"
 description = "Run the pure-Rust browser test suite against a real Chromium (spec-43)"
 run = """
-echo "Running foundation_browser suite (needs chromium — run 'mise run test:browsers')..."
-cargo test -p foundation_browser --features browser-tests --test smoke
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$(uname -s)" == Darwin && -z "${PRIMAL_TEST_CHROMIUM_BIN:-}" ]]; then
+  for app in "/Applications/Chromium.app/Contents/MacOS/Chromium" "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; do
+    if [[ -x "$app" ]]; then export PRIMAL_TEST_CHROMIUM_BIN="$app"; break; fi
+  done
+fi
+echo "Running the Chromium browser tests..."
+cargo test -p foundation_browser --profile uat --features browser-tests --test smoke
+examples/ui_todo/build-module.sh
+cargo test -p ui_todo --profile uat --features browser-tests --test todo_browser_tests
 echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
 """
 

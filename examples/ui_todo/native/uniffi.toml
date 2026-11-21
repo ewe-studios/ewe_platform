@@ -1,0 +1,7 @@
+[bindings.kotlin]
+package_name = "io.github.ewe_studios.ewe.todo"
+cdylib_name = "ui_todo_native"
+
+[bindings.swift]
+module_name = "EweTodoCore"
+ffi_module_name = "EweTodoCoreFFI"

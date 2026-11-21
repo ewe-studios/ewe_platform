@@ -207,9 +207,18 @@ reason = "6 pedantic warnings; clear them and delete this override (#441)"
 clippy-deny-warnings = false
 reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
-[packages.foundation_ui_components]
-clippy-deny-warnings = false
-reason = "68 pedantic warnings; clear them and delete this override (#441)"
+[packages.foundation_ui_native]
+runs = ["", "app"]
+wasm = "off"
+reason = "Swift and Kotlin use this crate on native devices."
+
+[packages.foundation_ui_runtime]
+wasm = "enforce"
+
+[packages.foundation_ui_wire]
+runs = ["", "reference"]
+wasm = "enforce"
+fmt = "enforce"
 
 [packages.foundation_sshkit]
 clippy-deny-warnings = false
@@ -219,14 +228,6 @@ reason = "17 pedantic warnings; clear them and delete this override (#441)"
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
-clippy-deny-warnings = false
-reason = "2 pedantic warnings; clear them and delete this override (#441)"
-
-[packages.foundation_wasm_ui]
-clippy-deny-warnings = false
-reason = "20 pedantic warnings; clear them and delete this override (#441)"
-
-[packages.foundation_ui_traits]
 clippy-deny-warnings = false
 reason = "2 pedantic warnings; clear them and delete this override (#441)"
 
@@ -597,6 +598,7 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_compact]
+runs = ["", "crypto-chacha"]
 # The default run covers the macOS entropy and errno backends and the Windows
 # entropy backend (`BCryptGenRandom`).
 wasm = "enforce"
@@ -657,6 +659,11 @@ wasm = "off"
 
 # ---------------------------------------------------------------------------
 # Wasm runtime test suites (feature 22 E4).
+
+# The web feature enables the host calls used by both WebAssembly fixtures.
+[packages.foundation_wasm]
+clippy-runs = ["", "web"]
+clippy-deny-warnings = true
 
 [packages.wasm-tests]
 macos-tests = "none"

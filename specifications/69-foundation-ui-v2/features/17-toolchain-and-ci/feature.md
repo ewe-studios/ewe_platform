@@ -1,22 +1,22 @@
 ---
 feature: "toolchain-and-ci"
 description: "One pinned toolchain for the native work: flatc, the JDK, Gradle, Kotlin, the Android SDK and cargo-ndk in the root mise.toml, one task for the Android SDK packages, a check that proves the host, and a proof that generates Swift and Kotlin bindings from a minimal UniFFI export."
-status: "pending"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: []
 estimated_effort: "small"
 created: 2026-11-14
-last_updated: 2026-11-14
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: []
 packages: []
 decisions: ["D57", "D58"]
 tasks:
-  completed: 0
-  uncompleted: 10
-  total: 10
-  completion_percentage: 0
+  completed: 11
+  uncompleted: 0
+  total: 11
+  completion_percentage: 100
 ---
 
 # Feature 17: The toolchain in mise
@@ -72,10 +72,24 @@ does not install it.
 the shared tools of `ci/platform-images/mise/mise.toml`; the tool steps of the CI workflows;
 the version record in `learnings.md`.
 
-**Outside this feature:** the UniFFI crate surface (feature 13); the Swift package (feature
-14); the Gradle project and its version catalog (feature 15); the schema and the `flatc`
-flags (feature 01); the installation of Xcode (Apple); the Android application build
-(feature 15).
+The product features own the production schema (01), native interface (13), Swift package (14) and Android project (15).
+This feature installs the tools, verifies the selected Xcode and builds test inputs for each platform.
+
+### Platform verification
+
+- The wire check runs the pinned compiler on a small schema. It generates Rust, TypeScript, Swift and Kotlin bindings.
+- The Apple proof uses a full host Xcode installation and compiles Swift for the simulator.
+- The Android proof installs the configured packages and builds a temporary debug application with Gradle.
+- The default macOS check verifies all three tool sets. The Linux image checks the shared tools.
+- Feature 15 owns the product application. This feature owns the build that proves the Android tools work.
+
+| Host and task | Command | Evidence |
+|---|---|---|
+| Any supported wire build host | `mise run toolchain:wire` | The compiler writes bindings in four languages. |
+| macOS with Xcode | `mise run toolchain:apple` | Swift compiles against the installed simulator kit. |
+| macOS or Linux with Android tools | `mise run toolchain:android`, then `mise run toolchain:android-build` | Gradle builds a debug Android application package. |
+| Shared native bindings on macOS | `mise exec -- scripts/toolchain/proof.sh` | The same Rust export compiles to Swift and Kotlin bindings. |
+| Full macOS host | `mise exec -- scripts/toolchain/check.sh` | The version and package checks pass for each platform. |
 
 ## 4. Rules
 
@@ -234,17 +248,8 @@ the proof. Xcode stays on the host._
 
 ### 6.2 The pins
 
-Append to the root `mise.toml` `[tools]`:
-
-```toml
-# The UI wire and the native work (feature 17).
-"github:google/flatbuffers" = "25.9.23"   # flatc; D57. The npm runtime has no 25.12.19.
-java = "temurin-25.0.5+8.0.LTS"           # the JDK that Gradle and the Android build use
-gradle = "9.9.1"
-kotlin = "2.4.21"
-android-sdk = "23.0"                      # cmdline-tools; packages come from toolchain:android
-"cargo:cargo-ndk" = "4.1.2"               # builds the Android .so files (feature 15)
-```
+The root `mise.toml` declares the tools. It selects the Google command-line tools archive for each host.
+The lock file records the address and checksum for each archive.
 
 | Tool | Backend | Pin | Why this version |
 |---|---|---|---|
@@ -252,8 +257,8 @@ android-sdk = "23.0"                      # cmdline-tools; packages come from to
 | JDK | `core:java` | `temurin-25.0.5+8.0.LTS` | A current long-term-support (LTS) JDK that Gradle 9.9.1 and Kotlin 2.4.21 support; the host Java 27 is not a Gradle toolchain |
 | Gradle | `aqua:gradle/gradle-distributions` | 9.9.1 | The current stable release; feature 15's wrapper uses the same distribution |
 | Kotlin | `github:JetBrains/kotlin` | 2.4.21 | The current stable release; feature 15's version catalog uses the same compiler |
-| Android SDK | `vfox:mise-plugins/vfox-android-sdk` | 23.0 | Cmdline-tools; the package versions come from section 6.3 |
-| cargo-ndk | `cargo:cargo-ndk` | 4.1.2 | The current stable release; feature 15's `build-android.sh` runs `cargo ndk` |
+| Android SDK | `http:android-sdk` | 23.0 | Cmdline-tools; the package versions come from section 6.3 |
+| cargo-ndk | `github:bbqsrc/cargo-ndk` | 4.1.2 | The current stable release; feature 15's `build-android.sh` runs `cargo ndk` |
 
 The Gradle wrapper in feature 15 and the mise Gradle must be the same distribution. The
 version catalog in feature 15 takes the Kotlin version from the same pin. A test in this
@@ -270,94 +275,29 @@ XCODE_MIN = "26.2"
 
 ### 6.3 The Android task
 
-`scripts/toolchain/android.sh`:
+Run `mise run toolchain:android` to install the packages in the configured kit.
+The script checks the installed package metadata first. It submits only missing packages to the Android package manager.
+It checks the metadata again after the installation. A missing package or a failed installation gives a nonzero exit status.
 
-```bash
-#!/usr/bin/env bash
-# Installs the Android SDK packages that feature 15 needs. Idempotent.
-set -euo pipefail
-: "${ANDROID_HOME:?mise must resolve the android-sdk tool first}"
-yes | sdkmanager --licenses >/dev/null
-sdkmanager --install \
-  "platform-tools" \
-  "platforms;android-${ANDROID_COMPILE_SDK}" \
-  "build-tools;${ANDROID_BUILD_TOOLS}" \
-  "ndk;${ANDROID_NDK}" >/dev/null
-```
-
-The task entry:
-
-```toml
-[tasks."toolchain:android"]
-run = "scripts/toolchain/android.sh"
-```
-
-`sdkmanager` installs only what is absent, so the second run is a no-op (I4). The NDK is
-already present on the development host at the pinned version; the task keeps it.
+Run `mise run toolchain:android-build` for the build proof. The task provisions the packages before it starts Gradle.
+It compiles a Kotlin activity and packages it with a launcher. It checks the manifest, bytecode and signature in the resulting application package.
 
 ### 6.4 The check
 
-`scripts/toolchain/check.sh` reads the pins from `mise.toml` with Python's `tomllib`, then
-checks each tool in order. The expected value comes from the same file, so the script holds
-no version (I1). The parse of the reported version is per tool, because the tools print in
-different forms.
+`scripts/toolchain/check.sh` reads the expected versions from the root `mise.toml`.
+Run it with `mise exec --` to use the configured tools.
 
-```bash
-#!/usr/bin/env bash
-# Checks every pinned tool of the root mise.toml. Exits 1 on the first summary with a fault.
-set -euo pipefail
-root="$(git rev-parse --show-toplevel)"
-cd "$root"
-fail=0
-pass() { printf 'ok   %-12s %s\n' "$1" "$2"; }
-miss() { printf 'FAIL %-12s %s\n' "$1" "$2"; fail=1; }
+| Scope | Checks |
+|---|---|
+| `--scope wire` | FlatBuffers compiler |
+| `--scope apple` | Full Xcode on macOS and its minimum version |
+| `--scope android` | Java runtime and compiler, Gradle, Kotlin, cargo-ndk, command-line tools and installed packages |
+| Default on macOS | All three scopes |
+| Default on Linux | Compiler and shared build tools |
 
-pin() { # pin <key> -> the version string from mise.toml
-  python3 -I - "$1" <<'PY'
-import sys, tomllib
-key = sys.argv[1]
-with open("mise.toml", "rb") as f:
-    value = tomllib.load(f)["tools"][key]
-print(value if isinstance(value, str) else value["version"])
-PY
-}
-
-want=$(pin 'github:google/flatbuffers')
-got=$(flatc --version 2>/dev/null | awk '{print $2}') || true
-[ "$got" = "$want" ] && pass flatc "$got" || miss flatc "expected $want, got ${got:-none}"
-
-want=$(pin gradle); got=$(gradle --version 2>/dev/null | awk '/^Gradle /{print $2}') || true
-[ "$got" = "$want" ] && pass gradle "$got" || miss gradle "expected $want, got ${got:-none}"
-
-want=$(pin kotlin); got=$(kotlinc -version 2>&1 | sed -nE 's/.*kotlinc-jvm ([0-9.]+).*/\1/p') || true
-[ "$got" = "$want" ] && pass kotlin "$got" || miss kotlin "expected $want, got ${got:-none}"
-
-want=$(pin java); want=${want#temurin-}; want=${want%%+*}
-got=$(java -version 2>&1 | sed -nE '1s/.*"([0-9.]+).*/\1/p') || true
-[ "$got" = "$want" ] && pass java "$got" || miss java "expected $want, got ${got:-none}"
-
-want=$(pin 'cargo:cargo-ndk')
-got=$(cargo ndk --version 2>/dev/null | awk '{print $2}') || true
-[ "$got" = "$want" ] && pass cargo-ndk "$got" || miss cargo-ndk "expected $want, got ${got:-none}"
-
-if [ "$(uname -s)" = Darwin ]; then
-  xcode=$(xcodebuild -version 2>/dev/null | awk 'NR==1{print $2}') || true
-  if [ -z "$xcode" ]; then miss xcode "not found; run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer"
-  elif [ "$(printf '%s\n%s\n' "$XCODE_MIN" "$xcode" | sort -V | head -1)" != "$XCODE_MIN" ]; then
-    miss xcode "expected at least $XCODE_MIN, got $xcode"
-  else pass xcode "$xcode"; fi
-  sdkmanager --version >/dev/null 2>&1 && pass android "cmdline-tools present" \
-    || miss android "run: mise run toolchain:android"
-else
-  printf 'SKIP %-12s host-only\n' xcode android
-fi
-
-exit "$fail"
-```
-
-The exact Python call for a backend key such as `"github:google/flatbuffers"` comes from the
-same `[tools]` table. The executor checks the generated output of `mise ls --json` if a key
-is reported under another name, and records that name in `learnings.md`.
+The checker reports each missing tool or wrong version and exits with status 1 if a check fails.
+The Apple check uses the selected developer directory. It can select the standard Xcode application for the process when the host selects Command Line Tools.
+The Android check reads the command-line tool revision from the installed package metadata.
 
 ### 6.5 The proof
 
@@ -461,20 +401,22 @@ The shell tests use a fake `PATH`; they do not install a tool.
 
 ## 8. Tasks
 
-- [ ] 1. Add the `[tools]`, `[env]` and `[tasks]` entries of sections 6.2 and 6.3 to the
+- [x] 1. Add the `[tools]`, `[env]` and `[tasks]` entries of sections 6.2 and 6.3 to the
       root `mise.toml`.
-- [ ] 2. Run `mise lock --platform linux-x64,macos-arm64,macos-x64,windows-x64` and check in
+- [x] 2. Run `mise lock --platform linux-x64,macos-arm64,macos-x64,windows-x64` and check in
       `mise.lock`.
-- [ ] 3. Write `scripts/toolchain/check.sh` and its test.
-- [ ] 4. Write `scripts/toolchain/android.sh`, the task, and its test.
-- [ ] 5. Write `scripts/toolchain/proof.sh` and its test.
-- [ ] 6. Run the proof on macOS with the pinned tools; record the six versions in
+- [x] 3. Write `scripts/toolchain/check.sh` and its test.
+- [x] 4. Write `scripts/toolchain/android.sh`, the task, and its test.
+- [x] 5. Write `scripts/toolchain/proof.sh` and its test.
+- [x] 6. Run the proof on macOS with the pinned tools; record the six versions in
       `learnings.md`.
-- [ ] 7. Add the drift test for feature 15's catalog and wrapper.
-- [ ] 8. Add the CI steps of section 6.6.
-- [ ] 9. Change feature 01 section 6.3 step 1 to consume the pin.
-- [ ] 10. Update `progress.md` and `learnings.md` with the versions and any backend that
+- [x] 7. Add the drift test for feature 15's catalog and wrapper.
+- [x] 8. Add the CI steps of section 6.6.
+- [x] 9. Change feature 01 section 6.3 step 1 to consume the pin.
+- [x] 10. Update `progress.md` and `learnings.md` with the versions and any backend that
       needed a different name.
+- [x] 11. Write or update [the toolchain README](../../../../scripts/toolchain/README.md).
+      Show the wire, Android and Apple checks. Include the sample application and binding checks.
 
 ## 9. Verify
 
@@ -495,11 +437,12 @@ above `XCODE_MIN`. The Android task needs a network connection the first time.
 
 ## 10. Done when
 
-- [ ] All tasks are complete and every command of section 9 passes with no warning.
-- [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The proof records the Rust, UniFFI, Swift, Xcode and Kotlin versions in `learnings.md`.
-- [ ] The CI has the steps of section 6.6, and the Linux, macOS and Windows jobs use the
+- [x] The [toolchain README](../../../../scripts/toolchain/README.md) is current. Its examples and validation commands pass.
+- [x] All tasks are complete and every command of section 9 passes with no warning.
+- [x] Each invariant and each scenario has a passing test (section 7).
+- [x] The proof records the Rust, UniFFI, Swift, Xcode and Kotlin versions in `learnings.md`.
+- [x] The CI has the steps of section 6.6, and the Linux, macOS and Windows jobs use the
       same pins.
-- [ ] Feature 01, feature 13, feature 14 and feature 15 name this check in their verify
+- [x] Feature 01, feature 13, feature 14 and feature 15 name this check in their verify
       sections.
-- [ ] The check list of the `story-driven-specification` skill passes.
+- [x] The check list of the `story-driven-specification` skill passes.

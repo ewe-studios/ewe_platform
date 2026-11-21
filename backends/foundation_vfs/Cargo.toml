@@ -10,8 +10,8 @@ description = "Virtual file system (VFS) traits and shared types. `foundation_na
 keywords = ["vfs", "filesystem", "async"]
 
 [dependencies]
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 
 derive_more = { workspace = true }

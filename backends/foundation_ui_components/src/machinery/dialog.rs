@@ -7,7 +7,7 @@
 //! native `cancel` (Escape) back through the signal so it stays the source of
 //! truth (F4 dialog verdict: "native `<dialog>`, fully").
 //!
-//! WHAT: [`DIALOG_JS`] (the behavior) + [`dialog_behavior`] (the `<script>` a
+//! WHAT: [`DIALOG_JS`] (the behavior) + [`dialog_behavior`] (the marker a
 //! dialog embeds) + the attribute contract.
 //!
 //! HOW: Reads `data-dialog-mode` (`modal` default / `nonmodal`) and watches
@@ -17,7 +17,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Dialog mode attribute (`data-dialog-mode`): `modal` (default, `showModal()`) or
 /// `nonmodal` (`show()`).
@@ -57,10 +57,10 @@ pub const DIALOG_JS: &str = r#"function(scope){
   mo.observe(dlg, { attributes: true, attributeFilter: ['data-open', 'data-closed'] });
 }"#;
 
-/// The `<script>` a `<dialog>` embeds to sync its open state with the signal.
+/// The marker a `<dialog>` embeds to sync its open state with the signal.
 /// The dialog must carry `data-dialog-mode`, toggle `data-open`, and render a
 /// hidden [`DATA_DIALOG_CLOSE`] element wired to `set_open(false)`.
 #[must_use]
 pub fn dialog_behavior() -> Html {
-    scoped_script(DIALOG_JS)
+    behaviour_script(Behaviour::Dialog, DIALOG_JS)
 }

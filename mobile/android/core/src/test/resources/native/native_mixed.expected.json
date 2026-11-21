@@ -1,0 +1,81 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "kind": "STACK",
+      "text": null,
+      "props": {},
+      "children": [
+        40
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 40,
+      "kind": "STACK",
+      "text": null,
+      "props": {
+        "AXIS": "Vertical",
+        "PADDING": "8pt"
+      },
+      "children": [
+        41,
+        42
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 41,
+      "kind": "TEXT",
+      "text": "Count",
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 42,
+      "kind": "BUTTON",
+      "text": "b",
+      "props": {},
+      "children": [],
+      "actions": {
+        "TAP": "server:increment_counter"
+      },
+      "state_len": 160,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    }
+  ],
+  "reports": [
+    {
+      "code": "UnsupportedPlatformOp",
+      "row": 1
+    },
+    {
+      "code": "UnknownNode",
+      "node": 999,
+      "row": 3
+    }
+  ],
+  "commands": [
+    {
+      "args": {},
+      "command": "HAPTIC"
+    }
+  ],
+  "errors": [],
+  "data": []
+}

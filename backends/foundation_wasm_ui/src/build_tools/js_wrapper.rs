@@ -19,8 +19,8 @@ use std::prelude::rust_2021::*;
 const FETCH_LOAD: &str =
     "  // __EWE_WASM_LOAD__\n  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();";
 
-/// The protocol-1 (columnar) → DOM wiring injected after `rt.init(instance)`.
-const REGISTER_WASM_APP: &str = "  FoundationWasmUiRuntime.registerWasmApp(rt);";
+/// The frame reader injected after `rt.init(instance)`.
+const REGISTER_WASM_APP: &str = "  FoundationUiBootstrap.registerFrameApp(rt);";
 
 /// `wasm_bin` — main-thread wrapper (`{name}.js`).
 #[must_use]
@@ -28,13 +28,13 @@ pub fn bin_wrapper(name: &str) -> String {
     bin_wrapper_with_bundle(name, false)
 }
 
-/// `wasm_bin` with jsruntime_single support.
+/// `wasm_bin` with `jsruntime_single` support.
 #[must_use]
 pub fn bin_wrapper_with_bundle(name: &str, use_bundle: bool) -> String {
     let imports = if use_bundle {
         "import './bundle.js';"
     } else {
-        "import './foundation-wasm-ui.js';\nimport './platform-scheme-interceptor.js';\nimport { FoundationWasm } from './foundation-wasm.js';"
+        "import './foundation-ui-bootstrap.js';\nimport './platform-scheme-interceptor.js';\nimport { FoundationWasm } from './foundation-wasm.js';"
     };
     let rt_setup = if use_bundle {
         "const rt = new FoundationWasmRuntime.FoundationWasm();"
