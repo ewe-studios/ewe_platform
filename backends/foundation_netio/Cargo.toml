@@ -24,7 +24,7 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
 # `shared::mime` expands `data/mime.json` at build time. A proc-macro crate
 # compiles for the host, so the wasm build stays clean.
-foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # The map type that the macro emits. `foundation_nostd` re-exports it.
 phf = { workspace = true }
 

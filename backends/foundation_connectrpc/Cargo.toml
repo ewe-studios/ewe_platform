@@ -17,7 +17,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # deadline compiles and runs on both.
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", features = ["to_structured"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.8", optional = true, default-features = false }

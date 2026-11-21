@@ -27,7 +27,7 @@ foundation_compact = { path = "../foundation_compact", version = "0.2.6", defaul
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 
 # -- Workspace dependencies
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is

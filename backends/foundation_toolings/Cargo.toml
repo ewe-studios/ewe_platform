@@ -43,7 +43,7 @@ tracing-subscriber.workspace = true
 # The SSE reload test drives the handler's async continuation on the
 # multi-threaded valtron executor, as a serving server does.
 foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["multi", "test-clock"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 
 [lints]
 workspace = true

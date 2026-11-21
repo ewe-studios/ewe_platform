@@ -16,7 +16,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.22", features = 
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", features = ["crypto-chacha"] }
 # `embed_migrations!` and `embed_migration_layout!` are re-exported from here.
-foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # The VFS trait that reads a migration directory. `vfs` builds on wasm too.
 foundation_vfs = { workspace = true }
 
