@@ -6,7 +6,7 @@ created: 2026-11-14
 author: "Main Agent"
 metadata:
   version: "2.0"
-  last_updated: 2026-11-15
+  last_updated: 2026-11-21
   estimated_effort: "medium"
   tags:
     - transport
@@ -30,10 +30,10 @@ related_specs:
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:
-  completed: 0
-  uncompleted: 2
+  completed: 2
+  uncompleted: 0
   total: 2
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Platform Prerequisites
@@ -90,8 +90,8 @@ done with the commit and write no code. A second context design is a defect.
 
 | # | Feature | Description | Depends on | Status |
 |---|---|---|---|---|
-| 00 | [Transport Prerequisites](./features/00-transport-prerequisites/feature.md) | connectrpc keeps request extensions and uses the `Ctx` clock for deadlines; foundation_http reports the TLS peer certificates | Spec 76, spec 84 | ⬜ Pending |
-| 01 | [Migration Groups](./features/01-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | Spec 76 | ⬜ Pending |
+| 00 | [Transport Prerequisites](./features/00-transport-prerequisites/feature.md) | connectrpc keeps request extensions and uses the `Ctx` clock for deadlines; foundation_http reports the TLS peer certificates | Spec 76, spec 84 | ✅ Completed |
+| 01 | [Migration Groups](./features/01-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | Spec 76 | ✅ Completed |
 
 The features keep tasks T3 and T4 (feature 00) and T25 (feature 01) from the original spec 83.
 

@@ -575,6 +575,18 @@ impl QueryStore for StorageProvider {
             )),
         }
     }
+
+    fn batch_is_transactional(&self) -> bool {
+        match &self.inner {
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
+            StorageProviderInner::Turso(storage) => storage.batch_is_transactional(),
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            StorageProviderInner::Libsql(storage) => storage.batch_is_transactional(),
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
+            StorageProviderInner::D1(storage) => storage.batch_is_transactional(),
+            _ => false,
+        }
+    }
 }
 
 #[async_trait::async_trait]

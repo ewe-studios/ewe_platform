@@ -216,3 +216,5 @@ ASD-STE100.
   expected store as JSON for each fixture frame, and the Swift and Kotlin stores must give
   the same JSON. This is cheaper than two hand-written sets of expected values, and it
   keeps the two platforms from drifting apart.
+
+- The two checkouts record different owners for the compiler pin. The revised feature plan assigns the pin to feature 17.

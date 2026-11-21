@@ -30,6 +30,24 @@ enum NativeTlsState {
 /// A wrapper around a `native_tls` stream.
 ///
 /// Uses an internal Mutex to permit disparate reader & writer threads to access the stream independently.
+impl super::TlsPeerFacts for NativeTlsStream {
+    fn peer_certificates(&self) -> Vec<Vec<u8>> {
+        let Ok(guard) = self.inner.lock() else {
+            return Vec::new();
+        };
+        match &*guard {
+            NativeTlsState::Ready(stream) => stream
+                .peer_certificate()
+                .ok()
+                .flatten()
+                .and_then(|cert| cert.to_der().ok())
+                .into_iter()
+                .collect(),
+            _ => Vec::new(),
+        }
+    }
+}
+
 pub struct NativeTlsStream {
     inner: Arc<Mutex<NativeTlsState>>,
     /// The wrapped socket fd, kept for readiness registration.

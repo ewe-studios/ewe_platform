@@ -1,19 +1,19 @@
 ---
 feature: "Transport Prerequisites"
 description: "Two small library fixes the hosts need: connectrpc keeps request extensions through dispatch and takes its deadline clock from Ctx; foundation_http reports the TLS peer certificates after the handshake."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["specifications/84-context-injection"]
 part_of: "specifications/83-agent-rpc-serving-system/agent-rpc-architecture.md"
 estimated_effort: "small"
 created: 2026-10-27
-last_updated: 2026-11-15
+last_updated: 2026-11-21
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 2
+  completed: 2
+  uncompleted: 0
   total: 2
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Transport Prerequisites
@@ -32,6 +32,15 @@ IDs keep their old numbers, so references such as "task T3" stay valid. The
 Two small fixes in shared crates. `foundation_connectrpc` keeps request extensions through dispatch (the `build_ctx` fix), so client auth can read connection facts, and computes deadlines from the `Ctx` clock. `foundation_http` puts the peer certificates in `ConnectionContext::tls` after the TLS handshake, so mTLS auth can read them.
 
 Part of the agent-rpc proof of concept.
+
+### Baseline (2026-11-21)
+
+| Area | Measured state | Remaining delta |
+|---|---|---|
+| Request extensions | `SimpleIncomingRequest.extensions` holds the extension map, but `build_ctx` passes `Extensions::new()` to `RequestContext::for_dispatch` | Move the request's map in; add a dispatch test |
+| Deadline clock | `build_ctx` computes `app_ctx.clock().now() + d`; `DeadlineTimer::sleep_until` takes a `Ctx` | None |
+| TLS peer facts | `ConnectionContext.tls` and `TlsInfo` exist; the accept loop builds the context with `tls: None` before the handshake | Capture the peer certificates at the handshake and fill `tls` |
+| `CallHooks::with_clock` | Not present; the timer takes the `Ctx` instead | None; keep the current timer API |
 
 ## 2. What to read
 
@@ -55,6 +64,21 @@ Part of the agent-rpc proof of concept.
 
 The dispatch tests pass and deadlines follow the `Ctx` clock. `tls_peer_info_tests` pass.
 
-## 5. Pull requests
+## 5. Landed (2026-11-21)
+
+- **T3.** `build_ctx` moves a clone of `SimpleIncomingRequest.extensions` into
+  `RequestContext::for_dispatch`. A value in that map now reaches the handler.
+  New test: `request_extensions_reach_the_handler` in
+  `foundation_connectrpc/tests/router_dispatch_tests.rs` (11 tests pass).
+- **T4.** `TlsPeerFacts` reports the peer chain on the rustls, openssl and
+  native-tls server streams. `RawStream::tls_info` reads it. After the first
+  successful protocol peek, `ProtocolDetectHandler` rebuilds the
+  `ConnectionContext` with `tls: Some(..)`.
+  New test: `tls_peer_info_tests.rs` runs a mutual-TLS server and client, and
+  asserts the handler sees the client certificate.
+- The optional openssl and native-tls feature sets do not build on the current
+  tree, so their `TlsPeerFacts` impls are unverified. Issue #630 records both.
+
+## 6. Pull requests
 
 One PR (part of PR group C).

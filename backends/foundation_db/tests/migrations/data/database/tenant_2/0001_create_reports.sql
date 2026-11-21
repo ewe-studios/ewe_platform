@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY
+);

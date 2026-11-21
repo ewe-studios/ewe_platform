@@ -2,6 +2,7 @@ mod foundation_macros_arrow_json_schema_tests;
 mod foundation_macros_arrow_schema_tests;
 mod foundation_macros_arrow_serialize_tests;
 mod foundation_macros_docker_container_tests;
+mod foundation_macros_embed_migrations_tests;
 mod foundation_macros_json_hash_tests;
 mod foundation_macros_json_schema_tests;
 mod foundation_macros_proxy_tests;

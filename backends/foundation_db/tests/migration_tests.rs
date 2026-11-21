@@ -1,7 +1,8 @@
 //! Migration tests: rebuild and unit-conversion migrations.
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{DataValue, MigrationRunner, QueryStore, TursoStorage, MIGRATIONS};
+use foundation_db::{DataValue, MigrationRunner, QueryStore, TursoStorage, DB_CORE, MIGRATIONS};
+use foundation_vfs::EmptyFs;
 
 #[valtron_test]
 async fn old_rate_limit_table_is_rebuilt() {
@@ -46,11 +47,15 @@ async fn old_rate_limit_table_is_rebuilt() {
         .await
         .unwrap();
 
-    let applied = MigrationRunner::new(MIGRATIONS)
-        .run_async(&store)
+    let summary = MigrationRunner::from_static(&DB_CORE)
+        .run_async(&EmptyFs::new(), &store)
         .await
         .unwrap();
-    assert_eq!(applied, 2, "only 027 and 028 should be pending");
+    assert_eq!(
+        summary.applied.len(),
+        2,
+        "only 027 and 028 should be pending"
+    );
 
     // The documented columns must now exist: an insert with all of them
     // succeeds (it would fail on the old shape), and the row reads back.

@@ -7,7 +7,9 @@
 use foundation_compact::ids::new_scru128_string;
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::{DocumentStore, PromotableDocument};
-use foundation_db::{MigrationRunner, SqlDocumentStore, TursoStorage, MIGRATIONS};
+use foundation_db::{
+    EmptyFs, MigrationRunner, SqlDocumentStore, TursoStorage, DB_CORE, MIGRATIONS,
+};
 use tempfile::TempDir;
 
 /// Build a migrated `SqlDocumentStore` over a fresh temp `SQLite` db.
@@ -166,20 +168,23 @@ async fn migration_runner_applies_all_then_is_idempotent() {
             .unwrap();
 
         // First run applies every migration; second run applies none.
-        let applied = MigrationRunner::new(MIGRATIONS)
-            .run_async(&storage)
+        let applied = MigrationRunner::from_static(&DB_CORE)
+            .run_async(&EmptyFs::new(), &storage)
             .await
             .unwrap();
         assert_eq!(
-            applied,
+            applied.applied.len(),
             MIGRATIONS.len(),
             "first run applies all migrations"
         );
-        let reapplied = MigrationRunner::new(MIGRATIONS)
-            .run_async(&storage)
+        let reapplied = MigrationRunner::from_static(&DB_CORE)
+            .run_async(&EmptyFs::new(), &storage)
             .await
             .unwrap();
-        assert_eq!(reapplied, 0, "re-run is a no-op (tracked in _migrations)");
+        assert!(
+            reapplied.applied.is_empty(),
+            "re-run is a no-op (tracked in _migrations)"
+        );
 
         // The documents table + promoted columns from 020/021 are usable.
         let docs = SqlDocumentStore::new(storage);
