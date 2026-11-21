@@ -4648,7 +4648,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "async-trait",
  "candle-core",
@@ -6038,7 +6038,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -6410,7 +6410,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testing"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "base64 0.22.1",
  "criterion 0.5.1",
