@@ -48,6 +48,8 @@ chrono = "0.4"
 uuid = { version = "1.0", features = ["v4"], optional = true }
 bytes = "1.5"
 async-trait = "0.1"
+# Diagnostics for a refused handshake (spec 87).
+tracing = { workspace = true }
 
 # Async stream plumbing. `futures-core` is always on: the trust store trait
 # (spec 87) streams its clients on every target.
@@ -114,7 +116,6 @@ foundation_core = { path = "../foundation_core", version = "0.0.21", features = 
 foundation_testing = { path = "../foundation_testing" }
 serial_test = { workspace = true }
 ntest = { workspace = true }
-tracing = "0.1"
 
 [lints]
 workspace = true

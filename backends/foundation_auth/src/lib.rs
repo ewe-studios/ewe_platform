@@ -81,8 +81,10 @@ pub use server_credential::{
     Principal, Secret, StaticToken,
 };
 
-// Mutual TLS (spec 87): the certificate authority and the trust store. The
-// rustls verifier and the mTLS providers follow in their own tasks.
+// Mutual TLS (spec 87): the certificate authority, the trust store and the
+// rustls verifier. The mTLS providers follow in their own tasks.
+#[cfg(not(target_family = "wasm"))]
+pub mod mtls;
 #[cfg(not(target_family = "wasm"))]
 pub mod pki;
 pub mod trust;
