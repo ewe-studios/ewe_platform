@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.21"
+version = "0.0.22"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -24,7 +24,7 @@ crate-type = ["rlib"]
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
 # The shared context (`Ctx`, `Clock`, ...). `valtron` re-exports it.
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
 foundation_macros = { path = "../foundation_macros", version = "0.0.22" }

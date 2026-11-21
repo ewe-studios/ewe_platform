@@ -18,11 +18,11 @@ version = "0.2.6"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.21"
+version = "0.0.22"
 
 [dependencies.foundation_context]
 path = "../foundation_context"
-version = "0.0.3"
+version = "0.0.4"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
@@ -62,7 +62,7 @@ path = "../foundation_testing"
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.21"
+version = "0.0.22"
 features = ["test-clock"]
 
 [features]

@@ -10,8 +10,8 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.22" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.15", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.9", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.12", optional = true }
@@ -101,7 +101,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.15", default-f
 tempfile = "3"
 # `test-clock` provides `SimulatedClock`, so a test can prove that the auth
 # code reads the injected clock instead of the real wall clock.
-foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["test-clock"] }
 foundation_testing = { path = "../foundation_testing" }
 serial_test = { workspace = true }
 ntest = { workspace = true }

@@ -13,8 +13,8 @@ categories = ["development-tools::testing"]
 [dependencies]
 # Foundation primitives being tested
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10", features = ["std"] }
-foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.22" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.5", optional = true }
 tracing = { workspace = true }
@@ -41,7 +41,7 @@ tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.21"
+version = "0.0.22"
 features = ["test-clock"]
 
 

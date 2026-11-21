@@ -56,13 +56,15 @@ pub mod sync {
     pub use std::sync::{Mutex, RwLock};
 }
 
+pub mod env;
+
 use core::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::sync::{Mutex, RwLock};
 use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
-use foundation_compact::{Duration, Instant, SystemTime};
+pub use foundation_compact::{Duration, Instant, SystemTime};
 
 /// A read-only clock, seeded by the engine and shared as an `Arc<dyn Clock>`.
 ///
@@ -424,6 +426,41 @@ impl Ctx {
             .read()
             .expect("Ctx map poisoned")
             .contains_key(&TypeId::of::<T>())
+    }
+
+    /// The [`Env`](crate::env::Env) entry, when the host installed one.
+    ///
+    /// The `Env` holds the timer, the entropy source and the ID source. It is
+    /// optional: a caller that needs one of the effects asks for it and handles
+    /// its absence.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    #[must_use]
+    pub fn env(&self) -> Option<Arc<crate::env::Env>> {
+        self.get::<crate::env::Env>()
+    }
+
+    /// The [`Env`](crate::env::Env) entry.
+    ///
+    /// # Errors
+    /// [`EnvError::Missing`](crate::env::EnvError::Missing) when the host
+    /// installed no `Env`.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    pub fn require_env(&self) -> Result<Arc<crate::env::Env>, crate::env::EnvError> {
+        self.env().ok_or(crate::env::EnvError::Missing)
+    }
+
+    /// The strong count of the shared context allocation.
+    ///
+    /// A lifecycle test uses it to prove that dropping the last `Ctx` drops the
+    /// map (spec 84, scenario S6). Production code must not call this function.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn strong_count(&self) -> usize {
+        Arc::strong_count(&self.0)
     }
 
     /// The shared, read-only clock.
