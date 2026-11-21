@@ -228,8 +228,8 @@ impl TestServer {
         app.route_any::<StreamHandler>(STREAM_PATH);
         // Embedded JS assets via foundation_http's StaticAssetHandler — supply the
         // bytes + content type, register on a path. No per-asset Serve impl.
-        let js_type = foundation_netio::shared::mime::from_extension("js")
-            .expect("mime.json holds the js row");
+        let js_type =
+            foundation_netio::shared::mime::from_extension("js").unwrap_or("text/javascript");
         let js_ct = format!("{js_type}; charset=utf-8");
         let runtime: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(
             RUNTIME_JS.as_bytes(),

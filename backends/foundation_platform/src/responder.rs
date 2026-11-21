@@ -56,9 +56,8 @@ impl<A: MobileDisk + Send + Sync + 'static> MobileApp<A> {
 /// to `text/html`, and keeps HTML as the unknown-name fallback.
 fn content_type(path: &Path) -> &'static str {
     match foundation_netio::shared::mime::from_path(path) {
-        Some("text/html") => "text/html; charset=utf-8",
+        Some("text/html") | None => "text/html; charset=utf-8",
         Some(media_type) => media_type,
-        None => "text/html; charset=utf-8",
     }
 }
 
