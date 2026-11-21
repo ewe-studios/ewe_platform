@@ -1,7 +1,7 @@
 // Route browser actions through the negotiated frame protocol.
 import * as wire from "./foundation-ui-wire.js";
 import { VOCABULARY_VERSION } from "./foundation-ui-vocab.js";
-import { base64urlDecode, base64urlEncode, readFrames } from "./foundation-ui-frames.js";
+import { base64urlDecode, base64urlEncode, readFrames, sheetSubmitField } from "./foundation-ui-frames.js";
 import { buildEventData } from "./foundation-wasm-ui.js";
 
 const validName = name => typeof name === "string" && name.length > 0 && !/[:\s\p{Cc}]/u.test(name);
@@ -105,7 +105,8 @@ function encodeAction(name, el, event, type, state, stream, sequence) {
   const id = element => Number(element?.getAttribute("primal-id") ?? 0);
   const b = new wire.Builder();
   const mods = Number(!!event.altKey) | Number(!!event.ctrlKey) << 1 | Number(!!event.shiftKey) << 2 | Number(!!event.metaKey) << 3;
-  const input = new wire.ActionInputT(type, String(el.value ?? ""), !!el.checked, event.keyCode ?? 0, mods, id(el.parentElement)).pack(b);
+  const value = event.type === "click" ? sheetSubmitField(el)?.value ?? el.value : el.value;
+  const input = new wire.ActionInputT(type, String(value ?? ""), !!el.checked, event.keyCode ?? 0, mods, id(el.parentElement)).pack(b);
   const ref = b.createString(name);
   const attachment = state && wire.ActionRequest.createStateVector(b, state);
   wire.ActionRequest.startActionRequest(b);

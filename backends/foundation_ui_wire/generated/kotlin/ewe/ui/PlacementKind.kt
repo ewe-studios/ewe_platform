@@ -10,5 +10,6 @@ class PlacementKind private constructor() {
         const val After: UByte = 2u
         const val Swap: UByte = 3u
         const val Remove: UByte = 4u
+        const val FullView: UByte = 5u
     }
 }

@@ -159,7 +159,7 @@ impl Context {
     /// ```ignore
     /// let (pressed, set_pressed) = ctx.signal(false);
     /// let toggle = ctx.callback(move |_| set_pressed.set(!pressed.get()));
-    /// html! { ctx, rcv, <button primal:onclick={toggle}>…</button> }
+    /// html! { ctx, rcv, <button primal:onclick={toggle}>"Toggle"</button> }
     /// ```
     pub fn callback(&self, mut f: impl FnMut(&EventData) + 'static) -> Callback {
         let id = self.runtime.next_callback_id();

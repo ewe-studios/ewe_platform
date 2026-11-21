@@ -36,11 +36,15 @@
 
 extern crate alloc;
 
+#[cfg(not(any(feature = "single_threaded", feature = "thread_safe")))]
+compile_error!("Enable the single_threaded or thread_safe feature of foundation_signals.");
+
 mod arena;
 mod callback;
 mod computed;
 mod context;
 mod effect;
+mod height_queue;
 #[cfg(all(feature = "std", not(target_family = "wasm")))]
 pub mod hub;
 mod node;
@@ -61,7 +65,11 @@ pub use hub::{
 };
 pub use node::ThreeState;
 pub use notification::NotificationManager;
-pub use runtime::Runtime;
+pub use runtime::{Runtime, SingleThreadedRuntime};
+#[cfg(all(feature = "thread_safe", not(target_family = "wasm")))]
+pub mod shared;
+#[cfg(all(feature = "thread_safe", not(target_family = "wasm")))]
+pub use shared::MultiThreadedRuntime;
 pub use signal::{SignalGetter, SignalSetter};
 
 // ─── IntoHtml bridge (decision 007 / F01 integration) ─────────────────────────

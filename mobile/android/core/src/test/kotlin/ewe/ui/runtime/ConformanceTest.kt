@@ -12,15 +12,27 @@ class ConformanceTest {
 
     @Test
     fun sharedSnapshots() {
-        for (name in listOf("tree", "columnar", "mixed", "replace", "unknown_kind", "behaviour", "presentation")) {
+        for (name in listOf("tree", "full_view", "columnar", "mixed", "replace", "unknown_kind", "behaviour", "presentation")) {
             val store = NodeStore(timer)
-            if (name in listOf("mixed", "replace", "behaviour", "presentation"))
+            if (name in listOf("full_view", "mixed", "replace", "behaviour", "presentation"))
                 assertTrue(store.receive(fixture("native_tree.bin")))
             assertTrue(store.receive(fixture("native_$name.bin")), name)
             val expected =
                 Json.parseToJsonElement(fixture("native_$name.expected.json").decodeToString())
             assertEquals(expected, Json.parseToJsonElement(store.snapshotJson()), name)
         }
+    }
+
+    @Test
+    fun reloadReplacesOnlyTheReceivingMount() {
+        val store = NodeStore(timer)
+        assertTrue(store.receive(fixture("native_tree.bin")))
+        val bytes = fixture("native_full_view.bin")
+        repeat(2) { assertTrue(store.receive(bytes, mount = 41u)) }
+        assertEquals(listOf(70u), store.record(41u)?.children)
+        assertEquals(listOf(41u, 42u), store.record(40u)?.children)
+        assertEquals("Next view", store.record(70u)?.text)
+        assertTrue(store.reports.isEmpty())
     }
 
     @Test

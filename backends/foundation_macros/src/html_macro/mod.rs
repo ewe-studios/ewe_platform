@@ -19,10 +19,9 @@
 //! };
 //! ```
 //!
-//! No template directives — `@for`/`@if` don't exist; control flow is plain
-//! Rust around (or inside) the macro. `primal:onX={h}` is the only namespaced
-//! attribute; when `h` is a `SignalSetter` its `callback_id` lands in a
-//! `primal:setter` attribute (two-way binding, decision 029 / G21).
+//! `Either` selects one branch each time Rust builds the template.
+//! `Show` and `For` track changes on a live receiver.
+//! `primal:onX={h}` binds a handler. A `SignalSetter` supplies its callback identifier through `primal:setter`.
 //!
 //! HOW: `parser` walks `TokenTree`s into a template tree; `codegen` numbers it
 //! (element ids for `Part`s, runtime indexes for the reactive id block) and
@@ -84,11 +83,28 @@ fn state_expr(state: Option<&Expr>) -> TokenStream {
 }
 
 fn needs_view(node: &ParsedNode) -> bool {
-    matches!(node, ParsedNode::Element { tag, attrs, children, .. }
-        if parser::core_tag(tag) || attrs.iter().any(|attr| matches!(attr, ParsedAttr::StateMarker(_) | ParsedAttr::Action { .. })) || children.iter().any(needs_view))
+    match node {
+        ParsedNode::Either { left, right, .. } => left.iter().chain(right).any(needs_view),
+        ParsedNode::Element {
+            tag,
+            attrs,
+            children,
+            ..
+        } => {
+            parser::core_tag(tag)
+                || attrs.iter().any(|attr| {
+                    matches!(attr, ParsedAttr::StateMarker(_) | ParsedAttr::Action { .. })
+                })
+                || children.iter().any(needs_view)
+        }
+        _ => false,
+    }
 }
 
 fn state_marker(node: &ParsedNode) -> Option<proc_macro2::Span> {
+    if let ParsedNode::Either { left, right, .. } = node {
+        return left.iter().chain(right).find_map(state_marker);
+    }
     let ParsedNode::Element {
         attrs, children, ..
     } = node
@@ -115,6 +131,13 @@ fn template(input: TokenStream, action_view: bool) -> ParseResult<TokenStream> {
         return Ok(codegen::generate_pure(tree, action_view));
     }
     let (fields, input) = fields(input)?;
+    if let [Expr::Assign(binding)] = fields.as_slice() {
+        let state = &binding.right;
+        if action_view && matches!(binding.left.as_ref(), Expr::Path(key) if key.path.is_ident("state")) && !input.is_empty() {
+            let html = codegen::generate_pure(parser::parse_template(input)?, true);
+            return Ok(quote! { (#html, #state) });
+        }
+    }
     let [ctx, out, state @ ..] = fields.as_slice() else {
         return Err(form_error());
     };

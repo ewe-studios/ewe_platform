@@ -17,9 +17,8 @@ serde = { workspace = true }
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_core = { path = "../../backends/foundation_core", optional = true }
 foundation_http = { path = "../../backends/foundation_http", optional = true }
-foundation_netio = { path = "../../backends/foundation_netio", optional = true }
-base64 = { version = "0.22", optional = true }
-futures-lite = { version = "2", optional = true }
+foundation_ui_http = { path = "../../backends/foundation_ui_http", optional = true }
+futures-lite = { workspace = true, optional = true }
 
 foundation_browser = { path = "../../backends/foundation_browser", optional = true }
 
@@ -28,7 +27,7 @@ workspace = true
 
 [features]
 default = ["server"]
-server = ["dep:foundation_browser", "dep:foundation_core", "dep:foundation_netio", "dep:foundation_http", "dep:base64", "dep:futures-lite"]
+server = ["dep:foundation_browser", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 browser-tests = ["server"]
 
 [[bin]]

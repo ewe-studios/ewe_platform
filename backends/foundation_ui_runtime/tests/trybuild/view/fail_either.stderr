@@ -1,0 +1,23 @@
+error: html!: <Either> requires a <Right> branch
+ --> tests/trybuild/view/fail_either.rs:4:22
+  |
+4 |     let _ = html! { <Either condition={true}><Left/></Either> };
+  |                      ^^^^^^
+
+error: html!: duplicate <Right> branch
+ --> tests/trybuild/view/fail_either.rs:5:62
+  |
+5 |     let _ = html! { <Either condition={true}><Left/><Right/><Right/></Either> };
+  |                                                              ^^^^^
+
+error: html!: primal::state requires component state
+ --> tests/trybuild/view/fail_either.rs:7:66
+  |
+7 |     let _ = html! { <Either condition={true}><Right/><Left><Text primal::state/></Left></Either> };
+  |                                                                  ^^^^^^
+
+error[E0308]: mismatched types
+ --> tests/trybuild/view/fail_either.rs:6:40
+  |
+6 |     let _ = html! { <Either condition={42}><Left/><Right/></Either> };
+  |                                        ^^ expected `bool`, found integer

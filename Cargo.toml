@@ -49,6 +49,10 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+futures-lite = "2.6"
+async-channel = "2.5"
+blocking = "1.6"
+base64 = "0.22"
 uniffi = { version = "=0.32.2", default-features = false }
 async-trait = "0.1"
 foundation_macros = { path = "backends/foundation_macros", version = "0.0.24" }

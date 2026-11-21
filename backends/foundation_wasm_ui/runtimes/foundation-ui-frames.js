@@ -74,6 +74,31 @@ export async function* readFrames(body, limit = defaultFrameBytes) {
   }
 }
 
+// Raw initial responses use the HTTP message boundary. Action streams carry a length prefix.
+export async function readViewResponse(response, limit = defaultFrameBytes) {
+  if (!response.ok) throw new Error("View request failed with HTTP " + response.status);
+  if (!response.body) throw new Error("Missing view response body");
+  const reader = response.body.getReader();
+  const chunks = [];
+  let size = 0, complete = false;
+  try {
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) { complete = true; break; }
+      size += value.byteLength;
+      if (size > limit) throw new RangeError("View exceeds frame limit");
+      chunks.push(value);
+    }
+  } finally {
+    try { if (!complete) await reader.cancel(); } finally { reader.releaseLock(); }
+  }
+  const frame = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { frame.set(chunk, offset); offset += chunk.byteLength; }
+  if (!isFrame(frame)) throw new Error("Invalid view frame");
+  return frame;
+}
+
 export function base64urlEncode(bytes) {
   let binary = "";
   for (const value of bytes) binary += String.fromCharCode(value);
@@ -163,6 +188,36 @@ function dispatchEvent(target, name, detail) {
   target.dispatchEvent?.(EventType ? new EventType(name, { bubbles: true, detail }) : { type: name, detail, bubbles: true });
 }
 
+// A submit button can use the value of one enabled sibling field.
+export function sheetSubmitField(button) {
+  if (button.getAttribute?.("data-ewe-presentation") !== "submit-action" || !button.closest?.(".ewe-bottom-sheet")) return null;
+  const fields = Array.from(button.parentElement.children).filter(node =>
+    node.tagName === "INPUT" && !node.disabled && !node.hidden && node.hasAttribute("primal:onsubmit"));
+  return fields.length === 1 ? fields[0] : null;
+}
+
+// A sheet forwards a submit gesture to the input that owns the action.
+function wireBottomSheet(sheet, options) {
+  function submit(input) {
+    if (input && !input.disabled) {
+      const EventType = sheet.ownerDocument.defaultView.Event;
+      input.dispatchEvent(new EventType("submit", { cancelable: true }));
+    }
+  }
+  sheet.addEventListener("keydown", event => {
+    const input = event.target;
+    if (event.key !== "Enter" || event.isComposing || input.closest(".ewe-bottom-sheet") !== sheet) return;
+    if (input.tagName !== "INPUT" || !input.hasAttribute("primal:onsubmit")) return;
+    event.preventDefault();
+    if (!event.repeat) submit(input);
+  }, options);
+  sheet.addEventListener("click", event => {
+    const button = event.target.closest?.('button[data-ewe-presentation="submit-action"]');
+    if (!button || button.closest(".ewe-bottom-sheet") !== sheet || button.hasAttribute("primal:onclick")) return;
+    submit(sheetSubmitField(button));
+  }, options);
+}
+
 export class FrameApplicator {
   constructor(deps) {
     this.deps = deps;
@@ -170,6 +225,8 @@ export class FrameApplicator {
     this.registry = deps.registry;
     this.elementListeners = new WeakMap();
     this.bindings = [];
+    this.layers = new Set();
+    this.containerEvents = new WeakMap();
     this.maxFrameBytes = deps.maxFrameBytes ?? defaultFrameBytes;
     this.gapTimeoutMs = deps.gapTimeoutMs ?? 1000;
     this.maxPendingFrames = deps.maxPendingFrames ?? 128;
@@ -283,6 +340,18 @@ export class FrameApplicator {
           if (!applied) this.report("UnknownBehaviour", {unitIndex:index,node:id,name:String(name)});
         } catch (error) { this.report("BadFrame",{unitIndex:index,node:id,detail:error.message}); }
       }
+      for (const layer of this.layers) {
+        if (!layer.isConnected) continue;
+        const hidden = layer.closest("[hidden]") !== null;
+        if (layer.tagName === "DIALOG") {
+          if (hidden && layer.open) layer.close();
+          else if (!hidden && !layer.open) layer.showModal();
+        } else {
+          const open = layer.matches(":popover-open");
+          if (hidden && open) layer.hidePopover();
+          else if (!hidden && !open) layer.showPopover();
+        }
+      }
       this.origin = previousOrigin;
       this.deps.onApplied?.();
     }
@@ -323,6 +392,12 @@ export class FrameApplicator {
     for (let i = 0; i < reader.operationsLength(); i++) this.applyUnit(reader.operations(i), index);
   }
   discard(node) {
+    if (this.layers.delete(node)) {
+      if (node.tagName === "DIALOG" && node.open) node.close();
+      else if (node.hasAttribute("popover") && node.matches(":popover-open")) node.hidePopover();
+    }
+    this.containerEvents.get(node)?.abort();
+    this.containerEvents.delete(node);
     for (const child of Array.from(node.childNodes ?? [])) this.discard(child);
     Patcher.releaseScope(node);
     registryBehaviours.disposeBehaviours(node);
@@ -365,6 +440,14 @@ export class FrameApplicator {
   }
   place(reader, index) {
     const kind = wire.PlacementKind[reader.kind()];
+    if (kind === "FullView") {
+      const mount = this.origin && "viewMount" in this.origin ? this.origin.viewMount : this.deps.viewMount;
+      if (!mount || mount.isConnected === false) throw problem("UnknownNode", { detail: "Missing receiving view mount" });
+      for (const node of Array.from(mount.childNodes)) { this.discard(node); node.remove(); }
+      this.applyNested(reader, index);
+      mount.appendChild(this.node(reader.rootNode(), true));
+      return;
+    }
     const target = this.placementTarget(reader.target()?.unpack());
     if (!target) throw problem("UnknownNode", { detail: "Placement needs one target" });
     const childSelector = reader.child()?.unpack();
@@ -396,6 +479,28 @@ export class FrameApplicator {
         el.className = kind?.cls ?? "ewe-unknown";
         for (const [attr, value] of kind?.attrs ?? []) el.setAttribute(attr, value);
         el.setAttribute("primal-id", String(m.nodeId));
+        if (m.kind === wire.NodeKind.OVERLAY && el.showPopover) {
+          el.setAttribute("popover", "manual");
+          this.layers.add(el);
+        }
+        if (m.kind === wire.NodeKind.MODAL || m.kind === wire.NodeKind.BOTTOM_SHEET) {
+          const Controller = d.defaultView?.AbortController ?? globalThis.AbortController;
+          const controller = new Controller();
+          this.containerEvents.set(el, controller);
+          const options = { signal: controller.signal };
+          if (m.kind === wire.NodeKind.MODAL) {
+            this.layers.add(el);
+            el.addEventListener("cancel", event => {
+              event.preventDefault();
+              const cancel = Array.from(el.querySelectorAll('[data-ewe-presentation="cancel-action"]'))
+                .find(node => node.closest("dialog") === el && !node.disabled && !node.closest("[hidden]")
+                  && node.hasAttribute("primal:onclick"));
+              cancel?.click();
+            }, options);
+          } else {
+            wireBottomSheet(el, options);
+          }
+        }
         this.origin?.onMount?.(m.nodeId, el);
         this.registry.register(m.nodeId, el);
         break;
@@ -640,7 +745,7 @@ export function installFrameRuntime(wasmUi, options = {}) {
   bindLiveMounts(runtime, runtime.frames);
   wasmUi.Hydrator.behaviourMarkers = registryBehaviours.hydrateMarkers;
   if (doc.body) registryBehaviours.hydrateMarkers(doc.body);
-  wasmUi.ProtocolHandler.frameHook = {isFrame, splitFrames, readFrames, maxFrameBytes: runtime.frames.maxFrameBytes};
+  wasmUi.ProtocolHandler.frameHook = {isFrame, splitFrames, readFrames, readViewResponse, maxFrameBytes: runtime.frames.maxFrameBytes};
   return runtime.frames;
 }
 

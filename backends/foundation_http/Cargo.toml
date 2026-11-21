@@ -10,6 +10,7 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
+foundation_macros = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The instant type the injected clock returns. On every native target this is
@@ -72,8 +73,6 @@ foundation_db = { path = "../foundation_db", version = "0.0.9", optional = true,
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_testing = { path = "../foundation_testing" }
-# `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.
-foundation_macros = { workspace = true }
 # Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
 foundation_nativeapis = { path = "../foundation_nativeapis", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }

@@ -103,21 +103,23 @@ fn row(item: &Todo, web: bool, local: bool) -> Html {
             <Button value={id.as_str()} on:tap={open_delete_dialog}>Delete</Button>
         </Stack> };
     }
-    let toggle = if local {
-        html! {<Button presentation="checkmark-action" value={id.as_str()} on:tap={toggle_local_todo}>{status}</Button>}
-    } else {
-        html! {<Button presentation="checkmark-action" value={id.as_str()} on:tap={toggle_todo}>{status}</Button>}
-    };
     html! { <Stack axis="horizontal" presentation="checklist-row" checked={item.done}>
         <Text>{item.text.as_str()}</Text>
-        {toggle}
+        <Either condition={local}>
+            <Left><Button presentation="checkmark-action" value={id.as_str()} on:tap={toggle_todo}>{status}</Button></Left>
+            <Right><Button presentation="checkmark-action" value={id.as_str()} on:tap={toggle_local_todo}>{status}</Button></Right>
+        </Either>
         <Button presentation="destructive-action" value={id.as_str()} on:tap={open_delete_dialog}>Delete</Button>
     </Stack> }
 }
 
 fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
-    let out = ctx.receiver();
-    let local = ctx.inner().get::<OnDevice>().is_some();
+    let (tree, state) = page_tree(state, web, ctx.inner().get::<OnDevice>().is_some());
+    render(ctx, ctx.receiver(), tree, Some(state))?;
+    Ok(())
+}
+
+fn page_tree(state: &TodoApp, web: bool, local: bool) -> (Html, &TodoApp) {
     let rows = state
         .items
         .iter()
@@ -129,7 +131,7 @@ fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
         .map(|item| row(item, web, local));
     let count = state.items.iter().filter(|item| !item.done).count();
     if web {
-        html! { ctx, out, Some(state), <Stack>
+        html! { state = state, <Stack>
             <Button on:tap="host:scroll_to_top">Todos</Button>
             <div id="open-count"><span id="count-value">{count}</span><mount-stream data-channel-id="1" api="/live" protocol="frame" target="#live-sink"/></div>
             <Button primal::state on:tap={open_add_dialog}>Add</Button>
@@ -139,14 +141,14 @@ fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
                 <Button value="done" primal::state on:tap={filter_todos}>Done</Button>
             </Stack>
             <List><div data-ewe-behaviour="scroll_lock"/>{rows}</List>
-        </Stack> };
+        </Stack> }
     } else {
         let count_view = if local {
             open_count(count)
         } else {
             Html::default()
         };
-        html! { ctx, out, Some(state), <Stack>
+        html! { state = state, <Stack>
             <Text presentation="navigation-title">Todos</Text>
             <Button presentation="toolbar-action" primal::state on:tap={open_add_dialog}>Add</Button>
             <Stack axis="horizontal" presentation="segmented-control" a11y_label="Filter todos">
@@ -156,9 +158,8 @@ fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
             </Stack>
             <List presentation="inset-list">{rows}</List>
             {count_view}
-        </Stack> };
+        </Stack> }
     }
-    Ok(())
 }
 
 fn open_count(count: usize) -> Html {
@@ -171,9 +172,13 @@ fn open_count(count: usize) -> Html {
 /// # Errors
 /// Returns a view or serialization error.
 pub fn starter_view(ctx: &Context, count: usize) -> ActionResult {
-    html! {ctx, ctx.receiver(), <Stack><Text>Open todos</Text><Text>{count}</Text>
-    <Button on:tap={refresh_count}>Refresh</Button></Stack>};
+    render(ctx, ctx.receiver(), starter_tree(count), None::<&()>)?;
     Ok(())
+}
+
+fn starter_tree(count: usize) -> Html {
+    html! { <Stack><Text>Open todos</Text><Text>{count}</Text>
+    <Button on:tap={refresh_count}>Refresh</Button></Stack> }
 }
 
 #[action(server)]
@@ -228,24 +233,18 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
             {confirm}
             <Button presentation="cancel-action" on:tap={close_dialog}>Cancel</Button>
         </Overlay> }
-    } else if state.add_dialog && web {
-        html! { <Overlay><div data-ewe-behaviour="dialog"/><div data-ewe-behaviour="dismiss"/><div data-ewe-behaviour="transition"/>
-        <Stack><form on:submit={add_todo}><input autofocus="autofocus" name="title" aria-label="Todo title" />
-        <button type="submit">Confirm</button></form>
-        <Button on:tap={close_dialog}>Cancel</Button></Stack></Overlay> }
     } else if state.add_dialog {
         let input = if local {
             html! {<TextInput placeholder="Todo title" a11y_label="Todo title" on:submit={add_local_todo}/>}
         } else {
             html! {<TextInput placeholder="Todo title" a11y_label="Todo title" on:submit={add_todo}/>}
         };
-        html! { <Overlay presentation="form-sheet">
-            <div data-ewe-behaviour="dialog"/><div data-ewe-behaviour="dismiss"/><div data-ewe-behaviour="transition"/>
+        html! { <Modal a11y_label="New todo"><BottomSheet>
             <Text presentation="sheet-title">New todo</Text>
             {input}
             <Button presentation="submit-action">Add</Button>
             <Button presentation="cancel-action" on:tap={close_dialog}>Cancel</Button>
-        </Overlay> }
+        </BottomSheet></Modal> }
     } else {
         html! {<Stack/>}
     };
@@ -318,7 +317,17 @@ fn mutate(
     change(last_id, items)?;
     let state = guard.snapshot();
     page(ctx, &state, ctx.surface() == MountSurface::Web)?;
-    dialog(ctx, &state)
+    dialog(ctx, &state)?;
+    #[cfg(all(feature = "server", not(target_family = "wasm")))]
+    if let Some(channels) = ctx.inner().get::<server::TodoChannels>() {
+        channels
+            .publish(
+                ctx.inner(),
+                state.items.iter().filter(|todo| !todo.done).count(),
+            )
+            .map_err(|failure| error(&failure.to_string()))?;
+    }
+    Ok(())
 }
 
 #[action(server)]

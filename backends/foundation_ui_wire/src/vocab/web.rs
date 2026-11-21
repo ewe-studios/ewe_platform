@@ -75,6 +75,18 @@ pub static WEB_KINDS: &[WebKind] = &[
         class: "ewe-overlay",
         attrs: &[],
     },
+    WebKind {
+        kind: NodeKind::MODAL,
+        tag: "dialog",
+        class: "ewe-modal",
+        attrs: &[],
+    },
+    WebKind {
+        kind: NodeKind::BOTTOM_SHEET,
+        tag: "section",
+        class: "ewe-bottom-sheet",
+        attrs: &[],
+    },
 ];
 
 pub static WEB_EVENTS: &[(EventId, &str)] = &[
@@ -91,7 +103,13 @@ pub const CORE_CSS: &str = "\
 .ewe-list{display:flex;flex-direction:column}
 .ewe-scroll{overflow:auto}
 .ewe-spacer{flex:1 1 auto}
-.ewe-overlay{position:fixed;inset:0}
+.ewe-overlay{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;pointer-events:none}
+.ewe-overlay[popover]{margin:0;border:0;padding:0;inline-size:auto;block-size:auto;overflow:visible;background:transparent;color:inherit}
+.ewe-overlay[popover]:not(:popover-open){display:none}
+.ewe-overlay>*{pointer-events:auto}
+.ewe-modal{max-block-size:100dvh;box-sizing:border-box}
+.ewe-modal:has(>.ewe-bottom-sheet){inset:auto 0 0;margin:0;inline-size:100%;max-inline-size:none;padding:0;border:0}
+.ewe-bottom-sheet{display:flex;flex-direction:column;margin-block-start:auto;max-block-size:100dvh;overflow:auto;padding-block-end:env(safe-area-inset-bottom);box-sizing:border-box;background:Canvas;color:CanvasText}
 ";
 
 /// Generate the browser vocabulary module from these tables.

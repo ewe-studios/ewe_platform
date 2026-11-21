@@ -11,6 +11,7 @@ mod embed_migrations;
 mod embedders;
 mod from_arrow;
 mod html_macro;
+mod http_route;
 mod json_hash;
 mod json_schema;
 mod mobile_directory;
@@ -1126,4 +1127,27 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn generate(input: TokenStream) -> TokenStream {
     connectrpc_service::expand_generate(input.into()).into()
+}
+
+macro_rules! http_attributes {
+    ($($name:ident => $method:literal),* $(,)?) => {$(
+        #[doc = concat!("Define a native ", $method, " route.")]
+        #[proc_macro_attribute]
+        pub fn $name(attr: TokenStream, item: TokenStream) -> TokenStream {
+            http_route::expand($method, attr.into(), item.into())
+                .unwrap_or_else(syn::Error::into_compile_error)
+                .into()
+        }
+    )*};
+}
+http_attributes!(http_get => "GET", http_post => "POST", http_put => "PUT", http_patch => "PATCH",
+    http_delete => "DELETE", http_head => "HEAD", http_options => "OPTIONS");
+
+
+mod view_http;
+
+/// Registers a native view handler for GET requests.
+#[proc_macro_attribute]
+pub fn ui_http_get(attr: TokenStream, item: TokenStream) -> TokenStream {
+    view_http::expand(attr.into(), item.into()).unwrap_or_else(syn::Error::into_compile_error).into()
 }

@@ -18,18 +18,19 @@ pub const ENUM_MIN_PLACEMENT_KIND: u8 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_PLACEMENT_KIND: u8 = 4;
+pub const ENUM_MAX_PLACEMENT_KIND: u8 = 5;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_PLACEMENT_KIND: [PlacementKind; 5] = [
+pub const ENUM_VALUES_PLACEMENT_KIND: [PlacementKind; 6] = [
     PlacementKind::Append,
     PlacementKind::Before,
     PlacementKind::After,
     PlacementKind::Swap,
     PlacementKind::Remove,
+    PlacementKind::FullView,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -42,15 +43,17 @@ impl PlacementKind {
     pub const After: Self = Self(2);
     pub const Swap: Self = Self(3);
     pub const Remove: Self = Self(4);
+    pub const FullView: Self = Self(5);
 
     pub const ENUM_MIN: u8 = 0;
-    pub const ENUM_MAX: u8 = 4;
+    pub const ENUM_MAX: u8 = 5;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::Append,
         Self::Before,
         Self::After,
         Self::Swap,
         Self::Remove,
+        Self::FullView,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -60,6 +63,7 @@ impl PlacementKind {
             Self::After => Some("After"),
             Self::Swap => Some("Swap"),
             Self::Remove => Some("Remove"),
+            Self::FullView => Some("FullView"),
             _ => None,
         }
     }

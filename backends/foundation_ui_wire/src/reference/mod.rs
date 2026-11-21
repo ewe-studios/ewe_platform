@@ -324,6 +324,16 @@ impl RefStore {
 
     fn place(&mut self, place: crate::PlaceT, row: usize) {
         use crate::{PlacementKind as K, SelectorKind};
+        if place.kind == K::FullView {
+            for id in self.nodes[&1].children.clone() {
+                self.remove(id);
+            }
+            for op in place.operations.unwrap_or_default() {
+                self.operation(op, row);
+            }
+            self.insert(1, place.root_node, None, row);
+            return;
+        }
         let Some(target) = place.target else { return };
         if target.kind != SelectorKind::NodeId
             || place

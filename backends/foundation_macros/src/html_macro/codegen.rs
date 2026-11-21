@@ -121,6 +121,8 @@ fn extract_styles_walk(
                             }
                         }
                         ParsedNode::Element { .. }
+                        | ParsedNode::Either { .. }
+                        | ParsedNode::BranchValue(_)
                         | ParsedNode::Fragment { .. }
                         | ParsedNode::Show { .. }
                         | ParsedNode::For { .. } => {
@@ -200,19 +202,27 @@ struct Plan {
 
 /// Number a tree and collect parts — slots need their PARENT's element id, so
 /// the walk happens here rather than inside `Plan::number`.
-fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
-    fn walk(plan: &mut Plan, node: ParsedNode, parent_element: Option<u32>) -> Numbered {
+fn build_plan(root: ParsedNode, start: u32, mode: BuildMode) -> (Plan, Numbered) {
+    fn walk(
+        plan: &mut Plan,
+        node: ParsedNode,
+        parent_element: Option<u32>,
+        mode: BuildMode,
+    ) -> Numbered {
         // Fragments/Show/For are directives, not nodes — they consume no
         // ids (Show/For allocate their own anchors at runtime).
         let runtime_index = plan.next_runtime;
         if !matches!(
             node,
-            ParsedNode::Fragment { .. } | ParsedNode::Show { .. } | ParsedNode::For { .. }
+            ParsedNode::Either { .. }
+                | ParsedNode::Fragment { .. }
+                | ParsedNode::Show { .. }
+                | ParsedNode::For { .. }
         ) {
             plan.next_runtime += 1;
         }
 
-        match node {
+        let leaf = match node {
             ParsedNode::Element {
                 tag,
                 tag_span,
@@ -241,9 +251,9 @@ fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
 
                 let children = children
                     .into_iter()
-                    .map(|c| walk(plan, c, Some(element_id)))
+                    .map(|c| walk(plan, c, Some(element_id), mode))
                     .collect();
-                Numbered {
+                return Numbered {
                     node: ParsedNode::Element {
                         tag,
                         tag_span,
@@ -253,47 +263,121 @@ fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
                     element_id: Some(element_id),
                     runtime_index,
                     children,
-                }
+                };
             }
+            ParsedNode::Either {
+                condition,
+                left,
+                right,
+            } => ParsedNode::BranchValue(branch_value(
+                &condition,
+                left,
+                right,
+                match mode {
+                    BuildMode::Reactive { .. } => BuildMode::Reactive {
+                        attached: parent_element.is_some(),
+                    },
+                    pure @ BuildMode::Pure { .. } => pure,
+                },
+                &mut plan.next_element,
+            )),
             ParsedNode::Slot(tokens) => {
                 plan.parts.push(PartSpec::Text {
                     node_id: parent_element.expect("slots always sit under an element root"),
                 });
-                Numbered {
-                    node: ParsedNode::Slot(tokens),
-                    element_id: None,
-                    runtime_index,
-                    children: Vec::new(),
-                }
+                ParsedNode::Slot(tokens)
             }
-            ParsedNode::Text(text) => Numbered {
-                node: ParsedNode::Text(text),
-                element_id: None,
-                runtime_index,
-                children: Vec::new(),
-            },
-            ParsedNode::Fragment { exprs } => Numbered {
-                node: ParsedNode::Fragment { exprs },
-                element_id: None,
-                runtime_index,
-                children: Vec::new(),
-            },
-            node @ (ParsedNode::Show { .. } | ParsedNode::For { .. }) => Numbered {
-                node,
-                element_id: None,
-                runtime_index,
-                children: Vec::new(),
-            },
+            leaf => leaf,
+        };
+        Numbered {
+            node: leaf,
+            element_id: None,
+            runtime_index,
+            children: Vec::new(),
         }
     }
 
-    let mut plan = Plan::default();
-    let numbered = walk(&mut plan, root, None);
+    let mut plan = Plan {
+        next_element: start,
+        ..Plan::default()
+    };
+    let parent = matches!(mode, BuildMode::Reactive { attached: true }).then_some(0);
+    let numbered = walk(&mut plan, root, parent, mode);
     (plan, numbered)
 }
 
 /// Generate the PURE form: one `Html` expression.
-pub(crate) fn generate_pure(mut root: ParsedNode, frame_view: bool) -> TokenStream {
+pub(crate) fn generate_pure(root: ParsedNode, frame_view: bool) -> TokenStream {
+    pure_from(root, frame_view, &mut 0)
+}
+
+#[derive(Clone, Copy)]
+enum BuildMode {
+    Pure { frame_view: bool },
+    Reactive { attached: bool },
+}
+
+/// Compile each branch in its own scope. Rust evaluates only the selected expression.
+fn branch_value(
+    condition: &TokenStream,
+    left: Vec<ParsedNode>,
+    right: Vec<ParsedNode>,
+    mode: BuildMode,
+    next_id: &mut u32,
+) -> TokenStream {
+    let ui = foundation_ui_traits_path();
+    let mut branch = |nodes: Vec<ParsedNode>| {
+        if nodes.is_empty() {
+            return quote!(#ui::__macro::Vec::new());
+        }
+        let inserts = nodes.into_iter().map(|node| {
+            if let ParsedNode::Either {
+                condition,
+                left,
+                right,
+            } = node
+            {
+                let values = branch_value(&condition, left, right, mode, next_id);
+                return quote!(__children.extend(#values););
+            }
+            let value = match mode {
+                BuildMode::Reactive { attached } => reactive_tree(
+                    &quote!(__ctx),
+                    &quote!(__rcv),
+                    node,
+                    attached.then(|| quote!(__either_parent)).as_ref(),
+                ),
+                BuildMode::Pure { frame_view } => match node {
+                    ParsedNode::Slot(tokens) => quote!(#ui::IntoHtml::into_html((#tokens))),
+                    ParsedNode::Text(text) => quote!(#ui::Html::text(#text)),
+                    other => pure_from(other, frame_view, next_id),
+                },
+            };
+            quote!(__children.push(#value);)
+        });
+        quote!({ let mut __children = #ui::__macro::Vec::new(); #(#inserts)* __children })
+    };
+    let left = branch(left);
+    let right = branch(right);
+    quote! {{
+        let __condition: bool = { #condition };
+        let __selected: #ui::__macro::Vec<#ui::Html> = if __condition { #right } else { #left };
+        __selected
+    }}
+}
+
+fn group_value(values: &TokenStream, ui: &TokenStream) -> TokenStream {
+    quote! {{
+        let mut __values: #ui::__macro::Vec<#ui::Html> = #values;
+        if __values.len() == 1 {
+            __values.pop().expect("one branch child")
+        } else {
+            #ui::IntoHtml::into_html(__values)
+        }
+    }}
+}
+
+fn pure_from(mut root: ParsedNode, frame_view: bool, next_id: &mut u32) -> TokenStream {
     let styles = match extract_scoped_styles(&mut root) {
         Ok(styles) => styles,
         Err(err) => {
@@ -302,7 +386,10 @@ pub(crate) fn generate_pure(mut root: ParsedNode, frame_view: bool) -> TokenStre
             return quote::quote_spanned! {span=> compile_error!(#message) };
         }
     };
-    let (plan, numbered) = build_plan(root);
+    let (plan, numbered) = build_plan(root, *next_id, BuildMode::Pure { frame_view });
+    // A branch reserves its synthetic text and style identifiers before its next sibling.
+    *next_id =
+        plan.next_element + plan.next_runtime + u32::try_from(styles.len()).expect("style count");
     let ui = foundation_ui_traits_path();
 
     let mut handler_index = 0usize;
@@ -355,8 +442,22 @@ pub(crate) fn generate_pure(mut root: ParsedNode, frame_view: bool) -> TokenStre
 pub(crate) fn generate_reactive(
     ctx: &TokenStream,
     receiver: &TokenStream,
-    mut root: ParsedNode,
+    root: ParsedNode,
 ) -> TokenStream {
+    reactive_tree(ctx, receiver, root, None)
+}
+
+fn reactive_tree(
+    ctx: &TokenStream,
+    receiver: &TokenStream,
+    mut root: ParsedNode,
+    parent: Option<&TokenStream>,
+) -> TokenStream {
+    if parent.is_none() && !matches!(root, ParsedNode::Element { .. } | ParsedNode::Either { .. }) {
+        return quote!(compile_error!(
+            "html!: a mounted template requires one root element"
+        ));
+    }
     let styles = match extract_scoped_styles(&mut root) {
         Ok(styles) => styles,
         Err(err) => {
@@ -365,7 +466,23 @@ pub(crate) fn generate_reactive(
             return quote::quote_spanned! {span=> compile_error!(#message) };
         }
     };
-    let (plan, numbered) = build_plan(root);
+    let (plan, numbered) = build_plan(
+        root,
+        0,
+        BuildMode::Reactive {
+            attached: parent.is_some(),
+        },
+    );
+    if let ParsedNode::BranchValue(values) = &numbered.node {
+        let result = group_value(values, &foundation_ui_traits_path());
+        let bind_parent = parent.map(|id| quote!(let __either_parent = #id;));
+        return quote! {{
+            #bind_parent
+            let __ctx = &(#ctx);
+            let __rcv = (#receiver).clone();
+            #result
+        }};
+    }
     let ui = foundation_ui_traits_path();
     // Scoped styles take ids past the node block (feature 09 §8.3 — they ship
     // to <head>, reserved ambient id 0, as part of the same batch).
@@ -385,7 +502,7 @@ pub(crate) fn generate_reactive(
     let mut handler_cursor = 0usize;
     gen_mount_ops(
         &numbered,
-        None,
+        parent,
         &ui,
         &mut ops,
         &mut effects,
@@ -562,6 +679,23 @@ fn gen_html_node(
                     gen_html_node(child, ui, mode, handler_cursor)
                 })
                 .collect();
+            let children = if matches!(mode, Mode::Pure { .. })
+                && node
+                    .children
+                    .iter()
+                    .any(|n| matches!(n.node, ParsedNode::BranchValue(_)))
+            {
+                let inserts = children.iter().zip(&node.children).map(|(child, source)| {
+                    if let ParsedNode::BranchValue(values) = &source.node {
+                        quote!(__children.extend(#values);)
+                    } else {
+                        quote!(__children.push(#child);)
+                    }
+                });
+                quote!({ let mut __children = #ui::__macro::Vec::new(); #(#inserts)* __children })
+            } else {
+                quote!(#ui::__macro::vec![#(#children),*])
+            };
             let marker = attrs.iter().find_map(|attr| {
                 matches!(attr, ParsedAttr::StateMarker(_))
                     .then(|| quote!(#ui::Part::state_marker(#element_id)))
@@ -576,13 +710,18 @@ fn gen_html_node(
                 #ui::Html {
                     tag: ::core::option::Option::Some(#ui::HtmlTag::from_static(#tag)),
                     attributes: __attrs,
-                    children: #ui::__macro::vec![#(#children),*],
+                    children: #children,
                     text: ::core::option::Option::None,
                     parts: #ui::__macro::vec![#marker],
                     runtime_id: ::core::option::Option::None,
                 }
             }}
         }
+        ParsedNode::Either { .. } => unreachable!("branches have generated expressions"),
+        ParsedNode::BranchValue(values) => match mode {
+            Mode::Pure { .. } => group_value(values, ui),
+            Mode::Reactive => quote!(#ui::Html::new()),
+        },
         ParsedNode::Text(text) => quote! { #ui::Html::text(#text) },
         ParsedNode::Slot(tokens) => match mode {
             // Pure: text-shaped values wrap in the slot <span> (the morph
@@ -683,7 +822,7 @@ fn gen_parts(parts: &[PartSpec], ui: &TokenStream) -> TokenStream {
 #[allow(clippy::too_many_lines)]
 fn gen_mount_ops(
     node: &Numbered,
-    parent_runtime: Option<u32>,
+    parent_runtime: Option<&TokenStream>,
     ui: &TokenStream,
     ops: &mut TokenStream,
     effects: &mut TokenStream,
@@ -766,12 +905,19 @@ fn gen_mount_ops(
             }
 
             for child in &node.children {
-                gen_mount_ops(child, Some(ridx), ui, ops, effects, handler_cursor);
+                gen_mount_ops(
+                    child,
+                    Some(&quote!(__base + #ridx)),
+                    ui,
+                    ops,
+                    effects,
+                    handler_cursor,
+                );
             }
 
             if let Some(parent) = parent_runtime {
                 ops.extend(quote! {
-                    __rcv.queue(#renderer::ops::append_child(__base + #parent, __base + #ridx));
+                    __rcv.queue(#renderer::ops::append_child(#parent, __base + #ridx));
                 });
             }
         }
@@ -780,7 +926,7 @@ fn gen_mount_ops(
             ops.extend(quote! {
                 __rcv.queue(#renderer::ops::create_text_node(__base + #ridx, #text));
                 __rcv.queue(#renderer::ops::register_node(__base + #ridx));
-                __rcv.queue(#renderer::ops::append_child(__base + #parent, __base + #ridx));
+                __rcv.queue(#renderer::ops::append_child(#parent, __base + #ridx));
             });
         }
         ParsedNode::Slot(tokens) => {
@@ -793,7 +939,7 @@ fn gen_mount_ops(
                 __rcv.queue(#renderer::ops::create_element(__base + #ridx, &#ui::HtmlTag::from_static("span"), ""));
                 __rcv.queue(#renderer::ops::register_node(__base + #ridx));
                 __rcv.queue(#renderer::ops::set_attribute(__base + #ridx, &#ui::AttrName::from_static("primal-id"), &#ui::__macro::ToString::to_string(&(__base + #ridx))));
-                __rcv.queue(#renderer::ops::append_child(__base + #parent, __base + #ridx));
+                __rcv.queue(#renderer::ops::append_child(#parent, __base + #ridx));
             });
             effects.extend(quote! {{
                 let __r = __rcv.clone();
@@ -814,7 +960,7 @@ fn gen_mount_ops(
                 #wui::reactive::mount_show(
                     __ctx,
                     &__rcv,
-                    __base + #parent,
+                    #parent,
                     move || (#when),
                     (#content),
                 );
@@ -829,12 +975,20 @@ fn gen_mount_ops(
                 #wui::reactive::mount_for(
                     __ctx,
                     &__rcv,
-                    __base + #parent,
+                    #parent,
                     move || (#each),
                     (#key),
                     (#render),
                 );
             });
+        }
+        ParsedNode::Either { .. } => unreachable!("branches have generated expressions"),
+        ParsedNode::BranchValue(values) => {
+            let parent = parent_runtime.expect("root branches expand separately");
+            ops.extend(quote! {{
+                let __either_parent = #parent;
+                let _ = #values;
+            }});
         }
         ParsedNode::Fragment { exprs } => {
             let parent = parent_runtime.expect("Fragment under root element");
@@ -849,7 +1003,7 @@ fn gen_mount_ops(
                         __ctx,
                         &__rcv,
                         __fragment,
-                        __base + #parent,
+                        #parent,
                     );
                 }});
             }

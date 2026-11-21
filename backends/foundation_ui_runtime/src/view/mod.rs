@@ -21,7 +21,17 @@ mod properties;
 mod render;
 
 pub use lower::lower;
-pub use render::{mount, place, render, NodeIdAllocator, Target, ViewIds};
+pub use properties::{core_kind, property};
+pub use render::{full_view, mount, place, render, NodeIdAllocator, Target, ViewIds};
+
+/// Assigns a stable node identifier to a region targeted by later actions.
+/// Use an identifier above two, outside other live regions in this mount.
+#[must_use]
+pub fn anchor(id: u32, mut tree: template_types::Html) -> template_types::Html {
+    tree.attributes
+        .push(("primal:anchor".into(), id.to_string().into()));
+    tree
+}
 
 /// The root offset and shared token names for a pure template.
 #[derive(Debug, Clone, Copy)]

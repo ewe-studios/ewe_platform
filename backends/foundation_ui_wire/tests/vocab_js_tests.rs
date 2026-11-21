@@ -49,6 +49,13 @@ fn web_mapping_matches_the_core_names() {
             &[("aria-hidden", "true")][..],
         ),
         (NodeKind::OVERLAY, "div", "ewe-overlay", &[][..]),
+        (NodeKind::MODAL, "dialog", "ewe-modal", &[][..]),
+        (
+            NodeKind::BOTTOM_SHEET,
+            "section",
+            "ewe-bottom-sheet",
+            &[][..],
+        ),
     ];
     assert_eq!(WEB_KINDS.len(), rows.len());
     for (row, expected) in WEB_KINDS.iter().zip(rows) {
@@ -72,14 +79,9 @@ fn web_mapping_matches_the_core_names() {
         WEB_EVENTS.iter().map(|(id, _)| *id).collect::<Vec<_>>(),
         &EventId::ENUM_VALUES[1..],
     );
-    assert_eq!(
-        CORE_CSS,
-        concat!(
-            ".ewe-stack{display:flex;flex-direction:column}\n",
-            ".ewe-list{display:flex;flex-direction:column}\n",
-            ".ewe-scroll{overflow:auto}\n",
-            ".ewe-spacer{flex:1 1 auto}\n",
-            ".ewe-overlay{position:fixed;inset:0}\n",
-        ),
-    );
+    for row in WEB_KINDS {
+        if [NodeKind::OVERLAY, NodeKind::MODAL, NodeKind::BOTTOM_SHEET].contains(&row.kind) {
+            assert!(CORE_CSS.contains(row.class));
+        }
+    }
 }

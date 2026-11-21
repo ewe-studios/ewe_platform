@@ -50,6 +50,24 @@ test("shared nodes, text, properties, action bindings and signed state", () => {
   assert.deepEqual([...base64urlDecode(el.getAttribute("primal::state"))],bytes);
   assert.deepEqual(reports.map(r=>r.code),["BadFrame","BadFrame","UnknownNode"]);
 });
+test("a full view replaces only the receiving mount and disposes its old scope", () => {
+  const {registry, reader, reports, doc} = setup();
+  const mount = doc.createElement("section");
+  const sibling = doc.createElement("aside");
+  doc.body.appendChild(mount);
+  doc.body.appendChild(sibling);
+  const view = id => frame([operation("Place", wire.PlacementKind.FullView, null, null, id,
+    [operation("CreateNode", id, wire.NodeKind.TEXT)])]);
+  reader.receive(view(20), {viewMount: mount});
+  let disposed = 0;
+  reader.registerUnmount(registry.get(20), () => disposed++);
+  reader.receive(view(21), {viewMount: mount});
+  assert.equal(disposed, 1);
+  assert.equal(registry.get(20), undefined);
+  assert.deepEqual(mount.children, [registry.get(21)]);
+  assert.deepEqual(doc.body.children, [mount, sibling]);
+  assert.deepEqual(reports, []);
+});
 test("selector placement resolves first and disposes removed scopes", () => {
   const {apply,registry,reports} = setup();
   const node = id=> operation("CreateNode",id,wire.NodeKind.TEXT);
@@ -131,6 +149,8 @@ test("transport reads split lengths, rejects truncated replies and routes binary
     {headers:{"content-type":"application/primal-frame"}});
   const result=await ui.ProtocolHandler.fromContentType(response).process(response);
   assert.deepEqual(result.frames,[bytes]);
+  const raw = new Response(bytes, {headers: {"Content-Type": "application/vnd.ewe.frame"}});
+  assert.deepEqual((await ui.ProtocolHandler.fromContentType(raw).process(raw)).frames, [bytes]);
   const p=doc.createElement("p"); reader.registry.register(42,p);
   ui.Patcher.applyRoute(ui.decodeEnvelopeFrame(bytes),null,doc);
   assert.equal(p.textContent,"1");
@@ -226,7 +246,7 @@ test("application of a frame needs no network or WebAssembly", context => {
 });
 test("all vocabulary kinds and property types map to browser controls", () => {
   const {apply,registry,reports}=setup();
-  const tags=["div","span","img","button","input","input","div","div","div","div"];
+  const tags=["div","span","img","button","input","input","div","div","div","div","dialog","section"];
   tags.forEach((tag,i)=>{
     apply(operation("CreateNode",40+i,i+1));
     assert.equal(registry.get(40+i).tag,tag);

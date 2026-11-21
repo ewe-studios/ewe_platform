@@ -12,7 +12,9 @@ final class TodoTests: XCTestCase {
     XCTAssertTrue(input.waitForExistence(timeout: 5))
     input.tap()
     input.typeText("Device-only task")
-    app.navigationBars["New todo"].buttons["Add"].tap()
+    let submit = app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable }
+    XCTAssertNotNil(submit)
+    submit?.tap()
     let task = app.staticTexts["Device-only task"]
     XCTAssertTrue(task.waitForExistence(timeout: 10))
     XCTAssertTrue(app.staticTexts["1 open todo"].waitForExistence(timeout: 5))
@@ -51,6 +53,7 @@ final class TodoTests: XCTestCase {
     add.tap()
     let input = app.textFields["Todo title"]
     XCTAssertTrue(input.waitForExistence(timeout: 5))
+    XCTAssertFalse(add.exists && add.isHittable)
     app.buttons["Cancel"].tap()
     XCTAssertTrue(input.waitForNonExistence(timeout: 5))
     add.tap()

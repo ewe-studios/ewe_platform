@@ -198,6 +198,23 @@ With `None`, the socket accepted the request. The receive path handles later fra
 A page script can register a named web host action. A mobile surface cannot select it.
 The registry can hold separate web and mobile implementations of one name when their scopes do not overlap.
 
+### Local execution applies to every client surface
+
+The surface identifies where the event starts: web or mobile. The execution origin identifies who handles it: host or server.
+Local means execution on the host handling that event. A browser and a mobile app can each run local actions.
+One registry can index entries by name, origin, and scope. Endpoints in the same process can share it.
+
+| Unqualified binding | Browser | Mobile app |
+|---|---|---|
+| A callable host entry matches this surface | Run in the browser. | Run on the device. |
+| Only an advertised server entry matches, and a server transport exists | Send once to the server. | Send once to the server. |
+| Neither route is available | Return a lookup or routing error. | Return a lookup or routing error. |
+
+Apply scope before selecting a candidate. A mobile-only host entry cannot execute in the browser.
+An explicit host declaration requires a local handler. An explicit server declaration uses the server route.
+Choose the route before execution. A local handler error must never trigger a second call on the server.
+Test each row on both surfaces. Include a disconnected device and a failing local handler.
+
 **Laws and tests.** A duplicate registration fails without changing the registry.
 An unknown name, wrong scope or unavailable required origin returns a typed error. Verify that no transport receives the rejected request.
 Use recording transports to test each row, including fallback and an explicit host action with no local implementation.

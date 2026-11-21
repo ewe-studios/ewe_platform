@@ -33,7 +33,7 @@ Open `http://127.0.0.1:8180`. Pass another loopback address after `--` to use a 
 The browser boots its local dispatcher before it requests the initial frame.
 The server advertises its three actions during the hello exchange.
 An action carries the triggering element's value and its own optional signed bytes.
-The add form copies its named title field into its action value during submit.
+All three platforms render the same `<Modal><BottomSheet>…</BottomSheet></Modal>` tree. The input owns the submit action and supplies its current value.
 
 Only presentation actions consume signed state. The demo signer protects snapshots used by the local dispatcher.
 Its demo key is present in the module. The server rejects any attached presentation snapshot at its business endpoint.
@@ -51,7 +51,7 @@ The add response carries the MessagePack string `host:notify` as a data message.
 The web page invokes its registered notification function when this message arrives.
 
 The Rust wire crate describes generated tables, size checks, fixtures and hand-written requests.
-Use its fixture generator for byte-level compatibility tests. The browser test submits a real form and clicks a stale delete control.
+Use its fixture generator for byte-level compatibility tests. The browser test submits a modal editor and clicks a stale delete control.
 See the [wire format and examples](../../backends/foundation_ui_wire/README.md) and the [browser test](tests/todo_browser_tests.rs).
 
 ```sh
@@ -86,3 +86,10 @@ To run Todo On Device, launch its own target on the device. Rust supplies the in
 - WebAssembly runs compiled Rust in the browser.
 
 The initial page routes `/initial`, `/native-initial` and `/native-starter` return one bare EWF1 frame with content type `application/vnd.ewe.frame`.
+
+### Server setup
+
+The binary binds the listener. The application builder installs its services and registers the routes on the router.
+The initial routes return the page tree and its state. The response adapter signs state and writes the frame when the body is requested.
+A successful mutation publishes a count to each live channel. The action endpoint validates and dispatches the request.
+The test can supply its own web channel to disconnect a subscriber and check replay.

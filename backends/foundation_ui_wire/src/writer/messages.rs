@@ -98,12 +98,18 @@ fn validate_ui(
             };
             let children = place.operations.as_deref().unwrap_or_default();
             let valid_content = match place.kind {
+                Kind::FullView => !children.is_empty() && place.root_node > 2,
                 Kind::Remove => children.is_empty() && place.root_node == 0,
                 Kind::Append | Kind::Before | Kind::After | Kind::Swap => !children.is_empty(),
                 _ => false,
             };
+            let valid_target = if place.kind == Kind::FullView {
+                place.target.is_none()
+            } else {
+                place.target.as_deref().is_some_and(valid_selector)
+            };
             if !valid_content
-                || !place.target.as_deref().is_some_and(valid_selector)
+                || !valid_target
                 || place.child.as_deref().is_some_and(|child| {
                     !matches!(place.kind, Kind::Before | Kind::After) || !valid_selector(child)
                 })

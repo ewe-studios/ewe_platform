@@ -56,10 +56,8 @@ fun EweScreen(
             webView,
             behaviours,
         )
-    NodeView(store, bridge, 1u, style, modifier)
+    NodeView(store, bridge, 1u, style, modifier.fillMaxSize())
 }
-
-private val FormValue = compositionLocalOf<MutableState<String>?> { null }
 
 private fun NodeRecord.flag(key: UShort, fallback: Boolean = false) =
     (props[key] as? Property.Flag)?.value ?: fallback
@@ -77,9 +75,22 @@ private fun Modifier.sizeProp(value: Property?, width: Boolean): Modifier {
     return this
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NodeView(
+    store: NodeStore,
+    bridge: EventBridge,
+    id: UInt,
+    style: ScreenStyle,
+    modifier: Modifier = Modifier,
+) {
+    LayerHost(modifier) {
+        RenderNode(store, bridge, id, style)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RenderNode(
     store: NodeStore,
     bridge: EventBridge,
     id: UInt,
@@ -95,7 +106,7 @@ fun NodeView(
     val scroll = bindings.all { it.scrollEnabled }
     val parent = record.parent?.let(store::record)
     val parentPresentation = parent?.props?.get(PropId.PRESENTATION)?.label
-    val formValue = FormValue.current
+    val formInputs = FormInputs.current
     var m =
         modifier
             .sizeProp(record.props[PropId.WIDTH], true)
@@ -119,7 +130,7 @@ fun NodeView(
         val web = record.webView
         val children: @Composable () -> Unit = {
             record.children.forEach { child ->
-                key(child) { NodeView(store, bridge, child, style) }
+                key(child) { RenderNode(store, bridge, child, style) }
             }
         }
         val spacing = Arrangement.spacedBy(record.length(PropId.SPACING).dp)
@@ -144,12 +155,25 @@ fun NodeView(
                                     key(child) {
                                         val width = if (store.record(child)?.kind == NodeKind.TEXT)
                                             Modifier.weight(1f) else Modifier
-                                        NodeView(store, bridge, child, style, width)
+                                        RenderNode(store, bridge, child, style, width)
                                     }
                                 }
                             } else children()
                         }
-                    else
+                    else if (record.children.lastOrNull()?.let(store::record)?.kind == NodeKind.BOTTOM_SHEET) {
+                        val sheetId = record.children.last()
+                        InlineSheetLayout(
+                            m,
+                            leading = {
+                                Column(verticalArrangement = spacing) {
+                                    record.children.dropLast(1).forEach { child ->
+                                        key(child) { RenderNode(store, bridge, child, style) }
+                                    }
+                                }
+                            },
+                            sheet = { key(sheetId) { RenderNode(store, bridge, sheetId, style) } },
+                        )
+                    } else
                         Column(
                             m,
                             verticalArrangement = spacing,
@@ -172,7 +196,7 @@ fun NodeView(
                                 style.colors(it.token)
                             } ?: MaterialTheme.colorScheme.onSurface,
                         textDecoration =
-                            if (parentPresentation == "checklist-row" && parent?.flag(PropId.CHECKED) == true)
+                            if (parentPresentation == "checklist-row" && parent.flag(PropId.CHECKED))
                                 TextDecoration.LineThrough else null,
                         style =
                             (record.props[PropId.FONT] as? Property.Font)?.let {
@@ -187,10 +211,8 @@ fun NodeView(
                 NodeKind.IMAGE -> style.image(record.props[PropId.SOURCE]?.label.orEmpty(), m)
                 NodeKind.BUTTON -> {
                     val onTap: () -> Unit = {
-                        if (presentation == "submit-action" && formValue != null) {
-                            parent?.children?.mapNotNull(store::record)
-                                ?.firstOrNull { EventId.SUBMIT in it.actions }
-                                ?.let { bridge.send(EventId.SUBMIT, it.id, formValue.value) }
+                        if (presentation == "submit-action" && formInputs != null) {
+                            formInputs.submit(record, parent, store::record, bridge)
                         } else {
                             bridge.send(EventId.TAP, id, record.props[PropId.VALUE]?.label.orEmpty())
                         }
@@ -222,11 +244,14 @@ fun NodeView(
                 NodeKind.TEXT_INPUT -> {
                     val serverValue = record.props[PropId.VALUE]?.label.orEmpty()
                     var value by remember(record, serverValue) { mutableStateOf(serverValue) }
+                    DisposableEffect(formInputs, record, serverValue) {
+                        formInputs?.fields?.set(record) { value }
+                        onDispose { formInputs?.fields?.remove(record) }
+                    }
                     TextField(
                         value,
                         {
                             value = it
-                            formValue?.value = it
                             bridge.send(EventId.CHANGE, id, it)
                         },
                         m,
@@ -248,12 +273,18 @@ fun NodeView(
                 NodeKind.LIST ->
                     LazyColumn(m, verticalArrangement = spacing, userScrollEnabled = scroll) {
                         items(record.children, key = { it.toLong() }) { child ->
-                            NodeView(store, bridge, child, style)
+                            RenderNode(store, bridge, child, style)
                         }
                     }
                 NodeKind.SCROLL ->
                     Column(m.verticalScroll(rememberScrollState(), enabled = scroll)) { children() }
                 NodeKind.SPACER -> Spacer(m)
+                NodeKind.MODAL -> {
+                    ModalComponent.Render(record, store, bridge, m, children)
+                }
+                NodeKind.BOTTOM_SHEET -> {
+                    BottomSheetComponent.Render(m, children)
+                }
                 NodeKind.OVERLAY -> when (presentation) {
                     "form-sheet", "confirmation-dialog" -> {
                         Surface(m, shape = MaterialTheme.shapes.large) {
@@ -263,7 +294,8 @@ fun NodeView(
                             ) { children() }
                         }
                     }
-                    else -> Box(m) { children() }
+                    else -> if (bindings.any { it.dialog }) Box(m) { children() }
+                    else OverlayComponent.Render(m, children)
                 }
                 else ->
                     Column(m) {
@@ -283,12 +315,7 @@ fun NodeView(
         Unit
     }
     if (presentation == "form-sheet") {
-        val initialValue = record.children.mapNotNull(store::record)
-            .firstOrNull { EventId.SUBMIT in it.actions }?.props?.get(PropId.VALUE)?.label.orEmpty()
-        val draft = remember(record, initialValue) { mutableStateOf(initialValue) }
-        ModalBottomSheet(onDismissRequest = dismiss) {
-            CompositionLocalProvider(FormValue provides draft) { display() }
-        }
+        ModalBottomSheet(onDismissRequest = dismiss) { FormScope(display) }
     } else if (presentation == "confirmation-dialog") {
         Dialog(onDismissRequest = dismiss) { display() }
     } else if (bindings.any { it.dialog }) {

@@ -39,16 +39,11 @@ class HttpActionConnection(
     private suspend fun exchange(path: String, frame: ByteArray?): ByteArray =
         suspendCancellableCoroutine { pending ->
             val request = Request.Builder().url(requireNotNull(base.resolve(path)))
-            if (frame != null)
-                request
-                    .header(
-                        "X-Ewe-Hello",
-                        Base64.encodeToString(
-                            hello,
-                            Base64.NO_PADDING or Base64.NO_WRAP or Base64.URL_SAFE,
-                        ),
-                    )
-                    .post(frame.toRequestBody("application/primal-frame".toMediaType()))
+            request.header(
+                "X-Ewe-Hello",
+                Base64.encodeToString(hello, Base64.NO_PADDING or Base64.NO_WRAP or Base64.URL_SAFE),
+            )
+            if (frame != null) request.post(frame.toRequestBody("application/primal-frame".toMediaType()))
             else request.header("Accept", "application/vnd.ewe.frame")
             val call = client.newCall(request.build())
             pending.invokeOnCancellation { call.cancel() }

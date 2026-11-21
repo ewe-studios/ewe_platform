@@ -52,6 +52,8 @@ flowchart LR
 ```
 
 Application clients can reuse the transport for their own generated procedures.
+Native code can supply the network client directly. Rust can also request that client from a native provider by service name.
+Both paths use the same Connect client and action sender. [Provider setup](../27-single-todo-package/feature.md#obtain-a-transport-from-the-native-host)
 
 ## Stage 1. Inject an HTTP exchange
 

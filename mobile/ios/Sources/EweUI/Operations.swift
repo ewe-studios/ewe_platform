@@ -28,16 +28,16 @@ private func value(_ op: any WireValue) -> Value? {
   }
 }
 @MainActor extension NodeStore {
-  func operation(_ op: ewe_ui_Operation, _ row: Int) {
+  func operation(_ op: ewe_ui_Operation, _ row: Int, _ mount: UInt32) {
     if let batch = op.columnar { columnar(batch, row) }
-    if op.uiType != .none_ { shared(op, row) }
+    if op.uiType != .none_ { shared(op, row, mount) }
     if op.webType != .none_ { report("UnsupportedPlatformOp", row) }
     if op.mobileType != .none_ { mobile(op, row) }
     if op.uiType == .none_, op.webType == .none_, op.mobileType == .none_, op.columnar == nil {
       report("UnknownOp", row)
     }
   }
-  private func shared(_ op: ewe_ui_Operation, _ row: Int) {
+  private func shared(_ op: ewe_ui_Operation, _ row: Int, _ mount: UInt32) {
     switch op.uiType {
     case .createnode:
       if let v = op.ui(type: ewe_ui_CreateNode.self) { _ = make(v.nodeId, v.kind, row) }
@@ -73,10 +73,10 @@ private func value(_ op: any WireValue) -> Value? {
       if let v = op.ui(type: ewe_ui_ReplaceSubtree.self), let n = get(v.nodeId, row) {
         for child in n.children { remove(child, row) }
         for i in 0..<v.operationsCount {
-          if let child = v.operations(at: i) { operation(child, Int(i)) }
+          if let child = v.operations(at: i) { operation(child, Int(i), mount) }
         }
       }
-    case .place: if let v = op.ui(type: ewe_ui_Place.self) { place(v, row) }
+    case .place: if let v = op.ui(type: ewe_ui_Place.self) { place(v, row, mount) }
     case .livemount:
       if let v = op.ui(type: ewe_ui_LiveMount.self), let n = make(v.nodeId, .stack, row) {
         n.live = LiveSpec(
@@ -96,7 +96,16 @@ private func value(_ op: any WireValue) -> Value? {
     default: report("UnknownOp", row)
     }
   }
-  private func place(_ p: ewe_ui_Place, _ row: Int) {
+  private func place(_ p: ewe_ui_Place, _ row: Int, _ mount: UInt32) {
+    if p.kind == .fullview {
+      guard let owner = get(mount, row) else { return }
+      for id in owner.children { remove(id, row) }
+      for i in 0..<p.operationsCount {
+        if let op = p.operations(at: i) { operation(op, Int(i), mount) }
+      }
+      insert(p.rootNode, mount, before: nil, row)
+      return
+    }
     guard let selector = p.target, selector.kind == .nodeid, let target = records[selector.nodeId]
     else {
       report("MissingTarget", row)
@@ -131,7 +140,7 @@ private func value(_ op: any WireValue) -> Value? {
     } else if p.kind == .before {
       before = parent.children.first
     }
-    for i in 0..<p.operationsCount { if let op = p.operations(at: i) { operation(op, Int(i)) } }
+    for i in 0..<p.operationsCount { if let op = p.operations(at: i) { operation(op, Int(i), mount) } }
     insert(p.rootNode, parent.id, before: before, row)
   }
   private func mobile(_ op: ewe_ui_Operation, _ row: Int) {

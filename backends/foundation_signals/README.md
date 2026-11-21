@@ -16,6 +16,7 @@ ids. This crate just owns the graph.
 > 008/029) and `specifications/42-ui-component/` (feature 03 — `Context` handles).
 
 ## Contents
+- [Choose a runtime](#choose-a-runtime)
 - [Mental model](#mental-model)
 - [`Context` — scopes & teardown](#context--scopes--teardown)
 - [`signal` — `(getter, setter)`](#signal--getter-setter)
@@ -28,6 +29,57 @@ ids. This crate just owns the graph.
 - [What this crate is NOT for](#what-this-crate-is-not-for)
 
 ---
+
+## Choose a runtime
+
+| Host | Runtime | Ownership |
+|---|---|---|
+| Browser WebAssembly (Wasm) | `SingleThreadedRuntime` | One thread owns the graph. Callbacks can capture local view objects. |
+| Native owner thread | `SingleThreadedRuntime` and `SignalHub` | Workers send updates to the owner. The owner pumps the hub. |
+| Native worker threads | `MultiThreadedRuntime` | Threads can read and update shared values directly. |
+
+`Runtime` remains the name of the single-thread type for existing callers.
+Use `Rc::new(SingleThreadedRuntime::new()).scope()` to create a local scope.
+The existing `Context::new(runtime)` constructor uses the same graph.
+
+Enable the Cargo feature `thread_safe` to select the native shared runtime.
+Both runtime types can exist in the same application. The host keeps its scope alive across requests.
+
+```rust
+use foundation_signals::MultiThreadedRuntime;
+use std::sync::Arc;
+
+let runtime = Arc::new(MultiThreadedRuntime::new());
+let scope = runtime.scope();
+let (read, write) = scope.signal(Vec::<String>::new());
+
+let first = write.update_with(|items| {
+    items.push("Buy milk".into());
+    items.clone()
+});
+assert_eq!(first, vec!["Buy milk"]);
+assert_eq!(read.get_untracked(), first);
+runtime.stabilize();
+```
+
+An update serializes access to one value. The closure returns the result of its own mutation.
+Keep each closure short. Work only on the supplied value inside the closure.
+Validate fallible input before changing the value. A returned error is an ordinary closure result.
+Equality controls notification. The host stabilizes the graph after one or more writes.
+Only tracked reads during an evaluation on its executing thread subscribe that evaluation.
+
+Each signal protects its value with a read-write lock. The graph has a separate metadata lock.
+A reader or writer acquires the value lock before it records a dependency or publishes a change in the graph.
+The runtime releases the metadata lock before it calls effects and cleanup functions.
+It serializes evaluations within one runtime. A second stabilizer can run after the first pass finishes.
+An effect can set another signal. A pass can leave a repeated evaluation for the next pass.
+
+The writer applies its closure to a clone before publication. If the closure panics, the writer keeps the prior slot value.
+Later operations can recover the poisoned lock. External side effects and changes to shared objects inside a clone remain the caller's responsibility.
+Scope disposal retires its nodes. A running evaluation can finish, and its cleanup runs after evaluation.
+
+A runtime belongs to one process. To use one signal from other processes, send commands to its owner through an application transport.
+Store durable state in the application's storage system.
 
 ## Mental model
 

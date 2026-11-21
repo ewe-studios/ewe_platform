@@ -1,7 +1,7 @@
 import { FoundationWasm } from "./foundation-wasm.js";
 import * as ui from "./foundation-wasm-ui.js";
 import * as behaviours from "./foundation-ui-behaviours.js";
-import { installFrameRuntime } from "./foundation-ui-frames.js";
+import { installFrameRuntime, base64urlEncode, readViewResponse } from "./foundation-ui-frames.js";
 import { FetchActionTransport, WasmActionTransport, JsActionRegistry, installActionRuntime } from "./foundation-ui-actions.js";
 
 async function boot() {
@@ -23,9 +23,8 @@ async function boot() {
     for (const name of ["add_todo", "toggle_todo", "confirm_delete"]) registry.declare("server", name);
     for (const name of ["open_add_dialog", "open_delete_dialog", "close_dialog", "filter_todos"]) registry.declare("host", name);
     ui.Patcher.runtime.dispatcher = new ui.EventDispatcher(() => {});
-    const frames = installFrameRuntime(ui, { onReport: report });
+    const frames = installFrameRuntime(ui, { onReport: report, viewMount: document.querySelector("#page") });
     ui.registerWebComponents();
-    frames.registry.register(40, document.querySelector("#page"));
     frames.registry.register(41, document.querySelector("#dialog"));
     const server = new FetchActionTransport({ url: "/action", hello: () => manager.hello() });
     const manager = installActionRuntime(ui, { registry, frames, server, local, behaviours, document, onError: report });
@@ -33,14 +32,6 @@ async function boot() {
     scope.action("notify", () => { notice.value = "Todo added"; });
     scope.action("scroll_to_top", () => window.scrollTo(0, 0));
 
-    // The named field supplies this form's action value.
-    document.addEventListener("submit", event => {
-        const form = event.target;
-        if (form.getAttribute("primal:onsubmit") === "server:add_todo") {
-            event.preventDefault();
-            form.value = new FormData(form).get("title");
-        }
-    }, true);
     document.addEventListener("ewe:data", event => {
         const bytes = event.detail.bytes;
         if (bytes?.[0] === 0xab && new TextDecoder().decode(bytes.subarray(1)) === "host:notify") {
@@ -48,9 +39,8 @@ async function boot() {
         }
     });
     for (const bytes of await server.send(manager.hello())) await manager.receive(bytes);
-    const response = await fetch("/initial");
-    if (!response.ok) throw new Error("Cannot load the initial view");
-    frames.receive(new Uint8Array(await response.arrayBuffer()));
+    const response = await fetch("/initial", { headers: { "X-Ewe-Hello": base64urlEncode(manager.hello()) } });
+    if (!frames.receive(await readViewResponse(response, frames.maxFrameBytes))) throw new Error("Invalid initial view");
     window.todoReady = true;
 }
 boot().catch(error => {

@@ -1,3 +1,5 @@
+import { frameMountTarget } from "./foundation-wasm-ui.js";
+
 // Associate an ordered stream with the element that owns its connection.
 function integer(element, attribute) {
   const raw = element.getAttribute(attribute);
@@ -44,7 +46,9 @@ export function bindLiveMounts(runtime, frames) {
         if (!active) return;
         if (result.type !== "frame") throw new Error("Frame mount received another protocol");
         for (const bytes of result.frames) {
-          frames.receive(bytes, { observeStream(id) {
+          frames.receive(bytes, { get viewMount() {
+            return active && frameMountTarget(element, element.getAttribute("target"), element.ownerDocument);
+          }, observeStream(id) {
             if (stream === undefined) attach(id);
             else if (stream !== id) throw new Error("Unexpected stream identifier");
           } });

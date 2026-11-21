@@ -162,6 +162,8 @@ fn portable_vocabulary_lowers_each_node_and_property() {
         ("Scroll", NodeKind::SCROLL),
         ("Spacer", NodeKind::SPACER),
         ("Overlay", NodeKind::OVERLAY),
+        ("Modal", NodeKind::MODAL),
+        ("BottomSheet", NodeKind::BOTTOM_SHEET),
     ] {
         let ops = lower(&element(name, 2), &options).unwrap();
         assert!(
@@ -243,4 +245,40 @@ fn scoped_script_and_behaviours_belong_to_the_parent() {
     assert!(
         matches!(&ops[3].web,WebOperationT::ScriptNode(s) if s.parent_id==41 && s.node_id==42 && s.body.as_deref()==Some("scope.action('notify', notify)"))
     );
+}
+
+#[test]
+fn reserved_region_identifiers_cannot_overlap_the_allocated_nodes() {
+    use foundation_ui_runtime::{
+        html,
+        view::{anchor, lower, LowerOptions, TokenTable},
+    };
+    let options = LowerOptions {
+        id_base: 100,
+        tokens: &TokenTable::default(),
+    };
+    let parent = anchor(44, html! {<Stack/>});
+    let duplicate = anchor(44, html! {<Text/>});
+    assert!(lower(&html! {<Stack>{parent}{duplicate}</Stack>}, &options).is_err());
+    assert!(lower(&anchor(100, html! {<Text/>}), &options).is_err());
+    let ops = lower(&anchor(44, html! {<Text>Hello</Text>}), &options).unwrap();
+    assert!(ops.iter().any(
+        |op| matches!(&op.ui,foundation_ui_wire::UiOperationT::CreateNode(node) if node.node_id==44)
+    ));
+}
+
+#[test]
+fn frame_mount_markup_has_a_native_subscription_and_preserves_the_web_target() {
+    use foundation_ui_runtime::{
+        html,
+        view::{lower, LowerOptions, TokenTable},
+    };
+    let options = LowerOptions {
+        id_base: 100,
+        tokens: &TokenTable::default(),
+    };
+    let view = html! {<mount-stream protocol="frame" transport="sse" api="/live" data-channel-id="2" data-resume-from="7" target="#sink"/>};
+    let ops = lower(&view, &options).unwrap();
+    assert!(ops.iter().any(|op|matches!(&op.ui,foundation_ui_wire::UiOperationT::LiveMount(m) if m.endpoint.as_deref()==Some("/live") && m.channel_id==2 && m.resume_from==7)));
+    assert!(ops.iter().any(|op|matches!(&op.web,foundation_ui_wire::WebOperationT::WebSetAttribute(a) if a.value.as_deref()==Some("#sink"))));
 }

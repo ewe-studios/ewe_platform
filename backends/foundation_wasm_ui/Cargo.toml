@@ -26,7 +26,7 @@ foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 # foundation_wasm_ui depends on BOTH signals and wasm). This crate is
 # `#![no_std]` and only uses the graph, so signals' `std` (the cross-thread
 # hub) stays off.
-foundation_signals = { path = "../foundation_signals", version = "0.0.6", default-features = false, features = ["single_threaded"] }
+foundation_signals = { path = "../foundation_signals", version = "0.0.7", default-features = false, features = ["single_threaded"] }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
 foundation_macros = { workspace = true }

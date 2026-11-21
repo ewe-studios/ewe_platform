@@ -143,6 +143,7 @@ async fn drive_sse(
 /// `Serve` route: upgrade the owned connection to SSE, hand it to the
 /// [`Broadcaster`], and detach.
 pub struct StreamHandler {
+    channel: Option<LiveChannel>,
     native: bool,
     frame_channel: bool,
     config: SseTransportConfig,
@@ -152,6 +153,7 @@ impl ServeFactory for StreamHandler {
     fn create(ctx: &Ctx) -> Self {
         Self {
             frame_channel: true,
+            channel: None,
             native: false,
             config: ctx
                 .get::<SseTransportConfig>()
@@ -161,6 +163,10 @@ impl ServeFactory for StreamHandler {
 }
 
 impl StreamHandler {
+    /// Uses this channel for every subscription on this route.
+    #[must_use]
+    pub fn with_channel(mut self, channel: LiveChannel)->Self { self.channel=Some(channel); self }
+
     /// Opens a native frame stream with the transport settings from this host.
     #[must_use]
     pub fn native(ctx: &Ctx) -> Self {
@@ -181,7 +187,7 @@ impl Serve for StreamHandler {
         let transport = SseTransport { frames };
         let mut replay = Vec::new();
         let mut legacy = None;
-        if let Some(channel) = ctx.get::<LiveChannel>().filter(|_| self.frame_channel) {
+        if let Some(channel) = self.channel.clone().map(Arc::new).or_else(|| ctx.get::<LiveChannel>()).filter(|_| self.frame_channel) {
             let queries = req.request_url.queries.as_ref();
             let param = |name: &str| {
                 queries

@@ -5,7 +5,9 @@ use foundation_ui_wire::{
     LengthUnit, LengthValueT, NodeKind, PropId, PropValueT, SetPropT, TextValueT,
 };
 
-pub(super) fn core_kind(tag: &str) -> Option<NodeKind> {
+/// Finds the shared control for a template tag.
+#[must_use]
+pub fn core_kind(tag: &str) -> Option<NodeKind> {
     Some(match tag {
         "Stack" => NodeKind::STACK,
         "Text" => NodeKind::TEXT,
@@ -17,11 +19,17 @@ pub(super) fn core_kind(tag: &str) -> Option<NodeKind> {
         "Scroll" => NodeKind::SCROLL,
         "Spacer" => NodeKind::SPACER,
         "Overlay" => NodeKind::OVERLAY,
+        "Modal" => NodeKind::MODAL,
+        "BottomSheet" => NodeKind::BOTTOM_SHEET,
         _ => return None,
     })
 }
 
-pub(super) fn property(
+/// Converts a template attribute to its typed control property.
+///
+/// # Errors
+/// Returns the invalid property, value, or token name.
+pub fn property(
     id: u32,
     name: &str,
     value: &str,
@@ -36,12 +44,13 @@ pub(super) fn property(
         node_id: id,
         name: value.into(),
     };
+    let wire_name = if name == "class" { "utility_classes" } else { name };
     let prop = PropId::ENUM_VALUES
         .iter()
         .copied()
         .find(|p| {
             p.variant_name()
-                .is_some_and(|n| n.to_ascii_lowercase() == name)
+                .is_some_and(|n| n.eq_ignore_ascii_case(wire_name))
         })
         .ok_or_else(bad)?;
     let v = match prop_kind(prop).ok_or_else(bad)? {

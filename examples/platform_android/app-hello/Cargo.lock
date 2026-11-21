@@ -570,7 +570,7 @@ version = "0.0.9"
 
 [[package]]
 name = "foundation_signals"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "foundation_ui_traits",
  "serde",

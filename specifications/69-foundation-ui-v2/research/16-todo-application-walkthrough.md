@@ -179,3 +179,239 @@ Rust can already accept a transport for a typed remote procedure call. [Feature 
 The main package owns the todo state, views, and action registries. Both adapter packages import it with the server feature disabled.
 The mobile adapter exports constructors to Swift and Kotlin. The browser adapter exports the WebAssembly startup function.
 One package can use target-specific modules for both entry points. That change also requires updates to build scripts and binding generation.
+
+### Can each platform use a binary target?
+
+Cargo treats each binary target as an executable. The mobile apps link a library. The browser loads a WebAssembly module.
+One package can keep the mobile and browser exports in library modules. Its server can use a binary target.
+The build command enables package features. A binary's `required-features` setting checks that those features are active.
+The local mobile constructor can stay in the same library as the remote constructor.
+See the [Cargo target reference](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-crate-type-field).
+
+### Where does the shared todo code live?
+
+The proposed layout puts todo state, views, and actions in `src/shared/`.
+The library root always includes the shared module. The `mobile` and `web` features select their export modules and optional dependencies.
+The `server` feature enables the server dependencies and permits the server binary to build.
+The build target selects the platform. The library crate types specify its output formats.
+Both mobile constructors belong to the mobile module. Each screen chooses its constructor at runtime.
+
+[Feature 27](../features/27-single-todo-package/feature.md) records this layout.
+
+### Which todo actions run on the phone?
+
+The server-connected core registers the dialog functions on the phone. It declares the add, toggle, and delete operations as server actions.
+The on-device core also registers local write actions. It installs a todo store in its context.
+
+### Who owns the browser dispatcher?
+
+The proposed LocalApp builder accepts the prepared context and registry. It builds the local dispatcher and installs it in the browser bridge.
+The bridge keeps the dispatcher alive after the startup function returns.
+
+### Can Rust also be the network client?
+
+A mobile screen supplies a native sender. A Rust client can supply its own action transport. Both use the same action routing rules.
+
+### Can Rust ask the native app for a transport?
+
+Today, Swift or Kotlin passes an action sender to Rust. The native library adapts that sender for the Rust action manager.
+A proposed alternative lets native code supply a provider during setup. Rust asks that provider for a named service.
+For a ready action sender, Rust adapts the returned handle. For Connect, Rust can request a network client and build the protocol adapter.
+Both paths give the builder a Rust action transport. The provider can keep account credentials in the platform network client.
+
+### Follow the toolbar Add tap
+
+The toolbar button binds its tap to open_add_dialog. Its native event bridge reads the action and signed state from that button.
+The bridge calls the Rust core. The local handler sets add_dialog and renders the form. The bridge applies the reply to the screen.
+
+### How does the Add dialog become a native form?
+
+Rust targets the dialog root and renders an overlay with the form-sheet role. The reply carries the controls and their roles.
+The iPhone renderer matches that overlay to FormPresentation. SwiftUI presents a sheet with a title, text field, and toolbar buttons.
+The submit button sends the field value through the input's submit action. Android maps the same overlay to a Material bottom sheet.
+
+### Why does the Add dialog check the surface?
+
+The web example binds submit to a form. The mobile example binds submit to the input and gives the button a submit role.
+Both native renderers implement that role. A shared form needs the browser renderer to send the input value once on click or keyboard submission.
+The on-device flag selects the action destination independently of the surface.
+
+### Does a dialog need a reserved node?
+
+Rust creates node 41 in the first todo frame. Both native renderers apply that frame. Opening and closing the dialog replace the same node.
+An action can instead append an overlay to an existing parent. Closing it then requires a way to identify and remove that overlay.
+
+### How do presentation and behaviour differ?
+
+A presentation value gives one node a role. A behaviour marker adds a behaviour to its parent and produces no child node.
+The iPhone form-sheet role selects a SwiftUI sheet before the ordinary behaviour modifiers run.
+Android selects a bottom sheet by role and can apply transition to its contents.
+The browser records the role as an attribute. Its dialog and dismiss handlers check separate element capabilities and attributes.
+The submit binding selects the Rust action independently of these markers.
+
+The Rust author sets the presentation property. Swift calls its accessor role. Kotlin reads the same property into a variable named presentation.
+A behaviour marker uses its place in the tree to identify the node that receives the behaviour.
+
+### Proposed markup for layers, modal interaction, and bottom placement
+
+The author chooses the element. Each renderer implements its contract. The children supply the content and retain their action bindings.
+
+| Tag | iOS | Android | Web |
+|---|---|---|---|
+| Overlay | Add a layer above the current view or sheet. | Add a layer above the current screen or sheet. | Place a container above the current view. |
+| Modal | Present the children and block the background. | Present the children and block the background. | Open a modal dialog and contain focus. |
+| BottomSheet | Align the child panel to the bottom safe edge. | Use a bottom-aligned panel or a compatible Material sheet. | Align a section to the bottom of its container. |
+
+Overlay permits background interaction outside its children. Modal owns focus, background input, and optional dimming.
+BottomSheet specifies the resting edge. The panel can enter from below. It can contain any supported children.
+Inside a modal, present one modal surface. Inside an overlay, keep the background available.
+In ordinary layout, the platform measures the sheet from its children within the available space.
+The author can insert the sheet when needed. The parent arranges its children again when the sheet appears or disappears.
+The author needs no placeholder or fixed height for the sheet.
+These are proposed contracts. The present mobile form-sheet role opens a modal on both mobile platforms.
+
+### Follow the Add submission
+
+The shared Add form selects the input action when Rust builds the view. The on-device and server handlers both pass the submitted text to add.
+The store assigns the identifier. The action then renders the updated list and dialog from the new snapshot.
+
+### Proposed conditional markup
+
+Inside html!, Either takes a Rust boolean expression in condition. It contains one Left branch and one Right branch.
+Evaluate the condition once per render. False selects Left. True selects Right. Evaluate and emit only the selected contents.
+The three tags describe control flow and produce no wire nodes. A later render evaluates the condition again.
+For the todo row, Left binds toggle_todo on the server. Right binds toggle_local_todo on the device.
+
+In Interaction<T>, T describes the state field. The submitted text travels separately in input_value, a String.
+For add_todo, the state is () and input_value holds the title.
+
+### Can a signal hold the todo list across actions?
+
+A long-lived host can own a signal runtime and a signal for the list and its next identifier.
+On native targets, SignalHub exposes thread-safe handles that the action context can store. The owner must process queued updates.
+An action that needs the committed result must receive it from the owner before rendering its reply.
+Restart persistence requires storage. Sending later updates to a screen requires an active delivery path.
+
+### Can an action declare its input type?
+
+Today Interaction has a state parameter and a fixed String input. The action macro accepts one type argument.
+A proposed Interaction<S, E = String> lets the handler declare input separately from signed state.
+Keep plain text unchanged for existing actions. Give structured input an explicit encoding and decode it before calling the handler.
+Typed input still comes from the caller. State verification applies to the separate state field.
+
+### Signal update with a reply
+
+On native targets, the host retains the signal context and drives SignalHub on its owner thread.
+The proposed store exposes a RemoteSetter for StoreState. StoreState also needs Clone and PartialEq.
+The following sketch uses a one-shot reply channel from futures-channel.
+
+```rust
+struct TodoSignals {
+    writer: foundation_signals::RemoteSetter<StoreState>,
+}
+
+impl TodoSignals {
+    async fn add(&self, title: String) -> Result<TodoApp, ErrorTrace<ActionError>> {
+        let (reply, result) = futures_channel::oneshot::channel();
+        self.writer.update(move |state| {
+            let snapshot = add_and_snapshot(state, &title);
+            if reply.send(snapshot).is_err() {
+                // The caller dropped the receiver. The mutation already finished.
+            }
+        }).map_err(|_| error("Todo signal owner stopped"))?;
+        result.await.map_err(|_| error("Todo signal reply closed"))?
+    }
+}
+```
+
+The application function add_and_snapshot validates the title and identifier before it changes the list.
+It returns the updated snapshot from this call. The action can render that snapshot while the hub handles later calls.
+
+### Could native actions share a signal runtime directly?
+
+A native backend can provide thread-safe signal handles. Value storage, graph state, scope ownership, and callback execution need separate rules.
+The current graph uses one active effect and one dependency trail. A concurrent reader must not join another thread's effect.
+A native update can return the caller's snapshot from the same mutation. Run reactive effects after releasing the write lock.
+
+[Feature 29](../features/29-thread-safe-signals/feature.md) defines the proposed native runtime and the todo update contract.
+
+Feature 29 preserves the owner-thread hub beside the shared runtime. A caller can still receive its own snapshot through a reply channel.
+
+Feature 29 now proposes two named runtimes at the crate root. Call runtime.scope() to create signals in the chosen graph.
+
+### How does the phone show the saved todo?
+
+The todo action renders the list and the closed dialog from the same store snapshot.
+The native event bridge gives the reply frame to the screen store. The native renderer displays the updated list and removes the form.
+
+### How can one registry serve several execution modes?
+
+Use one registration function to build the application catalog in each process. Endpoints in that process can share the registry.
+Each action declares its name, origin, and surface scope. Compile-time constants can supply these values.
+A selector can register several entries under one logical name. Reject overlapping entries for the same origin and surface.
+The registry resolves the name against the execution origin and the calling surface. The manager uses the existing transport for a remote destination.
+The dispatcher supplies the host-selected mode as a required argument. The registry adapter passes it unchanged to Action::call.
+
+```rust
+fn call<'a>(
+    &'a self,
+    mode: ExecutionMode,
+    ctx: &'a Context,
+    event: Interaction<Self::State>,
+) -> ActionFuture<'a>;
+```
+
+Ordinary routing uses the registered entries. Generated adapters for existing two-argument functions can ignore the mode.
+For an unqualified name, lookup considers the local and server candidates for the calling surface.
+For a phone call, both candidates can support the mobile surface. Local means execution on that phone for this call.
+Run the local candidate if it is callable in this context. Otherwise, forward once if the connected server advertises that action.
+Report an unavailable action if neither route exists. A local execution error goes back to the caller without a second attempt on the server.
+Explicit host and server prefixes select their requested origin. A server handles its requests through its own registered handlers.
+The view binds the same logical name in each case.
+
+### Can a struct provide named action handlers?
+
+Keep register for existing actions. Selector registration can expand entries. Named structs are an optional way to organize handlers.
+Keep the associated constant `Action::NAME`. With `#[named_action]`, the macro derives the name from the struct in snake case.
+For example, `AddTodo` gives `"add_todo"`. An explicit argument such as `#[named_action("create_todo")]` overrides that default.
+Both forms set the associated constant at compile time. Markup can read the name from the type without constructing an instance.
+The author implements NamedActionHandlers. Its on_ios and on_android methods delegate to on_mobile by default. The author can override either method.
+A named handler can use the explicit mode to select its platform method after registry lookup.
+Keep the existing registration checks, error propagation, state verification, and async action contract across these paths.
+
+Resolve remote destinations before invoking a local handler. Preserve the existing request, capability checks, and reply path.
+
+### How does the browser discover server actions?
+
+During startup the browser sends a hello. The server uses the requested surface to list callable actions in its reply.
+A matching local implementation takes precedence for an unqualified binding. The client can otherwise select an advertised server action.
+
+### Where does a browser action go?
+
+The todo browser configures one action endpoint at /action. The Add form sends the action name and input inside a binary request frame.
+The server passes that frame to the dispatcher. The same endpoint serves other registered server actions.
+
+Feature 30 separates frame reading from HTTP dispatch. The same reader can consume a file or an HTTP body through a suitable adapter.
+
+In the proposed HTTP interface, mount reads the route metadata and registers a handler. The request invokes Serve later.
+Feature 30 includes the proposed todo route module.
+
+Feature 30 proposes ViewRequest inside foundation_ui_http. The generic HTTP macro forwards the original Serve arguments.
+
+The proposed todo register_routes function accepts a mutable router. It registers actions, views, streams, and assets on that router.
+
+A mounted handler declares its method and path through a trait. The action handler can declare its wildcard alias on the same type.
+
+The proposed initial route returns Response::frame with a complete tree. The handler chooses the response format. The requesting screen owns its mount. Targeted action macros still specify individual placements.
+
+A view response owns the original body source. Tests can inspect it before writing or render it through the production writer into memory.
+
+### How does a request become a Rust function call?
+
+The dispatcher selects the registry entry for the action name, origin, and surface.
+The runtime builds the call context from the request context. The registered adapter constructs Interaction using the handler's state type.
+For add_todo, input_value contains the submitted title and state is unit. The handler uses the request's services and its own output receiver.
+
+The browser theme generates utility classes. Shared controls currently encode explicit color and font properties for native renderers.
+
+On shared controls, Feature 23 proposes one class list for all three platforms. Matching platform prefixes override the corresponding shared property.

@@ -591,3 +591,78 @@ Feature 25 now defines the sharing attribute and its transport defaults on all t
 ### ConnectRPC transport proposal
 
 Feature 26 proposes host network adapters for Connect remote procedure calls on mobile and WebAssembly. Implementation awaits design review.
+
+Feature 27 proposes one Rust package for the todo server, browser module, and mobile library. Implementation awaits review.
+
+Feature 27 now proposes a browser LocalApp builder that accepts the application context and action registry.
+
+Feature 27 now covers mobile startup and a Rust client that calls a remote Foundation service.
+
+Features 26 and 27 now describe direct transport injection and native provider lookup.
+
+Feature 23 now specifies explicit container tags and per-tag components. The owner approves implementation of this section.
+
+### Explicit container tags in Feature 23
+
+Vocabulary version 5 adds Modal and BottomSheet. Overlay keeps its existing identifier.
+Rust now sends the same Add dialog tree to all three platforms. The browser example no longer copies a named form field in JavaScript.
+Each mobile tag has a dedicated component that renders its supplied children. The browser opens a native modal dialog.
+The Rust runtime passed 68 tests. The Rust wire package passed 88 tests. All 12 TypeScript fixture checks passed.
+Chrome verified measured layout, background input, modal focus, Escape dismissal, button submission, and keyboard submission.
+Both todo examples passed their application flows on iPhone and Android. The native offline Rust test also passed.
+The JavaScript suite passed 146 tests. One legacy test skipped because its optional fixture was absent.
+
+Feature 08 implements Either in the shared markup macro. The todo toggle now selects its action inline.
+The runtime passed 70 tests. The browser macro and reactive structure suites passed 41 tests.
+The todo action and native offline tests passed. Compiler tests cover invalid branches and conditions.
+
+Feature 28 proposes typed action input with String as the default. The signal-backed todo store remains a discussion example.
+
+Feature 29 proposes an optional thread-safe signal runtime for native applications. The design awaits review.
+
+Feature 29 now requires combined-build tests for queued hub updates and per-action replies.
+
+Feature 29 now names SingleThreadedRuntime and MultiThreadedRuntime. Both create signal scopes. Runtime remains an alias for the local type.
+
+### Feature 29. Thread-safe signals
+
+Both named runtimes now expose scope creation. The new native writer returns the result of each atomic update.
+Both runtimes share the height-ordered work queue. The local type alias and hub remain available.
+All four package configurations passed on macOS. The browser todo flow passed in Chrome.
+Linux and Windows cross-checks passed. Their native test runs remain part of the configured continuous integration matrix.
+
+Feature 05 now specifies local-first lookup on both web and mobile surfaces.
+
+Feature 30 proposes reusable frame readers and a simpler HTTP route surface for the todo example.
+
+Feature 30 now separates HTTP route attributes from the proposed view integration crate.
+
+Feature 30 assigns explicit and attributed route registration to Router.
+
+Feature 30 defines Router::mount for handwritten and generated route handlers.
+
+Feature 30 now gives initial routes a full-view response contract and leaves placement targets to explicit updates.
+
+The owner approves the Feature 30 view-handler integration. Implementation starts with its route and response dependencies.
+
+Feature 30 adds HttpApp::mount as a direct delegate to Router::mount.
+
+Feature 30 requires lazy response bodies and independent tests for source inspection and rendered output.
+
+The owner assigns Features 23 through 30 to one implementation agent. Finish and verify Feature 30 first.
+Then review Features 23 through 29 and complete the remaining work one feature at a time in dependency order. Feature 29 already records completion.
+
+### Feature 30 implementation
+
+The wire reader now accepts files and asynchronous byte streams. Both readers use one decoder.
+The shared router registers a method, path, and handler. Native adapters accept ordinary functions.
+The view handler selects HTML, a frame, or JSON in its return value.
+The body writer retains the request scope and writes each body once.
+The todo server registers its routes without reading or writing frames. A successful mutation publishes the open count.
+The browser integration test passes with the installed Chrome executable. It covers add, cancel, delete, filter, and live replay.
+The iPhone simulator passes all three offline and server application tests.
+The Android emulator passes startup, mutation, replay rejection, and offline store isolation.
+The HTTP, wire, runtime, and signal suites pass. The generator reproduces the checked-in bindings.
+Feature 30 is complete.
+
+Feature 23 now requires shared utility classes and platform-specific overrides from one theme.

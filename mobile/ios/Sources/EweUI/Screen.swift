@@ -16,6 +16,9 @@ import SwiftUI
     self.fonts = fonts
   }
   public var body: some View {
+    root.frame(maxWidth: .infinity, maxHeight: .infinity).eweLayerHost()
+  }
+  private var root: AnyView {
     #if os(iOS)
       if let root = store.record(1), let navigation = rootNavigation(root) { return navigation }
     #endif
@@ -37,12 +40,16 @@ import SwiftUI
     let screen: EweScreen
     let n: NodeRecord
     @State var input = ""
+    @Environment(\.eweSheetDraft) private var sheetDraft
     var body: some View {
       #if os(iOS)
         if n.props[.hidden] != .bool(true), let presentation = screen.presentation(n) {
           return presentation
         }
       #endif
+      if n.kind == .overlay, !n.behaviours.contains("DIALOG"), n.props[.presentation] == nil {
+        return AnyView(EweOverlay(identity: n.identity) { ordinary })
+      }
       return AnyView(ordinary)
     }
     private var ordinary: some View {
@@ -56,11 +63,15 @@ import SwiftUI
             })
         } else {
           content = AnyView(
-            VStack(alignment: n.horizontalAlignment, spacing: n.points(.spacing)) {
-              screen.children(n)
+            EweColumn(nodes: screen.records(n), alignment: n.horizontalAlignment, spacing: n.points(.spacing)) { child in
+              RecordView(screen: screen, n: child)
             })
         }
-      case .overlay: content = AnyView(ZStack { screen.children(n) })
+      case .overlay: content = AnyView(ZStack(alignment: .bottom) { screen.children(n) })
+      case .modal:
+        content = AnyView(EweModal(screen: screen, node: n) { screen.children(n) })
+      case .bottomSheet:
+        content = AnyView(EweBottomSheet { screen.children(n) })
       case .scroll: content = AnyView(ScrollView { screen.children(n) })
       case .list:
         content = AnyView(
@@ -69,7 +80,13 @@ import SwiftUI
               screen.children(n)
             }
           })
-      case .text: content = AnyView(Text(n.text ?? ""))
+      case .text:
+        let text = Text(n.text ?? "")
+        if sheetDraft != nil, n.props[.presentation] == .text("sheet-title") {
+          content = AnyView(text.font(.headline).accessibilityAddTraits(.isHeader))
+        } else {
+          content = AnyView(text)
+        }
       case .image:
         if case .text(let source) = n.props[.source] {
           content = AnyView(AsyncImage(url: URL(string: source)))
@@ -77,17 +94,29 @@ import SwiftUI
           content = AnyView(EmptyView())
         }
       case .button:
-        content = AnyView(
-          Button(n.text ?? "") {
-            screen.bridge.send(.tap, node: n.id, value: n.props[.value]?.description ?? "")
-          })
+        let button = Button(n.text ?? "") {
+          screen.sendButton(n, draft: sheetDraft)
+        }
+        if sheetDraft != nil, n.props[.presentation] == .text("submit-action") {
+          content = AnyView(button.buttonStyle(.borderedProminent))
+        } else {
+          content = AnyView(button)
+        }
       case .textInput:
-        content = AnyView(
-          TextField(n.props[.placeholder]?.description ?? "", text: $input)
-            .onChange(of: input) { _, value in screen.bridge.send(.change, node: n.id, value: value)
-            }
-            .onSubmit { screen.bridge.send(.submit, node: n.id, value: input) }
-            .onAppear { input = n.props[.value]?.description ?? "" })
+        let text = Binding<String>(
+          get: { sheetDraft?.value(for: n) ?? input },
+          set: { value in
+            if let sheetDraft { sheetDraft.set(value, for: n) } else { input = value }
+            screen.bridge.send(.change, node: n.id, value: value)
+          })
+        let field = TextField(n.props[.placeholder]?.description ?? "", text: text)
+          .onSubmit { screen.bridge.send(.submit, node: n.id, value: text.wrappedValue) }
+          .onAppear { input = n.props[.value]?.description ?? "" }
+          .onChange(of: n.props[.value]) { _, _ in sheetDraft?.set(nil, for: n) }
+          .onDisappear {
+            if screen.store.record(n.id) !== n { sheetDraft?.set(nil, for: n) }
+          }
+        content = sheetDraft == nil ? AnyView(field) : AnyView(field.textFieldStyle(.roundedBorder))
       case .toggle:
         content = AnyView(
           Toggle(
@@ -103,7 +132,7 @@ import SwiftUI
       }
       let identified: AnyView
       switch n.kind {
-      case .list, .stack, .overlay, .scroll:
+      case .list, .stack, .overlay, .scroll, .bottomSheet:
         identified = AnyView(content.accessibilityElement(children: .contain))
       default: identified = content
       }

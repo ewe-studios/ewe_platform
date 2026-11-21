@@ -18,13 +18,13 @@ pub const ENUM_MIN_NODE_KIND: u16 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_NODE_KIND: u16 = 10;
+pub const ENUM_MAX_NODE_KIND: u16 = 12;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_NODE_KIND: [NodeKind; 11] = [
+pub const ENUM_VALUES_NODE_KIND: [NodeKind; 13] = [
     NodeKind::UNKNOWN,
     NodeKind::STACK,
     NodeKind::TEXT,
@@ -36,6 +36,8 @@ pub const ENUM_VALUES_NODE_KIND: [NodeKind; 11] = [
     NodeKind::SCROLL,
     NodeKind::SPACER,
     NodeKind::OVERLAY,
+    NodeKind::MODAL,
+    NodeKind::BOTTOM_SHEET,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -54,9 +56,11 @@ impl NodeKind {
     pub const SCROLL: Self = Self(8);
     pub const SPACER: Self = Self(9);
     pub const OVERLAY: Self = Self(10);
+    pub const MODAL: Self = Self(11);
+    pub const BOTTOM_SHEET: Self = Self(12);
 
     pub const ENUM_MIN: u16 = 0;
-    pub const ENUM_MAX: u16 = 10;
+    pub const ENUM_MAX: u16 = 12;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::UNKNOWN,
         Self::STACK,
@@ -69,6 +73,8 @@ impl NodeKind {
         Self::SCROLL,
         Self::SPACER,
         Self::OVERLAY,
+        Self::MODAL,
+        Self::BOTTOM_SHEET,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -84,6 +90,8 @@ impl NodeKind {
             Self::SCROLL => Some("SCROLL"),
             Self::SPACER => Some("SPACER"),
             Self::OVERLAY => Some("OVERLAY"),
+            Self::MODAL => Some("MODAL"),
+            Self::BOTTOM_SHEET => Some("BOTTOM_SHEET"),
             _ => None,
         }
     }

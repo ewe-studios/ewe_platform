@@ -1,6 +1,6 @@
 ---
 feature: "native-design-and-themes"
-status: "proposed"
+status: "in-progress"
 depends_on: ["02", "14", "15", "21", "22"]
 skills: [android-material-design, ios-human-interface-design]
 ---
@@ -34,33 +34,93 @@ The two libraries own these decisions. Both todo applications on each platform u
 | Form and confirmation | Present entry in a Material sheet. Use a Material alert dialog for delete confirmation. | Keep the system form sheet and confirmation dialog. |
 | Generic content | Render ordinary containers in document order. Apply the screen layout when the frame supplies its roles. | Preserve ordinary SwiftUI views for other content. |
 
-The role identifies a node. Moving its control into a toolbar must preserve its node identifier, action value and signed state.
+The role gives a node a presentation purpose. The node identifier identifies the node. Moving its control into a toolbar must preserve its node identifier, action value and signed state.
 Each tap sends one action. Dismissal sends the declared cancel action once.
+
+## Explicit container tags
+
+The author declares the container in Rust markup. Each tag has a shared meaning on all three platforms.
+Children supply the content. Each platform measures the actual children when they appear. Authors need no placeholder or fixed height.
+
+| Tag | SwiftUI | Android Compose | Web |
+|---|---|---|---|
+| Overlay | Layer children above the current view or sheet. | Layer children above the current screen or sheet. | Place children in a layer above the current view. |
+| Modal | Present children and block background interaction. | Present children and block background interaction. | Present a modal dialog and contain focus. |
+| BottomSheet | Align children to the bottom safe edge. | Render a bottom-aligned panel. | Anchor a section at the bottom of its container. |
+
+An overlay allows input outside its children. A modal owns focus and background interaction.
+A bottom sheet in ordinary layout takes its measured space. Inside an overlay, it leaves the underlying layout intact.
+Inside a modal, it uses the existing modal surface. Opening it must create only one modal.
+A bottom sheet can enter from below. Its resting edge remains at the bottom.
+
+```rust
+html! {
+    <Modal>
+        <BottomSheet>
+            <Text>New todo</Text>
+            <TextInput placeholder="Todo title" on:submit={add_todo}/>
+        </BottomSheet>
+    </Modal>
+}
+```
+
+- Add explicit vocabulary entries. Carry tag identity through Rust lowering, the wire, and all three renderers.
+- Preserve previously supported frames. New declarations select controls through tag identity.
+- Give each tag its own named SwiftUI view and Kotlin component type. Each type receives its children through a rendering closure.
+- Let that component own layout, accessibility, input handling, and cleanup for its tag. Keep platform dispatch limited to component selection.
+- Preserve child order, identity, state, and action bindings. Components accept arbitrary supported children.
+- Use the same Rust container declaration for the todo Add dialog on all platforms. Keep local and remote action selection independent.
+- Test each component alone and in both nested arrangements. Verify sizing, background input, focus, dismissal, and single event delivery.
+- Document the three tags and both compositions in the mobile and web guides.
+
+### Implementation and checks
+
+The [Swift components](../../../../mobile/ios/Sources/EweUI/ContainerViews.swift) and [Kotlin components](../../../../mobile/android/ui/src/main/kotlin/ewe/ui/compose/ContainerComponents.kt) own their child content.
+The [todo view](../../../../examples/ui_todo/src/lib.rs) uses one modal with one bottom sheet for Add.
+The iPhone simulator passed 17 package tests. The Android emulator passed five component tests.
+Both platforms passed the on-device and server application checks.
+The [browser test](../../../../examples/ui_todo/tests/todo_browser_tests.rs) checks inline layout, overlay input, modal focus, dismissal, and both submit gestures.
 
 ## Stage 1. Use the existing styling language
 
-A Rust application registers names when it builds its token table. This example uses the existing template syntax.
+Authors define tokens once with the existing theme system. Shared controls accept the same utility classes as web elements.
 
 ```rust
-let mut tokens = TokenTable::new();
-let accent = tokens.color("--accent");
-let body = tokens.font("--body");
-let template = html! { <Text color="--accent" font="--body">Buy milk</Text> };
-let ops = lower(&template, &LowerOptions { id_base: 100, tokens: &tokens })?;
+html! { <Text class="text-primary p-md ios-p-lg android-p-sm">Buy milk</Text> }
 ```
 
-The host maps the color number in `accent` and the font number in `body` separately.
-Ship the same registration order with the frame producer and host. Each table numbers its own entries from one.
+All three renderers resolve primary from the active theme. Web applies medium padding. iOS applies large padding. Android applies small padding.
+This example assumes the theme defines primary and the three spacing sizes. It specifies the proposed behavior for shared controls.
+
+Today, the browser uses generated Cascading Style Sheets (CSS). The shared frame lowerer checks class as an ordinary property and rejects it.
+Reuse foundation_theme token definitions and utility names. Give the shared lowering path a utility resolver before ordinary property validation.
+Describe each utility's property, token category, valid units, supported platforms, and any equivalent native operation in one mapping.
+Generate or validate platform mappings against that description. Keep theme identity available when a host changes its theme.
+
+| Utility | Web | iOS | Android |
+|---|---|---|---|
+| text-primary | Theme text color | SwiftUI foreground style | Compose content or text color |
+| p-md | Theme padding | SwiftUI padding in logical points | Compose padding in density-independent units |
+| ios-p-lg | Ignore | Override padding with the large spacing token | Ignore |
+| android-p-sm | Ignore | Ignore | Override padding with the small spacing token |
+
+Apply shared utilities first. A matching platform prefix overrides the same property regardless of class order.
+For competing utilities at the same level, the last applicable class wins. Explicit node properties take precedence.
+Ignore prefixes for other platforms. Preserve ordinary web classes for application stylesheets.
+Use a documented native equivalent when available. Otherwise skip only the unsupported utility and retain the other styles and children.
+Document which length units map directly and which need layout context. Keep system text scaling and platform theme defaults available.
+Use the shared theme to create the wire token mapping. Authors must not coordinate numeric identifiers by registration order.
+Keep the existing explicit property syntax and wire readers compatible. [Browser theme guide](../../../../backends/foundation_wasm_ui/docs/theming.md)
 
 ```mermaid
 flowchart LR
-  Template["Rust template and token table"] --> Frame["Role and optional token number"]
-  Frame --> Control["Native control"]
-  Theme["Application theme and token mapping"] --> Control
-  Control --> Bridge["Original event binding"]
+  Theme[Shared theme tokens] --> Resolver[Utility mapping]
+  Markup[Classes on the control] --> Resolver
+  Resolver --> Web[Browser styles]
+  Resolver --> Native[Native style properties]
 ```
 
-The role selects the control. The theme supplies a native value for each known token.
+Each renderer applies the supported styles to the node that owns the class list.
 
 1. Start with the native control's default style for its role and state.
 2. Inherit the host theme. Use SwiftUI tint and scalable fonts on iPhone. Read Material colors, typography and shapes on Android.
@@ -86,6 +146,9 @@ The role selects the control. The theme supplies a native value for each known t
 | Check | Pass condition |
 |---|---|
 | Android and iPhone, both transports | Add, filter, toggle, cancel and confirm operate on the intended item. The keyboard can submit one new item. |
+| Shared utility classes | Render the example above on all three platforms. Verify the text color and each platform's expected padding. |
+| Unsupported utility | Mix a web-only class with shared padding. Verify that both mobile renderers still apply padding and display the children. |
+| Theme change | Change the primary color and spacing tokens. Verify that existing controls use the new values without losing input or focus. |
 | Default and branded hosts | One recorded frame renders with both themes. Changing the accent affects the control. Changing the body token affects its text. |
 | Partial theme | A missing color, background or font uses the role default. Ordinary and role-based content both honor supported explicit tokens. |
 | Theme change during a form | Typed text and focus survive. Changing the theme sends no action and starts no new connection. |

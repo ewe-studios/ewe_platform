@@ -76,7 +76,7 @@
         let core = try create(transport, store)
         try await core.negotiate(transport)
         let bridge = EventBridge(store: store, core: core)
-        let (bytes, response) = try await session.bytes(from: base.appending(path: initial))
+        let (bytes, response) = try await session.bytes(for: transport.viewRequest(base.appending(path: initial)))
         guard let status = (response as? HTTPURLResponse)?.statusCode, (200..<300).contains(status)
         else {
           throw URLError(.badServerResponse)

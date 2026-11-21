@@ -14,7 +14,7 @@
 /// Self-contained — serve alongside [`FOUNDATION_WASM_JS`].
 pub const FOUNDATION_WASM_UI_JS: &str = include_str!("../runtimes/foundation-wasm-ui.js");
 
-/// The generated FlatBuffers wire bindings and their JavaScript runtime.
+/// The generated `FlatBuffers` wire bindings and their JavaScript runtime.
 pub const FOUNDATION_UI_WIRE_JS: &str = include_str!("../runtimes/foundation-ui-wire.js");
 
 /// The generated JavaScript tables for the wire vocabulary.
@@ -53,18 +53,18 @@ pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;
 /// Portable capability invocation bridge (`runtimes/capability-bridge.js`, F23):
 /// provides `window.invokeCapability(name, action, payload)` that routes through
 /// Tauri (`__ewe_capabilities`), browser (direct WASM bridge), or Deno.
-/// Injected by F24 ScriptInjector alongside the other platform runtimes.
+/// Injected by F24 `ScriptInjector` alongside the other platform runtimes.
 pub const CAPABILITY_BRIDGE_JS: &str = include_str!("../runtimes/capability-bridge.js");
 
 /// Floating navigation toolbar (`runtimes/floating-nav.js`, F29 Stage 4):
 /// Renders a bottom-positioned toolbar with back, home, app-switcher, and
 /// refresh buttons. Styled via CSS — no native bridge. Auto-hides on scroll.
-/// Injected by F24 ScriptInjector.
+/// Injected by F24 `ScriptInjector`.
 pub const FLOATING_NAV_JS: &str = include_str!("../runtimes/floating-nav.js");
 
 /// Stack viewport (`runtimes/stack-viewport.js`, F35):
 /// Screenshot-swap overlay for single-WebView navigation (mobile/desktop).
 /// Provides `window.__eweViewport.captureScreenshot()`, `showOverlay()`,
 /// and `hideOverlay()` for instant back-navigation with screenshot flash.
-/// Injected by F24 ScriptInjector.
+/// Injected by F24 `ScriptInjector`.
 pub const STACK_VIEWPORT_JS: &str = include_str!("../runtimes/stack-viewport.js");

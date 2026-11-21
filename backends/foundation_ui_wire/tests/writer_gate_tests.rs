@@ -208,17 +208,16 @@ fn kept_messages_keep_order() {
 }
 
 #[test]
-fn unknown_kind_becomes_fallback() {
-    let unknown = Ui::CreateNode(Box::new(table!(CreateNodeT {
-        node_id: 9,
-        kind: NodeKind(11)
-    })));
-    let replacement = Ui::CreateNode(Box::new(table!(CreateNodeT {
-        node_id: 9,
-        kind: NodeKind::UNKNOWN
-    })));
+fn older_clients_receive_the_fallback_for_new_container_kinds() {
+    let create = |kind| {
+        Ui::CreateNode(Box::new(table!(CreateNodeT {
+            node_id: 9,
+            kind: kind
+        })))
+    };
+    let replacement = create(NodeKind::UNKNOWN);
     let caps = ClientCaps {
-        vocabulary_version: 1,
+        vocabulary_version: 4,
         ..native()
     };
     let (kept, report) = write(
@@ -227,9 +226,11 @@ fn unknown_kind_becomes_fallback() {
             message(table!(OperationT {
                 ui: subtree(vec![
                     table!(OperationT {
-                        ui: unknown.clone()
+                        ui: create(NodeKind::MODAL)
                     }),
-                    table!(OperationT { ui: unknown }),
+                    table!(OperationT {
+                        ui: create(NodeKind::BOTTOM_SHEET)
+                    }),
                 ]),
             })),
         ],
@@ -521,6 +522,38 @@ fn placement_and_detach_require_vocabulary_three() {
     let (kept, removed) = gate(messages, &caps).unwrap();
     assert_eq!(kept, []);
     assert_eq!(removed.len(), 2);
+}
+
+#[test]
+fn full_view_requires_version_six_and_a_client_owned_target() {
+    use foundation_ui_wire::{PlaceT, PlacementKind, TargetSelectorT};
+    let mut place = table!(PlaceT {
+        kind: PlacementKind::FullView,
+        root_node: 8,
+        operations: Some(vec![table!(OperationT {
+            ui: Ui::CreateNode(Box::new(table!(CreateNodeT {
+                node_id: 8,
+                kind: NodeKind::TEXT
+            })))
+        })])
+    });
+    let frame = |p| {
+        message(table!(OperationT {
+            ui: Ui::Place(Box::new(p))
+        }))
+    };
+    let caps = ClientCaps::web_current();
+    let old_caps = ClientCaps {
+        vocabulary_version: 5,
+        ..caps
+    };
+    assert_eq!(write(vec![frame(place.clone())], &caps).0.len(), 1);
+    assert!(write(vec![frame(place.clone())], &old_caps).0.is_empty());
+    place.target = Some(Box::new(TargetSelectorT::default()));
+    assert!(matches!(
+        write_messages(vec![frame(place)], &caps, HEADER, &WriterConfig::default()),
+        Err(WriteError::InvalidPlacement { .. })
+    ));
 }
 
 #[test]

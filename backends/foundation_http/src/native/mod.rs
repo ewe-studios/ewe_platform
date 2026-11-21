@@ -7,3 +7,5 @@ pub mod serve;
 pub mod server;
 pub mod upgrade;
 pub mod writer;
+
+pub mod routes;

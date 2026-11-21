@@ -38,18 +38,16 @@
       let title = children.first { $0.role == "navigation-title" }
       let count = children.first { $0.role == "list-footer" }
       let hasList = children.contains { $0.role == "inset-list" }
+      let controls = children.filter {
+        $0.role != "navigation-title" && $0.role != "toolbar-action"
+          && (!hasList || $0.role != "list-footer")
+      }
       return NavigationStack {
-        VStack(spacing: 0) {
-          let controls = children.filter {
-            $0.role != "navigation-title" && $0.role != "toolbar-action"
-              && (!hasList || $0.role != "list-footer")
-          }
-          ForEach(controls, id: \.identity) { child in
-            if child.role == "inset-list" {
-              insetList(child, footer: count)
-            } else {
-              RecordView(screen: self, n: child)
-            }
+        EweColumn(nodes: controls, alignment: .center, spacing: 0) { child in
+          if child.role == "inset-list" {
+            insetList(child, footer: count)
+          } else {
+            RecordView(screen: self, n: child)
           }
         }
         .navigationTitle(title?.text ?? "")

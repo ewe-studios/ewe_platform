@@ -50,8 +50,10 @@ public enum ewe_ui_NodeKind: UInt16, Enum, Verifiable {
   case scroll = 8
   case spacer = 9
   case overlay = 10
+  case modal = 11
+  case bottomSheet = 12
 
-  public static var max: ewe_ui_NodeKind { return .overlay }
+  public static var max: ewe_ui_NodeKind { return .bottomSheet }
   public static var min: ewe_ui_NodeKind { return .unknown }
 }
 
@@ -78,8 +80,9 @@ public enum ewe_ui_PropId: UInt16, Enum, Verifiable {
   case height = 15
   case hidden = 16
   case presentation = 17
+  case utilityClasses = 18
 
-  public static var max: ewe_ui_PropId { return .presentation }
+  public static var max: ewe_ui_PropId { return .utilityClasses }
   public static var min: ewe_ui_PropId { return .unknown }
 }
 

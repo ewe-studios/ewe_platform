@@ -17,6 +17,8 @@ internal object Names {
             NodeKind.SCROLL to "SCROLL",
             NodeKind.SPACER to "SPACER",
             NodeKind.OVERLAY to "OVERLAY",
+            NodeKind.MODAL to "MODAL",
+            NodeKind.BOTTOM_SHEET to "BOTTOM_SHEET",
         )
     val propId =
         mapOf(
@@ -37,6 +39,7 @@ internal object Names {
             PropId.WIDTH to "WIDTH",
             PropId.HEIGHT to "HEIGHT",
             PropId.HIDDEN to "HIDDEN",
+            PropId.UTILITY_CLASSES to "UTILITY_CLASSES",
             PropId.PRESENTATION to "PRESENTATION",
         )
     val eventId =

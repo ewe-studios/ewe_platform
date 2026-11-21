@@ -67,7 +67,7 @@ class LiveMountHost(private val store: NodeStore, private val factory: ChannelFa
                         spec.transport,
                         spec.stream,
                         cursor,
-                        { if (open[id] === entry) store.receive(it) },
+                        { if (open[id] === entry) store.receive(it, mount = id) },
                         { error ->
                             if (open[id] === entry && error != null)
                                 store.onError?.invoke("ChannelFailed", error.message.orEmpty())

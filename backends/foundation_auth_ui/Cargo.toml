@@ -15,7 +15,7 @@ keywords.workspace = true
 # wasm_ui's arrow-rs IPC, serde/serde_json `std`). `foundation_core` is not a
 # dependency: it is a std-only crate and nothing here uses it.
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.7", default-features = false }
-foundation_signals = { path = "../foundation_signals", version = "0.0.6", default-features = false, features = ["single_threaded"] }
+foundation_signals = { path = "../foundation_signals", version = "0.0.7", default-features = false, features = ["single_threaded"] }
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 foundation_ui_components = { path = "../foundation_ui_components", version = "0.1.4" }
 

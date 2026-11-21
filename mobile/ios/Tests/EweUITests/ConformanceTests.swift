@@ -6,15 +6,27 @@ import XCTest
 @testable import EweUI
 
 final class ConformanceTests: XCTestCase {
+  @MainActor func testReloadReplacesOnlyTheReceivingMount() async throws {
+    let store = NodeStore()
+    let dir = try XCTUnwrap(Bundle.module.resourceURL?.appendingPathComponent("Fixtures"))
+    XCTAssertTrue(store.receive(try Data(contentsOf: dir.appendingPathComponent("native_tree.bin"))))
+    let bytes = try Data(contentsOf: dir.appendingPathComponent("native_full_view.bin"))
+    for _ in 0..<2 { XCTAssertTrue(store.receive(bytes, at: 41)) }
+    XCTAssertEqual(store.record(41)?.children, [70])
+    XCTAssertEqual(store.record(40)?.children, [41, 42])
+    XCTAssertEqual(store.record(70)?.text, "Next view")
+    XCTAssertTrue(store.reports.isEmpty)
+  }
+
   @MainActor func testWireFixtures() async throws {
     for name in [
-      "native_tree", "native_columnar", "native_replace", "native_mixed", "native_behaviour",
+      "native_tree", "native_full_view", "native_columnar", "native_replace", "native_mixed", "native_behaviour",
       "native_presentation", "native_unknown_kind",
     ] {
       let store = NodeStore()
       store.behaviours.register("pull_to_refresh") { view, _ in view }
       let dir = try XCTUnwrap(Bundle.module.resourceURL?.appendingPathComponent("Fixtures"))
-      if ["native_mixed", "native_replace", "native_behaviour", "native_presentation"].contains(name) {
+      if ["native_full_view", "native_mixed", "native_replace", "native_behaviour", "native_presentation"].contains(name) {
         XCTAssertTrue(
           store.receive(try Data(contentsOf: dir.appendingPathComponent("native_tree.bin"))))
       }

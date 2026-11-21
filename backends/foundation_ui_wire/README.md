@@ -80,6 +80,9 @@ Vocabulary version 3 adds `Place` and `WebDetachChild`. A placement carries a se
 Detach removes a child from its parent and keeps its node handle available for reuse.
 The writer reports these operations as filtered for older clients.
 
+Vocabulary version 5 adds the shared node kinds `MODAL` (11) and `BOTTOM_SHEET` (12).
+The existing `OVERLAY` keeps its identifier (10). Each container owns its children through ordinary child operations.
+
 Vocabulary version 4 adds the optional `PRESENTATION` text property.
 It selects a native presentation for a standard control. A client with an earlier vocabulary receives the standard control.
 
@@ -318,3 +321,45 @@ Review the JSON and commit the binary inputs with their snapshots.
 Use `ops::message(operation)` to wrap it for `writer::write_messages`.
 The same module provides constructors for creation, insertion, removal, attributes, styles, listeners, registration and markup changes.
 The [vocabulary example](examples/vocabulary.rs) writes and reads a complete frame.
+
+## Full-view frames
+
+Vocabulary version 6 adds the `FullView` placement. Its operations build one tree.
+The placement gives the tree root identifier and leaves both selectors empty. The receiving client selects the mount.
+The renderer keeps the mount, disposes its previous children, and attaches the new root.
+A reload uses the same rule. Other mounts keep their contents.
+
+The Swift and Kotlin screen stores use their screen root for initial responses.
+A live mount passes its own node identifier when it delivers a frame.
+A browser host supplies its mount element when it installs the frame runtime.
+It can also pass a mount for one delivery.
+
+```javascript
+const frames = installFrameRuntime(ui, { viewMount: document.querySelector("#page") });
+frames.receive(frameBytes, { viewMount: document.querySelector("#panel") });
+```
+
+The `native_full_view.bin` fixture replaces a loaded tree with one text control.
+Its expected snapshot lists the retained screen root and the new control.
+
+### Read a framed stream
+
+A length-prefixed stream starts each frame with its four-byte little-endian length.
+Raw mode uses the enclosing message boundary. Use raw mode for a single action request.
+
+~~~rust
+use foundation_ui_wire::{FrameReader, WireLimits};
+
+fn inspect(file: std::fs::File) -> Result<(), foundation_ui_wire::FramingError> {
+    for result in FrameReader::length_prefixed(file, WireLimits::default()) {
+        let frame = result?;
+        println!("{}", frame.view().sequence_id());
+    }
+    Ok(())
+}
+~~~
+
+Use `AsyncFrameReader::raw(body, limits).next_frame().await?` on a fallible stream of byte chunks.
+The Hypertext Transfer Protocol (HTTP) adapter obtains this stream from `request.take_async_body()`.
+Use `StreamFrameWriter::length_prefixed(writer).write_frame(&frame)?` for an action reply.
+Use `StreamFrameWriter::raw(writer)` for an initial view.

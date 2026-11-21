@@ -49,6 +49,14 @@ pub(crate) enum ParsedNode {
         attrs: Vec<ParsedAttr>,
         children: Vec<ParsedNode>,
     },
+    /// Selects one child sequence when Rust evaluates the template.
+    Either {
+        condition: TokenStream,
+        left: Vec<ParsedNode>,
+        right: Vec<ParsedNode>,
+    },
+    /// Holds a generated expression for the selected children after numbering.
+    BranchValue(TokenStream),
     /// Literal text content (quoted strings AND bare token runs).
     Text(String),
     /// A `{ ... }` slot — the expression tokens, untouched.
@@ -88,6 +96,8 @@ pub(super) fn core_tag(tag: &str) -> bool {
             | "Scroll"
             | "Spacer"
             | "Overlay"
+            | "Modal"
+            | "BottomSheet"
     )
 }
 
@@ -311,6 +321,15 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
     // feature 00 §6) — never DOM elements (real tags are lowercase; custom
     // elements require a dash).
     if !core_tag(&tag) && tag.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
+        if tag == "Either" {
+            return parse_either(cursor, tag_span);
+        }
+        if tag == "Left" || tag == "Right" {
+            return Err(ParseError::new(
+                tag_span,
+                format!("html!: <{tag}> requires an <Either> parent"),
+            ));
+        }
         if tag == "Fragment" {
             return parse_fragment(cursor, tag_span);
         }
@@ -324,7 +343,7 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
             tag_span,
             format!(
                 "html!: unknown built-in '<{tag}>' — capitalized tags are reserved \
-                 for shared elements, Fragment, Show, and For; custom elements need a dash (e.g. <my-{}>)",
+                 for shared elements, Either, Fragment, Show, and For; custom elements need a dash (e.g. <my-{}>)",
                 tag.to_lowercase()
             ),
         ));
@@ -366,6 +385,71 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
         tag_span,
         attrs,
         children,
+    })
+}
+
+fn parse_either(cursor: &mut Cursor, span: Span) -> ParseResult<ParsedNode> {
+    let mut attrs = parse_builtin_attrs(cursor, "Either", span, &["condition"])?;
+    let condition = take_builtin_attr(&mut attrs, "condition", "Either", span)?;
+    if !attrs.is_empty() {
+        return Err(ParseError::new(span, "html!: <Either> takes one condition"));
+    }
+    if !cursor.eat_punct('>') {
+        return Err(ParseError::new(
+            span,
+            "html!: <Either> requires <Left> and <Right> branches",
+        ));
+    }
+
+    let mut left = None;
+    let mut right = None;
+    while !cursor.is_empty() && !cursor.at_closing_tag() {
+        let branch_span = cursor.span();
+        if !cursor.eat_punct('<') {
+            return Err(ParseError::new(
+                branch_span,
+                "html!: expected <Left> or <Right> in <Either>",
+            ));
+        }
+        let (name, name_span) = parse_tag_name(cursor, branch_span)?;
+        let branch = match name.as_str() {
+            "Left" => &mut left,
+            "Right" => &mut right,
+            _ => {
+                return Err(ParseError::new(
+                    name_span,
+                    "html!: expected <Left> or <Right> in <Either>",
+                ))
+            }
+        };
+        if branch.is_some() {
+            return Err(ParseError::new(
+                name_span,
+                format!("html!: duplicate <{name}> branch"),
+            ));
+        }
+        let empty = cursor.eat_punct('/');
+        if !cursor.eat_punct('>') {
+            return Err(ParseError::new(
+                name_span,
+                format!("html!: <{name}> takes no attributes"),
+            ));
+        }
+        *branch = Some(if empty {
+            Vec::new()
+        } else {
+            let nodes = parse_nodes(cursor)?;
+            consume_closing_tag(cursor, &name, name_span)?;
+            nodes
+        });
+    }
+    consume_closing_tag(cursor, "Either", span)?;
+    Ok(ParsedNode::Either {
+        condition,
+        left: left
+            .ok_or_else(|| ParseError::new(span, "html!: <Either> requires a <Left> branch"))?,
+        right: right
+            .ok_or_else(|| ParseError::new(span, "html!: <Either> requires a <Right> branch"))?,
     })
 }
 

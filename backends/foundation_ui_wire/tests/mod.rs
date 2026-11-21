@@ -10,6 +10,8 @@ macro_rules! table {
 mod align_tests;
 mod error_ext_tests;
 mod fixtures_tests;
+#[cfg(feature = "std")]
+mod framing_tests;
 mod read_tests;
 mod roundtrip_tests;
 mod sequencer_tests;

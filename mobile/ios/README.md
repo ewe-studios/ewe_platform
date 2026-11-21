@@ -147,6 +147,39 @@ Use the `PRESENTATION` text property to select a native control. Frames without 
 | `cancel-action`, `submit-action` | The sheet buttons. A submit button sends its tap action with the entered text. If unbound, it sends the single field's submit action. |
 | `list-footer` | The list footer. |
 
+### Explicit containers
+
+The Rust author supplies children to each container. The Swift package renders them in their declared order.
+The wire carries separate node kinds for all three tags.
+
+| Tag | Behavior |
+|---|---|
+| `Overlay` | Draw the children above the current screen or modal. Keep the underlying controls available outside those children. |
+| `Modal` | Present one modal surface. Keep focus and input inside that surface. Dismissal uses the declared cancel action. |
+| `BottomSheet` | Measure the child panel with the available size. Keep its bottom edge aligned in an overlay or modal. |
+
+```rust
+html! {
+    <Overlay><BottomSheet><Text>Saved</Text></BottomSheet></Overlay>
+}
+```
+
+This message appears over the screen. A user can still tap controls outside the panel.
+
+```rust
+html! {
+    <Modal><BottomSheet>
+        <Text>New todo</Text>
+        <TextInput placeholder="Title" on:submit={add_todo}/>
+        <Button presentation="submit-action">Add</Button>
+        <Button presentation="cancel-action" on:tap={close_dialog}>Cancel</Button>
+    </BottomSheet></Modal>
+}
+```
+
+This editor consumes input in its modal surface. The sheet accepts arbitrary children.
+The Add button submits the entered value from its sibling input. The keyboard submits the same input.
+
 ## Run the todo apps
 
 Install Xcode with an iOS simulator runtime. Install the Rust simulator target for the Mac.

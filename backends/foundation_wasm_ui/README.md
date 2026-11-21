@@ -292,3 +292,17 @@ The local application, collected server frames and live channel use the EWF1 wri
 A generated loader installs the frame reader before the application entry point runs.
 To serve a page yourself, import `foundation-ui-frames.js` and install its reader before registering mount elements.
 For a binary mount, set `protocol="frame"`. The same page can also use HTML mounts and JSON signal patches.
+
+## Shared containers
+
+An overlay layers its children over the screen. Input outside those children reaches the content below.
+A modal opens a browser dialog. The browser contains focus and blocks background interaction.
+A bottom sheet renders its children inside a bottom-aligned section. The platform measures its contents.
+
+```rust
+html! { <Overlay><BottomSheet><Text>Map legend</Text></BottomSheet></Overlay> }
+html! { <Modal><BottomSheet><Text>New todo</Text></BottomSheet></Modal> }
+```
+
+The second tree opens one modal. A button with the cancel action handles the dialog's Escape request.
+A text input can bind a submit action inside a sheet. A submit button or the Enter key sends its value once.

@@ -13,5 +13,7 @@ export enum NodeKind {
   LIST = 7,
   SCROLL = 8,
   SPACER = 9,
-  OVERLAY = 10
+  OVERLAY = 10,
+  MODAL = 11,
+  BOTTOM_SHEET = 12
 }

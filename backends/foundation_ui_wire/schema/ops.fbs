@@ -84,7 +84,7 @@ table ColumnarBatch {
 }
 
 // A subtree swap carries operations of any group, in order.
-enum PlacementKind : ubyte { Append, Before, After, Swap, Remove }
+enum PlacementKind : ubyte { Append, Before, After, Swap, Remove, FullView }
 table Place { kind: PlacementKind; target: TargetSelector; child: TargetSelector;
   root_node: uint; operations: [Operation]; }
 

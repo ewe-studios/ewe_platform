@@ -16,5 +16,7 @@ class NodeKind private constructor() {
         const val SCROLL: UShort = 8u
         const val SPACER: UShort = 9u
         const val OVERLAY: UShort = 10u
+        const val MODAL: UShort = 11u
+        const val BOTTOM_SHEET: UShort = 12u
     }
 }

@@ -1413,7 +1413,9 @@ export class ChunkedTransport {
     });
     if (!response.ok) throw new Error("Stream request failed with HTTP " + response.status);
     const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
-    if (handler instanceof FrameHandler) {
+    if (handler instanceof FrameHandler && isViewResponse(response)) {
+      onChunk(await handler.process(response));
+    } else if (handler instanceof FrameHandler) {
       const hook = ProtocolHandler.frameHook;
       if (!hook) throw new Error("Install the frame runtime before opening a frame stream");
       for await (const frame of hook.readFrames(response.body,hook.maxFrameBytes)) {
@@ -1581,6 +1583,10 @@ export class RawHandler {
  *
  * Precedence: attribute > headers/event name > channel default.
  */
+function isViewResponse(response) {
+  return response.headers?.get?.("content-type")?.split(";")[0].trim().toLowerCase() === "application/vnd.ewe.frame";
+}
+
 export class FrameHandler {
   async process(response) {
     if (!response.ok) throw new Error("Frame request failed with HTTP " + response.status);
@@ -1588,6 +1594,9 @@ export class FrameHandler {
     if (!hook) {
       console.error("frame received but the frame runtime is not installed");
       return { type: "raw", text: "" };
+    }
+    if (isViewResponse(response)) {
+      return { type: "frame", frames: [await hook.readViewResponse(response, hook.maxFrameBytes)] };
     }
     const frames = [];
     let total = 0;
@@ -1621,7 +1630,7 @@ export class ProtocolHandler {
   /** Content-type table (spec §3, G46). */
   static fromContentType(response) {
     const ct = response.headers?.get?.("content-type") || "";
-    if (ct.includes("primal-frame")) return new FrameHandler();
+    if (isViewResponse(response) || ct.includes("primal-frame")) return new FrameHandler();
     if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return ProtocolHandler.named("arrow");
     if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
     if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
@@ -1786,7 +1795,7 @@ export class Patcher {
     switch (result.type) {
       case "frame":
         if (!Patcher.runtime.frames) console.error("frame received but the frame runtime is not installed");
-        else for (const frame of result.frames) Patcher.runtime.frames.receive(frame);
+        else for (const frame of result.frames) Patcher.runtime.frames.receive(frame, { viewMount: targetEl });
         break;
       case "html":
         Patcher.materialize(result.html, targetEl, doc);
@@ -1815,6 +1824,12 @@ export class Patcher {
 }
 
 // ─── Response placement (spec §9, shared by both mounts) ──────────────────────
+
+// A frame owns replacement and disposal. Keep the mount intact until the frame applies.
+export function frameMountTarget(element, target, doc) {
+  if (!target) return element;
+  return target === "parent" ? element.parentElement : doc.querySelector(target);
+}
 
 export function resolveMountTarget(element, target, doc) {
   if (!target) {
@@ -1893,7 +1908,10 @@ export class MountDataComponent extends BaseElement {
       const method = this.getAttribute("method") || "POST";
       const result = await transport.send(binding ? binding.url(api) : api, method, data);
       if (binding) binding.receive(result);
-      else Patcher.route(result, resolveMountTarget(this, target, doc), doc);
+      else {
+        const mount = result.type === "frame" ? frameMountTarget(this, target, doc) : resolveMountTarget(this, target, doc);
+        Patcher.route(result, mount, doc);
+      }
     } catch (error) {
       console.error("mount-data:", error);
     }

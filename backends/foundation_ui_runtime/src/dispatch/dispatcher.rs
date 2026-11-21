@@ -3,7 +3,9 @@
 use std::future::Future;
 
 use foundation_context::Ctx;
-use foundation_ui_wire::{read_frame, ActionRequestT, FrameRequest, SCHEMA_VERSION};
+use foundation_ui_wire::{
+    read_frame, ActionRequestT, Frame, FrameRequest, WireLimits, SCHEMA_VERSION,
+};
 
 use super::{errors::Failure, Connection, Dispatcher};
 use crate::action::{invoke_action, prepare_messages, ActionRef, ErasedAction, LookupError};
@@ -30,19 +32,51 @@ impl Dispatcher {
     }
 
     pub(super) fn admit(&self, connection: &Connection, bytes: &[u8]) -> Admission {
-        let mut ack = 0;
-        let selected = read_frame(bytes, self.config.wire_limits())
-            .map_err(|_| Failure::bad_request())
-            .and_then(|frame| {
-                ack = frame.sequence_id();
-                self.select(
-                    connection,
-                    ack,
-                    frame.schema_version(),
-                    frame.kind_as_frame_request(),
-                )
-            });
+        match read_frame(bytes, self.wire_limits()) {
+            Ok(frame) => self.admit_verified(connection, frame),
+            Err(_) => Admission {
+                ack: 0,
+                selected: Err(Failure::bad_request()),
+            },
+        }
+    }
+
+    /// Returns the verification limits for this dispatcher.
+    #[must_use]
+    pub fn wire_limits(&self) -> &WireLimits {
+        self.config.wire_limits()
+    }
+
+    fn admit_verified(&self, connection: &Connection, frame: Frame<'_>) -> Admission {
+        let ack = frame.sequence_id();
+        let selected = self.select(
+            connection,
+            ack,
+            frame.schema_version(),
+            frame.kind_as_frame_request(),
+        );
         Admission { ack, selected }
+    }
+
+    /// Runs a frame that the caller verified with this dispatcher's wire limits.
+    pub async fn dispatch_verified(
+        &self,
+        ctx: &Ctx,
+        connection: &Connection,
+        frame: Frame<'_>,
+    ) -> Vec<u8> {
+        self.finish(ctx, connection, self.admit_verified(connection, frame))
+            .await
+    }
+
+    /// Returns a protocol error for a request rejected by the host.
+    pub fn reject(
+        &self,
+        connection: &Connection,
+        sequence: u64,
+        error: crate::action::ActionError,
+    ) -> Vec<u8> {
+        Failure::Error(error).encode(connection.next_header(sequence), &self.config)
     }
 
     pub(super) async fn finish(

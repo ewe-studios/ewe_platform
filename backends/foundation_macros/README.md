@@ -23,3 +23,9 @@ of those symbols breaks the macro output for every consumer, so a
 
 release-plz enforces this with a shared `version_group` in `release-plz.toml`. Do
 not bump one crate by hand without the other.
+
+### Conditional markup
+
+`html!` evaluates an `Either` condition once per render. False selects `Left`. True selects `Right`.
+The selected children replace the directive in the surrounding template.
+See the [runtime example](../foundation_ui_runtime/README.md#select-one-branch).

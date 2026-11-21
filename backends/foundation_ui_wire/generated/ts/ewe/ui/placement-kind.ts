@@ -7,5 +7,6 @@ export enum PlacementKind {
   Before = 1,
   After = 2,
   Swap = 3,
-  Remove = 4
+  Remove = 4,
+  FullView = 5
 }

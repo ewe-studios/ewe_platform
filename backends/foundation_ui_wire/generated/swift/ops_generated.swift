@@ -167,8 +167,9 @@ public enum ewe_ui_PlacementKind: UInt8, Enum, Verifiable {
   case after = 2
   case swap = 3
   case remove = 4
+  case fullview = 5
 
-  public static var max: ewe_ui_PlacementKind { return .remove }
+  public static var max: ewe_ui_PlacementKind { return .fullview }
   public static var min: ewe_ui_PlacementKind { return .append }
 }
 

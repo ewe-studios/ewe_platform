@@ -56,6 +56,13 @@
       }
     }
 
+    func viewRequest(_ url: URL) -> URLRequest {
+      var req = URLRequest(url: url)
+      req.setValue(lock.withLock { handshake }, forHTTPHeaderField: "X-Ewe-Hello")
+      req.setValue("application/vnd.ewe.frame", forHTTPHeaderField: "Accept")
+      return req
+    }
+
     public func send(request bytes: Data) async throws -> Data? {
       var req = request()
       req.httpMethod = "POST"

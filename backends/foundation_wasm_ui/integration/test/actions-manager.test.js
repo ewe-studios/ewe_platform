@@ -139,3 +139,22 @@ test("server-only installation wires an existing control", async () => {
   button.dispatchEvent("click");
   assert.equal(count, 1);
 });
+
+test("a sheet button with its own action keeps its state and submits the sibling field value", async () => {
+  const {manager, requests} = setup();
+  const sheet = element(60);
+  const button = element(62, "BQ", sheet);
+  const field = {tagName: "INPUT", value: "Read chapter three", hasAttribute: key => key === "primal:onsubmit"};
+  const attr = button.getAttribute;
+  button.getAttribute = key => key === "data-ewe-presentation" ? "submit-action" : attr(key);
+  button.closest = selector => selector === ".ewe-bottom-sheet" ? sheet : null;
+  button.parentElement = sheet;
+  sheet.children = [field, button];
+
+  await manager.trigger("server:save", button, {type: "click"});
+  assert.equal(requests.length, 1);
+  const action = requests[0].kind(new wire.FrameRequest()).action();
+  assert.equal(action.nodeId(), 62);
+  assert.deepEqual([...action.stateArray()], [5]);
+  assert.equal(action.input().value(), "Read chapter three");
+});

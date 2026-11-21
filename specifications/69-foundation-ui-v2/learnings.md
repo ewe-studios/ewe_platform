@@ -621,3 +621,58 @@ Sharing and replay are separate choices. A late listener can receive new events 
 ### Two transport interfaces
 
 The native action transport exchanges encoded user interface frames. The Connect transport opens an exchange with a response head and streamed body. The adapter must preserve both contracts.
+
+The todo server and browser test both read the Wasm file from the old module workspace. Both need the same new artifact path.
+
+LocalDispatcher already owns the context, dispatcher, and connection. The browser bridge keeps it alive after startup returns.
+
+NativeCore already creates the local dispatcher. Its native transport adapter feeds the same action manager that accepts Rust transports.
+
+Both native event bridges read action references and signed state from the tapped node.
+
+Container identity must survive Rust lowering. Native components can then own child layout without inspecting application-specific strings.
+
+A browser modal must open after its children enter the document. Opening it after the frame applies lets the browser focus the input.
+The bottom sheet sends submit to the field that owns the action. Its submit button uses the same field value as the keyboard.
+A wire vocabulary change needs a new version row. Older versions retain their original node limits.
+
+The Either macro numbers branch elements before the next sibling. This gives each branch and each sibling a distinct identifier.
+Rust builds only the selected children. A selected button keeps its signed state and action on the same node.
+
+A remote signal update can reply from its owner closure. This gives the caller its own mutation result before later updates change the signal.
+
+Thread-safe signal values need isolated dependency tracking and coordinated stabilization. Each process owns its runtime.
+
+The hub acknowledges queue admission. A reply from the update closure confirms the mutation itself.
+
+A type alias preserves existing local imports. Selecting the multithread runtime also changes ownership and callback bounds.
+
+### Feature 29. Reactive ordering across threads
+
+A new dependency can lead to a dirty computation above the observer's previous height.
+Refresh that computed dependency during the same pass before returning its value to the observer.
+Record the dependency while the value remains locked. This ordering prevents a writer from missing the first subscription.
+A successful update publishes its candidate even when equality ignores a changed field. Equality controls notification.
+
+A server advertises its callable actions for the surface in the hello request. The client consults that list when selecting a remote route.
+
+The wire verifier borrows a complete slice. The frame reader must own the input bytes independently of its transport.
+
+Serve supplies the context, incoming request, and connection. A view adapter can wrap the first two and retain the connection for response delivery.
+
+HttpApp exposes its router. A route registration function can accept that router directly.
+
+### Feature 30. Keep the payload until the write
+
+A pure tree can carry a state attachment marker when its caller supplies the state.
+The one-argument form of the server html macro returns the tree and its state together.
+A full view replaces the contents of the receiving mount. The surrounding application keeps its shell.
+Stable region identifiers let later actions update the page, dialog, or count.
+The frame writer allocates other nodes above all declared region identifiers.
+The HTTP adapter uses a bounded channel between the synchronous body serializer and the asynchronous socket writer.
+A serializer failure before the first chunk produces an error response.
+A failure after the first chunk closes the response without a successful stream ending.
+
+The state argument in a pure template uses an explicit name, `state = value`.
+This preserves the compile-time diagnostic when a receiver argument is missing.
+The iOS and Android applications must advertise the complete-view vocabulary before requesting their initial content.

@@ -8,9 +8,14 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .join("module/target/wasm32-unknown-unknown/uat/ui_todo_web.wasm");
     let listener = std::net::TcpListener::bind(bind)?;
     println!("Open http://{}/", listener.local_addr()?);
-    ui_todo::server::serve(
-        &listener,
-        &std::sync::Arc::new(foundation_http::ShutdownSignal::new()),
-        &module,
-    )
+    if !listener.local_addr()?.ip().is_loopback() {
+        return Err("The single-user example requires a loopback address".into());
+    }
+    let app = ui_todo::server::app(&module)?;
+    app.server(&listener.local_addr()?.to_string())
+        .serve_with_listener(
+            &listener,
+            &std::sync::Arc::new(foundation_http::ShutdownSignal::new()),
+        );
+    Ok(())
 }

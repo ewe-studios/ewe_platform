@@ -434,3 +434,46 @@ fn local_bridge_teardown_is_thread_local() {
     assert!(removed.get());
     uninstall_event_bridge();
 }
+
+#[test]
+fn either_selects_once_and_mounts_only_the_selected_branch() {
+    let (app, sent) = App::mock();
+    let (ctx, receiver) = app.context();
+    let calls = std::cell::Cell::new(0);
+    let (enabled, change) = ctx.signal(true);
+    let _tree = html! { ctx, receiver,
+        <section><Either condition={calls.set(calls.get() + 1); enabled.get()}>
+            <Left><b/></Left>
+            <Right><em/><strong/></Right>
+        </Either><footer/></section>
+    };
+    app.stabilize().unwrap();
+    assert_eq!(
+        created_tags(&ops_of(&sent)),
+        ["section", "em", "strong", "footer"]
+    );
+    change.set(false);
+    app.stabilize().unwrap();
+    assert_eq!(calls.get(), 1);
+    assert_eq!(
+        created_tags(&ops_of(&sent)),
+        ["section", "em", "strong", "footer"]
+    );
+}
+
+#[test]
+fn either_preserves_a_selected_show_subscription() {
+    let (app, sent) = App::mock();
+    let (ctx, receiver) = app.context();
+    let (visible, set_visible) = ctx.signal(false);
+    let _tree = html! { ctx, receiver,
+        <section><Either condition={true}><Left/><Right>
+            <Show when={visible.get()}>{ Slot::lazy(|c, r| html! { c, r, <em>Ready</em> }) }</Show>
+        </Right></Either></section>
+    };
+    app.stabilize().unwrap();
+    assert!(!created_tags(&ops_of(&sent)).contains(&String::from("em")));
+    set_visible.set(true);
+    app.stabilize().unwrap();
+    assert!(created_tags(&ops_of(&sent)).contains(&String::from("em")));
+}

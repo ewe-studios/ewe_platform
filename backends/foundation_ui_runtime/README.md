@@ -299,3 +299,39 @@ Here each tuple contains an action name, a triggering node and the root that the
 For independent requests, use `Connection::stateless(caps, surface, stream_id)`. A negotiated connection also checks request order.
 A local host can give its dispatcher and context to `LocalDispatcher` and install that transport on the action manager.
 The [replica test](tests/dispatch_tests.rs) sends a signed counter between two independently configured hosts.
+
+### Select one branch
+
+Use `Either` inside `html!` to select children at render time.
+The condition accepts a Rust boolean expression. False selects `Left`. True selects `Right`.
+
+```rust,ignore
+html! {
+    <Stack>
+        <Either condition={local}>
+            <Left><Button on:tap={toggle_todo}>Toggle</Button></Left>
+            <Right><Button on:tap={toggle_local_todo}>Toggle</Button></Right>
+        </Either>
+    </Stack>
+}
+```
+
+Supply each branch once. A branch can contain multiple children or use an empty tag such as `<Left/>`.
+Rust checks both branches at compile time. Each render evaluates the condition once and builds only the selected children.
+The wire frame contains those children in source order. Each child keeps its action and state bindings.
+When a frame renders `Either` as its root, the selected branch must supply one root element.
+Place `Either` inside a container when a branch supplies several siblings or no children.
+
+### Defer a signed render
+
+A pure template can carry its tree and state to a response writer.
+
+~~~rust
+use foundation_ui_runtime::html;
+let (tree, state) = html! { state = 3_u32, <Text primal::state>Counter</Text> };
+assert_eq!(state, 3);
+assert!(tree.tag.is_some());
+~~~
+
+A full view needs no target. When later actions address a region by number, use `view::anchor(id, tree)` for that region.
+Use identifiers above two. Reserve each stable identifier once within a mounted tree.

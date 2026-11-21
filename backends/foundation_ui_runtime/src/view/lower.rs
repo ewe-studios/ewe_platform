@@ -64,6 +64,7 @@ pub(super) fn local_id(html: &Html) -> Result<u32, LowerError> {
 pub(super) struct Layout {
     known: BTreeSet<u32>,
     extra: u32,
+    anchors: BTreeSet<u32>,
 }
 
 impl Layout {
@@ -76,9 +77,24 @@ impl Layout {
         Ok(layout)
     }
 
+    pub(super) fn minimum(&self) -> Result<u32, LowerError> {
+        self.anchors
+            .last()
+            .copied()
+            .unwrap_or(0)
+            .checked_add(1)
+            .ok_or(LowerError::IdOverflow)
+    }
+
     fn visit(&mut self, html: &Html, web_parent: bool) -> Result<(), LowerError> {
         let mut web_children = web_parent;
         if let Some(tag) = &html.tag {
+            if let Some(anchor) = attr(html, "primal:anchor") {
+                let id = anchor.parse::<u32>().map_err(|_| LowerError::BadTarget)?;
+                if id < 3 || !self.anchors.insert(id) {
+                    return Err(LowerError::BadTarget);
+                }
+            }
             if attr(html, "data-ewe-behaviour").is_some() {
                 return Ok(());
             }
@@ -149,6 +165,26 @@ impl Builder<'_> {
         }
     }
 
+    fn element_id(&mut self, html: &Html, root: Option<u32>) -> Result<u32, LowerError> {
+        let local = local_id(html)?;
+        let anchor = attr(html, "primal:anchor")
+            .map(str::parse::<u32>)
+            .transpose()
+            .map_err(|_| LowerError::BadTarget)?;
+        let generated = self.id(local, root)?;
+        if root
+            .zip(anchor)
+            .is_some_and(|(target, anchor)| target != anchor)
+        {
+            return Err(LowerError::BadTarget);
+        }
+        let id = anchor.unwrap_or(generated);
+        if html.parts.iter().any(|part| part.marks_state_on(local)) {
+            self.markers.push(id);
+        }
+        Ok(id)
+    }
+
     fn element(
         &mut self,
         html: &Html,
@@ -165,12 +201,7 @@ impl Builder<'_> {
         let id = if script && attr(html, "primal-id").is_none() {
             self.next_id()?
         } else {
-            let local = local_id(html)?;
-            let id = self.id(local, root)?;
-            if html.parts.iter().any(|part| part.marks_state_on(local)) {
-                self.markers.push(id);
-            }
-            id
+            self.element_id(html, root)?
         };
         if html.attributes.iter().any(|(k, _)| {
             k.name()
@@ -187,6 +218,15 @@ impl Builder<'_> {
             ));
             // ScriptNode attaches itself to its own parent.
             return Ok(parent.is_none().then_some(id));
+        }
+        if matches!(tag.name(), Some("mount-stream" | "mount-data"))
+            && attr(html, "protocol") == Some("frame")
+        {
+            if !children.is_empty() {
+                return Err(LowerError::BadTarget);
+            }
+            self.live(html, id)?;
+            return Ok(Some(id));
         }
         let kind = core_kind(tag.name().ok_or(LowerError::MissingId)?);
         if let Some(kind) = kind {
@@ -242,9 +282,66 @@ impl Builder<'_> {
         Ok(Some(id))
     }
 
+    fn live(&mut self, html: &Html, id: u32) -> Result<(), LowerError> {
+        use foundation_ui_wire::{LiveKind, LiveMountT, LiveTransport};
+        let invalid = |key: &str| LowerError::BadProp {
+            node_id: id,
+            prop: key.into(),
+            value: attr(html, key).unwrap_or("").into(),
+        };
+        let data = html.tag.as_ref().and_then(HtmlTag::name) == Some("mount-data");
+        let transport = match attr(html, "transport").unwrap_or(if data { "fetch" } else { "sse" })
+        {
+            "sse" => LiveTransport::Sse,
+            "websocket" => LiveTransport::WebSocket,
+            "fetch" => LiveTransport::Http,
+            "local" => LiveTransport::Local,
+            _ => return Err(invalid("transport")),
+        };
+        self.ops
+            .push(ui(UiOperationT::LiveMount(Box::new(table!(LiveMountT {
+                node_id: id,
+                kind: if data {
+                    LiveKind::Data
+                } else {
+                    LiveKind::Stream
+                },
+                transport: transport,
+                endpoint: Some(attr(html, "api").ok_or_else(|| invalid("api"))?.into()),
+                channel_id: attr(html, "data-channel-id")
+                    .ok_or_else(|| invalid("data-channel-id"))?
+                    .parse()
+                    .map_err(|_| invalid("data-channel-id"))?,
+                resume_from: attr(html, "data-resume-from")
+                    .unwrap_or("0")
+                    .parse()
+                    .map_err(|_| invalid("data-resume-from"))?
+            })))));
+        for (name, value) in &html.attributes {
+            if !matches!(
+                name.name(),
+                Some(
+                    "primal-id"
+                        | "primal:anchor"
+                        | "api"
+                        | "protocol"
+                        | "data-channel-id"
+                        | "data-resume-from"
+                        | "transport"
+                )
+            ) {
+                self.ops.push(attribute(id, name, value));
+            }
+        }
+        Ok(())
+    }
+
     fn attributes(&mut self, html: &Html, id: u32, core: bool) -> Result<(), LowerError> {
         for (name, value) in &html.attributes {
             let key = name.name().ok_or(LowerError::MissingId)?;
+            if key == "primal:anchor" {
+                continue;
+            }
             let event = if let Some(event) = key.strip_prefix("ewe:on:") {
                 Some(match event {
                     "tap" => EventId::TAP,
@@ -345,6 +442,19 @@ pub(super) fn build(
     layout: &Layout,
     root: Option<u32>,
 ) -> Result<Tree, LowerError> {
+    if root.is_some_and(|id| {
+        layout.anchors.contains(&id)
+            && attr(html, "primal:anchor").and_then(|s| s.parse::<u32>().ok()) != Some(id)
+    }) {
+        return Err(LowerError::BadTarget);
+    }
+    if layout
+        .anchors
+        .last()
+        .is_some_and(|id| *id >= options.id_base)
+    {
+        return Err(LowerError::BadTarget);
+    }
     let mut builder = Builder {
         next_local: u64::from(
             layout

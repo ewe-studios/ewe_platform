@@ -58,6 +58,26 @@ The renderer supports stacks, text, images, buttons, text input, toggles, lists,
 Supply composable image and web-view renderers with `EweScreen`.
 Presentation properties select native styles for titles, toolbar actions, filters, task rows and form sheets.
 
+## Containers
+
+An `Overlay` draws its children above the current screen or modal. Controls outside those children still receive input.
+A `Modal` opens a native modal window. Android directs focus and input to its children.
+A `BottomSheet` measures its panel from the supplied children. At the end of a vertical stack, it uses the lower edge.
+The preceding content receives the remaining height. The application supplies no placeholder or fixed height.
+
+```rust
+html! { <Overlay><BottomSheet><Text>Map legend</Text></BottomSheet></Overlay> }
+```
+
+This panel covers the bottom of the screen. The user can still interact with the map above it.
+
+```rust
+html! { <Modal><BottomSheet><Text>New todo</Text></BottomSheet></Modal> }
+```
+
+This composition opens one Material modal bottom sheet. Its controls retain their original action bindings.
+Provide a button with the cancel action for system dismissal.
+
 ## Wire format and actions
 
 A frame is a FlatBuffers buffer with the identifier `EWF1` at bytes 4 through 7.

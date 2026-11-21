@@ -13,8 +13,7 @@ final class TodoTests: XCTestCase {
     let input = app.textFields["Todo title"]
     XCTAssertTrue(input.waitForExistence(timeout: 5))
     input.tap()
-    input.typeText("Server integration task")
-    app.navigationBars["New todo"].buttons["Add"].tap()
+    input.typeText("Server integration task\n")
     XCTAssertTrue(app.staticTexts["Server integration task"].waitForExistence(timeout: 10))
     XCTAssertTrue(app.staticTexts["1 open todo"].waitForExistence(timeout: 5))
     app.buttons["Complete"].tap()

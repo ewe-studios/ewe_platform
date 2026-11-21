@@ -43,7 +43,7 @@ class EventBridge(
         val input = EventInput(node, name, value, checked, record.parent ?: 0u, record.state)
         scope.launch {
             try {
-                core.trigger(reference, input)?.let(store::receive)
+                core.trigger(reference, input)?.let { store.receive(it) }
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Exception) {

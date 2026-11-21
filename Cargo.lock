@@ -6405,7 +6405,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_signals"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "foundation_context",
  "foundation_core",
@@ -6543,6 +6543,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_ui_http"
+version = "0.1.0"
+dependencies = [
+ "async-channel",
+ "base64 0.22.1",
+ "blocking",
+ "foundation_http",
+ "foundation_macros",
+ "foundation_signals",
+ "foundation_ui_runtime",
+ "foundation_ui_wire",
+ "futures-lite",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_ui_native"
 version = "0.1.0"
 dependencies = [
@@ -6593,6 +6611,8 @@ dependencies = [
  "flatbuffers",
  "foundation_errstacks",
  "foundation_ui_traits",
+ "futures-lite",
+ "futures-util",
  "serde",
  "serde_json",
 ]
@@ -15905,13 +15925,12 @@ dependencies = [
 name = "ui_todo"
 version = "0.0.2"
 dependencies = [
- "base64 0.22.1",
  "foundation_browser",
  "foundation_context",
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
- "foundation_netio",
+ "foundation_ui_http",
  "foundation_ui_runtime",
  "foundation_ui_wire",
  "futures-lite",

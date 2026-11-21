@@ -11,7 +11,8 @@ use foundation_ui_wire::writer::{
     write_caps, ClientCaps, FrameHeader, StreamSequencer, WriteError,
 };
 use foundation_ui_wire::{
-    read_frame, CapsStatus, FrameKindName, ServerActionT, ServerCapsT, WireError, SCHEMA_VERSION,
+    read_frame, CapsStatus, ClientHello, Frame, FrameKindName, ServerActionT, ServerCapsT,
+    WireError, SCHEMA_VERSION,
 };
 
 use super::Dispatcher;
@@ -122,6 +123,53 @@ impl Connection {
     }
 }
 
+fn read_hello(frame: Frame<'_>) -> Result<ClientHello<'_>, HelloError> {
+    let request = frame.kind_as_frame_request().ok_or_else(|| {
+        if frame.kind_as_frame_message().is_some() {
+            WireError::WrongKind {
+                expected: FrameKindName::Request,
+                found: FrameKindName::Message,
+            }
+        } else {
+            WireError::NoKind
+        }
+    })?;
+    request
+        .hello()
+        .filter(|_| request.action().is_none())
+        .ok_or(HelloError::NotAHello)
+}
+
+fn accepts_hello(frame: Frame<'_>, hello: ClientHello<'_>) -> bool {
+    frame.schema_version() == SCHEMA_VERSION && vocab_version(hello.vocabulary_version()).is_some()
+}
+
+impl Connection {
+    /// Restores capabilities for an independent request on the supplied stream.
+    /// An unsupported hello needs an update response from the dispatcher.
+    ///
+    /// # Errors
+    /// Returns an error when the frame has an invalid hello.
+    pub fn from_verified_hello(
+        frame: Frame<'_>,
+        stream_id: u64,
+    ) -> Result<Option<Self>, HelloError> {
+        let hello = read_hello(frame)?;
+        if !accepts_hello(frame, hello) {
+            return Ok(None);
+        }
+        if hello.resume_from() == u64::MAX {
+            return Err(HelloError::InvalidResume);
+        }
+        let caps = ClientCaps {
+            platform: hello.platform(),
+            mount: hello.mount(),
+            vocabulary_version: hello.vocabulary_version(),
+        };
+        Ok(Some(Self::stateless(caps, hello.mount(), stream_id)))
+    }
+}
+
 impl Dispatcher {
     /// Lists the server actions that can run for this surface.
     #[must_use]
@@ -135,22 +183,16 @@ impl Dispatcher {
     /// Returns a typed error for invalid input, unavailable randomness, or a failed write.
     pub fn hello(&self, ctx: &Ctx, bytes: &[u8]) -> Result<HelloOutcome, HelloError> {
         let frame = read_frame(bytes, self.config.wire_limits())?;
-        let request = frame.kind_as_frame_request().ok_or_else(|| {
-            if frame.kind_as_frame_message().is_some() {
-                WireError::WrongKind {
-                    expected: FrameKindName::Request,
-                    found: FrameKindName::Message,
-                }
-            } else {
-                WireError::NoKind
-            }
-        })?;
-        let hello = request
-            .hello()
-            .filter(|_| request.action().is_none())
-            .ok_or(HelloError::NotAHello)?;
-        let accepted = frame.schema_version() == SCHEMA_VERSION
-            && vocab_version(hello.vocabulary_version()).is_some();
+        self.hello_verified(ctx, frame)
+    }
+
+    /// Negotiates a hello that the caller verified with this dispatcher's wire limits.
+    ///
+    /// # Errors
+    /// Returns an error for an invalid hello, missing randomness, or failed encoding.
+    pub fn hello_verified(&self, ctx: &Ctx, frame: Frame<'_>) -> Result<HelloOutcome, HelloError> {
+        let hello = read_hello(frame)?;
+        let accepted = accepts_hello(frame, hello);
         let mut caps = ServerCapsT::default();
         caps.status = if accepted {
             CapsStatus::Ok

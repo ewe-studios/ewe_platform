@@ -352,7 +352,7 @@ fn columnar_gating_preserves_fallback_and_removal_reports() {
     let source = [
         UiOperationT::CreateNode(Box::new(table!(CreateNodeT {
             node_id: 1,
-            kind: NodeKind(11),
+            kind: NodeKind(NodeKind::ENUM_MAX + 1),
         }))),
         UiOperationT::UnbindAction(Box::new(table!(UnbindActionT {
             node_id: 1,

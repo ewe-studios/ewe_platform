@@ -11,7 +11,7 @@ import Observation
   @ObservationIgnored var errorLog: [[String: Any]] = []
   @ObservationIgnored var capsLog: [[String: Any]] = []
   @ObservationIgnored private var cursors: [UInt64: UInt64] = [:]
-  @ObservationIgnored private var pending: [UInt64: [UInt64: Data]] = [:]
+  @ObservationIgnored private var pending: [UInt64: [UInt64: (data: Data, mount: UInt32)]] = [:]
   @ObservationIgnored private var gapTasks: [UInt64: Task<Void, Never>] = [:]
   public let maxFrameBytes: Int
   public let maxPendingFrames: Int
@@ -55,7 +55,7 @@ import Observation
     var bytes = ByteBuffer(data: data)
     return try getCheckedRoot(byteBuffer: &bytes, fileId: "EWF1")
   }
-  @discardableResult public func receive(_ data: Data) -> Bool {
+  @discardableResult public func receive(_ data: Data, at mount: UInt32 = 1) -> Bool {
     guard data.count <= maxFrameBytes else {
       report("TooLarge", 0)
       return false
@@ -69,7 +69,7 @@ import Observation
     let stream = frame.streamId
     let seq = frame.sequenceId
     if body.ack != 0 || seq == 0 {
-      apply(body, data)
+      apply(body, data, mount)
       return true
     }
     if let last = cursors[stream] {
@@ -80,7 +80,7 @@ import Observation
           report("TooManyPending", 0)
           return false
         }
-        pending[stream, default: [:]][seq] = data
+        pending[stream, default: [:]][seq] = (data, mount)
         if gapTasks[stream] == nil {
           gapTasks[stream] = Task { @MainActor [weak self, gapTimeout, sleep] in
             do {
@@ -98,14 +98,14 @@ import Observation
         return true
       }
     }
-    apply(body, data)
+    apply(body, data, mount)
     cursors[stream] = seq
     while let last = cursors[stream], last < UInt64.max,
       let next = pending[stream]?.removeValue(forKey: last + 1),
-      let ordered = try? self.frame(next),
+      let ordered = try? self.frame(next.data),
       let message = ordered.kind(type: ewe_ui_FrameMessage.self)
     {
-      apply(message, next)
+      apply(message, next.data, next.mount)
       cursors[stream] = last + 1
     }
     if pending[stream]?.isEmpty != false {
@@ -114,11 +114,11 @@ import Observation
     }
     return true
   }
-  private func apply(_ frame: ewe_ui_FrameMessage, _ bytes: Data) {
+  private func apply(_ frame: ewe_ui_FrameMessage, _ bytes: Data, _ mount: UInt32) {
     var acceptedCaps = false
     for index in 0..<frame.messagesCount {
       guard let msg = frame.messages(at: index) else { continue }
-      if let op = msg.operation { operation(op, Int(index)) }
+      if let op = msg.operation { operation(op, Int(index), mount) }
       if let data = msg.data {
         dataLog.append([
           "data": data.arrow != nil ? "ArrowIpc" : data.table != nil ? "Table" : "MessagePack",

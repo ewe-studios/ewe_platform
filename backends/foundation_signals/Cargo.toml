@@ -1,6 +1,6 @@
 [package]
 name = "foundation_signals"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -21,9 +21,10 @@ foundation_context = { path = "../foundation_context", version = "0.0.4", option
 
 [features]
 default = ["std", "single_threaded"]
-# G15: WASM is single-threaded; storage cells are RefCell. The off-state would
-# swap in Mutex-backed cells — unimplemented until a consumer needs it.
+# Select the original local runtime explicitly for existing callers.
 single_threaded = []
+# Native hosts can share a separate graph across worker threads.
+thread_safe = ["std"]
 # Links `std`. The reactive graph only needs `core + alloc`; `std` adds the
 # cross-thread `SignalHub` (mpsc channels, `Mutex`/`RwLock`; native only) and
 # forwards `std` to serde/serde_json/tracing. `no_std` consumers (the wasm UI

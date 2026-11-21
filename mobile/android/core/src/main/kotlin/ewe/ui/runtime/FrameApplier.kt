@@ -4,7 +4,7 @@ import ewe.ui.*
 import ewe.ui.flatbuffers.Table
 import kotlinx.serialization.json.*
 
-internal class FrameApplier(internal val store: NodeStore, private val bytes: Int) {
+internal class FrameApplier(internal val store: NodeStore, private val bytes: Int, private val mount: UInt) {
     fun message(m: Message, row: Int) {
         m.operation?.let { operation(it, row) }
         m.data?.let { d ->
@@ -177,6 +177,13 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
     }
 
     private fun place(p: Place, row: Int) {
+        if (p.kind == PlacementKind.FullView) {
+            val owner = store.node(mount, row) ?: return
+            owner.children.toList().forEach(store::remove)
+            repeat(p.operationsLength) { operation(requireNotNull(p.operations(it)), row) }
+            store.insert(mount, p.rootNode, null, row)
+            return
+        }
         val target = p.target ?: return
         if (
             target.kind != SelectorKind.NodeId ||

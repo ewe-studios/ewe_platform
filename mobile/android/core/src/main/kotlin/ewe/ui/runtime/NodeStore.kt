@@ -37,7 +37,8 @@ class NodeStore(
     internal val data = mutableListOf<JsonObject>()
     internal val caps = mutableListOf<JsonObject>()
     private val cursors = mutableMapOf<ULong, ULong>()
-    private val pending = mutableMapOf<ULong, TreeMap<ULong, ByteArray>>()
+    private data class PendingFrame(val bytes: ByteArray, val mount: UInt)
+    private val pending = mutableMapOf<ULong, TreeMap<ULong, PendingFrame>>()
     private val timers = mutableMapOf<ULong, Cancel>()
     var onGap: ((ULong, ULong) -> Unit)? = null
     var onChanged: (() -> Unit)? = null
@@ -131,7 +132,7 @@ class NodeStore(
         return f
     }
 
-    fun receive(bytes: ByteArray): Boolean {
+    fun receive(bytes: ByteArray, mount: UInt = 1u): Boolean {
         if (bytes.size > maxFrameBytes) {
             report("TooLarge")
             return false
@@ -143,10 +144,10 @@ class NodeStore(
             val sequence = f.sequenceId
             val last = cursors[id]
             when {
-                sequence == 0uL || body.ack != 0uL -> apply(body, bytes)
+                sequence == 0uL || body.ack != 0uL -> apply(body, bytes, mount)
                 last != null && sequence <= last -> true
                 last != null && sequence - last > 1uL -> {
-                    pending.getOrPut(id) { TreeMap() }.putIfAbsent(sequence, bytes.copyOf())
+                    pending.getOrPut(id) { TreeMap() }.putIfAbsent(sequence, PendingFrame(bytes.copyOf(), mount))
                     if (id !in timers)
                         timers[id] =
                             timer.schedule(gapTimeoutMs) {
@@ -157,12 +158,12 @@ class NodeStore(
                     true
                 }
                 else -> {
-                    if (!apply(body, bytes)) return false
+                    if (!apply(body, bytes, mount)) return false
                     cursors[id] = sequence
                     while (cursors[id] != ULong.MAX_VALUE) {
                         val next = cursors.getValue(id) + 1u
                         val replay = pending[id]?.remove(next) ?: break
-                        if (!apply(frame(replay).kind(FrameMessage()) as FrameMessage, replay))
+                        if (!apply(frame(replay.bytes).kind(FrameMessage()) as FrameMessage, replay.bytes, replay.mount))
                             return false
                         cursors[id] = next
                     }
@@ -179,8 +180,8 @@ class NodeStore(
         }
     }
 
-    private fun apply(body: FrameMessage, bytes: ByteArray): Boolean {
-        val applier = FrameApplier(this, bytes.size)
+    private fun apply(body: FrameMessage, bytes: ByteArray, mount: UInt): Boolean {
+        val applier = FrameApplier(this, bytes.size, mount)
         var hasCaps = false
         for (row in 0 until body.messagesLength) {
             try {

@@ -5,7 +5,8 @@ use foundation_ui_native::{
 };
 use foundation_ui_runtime::dispatch::RenderTarget;
 use foundation_ui_wire::{
-    read_frame, writer::WriterConfig, EventId, PropId, PropValueT, UiOperationT, WireLimits,
+    read_frame, writer::WriterConfig, EventId, NodeKind, PropId, PropValueT, UiOperationT,
+    WireLimits,
 };
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -135,7 +136,17 @@ async fn todo_actions_work_without_transport_and_keep_separate_stores() {
         assert!(shows_role(&first, "segmented-control"));
 
         let sheet = trigger(&core, &first, "host:open_add_dialog", "").await;
-        assert!(shows_role(&sheet, "form-sheet"));
+        for expected in [NodeKind::MODAL, NodeKind::BOTTOM_SHEET] {
+            assert_eq!(
+                sheet
+                    .iter()
+                    .filter(
+                        |op| matches!(op, UiOperationT::CreateNode(node) if node.kind == expected)
+                    )
+                    .count(),
+                1,
+            );
+        }
         let added = trigger(&core, &sheet, "host:add_local_todo", "Plan the week").await;
         assert!(shows(&added, "1 open todo"));
         assert!(shows(&added, "Plan the week"));

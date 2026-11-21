@@ -149,6 +149,22 @@ fn native_packages_share_reference_snapshots() {
     let mut typed_snapshot = None;
     for (name, bytes, needs_tree) in [
         ("native_tree", base.clone(), false),
+        (
+            "native_full_view",
+            encode(
+                vec![shared(UiOperationT::Place(Box::new(table!(PlaceT {
+                    kind: PlacementKind::FullView,
+                    root_node: 70,
+                    operations: Some(vec![
+                        create(70, NodeKind::TEXT),
+                        ops::set_text(70, "Next view")
+                    ])
+                }))))],
+                0,
+                false,
+            ),
+            true,
+        ),
         ("native_columnar", encode(vec![columns], 1, false), false),
         ("native_mixed", encode(mixed(), 2, true), true),
         ("native_replace", encode(vec![replacement], 3, false), true),

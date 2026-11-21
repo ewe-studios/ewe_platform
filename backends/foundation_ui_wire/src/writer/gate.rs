@@ -188,6 +188,9 @@ impl OperationGate<'_> {
 
     fn unknown_ui(&self, operation: &UiOperationT) -> bool {
         match operation {
+            UiOperationT::Place(place) if place.kind == crate::PlacementKind::FullView => {
+                self.version.version < 6
+            }
             UiOperationT::Place(_) => self.version.version < 3,
             UiOperationT::SetProp(prop) => prop.prop.0 > self.version.max_prop_id,
             UiOperationT::BindAction(action) => action.event.0 > self.version.max_event_id,

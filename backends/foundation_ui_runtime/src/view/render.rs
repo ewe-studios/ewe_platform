@@ -130,6 +130,7 @@ fn frame_tree(
 ) -> Result<Tree, LowerError> {
     let layout = Layout::new(html)?;
     let count = layout.span()?;
+    let minimum = minimum.max(layout.minimum()?);
     let minimum = if root == Some(minimum) && super::lower::local_id(html)? != 0 {
         minimum.checked_add(1).ok_or(LowerError::IdOverflow)?
     } else {
@@ -173,6 +174,24 @@ fn queue<S: Serialize + ?Sized>(
     let mut targets = vec![tree.root];
     targets.extend(tree.markers);
     out.render_tree(tree.ops, placement, &targets, state)
+}
+
+/// Queues a complete view for the mount that receives this frame.
+///
+/// # Errors
+/// Returns a lowering, allocation or state serialization error.
+pub fn full_view<S: Serialize + ?Sized>(
+    ctx: &Context,
+    out: &ActionReceiver,
+    html: &Html,
+    state: Option<&S>,
+) -> ActionResult {
+    let tree = frame_tree(ctx, html, 3, None)?;
+    let placement = table!(PlaceT {
+        kind: PlacementKind::FullView,
+        root_node: tree.root
+    });
+    queue(out, tree, Some(placement), state)
 }
 
 /// Builds an independent tree below a mounted parent.

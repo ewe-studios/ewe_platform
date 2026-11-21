@@ -93,7 +93,7 @@ fn pure_core_templates_lower_in_creation_order_and_resolve_property_tokens() {
     let width = "25%";
     let template = html! { <Stack width={width} axis="vertical" padding="4">
         <Text color="--accent" font="--body">Header</Text><Image/><Button/><TextInput/>
-        <Toggle/><List>{["A","B"].into_iter().map(todo_row)}</List><Scroll/><Spacer/><Overlay/>
+        <Toggle/><List>{["A","B"].into_iter().map(todo_row)}</List><Scroll/><Spacer/><Overlay><Modal><BottomSheet/></Modal></Overlay>
     </Stack> };
     let ops = lower(&template, &options).unwrap();
     assert_eq!(ops, lower(&template, &options).unwrap());
@@ -119,8 +119,8 @@ fn pure_core_templates_lower_in_creation_order_and_resolve_property_tokens() {
             unit => panic!("unexpected core unit {unit:?}"),
         }
     }
-    assert_eq!(created.len(), 12);
-    assert_eq!(kinds.len(), 10);
+    assert_eq!(created.len(), 14);
+    assert_eq!(kinds.len(), 12);
     assert!(props
         .iter()
         .any(|v| matches!(v, PropValueT::ColorToken(v) if v.id == color)));
@@ -359,4 +359,111 @@ fn web_and_core_nodes_are_created_before_every_reference_across_tree_shapes() {
         }
         assert_eq!(binds, usize::from(shape == 1));
     }
+}
+
+#[test]
+fn either_builds_only_the_selected_children_and_preserves_their_bindings() -> ActionResult {
+    use foundation_ui_runtime::action::prepare_messages;
+    use foundation_ui_runtime::state::{
+        install_state_signer, verify_state, HmacStateSigner, StateConfig,
+    };
+    use foundation_ui_wire::UiOperationT;
+    use std::cell::Cell;
+    use std::sync::Arc;
+
+    for selected in [false, true] {
+        let (base, _) = test_ctx(WALL);
+        install_state_signer(
+            &base,
+            Arc::new(HmacStateSigner::new([9; 32], StateConfig::default()).unwrap()),
+        );
+        let ctx = Context::for_action(base.clone(), MountSurface::Native, Some(40));
+        let calls = Cell::new(0);
+        let mut visits = Vec::new();
+        let tree = html! { ctx, ctx.receiver(), Some(&7),
+            <Stack>
+                <Text>Before</Text>
+                <Either condition={calls.set(calls.get() + 1); selected}>
+                    <Left>
+                        <Button primal::state on:tap={save}>{{visits.push(false); "Save"}}</Button>
+                        <Text>Left</Text>
+                    </Left>
+                    <Right>
+                        <Button primal::state on:tap="host:save">{{visits.push(true); "Save"}}</Button>
+                        <Text>Right</Text>
+                    </Right>
+                </Either>
+                <Text>After</Text>
+            </Stack>
+        };
+        assert_eq!(calls.get(), 1);
+        assert_eq!(visits, [selected]);
+        assert_eq!(tree.children.len(), 4);
+        let messages = prepare_messages(&base, ctx.into_receiver().drain()).unwrap();
+        let UiOperationT::Place(place) = &messages[0].operation.as_ref().unwrap().ui else {
+            panic!("missing placement")
+        };
+        let ops = place.operations.as_ref().unwrap();
+        let labels: Vec<_> = ops
+            .iter()
+            .filter_map(|op| match &op.ui {
+                UiOperationT::SetText(text) => text.text.as_deref(),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            labels,
+            [
+                "Before",
+                "Save",
+                if selected { "Right" } else { "Left" },
+                "After"
+            ]
+        );
+        let buttons: Vec<_> = ops
+            .iter()
+            .filter_map(|op| match &op.ui {
+                UiOperationT::BindAction(binding) => Some(binding),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(buttons.len(), 1);
+        let button = buttons[0];
+        assert_eq!(
+            button.action.as_deref(),
+            Some(if selected { "host:save" } else { "server:save" })
+        );
+        let signed = ops
+            .iter()
+            .filter_map(|op| match &op.ui {
+                UiOperationT::AttachState(state) if state.root_node == button.node_id => {
+                    Some(state)
+                }
+                _ => None,
+            })
+            .next()
+            .unwrap();
+        assert_eq!(
+            verify_state(&base, signed.state.as_deref().unwrap()).unwrap(),
+            b"7"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn either_supports_a_root_or_empty_branch_and_nested_conditions() {
+    let root = html! { <Either condition={true}><Right><Button/></Right><Left/></Either> };
+    assert_eq!(root.tag.unwrap().name(), Some("Button"));
+    let nested = html! { <Stack>
+        <Either condition={true}><Left/><Right>
+            <Either condition={false}><Right/><Left><Text>Selected</Text><Text>Second</Text></Left></Either>
+        </Right></Either>
+        <Either condition={false}><Left/><Right><Text>Skipped</Text></Right></Either>
+    </Stack> };
+    assert_eq!(nested.children.len(), 2);
+    assert_eq!(
+        nested.children[0].children[0].text.as_deref(),
+        Some("Selected")
+    );
 }

@@ -629,3 +629,17 @@ cargo check  -p foundation_ui_runtime --profile uat --target wasm32-unknown-unkn
 ---
 
 _Created: 2026-11-13_
+
+## Approved extension. Select one branch with Either
+
+`html!` accepts `<Either condition={local}><Left>...</Left><Right>...</Right></Either>`.
+The condition takes a Rust boolean expression. Evaluate it once per render.
+False selects Left. True selects Right. Evaluate only the selected branch.
+Insert its contents at the position of Either. Emit no wrapper nodes or platform operations for the three tags.
+Require one Left and one Right. Report missing or duplicate branches at the source.
+Preserve the selected children's action bindings and their order.
+Replace the todo row's temporary toggle variable with this markup.
+Test both boolean values, evaluation counts, and the resulting action bindings.
+Document the syntax in the macro guide.
+
+The macro implements this extension. The todo row uses it. The runtime and reactive tests verify branch selection and event bindings.

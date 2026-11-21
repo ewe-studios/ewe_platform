@@ -107,7 +107,7 @@ public struct EventInput: Sendable {
     }
     open[id] = factory.open(
       endpoint: url, transport: spec.transport, streamId: spec.channelID,
-      resumeFrom: spec.resumeFrom, onFrame: { [weak store] data in store?.receive(data) },
+      resumeFrom: spec.resumeFrom, onFrame: { [weak store] data in store?.receive(data, at: id) },
       onError: { [weak store] error in store?.error("Transport", error) })
   }
   func reconnect(stream: UInt64, cursor: UInt64, store: NodeStore) {
