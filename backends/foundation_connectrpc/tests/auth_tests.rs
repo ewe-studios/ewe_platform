@@ -615,3 +615,18 @@ fn test_authenticate_request_failure() {
         foundation_netio::shared::http::Status::Unauthorized
     );
 }
+
+// ---------------------------------------------------------------------------
+// Spec 86 S6: `AuthInfo` has one home
+// ---------------------------------------------------------------------------
+
+/// WHY: `AuthInfo` moved to `foundation_auth` and connectrpc re-exports it.
+/// WHAT: Both paths name the same type, so a value passes from one to the
+/// other with no conversion.
+#[test]
+fn auth_info_single_home() {
+    let context = AuthContext::new("/test".to_string(), None, None);
+    let from_connectrpc: AuthInfo = foundation_connectrpc::AuthInfo::new(context);
+    let from_auth: foundation_auth::AuthInfo = from_connectrpc;
+    let _: foundation_connectrpc::AuthInfo = from_auth;
+}
