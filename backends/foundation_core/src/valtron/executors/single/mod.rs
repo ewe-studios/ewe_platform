@@ -381,9 +381,8 @@ pub fn fork_ctx() -> Ctx {
 ///
 /// The fork shares the root's clock, config, random number generator and typed
 /// entries, including the [`crate::env::Env`]. A host that polls a future
-/// outside the engine (the Worker `fetch` entry) wraps it with
-/// [`crate::valtron::with_ctx`] and passes this value, so `Env::current()` works
-/// inside the future.
+/// outside the engine (the Worker `fetch` entry) passes this value to the code
+/// that runs the future, so the code can read the same effects.
 ///
 /// # Panics
 ///

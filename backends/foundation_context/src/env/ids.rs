@@ -46,10 +46,13 @@ impl Scru128Source {
 
 impl IdSource for Scru128Source {
     fn next_id(&self) -> Id {
-        self.generator
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-            .generate()
+        // A poisoned lock still holds a valid generator. Recover it; the wasm
+        // lock error type differs from the std one, so a `match` serves both.
+        let mut generator = match self.generator.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        generator.generate()
     }
 }
 

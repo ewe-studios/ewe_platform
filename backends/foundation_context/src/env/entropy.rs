@@ -59,10 +59,13 @@ impl SeededEntropy {
 
 impl EntropySource for SeededEntropy {
     fn fill(&self, dest: &mut [u8]) -> Result<(), entropy::Error> {
-        self.rng
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-            .fill_bytes(dest);
+        // A poisoned lock still holds a valid generator. Recover it; the wasm
+        // lock error type differs from the std one, so a `match` serves both.
+        let mut rng = match self.rng.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        rng.fill_bytes(dest);
         Ok(())
     }
 }
