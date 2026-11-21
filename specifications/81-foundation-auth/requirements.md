@@ -24,7 +24,7 @@ builds_on: "specifications/87-mutual-tls"
 related_specs:
   - "specifications/86-auth-primitives"
   - "specifications/87-mutual-tls"
-  - "specifications/80-platform-prerequisites"
+  - "specifications/completed/80-platform-prerequisites"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/48-foundation-auth-app"
@@ -184,9 +184,9 @@ through a `RemoteKeyPair` with RFC 6979 nonces where the algorithm allows it (sp
 - `specifications/87-mutual-tls/mtls.md` — the CA, trust store, verifiers and mTLS providers.
 - `backends/foundation_auth/src/lib.rs` — the existing public surface.
 - `specifications/84-context-injection/requirements.md` — entropy and ID injection.
-- `specifications/80-platform-prerequisites/features/00-transport-prerequisites/feature.md` —
+- `specifications/completed/80-platform-prerequisites/features/00-transport-prerequisites/feature.md` —
   TLS peer facts.
-- `specifications/80-platform-prerequisites/features/01-migration-groups/feature.md` — the
+- `specifications/completed/80-platform-prerequisites/features/01-migration-groups/feature.md` — the
   auth tables.
 
 ---
