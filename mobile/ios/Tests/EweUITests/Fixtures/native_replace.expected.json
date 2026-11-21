@@ -1,0 +1,51 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "kind": "STACK",
+      "text": null,
+      "props": {},
+      "children": [
+        40
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 40,
+      "kind": "STACK",
+      "text": null,
+      "props": {
+        "AXIS": "Vertical",
+        "PADDING": "8pt"
+      },
+      "children": [
+        43
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 43,
+      "kind": "TEXT",
+      "text": "new",
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    }
+  ],
+  "reports": [],
+  "commands": [],
+  "errors": [],
+  "data": []
+}

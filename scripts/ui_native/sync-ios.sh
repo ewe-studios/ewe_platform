@@ -2,9 +2,7 @@
 # Keep generated Swift wire readers, native bindings and reference fixtures in sync.
 set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
-common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)
-swift_package=${EWE_UI_SWIFT:-$(dirname "$(dirname "$common")")/ewe-ui-swift}
-if [[ ! -f "$swift_package/Package.swift" ]]; then echo "Set EWE_UI_SWIFT to the Swift checkout." >&2; exit 1; fi
+swift_package="$root/mobile/ios"
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 "$root/scripts/ui_native/generate-bindings.sh" --out "$stage/bindings"

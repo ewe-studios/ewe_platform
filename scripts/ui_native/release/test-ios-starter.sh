@@ -8,7 +8,7 @@ local_package=
 while (($#)); do
     case "$1" in
         --local-package) local_package=$(cd "${2:?Expected a local Swift package checkout}" && pwd); shift 2 ;;
-        --help) echo "Usage: $0 [--local-package /path/to/ewe-ui-swift]"; exit 0 ;;
+        --help) echo "Usage: $0 [--local-package /path/to/candidate]"; exit 0 ;;
         *) echo "Unknown option: $1" >&2; exit 2 ;;
     esac
 done
@@ -39,16 +39,13 @@ read -r repository version < <(python3 - <<'PY'
 import tomllib
 with open("release/native-ui.toml", "rb") as f:
     c = tomllib.load(f)
-print(c["swift_repository"], c["version"])
+print(c["repository"], c["version"])
 PY
 )
-checkout=${EWE_UI_SWIFT:-$local_package}
-if [[ -z "$checkout" ]]; then
-    checkout="$stage/source"
-    git clone --quiet --depth 1 --branch "$version" "https://github.com/$repository.git" "$checkout"
-fi
-git -C "$checkout" archive HEAD Examples/Starter | tar -x -C "$stage"
-project="$stage/Examples/Starter/Starter.xcodeproj"
+example="$root/examples/mobile_starter/ios"
+mkdir -p "$stage/consumer"
+cp -R "$example/Starter.xcodeproj" "$example/App" "$stage/consumer/"
+project="$stage/consumer/Starter.xcodeproj"
 
 # The CLI uses simulator accessibility and hardware input. The release hash matches its Homebrew formula.
 axe=${EWE_AXE_BIN:-}
@@ -79,7 +76,7 @@ for ((i=0; i<100; i++)); do
     sleep 0.2
 done
 [[ -s "$stage/initial.bin" ]] || { echo "The test server did not return its first frame." >&2; exit 1; }
-python3 - "$project/project.pbxproj" "$local_package" "$repository" "$version" "$stage/Examples/Starter/App/App.swift" "$base" <<'PY'
+python3 - "$project/project.pbxproj" "$local_package" "$repository" "$version" "$stage/consumer/App/App.swift" "$base" <<'PY'
 from pathlib import Path
 import json, re, sys
 project, package, repo, version, app, base = sys.argv[1:]
@@ -88,6 +85,8 @@ s = p.read_text()
 expected_url = "https://github.com/" + repo + ".git"
 if expected_url not in s or "version = " + version + ";" not in s:
     raise SystemExit("The starter must declare the public package at the release version")
+if re.findall(r"productName = (\w+);", s[s.index("/* Begin XCSwiftPackageProductDependency"):]) != ["EweUI"]:
+    raise SystemExit("The starter must use only the public EweUI product")
 if package:
     s = s.replace("XCRemoteSwiftPackageReference", "XCLocalSwiftPackageReference")
     s,n = re.subn(r"repositoryURL = [^;]+;\s*requirement = \{[^}]+\};",
