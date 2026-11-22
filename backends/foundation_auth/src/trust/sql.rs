@@ -1,5 +1,6 @@
 //! The Structured Query Language (SQL) trust store.
 
+#[cfg(feature = "turso")]
 use std::path::Path;
 use std::sync::Arc;
 
