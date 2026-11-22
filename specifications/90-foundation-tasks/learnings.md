@@ -112,3 +112,6 @@ Select the Arm simulator when the local native framework contains only Arm simul
 
 The existing native core retains the application context. Both native hosts can install a reader after core creation.
 A dropped stream must close its native file even when the caller stops before the final chunk.
+
+Generate bindings from the current shared library before building either native host.
+The bridge preserves distinct errors for missing files and I/O failures.

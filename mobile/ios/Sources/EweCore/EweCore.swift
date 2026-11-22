@@ -1765,6 +1765,487 @@ public func FfiConverterTypeHostHttpClient_lower(_ value: HostHttpClient) -> UIn
 
 
 
+/**
+ * A single package file. The application host closes each open file.
+ */
+public protocol HostResourceFile: AnyObject, Sendable {
+    
+    /**
+     * Return the next chunk. An empty chunk marks the end.
+     *
+     * # Errors
+     * Returns the operating system read error.
+     */
+    func read(capacity: UInt32) throws  -> Data
+    
+    /**
+     * Release this file.
+     *
+     * # Errors
+     * Returns the operating system close error.
+     */
+    func close() throws 
+    
+}
+/**
+ * A single package file. The application host closes each open file.
+ */
+open class HostResourceFileImpl: HostResourceFile, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_hostresourcefile(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_hostresourcefile(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Return the next chunk. An empty chunk marks the end.
+     *
+     * # Errors
+     * Returns the operating system read error.
+     */
+open func read(capacity: UInt32)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_hostresourcefile_read(
+            self.uniffiCloneHandle(),
+        FfiConverterUInt32.lower(capacity),uniffiCallStatus
+    )
+})
+}
+    
+    /**
+     * Release this file.
+     *
+     * # Errors
+     * Returns the operating system close error.
+     */
+open func close()throws   {try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_hostresourcefile_close(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceHostResourceFile {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // Store the vtable directly.
+    static let vtable: UniffiVTableCallbackInterfaceHostResourceFile = UniffiVTableCallbackInterfaceHostResourceFile(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterTypeHostResourceFile.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface HostResourceFile: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterTypeHostResourceFile.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface HostResourceFile: handle missing in uniffiClone")
+            }
+        },
+        read: { (
+            uniffiHandle: UInt64,
+            capacity: UInt32,
+            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> Data in
+                guard let uniffiObj = try? FfiConverterTypeHostResourceFile.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try uniffiObj.read(
+                     capacity: try FfiConverterUInt32.lift(capacity)
+                )
+            }
+
+            
+            let writeReturn = { uniffiOutReturn.pointee = FfiConverterData.lower($0) }
+            uniffiTraitInterfaceCallWithError(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn,
+                lowerError: FfiConverterTypeCoreError_lower
+            )
+        },
+        close: { (
+            uniffiHandle: UInt64,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeHostResourceFile.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try uniffiObj.close(
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCallWithError(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn,
+                lowerError: FfiConverterTypeCoreError_lower
+            )
+        }
+    )
+
+    // Rust stores this pointer for future callback invocations, so it must live
+    // for the process lifetime (not just for the init function call).
+    //
+    // `nonisolated(unsafe)` is needed under Swift 6 strict concurrency.
+    // This is safe because the pointee is initialized once during static init
+    // and never mutated by either side of the FFI.  Its fields are C function pointers.
+    nonisolated(unsafe) static let vtablePtr: UnsafePointer<UniffiVTableCallbackInterfaceHostResourceFile> = {
+        let ptr = UnsafeMutablePointer<UniffiVTableCallbackInterfaceHostResourceFile>.allocate(capacity: 1)
+        ptr.initialize(to: vtable)
+        return UnsafePointer(ptr)
+    }()
+}
+
+private func uniffiCallbackInitHostResourceFile() {
+    uniffi_foundation_ui_native_fn_init_callback_vtable_hostresourcefile(UniffiCallbackInterfaceHostResourceFile.vtablePtr)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostResourceFile: FfiConverter {
+    fileprivate static let handleMap = UniffiHandleMap<HostResourceFile>()
+
+    typealias FfiType = UInt64
+    typealias SwiftType = HostResourceFile
+
+    public static func lift(_ handle: UInt64) throws -> HostResourceFile {
+        if ((handle & 1) == 0) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostResourceFileImpl(unsafeFromHandle: handle)
+        } else {
+            // Swift-generated handle, get the object from the handle map
+            return try handleMap.remove(handle: handle)
+        }
+    }
+
+    public static func lower(_ value: HostResourceFile) -> UInt64 {
+         if let rustImpl = value as? HostResourceFileImpl {
+             // Rust-implemented object.  Clone the handle and return it
+            return rustImpl.uniffiCloneHandle()
+         } else {
+            // Swift object, generate a new vtable handle and return that.
+            return handleMap.insert(obj: value)
+         }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostResourceFile {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: HostResourceFile, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostResourceFile_lift(_ handle: UInt64) throws -> HostResourceFile {
+    return try FfiConverterTypeHostResourceFile.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostResourceFile_lower(_ value: HostResourceFile) -> UInt64 {
+    return FfiConverterTypeHostResourceFile.lower(value)
+}
+
+
+
+
+
+
+/**
+ * The host opens files in its application bundle or asset manager.
+ */
+public protocol HostResourceSource: AnyObject, Sendable {
+    
+    /**
+     * Return an open file, or None when this name does not exist.
+     *
+     * # Errors
+     * Returns the operating system open error.
+     */
+    func `open`(name: String) throws  -> HostResourceFile?
+    
+}
+/**
+ * The host opens files in its application bundle or asset manager.
+ */
+open class HostResourceSourceImpl: HostResourceSource, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_hostresourcesource(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_hostresourcesource(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Return an open file, or None when this name does not exist.
+     *
+     * # Errors
+     * Returns the operating system open error.
+     */
+open func `open`(name: String)throws  -> HostResourceFile?  {
+    return try  FfiConverterOptionTypeHostResourceFile.lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_hostresourcesource_open(
+            self.uniffiCloneHandle(),
+        FfiConverterString.lower(name),uniffiCallStatus
+    )
+})
+}
+    
+
+    
+}
+
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceHostResourceSource {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // Store the vtable directly.
+    static let vtable: UniffiVTableCallbackInterfaceHostResourceSource = UniffiVTableCallbackInterfaceHostResourceSource(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterTypeHostResourceSource.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface HostResourceSource: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterTypeHostResourceSource.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface HostResourceSource: handle missing in uniffiClone")
+            }
+        },
+        `open`: { (
+            uniffiHandle: UInt64,
+            name: RustBuffer,
+            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> HostResourceFile? in
+                guard let uniffiObj = try? FfiConverterTypeHostResourceSource.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try uniffiObj.`open`(
+                     name: try FfiConverterString.lift(name)
+                )
+            }
+
+            
+            let writeReturn = { uniffiOutReturn.pointee = FfiConverterOptionTypeHostResourceFile.lower($0) }
+            uniffiTraitInterfaceCallWithError(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn,
+                lowerError: FfiConverterTypeCoreError_lower
+            )
+        }
+    )
+
+    // Rust stores this pointer for future callback invocations, so it must live
+    // for the process lifetime (not just for the init function call).
+    //
+    // `nonisolated(unsafe)` is needed under Swift 6 strict concurrency.
+    // This is safe because the pointee is initialized once during static init
+    // and never mutated by either side of the FFI.  Its fields are C function pointers.
+    nonisolated(unsafe) static let vtablePtr: UnsafePointer<UniffiVTableCallbackInterfaceHostResourceSource> = {
+        let ptr = UnsafeMutablePointer<UniffiVTableCallbackInterfaceHostResourceSource>.allocate(capacity: 1)
+        ptr.initialize(to: vtable)
+        return UnsafePointer(ptr)
+    }()
+}
+
+private func uniffiCallbackInitHostResourceSource() {
+    uniffi_foundation_ui_native_fn_init_callback_vtable_hostresourcesource(UniffiCallbackInterfaceHostResourceSource.vtablePtr)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostResourceSource: FfiConverter {
+    fileprivate static let handleMap = UniffiHandleMap<HostResourceSource>()
+
+    typealias FfiType = UInt64
+    typealias SwiftType = HostResourceSource
+
+    public static func lift(_ handle: UInt64) throws -> HostResourceSource {
+        if ((handle & 1) == 0) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostResourceSourceImpl(unsafeFromHandle: handle)
+        } else {
+            // Swift-generated handle, get the object from the handle map
+            return try handleMap.remove(handle: handle)
+        }
+    }
+
+    public static func lower(_ value: HostResourceSource) -> UInt64 {
+         if let rustImpl = value as? HostResourceSourceImpl {
+             // Rust-implemented object.  Clone the handle and return it
+            return rustImpl.uniffiCloneHandle()
+         } else {
+            // Swift object, generate a new vtable handle and return that.
+            return handleMap.insert(obj: value)
+         }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostResourceSource {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: HostResourceSource, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostResourceSource_lift(_ handle: UInt64) throws -> HostResourceSource {
+    return try FfiConverterTypeHostResourceSource.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostResourceSource_lower(_ value: HostResourceSource) -> UInt64 {
+    return FfiConverterTypeHostResourceSource.lower(value)
+}
+
+
+
+
+
+
 public protocol HostTransport: AnyObject, Sendable {
     
     /**
@@ -2534,6 +3015,19 @@ public protocol NativeCoreProtocol: AnyObject, Sendable {
      */
     func requestHostDevice(device: String, surface: String?) throws  -> NativePendingLease
     
+    /**
+     * Install this application's package resource reader before the first action.
+     */
+    func installResources(source: HostResourceSource) 
+    
+    /**
+     * Open a named resource through the reader installed by the application.
+     *
+     * # Errors
+     * Returns the shared error for an invalid name, absent host, missing file, or failed open.
+     */
+    func openResource(name: String) async throws  -> NativeResourceStream
+    
 }
 open class NativeCore: NativeCoreProtocol, @unchecked Sendable {
     fileprivate let handle: UInt64
@@ -2755,6 +3249,40 @@ open func requestHostDevice(device: String, surface: String?)throws  -> NativePe
         FfiConverterOptionString.lower(surface),uniffiCallStatus
     )
 })
+}
+    
+    /**
+     * Install this application's package resource reader before the first action.
+     */
+open func installResources(source: HostResourceSource)  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativecore_install_resources(
+            self.uniffiCloneHandle(),
+        FfiConverterTypeHostResourceSource_lower(source),uniffiCallStatus
+    )
+}
+}
+    
+    /**
+     * Open a named resource through the reader installed by the application.
+     *
+     * # Errors
+     * Returns the shared error for an invalid name, absent host, missing file, or failed open.
+     */
+open func openResource(name: String)async throws  -> NativeResourceStream  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativecore_open_resource(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(name)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_u64,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_u64,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_u64,
+            liftFunc: FfiConverterTypeNativeResourceStream_lift,
+            errorHandler: FfiConverterTypeNativeResourceError_lift
+        )
 }
     
 
@@ -4098,6 +4626,148 @@ public func FfiConverterTypeNativePendingLease_lower(_ value: NativePendingLease
 
 
 /**
+ * A package stream that Swift or Kotlin can consume one chunk at a time.
+ */
+public protocol NativeResourceStreamProtocol: AnyObject, Sendable {
+    
+    /**
+     * Return the next chunk, or None at the end.
+     *
+     * # Errors
+     * Returns the package read error.
+     */
+    func nextChunk() async throws  -> Data?
+    
+}
+/**
+ * A package stream that Swift or Kotlin can consume one chunk at a time.
+ */
+open class NativeResourceStream: NativeResourceStreamProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativeresourcestream(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativeresourcestream(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Return the next chunk, or None at the end.
+     *
+     * # Errors
+     * Returns the package read error.
+     */
+open func nextChunk()async throws  -> Data?  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativeresourcestream_next_chunk(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionData.lift,
+            errorHandler: FfiConverterTypeNativeResourceError_lift
+        )
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeResourceStream: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeResourceStream
+
+    public static func lift(_ handle: UInt64) throws -> NativeResourceStream {
+        return NativeResourceStream(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeResourceStream) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeResourceStream {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeResourceStream, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeResourceStream_lift(_ handle: UInt64) throws -> NativeResourceStream {
+    return try FfiConverterTypeNativeResourceStream.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeResourceStream_lower(_ value: NativeResourceStream) -> UInt64 {
+    return FfiConverterTypeNativeResourceStream.lower(value)
+}
+
+
+
+
+
+
+/**
  * Keeps a native action sender alive across the language boundary.
  */
 public protocol NativeSenderProtocol: AnyObject, Sendable {
@@ -4815,6 +5485,112 @@ public func FfiConverterTypeNativePlatform_lower(_ value: NativePlatform) -> Rus
 
 
 /**
+ * Resource failures that retain their type across the native language boundary.
+ */
+public 
+enum NativeResourceError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
+
+    
+    
+    case InvalidName(name: String
+    )
+    case MissingHost
+    case Missing(name: String
+    )
+    case Read(name: String, reason: String
+    )
+
+    
+
+    
+
+    
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+    
+}
+
+#if compiler(>=6)
+extension NativeResourceError: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeResourceError: FfiConverterRustBuffer {
+    typealias SwiftType = NativeResourceError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeResourceError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .InvalidName(
+            name: try FfiConverterString.read(from: &buf)
+            )
+        case 2: return .MissingHost
+        case 3: return .Missing(
+            name: try FfiConverterString.read(from: &buf)
+            )
+        case 4: return .Read(
+            name: try FfiConverterString.read(from: &buf), 
+            reason: try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: NativeResourceError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case let .InvalidName(name):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(name, into: &buf)
+            
+        
+        case .MissingHost:
+            writeInt(&buf, Int32(2))
+        
+        
+        case let .Missing(name):
+            writeInt(&buf, Int32(3))
+            FfiConverterString.write(name, into: &buf)
+            
+        
+        case let .Read(name,reason):
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(name, into: &buf)
+            FfiConverterString.write(reason, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeResourceError_lift(_ buf: RustBuffer) throws -> NativeResourceError {
+    return try FfiConverterTypeNativeResourceError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeResourceError_lower(_ value: NativeResourceError) -> RustBuffer {
+    return FfiConverterTypeNativeResourceError.lower(value)
+}
+
+
+/**
  * Reports a failure to obtain the native sender for a named service.
  */
 public 
@@ -4944,6 +5720,30 @@ fileprivate struct FfiConverterOptionData: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterData.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionTypeHostResourceFile: FfiConverterRustBuffer {
+    typealias SwiftType = HostResourceFile?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeHostResourceFile.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeHostResourceFile.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -5207,6 +6007,12 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_method_nativecore_request_host_device() != 43063) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_install_resources() != 42983) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_open_resource() != 37292) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear() != 36509) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -5276,6 +6082,18 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_method_hosttransportprovider_action_transport() != 1820) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_foundation_ui_native_checksum_method_hostresourcefile_read() != 3469) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostresourcefile_close() != 44930) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostresourcesource_open() != 53020) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativeresourcestream_next_chunk() != 29116) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_foundation_ui_native_checksum_method_connectsender_exchange() != 30845) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -5311,6 +6129,8 @@ private let initializationResult: InitializationResult = {
     uniffiCallbackInitHostDeviceCompletion()
     uniffiCallbackInitHostDeviceProvider()
     uniffiCallbackInitHostHttpClient()
+    uniffiCallbackInitHostResourceFile()
+    uniffiCallbackInitHostResourceSource()
     uniffiCallbackInitHostTransport()
     uniffiCallbackInitHostTransportProvider()
     uniffiCallbackInitHttpServiceProvider()

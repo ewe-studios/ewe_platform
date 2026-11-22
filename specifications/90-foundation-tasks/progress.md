@@ -167,3 +167,6 @@ The Arm simulator build and installed host reads remain open.
 NativeCore accepts a package reader from the host before the first action.
 Swift opens a file in the application bundle. Kotlin opens an Android asset stream.
 Binding generation and integration checks are in progress.
+
+The native reader test passes for normal completion, a later read failure, and early stream disposal.
+The Swift and Kotlin binding generators both export the host reader and chunked read operation.
