@@ -315,3 +315,24 @@ worktree target and a standalone crate with its own target are safe.
 `worker` compiles only for wasm32. Put it in the `[target.'cfg(target_family = "wasm")']`
 table, as `foundation_db` does. A native `--all-features` build must not compile it.
 
+## The Linux CI under emulation (2026-11-22)
+
+The amd64 CI image runs under an arm64 Docker engine. A timing test that passes on the
+native runner can fail there. Three lessons:
+
+1. **A busy poll loop starves the rest of the binary.** The HTTP/3 tests pump two QUIC
+   drivers in a tight loop. Eight live tests each held a core, and the 1300-test binary
+   missed its 5 s handshake budget. Sleep 1 ms when both drivers report no work.
+2. **Measure a delay from the event that starts it.** The async body tests started the
+   clock after the response head, but the server started its delay when it wrote the head.
+   A slow head read ate the window. Start the clock before the request.
+3. **Wall-clock ceilings need headroom on an emulated host.** `foundation_core`'s valtron
+   wake tests use poll-count bounds to catch a spin and wall-clock ceilings to catch a
+   stall. The poll bounds are host independent; the ceilings are not. Widen the ceilings,
+   and keep the poll bound tight.
+
+The container also writes into the mounted worktree: `link-submodules.nu` registers
+submodule URLs in `.git/config` and creates `tools/emsdk` as a symlink. The git directory
+must be mounted read-write, and the symlink must be removed after a run.
+
+

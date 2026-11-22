@@ -45,6 +45,28 @@ The verification found and fixed six defects:
 The workspace manifest still warns about three unused dependencies (`anyhow`, `fs_extra`,
 `reqwest`). Issue #709 records them.
 
+### Linux CI
+
+Run with `scripts/ci/linux.sh` on the `ewestudios/ewe-platform-ci:latest` image
+(`linux/amd64` on an arm64 Docker engine):
+
+| Package | Result |
+|---|---|
+| `foundation_netio` | pass |
+| `foundation_connectrpc` | pass |
+| `foundation_http` | pass |
+| `foundation_testbed` | pass |
+| `wasm-tests` | pass; includes netio 10 of 10 and connectrpc 5 of 5 |
+
+The first run exposed test-harness defects, not product defects:
+
+- The script mounted the shared Git directory read-only, and the submodule link step
+  writes `.git/config` (#590). Fixed in `bb5ba308f`.
+- The HTTP/3 drivers busy-polled, and the body tests timed the wait from the response
+  head (#716). Fixed in `7a6880976` and `be17f02fb`.
+- The wasm wake tests used wall-clock windows too tight for an emulated host (#717).
+  Fixed in `7a6880976` and `be17f02fb`.
+
 ## The capability map (2026-11-15)
 
 Before the plan is reviewed, the owner asked for a map of what already exists across the
@@ -187,10 +209,9 @@ It does not.
 
 1. Add the T5 Durable Object fetch test under `wrangler dev --local` (#710). The feature
    compiles and CI checks it, but no test sends a request through a stub.
-2. Run the Linux CI for the changed packages.
-3. Merge master into the branch, then merge the branch into master.
-4. Close #560, #562, #563 and #565 when the branch lands. Keep #561, #564, #709 and #710
-   open.
+2. Merge the branch into master.
+3. Keep #485, #466, #561, #564, #709 and #710 open. #590, #716 and #717 are fixed on this
+   branch.
 
 ## Open questions
 
