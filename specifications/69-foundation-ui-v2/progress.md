@@ -1164,3 +1164,5 @@ The row log is `target/agent-work/todo-logs/uuid-threehost-peer.log`.
 The packaging contract assigns Todo browser module production, validation, and staging to the build. Runtime migration remains pending.
 
 Feature 27 requires the server build hook to produce the browser application and Connect bindings from a clean checkout. Implementation remains pending.
+
+Feature 32 explicitly retires the custom Todo outbox when the shared action and storage path passes its acceptance checks.

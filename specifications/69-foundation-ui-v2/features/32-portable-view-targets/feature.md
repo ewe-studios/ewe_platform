@@ -295,6 +295,11 @@ This proposal awaits owner approval.
 
 The owner confirms that a local submission action owns persistence and preview before calling the registered server action.
 Remove the Todo transport wrapper when this route passes the existing host checks.
+Retire `examples/ui_todo/src/shared/outbox.rs` and its custom storage trait, whole-map persistence, frame rewriting, and browser preparation callbacks.
+Use the host key-value service for pending records. Add and Delete host actions persist intent and render the preview before sending.
+The registered delivery action reconciles confirmed records. Retry uses the original record identifier.
+Verify restart, concurrent pending writes, duplicate delivery, and late confirmation on the replacement path.
+Check that the Todo application has no request interceptor or equivalent renamed module.
 
 Proposed framework contract:
 
