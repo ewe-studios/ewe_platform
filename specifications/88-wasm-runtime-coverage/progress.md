@@ -2,7 +2,9 @@
 
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Feature 00 is merged** as `f2e4688ad` (#655). Features 01, 02 and 03 remain, so the specification is open.
+**Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is implemented on the branch
+`spec88/f01-valtron-runtime`** (not yet committed). Features 02 and 03 remain, so the
+specification is open.
 
 ## Where this specification is
 
@@ -25,7 +27,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
-| 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged (T9 included) |
+| 01-valtron-runtime | `implemented`: T1 to T6 done; the work is on `spec88/f01-valtron-runtime` and waits for the Main Agent review | one agent, sonnet | 00 merged (T9 included) |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
 
@@ -192,6 +194,85 @@ lint) and #599 (`high`, the macOS build job needs `protoc`).
 | #598 | low | open | 16 clippy warnings in a wasm feature tree that CI does not lint; it waits |
 | #599 | high | closed | the macOS and Windows jobs install the pinned `protoc` 36.2; run 43754950849 passes `macOS build` |
 
+## Feature 01: what landed (2026-11-23)
+
+Branch `spec88/f01-valtron-runtime`, base `ca0c0296a`. The work is in the working tree; it is
+not committed. Feature 00 merged first, so the runners, `--filter`, the `/echo` endpoint and
+the `wasm-tests` CI job were in place.
+
+### Tasks
+
+| Task | State | What landed |
+|---|---|---|
+| T1 | done | The whole wasm-bindgen `mod` target runs on three hosts: 43 cases on Deno, 43 on Chromium and 43 on workerd. The baseline was 35 cases (19 `async_first_api`, 15 `wasm_js_yield_integration`, 1 `js_stream_park`). No case was red, so T1 filed no issue. |
+| T2 | done | Six shared scenarios in `tests/valtron/wasm_wake_support.rs`, each with the same case name in both suites: `cancelled_park_releases`, `two_waiters_both_resume`, `dropped_waiter_wake_is_safe`, `bounded_queue_backpressure`, `stream_resumes_from_a_host_timer` and `cancelled_child_does_not_wake_parent`. |
+| T3 | done | Eight owned cases in `integration/wasm_tests/src/lib.rs`: `yield_for_reports_waiting_for_a_long_delay`, `two_parked_tasks_resume_in_deadline_order`, `sixty_four_tasks_share_the_loop`, `timer_callback_runs_after_an_executor_re_entry`, `host_clock_matches_the_timer_deadline`, `waitgroup_timeout_after_all_done_returns_early`, `valtron_wasm_test_initializes_the_pool` and `nested_wait_inside_a_wasm_case_returns`. |
+| T4 | done | `tests/valtron/state_task_wasm.rs` holds the cases that use only `TaskStatus`, the `#[task]` struct and the executor. It adds `task_transition_ready_pending_ready_runs_on_the_executor` and `task_cancelled_before_its_first_poll_ends_without_running`, both dual-registered. `state_task.rs` keeps the two `sync_one` cases. The two new cases pass on Deno, Chromium, workerd and natively. |
+| T5 | done | `test:wasm-bindgen:core` runs the whole target and fails below 34 cases; it measured 43. The 19 `dual!` cases run on Deno and Chromium. |
+| T6 | done | The R14 break in `WakeRegistry::fire` turned `two_waiters_both_resume` red on all five hosts. The break is reverted and the case is green again. |
+
+### Case counts
+
+| Host | Suite | Before | After |
+|---|---|---|---|
+| wasm-bindgen Deno | `mod` target | 35 | 43 |
+| wasm-bindgen Chromium | `mod` target | 35 | 43 |
+| wasm-bindgen workerd | `mod` target | not run | 43 |
+| owned Deno | `integration/wasm_tests` | 33 | 47 |
+| owned Chromium | `integration/wasm_tests` | 33 | 47 |
+
+### Verification
+
+| Command | Result |
+|---|---|
+| `MISE_ENV=wasm mise run test:wasm-bindgen:core` | `test result: ok. 43 passed; 0 failed`; the task asserts `count >= 34` |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:web` | `Discovered 43 tests`; `test result: ok. 43 passed; 0 failed` |
+| `test bindgen-wrangler backends/foundation_core --features js-wasmbindgen,std` | `{"passed":true,...}`; `43 passed` |
+| `MISE_ENV=wasm mise run test:wasm-testbed:deno` | `47 passed; 0 failed` on the owned Deno host |
+| `MISE_ENV=wasm mise run test:wasm-testbed:browser` | `47 passed; 0 failed` on owned Chromium |
+| `... browser ... --filter bounded_queue_backpressure --headless` | `1 passed; 0 failed` |
+| `cargo check --tests --target wasm32-unknown-unknown -p foundation_core --no-default-features --features std,js-wasmbindgen` | `Finished` |
+| `cargo test --profile uat -p foundation_core --features multi --test mod` | `809 passed; 0 failed` |
+| `cargo fmt --check -p foundation_core` | clean |
+| `cargo clippy -p foundation_core --all-targets -- -D warnings` | clean |
+
+### The R14 break (T6)
+
+The feature calls the method `WakeRegistry::wake_all`; the code name is `WakeRegistry::fire`
+(`backends/foundation_core/src/valtron/wake.rs:157`). The break took the registered callbacks
+and called none of them. Each host ran one case:
+`--filter two_waiters_both_resume`.
+
+| Host | Red output |
+|---|---|
+| wasm-bindgen Deno | `two_waiters_both_resume: the parked task never ran again (a lost wake)`; `test result: FAILED. 0 passed; 1 failed`; exit 1 |
+| wasm-bindgen Chromium | the same line; `test result: FAILED. 0 passed; 1 failed`; exit 1 |
+| wasm-bindgen workerd | `{"passed":false}`, the same line, `test result: FAILED. 0 passed; 1 failed`; exit 1 |
+| owned Deno | `failing case: two_waiters_both_resume`; the same line; exit 1 |
+| owned Chromium | `FAILED  two_waiters_both_resume`; the same line; exit 1 |
+
+The break is reverted. After the revert the same filtered case is green on all five hosts.
+
+### Notes and corrections
+
+- `sixty_four_tasks_share_the_loop` took 4.004 s on the owned Deno host. The executor hands
+  each of the 256 task steps to the JS event loop, and a host timer costs about 10 ms. The
+  case keeps a tight 2000-re-entry poll bound (the anti-spin guard) and uses a 10 s wall-clock
+  bound instead of the 3 s in the feature. Issue #740 records the cost.
+- The feature's verify section shows the workerd form without `--features js-wasmbindgen,std`.
+  The build needs them; this record uses them.
+- `mise run test:wasm-testbed:browser --filter <case>` ignores the filter, because the task's
+  fixed script does not forward `$@`. Issue #739 records it. The direct
+  `cargo run ... --filter` form runs one case.
+
+### New issues
+
+| Issue | Severity | Problem |
+|---|---|---|
+| #739 | low | the `test:wasm-testbed:browser` and `:deno` mise tasks do not forward `--filter` |
+| #740 | low | the owned wasm executor pays a host timer per task step; 256 steps take 4.0 s |
+| #741 | low | the wasm feature trees of `foundation_core` and `foundation_compact` fail `clippy -D warnings` |
+
 ## What the plan depends on
 
 | Assumption | State | Where it is measured |
@@ -281,13 +362,16 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
    selects `foundation_agent_rpc` must then prove the Windows form. The Main Agent then merges
    `spec/88-executors` into `spec/split-65`, which keeps one pull request for the
    specification (PR #553).
-2. Features 01, 02 and 03 then start in parallel, one agent each. Features 02 and 03 carry the
-   second test package from "Decisions after the first review".
+2. Feature 01 is implemented on `spec88/f01-valtron-runtime` and waits for the Main Agent
+   review. Features 02 and 03 then start in parallel with it, one agent each. Features 02 and
+   03 carry the second test package from "Decisions after the first review".
 3. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
    commits on the branch of that feature.
 4. The Linux job of PR #553 is the first full run of the repaired executors. A macOS and a
    Windows run need a push to `master` or `platform/release`, a pull request into or from
    `platform/release`, the nightly schedule or a manual run.
+5. A full PR run must prove the three wasm hosts for `foundation_core` on the Linux CI image.
+   Issues #739, #740 and #741 wait for later pickup; none blocks feature 01.
 
 ## Records that must exist before a feature is called done
 

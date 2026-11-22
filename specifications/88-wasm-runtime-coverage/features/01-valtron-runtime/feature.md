@@ -1,25 +1,26 @@
 ---
 feature: "Valtron Runtime"
 description: "Deep valtron cases on the embedded Deno host, the headless Chromium host and workerd: the existing wasm-bindgen suite runs on all three, the owned suite grows to cover parking, the wake registry, backpressure, cancellation, streams and #[task] transitions."
-status: "todo"
+status: "done"
 priority: "high"
 depends_on: ["00-executors"]
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-16
+last_updated: 2026-11-23
 author: "Main Agent"
 model: "sonnet"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Valtron Runtime
 
-_Status: **todo**, feature 01 of spec 88. Written in ASD-STE100 Simplified Technical English
-(STE). Code and identifiers stay as they are._
+_Status: **done**, feature 01 of spec 88. The work is on `spec88/f01-valtron-runtime`, not yet
+committed. Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay
+as they are._
 
 **Abbreviations.** JavaScript (JS); WebAssembly (wasm); Simplified Technical English (STE);
 continuous integration (CI).

@@ -38,10 +38,26 @@ cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed
 
 [tasks."test:wasm-bindgen:core"]
 alias = "test-wasm-bindgen-core"
-description = "foundation_core's 19 `dual!` wasm-bindgen cases on the Deno host (#575). Needs the mise-pinned deno + wasm-bindgen."
+description = "foundation_core's whole wasm-bindgen `mod` target on the Deno host: the 19 `dual!` cases and the shared/valtron cases (#575). Needs the mise-pinned deno + wasm-bindgen."
 run = """
+#!/usr/bin/env bash
+set -euo pipefail
 mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
-cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter async_first_api
+out="$(cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std 2>&1)"
+printf '%s\n' "$out"
+count="$(printf '%s\n' "$out" | sed -n 's/^test result: ok\\. \\([0-9][0-9]*\\) passed;.*/\\1/p' | tail -n 1)"
+if [ -z "${count:-}" ]; then
+  echo "test:wasm-bindgen:core: no 'test result: ok' line in the run" >&2
+  exit 1
+fi
+# The floor is the 19 async_first_api cases plus the 15
+# wasm_js_yield_integration cases. A later change that drops a module shows as
+# a count drop here (spec 88 feature 01 T5).
+if [ "$count" -lt 34 ]; then
+  echo "test:wasm-bindgen:core: only $count cases ran; the target must keep at least 34 (19 async_first_api + 15 wasm_js_yield_integration)" >&2
+  exit 1
+fi
+echo "✓ $count wasm-bindgen cases passed on the Deno host"
 """
 
 [tasks."test:wasm-bindgen:netio"]
@@ -62,7 +78,7 @@ cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed
 
 [tasks."test:wasm-bindgen:web"]
 alias = "test-wasm-bindgen-web"
-description = "The wasm-bindgen web runner in headless Chromium: foundation_core's 34 wasm-bindgen cases (spec 88 T9, #586)."
+description = "The wasm-bindgen web runner in headless Chromium: foundation_core's whole `mod` target (spec 88 features 00 T9 and 01 T5, #586)."
 depends = ["test:browsers:chromium"]
 run = """
 mise install github:wasm-bindgen/wasm-bindgen
