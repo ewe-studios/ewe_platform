@@ -29,7 +29,7 @@ pub mod ws;
 
 pub use base::{
     body_stream_from_pipe, head_stream_from_pipe, BodyStream, ByteSink, ByteSource, HeadSource,
-    HeadStream, SendBody, Transport, TransportError, TransportStream,
+    HeadStream, SendBody, SendBodyFuture, Transport, TransportError, TransportStream,
 };
 pub use capabilities::{
     check_compatible, requirements, CallRequirements, ProtocolKind, TransportCapabilities,

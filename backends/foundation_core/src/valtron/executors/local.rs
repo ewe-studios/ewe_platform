@@ -3427,12 +3427,39 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             && self.state.time_until_next_wakeup().is_none()
     }
 
+    /// Give the JS event loop a turn after a long run of runnable steps.
+    ///
+    /// WHY: on wasm `run_until` can be called inside a host microtask (the
+    /// auto-resume driver). A runnable task that waits on JS work (a fetch
+    /// promise, a stream read) then never sees it complete while this call
+    /// holds the thread. `block_until_finished` caps its inner loop at 200
+    /// steps; this is the same budget.
+    ///
+    /// Returns `true` when the caller must stop: the yielder scheduled a host
+    /// resume and the loop must return to JS.
+    #[cfg(all(
+        target_family = "wasm",
+        any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+    ))]
+    fn yield_after_runnable_steps(&self, steps: &mut u32) -> bool {
+        *steps += 1;
+        if *steps < 200 {
+            return false;
+        }
+        *steps = 0;
+        let signal = self.yielder.yield_for(self.no_work_yield);
+        self.yielder.should_stop(&signal)
+    }
+
     /// `run_until` provides a fine-grained of the executor which allows
     /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
     /// state upon which you wish it to stop.
     ///
     /// This keeps executing the `schedule_and_do_work` until the condition
     /// with the function is true.
+    // A driver state machine: one arm per progress state. Splitting it would
+    // hide the wasm yield budget that keeps the host event loop alive.
+    #[allow(clippy::too_many_lines)]
     #[inline]
     pub fn run_until<S>(&self, checker: S)
     where
@@ -3447,6 +3474,17 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
         ))]
         let _depth = RunUntilDepth::enter();
+        // On wasm the loop must return to the JS event loop regularly: a
+        // runnable task can depend on JS work (a fetch, a stream read) that
+        // only progresses once this microtask or timer callback returns.
+        // `block_until_finished` caps its inner loop at 200 steps for the same
+        // reason; an uncapped loop starved the fetch that a framework task was
+        // waiting on (spec 88 feature 03, transport cases).
+        #[cfg(all(
+            target_family = "wasm",
+            any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+        ))]
+        let mut steps_since_yield = 0u32;
         loop {
             #[cfg(not(target_family = "wasm"))]
             crate::valtron::executors::idle_wake::checking();
@@ -3550,6 +3588,18 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             if matches!(response, ProgressIndicator::CanProgress(_))
                 && self.state.has_runnable_work()
             {
+                // A runnable task can still depend on JS work that only
+                // progresses once the event loop turns: a parked consumer that
+                // would drain a full pipe, or a fetch promise. Yield at the same
+                // 200-step budget `block_until_finished` uses, so one hot task
+                // cannot starve the host.
+                #[cfg(all(
+                    target_family = "wasm",
+                    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+                ))]
+                if self.yield_after_runnable_steps(&mut steps_since_yield) {
+                    break;
+                }
                 continue;
             }
 

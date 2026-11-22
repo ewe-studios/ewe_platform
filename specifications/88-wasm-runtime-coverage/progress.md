@@ -3,9 +3,8 @@
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
 **Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`.
-**Feature 02 is merged** as `c12e94aec`. **Feature 03 is in the working tree** on
-`spec88/f03-connectrpc-runtime`: T1 to T4, T6 and T7 are done; T5 is partial, because no
-host can run the transport cases yet (#752, #753).
+**Feature 02 is merged** as `c12e94aec`. **Feature 03 is complete** in the working tree on `spec88/f03-connectrpc-runtime`:
+T1 to T7 are done. Cases 14 to 16 now run on Deno, Chromium and workerd.
 
 ## Where this specification is
 
@@ -30,7 +29,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `done`: T1 to T6 done, reviewed and merged as `447519256` | one agent, sonnet | nothing |
 | 02-http-runtime | `done`: T1 to T6 done, reviewed and merged as `c12e94aec` | one agent, sonnet | nothing |
-| 03-connectrpc-runtime | `in progress`: T1 to T4, T6 and T7 done; T5 partial (transport cases gated on #752 and #753) | one agent, sonnet | 00 merged |
+| 03-connectrpc-runtime | `done`: T1 to T7 done; cases 1 to 17 pass on Deno, Chromium and workerd | one agent, sonnet | 00 merged |
 
 Features 01, 02 and 03 run in parallel after 00. They write different crates. 00 and 03 both
 write `foundation_testbed/src/wasm/server.rs`, first 00 (the `/echo` route), then 03 (the
@@ -395,7 +394,7 @@ target (`tests/wasm.rs`, renamed from `tests/wasm_streaming.rs`).
 | T2 | done | Cases 1 to 10: the router, the error model, the recording sink, the four stream shapes and two services. |
 | T3 | done | Cases 11 to 13 on a deterministic clock this crate supplies. The layer reads no wall clock. |
 | T4 | done | `RpcRoute` on `/connect/*` in `foundation_testbed`, on the same origin as the page. `tests/connect_server_tests.rs` has 3 native cases. |
-| T5 | **partial** | Cases 14 to 17 are written. Case 17 (capabilities) passes on all three hosts. Cases 14 to 16 skip with a named reason on every host: #752 (no Rust endpoint on Deno/workerd) and #753 (Chromium cannot stream a body to HTTP/1.1). |
+| T5 | done | Cases 14 to 17. The Deno and workerd templates answer `/connect` in JS (#752, fixed). `H1Transport` sends a fixed-length body for unary and server-streaming calls on wasm (#753, fixed). Three further defects were found and fixed: the wasm `run_until` spin (#757), the missing `Content-Length` (#758) and the fetch double-decode (#759). |
 | T6 | done | `mise.wasm.toml` has four new tasks; `scripts/ci/ci.py` checks the owned crate and runs the four hosts. |
 | T7 | done | `foundation_connectrpc` has a `wasm-fetch` feature. `integration/wasm_owned` builds without it, imports only `abi`, and runs 13 cases on Deno and 13 on Chromium. |
 
@@ -403,9 +402,9 @@ target (`tests/wasm.rs`, renamed from `tests/wasm_streaming.rs`).
 
 | Host | Harness | Cases |
 |---|---|---|
-| wasm-bindgen Deno | `test bindgen-deno` | 22 pass (transport 14 to 16 skip) |
-| wasm-bindgen Chromium | `test bindgen-web` | 22 pass (transport 14 to 16 skip) |
-| workerd | `test bindgen-wrangler` | 22 pass (transport 14 to 16 skip) |
+| wasm-bindgen Deno | `test bindgen-deno` | 22 pass |
+| wasm-bindgen Chromium | `test bindgen-web` | 22 pass |
+| workerd | `test bindgen-wrangler` | 22 pass (`{"passed":true}`) |
 | owned Deno | `deno integration/wasm_owned` | 13 pass |
 | owned Chromium | `browser integration/wasm_owned --headless` | 13 pass |
 | native `/connect` route | `cargo test -p foundation_testbed` | 3 pass |
@@ -425,7 +424,10 @@ target (`tests/wasm.rs`, renamed from `tests/wasm_streaming.rs`).
 | `cargo test -p foundation_testbed` | all suites pass; `connect_server_tests` 3 pass |
 | import measurement of the owned module | `abi.schedule_timeout`, `abi.host_report`, `abi.host_monotonic_now_ms`; no `__wbindgen_` |
 | `cargo fmt --check` for the three crates and both standalone manifests | clean |
-| `cargo clippy -p foundation_connectrpc -p foundation_testbed --all-targets --no-deps -- -D warnings` | clean |
+| `cargo clippy -p foundation_connectrpc -p foundation_netio -p foundation_testbed --all-targets --no-deps -- -D warnings` | clean |
+| `cargo clippy -p foundation_core --all-targets --no-deps -- -D warnings` | clean |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:core` | `43 passed; 0 failed` (the `run_until` change) |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:netio` | `10 passed; 0 failed` (the fetch-client change) |
 | the same clippy command without `--no-deps` | fails on 16 pre-existing `foundation_wasm` warnings (#598) |
 
 `wasm2wat` is not installed on this host. The import list came from a reader of the wasm import
@@ -453,6 +455,10 @@ The break is reverted, and the same filtered case is green on all five hosts.
 | 14 | The wasm fetch client did not set `duplex: "half"`, so Chromium refused the `Request` | set it in `build_web_request`; the spec 85 inbound case does the same | #754 (closed) |
 | 2 | The client maps a non-Connect 404 to `NotFound`, not `unimplemented` (Decision 03) | not changed; the case asserts the documented reverse mapping | #755 |
 | T7 | `rpc` pulls `auth`, and foundation_auth's wasm feature pulls `wasm-fetch` | the owned package uses no features | #756 |
+| 14-16 | A browser cannot stream a request body to an HTTP/1.1 origin | `H1Transport` sends a fixed-length body for unary and server-streaming calls; the client frames the one message | #753 (closed) |
+| 16 | The wasm `run_until` loops on runnable work inside a microtask and starves the JS event loop | yield to the host every 200 steps; the driver uses `run_until_complete` plus a host sleep | #757 (closed) |
+| 14 | The `/connect` route returned a keep-alive response with no `Content-Length`, so a browser waited forever | set `Content-Length` from the in-memory body; the native tests assert it | #758 (closed) |
+| 14 | The fetch client returned a decoded body with the stale `content-encoding` header, so the client decompressed twice | drop `content-encoding` in `response_from_web` | #759 (closed) |
 
 ### Notes and corrections
 

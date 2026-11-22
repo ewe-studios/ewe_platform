@@ -717,3 +717,101 @@ finish. Nothing is weakened: the order and the frame contents are checked.
 
 **Rule for the future.** Count the protocol's terminal frame when you assert a stream's chunk
 list.
+
+## 34. A browser cannot stream a request body to an HTTP/1.1 origin (feature 03 T5, #753)
+
+**Expected.** `H1Transport` opens one exchange for every call and pushes the request
+body through a pushable pipe. The fetch client turns that pipe into a JS
+`ReadableStream`, and Chromium uploads it.
+
+**Measured.** Chromium accepts the `Request` with `duplex: "half"` (fixed by #754)
+but rejects the fetch with `TypeError: Failed to fetch`. Chrome streams a request
+body only to HTTP/2 and HTTP/3 origins. A unary call sends one message, so the
+whole body is known before the exchange starts.
+
+**Fix.** The transport gains two defaults: `uses_fixed_request_body()` (false) and
+`open_with_body(request, body)`. `H1Transport` sets the flag on wasm and puts a
+`SendSafeBody::Bytes` body on the request, which fetch uploads with a normal
+`Content-Length`. The client pre-encodes the one request message:
+`ProtocolClient::encode_request_frame` applies the same envelope and compression
+the streaming writer uses. Unary and server-streaming calls use it; client and bidi
+streams keep the pushable pipe. Native HTTP/1.1 keeps the streamed body, because
+its tests assert a chunked upload.
+
+**Rule for the future.** A wasm host's fetch exports one request body per call at
+open time when the call sends one message. Do not assume a `ReadableStream` body
+works on an HTTP/1.1 origin.
+
+## 35. The wasm `run_until` starves the JS event loop under runnable work (#757)
+
+**Expected.** Drive the client with `run_once` plus a `setTimeout(0)` yield per
+turn, as the old test driver did.
+
+**Measured.** `h1_transport_server_stream_delivers_frames` (case 16) stopped after
+turn 2. The Deno process sat at 92-98% CPU for more than three minutes. A sample
+showed V8 running microtasks continuously, so no timer fired. An instrumented
+panic in `run_until` reported `runnable=true sleepers=2 next=None`: the JS
+auto-resume driver (`js_yield_and_continue` -> `run_until(js_should_stop)`) loops
+on a runnable task with no step budget, inside one microtask.
+
+`block_until_finished` already caps its inner loop at 200 steps for this reason.
+`run_until` did not.
+
+**Fix.** `run_until` yields to the host after 200 consecutive
+`CanProgress`-with-runnable steps on wasm. The test driver now puts the call on the
+engine with `from_future` and loops `run_until_complete()` plus a 1 ms host sleep,
+the same pattern the `js-wasmbindgen` yield tests use.
+
+**Rule for the future.** On wasm, a driver that runs inside a microtask or timer
+must bound its steps and return to the host. An unbounded run loop freezes the
+work it waits on.
+
+## 36. A keep-alive response needs `Content-Length` (#758)
+
+**Expected.** The browser case 14 reaches the Rust `/connect` route and decodes the
+answer.
+
+**Measured.** The fetch promise never resolved: the case spent all 4,000 turns
+(22.7 s) and failed. The route returns `ServeOutcome::Keep`, but the router's
+in-memory response carries no `Content-Length`, and the renderer adds none. A
+browser cannot tell where a kept-alive body ends. The native route tests sent
+`Connection: close`, so they read to EOF and missed it.
+
+**Fix.** `RpcRoute::serve` sets `Content-Length` from the in-memory body (0 for a
+route miss). `tests/connect_server_tests.rs` asserts the header in all three cases.
+
+**Rule for the future.** A kept-alive HTTP/1.1 response states its body length.
+A test that closes the connection cannot prove a browser can read it.
+
+## 37. A fetch response body is already decoded (#759)
+
+**Expected.** The Chromium unary case decodes the echoed message.
+
+**Measured.** `[invalid_argument] gzip: decompress failed: unexpected end of file`.
+The browser adds `Accept-Encoding`, the route gzips the unary answer, and fetch
+decodes the body. `Response.headers()` still holds `content-encoding: gzip`, so the
+Connect client decompressed the plain body a second time.
+
+**Fix.** `response_from_web` drops `content-encoding` from the typed headers,
+because the fetch body is always decoded. Connect streaming compression uses
+`connect-content-encoding` and is not affected.
+
+**Rule for the future.** A fetch client reports the body it received (decoded), and
+its headers must match that body.
+
+## 38. The Deno and workerd hosts answer `/connect` in JS (#752)
+
+**Measured.** The bindgen-deno runner stages files and runs the suite from its own
+`Deno.serve` server. The bindgen-wrangler runner re-enters the worker for a
+self-fetch. Neither host has the Rust server or its `/connect` route, and a workerd
+fetch to an arbitrary `127.0.0.1` port may be refused.
+
+**Fix.** Each template answers a real Connect request for the three procedures,
+with the same status, content type and envelope bytes as the Rust route: a unary
+echo, an `invalid_argument` error, and three frame messages plus the `0x02`
+EndStream frame. Each sets `__FWT_RPC_BASE_URL__` to its own origin, and the case
+helper reads it. This is a routed answer, not a stub: the case still parses the
+Connect protocol end to end.
+
+**Rule for the future.** A wasm host that has no Rust server answers the protocol
+itself. Mirror the Rust route's wire bytes and keep the case parsing them.

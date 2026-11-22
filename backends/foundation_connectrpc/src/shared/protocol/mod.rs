@@ -234,6 +234,25 @@ pub trait ProtocolClient: Send + Sync {
     /// protocol sets the corresponding flag (gRPC → envelope flags bit 0x01,
     /// Connect → already set as `Content-Encoding` by the caller).
     fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes;
+    /// Encode one request message exactly as the streaming writer sends it: one
+    /// envelope, compressed under the call's policy, and base64-encoded for a
+    /// text gRPC-Web call.
+    ///
+    /// WHY: a server-streaming call sends exactly one request message and then
+    /// half-closes. A transport that cannot stream a request body on this host
+    /// (a browser `fetch` to an HTTP/1.1 origin, issue #753) takes the complete
+    /// body when the exchange opens, so the client frames it here.
+    ///
+    /// # Errors
+    /// A trace when the frame cannot be encoded, compressed, or sent within
+    /// `send_max_bytes`.
+    fn encode_request_frame(
+        &self,
+        frame: Bytes,
+        send_compressor: Option<Arc<dyn Compressor>>,
+        compress_min_bytes: usize,
+        send_max_bytes: usize,
+    ) -> ConnectResult<Bytes>;
     /// Decode the raw response body bytes into message-level bytes for a
     /// **unary** call. Protocol-specific unwrapping — Connect is the identity
     /// (bare bytes), gRPC and gRPC-Web strip the 5-byte envelope frame.

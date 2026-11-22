@@ -171,6 +171,50 @@ pub trait Transport: Send + Sync + 'static {
     /// Returns `TransportError` if the pump task cannot be spawned (e.g. pool not
     /// initialised) or if building the request fails synchronously.
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
+
+    /// Whether this transport must receive a complete request body instead of a
+    /// stream on this host.
+    ///
+    /// WHY (issue #753): a browser `fetch` cannot stream a request body to an
+    /// HTTP/1.1 origin; Chromium rejects the fetch with `TypeError: Failed to
+    /// fetch`. A unary or server-streaming call sends exactly one message, so the
+    /// client holds the whole body before the exchange starts. This flag tells the
+    /// client to encode that message itself and pass it to [`Self::open_with_body`].
+    ///
+    /// Default `false`: every transport that can stream keeps its stream.
+    fn uses_fixed_request_body(&self) -> bool {
+        false
+    }
+
+    /// Open an exchange whose complete request body is `body`.
+    ///
+    /// WHY: the client knows the whole request body for a unary or
+    /// server-streaming call, and a transport on a host that cannot stream sends
+    /// it with a known length instead (issue #753).
+    ///
+    /// WHAT: the default keeps the streaming path: open the exchange, push the
+    /// body, then half-close. A transport that needs a fixed body overrides this
+    /// and puts `body` on the request at open time.
+    ///
+    /// # Errors
+    ///
+    /// The same errors as [`Self::open`], plus a full request-body pipe.
+    fn open_with_body(
+        &self,
+        request: RequestDescriptor,
+        body: Bytes,
+    ) -> Result<TransportStream, TransportError> {
+        let stream = self.open(request)?;
+        if !body.is_empty() {
+            stream.send_body.try_send(body).map_err(|()| {
+                TransportError::Io(Arc::new(std::io::Error::other(
+                    "the transport request body pipe is full",
+                )))
+            })?;
+        }
+        stream.send_body.close();
+        Ok(stream)
+    }
 }
 
 /// A live transport exchange (F45 Part D, design D1). Four caller-facing halves.

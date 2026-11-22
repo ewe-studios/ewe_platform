@@ -363,32 +363,84 @@ pub fn host() -> Host {
     Host::Browser
 }
 
-/// The origin of the Rust testbed server, when the host has one.
+/// The origin of the Connect endpoint the host serves, when it has one.
 ///
-/// A browser page loads from the Rust server, so `location.origin` is the
-/// endpoint. The web template also sets `__FWT_BASE_URL__` to that origin.
-/// The Deno and workerd templates point that global at a different server, so
-/// the transport cases skip those hosts and name the issue.
+/// Every wasm host serves the endpoint (spec 88 feature 03, issue #752):
+///
+/// - the browser page loads from the Rust testbed server, so `location.origin`
+///   is the endpoint;
+/// - the Deno template answers `/connect` from its own `Deno.serve` server;
+/// - the worker answers `/connect` from its own fetch handler.
+///
+/// Each template publishes the origin as `__FWT_RPC_BASE_URL__`. The global
+/// `__FWT_BASE_URL__` and the page origin are fallbacks for a host that sets
+/// only those.
+#[must_use]
 pub fn rpc_base_url() -> Option<String> {
-    match host() {
-        Host::Browser => {
-            let global = js_sys::global();
-            js_sys::Reflect::get(
-                &global,
-                &wasm_bindgen::JsValue::from_str("__FWT_BASE_URL__"),
-            )
+    let global = js_sys::global();
+    let read = |name: &str| {
+        js_sys::Reflect::get(&global, &wasm_bindgen::JsValue::from_str(name))
             .ok()
             .and_then(|value| value.as_string())
-            .or_else(|| web_sys::window().and_then(|window| window.location().origin().ok()))
-        }
-        Host::Deno | Host::Workerd => None,
-    }
+    };
+    read("__FWT_RPC_BASE_URL__")
+        .or_else(|| read("__FWT_BASE_URL__"))
+        .or_else(|| web_sys::window().and_then(|window| window.location().origin().ok()))
 }
 
-// ── a small bounded wait, for the client to settle ──────────────────────────
+/// Drive `future` on the valtron engine until it finishes, on the wasm host.
+///
+/// WHY: `H1Transport::open` schedules its exchange pump on the valtron engine
+/// (`valtron::send`), and a server-streaming call also spawns its protocol
+/// reader/writer tasks there. An async test future alone does not drive that
+/// engine. `valtron::execute` cannot drive it from a wasm-bindgen test body: it
+/// hangs under the Deno runner (foundation_netio `tests/wasm/websocket.rs`,
+/// #565).
+///
+/// HOW: put the call on the engine as one `from_future` task whose output goes
+/// into a shared slot. Each turn calls `run_until_complete`, which is the
+/// engine's own driver: it returns to the JS event loop once every task is
+/// parked instead of spinning. The host sleep between turns lets a fetch
+/// promise settle and its resume microtask run. This is the same pattern the
+/// `js-wasmbindgen` yield tests use (`foundation_core/tests/valtron/
+/// wasm_js_yield_integration.rs`).
+///
+/// # Errors
+/// Returns the engine's scheduling error, or a timeout message.
+pub async fn drive_on_valtron<T: 'static>(
+    future: impl Future<Output = T> + 'static,
+) -> Result<T, String> {
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
-/// Yield to the host once, so its fetch or timer callbacks can run.
-pub async fn yield_host_turn() {
+    let _guard = foundation_core::valtron::initialize_pool(7, None);
+
+    let slot: Rc<RefCell<Option<T>>> = Rc::new(RefCell::new(None));
+    let slot_task = Rc::clone(&slot);
+    let task = foundation_core::valtron::from_future(async move {
+        *slot_task.borrow_mut() = Some(future.await);
+    });
+    foundation_core::valtron::send(task)
+        .map_err(|error| format!("the valtron engine did not accept the call: {error}"))?;
+
+    // Each turn drives the engine to its parked state and then yields to the
+    // host. 4,000 turns is far more than a loopback fetch needs, and it still
+    // fails instead of hanging (rule R4).
+    for _ in 0..4_000 {
+        foundation_core::valtron::single::run_until_complete();
+        if let Some(value) = slot.borrow_mut().take() {
+            return Ok(value);
+        }
+        sleep_host_ms(1).await;
+    }
+    Err("the transport call did not finish within 4,000 engine turns".to_string())
+}
+
+/// Resolve after `ms` on the JS event loop (`setTimeout` on the global object,
+/// so it works in Deno, browsers and Workers alike).
+pub async fn sleep_host_ms(ms: i32) {
+    use wasm_bindgen::JsCast as _;
+
     let promise = js_sys::Promise::new(&mut |resolve, _reject| {
         let global = js_sys::global();
         let set_timeout =
@@ -397,54 +449,14 @@ pub async fn yield_host_turn() {
                 .dyn_into::<js_sys::Function>()
                 .expect("setTimeout is a function");
         set_timeout
-            .call2(&global, &resolve, &wasm_bindgen::JsValue::from_f64(0.0))
+            .call2(
+                &global,
+                &resolve,
+                &wasm_bindgen::JsValue::from_f64(f64::from(ms)),
+            )
             .expect("setTimeout");
     });
     let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
-}
-
-// A helper the crate uses, kept here so the case file does not repeat it.
-use wasm_bindgen::JsCast as _;
-
-/// Await `future` while also driving the valtron engine, on the wasm host.
-///
-/// WHY: `H1Transport::open` schedules its exchange task on the valtron engine
-/// (`valtron::send`). An async test future alone does not drive that engine.
-/// `valtron::execute` cannot drive it from a wasm-bindgen test body: it hangs
-/// under the Deno runner (foundation_netio `tests/wasm/websocket.rs`, #565).
-///
-/// HOW: poll the future, step the engine with `run_once`, then yield to the
-/// host. The host turn lets a fetch promise settle. A no-op waker is enough
-/// because the loop polls every turn.
-///
-/// # Errors
-/// Returns the engine's scheduling error, or a timeout message.
-pub async fn drive_on_valtron<T: 'static>(
-    future: impl Future<Output = T> + 'static,
-) -> Result<T, String> {
-    use foundation_core::valtron::ProgressIndicator;
-    use std::task::{Context, Poll};
-
-    let _guard = foundation_core::valtron::initialize_pool(7, None);
-    let mut future = Box::pin(future);
-    let waker = futures::task::noop_waker();
-    let mut task_cx = Context::from_waker(&waker);
-
-    // Each turn is one host timer. 4,000 turns is far more than a loopback
-    // fetch needs, and it still fails instead of hanging (rule R4).
-    for _ in 0..4_000 {
-        if let Poll::Ready(value) = future.as_mut().poll(&mut task_cx) {
-            return Ok(value);
-        }
-        for _ in 0..64 {
-            match foundation_core::valtron::single::run_once() {
-                ProgressIndicator::NoWork | ProgressIndicator::Wait => break,
-                ProgressIndicator::CanProgress(_) | ProgressIndicator::SpinWait(_) => {}
-            }
-        }
-        yield_host_turn().await;
-    }
-    Err("the transport call did not finish within 4,000 host turns".to_string())
 }
 
 /// The remaining time to a call deadline, in milliseconds, as the handler reads

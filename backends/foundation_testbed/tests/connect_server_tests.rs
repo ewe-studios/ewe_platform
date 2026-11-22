@@ -76,6 +76,19 @@ fn init_runtime() {
     foundation_browser::runtime::ensure_runtime(None);
 }
 
+/// The `content-length` header of an answer, when it is present.
+fn content_length(answer: &Answer) -> Option<usize> {
+    for line in answer.headers.lines() {
+        let Some((name, value)) = line.split_once(':') else {
+            continue;
+        };
+        if name.trim().eq_ignore_ascii_case("content-length") {
+            return value.trim().parse().ok();
+        }
+    }
+    None
+}
+
 /// A Connect streaming request envelope around one message.
 fn enveloped(message: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(5 + message.len());
@@ -115,6 +128,12 @@ fn connect_unary_answers_with_the_echoed_message() {
         answer.headers
     );
     assert_eq!(
+        content_length(&answer),
+        Some(answer.body.len()),
+        "a keep-alive response declares its body length: {}",
+        answer.headers
+    );
+    assert_eq!(
         answer.body,
         b"echo:hello".to_vec(),
         "the handler's message reaches the client"
@@ -147,6 +166,12 @@ fn connect_handler_error_carries_its_code() {
         Some("invalid_argument"),
         "the error keeps its code: {wire}"
     );
+    assert_eq!(
+        content_length(&answer),
+        Some(answer.body.len()),
+        "an error response declares its body length: {}",
+        answer.headers
+    );
 }
 
 #[test]
@@ -168,6 +193,12 @@ fn connect_server_stream_writes_every_frame_in_order() {
         answer.status.starts_with("HTTP/1.1 200"),
         "the stream route answers 200: {}",
         answer.status
+    );
+    assert_eq!(
+        content_length(&answer),
+        Some(answer.body.len()),
+        "a collected stream declares its body length: {}",
+        answer.headers
     );
     let mut body = answer.body.as_slice();
     let mut messages = Vec::new();

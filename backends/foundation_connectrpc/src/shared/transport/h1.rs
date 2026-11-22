@@ -17,17 +17,21 @@
 
 use std::sync::Arc;
 
+use bytes::Bytes;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::shared::client::request_task::HttpExchange;
+#[cfg(target_family = "wasm")]
+use foundation_netio::shared::http::SendSafeBody;
 use foundation_netio::shared::http::{
     pushable_request_body_with_readiness, HttpClientError, Proto, RequestDescriptor, SimpleHeader,
-    SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
+    SimpleHeaders, SimpleMethod, DEFAULT_PUSHABLE_DEPTH,
 };
-use foundation_netio::DynNetClient;
-use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequest, PreparedRequestBuilder};
 
+#[cfg(target_family = "wasm")]
+use super::SendBodyFuture;
 use super::{
-    BodyStream, ByteSink, HeadStream, Transport, TransportCapabilities, TransportError,
+    BodyStream, ByteSink, HeadStream, SendBody, Transport, TransportCapabilities, TransportError,
     TransportStream,
 };
 
@@ -47,38 +51,18 @@ impl H1Transport {
     pub fn new(client: DynNetClient) -> Self {
         Self { client }
     }
-}
 
-impl Default for H1Transport {
-    fn default() -> Self {
-        // `HttpClientBuilder::build()` returns the platform's default
-        // `DynNetClient` (native pool client or wasm fetch client). The
-        // transport stays free of any native/wasm cfg gating (F51 de-leak).
-        Self::new(HttpClientBuilder::new().build())
-    }
-}
-
-impl Transport for H1Transport {
-    fn capabilities(&self) -> TransportCapabilities {
-        TransportCapabilities {
-            request_streaming: true,
-            full_duplex: false,
-            h2_trailers: false,
-            http_versions: &[Proto::HTTP11],
-            multiplexed: false,
-        }
-    }
-
-    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let url_str = request_url_string(&request);
+    /// The URL, method and headers of an outgoing request.
+    ///
+    /// HTTP/1.1 requires a `Host` header (RFC 9112 §3.2), but the typed `Client`
+    /// builds the request from a URI and leaves `Host` to the transport.
+    /// Synthesise it from the request URI when absent — mirroring
+    /// `ClientRequestBuilder::new` — so a caller behind a host-routing
+    /// intermediary (e.g. the proxy) is not misrouted.
+    fn request_parts(request: &RequestDescriptor) -> (String, SimpleMethod, SimpleHeaders) {
+        let url_str = request_url_string(request);
         let method = request.method.clone();
         let mut headers = request.headers.clone();
-
-        // HTTP/1.1 requires a `Host` header (RFC 9112 §3.2), but the typed
-        // `Client` builds the request from a URI and leaves `Host` to the
-        // transport. Synthesise it from the request URI when absent — mirroring
-        // `ClientRequestBuilder::new` — so a caller behind a host-routing
-        // intermediary (e.g. the proxy) is not misrouted.
         let uri = &request.request_uri;
         headers.entry(SimpleHeader::HOST).or_insert_with(|| {
             let host = uri.host_str().unwrap_or_default();
@@ -87,22 +71,18 @@ impl Transport for H1Transport {
                 None => host,
             }]
         });
+        (url_str, method, headers)
+    }
 
-        let (pushable, body_stream, readiness) =
-            pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
-        let send_body: ByteSink = pushable.into_sender();
-
-        // `headers` replaces the builder's own headers; it already carries
-        // `Host` (above). `body` sets the streamed body without adding headers.
-        let prepared = PreparedRequestBuilder::new(method, &url_str)
-            .map_err(|e| {
-                http_to_transport_error(HttpClientError::Reason(format!("invalid URL: {e}")))
-            })?
-            .headers(headers)
-            .body(body_stream)
-            .with_body_readiness(readiness)
-            .build();
-
+    /// Start the exchange pump for `prepared` and split its output.
+    ///
+    /// `send_body` is the caller-facing request-body sink: the streaming pipe
+    /// for [`Transport::open`], or a closed sink when the body went out whole.
+    fn start(
+        &self,
+        prepared: PreparedRequest,
+        send_body: Arc<dyn SendBody>,
+    ) -> Result<TransportStream, TransportError> {
         // F51: the client owns the pool, resolver, and config — the transport
         // just asks for the task; it never reaches into the client internals.
         let pump = self.client.open_exchange(prepared);
@@ -160,11 +140,142 @@ impl Transport for H1Transport {
         let _ = trailer_tx.close();
 
         Ok(TransportStream {
-            send_body: Arc::new(send_body),
+            send_body,
             head,
             recv_body,
             trailers: trailer_rx,
         })
+    }
+
+    /// Open an exchange whose complete request body is `body`.
+    ///
+    /// WHY (issue #753): a browser `fetch` cannot stream a request body to an
+    /// HTTP/1.1 origin. A `SendSafeBody::Bytes` body makes fetch perform a
+    /// normal, fixed-length upload, which every host accepts.
+    ///
+    /// The returned stream's `send_body` is closed: the body is already on the
+    /// request, so a later push would send a second body.
+    #[cfg(target_family = "wasm")]
+    fn open_fixed(
+        &self,
+        request: RequestDescriptor,
+        body: Bytes,
+    ) -> Result<TransportStream, TransportError> {
+        let (url_str, method, headers) = Self::request_parts(&request);
+        let body = if body.is_empty() {
+            SendSafeBody::None
+        } else {
+            SendSafeBody::Bytes(body.to_vec())
+        };
+        let prepared = PreparedRequestBuilder::new(method, &url_str)
+            .map_err(|e| {
+                http_to_transport_error(HttpClientError::Reason(format!("invalid URL: {e}")))
+            })?
+            .headers(headers)
+            .body(body)
+            .build();
+        self.start(prepared, Arc::new(ClosedSendBody))
+    }
+}
+
+/// A request-body sink for an exchange whose body was sent at open time.
+///
+/// It is closed from the start, so a later push fails instead of sending a
+/// second body (issue #753).
+#[cfg(target_family = "wasm")]
+struct ClosedSendBody;
+
+#[cfg(target_family = "wasm")]
+impl SendBody for ClosedSendBody {
+    fn try_send(&self, _item: Bytes) -> Result<(), ()> {
+        Err(())
+    }
+
+    fn send_async(&self, _item: Bytes) -> SendBodyFuture<'_> {
+        Box::pin(async { Err(()) })
+    }
+
+    fn close(&self) {}
+
+    fn is_closed(&self) -> bool {
+        true
+    }
+}
+
+impl Default for H1Transport {
+    fn default() -> Self {
+        // `HttpClientBuilder::build()` returns the platform's default
+        // `DynNetClient` (native pool client or wasm fetch client). The
+        // transport stays free of any native/wasm cfg gating (F51 de-leak).
+        Self::new(HttpClientBuilder::new().build())
+    }
+}
+
+impl Transport for H1Transport {
+    fn capabilities(&self) -> TransportCapabilities {
+        TransportCapabilities {
+            request_streaming: true,
+            full_duplex: false,
+            h2_trailers: false,
+            http_versions: &[Proto::HTTP11],
+            multiplexed: false,
+        }
+    }
+
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
+        let (url_str, method, headers) = Self::request_parts(&request);
+
+        let (pushable, body_stream, readiness) =
+            pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
+        let send_body: ByteSink = pushable.into_sender();
+
+        // `headers` replaces the builder's own headers; it already carries
+        // `Host` (above). `body` sets the streamed body without adding headers.
+        let prepared = PreparedRequestBuilder::new(method, &url_str)
+            .map_err(|e| {
+                http_to_transport_error(HttpClientError::Reason(format!("invalid URL: {e}")))
+            })?
+            .headers(headers)
+            .body(body_stream)
+            .with_body_readiness(readiness)
+            .build();
+
+        self.start(prepared, Arc::new(send_body))
+    }
+
+    /// A browser cannot stream a request body to an HTTP/1.1 origin (#753), so
+    /// the wasm transport sends the complete body with a known length.
+    fn uses_fixed_request_body(&self) -> bool {
+        cfg!(target_family = "wasm")
+    }
+
+    #[cfg(target_family = "wasm")]
+    fn open_with_body(
+        &self,
+        request: RequestDescriptor,
+        body: Bytes,
+    ) -> Result<TransportStream, TransportError> {
+        self.open_fixed(request, body)
+    }
+
+    #[cfg(not(target_family = "wasm"))]
+    fn open_with_body(
+        &self,
+        request: RequestDescriptor,
+        body: Bytes,
+    ) -> Result<TransportStream, TransportError> {
+        // Native HTTP/1.1 streams a request body well, so keep the streamed
+        // exchange: open it, push the whole body, then half-close.
+        let stream = self.open(request)?;
+        if !body.is_empty() {
+            stream.send_body.try_send(body).map_err(|()| {
+                TransportError::Io(Arc::new(std::io::Error::other(
+                    "the transport request body pipe is full",
+                )))
+            })?;
+        }
+        stream.send_body.close();
+        Ok(stream)
     }
 }
 

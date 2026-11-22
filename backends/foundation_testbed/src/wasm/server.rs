@@ -305,14 +305,33 @@ impl Serve for RpcRoute {
                 }
             }
             let mut response = handler.dispatch(ctx.clone(), request).await;
+            // The HTTP/1.1 renderer writes the headers it is given. The router's
+            // in-memory response carries no body length, so a keep-alive client
+            // cannot tell where the body ends: a browser fetch waits forever.
+            // `dispatch` always collects a body in memory, so its length is known.
+            let body_len = match response.body.as_ref() {
+                None | Some(SendSafeBody::None) => 0,
+                Some(SendSafeBody::Bytes(bytes)) => bytes.len(),
+                Some(SendSafeBody::Text(text)) => text.len(),
+                Some(_) => {
+                    tracing::error!(
+                        "connect route produced a streaming body for in-memory dispatch"
+                    );
+                    return ServeOutcome::Close(None);
+                }
+            };
             // The HTTP/1.1 renderer requires a header. A route miss from the
-            // router carries none, so add the framing header the connection uses.
+            // router carries none, so add the framing headers the connection uses.
             if response.headers.is_empty() {
                 response.headers.insert(
                     foundation_http::SimpleHeader::CONNECTION,
                     vec!["keep-alive".to_string()],
                 );
             }
+            response
+                .headers
+                .entry(foundation_http::SimpleHeader::CONTENT_LENGTH)
+                .or_insert_with(|| vec![body_len.to_string()]);
             let bytes = match render_message(response) {
                 Ok(bytes) => bytes,
                 Err(error) => {

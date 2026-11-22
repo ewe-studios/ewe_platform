@@ -885,32 +885,21 @@ async fn handler_sees_the_remaining_deadline() {
 
 // ── cases 14 to 16: the transport ──────────────────────────────────────────
 
-/// The RPC base URL, or a skip that names the reason and the issue.
+/// The Connect base URL the host serves, or a skip that names the reason.
 ///
-/// Measured on 2026-11-23 (feature 03 T5):
-/// - the Deno and workerd hosts start no Rust server, so no `/connect` route
-///   exists on the origin they hand the suite (issue #752);
-/// - Chromium rejects a `fetch` whose body is a `ReadableStream` on this
-///   HTTP/1.1 origin with `TypeError: Failed to fetch`. `H1Transport` always
-///   sends a streaming body, so the call cannot start (issue #753).
+/// Every wasm host serves the endpoint (issue #752): the browser loads from the
+/// Rust testbed server, the Deno template answers `/connect` from its own
+/// server, and the worker answers it from its own fetch handler. A host that
+/// sets no base URL skips with the reason instead of failing.
 fn transport_base() -> Option<String> {
-    match host() {
-        foundation_connectrpc_wasm_tests::Host::Deno
-        | foundation_connectrpc_wasm_tests::Host::Workerd => {
-            web_sys::console::log_1(&JsValue::from_str(&format!(
-                "skipped: the {:?} host starts no Rust /connect endpoint (issue #752)",
-                host()
-            )));
-            None
-        }
-        foundation_connectrpc_wasm_tests::Host::Browser => {
-            let _ = rpc_base_url();
-            web_sys::console::log_1(&JsValue::from_str(
-                "skipped: this browser cannot stream a request body to an HTTP/1.1 origin (issue #753)",
-            ));
-            None
-        }
+    let base = rpc_base_url();
+    if base.is_none() {
+        web_sys::console::log_1(&JsValue::from_str(&format!(
+            "skipped: the {:?} host set no Connect base URL (__FWT_RPC_BASE_URL__)",
+            host()
+        )));
     }
+    base
 }
 
 fn build_client(base: &str, procedure: &str) -> Client<Vec<u8>, Vec<u8>> {

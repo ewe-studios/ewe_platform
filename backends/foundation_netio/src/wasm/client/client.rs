@@ -40,7 +40,7 @@ use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::ClientConfig;
 use crate::shared::http::{
-    HttpClientError, LineFeed, SendSafeBody, SimpleMethod, SimpleResponse, Status,
+    HttpClientError, LineFeed, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse, Status,
 };
 
 use super::headers::{simple_headers_to_web_sys, web_sys_headers_to_simple};
@@ -384,7 +384,12 @@ pub(crate) fn response_from_web(
     max_body_size: Option<usize>,
 ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
     let status = Status::from(resp.status().to_string());
-    let headers = web_sys_headers_to_simple(&resp.headers());
+    let mut headers = web_sys_headers_to_simple(&resp.headers());
+    // A fetch response body is already decoded: the host applies
+    // `Content-Encoding` and hands the caller plain bytes. Drop the stale header
+    // so a typed caller does not decompress the body a second time (measured on
+    // Chromium against the testbed's gzip response, spec 88 feature 03 case 14).
+    headers.remove(&SimpleHeader::from("content-encoding".to_string()));
 
     let body = match resp.body() {
         Some(stream) => SendSafeBody::Stream(Some(Box::new(WasmByteStream::new(
