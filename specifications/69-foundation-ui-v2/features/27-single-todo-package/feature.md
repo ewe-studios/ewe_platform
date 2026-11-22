@@ -208,7 +208,12 @@ The build produces a complete directory before the server starts.
 - Keep runtime source paths, Cargo output lookup, rebuild directives, and file comparison logic inside the owning providers.
 - Declare the version file as a generated resource. Its provider owns the write.
 - Verify that the example uses public build dependencies and has no cross-crate source inclusion.
-- Build the browser target and generated client before staging. Keep nested Cargo builds out of the server build script.
+- Calling the packaging hook from the server's `build.rs` must produce missing browser artifacts during an ordinary Cargo build.
+- The browser provider builds the app module. The Connect provider builds its browser module and generates its JavaScript bindings with `wasm-bindgen`.
+- The resource provider generates its browser bindings through the same build sequence. Stage all generated imports with their modules.
+- Keep the explicit service schema call for the Todo service. It serves a different purpose from the Connect browser transport build.
+- Expose the same producer implementations as importable framework tasks. Make native verification call them.
+- Retire `examples/ui_todo/build-module.sh` and its callers once the clean build test passes.
 - Track all staging inputs. Support custom Cargo target directories, target triples, profiles, and repeated builds.
 - Stage the page, application script, theme, runtime files, both bundles, browser module, and generated client dependencies.
 - The build task compiles the Todo browser module. The JavaScript bundler produces the runtime scripts.
@@ -249,3 +254,7 @@ The mobile packages exclude the browser script. Specification 90 Feature 3 recor
 Verify that both relocated builds serve `/module.wasm` with status 200 and media type `application/wasm`.
 Compare the response bytes with the browser build output. Start the application in Chrome and trigger a local action.
 Repeat with a missing module and an invalid module header. Verify that each build fails before packaging.
+
+Start with an empty Cargo target directory and no generated browser files. Build the Todo server using Cargo alone.
+Start the result and call the generated Connect service from Chrome. Verify that all imported modules load.
+Repeat after changing a producer input. Check that the build completes without recursive invocation or a shared Cargo target lock.

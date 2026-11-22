@@ -65,7 +65,7 @@ Allow target restrictions for files such as the browser bootstrap module.
 1. Resolve inputs against the declaring package or a registered generator output.
 2. Reject missing inputs, duplicate names, path escapes, and conflicting names on case-insensitive platforms.
 3. Track declared directories, files, generator outputs, and relevant environment values for Cargo rebuilds.
-4. Run producers before staging. Use the existing task graph for builds that require a different compiler target.
+4. Let the Cargo build hook invoke required cross-target producers before staging. Reuse those producers in framework tasks.
 5. Register target-specific packaging inputs through the template or installer. Define build ordering for ordinary Xcode and Gradle builds.
 6. Isolate concurrent builds by application, output target, and profile. Share a complete staged tree only after successful production.
 7. Remove stale managed files after a rename or deletion. Preserve all user-owned files.
@@ -105,3 +105,7 @@ Accept existing resource declarations without requiring the caller to list their
 Return build failures to Cargo with the input name and failed operation.
 Verify the contract with an external consumer. Its build script invokes the public hook and propagates its result.
 Require the same consumer script to package development and release assets through the supported build entry points.
+
+The hook builds missing application, Connect browser transport, and resource artifacts on demand.
+Providers isolate cross-target Cargo outputs and suppress server packaging when compiling the browser target.
+External consumers need no shell script, prepared browser directory, or separate task invocation before Cargo builds the server.
