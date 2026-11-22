@@ -1,22 +1,28 @@
 # Spec 85 Progress: Wasm HTTP Streaming
 
-_Last updated: 2026-11-15._
+_Last updated: 2026-11-22._
 
 ## Status at a glance
 
 | Task | State |
 |---|---|
-| T1 — `WasmByteStream`, the streaming response body of the wasm client, `body_queue_chunks` | ⬜ Pending |
-| T2 — `open_exchange` passes `self`; the exchange task calls that client; `WASM_FETCH_CAPABILITIES` | ⬜ Pending |
-| T3 — `streaming_response_with(status, headers, body)` | ⬜ Pending |
-| T4 — the streaming inbound body in both bridges, and the connectrpc `ResponseSink` | ⬜ Pending |
-| T5 — `StubHttpClient` over `worker::Stub`, behind the `cloudflare` feature | ⬜ Pending |
-| T6 — the `mise.wasm.toml` netio task and its `scripts/ci/ci.py` step, the standalone `foundation_connectrpc` test crate, and the fix for #565 | ⬜ Pending |
+| T1 — `WasmByteStream`, the streaming response body of the wasm client, `body_queue_chunks` | ✅ Done |
+| T2 — `open_exchange` passes `self`; the exchange task calls that client; `WASM_FETCH_CAPABILITIES` | ✅ Done |
+| T3 — `streaming_response_with(status, headers, body)` | ✅ Done |
+| T4 — the streaming inbound body in both bridges, and the connectrpc `ResponseSink` | ✅ Done |
+| T5 — `StubHttpClient` over `worker::Stub`, behind the `cloudflare` feature | ✅ Done |
+| T6 — the `mise.wasm.toml` netio task and its `scripts/ci/ci.py` step, the standalone `foundation_connectrpc` test crate, and the fix for #565 | ✅ Done |
 
-## No product code exists
+**Commits.** `4e305e091` (T1 and T2, plus the version bumps); `2a063c762` (T3 to T6).
 
-This specification is a plan in a pull request for the owner's review. No file under
-`backends/` changes until the owner approves it.
+## Current state (2026-11-22)
+
+The code for all six tasks is on branch `spec/85-wasm-fetch`. It is not merged into master.
+
+- Verified: the `foundation_netio` wasm library and tests compile.
+- Not verified: the `web-sys` fix for the standalone `foundation_connectrpc` wasm crate;
+  the `wrangler dev --local` test for T5; the T6 wasm testbed suites; native checks,
+  clippy, formatting and the `foundation_netio` tests.
 
 ## The capability map (2026-11-15)
 
@@ -158,13 +164,12 @@ It does not.
 
 ## Next steps
 
-1. T6 first: the `test:wasm-bindgen:netio` task and its CI step, the fix for #565, and the
-   standalone crate for `foundation_connectrpc`.
-2. T1 next. It is the one gap that needs the harness, and it makes the rest work.
-3. T2, and correct the capability constant in the same change.
-4. T3, which T4 needs.
-5. T4 after T3.
-6. T5 after T2, behind the `cloudflare` feature.
+1. Re-run the standalone `foundation_connectrpc` wasm check with the `web-sys` fix.
+2. Add and run the T5 Durable Object test under `wrangler dev --local`.
+3. Run the T6 wasm testbed suites.
+4. Run native checks, clippy, formatting and the `foundation_netio` tests.
+5. Merge master into the branch, resolve conflicts, and merge into master.
+6. Close #563 and #565 after their fixes are verified.
 
 ## Open questions
 
