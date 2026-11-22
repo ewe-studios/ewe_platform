@@ -12,9 +12,55 @@
 //! then ranks them by `(host_specificity, prefix_len)` — an exact host beats a
 //! wildcard, and among equal hosts the longest `path_prefix` wins.
 
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use crate::runtime::ServiceRuntime;
+
+/// A shared, swappable `Arc<Router>` (spec 82 feature 00, section 6.2).
+///
+/// WHY: the registration authority replaces the whole routing table when a
+/// sidecar registers, reports or deregisters a backend. A request must read one
+/// unchanging table for its whole life, so the table is immutable and the
+/// pointer is swapped in one atomic step.
+///
+/// WHAT: readers take a read lock only to clone the `Arc`; the registry takes
+/// the write lock only to swap it.
+///
+/// HOW: `std::sync::RwLock<Arc<Router>>`. No call holds a lock across an
+/// `await`.
+#[derive(Clone)]
+pub struct RouterHandle(Arc<RwLock<Arc<Router>>>);
+
+impl std::fmt::Debug for RouterHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RouterHandle").finish_non_exhaustive()
+    }
+}
+
+impl RouterHandle {
+    /// Wrap `router`.
+    #[must_use]
+    pub fn new(router: Arc<Router>) -> Self {
+        Self(Arc::new(RwLock::new(router)))
+    }
+
+    /// The current router. The caller keeps it for as long as it needs.
+    ///
+    /// # Panics
+    /// Panics if the router lock is poisoned.
+    #[must_use]
+    pub fn load(&self) -> Arc<Router> {
+        Arc::clone(&self.0.read().expect("router handle lock poisoned"))
+    }
+
+    /// Replace the current router.
+    ///
+    /// # Panics
+    /// Panics if the router lock is poisoned.
+    pub fn store(&self, router: Arc<Router>) {
+        *self.0.write().expect("router handle lock poisoned") = router;
+    }
+}
 
 /// Routes requests to services by host and path prefix.
 #[derive(Debug)]

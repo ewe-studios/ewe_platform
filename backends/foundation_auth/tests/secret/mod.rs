@@ -5,6 +5,7 @@
 //! group.
 
 mod common;
+mod enroll_proof;
 mod golden_v1;
 mod pkcs8;
 #[cfg(all(feature = "secret-rsa", not(target_family = "wasm")))]

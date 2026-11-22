@@ -19,11 +19,14 @@ use foundation_iogate::ServerIo;
 use crate::config::BackendState;
 use crate::forward::SharedHttpClient;
 use crate::persistence::ProxyStateStore;
-use crate::router::Router;
+use crate::registration::BackendRegistry;
+use crate::router::{Router, RouterHandle};
 
 /// Immutable-after-startup proxy state shared by every request handler.
 pub struct ProxyState {
-    router: Arc<Router>,
+    /// The swappable router. A request clones the current `Arc<Router>` and
+    /// keeps it for its whole life (spec 82 feature 00, section 6.2).
+    router: RouterHandle,
     client: SharedHttpClient,
     scheme: String,
     io_mode: ServerIo,
@@ -50,6 +53,10 @@ pub struct ProxyState {
     /// The context every proxy timeout and timestamp reads its clock from. Set
     /// once at startup; there is no fallback to the real clock.
     ctx: Ctx,
+    /// The registration authority's registry, when the feature is on. The
+    /// control socket reads it for `list`, `issue-registrar-token` and
+    /// `revoke-registrar`.
+    registry: Option<Arc<BackendRegistry>>,
 }
 
 /// A gauge of body bytes a relay holds in memory at once.
@@ -113,14 +120,14 @@ impl std::fmt::Debug for ProxyState {
 }
 
 impl ProxyState {
-    /// Build proxy state from a router and pooled client.
+    /// Build proxy state from a router handle and pooled client.
     ///
     /// `scheme` is what the front end speaks to clients (`http` in stage 1); it
     /// becomes the `X-Forwarded-Proto` value sent upstream. `ctx` supplies the
     /// clock every timeout and timestamp the proxy reads.
     #[must_use]
     pub fn new(
-        router: Arc<Router>,
+        router: RouterHandle,
         client: SharedHttpClient,
         scheme: impl Into<String>,
         io_mode: ServerIo,
@@ -139,7 +146,22 @@ impl ProxyState {
             client_read_timeout: Duration::from_secs(60),
             h3_body_gauge: BufferedBytesGauge::default(),
             ctx,
+            registry: None,
         }
+    }
+
+    /// Attach the registration authority's registry, so the control socket can
+    /// read it.
+    #[must_use]
+    pub fn with_registry(mut self, registry: Arc<BackendRegistry>) -> Self {
+        self.registry = Some(registry);
+        self
+    }
+
+    /// The registration authority's registry, when the feature is on.
+    #[must_use]
+    pub fn registry(&self) -> Option<&Arc<BackendRegistry>> {
+        self.registry.as_ref()
     }
 
     /// The context every proxy timeout and timestamp reads its clock from.
@@ -246,6 +268,7 @@ impl ProxyState {
     #[must_use]
     pub fn inflight_total(&self) -> u32 {
         self.router
+            .load()
             .services()
             .iter()
             .flat_map(|s| s.backends())
@@ -253,9 +276,11 @@ impl ProxyState {
             .sum()
     }
 
+    /// The current router snapshot. A request keeps the returned `Arc` for its
+    /// whole life, so a later swap does not affect it.
     #[must_use]
-    pub fn router(&self) -> &Arc<Router> {
-        &self.router
+    pub fn router(&self) -> Arc<Router> {
+        self.router.load()
     }
 
     #[must_use]

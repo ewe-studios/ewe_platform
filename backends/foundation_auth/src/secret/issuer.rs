@@ -199,6 +199,31 @@ impl SecretIssuer {
         Ok(secret)
     }
 
+    /// Sign the enrollment server proof (spec 81 `auth.md` section 9.1.1).
+    ///
+    /// The proof shows that this server holds the private key of the
+    /// enrollment token. The client checks it with the public key in the
+    /// token. `client_key` is the client public key, or the SHA-256 of its
+    /// certificate signing request (CSR).
+    ///
+    /// # Errors
+    /// [`SecretError::Entropy`] when the entropy source fails. An RSA-PSS key
+    /// draws its salt from that source.
+    pub fn sign_enroll_proof(
+        &self,
+        secret_id: &str,
+        nonce: &[u8],
+        client_key: &[u8],
+        client_id: &str,
+    ) -> Result<Vec<u8>, SecretError> {
+        let message = super::enroll_proof::message(secret_id, nonce, client_key, client_id);
+        let env = self
+            .ctx
+            .require_env()
+            .map_err(|e| SecretError::Entropy(e.to_string()))?;
+        self.key.sign(&message, env.entropy().as_ref())
+    }
+
     fn now_unix(&self) -> u64 {
         u64::try_from(foundation_compact::time::unix_seconds(
             self.ctx.clock().wall_now(),

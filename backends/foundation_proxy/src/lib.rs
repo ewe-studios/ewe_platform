@@ -34,6 +34,7 @@ pub mod handler;
 pub mod health;
 pub mod passthrough;
 pub mod persistence;
+pub mod registration;
 pub mod router;
 pub mod rpc_relay;
 pub mod runtime;
@@ -50,7 +51,11 @@ pub use foundation_macros::proxy;
 pub use handler::ProxyHandler;
 pub use health::{HealthMonitor, ProbeState};
 pub use passthrough::{PassthroughConfig, TcpPassthrough, UdpPassthrough};
-pub use router::Router;
+pub use registration::{
+    BackendRegistry, PeerIdentity, RegisteredBackend, RegistrationConfig, RegistrationError,
+    RegistrationPolicy, RegistrationState,
+};
+pub use router::{Router, RouterHandle};
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};
 pub use server::ProxyServer;
 pub use state::{BufferedBytesGauge, ProxyState};

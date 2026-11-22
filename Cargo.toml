@@ -52,6 +52,10 @@ derive_more = { version = ">=2.0", features = ["full"] }
 # Async stream combinators (bounded concurrency in the migration fleet runner).
 futures-util = "0.3"
 
+# Classless Inter-Domain Routing (CIDR) networks and address membership. The
+# proxy's registration address policy checks a backend address against them.
+ipnet = { version = "2.12", features = ["serde"] }
+
 # Transport Layer Security (TLS) and X.509 support. Spec 87 moves these with the
 # certificate authority, the trust store and the verifier into foundation_auth.
 rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }

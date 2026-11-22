@@ -1,0 +1,194 @@
+// Registration contract between a registrar sidecar and the proxy's
+// registration authority (spec 82 feature 00).
+//
+// The sidecar generates its client from this same file; it does not depend on
+// the `foundation_proxy` crate.
+
+syntax = "proto3";
+
+package ewe.proxy.registration.v1;
+
+// Calls from an enrolled sidecar. Every call needs mutual TLS (mTLS), or the
+// local Unix socket of section 5.5.
+service RegistrationService {
+  // Add or update backends. Starts a new session when session_id is new.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  // Heartbeat, health and metrics for every backend of this session.
+  rpc Report(ReportRequest) returns (ReportResponse);
+  // Take backends out of rotation and forget them, after a drain.
+  rpc Deregister(DeregisterRequest) returns (DeregisterResponse);
+  // Get a new client certificate before the current one expires.
+  rpc RenewCertificate(RenewCertificateRequest) returns (RenewCertificateResponse);
+}
+
+// Called with server-auth TLS only (no client certificate yet).
+service RegistrarEnrollmentService {
+  rpc Enroll(EnrollRequest) returns (EnrollResponse);
+}
+
+// ---------------------------------------------------------------------------
+
+// Who sends the call. The proxy also reads the identity from the client
+// certificate; these fields must agree with it.
+message SessionRef {
+  // A random ID that the sidecar makes at each process start (128 bits,
+  // lowercase hex). A new value means "the sidecar restarted".
+  string session_id = 1;
+  // A stable name of the machine or pod, for example "host-17". It is the
+  // first part of every backend_id of this sidecar.
+  string host_id = 2;
+}
+
+enum Protocol {
+  PROTOCOL_UNSPECIFIED = 0;
+  PROTOCOL_HTTP = 1;
+  PROTOCOL_HTTPS = 2;
+  PROTOCOL_CONNECT = 3;
+  PROTOCOL_GRPC = 4;
+  PROTOCOL_GRPC_WEB = 5;
+}
+
+// The route of a service: which client requests go to it.
+message Route {
+  // Exact host or "*.example.com".
+  string host = 1;
+  // "" or "/" = everything under the host.
+  string path_prefix = 2;
+}
+
+// One backend, as the sidecar sees it.
+message BackendSpec {
+  // "<host_id>/<entry name>", for example "host-17/agent-rpc".
+  string backend_id = 1;
+  // The proxy service name, for example "agents".
+  string service = 2;
+  Route route = 3;
+  Protocol protocol = 4;
+  // The address that the proxy dials: an IP literal or a DNS name, and a port.
+  string address = 5;
+  uint32 port = 6;
+  // Load-balancer weight. 0 = the default (1).
+  uint32 weight = 7;
+  // The software version that runs at this address (manifest entry version).
+  string version = 8;
+}
+
+message RegisterRequest {
+  SessionRef session = 1;
+  // At most RegistrationConfig::max_backends_per_session entries.
+  repeated BackendSpec backends = 2;
+}
+
+message RegisterResponse {
+  // One result for each BackendSpec, in the same order.
+  repeated RegisterResult results = 1;
+  // How often the sidecar must call Report. The proxy decides.
+  uint32 report_interval_ms = 2;
+  // A lease with no Report for this long ends.
+  uint32 lease_ttl_ms = 3;
+}
+
+message RegisterResult {
+  string backend_id = 1;
+  // Set when the registration was accepted. It goes up by 1 at each change.
+  uint64 generation = 2;
+  // Empty when accepted. Otherwise why not, for example
+  // "address 8.8.8.8 is outside allowed_networks".
+  string rejected_reason = 3;
+}
+
+// The health of one backend, from the sidecar's probes (feature 01).
+enum BackendHealth {
+  BACKEND_HEALTH_UNSPECIFIED = 0;
+  // Installed and running, startup probe not passed yet.
+  BACKEND_HEALTH_STARTING = 1;
+  // Readiness passes: may take traffic.
+  BACKEND_HEALTH_READY = 2;
+  // Alive, readiness fails: no new traffic.
+  BACKEND_HEALTH_NOT_READY = 3;
+  // Liveness fails: the app is stuck.
+  BACKEND_HEALTH_NOT_LIVE = 4;
+  // Startup did not pass within its threshold.
+  BACKEND_HEALTH_FAILED_TO_START = 5;
+  // Installed, not running (unit inactive, container stopped).
+  BACKEND_HEALTH_NOT_RUNNING = 6;
+}
+
+// Resource use of one backend. A field that the sidecar cannot read is not set.
+message BackendMetrics {
+  optional uint64 cpu_usage_micros = 1;  // CPU time used since the process started
+  optional uint64 memory_bytes = 2;      // resident memory now
+  optional uint64 memory_limit_bytes = 3;
+  optional uint32 restarts = 4;          // restarts seen by the sidecar
+  optional uint64 uptime_ms = 5;
+}
+
+message BackendReport {
+  string backend_id = 1;
+  BackendHealth health = 2;
+  BackendMetrics metrics = 3;
+  // The text of the last probe failure, at most 256 bytes. Empty when healthy.
+  string detail = 4;
+}
+
+message ReportRequest {
+  SessionRef session = 1;
+  // One entry for each registered backend of this session.
+  repeated BackendReport backends = 2;
+}
+
+enum ReportAction {
+  REPORT_ACTION_UNSPECIFIED = 0;
+  // Keep reporting.
+  REPORT_ACTION_CONTINUE = 1;
+  // The proxy does not know this session (for example it restarted).
+  // Call Register for every backend again, then keep reporting.
+  REPORT_ACTION_REREGISTER = 2;
+}
+
+message ReportResponse {
+  ReportAction action = 1;
+  // The backend_ids in the report that the proxy does not know. The sidecar
+  // registers them again.
+  repeated string unknown_backend_ids = 2;
+  uint32 lease_ttl_ms = 3;
+}
+
+message DeregisterRequest {
+  SessionRef session = 1;
+  repeated string backend_ids = 2;
+}
+
+message DeregisterResponse {
+  // The backend_ids that were found and are now draining.
+  repeated string draining = 1;
+}
+
+message EnrollRequest {
+  // A SignedSecret, purpose Enroll, domain "ewe.proxy.registrar_secret".
+  string token = 1;
+  // The host_id of this sidecar. It becomes the certificate common name.
+  string host_id = 2;
+  // PKCS#10 CSR. The private key stays on the sidecar.
+  string csr_pem = 3;
+  // 32 random bytes. The proxy signs them in server_proof.
+  bytes nonce = 4;
+}
+
+message EnrollResponse {
+  string client_cert_pem = 1;
+  // The registration CA. The sidecar uses it to check the proxy's
+  // registration listener certificate from now on.
+  string ca_cert_pem = 2;
+  // The proxy's signature with the token key over the nonce, the CSR hash
+  // and host_id (spec 81 feature 00 auth.md section 9.1.1).
+  bytes server_proof = 3;
+}
+
+message RenewCertificateRequest {
+  string csr_pem = 1;
+}
+
+message RenewCertificateResponse {
+  string client_cert_pem = 1;
+}

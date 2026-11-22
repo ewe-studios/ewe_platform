@@ -18,10 +18,12 @@
 //! the audience, the key ID, the use limit and the subject.
 
 pub mod codec;
+pub mod enroll_proof;
 pub mod issuer;
 pub mod keys;
 pub mod verifier;
 
+pub use enroll_proof::{enroll_proof_message, ENROLL_PROOF_DOMAIN};
 pub use issuer::{SecretIssuer, SecretRequest};
 pub use keys::{SigningKey, VerifyingKey};
 pub use verifier::{SecretVerifier, VerifiedSecret, VerifyPolicy};
@@ -198,13 +200,23 @@ impl SignedSecret {
     /// A client-side check for the given domain.
     #[must_use]
     pub fn verify_self_signed_for(&self, domain: SecretDomain) -> bool {
-        let key = VerifyingKey {
+        let message = codec::signed_message(self, domain);
+        self.verifying_key()
+            .verify(&message, &self.signature)
+            .unwrap_or(false)
+    }
+
+    /// The public key that the secret carries.
+    ///
+    /// A client uses it to check the enrollment server proof with
+    /// [`VerifyingKey::verify_enroll_proof`].
+    #[must_use]
+    pub fn verifying_key(&self) -> VerifyingKey {
+        VerifyingKey {
             alg: self.alg,
             bytes: self.public_key.clone(),
             kid: self.kid.clone(),
-        };
-        let message = codec::signed_message(self, domain);
-        key.verify(&message, &self.signature).unwrap_or(false)
+        }
     }
 
     /// The format version.

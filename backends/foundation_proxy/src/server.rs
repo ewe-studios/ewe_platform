@@ -39,7 +39,8 @@ use crate::h2_proxy::H2ProxyHandler;
 use crate::handler::ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
 use crate::persistence::{PersistedProxyState, ProxyStateStore};
-use crate::router::Router;
+use crate::registration::{spawn_sweeper, BackendRegistry};
+use crate::router::{Router, RouterHandle};
 use crate::runtime::ServiceRuntime;
 use crate::state::ProxyState;
 use crate::tls;
@@ -118,7 +119,19 @@ impl ProxyServer {
             .cloned()
             .map(|svc| Arc::new(ServiceRuntime::new(svc)))
             .collect();
-        let router = Arc::new(Router::new(services.clone()));
+        let router_handle = RouterHandle::new(Arc::new(Router::new(services.clone())));
+        // Registration authority (spec 82 feature 00). The registry holds the
+        // config services and publishes its snapshots through the same handle
+        // the request path reads.
+        let registry = config.registration.as_ref().map(|registration| {
+            Arc::new(BackendRegistry::new(
+                services.clone(),
+                router_handle.clone(),
+                ctx.clone(),
+                registration.clone(),
+                Arc::new(SystemDnsResolver),
+            ))
+        });
 
         // Native on purpose (group B of #140): this is the forwarders'
         // `SharedHttpClient`. They take the upstream connection out of each
@@ -164,16 +177,22 @@ impl ProxyServer {
         }
 
         let mut h1_app = HttpApp::new_serve();
-        let mut proxy_state_value =
-            ProxyState::new(router, client.clone(), "http", config.io_mode, ctx.clone())
-                .with_writer_config(
-                    WriterConfig::default().with_send_timeout(config.relay_send_timeout),
-                )
-                .with_max_request_body(config.max_request_body)
-                .with_connect_timeout(config.connect_timeout)
-                .with_client_read_timeout(config.client_read_timeout);
+        let mut proxy_state_value = ProxyState::new(
+            router_handle,
+            client.clone(),
+            "http",
+            config.io_mode,
+            ctx.clone(),
+        )
+        .with_writer_config(WriterConfig::default().with_send_timeout(config.relay_send_timeout))
+        .with_max_request_body(config.max_request_body)
+        .with_connect_timeout(config.connect_timeout)
+        .with_client_read_timeout(config.client_read_timeout);
         if let Some(store) = &store {
             proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
+        }
+        if let Some(registry) = &registry {
+            proxy_state_value = proxy_state_value.with_registry(Arc::clone(registry));
         }
         h1_app.context().store(proxy_state_value);
         let proxy_state = h1_app
@@ -189,6 +208,12 @@ impl ProxyServer {
         h2_app.route_any_h2("/*", h2_handler);
 
         let shutdown = Arc::new(ShutdownSignal::new());
+
+        // The lease sweeper ends expired leases and removes old entries. It is
+        // a valtron task that parks on the injected clock.
+        if let Some(registry) = &registry {
+            spawn_sweeper(Arc::clone(registry), shutdown.clone(), ctx.clone())?;
+        }
         let use_tls = !matches!(config.ssl.provider, SslProvider::None);
         let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
