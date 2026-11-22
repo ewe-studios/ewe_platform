@@ -143,44 +143,23 @@ fn register_resources(
 ) -> Result<(), super::Error> {
     #[cfg(debug_assertions)]
     let directory = match public {
-        Some(directory) => directory.to_owned(),
-        None => std::env::current_exe()?
-            .parent()
-            .ok_or("Todo executable has no parent directory")?
-            .join("public")
-            .join(env!("CARGO_PKG_NAME")),
+        Some(path) => path.to_owned(),
+        None => foundation_resources::server::sibling_public(env!("CARGO_PKG_NAME"))?,
     };
     #[cfg(debug_assertions)]
     let public = Some(directory.as_path());
-    for name in include_str!(concat!(env!("OUT_DIR"), "/resource-names")).lines() {
-        let route = format!("/{name}");
-        if let Some(directory) = public {
-            router.at(
-                &route,
-                get(StaticFileHandler::file(
-                    directory.join(name),
-                    StaticFileConfig::default(),
-                )),
-            )?;
-            continue;
-        }
-        #[cfg(not(debug_assertions))]
-        {
-            use foundation_nostd::embeddable::DirectoryData;
-            let bytes = PackagedResources
-                .read_utf8_for(name)
-                .ok_or_else(|| format!("Missing packaged resource {name}"))?;
-            let content_type = match std::path::Path::new(name)
-                .extension()
-                .and_then(std::ffi::OsStr::to_str)
-            {
-                Some("js") => "text/javascript",
-                Some("svg") => "image/svg+xml",
-                Some("txt") => "text/plain",
-                _ => "application/octet-stream",
-            };
-            router.at(&route, get(StaticAssetHandler::new(bytes, content_type)))?;
-        }
-    }
-    Ok(())
+    #[cfg(debug_assertions)]
+    let embedded = |_: &str| None;
+    #[cfg(not(debug_assertions))]
+    let embedded = |name: &str| {
+        use foundation_nostd::embeddable::DirectoryData;
+        PackagedResources.read_utf8_for(name)
+    };
+    foundation_resources::server::register(
+        router,
+        include_str!(env!("EWE_RESOURCE_NAMES")),
+        public,
+        None,
+        embedded,
+    )
 }

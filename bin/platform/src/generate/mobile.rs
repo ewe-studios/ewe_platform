@@ -83,6 +83,12 @@ pub(super) fn generate(
     fs::create_dir_all(parent)?;
     fs::create_dir(&dest)
         .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", dest.display())))?;
+    let resources = if host == "on-device" {
+        "rust"
+    } else {
+        "resources"
+    };
+    values.insert("RESOURCE_PACKAGE".into(), resources.into());
     let build = || -> Result<(), BoxedError> {
         let packager = PackageGenerator::new(Directorate::<ProjectTemplates>::default());
         for variant in ["common", host] {
@@ -93,6 +99,12 @@ pub(super) fn generate(
                 project.into(),
             ))?;
         }
+        packager.create(PackageConfig::new(
+            dest.clone(),
+            values.clone(),
+            "mobile-resources",
+            resources,
+        ))?;
         if host == "on-device" {
             packager.create(PackageConfig::new(
                 dest.clone(),
@@ -101,6 +113,13 @@ pub(super) fn generate(
                 "rust",
             ))?;
             executable(&dest.join("build-rust.sh"))?;
+        } else {
+            packager.create(PackageConfig::new(
+                dest.clone(),
+                values,
+                "mobile-resource-provider",
+                resources,
+            ))?;
         }
         if template == "ios-app" {
             let xcode = dest.join("Starter.xcodeproj");

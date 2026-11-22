@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EE9000030000000000000003 /* EweResources in Resources */ = {isa = PBXBuildFile; fileRef = EE9000030000000000000002; };
 		04FA06790FE0D749D4CA539E /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374E3BE88B5B5D43C094F5C4 /* App.swift */; };
 		64DC40BB08340817AA7DF8A5 /* EweUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9499C8CFB1E1A0AE046613DD /* EweUI */; };
 		9FFAA2850D373C4254F1E5FC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA4C125B3BAE283E7FED685B /* Foundation.framework */; };
@@ -17,6 +18,7 @@ AA7800000000000000000003 = {isa = PBXBuildFile; fileRef = AA78000000000000000000
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		EE9000030000000000000002 /* EweResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EweResources; sourceTree = DERIVED_FILE_DIR; };
 		10A57F877E33D57F047676C8 /* {{ PROJECT_NAME }}.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = {{ PROJECT_NAME }}.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		374E3BE88B5B5D43C094F5C4 /* App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		FA4C125B3BAE283E7FED685B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -95,6 +97,7 @@ AA7800000000000000000004,
 			isa = PBXNativeTarget;
 			buildConfigurationList = DC02D74940B583D72C2971E2 /* Build configuration list for PBXNativeTarget "{{ PROJECT_NAME }}" */;
 			buildPhases = (
+                EE9000030000000000000001 /* Stage resources */,
 				86E7C1BB4056AFF1ADF4F72A /* Sources */,
 				6F81EF2DD63874765065B761 /* Frameworks */,
 				5F4567FD01EE04D40E9CF055 /* Resources */,
@@ -143,11 +146,27 @@ AA7800000000000000000004,
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+        EE9000030000000000000001 /* Stage resources */ = {
+            isa = PBXShellScriptBuildPhase;
+            alwaysOutOfDate = 1;
+            buildActionMask = 2147483647;
+            files = ();
+            inputPaths = ();
+            name = "Stage resources";
+            outputPaths = ("$(DERIVED_FILE_DIR)/EweResources");
+            runOnlyForDeploymentPostprocessing = 0;
+            shellPath = /bin/sh;
+            shellScript = "set -eu\nexport PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\"\nexport EWE_RESOURCE_TARGET=apple\nexport EWE_RESOURCE_DEST=\"$DERIVED_FILE_DIR/EweResources\"\nexport CARGO_TARGET_DIR=\"${CARGO_TARGET_DIR:-$PROJECT_TEMP_DIR/resource-producer}\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\ncase \"$CONFIGURATION\" in\n  Release*) profile=release ;;\n  *) profile=dev ;;\nesac\ncargo check --profile \"${EWE_RESOURCE_CARGO_PROFILE:-$profile}\" --manifest-path \"$SRCROOT/{{ RESOURCE_PACKAGE }}/Cargo.toml\" --no-default-features --lib\n";
+        };
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXResourcesBuildPhase section */
 		5F4567FD01EE04D40E9CF055 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                EE9000030000000000000003 /* EweResources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -6,6 +6,7 @@ import SwiftUI
         WindowGroup {
             LocalScreen { store in
                 let core = try createCounterCore(platform: .ios)
+                core.installResources(source: BundleResourceSource())
                 let first = try await initialCounterFrame(core: core)
                 return (NativeActionCore(core, store: store), first)
             }

@@ -135,3 +135,7 @@ Reject output directories that contain inputs or lie inside a declared input dir
 
 A browser resource can fail before or after open. Test both the response status and a stream that fails after its first chunk.
 A test for early browser disposal must check that the underlying response body receives cancellation.
+
+The release manifest names a local candidate. There is no public native-ui-v0.1.1 tag at this checkpoint.
+Generated native packages use the same release setting as their existing dependencies.
+Local verification uses private candidate tags and the prepared native libraries.

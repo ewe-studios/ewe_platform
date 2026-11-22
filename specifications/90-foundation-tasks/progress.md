@@ -199,3 +199,10 @@ A production release build runs alone outside the checkout. It serves the icon, 
 A generated Cargo fixture verifies a custom target directory and profile, renamed and deleted inputs, and recovery after failed staging.
 A Chrome test now covers failed HTTP status, a later body read failure, and early cancellation.
 The Windows test target cross-check passes. Native Windows execution remains unverified.
+
+The web and static HTML starters now stage their public index before serving or embedding it.
+Both mobile starters declare shared, generated, and browser-only resources.
+The Android build registers a producer per variant. The Apple project registers one folder in its resource phase.
+Both packaging systems select the Cargo profile from their build configuration.
+The generated mobile layout test passes for server and on-device apps.
+The complete generated application build checks are in progress.

@@ -60,14 +60,14 @@ impl MobileReader {
 }
 
 impl ResourceReader for MobileReader {
-    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a> {
+    fn open(&self, name: ResourceName) -> OpenFuture<'_> {
         let source = self.source.clone();
         let capacity = u32::try_from(self.config.chunk_bytes()).unwrap_or(u32::MAX);
         Box::pin(async move {
             let (file, name) = blocking::unblock(move || {
                 let file = source
                     .open_resource_file(name.as_str().into())
-                    .map_err(|e| read_error(&name, e))?
+                    .map_err(|e| read_error(&name, e.to_string()))?
                     .ok_or_else(|| ResourceError::Missing {
                         name: name.as_str().into(),
                     })?;
@@ -79,12 +79,12 @@ impl ResourceReader for MobileReader {
                 move |(mut file, name)| async move {
                     blocking::unblock(move || {
                         let input = file.0.as_ref().expect("open file");
-                        let bytes = input.read(capacity).map_err(|e| read_error(&name, e))?;
+                        let bytes = input.read(capacity).map_err(|e| read_error(&name, e.to_string()))?;
                         if bytes.len() > capacity as usize {
                             return Err(read_error(&name, "host exceeded requested chunk size"));
                         }
                         if bytes.is_empty() {
-                            file.close().map_err(|e| read_error(&name, e))?;
+                            file.close().map_err(|e| read_error(&name, e.to_string()))?;
                             return Ok(None);
                         }
                         Ok(Some((bytes, (file, name))))
@@ -96,10 +96,10 @@ impl ResourceReader for MobileReader {
         })
     }
 }
-fn read_error(name: &ResourceName, error: impl ToString) -> ResourceError {
+fn read_error(name: &ResourceName, error: impl Into<String>) -> ResourceError {
     ResourceError::Read {
         name: name.as_str().into(),
-        reason: error.to_string(),
+        reason: error.into(),
     }
 }
 

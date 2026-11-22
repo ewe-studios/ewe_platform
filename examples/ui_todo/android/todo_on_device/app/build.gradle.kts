@@ -1,5 +1,7 @@
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.process.ExecOperations
@@ -33,6 +35,7 @@ dependencies {
 
 abstract class StageTodoResources @Inject constructor(private val commands: ExecOperations) : DefaultTask() {
     @get:Internal abstract val packageDirectory: DirectoryProperty
+    @get:Input abstract val cargoProfile: Property<String>
     @get:Internal abstract val producerDirectory: DirectoryProperty
     @get:OutputDirectory abstract val assets: DirectoryProperty
 
@@ -43,13 +46,16 @@ abstract class StageTodoResources @Inject constructor(private val commands: Exec
             environment("EWE_RESOURCE_TARGET", "android")
             environment("EWE_RESOURCE_DEST", assets.dir("EweResources").get().asFile)
             environment("CARGO_TARGET_DIR", producerDirectory.get().asFile)
-            commandLine("cargo", "check", "--manifest-path", "Cargo.toml", "--no-default-features", "--lib")
+            commandLine("cargo", "check", "--profile", cargoProfile.get(), "--manifest-path", "Cargo.toml", "--no-default-features", "--lib")
         }.assertNormalExitValue()
     }
 }
 
 extensions.getByType<ApplicationAndroidComponentsExtension>().onVariants { variant ->
     val task = tasks.register<StageTodoResources>("stage${variant.name.replaceFirstChar { it.uppercaseChar() }}Resources") {
+        cargoProfile.set(providers.gradleProperty("eweResourceCargoProfile").orElse(
+            if (variant.buildType == "release") "release" else "dev"
+        ))
         packageDirectory.set(layout.projectDirectory.dir("../../.."))
         producerDirectory.set(layout.buildDirectory.dir("resource-producer/${variant.name}"))
         assets.set(layout.buildDirectory.dir("generated/ewe-assets/${variant.name}"))

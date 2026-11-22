@@ -1,49 +1,15 @@
 use std::sync::Arc;
-
 use foundation_core::valtron::valtron;
-use foundation_http::native::serve::{Serve, ServeFactory};
-use foundation_http::native::writer::{send_html, send_not_found};
-use foundation_http::shared::{
-    app::HttpApp,
-    context::Ctx,
-    serve::ConnectionResult,
-};
-use foundation_http::{RawStream, SharedByteBufferStream, ShutdownSignal, SimpleIncomingRequest, SimpleMethod};
-use rust_embed::Embed;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-#[derive(Embed)]
-#[folder = "public/"]
-#[prefix = "static/"]
+#[cfg(not(debug_assertions))]
+#[derive(foundation_macros::EmbedDirectoryAs)]
+#[source = "$EWE_STAGED_RESOURCES/."]
+#[always_embed]
 struct Assets;
-
-/// Serves the embedded `index.html` at the application root.
-struct IndexHandler;
-
-impl ServeFactory for IndexHandler {
-    fn create(_ctx: &Ctx) -> Self {
-        Self
-    }
-}
-
-impl Serve for IndexHandler {
-    fn serve(
-        &self,
-        ctx: Ctx,
-        _req: SimpleIncomingRequest,
-        conn: SharedByteBufferStream<RawStream>,
-    ) -> ConnectionResult {
-        match Assets::get("static/index.html") {
-            Some(html_data) => {
-                let content =
-                    String::from_utf8(html_data.data.to_vec()).expect("should generate str");
-                send_html(conn, 200, &content, &ctx)
-            }
-            None => send_not_found(conn, &ctx),
-        }
-    }
-}
 
 #[valtron(seed = 10, threads = 10)]
 fn main() {
@@ -56,7 +22,20 @@ fn main() {
     tracing::info!("Starting local binary");
 
     let mut app = HttpApp::new_serve();
-    app.route::<IndexHandler>(SimpleMethod::GET, "/");
+    #[cfg(debug_assertions)]
+    let public = Some(foundation_resources::server::sibling_public(env!("CARGO_PKG_NAME")).expect("locate public directory"));
+    #[cfg(not(debug_assertions))]
+    let public: Option<std::path::PathBuf> = None;
+    #[cfg(debug_assertions)]
+    let embedded = |_: &str| None;
+    #[cfg(not(debug_assertions))]
+    let embedded = |name: &str| {
+        use foundation_nostd::embeddable::DirectoryData;
+        Assets.read_utf8_for(name)
+    };
+    foundation_resources::server::register(
+        &mut app.router, include_str!(env!("EWE_RESOURCE_NAMES")), public.as_deref(), Some("index.html"), embedded,
+    ).expect("register application resources");
 
     let server = app.server("127.0.0.1:3000");
     let shutdown = Arc::new(ShutdownSignal::new());

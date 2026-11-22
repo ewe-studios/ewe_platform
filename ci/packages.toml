@@ -225,7 +225,7 @@ runs = ["", "native-manifest"]
 wasm = "enforce"
 
 [packages.foundation_resources]
-runs = ["build"]
+runs = ["build,server"]
 wasm = "enforce"
 wasm-runs = ["browser-bindings"]
 

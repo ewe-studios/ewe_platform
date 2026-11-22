@@ -481,6 +481,17 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
             staged.directory.join(name).display()
         );
     }
+    let names = generated.join("ewe-resource-names");
+    let content = staged.names.join("\n");
+    let unchanged = match fs::metadata(&names) {
+        Ok(meta) => meta.len() == content.len() as u64 && fs::read(&names)? == content.as_bytes(),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => false,
+        Err(error) => return Err(error),
+    };
+    if !unchanged {
+        fs::write(&names, content)?;
+    }
+    println!("cargo:rustc-env=EWE_RESOURCE_NAMES={}", names.display());
     for path in &staged.inputs {
         println!("cargo:rerun-if-changed={}", path.display());
     }

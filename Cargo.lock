@@ -6542,6 +6542,8 @@ dependencies = [
  "blocking",
  "derive_more",
  "foundation_context",
+ "foundation_http",
+ "foundation_netio",
  "futures-lite",
  "futures-util",
  "js-sys",

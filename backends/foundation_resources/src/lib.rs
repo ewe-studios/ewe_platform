@@ -82,4 +82,7 @@ mod browser;
 pub use browser::BrowserReader;
 
 #[cfg(all(feature = "browser-bindings", target_arch = "wasm32"))]
-pub use browser::{BrowserResources, BrowserResourceStream};
+pub use browser::{BrowserResourceStream, BrowserResources};
+
+#[cfg(all(feature = "server", not(target_family = "wasm")))]
+pub mod server;

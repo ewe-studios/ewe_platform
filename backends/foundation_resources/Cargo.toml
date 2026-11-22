@@ -12,6 +12,7 @@ description = "Stage application resources and read them through the host contex
 crate-type = ["rlib", "cdylib"]
 
 [features]
+server = ["dep:foundation_http", "dep:foundation_netio"]
 browser-bindings = ["runtime", "foundation_context/wasm-bindgen"]
 default = ["runtime"]
 build = ["dep:serde", "dep:toml", "dep:tempfile", "dep:rustix"]
@@ -29,6 +30,8 @@ derive_more.workspace = true
 rustix = { version = "1.1.4", default-features = false, features = ["fs"], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_http = { path = "../foundation_http", version = "0.0.13", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.15", optional = true }
 blocking = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

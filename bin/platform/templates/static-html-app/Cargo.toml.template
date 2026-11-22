@@ -2,7 +2,7 @@
 name = "static-html-app"
 version = "0.0.1"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.98"
 license = "Apache-2.0"
 authors = ["EweStudios Consulting Limited"]
 repository = "{{GITHUB_NAMESPACE}}/{{PROJECT_NAME}}"
@@ -15,7 +15,9 @@ foundation_http = { version = "0.0.13", features = ["multi"] }
 foundation_core = { version = "0.0.23", features = ["multi"] }
 
 # directory embedding
-rust-embed = "8.5.0"
+foundation_resources = { version = "0.1.0", default-features = false, features = ["server"] }
+foundation_macros = "0.0.25"
+foundation_nostd = "0.0.10"
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
@@ -23,3 +25,6 @@ tracing-subscriber = { version = "0.3.18" }
 
 [features]
 default = []
+
+[build-dependencies]
+foundation_resources = { version = "0.1.0", default-features = false, features = ["build"] }

@@ -36,3 +36,11 @@ adb shell am start -n {{ APP_ID }}/.MainActivity{% if HOST == "server" %} --es s
 Tap **Increment**. The count increases without a network connection.
 {% endif %}
 The application imports `{{ MAVEN_GROUP }}:ewe-ui:{{ VERSION }}`. The package renders the controls.
+
+## Application resources
+
+Declare shared files in `{{ RESOURCE_PACKAGE }}/resources.toml`.
+The project build runs Cargo before packaging the bundle or application assets.
+Install Rust and Cargo before the first project build.
+The sample includes a shared title, a generated version, and a browser-only script.
+Use the same logical name when reading a file on each platform.

@@ -31,3 +31,11 @@ xcodebuild -project {{ PROJECT_NAME }}.xcodeproj -scheme {{ PROJECT_NAME }} -des
 ```
 
 The application imports EweUI {{ VERSION }}. EweUI renders the controls.
+
+## Application resources
+
+Declare shared files in `{{ RESOURCE_PACKAGE }}/resources.toml`.
+The project build runs Cargo before packaging the bundle or application assets.
+Install Rust and Cargo before the first project build.
+The sample includes a shared title, a generated version, and a browser-only script.
+Use the same logical name when reading a file on each platform.

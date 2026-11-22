@@ -85,6 +85,7 @@
     public init(base: URL, initial: String, actions: [String], session: URLSession = .shared, theme: EweTheme = EweTheme()) {
       self.init(base: base, initial: initial, session: session, theme: theme) { transport, store in
         let core = try NativeCore.remote(platform: .ios, names: actions, transport: transport)
+        core.installResources(source: BundleResourceSource())
         return NativeActionCore(core, store: store)
       }
     }

@@ -34,7 +34,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output =
         std::path::PathBuf::from(std::env::var_os("OUT_DIR").ok_or("Cargo did not set OUT_DIR")?);
     write_changed(&output.join("app-version.txt"), env!("CARGO_PKG_VERSION"))?;
-    let staged = foundation_resources::build::stage_from_cargo()?;
-    write_changed(&output.join("resource-names"), &staged.names.join("\n"))?;
+    foundation_resources::build::stage_from_cargo()?;
     Ok(())
 }

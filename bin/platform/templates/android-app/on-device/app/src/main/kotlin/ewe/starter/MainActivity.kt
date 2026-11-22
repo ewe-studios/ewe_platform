@@ -1,5 +1,6 @@
 package {{ APP_ID }}
 
+import ewe.ui.android.AndroidResourceSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +18,7 @@ class MainActivity : ComponentActivity() {
         System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "counter_app")
         setContent {
             MaterialTheme {
-                LocalEweScreen({ createCounterCore(NativePlatform.ANDROID) }, ::initialCounterFrame, modifier = Modifier.safeDrawingPadding())
+                LocalEweScreen({ createCounterCore(NativePlatform.ANDROID).also { core -> core.installResources(AndroidResourceSource(assets)) } }, ::initialCounterFrame, modifier = Modifier.safeDrawingPadding())
             }
         }
     }

@@ -1,5 +1,6 @@
 package {{ APP_ID }}
 
+import ewe.ui.android.AndroidResourceSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 RemoteEweScreen(endpoint, "open-count", {
-                    NativeCore.remote(NativePlatform.ANDROID, listOf("refresh_count"), it)
+                    NativeCore.remote(NativePlatform.ANDROID, listOf("refresh_count"), it).also { core -> core.installResources(AndroidResourceSource(assets)) }
                 }, modifier = Modifier.safeDrawingPadding())
             }
         }

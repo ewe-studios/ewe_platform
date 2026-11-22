@@ -31,6 +31,9 @@ const PLATFORM_CRATES: &[&str] = &[
     "foundation_http",
     "foundation_toolings",
     "foundation_config",
+    "foundation_resources",
+    "foundation_macros",
+    "foundation_nostd",
 ];
 
 #[test]
