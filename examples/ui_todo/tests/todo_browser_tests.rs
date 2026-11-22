@@ -20,7 +20,11 @@ fn server_and_host_actions_work() {
     let channel = LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default());
     let served = channel.clone();
     let worker = std::thread::spawn(move || {
-        let app = ui_todo::server::app_with_channel(&module, served)?;
+        let app = ui_todo::server::app_with_public_directory(
+            &module,
+            served,
+            Path::new(env!("EWE_STAGED_RESOURCES")),
+        )?;
         app.server(&listener.local_addr()?.to_string())
             .serve_with_listener(&listener, &stop);
         Ok::<_, Box<dyn std::error::Error + Send + Sync>>(())
@@ -190,7 +194,7 @@ fn server_and_host_actions_work() {
         toggle.expect().to_have_count(0).unwrap();
         peer_toggle.expect().to_have_count(0).unwrap();
         other.eval(r"{
-            document.body.appendChild(window.staleTodoButton);
+            document.querySelector("#page").appendChild(window.staleTodoButton);
             window.FoundationWasmUiRuntime.Patcher.runtime.dispatcher.scanAndWire(window.staleTodoButton);
             window.staleTodoButton.click();
         }").unwrap();

@@ -118,3 +118,6 @@ The bridge preserves distinct errors for missing files and I/O failures.
 
 A file ownership list cannot identify empty managed directories. Record managed directory names with a trailing slash.
 Keep user files during cleanup, even when their parent was a managed directory.
+
+A Cargo test executable can run in a private unit directory. Its parent does not identify the public resource directory.
+An embedded server host must supply that directory. A standalone server can resolve its executable path.

@@ -13,8 +13,9 @@ use std::sync::Arc;
 pub(super) fn register(
     router: &mut Router<Arc<dyn Serve>>,
     module: &std::path::Path,
+    public: Option<&std::path::Path>,
 ) -> Result<(), super::Error> {
-    register_resources(router)?;
+    register_resources(router, public)?;
     router.at(
         "/module.wasm",
         get(StaticFileHandler::file(module, StaticFileConfig::default())),
@@ -135,23 +136,33 @@ pub(super) fn register(
 #[always_embed]
 struct PackagedResources;
 
-fn register_resources(router: &mut Router<Arc<dyn Serve>>) -> Result<(), super::Error> {
+fn register_resources(
+    router: &mut Router<Arc<dyn Serve>>,
+    public: Option<&std::path::Path>,
+) -> Result<(), super::Error> {
     #[cfg(debug_assertions)]
-    let public = std::env::current_exe()?
-        .parent()
-        .ok_or("Todo executable has no parent directory")?
-        .join("public")
-        .join(env!("CARGO_PKG_NAME"));
+    let directory = match public {
+        Some(directory) => directory.to_owned(),
+        None => std::env::current_exe()?
+            .parent()
+            .ok_or("Todo executable has no parent directory")?
+            .join("public")
+            .join(env!("CARGO_PKG_NAME")),
+    };
+    #[cfg(debug_assertions)]
+    let public = Some(directory.as_path());
     for name in include_str!(concat!(env!("OUT_DIR"), "/resource-names")).lines() {
         let route = format!("/{name}");
-        #[cfg(debug_assertions)]
-        router.at(
-            &route,
-            get(StaticFileHandler::file(
-                public.join(name),
-                StaticFileConfig::default(),
-            )),
-        )?;
+        if let Some(directory) = public {
+            router.at(
+                &route,
+                get(StaticFileHandler::file(
+                    directory.join(name),
+                    StaticFileConfig::default(),
+                )),
+            )?;
+            continue;
+        }
         #[cfg(not(debug_assertions))]
         {
             use foundation_nostd::embeddable::DirectoryData;

@@ -66,7 +66,12 @@ pub fn app_with_todos(
     {
         return Err("Invalid restored todo identifiers".into());
     }
-    app_with_store(module, services::channel(1), TodoStore::with_items(items))
+    app_with_store(
+        module,
+        services::channel(1),
+        TodoStore::with_items(items),
+        None,
+    )
 }
 
 /// Builds the application with a host-supplied stream for replay tests.
@@ -77,19 +82,32 @@ pub fn app_with_channel(
     module: &Path,
     channel: LiveChannel,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_store(module, channel, TodoStore::default())
+    app_with_store(module, channel, TodoStore::default(), None)
+}
+
+/// Build an embedded server using the public directory supplied by its host.
+///
+/// # Errors
+/// Returns an error when the channel, routes, signer, or assets are invalid.
+pub fn app_with_public_directory(
+    module: &Path,
+    channel: LiveChannel,
+    public: &Path,
+) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    app_with_store(module, channel, TodoStore::default(), Some(public))
 }
 
 fn app_with_store(
     module: &Path,
     channel: LiveChannel,
     store: TodoStore,
+    public: Option<&Path>,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut app = HttpApp::new_serve();
     let ctx = app.context().clone();
     let channels = services::install(&ctx, channel, store)?;
     register(&mut app.router, &ctx, channels)?;
-    assets::register(&mut app.router, module)?;
+    assets::register(&mut app.router, module, public)?;
     Ok(app)
 }
 

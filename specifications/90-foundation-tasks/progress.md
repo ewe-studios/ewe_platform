@@ -174,3 +174,6 @@ The Swift and Kotlin binding generators both export the host reader and chunked 
 Five macOS staging and runtime tests pass. Empty managed directories now disappear after removal.
 A nested user file survives a managed directory removal.
 The separate phone tests compare the installed icon digest and check missing, invalid, and browser-only names.
+
+Issue #730 fixes the embedded browser test host. It now supplies the staged directory explicitly.
+Chrome completes application startup. The separate action error expectation remains under investigation.
