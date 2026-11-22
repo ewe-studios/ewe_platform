@@ -1178,3 +1178,7 @@ Feature 37 consolidates the Todo redesign. The production startup branches still
 Feature 37 now assigns browser startup, storage adapters, and transport wiring to their framework owners. Implementation remains open.
 
 Feature 37 selects IndexedDB for durable browser Todo submissions and assigns both browser storage providers to `foundation_db`. Implementation remains pending.
+
+## Feature 37 native transport selection
+
+Feature 37 now specifies one iPhone startup path for all three action transports. Implementation and native verification remain pending.

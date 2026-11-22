@@ -978,3 +978,7 @@ It checks uniqueness across records and equality across updates. Each removal le
 The typed mobile lookup also exercises the public string boundary with a valid, unknown, and malformed identifier.
 
 A data-only acceptance test needs an isolated service. It does not require an alternate mode in the production launcher.
+
+## Feature 37 native transport selection
+
+The iPhone framework already manages WebSocket connections. The Todo launcher repeats core setup when it selects the sender. Each selection still loads the initial view over Hypertext Transfer Protocol (HTTP).

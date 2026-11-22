@@ -8,6 +8,9 @@ A key-value (KV) store reads and writes records by key.
 A universally unique identifier (UUID) identifies one Todo throughout its lifetime.
 A snapshot contains confirmed records and their matching stream position.
 A resource provider opens a packaged asset by its logical name.
+Hypertext Transfer Protocol (HTTP) carries requests and responses.
+A remote procedure call (RPC) invokes a named operation on another system.
+WebSocket keeps a connection open so either endpoint can send messages.
 A fixture supplies data or services for a test.
 
 ## Scope and precedence
@@ -130,6 +133,26 @@ Verify that no host starts after a load failure. Preserve the request address an
 Boot a minimal external app with the default transport. Repeat with a registered custom transport.
 Verify typed local and remote actions, retry, reconnect, and view recovery without editing the transport instance.
 Verify the deployed Todo entry still requests one JavaScript file.
+
+## Native transport selection
+
+Give the iPhone app one `ServerScreen` entry point and one Todo core factory.
+The app supplies the server address and an action transport setting at startup.
+Support the default HTTP action endpoint, Connect RPC over HTTP, and the WebSocket action endpoint.
+The framework selects the sender and negotiates its capabilities. It passes the sender to the same factory for every selection.
+The factory installs the pending store, resources, and typed delivery action once per core.
+Keep the initial view request on HTTP for all three selections.
+Route host actions locally. Route typed server actions through the configured sender.
+
+Expose an independent WebSocket service through the native host context for Rust callers.
+The caller supplies the endpoint, opens a connection, sends and receives application messages, and closes the connection.
+The native framework owns the platform socket. Each caller owns the lifetime of its connection.
+Return connection and message errors to the caller. Keep independent messages outside the action dispatcher.
+
+Test each transport setting on iPhone with the same core factory.
+Verify the initial HTTP load, local dialog, remote Add, and typed confirmation for each setting.
+Open a separate native WebSocket from Rust while Todo uses its action socket.
+Exchange an application message and close the independent socket. Verify Todo can still send an action and receive confirmation.
 
 ## Required verification
 
