@@ -194,3 +194,8 @@ Apple and Linux exchange whole resource directories atomically. A concurrent rea
 Eight resource tests pass. Native and browser resource code pass scoped strict Clippy checks.
 The CI package configuration selects staging tests on all three desktop operating systems.
 Issue #734 records existing strict lint failures in the browser time backend dependency.
+
+A production release build runs alone outside the checkout. It serves the icon, generated version, and browser script.
+A generated Cargo fixture verifies a custom target directory and profile, renamed and deleted inputs, and recovery after failed staging.
+A Chrome test now covers failed HTTP status, a later body read failure, and early cancellation.
+The Windows test target cross-check passes. Native Windows execution remains unverified.

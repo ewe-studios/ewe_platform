@@ -48,6 +48,30 @@ fn browser_opens_the_same_packaged_icon() {
                 try { await resources.open(name); throw Error("Expected " + code); }
                 catch (e) { if (e.name !== code) throw e; }
             }
+            const originalFetch = window.fetch;
+            let sent = false, cancelled = false;
+            try {
+                window.fetch = async (url) => {
+                    if (new URL(url).pathname === "/unavailable") return new Response(null, {status: 503});
+                    return new Response(new ReadableStream({
+                        pull(controller) {
+                            if (sent) controller.error(new Error("Transfer interrupted"));
+                            else { sent = true; controller.enqueue(new Uint8Array([42])); }
+                        },
+                        cancel() { cancelled = true; }
+                    }, {highWaterMark: 0}));
+                };
+                try { await resources.open("unavailable"); throw Error("Expected HTTP error"); }
+                catch (e) { if (e.name !== "Read") throw e; }
+                const interrupted = await resources.open("interrupted");
+                if ((await interrupted.nextChunk())[0] !== 42) throw Error("Missing initial data");
+                try { await interrupted.nextChunk(); throw Error("Expected stream error"); }
+                catch (e) { if (e.name !== "Read") throw e; }
+                interrupted.free();
+                const unused = await resources.open("unused");
+                unused.free();
+                if (!cancelled) throw Error("Closing the handle did not cancel the body");
+            } finally { window.fetch = originalFetch; }
             resources.free();
             return icon + decoder.decode();
         })()"#).unwrap();

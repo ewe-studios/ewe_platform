@@ -132,3 +132,6 @@ The iPhone test must use the installed application bundle. The test runner has a
 Cargo compares tracked output timestamps with the start of the previous build.
 Writing an equal index on every run keeps the package dirty. Preserve unchanged files and index timestamps.
 Reject output directories that contain inputs or lie inside a declared input directory.
+
+A browser resource can fail before or after open. Test both the response status and a stream that fails after its first chunk.
+A test for early browser disposal must check that the underlying response body receives cancellation.
