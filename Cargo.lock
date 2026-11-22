@@ -6182,6 +6182,7 @@ dependencies = [
  "sha2 0.11.1",
  "syn 2.0.119",
  "synstructure",
+ "tempfile",
  "trybuild",
  "uuid",
 ]

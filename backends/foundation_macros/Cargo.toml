@@ -51,6 +51,7 @@ new_mime_guess = { workspace = true }
 
 [dev-dependencies]
 trybuild = { workspace = true }
+tempfile.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
 foundation_arrow = { path = "../foundation_arrow" }
@@ -58,7 +59,7 @@ foundation_jsonschema = { path = "../foundation_jsonschema" }
 # No version: path-only dev-dependencies are stripped on publish, which
 # breaks the connectrpc -> macros -> connectrpc cycle for `cargo publish`.
 foundation_connectrpc = { path = "../foundation_connectrpc" }
-# The trybuild cases compile `foundation_db::embed_migrations!`. `foundation_db`
+# The migration tests compile `foundation_db::embed_migrations!`. `foundation_db`
 # depends on this crate, so this edge is a dev-only cycle (Cargo allows it).
 foundation_db = { path = "../foundation_db", default-features = false }
 futures = "0.3"
