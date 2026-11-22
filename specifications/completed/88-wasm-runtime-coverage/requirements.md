@@ -1,6 +1,6 @@
 ---
 description: "Prove valtron, foundation_http and foundation_connectrpc at runtime on the three wasm hosts we support — the embedded Deno runtime, headless Chromium through our own CDP driver, and workerd through `wrangler dev --local` — with deep contract tests, a working browser executor, and a CI step that runs all three."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-15
 author: "Main Agent"
@@ -34,10 +34,10 @@ related_specs:
   - "specifications/completed/44-embedded-deno-runtime"
   - "specifications/68-valtron-wasm-web-tests"
 features:
-  completed: 3
-  uncompleted: 1
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 75%
+  completion_percentage: 100%
 ---
 
 # Spec 88: Wasm Runtime Coverage

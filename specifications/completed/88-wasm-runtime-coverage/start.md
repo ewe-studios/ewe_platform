@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/88-wasm-runtime-coverage"
-this_file: "specifications/88-wasm-runtime-coverage/start.md"
+spec_directory: "specifications/completed/88-wasm-runtime-coverage"
+this_file: "specifications/completed/88-wasm-runtime-coverage/start.md"
 created: 2026-11-15
 ---
 

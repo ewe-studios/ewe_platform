@@ -18,7 +18,7 @@ tasks:
 
 # ConnectRPC Runtime
 
-_Status: **todo**, feature 03 of spec 88. Written in ASD-STE100 Simplified Technical English
+_Status: **done and merged** as `c05d0e0d7`, feature 03 of spec 88. Written in ASD-STE100 Simplified Technical English
 (STE). Code and identifiers stay as they are._
 
 **Abbreviations.** Remote procedure call (RPC); Connect protocol (Connect); JavaScript (JS);

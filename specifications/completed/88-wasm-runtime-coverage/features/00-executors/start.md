@@ -1,7 +1,7 @@
 ---
 feature: "Executors"
-this_file: "specifications/88-wasm-runtime-coverage/features/00-executors/start.md"
-spec: "specifications/88-wasm-runtime-coverage/requirements.md"
+this_file: "specifications/completed/88-wasm-runtime-coverage/features/00-executors/start.md"
+spec: "specifications/completed/88-wasm-runtime-coverage/requirements.md"
 model: "sonnet"
 branch: "spec/split-65"
 created: 2026-11-15
@@ -24,7 +24,7 @@ You do not add layer tests. Features 01, 02 and 03 do that.
 
 ## Required reading, in this order
 
-1. `specifications/88-wasm-runtime-coverage/requirements.md` sections 2.1, 2.2, 2.6, 2.7, 4, 6
+1. `specifications/completed/88-wasm-runtime-coverage/requirements.md` sections 2.1, 2.2, 2.6, 2.7, 4, 6
    and 9. Skip the rest on the first pass.
 2. `features/00-executors/feature.md` in full. Sections 6.1 to 6.10 are the task briefs.
 3. `.agents/skills/code-verification/skill.md` and `.agents/skills/rust-valtron-usage/skill.md`

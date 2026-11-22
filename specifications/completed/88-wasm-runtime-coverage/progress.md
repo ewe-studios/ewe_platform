@@ -2,9 +2,8 @@
 
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`.
-**Feature 02 is merged** as `c12e94aec`. **Feature 03 is complete** in the working tree on `spec88/f03-connectrpc-runtime`:
-T1 to T7 are done. Cases 14 to 16 now run on Deno, Chromium and workerd.
+**All four features are merged.** Feature 00 `f2e4688ad`, feature 01 `447519256`, feature 02
+`c12e94aec`, feature 03 `c05d0e0d7`. The specification is complete.
 
 ## Where this specification is
 
@@ -29,7 +28,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `done`: T1 to T6 done, reviewed and merged as `447519256` | one agent, sonnet | nothing |
 | 02-http-runtime | `done`: T1 to T6 done, reviewed and merged as `c12e94aec` | one agent, sonnet | nothing |
-| 03-connectrpc-runtime | `done`: T1 to T7 done; cases 1 to 17 pass on Deno, Chromium and workerd | one agent, sonnet | 00 merged |
+| 03-connectrpc-runtime | `done`: T1 to T7 done, reviewed and merged as `c05d0e0d7`; cases 1 to 17 pass on Deno, Chromium and workerd | one agent, sonnet | nothing |
 
 Features 01, 02 and 03 run in parallel after 00. They write different crates. 00 and 03 both
 write `foundation_testbed/src/wasm/server.rs`, first 00 (the `/echo` route), then 03 (the
@@ -382,8 +381,7 @@ T5.
 
 ## Feature 03: what landed (2026-11-23)
 
-Branch `spec88/f03-connectrpc-runtime`, from `012fbc6be`. The work is in the working tree; it
-is not committed. Spec 85 created `integration/wasm`; feature 03 extended it and kept one test
+Merged as `c05d0e0d7`, on branch `spec88/f03-connectrpc-runtime` from `012fbc6be`. Spec 85 created `integration/wasm`; feature 03 extended it and kept one test
 target (`tests/wasm.rs`, renamed from `tests/wasm_streaming.rs`).
 
 ### Tasks

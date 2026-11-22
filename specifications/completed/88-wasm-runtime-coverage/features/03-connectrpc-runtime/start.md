@@ -1,7 +1,7 @@
 ---
 feature: "ConnectRPC Runtime"
-this_file: "specifications/88-wasm-runtime-coverage/features/03-connectrpc-runtime/start.md"
-spec: "specifications/88-wasm-runtime-coverage/requirements.md"
+this_file: "specifications/completed/88-wasm-runtime-coverage/features/03-connectrpc-runtime/start.md"
+spec: "specifications/completed/88-wasm-runtime-coverage/requirements.md"
 model: "sonnet"
 branch: "spec/split-65"
 created: 2026-11-15
