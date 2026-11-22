@@ -148,17 +148,25 @@ fn preserve_user_files(
             .to_str()
             .ok_or_else(|| invalid("Non-Unicode destination path"))?
             .replace('\\', "/");
-        if managed.contains(&logical) {
+        let file_type = item.file_type()?;
+        if managed.contains(&logical) && file_type.is_file() {
             continue;
         }
         let output = stage.join(&name);
-        if item.file_type()?.is_dir() {
-            if expected.files.contains_key(&logical) {
-                return Err(invalid(format!(
-                    "Resource {logical} would replace a user directory"
-                )));
+        if file_type.is_dir() {
+            let owned = managed.contains(&format!("{logical}/"));
+            if !owned {
+                if let Some((spelling, is_directory)) =
+                    expected.portable.get(&logical.to_lowercase())
+                {
+                    if spelling != &logical || !is_directory {
+                        return Err(invalid(format!(
+                            "Resource {spelling} conflicts with user directory {logical}"
+                        )));
+                    }
+                }
+                fs::create_dir_all(&output)?;
             }
-            fs::create_dir_all(&output)?;
             preserve_user_files(root, &name, stage, managed, expected)?;
         } else {
             if expected.portable.contains_key(&logical.to_lowercase()) {
@@ -166,11 +174,12 @@ fn preserve_user_files(
                     "Resource {logical} would replace a user file"
                 )));
             }
-            if !item.file_type()?.is_file() {
+            if !file_type.is_file() {
                 return Err(invalid(format!(
                     "Cannot replace destination containing special file {logical}"
                 )));
             }
+            fs::create_dir_all(output.parent().ok_or_else(|| invalid(&logical))?)?;
             fs::copy(item.path(), output)?;
         }
     }
@@ -247,8 +256,20 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
         .write(true)
         .open(parent.join(format!(".{name}.ewe-resources.lock")))?;
     lock.lock()?;
+    if fs::symlink_metadata(dest).is_ok_and(|meta| meta.is_symlink()) {
+        return Err(invalid(format!(
+            "Resource destination is a symbolic link: {}",
+            dest.display()
+        )));
+    }
     let backup = parent.join(format!(".{name}.ewe-resources.previous"));
     if backup.exists() {
+        if !backup.join(INDEX).is_file() {
+            return Err(invalid(format!(
+                "Resource backup path contains user files: {}",
+                backup.display()
+            )));
+        }
         if dest.exists() {
             fs::remove_dir_all(&backup)?;
         } else {
@@ -265,7 +286,18 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
         let managed = list.lines().map(str::to_owned).collect();
         preserve_user_files(dest, Path::new(""), stage.path(), &managed, inputs)?;
     }
+    let mut index = BTreeSet::new();
+    for (logical, is_directory) in inputs.portable.values() {
+        if *is_directory {
+            let path = stage.path().join(logical);
+            if !path.exists() {
+                fs::create_dir_all(path)?;
+                index.insert(format!("{logical}/"));
+            }
+        }
+    }
     for (name, source) in &inputs.files {
+        index.insert(name.clone());
         let file = stage.path().join(name);
         fs::create_dir_all(file.parent().ok_or_else(|| invalid(name))?)?;
         fs::copy(source, &file).map_err(|e| {
@@ -277,7 +309,7 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
     }
     fs::write(
         stage.path().join(INDEX),
-        inputs.files.keys().cloned().collect::<Vec<_>>().join("\n"),
+        index.into_iter().collect::<Vec<_>>().join("\n"),
     )?;
     if dest.exists() {
         fs::rename(dest, &backup)?;
@@ -344,6 +376,16 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
             })?;
         let public = profile.join("public").join(var("CARGO_PKG_NAME")?);
         stage(&package.join("resources.toml"), &generated, target, &public)?;
+    }
+    println!(
+        "cargo:rerun-if-changed={}",
+        staged.directory.join(INDEX).display()
+    );
+    for name in &staged.names {
+        println!(
+            "cargo:rerun-if-changed={}",
+            staged.directory.join(name).display()
+        );
     }
     for path in &staged.inputs {
         println!("cargo:rerun-if-changed={}", path.display());

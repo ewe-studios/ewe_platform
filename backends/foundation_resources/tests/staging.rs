@@ -55,3 +55,20 @@ fn shared_destinations_serialize_and_invalid_names_fail() {
         assert!(foundation_resources::ResourceName::new(name).is_err());
     }
 }
+
+#[test]
+fn empty_managed_directories_disappear_and_nested_user_files_survive() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let manifest = root.join("resources.toml");
+    let output = root.join("staged");
+    fs::create_dir_all(root.join("icons/empty")).unwrap();
+    fs::write(&manifest, "[[resource]]\nname='art'\npath='icons'").unwrap();
+    stage(&manifest, root, Target::Web, &output).unwrap();
+    assert!(output.join("art/empty").is_dir());
+    fs::write(output.join("art/user.txt"), "keep").unwrap();
+    fs::write(&manifest, "").unwrap();
+    stage(&manifest, root, Target::Web, &output).unwrap();
+    assert!(!output.join("art/empty").exists());
+    assert_eq!(fs::read(output.join("art/user.txt")).unwrap(), b"keep");
+}

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		EE9000030000000000000003 /* EweResources in Resources */ = {isa = PBXBuildFile; fileRef = EE9000030000000000000002; };
 		12EDCE4434F17C2B2334F513 /* TodoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB7CFD9FE593F477A3429B9 /* TodoTests.swift */; };
+		EE9000030000000000000005 /* ResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9000030000000000000004 /* ResourceTests.swift */; };
 		5DAC712F52D8B5AD4E7E3073 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306DBC8958E95277691BA73A /* App.swift */; };
 		79F34E4A5A3127244828D20A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
 		7DF26539FAB5A03767555C17 /* EweTodoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 687EA8B759975BC70FBB8399 /* EweTodoCore */; };
@@ -35,6 +36,7 @@
 		960E82007BA4E62435E20FA6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9947D29C522D037A5BA87A3D /* TodoServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBB7CFD9FE593F477A3429B9 /* TodoTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TodoTests.swift; sourceTree = "<group>"; };
+		EE9000030000000000000004 /* ResourceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResourceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				DBB7CFD9FE593F477A3429B9 /* TodoTests.swift */,
+				EE9000030000000000000004 /* ResourceTests.swift */,
 			);
 			name = UITests;
 			path = UITests;
@@ -230,6 +233,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				12EDCE4434F17C2B2334F513 /* TodoTests.swift in Sources */,
+				EE9000030000000000000005 /* ResourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

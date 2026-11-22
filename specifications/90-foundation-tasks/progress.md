@@ -170,3 +170,7 @@ Binding generation and integration checks are in progress.
 
 The native reader test passes for normal completion, a later read failure, and early stream disposal.
 The Swift and Kotlin binding generators both export the host reader and chunked read operation.
+
+Five macOS staging and runtime tests pass. Empty managed directories now disappear after removal.
+A nested user file survives a managed directory removal.
+The separate phone tests compare the installed icon digest and check missing, invalid, and browser-only names.

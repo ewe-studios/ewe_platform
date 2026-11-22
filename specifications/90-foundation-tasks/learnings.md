@@ -115,3 +115,6 @@ A dropped stream must close its native file even when the caller stops before th
 
 Generate bindings from the current shared library before building either native host.
 The bridge preserves distinct errors for missing files and I/O failures.
+
+A file ownership list cannot identify empty managed directories. Record managed directory names with a trailing slash.
+Keep user files during cleanup, even when their parent was a managed directory.
