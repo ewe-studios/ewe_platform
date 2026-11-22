@@ -85,10 +85,10 @@ where
     let client_status = cq.borrow_mut().next_status(Ctx::host());
     let worked = matches!(
         server_status,
-        Some(TaskStatus::Ready(_) | TaskStatus::Pending(_))
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
     ) || matches!(
         client_status,
-        Some(TaskStatus::Ready(_) | TaskStatus::Pending(_))
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
     );
     if !worked {
         std::thread::sleep(Duration::from_millis(1));

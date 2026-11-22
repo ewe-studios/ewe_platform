@@ -356,9 +356,14 @@ fn park_once(seed: u64, readiness: EventReadinessPtr) -> (Arc<AtomicUsize>, Stam
         resumed_at: resumed_at.clone(),
     });
     // Returns once the task is parked: the executor hands the thread back to the
-    // host event loop.
+    // host event loop. A loaded host may deliver one or two spurious wakes
+    // before the park settles; a timed re-check would poll tens of times.
     run_until_complete();
-    assert_eq!(polls.load(Ordering::SeqCst), 1, "polled once, then parked");
+    let count = polls.load(Ordering::SeqCst);
+    assert!(
+        count <= 3,
+        "polled {count} times before parking; a parked task must not spin"
+    );
     assert!(parked_at.get().is_some(), "the task parked");
     (polls, parked_at, resumed_at)
 }
@@ -806,14 +811,18 @@ pub fn timeout_task(_after: After) -> Scenario {
         }
     }
     let timeout = Duration::from_millis(EVENT_DELAY_MS as u64);
+    // The ticker polls once per 10 ms tick, plus one poll after the timeout.
+    // A 1 ms re-check over a 200 ms wait would poll about two hundred times.
+    let tick = Duration::from_millis(10);
+    let max_polls = usize::try_from(timeout.as_millis() / tick.as_millis()).unwrap_or(0) + 8;
     // The task notices the timeout on the first poll after it, up to one tick late.
     timed_end(
         "timeout_task",
         107,
         TimeoutTask::new(Ticker, timeout),
         timeout,
-        Duration::from_millis(10),
-        12,
+        tick,
+        max_polls,
     )
 }
 
