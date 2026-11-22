@@ -1,5 +1,6 @@
 package ewe.todo
 
+import ewe.ui.android.AndroidResourceSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,7 +28,7 @@ class MainActivity : ComponentActivity() {
             EweTheme.fromManifest(todoThemeManifest()) else EweTheme()
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                RemoteEweScreen(endpoint, "initial", { createPersistentTodoCore(NativePlatform.ANDROID, it, pendingFile) }, theme = theme, viewDataAction = "host:apply_todo_delivery",
+                RemoteEweScreen(endpoint, "initial", { createPersistentTodoCore(NativePlatform.ANDROID, it, pendingFile).also { core -> core.installResources(AndroidResourceSource(assets)) } }, theme = theme, viewDataAction = "host:apply_todo_delivery",
                     rpcBase = endpoint.takeIf { intent.getBooleanExtra("rpc", false) },
                     socketEndpoint = "/socket".takeIf { intent.getBooleanExtra("socket", false) })
             }

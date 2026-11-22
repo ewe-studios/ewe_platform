@@ -13,7 +13,7 @@ autotests = false
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [features]
-tasks = ["dep:foundation_tasks", "dep:clap", "dep:blocking", "dep:tempfile", "dep:serde_json", "dep:sha2", "dep:hex", "dep:zip", "dep:plist", "dep:regex", "dep:serde", "dep:toml", "dep:quick-xml", "dep:sha1", "dep:base64", "dep:uuid"]
+tasks = ["dep:foundation_tasks", "dep:clap", "dep:tempfile", "dep:serde_json", "dep:sha2", "dep:hex", "dep:zip", "dep:plist", "dep:regex", "dep:serde", "dep:toml", "dep:quick-xml", "dep:sha1", "dep:base64", "dep:uuid"]
 bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
 
@@ -23,7 +23,9 @@ async-channel.workspace = true
 foundation_ui_gpu.workspace = true
 foundation_tasks = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
-blocking = { workspace = true, optional = true }
+blocking.workspace = true
+tracing.workspace = true
+foundation_resources = { path = "../foundation_resources", version = "0.1.0" }
 tempfile = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }

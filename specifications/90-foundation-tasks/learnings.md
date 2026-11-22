@@ -109,3 +109,6 @@ A build script can supply its staging directory before macro expansion.
 Android generated asset registration orders the producer once per variant.
 Xcode needs a folder reference and a producer output that refer to the same derived directory.
 Select the Arm simulator when the local native framework contains only Arm simulator code.
+
+The existing native core retains the application context. Both native hosts can install a reader after core creation.
+A dropped stream must close its native file even when the caller stops before the final chunk.

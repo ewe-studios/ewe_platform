@@ -163,3 +163,7 @@ Gradle assembles the Android debug package with the shared icon and version file
 The package excludes the browser script. Xcode copies the same resources to the simulator bundle.
 The generic simulator build cannot link the local Arm-only framework for x86-64.
 The Arm simulator build and installed host reads remain open.
+
+NativeCore accepts a package reader from the host before the first action.
+Swift opens a file in the application bundle. Kotlin opens an Android asset stream.
+Binding generation and integration checks are in progress.

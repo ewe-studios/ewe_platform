@@ -22,15 +22,20 @@ import SwiftUI
           let file = URL.applicationSupportDirectory.appending(path: "TodoPending/\(key).json").path
           if ProcessInfo.processInfo.environment["EWE_TODO_RPC"] == "1" {
             ServerScreen(base: url, initial: "initial", rpcBase: url, theme: theme) { transport, store in
-              NativeActionCore(try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file), store: store, viewDataAction: "host:apply_todo_delivery")
+              let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
+              core.installResources(source: BundleResourceSource())
+              return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
             }
           } else if ProcessInfo.processInfo.environment["EWE_TODO_SOCKET"] == "1" {
             ServerScreen(base: url, initial: "initial", socket: url.appendingPathComponent("socket"), theme: theme) { transport, store in
-              NativeActionCore(try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file), store: store, viewDataAction: "host:apply_todo_delivery")
+              let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
+              core.installResources(source: BundleResourceSource())
+              return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
             }
           } else {
           ServerScreen(base: url, initial: "initial", theme: theme) { transport, store in
             let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
+            core.installResources(source: BundleResourceSource())
             return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
           }
           }

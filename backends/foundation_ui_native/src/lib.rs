@@ -6,6 +6,8 @@ mod core;
 pub mod graphics;
 mod host;
 pub mod rpc;
+#[cfg(not(target_family = "wasm"))]
+pub mod resources;
 pub use core::{CoreConfig, NativeCore, NativeCoreBuilder, NativePlatform};
 pub use host::{
     action_sender, CoreError, EventInput, FrameListener, HostTransport, HostTransportProvider,

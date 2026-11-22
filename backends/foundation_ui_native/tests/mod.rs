@@ -5,3 +5,4 @@ mod tasks;
 
 #[cfg(feature = "tasks")]
 mod release_tasks;
+mod resource_tests;

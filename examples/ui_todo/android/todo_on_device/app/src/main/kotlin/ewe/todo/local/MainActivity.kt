@@ -1,5 +1,6 @@
 package ewe.todo.local
 
+import ewe.ui.android.AndroidResourceSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
             EweTheme.fromManifest(todoThemeManifest()) else EweTheme()
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                LocalEweScreen({ createLocalTodoCore(NativePlatform.ANDROID) }, ::initialTodoFrame, theme = theme)
+                LocalEweScreen({ createLocalTodoCore(NativePlatform.ANDROID).also { core -> core.installResources(AndroidResourceSource(assets)) } }, ::initialTodoFrame, theme = theme)
             }
         }
     }

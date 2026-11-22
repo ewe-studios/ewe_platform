@@ -17,6 +17,7 @@ import SwiftUI
       case .success(let theme):
         LocalScreen(theme: theme) { store in
           let core = try createLocalTodoCore(platform: .ios)
+          core.installResources(source: BundleResourceSource())
           let first = try await initialTodoFrame(core: core)
           return (NativeActionCore(core, store: store), first)
         }
