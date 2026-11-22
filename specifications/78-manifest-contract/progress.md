@@ -2,6 +2,9 @@
 
 _Last updated: 2026-11-22._
 
+**State.** Branch `spec/78-manifest-contract` is pushed at `8b2c2b50f`; not merged into master.
+Open: #697 (medium).
+
 ## Status at a glance
 
 | Task | State |
@@ -82,7 +85,7 @@ This is recorded in `fixtures/README.md` and in LEARNINGS.
 
 ## Next steps
 
-1. The owner reviews this branch. Push and open one pull request for spec 78.
+1. Merge the branch into master.
 2. Spec 79 T1 adds `foundation_installer` and its `tests/fixtures/manifest/` copy.
 3. Spec 82 T2 adds `foundation_registrar` and its copy. It must add `source.kind` to its view
    for the V6 check (issue #697).
