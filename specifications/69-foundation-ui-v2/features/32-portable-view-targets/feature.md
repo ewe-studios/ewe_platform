@@ -284,3 +284,23 @@ Exercise file-backed key-value operations on iPhone and Android, including prefi
 Test the writable virtual file system independently from packaged resource reads.
 Batch retry can reuse the same per-item identities and outcomes. Add a batch endpoint only after its contract has approval.
 This proposal awaits owner approval.
+
+
+### Action composition and delivery outcomes
+
+The owner confirms that a local submission action owns persistence and preview before calling the registered server action.
+Remove the Todo transport wrapper when this route passes the existing host checks.
+
+Proposed framework contract:
+
+1. Let a handler submit a typed child action through its context. Reuse the host action manager for lookup and dispatch.
+2. Preserve the receiving view and allocate a separate request identifier for each child call.
+3. Publish the pending preview before waiting for remote completion. Verify visibility while the test server deliberately holds the request.
+4. Return an immediate dispatch error or a request handle. Support completion through a Rust callback or a registered host action.
+5. Distinguish transport acceptance from an application reply. Use the same correlation for immediate and later replies.
+6. Complete a registered callback once. Handle cancellation, timeout, duplicate replies, and disposal of the receiving view.
+7. Keep the Todo creation identifier across retries. Each send attempt has its own request identifier.
+8. If confirmed state arrives after timeout, reconcile it through the existing delivery action.
+
+Verify immediate replies, socket acceptance followed by a delayed reply, and typed failures through each supported transport.
+The framework interface and completion semantics await approval.
