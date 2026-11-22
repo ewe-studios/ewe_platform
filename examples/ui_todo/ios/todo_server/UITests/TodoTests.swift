@@ -145,12 +145,21 @@ final class TodoTests: XCTestCase {
       XCTAssertTrue(filters.buttons["All"].isSelected)
 
       try await peer("pause-browser")
+      try await peer("hold-iphone-add")
       add.tap()
       XCTAssertTrue(draft.waitForExistence(timeout: 5))
       draft.tap()
       draft.typeText("iPhone peer todo\n")
       let ios = app.staticTexts["iPhone peer todo"]
       XCTAssertTrue(ios.waitForExistence(timeout: 10))
+      XCTAssertTrue(app.staticTexts["Pending"].waitForExistence(timeout: 5))
+      XCTAssertTrue(app.staticTexts[label].exists)
+      try await peer("fail-iphone-add")
+      let retry = app.buttons["Try again"]
+      XCTAssertTrue(retry.waitForExistence(timeout: 10))
+      try await peer("capture-iphone-retry")
+      retry.tap()
+      XCTAssertTrue(app.buttons["Complete"].waitForExistence(timeout: 10))
       try await peer("check-ios-add")
 
       app.buttons["Complete"].tap()
@@ -166,7 +175,7 @@ final class TodoTests: XCTestCase {
       try await peer("check-ios-delete")
 
       let android = app.staticTexts["Android peer todo"]
-      try await peer("android-add")
+      try await peer("android-pending-retry")
       XCTAssertTrue(android.waitForExistence(timeout: 10))
       XCTAssertTrue(app.buttons["Complete"].exists)
       try await peer("android-complete")

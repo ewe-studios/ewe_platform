@@ -1082,3 +1082,29 @@ Feature 32 records the pending and retry screenshots.
 Android now reports a foreign transport exception through the Rust error result. Issue #729 records this fix.
 The callback conversion test passes. The Android app displays **Try again** after HTTP 503 and retries the saved addition.
 All three hosts then display the new record, its completion, its reopening, and its deletion.
+
+### 2026-11-22 — Todo changes reach all three hosts
+
+One isolated server served Chrome, an Android Pixel emulator, and an iPhone 17 simulator.
+The installed three-host test passed in 175.534 seconds.
+
+| Origin | Add | Complete | Reopen | Delete |
+| --- | --- | --- | --- | --- |
+| Chrome | Both phones showed Browser peer todo. | Both showed Reopen. | Both showed Complete. | Both removed the row. |
+| iPhone | Chrome and Android showed iPhone peer todo. | Both showed Reopen. | Both showed Complete. | Both removed the row. |
+| Android | Chrome and iPhone showed Android peer todo. | Both showed Reopen. | Both showed Complete. | Both removed the row. |
+
+Both phones showed pending additions before server confirmation. Each received a temporary server error and showed **Try again**.
+Each retry produced one confirmed row. The browser kept its draft and selected filter during peer changes.
+The iPhone resumed live delivery after disconnection and applied the deletion.
+The test logs are in `target/agent-work/todo-logs/threehost-{peer,xcode}-before-resource.log`.
+
+Chrome also passed the held-deletion test. The pending row showed **Deleting…** and retained the confirmed count.
+A temporary error showed **Try again**. The successful retry removed the row and changed the count from one to zero.
+The browser action regression passed over HTTP, WebSocket, and Connect RPC. Its separate external-peer test requires a live server.
+
+The second run used the rebuilt native resource bindings. It passed the same three-host test in 185.201 seconds.
+The four native pending and retry screenshots are in the Feature 32 screenshots directory.
+The peer log and Xcode log are in `target/agent-work/todo-logs/threehost-peer.log` and `threehost-xcode.log`.
+The Android screenshot also shows a stale channel error after successful reconnection. Issue #732 tracks that status message.
+The separate one-minute block demonstration remains open under issue #714.

@@ -10,8 +10,8 @@ import { createInterface } from "node:readline";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 
-async function waitFor(read, description) {
-  const deadline = Date.now() + 15000;
+async function waitFor(read, description, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const value = await read();
     if (value) return value;
@@ -138,6 +138,8 @@ try {
       await waitFor(() => evaluate(`(${toggle})?.textContent === ${JSON.stringify(expected)}`),
         `Browser did not show ${label} with ${expected}`);
     }
+    const display = await evaluate(`(${row(label)})?.textContent ?? null`);
+    console.log(JSON.stringify({ host: "Chrome", title: label, expected, row: display }));
   }
   const iosTitle = "iPhone peer todo";
   const androidTitle = "Android peer todo";
@@ -157,7 +159,44 @@ try {
     await click(global('button[value="all"]'));
   }
 
+  async function capturePhone(platform, state) {
+    const directory = process.env.EWE_WEB_CAPTURES;
+    if (!directory) return;
+    await mkdir(directory, { recursive: true });
+    const path = join(directory, platform + "-" + state + ".png");
+    if (platform === "iphone") {
+      await run("xcrun", ["simctl", "io", process.env.EWE_TODO_SIMULATOR ?? "booted", "screenshot", path]);
+    } else {
+      const remote = "/data/local/tmp/todo-capture-" + process.pid + ".png";
+      try {
+        await run(adb, ["-s", serial, "shell", "screencap", "-p", remote]);
+        await run(adb, ["-s", serial, "pull", remote, path]);
+      } finally { await run(adb, ["-s", serial, "shell", "rm", "-f", remote]); }
+    }
+  }
   const scenarios = {
+    async "hold-iphone-add"() { await gate("hold-actions?client=ios"); },
+    async "fail-iphone-add"() {
+      await waitFor(async () => (await gate("status")).actions === 1, "Missing delayed iPhone submission");
+      await capturePhone("iphone", "pending");
+      await gate("fail-actions?client=ios");
+    },
+    async "capture-iphone-retry"() { await capturePhone("iphone", "retry"); },
+    async "android-pending-retry"() {
+      await gate("hold-actions?client=android");
+      try {
+        await Promise.all([
+          android("pending-add", androidTitle),
+          waitFor(async () => (await gate("status")).actions === 1, "Missing delayed Android submission", 120000),
+        ]);
+        await capturePhone("android", "pending");
+        await gate("fail-actions?client=android");
+        await android("check", androidTitle, "Try again");
+        await capturePhone("android", "retry");
+        await android("retry", androidTitle);
+        await status(androidTitle, "Complete");
+      } finally { await gate("send-actions?client=android"); }
+    },
     async "pending-retry"() {
       assert.ok(proxy, "Use a separate server for pending requests");
       const record = "Retry this request";
@@ -184,9 +223,17 @@ try {
         await click(rowAction(record, "server:add_todo"));
         await status(record,"Complete");
         assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "1 open todo");
+        await gate("hold-actions?client=web");
         await click(rowAction(record, "host:open_delete_dialog"));
         await click(global(action("server:confirm_delete")));
+        await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Deleting…")`), "Missing pending deletion");
+        assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "1 open todo");
+        await waitFor(async () => (await gate("status")).actions === 1, "The proxy did not receive the deletion");
+        await gate("fail-actions?client=web");
+        await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Try again")`), "Missing delete retry");
+        await click(rowAction(record, "server:confirm_delete"));
         await status(record,"absent");
+        assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "0 open todos");
       } finally { await gate("send-actions?client=web"); }
     },
     async add() {
@@ -273,7 +320,7 @@ try {
   server = http.createServer(async ({ url }, response) => {
     const scenario = scenarios[url.slice(1)];
     if (!scenario) { response.writeHead(404).end(); return; }
-    try { await scenario(); response.writeHead(204).end(); }
+    try { await scenario(); console.log(JSON.stringify({ scenario: url.slice(1), passed: true })); response.writeHead(204).end(); }
     catch (error) { console.error(error); response.writeHead(500).end(); }
   });
   server.listen(0, "127.0.0.1");

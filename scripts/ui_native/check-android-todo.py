@@ -124,7 +124,7 @@ elif phase == "peer-check":
         wait_for(title, state)
 elif phase == "peer-show-all":
     tap("All")
-elif phase == "peer-add":
+elif phase in ("peer-add", "peer-pending-add"):
     title = labels[0]
     tap("Add", "Todos")
     tap("<editor>", "New todo")
@@ -133,10 +133,18 @@ elif phase == "peer-add":
             "mInputShown=true" in shell("dumpsys", "input_method")
         )
     wait_for("<editor>", condition=editor_ready)
-    shell("input", "text", title.replace(" ", "%s"), command_timeout=timeout)
-    wait_for(title, "New todo")
+    # The emulator can drop a burst of key events while the input method starts.
+    # Wait for each visible character before entering the next one.
+    for end, letter in enumerate(title, start=1):
+        shell("input", "text", "%s" if letter == " " else letter, command_timeout=timeout)
+        if letter != " ":
+            wait_for(title[:end], "New todo")
     tap("Add", "New todo")
-    wait_for(title, absent=("New todo",))
+    status = ("Pending",) if phase == "peer-pending-add" else ()
+    wait_for(title, *status, absent=("New todo",))
+elif phase == "peer-retry":
+    tap("Try again", labels[0])
+    wait_for(labels[0], "Complete")
 elif phase == "peer-complete":
     tap("Complete", labels[0])
     wait_for(labels[0], "Reopen")

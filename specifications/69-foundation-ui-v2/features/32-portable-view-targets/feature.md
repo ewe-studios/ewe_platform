@@ -253,3 +253,17 @@ The same run deletes the row and confirms its absence.
 ![Pending addition with no confirmed open todos](screenshots/chrome-pending.png)
 
 ![The same pending addition with a retry button](screenshots/chrome-retry.png)
+
+### Native verification on 2026-11-22
+
+Both phones display a pending row before the server confirms the addition.
+A temporary server error displays **Try again**. One retry confirms the original addition.
+Chrome and the other phone then show the same row.
+
+![iPhone pending addition](screenshots/iphone-pending.png)
+
+![iPhone retry after a temporary server error](screenshots/iphone-retry.png)
+
+![Android pending addition](screenshots/android-pending.png)
+
+![Android retry after a temporary server error](screenshots/android-retry.png)

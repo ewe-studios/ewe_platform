@@ -194,7 +194,9 @@ fn server_and_host_actions_work() {
         toggle.expect().to_have_count(0).unwrap();
         peer_toggle.expect().to_have_count(0).unwrap();
         other.eval(r"{
-            document.querySelector("#page").appendChild(window.staleTodoButton);
+            // A repeated deletion succeeds. An unknown record still returns an error.
+            window.staleTodoButton.value = '99999';
+            document.querySelector('#page').appendChild(window.staleTodoButton);
             window.FoundationWasmUiRuntime.Patcher.runtime.dispatcher.scanAndWire(window.staleTodoButton);
             window.staleTodoButton.click();
         }").unwrap();

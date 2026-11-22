@@ -945,3 +945,13 @@ A successful retry must increment the confirmed count once.
 
 UniFFI converts foreign exceptions to the declared Rust error when that error implements the callback conversion.
 Without that conversion, the failed callback can leave its caller before the caller saves the retry state.
+
+### 2026-11-22 — Capturing pending additions on devices
+
+A held network request can arrive before Android draws its pending row.
+Wait for both the request and the visible row before taking the screenshot.
+A second delete request for a known deleted record succeeds. This lets a host retry after losing the first response.
+Test rejection with an unknown record identifier. Place the initiating element inside its registered view.
+
+Android can continue to show a channel error after live updates resume.
+Check the actual row and the channel status separately. Issue #732 tracks the stale message.
