@@ -124,3 +124,7 @@ An embedded server host must supply that directory. A standalone server can reso
 
 Kotlin already uses close for generated handle disposal. Swift treats open as a keyword in callback declarations.
 Use openResourceFile and closeFile for the package callbacks.
+
+Use a companion browser module for the resource service. Its JavaScript bindings own the browser fetch context.
+The Todo action module keeps its existing host import interface. Both native hosts use the same Rust open operation.
+The iPhone test must use the installed application bundle. The test runner has a different bundle.

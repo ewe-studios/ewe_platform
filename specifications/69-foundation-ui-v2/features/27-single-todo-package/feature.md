@@ -224,3 +224,9 @@ Verify static responses for the module and both bundles. Verify a missing file r
 Repeat replay, restore, and native data checks. This revision awaits owner approval.
 
 Use the proposed [platform resource manager](../../../90-foundation-tasks/features/03-platform-resource-manager/feature.md) for shared staging and mobile package inputs.
+
+## Resource verification
+
+Todo declares its icon, browser script, and generated version in resources.toml.
+Chrome, the iPhone simulator, and the Android emulator stream the same packaged icon bytes.
+The mobile packages exclude the browser script. Specification 90 Feature 3 records the host checks.

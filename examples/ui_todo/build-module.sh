@@ -15,3 +15,8 @@ cargo build --locked --manifest-path "$here/../../backends/foundation_ui_connect
     --release --target wasm32-unknown-unknown --target-dir "$target_dir"
 mise exec -- wasm-bindgen "$target_dir/wasm32-unknown-unknown/release/foundation_ui_connectrpc.wasm" \
     --target web --no-typescript --out-dir "$here/target/web/rpc"
+
+cargo build --locked --manifest-path "$here/../../backends/foundation_resources/Cargo.toml" --lib --features browser-bindings \
+    --release --target wasm32-unknown-unknown --target-dir "$target_dir"
+mise exec -- wasm-bindgen "$target_dir/wasm32-unknown-unknown/release/foundation_resources.wasm" \
+    --target web --no-typescript --out-dir "$here/target/web/resources-wasm"

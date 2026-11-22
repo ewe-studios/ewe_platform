@@ -180,3 +180,10 @@ Chrome completes application startup. The separate action error expectation rema
 
 Issue #731 fixes two callback names that conflicted with generated native code.
 Clang accepts the generated C header. Gradle compiles the Kotlin binding and user interface modules.
+
+Chrome, the iPhone 17 simulator, and the Android Arm emulator open art/todo.svg through the shared Rust resource service.
+Each returns the same SHA-256 digest, bf701db9f85dc15a8c1f4fd4cac38bf1aca38a8e9a5cf3f6db6bbb8bc4809294.
+The iPhone test runs once with no failures. Android instrumentation returns RESULT_OK.
+Both native tests check missing host, invalid name, and the absence of browser-only app.js.
+The Todo browser integration passes. A separate Chrome check covers a server error before reading its body.
+The platform build task and build-module.sh now prepare the browser resource module.

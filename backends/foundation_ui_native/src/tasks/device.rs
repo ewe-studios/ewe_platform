@@ -243,22 +243,28 @@ pub(super) async fn web(ctx: &TaskContext, root: &Path) -> TaskResult {
     std::fs::copy(app, tmp.path()).map_err(TaskError::operation)?;
     tmp.persist(dest.join("ui_todo.wasm"))
         .map_err(TaskError::operation)?;
-    let rpc = artifact(
-        ctx,
-        cargo.args(["-p", "foundation_ui_connectrpc", "--features", "browser"]),
-        "foundation_ui_connectrpc",
-        &[".wasm"],
-    )
-    .await?;
-    ctx.exec(
-        ProcessCommand::new("mise")
-            .current_dir(root)
-            .args(["exec", "--", "wasm-bindgen"])
-            .arg(rpc)
-            .args(["--target", "web", "--no-typescript", "--out-dir"])
-            .arg(dest.join("rpc")),
-    )
-    .await
+    for (package, feature, directory) in [
+        ("foundation_ui_connectrpc", "browser", "rpc"),
+        ("foundation_resources", "browser-bindings", "resources-wasm"),
+    ] {
+        let module = artifact(
+            ctx,
+            cargo.clone().args(["-p", package, "--features", feature]),
+            package,
+            &[".wasm"],
+        )
+        .await?;
+        ctx.exec(
+            ProcessCommand::new("mise")
+                .current_dir(root)
+                .args(["exec", "--", "wasm-bindgen"])
+                .arg(module)
+                .args(["--target", "web", "--no-typescript", "--out-dir"])
+                .arg(dest.join(directory)),
+        )
+        .await?;
+    }
+    Ok(())
 }
 
 pub(super) async fn sleep(ctx: &TaskContext, duration: Duration) -> TaskResult {

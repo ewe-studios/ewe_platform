@@ -21,10 +21,10 @@ pub enum ResourceError {
 }
 
 impl ResourceError {
-    pub(crate) fn read(name: &ResourceName, reason: impl ToString) -> Self {
+    pub(crate) fn read(name: &ResourceName, reason: impl Into<String>) -> Self {
         Self::Read {
             name: name.as_str().to_owned(),
-            reason: reason.to_string(),
+            reason: reason.into(),
         }
     }
     pub(crate) fn missing(name: &ResourceName) -> Self {
@@ -42,7 +42,7 @@ pub type OpenFuture<'a> = BoxFuture<'a, Result<Resource, ResourceError>>;
 
 /// A host implementation that opens resources by logical name.
 pub trait ResourceReader: Send + Sync {
-    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a>;
+    fn open(&self, name: ResourceName) -> OpenFuture<'_>;
 }
 
 /// Application access to the reader that the host installs.
@@ -116,7 +116,7 @@ impl DirectoryReader {
 }
 #[cfg(not(target_family = "wasm"))]
 impl ResourceReader for DirectoryReader {
-    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a> {
+    fn open(&self, name: ResourceName) -> OpenFuture<'_> {
         use std::io::Read;
         let root = self.root.clone();
         let cap = self.config.chunk_bytes();
@@ -126,7 +126,7 @@ impl ResourceReader for DirectoryReader {
                     if e.kind() == std::io::ErrorKind::NotFound {
                         ResourceError::missing(&name)
                     } else {
-                        ResourceError::read(&name, e)
+                        ResourceError::read(&name, e.to_string())
                     }
                 };
                 let base = root.canonicalize().map_err(map)?;
@@ -151,7 +151,7 @@ impl ResourceReader for DirectoryReader {
                         let mut data = vec![0; cap];
                         let used = file
                             .read(&mut data)
-                            .map_err(|e| ResourceError::read(&name, e))?;
+                            .map_err(|e| ResourceError::read(&name, e.to_string()))?;
                         data.truncate(used);
                         Ok((used > 0).then_some((data, (file, name))))
                     })

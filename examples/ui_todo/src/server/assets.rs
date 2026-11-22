@@ -22,6 +22,7 @@ pub(super) fn register(
     )?;
     if let Some(root) = module.parent() {
         router.at("/rpc/*", get(StaticFileHandler::new(root)))?;
+        router.at("/resources-wasm/*", get(StaticFileHandler::new(root)))?;
     }
     router.at(
         "/theme.css",

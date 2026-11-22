@@ -43,7 +43,7 @@ fn host_context_streams_the_named_file_in_bounded_chunks() {
 
 struct Interrupted;
 impl ResourceReader for Interrupted {
-    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a> {
+    fn open(&self, name: ResourceName) -> OpenFuture<'_> {
         Box::pin(async move {
             Ok(Box::pin(futures_util::stream::iter([
                 Ok(vec![1_u8]),

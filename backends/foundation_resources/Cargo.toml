@@ -8,10 +8,14 @@ authors.workspace = true
 repository.workspace = true
 description = "Stage application resources and read them through the host context"
 
+[lib]
+crate-type = ["rlib", "cdylib"]
+
 [features]
+browser-bindings = ["runtime", "foundation_context/wasm-bindgen"]
 default = ["runtime"]
 build = ["dep:serde", "dep:toml", "dep:tempfile"]
-runtime = ["dep:foundation_context", "dep:futures-util","dep:blocking","dep:web-sys","dep:js-sys","dep:wasm-bindgen","dep:wasm-bindgen-futures"]
+runtime = ["dep:foundation_context", "dep:futures-util", "dep:blocking", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 
 [dependencies]
 serde = { workspace = true, optional = true }
@@ -25,7 +29,7 @@ derive_more.workspace = true
 blocking = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = { workspace = true, optional = true, features=["Window","Url","ReadableStream","ReadableStreamDefaultReader","Response"] }
+web-sys = { workspace = true, optional = true, features = ["Window", "Url", "ReadableStream", "ReadableStreamDefaultReader", "Response", "console"] }
 js-sys = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 wasm-bindgen-futures = { workspace = true, optional = true }

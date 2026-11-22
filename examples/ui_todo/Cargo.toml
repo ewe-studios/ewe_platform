@@ -86,3 +86,8 @@ required-features = ["server"]
 name = "mobile"
 path = "tests/mobile.rs"
 required-features = ["mobile"]
+
+[[test]]
+name = "browser_resources"
+path = "tests/browser_resources.rs"
+required-features = ["browser-tests"]

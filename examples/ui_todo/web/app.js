@@ -15,6 +15,23 @@ async function connectSender() {
     } };
 }
 
+let resourceHost;
+
+async function installResources() {
+    const { default: initialize, BrowserResources } = await import("/resources-wasm/foundation_resources.js");
+    await initialize();
+    return new BrowserResources(new URL("/", location.href).href);
+}
+
+// Return the next bytes only when the caller reads the stream.
+export async function openResource(name) {
+    resourceHost ??= installResources().catch(error => {
+        resourceHost = undefined;
+        throw error;
+    });
+    return (await resourceHost).open(name);
+}
+
 async function boot() {
     const runtime = new FoundationWasm();
     const dom = new ui.DomHeap({ window, document });

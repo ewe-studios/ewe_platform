@@ -127,7 +127,7 @@ impl Inputs {
     }
 }
 fn invalid_name(error: crate::InvalidName) -> io::Error {
-    invalid(error.to_string())
+    io::Error::new(io::ErrorKind::InvalidInput, error)
 }
 
 const INDEX: &str = ".ewe-resource-index";

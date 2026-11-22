@@ -80,3 +80,6 @@ pub use runtime::*;
 mod browser;
 #[cfg(all(feature = "runtime", target_arch = "wasm32"))]
 pub use browser::BrowserReader;
+
+#[cfg(all(feature = "browser-bindings", target_arch = "wasm32"))]
+pub use browser::{BrowserResources, BrowserResourceStream};
