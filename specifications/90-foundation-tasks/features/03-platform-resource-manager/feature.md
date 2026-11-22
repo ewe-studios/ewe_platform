@@ -115,6 +115,16 @@ Stage only the selected application `bundle.js` as public JavaScript. Keep inter
 ## Static handler for a packaged resource set
 
 The application declares one resource type and passes its instance to one framework static handler.
+
+The approved registration is:
+
+```rust
+router.mount(StaticFileHandler::from_resources(PackagedResources))?;
+```
+
+Mount one fallback route after the application routes. Resolve each requested path through the provider at request time.
+Verify that adding another asset leaves the route count unchanged.
+The server requires no generated filename list to register routes.
 The resource type supplies lookup for declared names and binary contents. The framework selects live files or embedded bytes.
 Keep the build-generated file index inside the provider. The caller supplies no index file, environment variable, or lookup callback.
 The framework owns the default index document, media types, missing-resource responses, and development directory resolution.
