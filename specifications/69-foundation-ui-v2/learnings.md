@@ -1034,3 +1034,10 @@ It can keep the original compiler or linker error as the cause when the resource
 Android instrumentation starts a separate process. It must select the same native library as the application.
 The replay client must also apply the server capability reply before it sends structured input.
 The data service can verify each deletion by its record identifier.
+
+## Browser host registration
+
+The Rust builder can publish its action declarations before it transfers the registry to the dispatcher.
+The browser can then install a fresh registry for each startup attempt.
+A failed handshake can occur after the runtime attaches a view and a transport.
+The caller can retry the same application after the runtime releases both resources.

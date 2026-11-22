@@ -1,8 +1,9 @@
 // Route browser actions through the negotiated frame protocol.
 import * as wire from "./foundation-ui-wire.js";
 import { VOCABULARY_VERSION, STRUCTURED_INPUT_VERSION } from "./foundation-ui-vocab.js";
-import { base64urlDecode, base64urlEncode, readFrames, sheetSubmitField } from "./foundation-ui-frames.js";
-import { buildEventData } from "./foundation-wasm-ui.js";
+import { base64urlDecode, base64urlEncode, readFrames, sheetSubmitField, installFrameRuntime, readViewResponse } from "./foundation-ui-frames.js";
+import * as ui from "./foundation-wasm-ui.js";
+import * as behaviours from "./foundation-ui-behaviours.js";
 
 const validName = name => typeof name === "string" && name.length > 0 && !/[:\s\p{Cc}]/u.test(name);
 const error = code => ({ error: code });
@@ -260,7 +261,7 @@ export class WebActionManager {
       }
       if (choice.route === "host" && page) {
         fault = "HostThrew";
-        const result = await page.call(el, { node: el, parent: el?.parentElement, event, callAction, data: payload === undefined ? buildEventData(type, event, el) : payload });
+        const result = await page.call(el, { node: el, parent: el?.parentElement, event, callAction, data: payload === undefined ? ui.buildEventData(type, event, el) : payload });
         for (const bytes of (Array.isArray(result) ? result : [result])) if (bytes instanceof Uint8Array) await this.receive(bytes, viewMount);
         return;
       }
@@ -440,6 +441,40 @@ export class WasmActionTransport {
 
   constructor(bridge) { this.bridge = bridge; }
 
+  /** Load a browser action module and run its exported host initializer. */
+  static async boot(loader, url, {registry, start, imports = {}, window = globalThis.window}) {
+    const runtime = loader.runtime;
+    const dom = new ui.DomHeap({window, document: window.document});
+    const decoder = new TextDecoder("utf-8", {fatal: true});
+    let local;
+    const previous = loader.environment;
+    loader.environment = {
+      ...previous,
+      abi: {...runtime.web_abi, ...ui.domAbi(runtime, dom), ...previous.abi},
+      env: {
+        ...previous.env, ...imports, ...WasmActionTransport.imports(() => local),
+        ewe_ui_declare(origin, pointer, length, scope) {
+          const name = decoder.decode(new Uint8Array(runtime.bridge.memory.buffer, pointer, length));
+          registry.declare([null, "host", "server"][origin], name, ["all", "web", "mobile"][scope]);
+        },
+      },
+    };
+    try {
+      await loader.loadURL(url);
+      const api = loader.module.instance.exports;
+      if (typeof api[start] !== "function") throw new Error("Missing host initializer: " + start);
+      local = new WasmActionTransport({exports: api, memory: () => runtime.bridge.memory});
+      const status = api[start]();
+      if (status !== 0) throw new Error("Host initializer " + start + " returned " + status);
+      return local;
+    } catch (error) {
+      try { local?.close(); } finally { runtime.dispose(); }
+      throw error;
+    } finally {
+      loader.environment = previous;
+    }
+  }
+
   /** Install these imports before the module starts. */
   static imports(transport) {
     return {
@@ -536,12 +571,15 @@ export function installActionRuntime(wasmUi, deps) {
     scope.behaviour = (name, fn) => deps.behaviours.registerWebBehaviour(name, fn);
   };
   extensions.push(extend);
-  installations.set(runtime, () => {
+  manager.dispose = () => {
+    if (installations.get(runtime) !== manager.dispose) return;
+    installations.delete(runtime);
     manager.detachControls?.();
     if (wasmUi.EventDispatcher.actionHook === trigger) wasmUi.EventDispatcher.actionHook = null;
     const i = extensions.indexOf(extend);
     if (i >= 0) extensions.splice(i, 1);
-  });
+  };
+  installations.set(runtime, manager.dispose);
   const doc = deps.document ?? globalThis.document;
   if (doc && !runtime.dispatcher) {
     runtime.dispatcher = new wasmUi.EventDispatcher(id => manager.onError({code: "UnavailableOrigin", detail: "No local callback " + id}),
@@ -551,4 +589,89 @@ export function installActionRuntime(wasmUi, deps) {
     runtime.dispatcher.scanAndWire(doc.body);
   }
   return manager;
+}
+
+
+const activeApps = new WeakSet();
+
+/** Start the configured view once. A failed start releases its resources and permits retry. */
+export function createApp(options) {
+  let flight;
+  const cleanup = [];
+  function dispose() {
+    const errors = [];
+    while (cleanup.length) {
+      try { cleanup.pop()(); } catch (error) { errors.push(error); }
+    }
+    flight = undefined;
+    if (errors.length) throw new AggregateError(errors, "Browser app cleanup failed");
+  }
+  async function start() {
+    const {mount, moduleLoader, onError = console.error} = options;
+    const doc = mount.ownerDocument;
+    const registry = new JsActionRegistry();
+    const local = await WasmActionTransport.boot(moduleLoader, options.moduleUrl, {
+      registry, start: options.start, imports: options.imports, window: doc.defaultView,
+    });
+    cleanup.push(() => moduleLoader.runtime.dispose(), () => local.close());
+    const runtime = ui.Patcher.runtime;
+    const connections = ui.frameConnections();
+    cleanup.push(() => connections.close());
+    const previous = {
+      dispatcher: runtime.dispatcher, frames: runtime.frames, connections: runtime.connections,
+      onMountConnect: runtime.onMountConnect,
+    };
+    const previousHook = ui.ProtocolHandler.frameHook;
+    cleanup.push(() => {
+      Object.assign(runtime, previous);
+      ui.ProtocolHandler.frameHook = previousHook;
+    });
+    runtime.frames = null;
+    runtime.dispatcher = new ui.EventDispatcher(() => {});
+    const frames = installFrameRuntime(ui, {document: doc, connections, onReport: onError, viewMount: mount});
+    ui.registerWebComponents();
+    cleanup.push(frames.registerView(options.view, mount));
+    let manager;
+    const server = typeof options.transport === "function" ? await options.transport()
+      : options.transport?.socket ? WebSocketActionTransport.connect(connections, options.transport.socket)
+      : new FetchActionTransport({url: options.transport?.http ?? "/action", hello: () => manager.hello()});
+    cleanup.push(() => server.close?.());
+    manager = installActionRuntime(ui, {registry, frames, server, local, behaviours, document: doc, onError});
+    cleanup.push(manager.dispose);
+    if (options.viewDataAction) {
+      const receive = event => {
+        void manager.deliverViewData(options.viewDataAction, event.target, event.detail.bytes).catch(onError);
+      };
+      mount.addEventListener("ewe:data", receive);
+      cleanup.push(() => mount.removeEventListener("ewe:data", receive));
+    }
+    for (const bytes of await server.send(manager.hello())) await manager.receive(bytes);
+    const view = frames.registerLoader(mount, async signal => {
+      const response = await fetch(options.initialRoute, {
+        signal, headers: {"X-Ewe-Hello": base64urlEncode(manager.hello())},
+      });
+      return readViewResponse(response, frames.maxFrameBytes);
+    }, {onError: error => onError({code: "ViewRecovery", detail: error.message})});
+    await view.open();
+    return manager;
+  }
+  return {
+    boot() {
+      if (!flight && activeApps.has(ui.Patcher.runtime)) {
+        return Promise.reject(new Error("This browser action runtime already has an application"));
+      }
+      if (!flight) {
+        activeApps.add(ui.Patcher.runtime);
+        cleanup.push(() => activeApps.delete(ui.Patcher.runtime));
+        flight = start().catch(error => { dispose(); throw error; });
+      }
+      return flight;
+    },
+    async close() {
+      const pending = flight;
+      if (pending) {
+        try { await pending; } finally { if (flight === pending) dispose(); }
+      }
+    },
+  };
 }

@@ -1259,3 +1259,13 @@ The iPhone and Android tests retried a failed Add with its saved identifier.
 A separate Chrome test retried failed Add and Delete requests and checked the confirmed count.
 The Android replay client also submitted two Delete requests for the same identifier.
 It checked both replies and verified that the data service returned NotFound after each request.
+
+## Feature 37 browser startup
+
+Todo now calls createApp with its view, initial route, delivery action, and transport selection.
+The framework installs the browser host, registers Rust actions, negotiates the connection, and opens the view.
+A separate browser application used default and custom transports in Chrome.
+It recovered from a failed handshake and shared one startup operation between concurrent callers.
+Closing the application removed the view and closed its custom transport.
+The readable and minified runtime bundles both export createApp.
+Todo still has browser storage imports. Its deployed entry still loads separate JavaScript modules.

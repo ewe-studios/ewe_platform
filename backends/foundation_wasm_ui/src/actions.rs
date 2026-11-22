@@ -81,6 +81,31 @@ impl LocalApp {
 }
 
 impl LocalAppBuilder {
+    /// Publish this registry to the browser and start the local action dispatcher.
+    #[cfg(target_family = "wasm")]
+    pub fn install(self) {
+        use foundation_ui_runtime::action::{Origin, Scope};
+        #[link(wasm_import_module = "env")]
+        extern "C" {
+            fn ewe_ui_declare(origin: u32, name: *const u8, length: usize, scope: u32);
+        }
+        for (name, origin, scope) in self.actions.declarations() {
+            let origin = match origin {
+                None => 0,
+                Some(Origin::Host) => 1,
+                Some(Origin::Server) => 2,
+            };
+            let scope = match scope {
+                Scope::All => 0,
+                Scope::Web => 1,
+                Scope::Mobile => 2,
+            };
+            // The browser reads the name before this call returns.
+            unsafe { ewe_ui_declare(origin, name.as_ptr(), name.len(), scope) };
+        }
+        self.build().install_with_child_actions();
+    }
+
     #[must_use]
     pub fn build(self) -> LocalApp {
         use foundation_ui_runtime::{

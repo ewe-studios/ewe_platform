@@ -2184,1996 +2184,6 @@
         WasmStreamReceiver,
         WasmStreamSender
     });
-    class ConnectionManager {
-        #adapters = new Map();
-        #connections = new Set();
-        #closed = false;
-        #tag = 0n;
-        nextTag() {
-            if (this.#tag === 0xffffffffffffffffn) throw new Error("Connection identifiers exhausted");
-            return ++this.#tag;
-        }
-        supports(transport) {
-            return this.#adapters.has(transport);
-        }
-        register(transport, open) {
-            if (this.#closed || this.#adapters.has(transport)) throw new Error("Connection adapter is unavailable");
-            this.#adapters.set(transport, open);
-            return this;
-        }
-        acquire(options, listener = {}) {
-            if (this.#closed) throw new Error("Connection manager is closed");
-            const { transport, endpoint, shared = transport === "websocket", keepAlive = false, settings = null, authority = null, protocol = "frame" } = options;
-            const url = new URL(endpoint, options.base ?? globalThis.location?.href);
-            if (url.username || url.password) throw new Error("Use the connection authentication context");
-            url.hash = "";
-            if (transport === "websocket") {
-                if (url.protocol === "https:") url.protocol = "wss:";
-                if (url.protocol === "http:") url.protocol = "ws:";
-            }
-            let entry = shared && Array.from(this.#connections).find((c)=>c.shared && c.transport === transport && c.address === url.href && c.settings === settings && c.authority === authority && c.protocol === protocol);
-            const handle = {
-                ...listener
-            };
-            if (!entry) {
-                const open = this.#adapters.get(transport);
-                if (!open) throw new Error("Unknown connection transport: " + transport);
-                entry = {
-                    shared,
-                    address: url.href,
-                    settings,
-                    authority,
-                    transport,
-                    protocol,
-                    retainers: new Set(),
-                    handles: new Set([
-                        handle
-                    ])
-                };
-                this.#connections.add(entry);
-                try {
-                    entry.connection = open({
-                        ...options,
-                        endpoint: url.href
-                    }, {
-                        listening: ()=>[
-                                ...entry.handles
-                            ].some((h)=>h.receive),
-                        deliver: (bytes)=>{
-                            if (!this.#connections.has(entry)) return;
-                            if (options.isContext?.(bytes)) {
-                                entry.context = new Uint8Array(bytes).slice();
-                                for (const h of [
-                                    ...entry.handles
-                                ])h.onContext?.(entry.context.slice());
-                                return;
-                            }
-                            const delivered = new Set();
-                            for (const h of [
-                                ...entry.handles
-                            ]){
-                                if (!entry.handles.has(h) || !h.receive || h.owner && delivered.has(h.owner)) continue;
-                                try {
-                                    const copy = new Uint8Array(bytes).slice();
-                                    if (h.accept && !h.accept(copy)) continue;
-                                    h.receive(copy);
-                                    if (h.owner) delivered.add(h.owner);
-                                } catch (cause) {
-                                    h.onError?.(cause);
-                                }
-                            }
-                        },
-                        opened: ()=>{
-                            entry.opened = true;
-                            for (const h of [
-                                ...entry.handles
-                            ])h.onOpen?.();
-                        },
-                        disconnected: (cause)=>{
-                            entry.opened = false;
-                            entry.context = null;
-                            for (const h of [
-                                ...entry.handles
-                            ])h.onError?.(cause);
-                        }
-                    });
-                } catch (cause) {
-                    this.#connections.delete(entry);
-                    throw cause;
-                }
-            } else {
-                entry.handles.add(handle);
-                if (entry.opened || entry.context) queueMicrotask(()=>{
-                    if (!entry.handles.has(handle)) return;
-                    if (entry.opened) handle.onOpen?.();
-                    if (entry.context) handle.onContext?.(entry.context.slice());
-                });
-            }
-            const retention = {};
-            if (keepAlive) entry.retainers.add(retention);
-            const releaseUnused = ()=>{
-                if (!entry.handles.size && !entry.retainers.size) this.#close(entry);
-            };
-            return {
-                send: async (bytes)=>{
-                    if (!entry.handles.has(handle) || !entry.connection?.send) throw new Error("Connection cannot send");
-                    await entry.connection.send(bytes);
-                },
-                close: ()=>{
-                    entry.handles.delete(handle);
-                    releaseUnused();
-                },
-                releaseRetention: ()=>{
-                    entry.retainers.delete(retention);
-                    releaseUnused();
-                }
-            };
-        }
-        #close(entry) {
-            if (!this.#connections.delete(entry)) return;
-            entry.handles.clear();
-            entry.connection?.close();
-        }
-        close() {
-            this.#closed = true;
-            for (const entry of [
-                ...this.#connections
-            ])this.#close(entry);
-        }
-    }
-    const RESERVED = Object.freeze({
-        HEAD: 0,
-        BODY: 1,
-        HTML: 2
-    });
-    class NodeRegistry {
-        constructor(){
-            this.nodes = new Map();
-            this.pending = new Map();
-        }
-        seedDocument(doc) {
-            if (doc.head) this.nodes.set(RESERVED.HEAD, doc.head);
-            if (doc.body) this.nodes.set(RESERVED.BODY, doc.body);
-            if (doc.documentElement) this.nodes.set(RESERVED.HTML, doc.documentElement);
-            return this;
-        }
-        register(id, node) {
-            this.nodes.set(id, node);
-            return node;
-        }
-        get(id) {
-            return this.nodes.get(id);
-        }
-        expect(id) {
-            const node = this.nodes.get(id);
-            if (node === undefined) throw new Error(`NodeRegistry: unknown node id ${id}`);
-            return node;
-        }
-        unregister(id) {
-            this.nodes.delete(id);
-        }
-        stage(id, node) {
-            this.pending.set(id, node);
-            return node;
-        }
-        applyRegister(id, document1) {
-            if (this.nodes.has(id)) return this.nodes.get(id);
-            const staged = this.pending.get(id);
-            if (staged !== undefined) {
-                this.pending.delete(id);
-                return this.register(id, staged);
-            }
-            const found = document1.querySelector?.(`[primal-id="${id}"]`);
-            if (found) return this.register(id, found);
-            throw new Error(`NodeRegistry: REGISTER_NODE ${id} matches no staged node or [primal-id]`);
-        }
-        expectOrStaged(id) {
-            const node = this.nodes.get(id);
-            if (node !== undefined) return node;
-            const staged = this.pending.get(id);
-            if (staged !== undefined) {
-                this.pending.delete(id);
-                return staged;
-            }
-            throw new Error(`NodeRegistry: unknown node id ${id}`);
-        }
-        get size() {
-            return this.nodes.size;
-        }
-    }
-    const morphIsElement = (n)=>{
-        if (!n) return false;
-        if (n.nodeType !== undefined) return n.nodeType === 1;
-        return typeof n.getAttributeNames === "function" && (n.tag ?? "") !== "#text";
-    };
-    const morphTag = (n)=>(n.tagName ?? n.tag ?? "").toUpperCase();
-    const morphKids = (n)=>Array.from(n.childNodes ?? n.children ?? []);
-    const morphText = (n)=>n.nodeValue !== undefined && n.nodeValue !== null ? n.nodeValue : n.textContent;
-    const morphSetText = (n, v)=>{
-        if (n.nodeValue !== undefined && n.nodeValue !== null) n.nodeValue = v;
-        else n.textContent = v;
-    };
-    const morphAttr = (n, name)=>n.getAttribute ? n.getAttribute(name) : null;
-    const morphIdentity = (n)=>morphAttr(n, "id") ?? morphAttr(n, "primal-id");
-    function morphWalk(root, fn) {
-        if (morphIsElement(root)) fn(root);
-        for (const child of morphKids(root))morphWalk(child, fn);
-    }
-    function moveBefore(parent, node, ref) {
-        if (typeof parent.moveBefore === "function") parent.moveBefore(node, ref);
-        else {
-            node.parentNode?.removeChild?.(node);
-            parent.insertBefore(node, ref);
-        }
-    }
-    class MorphContext {
-        constructor(doc){
-            this.doc = doc;
-            this.idMap = new Map();
-            this.persistentIds = new Set();
-            this.oldIdTagMap = new Map();
-            this.duplicates = new Set();
-            this.pantry = null;
-        }
-        computePersistentIds(oldRoot, newRoot) {
-            morphWalk(oldRoot, (el)=>{
-                const id = morphIdentity(el);
-                if (!id) return;
-                if (this.oldIdTagMap.has(id)) this.duplicates.add(id);
-                else this.oldIdTagMap.set(id, morphTag(el));
-            });
-            morphWalk(newRoot, (el)=>{
-                const id = morphIdentity(el);
-                if (!id || this.duplicates.has(id)) return;
-                if (this.oldIdTagMap.get(id) === morphTag(el)) this.persistentIds.add(id);
-            });
-        }
-        populateIdMap(root) {
-            const build = (node)=>{
-                const ids = new Set();
-                const own = morphIsElement(node) ? morphIdentity(node) : null;
-                if (own && this.persistentIds.has(own)) ids.add(own);
-                for (const child of morphKids(node)){
-                    for (const id of build(child))ids.add(id);
-                }
-                if (ids.size > 0) this.idMap.set(node, ids);
-                return ids;
-            };
-            build(root);
-        }
-        hasConflictingId(node) {
-            const id = morphIsElement(node) ? morphIdentity(node) : null;
-            return !!id && !this.persistentIds.has(id);
-        }
-        findBestMatch(oldCursor, newChild) {
-            if (!morphIsElement(newChild)) {
-                return oldCursor && !morphIsElement(oldCursor) ? oldCursor : null;
-            }
-            const newIds = this.idMap.get(newChild) ?? new Set();
-            if (newIds.size > 0) {
-                const intersects = (candidate)=>{
-                    if (!morphIsElement(candidate) || morphTag(candidate) !== morphTag(newChild) || !this.idMap.has(candidate)) {
-                        return false;
-                    }
-                    const ids = this.idMap.get(candidate);
-                    for (const id of newIds){
-                        if (ids.has(id)) return true;
-                    }
-                    return false;
-                };
-                for(let candidate = oldCursor; candidate; candidate = candidate.nextSibling){
-                    if (intersects(candidate)) return candidate;
-                }
-                if (this.pantry) {
-                    for (const candidate of morphKids(this.pantry)){
-                        if (intersects(candidate)) return candidate;
-                    }
-                }
-            }
-            if (oldCursor && morphIsElement(oldCursor) === morphIsElement(newChild) && morphTag(oldCursor) === morphTag(newChild) && !this.hasConflictingId(oldCursor)) {
-                if (typeof oldCursor.isEqualNode === "function") {
-                    if (oldCursor.isEqualNode(newChild)) return oldCursor;
-                    const nextNew = newChild.nextSibling ?? null;
-                    if (nextNew && oldCursor.isEqualNode(nextNew)) return null;
-                }
-                return oldCursor;
-            }
-            return null;
-        }
-        removeNode(node) {
-            if (this.idMap.has(node)) {
-                if (!this.pantry) this.pantry = this.doc.createElement("div");
-                moveBefore(this.pantry, node, null);
-            } else {
-                node.parentNode?.removeChild?.(node);
-            }
-        }
-        morphChildren(oldParent, newParent) {
-            let oldCursor = oldParent.firstChild ?? null;
-            for (const newChild of morphKids(newParent)){
-                if (oldCursor && morphAttr(oldCursor, "data-ignore-morph") !== null && morphAttr(newChild, "data-ignore-morph") !== null) {
-                    oldCursor = oldCursor.nextSibling;
-                    continue;
-                }
-                const match = this.findBestMatch(oldCursor, newChild);
-                if (match) {
-                    while(oldCursor && oldCursor !== match){
-                        const next = oldCursor.nextSibling;
-                        this.removeNode(oldCursor);
-                        oldCursor = next;
-                    }
-                    if (match !== oldCursor) moveBefore(oldParent, match, oldCursor);
-                    this.morphNode(match, newChild);
-                    oldCursor = match.nextSibling;
-                } else {
-                    const clone = cloneNode(this.doc, newChild);
-                    oldParent.insertBefore(clone, oldCursor);
-                }
-            }
-            while(oldCursor){
-                const next = oldCursor.nextSibling;
-                this.removeNode(oldCursor);
-                oldCursor = next;
-            }
-        }
-        morphNode(oldNode, newNode) {
-            if (!morphIsElement(oldNode) || !morphIsElement(newNode)) {
-                if (morphText(oldNode) !== morphText(newNode)) {
-                    morphSetText(oldNode, morphText(newNode));
-                }
-                return;
-            }
-            if (typeof oldNode.isEqualNode === "function" && oldNode.isEqualNode(newNode)) {
-                return;
-            }
-            this.syncAttributes(oldNode, newNode);
-            preserveFormState(oldNode, newNode);
-            const tag = morphTag(oldNode);
-            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-            this.morphChildren(oldNode, newNode);
-        }
-        syncAttributes(oldEl, newEl) {
-            const preserved = (morphAttr(oldEl, "data-preserve-attr") || "").split(",").map((sliver)=>sliver.trim()).filter(Boolean);
-            for (const name of newEl.getAttributeNames()){
-                if (!preserved.includes(name)) oldEl.setAttribute(name, newEl.getAttribute(name));
-            }
-            for (const name of oldEl.getAttributeNames()){
-                if (!preserved.includes(name) && newEl.getAttribute(name) === null) {
-                    oldEl.removeAttribute(name);
-                }
-            }
-        }
-        cleanup() {
-            if (this.pantry) {
-                while(this.pantry.firstChild)this.pantry.removeChild(this.pantry.firstChild);
-            }
-            this.idMap.clear();
-            this.persistentIds.clear();
-            this.oldIdTagMap.clear();
-            this.duplicates.clear();
-        }
-    }
-    function preserveFormState(oldEl, newEl) {
-        if (morphTag(oldEl) !== morphTag(newEl)) return;
-        switch(morphTag(oldEl)){
-            case "INPUT":
-                {
-                    const type = morphAttr(oldEl, "type");
-                    if (type === "checkbox" || type === "radio") newEl.checked = oldEl.checked;
-                    else if (type !== "file") newEl.value = oldEl.value;
-                    break;
-                }
-            case "TEXTAREA":
-                newEl.value = oldEl.value;
-                break;
-            case "SELECT":
-                newEl.selectedIndex = oldEl.selectedIndex;
-                break;
-            default:
-        }
-    }
-    function cloneNode(doc, node) {
-        if (typeof node.cloneNode === "function") return node.cloneNode(true);
-        if (!morphIsElement(node)) return doc.createTextNode(morphText(node) ?? "");
-        const el = doc.createElement(node.tag ?? node.tagName);
-        for (const name of node.getAttributeNames())el.setAttribute(name, node.getAttribute(name));
-        if (node.value != null) el.value = node.value;
-        if (node.checked != null) el.checked = node.checked;
-        for (const child of morphKids(node))el.appendChild(cloneNode(doc, child));
-        return el;
-    }
-    class MorphDom {
-        static scripts = new WeakSet();
-        static morph(target, newContent, doc = target.ownerDocument ?? (typeof document === "undefined" ? null : document)) {
-            const ctx = new MorphContext(doc);
-            try {
-                ctx.computePersistentIds(target, newContent);
-                ctx.populateIdMap(target);
-                ctx.populateIdMap(newContent);
-                ctx.morphChildren(target, newContent);
-                MorphDom.executeNewScripts(target, doc);
-            } finally{
-                ctx.cleanup();
-            }
-        }
-        static executeNewScripts(root, doc) {
-            if (!doc || typeof root.querySelectorAll !== "function") return;
-            for (const script of root.querySelectorAll("script")){
-                if (MorphDom.scripts.has(script)) continue;
-                const clone = doc.createElement("script");
-                for (const name of script.getAttributeNames()){
-                    clone.setAttribute(name, script.getAttribute(name));
-                }
-                clone.textContent = script.textContent;
-                script.parentNode?.replaceChild?.(clone, script);
-                MorphDom.scripts.add(clone);
-            }
-        }
-    }
-    const PRIMAL_ON = "primal:on";
-    function buildEventData(eventType, event, el) {
-        return {
-            type: eventType,
-            primalId: el.getAttribute ? el.getAttribute("primal-id") : null,
-            value: el.value ?? null,
-            checked: el.checked ?? null,
-            keyCode: event.keyCode ?? null,
-            modifiers: {
-                alt: !!event.altKey,
-                ctrl: !!event.ctrlKey,
-                shift: !!event.shiftKey,
-                meta: !!event.metaKey
-            }
-        };
-    }
-    function parseCallbackId(ref) {
-        if (ref == null) return null;
-        const s = String(ref).trim();
-        const body = s.startsWith("callback-") ? s.slice("callback-".length) : s;
-        return /^\d+$/.test(body) ? Number(body) : null;
-    }
-    class EventDispatcher {
-        static actionHook = null;
-        constructor(deliver, options = {}){
-            this.deliver = deliver;
-            this.deliverSignal = options.deliverSignal ?? deliver;
-            this.scope = options.scope ?? globalThis;
-            this.listeners = new WeakMap();
-            this.cleanupQueue = [];
-            this.cleanupScheduled = false;
-            this.observer = null;
-        }
-        scanAndWire(root) {
-            visit(root, (el)=>{
-                for (const name of el.getAttributeNames()){
-                    if (!name.startsWith(PRIMAL_ON)) continue;
-                    const rest = name.slice(PRIMAL_ON.length);
-                    const [eventType, mode] = rest.split(":");
-                    if (!eventType) continue;
-                    if (mode === "delegate") {
-                        this.wireDelegated(el, eventType, el.getAttribute(name));
-                    } else if (mode === undefined) {
-                        this.wire(el, eventType, el.getAttribute(name));
-                    }
-                }
-            });
-        }
-        wire(el, eventType, handlerRef) {
-            const listener = this.#buildListener(el, eventType, handlerRef);
-            if (!listener) {
-                console.warn(`EventDispatcher: unresolvable handler "${handlerRef}" for ${eventType}`);
-                return;
-            }
-            this.off(el, eventType);
-            el.addEventListener(eventType, listener);
-            this.#listenerMap(el).set(eventType, listener);
-        }
-        #buildListener(el, eventType, handlerRef) {
-            if (/^(server|host):/.test(String(handlerRef))) {
-                return (event)=>{
-                    if (EventDispatcher.actionHook) return EventDispatcher.actionHook(String(handlerRef), el, event, eventType);
-                    console.warn("No action runtime for", handlerRef);
-                };
-            }
-            const callbackId = parseCallbackId(handlerRef);
-            if (callbackId !== null) {
-                return (event)=>this.deliver(callbackId, buildEventData(eventType, event, el));
-            }
-            const setterId = parseCallbackId(el.getAttribute?.("primal:setter"));
-            if (setterId !== null) {
-                return (event)=>this.deliverSignal(setterId, buildEventData(eventType, event, el));
-            }
-            const fn = resolveFunctionRef(this.scope, handlerRef);
-            if (fn) return fn.bind(el);
-            return null;
-        }
-        wireDelegated(el, eventType, selector) {
-            const target = resolveDelegateTarget(el, selector, this.documentOf(el));
-            if (!target) {
-                console.warn(`EventDispatcher: delegate target "${selector}" not found`);
-                return;
-            }
-            const listener = (event)=>{
-                if (el === event.target || el.contains && el.contains(event.target)) {
-                    event.delegateTarget = el;
-                }
-            };
-            const key = `${eventType}:delegate:${el.getAttribute?.("primal-id") || el.id || ""}`;
-            const map = this.#listenerMap(target);
-            const prior = map.get(key);
-            if (prior) target.removeEventListener(eventType, prior);
-            map.set(key, listener);
-            target.addEventListener(eventType, listener);
-        }
-        documentOf(el) {
-            return el.ownerDocument ?? (typeof document === "undefined" ? null : document);
-        }
-        #listenerMap(el) {
-            let map = this.listeners.get(el);
-            if (!map) {
-                map = new Map();
-                this.listeners.set(el, map);
-            }
-            return map;
-        }
-        off(el, eventType) {
-            const map = this.listeners.get(el);
-            if (!map) return;
-            if (eventType !== undefined) {
-                for (const [key, listener] of map){
-                    if (key === eventType || key.startsWith(`${eventType}:`)) {
-                        el.removeEventListener(eventType, listener);
-                        map.delete(key);
-                    }
-                }
-                return;
-            }
-            for (const [key, listener] of map){
-                el.removeEventListener(key.split(":")[0], listener);
-            }
-            map.clear();
-            this.listeners.delete(el);
-        }
-        removeListeners(root) {
-            visit(root, (el)=>this.off(el));
-        }
-        trackRemoved(node) {
-            this.cleanupQueue.push(node);
-            if (this.cleanupScheduled) return;
-            this.cleanupScheduled = true;
-            queueMicrotask(()=>{
-                const batch = this.cleanupQueue.splice(0);
-                this.cleanupScheduled = false;
-                for (const item of batch)this.removeListeners(item);
-            });
-        }
-        handleMutations(mutations) {
-            for (const mutation of mutations){
-                if (mutation.type !== "childList") continue;
-                for (const node of mutation.addedNodes){
-                    if (!isElement(node) || insideIsland(node)) continue;
-                    this.scanAndWire(node);
-                    Hydrator.hydrate(node);
-                }
-                for (const node of mutation.removedNodes){
-                    if (!isElement(node) || insideIsland(node)) continue;
-                    this.removeListeners(node);
-                }
-            }
-        }
-        observe(doc) {
-            if (typeof MutationObserver === "undefined" || this.observer) return;
-            this.observer = new MutationObserver((mutations)=>this.handleMutations(mutations));
-            this.observer.observe(doc, {
-                subtree: true,
-                childList: true
-            });
-        }
-        on(el, eventType, handlerRef, options = {}) {
-            if (options.delegate) this.wireDelegated(el, eventType, options.delegate);
-            else this.wire(el, eventType, handlerRef);
-        }
-    }
-    const CONVENIENCE_EVENTS = [
-        "click",
-        "change",
-        "submit",
-        "keydown",
-        "keyup",
-        "focus",
-        "blur",
-        "scroll",
-        "input",
-        "mousedown",
-        "mouseup"
-    ];
-    for (const evt of CONVENIENCE_EVENTS){
-        EventDispatcher.prototype[`on${evt}`] = function(el, handlerRef, options) {
-            this.on(el, evt, handlerRef, options);
-        };
-    }
-    function visit(node, fn) {
-        if (typeof node.getAttributeNames === "function") fn(node);
-        for (const child of node.children || [])visit(child, fn);
-    }
-    function isElement(node) {
-        return !!node && typeof node.getAttributeNames === "function";
-    }
-    function insideIsland(node) {
-        if (typeof node.closest === "function") return node.closest("island") !== null;
-        for(let cur = node; cur; cur = cur.parent ?? cur.parentElement ?? null){
-            if ((cur.tag ?? cur.tagName ?? "").toLowerCase() === "island") return true;
-        }
-        return false;
-    }
-    function resolveFunctionRef(scope, handlerRef) {
-        if (typeof handlerRef !== "string" || handlerRef.length === 0) return null;
-        let current = scope;
-        for (const part of handlerRef.split(".")){
-            if (current == null) return null;
-            current = current[part];
-        }
-        return typeof current === "function" ? current : null;
-    }
-    function resolveDelegateTarget(el, selector, doc) {
-        if (!selector) return null;
-        if (selector === "parent") return el.parentElement ?? el.parent ?? null;
-        if (selector === "body") return doc?.body ?? null;
-        return doc?.querySelector ? doc.querySelector(selector) : null;
-    }
-    function initEventRuntime(dispatcher, doc = typeof document === "undefined" ? null : document) {
-        if (!doc) return;
-        const boot = ()=>{
-            dispatcher.scanAndWire(doc.body);
-            dispatcher.observe(doc);
-        };
-        doc.addEventListener?.("DOMContentLoaded", boot);
-        if (doc.readyState !== "loading") boot();
-    }
-    function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
-        return (callbackId, eventData)=>callbackRegistry.invoke(callbackId, encode(eventData));
-    }
-    function signalDeliver(bridge, encode = jsonEncodeEventData) {
-        return (setterId, eventData)=>{
-            const bytes = encode(eventData);
-            const memId = bridge.exports.create_allocation(BigInt(bytes.length));
-            const ptr = Number(bridge.exports.allocation_start_pointer(memId));
-            const memory = typeof bridge.memory === "function" ? bridge.memory() : bridge.memory;
-            new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
-            bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
-        };
-    }
-    function jsonEncodeEventData(eventData) {
-        return new TextEncoder().encode(JSON.stringify(eventData));
-    }
-    class DomHeap {
-        static RESERVED_SLOTS = 5;
-        constructor(host = globalThis){
-            this.items = [];
-            this.free = [];
-            const doc = host.document ?? null;
-            this.create(typeof self !== "undefined" ? self : this);
-            this.create(this);
-            this.create(host.window ?? null);
-            this.create(doc);
-            this.create(doc && doc.body ? doc.body : null);
-        }
-        #unpack(uid) {
-            const v = BigInt(uid);
-            if (v < BigInt(DomHeap.RESERVED_SLOTS)) return {
-                index: Number(v),
-                generation: 0n
-            };
-            return {
-                index: Number(v >> 32n),
-                generation: v & 0xffffffffn
-            };
-        }
-        create(item) {
-            let index;
-            if (this.free.length > 0) {
-                index = this.free.pop();
-                const slot = this.items[index];
-                slot.generation += 1n;
-                slot.active = true;
-                slot.item = item;
-            } else {
-                index = this.items.length;
-                this.items.push({
-                    item,
-                    generation: 0n,
-                    active: true
-                });
-            }
-            return BigInt(index) << 32n | this.items[index].generation;
-        }
-        get(uid) {
-            const { index, generation } = this.#unpack(uid);
-            const slot = this.items[index];
-            if (!slot || !slot.active || slot.generation !== generation) return undefined;
-            return slot.item;
-        }
-        update(uid, item) {
-            const { index, generation } = this.#unpack(uid);
-            const slot = this.items[index];
-            if (!slot || slot.generation !== generation) return false;
-            slot.item = item;
-            slot.active = true;
-            return true;
-        }
-        destroy(uid) {
-            const { index, generation } = this.#unpack(uid);
-            if (index < DomHeap.RESERVED_SLOTS) return false;
-            const slot = this.items[index];
-            if (!slot || !slot.active || slot.generation !== generation) return false;
-            slot.item = null;
-            slot.active = false;
-            this.free.push(index);
-            return true;
-        }
-    }
-    function domAbi(rt, dom) {
-        rt.functions.reply.dom = dom;
-        return {
-            dom_allocate_external_pointer: ()=>dom.create(null),
-            host_dom_drop_external_pointer: (handle)=>{
-                dom.destroy(BigInt(handle));
-            },
-            host_invoke_function_as_dom: (h, p, l)=>{
-                const v = rt.functions.invokeNakedAs(h, p, l, 29);
-                return typeof v === "bigint" ? v : BigInt(v);
-            }
-        };
-    }
-    function reconnectDelay(attempt) {
-        return Math.min(1000 * 2 ** attempt, 30_000);
-    }
-    async function probeBatching(fetchFn = globalThis.fetch) {
-        try {
-            const res = await fetchFn("/primal/messages", {
-                method: "HEAD"
-            });
-            return !!res && res.ok === true;
-        } catch  {
-            return false;
-        }
-    }
-    class RequestQueue {
-        constructor(transport){
-            this.queue = [];
-            this.scheduled = false;
-            this.transport = transport;
-            this.bundlingEnabled = false;
-            this.nextId = 1;
-        }
-        async probe(fetchFn = globalThis.fetch) {
-            this.bundlingEnabled = await probeBatching(fetchFn);
-            return this.bundlingEnabled;
-        }
-        enqueue(request) {
-            if (!this.bundlingEnabled) {
-                return this.transport.send(request.url, request.method, request.data);
-            }
-            this.queue.push({
-                id: this.nextId++,
-                url: request.url,
-                method: request.method ?? "GET",
-                headers: request.headers,
-                body: request.data
-            });
-            if (!this.scheduled) {
-                this.scheduled = true;
-                queueMicrotask(()=>this.flush());
-            }
-            return null;
-        }
-        flush() {
-            this.scheduled = false;
-            if (this.queue.length === 0) return;
-            const batch = this.queue.splice(0);
-            if (batch.length === 1) {
-                const only = batch[0];
-                this.transport.send(only.url, only.method, only.body);
-                return;
-            }
-            this.transport.send("/primal/messages", "POST", batch);
-        }
-    }
-    function parseBatchEntry(entry) {
-        const ct = entry.headers?.["content-type"] ?? entry.headers?.["Content-Type"] ?? "";
-        if (ct.includes("primal-json")) return {
-            id: entry.id,
-            ...routeJson(entry.body)
-        };
-        if (ct.includes("primal-html") || ct.includes("text/html")) {
-            return {
-                id: entry.id,
-                ...routeHtml(String(entry.body))
-            };
-        }
-        if (ct.includes("primal-arrow")) {
-            return {
-                id: entry.id,
-                ...removedArrow()
-            };
-        }
-        return {
-            id: entry.id,
-            type: "raw",
-            text: String(entry.body ?? "")
-        };
-    }
-    class WSBatchQueue {
-        constructor(ws){
-            this.ws = ws;
-            this.queue = [];
-            this.scheduled = false;
-        }
-        send(data) {
-            this.queue.push(data);
-            if (!this.scheduled) {
-                this.scheduled = true;
-                queueMicrotask(()=>this.flush());
-            }
-        }
-        flush() {
-            this.scheduled = false;
-            if (this.queue.length === 1) {
-                this.ws.send(JSON.stringify(this.queue.splice(0, 1)[0]));
-            } else if (this.queue.length > 1) {
-                this.ws.send(JSON.stringify({
-                    batch: this.queue.splice(0)
-                }));
-            }
-        }
-    }
-    class WorkerBatchQueue {
-        constructor(worker){
-            this.worker = worker;
-            this.queue = [];
-            this.scheduled = false;
-        }
-        postMessage(data) {
-            this.queue.push(data);
-            if (!this.scheduled) {
-                this.scheduled = true;
-                queueMicrotask(()=>this.flush());
-            }
-        }
-        flush() {
-            this.scheduled = false;
-            if (this.queue.length === 0) return;
-            const batch = this.queue.splice(0);
-            const transfers = batch.map((d)=>d?.transferable).filter(Boolean);
-            this.worker.postMessage({
-                batch
-            }, transfers);
-        }
-    }
-    class FetchTransport {
-        constructor(config = {}){
-            this.config = config;
-            this.fetchFn = config.fetchFn ?? ((...args)=>globalThis.fetch(...args));
-        }
-        async send(url, method = "POST", data = undefined) {
-            const init = {
-                method,
-                headers: this.config.headers
-            };
-            if (data !== undefined && method !== "GET" && method !== "HEAD") {
-                init.body = typeof data === "string" ? data : JSON.stringify(data);
-            }
-            const response = await this.fetchFn(url, init);
-            if (!response.ok) throw new Error(`FetchTransport: ${method} ${url} -> ${response.status}`);
-            const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
-            return handler.process(response);
-        }
-        disconnect() {}
-    }
-    class SseParser {
-        constructor(){
-            this.decoder = new TextDecoder("utf-8");
-            this.textBuffer = "";
-            this.sawCarriageReturn = false;
-            this.lastEventId = null;
-            this.#resetBuilder();
-        }
-        #resetBuilder() {
-            this.id = null;
-            this.eventType = null;
-            this.data = [];
-            this.retry = null;
-        }
-        push(chunk) {
-            let text = this.decoder.decode(chunk, {
-                stream: true
-            });
-            if (this.sawCarriageReturn) {
-                this.sawCarriageReturn = false;
-                if (text.startsWith("\n")) text = text.slice(1);
-            }
-            if (text.endsWith("\r")) {
-                this.sawCarriageReturn = true;
-            }
-            this.textBuffer += text;
-            const events = [];
-            for(;;){
-                const cut = this.#nextLineEnd();
-                if (cut === null) break;
-                const [line, rest] = cut;
-                this.textBuffer = rest;
-                const event = this.#processLine(line);
-                if (event) events.push(event);
-            }
-            return events;
-        }
-        end() {
-            const tail = this.decoder.decode();
-            if (tail) this.textBuffer += tail;
-            const events = [];
-            if (this.textBuffer.length > 0) {
-                const event = this.#processLine(this.textBuffer.replace(/\r$/, ""));
-                this.textBuffer = "";
-                if (event) events.push(event);
-            }
-            const flushed = this.#dispatch();
-            if (flushed) events.push(flushed);
-            return events;
-        }
-        #nextLineEnd() {
-            const buf = this.textBuffer;
-            for(let i = 0; i < buf.length; i++){
-                const ch = buf[i];
-                if (ch === "\n") return [
-                    buf.slice(0, i),
-                    buf.slice(i + 1)
-                ];
-                if (ch === "\r") {
-                    if (i + 1 < buf.length) {
-                        const skip = buf[i + 1] === "\n" ? 2 : 1;
-                        return [
-                            buf.slice(0, i),
-                            buf.slice(i + skip)
-                        ];
-                    }
-                    return null;
-                }
-            }
-            return null;
-        }
-        #processLine(line) {
-            if (line.length === 0) {
-                return this.#dispatch();
-            }
-            if (line.startsWith(":")) {
-                return {
-                    type: "comment",
-                    comment: line.slice(1).replace(/^ /, "").trimStart(),
-                    lastEventId: this.lastEventId
-                };
-            }
-            const colon = line.indexOf(":");
-            if (colon === -1) return null;
-            const field = line.slice(0, colon);
-            let value = line.slice(colon + 1);
-            if (value.startsWith(" ")) value = value.slice(1);
-            switch(field){
-                case "id":
-                    if (!value.includes("\0")) this.id = value;
-                    break;
-                case "event":
-                    this.eventType = value;
-                    break;
-                case "data":
-                    this.data.push(value);
-                    break;
-                case "retry":
-                    {
-                        const ms = Number(value);
-                        if (Number.isInteger(ms) && ms >= 0 && /^\d+$/.test(value)) this.retry = ms;
-                        break;
-                    }
-                default:
-            }
-            return null;
-        }
-        #dispatch() {
-            if (this.data.length === 0) {
-                this.#resetBuilder();
-                return null;
-            }
-            if (this.id !== null) this.lastEventId = this.id;
-            const event = {
-                type: "message",
-                event: this.eventType,
-                data: this.data.join("\n"),
-                id: this.id,
-                lastEventId: this.lastEventId,
-                retry: this.retry
-            };
-            this.#resetBuilder();
-            return event;
-        }
-    }
-    class FetchEventSource {
-        constructor(url, options = {}){
-            this.url = url;
-            this.options = options;
-            this.fetchFn = options.fetchFn ?? ((...args)=>globalThis.fetch(...args));
-            this.closed = false;
-            this.attempt = 0;
-            this.retryOverride = null;
-            this.lastEventId = null;
-            this.abort = null;
-        }
-        async connect() {
-            this.closed = false;
-            await this.#attemptOnce();
-        }
-        async #attemptOnce() {
-            if (this.closed) return;
-            this.abort = typeof AbortController === "undefined" ? null : new AbortController();
-            const headers = {
-                accept: "text/event-stream",
-                ...this.options.headers ?? {}
-            };
-            if (this.lastEventId !== null) headers["last-event-id"] = this.lastEventId;
-            let response;
-            try {
-                response = await this.fetchFn(this.options.nextUrl?.(this.url) ?? this.url, {
-                    method: this.options.method ?? "GET",
-                    cache: "no-store",
-                    headers,
-                    body: this.options.body,
-                    signal: this.abort?.signal
-                });
-                if (response.status === 410 && this.options.onExpired) {
-                    this.close();
-                    this.options.onExpired();
-                    return;
-                }
-                if (!response.ok) throw new Error(`FetchEventSource: ${response.status}`);
-            } catch (error) {
-                this.options.onError?.(error);
-                this.#scheduleReconnect();
-                return;
-            }
-            this.options.onOpen?.(response);
-            this.attempt = 0;
-            const parser = new SseParser();
-            const reader = response.body.getReader();
-            try {
-                for(;;){
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    for (const event of parser.push(value))this.#deliver(event);
-                }
-                for (const event of parser.end())this.#deliver(event);
-            } catch (error) {
-                if (!this.closed) this.options.onError?.(error);
-            }
-            this.lastEventId = parser.lastEventId ?? this.lastEventId;
-            this.#scheduleReconnect();
-        }
-        #deliver(event) {
-            if (event.type === "comment") {
-                this.options.onComment?.(event);
-                return;
-            }
-            if (event.retry !== null && event.retry !== undefined) {
-                this.retryOverride = event.retry;
-            }
-            if (event.id !== null) this.lastEventId = event.id;
-            this.options.onEvent?.(event);
-        }
-        #scheduleReconnect() {
-            if (this.closed) return;
-            const delay = this.retryOverride ?? reconnectDelay(this.attempt);
-            this.attempt += 1;
-            this.reconnectTimer = setTimeout(()=>{
-                if (!this.closed) this.#attemptOnce();
-            }, delay);
-        }
-        close() {
-            this.closed = true;
-            clearTimeout(this.reconnectTimer);
-            this.abort?.abort?.();
-        }
-    }
-    class SSETransport {
-        constructor(config = {}){
-            this.config = config;
-            this.source = null;
-        }
-        connect(url, data, onResult) {
-            const method = this.config.method ?? (data === undefined ? "GET" : "POST");
-            this.source = new FetchEventSource(url, {
-                method,
-                headers: {
-                    ...data === undefined ? {} : {
-                        "content-type": "application/json"
-                    },
-                    ...this.config.headers ?? {}
-                },
-                body: data === undefined ? undefined : JSON.stringify(data),
-                fetchFn: this.config.fetchFn,
-                onEvent: (event)=>{
-                    if (this.config.listening?.() !== false) onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data));
-                },
-                onOpen: this.config.onOpen,
-                onError: this.config.onError,
-                nextUrl: this.config.nextUrl,
-                onExpired: this.config.onExpired
-            });
-            return this.source.connect();
-        }
-        disconnect() {
-            this.source?.close?.();
-            this.source = null;
-        }
-    }
-    class WebSocketTransport {
-        constructor(config = {}){
-            this.config = config;
-            this.ws = null;
-            this.attempt = 0;
-            this.closed = false;
-        }
-        connect(url, _data, onResult) {
-            const factory = this.config.wsFactory ?? (typeof WebSocket === "undefined" ? null : (target)=>new WebSocket(target));
-            if (!factory) {
-                throw new Error("WebSocketTransport: WebSocket unavailable in this environment");
-            }
-            this.closed = false;
-            this.url = url;
-            this.onResult = onResult;
-            const socket = factory(this.config.nextUrl?.(url) ?? url);
-            this.ws = socket;
-            if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
-            this.ws.onopen = ()=>{
-                if (this.ws !== socket || this.closed) return;
-                this.attempt = 0;
-                this.config.onOpen?.();
-            };
-            this.ws.onmessage = (event)=>{
-                if (this.ws !== socket || this.closed || this.config.listening?.() === false) return;
-                const { data } = event;
-                if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
-                    const result = decodeEnvelopeFrame(data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-                    if (result) onResult(result);
-                    return;
-                }
-                onResult(streamEventResult(this.config.protocol ?? "json", data));
-            };
-            this.ws.onclose = ()=>{
-                if (this.closed || this.ws !== socket) return;
-                this.config.onError?.(new Error("WebSocket disconnected"));
-                const delay = reconnectDelay(this.attempt);
-                this.attempt += 1;
-                setTimeout(()=>{
-                    if (!this.closed && this.ws === socket) this.connect(this.url, undefined, this.onResult);
-                }, delay);
-            };
-        }
-        send(data) {
-            if (!this.ws || this.ws.readyState !== undefined && this.ws.readyState !== 1) throw new Error("WebSocket is closed");
-            this.ws.send(typeof data === "string" || ArrayBuffer.isView(data) || data instanceof ArrayBuffer ? data : JSON.stringify(data));
-        }
-        disconnect() {
-            this.closed = true;
-            this.ws?.close?.();
-            this.ws = null;
-        }
-    }
-    class ChunkedTransport {
-        constructor(config = {}){
-            this.config = config;
-            this.abort = null;
-            this.fetchFn = config.fetchFn ?? ((...args)=>globalThis.fetch(...args));
-        }
-        async connect(url, data, onChunk) {
-            this.abort = new AbortController();
-            const response = await this.fetchFn(url, {
-                method: data === undefined ? "GET" : "POST",
-                body: data === undefined ? undefined : JSON.stringify(data),
-                signal: this.abort.signal,
-                headers: this.config.headers
-            });
-            if (response.status === 410 && this.config.onExpired) {
-                this.config.onExpired();
-                return;
-            }
-            if (!response.ok) throw new Error("Stream request failed with HTTP " + response.status);
-            this.config.onOpen?.();
-            const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
-            if (handler instanceof FrameHandler && isViewResponse(response)) {
-                onChunk(await handler.process(response));
-            } else if (handler instanceof FrameHandler) {
-                const hook = ProtocolHandler.frameHook;
-                if (!hook) throw new Error("Install the frame runtime before opening a frame stream");
-                for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)){
-                    if (this.config.listening?.() !== false) onChunk({
-                        type: "frame",
-                        frames: [
-                            frame
-                        ]
-                    });
-                }
-            } else {
-                const limit = this.config.maxDocumentBytes ?? ProtocolHandler.frameHook?.maxFrameBytes ?? 4 * 1024 * 1024;
-                let size = 0;
-                const body = response.body.pipeThrough(new TransformStream({
-                    transform (bytes, controller) {
-                        size += bytes.byteLength;
-                        if (size > limit) throw new RangeError("Streamed document exceeds byte limit");
-                        controller.enqueue(bytes);
-                    }
-                }));
-                onChunk(await handler.process(new Response(body, {
-                    headers: response.headers
-                })));
-            }
-        }
-        disconnect() {
-            this.abort?.abort?.();
-            this.abort = null;
-        }
-    }
-    class WorkerTransport {
-        constructor(config = {}){
-            this.worker = config.worker;
-        }
-        send(_url, _method, data) {
-            this.worker.postMessage(data);
-        }
-        onMessage(callback) {
-            this.worker.onmessage = (event)=>callback(event.data);
-        }
-        disconnect() {
-            this.worker?.terminate?.();
-        }
-    }
-    class Transport {
-        static create(config = {}) {
-            switch(config.transport){
-                case "sse":
-                    return new SSETransport(config);
-                case "ws":
-                case "websocket":
-                    return new WebSocketTransport(config);
-                case "chunked":
-                    return new ChunkedTransport(config);
-                case "worker":
-                    return new WorkerTransport(config);
-                default:
-                    return new FetchTransport(config);
-            }
-        }
-    }
-    function frameConnections(config = {}) {
-        const manager = new ConnectionManager();
-        for (const transport of [
-            "sse",
-            "websocket",
-            "chunked"
-        ])manager.register(transport, (options, events)=>{
-            const channel = options.channel ?? Transport.create({
-                ...config,
-                headers: {
-                    ...config.headers,
-                    ...options.headers
-                },
-                transport,
-                protocol: "frame"
-            });
-            let waiting = [];
-            const opened = ()=>{
-                for (const pending of waiting.splice(0))pending.resolve();
-                events.opened();
-            };
-            const disconnected = (cause)=>{
-                for (const pending of waiting.splice(0))pending.reject(cause);
-                events.disconnected(cause);
-            };
-            if (channel.config) Object.assign(channel.config, {
-                onOpen: opened,
-                onError: disconnected,
-                listening: events.listening
-            });
-            const result = channel.connect(options.endpoint, options.data, (message)=>{
-                if (message.type !== "frame") {
-                    disconnected(new Error("Expected a Foundation frame"));
-                    return;
-                }
-                for (const frame of message.frames)events.deliver(frame);
-            });
-            Promise.resolve(result).catch(disconnected);
-            return {
-                send: transport === "websocket" ? async (bytes)=>{
-                    if (channel.ws?.readyState === 0) await new Promise((resolve, reject)=>waiting.push({
-                            resolve,
-                            reject
-                        }));
-                    channel.send(bytes);
-                } : undefined,
-                close () {
-                    for (const pending of waiting.splice(0))pending.reject(new Error("Connection closed"));
-                    channel.disconnect();
-                }
-            };
-        });
-        return manager;
-    }
-    function decodeEnvelopeFrame(bytes) {
-        if (ProtocolHandler.frameHook?.isFrame(bytes)) return {
-            type: "frame",
-            frames: [
-                bytes
-            ]
-        };
-        if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
-        if (bytes.byteLength < 6) {
-            console.error("decodeEnvelopeFrame: truncated header", bytes.byteLength);
-            return null;
-        }
-        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-        const protocol = view.getUint8(0);
-        const version = view.getUint8(1);
-        const length = view.getUint32(2, true);
-        const payload = bytes.subarray(6);
-        if (payload.byteLength !== length) {
-            console.error(`decodeEnvelopeFrame: length mismatch (header ${length}, payload ${payload.byteLength})`);
-            return null;
-        }
-        if (protocol === 2) {
-            try {
-                return routeJson(JSON.parse(new TextDecoder().decode(payload)));
-            } catch (error) {
-                console.error("decodeEnvelopeFrame: json payload did not parse", error);
-                return null;
-            }
-        }
-        console.error(`decodeEnvelopeFrame: unknown protocol ${protocol} v${version}`);
-        return null;
-    }
-    function base64ToBytes(text) {
-        const bin = atob(String(text).trim());
-        const bytes = new Uint8Array(bin.length);
-        for(let i = 0; i < bin.length; i += 1)bytes[i] = bin.charCodeAt(i);
-        return bytes;
-    }
-    function streamEventResult(kind, raw) {
-        if (kind === "frame") return {
-            type: "frame",
-            frames: [
-                base64ToBytes(raw)
-            ]
-        };
-        if (kind === "json") {
-            try {
-                return routeJson(JSON.parse(raw));
-            } catch  {
-                return {
-                    type: "raw",
-                    text: String(raw)
-                };
-            }
-        }
-        if (kind === "arrow") return removedArrow();
-        return routeHtml(String(raw));
-    }
-    function routeJson(value) {
-        if (value && typeof value === "object" && value.morph) {
-            return {
-                type: "json-morph",
-                morph: value.morph
-            };
-        }
-        return {
-            type: "json",
-            patches: value
-        };
-    }
-    function routeHtml(html) {
-        const match = /^\s*<island\b[^>]*data-target="([^"]+)"[^>]*data-action="([^"]+)"[^>]*>([\s\S]*)<\/island>\s*$/.exec(html);
-        if (match) {
-            return {
-                type: "html-morph",
-                target: match[1],
-                action: match[2],
-                content: match[3]
-            };
-        }
-        return {
-            type: "html",
-            html
-        };
-    }
-    function removedArrow() {
-        console.error('mount: protocol "arrow" was removed; use "frame"');
-        return {
-            type: "raw",
-            text: ""
-        };
-    }
-    const emptyProtocolHandler = {
-        process: async ()=>({
-                type: "raw",
-                text: ""
-            })
-    };
-    class JsonHandler {
-        async process(response) {
-            return routeJson(await response.json());
-        }
-    }
-    class HtmlHandler {
-        async process(response) {
-            return routeHtml(await response.text());
-        }
-    }
-    class RawHandler {
-        async process(response) {
-            return {
-                type: "raw",
-                text: await response.text()
-            };
-        }
-    }
-    function isViewResponse(response) {
-        return response.headers?.get?.("content-type")?.split(";")[0].trim().toLowerCase() === "application/vnd.ewe.frame";
-    }
-    class FrameHandler {
-        async process(response) {
-            if (!response.ok) throw new Error("Frame request failed with HTTP " + response.status);
-            const hook = ProtocolHandler.frameHook;
-            if (!hook) {
-                console.error("frame received but the frame runtime is not installed");
-                return {
-                    type: "raw",
-                    text: ""
-                };
-            }
-            if (isViewResponse(response)) {
-                return {
-                    type: "frame",
-                    frames: [
-                        await hook.readViewResponse(response, hook.maxFrameBytes)
-                    ]
-                };
-            }
-            const frames = [];
-            let total = 0;
-            for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)){
-                total += frame.length;
-                if (total > hook.maxFrameBytes) throw new RangeError("Frame reply exceeds byte limit");
-                frames.push(frame);
-            }
-            return {
-                type: "frame",
-                frames
-            };
-        }
-    }
-    class ProtocolHandler {
-        static frameHook = null;
-        static named(name) {
-            switch(name){
-                case "frame":
-                    return new FrameHandler();
-                case "arrow":
-                    removedArrow();
-                    return emptyProtocolHandler;
-                case "json":
-                    return new JsonHandler();
-                case "html":
-                    return new HtmlHandler();
-                default:
-                    return null;
-            }
-        }
-        static fromContentType(response) {
-            const ct = response.headers?.get?.("content-type") || "";
-            if (isViewResponse(response) || ct.includes("primal-frame")) return new FrameHandler();
-            if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return ProtocolHandler.named("arrow");
-            if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
-            if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
-                return new HtmlHandler();
-            }
-            return new RawHandler();
-        }
-    }
-    function scopeCss(cssText, prefix) {
-        return cssText.replace(/(^|\})\s*([^@{}][^{}]*)\{/g, (_, brace, selectors)=>{
-            const scoped = selectors.split(",").map((sel)=>`${prefix} ${sel.trim()}`).join(", ");
-            return `${brace}\n${scoped} {`;
-        });
-    }
-    class Hydrator {
-        static scopeExtensions = [];
-        static behaviourMarkers = null;
-        static createScope(targetElement) {
-            const eventCleanups = [];
-            const scope = {
-                targets: ()=>targetElement.querySelectorAll("[primal-id]"),
-                parent: ()=>targetElement,
-                querySelector: (sel)=>targetElement.querySelector(sel),
-                querySelectorAll: (sel)=>targetElement.querySelectorAll(sel),
-                addEvent (target, event, handler, options) {
-                    const el = typeof target === "string" ? targetElement.querySelector(target) : target;
-                    if (el) {
-                        el.addEventListener(event, handler, options);
-                        eventCleanups.push(()=>el.removeEventListener(event, handler, options));
-                    }
-                },
-                onDispose (dispose) {
-                    eventCleanups.push(dispose);
-                },
-                cleanup () {
-                    for (const cleanup of eventCleanups.splice(0))cleanup();
-                }
-            };
-            for (const extend of Hydrator.scopeExtensions)extend(scope, targetElement);
-            return scope;
-        }
-        static hydrate(root, doc = root.ownerDocument ?? globalThis.document) {
-            if (typeof root.querySelectorAll !== "function") return;
-            Hydrator.behaviourMarkers?.(root);
-            for (const style of root.querySelectorAll("style[primal\\:style]")){
-                const prefix = root.id ? `#${root.id}` : `[primal-id="${root.getAttribute?.("primal-id") ?? ""}"]`;
-                const scoped = scopeCss(style.textContent, prefix);
-                if (typeof CSSStyleSheet === "function" && doc?.adoptedStyleSheets) {
-                    const sheet = new CSSStyleSheet();
-                    sheet.replaceSync(scoped);
-                    doc.adoptedStyleSheets = [
-                        ...doc.adoptedStyleSheets,
-                        sheet
-                    ];
-                    (root._sheets ??= []).push(sheet);
-                }
-                style.remove?.();
-            }
-            for (const script of root.querySelectorAll("script[primal\\:script]")){
-                const owner = script.parentElement ?? root;
-                const scope = Hydrator.createScope(owner);
-                try {
-                    const source = script.textContent.trim();
-                    const body = /^(?:async\s+)?function\s*\(/.test(source) ? `(${source})(scope)` : source;
-                    new Function("scope", body)(scope);
-                    Patcher.registerUnmount(owner, ()=>scope.cleanup());
-                } catch (error) {
-                    scope.cleanup();
-                    console.error("Hydrator: scoped script failed", error);
-                }
-                script.remove?.();
-            }
-        }
-    }
-    class Patcher {
-        static runtime = {
-            dispatcher: null,
-            registry: null,
-            signalBridge: null,
-            frames: null
-        };
-        static frameSeq = 0;
-        static localScopes = new WeakMap();
-        static registerUnmount(node, dispose) {
-            let hooks = Patcher.localScopes.get(node);
-            if (!hooks) Patcher.localScopes.set(node, hooks = new Set());
-            hooks.add(dispose);
-        }
-        static releaseScope(node) {
-            const hooks = Patcher.localScopes.get(node);
-            Patcher.localScopes.delete(node);
-            if (hooks) for (const dispose of hooks){
-                try {
-                    dispose();
-                } catch (error) {
-                    console.error("Component cleanup failed", error);
-                }
-            }
-        }
-        static releaseTree(node) {
-            for (const child of Array.from(node.childNodes ?? []))Patcher.releaseTree(child);
-            Patcher.releaseScope(node);
-        }
-        static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
-            if (typeof doc?.createRange === "function") {
-                const fragment = doc.createRange().createContextualFragment(html);
-                target.appendChild(fragment);
-            } else {
-                target.innerHTML = html;
-            }
-            Hydrator.hydrate(target, doc);
-            Patcher.runtime.dispatcher?.scanAndWire?.(target);
-        }
-        static ensureRegistry(doc) {
-            if (Patcher.runtime.document !== doc) {
-                Patcher.runtime.document = doc;
-                Patcher.runtime.registry = new NodeRegistry().seedDocument(doc);
-            }
-            return Patcher.runtime.registry;
-        }
-        static applySignalPatches(patches) {
-            const bridge = Patcher.runtime.signalBridge;
-            if (bridge?.applyPatches) bridge.applyPatches(patches);
-            else console.warn("Patcher: no signalBridge installed; JSON patches dropped", patches);
-        }
-        static route(result, targetEl, doc) {
-            Patcher.applyRoute(result, targetEl, doc);
-            if (result.type !== "frame") Patcher.markApplied();
-        }
-        static markApplied() {
-            Patcher.frameSeq += 1;
-            const stamp = typeof performance !== "undefined" ? performance.now() : Date.now();
-            if (typeof globalThis !== "undefined") {
-                globalThis.__primalFrames = {
-                    seq: Patcher.frameSeq,
-                    at: stamp
-                };
-            }
-        }
-        static applyRoute(result, targetEl, doc) {
-            switch(result.type){
-                case "frame":
-                    if (!Patcher.runtime.frames) console.error("frame received but the frame runtime is not installed");
-                    else for (const frame of result.frames)Patcher.runtime.frames.receive(frame, {
-                        viewMount: targetEl
-                    });
-                    break;
-                case "html":
-                    Patcher.materialize(result.html, targetEl, doc);
-                    break;
-                case "html-morph":
-                    {
-                        const morphTarget = doc.querySelector(result.target);
-                        if (morphTarget && typeof doc.createRange === "function") {
-                            MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.content), doc);
-                        }
-                        break;
-                    }
-                case "json-morph":
-                    {
-                        const morphTarget = doc.querySelector(result.morph.target);
-                        if (morphTarget && typeof doc.createRange === "function") {
-                            MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.morph.content), doc);
-                        }
-                        break;
-                    }
-                case "json":
-                    Patcher.applySignalPatches(result.patches);
-                    break;
-                default:
-                    targetEl.textContent = result.text ?? "";
-            }
-        }
-    }
-    function frameMountTarget(element, target, doc) {
-        if (!target) return element;
-        return target === "parent" ? element.parentElement : doc.querySelector(target);
-    }
-    function resolveMountTarget(element, target, doc) {
-        if (!target) {
-            const container = doc.createElement("div");
-            element.parentNode?.replaceChild?.(container, element);
-            return container;
-        }
-        if (target === "parent") {
-            const parent = element.parentElement ?? element.parent ?? null;
-            if (!parent) throw new Error("mount target not found: parent");
-            clearChildren(parent);
-            return parent;
-        }
-        const found = doc.querySelector(target);
-        if (!found) throw new Error(`mount target not found: ${target}`);
-        clearChildren(found);
-        return found;
-    }
-    function clearChildren(el) {
-        while(el.firstChild)el.removeChild(el.firstChild);
-    }
-    const BaseElement = typeof HTMLElement === "undefined" ? class {
-    } : HTMLElement;
-    class IslandComponent extends BaseElement {
-        connectedCallback() {
-            Hydrator.hydrate(this);
-            Patcher.runtime.dispatcher?.scanAndWire?.(this);
-        }
-        disconnectedCallback() {
-            const doc = this.ownerDocument ?? globalThis.document;
-            if (this._sheets?.length && doc?.adoptedStyleSheets) {
-                doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter((s)=>!this._sheets.includes(s));
-            }
-            this._sheets = [];
-            Patcher.runtime.dispatcher?.removeListeners?.(this);
-        }
-    }
-    function mountSetup(element, defaults = {}) {
-        const api = element.getAttribute("api");
-        if (!api) throw new Error(`${element.tagName?.toLowerCase() ?? "mount"}: missing api attribute`);
-        let data = {};
-        try {
-            data = JSON.parse(element.getAttribute("data") || "{}");
-        } catch (error) {
-            console.error("mount: invalid JSON in data attribute", error);
-        }
-        const transport = element._transportOverride ?? Transport.create({
-            transport: element.getAttribute("transport") ?? defaults.transport,
-            protocol: element.getAttribute("protocol") ?? undefined,
-            url: api
-        });
-        return {
-            api,
-            data,
-            transport,
-            target: element.getAttribute("target")
-        };
-    }
-    class MountDataComponent extends BaseElement {
-        async connectedCallback() {
-            const doc = this.ownerDocument ?? globalThis.document;
-            try {
-                const binding = Patcher.runtime.onMountConnect?.(this, false);
-                this._frameMount = binding;
-                if (binding?.local) return;
-                const { api, data, transport, target } = mountSetup(this);
-                this._transport = transport;
-                const method = this.getAttribute("method") || "POST";
-                const result = await transport.send(binding ? binding.url(api) : api, method, data);
-                if (binding) binding.receive(result);
-                else {
-                    const mount = result.type === "frame" ? frameMountTarget(this, target, doc) : resolveMountTarget(this, target, doc);
-                    Patcher.route(result, mount, doc);
-                }
-            } catch (error) {
-                console.error("mount-data:", error);
-            }
-        }
-        disconnectedCallback() {
-            this._frameMount?.close();
-            this._transport?.disconnect?.();
-        }
-    }
-    class MountStreamComponent extends BaseElement {
-        connectedCallback() {
-            const doc = this.ownerDocument ?? globalThis.document;
-            try {
-                const binding = Patcher.runtime.onMountConnect?.(this, true);
-                this._frameMount = binding;
-                if (binding?.local) return;
-                let generation = 0;
-                const open = ()=>{
-                    const current = ++generation;
-                    const { api, data, transport, target } = mountSetup(this, {
-                        transport: "sse"
-                    });
-                    const targetEl = binding ? null : resolveMountTarget(this, target, doc);
-                    if (binding?.managed) {
-                        const handle = binding.managed({
-                            api,
-                            data,
-                            transport
-                        });
-                        if (handle) {
-                            this._transport = {
-                                disconnect: ()=>handle.close()
-                            };
-                            return;
-                        }
-                    }
-                    this._transport = transport;
-                    if (!binding && this.isConnected === false && targetEl?.isConnected && !this._targetObserver) {
-                        this._targetObserver = new MutationObserver(()=>{
-                            if (!targetEl.isConnected) this.disconnectedCallback();
-                        });
-                        this._targetObserver.observe(doc, {
-                            childList: true,
-                            subtree: true
-                        });
-                    }
-                    if (binding && transport.config) {
-                        transport.config.nextUrl = (url)=>binding.url(url);
-                        transport.config.onExpired = binding.expired;
-                    }
-                    const payload = binding && this.getAttribute("data") === null ? undefined : data;
-                    transport.connect(binding ? binding.url(api) : api, payload, (result)=>{
-                        if (current !== generation || transport !== this._transport) return;
-                        if (binding) binding.receive(result);
-                        else Patcher.route(result, targetEl, doc);
-                    });
-                };
-                this._restartFrameStream = ()=>{
-                    this._transport?.disconnect?.();
-                    open();
-                };
-                open();
-            } catch (error) {
-                console.error("mount-stream:", error);
-            }
-        }
-        disconnectedCallback() {
-            this._frameMount?.close();
-            this._restartFrameStream = null;
-            this._targetObserver?.disconnect();
-            this._targetObserver = null;
-            this._transport?.disconnect?.();
-            this._transport = null;
-        }
-    }
-    function registerWebComponents() {
-        if (typeof customElements === "undefined") return;
-        if (!customElements.get("primal-island")) customElements.define("primal-island", IslandComponent);
-        if (!customElements.get("mount-data")) customElements.define("mount-data", MountDataComponent);
-        if (!customElements.get("mount-stream")) customElements.define("mount-stream", MountStreamComponent);
-    }
-    function registerWasmApp(runtime, opts = {}) {
-        const doc = opts.document ?? globalThis.document;
-        if (!doc) {
-            console.error("registerWasmApp: no document available (non-browser environment)");
-            return;
-        }
-        const bridge = runtime.bridge ?? runtime;
-        const frames = globalThis.EweFrames?.installFrameRuntime(globalThis.FoundationWasmUiRuntime, opts);
-        if (!frames) throw new Error("registerWasmApp requires foundation-ui-frames.js");
-        const dispatcher = Patcher.runtime.dispatcher ?? new EventDispatcher(callbackDeliver(runtime.callbacks));
-        dispatcher.deliver = callbackDeliver(runtime.callbacks);
-        dispatcher.deliverSignal = signalDeliver(bridge);
-        Patcher.runtime.dispatcher = dispatcher;
-        const owned = new WeakSet();
-        const onMount = (id, node)=>{
-            if (!owned.has(node) && bridge.exports?.ewe_ui_dispose_mount) {
-                owned.add(node);
-                Patcher.registerUnmount(node, ()=>bridge.exports.ewe_ui_dispose_mount(id));
-            }
-        };
-        const onEvent = (name, id, event, el)=>{
-            const setter = parseCallbackId(el.getAttribute?.("primal:setter"));
-            if (setter !== null) dispatcher.deliverSignal(setter, buildEventData(name, event, el));
-        };
-        runtime.dispatcher.setRawHandler(ProtocolHandler.frameHook.isFrame, (bytes)=>{
-            if (bytes.byteLength > frames.maxFrameBytes) return frames.receive(bytes);
-            return frames.receive(Uint8Array.from(bytes), {
-                onMount,
-                onEvent
-            });
-        });
-        initEventRuntime(dispatcher, doc);
-    }
-    function frameStats() {
-        return globalThis.__primalFrames ?? {
-            seq: Patcher.frameSeq,
-            at: null
-        };
-    }
-    function createPrimal({ dispatcher, doc = globalThis.document } = {}) {
-        return {
-            mountData (api, data, targetNode, opts = {}) {
-                const transport = Transport.create({
-                    transport: opts.transport,
-                    url: api
-                });
-                return transport.send(api, opts.method || "POST", data).then((result)=>Patcher.route(result, targetNode, doc));
-            },
-            mountStream (api, data, targetNode, opts = {}) {
-                const transport = Transport.create({
-                    transport: opts.transport ?? "sse",
-                    url: api
-                });
-                transport.connect(api, data, (result)=>Patcher.route(result, targetNode, doc));
-                return transport;
-            },
-            unmount (element) {
-                element.disconnectedCallback?.();
-                element.remove?.();
-            },
-            on: (selector, event, handler)=>doc.querySelector(selector)?.addEventListener(event, handler),
-            onclick (selector, handler) {
-                this.on(selector, "click", handler);
-            },
-            onchange (selector, handler) {
-                this.on(selector, "change", handler);
-            },
-            off: (selector, event, handler)=>doc.querySelector(selector)?.removeEventListener(event, handler),
-            scope: (element)=>Hydrator.createScope(element),
-            dispatcher,
-            Transport,
-            ProtocolHandler,
-            Patcher,
-            Hydrator
-        };
-    }
-    if (typeof window !== "undefined") {
-        queueMicrotask(registerWebComponents);
-        window.primal ??= createPrimal({});
-    }
-    globalThis.FoundationWasmUiRuntime = Object.freeze({
-        RESERVED,
-        NodeRegistry,
-        MorphDom,
-        moveBefore,
-        buildEventData,
-        parseCallbackId,
-        EventDispatcher,
-        CONVENIENCE_EVENTS,
-        callbackDeliver,
-        signalDeliver,
-        resolveFunctionRef,
-        resolveDelegateTarget,
-        initEventRuntime,
-        Transport,
-        ProtocolHandler,
-        Patcher,
-        Hydrator,
-        scopeCss,
-        RequestQueue,
-        SseParser,
-        FetchEventSource,
-        WSBatchQueue,
-        WorkerBatchQueue,
-        probeBatching,
-        parseBatchEntry,
-        reconnectDelay,
-        resolveMountTarget,
-        IslandComponent,
-        MountDataComponent,
-        MountStreamComponent,
-        registerWebComponents,
-        registerWasmApp,
-        createPrimal,
-        DomHeap,
-        domAbi
-    });
-    const mod = {
-        RESERVED: RESERVED,
-        NodeRegistry: NodeRegistry,
-        moveBefore: moveBefore,
-        MorphDom: MorphDom,
-        buildEventData: buildEventData,
-        parseCallbackId: parseCallbackId,
-        EventDispatcher: EventDispatcher,
-        CONVENIENCE_EVENTS: CONVENIENCE_EVENTS,
-        resolveFunctionRef: resolveFunctionRef,
-        resolveDelegateTarget: resolveDelegateTarget,
-        initEventRuntime: initEventRuntime,
-        callbackDeliver: callbackDeliver,
-        signalDeliver: signalDeliver,
-        DomHeap: DomHeap,
-        domAbi: domAbi,
-        reconnectDelay: reconnectDelay,
-        probeBatching: probeBatching,
-        RequestQueue: RequestQueue,
-        parseBatchEntry: parseBatchEntry,
-        WSBatchQueue: WSBatchQueue,
-        WorkerBatchQueue: WorkerBatchQueue,
-        FetchTransport: FetchTransport,
-        SseParser: SseParser,
-        FetchEventSource: FetchEventSource,
-        SSETransport: SSETransport,
-        WebSocketTransport: WebSocketTransport,
-        ChunkedTransport: ChunkedTransport,
-        WorkerTransport: WorkerTransport,
-        Transport: Transport,
-        frameConnections: frameConnections,
-        decodeEnvelopeFrame: decodeEnvelopeFrame,
-        JsonHandler: JsonHandler,
-        HtmlHandler: HtmlHandler,
-        RawHandler: RawHandler,
-        FrameHandler: FrameHandler,
-        ProtocolHandler: ProtocolHandler,
-        scopeCss: scopeCss,
-        Hydrator: Hydrator,
-        Patcher: Patcher,
-        frameMountTarget: frameMountTarget,
-        resolveMountTarget: resolveMountTarget,
-        IslandComponent: IslandComponent,
-        MountDataComponent: MountDataComponent,
-        MountStreamComponent: MountStreamComponent,
-        registerWebComponents: registerWebComponents,
-        registerWasmApp: registerWasmApp,
-        frameStats: frameStats,
-        createPrimal: createPrimal
-    };
     var SIZEOF_SHORT = 2;
     var SIZEOF_INT = 4;
     var FILE_IDENTIFIER_LENGTH = 4;
@@ -11071,7 +9081,7 @@
             return SignedState.createSignedState(builder, this.formatVersion, this.flags, this.keyId, this.issuedAt, this.expiresAt, this.componentType, this.rootNode, sessionBinding, body, tag);
         }
     };
-    const mod1 = {
+    const mod = {
         ActionError: ActionError,
         ActionErrorT: ActionErrorT,
         ActionInput: ActionInput,
@@ -11258,6 +9268,7 @@
         unionToWebOperation: unionToWebOperation
     };
     const VOCABULARY_VERSION = 12;
+    const STRUCTURED_INPUT_VERSION = 9;
     const PROP_KIND = Object.freeze([
         null,
         "Length",
@@ -11680,6 +9691,1996 @@
         "data"
     ]);
     const CORE_CSS = "[primal-id][hidden]{display:none!important}\n.ewe-stack{display:flex;flex-direction:column}\n.ewe-list{display:flex;flex-direction:column}\n.ewe-scroll{overflow:auto}\n.ewe-spacer{flex:1 1 auto}\n.ewe-drawing-surface{width:300px;height:150px}\n.ewe-navigation-title,.ewe-sheet-title{font-family:system-ui,sans-serif;line-height:1.2;letter-spacing:-.025em;margin:.3em 0}\n.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}\n.ewe-toolbar-button,.ewe-submit-button{align-self:flex-start;background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText))}\n.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}\n.ewe-destructive-button{background:Canvas;color:var(--color-error,#a51f26)}\n.ewe-segmented-control,.ewe-checklist-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45em}\n.ewe-segmented-control{margin-block:.75em}\n.ewe-checklist-row{padding-block:.6em;border-block-end:1px solid color-mix(in srgb,CanvasText 15%,Canvas)}\n.ewe-checklist-row>.ewe-text{flex:1 1 auto}\n.ewe-inset-list{padding-inline-start:0;list-style:none;margin-block:.5em}\n.ewe-list-footer{font-size:.9em}\n.ewe-segmented-control button[aria-pressed=true]{background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText));font-weight:600}\n.ewe-confirmation-dialog,.ewe-modal{font:inherit;color:CanvasText;background:Canvas;border:1px solid ButtonBorder;border-radius:.75em}\n.ewe-confirmation-dialog::backdrop,.ewe-modal::backdrop{background:rgb(0 0 0 / .35)}\n.ewe-confirmation-dialog>.ewe-sheet-title{margin-block-end:.8em}\n.ewe-overlay{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;pointer-events:none}\n.ewe-overlay[popover]{margin:0;border:0;padding:0;inline-size:auto;block-size:auto;overflow:visible;background:transparent;color:inherit}\n.ewe-overlay[popover]:not(:popover-open){display:none}\n.ewe-overlay>*{pointer-events:auto}\n.ewe-modal{max-block-size:100dvh;box-sizing:border-box}\n.ewe-modal:has(>.ewe-bottom-sheet){inset:auto 0 0;margin:0;inline-size:100%;max-inline-size:none;padding:0;border:0}\n.ewe-bottom-sheet{display:flex;flex-direction:column;margin-block-start:auto;max-block-size:100dvh;overflow:auto;padding-block-end:env(safe-area-inset-bottom);box-sizing:border-box;background:Canvas;color:CanvasText}\n.ewe-bottom-sheet:has(>.ewe-submit-button){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8em;padding:1.25em max(1.25em,calc((100% - 36em)/2)) max(1.25em,env(safe-area-inset-bottom))}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>*{grid-column:1/-1}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-cancel-button{grid-column:1;justify-self:end}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-submit-button{grid-column:2}\n.ewe-bottom-sheet>.ewe-text-input{font:inherit;padding:.65em .8em;border:1px solid GrayText;border-radius:.5em}\n";
+    class ConnectionManager {
+        #adapters = new Map();
+        #connections = new Set();
+        #closed = false;
+        #tag = 0n;
+        nextTag() {
+            if (this.#tag === 0xffffffffffffffffn) throw new Error("Connection identifiers exhausted");
+            return ++this.#tag;
+        }
+        supports(transport) {
+            return this.#adapters.has(transport);
+        }
+        register(transport, open) {
+            if (this.#closed || this.#adapters.has(transport)) throw new Error("Connection adapter is unavailable");
+            this.#adapters.set(transport, open);
+            return this;
+        }
+        acquire(options, listener = {}) {
+            if (this.#closed) throw new Error("Connection manager is closed");
+            const { transport, endpoint, shared = transport === "websocket", keepAlive = false, settings = null, authority = null, protocol = "frame" } = options;
+            const url = new URL(endpoint, options.base ?? globalThis.location?.href);
+            if (url.username || url.password) throw new Error("Use the connection authentication context");
+            url.hash = "";
+            if (transport === "websocket") {
+                if (url.protocol === "https:") url.protocol = "wss:";
+                if (url.protocol === "http:") url.protocol = "ws:";
+            }
+            let entry = shared && Array.from(this.#connections).find((c)=>c.shared && c.transport === transport && c.address === url.href && c.settings === settings && c.authority === authority && c.protocol === protocol);
+            const handle = {
+                ...listener
+            };
+            if (!entry) {
+                const open = this.#adapters.get(transport);
+                if (!open) throw new Error("Unknown connection transport: " + transport);
+                entry = {
+                    shared,
+                    address: url.href,
+                    settings,
+                    authority,
+                    transport,
+                    protocol,
+                    retainers: new Set(),
+                    handles: new Set([
+                        handle
+                    ])
+                };
+                this.#connections.add(entry);
+                try {
+                    entry.connection = open({
+                        ...options,
+                        endpoint: url.href
+                    }, {
+                        listening: ()=>[
+                                ...entry.handles
+                            ].some((h)=>h.receive),
+                        deliver: (bytes)=>{
+                            if (!this.#connections.has(entry)) return;
+                            if (options.isContext?.(bytes)) {
+                                entry.context = new Uint8Array(bytes).slice();
+                                for (const h of [
+                                    ...entry.handles
+                                ])h.onContext?.(entry.context.slice());
+                                return;
+                            }
+                            const delivered = new Set();
+                            for (const h of [
+                                ...entry.handles
+                            ]){
+                                if (!entry.handles.has(h) || !h.receive || h.owner && delivered.has(h.owner)) continue;
+                                try {
+                                    const copy = new Uint8Array(bytes).slice();
+                                    if (h.accept && !h.accept(copy)) continue;
+                                    h.receive(copy);
+                                    if (h.owner) delivered.add(h.owner);
+                                } catch (cause) {
+                                    h.onError?.(cause);
+                                }
+                            }
+                        },
+                        opened: ()=>{
+                            entry.opened = true;
+                            for (const h of [
+                                ...entry.handles
+                            ])h.onOpen?.();
+                        },
+                        disconnected: (cause)=>{
+                            entry.opened = false;
+                            entry.context = null;
+                            for (const h of [
+                                ...entry.handles
+                            ])h.onError?.(cause);
+                        }
+                    });
+                } catch (cause) {
+                    this.#connections.delete(entry);
+                    throw cause;
+                }
+            } else {
+                entry.handles.add(handle);
+                if (entry.opened || entry.context) queueMicrotask(()=>{
+                    if (!entry.handles.has(handle)) return;
+                    if (entry.opened) handle.onOpen?.();
+                    if (entry.context) handle.onContext?.(entry.context.slice());
+                });
+            }
+            const retention = {};
+            if (keepAlive) entry.retainers.add(retention);
+            const releaseUnused = ()=>{
+                if (!entry.handles.size && !entry.retainers.size) this.#close(entry);
+            };
+            return {
+                send: async (bytes)=>{
+                    if (!entry.handles.has(handle) || !entry.connection?.send) throw new Error("Connection cannot send");
+                    await entry.connection.send(bytes);
+                },
+                close: ()=>{
+                    entry.handles.delete(handle);
+                    releaseUnused();
+                },
+                releaseRetention: ()=>{
+                    entry.retainers.delete(retention);
+                    releaseUnused();
+                }
+            };
+        }
+        #close(entry) {
+            if (!this.#connections.delete(entry)) return;
+            entry.handles.clear();
+            entry.connection?.close();
+        }
+        close() {
+            this.#closed = true;
+            for (const entry of [
+                ...this.#connections
+            ])this.#close(entry);
+        }
+    }
+    const RESERVED = Object.freeze({
+        HEAD: 0,
+        BODY: 1,
+        HTML: 2
+    });
+    class NodeRegistry {
+        constructor(){
+            this.nodes = new Map();
+            this.pending = new Map();
+        }
+        seedDocument(doc) {
+            if (doc.head) this.nodes.set(RESERVED.HEAD, doc.head);
+            if (doc.body) this.nodes.set(RESERVED.BODY, doc.body);
+            if (doc.documentElement) this.nodes.set(RESERVED.HTML, doc.documentElement);
+            return this;
+        }
+        register(id, node) {
+            this.nodes.set(id, node);
+            return node;
+        }
+        get(id) {
+            return this.nodes.get(id);
+        }
+        expect(id) {
+            const node = this.nodes.get(id);
+            if (node === undefined) throw new Error(`NodeRegistry: unknown node id ${id}`);
+            return node;
+        }
+        unregister(id) {
+            this.nodes.delete(id);
+        }
+        stage(id, node) {
+            this.pending.set(id, node);
+            return node;
+        }
+        applyRegister(id, document1) {
+            if (this.nodes.has(id)) return this.nodes.get(id);
+            const staged = this.pending.get(id);
+            if (staged !== undefined) {
+                this.pending.delete(id);
+                return this.register(id, staged);
+            }
+            const found = document1.querySelector?.(`[primal-id="${id}"]`);
+            if (found) return this.register(id, found);
+            throw new Error(`NodeRegistry: REGISTER_NODE ${id} matches no staged node or [primal-id]`);
+        }
+        expectOrStaged(id) {
+            const node = this.nodes.get(id);
+            if (node !== undefined) return node;
+            const staged = this.pending.get(id);
+            if (staged !== undefined) {
+                this.pending.delete(id);
+                return staged;
+            }
+            throw new Error(`NodeRegistry: unknown node id ${id}`);
+        }
+        get size() {
+            return this.nodes.size;
+        }
+    }
+    const morphIsElement = (n)=>{
+        if (!n) return false;
+        if (n.nodeType !== undefined) return n.nodeType === 1;
+        return typeof n.getAttributeNames === "function" && (n.tag ?? "") !== "#text";
+    };
+    const morphTag = (n)=>(n.tagName ?? n.tag ?? "").toUpperCase();
+    const morphKids = (n)=>Array.from(n.childNodes ?? n.children ?? []);
+    const morphText = (n)=>n.nodeValue !== undefined && n.nodeValue !== null ? n.nodeValue : n.textContent;
+    const morphSetText = (n, v)=>{
+        if (n.nodeValue !== undefined && n.nodeValue !== null) n.nodeValue = v;
+        else n.textContent = v;
+    };
+    const morphAttr = (n, name)=>n.getAttribute ? n.getAttribute(name) : null;
+    const morphIdentity = (n)=>morphAttr(n, "id") ?? morphAttr(n, "primal-id");
+    function morphWalk(root, fn) {
+        if (morphIsElement(root)) fn(root);
+        for (const child of morphKids(root))morphWalk(child, fn);
+    }
+    function moveBefore(parent, node, ref) {
+        if (typeof parent.moveBefore === "function") parent.moveBefore(node, ref);
+        else {
+            node.parentNode?.removeChild?.(node);
+            parent.insertBefore(node, ref);
+        }
+    }
+    class MorphContext {
+        constructor(doc){
+            this.doc = doc;
+            this.idMap = new Map();
+            this.persistentIds = new Set();
+            this.oldIdTagMap = new Map();
+            this.duplicates = new Set();
+            this.pantry = null;
+        }
+        computePersistentIds(oldRoot, newRoot) {
+            morphWalk(oldRoot, (el)=>{
+                const id = morphIdentity(el);
+                if (!id) return;
+                if (this.oldIdTagMap.has(id)) this.duplicates.add(id);
+                else this.oldIdTagMap.set(id, morphTag(el));
+            });
+            morphWalk(newRoot, (el)=>{
+                const id = morphIdentity(el);
+                if (!id || this.duplicates.has(id)) return;
+                if (this.oldIdTagMap.get(id) === morphTag(el)) this.persistentIds.add(id);
+            });
+        }
+        populateIdMap(root) {
+            const build = (node)=>{
+                const ids = new Set();
+                const own = morphIsElement(node) ? morphIdentity(node) : null;
+                if (own && this.persistentIds.has(own)) ids.add(own);
+                for (const child of morphKids(node)){
+                    for (const id of build(child))ids.add(id);
+                }
+                if (ids.size > 0) this.idMap.set(node, ids);
+                return ids;
+            };
+            build(root);
+        }
+        hasConflictingId(node) {
+            const id = morphIsElement(node) ? morphIdentity(node) : null;
+            return !!id && !this.persistentIds.has(id);
+        }
+        findBestMatch(oldCursor, newChild) {
+            if (!morphIsElement(newChild)) {
+                return oldCursor && !morphIsElement(oldCursor) ? oldCursor : null;
+            }
+            const newIds = this.idMap.get(newChild) ?? new Set();
+            if (newIds.size > 0) {
+                const intersects = (candidate)=>{
+                    if (!morphIsElement(candidate) || morphTag(candidate) !== morphTag(newChild) || !this.idMap.has(candidate)) {
+                        return false;
+                    }
+                    const ids = this.idMap.get(candidate);
+                    for (const id of newIds){
+                        if (ids.has(id)) return true;
+                    }
+                    return false;
+                };
+                for(let candidate = oldCursor; candidate; candidate = candidate.nextSibling){
+                    if (intersects(candidate)) return candidate;
+                }
+                if (this.pantry) {
+                    for (const candidate of morphKids(this.pantry)){
+                        if (intersects(candidate)) return candidate;
+                    }
+                }
+            }
+            if (oldCursor && morphIsElement(oldCursor) === morphIsElement(newChild) && morphTag(oldCursor) === morphTag(newChild) && !this.hasConflictingId(oldCursor)) {
+                if (typeof oldCursor.isEqualNode === "function") {
+                    if (oldCursor.isEqualNode(newChild)) return oldCursor;
+                    const nextNew = newChild.nextSibling ?? null;
+                    if (nextNew && oldCursor.isEqualNode(nextNew)) return null;
+                }
+                return oldCursor;
+            }
+            return null;
+        }
+        removeNode(node) {
+            if (this.idMap.has(node)) {
+                if (!this.pantry) this.pantry = this.doc.createElement("div");
+                moveBefore(this.pantry, node, null);
+            } else {
+                node.parentNode?.removeChild?.(node);
+            }
+        }
+        morphChildren(oldParent, newParent) {
+            let oldCursor = oldParent.firstChild ?? null;
+            for (const newChild of morphKids(newParent)){
+                if (oldCursor && morphAttr(oldCursor, "data-ignore-morph") !== null && morphAttr(newChild, "data-ignore-morph") !== null) {
+                    oldCursor = oldCursor.nextSibling;
+                    continue;
+                }
+                const match = this.findBestMatch(oldCursor, newChild);
+                if (match) {
+                    while(oldCursor && oldCursor !== match){
+                        const next = oldCursor.nextSibling;
+                        this.removeNode(oldCursor);
+                        oldCursor = next;
+                    }
+                    if (match !== oldCursor) moveBefore(oldParent, match, oldCursor);
+                    this.morphNode(match, newChild);
+                    oldCursor = match.nextSibling;
+                } else {
+                    const clone = cloneNode(this.doc, newChild);
+                    oldParent.insertBefore(clone, oldCursor);
+                }
+            }
+            while(oldCursor){
+                const next = oldCursor.nextSibling;
+                this.removeNode(oldCursor);
+                oldCursor = next;
+            }
+        }
+        morphNode(oldNode, newNode) {
+            if (!morphIsElement(oldNode) || !morphIsElement(newNode)) {
+                if (morphText(oldNode) !== morphText(newNode)) {
+                    morphSetText(oldNode, morphText(newNode));
+                }
+                return;
+            }
+            if (typeof oldNode.isEqualNode === "function" && oldNode.isEqualNode(newNode)) {
+                return;
+            }
+            this.syncAttributes(oldNode, newNode);
+            preserveFormState(oldNode, newNode);
+            const tag = morphTag(oldNode);
+            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+            this.morphChildren(oldNode, newNode);
+        }
+        syncAttributes(oldEl, newEl) {
+            const preserved = (morphAttr(oldEl, "data-preserve-attr") || "").split(",").map((sliver)=>sliver.trim()).filter(Boolean);
+            for (const name of newEl.getAttributeNames()){
+                if (!preserved.includes(name)) oldEl.setAttribute(name, newEl.getAttribute(name));
+            }
+            for (const name of oldEl.getAttributeNames()){
+                if (!preserved.includes(name) && newEl.getAttribute(name) === null) {
+                    oldEl.removeAttribute(name);
+                }
+            }
+        }
+        cleanup() {
+            if (this.pantry) {
+                while(this.pantry.firstChild)this.pantry.removeChild(this.pantry.firstChild);
+            }
+            this.idMap.clear();
+            this.persistentIds.clear();
+            this.oldIdTagMap.clear();
+            this.duplicates.clear();
+        }
+    }
+    function preserveFormState(oldEl, newEl) {
+        if (morphTag(oldEl) !== morphTag(newEl)) return;
+        switch(morphTag(oldEl)){
+            case "INPUT":
+                {
+                    const type = morphAttr(oldEl, "type");
+                    if (type === "checkbox" || type === "radio") newEl.checked = oldEl.checked;
+                    else if (type !== "file") newEl.value = oldEl.value;
+                    break;
+                }
+            case "TEXTAREA":
+                newEl.value = oldEl.value;
+                break;
+            case "SELECT":
+                newEl.selectedIndex = oldEl.selectedIndex;
+                break;
+            default:
+        }
+    }
+    function cloneNode(doc, node) {
+        if (typeof node.cloneNode === "function") return node.cloneNode(true);
+        if (!morphIsElement(node)) return doc.createTextNode(morphText(node) ?? "");
+        const el = doc.createElement(node.tag ?? node.tagName);
+        for (const name of node.getAttributeNames())el.setAttribute(name, node.getAttribute(name));
+        if (node.value != null) el.value = node.value;
+        if (node.checked != null) el.checked = node.checked;
+        for (const child of morphKids(node))el.appendChild(cloneNode(doc, child));
+        return el;
+    }
+    class MorphDom {
+        static scripts = new WeakSet();
+        static morph(target, newContent, doc = target.ownerDocument ?? (typeof document === "undefined" ? null : document)) {
+            const ctx = new MorphContext(doc);
+            try {
+                ctx.computePersistentIds(target, newContent);
+                ctx.populateIdMap(target);
+                ctx.populateIdMap(newContent);
+                ctx.morphChildren(target, newContent);
+                MorphDom.executeNewScripts(target, doc);
+            } finally{
+                ctx.cleanup();
+            }
+        }
+        static executeNewScripts(root, doc) {
+            if (!doc || typeof root.querySelectorAll !== "function") return;
+            for (const script of root.querySelectorAll("script")){
+                if (MorphDom.scripts.has(script)) continue;
+                const clone = doc.createElement("script");
+                for (const name of script.getAttributeNames()){
+                    clone.setAttribute(name, script.getAttribute(name));
+                }
+                clone.textContent = script.textContent;
+                script.parentNode?.replaceChild?.(clone, script);
+                MorphDom.scripts.add(clone);
+            }
+        }
+    }
+    const PRIMAL_ON = "primal:on";
+    function buildEventData(eventType, event, el) {
+        return {
+            type: eventType,
+            primalId: el.getAttribute ? el.getAttribute("primal-id") : null,
+            value: el.value ?? null,
+            checked: el.checked ?? null,
+            keyCode: event.keyCode ?? null,
+            modifiers: {
+                alt: !!event.altKey,
+                ctrl: !!event.ctrlKey,
+                shift: !!event.shiftKey,
+                meta: !!event.metaKey
+            }
+        };
+    }
+    function parseCallbackId(ref) {
+        if (ref == null) return null;
+        const s = String(ref).trim();
+        const body = s.startsWith("callback-") ? s.slice("callback-".length) : s;
+        return /^\d+$/.test(body) ? Number(body) : null;
+    }
+    class EventDispatcher {
+        static actionHook = null;
+        constructor(deliver, options = {}){
+            this.deliver = deliver;
+            this.deliverSignal = options.deliverSignal ?? deliver;
+            this.scope = options.scope ?? globalThis;
+            this.listeners = new WeakMap();
+            this.cleanupQueue = [];
+            this.cleanupScheduled = false;
+            this.observer = null;
+        }
+        scanAndWire(root) {
+            visit(root, (el)=>{
+                for (const name of el.getAttributeNames()){
+                    if (!name.startsWith(PRIMAL_ON)) continue;
+                    const rest = name.slice(PRIMAL_ON.length);
+                    const [eventType, mode] = rest.split(":");
+                    if (!eventType) continue;
+                    if (mode === "delegate") {
+                        this.wireDelegated(el, eventType, el.getAttribute(name));
+                    } else if (mode === undefined) {
+                        this.wire(el, eventType, el.getAttribute(name));
+                    }
+                }
+            });
+        }
+        wire(el, eventType, handlerRef) {
+            const listener = this.#buildListener(el, eventType, handlerRef);
+            if (!listener) {
+                console.warn(`EventDispatcher: unresolvable handler "${handlerRef}" for ${eventType}`);
+                return;
+            }
+            this.off(el, eventType);
+            el.addEventListener(eventType, listener);
+            this.#listenerMap(el).set(eventType, listener);
+        }
+        #buildListener(el, eventType, handlerRef) {
+            if (/^(server|host):/.test(String(handlerRef))) {
+                return (event)=>{
+                    if (EventDispatcher.actionHook) return EventDispatcher.actionHook(String(handlerRef), el, event, eventType);
+                    console.warn("No action runtime for", handlerRef);
+                };
+            }
+            const callbackId = parseCallbackId(handlerRef);
+            if (callbackId !== null) {
+                return (event)=>this.deliver(callbackId, buildEventData(eventType, event, el));
+            }
+            const setterId = parseCallbackId(el.getAttribute?.("primal:setter"));
+            if (setterId !== null) {
+                return (event)=>this.deliverSignal(setterId, buildEventData(eventType, event, el));
+            }
+            const fn = resolveFunctionRef(this.scope, handlerRef);
+            if (fn) return fn.bind(el);
+            return null;
+        }
+        wireDelegated(el, eventType, selector) {
+            const target = resolveDelegateTarget(el, selector, this.documentOf(el));
+            if (!target) {
+                console.warn(`EventDispatcher: delegate target "${selector}" not found`);
+                return;
+            }
+            const listener = (event)=>{
+                if (el === event.target || el.contains && el.contains(event.target)) {
+                    event.delegateTarget = el;
+                }
+            };
+            const key = `${eventType}:delegate:${el.getAttribute?.("primal-id") || el.id || ""}`;
+            const map = this.#listenerMap(target);
+            const prior = map.get(key);
+            if (prior) target.removeEventListener(eventType, prior);
+            map.set(key, listener);
+            target.addEventListener(eventType, listener);
+        }
+        documentOf(el) {
+            return el.ownerDocument ?? (typeof document === "undefined" ? null : document);
+        }
+        #listenerMap(el) {
+            let map = this.listeners.get(el);
+            if (!map) {
+                map = new Map();
+                this.listeners.set(el, map);
+            }
+            return map;
+        }
+        off(el, eventType) {
+            const map = this.listeners.get(el);
+            if (!map) return;
+            if (eventType !== undefined) {
+                for (const [key, listener] of map){
+                    if (key === eventType || key.startsWith(`${eventType}:`)) {
+                        el.removeEventListener(eventType, listener);
+                        map.delete(key);
+                    }
+                }
+                return;
+            }
+            for (const [key, listener] of map){
+                el.removeEventListener(key.split(":")[0], listener);
+            }
+            map.clear();
+            this.listeners.delete(el);
+        }
+        removeListeners(root) {
+            visit(root, (el)=>this.off(el));
+        }
+        trackRemoved(node) {
+            this.cleanupQueue.push(node);
+            if (this.cleanupScheduled) return;
+            this.cleanupScheduled = true;
+            queueMicrotask(()=>{
+                const batch = this.cleanupQueue.splice(0);
+                this.cleanupScheduled = false;
+                for (const item of batch)this.removeListeners(item);
+            });
+        }
+        handleMutations(mutations) {
+            for (const mutation of mutations){
+                if (mutation.type !== "childList") continue;
+                for (const node of mutation.addedNodes){
+                    if (!isElement(node) || insideIsland(node)) continue;
+                    this.scanAndWire(node);
+                    Hydrator.hydrate(node);
+                }
+                for (const node of mutation.removedNodes){
+                    if (!isElement(node) || insideIsland(node)) continue;
+                    this.removeListeners(node);
+                }
+            }
+        }
+        observe(doc) {
+            if (typeof MutationObserver === "undefined" || this.observer) return;
+            this.observer = new MutationObserver((mutations)=>this.handleMutations(mutations));
+            this.observer.observe(doc, {
+                subtree: true,
+                childList: true
+            });
+        }
+        on(el, eventType, handlerRef, options = {}) {
+            if (options.delegate) this.wireDelegated(el, eventType, options.delegate);
+            else this.wire(el, eventType, handlerRef);
+        }
+    }
+    const CONVENIENCE_EVENTS = [
+        "click",
+        "change",
+        "submit",
+        "keydown",
+        "keyup",
+        "focus",
+        "blur",
+        "scroll",
+        "input",
+        "mousedown",
+        "mouseup"
+    ];
+    for (const evt of CONVENIENCE_EVENTS){
+        EventDispatcher.prototype[`on${evt}`] = function(el, handlerRef, options) {
+            this.on(el, evt, handlerRef, options);
+        };
+    }
+    function visit(node, fn) {
+        if (typeof node.getAttributeNames === "function") fn(node);
+        for (const child of node.children || [])visit(child, fn);
+    }
+    function isElement(node) {
+        return !!node && typeof node.getAttributeNames === "function";
+    }
+    function insideIsland(node) {
+        if (typeof node.closest === "function") return node.closest("island") !== null;
+        for(let cur = node; cur; cur = cur.parent ?? cur.parentElement ?? null){
+            if ((cur.tag ?? cur.tagName ?? "").toLowerCase() === "island") return true;
+        }
+        return false;
+    }
+    function resolveFunctionRef(scope, handlerRef) {
+        if (typeof handlerRef !== "string" || handlerRef.length === 0) return null;
+        let current = scope;
+        for (const part of handlerRef.split(".")){
+            if (current == null) return null;
+            current = current[part];
+        }
+        return typeof current === "function" ? current : null;
+    }
+    function resolveDelegateTarget(el, selector, doc) {
+        if (!selector) return null;
+        if (selector === "parent") return el.parentElement ?? el.parent ?? null;
+        if (selector === "body") return doc?.body ?? null;
+        return doc?.querySelector ? doc.querySelector(selector) : null;
+    }
+    function initEventRuntime(dispatcher, doc = typeof document === "undefined" ? null : document) {
+        if (!doc) return;
+        const boot = ()=>{
+            dispatcher.scanAndWire(doc.body);
+            dispatcher.observe(doc);
+        };
+        doc.addEventListener?.("DOMContentLoaded", boot);
+        if (doc.readyState !== "loading") boot();
+    }
+    function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
+        return (callbackId, eventData)=>callbackRegistry.invoke(callbackId, encode(eventData));
+    }
+    function signalDeliver(bridge, encode = jsonEncodeEventData) {
+        return (setterId, eventData)=>{
+            const bytes = encode(eventData);
+            const memId = bridge.exports.create_allocation(BigInt(bytes.length));
+            const ptr = Number(bridge.exports.allocation_start_pointer(memId));
+            const memory = typeof bridge.memory === "function" ? bridge.memory() : bridge.memory;
+            new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
+            bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
+        };
+    }
+    function jsonEncodeEventData(eventData) {
+        return new TextEncoder().encode(JSON.stringify(eventData));
+    }
+    class DomHeap {
+        static RESERVED_SLOTS = 5;
+        constructor(host = globalThis){
+            this.items = [];
+            this.free = [];
+            const doc = host.document ?? null;
+            this.create(typeof self !== "undefined" ? self : this);
+            this.create(this);
+            this.create(host.window ?? null);
+            this.create(doc);
+            this.create(doc && doc.body ? doc.body : null);
+        }
+        #unpack(uid) {
+            const v = BigInt(uid);
+            if (v < BigInt(DomHeap.RESERVED_SLOTS)) return {
+                index: Number(v),
+                generation: 0n
+            };
+            return {
+                index: Number(v >> 32n),
+                generation: v & 0xffffffffn
+            };
+        }
+        create(item) {
+            let index;
+            if (this.free.length > 0) {
+                index = this.free.pop();
+                const slot = this.items[index];
+                slot.generation += 1n;
+                slot.active = true;
+                slot.item = item;
+            } else {
+                index = this.items.length;
+                this.items.push({
+                    item,
+                    generation: 0n,
+                    active: true
+                });
+            }
+            return BigInt(index) << 32n | this.items[index].generation;
+        }
+        get(uid) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || !slot.active || slot.generation !== generation) return undefined;
+            return slot.item;
+        }
+        update(uid, item) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || slot.generation !== generation) return false;
+            slot.item = item;
+            slot.active = true;
+            return true;
+        }
+        destroy(uid) {
+            const { index, generation } = this.#unpack(uid);
+            if (index < DomHeap.RESERVED_SLOTS) return false;
+            const slot = this.items[index];
+            if (!slot || !slot.active || slot.generation !== generation) return false;
+            slot.item = null;
+            slot.active = false;
+            this.free.push(index);
+            return true;
+        }
+    }
+    function domAbi(rt, dom) {
+        rt.functions.reply.dom = dom;
+        return {
+            dom_allocate_external_pointer: ()=>dom.create(null),
+            host_dom_drop_external_pointer: (handle)=>{
+                dom.destroy(BigInt(handle));
+            },
+            host_invoke_function_as_dom: (h, p, l)=>{
+                const v = rt.functions.invokeNakedAs(h, p, l, 29);
+                return typeof v === "bigint" ? v : BigInt(v);
+            }
+        };
+    }
+    function reconnectDelay(attempt) {
+        return Math.min(1000 * 2 ** attempt, 30_000);
+    }
+    async function probeBatching(fetchFn = globalThis.fetch) {
+        try {
+            const res = await fetchFn("/primal/messages", {
+                method: "HEAD"
+            });
+            return !!res && res.ok === true;
+        } catch  {
+            return false;
+        }
+    }
+    class RequestQueue {
+        constructor(transport){
+            this.queue = [];
+            this.scheduled = false;
+            this.transport = transport;
+            this.bundlingEnabled = false;
+            this.nextId = 1;
+        }
+        async probe(fetchFn = globalThis.fetch) {
+            this.bundlingEnabled = await probeBatching(fetchFn);
+            return this.bundlingEnabled;
+        }
+        enqueue(request) {
+            if (!this.bundlingEnabled) {
+                return this.transport.send(request.url, request.method, request.data);
+            }
+            this.queue.push({
+                id: this.nextId++,
+                url: request.url,
+                method: request.method ?? "GET",
+                headers: request.headers,
+                body: request.data
+            });
+            if (!this.scheduled) {
+                this.scheduled = true;
+                queueMicrotask(()=>this.flush());
+            }
+            return null;
+        }
+        flush() {
+            this.scheduled = false;
+            if (this.queue.length === 0) return;
+            const batch = this.queue.splice(0);
+            if (batch.length === 1) {
+                const only = batch[0];
+                this.transport.send(only.url, only.method, only.body);
+                return;
+            }
+            this.transport.send("/primal/messages", "POST", batch);
+        }
+    }
+    function parseBatchEntry(entry) {
+        const ct = entry.headers?.["content-type"] ?? entry.headers?.["Content-Type"] ?? "";
+        if (ct.includes("primal-json")) return {
+            id: entry.id,
+            ...routeJson(entry.body)
+        };
+        if (ct.includes("primal-html") || ct.includes("text/html")) {
+            return {
+                id: entry.id,
+                ...routeHtml(String(entry.body))
+            };
+        }
+        if (ct.includes("primal-arrow")) {
+            return {
+                id: entry.id,
+                ...removedArrow()
+            };
+        }
+        return {
+            id: entry.id,
+            type: "raw",
+            text: String(entry.body ?? "")
+        };
+    }
+    class WSBatchQueue {
+        constructor(ws){
+            this.ws = ws;
+            this.queue = [];
+            this.scheduled = false;
+        }
+        send(data) {
+            this.queue.push(data);
+            if (!this.scheduled) {
+                this.scheduled = true;
+                queueMicrotask(()=>this.flush());
+            }
+        }
+        flush() {
+            this.scheduled = false;
+            if (this.queue.length === 1) {
+                this.ws.send(JSON.stringify(this.queue.splice(0, 1)[0]));
+            } else if (this.queue.length > 1) {
+                this.ws.send(JSON.stringify({
+                    batch: this.queue.splice(0)
+                }));
+            }
+        }
+    }
+    class WorkerBatchQueue {
+        constructor(worker){
+            this.worker = worker;
+            this.queue = [];
+            this.scheduled = false;
+        }
+        postMessage(data) {
+            this.queue.push(data);
+            if (!this.scheduled) {
+                this.scheduled = true;
+                queueMicrotask(()=>this.flush());
+            }
+        }
+        flush() {
+            this.scheduled = false;
+            if (this.queue.length === 0) return;
+            const batch = this.queue.splice(0);
+            const transfers = batch.map((d)=>d?.transferable).filter(Boolean);
+            this.worker.postMessage({
+                batch
+            }, transfers);
+        }
+    }
+    class FetchTransport {
+        constructor(config = {}){
+            this.config = config;
+            this.fetchFn = config.fetchFn ?? ((...args)=>globalThis.fetch(...args));
+        }
+        async send(url, method = "POST", data = undefined) {
+            const init = {
+                method,
+                headers: this.config.headers
+            };
+            if (data !== undefined && method !== "GET" && method !== "HEAD") {
+                init.body = typeof data === "string" ? data : JSON.stringify(data);
+            }
+            const response = await this.fetchFn(url, init);
+            if (!response.ok) throw new Error(`FetchTransport: ${method} ${url} -> ${response.status}`);
+            const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
+            return handler.process(response);
+        }
+        disconnect() {}
+    }
+    class SseParser {
+        constructor(){
+            this.decoder = new TextDecoder("utf-8");
+            this.textBuffer = "";
+            this.sawCarriageReturn = false;
+            this.lastEventId = null;
+            this.#resetBuilder();
+        }
+        #resetBuilder() {
+            this.id = null;
+            this.eventType = null;
+            this.data = [];
+            this.retry = null;
+        }
+        push(chunk) {
+            let text = this.decoder.decode(chunk, {
+                stream: true
+            });
+            if (this.sawCarriageReturn) {
+                this.sawCarriageReturn = false;
+                if (text.startsWith("\n")) text = text.slice(1);
+            }
+            if (text.endsWith("\r")) {
+                this.sawCarriageReturn = true;
+            }
+            this.textBuffer += text;
+            const events = [];
+            for(;;){
+                const cut = this.#nextLineEnd();
+                if (cut === null) break;
+                const [line, rest] = cut;
+                this.textBuffer = rest;
+                const event = this.#processLine(line);
+                if (event) events.push(event);
+            }
+            return events;
+        }
+        end() {
+            const tail = this.decoder.decode();
+            if (tail) this.textBuffer += tail;
+            const events = [];
+            if (this.textBuffer.length > 0) {
+                const event = this.#processLine(this.textBuffer.replace(/\r$/, ""));
+                this.textBuffer = "";
+                if (event) events.push(event);
+            }
+            const flushed = this.#dispatch();
+            if (flushed) events.push(flushed);
+            return events;
+        }
+        #nextLineEnd() {
+            const buf = this.textBuffer;
+            for(let i = 0; i < buf.length; i++){
+                const ch = buf[i];
+                if (ch === "\n") return [
+                    buf.slice(0, i),
+                    buf.slice(i + 1)
+                ];
+                if (ch === "\r") {
+                    if (i + 1 < buf.length) {
+                        const skip = buf[i + 1] === "\n" ? 2 : 1;
+                        return [
+                            buf.slice(0, i),
+                            buf.slice(i + skip)
+                        ];
+                    }
+                    return null;
+                }
+            }
+            return null;
+        }
+        #processLine(line) {
+            if (line.length === 0) {
+                return this.#dispatch();
+            }
+            if (line.startsWith(":")) {
+                return {
+                    type: "comment",
+                    comment: line.slice(1).replace(/^ /, "").trimStart(),
+                    lastEventId: this.lastEventId
+                };
+            }
+            const colon = line.indexOf(":");
+            if (colon === -1) return null;
+            const field = line.slice(0, colon);
+            let value = line.slice(colon + 1);
+            if (value.startsWith(" ")) value = value.slice(1);
+            switch(field){
+                case "id":
+                    if (!value.includes("\0")) this.id = value;
+                    break;
+                case "event":
+                    this.eventType = value;
+                    break;
+                case "data":
+                    this.data.push(value);
+                    break;
+                case "retry":
+                    {
+                        const ms = Number(value);
+                        if (Number.isInteger(ms) && ms >= 0 && /^\d+$/.test(value)) this.retry = ms;
+                        break;
+                    }
+                default:
+            }
+            return null;
+        }
+        #dispatch() {
+            if (this.data.length === 0) {
+                this.#resetBuilder();
+                return null;
+            }
+            if (this.id !== null) this.lastEventId = this.id;
+            const event = {
+                type: "message",
+                event: this.eventType,
+                data: this.data.join("\n"),
+                id: this.id,
+                lastEventId: this.lastEventId,
+                retry: this.retry
+            };
+            this.#resetBuilder();
+            return event;
+        }
+    }
+    class FetchEventSource {
+        constructor(url, options = {}){
+            this.url = url;
+            this.options = options;
+            this.fetchFn = options.fetchFn ?? ((...args)=>globalThis.fetch(...args));
+            this.closed = false;
+            this.attempt = 0;
+            this.retryOverride = null;
+            this.lastEventId = null;
+            this.abort = null;
+        }
+        async connect() {
+            this.closed = false;
+            await this.#attemptOnce();
+        }
+        async #attemptOnce() {
+            if (this.closed) return;
+            this.abort = typeof AbortController === "undefined" ? null : new AbortController();
+            const headers = {
+                accept: "text/event-stream",
+                ...this.options.headers ?? {}
+            };
+            if (this.lastEventId !== null) headers["last-event-id"] = this.lastEventId;
+            let response;
+            try {
+                response = await this.fetchFn(this.options.nextUrl?.(this.url) ?? this.url, {
+                    method: this.options.method ?? "GET",
+                    cache: "no-store",
+                    headers,
+                    body: this.options.body,
+                    signal: this.abort?.signal
+                });
+                if (response.status === 410 && this.options.onExpired) {
+                    this.close();
+                    this.options.onExpired();
+                    return;
+                }
+                if (!response.ok) throw new Error(`FetchEventSource: ${response.status}`);
+            } catch (error) {
+                this.options.onError?.(error);
+                this.#scheduleReconnect();
+                return;
+            }
+            this.options.onOpen?.(response);
+            this.attempt = 0;
+            const parser = new SseParser();
+            const reader = response.body.getReader();
+            try {
+                for(;;){
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    for (const event of parser.push(value))this.#deliver(event);
+                }
+                for (const event of parser.end())this.#deliver(event);
+            } catch (error) {
+                if (!this.closed) this.options.onError?.(error);
+            }
+            this.lastEventId = parser.lastEventId ?? this.lastEventId;
+            this.#scheduleReconnect();
+        }
+        #deliver(event) {
+            if (event.type === "comment") {
+                this.options.onComment?.(event);
+                return;
+            }
+            if (event.retry !== null && event.retry !== undefined) {
+                this.retryOverride = event.retry;
+            }
+            if (event.id !== null) this.lastEventId = event.id;
+            this.options.onEvent?.(event);
+        }
+        #scheduleReconnect() {
+            if (this.closed) return;
+            const delay = this.retryOverride ?? reconnectDelay(this.attempt);
+            this.attempt += 1;
+            this.reconnectTimer = setTimeout(()=>{
+                if (!this.closed) this.#attemptOnce();
+            }, delay);
+        }
+        close() {
+            this.closed = true;
+            clearTimeout(this.reconnectTimer);
+            this.abort?.abort?.();
+        }
+    }
+    class SSETransport {
+        constructor(config = {}){
+            this.config = config;
+            this.source = null;
+        }
+        connect(url, data, onResult) {
+            const method = this.config.method ?? (data === undefined ? "GET" : "POST");
+            this.source = new FetchEventSource(url, {
+                method,
+                headers: {
+                    ...data === undefined ? {} : {
+                        "content-type": "application/json"
+                    },
+                    ...this.config.headers ?? {}
+                },
+                body: data === undefined ? undefined : JSON.stringify(data),
+                fetchFn: this.config.fetchFn,
+                onEvent: (event)=>{
+                    if (this.config.listening?.() !== false) onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data));
+                },
+                onOpen: this.config.onOpen,
+                onError: this.config.onError,
+                nextUrl: this.config.nextUrl,
+                onExpired: this.config.onExpired
+            });
+            return this.source.connect();
+        }
+        disconnect() {
+            this.source?.close?.();
+            this.source = null;
+        }
+    }
+    class WebSocketTransport {
+        constructor(config = {}){
+            this.config = config;
+            this.ws = null;
+            this.attempt = 0;
+            this.closed = false;
+        }
+        connect(url, _data, onResult) {
+            const factory = this.config.wsFactory ?? (typeof WebSocket === "undefined" ? null : (target)=>new WebSocket(target));
+            if (!factory) {
+                throw new Error("WebSocketTransport: WebSocket unavailable in this environment");
+            }
+            this.closed = false;
+            this.url = url;
+            this.onResult = onResult;
+            const socket = factory(this.config.nextUrl?.(url) ?? url);
+            this.ws = socket;
+            if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
+            this.ws.onopen = ()=>{
+                if (this.ws !== socket || this.closed) return;
+                this.attempt = 0;
+                this.config.onOpen?.();
+            };
+            this.ws.onmessage = (event)=>{
+                if (this.ws !== socket || this.closed || this.config.listening?.() === false) return;
+                const { data } = event;
+                if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+                    const result = decodeEnvelopeFrame(data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+                    if (result) onResult(result);
+                    return;
+                }
+                onResult(streamEventResult(this.config.protocol ?? "json", data));
+            };
+            this.ws.onclose = ()=>{
+                if (this.closed || this.ws !== socket) return;
+                this.config.onError?.(new Error("WebSocket disconnected"));
+                const delay = reconnectDelay(this.attempt);
+                this.attempt += 1;
+                setTimeout(()=>{
+                    if (!this.closed && this.ws === socket) this.connect(this.url, undefined, this.onResult);
+                }, delay);
+            };
+        }
+        send(data) {
+            if (!this.ws || this.ws.readyState !== undefined && this.ws.readyState !== 1) throw new Error("WebSocket is closed");
+            this.ws.send(typeof data === "string" || ArrayBuffer.isView(data) || data instanceof ArrayBuffer ? data : JSON.stringify(data));
+        }
+        disconnect() {
+            this.closed = true;
+            this.ws?.close?.();
+            this.ws = null;
+        }
+    }
+    class ChunkedTransport {
+        constructor(config = {}){
+            this.config = config;
+            this.abort = null;
+            this.fetchFn = config.fetchFn ?? ((...args)=>globalThis.fetch(...args));
+        }
+        async connect(url, data, onChunk) {
+            this.abort = new AbortController();
+            const response = await this.fetchFn(url, {
+                method: data === undefined ? "GET" : "POST",
+                body: data === undefined ? undefined : JSON.stringify(data),
+                signal: this.abort.signal,
+                headers: this.config.headers
+            });
+            if (response.status === 410 && this.config.onExpired) {
+                this.config.onExpired();
+                return;
+            }
+            if (!response.ok) throw new Error("Stream request failed with HTTP " + response.status);
+            this.config.onOpen?.();
+            const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
+            if (handler instanceof FrameHandler && isViewResponse(response)) {
+                onChunk(await handler.process(response));
+            } else if (handler instanceof FrameHandler) {
+                const hook = ProtocolHandler.frameHook;
+                if (!hook) throw new Error("Install the frame runtime before opening a frame stream");
+                for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)){
+                    if (this.config.listening?.() !== false) onChunk({
+                        type: "frame",
+                        frames: [
+                            frame
+                        ]
+                    });
+                }
+            } else {
+                const limit = this.config.maxDocumentBytes ?? ProtocolHandler.frameHook?.maxFrameBytes ?? 4 * 1024 * 1024;
+                let size = 0;
+                const body = response.body.pipeThrough(new TransformStream({
+                    transform (bytes, controller) {
+                        size += bytes.byteLength;
+                        if (size > limit) throw new RangeError("Streamed document exceeds byte limit");
+                        controller.enqueue(bytes);
+                    }
+                }));
+                onChunk(await handler.process(new Response(body, {
+                    headers: response.headers
+                })));
+            }
+        }
+        disconnect() {
+            this.abort?.abort?.();
+            this.abort = null;
+        }
+    }
+    class WorkerTransport {
+        constructor(config = {}){
+            this.worker = config.worker;
+        }
+        send(_url, _method, data) {
+            this.worker.postMessage(data);
+        }
+        onMessage(callback) {
+            this.worker.onmessage = (event)=>callback(event.data);
+        }
+        disconnect() {
+            this.worker?.terminate?.();
+        }
+    }
+    class Transport {
+        static create(config = {}) {
+            switch(config.transport){
+                case "sse":
+                    return new SSETransport(config);
+                case "ws":
+                case "websocket":
+                    return new WebSocketTransport(config);
+                case "chunked":
+                    return new ChunkedTransport(config);
+                case "worker":
+                    return new WorkerTransport(config);
+                default:
+                    return new FetchTransport(config);
+            }
+        }
+    }
+    function frameConnections(config = {}) {
+        const manager = new ConnectionManager();
+        for (const transport of [
+            "sse",
+            "websocket",
+            "chunked"
+        ])manager.register(transport, (options, events)=>{
+            const channel = options.channel ?? Transport.create({
+                ...config,
+                headers: {
+                    ...config.headers,
+                    ...options.headers
+                },
+                transport,
+                protocol: "frame"
+            });
+            let waiting = [];
+            const opened = ()=>{
+                for (const pending of waiting.splice(0))pending.resolve();
+                events.opened();
+            };
+            const disconnected = (cause)=>{
+                for (const pending of waiting.splice(0))pending.reject(cause);
+                events.disconnected(cause);
+            };
+            if (channel.config) Object.assign(channel.config, {
+                onOpen: opened,
+                onError: disconnected,
+                listening: events.listening
+            });
+            const result = channel.connect(options.endpoint, options.data, (message)=>{
+                if (message.type !== "frame") {
+                    disconnected(new Error("Expected a Foundation frame"));
+                    return;
+                }
+                for (const frame of message.frames)events.deliver(frame);
+            });
+            Promise.resolve(result).catch(disconnected);
+            return {
+                send: transport === "websocket" ? async (bytes)=>{
+                    if (channel.ws?.readyState === 0) await new Promise((resolve, reject)=>waiting.push({
+                            resolve,
+                            reject
+                        }));
+                    channel.send(bytes);
+                } : undefined,
+                close () {
+                    for (const pending of waiting.splice(0))pending.reject(new Error("Connection closed"));
+                    channel.disconnect();
+                }
+            };
+        });
+        return manager;
+    }
+    function decodeEnvelopeFrame(bytes) {
+        if (ProtocolHandler.frameHook?.isFrame(bytes)) return {
+            type: "frame",
+            frames: [
+                bytes
+            ]
+        };
+        if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
+        if (bytes.byteLength < 6) {
+            console.error("decodeEnvelopeFrame: truncated header", bytes.byteLength);
+            return null;
+        }
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const protocol = view.getUint8(0);
+        const version = view.getUint8(1);
+        const length = view.getUint32(2, true);
+        const payload = bytes.subarray(6);
+        if (payload.byteLength !== length) {
+            console.error(`decodeEnvelopeFrame: length mismatch (header ${length}, payload ${payload.byteLength})`);
+            return null;
+        }
+        if (protocol === 2) {
+            try {
+                return routeJson(JSON.parse(new TextDecoder().decode(payload)));
+            } catch (error) {
+                console.error("decodeEnvelopeFrame: json payload did not parse", error);
+                return null;
+            }
+        }
+        console.error(`decodeEnvelopeFrame: unknown protocol ${protocol} v${version}`);
+        return null;
+    }
+    function base64ToBytes(text) {
+        const bin = atob(String(text).trim());
+        const bytes = new Uint8Array(bin.length);
+        for(let i = 0; i < bin.length; i += 1)bytes[i] = bin.charCodeAt(i);
+        return bytes;
+    }
+    function streamEventResult(kind, raw) {
+        if (kind === "frame") return {
+            type: "frame",
+            frames: [
+                base64ToBytes(raw)
+            ]
+        };
+        if (kind === "json") {
+            try {
+                return routeJson(JSON.parse(raw));
+            } catch  {
+                return {
+                    type: "raw",
+                    text: String(raw)
+                };
+            }
+        }
+        if (kind === "arrow") return removedArrow();
+        return routeHtml(String(raw));
+    }
+    function routeJson(value) {
+        if (value && typeof value === "object" && value.morph) {
+            return {
+                type: "json-morph",
+                morph: value.morph
+            };
+        }
+        return {
+            type: "json",
+            patches: value
+        };
+    }
+    function routeHtml(html) {
+        const match = /^\s*<island\b[^>]*data-target="([^"]+)"[^>]*data-action="([^"]+)"[^>]*>([\s\S]*)<\/island>\s*$/.exec(html);
+        if (match) {
+            return {
+                type: "html-morph",
+                target: match[1],
+                action: match[2],
+                content: match[3]
+            };
+        }
+        return {
+            type: "html",
+            html
+        };
+    }
+    function removedArrow() {
+        console.error('mount: protocol "arrow" was removed; use "frame"');
+        return {
+            type: "raw",
+            text: ""
+        };
+    }
+    const emptyProtocolHandler = {
+        process: async ()=>({
+                type: "raw",
+                text: ""
+            })
+    };
+    class JsonHandler {
+        async process(response) {
+            return routeJson(await response.json());
+        }
+    }
+    class HtmlHandler {
+        async process(response) {
+            return routeHtml(await response.text());
+        }
+    }
+    class RawHandler {
+        async process(response) {
+            return {
+                type: "raw",
+                text: await response.text()
+            };
+        }
+    }
+    function isViewResponse(response) {
+        return response.headers?.get?.("content-type")?.split(";")[0].trim().toLowerCase() === "application/vnd.ewe.frame";
+    }
+    class FrameHandler {
+        async process(response) {
+            if (!response.ok) throw new Error("Frame request failed with HTTP " + response.status);
+            const hook = ProtocolHandler.frameHook;
+            if (!hook) {
+                console.error("frame received but the frame runtime is not installed");
+                return {
+                    type: "raw",
+                    text: ""
+                };
+            }
+            if (isViewResponse(response)) {
+                return {
+                    type: "frame",
+                    frames: [
+                        await hook.readViewResponse(response, hook.maxFrameBytes)
+                    ]
+                };
+            }
+            const frames = [];
+            let total = 0;
+            for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)){
+                total += frame.length;
+                if (total > hook.maxFrameBytes) throw new RangeError("Frame reply exceeds byte limit");
+                frames.push(frame);
+            }
+            return {
+                type: "frame",
+                frames
+            };
+        }
+    }
+    class ProtocolHandler {
+        static frameHook = null;
+        static named(name) {
+            switch(name){
+                case "frame":
+                    return new FrameHandler();
+                case "arrow":
+                    removedArrow();
+                    return emptyProtocolHandler;
+                case "json":
+                    return new JsonHandler();
+                case "html":
+                    return new HtmlHandler();
+                default:
+                    return null;
+            }
+        }
+        static fromContentType(response) {
+            const ct = response.headers?.get?.("content-type") || "";
+            if (isViewResponse(response) || ct.includes("primal-frame")) return new FrameHandler();
+            if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return ProtocolHandler.named("arrow");
+            if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
+            if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
+                return new HtmlHandler();
+            }
+            return new RawHandler();
+        }
+    }
+    function scopeCss(cssText, prefix) {
+        return cssText.replace(/(^|\})\s*([^@{}][^{}]*)\{/g, (_, brace, selectors)=>{
+            const scoped = selectors.split(",").map((sel)=>`${prefix} ${sel.trim()}`).join(", ");
+            return `${brace}\n${scoped} {`;
+        });
+    }
+    class Hydrator {
+        static scopeExtensions = [];
+        static behaviourMarkers = null;
+        static createScope(targetElement) {
+            const eventCleanups = [];
+            const scope = {
+                targets: ()=>targetElement.querySelectorAll("[primal-id]"),
+                parent: ()=>targetElement,
+                querySelector: (sel)=>targetElement.querySelector(sel),
+                querySelectorAll: (sel)=>targetElement.querySelectorAll(sel),
+                addEvent (target, event, handler, options) {
+                    const el = typeof target === "string" ? targetElement.querySelector(target) : target;
+                    if (el) {
+                        el.addEventListener(event, handler, options);
+                        eventCleanups.push(()=>el.removeEventListener(event, handler, options));
+                    }
+                },
+                onDispose (dispose) {
+                    eventCleanups.push(dispose);
+                },
+                cleanup () {
+                    for (const cleanup of eventCleanups.splice(0))cleanup();
+                }
+            };
+            for (const extend of Hydrator.scopeExtensions)extend(scope, targetElement);
+            return scope;
+        }
+        static hydrate(root, doc = root.ownerDocument ?? globalThis.document) {
+            if (typeof root.querySelectorAll !== "function") return;
+            Hydrator.behaviourMarkers?.(root);
+            for (const style of root.querySelectorAll("style[primal\\:style]")){
+                const prefix = root.id ? `#${root.id}` : `[primal-id="${root.getAttribute?.("primal-id") ?? ""}"]`;
+                const scoped = scopeCss(style.textContent, prefix);
+                if (typeof CSSStyleSheet === "function" && doc?.adoptedStyleSheets) {
+                    const sheet = new CSSStyleSheet();
+                    sheet.replaceSync(scoped);
+                    doc.adoptedStyleSheets = [
+                        ...doc.adoptedStyleSheets,
+                        sheet
+                    ];
+                    (root._sheets ??= []).push(sheet);
+                }
+                style.remove?.();
+            }
+            for (const script of root.querySelectorAll("script[primal\\:script]")){
+                const owner = script.parentElement ?? root;
+                const scope = Hydrator.createScope(owner);
+                try {
+                    const source = script.textContent.trim();
+                    const body = /^(?:async\s+)?function\s*\(/.test(source) ? `(${source})(scope)` : source;
+                    new Function("scope", body)(scope);
+                    Patcher.registerUnmount(owner, ()=>scope.cleanup());
+                } catch (error) {
+                    scope.cleanup();
+                    console.error("Hydrator: scoped script failed", error);
+                }
+                script.remove?.();
+            }
+        }
+    }
+    class Patcher {
+        static runtime = {
+            dispatcher: null,
+            registry: null,
+            signalBridge: null,
+            frames: null
+        };
+        static frameSeq = 0;
+        static localScopes = new WeakMap();
+        static registerUnmount(node, dispose) {
+            let hooks = Patcher.localScopes.get(node);
+            if (!hooks) Patcher.localScopes.set(node, hooks = new Set());
+            hooks.add(dispose);
+        }
+        static releaseScope(node) {
+            const hooks = Patcher.localScopes.get(node);
+            Patcher.localScopes.delete(node);
+            if (hooks) for (const dispose of hooks){
+                try {
+                    dispose();
+                } catch (error) {
+                    console.error("Component cleanup failed", error);
+                }
+            }
+        }
+        static releaseTree(node) {
+            for (const child of Array.from(node.childNodes ?? []))Patcher.releaseTree(child);
+            Patcher.releaseScope(node);
+        }
+        static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
+            if (typeof doc?.createRange === "function") {
+                const fragment = doc.createRange().createContextualFragment(html);
+                target.appendChild(fragment);
+            } else {
+                target.innerHTML = html;
+            }
+            Hydrator.hydrate(target, doc);
+            Patcher.runtime.dispatcher?.scanAndWire?.(target);
+        }
+        static ensureRegistry(doc) {
+            if (Patcher.runtime.document !== doc) {
+                Patcher.runtime.document = doc;
+                Patcher.runtime.registry = new NodeRegistry().seedDocument(doc);
+            }
+            return Patcher.runtime.registry;
+        }
+        static applySignalPatches(patches) {
+            const bridge = Patcher.runtime.signalBridge;
+            if (bridge?.applyPatches) bridge.applyPatches(patches);
+            else console.warn("Patcher: no signalBridge installed; JSON patches dropped", patches);
+        }
+        static route(result, targetEl, doc) {
+            Patcher.applyRoute(result, targetEl, doc);
+            if (result.type !== "frame") Patcher.markApplied();
+        }
+        static markApplied() {
+            Patcher.frameSeq += 1;
+            const stamp = typeof performance !== "undefined" ? performance.now() : Date.now();
+            if (typeof globalThis !== "undefined") {
+                globalThis.__primalFrames = {
+                    seq: Patcher.frameSeq,
+                    at: stamp
+                };
+            }
+        }
+        static applyRoute(result, targetEl, doc) {
+            switch(result.type){
+                case "frame":
+                    if (!Patcher.runtime.frames) console.error("frame received but the frame runtime is not installed");
+                    else for (const frame of result.frames)Patcher.runtime.frames.receive(frame, {
+                        viewMount: targetEl
+                    });
+                    break;
+                case "html":
+                    Patcher.materialize(result.html, targetEl, doc);
+                    break;
+                case "html-morph":
+                    {
+                        const morphTarget = doc.querySelector(result.target);
+                        if (morphTarget && typeof doc.createRange === "function") {
+                            MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.content), doc);
+                        }
+                        break;
+                    }
+                case "json-morph":
+                    {
+                        const morphTarget = doc.querySelector(result.morph.target);
+                        if (morphTarget && typeof doc.createRange === "function") {
+                            MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.morph.content), doc);
+                        }
+                        break;
+                    }
+                case "json":
+                    Patcher.applySignalPatches(result.patches);
+                    break;
+                default:
+                    targetEl.textContent = result.text ?? "";
+            }
+        }
+    }
+    function frameMountTarget(element, target, doc) {
+        if (!target) return element;
+        return target === "parent" ? element.parentElement : doc.querySelector(target);
+    }
+    function resolveMountTarget(element, target, doc) {
+        if (!target) {
+            const container = doc.createElement("div");
+            element.parentNode?.replaceChild?.(container, element);
+            return container;
+        }
+        if (target === "parent") {
+            const parent = element.parentElement ?? element.parent ?? null;
+            if (!parent) throw new Error("mount target not found: parent");
+            clearChildren(parent);
+            return parent;
+        }
+        const found = doc.querySelector(target);
+        if (!found) throw new Error(`mount target not found: ${target}`);
+        clearChildren(found);
+        return found;
+    }
+    function clearChildren(el) {
+        while(el.firstChild)el.removeChild(el.firstChild);
+    }
+    const BaseElement = typeof HTMLElement === "undefined" ? class {
+    } : HTMLElement;
+    class IslandComponent extends BaseElement {
+        connectedCallback() {
+            Hydrator.hydrate(this);
+            Patcher.runtime.dispatcher?.scanAndWire?.(this);
+        }
+        disconnectedCallback() {
+            const doc = this.ownerDocument ?? globalThis.document;
+            if (this._sheets?.length && doc?.adoptedStyleSheets) {
+                doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter((s)=>!this._sheets.includes(s));
+            }
+            this._sheets = [];
+            Patcher.runtime.dispatcher?.removeListeners?.(this);
+        }
+    }
+    function mountSetup(element, defaults = {}) {
+        const api = element.getAttribute("api");
+        if (!api) throw new Error(`${element.tagName?.toLowerCase() ?? "mount"}: missing api attribute`);
+        let data = {};
+        try {
+            data = JSON.parse(element.getAttribute("data") || "{}");
+        } catch (error) {
+            console.error("mount: invalid JSON in data attribute", error);
+        }
+        const transport = element._transportOverride ?? Transport.create({
+            transport: element.getAttribute("transport") ?? defaults.transport,
+            protocol: element.getAttribute("protocol") ?? undefined,
+            url: api
+        });
+        return {
+            api,
+            data,
+            transport,
+            target: element.getAttribute("target")
+        };
+    }
+    class MountDataComponent extends BaseElement {
+        async connectedCallback() {
+            const doc = this.ownerDocument ?? globalThis.document;
+            try {
+                const binding = Patcher.runtime.onMountConnect?.(this, false);
+                this._frameMount = binding;
+                if (binding?.local) return;
+                const { api, data, transport, target } = mountSetup(this);
+                this._transport = transport;
+                const method = this.getAttribute("method") || "POST";
+                const result = await transport.send(binding ? binding.url(api) : api, method, data);
+                if (binding) binding.receive(result);
+                else {
+                    const mount = result.type === "frame" ? frameMountTarget(this, target, doc) : resolveMountTarget(this, target, doc);
+                    Patcher.route(result, mount, doc);
+                }
+            } catch (error) {
+                console.error("mount-data:", error);
+            }
+        }
+        disconnectedCallback() {
+            this._frameMount?.close();
+            this._transport?.disconnect?.();
+        }
+    }
+    class MountStreamComponent extends BaseElement {
+        connectedCallback() {
+            const doc = this.ownerDocument ?? globalThis.document;
+            try {
+                const binding = Patcher.runtime.onMountConnect?.(this, true);
+                this._frameMount = binding;
+                if (binding?.local) return;
+                let generation = 0;
+                const open = ()=>{
+                    const current = ++generation;
+                    const { api, data, transport, target } = mountSetup(this, {
+                        transport: "sse"
+                    });
+                    const targetEl = binding ? null : resolveMountTarget(this, target, doc);
+                    if (binding?.managed) {
+                        const handle = binding.managed({
+                            api,
+                            data,
+                            transport
+                        });
+                        if (handle) {
+                            this._transport = {
+                                disconnect: ()=>handle.close()
+                            };
+                            return;
+                        }
+                    }
+                    this._transport = transport;
+                    if (!binding && this.isConnected === false && targetEl?.isConnected && !this._targetObserver) {
+                        this._targetObserver = new MutationObserver(()=>{
+                            if (!targetEl.isConnected) this.disconnectedCallback();
+                        });
+                        this._targetObserver.observe(doc, {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
+                    if (binding && transport.config) {
+                        transport.config.nextUrl = (url)=>binding.url(url);
+                        transport.config.onExpired = binding.expired;
+                    }
+                    const payload = binding && this.getAttribute("data") === null ? undefined : data;
+                    transport.connect(binding ? binding.url(api) : api, payload, (result)=>{
+                        if (current !== generation || transport !== this._transport) return;
+                        if (binding) binding.receive(result);
+                        else Patcher.route(result, targetEl, doc);
+                    });
+                };
+                this._restartFrameStream = ()=>{
+                    this._transport?.disconnect?.();
+                    open();
+                };
+                open();
+            } catch (error) {
+                console.error("mount-stream:", error);
+            }
+        }
+        disconnectedCallback() {
+            this._frameMount?.close();
+            this._restartFrameStream = null;
+            this._targetObserver?.disconnect();
+            this._targetObserver = null;
+            this._transport?.disconnect?.();
+            this._transport = null;
+        }
+    }
+    function registerWebComponents() {
+        if (typeof customElements === "undefined") return;
+        if (!customElements.get("primal-island")) customElements.define("primal-island", IslandComponent);
+        if (!customElements.get("mount-data")) customElements.define("mount-data", MountDataComponent);
+        if (!customElements.get("mount-stream")) customElements.define("mount-stream", MountStreamComponent);
+    }
+    function registerWasmApp(runtime, opts = {}) {
+        const doc = opts.document ?? globalThis.document;
+        if (!doc) {
+            console.error("registerWasmApp: no document available (non-browser environment)");
+            return;
+        }
+        const bridge = runtime.bridge ?? runtime;
+        const frames = globalThis.EweFrames?.installFrameRuntime(globalThis.FoundationWasmUiRuntime, opts);
+        if (!frames) throw new Error("registerWasmApp requires foundation-ui-frames.js");
+        const dispatcher = Patcher.runtime.dispatcher ?? new EventDispatcher(callbackDeliver(runtime.callbacks));
+        dispatcher.deliver = callbackDeliver(runtime.callbacks);
+        dispatcher.deliverSignal = signalDeliver(bridge);
+        Patcher.runtime.dispatcher = dispatcher;
+        const owned = new WeakSet();
+        const onMount = (id, node)=>{
+            if (!owned.has(node) && bridge.exports?.ewe_ui_dispose_mount) {
+                owned.add(node);
+                Patcher.registerUnmount(node, ()=>bridge.exports.ewe_ui_dispose_mount(id));
+            }
+        };
+        const onEvent = (name, id, event, el)=>{
+            const setter = parseCallbackId(el.getAttribute?.("primal:setter"));
+            if (setter !== null) dispatcher.deliverSignal(setter, buildEventData(name, event, el));
+        };
+        runtime.dispatcher.setRawHandler(ProtocolHandler.frameHook.isFrame, (bytes)=>{
+            if (bytes.byteLength > frames.maxFrameBytes) return frames.receive(bytes);
+            return frames.receive(Uint8Array.from(bytes), {
+                onMount,
+                onEvent
+            });
+        });
+        initEventRuntime(dispatcher, doc);
+    }
+    function frameStats() {
+        return globalThis.__primalFrames ?? {
+            seq: Patcher.frameSeq,
+            at: null
+        };
+    }
+    function createPrimal({ dispatcher, doc = globalThis.document } = {}) {
+        return {
+            mountData (api, data, targetNode, opts = {}) {
+                const transport = Transport.create({
+                    transport: opts.transport,
+                    url: api
+                });
+                return transport.send(api, opts.method || "POST", data).then((result)=>Patcher.route(result, targetNode, doc));
+            },
+            mountStream (api, data, targetNode, opts = {}) {
+                const transport = Transport.create({
+                    transport: opts.transport ?? "sse",
+                    url: api
+                });
+                transport.connect(api, data, (result)=>Patcher.route(result, targetNode, doc));
+                return transport;
+            },
+            unmount (element) {
+                element.disconnectedCallback?.();
+                element.remove?.();
+            },
+            on: (selector, event, handler)=>doc.querySelector(selector)?.addEventListener(event, handler),
+            onclick (selector, handler) {
+                this.on(selector, "click", handler);
+            },
+            onchange (selector, handler) {
+                this.on(selector, "change", handler);
+            },
+            off: (selector, event, handler)=>doc.querySelector(selector)?.removeEventListener(event, handler),
+            scope: (element)=>Hydrator.createScope(element),
+            dispatcher,
+            Transport,
+            ProtocolHandler,
+            Patcher,
+            Hydrator
+        };
+    }
+    if (typeof window !== "undefined") {
+        queueMicrotask(registerWebComponents);
+        window.primal ??= createPrimal({});
+    }
+    globalThis.FoundationWasmUiRuntime = Object.freeze({
+        RESERVED,
+        NodeRegistry,
+        MorphDom,
+        moveBefore,
+        buildEventData,
+        parseCallbackId,
+        EventDispatcher,
+        CONVENIENCE_EVENTS,
+        callbackDeliver,
+        signalDeliver,
+        resolveFunctionRef,
+        resolveDelegateTarget,
+        initEventRuntime,
+        Transport,
+        ProtocolHandler,
+        Patcher,
+        Hydrator,
+        scopeCss,
+        RequestQueue,
+        SseParser,
+        FetchEventSource,
+        WSBatchQueue,
+        WorkerBatchQueue,
+        probeBatching,
+        parseBatchEntry,
+        reconnectDelay,
+        resolveMountTarget,
+        IslandComponent,
+        MountDataComponent,
+        MountStreamComponent,
+        registerWebComponents,
+        registerWasmApp,
+        createPrimal,
+        DomHeap,
+        domAbi
+    });
+    const mod1 = {
+        RESERVED: RESERVED,
+        NodeRegistry: NodeRegistry,
+        moveBefore: moveBefore,
+        MorphDom: MorphDom,
+        buildEventData: buildEventData,
+        parseCallbackId: parseCallbackId,
+        EventDispatcher: EventDispatcher,
+        CONVENIENCE_EVENTS: CONVENIENCE_EVENTS,
+        resolveFunctionRef: resolveFunctionRef,
+        resolveDelegateTarget: resolveDelegateTarget,
+        initEventRuntime: initEventRuntime,
+        callbackDeliver: callbackDeliver,
+        signalDeliver: signalDeliver,
+        DomHeap: DomHeap,
+        domAbi: domAbi,
+        reconnectDelay: reconnectDelay,
+        probeBatching: probeBatching,
+        RequestQueue: RequestQueue,
+        parseBatchEntry: parseBatchEntry,
+        WSBatchQueue: WSBatchQueue,
+        WorkerBatchQueue: WorkerBatchQueue,
+        FetchTransport: FetchTransport,
+        SseParser: SseParser,
+        FetchEventSource: FetchEventSource,
+        SSETransport: SSETransport,
+        WebSocketTransport: WebSocketTransport,
+        ChunkedTransport: ChunkedTransport,
+        WorkerTransport: WorkerTransport,
+        Transport: Transport,
+        frameConnections: frameConnections,
+        decodeEnvelopeFrame: decodeEnvelopeFrame,
+        JsonHandler: JsonHandler,
+        HtmlHandler: HtmlHandler,
+        RawHandler: RawHandler,
+        FrameHandler: FrameHandler,
+        ProtocolHandler: ProtocolHandler,
+        scopeCss: scopeCss,
+        Hydrator: Hydrator,
+        Patcher: Patcher,
+        frameMountTarget: frameMountTarget,
+        resolveMountTarget: resolveMountTarget,
+        IslandComponent: IslandComponent,
+        MountDataComponent: MountDataComponent,
+        MountStreamComponent: MountStreamComponent,
+        registerWebComponents: registerWebComponents,
+        registerWasmApp: registerWasmApp,
+        frameStats: frameStats,
+        createPrimal: createPrimal
+    };
     class ViewRecovery {
         constructor(load, install, { maxAttempts = 3, onError = ()=>{} } = {}){
             if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1) throw new RangeError("Invalid recovery attempt limit");
@@ -12999,7 +13000,10 @@
         for (const value of bytes)binary += String.fromCharCode(value);
         return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
     }
-    class CheckedBuffer extends mod1.ByteBuffer {
+    function base64urlDecode(text) {
+        return Uint8Array.from(atob(text.replaceAll("-", "+").replaceAll("_", "/")), (c)=>c.charCodeAt(0));
+    }
+    class CheckedBuffer extends mod.ByteBuffer {
         check(pos, length) {
             if (pos < 0 || length < 0 || pos + length > this.bytes().length) throw new Error("Truncated frame field");
         }
@@ -13131,11 +13135,11 @@
         HEIGHT: "height"
     };
     function applyProp(node, id, type, value) {
-        if (!value || mod1.PropValue[type] !== PROP_KIND[id]) throw problem("BadFrame");
-        const prop = mod1.PropId[id];
+        if (!value || mod.PropValue[type] !== PROP_KIND[id]) throw problem("BadFrame");
+        const prop = mod.PropId[id];
         const v = value.v;
         if (Object.hasOwn(propStyles, prop)) {
-            node.style[propStyles[prop]] = v.unit === mod1.LengthUnit.Auto ? "auto" : String(v.value) + (v.unit === mod1.LengthUnit.Percent ? "%" : "px");
+            node.style[propStyles[prop]] = v.unit === mod.LengthUnit.Auto ? "auto" : String(v.value) + (v.unit === mod.LengthUnit.Percent ? "%" : "px");
             return;
         }
         switch(prop){
@@ -13151,7 +13155,7 @@
                 ][v];
                 break;
             case "AXIS":
-                node.style.flexDirection = v === mod1.Axis.Horizontal ? "row" : "column";
+                node.style.flexDirection = v === mod.Axis.Horizontal ? "row" : "column";
                 break;
             case "FONT":
                 node.style.font = "var(--ewe-font-" + value.id + ")";
@@ -13356,9 +13360,9 @@
                     return false;
                 }
                 if (!isFrame(bytes)) throw problem("BadFrame");
-                const frame = mod1.Frame.getRootAsFrame(new CheckedBuffer(bytes));
-                if (frame.kindType() !== mod1.FrameKind.FrameMessage) throw problem("BadFrame");
-                const msg = frame.kind(new mod1.FrameMessage());
+                const frame = mod.Frame.getRootAsFrame(new CheckedBuffer(bytes));
+                if (frame.kindType() !== mod.FrameKind.FrameMessage) throw problem("BadFrame");
+                const msg = frame.kind(new mod.FrameMessage());
                 if (!msg) throw problem("BadFrame");
                 const count = msg.messagesLength();
                 if (count) {
@@ -13511,17 +13515,17 @@
                 const id = op[key + "Type"]();
                 if (!id) return false;
                 const name = enumType[id];
-                if (!mod1[name]) throw problem("UnknownOp", {
+                if (!mod[name]) throw problem("UnknownOp", {
                     field: key
                 });
-                const reader = op[key](new mod1[name]());
+                const reader = op[key](new mod[name]());
                 if (!reader) throw problem("BadFrame");
                 handler.call(this, name, reader, index);
                 this.stats.rows++;
                 return true;
             };
-            const ui = read("ui", mod1.UiOperation, this.applyUiReader);
-            const web = read("web", mod1.WebOperation, this.applyWebReader);
+            const ui = read("ui", mod.UiOperation, this.applyUiReader);
+            const web = read("web", mod.WebOperation, this.applyWebReader);
             if (op.columnar()) this.applyColumnar(op.columnar(), index);
             if (op.mobileType()) this.report("UnsupportedPlatformOp", {
                 unitIndex: index,
@@ -13570,15 +13574,15 @@
         selectorQuery(selector) {
             const text = selector.text;
             const escape = this.document.defaultView?.CSS?.escape ?? globalThis.CSS?.escape;
-            if (selector.kind === mod1.SelectorKind.Id) return "#" + escape(text);
-            if (selector.kind === mod1.SelectorKind.Class) return "." + escape(text);
-            if (selector.kind === mod1.SelectorKind.Query) return text;
+            if (selector.kind === mod.SelectorKind.Id) return "#" + escape(text);
+            if (selector.kind === mod.SelectorKind.Class) return "." + escape(text);
+            if (selector.kind === mod.SelectorKind.Query) return text;
             throw problem("UnknownOp");
         }
         resolve(selector) {
             if (!selector) return null;
-            if (selector.kind === mod1.SelectorKind.NodeId) return this.registry.get(selector.nodeId);
-            if (selector.kind === mod1.SelectorKind.Id) return this.document.getElementById(selector.text);
+            if (selector.kind === mod.SelectorKind.NodeId) return this.registry.get(selector.nodeId);
+            if (selector.kind === mod.SelectorKind.Id) return this.document.getElementById(selector.text);
             return this.document.querySelector(this.selectorQuery(selector));
         }
         registerView(name, root) {
@@ -13620,16 +13624,16 @@
             if (this.loaders.get(root)?.active) throw new Error("View already has a loader");
             const recovery = new ViewRecovery(load, (bytes, expired)=>{
                 if (!isFrame(bytes) || bytes.byteLength > this.maxFrameBytes) throw new Error("Invalid view snapshot");
-                const frame = mod1.Frame.getRootAsFrame(new CheckedBuffer(asBytes(bytes)));
-                const body = frame.kindType() === mod1.FrameKind.FrameMessage && frame.kind(new mod1.FrameMessage());
+                const frame = mod.Frame.getRootAsFrame(new CheckedBuffer(asBytes(bytes)));
+                const body = frame.kindType() === mod.FrameKind.FrameMessage && frame.kind(new mod.FrameMessage());
                 if (!body || !body.messagesLength()) throw new Error("Expected a full view");
                 for(let index = 1; index < body.messagesLength(); index++){
                     const message = body.messages(index);
                     if (!message.data() || message.operation() || message.control()) throw new Error("Expected snapshot data");
                 }
                 const operation = body.messages(0).operation();
-                const place = operation?.uiType() === mod1.UiOperation.Place && operation.ui(new mod1.Place());
-                if (!place || place.kind() !== mod1.PlacementKind.FullView) throw new Error("Expected a full view");
+                const place = operation?.uiType() === mod.UiOperation.Place && operation.ui(new mod.Place());
+                if (!place || place.kind() !== mod.PlacementKind.FullView) throw new Error("Expected a full view");
                 const doc = this.deps.snapshotDocument?.() ?? this.document.implementation.createHTMLDocument("");
                 const detached = doc.createElement("main");
                 doc.body.appendChild(detached);
@@ -13646,9 +13650,9 @@
                 const cursors = new Map();
                 for(let i = 0; i < place.operationsLength(); i++){
                     const op = place.operations(i);
-                    if (op.uiType() !== mod1.UiOperation.LiveMount) continue;
-                    const mount = op.ui(new mod1.LiveMount());
-                    if (mount.kind() !== mod1.LiveKind.Stream || mount.transport() === mod1.LiveTransport.Local || mount.transport() === mod1.LiveTransport.Sse && mount.sharing() === mod1.ConnectionSharing.Shared) continue;
+                    if (op.uiType() !== mod.UiOperation.LiveMount) continue;
+                    const mount = op.ui(new mod.LiveMount());
+                    if (mount.kind() !== mod.LiveKind.Stream || mount.transport() === mod.LiveTransport.Local || mount.transport() === mod.LiveTransport.Sse && mount.sharing() === mod.ConnectionSharing.Shared) continue;
                     if (cursors.has(mount.channelId()) && cursors.get(mount.channelId()) !== mount.resumeFrom()) throw new Error("Conflicting stream cursors");
                     cursors.set(mount.channelId(), mount.resumeFrom());
                 }
@@ -13716,7 +13720,7 @@
         }
         placementTarget(selector, parent, scope) {
             if (!selector) return null;
-            const kinds = mod1.SelectorKind;
+            const kinds = mod.SelectorKind;
             if (selector.kind === kinds.NodeId) {
                 const node = this.registry.get(selector.nodeId);
                 return node && (!parent || node.parentNode === parent) ? node : null;
@@ -13760,15 +13764,15 @@
             };
             for(let i = 0; i < reader.operationsLength(); i++){
                 const unit = reader.operations(i);
-                if (unit.uiType() === mod1.UiOperation.SetProp) {
-                    const prop = unit.ui(new mod1.SetProp());
-                    if (prop.prop() === mod1.PropId.ID) check(prop.value(new mod1.TextValue())?.v());
+                if (unit.uiType() === mod.UiOperation.SetProp) {
+                    const prop = unit.ui(new mod.SetProp());
+                    if (prop.prop() === mod.PropId.ID) check(prop.value(new mod.TextValue())?.v());
                 }
                 const batch = unit.columnar();
                 if (!batch) continue;
                 const bytes = batch.blobBytesArray() ?? new Uint8Array();
                 for(let row = 0; row < batch.opCodesLength(); row++){
-                    if (batch.opCodes(row) !== mod1.UiOperation.SetProp || (batch.argA(row) & 0xffff) !== mod1.PropId.ID) continue;
+                    if (batch.opCodes(row) !== mod.UiOperation.SetProp || (batch.argA(row) & 0xffff) !== mod.PropId.ID) continue;
                     const start = batch.blobAOff(row), end = batch.blobAOff(row + 1);
                     if (start > end || end > bytes.length) throw problem("BadFrame");
                     check(utf8.decode(bytes.subarray(start, end)));
@@ -13777,7 +13781,7 @@
         }
         place(reader, index) {
             const target = reader.target();
-            const root = target?.kind() === mod1.SelectorKind.View ? this.views.get(target.text()) : this.origin?.viewMount;
+            const root = target?.kind() === mod.SelectorKind.View ? this.views.get(target.text()) : this.origin?.viewMount;
             const previous = this.registry;
             this.registry = this.viewState(root).registry;
             try {
@@ -13787,7 +13791,7 @@
             }
         }
         applyPlacement(reader, index) {
-            const kind = mod1.PlacementKind[reader.kind()];
+            const kind = mod.PlacementKind[reader.kind()];
             if (kind === "FullView") {
                 const mount = this.receivingView();
                 if (!mount || mount.isConnected === false) throw problem("UnknownNode", {
@@ -13803,13 +13807,13 @@
                 return;
             }
             const selector = reader.target()?.unpack();
-            const scope = selector?.kind === mod1.SelectorKind.View ? this.views.get(selector.text) : this.receivingView() ?? this.document.body;
+            const scope = selector?.kind === mod.SelectorKind.View ? this.views.get(selector.text) : this.receivingView() ?? this.document.body;
             const target = this.placementTarget(selector, null, scope);
             const missing = (value)=>[
-                    mod1.SelectorKind.Id,
-                    mod1.SelectorKind.View,
-                    mod1.SelectorKind.TypedId,
-                    mod1.SelectorKind.Receiving
+                    mod.SelectorKind.Id,
+                    mod.SelectorKind.View,
+                    mod.SelectorKind.TypedId,
+                    mod.SelectorKind.Receiving
                 ].includes(value?.kind) ? "MissingTarget" : "UnknownNode";
             if (!target) throw problem(missing(selector), {
                 detail: "Placement needs one target"
@@ -13865,22 +13869,22 @@
                             node: m.nodeId
                         });
                         const el = d.createElement(kind?.tag ?? "div");
-                        this.sharedKinds.set(el, mod1.NodeKind[m.kind]);
+                        this.sharedKinds.set(el, mod.NodeKind[m.kind]);
                         el.className = kind?.cls ?? "ewe-unknown";
-                        if (m.kind === mod1.NodeKind.DRAWING_SURFACE) this.drawingTargets.push([
+                        if (m.kind === mod.NodeKind.DRAWING_SURFACE) this.drawingTargets.push([
                             el,
                             m.nodeId
                         ]);
                         for (const [attr, value] of kind?.attrs ?? [])el.setAttribute(attr, value);
                         el.setAttribute("primal-id", String(m.nodeId));
-                        if (m.kind === mod1.NodeKind.OVERLAY && el.showPopover) {
+                        if (m.kind === mod.NodeKind.OVERLAY && el.showPopover) {
                             el.setAttribute("popover", "manual");
                             this.layers.add(el);
                         }
                         if ([
-                            mod1.NodeKind.MODAL,
-                            mod1.NodeKind.CONFIRMATION_DIALOG,
-                            mod1.NodeKind.BOTTOM_SHEET
+                            mod.NodeKind.MODAL,
+                            mod.NodeKind.CONFIRMATION_DIALOG,
+                            mod.NodeKind.BOTTOM_SHEET
                         ].includes(m.kind)) {
                             const Controller = d.defaultView?.AbortController ?? globalThis.AbortController;
                             const controller = new Controller();
@@ -13888,7 +13892,7 @@
                             const options = {
                                 signal: controller.signal
                             };
-                            if (m.kind !== mod1.NodeKind.BOTTOM_SHEET) {
+                            if (m.kind !== mod.NodeKind.BOTTOM_SHEET) {
                                 this.layers.add(el);
                                 el.addEventListener("cancel", (event)=>{
                                     event.preventDefault();
@@ -13899,8 +13903,8 @@
                                 wireBottomSheet(el, options);
                             }
                         }
-                        if (m.sharing !== mod1.ConnectionSharing.TransportDefault) {
-                            el.setAttribute("data-connection-shared", String(m.sharing === mod1.ConnectionSharing.Shared));
+                        if (m.sharing !== mod.ConnectionSharing.TransportDefault) {
+                            el.setAttribute("data-connection-shared", String(m.sharing === mod.ConnectionSharing.Shared));
                         }
                         if (m.keepAlive) el.setAttribute("data-connection-keep-alive", "true");
                         this.origin?.onMount?.(m.nodeId, el);
@@ -13967,7 +13971,7 @@
                     break;
                 case "LiveMount":
                     {
-                        const el = d.createElement(m.kind === mod1.LiveKind.Stream ? "mount-stream" : "mount-data");
+                        const el = d.createElement(m.kind === mod.LiveKind.Stream ? "mount-stream" : "mount-data");
                         const transport = [
                             "local",
                             "sse",
@@ -13982,8 +13986,8 @@
                             "data-resume-from": m.resumeFrom,
                             "primal-id": m.nodeId
                         }))el.setAttribute(key, String(value));
-                        if (m.sharing !== mod1.ConnectionSharing.TransportDefault) {
-                            el.setAttribute("data-connection-shared", String(m.sharing === mod1.ConnectionSharing.Shared));
+                        if (m.sharing !== mod.ConnectionSharing.TransportDefault) {
+                            el.setAttribute("data-connection-shared", String(m.sharing === mod.ConnectionSharing.Shared));
                         }
                         if (m.keepAlive) el.setAttribute("data-connection-keep-alive", "true");
                         this.origin?.onMount?.(m.nodeId, el);
@@ -14055,29 +14059,29 @@
                     {
                         const target = this.resolve(m.target);
                         if (!target) throw problem("Morph");
-                        if (m.action === mod1.MorphAction.ReplaceChildren && this.deps.morph && d.createRange) {
+                        if (m.action === mod.MorphAction.ReplaceChildren && this.deps.morph && d.createRange) {
                             const previous = Array.from(target.querySelectorAll("*"));
                             this.deps.morph(target, d.createRange().createContextualFragment(m.content), d);
                             const removed = new Set(previous.filter((n)=>!target.contains(n)));
                             for (const n of removed)if (!removed.has(n.parentNode)) this.discard(n);
                         } else {
                             switch(m.action){
-                                case mod1.MorphAction.ReplaceChildren:
+                                case mod.MorphAction.ReplaceChildren:
                                     for (const child of Array.from(target.childNodes ?? []))this.discard(child);
                                     target.innerHTML = m.content;
                                     break;
-                                case mod1.MorphAction.ReplaceElement:
+                                case mod.MorphAction.ReplaceElement:
                                     target.insertAdjacentHTML("afterend", m.content);
                                     this.discard(target);
                                     target.remove();
                                     break;
-                                case mod1.MorphAction.InsertBefore:
+                                case mod.MorphAction.InsertBefore:
                                     target.insertAdjacentHTML("beforebegin", m.content);
                                     break;
-                                case mod1.MorphAction.InsertAfter:
+                                case mod.MorphAction.InsertAfter:
                                     target.insertAdjacentHTML("afterend", m.content);
                                     break;
-                                case mod1.MorphAction.AppendSibling:
+                                case mod.MorphAction.AppendSibling:
                                     (target.parentNode ?? target.parent)?.insertAdjacentHTML("beforeend", m.content);
                                     break;
                                 default:
@@ -14169,7 +14173,7 @@
                 try {
                     if (starts[i] > starts[i + 1] || starts[i + 1] > bytes.length || second[i] !== second[i + 1]) throw problem("BadFrame");
                     const blob = bytes.subarray(starts[i], starts[i + 1]);
-                    const name = mod1.UiOperation[codes[i]];
+                    const name = mod.UiOperation[codes[i]];
                     const nodeId = nodes[i], a = args[i], b = values[i];
                     const m = {
                         nodeId
@@ -14185,7 +14189,7 @@
                             {
                                 m.prop = a & 0xffff;
                                 const kind = PROP_KIND[m.prop];
-                                m.valueType = mod1.PropValue[kind];
+                                m.valueType = mod.PropValue[kind];
                                 bits.setUint32(0, b, true);
                                 switch(kind){
                                     case "Text":
@@ -14267,28 +14271,28 @@
                 const columns = [];
                 const types = {
                     I32: [
-                        mod1.I32s,
+                        mod.I32s,
                         Int32Array
                     ],
                     I64: [
-                        mod1.I64s,
+                        mod.I64s,
                         BigInt64Array
                     ],
                     F64: [
-                        mod1.F64s,
+                        mod.F64s,
                         Float64Array
                     ],
                     Bool: [
-                        mod1.Bools,
+                        mod.Bools,
                         Uint8Array
                     ],
                     Utf8: [
-                        mod1.Strings
+                        mod.Strings
                     ]
                 };
                 for(let i = 0; i < table.columnsLength(); i++){
                     const col = table.columns(i);
-                    const type = types[mod1.ColumnData[col.dataType()]];
+                    const type = types[mod.ColumnData[col.dataType()]];
                     if (!type) throw problem("BadFrame");
                     const values = col.data(new type[0]());
                     const items = type[1] ? vector(values, "values", 4, type[1]) : Array.from({
@@ -14339,7 +14343,7 @@
                 const error = control.error().unpack();
                 const detail = {
                     ...error,
-                    code: mod1.ErrorCode[error.code]
+                    code: mod.ErrorCode[error.code]
                 };
                 this.deps.onError?.(detail);
                 dispatchEvent(this.document, "ewe:error", detail);
@@ -14597,13 +14601,840 @@
     globalThis.EweFrames = {
         installFrameRuntime
     };
+    const validName = (name)=>typeof name === "string" && name.length > 0 && !/[:\s\p{Cc}]/u.test(name);
+    const error = (code)=>({
+            error: code
+        });
+    function parseReference(text) {
+        if (typeof text !== "string") return error("InvalidReference");
+        const [origin, name, extra] = text.split(":");
+        if (extra !== undefined || ![
+            "host",
+            "server"
+        ].includes(origin) || !validName(name)) {
+            return error("InvalidReference");
+        }
+        return {
+            origin,
+            name
+        };
+    }
+    class JsActionRegistry {
+        #entries = new Map();
+        declare(origin, name, scope = "all", local = origin === "host") {
+            if (![
+                null,
+                "host",
+                "server"
+            ].includes(origin) || !validName(name) || ![
+                "all",
+                "web",
+                "mobile"
+            ].includes(scope)) {
+                throw new TypeError("Invalid action declaration");
+            }
+            const entries = this.#entries.get(name) ?? [];
+            if (entries.some((e)=>(e.origin === null || origin === null || e.origin === origin) && (scope === "all" || e.scope === "all" || e.scope === scope))) {
+                throw new Error("Duplicate action declaration");
+            }
+            entries.push({
+                origin,
+                scope,
+                local,
+                page: false
+            });
+            this.#entries.set(name, entries);
+        }
+        declarePage(name) {
+            this.declare("host", name, "web", true);
+            this.lookup("host", name, "web").page = true;
+        }
+        registerHost(name, fn, owner) {
+            if (typeof fn !== "function") throw new TypeError("Expected a page function");
+            let entry = this.lookup("host", name, "web");
+            if (entry.error) {
+                this.declarePage(name);
+                entry = this.lookup("host", name, "web");
+            }
+            const ownerId = owner?.getAttribute?.("primal-id");
+            const sameOwner = owner && (entry.owner === owner || ownerId != null && ownerId === entry.ownerId);
+            if (entry.fn && !sameOwner || entry.origin !== "host" || entry.scope !== "web") {
+                throw new Error("Duplicate action declaration");
+            }
+            Object.assign(entry, {
+                fn,
+                page: true,
+                local: true,
+                owner,
+                ownerId
+            });
+        }
+        lookup(origin, name, surface) {
+            const entries = this.#entries.get(name);
+            if (!entries) return error("UnknownAction");
+            const matching = entries.filter((e)=>e.origin === null || e.origin === origin);
+            if (!matching.length) return error("UnavailableOrigin");
+            return matching.find((e)=>e.scope === "all" || e.scope === surface) ?? error("UnsupportedAction");
+        }
+        hostFunction(name) {
+            return this.lookup("host", name, "web").fn;
+        }
+        refs(surface) {
+            const refs = [];
+            for (const [name, entries] of this.#entries){
+                for (const entry of entries){
+                    if (entry.scope !== "all" && entry.scope !== surface) continue;
+                    for (const origin of entry.origin ? [
+                        entry.origin
+                    ] : [
+                        "host",
+                        "server"
+                    ])refs.push(origin + ":" + name);
+                }
+            }
+            return refs.sort();
+        }
+    }
+    function route(reference, surface, lookup, has, serverHas) {
+        const ref = typeof reference === "string" ? parseReference(reference) : reference;
+        if (ref.error) return ref;
+        const entry = lookup(ref.origin, ref.name, surface);
+        const available = serverHas(ref.name);
+        if (entry.error && !(entry.error === "UnknownAction" && ref.origin === "server" && available)) return entry;
+        let destination = ref.origin;
+        if (destination === "host" && !entry.local) {
+            if (entry.origin !== null || !available) return error("UnavailableOrigin");
+            destination = "server";
+        }
+        if (!has[destination] || destination === "server" && available === false) return error("UnavailableOrigin");
+        return {
+            route: destination
+        };
+    }
+    function stateBytes(text, limit) {
+        if (!text) return null;
+        if (text.length > Math.ceil(limit * 4 / 3) || !/^[A-Za-z0-9_-]+$/.test(text)) throw new Error("Invalid state attachment");
+        return base64urlDecode(text);
+    }
+    function finishRequest(builder, request, stream, sequence) {
+        const frame = Frame.createFrame(builder, 1, stream, sequence, FrameKind.FrameRequest, request);
+        Frame.finishFrameBuffer(builder, frame);
+        return builder.asUint8Array();
+    }
+    function encodeAction(name, el, event, type, state, stream, sequence, json) {
+        const id = (element)=>Number(element?.getAttribute("primal-id") ?? 0);
+        const b = new Builder();
+        const mods = Number(!!event.altKey) | Number(!!event.ctrlKey) << 1 | Number(!!event.shiftKey) << 2 | Number(!!event.metaKey) << 3;
+        const value = event.type === "click" ? sheetSubmitField(el)?.value ?? el.value : el?.value;
+        const input = new ActionInputT(type, json === null ? String(value ?? "") : null, !!el?.checked, event.keyCode ?? 0, mods, id(el?.parentElement), json).pack(b);
+        const ref = b.createString(name);
+        const attachment = state && ActionRequest.createStateVector(b, state);
+        ActionRequest.startActionRequest(b);
+        ActionRequest.addAction(b, ref);
+        ActionRequest.addNodeId(b, id(el));
+        ActionRequest.addInput(b, input);
+        if (attachment) ActionRequest.addState(b, attachment);
+        const action = ActionRequest.endActionRequest(b);
+        FrameRequest.startFrameRequest(b);
+        FrameRequest.addAction(b, action);
+        return finishRequest(b, FrameRequest.endFrameRequest(b), stream, sequence);
+    }
+    class WebActionManager {
+        #busy = new Set();
+        #advertised;
+        #structured = false;
+        #next = 1n;
+        #reloaded = false;
+        constructor(deps){
+            this.deps = deps;
+            if (deps.server?.handle && deps.server instanceof WebSocketActionTransport) {
+                let reconnect = false;
+                deps.server.onReply = (bytes)=>this.receive(bytes).catch((error)=>this.onError({
+                            code: "Transport",
+                            detail: String(error)
+                        }));
+                deps.server.onDisconnect = (detail)=>{
+                    reconnect = true;
+                    this.#advertised = new Set();
+                    this.#structured = false;
+                    this.onError({
+                        code: "Transport",
+                        detail: String(detail)
+                    });
+                };
+                deps.server.onOpen = async ()=>{
+                    if (!reconnect) return;
+                    reconnect = false;
+                    try {
+                        for (const reply of (await deps.server.send(this.hello())))await this.receive(reply);
+                    } catch (error) {
+                        this.onError({
+                            code: "Transport",
+                            detail: String(error)
+                        });
+                    }
+                };
+            }
+            this.streamId = deps.streamId ?? 0n;
+            this.onError = deps.onError ?? console.error;
+            this.limit = deps.maxRequestBytes ?? 1024 * 1024;
+            const hooks = deps.frames?.deps;
+            if (hooks) {
+                const previousCaps = hooks.onCaps;
+                const previousError = hooks.onError;
+                const caps = (value)=>{
+                    previousCaps?.(value);
+                    this.applyCaps(value);
+                };
+                const failure = (detail)=>{
+                    if (previousError !== this.onError) previousError?.(detail);
+                    this.reportControl(detail);
+                };
+                hooks.onCaps = caps;
+                hooks.onError = failure;
+                this.detachControls = ()=>{
+                    if (hooks.onCaps === caps) hooks.onCaps = previousCaps;
+                    if (hooks.onError === failure) hooks.onError = previousError;
+                };
+            }
+        }
+        setStreamId(id) {
+            this.streamId = BigInt(id);
+        }
+        hello() {
+            const b = new Builder();
+            const hello = new ClientHelloT(12, Platform.Web, MountSurface.Web, 0n, true, this.deps.server?.requestTag ?? 0n);
+            return finishRequest(b, new FrameRequestT(null, hello).pack(b), 0n, 0n);
+        }
+        applyCaps(caps) {
+            caps = caps.unpack?.() ?? caps;
+            this.#structured = caps.status === CapsStatus.Ok && caps.vocabularyVersion >= STRUCTURED_INPUT_VERSION;
+            this.#advertised = new Set((caps.actions ?? []).map((a)=>a.name));
+            this.setStreamId(caps.streamId);
+            if (this.deps.frames?.deps) this.deps.frames.deps.deliverySession = caps.subscriptionResume && caps.status === CapsStatus.Ok ? this.streamId : undefined;
+            const doc = this.deps.document ?? globalThis.document;
+            for (const el of doc?.querySelectorAll("[primal-id]") ?? []){
+                const missing = Array.from(el.attributes).some((attr)=>attr.name.startsWith("primal:on") && attr.value.startsWith("server:") && !this.#advertised.has(attr.value.slice(7)));
+                el.toggleAttribute("data-ewe-unavailable", missing);
+            }
+        }
+        async receive(bytes, viewMount) {
+            if (await this.deps.frames.receive(bytes, viewMount ? {
+                viewMount
+            } : undefined) === false) throw new Error("Invalid action reply");
+        }
+        reportControl(detail) {
+            this.onError(detail);
+            if (!this.#reloaded && [
+                "StateExpired",
+                "UpdateRequired"
+            ].includes(detail.code)) {
+                this.#reloaded = true;
+                (this.deps.reload ?? (()=>globalThis.location.reload()))();
+            }
+        }
+        async trigger(reference, el, event = {}, type = event.type) {
+            return this.#submit(reference, el, event, type, undefined);
+        }
+        async triggerStructured(reference, el, payload, event = {}, type = event.type) {
+            if (payload === undefined) return this.onError({
+                code: "InvalidInput"
+            });
+            return this.#submit(reference, el, event, type, payload);
+        }
+        async deliverViewData(reference, el, bytes) {
+            return this.deliverHostPayload(reference, el, Array.from(bytes));
+        }
+        async deliverHostPayload(reference, el, payload) {
+            if (parseReference(reference).origin !== "host") return this.onError({
+                code: "UnavailableOrigin"
+            });
+            return this.#submit(reference, el, {
+                type: "data"
+            }, "data", payload, true);
+        }
+        async #submit(reference, el, event, type, payload, delivery = false, parent) {
+            let claimed;
+            let fault = "BadRequest";
+            const fail = (detail)=>{
+                if (parent) throw Object.assign(new Error(detail.detail ?? detail.code), detail);
+                return this.onError(detail);
+            };
+            try {
+                const ref = parseReference(reference);
+                if (ref.error) return fail({
+                    code: ref.error
+                });
+                if (!parent && el.closest("[data-ewe-unavailable]")) return fail({
+                    code: "UnavailableAction"
+                });
+                const registry = this.deps.registry;
+                const entry = registry.lookup(ref.origin, ref.name, "web");
+                const scope = this.deps.scope ?? globalThis;
+                const webHost = entry.origin === "host" && entry.scope === "web";
+                const globalFn = webHost && Object.hasOwn(scope, ref.name) && scope[ref.name];
+                const page = entry.fn ?? (typeof globalFn === "function" ? globalFn : undefined);
+                const choice = route(ref, "web", registry.lookup.bind(registry), {
+                    host: page ? true : !entry.page && !!this.deps.local,
+                    server: !!this.deps.server
+                }, (name)=>this.#advertised?.has(name));
+                if (choice.error) return fail({
+                    code: choice.error
+                });
+                if (payload !== undefined && choice.route === "server" && !this.#structured) {
+                    return fail({
+                        code: "UnsupportedAction",
+                        detail: "The peer did not negotiate structured input."
+                    });
+                }
+                const viewMount = parent ? parent.viewMount : this.deps.frames?.receivingView?.(el);
+                const callAction = async (name, value, preview)=>{
+                    if (value === undefined) throw Object.assign(new Error("Missing child input"), {
+                        code: "InvalidInput"
+                    });
+                    if (preview?.length) await this.receive(preview, viewMount);
+                    return this.#submit(name, viewMount ?? el, {}, "", value, true, {
+                        viewMount
+                    });
+                };
+                const root = el?.closest("[data-ewe-root]") ?? el;
+                if (!delivery) {
+                    if (this.#busy.has(root)) return fail({
+                        code: "Busy"
+                    });
+                    claimed = root;
+                    this.#busy.add(root);
+                }
+                if (choice.route === "host" && page) {
+                    fault = "HostThrew";
+                    const result = await page.call(el, {
+                        node: el,
+                        parent: el?.parentElement,
+                        event,
+                        callAction,
+                        data: payload === undefined ? mod1.buildEventData(type, event, el) : payload
+                    });
+                    for (const bytes of Array.isArray(result) ? result : [
+                        result
+                    ])if (bytes instanceof Uint8Array) await this.receive(bytes, viewMount);
+                    return;
+                }
+                const state = parent ? null : stateBytes(el.getAttribute("primal::state"), this.limit);
+                if (this.#next > 0xffffffffffffffffn) throw new Error("Request sequence exhausted");
+                let json = null;
+                if (payload !== undefined) {
+                    fault = "InvalidInput";
+                    const encoded = JSON.stringify(payload);
+                    if (encoded === undefined) throw new Error("The payload cannot be encoded as JSON.");
+                    json = new TextEncoder().encode(encoded);
+                }
+                const bytes = encodeAction(choice.route + ":" + ref.name, parent ? null : el, event, type, state, this.streamId, this.#next, json);
+                if (bytes.length > this.limit) throw new Error("Request too large");
+                ++this.#next;
+                fault = "Transport";
+                const transport = choice.route === "host" ? this.deps.local : this.deps.server;
+                let replies;
+                if (choice.route === "host") replies = await transport.send(bytes, callAction);
+                else if (parent && transport.sendChild) replies = await transport.sendChild(bytes);
+                else replies = await transport.send(bytes);
+                for (const reply of replies){
+                    await this.receive(reply, viewMount);
+                    if (parent) checkChildReply(reply);
+                }
+            } catch (cause) {
+                if (parent) throw Object.assign(new Error(cause.message ?? String(cause)), {
+                    code: cause.code ?? fault
+                });
+                this.onError({
+                    code: fault,
+                    detail: String(cause)
+                });
+            } finally{
+                if (claimed) this.#busy.delete(claimed);
+            }
+        }
+    }
+    function checkChildReply(bytes) {
+        const frame = Frame.getRootAsFrame(new ByteBuffer(bytes));
+        const body = frame.kind(new FrameMessage());
+        for(let i = 0; i < body.messagesLength(); i++){
+            const control = body.messages(i)?.control();
+            const error = control?.error();
+            const code = error ? ErrorCode[error.code()] : control?.stateExpired() ? "StateExpired" : control?.updateRequired() ? "UpdateRequired" : null;
+            if (code) throw Object.assign(new Error(error?.message() || code), {
+                code
+            });
+        }
+    }
+    class FetchActionTransport {
+        constructor(options){
+            this.options = options;
+        }
+        async send(bytes) {
+            const o = this.options;
+            const headers = {
+                "content-type": "application/primal-frame",
+                accept: "application/primal-frame",
+                "x-ewe-action": "1"
+            };
+            if (o.hello) headers["x-ewe-hello"] = base64urlEncode(await o.hello());
+            if (o.csrfToken) headers["x-csrf-token"] = o.csrfToken;
+            for(let attempt = 1;; attempt++){
+                try {
+                    const response = await (o.fetch ?? globalThis.fetch)(o.url, {
+                        method: "POST",
+                        credentials: "same-origin",
+                        headers,
+                        body: bytes,
+                        signal: o.requestSignal?.()
+                    });
+                    if (response.status !== 200) {
+                        await response.body?.cancel();
+                        throw new Error("http " + response.status);
+                    }
+                    const limit = o.maxResponseBytes ?? 4 * 1024 * 1024;
+                    const frames = [];
+                    let total = 0;
+                    for await (const frame of readFrames(response.body, limit)){
+                        total += frame.byteLength + 4;
+                        if (total > limit) throw new Error("Action response too large");
+                        frames.push(frame);
+                    }
+                    if (!frames.length) throw new Error("Empty action response");
+                    return frames;
+                } catch (cause) {
+                    if (!o.retry || !await o.retry(cause, attempt)) throw cause;
+                }
+            }
+        }
+    }
+    class WebSocketActionTransport {
+        #children = new Map();
+        constructor(socket){
+            this.socket = socket;
+        }
+        static connect(connections, endpoint, options = {}) {
+            const sender = new WebSocketActionTransport(null);
+            sender.requestTag = connections.nextTag();
+            sender.timeout = options.handshakeTimeoutMs ?? 60000;
+            sender.replyTimeout = options.replyTimeoutMs ?? sender.timeout;
+            sender.handle = connections.acquire({
+                ...options,
+                endpoint,
+                transport: "websocket"
+            }, {
+                accept: (bytes)=>{
+                    const frame = Frame.getRootAsFrame(new ByteBuffer(bytes));
+                    const body = frame.kindType() === FrameKind.FrameMessage && frame.kind(new FrameMessage());
+                    if (!body) return false;
+                    const caps = body.messagesLength() && body.messages(0)?.control()?.caps();
+                    return caps ? caps.requestTag() === sender.requestTag : body.ack() !== 0n && frame.streamId() === sender.session;
+                },
+                receive: (bytes)=>{
+                    const frame = Frame.getRootAsFrame(new ByteBuffer(bytes));
+                    const body = frame.kind(new FrameMessage());
+                    const caps = body.messagesLength() && body.messages(0)?.control()?.caps();
+                    if (caps) {
+                        sender.session = caps.status() === CapsStatus.Ok ? caps.streamId() : null;
+                        sender.pending?.resolve([
+                            bytes
+                        ]);
+                    } else {
+                        const child = sender.#children.get(body.ack());
+                        if (child) child.resolve([
+                            bytes
+                        ]);
+                        else sender.onReply?.(bytes);
+                    }
+                },
+                onError: (cause)=>{
+                    sender.session = null;
+                    sender.pending?.reject(cause);
+                    sender.#failChildren(cause);
+                    sender.onDisconnect?.(cause);
+                },
+                onOpen: ()=>sender.onOpen?.()
+            });
+            return sender;
+        }
+        async send(bytes) {
+            if (!this.handle) {
+                if (this.socket.readyState !== 1) throw new Error("Action socket is closed");
+                this.socket.send(bytes);
+                return [];
+            }
+            const frame = Frame.getRootAsFrame(new ByteBuffer(bytes));
+            const request = frame.kind(new FrameRequest());
+            if (!request?.hello()) {
+                if (!this.session || frame.streamId() !== this.session) throw new Error("Action connection needs a handshake");
+                await this.handle.send(bytes);
+                return [];
+            }
+            if (this.pending) throw new Error("A capability request is already pending");
+            let timer;
+            try {
+                return await new Promise((resolve, reject)=>{
+                    this.pending = {
+                        resolve,
+                        reject
+                    };
+                    timer = setTimeout(()=>reject(new Error("Capability request timed out")), this.timeout);
+                    this.handle.send(bytes).catch(reject);
+                });
+            } finally{
+                clearTimeout(timer);
+                this.pending = null;
+            }
+        }
+        async sendChild(bytes) {
+            if (!this.handle) return this.send(bytes);
+            const frame = Frame.getRootAsFrame(new ByteBuffer(bytes));
+            const id = frame.sequenceId();
+            let timer;
+            try {
+                return await new Promise((resolve, reject)=>{
+                    this.#children.set(id, {
+                        resolve,
+                        reject
+                    });
+                    timer = setTimeout(()=>reject(new Error("Action reply timed out")), this.replyTimeout);
+                    this.send(bytes).catch(reject);
+                });
+            } finally{
+                clearTimeout(timer);
+                this.#children.delete(id);
+            }
+        }
+        #failChildren(cause) {
+            for (const child of this.#children.values())child.reject(cause);
+            this.#children.clear();
+        }
+        close() {
+            this.#failChildren(new Error("Action socket closed"));
+            this.pending?.reject(new Error("Action socket closed"));
+            this.handle?.close();
+        }
+    }
+    class WasmActionTransport {
+        #pending = new Map();
+        #next = 1n;
+        #closed = false;
+        constructor(bridge){
+            this.bridge = bridge;
+        }
+        static async boot(loader, url, { registry, start, imports = {}, window: window1 = globalThis.window }) {
+            const runtime = loader.runtime;
+            const dom = new mod1.DomHeap({
+                window: window1,
+                document: window1.document
+            });
+            const decoder = new TextDecoder("utf-8", {
+                fatal: true
+            });
+            let local;
+            const previous = loader.environment;
+            loader.environment = {
+                ...previous,
+                abi: {
+                    ...runtime.web_abi,
+                    ...mod1.domAbi(runtime, dom),
+                    ...previous.abi
+                },
+                env: {
+                    ...previous.env,
+                    ...imports,
+                    ...WasmActionTransport.imports(()=>local),
+                    ewe_ui_declare (origin, pointer, length, scope) {
+                        const name = decoder.decode(new Uint8Array(runtime.bridge.memory.buffer, pointer, length));
+                        registry.declare([
+                            null,
+                            "host",
+                            "server"
+                        ][origin], name, [
+                            "all",
+                            "web",
+                            "mobile"
+                        ][scope]);
+                    }
+                }
+            };
+            try {
+                await loader.loadURL(url);
+                const api = loader.module.instance.exports;
+                if (typeof api[start] !== "function") throw new Error("Missing host initializer: " + start);
+                local = new WasmActionTransport({
+                    exports: api,
+                    memory: ()=>runtime.bridge.memory
+                });
+                const status = api[start]();
+                if (status !== 0) throw new Error("Host initializer " + start + " returned " + status);
+                return local;
+            } catch (error) {
+                try {
+                    local?.close();
+                } finally{
+                    runtime.dispose();
+                }
+                throw error;
+            } finally{
+                loader.environment = previous;
+            }
+        }
+        static imports(transport) {
+            return {
+                ewe_ui_action_done: (call, slot)=>transport().complete(call, slot),
+                ewe_ui_child: (...args)=>transport().#startChild(...args)
+            };
+        }
+        #startChild(parent, child, namePtr, nameLen, jsonPtr, jsonLen, previewPtr, previewLen) {
+            const api = this.bridge.exports;
+            const memory = this.bridge.memory().buffer;
+            const read = (ptr, len)=>new Uint8Array(memory, ptr, len);
+            const decoder = new TextDecoder("utf-8", {
+                fatal: true
+            });
+            const run = async ()=>{
+                const callAction = this.#pending.get(parent)?.callAction;
+                if (!callAction) throw Object.assign(new Error("The parent action closed"), {
+                    code: "UnavailableOrigin"
+                });
+                const name = decoder.decode(read(namePtr, nameLen));
+                const value = JSON.parse(decoder.decode(read(jsonPtr, jsonLen)));
+                await callAction(name, value, read(previewPtr, previewLen).slice());
+            };
+            run().then(()=>{
+                if (!this.#closed) api.ewe_ui_child_done(child, -1, 0n);
+            }, (cause)=>{
+                if (this.#closed) return;
+                let slot = -1n;
+                try {
+                    const bytes = new TextEncoder().encode(cause?.message ?? String(cause));
+                    slot = api.create_allocation(BigInt(bytes.length));
+                    const pointer = Number(api.allocation_start_pointer(slot));
+                    new Uint8Array(this.bridge.memory().buffer, pointer, bytes.length).set(bytes);
+                } catch  {
+                    if (slot !== -1n) api.dispose_allocation(slot);
+                    slot = -1n;
+                }
+                api.ewe_ui_child_done(child, ErrorCode[cause?.code] ?? ErrorCode.ActionFailed, slot);
+            });
+        }
+        send(bytes, callAction) {
+            return new Promise((resolve, reject)=>{
+                if (this.#closed) throw new Error("Action bridge is closed");
+                const call = this.#next++;
+                const api = this.bridge.exports;
+                const slot = api.create_allocation(BigInt(bytes.length));
+                this.#pending.set(call, {
+                    resolve,
+                    reject,
+                    callAction
+                });
+                let handedOff = false;
+                try {
+                    const ptr = Number(api.allocation_start_pointer(slot));
+                    new Uint8Array(this.bridge.memory().buffer, ptr, bytes.length).set(bytes);
+                    const status = api.ewe_ui_action(call, slot);
+                    handedOff = true;
+                    if (status !== 0) throw new Error("Action start failed: " + status);
+                } catch (cause) {
+                    this.#pending.delete(call);
+                    if (!handedOff) api.dispose_allocation(slot);
+                    reject(cause);
+                }
+            });
+        }
+        complete(call, slot) {
+            const pending = this.#pending.get(call);
+            this.#pending.delete(call);
+            if (BigInt.asUintN(64, slot) === 0xffffffffffffffffn) {
+                pending?.reject(new Error("Action task failed"));
+                return;
+            }
+            const api = this.bridge.exports;
+            try {
+                if (pending) {
+                    const bytes = new Uint8Array(this.bridge.memory().buffer, Number(api.allocation_start_pointer(slot)), Number(api.allocation_length(slot))).slice();
+                    pending.resolve([
+                        bytes
+                    ]);
+                }
+            } catch (cause) {
+                pending?.reject(cause);
+            } finally{
+                api.dispose_allocation(slot);
+            }
+        }
+        close() {
+            this.#closed = true;
+            for (const pending of this.#pending.values())pending.reject(new Error("Action bridge closed"));
+            this.#pending.clear();
+            this.bridge.exports.ewe_ui_actions_close?.();
+        }
+    }
+    const installations = new WeakMap();
+    function installActionRuntime(wasmUi, deps) {
+        const runtime = wasmUi.Patcher.runtime;
+        installations.get(runtime)?.();
+        const manager = new WebActionManager(deps);
+        const trigger = manager.trigger.bind(manager);
+        wasmUi.EventDispatcher.actionHook = trigger;
+        const extensions = wasmUi.Hydrator.scopeExtensions;
+        const extend = (scope, owner)=>{
+            scope.action = (name, fn)=>deps.registry.registerHost(name, fn, owner);
+            scope.behaviour = (name, fn)=>deps.behaviours.registerWebBehaviour(name, fn);
+        };
+        extensions.push(extend);
+        manager.dispose = ()=>{
+            if (installations.get(runtime) !== manager.dispose) return;
+            installations.delete(runtime);
+            manager.detachControls?.();
+            if (wasmUi.EventDispatcher.actionHook === trigger) wasmUi.EventDispatcher.actionHook = null;
+            const i = extensions.indexOf(extend);
+            if (i >= 0) extensions.splice(i, 1);
+        };
+        installations.set(runtime, manager.dispose);
+        const doc = deps.document ?? globalThis.document;
+        if (doc && !runtime.dispatcher) {
+            runtime.dispatcher = new wasmUi.EventDispatcher((id)=>manager.onError({
+                    code: "UnavailableOrigin",
+                    detail: "No local callback " + id
+                }), {
+                scope: deps.scope
+            });
+            wasmUi.initEventRuntime(runtime.dispatcher, doc);
+        } else if (doc?.body) {
+            runtime.dispatcher.scanAndWire(doc.body);
+        }
+        return manager;
+    }
+    const activeApps = new WeakSet();
+    function createApp(options) {
+        let flight;
+        const cleanup = [];
+        function dispose() {
+            const errors = [];
+            while(cleanup.length){
+                try {
+                    cleanup.pop()();
+                } catch (error) {
+                    errors.push(error);
+                }
+            }
+            flight = undefined;
+            if (errors.length) throw new AggregateError(errors, "Browser app cleanup failed");
+        }
+        async function start() {
+            const { mount, moduleLoader, onError = console.error } = options;
+            const doc = mount.ownerDocument;
+            const registry = new JsActionRegistry();
+            const local = await WasmActionTransport.boot(moduleLoader, options.moduleUrl, {
+                registry,
+                start: options.start,
+                imports: options.imports,
+                window: doc.defaultView
+            });
+            cleanup.push(()=>moduleLoader.runtime.dispose(), ()=>local.close());
+            const runtime = mod1.Patcher.runtime;
+            const connections = mod1.frameConnections();
+            cleanup.push(()=>connections.close());
+            const previous = {
+                dispatcher: runtime.dispatcher,
+                frames: runtime.frames,
+                connections: runtime.connections,
+                onMountConnect: runtime.onMountConnect
+            };
+            const previousHook = mod1.ProtocolHandler.frameHook;
+            cleanup.push(()=>{
+                Object.assign(runtime, previous);
+                mod1.ProtocolHandler.frameHook = previousHook;
+            });
+            runtime.frames = null;
+            runtime.dispatcher = new mod1.EventDispatcher(()=>{});
+            const frames = installFrameRuntime(mod1, {
+                document: doc,
+                connections,
+                onReport: onError,
+                viewMount: mount
+            });
+            mod1.registerWebComponents();
+            cleanup.push(frames.registerView(options.view, mount));
+            let manager;
+            const server = typeof options.transport === "function" ? await options.transport() : options.transport?.socket ? WebSocketActionTransport.connect(connections, options.transport.socket) : new FetchActionTransport({
+                url: options.transport?.http ?? "/action",
+                hello: ()=>manager.hello()
+            });
+            cleanup.push(()=>server.close?.());
+            manager = installActionRuntime(mod1, {
+                registry,
+                frames,
+                server,
+                local,
+                behaviours: mod2,
+                document: doc,
+                onError
+            });
+            cleanup.push(manager.dispose);
+            if (options.viewDataAction) {
+                const receive = (event)=>{
+                    void manager.deliverViewData(options.viewDataAction, event.target, event.detail.bytes).catch(onError);
+                };
+                mount.addEventListener("ewe:data", receive);
+                cleanup.push(()=>mount.removeEventListener("ewe:data", receive));
+            }
+            for (const bytes of (await server.send(manager.hello())))await manager.receive(bytes);
+            const view = frames.registerLoader(mount, async (signal)=>{
+                const response = await fetch(options.initialRoute, {
+                    signal,
+                    headers: {
+                        "X-Ewe-Hello": base64urlEncode(manager.hello())
+                    }
+                });
+                return readViewResponse(response, frames.maxFrameBytes);
+            }, {
+                onError: (error)=>onError({
+                        code: "ViewRecovery",
+                        detail: error.message
+                    })
+            });
+            await view.open();
+            return manager;
+        }
+        return {
+            boot () {
+                if (!flight && activeApps.has(mod1.Patcher.runtime)) {
+                    return Promise.reject(new Error("This browser action runtime already has an application"));
+                }
+                if (!flight) {
+                    activeApps.add(mod1.Patcher.runtime);
+                    cleanup.push(()=>activeApps.delete(mod1.Patcher.runtime));
+                    flight = start().catch((error)=>{
+                        dispose();
+                        throw error;
+                    });
+                }
+                return flight;
+            },
+            async close () {
+                const pending = flight;
+                if (pending) {
+                    try {
+                        await pending;
+                    } finally{
+                        if (flight === pending) dispose();
+                    }
+                }
+            }
+        };
+    }
     function registerFrameApp(runtime, options = {}) {
-        const frames = installFrameRuntime(mod, options);
-        mod.registerWasmApp(runtime, options);
-        mod.registerWebComponents();
+        const frames = installFrameRuntime(mod1, options);
+        mod1.registerWasmApp(runtime, options);
+        mod1.registerWebComponents();
         return frames;
     }
     globalThis.FoundationUiBootstrap = {
+        createApp,
         registerFrameApp
     };
     (function() {

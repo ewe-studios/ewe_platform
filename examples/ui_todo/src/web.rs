@@ -21,30 +21,7 @@ pub extern "C" fn init_todo_host() -> u32 {
     let Ok(actions) = crate::host_registry() else {
         return 2;
     };
-    use foundation_ui_runtime::action::{Origin, Scope};
-    #[link(wasm_import_module = "env")]
-    unsafe extern "C" {
-        fn ewe_todo_declare(origin: u32, name: *const u8, len: usize, scope: u32);
-    }
-    for (name, origin, scope) in actions.declarations() {
-        let origin = match origin {
-            None => 0,
-            Some(Origin::Host) => 1,
-            Some(Origin::Server) => 2,
-        };
-        let scope = match scope {
-            Scope::All => 0,
-            Scope::Web => 1,
-            Scope::Mobile => 2,
-        };
-        // SAFETY: JavaScript reads this UTF-8 slice synchronously during registration.
-        unsafe {
-            ewe_todo_declare(origin, name.as_ptr(), name.len(), scope);
-        }
-    }
-    LocalApp::builder(ctx, actions)
-        .build()
-        .install_with_child_actions();
+    LocalApp::builder(ctx, actions).install();
     0
 }
 

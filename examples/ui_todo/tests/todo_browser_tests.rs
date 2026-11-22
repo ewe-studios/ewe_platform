@@ -268,6 +268,12 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_text("2")
             .unwrap();
+        let external = driver.new_page().unwrap();
+        external.goto(&format!("{url}theme.css")).unwrap();
+        assert_eq!(
+            external.eval(include_str!("browser_app_lifecycle.js")).unwrap(),
+            serde_json::json!([2, 2, 2])
+        );
     });
     shutdown.turn_on();
     worker.join().unwrap().unwrap();
