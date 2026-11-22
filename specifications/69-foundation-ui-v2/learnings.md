@@ -862,3 +862,6 @@ The wire crate uses the error trace library in its tests. Its production code do
 Cargo accepts dotted dependency keys. A manifest check must recognize them.
 The error derive treats a single unnamed field as a source by default.
 The graphics text fields contain diagnostic messages. Mark these fields as messages to keep the original error behavior.
+The migration test searches parent directories for its fixture.
+A build directory outside the checkout has different parent directories.
+Use both directory layouts to check the repair for issue #712.
