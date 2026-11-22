@@ -16,11 +16,50 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 use crate::shared::app::HttpApp;
 use crate::shared::context::Ctx;
 use crate::shared::middleware::MiddlewareResult;
+use crate::shared::router::RouteOp;
 use crate::shared::serve::ServeError;
 use crate::shared::serve_web::WebServe;
 use crate::shared::web_conn::{WebConn, WebConnectionResult};
 use crate::wasm::cf_conn::{CfConn, CfConnectionResult};
 use crate::wasm::serve_cf::CfServe;
+
+/// Build a `web_sys::Response` for a web route miss: a status and a short
+/// text body.
+fn web_status_response(
+    status: u16,
+    text: &str,
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = WebConn::new();
+    conn.set_status(status);
+    conn.set_header("content-type", "text/plain");
+    conn.set_body(text.as_bytes().to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
+
+/// Build a `web_sys::Response` for a Cloudflare route miss: a status and a
+/// short text body.
+fn cf_status_response(
+    status: u16,
+    text: &str,
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = CfConn::new();
+    conn.set_status(status);
+    conn.set_header("content-type", "text/plain");
+    conn.set_body(text.as_bytes().to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
 
 /// Extension trait for dispatching `HttpApp<Arc<dyn CfServe>>`.
 pub trait HttpAppCfDispatch {
@@ -73,14 +112,15 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
             }
         }
 
-        // Dispatch to router
-        let handler =
-            self.router()
-                .dispatch(&method, &path)
-                .ok_or_else(|| ServeError::BadRequest {
-                    status: 404,
-                    reason: format!("no route for {method:?} {path}"),
-                })?;
+        // Dispatch to router. A matched path with no handler for the method is
+        // a 405; a path that matches nothing is a 404 (spec 88 feature 02).
+        let handler = match self.router().dispatch_result(&method, &path) {
+            Ok(handler) => handler,
+            Err(RouteOp::MethodNotAllowed) => {
+                return cf_status_response(405, "Method Not Allowed");
+            }
+            Err(_) => return cf_status_response(404, "Not Found"),
+        };
 
         // Execute handler (async)
         let mut conn = CfConn::new();
@@ -156,14 +196,15 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
             }
         }
 
-        // Dispatch to router
-        let handler =
-            self.router()
-                .dispatch(&method, &path)
-                .ok_or_else(|| ServeError::BadRequest {
-                    status: 404,
-                    reason: format!("no route for {method:?} {path}"),
-                })?;
+        // Dispatch to router. A matched path with no handler for the method is
+        // a 405; a path that matches nothing is a 404 (spec 88 feature 02).
+        let handler = match self.router().dispatch_result(&method, &path) {
+            Ok(handler) => handler,
+            Err(RouteOp::MethodNotAllowed) => {
+                return web_status_response(405, "Method Not Allowed");
+            }
+            Err(_) => return web_status_response(404, "Not Found"),
+        };
 
         // Execute handler (async)
         let mut conn = WebConn::new();

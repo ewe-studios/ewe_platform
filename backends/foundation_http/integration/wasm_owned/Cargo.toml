@@ -1,0 +1,31 @@
+# Standalone crate (own [workspace]) for the foundation_http pure-Rust wasm
+# cases on the OWNED harness (spec 88 feature 02, T6). It leaves out
+# `wasm-fetch`, so the wasm module imports no wasm-bindgen glue (rule R15).
+#
+#   wasm-testbed deno    backends/foundation_http/integration/wasm_owned
+#   wasm-testbed browser backends/foundation_http/integration/wasm_owned --headless
+#
+# The cases live in `src/lib.rs`, not `tests/`: the owned runner builds the
+# package lib and reads its `__fwt_` exports (spec 88 section 5, rule R9).
+[package]
+name = "foundation_http_wasm_owned_tests"
+version = "0.0.1"
+publish = false
+edition = "2021"
+
+[dependencies]
+# `wasm-test` compiles the pure-Rust wasm module types (response, stream,
+# serve_writer) without `wasm-bindgen-http`, so no fetch client enters the graph.
+foundation_http = { path = "../..", features = ["wasm-test"] }
+foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+foundation_macros = { path = "../../../foundation_macros" }
+foundation_context = { path = "../../../foundation_context", features = ["host-abi"] }
+foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[workspace]
+
+[profile.uat]
+inherits = "release"

@@ -2,7 +2,9 @@
 
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`. Features 02 and 03 remain, so the specification is open.
+**Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`.
+**Feature 02 is implemented** on branch `spec88/f02-http-runtime`; it waits for the Main
+Agent review. Feature 03 remains, so the specification is open.
 
 ## Where this specification is
 
@@ -26,7 +28,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 |---|---|---|---|
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `done`: T1 to T6 done, reviewed and merged as `447519256` | one agent, sonnet | nothing |
-| 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
+| 02-http-runtime | `done`: T1 to T6 done on `spec88/f02-http-runtime`, waiting for review | one agent, sonnet | nothing |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
 
 Features 01, 02 and 03 run in parallel after 00. They write different crates. 00 and 03 both
@@ -271,6 +273,114 @@ The break is reverted. After the revert the same filtered case is green on all f
 | #740 | low | the owned wasm executor pays a host timer per task step; 256 steps take 4.0 s |
 | #741 | low | the wasm feature trees of `foundation_core` and `foundation_compact` fail `clippy -D warnings` |
 
+## Feature 02: what landed (2026-11-23)
+
+Branch `spec88/f02-http-runtime`, base `0ac55c7fe`. The work is in the working tree; it is not
+committed.
+
+### Tasks
+
+| Task | State | What landed |
+|---|---|---|
+| T1 | done | `backends/foundation_http/integration/wasm/` builds for wasm32 with one test target and runs on Deno, Chromium and workerd. |
+| T2 | done | Cases 1 to 11 cover the web bridge, the middleware chain, the context fork, the injected clock and the decoded path. |
+| T3 | done | Cases 12 to 15 cover the CF bridge. Case 14 finds the real local D1 on workerd and skips with a message elsewhere. |
+| T4 | done | Cases 16 to 20 cover the serve-writer path, the writer body limit, `WasmStream` and the response builder. |
+| T5 | done | CI checks the crate for wasm32, formats it, and runs the native `wasm-test` suite (9 + 22 + 9 cases) and the three hosts (#570 closed). |
+| T6 | done | `integration/wasm_owned` has no fetch client. It imports only four `abi` functions and runs 40 cases on Deno and 40 on Chromium. |
+
+### Case counts
+
+| Host | Harness | Cases |
+|---|---|---|
+| wasm-bindgen Deno | `test bindgen-deno` | 19 pass (case 9 gated; case 14 skips) |
+| wasm-bindgen Chromium | `test bindgen-web` | 19 pass (case 9 gated; case 14 skips) |
+| workerd | `test bindgen-wrangler` | 19 pass (case 9 gated; case 14 passes with the real D1) |
+| owned Deno | `deno integration/wasm_owned` | 40 pass |
+| owned Chromium | `browser integration/wasm_owned --headless` | 40 pass |
+| native `wasm-test` | `cargo test -p foundation_http --features wasm-test` | 40 pass (9 response, 22 stream, 9 server) |
+
+Case 9 (`handler_panic_becomes_a_500`) is gated by the crate feature
+`panicking-handler-case`. Measured: a handler panic aborts the module
+(`RuntimeError: unreachable`), and the wasm-bindgen-test host reports the case as failed. A
+`wasm32-unknown-unknown` build uses `panic = "abort"`, so the bridge cannot answer 500. Issue
+#742 holds the fix.
+
+### Verification
+
+| Command | Result |
+|---|---|
+| `cargo check -p foundation_http --target wasm32-unknown-unknown --features wasm-bindgen-http` | `Finished` |
+| `cargo check --tests --target wasm32-unknown-unknown --manifest-path .../integration/wasm/Cargo.toml` | `Finished` |
+| `test bindgen-deno backends/foundation_http/integration/wasm` | `19 passed; 0 failed` |
+| `test bindgen-web ... --headless` | `19 passed; 0 failed` |
+| `test bindgen-wrangler ...` | `{"passed":true}`, `19 passed; 0 failed` |
+| `cargo test -p foundation_http --features wasm-test` (three files) | `9`, `22` and `9` passed |
+| `wasm-testbed deno .../integration/wasm_owned` | `40 passed; 0 failed` |
+| `wasm-testbed browser .../integration/wasm_owned --headless` | `40 passed; 0 failed` |
+| import measurement of the owned module | only `abi.host_report`, `abi.host_fill_random`, `abi.host_wall_clock_ms`, `abi.host_monotonic_now_ms`; no `__wbindgen_` |
+| `cargo fmt --all -- --check` and both integration manifests | clean |
+| `cargo clippy -p foundation_http --all-targets -- -D warnings` | clean |
+
+`wasm2wat` is not installed on this host. The import list came from a reader of the wasm import
+section (section 6.8 of the feature and `LEARNINGS.md` entry 23).
+
+### The R14 break
+
+The router's 405 answer was changed to 404 in `dispatch_web`. Each host ran
+`--filter wrong_method_returns_405`.
+
+| Host | Red output |
+|---|---|
+| wasm-bindgen Deno | `deno: case 4: status; left: 404; right: 405`; `test result: FAILED. 0 passed; 1 failed` |
+| wasm-bindgen Chromium | `browser: case 4: status; left: 404; right: 405`; `test result: FAILED. 0 passed; 1 failed` |
+| workerd | `workerd: case 4: status; left: 404; right: 405`; `{"passed":false}`; `test result: FAILED. 0 passed; 1 failed` |
+
+The break is reverted. The same filtered case is green on all three hosts after the revert.
+
+### Production changes the cases proved
+
+| Case | Defect | Fix | Issue |
+|---|---|---|---|
+| 3 | A route miss rejected the JS promise instead of answering 404 | a 404 `Response` from `dispatch_web` and `dispatch_cf` | #744 |
+| 4 | A wrong method could not be 405 | `RouteOp::MethodNotAllowed` and `Router::dispatch_result` | #745 |
+| 5 | `%2F` never decoded | `bridge::parse_request_uri` decodes only the path | #746 |
+| 16 | The writer path routed on the full URL | route on `request_uri.path()` | #747 |
+| 18 | No writer-path body limit | `HttpApp::max_writer_body_bytes`, default 1 MiB | none |
+| 2 | `AsyncSendSafeBody` self-wakes without a host yield on workerd | the suite yields per `Data::Retry`; netio keeps the defect | #749 |
+
+`foundation_http` goes from `0.0.13` to `0.0.14` for the new public API (root AGENTS rule 12),
+and every workspace consumer moves to `0.0.14`.
+
+### New issues
+
+| Issue | Severity | Problem |
+|---|---|---|
+| #742 | high | a panicking wasm handler aborts the module; it cannot answer 500 |
+| #743 | medium | the native HTTP/1 server answers 404 for a known path with a wrong method |
+| #744 | high | the wasm bridge rejected the JS promise for a route miss |
+| #745 | medium | the router could not report a method miss |
+| #746 | medium | the wasm bridge did not percent-decode the path |
+| #747 | high | the writer path routed on the full URL |
+| #749 | medium | `AsyncSendSafeBody` self-wakes without a host yield on workerd |
+| #750 | low | the `foundation_http` wasm feature tree fails `clippy -D warnings` |
+
+#744, #745, #746 and #747 are fixed on the branch and close when it lands. #570 is closed by
+T5.
+
+### Notes and corrections
+
+- The feature's step 5 of section 6.8 says `tests/owned.rs`. The cases are in `src/lib.rs`:
+  the owned runner builds the package lib and reads its `__fwt_` exports (feature section 5,
+  rule R9). A case in `tests/` never runs.
+- Case 8 uses a normal duplicate header, not `Set-Cookie`: Chromium hides `Set-Cookie` from a
+  `Response` that a page constructs, so its order cannot be read there.
+- `tests/wasm_server_tests.rs` asserted an upper-case header name. `SimpleHeader` renders the
+  name in lower case, and HTTP field names are case-insensitive (RFC 9110 section 5.1). The
+  assertion is now case-insensitive. The same correction is in the owned crate.
+- The first owned Deno run failed on the same upper-case assertion; it is fixed and the run is
+  green.
+
 ## What the plan depends on
 
 | Assumption | State | Where it is measured |
@@ -349,6 +459,10 @@ container checks Linux compatibility only.
 | #588 | high | 00 Linux-run fix: the browser harness prints every page line |
 | #589 | medium | the native `amd64` measurement (run 43753198986); no bound changed |
 | #590 | low | 00 Linux-run fix: `scripts/ci/linux.sh` runs from a worktree |
+| #744 | high | 02 T2: the wasm bridge answers 404 (fixed on `spec88/f02-http-runtime`) |
+| #745 | medium | 02 T2: the router reports a method miss, so it answers 405 (fixed on the branch) |
+| #746 | medium | 02 T2: the wasm bridge decodes the request path (fixed on the branch) |
+| #747 | high | 02 T4: the writer path routes on the path (fixed on the branch) |
 
 #577 is recorded and not closed. This specification does not port `foundation_netio`'s wasm
 fetch client to the owned ABI: it is a product change that adds no host coverage
@@ -360,9 +474,9 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
    selects `foundation_agent_rpc` must then prove the Windows form. The Main Agent then merges
    `spec/88-executors` into `spec/split-65`, which keeps one pull request for the
    specification (PR #553).
-2. Feature 01 is implemented on `spec88/f01-valtron-runtime` and waits for the Main Agent
-   review. Features 02 and 03 then start in parallel with it, one agent each. Features 02 and
-   03 carry the second test package from "Decisions after the first review".
+2. Feature 01 is merged. Feature 02 is implemented on `spec88/f02-http-runtime` and waits for
+   the Main Agent review. Feature 03 starts next, from the same base, and keeps its own
+   standalone crate.
 3. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
    commits on the branch of that feature.
 4. The Linux job of PR #553 is the first full run of the repaired executors. A macOS and a

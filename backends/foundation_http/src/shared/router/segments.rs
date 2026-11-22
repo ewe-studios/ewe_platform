@@ -28,6 +28,9 @@ pub type RouteResult<T> = Result<T, RouteOp>;
 #[derive(Clone, Debug)]
 pub enum RouteOp {
     NoMatchingRoute(String),
+    /// The path matched a route node, but that node has no handler for the
+    /// request method. A caller answers 405, not 404.
+    MethodNotAllowed,
     InvalidSegment,
     InvalidRouteRegex(regex::Error),
     InvalidParamRestraintMatcher(String),
@@ -47,6 +50,7 @@ impl std::fmt::Display for RouteOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RouteOp::NoMatchingRoute(p) => write!(f, "no matching route for path: {p}"),
+            RouteOp::MethodNotAllowed => write!(f, "method not allowed for the matched path"),
             RouteOp::InvalidSegment => write!(f, "invalid route segment"),
             RouteOp::InvalidRouteRegex(e) => write!(f, "invalid route regex: {e}"),
             RouteOp::InvalidParamRestraintMatcher(s) => write!(f, "invalid param restraint: {s}"),
@@ -540,7 +544,8 @@ impl<S> RouteSegment<S> {
     /// # Errors
     ///
     /// Returns [`RouteOp::NoMatchingRoute`] if the route does not match any
-    /// registered pattern, or [`RouteOp::DidNotMatchExpected`] if a regex
+    /// registered pattern, [`RouteOp::MethodNotAllowed`] if the path matches but
+    /// the method does not, or [`RouteOp::DidNotMatchExpected`] if a regex
     /// parameter fails to match.
     pub fn match_route(&self, method: &SimpleMethod, route: &str) -> RouteResult<S>
     where

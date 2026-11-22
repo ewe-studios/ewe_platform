@@ -32,6 +32,7 @@ pub fn request_from_cf(
 ) -> Result<SimpleIncomingRequest, JsError> {
     let method = SimpleMethod::from(req.method());
     let url = req.url();
+    let request_uri = super::parse_request_uri(&url).map_err(|error| JsError::new(&error))?;
 
     let headers = req.headers();
     let entries = js_sys::Array::from(&headers.entries());
@@ -54,6 +55,7 @@ pub fn request_from_cf(
 
     let simple_req = SimpleIncomingRequest::builder()
         .with_parsed_url(url)
+        .with_uri(request_uri)
         .with_method(method)
         .with_proto(Proto::HTTP11)
         .with_headers(simple_headers)

@@ -81,7 +81,7 @@ optional = true
 # buildkitd). Optional; only the `buildkit` feature needs it.
 [dependencies.foundation_http]
 path = "../foundation_http"
-version = "0.0.13"
+version = "0.0.14"
 optional = true
 
 [dependencies.foundation_macros]

@@ -78,8 +78,8 @@ impl<S> RouteMethod<S> {
     /// Get the handler for a specific HTTP method.
     ///
     /// # Errors
-    /// Returns `RouteResult::MethodNotAllowed` when no handler is registered
-    /// for `method`.
+    /// Returns [`RouteOp::MethodNotAllowed`] when no handler is registered
+    /// for `method`, so the caller can answer 405 instead of 404.
     pub fn get_method(&self, method: &SimpleMethod) -> RouteResult<S>
     where
         S: Clone,
@@ -100,12 +100,11 @@ impl<S> RouteMethod<S> {
                         return Ok(handler.clone());
                     }
                 }
-                return Err(RouteOp::NoMatchingRoute(format!("method {s}")));
+                return Err(RouteOp::MethodNotAllowed);
             }
         };
 
-        opt.clone()
-            .ok_or_else(|| RouteOp::NoMatchingRoute(format!("{method:?}")))
+        opt.clone().ok_or(RouteOp::MethodNotAllowed)
     }
 
     /// Returns true if any HTTP method has a handler registered.
