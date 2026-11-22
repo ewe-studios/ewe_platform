@@ -1,8 +1,9 @@
 # Spec 85 Progress: Wasm HTTP Streaming
 
-_Last updated: 2026-11-22._
+_Last updated: 2026-11-23._
 
 **Merged into master as `e5801ee13` on 2026-11-22.**
+**The follow-up fixes merged as `0831fe1f0` on 2026-11-23.**
 
 ## Status at a glance
 
