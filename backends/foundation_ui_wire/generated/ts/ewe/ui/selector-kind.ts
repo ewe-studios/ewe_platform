@@ -6,5 +6,8 @@ export enum SelectorKind {
   NodeId = 0,
   Id = 1,
   Class = 2,
-  Query = 3
+  Query = 3,
+  TypedId = 4,
+  View = 5,
+  Receiving = 6
 }

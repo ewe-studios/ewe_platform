@@ -18,8 +18,10 @@ case "$(uname -m)" in arm64) sim=aarch64-apple-ios-sim ;; x86_64) sim=x86_64-app
 for target in aarch64-apple-ios "$sim"; do
     IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo build --target "$target" --release --lib
 done
-xcodebuild -create-xcframework -library "$target_dir/aarch64-apple-ios/release/libcounter_app.a" -headers "$stage/headers" \
-    -library "$target_dir/$sim/release/libcounter_app.a" -headers "$stage/headers" -output "$stage/CounterFFI.xcframework"
+xcodebuild -create-xcframework -library "$target_dir/aarch64-apple-ios/release/libcounter_app.a" \
+    -library "$target_dir/$sim/release/libcounter_app.a" -output "$stage/CounterFFI.xcframework"
 rm -rf "$root/generated/CounterFFI.xcframework"
 mv "$stage/CounterFFI.xcframework" "$root/generated/"
+mkdir -p "$root/generated/CounterFFI"
+cp "$stage/headers/CounterFFI.h" "$stage/headers/module.modulemap" "$root/generated/CounterFFI/"
 mv "$stage/AppBridge.swift" "$root/generated/CounterKit.swift"

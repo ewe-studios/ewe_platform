@@ -10,6 +10,7 @@ mkdir -p "$stage/EweCore" "$stage/Fixtures"
 cp "$stage/bindings/swift/EweCore.swift" "$stage/EweCore/"
 wire="$root/backends/foundation_ui_wire"
 cp "$wire/fixtures/native/"* "$stage/Fixtures/"
+cp "$root"/backends/foundation_ui_gpu/tests/shaders/*.wgsl "$stage/Fixtures/"
 for file in frame_ops_all_forms.bin frame_state_custom.bin state_counter_custom.json action_increment_custom.bin; do
     cp "$wire/fixtures/$file" "$stage/Fixtures/"
 done

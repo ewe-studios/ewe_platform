@@ -5,9 +5,14 @@
   /// Connects the generated native core to a screen and its local action references.
   @MainActor public final class NativeActionCore: ActionCore {
     public let raw: EweCore.NativeCore
+    private weak var store: NodeStore?
 
     public init(_ core: EweCore.NativeCore, store: NodeStore) {
+      #if os(iOS)
+        store.graphicsProvider = { try core.graphics() }
+      #endif
       raw = core
+      self.store = store
       raw.setFrameListener(listener: FrameDelivery(store))
     }
 
@@ -21,7 +26,10 @@
       return try await raw.trigger(reference: reference, event: input)
     }
 
-    public func applyCapsFrame(_ frame: Data) throws { try raw.applyCapsFrame(frame: frame) }
+    public func applyCapsFrame(_ frame: Data) throws {
+      try raw.applyCapsFrame(frame: frame)
+      store?.subscriptionReplay = SubscriptionFrames.caps(frame)?.subscriptionResume ?? false
+    }
 
     deinit { raw.clearFrameListener() }
   }

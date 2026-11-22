@@ -27,6 +27,9 @@ pub const FOUNDATION_UI_FRAMES_JS: &str = include_str!("../runtimes/foundation-u
 pub const FOUNDATION_UI_ACTIONS_JS: &str = include_str!("../runtimes/foundation-ui-actions.js");
 
 /// Bind frame streams to their mount elements and resume interrupted delivery.
+pub const FOUNDATION_UI_RECOVERY_JS: &str = include_str!("../runtimes/foundation-ui-recovery.js");
+
+/// Bind frame streams to their receiving elements.
 pub const FOUNDATION_UI_LIVE_JS: &str = include_str!("../runtimes/foundation-ui-live.js");
 
 /// Install and remove shared and browser behaviours.
@@ -68,3 +71,6 @@ pub const FLOATING_NAV_JS: &str = include_str!("../runtimes/floating-nav.js");
 /// and `hideOverlay()` for instant back-navigation with screenshot flash.
 /// Injected by F24 `ScriptInjector`.
 pub const STACK_VIEWPORT_JS: &str = include_str!("../runtimes/stack-viewport.js");
+
+/// Shared browser connection manager.
+pub const FOUNDATION_UI_CONNECTIONS_JS: &str = include_str!("../runtimes/foundation-ui-connections.js");

@@ -129,6 +129,22 @@ export class WebActionManager {
 
   constructor(deps) {
     this.deps = deps;
+    if (deps.server?.handle && deps.server instanceof WebSocketActionTransport) {
+      let reconnect = false;
+      deps.server.onReply = bytes => this.receive(bytes).catch(error => this.onError({code: "Transport", detail: String(error)}));
+      deps.server.onDisconnect = detail => {
+        reconnect = true;
+        this.#advertised = new Set();
+        this.#structured = false;
+        this.onError({code: "Transport", detail: String(detail)});
+      };
+      deps.server.onOpen = async () => {
+        if (!reconnect) return;
+        reconnect = false;
+        try { for (const reply of await deps.server.send(this.hello())) await this.receive(reply); }
+        catch (error) { this.onError({code: "Transport", detail: String(error)}); }
+      };
+    }
     this.streamId = deps.streamId ?? 0n;
     this.onError = deps.onError ?? console.error;
     this.limit = deps.maxRequestBytes ?? 1024 * 1024;
@@ -154,7 +170,8 @@ export class WebActionManager {
 
   hello() {
     const b = new wire.Builder();
-    const hello = new wire.ClientHelloT(VOCABULARY_VERSION, wire.Platform.Web, wire.MountSurface.Web, 0n);
+    const hello = new wire.ClientHelloT(VOCABULARY_VERSION, wire.Platform.Web, wire.MountSurface.Web, 0n, true,
+      this.deps.server?.requestTag ?? 0n);
     return finishRequest(b, new wire.FrameRequestT(null, hello).pack(b), 0n, 0n);
   }
 
@@ -163,6 +180,8 @@ export class WebActionManager {
     this.#structured = caps.status === wire.CapsStatus.Ok && caps.vocabularyVersion >= STRUCTURED_INPUT_VERSION;
     this.#advertised = new Set((caps.actions ?? []).map(a => a.name));
     this.setStreamId(caps.streamId);
+    if (this.deps.frames?.deps) this.deps.frames.deps.deliverySession =
+      caps.subscriptionResume && caps.status === wire.CapsStatus.Ok ? this.streamId : undefined;
     const doc = this.deps.document ?? globalThis.document;
     for (const el of doc?.querySelectorAll("[primal-id]") ?? []) {
       const missing = Array.from(el.attributes).some(attr =>
@@ -281,10 +300,65 @@ export class FetchActionTransport {
 
 export class WebSocketActionTransport {
   constructor(socket) { this.socket = socket; }
+
+  static connect(connections, endpoint, options = {}) {
+    const sender = new WebSocketActionTransport(null);
+    sender.requestTag = connections.nextTag();
+    sender.timeout = options.handshakeTimeoutMs ?? 60000;
+    sender.handle = connections.acquire({ ...options, endpoint, transport: "websocket" }, {
+      accept: bytes => {
+        const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+        const body = frame.kindType() === wire.FrameKind.FrameMessage && frame.kind(new wire.FrameMessage());
+        if (!body) return false;
+        const caps = body.messagesLength() && body.messages(0)?.control()?.caps();
+        return caps ? caps.requestTag() === sender.requestTag : body.ack() !== 0n && frame.streamId() === sender.session;
+      },
+      receive: bytes => {
+        const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+        const body = frame.kind(new wire.FrameMessage());
+        const caps = body.messagesLength() && body.messages(0)?.control()?.caps();
+        if (caps) {
+          sender.session = caps.status() === wire.CapsStatus.Ok ? caps.streamId() : null;
+          sender.pending?.resolve([bytes]);
+        } else sender.onReply?.(bytes);
+      },
+      onError: cause => {
+        sender.session = null;
+        sender.pending?.reject(cause);
+        sender.onDisconnect?.(cause);
+      },
+      onOpen: () => sender.onOpen?.(),
+    });
+    return sender;
+  }
+
   async send(bytes) {
-    if (this.socket.readyState !== 1) throw new Error("Action socket is closed");
-    this.socket.send(bytes);
-    return [];
+    if (!this.handle) {
+      if (this.socket.readyState !== 1) throw new Error("Action socket is closed");
+      this.socket.send(bytes);
+      return [];
+    }
+    const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+    const request = frame.kind(new wire.FrameRequest());
+    if (!request?.hello()) {
+      if (!this.session || frame.streamId() !== this.session) throw new Error("Action connection needs a handshake");
+      await this.handle.send(bytes);
+      return [];
+    }
+    if (this.pending) throw new Error("A capability request is already pending");
+    let timer;
+    try {
+      return await new Promise((resolve, reject) => {
+        this.pending = {resolve, reject};
+        timer = setTimeout(() => reject(new Error("Capability request timed out")), this.timeout);
+        this.handle.send(bytes).catch(reject);
+      });
+    } finally { clearTimeout(timer); this.pending = null; }
+  }
+
+  close() {
+    this.pending?.reject(new Error("Action socket closed"));
+    this.handle?.close();
   }
 }
 

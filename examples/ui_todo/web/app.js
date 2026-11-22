@@ -2,7 +2,7 @@ import { FoundationWasm } from "./foundation-wasm.js";
 import * as ui from "./foundation-wasm-ui.js";
 import * as behaviours from "./foundation-ui-behaviours.js";
 import { installFrameRuntime, base64urlEncode, readViewResponse } from "./foundation-ui-frames.js";
-import { FetchActionTransport, WasmActionTransport, JsActionRegistry, installActionRuntime } from "./foundation-ui-actions.js";
+import { FetchActionTransport, WebSocketActionTransport, WasmActionTransport, JsActionRegistry, installActionRuntime } from "./foundation-ui-actions.js";
 
 async function connectSender() {
     const { default: initialize, BrowserConnectSender } = await import("/rpc/foundation_ui_connectrpc.js");
@@ -30,19 +30,20 @@ async function boot() {
     const notice = document.querySelector("#notice");
     const report = error => { notice.value = error.code; console.error(error); };
     const registry = new JsActionRegistry();
-    for (const name of ["add_todo", "toggle_todo", "confirm_delete"]) registry.declare("server", name);
+    for (const name of ["add_todo", "toggle_todo", "confirm_delete", "refresh_count"]) registry.declare("server", name);
     for (const name of ["open_add_dialog", "open_delete_dialog", "close_dialog", "filter_todos"]) registry.declare("host", name);
     ui.Patcher.runtime.dispatcher = new ui.EventDispatcher(() => {});
-    const frames = installFrameRuntime(ui, { onReport: report, viewMount: document.querySelector("#page") });
+    const connections = ui.frameConnections();
+    const frames = installFrameRuntime(ui, { connections, onReport: report, viewMount: document.querySelector("#page") });
     ui.registerWebComponents();
-    frames.registry.register(41, document.querySelector("#dialog"));
-    const server = new URL(location.href).searchParams.has("rpc")
+    frames.registerView("todos", document.querySelector("#page"));
+    const params = new URL(location.href).searchParams;
+    const server = params.has("socket") ? WebSocketActionTransport.connect(connections, "/socket") : params.has("rpc")
         ? await connectSender()
         : new FetchActionTransport({ url: "/action", hello: () => manager.hello() });
     const manager = installActionRuntime(ui, { registry, frames, server, local, behaviours, document, onError: report });
     const scope = ui.Hydrator.createScope(document.body);
     scope.action("notify", () => { notice.value = "Todo added"; });
-    scope.action("scroll_to_top", () => window.scrollTo(0, 0));
 
     document.addEventListener("ewe:data", event => {
         const bytes = event.detail.bytes;
@@ -51,8 +52,12 @@ async function boot() {
         }
     });
     for (const bytes of await server.send(manager.hello())) await manager.receive(bytes);
-    const response = await fetch("/initial", { headers: { "X-Ewe-Hello": base64urlEncode(manager.hello()) } });
-    if (!frames.receive(await readViewResponse(response, frames.maxFrameBytes))) throw new Error("Invalid initial view");
+    const loader = frames.registerLoader(document.querySelector("#page"), async signal => {
+        const response = await fetch(params.has("count") ? "/open-count" : "/initial",
+            { signal, headers: { "X-Ewe-Hello": base64urlEncode(manager.hello()) } });
+        return readViewResponse(response, frames.maxFrameBytes);
+    }, {onError: error => report({code:"ViewRecovery", detail:error.message})});
+    await loader.open();
     window.todoReady = true;
 }
 boot().catch(error => {

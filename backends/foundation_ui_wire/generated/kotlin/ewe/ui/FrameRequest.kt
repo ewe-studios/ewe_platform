@@ -46,6 +46,15 @@ class FrameRequest : Table() {
             null
         }
     }
+    val resume : ewe.ui.ResumeSubscription? get() = resume(ewe.ui.ResumeSubscription())
+    fun resume(obj: ewe.ui.ResumeSubscription) : ewe.ui.ResumeSubscription? {
+        val o = __offset(8)
+        return if (o != 0) {
+            obj.__assign(__indirect(o + bb_pos), bb)
+        } else {
+            null
+        }
+    }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsFrameRequest(_bb: ByteBuffer): FrameRequest = getRootAsFrameRequest(_bb, FrameRequest())
@@ -53,15 +62,18 @@ class FrameRequest : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createFrameRequest(builder: FlatBufferBuilder, actionOffset: Int, helloOffset: Int) : Int {
-            builder.startTable(2)
+        fun createFrameRequest(builder: FlatBufferBuilder, actionOffset: Int, helloOffset: Int): Int = createFrameRequest(builder, actionOffset, helloOffset, 0)
+        fun createFrameRequest(builder: FlatBufferBuilder, actionOffset: Int, helloOffset: Int, resumeOffset: Int) : Int {
+            builder.startTable(3)
+            addResume(builder, resumeOffset)
             addHello(builder, helloOffset)
             addAction(builder, actionOffset)
             return endFrameRequest(builder)
         }
-        fun startFrameRequest(builder: FlatBufferBuilder) = builder.startTable(2)
+        fun startFrameRequest(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addAction(builder: FlatBufferBuilder, action: Int) = builder.addOffset(0, action, 0)
         fun addHello(builder: FlatBufferBuilder, hello: Int) = builder.addOffset(1, hello, 0)
+        fun addResume(builder: FlatBufferBuilder, resume: Int) = builder.addOffset(2, resume, 0)
         fun endFrameRequest(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

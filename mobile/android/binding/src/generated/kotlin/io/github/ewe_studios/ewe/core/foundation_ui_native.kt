@@ -657,6 +657,12 @@ internal open class UniffiForeignFutureResultVoid(
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultVoid.UniffiByValue,)
 }
+internal interface UniffiCallbackInterfaceHostDeviceCompletionMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`deviceLost`: Byte,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceHostDeviceProviderMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`request`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceFrameListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`frame`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -680,6 +686,44 @@ internal interface UniffiCallbackInterfaceHostHttpClientMethod3 : com.sun.jna.Ca
 }
 internal interface UniffiCallbackInterfaceHttpServiceProviderMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`service`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteU64,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,)
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "released")
+internal open class UniffiVTableCallbackInterfaceHostDeviceCompletion(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `released`: UniffiCallbackInterfaceHostDeviceCompletionMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `released`: UniffiCallbackInterfaceHostDeviceCompletionMethod0? = null,
+    ): UniffiVTableCallbackInterfaceHostDeviceCompletion(`uniffiFree`,`uniffiClone`,`released`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceHostDeviceCompletion) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `released` = other.`released`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "request")
+internal open class UniffiVTableCallbackInterfaceHostDeviceProvider(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `request`: UniffiCallbackInterfaceHostDeviceProviderMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `request`: UniffiCallbackInterfaceHostDeviceProviderMethod0? = null,
+    ): UniffiVTableCallbackInterfaceHostDeviceProvider(`uniffiFree`,`uniffiClone`,`request`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceHostDeviceProvider) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `request` = other.`request`
+    }
+
 }
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "onFrame")
 internal open class UniffiVTableCallbackInterfaceFrameListener(
@@ -814,13 +858,61 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_clear_frame_listener(
     ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_graphics(
+    ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_hello(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_hello_for(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_set_frame_listener(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_trigger(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_trigger_structured(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_install_device_provider(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_request_host_device(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_remove(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_resize(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphics_adapter(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphics_attach(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphics_compute(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphics_reinitialize(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_hostdevicecompletion_released(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_hostdeviceprovider_request(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedevicegrant_withdraw(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedevicerequest_device(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedevicerequest_fail(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedevicerequest_ready(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedevicerequest_request_id(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativedevicerequest_surface(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphicslease_compute(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphicslease_process_texture(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativegraphicslease_release(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativependinglease_cancel(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativependinglease_wait(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_framelistener_on_frame(
     ): Int
@@ -865,6 +957,8 @@ internal object UniffiLib {
     init {
         Native.register(UniffiLib::class.java, findLibraryName(componentName = "foundation_ui_native"))
         uniffiCallbackInterfaceFrameListener.register(this)
+        uniffiCallbackInterfaceHostDeviceCompletion.register(this)
+        uniffiCallbackInterfaceHostDeviceProvider.register(this)
         uniffiCallbackInterfaceHostHttpClient.register(this)
         uniffiCallbackInterfaceHostTransport.register(this)
         uniffiCallbackInterfaceHostTransportProvider.register(this)
@@ -883,13 +977,101 @@ internal object UniffiLib {
     ): Unit
     external fun uniffi_foundation_ui_native_fn_method_nativecore_clear_frame_listener(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_graphics(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
     external fun uniffi_foundation_ui_native_fn_method_nativecore_hello(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_hello_for(`ptr`: Long,`requestTag`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_foundation_ui_native_fn_method_nativecore_set_frame_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_foundation_ui_native_fn_method_nativecore_trigger(`ptr`: Long,`reference`: RustBuffer.ByValue,`event`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_foundation_ui_native_fn_method_nativecore_trigger_structured(`ptr`: Long,`reference`: RustBuffer.ByValue,`event`: RustBuffer.ByValue,`json`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_install_device_provider(`ptr`: Long,`readyAction`: RustBuffer.ByValue,`provider`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_request_host_device(`ptr`: Long,`device`: RustBuffer.ByValue,`surface`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_clone_nativedrawingsurface(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativedrawingsurface(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativedrawingsurface_clear(`ptr`: Long,`red`: Double,`green`: Double,`blue`: Double,`alpha`: Double,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativedrawingsurface_remove(`ptr`: Long,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativedrawingsurface_resize(`ptr`: Long,`width`: Int,`height`: Int,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_clone_nativedrawingtarget(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativedrawingtarget(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_clone_nativegraphics(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativegraphics(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphics_adapter(`ptr`: Long,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphics_attach(`ptr`: Long,`name`: RustBuffer.ByValue,`target`: Long,`width`: Int,`height`: Int,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphics_compute(`ptr`: Long,`shader`: RustBuffer.ByValue,`words`: RustBuffer.ByValue,`groups`: Int,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphics_reinitialize(`ptr`: Long,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_clone_hostdevicecompletion(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_hostdevicecompletion(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_init_callback_vtable_hostdevicecompletion(`vtable`: UniffiVTableCallbackInterfaceHostDeviceCompletion,
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_hostdevicecompletion_released(`ptr`: Long,`deviceLost`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_clone_hostdeviceprovider(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_hostdeviceprovider(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_init_callback_vtable_hostdeviceprovider(`vtable`: UniffiVTableCallbackInterfaceHostDeviceProvider,
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_hostdeviceprovider_request(`ptr`: Long,`request`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_clone_nativedevicegrant(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativedevicegrant(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativedevicegrant_withdraw(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_clone_nativedevicerequest(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativedevicerequest(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativedevicerequest_device(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_foundation_ui_native_fn_method_nativedevicerequest_fail(`ptr`: Long,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativedevicerequest_ready(`ptr`: Long,`grant`: Long,`generation`: Long,`completion`: Long,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativedevicerequest_request_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativedevicerequest_surface(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_foundation_ui_native_fn_clone_nativegraphicslease(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativegraphicslease(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphicslease_compute(`ptr`: Long,`shader`: RustBuffer.ByValue,`words`: RustBuffer.ByValue,`groups`: Int,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphicslease_process_texture(`ptr`: Long,`shader`: RustBuffer.ByValue,`x`: Int,`y`: Int,`z`: Int,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativegraphicslease_release(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_clone_nativependinglease(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_nativependinglease(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativependinglease_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativependinglease_wait(`ptr`: Long,
     ): Long
     external fun uniffi_foundation_ui_native_fn_clone_framelistener(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -1082,7 +1264,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_clear_frame_listener() and 0xFFFF) != 23630) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_graphics() and 0xFFFF) != 30215) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_hello() and 0xFFFF) != 22576) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_hello_for() and 0xFFFF) != 53241) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_set_frame_listener() and 0xFFFF) != 38322) {
@@ -1092,6 +1280,72 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_trigger_structured() and 0xFFFF) != 32894) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_install_device_provider() and 0xFFFF) != 54006) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_request_host_device() and 0xFFFF) != 43063) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear() and 0xFFFF) != 36509) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_remove() and 0xFFFF) != 2193) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_resize() and 0xFFFF) != 64225) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphics_adapter() and 0xFFFF) != 55736) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphics_attach() and 0xFFFF) != 46656) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphics_compute() and 0xFFFF) != 52714) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphics_reinitialize() and 0xFFFF) != 53292) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostdevicecompletion_released() and 0xFFFF) != 3370) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostdeviceprovider_request() and 0xFFFF) != 13060) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedevicegrant_withdraw() and 0xFFFF) != 50729) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedevicerequest_device() and 0xFFFF) != 34626) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedevicerequest_fail() and 0xFFFF) != 39279) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedevicerequest_ready() and 0xFFFF) != 11363) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedevicerequest_request_id() and 0xFFFF) != 1475) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativedevicerequest_surface() and 0xFFFF) != 64425) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphicslease_compute() and 0xFFFF) != 45933) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphicslease_process_texture() and 0xFFFF) != 11995) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativegraphicslease_release() and 0xFFFF) != 41547) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativependinglease_cancel() and 0xFFFF) != 48182) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativependinglease_wait() and 0xFFFF) != 17713) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_method_framelistener_on_frame() and 0xFFFF) != 10664) {
@@ -1520,6 +1774,29 @@ public object FfiConverterULong: FfiConverter<ULong, Long> {
 
     override fun write(value: ULong, buf: ByteBuffer) {
         buf.putLong(value.toLong())
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterDouble: FfiConverter<Double, Double> {
+    override fun lift(value: Double): Double {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Double {
+        return buf.getDouble()
+    }
+
+    override fun lower(value: Double): Double {
+        return value
+    }
+
+    override fun allocationSize(value: Double) = 8UL
+
+    override fun write(value: Double, buf: ByteBuffer) {
+        buf.putDouble(value)
     }
 }
 
@@ -2224,6 +2501,640 @@ public object FfiConverterTypeFrameListener: FfiConverter<FrameListener, Long> {
     override fun allocationSize(value: FrameListener) = 8UL
 
     override fun write(value: FrameListener, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface HostDeviceCompletion {
+    
+    /**
+     * The host can reuse its resources after this callback. Loss requires a new device.
+     */
+    fun `released`(`deviceLost`: kotlin.Boolean)
+    
+    companion object
+}
+
+open class HostDeviceCompletionImpl: Disposable, AutoCloseable, HostDeviceCompletion
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_hostdevicecompletion(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_hostdevicecompletion(handle, status)
+        }
+    }
+
+    
+    /**
+     * The host can reuse its resources after this callback. Loss requires a new device.
+     */override fun `released`(`deviceLost`: kotlin.Boolean)
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_hostdevicecompletion_released(
+        it,
+        
+        FfiConverterBoolean.lower(`deviceLost`),_status)
+}
+    }
+    
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceHostDeviceCompletion {
+    internal object `released`: UniffiCallbackInterfaceHostDeviceCompletionMethod0 {
+        override fun callback(`uniffiHandle`: Long,`deviceLost`: Byte,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeHostDeviceCompletion.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`released`(
+                    FfiConverterBoolean.lift(`deviceLost`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeHostDeviceCompletion.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeHostDeviceCompletion.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceHostDeviceCompletion.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `released`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_foundation_ui_native_fn_init_callback_vtable_hostdevicecompletion(vtable)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHostDeviceCompletion: FfiConverter<HostDeviceCompletion, Long> {
+    internal val handleMap = UniffiHandleMap<HostDeviceCompletion>()
+
+    override fun lower(value: HostDeviceCompletion): Long {
+        if (value is HostDeviceCompletionImpl) {
+             // Rust-implemented object.  Clone the handle and return it
+            return value.uniffiCloneHandle()
+         } else {
+            // Kotlin object, generate a new vtable handle and return that.
+            return handleMap.insert(value)
+         }
+    }
+
+    override fun lift(value: Long): HostDeviceCompletion {
+        if ((value and 1.toLong()) == 0.toLong()) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostDeviceCompletionImpl(UniffiWithHandle, value)
+        } else {
+            // Kotlin-generated handle, get the object from the handle map
+            return handleMap.remove(value)
+        }
+    }
+
+    override fun read(buf: ByteBuffer): HostDeviceCompletion {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: HostDeviceCompletion) = 8UL
+
+    override fun write(value: HostDeviceCompletion, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface HostDeviceProvider {
+    
+    /**
+     * Schedule collection of the host device. Return immediately to the originating action.
+     */
+    fun `request`(`request`: NativeDeviceRequest)
+    
+    companion object
+}
+
+open class HostDeviceProviderImpl: Disposable, AutoCloseable, HostDeviceProvider
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_hostdeviceprovider(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_hostdeviceprovider(handle, status)
+        }
+    }
+
+    
+    /**
+     * Schedule collection of the host device. Return immediately to the originating action.
+     */override fun `request`(`request`: NativeDeviceRequest)
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_hostdeviceprovider_request(
+        it,
+        
+        FfiConverterTypeNativeDeviceRequest.lower(`request`),_status)
+}
+    }
+    
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceHostDeviceProvider {
+    internal object `request`: UniffiCallbackInterfaceHostDeviceProviderMethod0 {
+        override fun callback(`uniffiHandle`: Long,`request`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeHostDeviceProvider.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`request`(
+                    FfiConverterTypeNativeDeviceRequest.lift(`request`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeHostDeviceProvider.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeHostDeviceProvider.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceHostDeviceProvider.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `request`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_foundation_ui_native_fn_init_callback_vtable_hostdeviceprovider(vtable)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHostDeviceProvider: FfiConverter<HostDeviceProvider, Long> {
+    internal val handleMap = UniffiHandleMap<HostDeviceProvider>()
+
+    override fun lower(value: HostDeviceProvider): Long {
+        if (value is HostDeviceProviderImpl) {
+             // Rust-implemented object.  Clone the handle and return it
+            return value.uniffiCloneHandle()
+         } else {
+            // Kotlin object, generate a new vtable handle and return that.
+            return handleMap.insert(value)
+         }
+    }
+
+    override fun lift(value: Long): HostDeviceProvider {
+        if ((value and 1.toLong()) == 0.toLong()) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostDeviceProviderImpl(UniffiWithHandle, value)
+        } else {
+            // Kotlin-generated handle, get the object from the handle map
+            return handleMap.remove(value)
+        }
+    }
+
+    override fun read(buf: ByteBuffer): HostDeviceProvider {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: HostDeviceProvider) = 8UL
+
+    override fun write(value: HostDeviceProvider, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -3879,12 +4790,25 @@ public interface NativeCoreInterface {
     fun `clearFrameListener`()
     
     /**
+     * Install the graphics service on first use. Local actions read the same service from their context.
+     *
+     * # Errors
+     * Returns an error when the graphics owner cannot start.
+     */
+    fun `graphics`(): NativeGraphics
+    
+    /**
      * Returns the hello for this platform and native mount.
      *
      * # Panics
      * Panics if the generated schema can no longer encode its fixed-size hello.
      */
     fun `hello`(): kotlin.ByteArray
+    
+    /**
+     * Correlates one screen's capability request on a shared connection.
+     */
+    fun `helloFor`(`requestTag`: kotlin.ULong): kotlin.ByteArray
     
     fun `setFrameListener`(`listener`: FrameListener)
     
@@ -3903,6 +4827,22 @@ public interface NativeCoreInterface {
      * Reports unsupported input, routing and transport failures.
      */
     suspend fun `triggerStructured`(`reference`: kotlin.String, `event`: EventInput, `json`: kotlin.ByteArray): kotlin.ByteArray?
+    
+    /**
+     * Install a host provider that can deliver a result to the named local Rust action.
+     *
+     * # Errors
+     * Rejects a server reference, an absent Rust handler, or a second provider on the same context.
+     */
+    fun `installDeviceProvider`(`readyAction`: kotlin.String, `provider`: HostDeviceProvider)
+    
+    /**
+     * Start the exchange from this core. A Rust action can also call `DeviceExchange::request` directly.
+     *
+     * # Errors
+     * Reports a missing provider or an invalid resource name.
+     */
+    fun `requestHostDevice`(`device`: kotlin.String, `surface`: kotlin.String?): NativePendingLease
     
     companion object
 }
@@ -4042,6 +4982,26 @@ open class NativeCore: Disposable, AutoCloseable, NativeCoreInterface
 
     
     /**
+     * Install the graphics service on first use. Local actions read the same service from their context.
+     *
+     * # Errors
+     * Returns an error when the graphics owner cannot start.
+     */
+    @Throws(GraphicsException::class)override fun `graphics`(): NativeGraphics {
+            return FfiConverterTypeNativeGraphics.lift(
+    callWithHandle {
+    uniffiRustCallWithError(GraphicsException) { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_graphics(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Returns the hello for this platform and native mount.
      *
      * # Panics
@@ -4053,6 +5013,23 @@ open class NativeCore: Disposable, AutoCloseable, NativeCoreInterface
     UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_hello(
         it,
         _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Correlates one screen's capability request on a shared connection.
+     */override fun `helloFor`(`requestTag`: kotlin.ULong): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_hello_for(
+        it,
+        
+        FfiConverterULong.lower(`requestTag`),_status)
 }
     }
     )
@@ -4132,6 +5109,49 @@ open class NativeCore: Disposable, AutoCloseable, NativeCoreInterface
     }
 
     
+    /**
+     * Install a host provider that can deliver a result to the named local Rust action.
+     *
+     * # Errors
+     * Rejects a server reference, an absent Rust handler, or a second provider on the same context.
+     */
+    @Throws(GraphicsException::class)override fun `installDeviceProvider`(`readyAction`: kotlin.String, `provider`: HostDeviceProvider)
+        = 
+    callWithHandle {
+    uniffiRustCallWithError(GraphicsException) { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_install_device_provider(
+        it,
+        
+        FfiConverterString.lower(`readyAction`),
+        FfiConverterTypeHostDeviceProvider.lower(`provider`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Start the exchange from this core. A Rust action can also call `DeviceExchange::request` directly.
+     *
+     * # Errors
+     * Reports a missing provider or an invalid resource name.
+     */
+    @Throws(GraphicsException::class)override fun `requestHostDevice`(`device`: kotlin.String, `surface`: kotlin.String?): NativePendingLease {
+            return FfiConverterTypeNativePendingLease.lift(
+    callWithHandle {
+    uniffiRustCallWithError(GraphicsException) { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_request_host_device(
+        it,
+        
+        FfiConverterString.lower(`device`),
+        FfiConverterOptionalString.lower(`surface`),_status)
+}
+    }
+    )
+    }
+    
+
+    
 
     
 
@@ -4184,6 +5204,1939 @@ public object FfiConverterTypeNativeCore: FfiConverter<NativeCore, Long> {
     override fun allocationSize(value: NativeCore) = 8UL
 
     override fun write(value: NativeCore, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * A native platform bridge retains the resources in this single-use object.
+ */
+public interface NativeDeviceGrantInterface {
+    
+    /**
+     * Reject new submissions. The completion callback still waits for accepted device work.
+     */
+    fun `withdraw`()
+    
+    companion object
+}
+
+/**
+ * A native platform bridge retains the resources in this single-use object.
+ */
+open class NativeDeviceGrant: Disposable, AutoCloseable, NativeDeviceGrantInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativedevicegrant(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativedevicegrant(handle, status)
+        }
+    }
+
+    
+    /**
+     * Reject new submissions. The completion callback still waits for accepted device work.
+     */override fun `withdraw`()
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativedevicegrant_withdraw(
+        it,
+        _status)
+}
+    }
+    
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativeDeviceGrant: FfiConverter<NativeDeviceGrant, Long> {
+    override fun lower(value: NativeDeviceGrant): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativeDeviceGrant {
+        return NativeDeviceGrant(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativeDeviceGrant {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativeDeviceGrant) = 8UL
+
+    override fun write(value: NativeDeviceGrant, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface NativeDeviceRequestInterface {
+    
+    fun `device`(): kotlin.String
+    
+    /**
+     * Dispatch a typed refusal through the same local action.
+     *
+     * # Errors
+     * Returns an error if the initiating core or request has stopped.
+     */
+    suspend fun `fail`(`reason`: HostDeviceFailure)
+    
+    /**
+     * Import the host's original device. Dispatch the result to the configured local handler.
+     *
+     * # Errors
+     * Reports an import, dispatch, or cancellation error.
+     */
+    suspend fun `ready`(`grant`: NativeDeviceGrant, `generation`: kotlin.ULong, `completion`: HostDeviceCompletion)
+    
+    fun `requestId`(): kotlin.ULong
+    
+    fun `surface`(): kotlin.String?
+    
+    companion object
+}
+
+open class NativeDeviceRequest: Disposable, AutoCloseable, NativeDeviceRequestInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativedevicerequest(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativedevicerequest(handle, status)
+        }
+    }
+
+    override fun `device`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativedevicerequest_device(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Dispatch a typed refusal through the same local action.
+     *
+     * # Errors
+     * Returns an error if the initiating core or request has stopped.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `fail`(`reason`: HostDeviceFailure) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativedevicerequest_fail(
+                uniffiHandle,
+                
+        FfiConverterTypeHostDeviceFailure.lower(`reason`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Import the host's original device. Dispatch the result to the configured local handler.
+     *
+     * # Errors
+     * Reports an import, dispatch, or cancellation error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ready`(`grant`: NativeDeviceGrant, `generation`: kotlin.ULong, `completion`: HostDeviceCompletion) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativedevicerequest_ready(
+                uniffiHandle,
+                
+        FfiConverterTypeNativeDeviceGrant.lower(`grant`),
+        FfiConverterULong.lower(`generation`),
+        FfiConverterTypeHostDeviceCompletion.lower(`completion`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    override fun `requestId`(): kotlin.ULong {
+            return FfiConverterULong.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativedevicerequest_request_id(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `surface`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativedevicerequest_surface(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativeDeviceRequest: FfiConverter<NativeDeviceRequest, Long> {
+    override fun lower(value: NativeDeviceRequest): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativeDeviceRequest {
+        return NativeDeviceRequest(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativeDeviceRequest {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativeDeviceRequest) = 8UL
+
+    override fun write(value: NativeDeviceRequest, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface NativeDrawingSurfaceInterface {
+    
+    /**
+     * Fill and present the surface. Each color component ranges from zero to one.
+     *
+     * # Errors
+     * Returns a stale handle, suspended target, or presentation error.
+     */
+    suspend fun `clear`(`red`: kotlin.Double, `green`: kotlin.Double, `blue`: kotlin.Double, `alpha`: kotlin.Double)
+    
+    /**
+     * Release the target on its graphics owner.
+     *
+     * # Errors
+     * Returns a stale handle error if the target was already removed.
+     */
+    suspend fun `remove`()
+    
+    /**
+     * Change the drawing size in physical pixels. A zero dimension suspends the target.
+     *
+     * # Errors
+     * Returns a stale handle or device error.
+     */
+    suspend fun `resize`(`width`: kotlin.UInt, `height`: kotlin.UInt)
+    
+    companion object
+}
+
+open class NativeDrawingSurface: Disposable, AutoCloseable, NativeDrawingSurfaceInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativedrawingsurface(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativedrawingsurface(handle, status)
+        }
+    }
+
+    
+    /**
+     * Fill and present the surface. Each color component ranges from zero to one.
+     *
+     * # Errors
+     * Returns a stale handle, suspended target, or presentation error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `clear`(`red`: kotlin.Double, `green`: kotlin.Double, `blue`: kotlin.Double, `alpha`: kotlin.Double) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativedrawingsurface_clear(
+                uniffiHandle,
+                
+        FfiConverterDouble.lower(`red`),
+        FfiConverterDouble.lower(`green`),
+        FfiConverterDouble.lower(`blue`),
+        FfiConverterDouble.lower(`alpha`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Release the target on its graphics owner.
+     *
+     * # Errors
+     * Returns a stale handle error if the target was already removed.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `remove`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativedrawingsurface_remove(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Change the drawing size in physical pixels. A zero dimension suspends the target.
+     *
+     * # Errors
+     * Returns a stale handle or device error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `resize`(`width`: kotlin.UInt, `height`: kotlin.UInt) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativedrawingsurface_resize(
+                uniffiHandle,
+                
+        FfiConverterUInt.lower(`width`),
+        FfiConverterUInt.lower(`height`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativeDrawingSurface: FfiConverter<NativeDrawingSurface, Long> {
+    override fun lower(value: NativeDrawingSurface): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativeDrawingSurface {
+        return NativeDrawingSurface(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativeDrawingSurface {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativeDrawingSurface) = 8UL
+
+    override fun write(value: NativeDrawingSurface, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface NativeDrawingTargetInterface {
+    
+    companion object
+}
+
+open class NativeDrawingTarget: Disposable, AutoCloseable, NativeDrawingTargetInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativedrawingtarget(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativedrawingtarget(handle, status)
+        }
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativeDrawingTarget: FfiConverter<NativeDrawingTarget, Long> {
+    override fun lower(value: NativeDrawingTarget): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativeDrawingTarget {
+        return NativeDrawingTarget(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativeDrawingTarget {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativeDrawingTarget) = 8UL
+
+    override fun write(value: NativeDrawingTarget, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface NativeGraphicsInterface {
+    
+    /**
+     * Read the backend and adapter name.
+     *
+     * # Errors
+     * Returns the device initialization error.
+     */
+    suspend fun `adapter`(): kotlin.String
+    
+    /**
+     * Register a target and keep its native reference until removal.
+     *
+     * # Errors
+     * Returns an error for duplicate names or incompatible devices.
+     */
+    suspend fun `attach`(`name`: kotlin.String, `target`: NativeDrawingTarget, `width`: kotlin.UInt, `height`: kotlin.UInt): NativeDrawingSurface
+    
+    /**
+     * Run a local shader over the supplied words.
+     *
+     * # Errors
+     * Returns a validation, execution, or readback error.
+     */
+    suspend fun `compute`(`shader`: kotlin.String, `words`: List<kotlin.UInt>, `groups`: kotlin.UInt): List<kotlin.UInt>
+    
+    /**
+     * Invalidate all old surface handles and open a new device.
+     *
+     * # Errors
+     * Returns the initialization error.
+     */
+    suspend fun `reinitialize`()
+    
+    companion object
+}
+
+open class NativeGraphics: Disposable, AutoCloseable, NativeGraphicsInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativegraphics(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativegraphics(handle, status)
+        }
+    }
+
+    
+    /**
+     * Read the backend and adapter name.
+     *
+     * # Errors
+     * Returns the device initialization error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `adapter`() : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphics_adapter(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Register a target and keep its native reference until removal.
+     *
+     * # Errors
+     * Returns an error for duplicate names or incompatible devices.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `attach`(`name`: kotlin.String, `target`: NativeDrawingTarget, `width`: kotlin.UInt, `height`: kotlin.UInt) : NativeDrawingSurface {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphics_attach(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`name`),
+        FfiConverterTypeNativeDrawingTarget.lower(`target`),
+        FfiConverterUInt.lower(`width`),
+        FfiConverterUInt.lower(`height`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeNativeDrawingSurface.lift(it) },
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Run a local shader over the supplied words.
+     *
+     * # Errors
+     * Returns a validation, execution, or readback error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `compute`(`shader`: kotlin.String, `words`: List<kotlin.UInt>, `groups`: kotlin.UInt) : List<kotlin.UInt> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphics_compute(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`shader`),
+        FfiConverterSequenceUInt.lower(`words`),
+        FfiConverterUInt.lower(`groups`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceUInt.lift(it) },
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Invalidate all old surface handles and open a new device.
+     *
+     * # Errors
+     * Returns the initialization error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `reinitialize`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphics_reinitialize(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativeGraphics: FfiConverter<NativeGraphics, Long> {
+    override fun lower(value: NativeGraphics): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativeGraphics {
+        return NativeGraphics(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativeGraphics {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativeGraphics) = 8UL
+
+    override fun write(value: NativeGraphics, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface NativeGraphicsLeaseInterface {
+    
+    /**
+     * # Errors
+     * Returns a shader error, cancellation, or device loss.
+     */
+    suspend fun `compute`(`shader`: kotlin.String, `words`: List<kotlin.UInt>, `groups`: kotlin.UInt): List<kotlin.UInt>
+    
+    /**
+     * # Errors
+     * Rejects an absent texture, invalid shader, or lost device.
+     */
+    suspend fun `processTexture`(`shader`: kotlin.String, `x`: kotlin.UInt, `y`: kotlin.UInt, `z`: kotlin.UInt)
+    
+    fun `release`()
+    
+    companion object
+}
+
+open class NativeGraphicsLease: Disposable, AutoCloseable, NativeGraphicsLeaseInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativegraphicslease(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativegraphicslease(handle, status)
+        }
+    }
+
+    
+    /**
+     * # Errors
+     * Returns a shader error, cancellation, or device loss.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `compute`(`shader`: kotlin.String, `words`: List<kotlin.UInt>, `groups`: kotlin.UInt) : List<kotlin.UInt> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphicslease_compute(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`shader`),
+        FfiConverterSequenceUInt.lower(`words`),
+        FfiConverterUInt.lower(`groups`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceUInt.lift(it) },
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * # Errors
+     * Rejects an absent texture, invalid shader, or lost device.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `processTexture`(`shader`: kotlin.String, `x`: kotlin.UInt, `y`: kotlin.UInt, `z`: kotlin.UInt) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphicslease_process_texture(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`shader`),
+        FfiConverterUInt.lower(`x`),
+        FfiConverterUInt.lower(`y`),
+        FfiConverterUInt.lower(`z`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    override fun `release`()
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativegraphicslease_release(
+        it,
+        _status)
+}
+    }
+    
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativeGraphicsLease: FfiConverter<NativeGraphicsLease, Long> {
+    override fun lower(value: NativeGraphicsLease): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativeGraphicsLease {
+        return NativeGraphicsLease(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativeGraphicsLease {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativeGraphicsLease) = 8UL
+
+    override fun write(value: NativeGraphicsLease, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -4439,6 +7392,295 @@ public object FfiConverterTypeNativeHttpClient: FfiConverter<NativeHttpClient, L
     override fun allocationSize(value: NativeHttpClient) = 8UL
 
     override fun write(value: NativeHttpClient, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface NativePendingLeaseInterface {
+    
+    fun `cancel`()
+    
+    /**
+     * Wait once for the callback action to deliver its offer.
+     *
+     * # Errors
+     * Returns the refusal, cancellation, or platform import error.
+     */
+    suspend fun `wait`(): NativeGraphicsLease
+    
+    companion object
+}
+
+open class NativePendingLease: Disposable, AutoCloseable, NativePendingLeaseInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_nativependinglease(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_nativependinglease(handle, status)
+        }
+    }
+
+    override fun `cancel`()
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativependinglease_cancel(
+        it,
+        _status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Wait once for the callback action to deliver its offer.
+     *
+     * # Errors
+     * Returns the refusal, cancellation, or platform import error.
+     */
+    @Throws(GraphicsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `wait`() : NativeGraphicsLease {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativependinglease_wait(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeNativeGraphicsLease.lift(it) },
+        // Error FFI converter
+        GraphicsException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNativePendingLease: FfiConverter<NativePendingLease, Long> {
+    override fun lower(value: NativePendingLease): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): NativePendingLease {
+        return NativePendingLease(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): NativePendingLease {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: NativePendingLease) = 8UL
+
+    override fun write(value: NativePendingLease, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -5053,6 +8295,230 @@ public object FfiConverterTypeCoreError : FfiConverterRustBuffer<CoreException> 
 
 
 
+
+sealed class GraphicsException: kotlin.Exception() {
+    
+    class Denied(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class Unavailable(
+        
+        val `reason`: kotlin.String
+        ) : GraphicsException() {
+        override val message
+            get() = "reason=${ `reason` }"
+    }
+    
+    class Unsupported(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class DeviceLost(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class StaleSurface(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class IncompatibleSurface(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class Suspended(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class Cancelled(
+        ) : GraphicsException() {
+        override val message
+            get() = ""
+    }
+    
+    class Operation(
+        
+        val `reason`: kotlin.String
+        ) : GraphicsException() {
+        override val message
+            get() = "reason=${ `reason` }"
+    }
+    
+
+    
+
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<GraphicsException> {
+        override fun lift(error_buf: RustBuffer.ByValue): GraphicsException = FfiConverterTypeGraphicsError.lift(error_buf)
+    }
+
+    
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGraphicsError : FfiConverterRustBuffer<GraphicsException> {
+    override fun read(buf: ByteBuffer): GraphicsException {
+        
+
+        return when(buf.getInt()) {
+            1 -> GraphicsException.Denied()
+            2 -> GraphicsException.Unavailable(
+                FfiConverterString.read(buf),
+                )
+            3 -> GraphicsException.Unsupported()
+            4 -> GraphicsException.DeviceLost()
+            5 -> GraphicsException.StaleSurface()
+            6 -> GraphicsException.IncompatibleSurface()
+            7 -> GraphicsException.Suspended()
+            8 -> GraphicsException.Cancelled()
+            9 -> GraphicsException.Operation(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: GraphicsException): ULong {
+        return when(value) {
+            is GraphicsException.Denied -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.Unavailable -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`reason`)
+            )
+            is GraphicsException.Unsupported -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.DeviceLost -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.StaleSurface -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.IncompatibleSurface -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.Suspended -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.Cancelled -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is GraphicsException.Operation -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`reason`)
+            )
+        }
+    }
+
+    override fun write(value: GraphicsException, buf: ByteBuffer) {
+        when(value) {
+            is GraphicsException.Denied -> {
+                buf.putInt(1)
+                Unit
+            }
+            is GraphicsException.Unavailable -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`reason`, buf)
+                Unit
+            }
+            is GraphicsException.Unsupported -> {
+                buf.putInt(3)
+                Unit
+            }
+            is GraphicsException.DeviceLost -> {
+                buf.putInt(4)
+                Unit
+            }
+            is GraphicsException.StaleSurface -> {
+                buf.putInt(5)
+                Unit
+            }
+            is GraphicsException.IncompatibleSurface -> {
+                buf.putInt(6)
+                Unit
+            }
+            is GraphicsException.Suspended -> {
+                buf.putInt(7)
+                Unit
+            }
+            is GraphicsException.Cancelled -> {
+                buf.putInt(8)
+                Unit
+            }
+            is GraphicsException.Operation -> {
+                buf.putInt(9)
+                FfiConverterString.write(value.`reason`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
+enum class HostDeviceFailure {
+    
+    DENIED,
+    CANCELLED,
+    INCOMPATIBLE,
+    DEVICE_LOST;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHostDeviceFailure: FfiConverterRustBuffer<HostDeviceFailure> {
+    override fun read(buf: ByteBuffer) = try {
+        HostDeviceFailure.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: HostDeviceFailure) = 4UL
+
+    override fun write(value: HostDeviceFailure, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
 enum class NativePlatform {
     
     IOS,
@@ -5176,6 +8642,38 @@ public object FfiConverterTypeServiceError : FfiConverterRustBuffer<ServiceExcep
 /**
  * @suppress
  */
+public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
+    override fun read(buf: ByteBuffer): kotlin.String? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterString.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.String?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.String?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalByteArray: FfiConverterRustBuffer<kotlin.ByteArray?> {
     override fun read(buf: ByteBuffer): kotlin.ByteArray? {
         if (buf.get().toInt() == 0) {
@@ -5198,6 +8696,34 @@ public object FfiConverterOptionalByteArray: FfiConverterRustBuffer<kotlin.ByteA
         } else {
             buf.put(1)
             FfiConverterByteArray.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceUInt: FfiConverterRustBuffer<List<kotlin.UInt>> {
+    override fun read(buf: ByteBuffer): List<kotlin.UInt> {
+        val len = buf.getInt()
+        return List<kotlin.UInt>(len) {
+            FfiConverterUInt.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.UInt>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterUInt.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<kotlin.UInt>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterUInt.write(it, buf)
         }
     }
 }

@@ -12,6 +12,7 @@ autobins = false
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
+foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
 foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
 foundation_context = { path = "../../backends/foundation_context" }
 foundation_errstacks = { path = "../../backends/foundation_errstacks" }
@@ -25,18 +26,17 @@ foundation_http = { path = "../../backends/foundation_http", optional = true }
 buffa = { workspace = true, features = ["json"], optional = true }
 foundation_ui_connectrpc = { path = "../../backends/foundation_ui_connectrpc", optional = true }
 foundation_connectrpc = { path = "../../backends/foundation_connectrpc", default-features = false, optional = true }
-foundation_ui_http = { path = "../../backends/foundation_ui_http", optional = true }
+foundation_ui_http = { workspace = true, optional = true }
 futures-lite = { workspace = true, optional = true }
 
 foundation_browser = { path = "../../backends/foundation_browser", optional = true }
 
-foundation_ui_native = { path = "../../backends/foundation_ui_native", optional = true }
+foundation_ui_native = { path = "../../backends/foundation_ui_native", version = "0.1.1", optional = true }
 uniffi = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_core = { path = "../../backends/foundation_core", optional = true, features = ["js-foundation-wasm"] }
-foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
 async-trait = { workspace = true }
@@ -50,10 +50,10 @@ workspace = true
 
 [features]
 default = ["server"]
-server = ["dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "dep:foundation_browser", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+server = ["dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 web = ["dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
 mobile = ["dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
-browser-tests = ["server"]
+browser-tests = ["server", "dep:foundation_browser"]
 
 [[bin]]
 name = "ui_todo"

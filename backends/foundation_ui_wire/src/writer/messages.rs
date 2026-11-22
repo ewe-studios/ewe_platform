@@ -90,7 +90,17 @@ fn validate_ui(
             use crate::{PlacementKind as Kind, SelectorKind, TargetSelectorT};
             let valid_selector = |selector: &TargetSelectorT| match selector.kind {
                 SelectorKind::NodeId => selector.text.is_none(),
-                SelectorKind::Id | SelectorKind::Class | SelectorKind::Query => selector
+                SelectorKind::Receiving => selector.text.is_none() && selector.node_id == 0,
+                SelectorKind::View | SelectorKind::Id => selector
+                    .text
+                    .as_deref()
+                    .is_some_and(crate::vocab::valid_name),
+                SelectorKind::TypedId => selector
+                    .text
+                    .as_deref()
+                    .and_then(crate::vocab::portable_selector)
+                    .is_some_and(|(kind, _)| kind == SelectorKind::TypedId),
+                SelectorKind::Class | SelectorKind::Query => selector
                     .text
                     .as_deref()
                     .is_some_and(|text| !text.is_empty()),

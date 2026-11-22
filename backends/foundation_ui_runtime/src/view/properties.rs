@@ -32,6 +32,7 @@ pub fn core_kind(tag: &str) -> Option<NodeKind> {
         "ConfirmationDialog" => NodeKind::CONFIRMATION_DIALOG,
         "SheetTitle" => NodeKind::SHEET_TITLE,
         "SubmitButton" => NodeKind::SUBMIT_BUTTON,
+        "DrawingSurface" => NodeKind::DRAWING_SURFACE,
         "CancelButton" => NodeKind::CANCEL_BUTTON,
         _ => return None,
     })
@@ -56,6 +57,9 @@ pub fn property(
         node_id: id,
         name: value.into(),
     };
+    if name == "id" && !foundation_ui_wire::vocab::valid_name(value) {
+        return Err(bad());
+    }
     let wire_name = if name == "class" {
         "utility_classes"
     } else {

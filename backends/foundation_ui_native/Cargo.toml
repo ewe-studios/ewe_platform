@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_native"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
@@ -17,6 +17,9 @@ bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
 
 [dependencies]
+futures-lite.workspace = true
+async-channel.workspace = true
+foundation_ui_gpu.workspace = true
 foundation_ui_connectrpc = { path = "../foundation_ui_connectrpc" }
 foundation_connectrpc = { path = "../foundation_connectrpc", default-features = false }
 foundation_netio = { path = "../foundation_netio", default-features = false }
@@ -29,6 +32,14 @@ foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.7" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
 foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.7" }
 foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.10" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+ash.workspace = true
+ndk = { version = "0.9", default-features = false, features = ["rwh_06", "nativewindow"] }
+
+[target.'cfg(target_vendor = "apple")'.dependencies]
+objc2.workspace = true
+objc2-metal = { workspace = true, features = ["MTLCommandQueue", "MTLDevice", "MTLTexture"] }
 
 [dev-dependencies]
 foundation_core = { path = "../foundation_core" }

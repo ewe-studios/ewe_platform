@@ -34,6 +34,19 @@ public enum ewe_ui_LiveTransport: UInt8, Enum, Verifiable {
 }
 
 
+public enum ewe_ui_ConnectionSharing: UInt8, Enum, Verifiable {
+  public typealias T = UInt8
+  public static var byteSize: Int { return MemoryLayout<UInt8>.size }
+  public var value: UInt8 { return self.rawValue }
+  case transportdefault = 0
+  case shared = 1
+  case dedicated = 2
+
+  public static var max: ewe_ui_ConnectionSharing { return .dedicated }
+  public static var min: ewe_ui_ConnectionSharing { return .transportdefault }
+}
+
+
 public enum ewe_ui_UiOperation: UInt8, UnionEnum {
   public typealias T = UInt8
 
@@ -71,8 +84,11 @@ public enum ewe_ui_SelectorKind: UInt8, Enum, Verifiable {
   case id = 1
   case class_ = 2
   case query = 3
+  case typedid = 4
+  case view = 5
+  case receiving = 6
 
-  public static var max: ewe_ui_SelectorKind { return .query }
+  public static var max: ewe_ui_SelectorKind { return .receiving }
   public static var min: ewe_ui_SelectorKind { return .nodeid }
 }
 
@@ -601,6 +617,8 @@ public struct ewe_ui_LiveMount: FlatBufferObject, Verifiable {
     case transport = 10
     case endpoint = 12
     case resumeFrom = 14
+    case sharing = 16
+    case keepAlive = 18
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -612,13 +630,18 @@ public struct ewe_ui_LiveMount: FlatBufferObject, Verifiable {
   public var endpoint: String? { let o = _accessor.offset(VTOFFSET.endpoint.v); return o == 0 ? nil : _accessor.string(at: o) }
   public var endpointSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.endpoint.v) }
   public var resumeFrom: UInt64 { let o = _accessor.offset(VTOFFSET.resumeFrom.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
-  public static func startLiveMount(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
+  public var sharing: ewe_ui_ConnectionSharing { let o = _accessor.offset(VTOFFSET.sharing.v); return o == 0 ? .transportdefault : ewe_ui_ConnectionSharing(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .transportdefault }
+  public var keepAlive: Bool { let o = _accessor.offset(VTOFFSET.keepAlive.v); return o == 0 ? false : _accessor.readBuffer(of: Bool.self, at: o) }
+  public static func startLiveMount(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 8) }
   public static func add(nodeId: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: nodeId, def: 0, at: VTOFFSET.nodeId.p) }
   public static func add(kind: ewe_ui_LiveKind, _ fbb: inout FlatBufferBuilder) { fbb.add(element: kind.rawValue, def: 0, at: VTOFFSET.kind.p) }
   public static func add(channelId: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: channelId, def: 0, at: VTOFFSET.channelId.p) }
   public static func add(transport: ewe_ui_LiveTransport, _ fbb: inout FlatBufferBuilder) { fbb.add(element: transport.rawValue, def: 0, at: VTOFFSET.transport.p) }
   public static func add(endpoint: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: endpoint, at: VTOFFSET.endpoint.p) }
   public static func add(resumeFrom: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: resumeFrom, def: 0, at: VTOFFSET.resumeFrom.p) }
+  public static func add(sharing: ewe_ui_ConnectionSharing, _ fbb: inout FlatBufferBuilder) { fbb.add(element: sharing.rawValue, def: 0, at: VTOFFSET.sharing.p) }
+  public static func add(keepAlive: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: keepAlive, def: false,
+   at: VTOFFSET.keepAlive.p) }
   public static func endLiveMount(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createLiveMount(
     _ fbb: inout FlatBufferBuilder,
@@ -627,7 +650,9 @@ public struct ewe_ui_LiveMount: FlatBufferObject, Verifiable {
     channelId: UInt64 = 0,
     transport: ewe_ui_LiveTransport = .local,
     endpointOffset endpoint: Offset = Offset(),
-    resumeFrom: UInt64 = 0
+    resumeFrom: UInt64 = 0,
+    sharing: ewe_ui_ConnectionSharing = .transportdefault,
+    keepAlive: Bool = false
   ) -> Offset {
     let __start = ewe_ui_LiveMount.startLiveMount(&fbb)
     ewe_ui_LiveMount.add(nodeId: nodeId, &fbb)
@@ -636,6 +661,8 @@ public struct ewe_ui_LiveMount: FlatBufferObject, Verifiable {
     ewe_ui_LiveMount.add(transport: transport, &fbb)
     ewe_ui_LiveMount.add(endpoint: endpoint, &fbb)
     ewe_ui_LiveMount.add(resumeFrom: resumeFrom, &fbb)
+    ewe_ui_LiveMount.add(sharing: sharing, &fbb)
+    ewe_ui_LiveMount.add(keepAlive: keepAlive, &fbb)
     return ewe_ui_LiveMount.endLiveMount(&fbb, start: __start)
   }
 
@@ -647,6 +674,8 @@ public struct ewe_ui_LiveMount: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.transport.p, fieldName: "transport", required: false, type: ewe_ui_LiveTransport.self)
     try _v.visit(field: VTOFFSET.endpoint.p, fieldName: "endpoint", required: false, type: ForwardOffset<String>.self)
     try _v.visit(field: VTOFFSET.resumeFrom.p, fieldName: "resumeFrom", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.sharing.p, fieldName: "sharing", required: false, type: ewe_ui_ConnectionSharing.self)
+    try _v.visit(field: VTOFFSET.keepAlive.p, fieldName: "keepAlive", required: false, type: Bool.self)
     _v.finish()
   }
 }

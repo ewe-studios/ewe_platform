@@ -1,8 +1,14 @@
 /// The first vocabulary that accepts structured action input.
 pub const STRUCTURED_INPUT_VERSION: u32 = 9;
 
-/// The current vocabulary includes structured action input.
-pub const VOCABULARY_VERSION: u32 = STRUCTURED_INPUT_VERSION;
+/// The first vocabulary that declares shared connections and subscription replay.
+pub const MANAGED_CONNECTION_VERSION: u32 = 10;
+
+/// The first vocabulary with names for shared elements and receiving views.
+pub const PORTABLE_TARGET_VERSION: u32 = 11;
+
+/// The latest supported vocabulary.
+pub const VOCABULARY_VERSION: u32 = 12;
 
 /// The highest vocabulary numbers that one version supports.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -118,9 +124,45 @@ pub static VOCAB_VERSIONS: &[VocabVersion] = &[
         max_mobile_behaviour: 0,
     },
     VocabVersion {
-        version: VOCABULARY_VERSION,
+        version: STRUCTURED_INPUT_VERSION,
         max_node_kind: 24,
         max_prop_id: 18,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: MANAGED_CONNECTION_VERSION,
+        max_node_kind: 24,
+        max_prop_id: 18,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: PORTABLE_TARGET_VERSION,
+        max_node_kind: 24,
+        max_prop_id: 19,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: VOCABULARY_VERSION,
+        max_node_kind: 25,
+        max_prop_id: 19,
         max_event_id: 5,
         max_tag_id: 114,
         max_attr_id: 81,

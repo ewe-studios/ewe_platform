@@ -5,6 +5,7 @@
 import * as flatbuffers from 'flatbuffers';
 
 import { ActionError, ActionErrorT } from '../../ewe/ui/action-error.js';
+import { ReplayExpired, ReplayExpiredT } from '../../ewe/ui/replay-expired.js';
 import { ServerCaps, ServerCapsT } from '../../ewe/ui/server-caps.js';
 import { StateExpired, StateExpiredT } from '../../ewe/ui/state-expired.js';
 import { UpdateRequired, UpdateRequiredT } from '../../ewe/ui/update-required.js';
@@ -48,8 +49,13 @@ error(obj?:ActionError):ActionError|null {
   return offset ? (obj || new ActionError()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
+replayExpired(obj?:ReplayExpired):ReplayExpired|null {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? (obj || new ReplayExpired()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+}
+
 static startControl(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(5);
 }
 
 static addCaps(builder:flatbuffers.Builder, capsOffset:flatbuffers.Offset) {
@@ -68,6 +74,10 @@ static addError(builder:flatbuffers.Builder, errorOffset:flatbuffers.Offset) {
   builder.addFieldOffset(3, errorOffset, 0);
 }
 
+static addReplayExpired(builder:flatbuffers.Builder, replayExpiredOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(4, replayExpiredOffset, 0);
+}
+
 static endControl(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
@@ -79,7 +89,8 @@ unpack(): ControlT {
     (this.caps() !== null ? this.caps()!.unpack() : null),
     (this.stateExpired() !== null ? this.stateExpired()!.unpack() : null),
     (this.updateRequired() !== null ? this.updateRequired()!.unpack() : null),
-    (this.error() !== null ? this.error()!.unpack() : null)
+    (this.error() !== null ? this.error()!.unpack() : null),
+    (this.replayExpired() !== null ? this.replayExpired()!.unpack() : null)
   );
 }
 
@@ -89,6 +100,7 @@ unpackTo(_o: ControlT): void {
   _o.stateExpired = (this.stateExpired() !== null ? this.stateExpired()!.unpack() : null);
   _o.updateRequired = (this.updateRequired() !== null ? this.updateRequired()!.unpack() : null);
   _o.error = (this.error() !== null ? this.error()!.unpack() : null);
+  _o.replayExpired = (this.replayExpired() !== null ? this.replayExpired()!.unpack() : null);
 }
 }
 
@@ -97,7 +109,8 @@ constructor(
   public caps: ServerCapsT|null = null,
   public stateExpired: StateExpiredT|null = null,
   public updateRequired: UpdateRequiredT|null = null,
-  public error: ActionErrorT|null = null
+  public error: ActionErrorT|null = null,
+  public replayExpired: ReplayExpiredT|null = null
 ){}
 
 
@@ -106,12 +119,14 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const stateExpired = (this.stateExpired !== null ? this.stateExpired!.pack(builder) : 0);
   const updateRequired = (this.updateRequired !== null ? this.updateRequired!.pack(builder) : 0);
   const error = (this.error !== null ? this.error!.pack(builder) : 0);
+  const replayExpired = (this.replayExpired !== null ? this.replayExpired!.pack(builder) : 0);
 
   Control.startControl(builder);
   Control.addCaps(builder, caps);
   Control.addStateExpired(builder, stateExpired);
   Control.addUpdateRequired(builder, updateRequired);
   Control.addError(builder, error);
+  Control.addReplayExpired(builder, replayExpired);
 
   return Control.endControl(builder);
 }

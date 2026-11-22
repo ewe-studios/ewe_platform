@@ -13,6 +13,7 @@
     let base: URL
     let initial: String
     let prepare: @MainActor (URLActionTransport, NodeStore) async throws -> NativeActionCore
+    private var managed: ConnectionManager?
     let session: URLSession
     @State private var connection: EventBridge?
     private let theme: EweTheme
@@ -56,6 +57,31 @@
       }
     }
 
+    public init(base: URL, initial: String, socket: URL, connections: ConnectionManager? = nil,
+      session: URLSession = .shared, theme: EweTheme = EweTheme(),
+      create: @escaping @MainActor (HostTransport, NodeStore) throws -> NativeActionCore) {
+      self.base = base
+      self.initial = initial
+      self.session = session
+      self.theme = theme
+      self.managed = connections
+      self.prepare = { viewTransport, store in
+        guard let live = store.liveHost, let manager = live.connections else { throw ConnectionError.closed }
+        let sender = try SocketActionConnection(manager: manager, endpoint: socket,
+          onReply: { [weak store] bytes in _ = store?.receive(bytes) },
+          onError: { [weak store] cause in store?.error("Transport", cause) })
+        live.onClose { sender.close() }
+        do {
+          let core = try create(sender, store)
+          let hello = core.raw.helloFor(requestTag: sender.requestTag)
+          viewTransport.configure(hello: hello)
+          guard let caps = try await sender.send(request: hello) else { throw ConnectionError.closed }
+          try core.applyCapsFrame(caps)
+          return core
+        } catch { sender.close(); throw error }
+      }
+    }
+
     public init(base: URL, initial: String, actions: [String], session: URLSession = .shared, theme: EweTheme = EweTheme()) {
       self.init(base: base, initial: initial, session: session, theme: theme) { transport, store in
         let core = try NativeCore.remote(platform: .ios, names: actions, transport: transport)
@@ -78,20 +104,42 @@
       #if os(iOS)
         .background(HostAnchor(anchor: presenter).frame(width: 0, height: 0))
       #endif
-      .task(id: attempt) { await connect() }.onDisappear { connection?.store.liveHost?.close() }
+      .task(id: attempt) { await connect() }.onDisappear { connection?.store.recovery?.close(); connection?.store.liveHost?.close() }
     }
 
     private func connectionIssue(_ message: String) -> some View {
       VStack {
         Text(message)
-        Button("Reconnect") { attempt += 1 }
+        Button("Reconnect") {
+          if let recovery = connection?.store.recovery {
+            Task {
+              do { try await recovery.retry(); issue = nil }
+              catch { issue = error.localizedDescription }
+            }
+          } else { attempt += 1 }
+        }
       }
     }
 
+    @MainActor private func readInitial(_ request: URLRequest, limit: Int) async throws -> Data {
+        let (bytes, response) = try await session.bytes(for: request)
+        guard let status = (response as? HTTPURLResponse)?.statusCode, (200..<300).contains(status)
+        else {
+          throw URLError(.badServerResponse)
+        }
+        var first = Data()
+        for try await byte in bytes {
+          guard first.count < limit else { throw URLError(.dataLengthExceedsMaximum) }
+          first.append(byte)
+        }
+        return first
+    }
+
     private func connect() async {
+      connection?.store.recovery?.close()
       connection?.store.liveHost?.close()
       issue = nil
-      let live = LiveMountHost(factory: URLSessionChannelFactory(session: session, baseURL: base))
+      let live = LiveMountHost(factory: URLSessionChannelFactory(session: session, baseURL: base), connections: managed)
       let store = NodeStore(live: live)
       #if os(iOS)
         store.commands = presenter.commandHost()
@@ -103,18 +151,13 @@
         }
         let core = try await prepare(transport, store)
         let bridge = EventBridge(store: store, core: core)
-        let (bytes, response) = try await session.bytes(for: transport.viewRequest(base.appending(path: initial)))
-        guard let status = (response as? HTTPURLResponse)?.statusCode, (200..<300).contains(status)
-        else {
-          throw URLError(.badServerResponse)
+        let limit = store.maxFrameBytes
+        let loader = store.registerLoader {
+          try await readInitial(transport.viewRequest(base.appending(path: initial)), limit: limit)
         }
-        var first = Data()
-        for try await byte in bytes {
-          guard first.count < store.maxFrameBytes else { throw URLError(.dataLengthExceedsMaximum) }
-          first.append(byte)
-        }
-        guard store.receive(first) else { throw URLError(.cannotParseResponse) }
+        loader.onInstalled = { self.issue = nil }
         store.onError = { code, message in self.issue = code + " " + message }
+        try await loader.open()
         connection = bridge
       } catch { if !Task.isCancelled { issue = error.localizedDescription } }
     }

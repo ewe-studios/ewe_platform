@@ -210,6 +210,9 @@ reason = "4 pedantic warnings; clear them and delete this override (#441)"
 [packages.foundation_theme]
 runs = ["", "native-manifest"]
 
+[packages.foundation_ui_gpu]
+wasm = "enforce"
+
 [packages.foundation_ui_native]
 runs = ["", "app"]
 wasm = "off"

@@ -18,3 +18,8 @@ for kind in ("BehaviourId", "MobileBehaviourId"):
                 f"return o == 0 ? 0 : {raw.group(1)} }}")
     text = text.replace(source, source + "\n" + accessor)
 path.write_text(text)
+
+# Keep the schema identifier declarations stable across compiler versions.
+frame = path.with_name("frame_generated.swift")
+source = frame.read_text()
+frame.write_text(re.sub(r'(public static var id: String \{ "EWF1" \}) +$', r'\1', source, flags=re.M))

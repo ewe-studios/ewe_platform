@@ -142,7 +142,19 @@ fn invalid(message: impl std::fmt::Display) -> ManagerError {
 /// Panics if the wire schema cannot encode the fixed-size hello.
 #[must_use]
 pub fn client_hello(caps: &ClientCaps) -> Vec<u8> {
+    tagged_client_hello(caps, 0)
+}
+
+/// Identifies one capability exchange on a shared connection.
+///
+/// # Panics
+/// Panics if the wire schema cannot encode the fixed-size hello.
+#[must_use]
+pub fn tagged_client_hello(caps: &ClientCaps, tag: u64) -> Vec<u8> {
     let mut hello = ClientHelloT::default();
+    hello.request_tag = tag;
+    hello.subscription_resume =
+        caps.vocabulary_version >= foundation_ui_wire::vocab::MANAGED_CONNECTION_VERSION;
     hello.platform = caps.platform;
     hello.mount = caps.mount;
     hello.vocabulary_version = caps.vocabulary_version;

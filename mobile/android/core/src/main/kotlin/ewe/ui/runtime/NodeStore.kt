@@ -27,6 +27,68 @@ class NodeStore(
         it in Names.behaviourId.values && it != "UNKNOWN"
     },
 ) {
+    var recovery: ViewRecovery? = null
+        private set
+    internal val targets = ViewTargets(this)
+    internal var liveHost: LiveMountHost? = null
+    private var parentStore: NodeStore? = null
+    private val childStores = mutableMapOf<UInt, NodeStore>()
+
+    /** The named view owns its numeric node identifiers and stream positions. */
+    fun viewStore(name: String): NodeStore? {
+        val host = parentStore ?: this
+        val root = host.targets.roots[name] ?: return null
+        return host.childStores[root] ?: host
+    }
+
+    fun registerView(name: String, root: UInt) {
+        require(name.matches(targets.validName) && root != 0u)
+        require(name !in targets.roots && root !in targets.roots.values)
+        if (root != 1u) {
+            val child = NodeStore(timer, gapTimeoutMs, maxFrameBytes, commands, supportsBehaviour)
+            child.parentStore = this
+            child.targets.roots[name] = root
+            child.subscriptionReplay = subscriptionReplay
+            child.onSnapshot = { id, stream -> onSnapshot?.invoke(id, stream) }
+            child.onError = { code, message -> onError?.invoke(code, message) }
+            child.onCaps = { bytes -> onCaps?.invoke(bytes) }
+            val pending = ArrayDeque(listOf(root))
+            while (pending.isNotEmpty()) {
+                val id = pending.removeLast()
+                val node = records.remove(id) ?: continue
+                child.records[id] = node
+                targets.names.remove(id)?.let { child.targets.names[id] = it }
+                targets.tags.remove(id)?.let { child.targets.tags[id] = it }
+                pending.addAll(node.children)
+            }
+            if (child.record(root) == null) child.create(root, NodeKind.STACK, 0)
+            childStores[root] = child
+            liveHost?.forView(child)
+        }
+        targets.roots[name] = root
+    }
+
+    /** Give an existing custom control its portable tag and element name. */
+    fun registerElement(name: String, tag: String, id: UInt) {
+        require(tag.matches(targets.validName) && !tag.equals("view",ignoreCase = true))
+        val node = requireNotNull(record(id))
+        require(targets.setName(id, name, 0))
+        node.props[ewe.ui.PropId.ID] = Property.Text(name)
+        targets.tags[id] = tag
+    }
+
+    fun unregisterView(name: String) {
+        val root = requireNotNull(targets.roots.remove(name))
+        childStores.remove(root)?.let { child ->
+            child.close()
+            child.remove(root)
+            return
+        }
+        recovery?.close()
+        clearOrdering()
+        if (root == 1u) record(root)?.children?.toList()?.forEach(::remove) else remove(root)
+    }
+
     private val records = mutableStateMapOf(1u to NodeRecord(1u, NodeKind.STACK))
     val nodes: Collection<NodeRecord>
         get() = records.values
@@ -43,9 +105,12 @@ class NodeStore(
     var onGap: ((ULong, ULong) -> Unit)? = null
     var onChanged: (() -> Unit)? = null
     var onError: ((String, String) -> Unit)? = null
+    var onSnapshot: ((UInt, ULong) -> Unit)? = null
+    var subscriptionReplay = false
+        private set
     var onCaps: ((ByteArray) -> Unit)? = null
 
-    fun record(id: UInt): NodeRecord? = records[id]
+    fun record(id: UInt): NodeRecord? = childStores[id]?.records?.get(id) ?: records[id]
 
     fun cursor(stream: ULong): ULong? = cursors[stream]
 
@@ -54,12 +119,21 @@ class NodeStore(
     }
 
     fun close() {
+        recovery?.close()
+        childStores.values.forEach { it.close() }
+        liveHost?.close()
+        clearOrdering()
+    }
+
+    private fun clearOrdering() {
+        cursors.clear()
         timers.values.forEach { it.cancel() }
         timers.clear()
         pending.clear()
     }
 
     internal fun report(code: String, row: Int? = null, node: UInt? = null, name: String? = null) {
+        parentStore?.report(code, row, node, name)
         reports.add(
             buildJsonObject {
                 put("code", code)
@@ -91,7 +165,11 @@ class NodeStore(
         val pending = ArrayDeque<UInt>()
         pending.add(id)
         while (pending.isNotEmpty()) {
-            records.remove(pending.removeLast())?.let { pending.addAll(it.children) }
+            val removed = pending.removeLast()
+            targets.tags.remove(removed)
+            targets.names.remove(removed)
+            targets.roots.entries.removeAll { it.value == removed }
+            records.remove(removed)?.let { pending.addAll(it.children) }
         }
     }
 
@@ -132,7 +210,48 @@ class NodeStore(
         return f
     }
 
-    fun receive(bytes: ByteArray, mount: UInt = 1u): Boolean {
+    /** The initial view and its recovery use the same loader and current credentials. */
+    fun registerLoader(scope: kotlinx.coroutines.CoroutineScope, maxAttempts: Int = 3, load: suspend () -> ByteArray): ViewRecovery {
+        recovery?.close()
+        val result = ViewRecovery(this, scope, maxAttempts, load)
+        recovery = result
+        onSnapshot = { _, stream -> result.request(stream) }
+        return result
+    }
+
+    internal fun installSnapshot(bytes: ByteArray, required: Set<ULong>) {
+        require(bytes.size <= maxFrameBytes)
+        val packet = frame(bytes)
+        val body = packet.kind(FrameMessage()) as FrameMessage
+        require(body.messagesLength == 1)
+        val op = requireNotNull(body.messages(0)?.operation)
+        require(op.uiType == UiOperation.Place && (op.ui(Place()) as Place).kind == PlacementKind.FullView)
+        val probe = NodeStore(timer, gapTimeoutMs, maxFrameBytes, supportsBehaviour = supportsBehaviour)
+        require(probe.receive(bytes) && probe.reports.isEmpty()) { "Invalid snapshot content" }
+        val positions = mutableMapOf<ULong,ULong>()
+        for (spec in probe.nodes.mapNotNull { it.live }) {
+            if (spec.kind != LiveKind.Stream || spec.transport == LiveTransport.Local ||
+                (spec.shared == true && spec.transport == LiveTransport.Sse)) continue
+            val previous = positions.put(spec.stream,spec.resume)
+            require(previous == null || previous == spec.resume) { "Conflicting stream cursors" }
+        }
+        require(positions.keys.containsAll(required)) { "Missing snapshot cursor" }
+        clearOrdering()
+        positions.forEach(::setCursor)
+        check(receive(bytes)) { "Invalid snapshot content" }
+    }
+
+    fun matches(bytes: ByteArray, stream: ULong, subscription: ULong = 0uL): Boolean {
+        if (bytes.size > maxFrameBytes) return false
+        return try {
+            val packet = frame(bytes)
+            val body = packet.kind(FrameMessage()) as FrameMessage
+            packet.streamId == stream && body.ack == 0uL && (body.subscriptionId == 0uL || body.subscriptionId == subscription)
+        } catch (_: RuntimeException) { false }
+    }
+
+    fun receive(bytes: ByteArray, mount: UInt = if (targets.roots.isEmpty()) 1u else targets.roots.values.singleOrNull() ?: 0u): Boolean {
+        childStores[mount]?.let { return it.receive(bytes, mount) }
         if (bytes.size > maxFrameBytes) {
             report("TooLarge")
             return false
@@ -187,7 +306,10 @@ class NodeStore(
             try {
                 val message = requireNotNull(body.messages(row))
                 applier.message(message, row)
-                if (message.control?.caps != null) hasCaps = true
+                message.control?.caps?.let { caps -> subscriptionReplay = caps.subscriptionResume; hasCaps = true }
+                message.control?.replayExpired?.let { expired ->
+                    onSnapshot?.invoke(mount, expired.streamId) ?: onError?.invoke("ReplayExpired", "Request a new view")
+                }
             } catch (error: RuntimeException) {
                 report("BadFrame", row)
                 return false

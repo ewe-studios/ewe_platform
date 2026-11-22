@@ -836,9 +836,10 @@ fn impl_embeddable_directory(
 
 
             impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[
-                    #(#file_meta_list)*
-                ];
+                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = {
+                    static FILES: &[foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
+                    FILES
+                };
             }
         };
 
@@ -1288,13 +1289,19 @@ fn impl_embeddable_directory(
 
     let file_data_tokens = quote! {
         impl foundation_nostd::embeddable::DirectoryData for #struct_name {
-            const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = &[#(#file_data_list)*];
+            const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = {
+                static DATA: &[foundation_nostd::embeddable::StaticDirectoryData] = &[#(#file_data_list)*];
+                DATA
+            };
         }
     };
 
     let embeddable_directory_tokens = quote! {
         impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-            const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
+            const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = {
+                static FILES: &[foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
+                FILES
+            };
         }
     };
 

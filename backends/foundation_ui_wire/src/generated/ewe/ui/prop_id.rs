@@ -18,13 +18,13 @@ pub const ENUM_MIN_PROP_ID: u16 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_PROP_ID: u16 = 18;
+pub const ENUM_MAX_PROP_ID: u16 = 19;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_PROP_ID: [PropId; 19] = [
+pub const ENUM_VALUES_PROP_ID: [PropId; 20] = [
     PropId::UNKNOWN,
     PropId::PADDING,
     PropId::SPACING,
@@ -44,6 +44,7 @@ pub const ENUM_VALUES_PROP_ID: [PropId; 19] = [
     PropId::HIDDEN,
     PropId::PRESENTATION,
     PropId::UTILITY_CLASSES,
+    PropId::ID,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -70,9 +71,10 @@ impl PropId {
     pub const HIDDEN: Self = Self(16);
     pub const PRESENTATION: Self = Self(17);
     pub const UTILITY_CLASSES: Self = Self(18);
+    pub const ID: Self = Self(19);
 
     pub const ENUM_MIN: u16 = 0;
-    pub const ENUM_MAX: u16 = 18;
+    pub const ENUM_MAX: u16 = 19;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::UNKNOWN,
         Self::PADDING,
@@ -93,6 +95,7 @@ impl PropId {
         Self::HIDDEN,
         Self::PRESENTATION,
         Self::UTILITY_CLASSES,
+        Self::ID,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -116,6 +119,7 @@ impl PropId {
             Self::HIDDEN => Some("HIDDEN"),
             Self::PRESENTATION => Some("PRESENTATION"),
             Self::UTILITY_CLASSES => Some("UTILITY_CLASSES"),
+            Self::ID => Some("ID"),
             _ => None,
         }
     }

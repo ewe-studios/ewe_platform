@@ -91,7 +91,13 @@ public struct EventInput: Sendable {
   }
 }
 
-@MainActor public protocol Channel: AnyObject { func close() }
+@MainActor public protocol Channel: AnyObject {
+  func close()
+  func send(_ bytes: Data) async throws
+}
+extension Channel {
+  public func send(_ bytes: Data) async throws { throw ConnectionError.unsupported }
+}
 @MainActor public protocol ChannelFactory {
   func open(
     endpoint: URL, transport: String, streamId: UInt64, resumeFrom: UInt64,
@@ -101,10 +107,20 @@ public struct EventInput: Sendable {
 @MainActor public final class LiveMountHost {
   private let factory: any ChannelFactory
   private var open: [UInt32: any Channel] = [:]
-  public init(factory: any ChannelFactory) { self.factory = factory }
+  public let connections: ConnectionManager?
+  private let ownsConnections: Bool
+  private var closeHandlers: [() -> Void] = []
+  func onClose(_ handler: @escaping () -> Void) { closeHandlers.append(handler) }
+  public init(factory: any ChannelFactory, connections: ConnectionManager? = nil) {
+    self.factory = factory
+    self.connections = connections ?? (factory as? URLSessionChannelFactory)?.connectionManager()
+    self.ownsConnections = connections == nil
+  }
+  func forView() -> LiveMountHost { LiveMountHost(factory: factory, connections: connections) }
+
   func reconcile(_ store: NodeStore) {
     var attached = Set<UInt32>()
-    var nodes: [UInt32] = [1]
+    var nodes: [UInt32] = store.viewRoots.isEmpty ? [1] : store.viewRoots.values.filter { store.childStores[$0] == nil }
     while let id = nodes.popLast(), let n = store.record(id) {
       nodes.append(contentsOf: n.children)
       guard let live = n.live, live.transport != "Local" else { continue }
@@ -117,21 +133,38 @@ public struct EventInput: Sendable {
     guard open[id] == nil, spec.transport != "Local", let url = URL(string: spec.endpoint) else {
       return
     }
+    if let connections, connections.supports(spec.transport),
+      spec.shared == true || store.subscriptionReplay || spec.keepAlive {
+      do {
+        open[id] = try LiveSubscription(manager: connections, spec: spec, endpoint: url, mount: id, store: store)
+      } catch { store.error("Transport", String(describing: error)) }
+      return
+    }
+    let generation = store.recovery?.generation
     open[id] = factory.open(
       endpoint: url, transport: spec.transport, streamId: spec.channelID,
-      resumeFrom: spec.resumeFrom, onFrame: { [weak store] data in store?.receive(data, at: id) },
+      resumeFrom: spec.resumeFrom, onFrame: { [weak store] data in
+        guard let store, generation.map({ store.recovery?.accepts($0) == true }) != false else { return }
+        store.receive(data, at:id)
+      },
       onError: { [weak store] error in store?.error("Transport", error) })
   }
   func reconnect(stream: UInt64, cursor: UInt64, store: NodeStore) {
     for id in Array(open.keys) {
       guard let spec = store.record(id)?.live, spec.channelID == stream else { continue }
+      if store.subscriptionReplay, let subscription = open[id] as? LiveSubscription { subscription.resume(cursor); continue }
       unmount(id)
       let resumed = LiveSpec(
         kind: spec.kind, channelID: stream, transport: spec.transport, endpoint: spec.endpoint,
-        resumeFrom: cursor)
+        resumeFrom: cursor, shared: spec.shared, keepAlive: spec.keepAlive)
       mount(id, resumed, store: store)
     }
   }
   func unmount(_ id: UInt32) { open.removeValue(forKey: id)?.close() }
-  public func close() { for id in Array(open.keys) { unmount(id) } }
+  public func close() {
+    for id in Array(open.keys) { unmount(id) }
+    closeHandlers.forEach { $0() }
+    closeHandlers.removeAll()
+    if ownsConnections { connections?.close() }
+  }
 }

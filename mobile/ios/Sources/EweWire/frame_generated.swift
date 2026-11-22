@@ -87,7 +87,7 @@ public struct ewe_ui_I32s: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_I32s.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -128,7 +128,7 @@ public struct ewe_ui_I64s: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_I64s.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -169,7 +169,7 @@ public struct ewe_ui_F64s: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_F64s.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -210,7 +210,7 @@ public struct ewe_ui_Bools: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Bools.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -251,7 +251,7 @@ public struct ewe_ui_Strings: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Strings.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -290,7 +290,7 @@ public struct ewe_ui_Column: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Column.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -364,7 +364,7 @@ public struct ewe_ui_DataTable: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_DataTable.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -415,7 +415,7 @@ public struct ewe_ui_ArrowIpcBlob: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_ArrowIpcBlob.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -462,7 +462,7 @@ public struct ewe_ui_MessagePackBlob: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_MessagePackBlob.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -509,7 +509,7 @@ public struct ewe_ui_Data: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Data.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -564,7 +564,7 @@ public struct ewe_ui_ServerAction: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_ServerAction.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -608,7 +608,7 @@ public struct ewe_ui_ServerCaps: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_ServerCaps.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -620,6 +620,8 @@ public struct ewe_ui_ServerCaps: FlatBufferObject, Verifiable {
     case streamId = 10
     case resumeFrom = 12
     case actions = 14
+    case subscriptionResume = 16
+    case requestTag = 18
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -632,13 +634,18 @@ public struct ewe_ui_ServerCaps: FlatBufferObject, Verifiable {
   public var hasActions: Bool { let o = _accessor.offset(VTOFFSET.actions.v); return o == 0 ? false : true }
   public var actionsCount: Int32 { let o = _accessor.offset(VTOFFSET.actions.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func actions(at index: Int32) -> ewe_ui_ServerAction? { let o = _accessor.offset(VTOFFSET.actions.v); return o == 0 ? nil : ewe_ui_ServerAction(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
-  public static func startServerCaps(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
+  public var subscriptionResume: Bool { let o = _accessor.offset(VTOFFSET.subscriptionResume.v); return o == 0 ? false : _accessor.readBuffer(of: Bool.self, at: o) }
+  public var requestTag: UInt64 { let o = _accessor.offset(VTOFFSET.requestTag.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public static func startServerCaps(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 8) }
   public static func add(status: ewe_ui_CapsStatus, _ fbb: inout FlatBufferBuilder) { fbb.add(element: status.rawValue, def: 0, at: VTOFFSET.status.p) }
   public static func add(schemaVersion: UInt16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: schemaVersion, def: 0, at: VTOFFSET.schemaVersion.p) }
   public static func add(vocabularyVersion: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: vocabularyVersion, def: 0, at: VTOFFSET.vocabularyVersion.p) }
   public static func add(streamId: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: streamId, def: 0, at: VTOFFSET.streamId.p) }
   public static func add(resumeFrom: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: resumeFrom, def: 0, at: VTOFFSET.resumeFrom.p) }
   public static func addVectorOf(actions: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: actions, at: VTOFFSET.actions.p) }
+  public static func add(subscriptionResume: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: subscriptionResume, def: false,
+   at: VTOFFSET.subscriptionResume.p) }
+  public static func add(requestTag: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: requestTag, def: 0, at: VTOFFSET.requestTag.p) }
   public static func endServerCaps(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createServerCaps(
     _ fbb: inout FlatBufferBuilder,
@@ -647,7 +654,9 @@ public struct ewe_ui_ServerCaps: FlatBufferObject, Verifiable {
     vocabularyVersion: UInt32 = 0,
     streamId: UInt64 = 0,
     resumeFrom: UInt64 = 0,
-    actionsVectorOffset actions: Offset = Offset()
+    actionsVectorOffset actions: Offset = Offset(),
+    subscriptionResume: Bool = false,
+    requestTag: UInt64 = 0
   ) -> Offset {
     let __start = ewe_ui_ServerCaps.startServerCaps(&fbb)
     ewe_ui_ServerCaps.add(status: status, &fbb)
@@ -656,6 +665,8 @@ public struct ewe_ui_ServerCaps: FlatBufferObject, Verifiable {
     ewe_ui_ServerCaps.add(streamId: streamId, &fbb)
     ewe_ui_ServerCaps.add(resumeFrom: resumeFrom, &fbb)
     ewe_ui_ServerCaps.addVectorOf(actions: actions, &fbb)
+    ewe_ui_ServerCaps.add(subscriptionResume: subscriptionResume, &fbb)
+    ewe_ui_ServerCaps.add(requestTag: requestTag, &fbb)
     return ewe_ui_ServerCaps.endServerCaps(&fbb, start: __start)
   }
 
@@ -667,6 +678,8 @@ public struct ewe_ui_ServerCaps: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.streamId.p, fieldName: "streamId", required: false, type: UInt64.self)
     try _v.visit(field: VTOFFSET.resumeFrom.p, fieldName: "resumeFrom", required: false, type: UInt64.self)
     try _v.visit(field: VTOFFSET.actions.p, fieldName: "actions", required: false, type: ForwardOffset<Vector<ForwardOffset<ewe_ui_ServerAction>, ewe_ui_ServerAction>>.self)
+    try _v.visit(field: VTOFFSET.subscriptionResume.p, fieldName: "subscriptionResume", required: false, type: Bool.self)
+    try _v.visit(field: VTOFFSET.requestTag.p, fieldName: "requestTag", required: false, type: UInt64.self)
     _v.finish()
   }
 }
@@ -677,7 +690,7 @@ public struct ewe_ui_ActionError: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_ActionError.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -727,7 +740,7 @@ public struct ewe_ui_StateExpired: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_StateExpired.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -764,7 +777,7 @@ public struct ewe_ui_UpdateRequired: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_UpdateRequired.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -801,13 +814,56 @@ public struct ewe_ui_UpdateRequired: FlatBufferObject, Verifiable {
   }
 }
 
+public struct ewe_ui_ReplayExpired: FlatBufferObject, Verifiable {
+
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  public static var id: String { "EWF1" }
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_ReplayExpired.id, addPrefix: prefix) }
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case streamId = 4
+    case after = 6
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var streamId: UInt64 { let o = _accessor.offset(VTOFFSET.streamId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public var after: UInt64 { let o = _accessor.offset(VTOFFSET.after.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public static func startReplayExpired(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
+  public static func add(streamId: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: streamId, def: 0, at: VTOFFSET.streamId.p) }
+  public static func add(after: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: after, def: 0, at: VTOFFSET.after.p) }
+  public static func endReplayExpired(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createReplayExpired(
+    _ fbb: inout FlatBufferBuilder,
+    streamId: UInt64 = 0,
+    after: UInt64 = 0
+  ) -> Offset {
+    let __start = ewe_ui_ReplayExpired.startReplayExpired(&fbb)
+    ewe_ui_ReplayExpired.add(streamId: streamId, &fbb)
+    ewe_ui_ReplayExpired.add(after: after, &fbb)
+    return ewe_ui_ReplayExpired.endReplayExpired(&fbb, start: __start)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.streamId.p, fieldName: "streamId", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.after.p, fieldName: "after", required: false, type: UInt64.self)
+    _v.finish()
+  }
+}
+
 public struct ewe_ui_Control: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Control.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -817,6 +873,7 @@ public struct ewe_ui_Control: FlatBufferObject, Verifiable {
     case stateExpired = 6
     case updateRequired = 8
     case error = 10
+    case replayExpired = 12
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -825,24 +882,28 @@ public struct ewe_ui_Control: FlatBufferObject, Verifiable {
   public var stateExpired: ewe_ui_StateExpired? { let o = _accessor.offset(VTOFFSET.stateExpired.v); return o == 0 ? nil : ewe_ui_StateExpired(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
   public var updateRequired: ewe_ui_UpdateRequired? { let o = _accessor.offset(VTOFFSET.updateRequired.v); return o == 0 ? nil : ewe_ui_UpdateRequired(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
   public var error: ewe_ui_ActionError? { let o = _accessor.offset(VTOFFSET.error.v); return o == 0 ? nil : ewe_ui_ActionError(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
-  public static func startControl(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
+  public var replayExpired: ewe_ui_ReplayExpired? { let o = _accessor.offset(VTOFFSET.replayExpired.v); return o == 0 ? nil : ewe_ui_ReplayExpired(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
+  public static func startControl(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 5) }
   public static func add(caps: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: caps, at: VTOFFSET.caps.p) }
   public static func add(stateExpired: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: stateExpired, at: VTOFFSET.stateExpired.p) }
   public static func add(updateRequired: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: updateRequired, at: VTOFFSET.updateRequired.p) }
   public static func add(error: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: error, at: VTOFFSET.error.p) }
+  public static func add(replayExpired: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: replayExpired, at: VTOFFSET.replayExpired.p) }
   public static func endControl(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createControl(
     _ fbb: inout FlatBufferBuilder,
     capsOffset caps: Offset = Offset(),
     stateExpiredOffset stateExpired: Offset = Offset(),
     updateRequiredOffset updateRequired: Offset = Offset(),
-    errorOffset error: Offset = Offset()
+    errorOffset error: Offset = Offset(),
+    replayExpiredOffset replayExpired: Offset = Offset()
   ) -> Offset {
     let __start = ewe_ui_Control.startControl(&fbb)
     ewe_ui_Control.add(caps: caps, &fbb)
     ewe_ui_Control.add(stateExpired: stateExpired, &fbb)
     ewe_ui_Control.add(updateRequired: updateRequired, &fbb)
     ewe_ui_Control.add(error: error, &fbb)
+    ewe_ui_Control.add(replayExpired: replayExpired, &fbb)
     return ewe_ui_Control.endControl(&fbb, start: __start)
   }
 
@@ -852,6 +913,7 @@ public struct ewe_ui_Control: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.stateExpired.p, fieldName: "stateExpired", required: false, type: ForwardOffset<ewe_ui_StateExpired>.self)
     try _v.visit(field: VTOFFSET.updateRequired.p, fieldName: "updateRequired", required: false, type: ForwardOffset<ewe_ui_UpdateRequired>.self)
     try _v.visit(field: VTOFFSET.error.p, fieldName: "error", required: false, type: ForwardOffset<ewe_ui_ActionError>.self)
+    try _v.visit(field: VTOFFSET.replayExpired.p, fieldName: "replayExpired", required: false, type: ForwardOffset<ewe_ui_ReplayExpired>.self)
     _v.finish()
   }
 }
@@ -862,7 +924,7 @@ public struct ewe_ui_Message: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Message.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -911,7 +973,7 @@ public struct ewe_ui_FrameMessage: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_FrameMessage.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -919,6 +981,7 @@ public struct ewe_ui_FrameMessage: FlatBufferObject, Verifiable {
   private enum VTOFFSET: VOffset {
     case ack = 4
     case messages = 6
+    case subscriptionId = 8
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -927,18 +990,22 @@ public struct ewe_ui_FrameMessage: FlatBufferObject, Verifiable {
   public var hasMessages: Bool { let o = _accessor.offset(VTOFFSET.messages.v); return o == 0 ? false : true }
   public var messagesCount: Int32 { let o = _accessor.offset(VTOFFSET.messages.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func messages(at index: Int32) -> ewe_ui_Message? { let o = _accessor.offset(VTOFFSET.messages.v); return o == 0 ? nil : ewe_ui_Message(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
-  public static func startFrameMessage(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
+  public var subscriptionId: UInt64 { let o = _accessor.offset(VTOFFSET.subscriptionId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public static func startFrameMessage(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 3) }
   public static func add(ack: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: ack, def: 0, at: VTOFFSET.ack.p) }
   public static func addVectorOf(messages: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: messages, at: VTOFFSET.messages.p) }
+  public static func add(subscriptionId: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: subscriptionId, def: 0, at: VTOFFSET.subscriptionId.p) }
   public static func endFrameMessage(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createFrameMessage(
     _ fbb: inout FlatBufferBuilder,
     ack: UInt64 = 0,
-    messagesVectorOffset messages: Offset = Offset()
+    messagesVectorOffset messages: Offset = Offset(),
+    subscriptionId: UInt64 = 0
   ) -> Offset {
     let __start = ewe_ui_FrameMessage.startFrameMessage(&fbb)
     ewe_ui_FrameMessage.add(ack: ack, &fbb)
     ewe_ui_FrameMessage.addVectorOf(messages: messages, &fbb)
+    ewe_ui_FrameMessage.add(subscriptionId: subscriptionId, &fbb)
     return ewe_ui_FrameMessage.endFrameMessage(&fbb, start: __start)
   }
 
@@ -946,6 +1013,62 @@ public struct ewe_ui_FrameMessage: FlatBufferObject, Verifiable {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.ack.p, fieldName: "ack", required: false, type: UInt64.self)
     try _v.visit(field: VTOFFSET.messages.p, fieldName: "messages", required: false, type: ForwardOffset<Vector<ForwardOffset<ewe_ui_Message>, ewe_ui_Message>>.self)
+    try _v.visit(field: VTOFFSET.subscriptionId.p, fieldName: "subscriptionId", required: false, type: UInt64.self)
+    _v.finish()
+  }
+}
+
+public struct ewe_ui_ResumeSubscription: FlatBufferObject, Verifiable {
+
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  public static var id: String { "EWF1" }
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_ResumeSubscription.id, addPrefix: prefix) }
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case deliverySession = 4
+    case subscriptionId = 6
+    case streamId = 8
+    case after = 10
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var deliverySession: UInt64 { let o = _accessor.offset(VTOFFSET.deliverySession.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public var subscriptionId: UInt64 { let o = _accessor.offset(VTOFFSET.subscriptionId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public var streamId: UInt64 { let o = _accessor.offset(VTOFFSET.streamId.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public var after: UInt64 { let o = _accessor.offset(VTOFFSET.after.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public static func startResumeSubscription(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
+  public static func add(deliverySession: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: deliverySession, def: 0, at: VTOFFSET.deliverySession.p) }
+  public static func add(subscriptionId: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: subscriptionId, def: 0, at: VTOFFSET.subscriptionId.p) }
+  public static func add(streamId: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: streamId, def: 0, at: VTOFFSET.streamId.p) }
+  public static func add(after: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: after, def: 0, at: VTOFFSET.after.p) }
+  public static func endResumeSubscription(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createResumeSubscription(
+    _ fbb: inout FlatBufferBuilder,
+    deliverySession: UInt64 = 0,
+    subscriptionId: UInt64 = 0,
+    streamId: UInt64 = 0,
+    after: UInt64 = 0
+  ) -> Offset {
+    let __start = ewe_ui_ResumeSubscription.startResumeSubscription(&fbb)
+    ewe_ui_ResumeSubscription.add(deliverySession: deliverySession, &fbb)
+    ewe_ui_ResumeSubscription.add(subscriptionId: subscriptionId, &fbb)
+    ewe_ui_ResumeSubscription.add(streamId: streamId, &fbb)
+    ewe_ui_ResumeSubscription.add(after: after, &fbb)
+    return ewe_ui_ResumeSubscription.endResumeSubscription(&fbb, start: __start)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.deliverySession.p, fieldName: "deliverySession", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.subscriptionId.p, fieldName: "subscriptionId", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.streamId.p, fieldName: "streamId", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.after.p, fieldName: "after", required: false, type: UInt64.self)
     _v.finish()
   }
 }
@@ -956,7 +1079,7 @@ public struct ewe_ui_FrameRequest: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_FrameRequest.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -964,24 +1087,29 @@ public struct ewe_ui_FrameRequest: FlatBufferObject, Verifiable {
   private enum VTOFFSET: VOffset {
     case action = 4
     case hello = 6
+    case resume = 8
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
 
   public var action: ewe_ui_ActionRequest? { let o = _accessor.offset(VTOFFSET.action.v); return o == 0 ? nil : ewe_ui_ActionRequest(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
   public var hello: ewe_ui_ClientHello? { let o = _accessor.offset(VTOFFSET.hello.v); return o == 0 ? nil : ewe_ui_ClientHello(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
-  public static func startFrameRequest(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
+  public var resume: ewe_ui_ResumeSubscription? { let o = _accessor.offset(VTOFFSET.resume.v); return o == 0 ? nil : ewe_ui_ResumeSubscription(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
+  public static func startFrameRequest(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 3) }
   public static func add(action: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: action, at: VTOFFSET.action.p) }
   public static func add(hello: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: hello, at: VTOFFSET.hello.p) }
+  public static func add(resume: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: resume, at: VTOFFSET.resume.p) }
   public static func endFrameRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createFrameRequest(
     _ fbb: inout FlatBufferBuilder,
     actionOffset action: Offset = Offset(),
-    helloOffset hello: Offset = Offset()
+    helloOffset hello: Offset = Offset(),
+    resumeOffset resume: Offset = Offset()
   ) -> Offset {
     let __start = ewe_ui_FrameRequest.startFrameRequest(&fbb)
     ewe_ui_FrameRequest.add(action: action, &fbb)
     ewe_ui_FrameRequest.add(hello: hello, &fbb)
+    ewe_ui_FrameRequest.add(resume: resume, &fbb)
     return ewe_ui_FrameRequest.endFrameRequest(&fbb, start: __start)
   }
 
@@ -989,6 +1117,7 @@ public struct ewe_ui_FrameRequest: FlatBufferObject, Verifiable {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.action.p, fieldName: "action", required: false, type: ForwardOffset<ewe_ui_ActionRequest>.self)
     try _v.visit(field: VTOFFSET.hello.p, fieldName: "hello", required: false, type: ForwardOffset<ewe_ui_ClientHello>.self)
+    try _v.visit(field: VTOFFSET.resume.p, fieldName: "resume", required: false, type: ForwardOffset<ewe_ui_ResumeSubscription>.self)
     _v.finish()
   }
 }
@@ -999,7 +1128,7 @@ public struct ewe_ui_Frame: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static var id: String { "EWF1" } 
+  public static var id: String { "EWF1" }
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: ewe_ui_Frame.id, addPrefix: prefix) }
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }

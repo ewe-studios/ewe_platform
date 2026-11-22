@@ -201,6 +201,7 @@ pub(crate) fn targeted(input: TokenStream, kind: Placement) -> TokenStream {
 fn placement(input: TokenStream, kind: Placement) -> ParseResult<TokenStream> {
     let (fields, template) = fields(input)?;
     let runtime = foundation_ui_runtime_path();
+    let receiving: Expr = syn::parse_quote!(#runtime::view::Target::Receiving);
     let (target, child, ctx, out, state) = match (&kind, fields.as_slice()) {
         (Placement::Before | Placement::After, [target, anchor, ctx, out, rest @ ..])
             if rest.len() <= 1 =>
@@ -211,6 +212,13 @@ fn placement(input: TokenStream, kind: Placement) -> ParseResult<TokenStream> {
                 quote!((#anchor).map(#runtime::view::Target::from))
             };
             (target, child, ctx, out, rest.first())
+        }
+        (Placement::Append, [ctx, out]) => (&receiving, quote!(None), ctx, out, None),
+        (Placement::Append, [ctx, out, state])
+            if bare_none(state)
+                || matches!(state, Expr::Call(call) if matches!(call.func.as_ref(), Expr::Path(path) if path.path.is_ident("Some"))) =>
+        {
+            (&receiving, quote!(None), ctx, out, Some(state))
         }
         (Placement::Remove, [target, ctx, out]) if template.is_empty() => {
             (target, quote!(None), ctx, out, None)

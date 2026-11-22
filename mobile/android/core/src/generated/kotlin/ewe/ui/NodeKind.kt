@@ -30,5 +30,6 @@ class NodeKind private constructor() {
         const val SHEET_TITLE: UShort = 22u
         const val SUBMIT_BUTTON: UShort = 23u
         const val CANCEL_BUTTON: UShort = 24u
+        const val DRAWING_SURFACE: UShort = 25u
     }
 }

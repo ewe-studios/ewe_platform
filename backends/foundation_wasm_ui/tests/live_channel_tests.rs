@@ -211,3 +211,87 @@ fn native_subscription_filters_replay_and_live_frames() {
         assert!(rows.get(0).operation().unwrap().ui_as_set_text().is_some());
     }
 }
+
+#[test]
+fn managed_listener_starts_at_latest_and_releases_without_another_update() {
+    use foundation_ui_runtime::dispatch::ReplayFeed;
+    let feed = channel();
+    feed.sender().push_messages(update()).unwrap();
+    let mut observer = Recorder::default();
+    let seen = observer.clone();
+    let caps = ClientCaps::web_current();
+    let lease = feed
+        .listen(
+            &caps,
+            Box::new(move |event| match event {
+                foundation_ui_runtime::dispatch::FeedEvent::Frame(bytes) => {
+                    observer.send_binary(bytes)
+                }
+                foundation_ui_runtime::dispatch::FeedEvent::Disconnected => false,
+            }),
+        )
+        .unwrap();
+    assert_eq!(feed.conn_count(), 1);
+    assert!(seen.sequences().is_empty());
+    feed.sender().push_messages(update()).unwrap();
+    assert_eq!(seen.sequences(), [2]);
+    let replay = feed.replay(&caps, 0).unwrap();
+    assert_eq!(replay.len(), 2);
+    assert_eq!(seen.sequences(), [2]);
+    drop(lease);
+    assert_eq!(feed.conn_count(), 0);
+}
+
+#[test]
+fn supported_older_clients_receive_live_and_replayed_frames_in_their_vocabulary() {
+    use foundation_ui_runtime::dispatch::{FeedEvent, ReplayFeed};
+    use foundation_ui_wire::{CreateNodeT, NodeKind, OperationT, UiOperationT};
+
+    let feed = channel();
+    let update = || {
+        let mut operation = OperationT::default();
+        let mut node = CreateNodeT::default();
+        node.node_id = 42;
+        node.kind = NodeKind::DRAWING_SURFACE;
+        operation.ui = UiOperationT::CreateNode(Box::new(node));
+        vec![ops::message(operation)]
+    };
+    let mut caps = ClientCaps::native_current(Platform::Ios);
+    caps.vocabulary_version = 11;
+    feed.sender().push_messages(update()).unwrap();
+    let mut client = Recorder::default();
+    let seen = client.clone();
+    let _lease = feed
+        .listen(
+            &caps,
+            Box::new(move |event| match event {
+                FeedEvent::Frame(bytes) => client.send_binary(bytes),
+                FeedEvent::Disconnected => false,
+            }),
+        )
+        .unwrap();
+    feed.sender().push_messages(update()).unwrap();
+    let kind = |bytes: &[u8]| {
+        read_frame(bytes, &WireLimits::default())
+            .unwrap()
+            .kind_as_frame_message()
+            .unwrap()
+            .messages()
+            .unwrap()
+            .get(0)
+            .operation()
+            .unwrap()
+            .ui_as_create_node()
+            .unwrap()
+            .kind()
+    };
+    assert_eq!(seen.sequences(), [2]);
+    assert_eq!(kind(&seen.0.lock().unwrap()[0]), NodeKind::UNKNOWN);
+    for bytes in feed.replay(&caps, 0).unwrap() {
+        assert_eq!(kind(&bytes), NodeKind::UNKNOWN);
+    }
+    let current = ClientCaps::native_current(Platform::Ios);
+    for bytes in feed.replay(&current, 0).unwrap() {
+        assert_eq!(kind(&bytes), NodeKind::DRAWING_SURFACE);
+    }
+}

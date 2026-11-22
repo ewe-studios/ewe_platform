@@ -3,7 +3,7 @@
 Open `Starter.xcodeproj` in Xcode. The app requests version 0.1.0 of the `EweUI` library from the `ewe_platform` repository.
 Swift Package Manager checks the native archive checksum when it downloads the package.
 
-The app reads `/native-starter` for its first frame. Refresh sends `server:refresh_count` to `/action`.
+The app reads `/open-count` for its first frame. Refresh sends `server:refresh_count` to `/action`.
 The server returns a replacement for the count view.
 
 Set the server address in `App/App.swift`. Run the example server at port 8080 to use the default address.

@@ -156,7 +156,7 @@ host_port=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.urlsplit(sy
 "$adb" -s "$serial" reverse "tcp:$host_port" "tcp:$host_port"
 if [[ $mode == todo ]]; then
     "$adb" -s "$serial" shell am force-stop ewe.todo
-    "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url" --ez rpc "${EWE_TODO_RPC:-false}"
+    "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url" --ez rpc "${EWE_TODO_RPC:-false}" --ez socket "${EWE_TODO_SOCKET:-false}"
     python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" server
     "$EWE_TODO_BIN" 127.0.0.1:0 --data-only >"$stage/data-host.log" 2>&1 &
     data_pid=$!
@@ -176,10 +176,13 @@ if [[ $mode == todo ]]; then
     kill "$data_pid"
     wait "$data_pid" || true
     data_pid=
+    subscriptions=$("$adb" -s "$serial" shell am instrument -w -e subscriptions true -e server "$url" ewe.todo.test/ewe.todo.ReplayCheck)
+    printf '%s\n' "$subscriptions"
+    [[ $subscriptions == *"delivered targeted expiry."* ]] || exit 1
     replay=$("$adb" -s "$serial" shell am instrument -w -e server "$url" ewe.todo.test/ewe.todo.ReplayCheck)
     printf '%s\n' "$replay"
     [[ $replay == *"Second delete refused:"* ]] || exit 1
-    "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url" --ez rpc "${EWE_TODO_RPC:-false}"
+    "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url" --ez rpc "${EWE_TODO_RPC:-false}" --ez socket "${EWE_TODO_SOCKET:-false}"
     python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" server-delete
     "$adb" -s "$serial" shell am start -n ewe.todo.local/.MainActivity
     python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" isolation

@@ -98,3 +98,5 @@ implementation("io.github.ewe-studios:ewe-ui:0.1.0")
 
 The renderer pulls the binding and core modules. The package-only starters call a remote Rust action.
 The separate todo examples show how an application can also register local Rust actions.
+
+When you change release coordinates, copy `release/native-ui.toml` to `bin/platform/mobile-release.toml`. The command packages these settings with the mobile starters.

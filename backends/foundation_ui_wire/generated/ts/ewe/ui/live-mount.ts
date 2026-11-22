@@ -4,6 +4,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { ConnectionSharing } from '../../ewe/ui/connection-sharing.js';
 import { LiveKind } from '../../ewe/ui/live-kind.js';
 import { LiveTransport } from '../../ewe/ui/live-transport.js';
 
@@ -58,8 +59,18 @@ resumeFrom():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
+sharing():ConnectionSharing {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : ConnectionSharing.TransportDefault;
+}
+
+keepAlive():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+}
+
 static startLiveMount(builder:flatbuffers.Builder) {
-  builder.startObject(6);
+  builder.startObject(8);
 }
 
 static addNodeId(builder:flatbuffers.Builder, nodeId:number) {
@@ -86,12 +97,20 @@ static addResumeFrom(builder:flatbuffers.Builder, resumeFrom:bigint) {
   builder.addFieldInt64(5, resumeFrom, BigInt('0'));
 }
 
+static addSharing(builder:flatbuffers.Builder, sharing:ConnectionSharing) {
+  builder.addFieldInt8(6, sharing, ConnectionSharing.TransportDefault);
+}
+
+static addKeepAlive(builder:flatbuffers.Builder, keepAlive:boolean) {
+  builder.addFieldInt8(7, +keepAlive, +false);
+}
+
 static endLiveMount(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createLiveMount(builder:flatbuffers.Builder, nodeId:number, kind:LiveKind, channelId:bigint, transport:LiveTransport, endpointOffset:flatbuffers.Offset, resumeFrom:bigint):flatbuffers.Offset {
+static createLiveMount(builder:flatbuffers.Builder, nodeId:number, kind:LiveKind, channelId:bigint, transport:LiveTransport, endpointOffset:flatbuffers.Offset, resumeFrom:bigint, sharing:ConnectionSharing, keepAlive:boolean):flatbuffers.Offset {
   LiveMount.startLiveMount(builder);
   LiveMount.addNodeId(builder, nodeId);
   LiveMount.addKind(builder, kind);
@@ -99,6 +118,8 @@ static createLiveMount(builder:flatbuffers.Builder, nodeId:number, kind:LiveKind
   LiveMount.addTransport(builder, transport);
   LiveMount.addEndpoint(builder, endpointOffset);
   LiveMount.addResumeFrom(builder, resumeFrom);
+  LiveMount.addSharing(builder, sharing);
+  LiveMount.addKeepAlive(builder, keepAlive);
   return LiveMount.endLiveMount(builder);
 }
 
@@ -109,7 +130,9 @@ unpack(): LiveMountT {
     this.channelId(),
     this.transport(),
     this.endpoint(),
-    this.resumeFrom()
+    this.resumeFrom(),
+    this.sharing(),
+    this.keepAlive()
   );
 }
 
@@ -121,6 +144,8 @@ unpackTo(_o: LiveMountT): void {
   _o.transport = this.transport();
   _o.endpoint = this.endpoint();
   _o.resumeFrom = this.resumeFrom();
+  _o.sharing = this.sharing();
+  _o.keepAlive = this.keepAlive();
 }
 }
 
@@ -131,7 +156,9 @@ constructor(
   public channelId: bigint = BigInt('0'),
   public transport: LiveTransport = LiveTransport.Local,
   public endpoint: string|Uint8Array|null = null,
-  public resumeFrom: bigint = BigInt('0')
+  public resumeFrom: bigint = BigInt('0'),
+  public sharing: ConnectionSharing = ConnectionSharing.TransportDefault,
+  public keepAlive: boolean = false
 ){}
 
 
@@ -144,7 +171,9 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.channelId,
     this.transport,
     endpoint,
-    this.resumeFrom
+    this.resumeFrom,
+    this.sharing,
+    this.keepAlive
   );
 }
 }

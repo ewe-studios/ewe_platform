@@ -60,7 +60,7 @@ import Foundation
         case .enabled, .checked, .hidden: value = bits <= 1 ? .bool(bits == 1) : nil
         default: value = string().map(Value.text)
         }
-        if let value { node.props[prop] = value } else { report("BadFrame", row) }
+        if let value { setProperty(node, prop, value, row) } else { report("BadFrame", row) }
       case .appendchild: insert(arg, id, row)
       case .insertbefore: insert(arg, id, before: bits, row)
       case .remove: remove(id, row)

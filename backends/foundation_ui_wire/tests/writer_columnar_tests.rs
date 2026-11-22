@@ -133,6 +133,7 @@ fn unchecked_bytes(batch: ColumnarBatchT) -> Vec<u8> {
         stream_id: 7,
         sequence_id: 20,
         kind: FrameKindT::FrameMessage(Box::new(table!(FrameMessageT {
+            subscription_id: 0,
             ack: 5,
             messages: Some(vec![batch_message(batch)]),
         }))),

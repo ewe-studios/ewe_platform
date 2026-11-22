@@ -45,7 +45,7 @@ Server and browser allocate node identifiers in separate ranges. Each producer k
 The action endpoint accepts an Ewe wire frame (EWF1) and a base64url client hello in the `x-ewe-hello` header.
 It responds with `application/primal-frame`. A four-byte little-endian size precedes each response frame. The frame contains ordered messages and an acknowledgement.
 The count stream at `/live` pushes a complete replacement to the count element after each successful mutation.
-The count stream has identifier 1. To resume after frame 12, connect to `/live?stream_id=1&resume_from=12`.
+The count stream has identifier 1. A subscriber sends its last applied sequence through the negotiated resume protocol.
 The server replays later count frames before it sends a new update.
 The add response carries the MessagePack string `host:notify` as a data message.
 The web page invokes its registered notification function when this message arrives.
@@ -73,8 +73,8 @@ This example owns the task store, the Rust action handlers, the view and its app
 The package-only starters exercise a remote Refresh action. See the [iOS starter](../mobile_starter/ios/README.md) and [Android starter](../mobile_starter/android/README.md).
 
 To run Todo Server, start the example Rust host and open either server app.
-The app reads `/native-initial` and sends mutations to `/action`.
-The count subscribes to `/native-live?stream_id=2&resume_from=0`. A reconnect uses the last applied sequence.
+The app reads `/initial` and sends mutations to `/action`.
+The count subscribes to `/live?stream_id=2&resume_from=0`. A reconnect uses the last applied sequence.
 Follow the linked app guide for the address used by each simulator.
 
 To run Todo On Device, launch its own target on the device. Rust supplies the initial frame before the first tap.
@@ -85,7 +85,7 @@ To run Todo On Device, launch its own target on the device. Rust supplies the in
 - HTTP means Hypertext Transfer Protocol.
 - WebAssembly runs compiled Rust in the browser.
 
-The initial page routes `/initial`, `/native-initial` and `/native-starter` return one bare EWF1 frame with content type `application/vnd.ewe.frame`.
+The initial page routes `/initial`, `/initial` and `/open-count` return one bare EWF1 frame with content type `application/vnd.ewe.frame`.
 
 ### Server setup
 
@@ -132,3 +132,57 @@ The native integration suites run this procedure in a separate process from the 
 The normal server also exposes the generated Actions service. Open `/?rpc` to use it from the browser.
 Run the native tests with `TEST_RUNNER_EWE_TODO_RPC=1` on iOS or `EWE_TODO_RPC=true` on Android to use it for UI actions.
 [Typed Swift and Kotlin examples](../../backends/foundation_ui_connectrpc/README.md)
+
+## Share a WebSocket
+
+Open `/?socket` to use the binary action endpoint at `/socket`.
+The browser loads the first screen over HTTP. Opening the form runs local Rust. Submitting the form sends one binary action request.
+The screen receives its reply on the socket. The live count also updates on the other open screen.
+
+The server assigns a delivery session to each screen. A session identifies the destination for an action reply.
+Each live subscription has a separate identifier and a cursor. The cursor records the last complete update that the subscriber applied.
+On a shared WebSocket, a subscriber sends its resume request on the same socket.
+On a shared event stream, it posts the binary resume request to the stream endpoint. The reply arrives on the open event stream.
+The server checks the delivery session and its allowed streams. A public application can use the default delivery principal.
+An authenticated application installs `DeliveryPrincipal` in each request context.
+
+Run the transport test from the repository root. It opens two screens, sends an action, and checks directed replay over both transports.
+
+```sh
+cargo build --profile uat -p ui_todo --features server --bin ui_todo
+node --test examples/ui_todo/tests/shared-connections.test.mjs
+```
+
+Streamed HTTP also accepts a separate resume request. The original response delivers length-prefixed frames.
+The native integration tests request an expired cursor over SSE, streamed HTTP, and WebSocket. Each checks the subscription identifier.
+
+
+All three platforms request the full todo view at `/initial`. The shared markup names its footer `open-count`.
+A mutation publishes one replacement on `/live`. Each subscriber applies it to `#open-count` in its receiving view.
+The starter requests `/open-count`. Open `/?count` in the browser to see the same screen and use its Refresh button.
+
+### Recover the count after replay expires
+
+Set `EWE_TODO_HISTORY` to limit how many updates the server retains.
+The store captures the view and the feed cursor under the same lock that protects publication.
+The handler releases the lock before it renders the response.
+A client with an expired cursor loads `/initial` again and resumes each stream from the returned cursor.
+
+The integration fixture starts the todo server with one retained update.
+
+```sh
+cargo build --profile uat -p ui_todo --bin ui_todo
+node examples/ui_todo/tests/recovery-proxy.mjs 57634
+```
+
+Set `EWE_TEST_EXPIRE_HTTP=1` on the proxy to test an HTTP 410 resume response.
+Without that setting, the real stream service sends its typed expiry control over the open feed.
+Seed one todo through the proxy. Open the full view on all three clients.
+Run the race from another terminal.
+
+```sh
+node examples/ui_todo/tests/recovery-race.mjs http://127.0.0.1:57634/
+```
+
+The fixture disconnects the three feeds and adds three todos. It holds all three recovery snapshots through revision four.
+It adds a fifth todo before sending those snapshots. Each client's count reaches five after replay.

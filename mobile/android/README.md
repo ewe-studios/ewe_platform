@@ -41,7 +41,7 @@ setContent {
     MaterialTheme {
         RemoteEweScreen(
             endpoint = "http://10.0.2.2:8180/".toHttpUrl(),
-            initialPath = "native-starter",
+            initialPath = "open-count",
             createCore = { transport ->
                 NativeCore.remote(NativePlatform.ANDROID, listOf("refresh_count"), transport)
             },
@@ -190,7 +190,7 @@ Both hosts inherit Material colors and typography. Supply a theme to use Rust ut
 ```kotlin
 val theme = EweTheme.fromManifest(todoThemeManifest())
 LocalEweScreen(::makeLocalCore, ::firstFrame, theme = theme)
-RemoteEweScreen(endpoint, "native-initial", ::makeServerCore, theme = theme)
+RemoteEweScreen(endpoint, "initial", ::makeServerCore, theme = theme)
 ```
 
 Enable the `native-manifest` feature of `foundation_theme`. The application binding above returns `theme.native_manifest()`.
@@ -238,3 +238,139 @@ bridge.sendStructured(EventId.SUBMIT, fieldId, AddItem("Buy milk", 7)) { item ->
 
 The bridge keeps the state attached to this field. Rust decodes the payload as the declared action input.
 A remote host must negotiate vocabulary 9 or later.
+
+## Send actions through a WebSocket
+
+Set the socket endpoint on the remote screen. The first view still loads over HTTP.
+
+```kotlin
+RemoteEweScreen(
+    endpoint, "initial",
+    createCore = { transport -> createTodoCore(NativePlatform.ANDROID, transport) },
+    socketEndpoint = "/socket",
+)
+```
+
+The application library supplies `createTodoCore`. Its local action opens the form. Submit sends one binary remote action.
+A later socket message carries the reply for this screen. Reconnection negotiates capabilities again.
+Pass the same `ConnectionManager` through `connections` to reuse a connection across screens with the same credentials.
+Close the manager when its account signs out.
+
+Event streams use dedicated connections by default. Set `data-connection-shared="true"` on a live mount to share its endpoint.
+WebSocket mounts share by default. Use `"false"` for a dedicated socket.
+A sender keeps the connection open when readers leave. The last handle closes it unless its owner selected retention.
+Rust can request retention with `data-connection-keep-alive="true"`. Each listener tracks its cursor separately.
+
+Run `mobile/android/gradlew -p mobile/android :core:test :ui:testDebugUnitTest` for the library checks.
+Set `EWE_TODO_SOCKET=true` when running the Android todo verification script.
+
+Streamed HTTP also accepts a separate resume request. The original response delivers length-prefixed frames.
+The native integration tests request an expired cursor over SSE, streamed HTTP, and WebSocket. Each checks the subscription identifier.
+
+## Register a named view
+
+```kotlin
+store.registerView("editor", 7u)
+val editor = store.viewStore("editor")
+val accepted = store.receive(frame, 7u)
+store.unregisterView("editor")
+```
+
+An append with no target adds a child to the receiving view. A full view replaces its content.
+Use `view#editor` to select that root. Use `sheet#details` to check the shared element type before replacement.
+A custom control can call `editor?.registerElement("details", "InvoiceEditor", id)`.
+Render the named view with its own store. Each store owns its node identifiers and stream positions.
+Closing one view releases its listeners and children. Other views keep their content and positions.
+
+## Recover a live view
+
+`RemoteEweScreen` installs the remote loader. A custom host can install its own loader.
+
+```kotlin
+val recovery = store.registerLoader(screenScope, maxAttempts = 3) {
+    service.initialView(account.currentCredentials())
+}
+recovery.open()
+```
+
+A full snapshot includes a cursor for each replayable stream. The store checks them before replacing visible content.
+A failed load preserves the displayed view. Call `recovery.retry()` when the user requests another attempt.
+Close the store when the screen closes or the account changes.
+
+## Local graphics
+
+Call `core.graphics()` on a local or server-backed screen. Local Rust actions read the same service.
+The service runs compute jobs before a view exists. The DrawingSurface control manages its own Android SurfaceView.
+An application can also attach a Surface that it already owns.
+
+```kotlin
+import ewe.ui.android.attach
+
+val graphics = core.graphics()
+val values = graphics.compute(shader, listOf(0u, 2u, 7u), 3u)
+val target = graphics.attach("preview", surface, 128u, 64u)
+target.clear(0.0, 0.0, 1.0, 1.0)
+target.remove()
+target.close()
+```
+
+Call `resize` with physical pixels. A zero dimension suspends drawing. Call `remove` when the native window is destroyed.
+After device loss, call `graphics.reinitialize()` and attach the active windows again.
+The device test uses PixelCopy to verify both presented targets. [Graphics test](ui/src/androidTest/kotlin/ewe/ui/compose/GraphicsTest.kt)
+
+### Lend a Vulkan device
+
+Use the [Vulkan bridge header](binding/src/main/assets/include/ewe_graphics_vulkan.h) in your native development kit (NDK) code.
+Pass your Vulkan instance, physical device, application programming interface (API) version, and enabled instance extensions to `ewe_ui_gpu_vulkan_plan`.
+The instance API must cover the adapter API up to Vulkan 1.3. Use the version from the instance creation record.
+Use `ewe_ui_gpu_vulkan_requirements` to read the required logical device features and extensions before you create a device.
+For an existing device, retain its actual creation records to check that it meets these requirements.
+Supply the separate Vulkan feature structures returned by the plan in the device creation chain.
+The bridge rejects aggregate Vulkan 1.1, 1.2, or 1.3 structures when they replace a required separate structure.
+See [issue 691](https://github.com/ewe-studios/ewe_platform/issues/691) for aggregate feature support.
+
+Register a local Rust action on the core that accepts `GraphicsReady`.
+Install the Kotlin provider with that action reference.
+The provider schedules work off the caller thread and returns immediately.
+Make each grant on the native worker that owns the queue.
+
+```kotlin
+core.installDeviceProvider("host:graphics_ready", object : HostDeviceProvider {
+    override fun request(request: NativeDeviceRequest) {
+        graphicsScope.launch {
+            request.use {
+                val grant = host.acquireVulkanGrant(it.device(), it.surface())
+                if (grant == null) {
+                    it.fail(HostDeviceFailure.DENIED)
+                    return@use
+                }
+                FfiConverterTypeNativeDeviceGrant.lift(grant.handle).use { nativeGrant ->
+                    it.ready(nativeGrant, grant.generation, object : HostDeviceCompletion {
+                        override fun released(deviceLost: Boolean) {
+                            host.scheduleReturn(grant, deviceLost)
+                        }
+                    })
+                }
+            }
+        }
+    }
+})
+```
+
+`acquireVulkanGrant` and `scheduleReturn` are application functions. Keep the provider scope active while work is pending.
+Supply the actual queue family and index from the logical device creation record.
+The bridge resolves that queue on the host device. The optional image must belong to that device.
+Pass a null surface name for compute only. For drawing, lend a two-dimensional `VK_FORMAT_R8G8B8A8_UNORM` image.
+The image needs one mip level, one layer, one sample, and `SAMPLED` and `TRANSFER_DST` usage.
+Initialize the image and transition it to `SHADER_READ_ONLY_OPTIMAL` on the selected queue family.
+Stop host submissions on the queue before making a grant. The bridge waits for prior queue work.
+Keep the instance, device, queue, and image alive until the completion callback.
+The callback can run on a Rust worker. Resume queue use on the native worker after the callback.
+The host owns presentation. The lease returns the image in `SHADER_READ_ONLY_OPTIMAL`.
+
+Use a larger generation number after you replace a device or surface.
+Keep the grant reference through the completion callback if the host can withdraw the image.
+Call `nativeGrant.withdraw()` to stop new work. Wait for the completion callback before you remove the image.
+Report an incompatible native record with `request.fail(HostDeviceFailure.INCOMPATIBLE)`.
+After a device loss, finish cleanup and create a device with a new generation.
+See the [Android Vulkan handoff test](ui/src/androidTest/kotlin/ewe/ui/compose/HostGraphicsTest.kt) for a complete provider and native host.

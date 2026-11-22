@@ -400,7 +400,7 @@ in parallel.
 | 04 | [signed-state](./features/04-signed-state/feature.md) | A host-installed state signer, readable or private state, and compact encryption on native and Wasm hosts | 01 | Sonnet | Runtime | ✅ Complete |
 | 05 | [action-runtime](./features/05-action-runtime/feature.md) | `Ctx`, `Context`, `Interaction`, `ActionReceiver`, the registry, the action manager | 01, 04 | Sonnet | Runtime | ✅ Complete |
 | 06 | [action-macro](./features/06-action-macro/feature.md) | The `#[action]` attribute macro | 05 | Sonnet | Runtime | ✅ Complete |
-| 07 | [dispatcher-and-handshake](./features/07-dispatcher-and-handshake/feature.md) | The stateless dispatcher, the delivery handler, `ClientHello` and `ServerCaps` | 03, 04, 05 | Sonnet | Runtime | ✅ Implemented |
+| 07 | [dispatcher-and-handshake](./features/07-dispatcher-and-handshake/feature.md) | The stateless dispatcher, the delivery handler, `ClientHello` and `ServerCaps` | 03, 04, 05 | Sonnet | Runtime | ✅ Complete |
 | 08 | [html-macro-core-vocabulary](./features/08-html-macro-core-vocabulary/feature.md) | `html!` core elements, `on:` action bindings, the view form with state, `Html` to ops | 01, 02, 05, 06, 07 | Sonnet | Runtime | ✅ Complete |
 | 09 | [web-frame-applicator](./features/09-web-frame-applicator/feature.md) | The generated TS reader bundle and one apply loop for every message type on the web | 01, 02, 03 | Sonnet | Web | ✅ Complete |
 | 10 | [web-action-manager](./features/10-web-action-manager/feature.md) | The web action manager, the JS registry, the state harvest, the request path | 05, 07, 09 | Sonnet | Web | ✅ Complete |
@@ -416,18 +416,18 @@ in parallel.
 | 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | ✅ Complete |
 | 22 | [mobile-android-package](./features/22-mobile-android-package/feature.md) | Installable Kotlin library, Todo Server and Todo On Device | 13, 15, 16, 17 | Sonnet | Native | ✅ Complete |
 | 23 | [native-design-and-themes](./features/23-native-design-and-themes/feature.md) | Platform controls and application themes in both mobile libraries | 02, 14, 15, 21, 22 | Sonnet | Native | ✅ Complete |
-| 24 | [mobile-project-templates](./features/24-mobile-project-templates/feature.md) | Generate standalone iOS and Android applications with the platform generator | 19, 21, 22 | Sonnet | Native | In progress |
-| 25 | [mobile-websocket-actions](./features/25-mobile-websocket-actions/feature.md) | Share live connections, resume subscriptions by message, and send WebSocket actions | 07, 10, 11, 13, 21, 22 | Sonnet | Cross-platform | Approved |
+| 24 | [mobile-project-templates](./features/24-mobile-project-templates/feature.md) | Generate standalone iOS and Android applications with the platform generator | 19, 21, 22 | Sonnet | Native | Complete |
+| 25 | [mobile-websocket-actions](./features/25-mobile-websocket-actions/feature.md) | Share live connections, resume subscriptions by message, and send WebSocket actions | 07, 10, 11, 13, 21, 22 | Sonnet | Cross-platform | Complete |
 | 26 | [connectrpc-transport](./features/26-connectrpc-transport/feature.md) | Connect remote procedure calls through a host network adapter on mobile and WebAssembly | 07, 10, 13, 21, 22 | Sonnet | Cross-platform | Complete |
 | 27 | [single-todo-package](./features/27-single-todo-package/feature.md) | Build the todo server, browser module, and mobile library from one package | 16, 21, 22 | Sonnet | Cross-platform | Complete |
 | 28 | [typed-action-input](./features/28-typed-action-input/feature.md) | Declare structured action input and preserve plain text | 01, 05, 06, 07, 10, 13 | Sonnet | Cross-platform | Complete |
 | 29 | [thread-safe-signals](./features/29-thread-safe-signals/feature.md) | Share native signals between threads and preserve local WebAssembly scopes | Existing foundation_signals | Sonnet | Cross-platform | ✅ Complete |
 | 30 | [frame-readers-and-http-routes](./features/30-frame-readers-and-http-routes/feature.md) | Read verified frames from streams and register ordinary server handlers | 01, 03, 05, 07 | Sonnet | Cross-platform | ✅ Complete |
 | 31 | [explicit-control-tags](./features/31-explicit-control-tags/feature.md) | Replace presentation roles with shared control tags | 02, 08, 23 | Sonnet | Cross-platform | ✅ Complete |
-| 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | Approved |
-| 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | Approved |
-| 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Approved |
-| 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Approved |
+| 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | ✅ Complete |
+| 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | ✅ Complete |
+| 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Complete |
+| 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Complete |
 | 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | Proposed; implement last |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.

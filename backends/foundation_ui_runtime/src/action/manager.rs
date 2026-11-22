@@ -89,6 +89,7 @@ impl From<LookupError> for ManagerError {
 }
 
 struct ServerActions {
+    stream_id: u64,
     names: BTreeSet<String>,
     structured: bool,
 }
@@ -153,12 +154,16 @@ impl ActionManager {
             .write()
             .unwrap_or_else(PoisonError::into_inner) = Some(ServerActions {
             names,
+            stream_id: caps.stream_id,
             structured: caps.status == CapsStatus::Ok
                 && caps.vocabulary_version >= foundation_ui_wire::vocab::STRUCTURED_INPUT_VERSION,
         });
     }
 
-    fn route(&self, reference: &ActionRef<'_>) -> Result<(Origin, &Transport, bool), LookupError> {
+    fn route(
+        &self,
+        reference: &ActionRef<'_>,
+    ) -> Result<(Origin, &Transport, bool, u64), LookupError> {
         let advertised = self
             .server_actions
             .read()
@@ -192,11 +197,34 @@ impl ActionManager {
         };
         let structured =
             origin == Origin::Host || advertised.as_ref().is_some_and(|caps| caps.structured);
+        let stream_id = match origin {
+            Origin::Host => self.stream_id,
+            Origin::Server => advertised
+                .as_ref()
+                .map(|caps| caps.stream_id)
+                .filter(|id| *id != 0)
+                .unwrap_or(self.stream_id),
+        };
         Ok((
             origin,
             transport.ok_or(LookupError::UnavailableOrigin)?,
             structured,
+            stream_id,
         ))
+    }
+
+    /// Check that a callback names Rust code installed on this core.
+    ///
+    /// # Errors
+    /// Rejects server routes, missing handlers, and unavailable local transports.
+    pub fn require_local_handler(&self, reference: &str) -> Result<(), LookupError> {
+        let action = ActionRef::parse(reference)?;
+        if action.origin != Origin::Host || self.host.is_none() {
+            return Err(LookupError::UnavailableOrigin);
+        }
+        self.registry
+            .get(Origin::Host, action.name, self.surface)
+            .map(|_| ())
     }
 
     /// Encode a structured value for an action. Text events use `trigger`.
@@ -227,7 +255,7 @@ impl ActionManager {
         event: TriggerEvent,
     ) -> Result<Option<Vec<u8>>, ManagerError> {
         let reference = ActionRef::parse(reference)?;
-        let (origin, transport, structured) = self.route(&reference)?;
+        let (origin, transport, structured, stream_id) = self.route(&reference)?;
         if event.input.json.is_some() {
             if event.input.value.is_some() {
                 return Err(ManagerError::InvalidInput(
@@ -269,7 +297,7 @@ impl ActionManager {
         request.action = Some(Box::new(action));
         let mut frame = FrameT::default();
         frame.schema_version = SCHEMA_VERSION;
-        frame.stream_id = self.stream_id;
+        frame.stream_id = stream_id;
         frame.kind = FrameKindT::FrameRequest(Box::new(request));
 
         let reply = {

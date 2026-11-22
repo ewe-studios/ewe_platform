@@ -14,7 +14,7 @@ Run the scheme. Tap **Increment**. The count increases on the device.
 Change the `increment` action in `rust/src/lib.rs`. Run the script again after each Rust change.
 {% else %}
 Set `EWE_SERVER` in the scheme environment. The default address is `http://127.0.0.1:8080`.
-Run the scheme. The screen loads from `GET /native-starter`. Tap **Refresh** to send `server:refresh_count` to the server.
+Run the scheme. The screen loads from `GET /open-count`. Tap **Refresh** to send `server:refresh_count` to the server.
 Change the initial route and action in `App/App.swift`.
 
 To run the reference server, check out the matching Ewe repository and run the following commands there.

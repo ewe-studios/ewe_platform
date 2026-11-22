@@ -27,6 +27,7 @@ pub(super) fn pack_message_frame<'a>(
         builder,
         &FrameMessageArgs {
             ack: frame.ack,
+            subscription_id: frame.subscription_id,
             messages,
         },
     )

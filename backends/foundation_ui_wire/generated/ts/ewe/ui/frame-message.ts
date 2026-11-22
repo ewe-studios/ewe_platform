@@ -40,8 +40,13 @@ messagesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+subscriptionId():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
 static startFrameMessage(builder:flatbuffers.Builder) {
-  builder.startObject(2);
+  builder.startObject(3);
 }
 
 static addAck(builder:flatbuffers.Builder, ack:bigint) {
@@ -64,22 +69,28 @@ static startMessagesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addSubscriptionId(builder:flatbuffers.Builder, subscriptionId:bigint) {
+  builder.addFieldInt64(2, subscriptionId, BigInt('0'));
+}
+
 static endFrameMessage(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createFrameMessage(builder:flatbuffers.Builder, ack:bigint, messagesOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createFrameMessage(builder:flatbuffers.Builder, ack:bigint, messagesOffset:flatbuffers.Offset, subscriptionId:bigint):flatbuffers.Offset {
   FrameMessage.startFrameMessage(builder);
   FrameMessage.addAck(builder, ack);
   FrameMessage.addMessages(builder, messagesOffset);
+  FrameMessage.addSubscriptionId(builder, subscriptionId);
   return FrameMessage.endFrameMessage(builder);
 }
 
 unpack(): FrameMessageT {
   return new FrameMessageT(
     this.ack(),
-    this.bb!.createObjList<Message, MessageT>(this.messages.bind(this), this.messagesLength())
+    this.bb!.createObjList<Message, MessageT>(this.messages.bind(this), this.messagesLength()),
+    this.subscriptionId()
   );
 }
 
@@ -87,13 +98,15 @@ unpack(): FrameMessageT {
 unpackTo(_o: FrameMessageT): void {
   _o.ack = this.ack();
   _o.messages = this.bb!.createObjList<Message, MessageT>(this.messages.bind(this), this.messagesLength());
+  _o.subscriptionId = this.subscriptionId();
 }
 }
 
 export class FrameMessageT implements flatbuffers.IGeneratedObject {
 constructor(
   public ack: bigint = BigInt('0'),
-  public messages: (MessageT)[] = []
+  public messages: (MessageT)[] = [],
+  public subscriptionId: bigint = BigInt('0')
 ){}
 
 
@@ -102,7 +115,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return FrameMessage.createFrameMessage(builder,
     this.ack,
-    messages
+    messages,
+    this.subscriptionId
   );
 }
 }

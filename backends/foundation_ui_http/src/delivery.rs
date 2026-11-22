@@ -76,7 +76,7 @@ fn start_body(
     (input, producer)
 }
 
-fn response_head(media_type: &str) -> Result<Vec<u8>, ViewError> {
+pub(crate) fn response_head(media_type: &str) -> Result<Vec<u8>, ViewError> {
     let response = http::SimpleOutgoingResponse::builder()
         .with_status(http::Status::OK)
         .add_header(SimpleHeader::CONTENT_TYPE, media_type.to_owned())
@@ -104,7 +104,10 @@ pub(crate) async fn error_response(
 ) -> ServeOutcome {
     let (status, message) = match error {
         ViewError::PayloadTooLarge => (413, "Action request exceeds the configured limit"),
-        ViewError::BadRequest(_) => (400, "Invalid view request"),
+        ViewError::BadRequest(ref reason) => {
+            tracing::debug!(%reason, "Rejected view request");
+            (400, "Invalid view request")
+        }
         ViewError::UnsupportedVocabulary => (406, "Unsupported view vocabulary"),
         _ => {
             tracing::error!(%error, "view handler failed");

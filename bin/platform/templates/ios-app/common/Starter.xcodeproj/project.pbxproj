@@ -235,6 +235,8 @@ AA7800000000000000000001,
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = {{ APP_ID }};
+{% if HOST == "on-device" %}                SWIFT_INCLUDE_PATHS = ("$(inherited)", "$(SRCROOT)/generated/CounterFFI");
+{% endif %}
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -315,6 +317,8 @@ AA7800000000000000000001,
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = {{ APP_ID }};
+{% if HOST == "on-device" %}                SWIFT_INCLUDE_PATHS = ("$(inherited)", "$(SRCROOT)/generated/CounterFFI");
+{% endif %}
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -360,7 +364,7 @@ AA7800000000000000000001,
 		9499C8CFB1E1A0AE046613DD /* EweUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6D1E382D72F7FF69A597B3C8 /* XCRemoteSwiftPackageReference "ewe_platform" */;
-			productName = EweUI;
+			productName = {{ SWIFT_PRODUCT }};
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

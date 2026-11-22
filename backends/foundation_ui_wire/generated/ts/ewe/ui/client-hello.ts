@@ -46,8 +46,18 @@ resumeFrom():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
+subscriptionResume():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+}
+
+requestTag():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
 static startClientHello(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(6);
 }
 
 static addVocabularyVersion(builder:flatbuffers.Builder, vocabularyVersion:number) {
@@ -66,17 +76,27 @@ static addResumeFrom(builder:flatbuffers.Builder, resumeFrom:bigint) {
   builder.addFieldInt64(3, resumeFrom, BigInt('0'));
 }
 
+static addSubscriptionResume(builder:flatbuffers.Builder, subscriptionResume:boolean) {
+  builder.addFieldInt8(4, +subscriptionResume, +false);
+}
+
+static addRequestTag(builder:flatbuffers.Builder, requestTag:bigint) {
+  builder.addFieldInt64(5, requestTag, BigInt('0'));
+}
+
 static endClientHello(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createClientHello(builder:flatbuffers.Builder, vocabularyVersion:number, platform:Platform, mount:MountSurface, resumeFrom:bigint):flatbuffers.Offset {
+static createClientHello(builder:flatbuffers.Builder, vocabularyVersion:number, platform:Platform, mount:MountSurface, resumeFrom:bigint, subscriptionResume:boolean, requestTag:bigint):flatbuffers.Offset {
   ClientHello.startClientHello(builder);
   ClientHello.addVocabularyVersion(builder, vocabularyVersion);
   ClientHello.addPlatform(builder, platform);
   ClientHello.addMount(builder, mount);
   ClientHello.addResumeFrom(builder, resumeFrom);
+  ClientHello.addSubscriptionResume(builder, subscriptionResume);
+  ClientHello.addRequestTag(builder, requestTag);
   return ClientHello.endClientHello(builder);
 }
 
@@ -85,7 +105,9 @@ unpack(): ClientHelloT {
     this.vocabularyVersion(),
     this.platform(),
     this.mount(),
-    this.resumeFrom()
+    this.resumeFrom(),
+    this.subscriptionResume(),
+    this.requestTag()
   );
 }
 
@@ -95,6 +117,8 @@ unpackTo(_o: ClientHelloT): void {
   _o.platform = this.platform();
   _o.mount = this.mount();
   _o.resumeFrom = this.resumeFrom();
+  _o.subscriptionResume = this.subscriptionResume();
+  _o.requestTag = this.requestTag();
 }
 }
 
@@ -103,7 +127,9 @@ constructor(
   public vocabularyVersion: number = 0,
   public platform: Platform = Platform.Unknown,
   public mount: MountSurface = MountSurface.Native,
-  public resumeFrom: bigint = BigInt('0')
+  public resumeFrom: bigint = BigInt('0'),
+  public subscriptionResume: boolean = false,
+  public requestTag: bigint = BigInt('0')
 ){}
 
 
@@ -112,7 +138,9 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.vocabularyVersion,
     this.platform,
     this.mount,
-    this.resumeFrom
+    this.resumeFrom,
+    this.subscriptionResume,
+    this.requestTag
   );
 }
 }

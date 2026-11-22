@@ -5,7 +5,7 @@ The example calls `NativeCore.remote` to register the server action `refresh_cou
 It contains its own activity and application resources. Gradle resolves the renderer, native bindings and Rust libraries through the Maven dependency.
 
 Set `eweVersion` in `gradle.properties` to a released version.
-The example server exposes its first view at `/native-starter`. The **Refresh** button requests the current count.
+The example server exposes its first view at `/open-count`. The **Refresh** button requests the current count.
 
 For local staging, start the example server from the monorepo and set the staging repository path.
 

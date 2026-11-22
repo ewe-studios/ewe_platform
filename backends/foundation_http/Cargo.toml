@@ -26,7 +26,6 @@ serde_json = { workspace = true }
 
 regex = { version = "1.12" }
 bytes = { version = "1.5" }
-sha1 = { workspace = true }
 base64 = "0.22"
 tracing = "0.1"
 async-trait = "0.1"
@@ -50,10 +49,10 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.15", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
-wasm-bindgen = { version = "0.2", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
-js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", features = [
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+web-sys = { workspace = true, features = [
     "console",
     "Headers",
     "Request",

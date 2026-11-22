@@ -70,3 +70,15 @@ The handler accepts POST requests at `/action` and `/action/*`.
 A named path must agree with the action name inside the frame.
 The handler accepts one raw request and returns a length-prefixed reply.
 Install an `Arc<dyn ActionRequestPolicy>` in the host or middleware context to check requests before dispatch.
+
+### Share live delivery
+
+Mount `ActionSocketRoute::new(dispatcher.clone())` to serve binary WebSocket actions at `/socket`.
+Each screen negotiates its own session. An action reply returns to that screen.
+Install `SubscriptionReplay` in the request context to select the streams that the caller can read.
+
+Register the same `EventDelivery` instance for GET and POST on the feed path.
+The GET opens the downstream connection. Its hello header negotiates a session.
+Use the Accept header `text/event-stream` for server-sent events or `application/primal-frame` for length-prefixed frames.
+An authenticated POST can resume one subscription on that connection.
+Set `DeliveryPrincipal` from trusted authentication middleware on both requests.

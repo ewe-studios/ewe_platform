@@ -33,6 +33,8 @@ impl<'a> LiveMount<'a> {
     pub const VT_TRANSPORT: flatbuffers::VOffsetT = 10;
     pub const VT_ENDPOINT: flatbuffers::VOffsetT = 12;
     pub const VT_RESUME_FROM: flatbuffers::VOffsetT = 14;
+    pub const VT_SHARING: flatbuffers::VOffsetT = 16;
+    pub const VT_KEEP_ALIVE: flatbuffers::VOffsetT = 18;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -50,6 +52,8 @@ impl<'a> LiveMount<'a> {
             builder.add_endpoint(x);
         }
         builder.add_node_id(args.node_id);
+        builder.add_keep_alive(args.keep_alive);
+        builder.add_sharing(args.sharing);
         builder.add_transport(args.transport);
         builder.add_kind(args.kind);
         builder.finish()
@@ -62,6 +66,8 @@ impl<'a> LiveMount<'a> {
         let transport = self.transport();
         let endpoint = self.endpoint().map(|x| x.to_string());
         let resume_from = self.resume_from();
+        let sharing = self.sharing();
+        let keep_alive = self.keep_alive();
         LiveMountT {
             node_id,
             kind,
@@ -69,6 +75,8 @@ impl<'a> LiveMount<'a> {
             transport,
             endpoint,
             resume_from,
+            sharing,
+            keep_alive,
         }
     }
 
@@ -137,6 +145,31 @@ impl<'a> LiveMount<'a> {
                 .unwrap()
         }
     }
+    #[inline]
+    pub fn sharing(&self) -> ConnectionSharing {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<ConnectionSharing>(
+                    LiveMount::VT_SHARING,
+                    Some(ConnectionSharing::TransportDefault),
+                )
+                .unwrap()
+        }
+    }
+    #[inline]
+    pub fn keep_alive(&self) -> bool {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<bool>(LiveMount::VT_KEEP_ALIVE, Some(false))
+                .unwrap()
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for LiveMount<'_> {
@@ -157,6 +190,8 @@ impl flatbuffers::Verifiable for LiveMount<'_> {
                 false,
             )?
             .visit_field::<u64>("resume_from", Self::VT_RESUME_FROM, false)?
+            .visit_field::<ConnectionSharing>("sharing", Self::VT_SHARING, false)?
+            .visit_field::<bool>("keep_alive", Self::VT_KEEP_ALIVE, false)?
             .finish();
         Ok(())
     }
@@ -168,6 +203,8 @@ pub struct LiveMountArgs<'a> {
     pub transport: LiveTransport,
     pub endpoint: Option<flatbuffers::WIPOffset<&'a str>>,
     pub resume_from: u64,
+    pub sharing: ConnectionSharing,
+    pub keep_alive: bool,
 }
 impl<'a> Default for LiveMountArgs<'a> {
     #[inline]
@@ -179,6 +216,8 @@ impl<'a> Default for LiveMountArgs<'a> {
             transport: LiveTransport::Local,
             endpoint: None,
             resume_from: 0,
+            sharing: ConnectionSharing::TransportDefault,
+            keep_alive: false,
         }
     }
 }
@@ -222,6 +261,19 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> LiveMountBuilder<'a, 'b, A> {
             .push_slot::<u64>(LiveMount::VT_RESUME_FROM, resume_from, 0);
     }
     #[inline]
+    pub fn add_sharing(&mut self, sharing: ConnectionSharing) {
+        self.fbb_.push_slot::<ConnectionSharing>(
+            LiveMount::VT_SHARING,
+            sharing,
+            ConnectionSharing::TransportDefault,
+        );
+    }
+    #[inline]
+    pub fn add_keep_alive(&mut self, keep_alive: bool) {
+        self.fbb_
+            .push_slot::<bool>(LiveMount::VT_KEEP_ALIVE, keep_alive, false);
+    }
+    #[inline]
     pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> LiveMountBuilder<'a, 'b, A> {
         let start = _fbb.start_table();
         LiveMountBuilder {
@@ -245,6 +297,8 @@ impl core::fmt::Debug for LiveMount<'_> {
         ds.field("transport", &self.transport());
         ds.field("endpoint", &self.endpoint());
         ds.field("resume_from", &self.resume_from());
+        ds.field("sharing", &self.sharing());
+        ds.field("keep_alive", &self.keep_alive());
         ds.finish()
     }
 }
@@ -257,6 +311,8 @@ pub struct LiveMountT {
     pub transport: LiveTransport,
     pub endpoint: Option<String>,
     pub resume_from: u64,
+    pub sharing: ConnectionSharing,
+    pub keep_alive: bool,
 }
 impl Default for LiveMountT {
     fn default() -> Self {
@@ -267,6 +323,8 @@ impl Default for LiveMountT {
             transport: LiveTransport::Local,
             endpoint: None,
             resume_from: 0,
+            sharing: ConnectionSharing::TransportDefault,
+            keep_alive: false,
         }
     }
 }
@@ -281,6 +339,8 @@ impl LiveMountT {
         let transport = self.transport;
         let endpoint = self.endpoint.as_ref().map(|x| _fbb.create_string(x));
         let resume_from = self.resume_from;
+        let sharing = self.sharing;
+        let keep_alive = self.keep_alive;
         LiveMount::create(
             _fbb,
             &LiveMountArgs {
@@ -290,6 +350,8 @@ impl LiveMountT {
                 transport,
                 endpoint,
                 resume_from,
+                sharing,
+                keep_alive,
             },
         )
     }

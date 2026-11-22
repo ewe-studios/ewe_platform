@@ -1,11 +1,9 @@
 //! Test the server and browser-local actions in the same browser page.
-use foundation_browser::{
-    test::{BacklogConfig, LiveChannel},
-    BrowserDriver, LaunchConfig,
-};
+use foundation_browser::{BrowserDriver, LaunchConfig};
 use foundation_context::Ctx;
 use foundation_http::ShutdownSignal;
 use foundation_ui_wire::writer::WriterConfig;
+use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
 use std::{net::TcpListener, path::Path, sync::Arc};
 
 #[test]
@@ -40,8 +38,8 @@ fn server_and_host_actions_work() {
         let driver = BrowserDriver::launch(config).unwrap();
         let other = driver.new_page().unwrap();
         other.goto(&url).unwrap();
-        let shared_count = other.locator("#count-value");
-        shared_count.expect().to_have_text("0").unwrap();
+        let shared_count = other.locator("#open-count");
+        shared_count.expect().to_have_text("0 open todos").unwrap();
         let page = driver.new_page().unwrap();
         page.goto(&url).unwrap();
         let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]"#);
@@ -53,7 +51,7 @@ fn server_and_host_actions_work() {
         check_cancel_and_submit(&page, &add);
         page.locator("#open-count")
             .expect()
-            .to_have_text("1")
+            .to_have_text("1 open todo")
             .unwrap_or_else(|e| panic!("{e:?}; {:?}", page.eval("document.body.innerText")));
         let toggle = page.locator(&button("server:toggle_todo"));
         toggle.expect().to_have_text("Complete").unwrap();
@@ -93,9 +91,9 @@ fn server_and_host_actions_work() {
             .as_str(),
             Some("rgb(102, 51, 153)|17px|true")
         );
-        shared_count.expect().to_have_text("1").unwrap();
+        shared_count.expect().to_have_text("1 open todo").unwrap();
         submit_with_keyboard(&page, &add, "second todo");
-        shared_count.expect().to_have_text("2").unwrap();
+        shared_count.expect().to_have_text("2 open todos").unwrap();
         let second_delete =
             page.locator(r#"button[primal\:onclick="host:open_delete_dialog"][value="2"]"#);
         second_delete.expect().to_be_visible().unwrap();
@@ -107,7 +105,7 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_count(0)
             .unwrap();
-        shared_count.expect().to_have_text("1").unwrap();
+        shared_count.expect().to_have_text("1 open todo").unwrap();
         page.locator("button[value=done]").click().unwrap();
         toggle.expect().to_have_count(0).unwrap();
         page.locator("button[value=all]").click().unwrap();
@@ -118,6 +116,12 @@ fn server_and_host_actions_work() {
             const fetch = window.fetch.bind(window);
             window.fetch = (url, options) => {
                 if (String(url).includes('/live')) window.replayUrl = String(url);
+                if (String(url).includes('/live') && options?.method === 'POST') {
+                    window.replayCursor = import('/foundation-ui-wire.js').then(w => {
+                        const frame = w.Frame.getRootAsFrame(new w.ByteBuffer(options.body));
+                        return String(frame.kind(new w.FrameRequest()).resume().after());
+                    });
+                }
                 const pending = fetch(url, options);
                 if (String(url).includes('/live')) pending.then(r => window.replayStatus = r.status, e => window.replayStatus=String(e));
                 return pending;
@@ -125,12 +129,14 @@ fn server_and_host_actions_work() {
         }",
             )
             .unwrap();
+        let initial_loads = "performance.getEntriesByType('resource').filter(e => new URL(e.name).pathname === '/initial').length";
+        let loads_before = other.eval(initial_loads).unwrap();
         channel.close();
         toggle.click().unwrap();
         shared_count
             .expect()
             .timeout(std::time::Duration::from_secs(20))
-            .to_have_text("0")
+            .to_have_text("0 open todos")
             .unwrap_or_else(|err| {
                 panic!(
                     "{err:?}; primary {:?}; observer {:?}",
@@ -138,16 +144,14 @@ fn server_and_host_actions_work() {
                     other.eval("[document.body.innerText,window.replayUrl,window.replayStatus]")
                 )
             });
+        assert_eq!(other.eval(initial_loads).unwrap(), loads_before);
         assert_eq!(
-            other
-                .eval("new URL(window.replayUrl, location.href).searchParams.get('resume_from')")
-                .unwrap()
-                .as_str(),
+            other.eval("window.replayCursor").unwrap().as_str(),
             Some("3")
         );
         page.locator("#open-count")
             .expect()
-            .to_have_text("0")
+            .to_have_text("0 open todos")
             .unwrap();
         page.locator(&button("host:open_delete_dialog"))
             .click()
@@ -172,7 +176,12 @@ fn server_and_host_actions_work() {
         let rpc = driver.new_page().unwrap();
         rpc.goto(&format!("{url}?rpc")).unwrap();
         let open = rpc.locator(&button("host:open_add_dialog"));
-        open.expect().to_be_visible().unwrap();
+        open.expect().to_be_visible().unwrap_or_else(|e| {
+            panic!(
+                "{e:?}; {:?}",
+                rpc.eval("document.querySelector('#notice').value")
+            )
+        });
         let calls = "performance.getEntriesByType('resource').filter(e => new URL(e.name).pathname === '/ewe.ui.v1.Actions/Exchange').length";
         assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(1));
         open.click().unwrap();
@@ -183,9 +192,44 @@ fn server_and_host_actions_work() {
         input.press("Enter").unwrap();
         rpc.locator("#open-count")
             .expect()
-            .to_have_text("1")
+            .to_have_text("1 open todo")
+            .unwrap();
+        rpc.locator(&button("server:toggle_todo"))
+            .expect()
+            .to_be_visible()
             .unwrap();
         assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(2));
+        let starter = driver.new_page().unwrap();
+        starter.goto(&format!("{url}?count")).unwrap();
+        starter
+            .locator("#open-count")
+            .expect()
+            .to_have_text("1")
+            .unwrap();
+        let refresh = starter.locator(&button("server:refresh_count"));
+        refresh.expect().to_be_visible().unwrap();
+        let socket = driver.new_page().unwrap();
+        socket.goto(&format!("{url}?socket")).unwrap();
+        let open = socket.locator(&button("host:open_add_dialog"));
+        open.expect().to_be_visible().unwrap_or_else(|e| {
+            panic!(
+                "{e:?}; {:?}",
+                socket.eval("document.querySelector('#notice').value")
+            )
+        });
+        submit_with_keyboard(&socket, &open, "Socket task");
+        socket
+            .locator("#open-count")
+            .expect()
+            .to_have_text("2 open todos")
+            .unwrap();
+        shared_count.expect().to_have_text("2 open todos").unwrap();
+        refresh.click().unwrap();
+        starter
+            .locator("#open-count")
+            .expect()
+            .to_have_text("2")
+            .unwrap();
     });
     shutdown.turn_on();
     worker.join().unwrap().unwrap();
@@ -319,4 +363,24 @@ fn capture_page(page: &foundation_browser::Page<'_>, state: &str) {
         page.screenshot(output.join(format!("web-{state}.png")))
             .unwrap();
     }
+}
+
+/// Run with two native peers on the same server. The external test driver publishes one update.
+#[test]
+#[ignore = "requires mobile peers and a live server"]
+fn one_count_publication_reaches_the_open_browser() {
+    let base = std::env::var("EWE_SHARED_COUNT_URL").unwrap();
+    let before = std::env::var("EWE_SHARED_COUNT_BEFORE").unwrap();
+    let after = std::env::var("EWE_SHARED_COUNT_AFTER").unwrap();
+    let driver = BrowserDriver::launch(LaunchConfig::default().ctx(Ctx::host())).unwrap();
+    let page = driver.new_page().unwrap();
+    page.goto(&base).unwrap();
+    let count = page.locator("#open-count");
+    count.expect().to_have_text(&before).unwrap();
+    println!("Browser subscribed at {before}");
+    count
+        .expect()
+        .timeout(std::time::Duration::from_secs(90))
+        .to_have_text(&after)
+        .unwrap();
 }

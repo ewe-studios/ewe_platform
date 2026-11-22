@@ -330,3 +330,30 @@ await manager.triggerStructured("server:save", field, {
 ```
 
 The manager uses the signed state on the triggering field. Structured submission requires vocabulary 9 or later on a remote peer.
+
+## Select a receiving view
+
+Call `const close = frames.registerView("editor", root)` to register an existing root.
+Pass `{viewMount: root}` as the second argument to `frames.receive` for a reply to that view.
+An append without a target adds content to the root. Use `view#editor` to select it explicitly.
+Use `sheet#details` for a type-checked bottom sheet named `details`.
+A custom renderer can call `frames.registerElement("details", "InvoiceEditor", node)`.
+Call `close()` when the host releases the view.
+
+## Recover a live view
+
+Register the loader on the receiving root. Each call obtains current credentials for the same account.
+
+```javascript
+const recovery = frames.registerLoader(root, async signal => {
+  const response = await fetch("/initial", {signal, headers: currentHeaders()});
+  return readViewResponse(response, frames.maxFrameBytes);
+}, {maxAttempts: 3, onError: showError});
+await recovery.open();
+retryButton.onclick = () => recovery.retry().catch(showError);
+```
+
+The loader returns one full view. Each replayable stream in that view declares its committed position.
+The renderer checks the new content and its stream positions before replacing the visible view.
+A failed load leaves the current content visible. Disposing the view cancels its loader.
+Close the old view when the signed-in account changes.

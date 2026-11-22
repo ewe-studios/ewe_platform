@@ -12,6 +12,8 @@ import io.github.ewe_studios.ewe.core.ConnectSender
 import io.github.ewe_studios.ewe.core.NativeHttpClient
 import io.github.ewe_studios.ewe.core.NativePlatform
 import ewe.ui.android.CoreBinding
+import ewe.ui.android.SocketActionConnection
+import ewe.ui.runtime.ConnectionManager
 import ewe.ui.android.HttpActionConnection
 import ewe.ui.android.MainGapTimer
 import ewe.ui.android.OkHttpChannelFactory
@@ -34,15 +36,24 @@ fun RemoteEweScreen(
     actionPath: String = "action",
     theme: EweTheme = EweTheme(),
     rpcBase: HttpUrl? = null,
+    socketEndpoint: String? = null,
+    connections: ConnectionManager? = null,
 ) {
-    EweHost(listOf(endpoint, initialPath, actionPath, rpcBase ?: ""), "Connecting…", modifier, theme) { host ->
+    require(rpcBase == null || socketEndpoint == null)
+    EweHost(listOf(endpoint, initialPath, actionPath, rpcBase ?: "", socketEndpoint ?: "", connections ?: ""), "Connecting…", modifier, theme) { host ->
         val client = OkHttpClient()
         host.onClose {
             client.dispatcher.cancelAll()
             client.connectionPool.evictAll()
         }
         val connection = HttpActionConnection(client, endpoint, actionPath)
-        val sender = if (rpcBase == null) connection else {
+        val factory = OkHttpChannelFactory(client, endpoint)
+        val manager = connections ?: factory.connectionManager().also { host.onClose(it::close) }
+        val socket = socketEndpoint?.let { path ->
+            SocketActionConnection(manager, path, { host.apply(it, "action reply") },
+                { host.store.onError?.invoke("Transport", it.message.orEmpty()) }).also { host.onClose(it::close) }
+        }
+        val sender = if (rpcBase == null) socket ?: connection else {
             val network = NativeHttpClient(OkHttpRpcClient(client))
             host.onClose(network::close)
             val rpc = ConnectSender(network, rpcBase.toString(), NativePlatform.ANDROID, host.store.maxFrameBytes.toUInt(), 16_384u)
@@ -51,11 +62,11 @@ fun RemoteEweScreen(
                 override suspend fun send(request: ByteArray): ByteArray? = rpc.exchange(request)
             }
         }
-        val binding = host.attach(createCore(sender), OkHttpChannelFactory(client, endpoint))
-        val hello = binding.hello()
+        val binding = host.attach(createCore(sender), factory, manager)
+        val hello = socket?.let { binding.helloFor(it.requestTag) } ?: binding.hello()
         connection.configure(hello)
         host.apply(requireNotNull(sender.send(hello)) { "Missing server capabilities" }, "capabilities")
-        host.applyInitial(connection.initial(initialPath))
+        host.loadView { connection.initial(initialPath) }
     }
 }
 
@@ -99,8 +110,13 @@ private fun EweHost(
         Column {
             val host = current
             val status = host?.status ?: loading
-            if (status.isNotEmpty()) Text(status)
-            host?.bridge?.let { EweScreen(host.store, it, behaviours = registry, theme = theme) }
+            if (status.isNotEmpty()) {
+                Text(status)
+                if (host?.store?.recovery != null && status != loading) {
+                    androidx.compose.material3.TextButton(onClick = { host.start { it.retryView() } }) { Text("Retry") }
+                }
+            }
+            host?.bridge?.let { EweScreen(host.store, it, behaviours = registry, theme = theme, graphics = host.graphics) }
         }
     }
 }
@@ -109,6 +125,8 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val cleanup = mutableListOf<() -> Unit>(store::close)
     var status by mutableStateOf(loading)
+        private set
+    var graphics: (() -> io.github.ewe_studios.ewe.core.NativeGraphics)? = null
         private set
     var bridge by mutableStateOf<EventBridge?>(null)
         private set
@@ -133,13 +151,14 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
         cleanup.add(clean)
     }
 
-    fun attach(core: NativeCore, channels: ChannelFactory?): CoreBinding {
+    fun attach(core: NativeCore, channels: ChannelFactory?, manager: ConnectionManager? = null): CoreBinding {
         val binding = try {
             CoreBinding(core, store, scope)
         } catch (error: Exception) {
             core.close()
             throw error
         }
+        graphics = core::graphics
         onClose(binding::close)
         bridge = EventBridge(store, binding, scope)
         val factory = channels ?: object : ChannelFactory {
@@ -152,13 +171,24 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
                 onClose: (Throwable?) -> Unit,
             ): Channel = error("A local screen cannot open a remote channel")
         }
-        val mounts = LiveMountHost(store, factory)
+        val mounts = LiveMountHost(store, factory, manager)
         onClose(mounts::close)
         return binding
     }
 
     fun apply(frame: ByteArray, name: String) {
         check(store.receive(frame)) { "Invalid $name frame: ${store.reports.lastOrNull()}" }
+    }
+
+    suspend fun loadView(load: suspend () -> ByteArray) {
+        val loader = store.registerLoader(scope, load = load)
+        loader.onInstalled = { status = "" }
+        loader.open()
+    }
+
+    suspend fun retryView() {
+        store.recovery?.retry()
+        status = ""
     }
 
     fun applyInitial(frame: ByteArray) {

@@ -202,6 +202,7 @@ fn message_frame(message: MessageT) -> FrameT {
         stream_id: 7,
         sequence_id: 20,
         kind: FrameKindT::FrameMessage(Box::new(table!(FrameMessageT {
+            subscription_id: 0,
             messages: Some(vec![message]),
         }))),
     })

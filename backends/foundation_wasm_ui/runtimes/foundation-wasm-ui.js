@@ -1,4 +1,5 @@
 // Browser document registry, events, transport and component lifecycle.
+import { ConnectionManager } from "./foundation-ui-connections.js";
 
 // Reserved node ids (gap inventory G1): 0=<head>, 1=<body>, 2=<html>. Macro ids ≥ 1000.
 export const RESERVED = Object.freeze({ HEAD: 0, BODY: 1, HTML: 2 });
@@ -1250,6 +1251,11 @@ export class FetchEventSource {
         body: this.options.body,
         signal: this.abort?.signal,
       });
+      if (response.status === 410 && this.options.onExpired) {
+        this.close();
+        this.options.onExpired();
+        return;
+      }
       if (!response.ok) throw new Error(`FetchEventSource: ${response.status}`);
     } catch (error) {
       this.options.onError?.(error);
@@ -1328,10 +1334,13 @@ export class SSETransport {
       fetchFn: this.config.fetchFn,
       // G46: the `event:` field names the payload kind; unnamed = html.
       // The mount `protocol` attribute overrides per feature-04 precedence.
-      onEvent: (event) =>
-        onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data)),
+      onEvent: (event) => {
+        if (this.config.listening?.() !== false) onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data));
+      },
+      onOpen: this.config.onOpen,
       onError: this.config.onError,
       nextUrl: this.config.nextUrl,
+      onExpired: this.config.onExpired,
     });
     return this.source.connect();
   }
@@ -1366,8 +1375,13 @@ export class WebSocketTransport {
     // (feature 04); text frames fall back to the declared protocol, else
     // json (the pre-feature-04 behavior, preserved as the text default).
     if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
-    this.ws.onmessage = (event) => {
+    this.ws.onopen = () => {
       if (this.ws !== socket || this.closed) return;
+      this.attempt = 0;
+      this.config.onOpen?.();
+    };
+    this.ws.onmessage = (event) => {
+      if (this.ws !== socket || this.closed || this.config.listening?.() === false) return;
       const { data } = event;
       if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
         const result = decodeEnvelopeFrame(
@@ -1380,6 +1394,7 @@ export class WebSocketTransport {
     };
     this.ws.onclose = () => {
       if (this.closed || this.ws !== socket) return;
+      this.config.onError?.(new Error("WebSocket disconnected"));
       const delay = reconnectDelay(this.attempt);
       this.attempt += 1;
       setTimeout(() => {
@@ -1389,7 +1404,8 @@ export class WebSocketTransport {
   }
 
   send(data) {
-    this.ws?.send(typeof data === "string" ? data : JSON.stringify(data));
+    if (!this.ws || (this.ws.readyState !== undefined && this.ws.readyState !== 1)) throw new Error("WebSocket is closed");
+    this.ws.send(typeof data === "string" || ArrayBuffer.isView(data) || data instanceof ArrayBuffer ? data : JSON.stringify(data));
   }
 
   disconnect() {
@@ -1412,8 +1428,11 @@ export class ChunkedTransport {
       method: data === undefined ? "GET" : "POST",
       body: data === undefined ? undefined : JSON.stringify(data),
       signal: this.abort.signal,
+      headers: this.config.headers,
     });
+    if (response.status === 410 && this.config.onExpired) { this.config.onExpired(); return; }
     if (!response.ok) throw new Error("Stream request failed with HTTP " + response.status);
+    this.config.onOpen?.();
     const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
     if (handler instanceof FrameHandler && isViewResponse(response)) {
       onChunk(await handler.process(response));
@@ -1421,7 +1440,7 @@ export class ChunkedTransport {
       const hook = ProtocolHandler.frameHook;
       if (!hook) throw new Error("Install the frame runtime before opening a frame stream");
       for await (const frame of hook.readFrames(response.body,hook.maxFrameBytes)) {
-        onChunk({type:"frame",frames:[frame]});
+        if (this.config.listening?.() !== false) onChunk({type:"frame",frames:[frame]});
       }
     } else {
       // A single document can span several network chunks.
@@ -1476,6 +1495,40 @@ export class Transport {
         return new FetchTransport(config);
     }
   }
+}
+
+/** Create a connection manager for one authentication context. */
+export function frameConnections(config = {}) {
+  const manager = new ConnectionManager();
+  for (const transport of ["sse", "websocket", "chunked"]) manager.register(transport, (options, events) => {
+    const channel = options.channel ?? Transport.create({ ...config, headers: { ...config.headers, ...options.headers }, transport, protocol: "frame" });
+    let waiting = [];
+    const opened = () => {
+      for (const pending of waiting.splice(0)) pending.resolve();
+      events.opened();
+    };
+    const disconnected = cause => {
+      for (const pending of waiting.splice(0)) pending.reject(cause);
+      events.disconnected(cause);
+    };
+    if (channel.config) Object.assign(channel.config, { onOpen: opened, onError: disconnected, listening: events.listening });
+    const result = channel.connect(options.endpoint, options.data, message => {
+      if (message.type !== "frame") { disconnected(new Error("Expected a Foundation frame")); return; }
+      for (const frame of message.frames) events.deliver(frame);
+    });
+    Promise.resolve(result).catch(disconnected);
+    return {
+      send: transport === "websocket" ? async bytes => {
+        if (channel.ws?.readyState === 0) await new Promise((resolve, reject) => waiting.push({resolve, reject}));
+        channel.send(bytes);
+      } : undefined,
+      close() {
+        for (const pending of waiting.splice(0)) pending.reject(new Error("Connection closed"));
+        channel.disconnect();
+      },
+    };
+  });
+  return manager;
 }
 
 // ─── Protocol handlers (decision 022 content types) ───────────────────────────
@@ -1939,6 +1992,10 @@ export class MountStreamComponent extends BaseElement {
         const { api, data, transport, target } = mountSetup(this, { transport: "sse" });
         // Frame operations name their own targets. The mount owns the connection.
         const targetEl = binding ? null : resolveMountTarget(this, target, doc);
+        if (binding?.managed) {
+          const handle = binding.managed({ api, data, transport });
+          if (handle) { this._transport = { disconnect: () => handle.close() }; return; }
+        }
         this._transport = transport;
         if (!binding && this.isConnected === false && targetEl?.isConnected && !this._targetObserver) {
           // Legacy markup replaces its placeholder. Its replacement owns the connection.
@@ -1947,7 +2004,10 @@ export class MountStreamComponent extends BaseElement {
           });
           this._targetObserver.observe(doc, { childList: true, subtree: true });
         }
-        if (binding && transport.config) transport.config.nextUrl = url => binding.url(url);
+        if (binding && transport.config) {
+          transport.config.nextUrl = url => binding.url(url);
+          transport.config.onExpired = binding.expired;
+        }
         const payload = binding && this.getAttribute("data") === null ? undefined : data;
         transport.connect(binding ? binding.url(api) : api, payload, result => {
           if (current !== generation || transport !== this._transport) return;

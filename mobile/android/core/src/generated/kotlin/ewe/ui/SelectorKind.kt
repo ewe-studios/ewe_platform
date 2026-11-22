@@ -9,5 +9,8 @@ class SelectorKind private constructor() {
         const val Id: UByte = 1u
         const val Class: UByte = 2u
         const val Query: UByte = 3u
+        const val TypedId: UByte = 4u
+        const val View: UByte = 5u
+        const val Receiving: UByte = 6u
     }
 }

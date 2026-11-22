@@ -396,3 +396,18 @@ For a structured request, omit `value` and set `json`. The [structured request f
 
 A receiver reports `InvalidInput` if both fields exist, the encoding conflicts with the handler, or the payload cannot decode.
 An empty vector counts as a present field. Send structured input to a remote peer after vocabulary 9 or later is negotiated.
+
+## Resume a live subscription
+
+Vocabulary version 10 adds managed delivery. The client sets `subscription_resume` in its hello.
+The server returns the capability and a delivery session in its reply.
+A subscription sends `ResumeSubscription` with that session, its subscription identifier, the stream, and the last applied sequence.
+The server tags replay frames with the subscription identifier. A `ReplayExpired` control asks that subscriber to request a full view.
+WebSocket carries the request on the open socket. Other live transports send an HTTP POST to the delivery endpoint.
+
+Version 11 adds a shared text property named `ID`.
+Placement uses `Id` for one name, `TypedId` for a tag and name, and `View` for a registered view.
+The `Receiving` selector appends to the receiving view. A `FullView` placement replaces that view's contents.
+The captured count frame in `fixtures/native/portable_count.bin` comes from the running Todo Server.
+The browser, iOS, and Android tests apply these same bytes. To update the capture, build the example server.
+Then run `UPDATE_FIXTURES=1 node --test examples/ui_todo/tests/shared-connections.test.mjs`.

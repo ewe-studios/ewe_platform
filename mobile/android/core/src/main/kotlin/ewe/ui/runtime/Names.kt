@@ -30,6 +30,7 @@ internal object Names {
             NodeKind.CONFIRMATION_DIALOG to "CONFIRMATION_DIALOG",
             NodeKind.SHEET_TITLE to "SHEET_TITLE",
             NodeKind.SUBMIT_BUTTON to "SUBMIT_BUTTON",
+            NodeKind.DRAWING_SURFACE to "DRAWING_SURFACE",
             NodeKind.CANCEL_BUTTON to "CANCEL_BUTTON",
         )
     val propId =
@@ -52,6 +53,7 @@ internal object Names {
             PropId.HEIGHT to "HEIGHT",
             PropId.HIDDEN to "HIDDEN",
             PropId.UTILITY_CLASSES to "UTILITY_CLASSES",
+            PropId.ID to "ID",
         )
     val eventId =
         mapOf(

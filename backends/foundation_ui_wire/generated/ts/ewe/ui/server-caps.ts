@@ -61,8 +61,18 @@ actionsLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+subscriptionResume():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+}
+
+requestTag():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
 static startServerCaps(builder:flatbuffers.Builder) {
-  builder.startObject(6);
+  builder.startObject(8);
 }
 
 static addStatus(builder:flatbuffers.Builder, status:CapsStatus) {
@@ -101,12 +111,20 @@ static startActionsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addSubscriptionResume(builder:flatbuffers.Builder, subscriptionResume:boolean) {
+  builder.addFieldInt8(6, +subscriptionResume, +false);
+}
+
+static addRequestTag(builder:flatbuffers.Builder, requestTag:bigint) {
+  builder.addFieldInt64(7, requestTag, BigInt('0'));
+}
+
 static endServerCaps(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createServerCaps(builder:flatbuffers.Builder, status:CapsStatus, schemaVersion:number, vocabularyVersion:number, streamId:bigint, resumeFrom:bigint, actionsOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createServerCaps(builder:flatbuffers.Builder, status:CapsStatus, schemaVersion:number, vocabularyVersion:number, streamId:bigint, resumeFrom:bigint, actionsOffset:flatbuffers.Offset, subscriptionResume:boolean, requestTag:bigint):flatbuffers.Offset {
   ServerCaps.startServerCaps(builder);
   ServerCaps.addStatus(builder, status);
   ServerCaps.addSchemaVersion(builder, schemaVersion);
@@ -114,6 +132,8 @@ static createServerCaps(builder:flatbuffers.Builder, status:CapsStatus, schemaVe
   ServerCaps.addStreamId(builder, streamId);
   ServerCaps.addResumeFrom(builder, resumeFrom);
   ServerCaps.addActions(builder, actionsOffset);
+  ServerCaps.addSubscriptionResume(builder, subscriptionResume);
+  ServerCaps.addRequestTag(builder, requestTag);
   return ServerCaps.endServerCaps(builder);
 }
 
@@ -124,7 +144,9 @@ unpack(): ServerCapsT {
     this.vocabularyVersion(),
     this.streamId(),
     this.resumeFrom(),
-    this.bb!.createObjList<ServerAction, ServerActionT>(this.actions.bind(this), this.actionsLength())
+    this.bb!.createObjList<ServerAction, ServerActionT>(this.actions.bind(this), this.actionsLength()),
+    this.subscriptionResume(),
+    this.requestTag()
   );
 }
 
@@ -136,6 +158,8 @@ unpackTo(_o: ServerCapsT): void {
   _o.streamId = this.streamId();
   _o.resumeFrom = this.resumeFrom();
   _o.actions = this.bb!.createObjList<ServerAction, ServerActionT>(this.actions.bind(this), this.actionsLength());
+  _o.subscriptionResume = this.subscriptionResume();
+  _o.requestTag = this.requestTag();
 }
 }
 
@@ -146,7 +170,9 @@ constructor(
   public vocabularyVersion: number = 0,
   public streamId: bigint = BigInt('0'),
   public resumeFrom: bigint = BigInt('0'),
-  public actions: (ServerActionT)[] = []
+  public actions: (ServerActionT)[] = [],
+  public subscriptionResume: boolean = false,
+  public requestTag: bigint = BigInt('0')
 ){}
 
 
@@ -159,7 +185,9 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.vocabularyVersion,
     this.streamId,
     this.resumeFrom,
-    actions
+    actions,
+    this.subscriptionResume,
+    this.requestTag
   );
 }
 }

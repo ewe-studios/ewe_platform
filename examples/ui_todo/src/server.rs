@@ -1,6 +1,5 @@
 //! Register the browser and mobile routes for the todo application.
 use crate::TodoStore;
-use foundation_browser::test::{stream::StreamHandler, LiveChannel};
 use foundation_context::Ctx;
 use foundation_http::{
     get,
@@ -8,38 +7,32 @@ use foundation_http::{
     shared::{app::HttpApp, router::Router},
     Serve,
 };
+use foundation_ui_http::live_stream::StreamHandler;
 use foundation_ui_http::{ActionRegistryRouteHandler, Response, ViewRequest};
+use foundation_wasm_ui::server::LiveChannel;
 
 use std::{path::Path, sync::Arc};
 
 mod assets;
 mod screens;
 type Error = Box<dyn std::error::Error + Send + Sync>;
-const COUNT_NODE: u32 = 44;
 
 mod services;
-pub(crate) use services::TodoChannels;
+pub(crate) use services::TodoFeed;
 
 #[foundation_ui_http::get("/initial")]
 fn initial(req: ViewRequest) -> Result<Response, Error> {
-    let state = req.require::<TodoStore>()?.snapshot();
-    Ok(Response::frame(screens::web_page(state)))
-}
-
-#[foundation_ui_http::get("/native-initial")]
-fn native_initial(req: ViewRequest) -> Result<Response, Error> {
-    let channel = req.require::<TodoChannels>()?;
-    let cursor = channel.native.last_sequence();
-    let state = req.require::<TodoStore>()?.snapshot();
-    Ok(Response::frame(screens::mobile_page(
+    let feed = req.require::<TodoFeed>()?;
+    let (state, cursor) = req.require::<TodoStore>()?.published_snapshot(&feed.0);
+    Ok(Response::frame(screens::page(
         state,
-        channel.native.stream_id(),
+        feed.0.stream_id(),
         cursor,
     )))
 }
 
-#[foundation_ui_http::get("/native-starter")]
-fn native_starter(req: ViewRequest) -> Result<Response, Error> {
+#[foundation_ui_http::get("/open-count")]
+fn count_screen(req: ViewRequest) -> Result<Response, Error> {
     let state = req.require::<TodoStore>()?.snapshot();
     let count = state.items.iter().filter(|item| !item.done).count();
     Ok(Response::frame(screens::starter(count)))
@@ -72,7 +65,7 @@ pub fn app_with_channel(
 fn register(
     router: &mut Router<Arc<dyn Serve>>,
     ctx: &Ctx,
-    channels: TodoChannels,
+    channels: TodoFeed,
 ) -> Result<(), Error> {
     let actions = ActionRegistryRouteHandler::new(crate::server_registry()?);
     let mut rpc = foundation_connectrpc::Router::new();
@@ -95,18 +88,17 @@ fn register(
             )),
         )?;
     }
+    router.mount(foundation_ui_http::ActionSocketRoute::new(
+        actions.dispatcher(),
+    ))?;
+    let dispatcher = actions.dispatcher();
     router.mount(actions)?;
     router.mount(initial)?;
-    router.mount(native_initial)?;
-    router.mount(native_starter)?;
-    router.at(
-        "/live",
-        get(StreamHandler::create(ctx).with_channel(channels.web)),
-    )?;
-    router.at(
-        "/native-live",
-        get(StreamHandler::native(ctx).with_channel(channels.native)),
-    )?;
+    router.mount(count_screen)?;
+    let stream = StreamHandler::create(ctx).with_channel(channels.0);
+    let events = foundation_ui_http::EventDelivery::new(dispatcher, stream);
+    router.at("/live", get(events.clone()))?;
+    router.at("/live", foundation_http::post(events))?;
     Ok(())
 }
 

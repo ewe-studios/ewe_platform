@@ -1,6 +1,6 @@
 # Feature 33. Refresh the receiving view when replay expires
 
-**Status:** Approved for implementation. [Issue 668](https://github.com/ewe-studios/ewe_platform/issues/668) tracks the current failure.
+**Status:** Complete. [Issue 668](https://github.com/ewe-studios/ewe_platform/issues/668) records the original failure.
 
 ## Glossary
 

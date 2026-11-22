@@ -34,7 +34,22 @@ flatc --ts --gen-object-api -o "$scratch/generated/ts" "${schema[@]}"
 python3 -I "$script_dir/action_input_presence.py" "$scratch/generated/ts"
 flatc --swift -o "$scratch/generated/swift" "${schema[@]}"
 python3 -I "$script_dir/swift_raw_ids.py" "$scratch/generated/swift"
+python3 -I - "$crate/src/vocab/version.rs" "$scratch/generated/swift/vocabulary_generated.swift" <<'PYTHON'
+from pathlib import Path
+import re
+import sys
+
+source = Path(sys.argv[1]).read_text()
+version = re.search(r"^pub const VOCABULARY_VERSION: u32 = ([0-9]+);$", source, re.MULTILINE)
+if version is None:
+    raise SystemExit("Cannot read the current wire vocabulary version.")
+Path(sys.argv[2]).write_text(
+    "// Generated from foundation_ui_wire/src/vocab/version.rs.\n"
+    f"public let eweWireVocabularyVersion: UInt32 = {version[1]}\n"
+)
+PYTHON
 flatc --kotlin -o "$scratch/generated/kotlin" "${schema[@]}"
+python3 -I "$script_dir/kotlin_optional_fields.py" "$scratch/generated/kotlin"
 
 {
   cat "$crate/ts/index.ts"

@@ -1,6 +1,6 @@
 package ewe.ui.runtime
 
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -9,6 +9,38 @@ class ConformanceTest {
 
     private fun fixture(name: String) =
         requireNotNull(javaClass.getResource("/native/$name")).readBytes()
+
+    @Test
+    fun portableTargets() {
+        val store = NodeStore(GapTimer { _, _ -> Cancel {} })
+        store.registerView("main", 1u)
+        store.registerView("second", 7u)
+        val steps = Json.parseToJsonElement(fixture("portable_targets.json").decodeToString()).jsonArray
+        for (step in steps.map { it.jsonObject }) {
+            if (step.getValue("case").jsonPrimitive.content == "custom") store.registerElement("save","InvoiceEditor",42u)
+            val bytes = step.getValue("bytes").jsonArray.map { it.jsonPrimitive.int.toByte() }.toByteArray()
+            val count = store.reports.size
+            val mount = step["mount"]?.jsonPrimitive?.intOrNull?.toUInt()
+            assertTrue(if (mount == null) store.receive(bytes) else store.receive(bytes, mount))
+            val error = step["error"]?.jsonPrimitive?.contentOrNull
+            assertEquals(listOfNotNull(error),store.reports.drop(count).map { it.getValue("code").jsonPrimitive.content },step.getValue("case").jsonPrimitive.content)
+        }
+        assertEquals(listOf(44u,48u),store.record(1u)?.children)
+        assertEquals(listOf(41u,47u),store.record(7u)?.children)
+        assertTrue(store.receive(fixture("portable_count.bin"),1u))
+        val countNode = requireNotNull(store.record(1u)).children.last()
+        assertEquals("1 open todo",store.record(countNode)?.text)
+        val second = requireNotNull(store.viewStore("second"))
+        second.registerElement("open-count","ListFooter",47u)
+        assertTrue(store.receive(fixture("portable_count.bin"),7u))
+        assertEquals(countNode, second.record(7u)?.children?.last())
+        assertEquals("1 open todo",second.record(countNode)?.text)
+        assertNotSame(store.record(countNode), second.record(countNode))
+        store.unregisterView("main")
+        assertEquals("1 open todo",second.record(countNode)?.text)
+        assertNull(store.record(44u))
+        assertEquals(listOf(41u,countNode),store.record(7u)?.children)
+    }
 
     @Test
     fun sharedSnapshots() {

@@ -21,5 +21,6 @@ export enum PropId {
   HEIGHT = 15,
   HIDDEN = 16,
   PRESENTATION = 17,
-  UTILITY_CLASSES = 18
+  UTILITY_CLASSES = 18,
+  ID = 19
 }

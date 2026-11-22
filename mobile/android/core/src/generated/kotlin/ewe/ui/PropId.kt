@@ -24,5 +24,6 @@ class PropId private constructor() {
         const val HIDDEN: UShort = 16u
         const val PRESENTATION: UShort = 17u
         const val UTILITY_CLASSES: UShort = 18u
+        const val ID: UShort = 19u
     }
 }

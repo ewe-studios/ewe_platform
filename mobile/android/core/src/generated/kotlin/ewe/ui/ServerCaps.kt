@@ -66,6 +66,16 @@ class ServerCaps : Table() {
         get() {
             val o = __offset(14); return if (o != 0) __vector_len(o) else 0
         }
+    val subscriptionResume : Boolean
+        get() {
+            val o = __offset(16)
+            return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else false
+        }
+    val requestTag : ULong
+        get() {
+            val o = __offset(18)
+            return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
+        }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsServerCaps(_bb: ByteBuffer): ServerCaps = getRootAsServerCaps(_bb, ServerCaps())
@@ -73,17 +83,20 @@ class ServerCaps : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createServerCaps(builder: FlatBufferBuilder, status: UByte, schemaVersion: UShort, vocabularyVersion: UInt, streamId: ULong, resumeFrom: ULong, actionsOffset: Int) : Int {
-            builder.startTable(6)
+        fun createServerCaps(builder: FlatBufferBuilder, status: UByte, schemaVersion: UShort, vocabularyVersion: UInt, streamId: ULong, resumeFrom: ULong, actionsOffset: Int): Int = createServerCaps(builder, status, schemaVersion, vocabularyVersion, streamId, resumeFrom, actionsOffset, false, 0uL)
+        fun createServerCaps(builder: FlatBufferBuilder, status: UByte, schemaVersion: UShort, vocabularyVersion: UInt, streamId: ULong, resumeFrom: ULong, actionsOffset: Int, subscriptionResume: Boolean, requestTag: ULong) : Int {
+            builder.startTable(8)
+            addRequestTag(builder, requestTag)
             addResumeFrom(builder, resumeFrom)
             addStreamId(builder, streamId)
             addActions(builder, actionsOffset)
             addVocabularyVersion(builder, vocabularyVersion)
             addSchemaVersion(builder, schemaVersion)
+            addSubscriptionResume(builder, subscriptionResume)
             addStatus(builder, status)
             return endServerCaps(builder)
         }
-        fun startServerCaps(builder: FlatBufferBuilder) = builder.startTable(6)
+        fun startServerCaps(builder: FlatBufferBuilder) = builder.startTable(8)
         fun addStatus(builder: FlatBufferBuilder, status: UByte) = builder.addByte(0, status.toByte(), 0)
         fun addSchemaVersion(builder: FlatBufferBuilder, schemaVersion: UShort) = builder.addShort(1, schemaVersion.toShort(), 0)
         fun addVocabularyVersion(builder: FlatBufferBuilder, vocabularyVersion: UInt) = builder.addInt(2, vocabularyVersion.toInt(), 0)
@@ -98,6 +111,8 @@ class ServerCaps : Table() {
             return builder.endVector()
         }
         fun startActionsVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
+        fun addSubscriptionResume(builder: FlatBufferBuilder, subscriptionResume: Boolean) = builder.addBoolean(6, subscriptionResume, false)
+        fun addRequestTag(builder: FlatBufferBuilder, requestTag: ULong) = builder.addLong(7, requestTag.toLong(), 0)
         fun endServerCaps(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

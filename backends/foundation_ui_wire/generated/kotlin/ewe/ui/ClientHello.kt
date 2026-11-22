@@ -48,6 +48,16 @@ class ClientHello : Table() {
             val o = __offset(10)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
+    val subscriptionResume : Boolean
+        get() {
+            val o = __offset(12)
+            return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else false
+        }
+    val requestTag : ULong
+        get() {
+            val o = __offset(14)
+            return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
+        }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsClientHello(_bb: ByteBuffer): ClientHello = getRootAsClientHello(_bb, ClientHello())
@@ -55,19 +65,24 @@ class ClientHello : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createClientHello(builder: FlatBufferBuilder, vocabularyVersion: UInt, platform: UByte, mount: UByte, resumeFrom: ULong) : Int {
-            builder.startTable(4)
+        fun createClientHello(builder: FlatBufferBuilder, vocabularyVersion: UInt, platform: UByte, mount: UByte, resumeFrom: ULong): Int = createClientHello(builder, vocabularyVersion, platform, mount, resumeFrom, false, 0uL)
+        fun createClientHello(builder: FlatBufferBuilder, vocabularyVersion: UInt, platform: UByte, mount: UByte, resumeFrom: ULong, subscriptionResume: Boolean, requestTag: ULong) : Int {
+            builder.startTable(6)
+            addRequestTag(builder, requestTag)
             addResumeFrom(builder, resumeFrom)
             addVocabularyVersion(builder, vocabularyVersion)
+            addSubscriptionResume(builder, subscriptionResume)
             addMount(builder, mount)
             addPlatform(builder, platform)
             return endClientHello(builder)
         }
-        fun startClientHello(builder: FlatBufferBuilder) = builder.startTable(4)
+        fun startClientHello(builder: FlatBufferBuilder) = builder.startTable(6)
         fun addVocabularyVersion(builder: FlatBufferBuilder, vocabularyVersion: UInt) = builder.addInt(0, vocabularyVersion.toInt(), 0)
         fun addPlatform(builder: FlatBufferBuilder, platform: UByte) = builder.addByte(1, platform.toByte(), 0)
         fun addMount(builder: FlatBufferBuilder, mount: UByte) = builder.addByte(2, mount.toByte(), 0)
         fun addResumeFrom(builder: FlatBufferBuilder, resumeFrom: ULong) = builder.addLong(3, resumeFrom.toLong(), 0)
+        fun addSubscriptionResume(builder: FlatBufferBuilder, subscriptionResume: Boolean) = builder.addBoolean(4, subscriptionResume, false)
+        fun addRequestTag(builder: FlatBufferBuilder, requestTag: ULong) = builder.addLong(5, requestTag.toLong(), 0)
         fun endClientHello(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

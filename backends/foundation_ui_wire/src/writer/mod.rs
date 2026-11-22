@@ -65,6 +65,7 @@ fn finish_message_frame(
         sequence_id: header.sequence_id,
         kind: FrameKindT::FrameMessage(Box::new(FrameMessageT {
             ack: header.ack,
+            subscription_id: 0,
             messages: Some(messages),
         })),
     };

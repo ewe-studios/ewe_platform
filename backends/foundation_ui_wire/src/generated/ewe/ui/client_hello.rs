@@ -31,6 +31,8 @@ impl<'a> ClientHello<'a> {
     pub const VT_PLATFORM: flatbuffers::VOffsetT = 6;
     pub const VT_MOUNT: flatbuffers::VOffsetT = 8;
     pub const VT_RESUME_FROM: flatbuffers::VOffsetT = 10;
+    pub const VT_SUBSCRIPTION_RESUME: flatbuffers::VOffsetT = 12;
+    pub const VT_REQUEST_TAG: flatbuffers::VOffsetT = 14;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -42,8 +44,10 @@ impl<'a> ClientHello<'a> {
         args: &'args ClientHelloArgs,
     ) -> flatbuffers::WIPOffset<ClientHello<'bldr>> {
         let mut builder = ClientHelloBuilder::new(_fbb);
+        builder.add_request_tag(args.request_tag);
         builder.add_resume_from(args.resume_from);
         builder.add_vocabulary_version(args.vocabulary_version);
+        builder.add_subscription_resume(args.subscription_resume);
         builder.add_mount(args.mount);
         builder.add_platform(args.platform);
         builder.finish()
@@ -54,11 +58,15 @@ impl<'a> ClientHello<'a> {
         let platform = self.platform();
         let mount = self.mount();
         let resume_from = self.resume_from();
+        let subscription_resume = self.subscription_resume();
+        let request_tag = self.request_tag();
         ClientHelloT {
             vocabulary_version,
             platform,
             mount,
             resume_from,
+            subscription_resume,
+            request_tag,
         }
     }
 
@@ -106,6 +114,28 @@ impl<'a> ClientHello<'a> {
                 .unwrap()
         }
     }
+    #[inline]
+    pub fn subscription_resume(&self) -> bool {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<bool>(ClientHello::VT_SUBSCRIPTION_RESUME, Some(false))
+                .unwrap()
+        }
+    }
+    #[inline]
+    pub fn request_tag(&self) -> u64 {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<u64>(ClientHello::VT_REQUEST_TAG, Some(0))
+                .unwrap()
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for ClientHello<'_> {
@@ -120,6 +150,8 @@ impl flatbuffers::Verifiable for ClientHello<'_> {
             .visit_field::<Platform>("platform", Self::VT_PLATFORM, false)?
             .visit_field::<MountSurface>("mount", Self::VT_MOUNT, false)?
             .visit_field::<u64>("resume_from", Self::VT_RESUME_FROM, false)?
+            .visit_field::<bool>("subscription_resume", Self::VT_SUBSCRIPTION_RESUME, false)?
+            .visit_field::<u64>("request_tag", Self::VT_REQUEST_TAG, false)?
             .finish();
         Ok(())
     }
@@ -129,6 +161,8 @@ pub struct ClientHelloArgs {
     pub platform: Platform,
     pub mount: MountSurface,
     pub resume_from: u64,
+    pub subscription_resume: bool,
+    pub request_tag: u64,
 }
 impl<'a> Default for ClientHelloArgs {
     #[inline]
@@ -138,6 +172,8 @@ impl<'a> Default for ClientHelloArgs {
             platform: Platform::Unknown,
             mount: MountSurface::Native,
             resume_from: 0,
+            subscription_resume: false,
+            request_tag: 0,
         }
     }
 }
@@ -168,6 +204,19 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ClientHelloBuilder<'a, 'b, A> {
             .push_slot::<u64>(ClientHello::VT_RESUME_FROM, resume_from, 0);
     }
     #[inline]
+    pub fn add_subscription_resume(&mut self, subscription_resume: bool) {
+        self.fbb_.push_slot::<bool>(
+            ClientHello::VT_SUBSCRIPTION_RESUME,
+            subscription_resume,
+            false,
+        );
+    }
+    #[inline]
+    pub fn add_request_tag(&mut self, request_tag: u64) {
+        self.fbb_
+            .push_slot::<u64>(ClientHello::VT_REQUEST_TAG, request_tag, 0);
+    }
+    #[inline]
     pub fn new(
         _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     ) -> ClientHelloBuilder<'a, 'b, A> {
@@ -191,6 +240,8 @@ impl core::fmt::Debug for ClientHello<'_> {
         ds.field("platform", &self.platform());
         ds.field("mount", &self.mount());
         ds.field("resume_from", &self.resume_from());
+        ds.field("subscription_resume", &self.subscription_resume());
+        ds.field("request_tag", &self.request_tag());
         ds.finish()
     }
 }
@@ -201,6 +252,8 @@ pub struct ClientHelloT {
     pub platform: Platform,
     pub mount: MountSurface,
     pub resume_from: u64,
+    pub subscription_resume: bool,
+    pub request_tag: u64,
 }
 impl Default for ClientHelloT {
     fn default() -> Self {
@@ -209,6 +262,8 @@ impl Default for ClientHelloT {
             platform: Platform::Unknown,
             mount: MountSurface::Native,
             resume_from: 0,
+            subscription_resume: false,
+            request_tag: 0,
         }
     }
 }
@@ -221,6 +276,8 @@ impl ClientHelloT {
         let platform = self.platform;
         let mount = self.mount;
         let resume_from = self.resume_from;
+        let subscription_resume = self.subscription_resume;
+        let request_tag = self.request_tag;
         ClientHello::create(
             _fbb,
             &ClientHelloArgs {
@@ -228,6 +285,8 @@ impl ClientHelloT {
                 platform,
                 mount,
                 resume_from,
+                subscription_resume,
+                request_tag,
             },
         )
     }

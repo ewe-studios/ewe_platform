@@ -75,6 +75,10 @@ impl Default for ViewIds {
 pub enum Target {
     Node(u32),
     Css(String),
+    /// Select a portable element or view by its markup name.
+    Named(String),
+    /// Apply the placement to the view that receives the update.
+    Receiving,
 }
 
 impl From<u32> for Target {
@@ -84,17 +88,24 @@ impl From<u32> for Target {
 }
 impl From<String> for Target {
     fn from(selector: String) -> Self {
-        Self::Css(selector)
+        if selector.split_once('#').is_some_and(|(tag, name)| {
+            (tag.is_empty() || foundation_ui_wire::vocab::valid_name(tag))
+                && !name.contains(|c: char| c.is_ascii_whitespace() || ".:[]>+~,\\".contains(c))
+        }) {
+            Self::Named(selector)
+        } else {
+            Self::Css(selector)
+        }
     }
 }
 impl From<&str> for Target {
     fn from(selector: &str) -> Self {
-        Self::Css(selector.into())
+        Self::from(selector.to_owned())
     }
 }
 impl From<&String> for Target {
     fn from(selector: &String) -> Self {
-        Self::Css(selector.clone())
+        Self::from(selector.clone())
     }
 }
 
@@ -102,12 +113,23 @@ impl Target {
     fn id(&self) -> Option<u32> {
         match self {
             Self::Node(id) => Some(*id),
-            Self::Css(_) => None,
+            Self::Css(_) | Self::Named(_) | Self::Receiving => None,
         }
     }
 
     fn wire(self) -> Result<Box<TargetSelectorT>, LowerError> {
         let selector = match self {
+            Self::Receiving => table!(TargetSelectorT {
+                kind: SelectorKind::Receiving
+            }),
+            Self::Named(name) => {
+                let (kind, text) = foundation_ui_wire::vocab::portable_selector(&name)
+                    .ok_or(LowerError::BadTarget)?;
+                table!(TargetSelectorT {
+                    kind: kind,
+                    text: Some(text.into())
+                })
+            }
             Self::Node(id) => table!(TargetSelectorT {
                 kind: SelectorKind::NodeId,
                 node_id: id

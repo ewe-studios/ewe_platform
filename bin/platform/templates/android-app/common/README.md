@@ -23,7 +23,7 @@ cargo run -p ui_todo --bin ui_todo -- 127.0.0.1:8180
 
 Change the server address with the `server` launch option.
 The emulator reaches the development computer at `10.0.2.2`.
-The screen loads from `GET /native-starter`. Tap **Refresh** to send `server:refresh_count`.
+The screen loads from `GET /open-count`. Tap **Refresh** to send `server:refresh_count`.
 Change the route and action in `MainActivity.kt`.
 {% endif %}
 Build and install the application. Start the activity with the Android Debug Bridge (adb).

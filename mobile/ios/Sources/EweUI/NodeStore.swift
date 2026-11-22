@@ -1,9 +1,26 @@
 import EweWire
+#if os(iOS)
+import EweCore
+#endif
 import FlatBuffers
 import Foundation
 import Observation
 
 @MainActor @Observable public final class NodeStore {
+  #if os(iOS)
+  @ObservationIgnored var graphicsProvider: (() throws -> NativeGraphics)?
+  func graphics() throws -> NativeGraphics {
+    if let graphicsProvider { return try graphicsProvider() }
+    if let parentStore { return try parentStore.graphics() }
+    throw CocoaError(.featureUnsupported)
+  }
+  #endif
+  @ObservationIgnored public internal(set) var recovery: ViewRecovery?
+  @ObservationIgnored weak var parentStore: NodeStore?
+  @ObservationIgnored var childStores: [UInt32: NodeStore] = [:]
+  @ObservationIgnored var viewRoots: [String: UInt32] = [:]
+  @ObservationIgnored var elementTags: [UInt32: String] = [:]
+  @ObservationIgnored var elementNames: [UInt32: String] = [:]
   @ObservationIgnored var records: [UInt32: NodeRecord] = [1: NodeRecord(1, .stack)]
   public internal(set) var reports: [Report] = []
   @ObservationIgnored var commandLog: [[String: Any]] = []
@@ -20,6 +37,8 @@ import Observation
   @ObservationIgnored public var onGap: ((UInt64, UInt64) -> Void)?
   @ObservationIgnored public var onError: ((String, String) -> Void)?
   @ObservationIgnored public var onData: ((UInt32, ewe_ui_Data) -> Void)?
+  @ObservationIgnored public var onSnapshot: ((UInt32, UInt64) -> Void)?
+  @ObservationIgnored var subscriptionReplay = false
   @ObservationIgnored public var onCaps: ((Data) -> Void)?
   @ObservationIgnored public var commands: (any CommandHost)?
   @ObservationIgnored public var liveHost: LiveMountHost?
@@ -37,7 +56,8 @@ import Observation
     self.commands = commands
     self.liveHost = live
   }
-  public func record(_ id: UInt32) -> NodeRecord? { records[id] }
+  public func record(_ id: UInt32) -> NodeRecord? { childStores[id]?.records[id] ?? records[id] }
+  public func cursor(stream: UInt64) -> UInt64? { cursors[stream] }
   public func setCursor(stream: UInt64, sequence: UInt64) {
     gapTasks.removeValue(forKey: stream)?.cancel()
     pending.removeValue(forKey: stream)
@@ -45,17 +65,26 @@ import Observation
   }
   func report(_ code: String, _ row: Int, _ node: UInt32? = nil, _ name: String? = nil) {
     reports.append(Report(code: code, row: row, node: node, name: name))
+    parentStore?.report(code, row, node, name)
   }
   func get(_ id: UInt32, _ row: Int) -> NodeRecord? {
     if let node = records[id] { return node }
     report("UnknownNode", row, id)
     return nil
   }
-  private func frame(_ data: Data) throws -> ewe_ui_Frame {
+  func frame(_ data: Data) throws -> ewe_ui_Frame {
     var bytes = ByteBuffer(data: data)
     return try getCheckedRoot(byteBuffer: &bytes, fileId: "EWF1")
   }
-  @discardableResult public func receive(_ data: Data, at mount: UInt32 = 1) -> Bool {
+  func matches(_ data: Data, stream: UInt64, subscription: UInt64 = 0) -> Bool {
+    guard data.count <= maxFrameBytes, let packet = try? frame(data),
+      packet.schemaVersion == 1, packet.streamId == stream,
+      let message = packet.kind(type: ewe_ui_FrameMessage.self) else { return false }
+    return message.ack == 0 && (message.subscriptionId == 0 || message.subscriptionId == subscription)
+  }
+  @discardableResult public func receive(_ data: Data, at target: UInt32? = nil) -> Bool {
+    let mount = target ?? (viewRoots.isEmpty ? 1 : viewRoots.count == 1 ? viewRoots.values.first! : 0)
+    if let child = childStores[mount] { return child.receive(data, at: mount) }
     guard data.count <= maxFrameBytes else {
       report("TooLarge", 0)
       return false
@@ -114,6 +143,12 @@ import Observation
     }
     return true
   }
+  func clearViewOrdering() {
+    for task in gapTasks.values { task.cancel() }
+    gapTasks.removeAll()
+    pending.removeAll()
+    cursors.removeAll()
+  }
   private func apply(_ frame: ewe_ui_FrameMessage, _ bytes: Data, _ mount: UInt32) {
     var acceptedCaps = false
     for index in 0..<frame.messagesCount {
@@ -132,6 +167,7 @@ import Observation
             "stream_id": caps.streamId, "resume_from": caps.resumeFrom,
             "status": variant(caps.status),
           ])
+          subscriptionReplay = caps.subscriptionResume
           acceptedCaps = true
         }
         if let err = control.error {
@@ -140,6 +176,10 @@ import Observation
             "code": code, "message": err.message as Any? ?? NSNull(), "row": err.rowIndex,
           ])
           onError?(code, err.message ?? "")
+        }
+        if let expired = control.replayExpired {
+          if let onSnapshot { onSnapshot(mount, expired.streamId) }
+          else { error("ReplayExpired", "Request a new view") }
         }
         if control.stateExpired != nil { error("StateExpired", "") }
         if control.updateRequired != nil { error("UpdateRequired", "") }
@@ -211,6 +251,9 @@ import Observation
     while let next = stack.popLast() {
       stack.append(contentsOf: next.children.compactMap { records[$0] })
       liveHost?.unmount(next.id)
+      elementTags[next.id] = nil
+      elementNames[next.id] = nil
+      viewRoots = viewRoots.filter { $0.value != next.id }
       records[next.id] = nil
     }
   }

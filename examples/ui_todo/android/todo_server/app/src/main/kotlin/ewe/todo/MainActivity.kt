@@ -24,7 +24,9 @@ class MainActivity : ComponentActivity() {
             EweTheme.fromManifest(todoThemeManifest()) else EweTheme()
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                RemoteEweScreen(endpoint, "native-initial", { createTodoCore(NativePlatform.ANDROID, it) }, theme = theme, rpcBase = endpoint.takeIf { intent.getBooleanExtra("rpc", false) })
+                RemoteEweScreen(endpoint, "initial", { createTodoCore(NativePlatform.ANDROID, it) }, theme = theme,
+                    rpcBase = endpoint.takeIf { intent.getBooleanExtra("rpc", false) },
+                    socketEndpoint = "/socket".takeIf { intent.getBooleanExtra("socket", false) })
             }
         }
     }

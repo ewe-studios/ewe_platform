@@ -407,3 +407,71 @@ test("shared controls retain browser classes and skip mobile overrides", () => {
   assert.equal(el.classList.contains("p-md"),true);
   assert.deepEqual(reports,[]);
 });
+
+test("portable targets isolate views, validate names before replacement, and release names", () => {
+  const {reader,registry,reports,doc} = setup();
+  const roots = [doc.createElement("main"),doc.createElement("section")];
+  roots.forEach(root => doc.body.appendChild(root));
+  const close = reader.registerView("main", roots[0]);
+  reader.registerView("second", roots[1]);
+  const cases = JSON.parse(readFileSync(new URL("../../../foundation_ui_wire/fixtures/native/portable_targets.json",import.meta.url)));
+  for (const step of cases) {
+    if (step.case === "custom") reader.registerElement("save", "InvoiceEditor",registry.get(42));
+    const before = reports.length;
+    const origin = step.mount == null ? undefined : {viewMount: roots[step.mount === 1 ? 0 : 1]};
+    assert.ok(reader.receive(Uint8Array.from(step.bytes),origin),step.case);
+    assert.deepEqual(reports.slice(before).map(r=>r.code),step.error?[step.error]:[],step.case);
+  }
+  assert.deepEqual(roots[0].children.map(n=>n.getAttribute("id")),["editor","open-count"]);
+  assert.deepEqual(roots[1].children.map(n=>n.getAttribute("id")),["editor","extra"]);
+  const countFrame = readFileSync(new URL("../../../foundation_ui_wire/fixtures/native/portable_count.bin",import.meta.url));
+  assert.ok(reader.receive(countFrame,{viewMount:roots[0]}));
+  assert.equal(roots[0].children.at(-1).textContent, "1 open todo");
+  const secondCount = roots[1].children.at(-1);
+  reader.registerElement("open-count","ListFooter",secondCount);
+  assert.ok(reader.receive(countFrame,{viewMount:roots[1]}));
+  const secondReplacement = roots[1].children.at(-1);
+  assert.equal(secondReplacement.textContent, "1 open todo");
+  assert.equal(reader.viewState(roots[1]).registry.get(Number(secondReplacement.getAttribute("primal-id"))),secondReplacement);
+  close();
+  assert.equal(secondReplacement.parentNode, roots[1]);
+  assert.equal(registry.get(44),undefined);
+  assert.equal(roots[1].children.length,2);
+});
+
+test("DrawingSurface registers its final name and releases the native target on removal", async () => {
+  const events = [];
+  const graphics = {async attach(name, canvas) {
+    events.push(["attach",name,canvas.width,canvas.height]);
+    return {async resize(w,h) { events.push(["resize",w,h]); }, async remove() { events.push(["remove"]); }};
+  }};
+  const {doc, apply, reports} = setup({graphics});
+  let resize;
+  doc.defaultView = {devicePixelRatio:2, ResizeObserver:class {
+    constructor(run) { resize = run; }
+    observe() {}
+    disconnect() { events.push(["disconnect"]); }
+  }};
+  let width = 20;
+  const create = doc.createElement.bind(doc);
+  doc.createElement = tag => {
+    const el = create(tag);
+    if (tag === "canvas") {
+      Object.defineProperty(el, "isConnected", {get:() => Boolean(el.parentNode)});
+      Object.defineProperty(el, "id", {get:() => el.getAttribute("id")});
+      el.getBoundingClientRect = () => ({width, height:30});
+    }
+    return el;
+  };
+  apply(operation("CreateNode",9,wire.NodeKind.DRAWING_SURFACE),
+    operation("SetProp",9,wire.PropId.ID,wire.PropValue.Text,new wire.TextValueT("preview")),
+    operation("AppendChild",1,9));
+  await new Promise(resolve => setImmediate(resolve));
+  width = 0;
+  resize();
+  await new Promise(resolve => setImmediate(resolve));
+  apply(operation("Remove",9));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(reports,[]);
+  assert.deepEqual(events,[["attach","preview",40,60],["resize",0,60],["disconnect"],["remove"]]);
+});

@@ -29,6 +29,7 @@ impl<'a> flatbuffers::Follow<'a> for FrameRequest<'a> {
 impl<'a> FrameRequest<'a> {
     pub const VT_ACTION: flatbuffers::VOffsetT = 4;
     pub const VT_HELLO: flatbuffers::VOffsetT = 6;
+    pub const VT_RESUME: flatbuffers::VOffsetT = 8;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -40,6 +41,9 @@ impl<'a> FrameRequest<'a> {
         args: &'args FrameRequestArgs<'args>,
     ) -> flatbuffers::WIPOffset<FrameRequest<'bldr>> {
         let mut builder = FrameRequestBuilder::new(_fbb);
+        if let Some(x) = args.resume {
+            builder.add_resume(x);
+        }
         if let Some(x) = args.hello {
             builder.add_hello(x);
         }
@@ -52,7 +56,12 @@ impl<'a> FrameRequest<'a> {
     pub fn unpack(&self) -> FrameRequestT {
         let action = self.action().map(|x| Box::new(x.unpack()));
         let hello = self.hello().map(|x| Box::new(x.unpack()));
-        FrameRequestT { action, hello }
+        let resume = self.resume().map(|x| Box::new(x.unpack()));
+        FrameRequestT {
+            action,
+            hello,
+            resume,
+        }
     }
 
     #[inline]
@@ -75,6 +84,19 @@ impl<'a> FrameRequest<'a> {
                 .get::<flatbuffers::ForwardsUOffset<ClientHello>>(FrameRequest::VT_HELLO, None)
         }
     }
+    #[inline]
+    pub fn resume(&self) -> Option<ResumeSubscription<'a>> {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<flatbuffers::ForwardsUOffset<ResumeSubscription>>(
+                    FrameRequest::VT_RESUME,
+                    None,
+                )
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for FrameRequest<'_> {
@@ -95,6 +117,11 @@ impl flatbuffers::Verifiable for FrameRequest<'_> {
                 Self::VT_HELLO,
                 false,
             )?
+            .visit_field::<flatbuffers::ForwardsUOffset<ResumeSubscription>>(
+                "resume",
+                Self::VT_RESUME,
+                false,
+            )?
             .finish();
         Ok(())
     }
@@ -102,6 +129,7 @@ impl flatbuffers::Verifiable for FrameRequest<'_> {
 pub struct FrameRequestArgs<'a> {
     pub action: Option<flatbuffers::WIPOffset<ActionRequest<'a>>>,
     pub hello: Option<flatbuffers::WIPOffset<ClientHello<'a>>>,
+    pub resume: Option<flatbuffers::WIPOffset<ResumeSubscription<'a>>>,
 }
 impl<'a> Default for FrameRequestArgs<'a> {
     #[inline]
@@ -109,6 +137,7 @@ impl<'a> Default for FrameRequestArgs<'a> {
         FrameRequestArgs {
             action: None,
             hello: None,
+            resume: None,
         }
     }
 }
@@ -132,6 +161,14 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> FrameRequestBuilder<'a, 'b, A> 
             .push_slot_always::<flatbuffers::WIPOffset<ClientHello>>(FrameRequest::VT_HELLO, hello);
     }
     #[inline]
+    pub fn add_resume(&mut self, resume: flatbuffers::WIPOffset<ResumeSubscription<'b>>) {
+        self.fbb_
+            .push_slot_always::<flatbuffers::WIPOffset<ResumeSubscription>>(
+                FrameRequest::VT_RESUME,
+                resume,
+            );
+    }
+    #[inline]
     pub fn new(
         _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     ) -> FrameRequestBuilder<'a, 'b, A> {
@@ -153,6 +190,7 @@ impl core::fmt::Debug for FrameRequest<'_> {
         let mut ds = f.debug_struct("FrameRequest");
         ds.field("action", &self.action());
         ds.field("hello", &self.hello());
+        ds.field("resume", &self.resume());
         ds.finish()
     }
 }
@@ -161,12 +199,14 @@ impl core::fmt::Debug for FrameRequest<'_> {
 pub struct FrameRequestT {
     pub action: Option<Box<ActionRequestT>>,
     pub hello: Option<Box<ClientHelloT>>,
+    pub resume: Option<Box<ResumeSubscriptionT>>,
 }
 impl Default for FrameRequestT {
     fn default() -> Self {
         Self {
             action: None,
             hello: None,
+            resume: None,
         }
     }
 }
@@ -177,6 +217,14 @@ impl FrameRequestT {
     ) -> flatbuffers::WIPOffset<FrameRequest<'b>> {
         let action = self.action.as_ref().map(|x| x.pack(_fbb));
         let hello = self.hello.as_ref().map(|x| x.pack(_fbb));
-        FrameRequest::create(_fbb, &FrameRequestArgs { action, hello })
+        let resume = self.resume.as_ref().map(|x| x.pack(_fbb));
+        FrameRequest::create(
+            _fbb,
+            &FrameRequestArgs {
+                action,
+                hello,
+                resume,
+            },
+        )
     }
 }

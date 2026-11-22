@@ -4,6 +4,10 @@ mod delivery;
 mod dispatcher;
 mod errors;
 mod hello;
+mod subscription;
+pub use subscription::{
+    FeedEvent, FeedLease, LiveSink, ReplayError, ReplayFeed, SubscriptionReplay,
+};
 mod local;
 
 use std::sync::Arc;

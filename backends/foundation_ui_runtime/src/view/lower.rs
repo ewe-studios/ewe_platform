@@ -63,6 +63,7 @@ pub(super) fn local_id(html: &Html) -> Result<u32, LowerError> {
 #[derive(Default)]
 pub(super) struct Layout {
     known: BTreeSet<u32>,
+    element_names: BTreeSet<String>,
     extra: u32,
     anchors: BTreeSet<u32>,
 }
@@ -89,6 +90,11 @@ impl Layout {
     fn visit(&mut self, html: &Html, web_parent: bool) -> Result<(), LowerError> {
         let mut web_children = web_parent;
         if let Some(tag) = &html.tag {
+            if let Some(name) = attr(html, "id") {
+                if !self.element_names.insert(name.to_owned()) {
+                    return Err(LowerError::DuplicateName(name.to_owned()));
+                }
+            }
             if let Some(anchor) = attr(html, "primal:anchor") {
                 let id = anchor.parse::<u32>().map_err(|_| LowerError::BadTarget)?;
                 if id < 3 || !self.anchors.insert(id) {
@@ -283,7 +289,7 @@ impl Builder<'_> {
     }
 
     fn live(&mut self, html: &Html, id: u32) -> Result<(), LowerError> {
-        use foundation_ui_wire::{LiveKind, LiveMountT, LiveTransport};
+        use foundation_ui_wire::{ConnectionSharing, LiveKind, LiveMountT, LiveTransport};
         let invalid = |key: &str| LowerError::BadProp {
             node_id: id,
             prop: key.into(),
@@ -307,6 +313,17 @@ impl Builder<'_> {
                     LiveKind::Stream
                 },
                 transport: transport,
+                sharing: match attr(html, "data-connection-shared") {
+                    None => ConnectionSharing::TransportDefault,
+                    Some("true") => ConnectionSharing::Shared,
+                    Some("false") => ConnectionSharing::Dedicated,
+                    _ => return Err(invalid("data-connection-shared")),
+                },
+                keep_alive: match attr(html, "data-connection-keep-alive") {
+                    None | Some("false") => false,
+                    Some("true") => true,
+                    _ => return Err(invalid("data-connection-keep-alive")),
+                },
                 endpoint: Some(attr(html, "api").ok_or_else(|| invalid("api"))?.into()),
                 channel_id: attr(html, "data-channel-id")
                     .ok_or_else(|| invalid("data-channel-id"))?
@@ -327,6 +344,8 @@ impl Builder<'_> {
                         | "protocol"
                         | "data-channel-id"
                         | "data-resume-from"
+                        | "data-connection-shared"
+                        | "data-connection-keep-alive"
                         | "transport"
                 )
             ) {

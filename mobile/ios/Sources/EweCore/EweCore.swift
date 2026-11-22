@@ -519,6 +519,22 @@ fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterDouble: FfiConverterPrimitive {
+    typealias FfiType = Double
+    typealias SwiftType = Double
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Double {
+        return try lift(readDouble(&buf))
+    }
+
+    public static func write(_ value: Double, into buf: inout [UInt8]) {
+        writeDouble(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterBool : FfiConverter {
     typealias FfiType = Int8
     typealias SwiftType = Bool
@@ -953,6 +969,414 @@ public func FfiConverterTypeFrameListener_lift(_ handle: UInt64) throws -> Frame
 #endif
 public func FfiConverterTypeFrameListener_lower(_ value: FrameListener) -> UInt64 {
     return FfiConverterTypeFrameListener.lower(value)
+}
+
+
+
+
+
+
+public protocol HostDeviceCompletion: AnyObject, Sendable {
+    
+    /**
+     * The host can reuse its resources after this callback. Loss requires a new device.
+     */
+    func released(deviceLost: Bool) 
+    
+}
+open class HostDeviceCompletionImpl: HostDeviceCompletion, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_hostdevicecompletion(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_hostdevicecompletion(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * The host can reuse its resources after this callback. Loss requires a new device.
+     */
+open func released(deviceLost: Bool)  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_hostdevicecompletion_released(
+            self.uniffiCloneHandle(),
+        FfiConverterBool.lower(deviceLost),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceHostDeviceCompletion {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // Store the vtable directly.
+    static let vtable: UniffiVTableCallbackInterfaceHostDeviceCompletion = UniffiVTableCallbackInterfaceHostDeviceCompletion(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterTypeHostDeviceCompletion.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface HostDeviceCompletion: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterTypeHostDeviceCompletion.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface HostDeviceCompletion: handle missing in uniffiClone")
+            }
+        },
+        released: { (
+            uniffiHandle: UInt64,
+            deviceLost: Int8,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeHostDeviceCompletion.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.released(
+                     deviceLost: try FfiConverterBool.lift(deviceLost)
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        }
+    )
+
+    // Rust stores this pointer for future callback invocations, so it must live
+    // for the process lifetime (not just for the init function call).
+    //
+    // `nonisolated(unsafe)` is needed under Swift 6 strict concurrency.
+    // This is safe because the pointee is initialized once during static init
+    // and never mutated by either side of the FFI.  Its fields are C function pointers.
+    nonisolated(unsafe) static let vtablePtr: UnsafePointer<UniffiVTableCallbackInterfaceHostDeviceCompletion> = {
+        let ptr = UnsafeMutablePointer<UniffiVTableCallbackInterfaceHostDeviceCompletion>.allocate(capacity: 1)
+        ptr.initialize(to: vtable)
+        return UnsafePointer(ptr)
+    }()
+}
+
+private func uniffiCallbackInitHostDeviceCompletion() {
+    uniffi_foundation_ui_native_fn_init_callback_vtable_hostdevicecompletion(UniffiCallbackInterfaceHostDeviceCompletion.vtablePtr)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostDeviceCompletion: FfiConverter {
+    fileprivate static let handleMap = UniffiHandleMap<HostDeviceCompletion>()
+
+    typealias FfiType = UInt64
+    typealias SwiftType = HostDeviceCompletion
+
+    public static func lift(_ handle: UInt64) throws -> HostDeviceCompletion {
+        if ((handle & 1) == 0) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostDeviceCompletionImpl(unsafeFromHandle: handle)
+        } else {
+            // Swift-generated handle, get the object from the handle map
+            return try handleMap.remove(handle: handle)
+        }
+    }
+
+    public static func lower(_ value: HostDeviceCompletion) -> UInt64 {
+         if let rustImpl = value as? HostDeviceCompletionImpl {
+             // Rust-implemented object.  Clone the handle and return it
+            return rustImpl.uniffiCloneHandle()
+         } else {
+            // Swift object, generate a new vtable handle and return that.
+            return handleMap.insert(obj: value)
+         }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostDeviceCompletion {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: HostDeviceCompletion, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostDeviceCompletion_lift(_ handle: UInt64) throws -> HostDeviceCompletion {
+    return try FfiConverterTypeHostDeviceCompletion.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostDeviceCompletion_lower(_ value: HostDeviceCompletion) -> UInt64 {
+    return FfiConverterTypeHostDeviceCompletion.lower(value)
+}
+
+
+
+
+
+
+public protocol HostDeviceProvider: AnyObject, Sendable {
+    
+    /**
+     * Schedule collection of the host device. Return immediately to the originating action.
+     */
+    func request(request: NativeDeviceRequest) 
+    
+}
+open class HostDeviceProviderImpl: HostDeviceProvider, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_hostdeviceprovider(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_hostdeviceprovider(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Schedule collection of the host device. Return immediately to the originating action.
+     */
+open func request(request: NativeDeviceRequest)  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_hostdeviceprovider_request(
+            self.uniffiCloneHandle(),
+        FfiConverterTypeNativeDeviceRequest_lower(request),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceHostDeviceProvider {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // Store the vtable directly.
+    static let vtable: UniffiVTableCallbackInterfaceHostDeviceProvider = UniffiVTableCallbackInterfaceHostDeviceProvider(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterTypeHostDeviceProvider.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface HostDeviceProvider: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterTypeHostDeviceProvider.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface HostDeviceProvider: handle missing in uniffiClone")
+            }
+        },
+        request: { (
+            uniffiHandle: UInt64,
+            request: UInt64,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeHostDeviceProvider.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.request(
+                     request: try FfiConverterTypeNativeDeviceRequest_lift(request)
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        }
+    )
+
+    // Rust stores this pointer for future callback invocations, so it must live
+    // for the process lifetime (not just for the init function call).
+    //
+    // `nonisolated(unsafe)` is needed under Swift 6 strict concurrency.
+    // This is safe because the pointee is initialized once during static init
+    // and never mutated by either side of the FFI.  Its fields are C function pointers.
+    nonisolated(unsafe) static let vtablePtr: UnsafePointer<UniffiVTableCallbackInterfaceHostDeviceProvider> = {
+        let ptr = UnsafeMutablePointer<UniffiVTableCallbackInterfaceHostDeviceProvider>.allocate(capacity: 1)
+        ptr.initialize(to: vtable)
+        return UnsafePointer(ptr)
+    }()
+}
+
+private func uniffiCallbackInitHostDeviceProvider() {
+    uniffi_foundation_ui_native_fn_init_callback_vtable_hostdeviceprovider(UniffiCallbackInterfaceHostDeviceProvider.vtablePtr)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostDeviceProvider: FfiConverter {
+    fileprivate static let handleMap = UniffiHandleMap<HostDeviceProvider>()
+
+    typealias FfiType = UInt64
+    typealias SwiftType = HostDeviceProvider
+
+    public static func lift(_ handle: UInt64) throws -> HostDeviceProvider {
+        if ((handle & 1) == 0) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostDeviceProviderImpl(unsafeFromHandle: handle)
+        } else {
+            // Swift-generated handle, get the object from the handle map
+            return try handleMap.remove(handle: handle)
+        }
+    }
+
+    public static func lower(_ value: HostDeviceProvider) -> UInt64 {
+         if let rustImpl = value as? HostDeviceProviderImpl {
+             // Rust-implemented object.  Clone the handle and return it
+            return rustImpl.uniffiCloneHandle()
+         } else {
+            // Swift object, generate a new vtable handle and return that.
+            return handleMap.insert(obj: value)
+         }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostDeviceProvider {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: HostDeviceProvider, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostDeviceProvider_lift(_ handle: UInt64) throws -> HostDeviceProvider {
+    return try FfiConverterTypeHostDeviceProvider.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostDeviceProvider_lower(_ value: HostDeviceProvider) -> UInt64 {
+    return FfiConverterTypeHostDeviceProvider.lower(value)
 }
 
 
@@ -2056,12 +2480,25 @@ public protocol NativeCoreProtocol: AnyObject, Sendable {
     func clearFrameListener() 
     
     /**
+     * Install the graphics service on first use. Local actions read the same service from their context.
+     *
+     * # Errors
+     * Returns an error when the graphics owner cannot start.
+     */
+    func graphics() throws  -> NativeGraphics
+    
+    /**
      * Returns the hello for this platform and native mount.
      *
      * # Panics
      * Panics if the generated schema can no longer encode its fixed-size hello.
      */
     func hello()  -> Data
+    
+    /**
+     * Correlates one screen's capability request on a shared connection.
+     */
+    func helloFor(requestTag: UInt64)  -> Data
     
     func setFrameListener(listener: FrameListener) 
     
@@ -2080,6 +2517,22 @@ public protocol NativeCoreProtocol: AnyObject, Sendable {
      * Reports unsupported input, routing and transport failures.
      */
     func triggerStructured(reference: String, event: EventInput, json: Data) async throws  -> Data?
+    
+    /**
+     * Install a host provider that can deliver a result to the named local Rust action.
+     *
+     * # Errors
+     * Rejects a server reference, an absent Rust handler, or a second provider on the same context.
+     */
+    func installDeviceProvider(readyAction: String, provider: HostDeviceProvider) throws 
+    
+    /**
+     * Start the exchange from this core. A Rust action can also call `DeviceExchange::request` directly.
+     *
+     * # Errors
+     * Reports a missing provider or an invalid resource name.
+     */
+    func requestHostDevice(device: String, surface: String?) throws  -> NativePendingLease
     
 }
 open class NativeCore: NativeCoreProtocol, @unchecked Sendable {
@@ -2176,6 +2629,21 @@ open func clearFrameListener()  {try! rustCall() {
 }
     
     /**
+     * Install the graphics service on first use. Local actions read the same service from their context.
+     *
+     * # Errors
+     * Returns an error when the graphics owner cannot start.
+     */
+open func graphics()throws  -> NativeGraphics  {
+    return try  FfiConverterTypeNativeGraphics_lift(try rustCallWithError(FfiConverterTypeGraphicsError_lift) {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativecore_graphics(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+})
+}
+    
+    /**
      * Returns the hello for this platform and native mount.
      *
      * # Panics
@@ -2186,6 +2654,19 @@ open func hello() -> Data  {
         uniffiCallStatus in
     uniffi_foundation_ui_native_fn_method_nativecore_hello(
             self.uniffiCloneHandle(),uniffiCallStatus
+    )
+})
+}
+    
+    /**
+     * Correlates one screen's capability request on a shared connection.
+     */
+open func helloFor(requestTag: UInt64) -> Data  {
+    return try!  FfiConverterData.lift(try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativecore_hello_for(
+            self.uniffiCloneHandle(),
+        FfiConverterUInt64.lower(requestTag),uniffiCallStatus
     )
 })
 }
@@ -2243,6 +2724,39 @@ open func triggerStructured(reference: String, event: EventInput, json: Data)asy
         )
 }
     
+    /**
+     * Install a host provider that can deliver a result to the named local Rust action.
+     *
+     * # Errors
+     * Rejects a server reference, an absent Rust handler, or a second provider on the same context.
+     */
+open func installDeviceProvider(readyAction: String, provider: HostDeviceProvider)throws   {try rustCallWithError(FfiConverterTypeGraphicsError_lift) {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativecore_install_device_provider(
+            self.uniffiCloneHandle(),
+        FfiConverterString.lower(readyAction),
+        FfiConverterTypeHostDeviceProvider_lower(provider),uniffiCallStatus
+    )
+}
+}
+    
+    /**
+     * Start the exchange from this core. A Rust action can also call `DeviceExchange::request` directly.
+     *
+     * # Errors
+     * Reports a missing provider or an invalid resource name.
+     */
+open func requestHostDevice(device: String, surface: String?)throws  -> NativePendingLease  {
+    return try  FfiConverterTypeNativePendingLease_lift(try rustCallWithError(FfiConverterTypeGraphicsError_lift) {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativecore_request_host_device(
+            self.uniffiCloneHandle(),
+        FfiConverterString.lower(device),
+        FfiConverterOptionString.lower(surface),uniffiCallStatus
+    )
+})
+}
+    
 
     
 }
@@ -2286,6 +2800,1029 @@ public func FfiConverterTypeNativeCore_lift(_ handle: UInt64) throws -> NativeCo
 #endif
 public func FfiConverterTypeNativeCore_lower(_ value: NativeCore) -> UInt64 {
     return FfiConverterTypeNativeCore.lower(value)
+}
+
+
+
+
+
+
+/**
+ * A native platform bridge retains the resources in this single-use object.
+ */
+public protocol NativeDeviceGrantProtocol: AnyObject, Sendable {
+    
+    /**
+     * Reject new submissions. The completion callback still waits for accepted device work.
+     */
+    func withdraw() 
+    
+}
+/**
+ * A native platform bridge retains the resources in this single-use object.
+ */
+open class NativeDeviceGrant: NativeDeviceGrantProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativedevicegrant(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativedevicegrant(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Reject new submissions. The completion callback still waits for accepted device work.
+     */
+open func withdraw()  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativedevicegrant_withdraw(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeDeviceGrant: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeDeviceGrant
+
+    public static func lift(_ handle: UInt64) throws -> NativeDeviceGrant {
+        return NativeDeviceGrant(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeDeviceGrant) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeDeviceGrant {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeDeviceGrant, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDeviceGrant_lift(_ handle: UInt64) throws -> NativeDeviceGrant {
+    return try FfiConverterTypeNativeDeviceGrant.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDeviceGrant_lower(_ value: NativeDeviceGrant) -> UInt64 {
+    return FfiConverterTypeNativeDeviceGrant.lower(value)
+}
+
+
+
+
+
+
+public protocol NativeDeviceRequestProtocol: AnyObject, Sendable {
+    
+    func device()  -> String
+    
+    /**
+     * Dispatch a typed refusal through the same local action.
+     *
+     * # Errors
+     * Returns an error if the initiating core or request has stopped.
+     */
+    func fail(reason: HostDeviceFailure) async throws 
+    
+    /**
+     * Import the host's original device. Dispatch the result to the configured local handler.
+     *
+     * # Errors
+     * Reports an import, dispatch, or cancellation error.
+     */
+    func ready(grant: NativeDeviceGrant, generation: UInt64, completion: HostDeviceCompletion) async throws 
+    
+    func requestId()  -> UInt64
+    
+    func surface()  -> String?
+    
+}
+open class NativeDeviceRequest: NativeDeviceRequestProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativedevicerequest(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativedevicerequest(handle, $0) }
+    }
+
+    
+
+    
+open func device() -> String  {
+    return try!  FfiConverterString.lift(try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativedevicerequest_device(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+})
+}
+    
+    /**
+     * Dispatch a typed refusal through the same local action.
+     *
+     * # Errors
+     * Returns an error if the initiating core or request has stopped.
+     */
+open func fail(reason: HostDeviceFailure)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativedevicerequest_fail(
+                        self.uniffiCloneHandle(),FfiConverterTypeHostDeviceFailure_lower(reason)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * Import the host's original device. Dispatch the result to the configured local handler.
+     *
+     * # Errors
+     * Reports an import, dispatch, or cancellation error.
+     */
+open func ready(grant: NativeDeviceGrant, generation: UInt64, completion: HostDeviceCompletion)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativedevicerequest_ready(
+                        self.uniffiCloneHandle(),FfiConverterTypeNativeDeviceGrant_lower(grant),FfiConverterUInt64.lower(generation),FfiConverterTypeHostDeviceCompletion_lower(completion)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+open func requestId() -> UInt64  {
+    return try!  FfiConverterUInt64.lift(try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativedevicerequest_request_id(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+})
+}
+    
+open func surface() -> String?  {
+    return try!  FfiConverterOptionString.lift(try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativedevicerequest_surface(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+})
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeDeviceRequest: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeDeviceRequest
+
+    public static func lift(_ handle: UInt64) throws -> NativeDeviceRequest {
+        return NativeDeviceRequest(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeDeviceRequest) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeDeviceRequest {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeDeviceRequest, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDeviceRequest_lift(_ handle: UInt64) throws -> NativeDeviceRequest {
+    return try FfiConverterTypeNativeDeviceRequest.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDeviceRequest_lower(_ value: NativeDeviceRequest) -> UInt64 {
+    return FfiConverterTypeNativeDeviceRequest.lower(value)
+}
+
+
+
+
+
+
+public protocol NativeDrawingSurfaceProtocol: AnyObject, Sendable {
+    
+    /**
+     * Fill and present the surface. Each color component ranges from zero to one.
+     *
+     * # Errors
+     * Returns a stale handle, suspended target, or presentation error.
+     */
+    func clear(red: Double, green: Double, blue: Double, alpha: Double) async throws 
+    
+    /**
+     * Release the target on its graphics owner.
+     *
+     * # Errors
+     * Returns a stale handle error if the target was already removed.
+     */
+    func remove() async throws 
+    
+    /**
+     * Change the drawing size in physical pixels. A zero dimension suspends the target.
+     *
+     * # Errors
+     * Returns a stale handle or device error.
+     */
+    func resize(width: UInt32, height: UInt32) async throws 
+    
+}
+open class NativeDrawingSurface: NativeDrawingSurfaceProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativedrawingsurface(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativedrawingsurface(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Fill and present the surface. Each color component ranges from zero to one.
+     *
+     * # Errors
+     * Returns a stale handle, suspended target, or presentation error.
+     */
+open func clear(red: Double, green: Double, blue: Double, alpha: Double)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativedrawingsurface_clear(
+                        self.uniffiCloneHandle(),FfiConverterDouble.lower(red),FfiConverterDouble.lower(green),FfiConverterDouble.lower(blue),FfiConverterDouble.lower(alpha)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * Release the target on its graphics owner.
+     *
+     * # Errors
+     * Returns a stale handle error if the target was already removed.
+     */
+open func remove()async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativedrawingsurface_remove(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * Change the drawing size in physical pixels. A zero dimension suspends the target.
+     *
+     * # Errors
+     * Returns a stale handle or device error.
+     */
+open func resize(width: UInt32, height: UInt32)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativedrawingsurface_resize(
+                        self.uniffiCloneHandle(),FfiConverterUInt32.lower(width),FfiConverterUInt32.lower(height)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeDrawingSurface: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeDrawingSurface
+
+    public static func lift(_ handle: UInt64) throws -> NativeDrawingSurface {
+        return NativeDrawingSurface(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeDrawingSurface) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeDrawingSurface {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeDrawingSurface, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDrawingSurface_lift(_ handle: UInt64) throws -> NativeDrawingSurface {
+    return try FfiConverterTypeNativeDrawingSurface.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDrawingSurface_lower(_ value: NativeDrawingSurface) -> UInt64 {
+    return FfiConverterTypeNativeDrawingSurface.lower(value)
+}
+
+
+
+
+
+
+public protocol NativeDrawingTargetProtocol: AnyObject, Sendable {
+    
+}
+open class NativeDrawingTarget: NativeDrawingTargetProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativedrawingtarget(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativedrawingtarget(handle, $0) }
+    }
+
+    
+
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeDrawingTarget: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeDrawingTarget
+
+    public static func lift(_ handle: UInt64) throws -> NativeDrawingTarget {
+        return NativeDrawingTarget(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeDrawingTarget) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeDrawingTarget {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeDrawingTarget, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDrawingTarget_lift(_ handle: UInt64) throws -> NativeDrawingTarget {
+    return try FfiConverterTypeNativeDrawingTarget.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeDrawingTarget_lower(_ value: NativeDrawingTarget) -> UInt64 {
+    return FfiConverterTypeNativeDrawingTarget.lower(value)
+}
+
+
+
+
+
+
+public protocol NativeGraphicsProtocol: AnyObject, Sendable {
+    
+    /**
+     * Read the backend and adapter name.
+     *
+     * # Errors
+     * Returns the device initialization error.
+     */
+    func adapter() async throws  -> String
+    
+    /**
+     * Register a target and keep its native reference until removal.
+     *
+     * # Errors
+     * Returns an error for duplicate names or incompatible devices.
+     */
+    func attach(name: String, target: NativeDrawingTarget, width: UInt32, height: UInt32) async throws  -> NativeDrawingSurface
+    
+    /**
+     * Run a local shader over the supplied words.
+     *
+     * # Errors
+     * Returns a validation, execution, or readback error.
+     */
+    func compute(shader: String, words: [UInt32], groups: UInt32) async throws  -> [UInt32]
+    
+    /**
+     * Invalidate all old surface handles and open a new device.
+     *
+     * # Errors
+     * Returns the initialization error.
+     */
+    func reinitialize() async throws 
+    
+}
+open class NativeGraphics: NativeGraphicsProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativegraphics(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativegraphics(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Read the backend and adapter name.
+     *
+     * # Errors
+     * Returns the device initialization error.
+     */
+open func adapter()async throws  -> String  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativegraphics_adapter(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterString.lift,
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * Register a target and keep its native reference until removal.
+     *
+     * # Errors
+     * Returns an error for duplicate names or incompatible devices.
+     */
+open func attach(name: String, target: NativeDrawingTarget, width: UInt32, height: UInt32)async throws  -> NativeDrawingSurface  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativegraphics_attach(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(name),FfiConverterTypeNativeDrawingTarget_lower(target),FfiConverterUInt32.lower(width),FfiConverterUInt32.lower(height)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_u64,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_u64,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_u64,
+            liftFunc: FfiConverterTypeNativeDrawingSurface_lift,
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * Run a local shader over the supplied words.
+     *
+     * # Errors
+     * Returns a validation, execution, or readback error.
+     */
+open func compute(shader: String, words: [UInt32], groups: UInt32)async throws  -> [UInt32]  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativegraphics_compute(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(shader),FfiConverterSequenceUInt32.lower(words),FfiConverterUInt32.lower(groups)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterSequenceUInt32.lift,
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * Invalidate all old surface handles and open a new device.
+     *
+     * # Errors
+     * Returns the initialization error.
+     */
+open func reinitialize()async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativegraphics_reinitialize(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeGraphics: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeGraphics
+
+    public static func lift(_ handle: UInt64) throws -> NativeGraphics {
+        return NativeGraphics(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeGraphics) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeGraphics {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeGraphics, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeGraphics_lift(_ handle: UInt64) throws -> NativeGraphics {
+    return try FfiConverterTypeNativeGraphics.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeGraphics_lower(_ value: NativeGraphics) -> UInt64 {
+    return FfiConverterTypeNativeGraphics.lower(value)
+}
+
+
+
+
+
+
+public protocol NativeGraphicsLeaseProtocol: AnyObject, Sendable {
+    
+    /**
+     * # Errors
+     * Returns a shader error, cancellation, or device loss.
+     */
+    func compute(shader: String, words: [UInt32], groups: UInt32) async throws  -> [UInt32]
+    
+    /**
+     * # Errors
+     * Rejects an absent texture, invalid shader, or lost device.
+     */
+    func processTexture(shader: String, x: UInt32, y: UInt32, z: UInt32) async throws 
+    
+    func release() 
+    
+}
+open class NativeGraphicsLease: NativeGraphicsLeaseProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativegraphicslease(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativegraphicslease(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * # Errors
+     * Returns a shader error, cancellation, or device loss.
+     */
+open func compute(shader: String, words: [UInt32], groups: UInt32)async throws  -> [UInt32]  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativegraphicslease_compute(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(shader),FfiConverterSequenceUInt32.lower(words),FfiConverterUInt32.lower(groups)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterSequenceUInt32.lift,
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+    /**
+     * # Errors
+     * Rejects an absent texture, invalid shader, or lost device.
+     */
+open func processTexture(shader: String, x: UInt32, y: UInt32, z: UInt32)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativegraphicslease_process_texture(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(shader),FfiConverterUInt32.lower(x),FfiConverterUInt32.lower(y),FfiConverterUInt32.lower(z)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+open func release()  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativegraphicslease_release(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativeGraphicsLease: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativeGraphicsLease
+
+    public static func lift(_ handle: UInt64) throws -> NativeGraphicsLease {
+        return NativeGraphicsLease(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativeGraphicsLease) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativeGraphicsLease {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativeGraphicsLease, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeGraphicsLease_lift(_ handle: UInt64) throws -> NativeGraphicsLease {
+    return try FfiConverterTypeNativeGraphicsLease.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativeGraphicsLease_lower(_ value: NativeGraphicsLease) -> UInt64 {
+    return FfiConverterTypeNativeGraphicsLease.lower(value)
 }
 
 
@@ -2407,6 +3944,152 @@ public func FfiConverterTypeNativeHttpClient_lift(_ handle: UInt64) throws -> Na
 #endif
 public func FfiConverterTypeNativeHttpClient_lower(_ value: NativeHttpClient) -> UInt64 {
     return FfiConverterTypeNativeHttpClient.lower(value)
+}
+
+
+
+
+
+
+public protocol NativePendingLeaseProtocol: AnyObject, Sendable {
+    
+    func cancel() 
+    
+    /**
+     * Wait once for the callback action to deliver its offer.
+     *
+     * # Errors
+     * Returns the refusal, cancellation, or platform import error.
+     */
+    func wait() async throws  -> NativeGraphicsLease
+    
+}
+open class NativePendingLease: NativePendingLeaseProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_nativependinglease(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_nativependinglease(handle, $0) }
+    }
+
+    
+
+    
+open func cancel()  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativependinglease_cancel(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+    /**
+     * Wait once for the callback action to deliver its offer.
+     *
+     * # Errors
+     * Returns the refusal, cancellation, or platform import error.
+     */
+open func wait()async throws  -> NativeGraphicsLease  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativependinglease_wait(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_u64,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_u64,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_u64,
+            liftFunc: FfiConverterTypeNativeGraphicsLease_lift,
+            errorHandler: FfiConverterTypeGraphicsError_lift
+        )
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNativePendingLease: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = NativePendingLease
+
+    public static func lift(_ handle: UInt64) throws -> NativePendingLease {
+        return NativePendingLease(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: NativePendingLease) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NativePendingLease {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: NativePendingLease, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativePendingLease_lift(_ handle: UInt64) throws -> NativePendingLease {
+    return try FfiConverterTypeNativePendingLease.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNativePendingLease_lower(_ value: NativePendingLease) -> UInt64 {
+    return FfiConverterTypeNativePendingLease.lower(value)
 }
 
 
@@ -2858,6 +4541,213 @@ public func FfiConverterTypeCoreError_lower(_ value: CoreError) -> RustBuffer {
 }
 
 
+public 
+enum GraphicsError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
+
+    
+    
+    case Denied
+    case Unavailable(reason: String
+    )
+    case Unsupported
+    case DeviceLost
+    case StaleSurface
+    case IncompatibleSurface
+    case Suspended
+    case Cancelled
+    case Operation(reason: String
+    )
+
+    
+
+    
+
+    
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+    
+}
+
+#if compiler(>=6)
+extension GraphicsError: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeGraphicsError: FfiConverterRustBuffer {
+    typealias SwiftType = GraphicsError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GraphicsError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .Denied
+        case 2: return .Unavailable(
+            reason: try FfiConverterString.read(from: &buf)
+            )
+        case 3: return .Unsupported
+        case 4: return .DeviceLost
+        case 5: return .StaleSurface
+        case 6: return .IncompatibleSurface
+        case 7: return .Suspended
+        case 8: return .Cancelled
+        case 9: return .Operation(
+            reason: try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: GraphicsError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case .Denied:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .Unavailable(reason):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(reason, into: &buf)
+            
+        
+        case .Unsupported:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .DeviceLost:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .StaleSurface:
+            writeInt(&buf, Int32(5))
+        
+        
+        case .IncompatibleSurface:
+            writeInt(&buf, Int32(6))
+        
+        
+        case .Suspended:
+            writeInt(&buf, Int32(7))
+        
+        
+        case .Cancelled:
+            writeInt(&buf, Int32(8))
+        
+        
+        case let .Operation(reason):
+            writeInt(&buf, Int32(9))
+            FfiConverterString.write(reason, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeGraphicsError_lift(_ buf: RustBuffer) throws -> GraphicsError {
+    return try FfiConverterTypeGraphicsError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeGraphicsError_lower(_ value: GraphicsError) -> RustBuffer {
+    return FfiConverterTypeGraphicsError.lower(value)
+}
+
+
+
+public enum HostDeviceFailure: Equatable, Hashable {
+    
+    case denied
+    case cancelled
+    case incompatible
+    case deviceLost
+
+
+
+
+
+}
+
+#if compiler(>=6)
+extension HostDeviceFailure: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostDeviceFailure: FfiConverterRustBuffer {
+    typealias SwiftType = HostDeviceFailure
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostDeviceFailure {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .denied
+        
+        case 2: return .cancelled
+        
+        case 3: return .incompatible
+        
+        case 4: return .deviceLost
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: HostDeviceFailure, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .denied:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .cancelled:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .incompatible:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .deviceLost:
+            writeInt(&buf, Int32(4))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostDeviceFailure_lift(_ buf: RustBuffer) throws -> HostDeviceFailure {
+    return try FfiConverterTypeHostDeviceFailure.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostDeviceFailure_lower(_ value: HostDeviceFailure) -> RustBuffer {
+    return FfiConverterTypeHostDeviceFailure.lower(value)
+}
+
+
+
 
 public enum NativePlatform: Equatable, Hashable {
     
@@ -3014,6 +4904,30 @@ public func FfiConverterTypeServiceError_lower(_ value: ServiceError) -> RustBuf
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
+    typealias SwiftType = String?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionData: FfiConverterRustBuffer {
     typealias SwiftType = Data?
 
@@ -3032,6 +4946,31 @@ fileprivate struct FfiConverterOptionData: FfiConverterRustBuffer {
         case 1: return try FfiConverterData.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceUInt32: FfiConverterRustBuffer {
+    typealias SwiftType = [UInt32]
+
+    public static func write(_ value: [UInt32], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterUInt32.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [UInt32] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [UInt32]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterUInt32.read(from: &buf))
+        }
+        return seq
     }
 }
 
@@ -3244,7 +5183,13 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_method_nativecore_clear_frame_listener() != 23630) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_graphics() != 30215) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_foundation_ui_native_checksum_method_nativecore_hello() != 22576) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_hello_for() != 53241) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_foundation_ui_native_checksum_method_nativecore_set_frame_listener() != 38322) {
@@ -3254,6 +5199,72 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_foundation_ui_native_checksum_method_nativecore_trigger_structured() != 32894) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_install_device_provider() != 54006) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_request_host_device() != 43063) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear() != 36509) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_remove() != 2193) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_resize() != 64225) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphics_adapter() != 55736) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphics_attach() != 46656) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphics_compute() != 52714) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphics_reinitialize() != 53292) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostdevicecompletion_released() != 3370) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostdeviceprovider_request() != 13060) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedevicegrant_withdraw() != 50729) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedevicerequest_device() != 34626) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedevicerequest_fail() != 39279) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedevicerequest_ready() != 11363) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedevicerequest_request_id() != 1475) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativedevicerequest_surface() != 64425) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphicslease_compute() != 45933) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphicslease_process_texture() != 11995) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativegraphicslease_release() != 41547) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativependinglease_cancel() != 48182) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativependinglease_wait() != 17713) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_foundation_ui_native_checksum_method_framelistener_on_frame() != 10664) {
@@ -3297,6 +5308,8 @@ private let initializationResult: InitializationResult = {
     }
 
     uniffiCallbackInitFrameListener()
+    uniffiCallbackInitHostDeviceCompletion()
+    uniffiCallbackInitHostDeviceProvider()
     uniffiCallbackInitHostHttpClient()
     uniffiCallbackInitHostTransport()
     uniffiCallbackInitHostTransportProvider()

@@ -120,6 +120,12 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
                             it.transport,
                             it.endpoint.orEmpty(),
                             it.resumeFrom,
+                            when (it.sharing) {
+                                ewe.ui.ConnectionSharing.Shared -> true
+                                ewe.ui.ConnectionSharing.Dedicated -> false
+                                else -> null
+                            },
+                            it.keepAlive,
                         )
                 }
             UiOperation.UiBehaviour ->
@@ -151,7 +157,10 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
         val n = store.node(id, row) ?: return
         if (key == PropId.UNKNOWN || key !in Names.propId || value == null)
             store.report("UnknownProp", row, id)
-        else n.props[key] = value
+        else {
+            if (key == PropId.ID && !store.targets.setName(id, value.label, row)) return
+            n.props[key] = value
+        }
     }
 
     private fun command(c: NativeCommand, row: Int) {
@@ -177,22 +186,28 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
     }
 
     private fun place(p: Place, row: Int) {
+        p.target?.takeIf { it.kind == SelectorKind.View }?.text?.let { name ->
+            val destination = store.viewStore(name)
+            if (destination != null && destination !== store) {
+                val root = requireNotNull(destination.targets.roots[name])
+                FrameApplier(destination, bytes, root).place(p, row)
+                destination.onChanged?.invoke()
+                return
+            }
+        }
         if (p.kind == PlacementKind.FullView) {
+            if (mount == 0u) { store.report("AmbiguousView", row); return }
             val owner = store.node(mount, row) ?: return
+            if (!store.targets.validate(p, store.targets.scope(mount), owner.children.toList(), row)) return
             owner.children.toList().forEach(store::remove)
             repeat(p.operationsLength) { operation(requireNotNull(p.operations(it)), row) }
             store.insert(mount, p.rootNode, null, row)
             return
         }
         val target = p.target ?: return
-        if (
-            target.kind != SelectorKind.NodeId ||
-                p.child?.let { it.kind != SelectorKind.NodeId } == true
-        ) {
-            store.report("UnsupportedSelector", row)
-            return
-        }
-        val node = store.node(target.nodeId, row) ?: return
+        val scope = if (target.kind == SelectorKind.View) store.targets.roots[target.text] else store.targets.scope(mount)
+        val node = store.targets.resolve(target, scope, row) ?: return
+        if (!store.targets.validate(p, scope, if (p.kind == PlacementKind.Swap) listOf(node.id) else emptyList(), row)) return
         if (p.kind == PlacementKind.Remove) {
             store.remove(node.id)
             return
@@ -202,7 +217,7 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
             store.report("InvalidParent", row, node.id)
             return
         }
-        val anchor = p.child?.nodeId
+        val anchor = p.child?.let { (store.targets.resolve(it, scope, row) ?: return).id }
         if (anchor != null && anchor !in parent.children) {
             store.report("UnknownNode", row, anchor)
             return

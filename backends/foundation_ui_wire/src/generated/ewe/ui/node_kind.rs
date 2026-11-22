@@ -18,13 +18,13 @@ pub const ENUM_MIN_NODE_KIND: u16 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_NODE_KIND: u16 = 24;
+pub const ENUM_MAX_NODE_KIND: u16 = 25;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_NODE_KIND: [NodeKind; 25] = [
+pub const ENUM_VALUES_NODE_KIND: [NodeKind; 26] = [
     NodeKind::UNKNOWN,
     NodeKind::STACK,
     NodeKind::TEXT,
@@ -50,6 +50,7 @@ pub const ENUM_VALUES_NODE_KIND: [NodeKind; 25] = [
     NodeKind::SHEET_TITLE,
     NodeKind::SUBMIT_BUTTON,
     NodeKind::CANCEL_BUTTON,
+    NodeKind::DRAWING_SURFACE,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -82,9 +83,10 @@ impl NodeKind {
     pub const SHEET_TITLE: Self = Self(22);
     pub const SUBMIT_BUTTON: Self = Self(23);
     pub const CANCEL_BUTTON: Self = Self(24);
+    pub const DRAWING_SURFACE: Self = Self(25);
 
     pub const ENUM_MIN: u16 = 0;
-    pub const ENUM_MAX: u16 = 24;
+    pub const ENUM_MAX: u16 = 25;
     pub const ENUM_VALUES: &'static [Self] = &[
         Self::UNKNOWN,
         Self::STACK,
@@ -111,6 +113,7 @@ impl NodeKind {
         Self::SHEET_TITLE,
         Self::SUBMIT_BUTTON,
         Self::CANCEL_BUTTON,
+        Self::DRAWING_SURFACE,
     ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
@@ -140,6 +143,7 @@ impl NodeKind {
             Self::SHEET_TITLE => Some("SHEET_TITLE"),
             Self::SUBMIT_BUTTON => Some("SUBMIT_BUTTON"),
             Self::CANCEL_BUTTON => Some("CANCEL_BUTTON"),
+            Self::DRAWING_SURFACE => Some("DRAWING_SURFACE"),
             _ => None,
         }
     }

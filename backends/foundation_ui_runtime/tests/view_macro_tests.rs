@@ -58,9 +58,28 @@ fn state_template_queues_mapped_helpers_and_signed_state_targets() {
     assert!(!ctx.into_receiver().drain().is_empty());
 }
 
+#[test]
+fn compound_browser_selectors_keep_their_css_semantics() {
+    use foundation_ui_runtime::view::Target;
+    for selector in [
+        "#card > span",
+        "#card.active",
+        "section#card[hidden]",
+        "#a:hover",
+    ] {
+        assert!(matches!(Target::from(selector), Target::Css(_)));
+    }
+    for selector in ["#status", "sheet#details", "view#inbox"] {
+        assert!(matches!(Target::from(selector), Target::Named(_)));
+    }
+}
+
 fn place_views(ctx: &Context) -> ActionResult {
     let out = ctx.receiver();
     html! { ctx, out, <div>Ready</div> };
+    html_add! { ctx, out, <Text id="receipt">Received</Text> }?;
+    html_add! { ctx, out, Some(&7), <Button primal::state>Inspect</Button> }?;
+    html_add! { "view#inbox", ctx, out, <Text>Unread</Text> }?;
     html_add! { 4u32, ctx, out, <Text>More</Text> }?;
     html_add_before! { 4u32, None, ctx, out, <Text>First</Text> }?;
     html_add_after! { 4u32, Some(7u32), ctx, out, <Text>Next</Text> }?;

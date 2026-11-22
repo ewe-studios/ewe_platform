@@ -122,7 +122,7 @@ impl Dispatcher {
         request: Option<FrameRequest<'_>>,
     ) -> Result<(std::sync::Arc<dyn ErasedAction>, ActionRequestT), Failure> {
         let action = request
-            .filter(|request| request.hello().is_none())
+            .filter(|request| request.hello().is_none() && request.resume().is_none())
             .and_then(|request| request.action())
             .ok_or_else(Failure::bad_request)?;
         if schema_version != SCHEMA_VERSION {

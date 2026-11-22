@@ -89,6 +89,12 @@ import SwiftUI
       case .sheetTitle: content = AnyView(EweSheetTitle(node: n))
       case .navigationTitle: content = AnyView(EweNavigationTitle(node: n))
       case .listFooter: content = AnyView(EweListFooter(node: n))
+      #if os(iOS)
+      case .drawingSurface:
+        content = AnyView(EweDrawingSurface(name: n.props[.id]?.description ?? String(n.id),
+          graphics: { try screen.store.graphics() },
+          report: { screen.store.onError?("Graphics", $0.localizedDescription) }))
+      #endif
       case .image:
         if case .text(let source) = n.props[.source] {
           content = AnyView(AsyncImage(url: URL(string: source)))

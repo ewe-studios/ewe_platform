@@ -217,7 +217,30 @@ impl ResponseWriter {
         }
         let conn = &self.conn;
         let wait = self.wait.get_or_insert_with(|| WaitSource::new(conn));
-        wait.poll(cx, self.config.poll_fallback_interval, &self.ctx)
+        wait.poll(
+            cx,
+            self.config.poll_fallback_interval,
+            &self.ctx,
+            IoInterest::Writable,
+        )
+    }
+}
+
+/// Parks an upgraded connection until its next read can make progress.
+pub struct ReadWait(WaitSource);
+
+impl ReadWait {
+    #[must_use]
+    pub fn new(conn: &SharedByteBufferStream<RawStream>) -> Self {
+        Self(WaitSource::new(conn))
+    }
+
+    /// Waits for socket readiness. The fallback interval applies to transports without readiness.
+    ///
+    /// # Errors
+    /// Returns a socket or reactor error.
+    pub async fn readable(&mut self, interval: Duration, ctx: &Ctx) -> io::Result<()> {
+        poll_fn(|cx| self.0.poll(cx, interval, ctx, IoInterest::Readable)).await
     }
 }
 
@@ -252,6 +275,7 @@ impl WaitSource {
         cx: &mut Context<'_>,
         fallback_interval: Duration,
         ctx: &Ctx,
+        interest: IoInterest,
     ) -> Poll<io::Result<()>> {
         if let Some(readiness) = &self.readiness {
             // Register before the readiness probe, so an edge between the two
@@ -259,11 +283,11 @@ impl WaitSource {
             match readiness {
                 ConnReadiness::Fd(..) => {
                     let (Some(fd_ready), Some((_, corrected))) =
-                        (&self.fd_ready, readiness.poll_fd(IoInterest::Writable))
+                        (&self.fd_ready, readiness.poll_fd(interest))
                     else {
                         return Poll::Ready(Err(io::Error::new(
                             io::ErrorKind::Unsupported,
-                            "this transport cannot report write readiness",
+                            "this transport cannot report socket readiness",
                         )));
                     };
                     fd_ready.clear();
@@ -282,10 +306,10 @@ impl WaitSource {
                 ConnReadiness::Overlay(_) => {
                     let waker = cx.waker().clone();
                     let wake: ConnWaker = Arc::new(move || waker.wake_by_ref());
-                    readiness.register_waker(IoInterest::Writable, wake);
+                    readiness.register_waker(interest, wake);
                 }
             }
-            match readiness.ready_now(IoInterest::Writable) {
+            match readiness.ready_now(interest) {
                 Ok(true) => Poll::Ready(Ok(())),
                 Ok(false) => Poll::Pending,
                 Err(e) => Poll::Ready(Err(e)),

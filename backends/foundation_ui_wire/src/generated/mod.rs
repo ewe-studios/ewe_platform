@@ -32,6 +32,8 @@ pub mod ewe {
         pub use self::live_kind::*;
         mod live_transport;
         pub use self::live_transport::*;
+        mod connection_sharing;
+        pub use self::connection_sharing::*;
         mod ui_operation;
         pub use self::ui_operation::*;
         mod selector_kind;
@@ -182,12 +184,16 @@ pub mod ewe {
         pub use self::state_expired::*;
         mod update_required;
         pub use self::update_required::*;
+        mod replay_expired;
+        pub use self::replay_expired::*;
         mod control;
         pub use self::control::*;
         mod message;
         pub use self::message::*;
         mod frame_message;
         pub use self::frame_message::*;
+        mod resume_subscription;
+        pub use self::resume_subscription::*;
         mod frame_request;
         pub use self::frame_request::*;
         mod frame;

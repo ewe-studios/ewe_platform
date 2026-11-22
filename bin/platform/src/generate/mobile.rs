@@ -65,6 +65,7 @@ pub(super) fn generate(
         ("VERSION", "version"),
         ("REPOSITORY", "repository"),
         ("MAVEN_GROUP", "maven_group"),
+        ("SWIFT_PRODUCT", "swift_product"),
     ] {
         values.insert(
             name.into(),

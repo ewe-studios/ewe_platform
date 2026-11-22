@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_http"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,6 +10,9 @@ description = "Serve Foundation view trees through native HTTP routes."
 autotests = false
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.7", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
 foundation_http = { path = "../foundation_http", version = "0.0.13" }
 foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.7" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
@@ -22,8 +25,10 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 foundation_signals = { path = "../foundation_signals", version = "0.0.7", features = ["thread_safe"] }
 
-[dev-dependencies]
 futures-lite = { workspace = true }
+
+[features]
+live-stream = ["dep:foundation_wasm_ui"]
 
 [[test]]
 name = "integration"

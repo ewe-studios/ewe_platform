@@ -1,6 +1,6 @@
 # Feature 34. Give local Rust code access to the host graphics device
 
-Status: Approved for implementation.
+Status: Complete. Mobile execution was verified on simulators.
 
 ## Glossary
 
@@ -90,3 +90,16 @@ The local host executes each job on its own graphics device.
 The initial feature uses host-provided surfaces and Rust-owned devices.
 Importing an existing Metal or Vulkan device requires a separate ownership and synchronization contract.
 The reference implementation in ewe_gamify supplies the browser canvas through its RenderHost trait.
+
+
+## Verification results
+
+| Host | Adapter | Result |
+|---|---|---|
+| Chrome on macOS | Browser WebGPU | Shared compute passed. A screenshot contained the expected red and blue pixels. |
+| iPhone 17 simulator | Apple iOS simulator GPU, Metal | Shared compute passed. The test read both colors from the presented Metal textures. |
+| Android 16 emulator | Apple M5, Vulkan | Shared compute passed. Android PixelCopy found both colors on the native windows. |
+| macOS | Apple M5, Metal | Compute, unsupported limits, device loss, and explicit device recovery passed. |
+
+The tests cover suspend, resize, removal, recreation, and stale handles. No physical phone was connected.
+The iPhone device build and the Android ARM64 and x86-64 builds passed.

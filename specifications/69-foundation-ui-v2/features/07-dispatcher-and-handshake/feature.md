@@ -1,7 +1,7 @@
 ---
 feature: "dispatcher-and-handshake"
 description: "The shared stateless dispatcher: handshake over schema and vocabulary versions, the ServerCaps action list, verify state, run the action through the receiver, seal the new state, encode the messages and answer with one frame."
-status: "implemented"
+status: "complete"
 priority: "high"
 model: "sonnet"
 depends_on: ["03-frame-writer", "04-signed-state", "05-action-runtime"]
@@ -542,7 +542,7 @@ python3 scripts/ci/check_time_sources.py
 
 - [x] The package or feature README is current. Its examples and validation commands pass.
 - [x] All implementation tasks are complete. The runtime tests, documentation tests, native and WebAssembly builds, strict Clippy and formatting pass.
-- [ ] The repository clock check passes. Four direct reads in the agent RPC crate still fail that check on this branch.
+- [x] The repository clock check passes with zero violations. [Issue 594](https://github.com/ewe-studios/ewe_platform/issues/594)
       [Issue 594](https://github.com/ewe-studios/ewe_platform/issues/594) tracks those reads. The scan reports no violation in the UI runtime.
 - [x] Each invariant and each scenario has a passing test (section 7).
 - [x] A reviewer confirms that `Dispatcher` has no field that grows with the number of

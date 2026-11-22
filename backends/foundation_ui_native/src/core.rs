@@ -90,7 +90,11 @@ struct Delivery {
 
 #[derive(uniffi::Object)]
 pub struct NativeCore {
-    manager: ActionManager,
+    pub(crate) graphics_ctx: Ctx,
+    graphics: std::sync::OnceLock<
+        Result<Arc<crate::graphics::NativeGraphics>, crate::graphics::GraphicsError>,
+    >,
+    pub(crate) manager: ActionManager,
     caps: ClientCaps,
     writer: WriterConfig,
     delivery: Mutex<Delivery>,
@@ -117,11 +121,14 @@ impl NativeCore {
     #[must_use]
     pub fn new(config: CoreConfig, server: Option<Arc<dyn HostTransport>>) -> Arc<Self> {
         let caps = ClientCaps::native_current(config.platform.into());
+        let graphics_ctx = config.ctx.clone();
         let mut manager = client_manager(config.ctx, config.registry, &caps, &config.writer);
         if let Some(server) = server {
             manager = manager.with_server(action_sender(server));
         }
         Arc::new(Self {
+            graphics_ctx,
+            graphics: std::sync::OnceLock::new(),
             manager,
             caps,
             writer: config.writer,
@@ -241,6 +248,9 @@ impl NativeCore {
         transport: Arc<dyn HostTransport>,
     ) -> Result<Arc<Self>, CoreError> {
         let mut registry = ActionRegistry::new();
+        registry
+            .register(crate::graphics::handoff::GraphicsReady)
+            .map_err(CoreError::write)?;
         for name in names {
             registry
                 .declare(Some(Origin::Server), &name, Scope::All)
@@ -267,6 +277,12 @@ impl NativeCore {
     pub fn hello(&self) -> Vec<u8> {
         client_hello(&self.caps)
     }
+    /// Correlates one screen's capability request on a shared connection.
+    #[must_use]
+    pub fn hello_for(&self, request_tag: u64) -> Vec<u8> {
+        foundation_ui_runtime::network::tagged_client_hello(&self.caps, request_tag)
+    }
+
     /// Replaces the advertised server actions after validating the complete frame.
     ///
     /// # Errors
@@ -330,5 +346,54 @@ impl NativeCore {
             reply_message(bytes, self.limits(), self.caps.mount).map_err(CoreError::write)?;
         }
         Ok(reply)
+    }
+}
+
+#[uniffi::export]
+impl NativeCore {
+    /// Install the graphics service on first use. Local actions read the same service from their context.
+    ///
+    /// # Errors
+    /// Returns an error when the graphics owner cannot start.
+    pub fn graphics(
+        &self,
+    ) -> Result<Arc<crate::graphics::NativeGraphics>, crate::graphics::GraphicsError> {
+        self.graphics
+            .get_or_init(|| crate::graphics::NativeGraphics::from_context(&self.graphics_ctx))
+            .clone()
+    }
+}
+
+impl NativeCore {
+    pub(crate) fn deliver_device_reply(
+        &self,
+        bytes: Vec<u8>,
+    ) -> Result<(), crate::graphics::GraphicsError> {
+        let body = reply_message(&bytes, self.limits(), self.caps.mount).map_err(|e| {
+            crate::graphics::GraphicsError::Operation {
+                reason: e.to_string(),
+            }
+        })?;
+        if let Some(messages) = body.messages() {
+            for message in messages {
+                if let Some(error) = message.control().and_then(|c| c.error()) {
+                    return Err(crate::graphics::GraphicsError::Operation {
+                        reason: format!("{:?}", error.code()),
+                    });
+                }
+            }
+            if !messages.is_empty() {
+                let listener = self
+                    .listener
+                    .lock()
+                    .unwrap_or_else(PoisonError::into_inner)
+                    .clone()
+                    .ok_or_else(|| crate::graphics::GraphicsError::Operation {
+                        reason: "Graphics action returned a view without an active listener".into(),
+                    })?;
+                listener.on_frame(bytes);
+            }
+        }
+        Ok(())
     }
 }

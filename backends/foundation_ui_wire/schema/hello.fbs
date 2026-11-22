@@ -8,4 +8,5 @@ table ClientHello {
   platform: Platform;
   mount: MountSurface;
   resume_from: ulong;              // last sequence_id applied; 0 for none
+  subscription_resume: bool; request_tag: ulong;
 }

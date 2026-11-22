@@ -64,6 +64,16 @@ class LiveMount : Table() {
             val o = __offset(14)
             return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
+    val sharing : UByte
+        get() {
+            val o = __offset(16)
+            return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
+        }
+    val keepAlive : Boolean
+        get() {
+            val o = __offset(18)
+            return if(o != 0) 0.toByte() != bb.get(o + bb_pos) else false
+        }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsLiveMount(_bb: ByteBuffer): LiveMount = getRootAsLiveMount(_bb, LiveMount())
@@ -71,23 +81,28 @@ class LiveMount : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createLiveMount(builder: FlatBufferBuilder, nodeId: UInt, kind: UByte, channelId: ULong, transport: UByte, endpointOffset: Int, resumeFrom: ULong) : Int {
-            builder.startTable(6)
+        fun createLiveMount(builder: FlatBufferBuilder, nodeId: UInt, kind: UByte, channelId: ULong, transport: UByte, endpointOffset: Int, resumeFrom: ULong): Int = createLiveMount(builder, nodeId, kind, channelId, transport, endpointOffset, resumeFrom, ConnectionSharing.TransportDefault, false)
+        fun createLiveMount(builder: FlatBufferBuilder, nodeId: UInt, kind: UByte, channelId: ULong, transport: UByte, endpointOffset: Int, resumeFrom: ULong, sharing: UByte, keepAlive: Boolean) : Int {
+            builder.startTable(8)
             addResumeFrom(builder, resumeFrom)
             addChannelId(builder, channelId)
             addEndpoint(builder, endpointOffset)
             addNodeId(builder, nodeId)
+            addKeepAlive(builder, keepAlive)
+            addSharing(builder, sharing)
             addTransport(builder, transport)
             addKind(builder, kind)
             return endLiveMount(builder)
         }
-        fun startLiveMount(builder: FlatBufferBuilder) = builder.startTable(6)
+        fun startLiveMount(builder: FlatBufferBuilder) = builder.startTable(8)
         fun addNodeId(builder: FlatBufferBuilder, nodeId: UInt) = builder.addInt(0, nodeId.toInt(), 0)
         fun addKind(builder: FlatBufferBuilder, kind: UByte) = builder.addByte(1, kind.toByte(), 0)
         fun addChannelId(builder: FlatBufferBuilder, channelId: ULong) = builder.addLong(2, channelId.toLong(), 0)
         fun addTransport(builder: FlatBufferBuilder, transport: UByte) = builder.addByte(3, transport.toByte(), 0)
         fun addEndpoint(builder: FlatBufferBuilder, endpoint: Int) = builder.addOffset(4, endpoint, 0)
         fun addResumeFrom(builder: FlatBufferBuilder, resumeFrom: ULong) = builder.addLong(5, resumeFrom.toLong(), 0)
+        fun addSharing(builder: FlatBufferBuilder, sharing: UByte) = builder.addByte(6, sharing.toByte(), 0)
+        fun addKeepAlive(builder: FlatBufferBuilder, keepAlive: Boolean) = builder.addBoolean(7, keepAlive, false)
         fun endLiveMount(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

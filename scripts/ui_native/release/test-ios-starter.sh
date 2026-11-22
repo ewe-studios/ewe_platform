@@ -17,7 +17,8 @@ if [[ -z "${DEVELOPER_DIR:-}" && -d /Applications/Xcode.app/Contents/Developer ]
 fi
 simctl=${EWE_SIMCTL_BIN:-$(xcrun -f simctl)}
 stage=$(mktemp -d "${TMPDIR:-/tmp}/ewe-ios-starter.XXXXXXXX")
-device=
+device=${EWE_IOS_DEVICE:-}
+created_device=false
 server=
 cleanup() {
     local status=$?
@@ -27,7 +28,7 @@ cleanup() {
         done
     fi
     if [[ -n "$server" ]]; then kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true; fi
-    if [[ -n "$device" ]]; then "$simctl" shutdown "$device" >/dev/null 2>&1 || true; "$simctl" delete "$device" >/dev/null; fi
+    if [[ $created_device == true ]]; then "$simctl" shutdown "$device" >/dev/null 2>&1 || true; "$simctl" delete "$device" >/dev/null; fi
     rm -rf "$stage"
     return "$status"
 }
@@ -72,7 +73,7 @@ base=
 for ((i=0; i<100; i++)); do
     kill -0 "$server"
     base=$(sed -n 's|^Open \(http://127\.0\.0\.1:[0-9]*\)/$|\1|p' "$stage/host.log" | head -n1)
-    if [[ -n "$base" ]] && curl -fsS --max-time 2 "$base/native-starter" -o "$stage/initial.bin"; then break; fi
+    if [[ -n "$base" ]] && curl -fsS --max-time 2 "$base/open-count" -o "$stage/initial.bin"; then break; fi
     sleep 0.2
 done
 [[ -s "$stage/initial.bin" ]] || { echo "The test server did not return its first frame." >&2; exit 1; }
@@ -99,6 +100,7 @@ if s.count("http://127.0.0.1:8080") != 1: raise SystemExit("Cannot identify the 
 p.write_text(s.replace("http://127.0.0.1:8080",base))
 PY
 
+if [[ -z "$device" ]]; then
 "$simctl" list -j runtimes > "$stage/runtimes.json"
 read -r runtime model < <(python3 - "$stage/runtimes.json" <<'PY'
 import json, sys
@@ -112,6 +114,8 @@ else: raise SystemExit("Install an iOS simulator runtime with iPhone support")
 PY
 )
 device=$("$simctl" create "Ewe package test $(basename "$stage")" "$model" "$runtime")
+created_device=true
+fi
 "$simctl" bootstatus "$device" -b > "$stage/boot.log"
 xcodebuild -project "$project" -scheme Starter -destination 'generic/platform=iOS Simulator' \
     -derivedDataPath "$stage/products" ARCHS="$(uname -m)" ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build > "$stage/build.log" 2>&1

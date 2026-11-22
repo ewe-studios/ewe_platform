@@ -13,7 +13,7 @@ auto_install = false
 [tools]
 "aqua:denoland/deno" = "2.9.7"
 # Must match the wasm-bindgen version in Cargo.lock (CI checks this).
-"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
+"github:wasm-bindgen/wasm-bindgen" = "0.2.130"
 
 [tasks."test:wasm-testbed:deno"]
 alias = "test-wasm-testbed-deno"

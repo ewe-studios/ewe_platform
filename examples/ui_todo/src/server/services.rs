@@ -1,36 +1,27 @@
 //! Configure the host and publish counts after a successful change.
-use super::{Error, COUNT_NODE};
-use crate::{open_count, TodoStore, PAGE_ROOT};
-use foundation_browser::test::{BacklogConfig, LiveChannel};
+use super::Error;
+use crate::{open_count_label, TodoStore, PAGE_ROOT};
 use foundation_context::Ctx;
 use foundation_ui_http::ActionRequestPolicy;
 use foundation_ui_runtime::{
     action::{prepare_messages, ActionError, Context},
     dispatch::RenderTarget,
     html_swap,
-    view::render,
 };
-use foundation_ui_wire::{writer::WriterConfig, ActionRequest, ErrorCode, MountSurface};
+use foundation_ui_wire::{writer::WriterConfig, ActionRequest, ErrorCode};
+use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub(crate) struct TodoChannels {
-    pub(super) web: LiveChannel,
-    pub(super) native: LiveChannel,
-}
+pub(crate) struct TodoFeed(pub(super) LiveChannel);
 
-impl TodoChannels {
+impl TodoFeed {
     pub(crate) fn publish(&self, ctx: &Ctx, count: usize) -> Result<(), Error> {
-        let web = Context::for_render(ctx.clone());
-        html_swap! {"#count-value",&web,web.receiver(),<span id="count-value">{count}</span>}?;
-        self.web
+        let view = Context::for_render(ctx.clone());
+        html_swap! {"#open-count", &view, view.receiver(), <ListFooter id="open-count">{open_count_label(count)}</ListFooter>}?;
+        self.0
             .sender()
-            .push_messages(prepare_messages(ctx, web.into_receiver().drain())?)?;
-        let native = Context::for_action(ctx.clone(), MountSurface::Native, Some(COUNT_NODE));
-        render(&native, native.receiver(), open_count(count), None::<&()>)?;
-        self.native
-            .sender()
-            .push_messages(prepare_messages(ctx, native.into_receiver().drain())?)?;
+            .push_messages(prepare_messages(ctx, view.into_receiver().drain())?)?;
         Ok(())
     }
 }
@@ -48,7 +39,7 @@ impl ActionRequestPolicy for BusinessActions {
     }
 }
 
-pub(super) fn install(ctx: &Ctx, web: LiveChannel) -> Result<TodoChannels, Error> {
+pub(super) fn install(ctx: &Ctx, web: LiveChannel) -> Result<TodoFeed, Error> {
     if web.stream_id() != 1 {
         return Err("The todo page listens to stream 1".into());
     }
@@ -56,10 +47,11 @@ pub(super) fn install(ctx: &Ctx, web: LiveChannel) -> Result<TodoChannels, Error
     ctx.store(RenderTarget(PAGE_ROOT));
     ctx.store(TodoStore::default());
     ctx.store(Arc::new(BusinessActions) as Arc<dyn ActionRequestPolicy>);
-    let channels = TodoChannels {
-        web,
-        native: channel(2),
-    };
+    let channels = TodoFeed(web);
+    let feed = channels.0.clone();
+    ctx.store(foundation_ui_runtime::dispatch::SubscriptionReplay::new(
+        move |_, _| vec![Arc::new(feed.clone())],
+    ));
     ctx.store(channels.clone());
     Ok(channels)
 }

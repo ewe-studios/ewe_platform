@@ -26,6 +26,7 @@ pub mod ops;
 mod read;
 #[cfg(feature = "reference")]
 pub mod reference;
+pub mod subscription;
 pub mod vocab;
 pub mod writer;
 

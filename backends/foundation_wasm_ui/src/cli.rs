@@ -148,6 +148,8 @@ fn runtime_assets() -> Vec<(&'static str, &'static Path)> {
         "foundation-wasm-ui.js",
         "foundation-ui-frames.js",
         "foundation-ui-live.js",
+        "foundation-ui-recovery.js",
+        "foundation-ui-connections.js",
         "foundation-ui-vocab.js",
         "foundation-ui-wire.js",
         "foundation-ui-behaviours.js",

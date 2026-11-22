@@ -412,3 +412,38 @@ async fn submit(manager: &ActionManager, trigger: TriggerEvent) -> Result<Option
 Here `trigger` contains the event name, source node and its signed state.
 The manager checks the negotiated vocabulary before sending structured input to a remote peer.
 The dispatcher returns `InvalidInput` when decoding fails. The handler runs only after a successful decode.
+
+## Select a view or an element
+
+Vocabulary version 11 shares element names across the browser, Swift, and Kotlin.
+Use `id` on any shared element. The name starts with an ASCII letter or underscore.
+The other characters can include letters, digits, hyphens, and underscores.
+Portable names use literal characters. Use `Target::Css` when a browser selector needs CSS escaping.
+
+```rust
+use foundation_ui_runtime::action::{ActionResult, Context};
+use foundation_ui_runtime::{html_add, html_remove, html_swap};
+
+fn update(ctx: &Context) -> ActionResult {
+    let out = ctx.receiver();
+    html_add! { ctx, out, <Text id="status">Ready</Text> }?;
+    html_swap! { "#status", ctx, out, <Text id="status">Saved</Text> }?;
+    html_add! { "view#editor", ctx, out, <Text>Draft</Text> }?;
+    html_remove! { "sheet#details", ctx, out }?;
+    Ok(())
+}
+```
+
+The first call appends to the receiving view. A full initial response replaces the content of that view.
+The second call replaces one named element. A replacement may reuse names inside the outgoing subtree.
+The third call selects a registered view. The fourth checks that the selected element is a bottom sheet.
+`BottomSheet` is the markup tag. Its portable selectors accept `sheet` or `bottom-sheet`.
+An independent update with several registered views needs an explicit destination.
+A missing target, duplicate name, or wrong type leaves the existing content in place.
+
+## Publish a recoverable snapshot
+
+Use one transaction or lock for a state change and its stream publication.
+When the initial handler runs, read the owned state and its committed cursor under the same lock.
+Release the lock before rendering the state. Set `data-resume-from` on the corresponding replayable `mount-stream`.
+A client can then install this snapshot and request only the updates that follow its cursor.

@@ -43,6 +43,8 @@ data class LiveSpec(
     val transport: UByte,
     val endpoint: String,
     val resume: ULong,
+    val shared: Boolean? = null,
+    val keepAlive: Boolean = false,
 )
 
 data class WebViewSpec(val parent: UInt, val url: String)

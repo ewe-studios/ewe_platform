@@ -22,6 +22,8 @@ public struct ewe_ui_ClientHello: FlatBufferObject, Verifiable {
     case platform = 6
     case mount = 8
     case resumeFrom = 10
+    case subscriptionResume = 12
+    case requestTag = 14
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -30,24 +32,33 @@ public struct ewe_ui_ClientHello: FlatBufferObject, Verifiable {
   public var platform: ewe_ui_Platform { let o = _accessor.offset(VTOFFSET.platform.v); return o == 0 ? .unknown : ewe_ui_Platform(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .unknown }
   public var mount: ewe_ui_MountSurface { let o = _accessor.offset(VTOFFSET.mount.v); return o == 0 ? .native : ewe_ui_MountSurface(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .native }
   public var resumeFrom: UInt64 { let o = _accessor.offset(VTOFFSET.resumeFrom.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
-  public static func startClientHello(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
+  public var subscriptionResume: Bool { let o = _accessor.offset(VTOFFSET.subscriptionResume.v); return o == 0 ? false : _accessor.readBuffer(of: Bool.self, at: o) }
+  public var requestTag: UInt64 { let o = _accessor.offset(VTOFFSET.requestTag.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt64.self, at: o) }
+  public static func startClientHello(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
   public static func add(vocabularyVersion: UInt32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: vocabularyVersion, def: 0, at: VTOFFSET.vocabularyVersion.p) }
   public static func add(platform: ewe_ui_Platform, _ fbb: inout FlatBufferBuilder) { fbb.add(element: platform.rawValue, def: 0, at: VTOFFSET.platform.p) }
   public static func add(mount: ewe_ui_MountSurface, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mount.rawValue, def: 0, at: VTOFFSET.mount.p) }
   public static func add(resumeFrom: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: resumeFrom, def: 0, at: VTOFFSET.resumeFrom.p) }
+  public static func add(subscriptionResume: Bool, _ fbb: inout FlatBufferBuilder) { fbb.add(element: subscriptionResume, def: false,
+   at: VTOFFSET.subscriptionResume.p) }
+  public static func add(requestTag: UInt64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: requestTag, def: 0, at: VTOFFSET.requestTag.p) }
   public static func endClientHello(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createClientHello(
     _ fbb: inout FlatBufferBuilder,
     vocabularyVersion: UInt32 = 0,
     platform: ewe_ui_Platform = .unknown,
     mount: ewe_ui_MountSurface = .native,
-    resumeFrom: UInt64 = 0
+    resumeFrom: UInt64 = 0,
+    subscriptionResume: Bool = false,
+    requestTag: UInt64 = 0
   ) -> Offset {
     let __start = ewe_ui_ClientHello.startClientHello(&fbb)
     ewe_ui_ClientHello.add(vocabularyVersion: vocabularyVersion, &fbb)
     ewe_ui_ClientHello.add(platform: platform, &fbb)
     ewe_ui_ClientHello.add(mount: mount, &fbb)
     ewe_ui_ClientHello.add(resumeFrom: resumeFrom, &fbb)
+    ewe_ui_ClientHello.add(subscriptionResume: subscriptionResume, &fbb)
+    ewe_ui_ClientHello.add(requestTag: requestTag, &fbb)
     return ewe_ui_ClientHello.endClientHello(&fbb, start: __start)
   }
 
@@ -57,6 +68,8 @@ public struct ewe_ui_ClientHello: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.platform.p, fieldName: "platform", required: false, type: ewe_ui_Platform.self)
     try _v.visit(field: VTOFFSET.mount.p, fieldName: "mount", required: false, type: ewe_ui_MountSurface.self)
     try _v.visit(field: VTOFFSET.resumeFrom.p, fieldName: "resumeFrom", required: false, type: UInt64.self)
+    try _v.visit(field: VTOFFSET.subscriptionResume.p, fieldName: "subscriptionResume", required: false, type: Bool.self)
+    try _v.visit(field: VTOFFSET.requestTag.p, fieldName: "requestTag", required: false, type: UInt64.self)
     _v.finish()
   }
 }

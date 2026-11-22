@@ -17,7 +17,10 @@ pub struct RefStore {
     data: Vec<Value>,
     caps: Vec<Value>,
     cursors: BTreeMap<u64, u64>,
-    pending: BTreeMap<(u64, u64), FrameMessageT>,
+    pending: BTreeMap<(u64, u64), (FrameMessageT, Option<u32>)>,
+    views: BTreeMap<String, u32>,
+    tags: BTreeMap<u32, String>,
+    receiving: Option<u32>,
     limits: WireLimits,
 }
 impl Default for RefStore {
@@ -43,6 +46,9 @@ impl RefStore {
             caps: vec![],
             cursors: BTreeMap::new(),
             pending: BTreeMap::new(),
+            receiving: Some(1),
+            views: BTreeMap::new(),
+            tags: BTreeMap::new(),
             limits,
         }
     }
@@ -50,6 +56,63 @@ impl RefStore {
     /// Apply a verified message. A live sequence gap holds later messages until replay.
     #[must_use]
     pub fn receive(&mut self, bytes: &[u8]) -> bool {
+        self.receive_at(bytes, None)
+    }
+
+    /// Register a named view. Return false when a name or root already belongs to another view.
+    pub fn register_view(&mut self, name: &str, root: u32) -> bool {
+        if !crate::vocab::valid_name(name)
+            || root == 0
+            || self.views.contains_key(name)
+            || self.views.values().any(|id| *id == root)
+        {
+            return false;
+        }
+        self.nodes
+            .entry(root)
+            .or_insert_with(|| Node::new(root, NodeKind::STACK));
+        self.views.insert(name.to_owned(), root);
+        true
+    }
+
+    /// Register the markup identity of a custom control that the host has mounted.
+    pub fn register_element(&mut self, name: &str, tag: &str, id: u32) -> bool {
+        if !crate::vocab::valid_name(name)
+            || !crate::vocab::valid_name(tag)
+            || tag.eq_ignore_ascii_case("view")
+        {
+            return false;
+        }
+        let Some(node) = self.nodes.get_mut(&id) else {
+            return false;
+        };
+        node.props.insert("ID".into(), name.into());
+        self.tags.insert(id, tag.into());
+        true
+    }
+
+    /// Release the named root and its content.
+    pub fn unregister_view(&mut self, name: &str) -> bool {
+        let Some(root) = self.views.remove(name) else {
+            return false;
+        };
+        if root == 1 {
+            for child in self.nodes[&root].children.clone() {
+                self.remove(child);
+            }
+        } else {
+            self.remove(root);
+        }
+        true
+    }
+
+    /// Apply the message to its originating view.
+    pub fn receive_at(&mut self, bytes: &[u8], mount: Option<u32>) -> bool {
+        let receiving = mount.or_else(|| match self.views.len() {
+            0 => Some(1),
+            1 => self.views.values().next().copied(),
+            _ => None,
+        });
         let Ok(frame) = read_frame(bytes, &self.limits) else {
             return false;
         };
@@ -58,6 +121,7 @@ impl RefStore {
         };
         let (id, seq) = (frame.stream_id(), frame.sequence_id());
         if seq == 0 || body.ack() != 0 {
+            self.receiving = receiving;
             self.apply(body.unpack());
             return true;
         }
@@ -68,17 +132,19 @@ impl RefStore {
             if seq - last > 1 {
                 self.pending
                     .entry((id, seq))
-                    .or_insert_with(|| body.unpack());
+                    .or_insert_with(|| (body.unpack(), receiving));
                 return true;
             }
         }
+        self.receiving = receiving;
         self.apply(body.unpack());
         let mut last = seq;
         while let Some((next, body)) = last
             .checked_add(1)
             .and_then(|n| self.pending.remove(&(id, n)).map(|b| (n, b)))
         {
-            self.apply(body);
+            self.receiving = body.1;
+            self.apply(body.0);
             last = next;
         }
         self.cursors.insert(id, last);
@@ -322,30 +388,142 @@ impl RefStore {
         }
     }
 
+    fn inside(&self, mut id: u32, root: u32) -> bool {
+        loop {
+            if id == root {
+                return true;
+            }
+            if self.views.values().any(|view| *view == id) {
+                return false;
+            }
+            let Some(parent) = self.nodes.get(&id).and_then(|n| n.parent) else {
+                return false;
+            };
+            id = parent;
+        }
+    }
+    fn scope(&self) -> Option<u32> {
+        let id = self.receiving?;
+        self.views
+            .values()
+            .copied()
+            .find(|root| self.inside(id, *root))
+            .or(Some(id))
+    }
+    fn target(
+        &self,
+        selector: &crate::TargetSelectorT,
+        scope: Option<u32>,
+    ) -> Result<u32, &'static str> {
+        use crate::SelectorKind as S;
+        let name = selector.text.as_deref().unwrap_or_default();
+        match selector.kind {
+            S::NodeId => Ok(selector.node_id),
+            S::View => self.views.get(name).copied().ok_or("MissingTarget"),
+            S::Receiving => scope.ok_or("AmbiguousView"),
+            S::Id | S::TypedId => {
+                let root = scope.ok_or("AmbiguousView")?;
+                let (tag, name) = if selector.kind == S::TypedId {
+                    let (tag, name) = name.split_once('#').ok_or("InvalidName")?;
+                    (Some(tag), name)
+                } else {
+                    (None, name)
+                };
+                if !crate::vocab::valid_name(name) {
+                    return Err("InvalidName");
+                }
+                let mut matches = self.nodes.values().filter(|n| {
+                    n.props.get("ID").is_some_and(|v| v == name) && self.inside(n.id, root)
+                });
+                let node = matches.next().ok_or("MissingTarget")?;
+                if matches.next().is_some() {
+                    return Err("DuplicateName");
+                }
+                if let Some(tag) = tag {
+                    let matches = self.tags.get(&node.id).map_or_else(
+                        || {
+                            crate::vocab::portable_kind(tag).and_then(NodeKind::variant_name)
+                                == Some(node.kind)
+                        },
+                        |stored| stored.eq_ignore_ascii_case(tag),
+                    );
+                    if !matches {
+                        return Err("WrongTargetKind");
+                    }
+                }
+                Ok(node.id)
+            }
+            _ => Err("UnsupportedSelector"),
+        }
+    }
+
     fn place(&mut self, place: crate::PlaceT, row: usize) {
-        use crate::{PlacementKind as K, SelectorKind};
+        use crate::PlacementKind as K;
         if place.kind == K::FullView {
-            for id in self.nodes[&1].children.clone() {
+            let Some(root) = self.receiving else {
+                self.reports.push(json!({"code":"AmbiguousView","row":row}));
+                return;
+            };
+            for id in self.nodes[&root].children.clone() {
                 self.remove(id);
             }
             for op in place.operations.unwrap_or_default() {
                 self.operation(op, row);
             }
-            self.insert(1, place.root_node, None, row);
+            self.insert(root, place.root_node, None, row);
             return;
         }
         let Some(target) = place.target else { return };
-        if target.kind != SelectorKind::NodeId
-            || place
-                .child
+        let scope = if target.kind == crate::SelectorKind::View {
+            self.views
+                .get(target.text.as_deref().unwrap_or_default())
+                .copied()
+        } else {
+            self.scope()
+        };
+        let id = match self.target(&target, scope) {
+            Ok(id) => id,
+            Err(code) => {
+                self.reports.push(json!({"code":code,"row":row}));
+                return;
+            }
+        };
+        let mut names: std::collections::BTreeSet<_> = self
+            .nodes
+            .values()
+            .filter(|n| {
+                scope.is_some_and(|root| self.inside(n.id, root))
+                    && !(place.kind == K::Swap && self.inside(n.id, id))
+            })
+            .filter_map(|n| n.props.get("ID").cloned())
+            .collect();
+        for op in place.operations.iter().flatten() {
+            let columns = op
+                .columnar
                 .as_ref()
-                .is_some_and(|child| child.kind != SelectorKind::NodeId)
-        {
-            self.reports
-                .push(json!({"code":"UnsupportedSelector","row":row}));
-            return;
+                .map(|b| crate::writer::decode_batch(b, row))
+                .transpose();
+            let Ok(columns) = columns else {
+                self.reports.push(json!({"code":"BadFrame","row":row}));
+                return;
+            };
+            for item in std::iter::once(&op.ui).chain(columns.as_deref().unwrap_or_default()) {
+                if let UiOperationT::SetProp(p) = item {
+                    if p.prop != crate::PropId::ID {
+                        continue;
+                    }
+                    let Some(name) = prop_text(&p.value).filter(|s| crate::vocab::valid_name(s))
+                    else {
+                        self.reports.push(json!({"code":"InvalidName","row":row}));
+                        return;
+                    };
+                    if !names.insert(name) {
+                        self.reports.push(json!({"code":"DuplicateName","row":row}));
+                        return;
+                    }
+                }
+            }
         }
-        let id = target.node_id;
         if self.node(id, row).is_none() {
             return;
         }
@@ -363,8 +541,19 @@ impl RefStore {
                 .push(json!({"code":"InvalidParent","row":row,"node":id}));
             return;
         };
+        let anchor = match place
+            .child
+            .as_deref()
+            .map(|s| self.target(s, scope))
+            .transpose()
+        {
+            Ok(id) => id,
+            Err(code) => {
+                self.reports.push(json!({"code":code,"row":row}));
+                return;
+            }
+        };
         let children = &self.nodes[&parent].children;
-        let anchor = place.child.map(|s| s.node_id);
         if let Some(missing) = anchor.filter(|n| !children.contains(n)) {
             self.reports
                 .push(json!({"code":"UnknownNode","row":row,"node":missing}));

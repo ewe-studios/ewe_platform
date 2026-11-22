@@ -38,7 +38,8 @@
         121,
         122,
         123,
-        124
+        124,
+        125
       ],
       "actions": {},
       "state_len": 0,
@@ -231,6 +232,18 @@
     {
       "id": 124,
       "kind": "CANCEL_BUTTON",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 125,
+      "kind": "DRAWING_SURFACE",
       "text": null,
       "props": {},
       "children": [],

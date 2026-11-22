@@ -115,8 +115,8 @@ foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version
 # `workers` feature so crates that only use the REST API don't pull wasm deps.
 [target.'cfg(target_family = "wasm")'.dependencies]
 worker = { version = "0.8.3", features = ["d1"], optional = true }
-wasm-bindgen = { version = "0.2", optional = true }
-js-sys = { version = "0.3", optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 

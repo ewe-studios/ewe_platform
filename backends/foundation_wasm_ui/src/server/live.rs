@@ -1,12 +1,12 @@
 //! Ordered frame delivery and replay for one live stream.
 use super::FrameTransport;
 use foundation_ui_wire::{
-    vocab::VOCABULARY_VERSION,
+    vocab::{vocab_version, VOCABULARY_VERSION},
     writer::{write_messages, ClientCaps, FrameHeader, StreamSequencer, WriteError, WriterConfig},
     MessageT, MountSurface, Platform,
 };
 use std::{
-    collections::VecDeque,
+    collections::{BTreeMap, VecDeque},
     fmt,
     prelude::rust_2021::*,
     sync::{Arc, Mutex, MutexGuard},
@@ -67,22 +67,58 @@ impl std::error::Error for LiveError {}
 
 struct StoredFrame {
     sequence: u64,
-    web: Arc<[u8]>,
-    native: Arc<[u8]>,
+    encodings: BTreeMap<(u8, u32), Arc<[u8]>>,
 }
 impl StoredFrame {
-    fn bytes(&self, surface: MountSurface) -> &Arc<[u8]> {
-        if surface == MountSurface::Web {
-            &self.web
-        } else {
-            &self.native
+    fn encode_for(
+        &mut self,
+        caps: &ClientCaps,
+        config: &WriterConfig,
+    ) -> Result<Arc<[u8]>, LiveError> {
+        let key = (caps.mount.0, caps.vocabulary_version);
+        if let Some(bytes) = self.encodings.get(&key) {
+            return Ok(bytes.clone());
         }
+        let current = &self.encodings[&(caps.mount.0, VOCABULARY_VERSION)];
+        let frame = foundation_ui_wire::read_frame(current, config.wire_limits())
+            .map_err(|error| LiveError::Write(error.into()))?;
+        // The channel creates every retained frame with the message writer.
+        let body = frame
+            .kind_as_frame_message()
+            .expect("retained message frame");
+        let messages = body
+            .messages()
+            .into_iter()
+            .flatten()
+            .map(|message| message.unpack())
+            .collect();
+        let header = FrameHeader {
+            stream_id: frame.stream_id(),
+            sequence_id: self.sequence,
+            ack: body.ack(),
+        };
+        let (bytes, _) =
+            write_messages(messages, caps, header, config).map_err(LiveError::Write)?;
+        Ok(self
+            .encodings
+            .entry(key)
+            .or_insert_with(|| bytes.into())
+            .clone())
+    }
+
+    fn prepared(&self, caps: &ClientCaps) -> &Arc<[u8]> {
+        &self.encodings[&(caps.mount.0, caps.vocabulary_version)]
     }
 }
 
-type Client = (MountSurface, Box<dyn FrameTransport + Send>);
+type Client = (ClientCaps, Box<dyn FrameTransport + Send>);
 struct Inner {
     clients: Vec<Client>,
+    managed: Vec<(
+        Arc<()>,
+        ClientCaps,
+        foundation_ui_runtime::dispatch::LiveSink,
+    )>,
     history: VecDeque<StoredFrame>,
     sequence: StreamSequencer,
     backlog: BacklogConfig,
@@ -90,8 +126,17 @@ struct Inner {
 }
 
 impl Inner {
+    fn replay(&mut self, caps: &ClientCaps, after: u64) -> Result<Vec<Arc<[u8]>>, LiveError> {
+        self.validate(caps, after)?;
+        self.history
+            .iter_mut()
+            .filter(|frame| frame.sequence > after)
+            .map(|frame| frame.encode_for(caps, &self.writer))
+            .collect()
+    }
+
     fn validate(&self, caps: &ClientCaps, resume_from: u64) -> Result<(), LiveError> {
-        if caps.vocabulary_version != VOCABULARY_VERSION
+        if vocab_version(caps.vocabulary_version).is_none()
             || !matches!(caps.mount, MountSurface::Web | MountSurface::Native)
         {
             return Err(LiveError::UpdateRequired);
@@ -118,6 +163,7 @@ impl LiveChannel {
     pub fn new(stream_id: u64, backlog: BacklogConfig, writer: WriterConfig) -> Self {
         Self(Arc::new(Mutex::new(Inner {
             clients: Vec::new(),
+            managed: Vec::new(),
             history: VecDeque::new(),
             sequence: StreamSequencer::new(stream_id),
             backlog,
@@ -147,12 +193,17 @@ impl LiveChannel {
     }
     #[must_use]
     pub fn conn_count(&self) -> usize {
-        self.lock().clients.len()
+        let inner = self.lock();
+        inner.clients.len() + inner.managed.len()
     }
 
     /// Disconnect current clients. Keep the history available for resume.
     pub fn close(&self) {
-        self.lock().clients.clear();
+        let mut inner = self.lock();
+        inner.clients.clear();
+        for (_, _, mut send) in inner.managed.drain(..) {
+            send(foundation_ui_runtime::dispatch::FeedEvent::Disconnected);
+        }
     }
 
     /// Attach a web transport and return the retained frames that precede its live queue.
@@ -191,14 +242,8 @@ impl LiveChannel {
         resume_from: u64,
     ) -> Result<Vec<Arc<[u8]>>, LiveError> {
         let mut inner = self.lock();
-        inner.validate(caps, resume_from)?;
-        let replay = inner
-            .history
-            .iter()
-            .filter(|frame| frame.sequence > resume_from)
-            .map(|frame| Arc::clone(frame.bytes(caps.mount)))
-            .collect();
-        inner.clients.push((caps.mount, Box::new(client)));
+        let replay = inner.replay(caps, resume_from)?;
+        inner.clients.push((caps.clone(), Box::new(client)));
         Ok(replay)
     }
 
@@ -213,19 +258,31 @@ impl LiveChannel {
         resume_from: u64,
     ) -> Result<(), LiveError> {
         let mut inner = self.lock();
-        inner.validate(caps, resume_from)?;
-        for frame in inner
-            .history
-            .iter()
-            .filter(|frame| frame.sequence > resume_from)
-        {
-            if !client.send_binary(frame.bytes(caps.mount)) {
+        for frame in inner.replay(caps, resume_from)? {
+            if !client.send_binary(&frame) {
                 return Err(LiveError::ConnectionClosed);
             }
         }
-        inner.clients.push((caps.mount, Box::new(client)));
+        inner.clients.push((caps.clone(), Box::new(client)));
         Ok(())
     }
+}
+
+/// A shared tree needs one encoding. Mixed or columnar batches use the surface writer.
+fn portable_operation(op: &foundation_ui_wire::OperationT) -> bool {
+    use foundation_ui_wire::{MobileOperationT, UiOperationT, WebOperationT};
+    if !matches!(op.web, WebOperationT::NONE)
+        || !matches!(op.mobile, MobileOperationT::NONE)
+        || op.columnar.is_some()
+    {
+        return false;
+    }
+    let nested = match &op.ui {
+        UiOperationT::Place(p) => p.operations.as_deref(),
+        UiOperationT::ReplaceSubtree(p) => p.operations.as_deref(),
+        _ => None,
+    };
+    nested.is_none_or(|ops| ops.iter().all(portable_operation))
 }
 
 /// A producer handle for one live channel.
@@ -254,27 +311,51 @@ impl LiveTx {
             sequence_id: sequence,
             ack: 0,
         };
-        let (web, _) = write_messages(
-            messages.clone(),
-            &ClientCaps::web_current(),
-            header,
-            &inner.writer,
-        )
-        .map_err(LiveError::Write)?;
-        let (native, _) = write_messages(
-            messages,
-            &ClientCaps::native_current(Platform::Unknown),
-            header,
-            &inner.writer,
-        )
-        .map_err(LiveError::Write)?;
+        let shared = messages
+            .iter()
+            .all(|m| m.operation.as_deref().is_none_or(portable_operation));
+        let (web, native): (Arc<[u8]>, Arc<[u8]>) = if shared {
+            let (bytes, _) =
+                write_messages(messages, &ClientCaps::web_current(), header, &inner.writer)
+                    .map_err(LiveError::Write)?;
+            let bytes: Arc<[u8]> = bytes.into();
+            (bytes.clone(), bytes)
+        } else {
+            let (web, _) = write_messages(
+                messages.clone(),
+                &ClientCaps::web_current(),
+                header,
+                &inner.writer,
+            )
+            .map_err(LiveError::Write)?;
+            let (native, _) = write_messages(
+                messages,
+                &ClientCaps::native_current(Platform::Unknown),
+                header,
+                &inner.writer,
+            )
+            .map_err(LiveError::Write)?;
+            (web.into(), native.into())
+        };
         let size = web.len() + native.len();
-        inner.sequence.next();
-        inner.history.push_back(StoredFrame {
+        let mut frame = StoredFrame {
             sequence,
-            web: web.into(),
-            native: native.into(),
-        });
+            encodings: BTreeMap::from([
+                ((MountSurface::Web.0, VOCABULARY_VERSION), web),
+                ((MountSurface::Native.0, VOCABULARY_VERSION), native),
+            ]),
+        };
+        // Prepare every active version before advancing the stream position.
+        for caps in inner
+            .clients
+            .iter()
+            .map(|(caps, _)| caps)
+            .chain(inner.managed.iter().map(|(_, caps, _)| caps))
+        {
+            frame.encode_for(caps, &inner.writer)?;
+        }
+        inner.sequence.next();
+        inner.history.push_back(frame);
         if inner
             .backlog
             .limit()
@@ -285,7 +366,60 @@ impl LiveTx {
         let frame = inner.history.back().expect("published frame is retained");
         inner
             .clients
-            .retain_mut(|(surface, client)| client.send_binary(frame.bytes(*surface)));
+            .retain_mut(|(surface, client)| client.send_binary(frame.prepared(surface)));
+        inner.managed.retain_mut(|(_, surface, deliver)| {
+            deliver(foundation_ui_runtime::dispatch::FeedEvent::Frame(
+                frame.prepared(surface),
+            ))
+        });
         Ok((sequence, size))
+    }
+}
+
+impl foundation_ui_runtime::dispatch::ReplayFeed for LiveChannel {
+    fn stream_id(&self) -> u64 {
+        LiveChannel::stream_id(self)
+    }
+
+    fn listen(
+        &self,
+        caps: &ClientCaps,
+        send: foundation_ui_runtime::dispatch::LiveSink,
+    ) -> Result<
+        foundation_ui_runtime::dispatch::FeedLease,
+        foundation_ui_runtime::dispatch::ReplayError,
+    > {
+        let token = Arc::new(());
+        let mut inner = self.lock();
+        inner
+            .validate(caps, inner.sequence.last())
+            .map_err(replay_error)?;
+        inner.managed.push((token.clone(), caps.clone(), send));
+        let channel = Arc::downgrade(&self.0);
+        Ok(foundation_ui_runtime::dispatch::FeedLease::new(move || {
+            if let Some(inner) = channel.upgrade() {
+                inner
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .managed
+                    .retain(|(id, _, _)| !Arc::ptr_eq(id, &token));
+            }
+        }))
+    }
+
+    fn replay(
+        &self,
+        caps: &ClientCaps,
+        after: u64,
+    ) -> Result<Vec<Arc<[u8]>>, foundation_ui_runtime::dispatch::ReplayError> {
+        self.lock().replay(caps, after).map_err(replay_error)
+    }
+}
+fn replay_error(error: LiveError) -> foundation_ui_runtime::dispatch::ReplayError {
+    match error {
+        LiveError::ResumeTooOld { .. } | LiveError::ResumeAhead { .. } => {
+            foundation_ui_runtime::dispatch::ReplayError::Expired
+        }
+        other => foundation_ui_runtime::dispatch::ReplayError::Unavailable(other.to_string()),
     }
 }

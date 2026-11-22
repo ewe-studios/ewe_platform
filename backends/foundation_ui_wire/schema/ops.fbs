@@ -14,8 +14,10 @@ table AttachState { root_node: uint; state: [ubyte]; }   // Copy the signer byte
 
 enum LiveKind : ubyte { Stream = 0, Data = 1 }
 enum LiveTransport : ubyte { Local = 0, Sse = 1, WebSocket = 2, Http = 3 }
+enum ConnectionSharing : ubyte { TransportDefault = 0, Shared = 1, Dedicated = 2 }
 table LiveMount { node_id: uint; kind: LiveKind; channel_id: ulong;
-  transport: LiveTransport; endpoint: string; resume_from: ulong; }
+  transport: LiveTransport; endpoint: string; resume_from: ulong;
+  sharing: ConnectionSharing; keep_alive: bool; }
 
 table BehaviourArg { name: string; value: PropValue; }
 table UiBehaviour { node_id: uint; behaviour: BehaviourId; args: [BehaviourArg]; }
@@ -26,7 +28,7 @@ union UiOperation {
 }
 
 // ---- web forms (D53) ----
-enum SelectorKind : ubyte { NodeId = 0, Id = 1, Class = 2, Query = 3 }
+enum SelectorKind : ubyte { NodeId = 0, Id = 1, Class = 2, Query = 3, TypedId = 4, View = 5, Receiving = 6 }
 enum MorphAction : ubyte { ReplaceChildren = 0, ReplaceElement = 1, InsertBefore = 2,
   InsertAfter = 3, AppendSibling = 4 }
 table TargetSelector { kind: SelectorKind; node_id: uint; text: string; }

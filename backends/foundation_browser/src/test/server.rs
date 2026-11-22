@@ -42,7 +42,7 @@ use zeroize::Zeroizing;
 use foundation_ui_wire::writer::WriterConfig;
 use foundation_wasm_ui::embedded::{
     FOUNDATION_UI_ACTIONS_JS, FOUNDATION_UI_BEHAVIOURS_JS, FOUNDATION_UI_FRAMES_JS,
-    FOUNDATION_UI_LIVE_JS, FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
+    FOUNDATION_UI_CONNECTIONS_JS, FOUNDATION_UI_RECOVERY_JS, FOUNDATION_UI_LIVE_JS, FOUNDATION_UI_VOCAB_JS, FOUNDATION_UI_WIRE_JS,
 };
 use foundation_wasm_ui::server::{
     BacklogConfig, BroadcastTx, Broadcaster, FrameBroadcastSink, LiveChannel,
@@ -232,6 +232,8 @@ impl TestServer {
             ("foundation-ui-actions.js", FOUNDATION_UI_ACTIONS_JS),
             ("foundation-ui-frames.js", FOUNDATION_UI_FRAMES_JS),
             ("foundation-ui-live.js", FOUNDATION_UI_LIVE_JS),
+            ("foundation-ui-recovery.js", FOUNDATION_UI_RECOVERY_JS),
+            ("foundation-ui-connections.js", FOUNDATION_UI_CONNECTIONS_JS),
             ("foundation-ui-wire.js", FOUNDATION_UI_WIRE_JS),
             ("foundation-ui-vocab.js", FOUNDATION_UI_VOCAB_JS),
             ("foundation-ui-behaviours.js", FOUNDATION_UI_BEHAVIOURS_JS),

@@ -1,6 +1,6 @@
 ---
 feature: "mobile-project-templates"
-status: "in-progress"
+status: "complete"
 depends_on: ["19", "21", "22"]
 ---
 
@@ -89,3 +89,21 @@ The installed generator carries the templates. Generation works outside the sour
 Use the local release candidate for prepublication tests. Point only the test configuration at that candidate.
 Feature 19 supplies the public artifacts for the final installation check.
 Record the generated command, package version and verification result in the specification progress log.
+
+## Candidate checks
+
+The generator produced SwiftRemote, SwiftCounter, KotlinRemote, and KotlinCounter outside the checkout.
+Each project used a distinct application identifier. The package version was 0.1.0.
+
+| Check | Command or result |
+|---|---|
+| Generate all layouts and reject invalid destinations | `cargo test --profile uat -p ewe_platform --test mobile_templates` |
+| Build the previous web and Rust starters | `cargo test --profile uat -p ewe_platform --test templates_build` |
+| Remote Swift and Kotlin | Each screen showed zero. The test added one server item. Refresh showed one. |
+| On-device Swift | The simulator blocked outgoing internet connections. Increment changed zero to one. The same configuration blocked the remote starter. |
+| On-device Kotlin | The emulator disabled Wi-Fi and mobile data. Increment changed zero to one. The test restored the previous settings. |
+| Package archive | Cargo included the Rust manifest template and the binary Gradle wrapper. An installed command generated a project with source access denied. |
+
+The local checks substitute a Swift package checkout and a Maven candidate repository.
+Issue [672](https://github.com/ewe-studios/ewe_platform/issues/672) tracks the command dependencies that need publication.
+Feature 19 tracks the public mobile package installation.

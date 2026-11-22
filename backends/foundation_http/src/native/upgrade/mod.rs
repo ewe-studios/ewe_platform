@@ -61,15 +61,7 @@ pub async fn accept_websocket(
         return false;
     }
 
-    let accept_key = {
-        use base64::{engine::general_purpose::STANDARD, Engine};
-        use sha1::{Digest, Sha1};
-        let mut h = Sha1::new();
-        h.update(ws_key.as_bytes());
-        h.update(b"258EAFA5-E914-47DA-95CA-5AB3977F1E39");
-        let result = h.finalize();
-        STANDARD.encode(result)
-    };
+    let accept_key = foundation_netio::websocket::compute_accept_key(ws_key.trim());
 
     let response = match SimpleOutgoingResponse::builder()
         .with_status(Status::SwitchingProtocols)

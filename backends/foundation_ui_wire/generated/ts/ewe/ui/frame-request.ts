@@ -6,6 +6,7 @@ import * as flatbuffers from 'flatbuffers';
 
 import { ActionRequest, ActionRequestT } from '../../ewe/ui/action-request.js';
 import { ClientHello, ClientHelloT } from '../../ewe/ui/client-hello.js';
+import { ResumeSubscription, ResumeSubscriptionT } from '../../ewe/ui/resume-subscription.js';
 
 
 export class FrameRequest implements flatbuffers.IUnpackableObject<FrameRequestT> {
@@ -36,8 +37,13 @@ hello(obj?:ClientHello):ClientHello|null {
   return offset ? (obj || new ClientHello()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
+resume(obj?:ResumeSubscription):ResumeSubscription|null {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? (obj || new ResumeSubscription()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+}
+
 static startFrameRequest(builder:flatbuffers.Builder) {
-  builder.startObject(2);
+  builder.startObject(3);
 }
 
 static addAction(builder:flatbuffers.Builder, actionOffset:flatbuffers.Offset) {
@@ -46,6 +52,10 @@ static addAction(builder:flatbuffers.Builder, actionOffset:flatbuffers.Offset) {
 
 static addHello(builder:flatbuffers.Builder, helloOffset:flatbuffers.Offset) {
   builder.addFieldOffset(1, helloOffset, 0);
+}
+
+static addResume(builder:flatbuffers.Builder, resumeOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, resumeOffset, 0);
 }
 
 static endFrameRequest(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -57,7 +67,8 @@ static endFrameRequest(builder:flatbuffers.Builder):flatbuffers.Offset {
 unpack(): FrameRequestT {
   return new FrameRequestT(
     (this.action() !== null ? this.action()!.unpack() : null),
-    (this.hello() !== null ? this.hello()!.unpack() : null)
+    (this.hello() !== null ? this.hello()!.unpack() : null),
+    (this.resume() !== null ? this.resume()!.unpack() : null)
   );
 }
 
@@ -65,23 +76,27 @@ unpack(): FrameRequestT {
 unpackTo(_o: FrameRequestT): void {
   _o.action = (this.action() !== null ? this.action()!.unpack() : null);
   _o.hello = (this.hello() !== null ? this.hello()!.unpack() : null);
+  _o.resume = (this.resume() !== null ? this.resume()!.unpack() : null);
 }
 }
 
 export class FrameRequestT implements flatbuffers.IGeneratedObject {
 constructor(
   public action: ActionRequestT|null = null,
-  public hello: ClientHelloT|null = null
+  public hello: ClientHelloT|null = null,
+  public resume: ResumeSubscriptionT|null = null
 ){}
 
 
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const action = (this.action !== null ? this.action!.pack(builder) : 0);
   const hello = (this.hello !== null ? this.hello!.pack(builder) : 0);
+  const resume = (this.resume !== null ? this.resume!.pack(builder) : 0);
 
   FrameRequest.startFrameRequest(builder);
   FrameRequest.addAction(builder, action);
   FrameRequest.addHello(builder, hello);
+  FrameRequest.addResume(builder, resume);
 
   return FrameRequest.endFrameRequest(builder);
 }

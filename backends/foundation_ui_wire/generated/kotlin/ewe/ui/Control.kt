@@ -64,6 +64,15 @@ class Control : Table() {
             null
         }
     }
+    val replayExpired : ewe.ui.ReplayExpired? get() = replayExpired(ewe.ui.ReplayExpired())
+    fun replayExpired(obj: ewe.ui.ReplayExpired) : ewe.ui.ReplayExpired? {
+        val o = __offset(12)
+        return if (o != 0) {
+            obj.__assign(__indirect(o + bb_pos), bb)
+        } else {
+            null
+        }
+    }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsControl(_bb: ByteBuffer): Control = getRootAsControl(_bb, Control())
@@ -71,19 +80,22 @@ class Control : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createControl(builder: FlatBufferBuilder, capsOffset: Int, stateExpiredOffset: Int, updateRequiredOffset: Int, errorOffset: Int) : Int {
-            builder.startTable(4)
+        fun createControl(builder: FlatBufferBuilder, capsOffset: Int, stateExpiredOffset: Int, updateRequiredOffset: Int, errorOffset: Int): Int = createControl(builder, capsOffset, stateExpiredOffset, updateRequiredOffset, errorOffset, 0)
+        fun createControl(builder: FlatBufferBuilder, capsOffset: Int, stateExpiredOffset: Int, updateRequiredOffset: Int, errorOffset: Int, replayExpiredOffset: Int) : Int {
+            builder.startTable(5)
+            addReplayExpired(builder, replayExpiredOffset)
             addError(builder, errorOffset)
             addUpdateRequired(builder, updateRequiredOffset)
             addStateExpired(builder, stateExpiredOffset)
             addCaps(builder, capsOffset)
             return endControl(builder)
         }
-        fun startControl(builder: FlatBufferBuilder) = builder.startTable(4)
+        fun startControl(builder: FlatBufferBuilder) = builder.startTable(5)
         fun addCaps(builder: FlatBufferBuilder, caps: Int) = builder.addOffset(0, caps, 0)
         fun addStateExpired(builder: FlatBufferBuilder, stateExpired: Int) = builder.addOffset(1, stateExpired, 0)
         fun addUpdateRequired(builder: FlatBufferBuilder, updateRequired: Int) = builder.addOffset(2, updateRequired, 0)
         fun addError(builder: FlatBufferBuilder, error: Int) = builder.addOffset(3, error, 0)
+        fun addReplayExpired(builder: FlatBufferBuilder, replayExpired: Int) = builder.addOffset(4, replayExpired, 0)
         fun endControl(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

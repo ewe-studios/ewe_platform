@@ -31,6 +31,7 @@ impl<'a> Control<'a> {
     pub const VT_STATE_EXPIRED: flatbuffers::VOffsetT = 6;
     pub const VT_UPDATE_REQUIRED: flatbuffers::VOffsetT = 8;
     pub const VT_ERROR: flatbuffers::VOffsetT = 10;
+    pub const VT_REPLAY_EXPIRED: flatbuffers::VOffsetT = 12;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -42,6 +43,9 @@ impl<'a> Control<'a> {
         args: &'args ControlArgs<'args>,
     ) -> flatbuffers::WIPOffset<Control<'bldr>> {
         let mut builder = ControlBuilder::new(_fbb);
+        if let Some(x) = args.replay_expired {
+            builder.add_replay_expired(x);
+        }
         if let Some(x) = args.error {
             builder.add_error(x);
         }
@@ -62,11 +66,13 @@ impl<'a> Control<'a> {
         let state_expired = self.state_expired().map(|x| Box::new(x.unpack()));
         let update_required = self.update_required().map(|x| Box::new(x.unpack()));
         let error = self.error().map(|x| Box::new(x.unpack()));
+        let replay_expired = self.replay_expired().map(|x| Box::new(x.unpack()));
         ControlT {
             caps,
             state_expired,
             update_required,
             error,
+            replay_expired,
         }
     }
 
@@ -113,6 +119,19 @@ impl<'a> Control<'a> {
                 .get::<flatbuffers::ForwardsUOffset<ActionError>>(Control::VT_ERROR, None)
         }
     }
+    #[inline]
+    pub fn replay_expired(&self) -> Option<ReplayExpired<'a>> {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<flatbuffers::ForwardsUOffset<ReplayExpired>>(
+                    Control::VT_REPLAY_EXPIRED,
+                    None,
+                )
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for Control<'_> {
@@ -139,6 +158,11 @@ impl flatbuffers::Verifiable for Control<'_> {
                 Self::VT_ERROR,
                 false,
             )?
+            .visit_field::<flatbuffers::ForwardsUOffset<ReplayExpired>>(
+                "replay_expired",
+                Self::VT_REPLAY_EXPIRED,
+                false,
+            )?
             .finish();
         Ok(())
     }
@@ -148,6 +172,7 @@ pub struct ControlArgs<'a> {
     pub state_expired: Option<flatbuffers::WIPOffset<StateExpired<'a>>>,
     pub update_required: Option<flatbuffers::WIPOffset<UpdateRequired<'a>>>,
     pub error: Option<flatbuffers::WIPOffset<ActionError<'a>>>,
+    pub replay_expired: Option<flatbuffers::WIPOffset<ReplayExpired<'a>>>,
 }
 impl<'a> Default for ControlArgs<'a> {
     #[inline]
@@ -157,6 +182,7 @@ impl<'a> Default for ControlArgs<'a> {
             state_expired: None,
             update_required: None,
             error: None,
+            replay_expired: None,
         }
     }
 }
@@ -196,6 +222,17 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ControlBuilder<'a, 'b, A> {
             .push_slot_always::<flatbuffers::WIPOffset<ActionError>>(Control::VT_ERROR, error);
     }
     #[inline]
+    pub fn add_replay_expired(
+        &mut self,
+        replay_expired: flatbuffers::WIPOffset<ReplayExpired<'b>>,
+    ) {
+        self.fbb_
+            .push_slot_always::<flatbuffers::WIPOffset<ReplayExpired>>(
+                Control::VT_REPLAY_EXPIRED,
+                replay_expired,
+            );
+    }
+    #[inline]
     pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> ControlBuilder<'a, 'b, A> {
         let start = _fbb.start_table();
         ControlBuilder {
@@ -217,6 +254,7 @@ impl core::fmt::Debug for Control<'_> {
         ds.field("state_expired", &self.state_expired());
         ds.field("update_required", &self.update_required());
         ds.field("error", &self.error());
+        ds.field("replay_expired", &self.replay_expired());
         ds.finish()
     }
 }
@@ -227,6 +265,7 @@ pub struct ControlT {
     pub state_expired: Option<Box<StateExpiredT>>,
     pub update_required: Option<Box<UpdateRequiredT>>,
     pub error: Option<Box<ActionErrorT>>,
+    pub replay_expired: Option<Box<ReplayExpiredT>>,
 }
 impl Default for ControlT {
     fn default() -> Self {
@@ -235,6 +274,7 @@ impl Default for ControlT {
             state_expired: None,
             update_required: None,
             error: None,
+            replay_expired: None,
         }
     }
 }
@@ -247,6 +287,7 @@ impl ControlT {
         let state_expired = self.state_expired.as_ref().map(|x| x.pack(_fbb));
         let update_required = self.update_required.as_ref().map(|x| x.pack(_fbb));
         let error = self.error.as_ref().map(|x| x.pack(_fbb));
+        let replay_expired = self.replay_expired.as_ref().map(|x| x.pack(_fbb));
         Control::create(
             _fbb,
             &ControlArgs {
@@ -254,6 +295,7 @@ impl ControlT {
                 state_expired,
                 update_required,
                 error,
+                replay_expired,
             },
         )
     }

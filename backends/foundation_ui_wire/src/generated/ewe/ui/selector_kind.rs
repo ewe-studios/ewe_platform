@@ -18,17 +18,20 @@ pub const ENUM_MIN_SELECTOR_KIND: u8 = 0;
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
-pub const ENUM_MAX_SELECTOR_KIND: u8 = 3;
+pub const ENUM_MAX_SELECTOR_KIND: u8 = 6;
 #[deprecated(
     since = "2.0.0",
     note = "Use associated constants instead. This will no longer be generated in 2021."
 )]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_SELECTOR_KIND: [SelectorKind; 4] = [
+pub const ENUM_VALUES_SELECTOR_KIND: [SelectorKind; 7] = [
     SelectorKind::NodeId,
     SelectorKind::Id,
     SelectorKind::Class,
     SelectorKind::Query,
+    SelectorKind::TypedId,
+    SelectorKind::View,
+    SelectorKind::Receiving,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -40,10 +43,21 @@ impl SelectorKind {
     pub const Id: Self = Self(1);
     pub const Class: Self = Self(2);
     pub const Query: Self = Self(3);
+    pub const TypedId: Self = Self(4);
+    pub const View: Self = Self(5);
+    pub const Receiving: Self = Self(6);
 
     pub const ENUM_MIN: u8 = 0;
-    pub const ENUM_MAX: u8 = 3;
-    pub const ENUM_VALUES: &'static [Self] = &[Self::NodeId, Self::Id, Self::Class, Self::Query];
+    pub const ENUM_MAX: u8 = 6;
+    pub const ENUM_VALUES: &'static [Self] = &[
+        Self::NodeId,
+        Self::Id,
+        Self::Class,
+        Self::Query,
+        Self::TypedId,
+        Self::View,
+        Self::Receiving,
+    ];
     /// Returns the variant's name or "" if unknown.
     pub fn variant_name(self) -> Option<&'static str> {
         match self {
@@ -51,6 +65,9 @@ impl SelectorKind {
             Self::Id => Some("Id"),
             Self::Class => Some("Class"),
             Self::Query => Some("Query"),
+            Self::TypedId => Some("TypedId"),
+            Self::View => Some("View"),
+            Self::Receiving => Some("Receiving"),
             _ => None,
         }
     }

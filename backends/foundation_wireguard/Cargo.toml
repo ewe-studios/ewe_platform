@@ -74,8 +74,8 @@ snow = { version = "0.10", default-features = false, features = ["default-resolv
 # browser tests use `foundation_core::valtron` directly. The native section
 # turns on `multi`; wasm keeps the single-threaded executor.
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
-wasm-bindgen = "0.2"
-js-sys = "0.3"
+wasm-bindgen.workspace = true
+js-sys.workspace = true
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
 getrandom = { version = "0.2", features = ["js"] }
 
@@ -86,7 +86,7 @@ foundation_core = { path = "../foundation_core", features = ["test-clock"] }
 # wasm32 browser tests (F07 task 5). Dev-only to prevent dep cycle:
 # deployment_platform -> wireguard -> testbed -> deployment_platform
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
-wasm-bindgen-test = { version = "=0.3.76" }
+wasm-bindgen-test = { workspace = true }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"

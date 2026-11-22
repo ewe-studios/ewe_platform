@@ -741,3 +741,77 @@ A local action can convey readiness and a lease. Safe reuse also requires comple
 Feature 28 requires a presence check on the optional structured input field. The TypeScript object generator otherwise writes an empty vector for absent input. Test both field presence and byte content. Decode action input before awaiting the handler to release temporary values on native hosts.
 
 The Mathalley reference separates game rules and scene construction from its browser canvas and audio implementation.
+
+Use one vocabulary revision for each mobile release candidate and its test server. A stale server binary rejected the new handshake. Rebuilding the server restored both Refresh flows. The project generator embeds its files in debug builds so an installed command can run after the build directory is removed.
+
+The debug generator passed a macOS sandbox check that denied access to its source checkout. Use the UniFFI Cargo metadata feature to find each application binding configuration. The Android build copies only its application library for each architecture. Issue #673 records idle CPU use in the reference server.
+
+Two Apple static libraries can each copy a module map into the same Xcode include directory. The starter supplies its application headers through a separate Swift include path. The Android emulator placed the counter button under its status bar. Compose safe drawing insets now keep the button accessible.
+
+### Feature 25. Verify the WebSocket handshake with a client
+
+A valid upgrade response includes a computed acceptance key. Checking the header name missed a wrong identifier in the server.
+Using the existing network library fixed the handshake. Two clients can share a socket when the server echoes each capability request tag.
+
+
+An action uses the stream identifier negotiated with its remote peer. Local handlers keep their local identifier.
+The publisher must signal a disconnection to managed listeners. Dropping only the publisher's callback leaves the HTTP response open.
+A dedicated subscriber resumes through an authenticated POST after its downstream reconnects. Its delivery URL stays stable.
+The browser loads both the application Wasm module and the generated Connect client. Build both after a wire version change.
+
+
+### Feature 32. Receiving views
+
+A capture from the running todo server supplies the same count frame to the three renderer tests.
+Separate device tests also check the route, transport, and rendered count together.
+A renderer that serves several views needs a stream position for each receiving view.
+Two separate devices cannot detect interference between views that share one renderer.
+A named native view owns one node store. A named browser view owns one node registry.
+Two listeners can share a connection and still apply the same sequence number in different views.
+Check names from columnar operations before removing the outgoing subtree.
+
+
+### Feature 33. Snapshot recovery
+
+Capture the cursor and state under the same lock. Begin replay at zero when the snapshot includes an empty stream.
+Replay can deliver a publication that occurs while the snapshot travels.
+Removing an expired listener must preserve other listeners on the same connection.
+A late response from an old generation must never replace a new view.
+A view with correct content can still display an obsolete connection error. Clear that error after a successful installation.
+
+### Feature 34. Host graphics
+
+Browser graphics objects must stay on their event loop. Native jobs can run on a dedicated graphics thread.
+A host can run compute jobs before it creates a surface. Readback needs an explicit device poll on native targets.
+A standalone browser graphics object does not need a new Foundation context. The application can install it in its existing context.
+
+Android Vulkan needs an Android display handle when the instance was created without one.
+The Android instrumentation test can read a presented SurfaceView pixel with PixelCopy.
+A headless Swift package test has no window scene. A readable Metal layer lets it inspect the actual presented texture.
+After the Rust queue completes, the test copies one pixel into a Metal buffer. This also works on the iPhone simulator.
+
+### Feature 35. Host device verification
+
+An idle borrowed device can report loss before Rust submits another command.
+The native loss callback closes the work queue and returns the result to the host. [Issue 684](https://github.com/ewe-studios/ewe_platform/issues/684)
+
+The iPhone host can keep its display texture separate from the texture that Rust borrows.
+The host copies the result to its display after the completion callback.
+
+The live channel belongs to `foundation_wasm_ui::server`. The browser test module also exports this type.
+A direct dependency lets the todo server use the channel without linking the browser driver.
+
+### Live stream compatibility
+
+The simulator log records status 400 on repeated requests without bodies after the initial snapshot succeeds.
+The running server reproduces this result for a valid live stream greeting with vocabulary version 10 or 11.
+The handshake accepts these versions. The live channel previously required version 12 when it attached the listener.
+The channel now applies the wire writer's vocabulary rules to retained and new frames.
+Each retained frame can share one encoding per surface and vocabulary version. [Issue 688](https://github.com/ewe-studios/ewe_platform/issues/688)
+
+## Shared todo verification
+
+A count update proves delivery of one value. It cannot verify the contents of a list.
+Test the row title and completion state on another client after each change.
+The current snapshot contains visible items. It omits the last allocated identifier and retained delivery history.
+A server restart loses that state.

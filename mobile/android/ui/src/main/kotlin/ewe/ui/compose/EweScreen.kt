@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import io.github.ewe_studios.ewe.core.NativeGraphics
 import ewe.ui.EventId
 import ewe.ui.NodeKind
 import ewe.ui.PropId
@@ -36,6 +37,7 @@ data class ScreenStyle(
     val webView: @Composable (WebViewSpec, Modifier) -> Unit,
     val behaviours: BehaviourRegistry,
     val theme: EweTheme = EweTheme(),
+    val graphics: (() -> NativeGraphics)? = null,
 )
 
 @Composable
@@ -49,6 +51,7 @@ fun EweScreen(
     colors: ((UInt) -> Color)? = null,
     fonts: ((UInt) -> TextStyle)? = null,
     theme: EweTheme = EweTheme(),
+    graphics: (() -> NativeGraphics)? = null,
 ) {
     val style =
         ScreenStyle(
@@ -58,6 +61,7 @@ fun EweScreen(
             webView,
             behaviours,
             theme,
+            graphics,
         )
     NodeView(store, bridge, 1u, style, modifier.fillMaxSize())
 }
@@ -138,6 +142,9 @@ private fun RenderNode(
         if (web != null) style.webView(web, m)
         else
             when (record.kind) {
+                NodeKind.DRAWING_SURFACE -> EweDrawingSurface(record.props[PropId.ID]?.label ?: record.id.toString(),
+                    { requireNotNull(style.graphics) { "This screen has no graphics provider" }.invoke() },
+                    { store.onError?.invoke("Graphics", it.message ?: it.toString()) }, m)
                 NodeKind.STACK, NodeKind.SEGMENTED_CONTROL, NodeKind.CHECKLIST_ROW -> {
                     val align = record.props[PropId.ALIGN]?.label
                     val nodes = record.children.mapNotNull(store::record)

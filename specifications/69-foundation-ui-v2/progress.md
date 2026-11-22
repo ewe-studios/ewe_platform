@@ -761,3 +761,100 @@ The user approves Features 28 through 35 for implementation. Feature 24 is in pr
 The user approves Feature 25 for implementation after the current mobile template work.
 
 Feature 36 proposes Mathalley as a second todo view. The user schedules it after every other feature.
+
+Feature 24 generates four mobile projects. The packaged archive contains 63 files, including the binary Gradle wrapper. Both remote starters pass the Refresh check. The iPhone simulator and Android emulator each show the server count change from zero to one. On-device application checks are in progress. The first public command installation depends on registry release issue #672.
+
+Feature 24 is complete against local package candidates. Both generated on-device counters changed zero to one with networking disabled. The Apple build produced device and simulator slices. Android built both supported application binary interfaces. The generator, package, macro, and existing template tests passed. Strict Clippy passed. Issue #675 is closed after the Android safe-area check. The public mobile installation remains with Feature 19. Feature 25 is in progress.
+
+### Feature 25. Shared connections
+
+Two browser action managers used one live socket to the todo server. The server assigned each screen a separate session.
+One screen added a todo. Only that screen received the three reply messages.
+The focused browser suite passed 20 tests. The Swift package passed 21 simulator tests. Both Android unit test tasks passed.
+Subscription replay, connection lifecycle tests, and native network checks remain in progress.
+
+
+Feature 25 is complete. Chrome tested local actions, remote actions, and replay after a stream disconnected.
+Two independent WebSocket clients shared one connection. They received their own replies and replayed from different cursors.
+The server also delivered replay through server-sent events (SSE) and a length-prefixed HTTP response.
+The iPhone 17 simulator and Android emulator submitted a todo over WebSocket.
+Both platforms also received targeted replay errors through all three live transports.
+The Swift package passed 23 tests. Android passed core tests and built the Compose library.
+The browser suite passed 152 tests and skipped one. All 95 Rust wire integration tests passed.
+The runtime, native core, HTTP adapter, and six live feed tests also passed.
+Feature 32 is next. Feature 19 still requires release access for public package verification.
+
+
+### Feature 32. Portable view targets
+
+The browser, iPhone simulator, and Android emulator displayed one count update from the same running server.
+Both mobile starters loaded `/open-count` and refreshed the count. All three full applications loaded `/initial`.
+The common placement fixtures passed on all three renderers.
+Each renderer applied the same frame to two views with identical element names and node identifiers.
+The second view retained its count after the first closed. Columnar and table placements rejected duplicate names before replacement.
+The browser suite passed 153 tests and skipped one. The iPhone simulator passed 24 tests.
+Android passed its core tests and built the Compose library. Rust passed 79 runtime tests and 100 wire tests.
+Rust also passed 11 runtime documentation tests and ignored two examples.
+Feature 32 is complete. Feature 33 is in progress.
+
+
+### Feature 33. Recover a receiving view
+
+The browser, iPhone 17 simulator, and Android emulator recovered after the server discarded the requested history.
+Each client started at one. Each loaded exactly one replacement snapshot through revision four.
+The test published five before sending the snapshots. Each client applied that missing update and displayed five.
+All three clients passed with a typed stream error and again with an HTTP 410 response.
+Android also cleared its temporary connection error after recovery.
+Thirty concurrent snapshot requests matched the committed count during twenty adds.
+The Swift package passed 26 tests. Android passed core tests and built Compose.
+The browser suite passed 156 tests and skipped one. Feature 34 is in progress.
+
+### Feature 34. Host graphics in progress
+
+- The Mac runs the shared compute shader on Apple M5 Metal. Its output is 1, 5, and 15.
+- The wire vocabulary now includes the DrawingSurface element. All 101 wire integration tests pass.
+- The native core exposes the host graphics service through its application context.
+- The iPhone device and simulator libraries build. Browser and mobile presentation checks are in progress.
+
+### Feature 34 complete. Feature 35 starts
+
+- Chrome WebGPU, iPhone simulator Metal, and Android emulator Vulkan ran the shared shader.
+- Each renderer passed two-surface pixel checks, zero-size suspension, stale handle rejection, and target recreation.
+- The Mac Metal device passed loss and reinitialization. All five Rust graphics checks passed.
+- The wire suite passed 101 checks. The JavaScript suite passed 157 checks and skipped one existing check.
+- The todo browser module rebuilt. Its Chrome action, streaming, and reconnect checks passed.
+- The graphics and native crates passed Clippy with warnings denied. No physical phone was connected.
+- Feature 35 now adds requests for a host-owned device and replies through a registered local action.
+
+### Feature 35. Host device verification
+
+- The Mac passes nine graphics tests, including loss of a borrowed device and cancellation during a replacement.
+- The iPhone 17 simulator passes the original Metal queue, texture, visible preview, and local refusal tests.
+- The Swift package passes 29 tests on the simulator.
+- The todo application imports its live channel from `foundation_wasm_ui::server`.
+- The server uses the stream handler from `foundation_ui_http`. Only browser tests enable the browser driver.
+- A fresh iPhone launch receives status 200 for the live stream and status 204 for the resume request.
+- The investigation continues for the reported status 400. Browser and Android graphics verification also continue.
+
+### Live stream compatibility verification
+
+- Seven live channel tests pass. They cover replay and new publications for an older iPhone vocabulary.
+- The todo server passes end-to-end subscription checks for version 11 over server-sent events and version 10 over streamed HTTP.
+- Both requests resume on the open delivery session. The server still rejects a request that names another session.
+- Chrome passes the server and local action test after the live route moves out of the browser test module.
+- The iPhone 17 simulator opens the live stream with version 11 and version 12 in separate application runs.
+- Both runs receive status 200 for delivery and status 204 for resume. Add, complete, and reopen work without manual reconnection.
+- The original server on port 8080 keeps its in-memory todos during these checks. Each test uses an isolated server.
+
+Feature 07 also passes its last check. The repository time source check reports zero violations.
+
+## Host graphics and shared todo checkpoint
+
+Feature 35 passes its graphics checks in Chrome, the iPhone 17 simulator, and the Android emulator.
+The native Rust suite passes eight tests. The Swift suite passes 29 tests.
+The Android graphics tests verify the final texture on the displayed surface.
+Issue #692 tracks a separate Android dialog test failure. Physical phone coverage remains open.
+
+The shared todo server publishes the open count. Connected clients also need the changed rows.
+The sync repair owner handles the framework changes and the browser-to-phone test.
+Port 8080 keeps the current session and its data during this work.

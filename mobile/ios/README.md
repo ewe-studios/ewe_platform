@@ -41,7 +41,7 @@ struct Home: View {
     let server: URL
 
     var body: some View {
-        ServerScreen(base: server, initial: "native-starter", actions: ["refresh_count"])
+        ServerScreen(base: server, initial: "open-count", actions: ["refresh_count"])
     }
 }
 ```
@@ -229,7 +229,7 @@ Pass the text from `theme.native_manifest()` to Swift through your application b
 ```swift
 let theme = try EweTheme(manifest: Data(todoThemeManifest().utf8))
 LocalScreen(theme: theme, load: load)
-ServerScreen(base: url, initial: "native-initial", theme: theme, create: makeCore)
+ServerScreen(base: url, initial: "initial", theme: theme, create: makeCore)
 ```
 
 Omit `theme` for the system appearance. Changing this value redraws the active store.
@@ -275,3 +275,115 @@ try bridge.sendStructured(.submit, node: fieldID, value: AddItem(title: "Buy mil
 
 The bridge encodes the payload once and supplies the signed state attached to the field.
 Rust receives `Interaction<S, AddItem>`. A remote host must negotiate vocabulary 9 or later.
+
+## Send actions through a WebSocket
+
+Supply the socket address to `ServerScreen`. The screen loads its initial view over HTTP.
+
+```swift
+ServerScreen(base: base, initial: "initial", socket: base.appendingPathComponent("socket")) { transport, store in
+    NativeActionCore(try createTodoCore(platform: .ios, transport: transport), store: store)
+}
+```
+
+The example supplies `createTodoCore` from its application library. Its local action opens the form.
+The socket sends one binary request for a remote action. A later binary reply updates the originating screen.
+The screen negotiates capabilities again after a disconnect. The user can submit another action after negotiation.
+
+Pass the same `ConnectionManager` through `connections:` to share connections between screens with the same credentials.
+The last handle closes the connection. A retained connection closes when its owner releases retention or closes the manager.
+Each event stream has its own connection by default. Set `data-connection-shared="true"` on a live mount to share it.
+WebSocket mounts share by default. Set the attribute to `"false"` for a dedicated socket.
+Use `data-connection-keep-alive="true"` to keep a connection open between listeners. A listener can request replay from its own cursor.
+
+Run the package tests and the server example on an iPhone simulator.
+Set `TEST_RUNNER_EWE_TODO_SOCKET=1` when running `scripts/ui_native/test-ios-todo.sh <simulator-id>`.
+
+Streamed HTTP also accepts a separate resume request. The original response delivers length-prefixed frames.
+The native integration tests request an expired cursor over SSE, streamed HTTP, and WebSocket. Each checks the subscription identifier.
+
+## Register a named view
+
+```swift
+try store.registerView("editor", root: 7)
+let editor = store.viewStore(named: "editor")
+let accepted = store.receive(frame, at: 7)
+try store.unregisterView("editor")
+```
+
+An append with no target adds a child to the receiving view. A full view replaces its content.
+Use `view#editor` to select that root. Use `sheet#details` to check the shared element type before replacement.
+A custom control can call `try editor?.registerElement("details", tag: "InvoiceEditor", node: id)`.
+Render the named view with its own store. Each store owns its node identifiers and stream positions.
+Closing one view releases its listeners and children. Other views keep their content and positions.
+
+## Recover a live view
+
+`ServerScreen` installs the remote loader. A custom host can install its own loader.
+
+```swift
+let recovery = store.registerLoader(maxAttempts: 3) {
+  try await service.initialView(using: account.currentCredentials)
+}
+try await recovery.open()
+```
+
+A full snapshot includes a cursor for each replayable stream. The store checks them before replacing visible content.
+A failed load preserves the displayed view. Call `try await recovery.retry()` when the user requests another attempt.
+Call `recovery.close()` when the view closes or the account changes.
+
+## Local graphics
+
+Call `try core.graphics()` to get the graphics service that local Rust actions can read.
+Use the same call on a local screen or a server-backed screen. Compute jobs can run before a view exists.
+
+```swift
+let graphics = try core.graphics()
+let values = try await graphics.compute(shader: shader, words: [0, 2, 7], groups: 3)
+let target = try await graphics.attach(name: "preview", layer: metalLayer, width: 128, height: 64)
+try await target.clear(red: 0, green: 0, blue: 1, alpha: 1)
+try await target.remove()
+```
+
+A DrawingSurface control supplies its own Metal layer. The package retains each layer while it presents to it.
+Updates use physical pixels. A zero dimension suspends presentation. Removing the control releases the target.
+The host can call `try await graphics.reinitialize()` after device loss. Reattach active drawing targets afterward.
+The package test runs the shared shader and samples two presented Metal textures. [Graphics test](Tests/EweUITests/GraphicsTests.swift)
+
+## Lend a host-owned Metal device
+
+Install a provider on the core with the local Rust action that accepts its results.
+A core created by `NativeCore.remote` includes `host:foundation_gpu_ready`.
+For a custom Rust core, register `GraphicsReady` or a local action that accepts the graphics offer.
+The readiness action runs on the requesting core, including when the core has a server transport.
+
+```swift
+try core.installDeviceProvider(readyAction: "host:foundation_gpu_ready", provider: provider)
+```
+
+The Rust action starts a device request with a device name and an optional surface name.
+The provider checks both names in `request(request:)` and schedules work on the host's resource owner.
+Return from `request(request:)` before waiting for graphics work or calling the asynchronous reply.
+
+```swift
+// Run this on the resource owner after it reserves the selected device, queue, and texture.
+let grant = try NativeDeviceGrant.metal(device: device, queue: queue, texture: preview)
+try await request.ready(grant: grant, generation: generation, completion: completion)
+```
+
+Use a queue from the selected device. A compute-only request uses a `nil` texture.
+A surface request uses an initialized, shader-readable, single-sample two-dimensional RGBA8 Metal texture with one mip level.
+Keep the generation for the resource alive across leases. Increase it when the host replaces the resource.
+Send `try await request.fail(reason: .denied)` if the host cannot reserve the requested resource.
+Other refusal reasons are `.cancelled`, `.incompatible`, and `.deviceLost`.
+
+The host finishes any prior writes from other queues before the grant.
+The import waits for prior work on the loaned queue.
+Reserve the queue and texture until `HostDeviceCompletion.released(deviceLost:)` runs.
+If the lease is active and the surface closes, call `grant.withdraw()` and wait for the same completion callback.
+Return the lease from Rust after the last job. Route the completion callback to the host's resource owner before reusing the texture.
+The host presents the result after completion.
+For a Metal layer, the host acquires the drawable, renders the returned preview into it, and presents it on the host queue.
+If the callback reports device loss, replace the affected resources before submitting another grant.
+
+The graphics tests check texture readback and presentation after the release callback. [Metal handoff test](Tests/EweUITests/HostGraphicsTests.swift)

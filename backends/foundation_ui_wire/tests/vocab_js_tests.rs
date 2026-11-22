@@ -108,6 +108,7 @@ fn web_mapping_matches_the_core_names() {
             "ewe-cancel-button",
             &[("type", "button")][..],
         ),
+        (NodeKind::DRAWING_SURFACE, "canvas", "ewe-drawing-surface", &[][..]),
     ];
     assert_eq!(WEB_KINDS.len(), rows.len());
     for (row, expected) in WEB_KINDS.iter().zip(rows) {

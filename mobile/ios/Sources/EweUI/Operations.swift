@@ -45,7 +45,7 @@ private func value(_ op: any WireValue) -> Value? {
     case .setprop:
       if let v = op.ui(type: ewe_ui_SetProp.self), let n = get(v.nodeId, row) {
         if v.prop != .unknown, v.prop != .presentation, let prop = value(v) {
-          n.props[v.prop] = prop
+          setProperty(n, v.prop, prop, row)
         } else {
           report("UnknownProp", row, n.id)
         }
@@ -82,7 +82,8 @@ private func value(_ op: any WireValue) -> Value? {
         n.live = LiveSpec(
           kind: String(describing: v.kind).capitalized, channelID: v.channelId,
           transport: String(describing: v.transport).capitalized, endpoint: v.endpoint ?? "",
-          resumeFrom: v.resumeFrom)
+          resumeFrom: v.resumeFrom,
+          shared: v.sharing == .transportdefault ? nil : v.sharing == .shared, keepAlive: v.keepAlive)
       }
     case .uibehaviour:
       if let v = op.ui(type: ewe_ui_UiBehaviour.self), let n = get(v.nodeId, row) {
@@ -97,8 +98,15 @@ private func value(_ op: any WireValue) -> Value? {
     }
   }
   private func place(_ p: ewe_ui_Place, _ row: Int, _ mount: UInt32) {
+    if let selector = p.target, selector.kind == .view, let name = selector.text,
+      let destination = viewStore(named: name), destination !== self, let root = destination.viewRoots[name] {
+      destination.place(p, row, root)
+      destination.liveHost?.reconcile(destination)
+      return
+    }
     if p.kind == .fullview {
-      guard let owner = get(mount, row) else { return }
+      guard mount != 0 else { report("AmbiguousView", row); return }
+      guard let owner = get(mount, row), validateNames(p, scope: viewRoot(mount), removing: owner.children, row: row) else { return }
       for id in owner.children { remove(id, row) }
       for i in 0..<p.operationsCount {
         if let op = p.operations(at: i) { operation(op, Int(i), mount) }
@@ -106,11 +114,10 @@ private func value(_ op: any WireValue) -> Value? {
       insert(p.rootNode, mount, before: nil, row)
       return
     }
-    guard let selector = p.target, selector.kind == .nodeid, let target = records[selector.nodeId]
-    else {
-      report("MissingTarget", row)
-      return
-    }
+    guard let selector = p.target else { report("MissingTarget", row); return }
+    let scope = selector.kind == .view ? selector.text.flatMap { viewRoots[$0] } : viewRoot(mount)
+    guard let target = resolve(selector, scope: scope, row: row),
+      validateNames(p, scope: scope, removing: p.kind == .swap ? [target.id] : [], row: row) else { return }
     if p.kind == .remove {
       remove(target.id, row)
       return
@@ -128,12 +135,12 @@ private func value(_ op: any WireValue) -> Value? {
       if i + 1 < owner.children.count { before = owner.children[i + 1] }
       remove(target.id, row)
     } else if let child = p.child {
-      guard child.kind == .nodeid, let i = parent.children.firstIndex(of: child.nodeId) else {
+      guard let anchor = resolve(child, scope: scope, row: row), let i = parent.children.firstIndex(of: anchor.id) else {
         report("MissingTarget", row)
         return
       }
       if p.kind == .before {
-        before = child.nodeId
+        before = anchor.id
       } else if p.kind == .after, i + 1 < parent.children.count {
         before = parent.children[i + 1]
       }

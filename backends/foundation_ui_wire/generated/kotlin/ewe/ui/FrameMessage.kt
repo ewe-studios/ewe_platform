@@ -46,6 +46,11 @@ class FrameMessage : Table() {
         get() {
             val o = __offset(6); return if (o != 0) __vector_len(o) else 0
         }
+    val subscriptionId : ULong
+        get() {
+            val o = __offset(8)
+            return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
+        }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsFrameMessage(_bb: ByteBuffer): FrameMessage = getRootAsFrameMessage(_bb, FrameMessage())
@@ -53,13 +58,15 @@ class FrameMessage : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createFrameMessage(builder: FlatBufferBuilder, ack: ULong, messagesOffset: Int) : Int {
-            builder.startTable(2)
+        fun createFrameMessage(builder: FlatBufferBuilder, ack: ULong, messagesOffset: Int): Int = createFrameMessage(builder, ack, messagesOffset, 0uL)
+        fun createFrameMessage(builder: FlatBufferBuilder, ack: ULong, messagesOffset: Int, subscriptionId: ULong) : Int {
+            builder.startTable(3)
+            addSubscriptionId(builder, subscriptionId)
             addAck(builder, ack)
             addMessages(builder, messagesOffset)
             return endFrameMessage(builder)
         }
-        fun startFrameMessage(builder: FlatBufferBuilder) = builder.startTable(2)
+        fun startFrameMessage(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addAck(builder: FlatBufferBuilder, ack: ULong) = builder.addLong(0, ack.toLong(), 0)
         fun addMessages(builder: FlatBufferBuilder, messages: Int) = builder.addOffset(1, messages, 0)
         fun createMessagesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
@@ -70,6 +77,7 @@ class FrameMessage : Table() {
             return builder.endVector()
         }
         fun startMessagesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
+        fun addSubscriptionId(builder: FlatBufferBuilder, subscriptionId: ULong) = builder.addLong(2, subscriptionId.toLong(), 0)
         fun endFrameMessage(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

@@ -15,7 +15,7 @@ use foundation_ui_wire::{
     WireError, SCHEMA_VERSION,
 };
 
-use super::Dispatcher;
+use super::{Dispatcher, SubscriptionReplay};
 use crate::action::Surface;
 
 /// A failure to read a hello, allocate its stream, or encode its reply.
@@ -77,6 +77,7 @@ pub enum HelloOutcome {
 pub struct Connection {
     caps: ClientCaps,
     stream_id: u64,
+    subscription_resume: bool,
     sequencer: Mutex<StreamSequencer>,
     last_request: Option<AtomicU64>,
 }
@@ -89,6 +90,7 @@ impl Connection {
         Self {
             caps,
             stream_id,
+            subscription_resume: false,
             sequencer: Mutex::new(StreamSequencer::new(stream_id)),
             last_request: None,
         }
@@ -97,6 +99,12 @@ impl Connection {
     #[must_use]
     pub fn caps(&self) -> &ClientCaps {
         &self.caps
+    }
+
+    /// Returns the resume capability that the peers negotiated for this connection.
+    #[must_use]
+    pub fn subscription_resume(&self) -> bool {
+        self.subscription_resume
     }
 
     #[must_use]
@@ -136,7 +144,7 @@ fn read_hello(frame: Frame<'_>) -> Result<ClientHello<'_>, HelloError> {
     })?;
     request
         .hello()
-        .filter(|_| request.action().is_none())
+        .filter(|_| request.action().is_none() && request.resume().is_none())
         .ok_or(HelloError::NotAHello)
 }
 
@@ -199,6 +207,11 @@ impl Dispatcher {
         } else {
             CapsStatus::UpdateRequired
         };
+        caps.request_tag = hello.request_tag();
+        caps.subscription_resume = accepted
+            && hello.vocabulary_version() >= foundation_ui_wire::vocab::MANAGED_CONNECTION_VERSION
+            && hello.subscription_resume()
+            && ctx.get::<SubscriptionReplay>().is_some();
         caps.schema_version = SCHEMA_VERSION;
         caps.vocabulary_version = VOCABULARY_VERSION;
         caps.actions = Some(self.server_actions(hello.mount()));
@@ -225,6 +238,7 @@ impl Dispatcher {
                     vocabulary_version: caps.vocabulary_version,
                 },
                 stream_id: caps.stream_id,
+                subscription_resume: caps.subscription_resume,
                 sequencer: Mutex::new(StreamSequencer::resume(caps.stream_id, caps.resume_from)),
                 last_request: Some(AtomicU64::new(0)),
             })

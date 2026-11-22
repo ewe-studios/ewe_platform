@@ -83,6 +83,7 @@ impl RefStore {
         self.detach(id);
         let mut pending = vec![id];
         while let Some(next) = pending.pop() {
+            self.tags.remove(&next);
             if let Some(node) = self.nodes.remove(&next) {
                 pending.extend(node.children);
             }

@@ -24,7 +24,7 @@ table Data { target_node: uint; arrow: ArrowIpcBlob; table: DataTable;
 enum CapsStatus : ubyte { Ok = 0, UpdateRequired = 1 }
 table ServerAction { hash: ulong; name: string; }   // hash: first 8 bytes of SHA-256, big-endian
 table ServerCaps { status: CapsStatus; schema_version: ushort; vocabulary_version: uint;
-  stream_id: ulong; resume_from: ulong; actions: [ServerAction]; }
+  stream_id: ulong; resume_from: ulong; actions: [ServerAction]; subscription_resume: bool; request_tag: ulong; }
 
 enum ErrorCode : ushort { Unknown = 0, BadRequest = 1, UnknownAction = 2,
   UnavailableOrigin = 3, UnsupportedAction = 4, StateRejected = 5, StateExpired = 6,
@@ -35,8 +35,9 @@ enum ErrorCode : ushort { Unknown = 0, BadRequest = 1, UnknownAction = 2,
 table ActionError { code: ErrorCode; message: string; row_index: uint; }
 table StateExpired { token_issued_at: ulong; }      // the client reloads its state
 table UpdateRequired { client_schema_version: ushort; server_schema_version: ushort; }
+table ReplayExpired { stream_id: ulong; after: ulong; }
 table Control { caps: ServerCaps; state_expired: StateExpired;
-  update_required: UpdateRequired; error: ActionError; }
+  update_required: UpdateRequired; error: ActionError; replay_expired: ReplayExpired; }
 
 // ---- the one unit and the one list (D41, D44, D45) ----
 table Message { operation: Operation; data: Data; control: Control; }
@@ -47,13 +48,16 @@ table Message { operation: Operation; data: Data; control: Control; }
 table FrameMessage {
   ack: ulong;
   messages: [Message];     // the list order is the apply order
+  subscription_id: ulong;    // zero for a broadcast or action reply
 }
 
 // A request goes from a client to the logic. One field is set: `action` for a call, `hello`
 // for a hello. A hello asks for a stream, so its `Frame.stream_id` is 0.
+table ResumeSubscription { delivery_session: ulong; subscription_id: ulong; stream_id: ulong; after: ulong; }
 table FrameRequest {
   action: ActionRequest;
   hello: ClientHello;
+  resume: ResumeSubscription;
 }
 
 union FrameKind { FrameRequest, FrameMessage }

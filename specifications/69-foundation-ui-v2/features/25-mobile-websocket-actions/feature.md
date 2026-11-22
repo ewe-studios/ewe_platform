@@ -1,6 +1,6 @@
 ---
 feature: "mobile-websocket-actions"
-status: "approved"
+status: "complete"
 depends_on: ["07", "10", "11", "13", "21", "22"]
 ---
 

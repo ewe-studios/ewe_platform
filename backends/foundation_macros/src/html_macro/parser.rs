@@ -110,6 +110,7 @@ pub(super) fn core_tag(tag: &str) -> bool {
             | "SheetTitle"
             | "SubmitButton"
             | "CancelButton"
+            | "DrawingSurface"
     )
 }
 
@@ -962,6 +963,7 @@ fn check_core_property(cursor: &Cursor, tag: &str, name: &str, span: Span) -> Pa
             | "checked"
             | "hidden"
             | "key"
+            | "id"
             | "a11y_label"
             | "color"
             | "font"

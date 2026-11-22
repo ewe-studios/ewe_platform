@@ -6,6 +6,37 @@ import XCTest
 @testable import EweUI
 
 final class ConformanceTests: XCTestCase {
+  @MainActor func testPortableTargets() throws {
+    struct Step: Decodable { let bytes: [UInt8]; let mount: UInt32?; let error: String?; let `case`: String }
+    let url = try XCTUnwrap(Bundle.module.url(forResource: "portable_targets", withExtension: "json", subdirectory: "Fixtures"))
+    let steps = try JSONDecoder().decode([Step].self, from: Data(contentsOf: url))
+    let store = NodeStore()
+    try store.registerView("main", root: 1)
+    try store.registerView("second", root: 7)
+    for step in steps {
+      if step.case == "custom" { try store.registerElement("save", tag: "InvoiceEditor", node: 42) }
+      let count = store.reports.count
+      XCTAssertTrue(store.receive(Data(step.bytes), at: step.mount), step.case)
+      XCTAssertEqual(store.reports.dropFirst(count).map(\.code), step.error.map { [$0] } ?? [], step.case)
+    }
+    XCTAssertEqual(store.record(1)?.children, [44,48])
+    XCTAssertEqual(store.record(7)?.children, [41,47])
+    let countFrame = try XCTUnwrap(Bundle.module.url(forResource: "portable_count", withExtension: "bin", subdirectory: "Fixtures"))
+    XCTAssertTrue(store.receive(try Data(contentsOf: countFrame), at: 1))
+    let countNode = try XCTUnwrap(store.record(1)?.children.last)
+    XCTAssertEqual(store.record(countNode)?.text, "1 open todo")
+    let second = try XCTUnwrap(store.viewStore(named: "second"))
+    try second.registerElement("open-count", tag: "ListFooter", node: 47)
+    XCTAssertTrue(store.receive(try Data(contentsOf: countFrame), at: 7))
+    XCTAssertEqual(second.record(7)?.children.last, countNode)
+    XCTAssertEqual(second.record(countNode)?.text, "1 open todo")
+    XCTAssertFalse(second.record(countNode) === store.record(countNode))
+    try store.unregisterView("main")
+    XCTAssertEqual(second.record(countNode)?.text, "1 open todo")
+    XCTAssertNil(store.record(44))
+    XCTAssertEqual(store.record(7)?.children, [41,countNode])
+  }
+
   @MainActor func testReloadReplacesOnlyTheReceivingMount() async throws {
     let store = NodeStore()
     let dir = try XCTUnwrap(Bundle.module.resourceURL?.appendingPathComponent("Fixtures"))

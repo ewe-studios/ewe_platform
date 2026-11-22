@@ -18,6 +18,8 @@ class CoreBinding(private val native: NativeCore, store: NodeStore, scope: Corou
         )
     }
 
+    fun helloFor(tag: ULong): ByteArray = native.helloFor(tag)
+
     override fun hello() = native.hello()
 
     override fun applyCapsFrame(frame: ByteArray) = native.applyCapsFrame(frame)

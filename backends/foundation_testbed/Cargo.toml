@@ -100,15 +100,15 @@ tempfile = { version = "3", optional = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
 
 # F52: wasm-bindgen ecosystem — re-exported for consumer browser tests.
-# Pinned by foundation_testbed (single source of truth). Update the CLI:
-#   cargo install wasm-bindgen-cli --version <same as wasm-bindgen below>
+# The workspace pins the browser ABI. Update the matching CLI:
+#   cargo install wasm-bindgen-cli --version <same as wasm-bindgen in Cargo.toml>
 # The runtime version check (>=) allows newer CLI, not older.
-wasm-bindgen = { version = "=0.2.126", optional = true }
-wasm-bindgen-test = { version = "=0.3.76", optional = true }
-wasm-bindgen-test-macro = { version = "=0.3.76", optional = true }
-wasm-bindgen-futures = { version = "=0.4.76", optional = true }
-js-sys = { version = "=0.3.103", optional = true }
-web-sys = { version = "=0.3.103", optional = true, features = [
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-test = { workspace = true, optional = true }
+wasm-bindgen-test-macro = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true, features = [
   "Window", "console",
   "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
 ] }

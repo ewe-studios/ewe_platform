@@ -16,7 +16,7 @@ foundation_ui_runtime = { git = "https://github.com/{{ REPOSITORY }}.git", tag =
 uniffi = { version = "=0.32.2", default-features = false }
 
 [features]
-bindgen = ["uniffi/cli"]
+bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 
 [[bin]]
 name = "uniffi-bindgen"

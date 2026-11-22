@@ -33,6 +33,8 @@ impl<'a> ServerCaps<'a> {
     pub const VT_STREAM_ID: flatbuffers::VOffsetT = 10;
     pub const VT_RESUME_FROM: flatbuffers::VOffsetT = 12;
     pub const VT_ACTIONS: flatbuffers::VOffsetT = 14;
+    pub const VT_SUBSCRIPTION_RESUME: flatbuffers::VOffsetT = 16;
+    pub const VT_REQUEST_TAG: flatbuffers::VOffsetT = 18;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -44,6 +46,7 @@ impl<'a> ServerCaps<'a> {
         args: &'args ServerCapsArgs<'args>,
     ) -> flatbuffers::WIPOffset<ServerCaps<'bldr>> {
         let mut builder = ServerCapsBuilder::new(_fbb);
+        builder.add_request_tag(args.request_tag);
         builder.add_resume_from(args.resume_from);
         builder.add_stream_id(args.stream_id);
         if let Some(x) = args.actions {
@@ -51,6 +54,7 @@ impl<'a> ServerCaps<'a> {
         }
         builder.add_vocabulary_version(args.vocabulary_version);
         builder.add_schema_version(args.schema_version);
+        builder.add_subscription_resume(args.subscription_resume);
         builder.add_status(args.status);
         builder.finish()
     }
@@ -64,6 +68,8 @@ impl<'a> ServerCaps<'a> {
         let actions = self
             .actions()
             .map(|x| x.iter().map(|t| t.unpack()).collect());
+        let subscription_resume = self.subscription_resume();
+        let request_tag = self.request_tag();
         ServerCapsT {
             status,
             schema_version,
@@ -71,6 +77,8 @@ impl<'a> ServerCaps<'a> {
             stream_id,
             resume_from,
             actions,
+            subscription_resume,
+            request_tag,
         }
     }
 
@@ -142,6 +150,28 @@ impl<'a> ServerCaps<'a> {
             >>(ServerCaps::VT_ACTIONS, None)
         }
     }
+    #[inline]
+    pub fn subscription_resume(&self) -> bool {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<bool>(ServerCaps::VT_SUBSCRIPTION_RESUME, Some(false))
+                .unwrap()
+        }
+    }
+    #[inline]
+    pub fn request_tag(&self) -> u64 {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<u64>(ServerCaps::VT_REQUEST_TAG, Some(0))
+                .unwrap()
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for ServerCaps<'_> {
@@ -160,6 +190,8 @@ impl flatbuffers::Verifiable for ServerCaps<'_> {
             .visit_field::<flatbuffers::ForwardsUOffset<
                 flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<ServerAction>>,
             >>("actions", Self::VT_ACTIONS, false)?
+            .visit_field::<bool>("subscription_resume", Self::VT_SUBSCRIPTION_RESUME, false)?
+            .visit_field::<u64>("request_tag", Self::VT_REQUEST_TAG, false)?
             .finish();
         Ok(())
     }
@@ -175,6 +207,8 @@ pub struct ServerCapsArgs<'a> {
             flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<ServerAction<'a>>>,
         >,
     >,
+    pub subscription_resume: bool,
+    pub request_tag: u64,
 }
 impl<'a> Default for ServerCapsArgs<'a> {
     #[inline]
@@ -186,6 +220,8 @@ impl<'a> Default for ServerCapsArgs<'a> {
             stream_id: 0,
             resume_from: 0,
             actions: None,
+            subscription_resume: false,
+            request_tag: 0,
         }
     }
 }
@@ -231,6 +267,19 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ServerCapsBuilder<'a, 'b, A> {
             .push_slot_always::<flatbuffers::WIPOffset<_>>(ServerCaps::VT_ACTIONS, actions);
     }
     #[inline]
+    pub fn add_subscription_resume(&mut self, subscription_resume: bool) {
+        self.fbb_.push_slot::<bool>(
+            ServerCaps::VT_SUBSCRIPTION_RESUME,
+            subscription_resume,
+            false,
+        );
+    }
+    #[inline]
+    pub fn add_request_tag(&mut self, request_tag: u64) {
+        self.fbb_
+            .push_slot::<u64>(ServerCaps::VT_REQUEST_TAG, request_tag, 0);
+    }
+    #[inline]
     pub fn new(
         _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     ) -> ServerCapsBuilder<'a, 'b, A> {
@@ -256,6 +305,8 @@ impl core::fmt::Debug for ServerCaps<'_> {
         ds.field("stream_id", &self.stream_id());
         ds.field("resume_from", &self.resume_from());
         ds.field("actions", &self.actions());
+        ds.field("subscription_resume", &self.subscription_resume());
+        ds.field("request_tag", &self.request_tag());
         ds.finish()
     }
 }
@@ -268,6 +319,8 @@ pub struct ServerCapsT {
     pub stream_id: u64,
     pub resume_from: u64,
     pub actions: Option<Vec<ServerActionT>>,
+    pub subscription_resume: bool,
+    pub request_tag: u64,
 }
 impl Default for ServerCapsT {
     fn default() -> Self {
@@ -278,6 +331,8 @@ impl Default for ServerCapsT {
             stream_id: 0,
             resume_from: 0,
             actions: None,
+            subscription_resume: false,
+            request_tag: 0,
         }
     }
 }
@@ -295,6 +350,8 @@ impl ServerCapsT {
             let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();
             _fbb.create_vector(&w)
         });
+        let subscription_resume = self.subscription_resume;
+        let request_tag = self.request_tag;
         ServerCaps::create(
             _fbb,
             &ServerCapsArgs {
@@ -304,6 +361,8 @@ impl ServerCapsT {
                 stream_id,
                 resume_from,
                 actions,
+                subscription_resume,
+                request_tag,
             },
         )
     }

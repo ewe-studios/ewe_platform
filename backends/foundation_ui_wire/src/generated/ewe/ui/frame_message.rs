@@ -29,6 +29,7 @@ impl<'a> flatbuffers::Follow<'a> for FrameMessage<'a> {
 impl<'a> FrameMessage<'a> {
     pub const VT_ACK: flatbuffers::VOffsetT = 4;
     pub const VT_MESSAGES: flatbuffers::VOffsetT = 6;
+    pub const VT_SUBSCRIPTION_ID: flatbuffers::VOffsetT = 8;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -40,6 +41,7 @@ impl<'a> FrameMessage<'a> {
         args: &'args FrameMessageArgs<'args>,
     ) -> flatbuffers::WIPOffset<FrameMessage<'bldr>> {
         let mut builder = FrameMessageBuilder::new(_fbb);
+        builder.add_subscription_id(args.subscription_id);
         builder.add_ack(args.ack);
         if let Some(x) = args.messages {
             builder.add_messages(x);
@@ -52,7 +54,12 @@ impl<'a> FrameMessage<'a> {
         let messages = self
             .messages()
             .map(|x| x.iter().map(|t| t.unpack()).collect());
-        FrameMessageT { ack, messages }
+        let subscription_id = self.subscription_id();
+        FrameMessageT {
+            ack,
+            messages,
+            subscription_id,
+        }
     }
 
     #[inline]
@@ -75,6 +82,17 @@ impl<'a> FrameMessage<'a> {
             >>(FrameMessage::VT_MESSAGES, None)
         }
     }
+    #[inline]
+    pub fn subscription_id(&self) -> u64 {
+        // Safety:
+        // Created from valid Table for this object
+        // which contains a valid value in this slot
+        unsafe {
+            self._tab
+                .get::<u64>(FrameMessage::VT_SUBSCRIPTION_ID, Some(0))
+                .unwrap()
+        }
+    }
 }
 
 impl flatbuffers::Verifiable for FrameMessage<'_> {
@@ -89,6 +107,7 @@ impl flatbuffers::Verifiable for FrameMessage<'_> {
             .visit_field::<flatbuffers::ForwardsUOffset<
                 flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Message>>,
             >>("messages", Self::VT_MESSAGES, false)?
+            .visit_field::<u64>("subscription_id", Self::VT_SUBSCRIPTION_ID, false)?
             .finish();
         Ok(())
     }
@@ -98,6 +117,7 @@ pub struct FrameMessageArgs<'a> {
     pub messages: Option<
         flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Message<'a>>>>,
     >,
+    pub subscription_id: u64,
 }
 impl<'a> Default for FrameMessageArgs<'a> {
     #[inline]
@@ -105,6 +125,7 @@ impl<'a> Default for FrameMessageArgs<'a> {
         FrameMessageArgs {
             ack: 0,
             messages: None,
+            subscription_id: 0,
         }
     }
 }
@@ -129,6 +150,11 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> FrameMessageBuilder<'a, 'b, A> 
             .push_slot_always::<flatbuffers::WIPOffset<_>>(FrameMessage::VT_MESSAGES, messages);
     }
     #[inline]
+    pub fn add_subscription_id(&mut self, subscription_id: u64) {
+        self.fbb_
+            .push_slot::<u64>(FrameMessage::VT_SUBSCRIPTION_ID, subscription_id, 0);
+    }
+    #[inline]
     pub fn new(
         _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     ) -> FrameMessageBuilder<'a, 'b, A> {
@@ -150,6 +176,7 @@ impl core::fmt::Debug for FrameMessage<'_> {
         let mut ds = f.debug_struct("FrameMessage");
         ds.field("ack", &self.ack());
         ds.field("messages", &self.messages());
+        ds.field("subscription_id", &self.subscription_id());
         ds.finish()
     }
 }
@@ -158,12 +185,14 @@ impl core::fmt::Debug for FrameMessage<'_> {
 pub struct FrameMessageT {
     pub ack: u64,
     pub messages: Option<Vec<MessageT>>,
+    pub subscription_id: u64,
 }
 impl Default for FrameMessageT {
     fn default() -> Self {
         Self {
             ack: 0,
             messages: None,
+            subscription_id: 0,
         }
     }
 }
@@ -177,6 +206,14 @@ impl FrameMessageT {
             let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();
             _fbb.create_vector(&w)
         });
-        FrameMessage::create(_fbb, &FrameMessageArgs { ack, messages })
+        let subscription_id = self.subscription_id;
+        FrameMessage::create(
+            _fbb,
+            &FrameMessageArgs {
+                ack,
+                messages,
+                subscription_id,
+            },
+        )
     }
 }

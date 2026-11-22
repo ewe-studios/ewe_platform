@@ -78,6 +78,7 @@ fn encode(operations: Vec<OperationT>, sequence: u64, unfiltered: bool) -> Vec<u
             stream_id: 7,
             sequence_id: sequence,
             kind: FrameKindT::FrameMessage(Box::new(table!(FrameMessageT {
+                subscription_id: 0,
                 ack: sequence,
                 messages: Some(messages)
             })))
@@ -106,6 +107,31 @@ fn fixture(file: &str, bytes: &[u8]) {
     }
     assert_eq!(fs::read(&path).unwrap(), bytes, "{file} differs");
 }
+#[test]
+fn full_view_with_stream_cursor() {
+    let nested = vec![
+        create(70, NodeKind::STACK),
+        create(71, NodeKind::TEXT),
+        ops::set_text(71, "Through twenty"),
+        ops::append_child(70, 71),
+        shared(UiOperationT::LiveMount(Box::new(table!(LiveMountT {
+            node_id: 72,
+            channel_id: 1,
+            kind: LiveKind::Stream,
+            transport: LiveTransport::Sse,
+            endpoint: Some("/live".into()),
+            resume_from: 20
+        })))),
+        ops::append_child(70, 72),
+    ];
+    let full = shared(UiOperationT::Place(Box::new(table!(PlaceT {
+        kind: PlacementKind::FullView,
+        root_node: 70,
+        operations: Some(nested)
+    }))));
+    fixture("recovery_snapshot.bin", &encode(vec![full], 0, false));
+}
+
 #[test]
 fn native_packages_share_reference_snapshots() {
     let base = encode(tree(), 1, false);
@@ -246,4 +272,227 @@ fn ordered_pushes_hold_gaps_and_ignore_duplicates() {
     assert_eq!(displayed(&store), "third");
     assert!(store.receive(&frame(2, "duplicate")));
     assert_eq!(displayed(&store), "third");
+}
+
+#[test]
+fn portable_targets_use_the_same_frames_on_each_platform() {
+    use PlacementKind as K;
+    let selector = |name: &str| {
+        let (kind, text) = vocab::portable_selector(name).unwrap();
+        Box::new(table!(TargetSelectorT {
+            kind: kind,
+            text: Some(text.into())
+        }))
+    };
+    let node = |id: u32, kind: NodeKind, name: &str| {
+        vec![
+            create(id, kind),
+            shared(UiOperationT::SetProp(Box::new(table!(SetPropT {
+                node_id: id,
+                prop: PropId::ID,
+                value: PropValueT::Text(Box::new(table!(TextValueT {
+                    v: Some(name.to_owned())
+                })))
+            })))),
+        ]
+    };
+    let cases = [
+        (
+            "first",
+            Some(1),
+            K::Append,
+            "",
+            None,
+            40,
+            NodeKind::BOTTOM_SHEET,
+            "editor",
+            None,
+        ),
+        (
+            "other",
+            Some(7),
+            K::Append,
+            "",
+            None,
+            41,
+            NodeKind::TEXT,
+            "editor",
+            None,
+        ),
+        (
+            "before",
+            Some(1),
+            K::Before,
+            "view#main",
+            Some("sheet#editor"),
+            42,
+            NodeKind::BUTTON,
+            "save",
+            None,
+        ),
+        (
+            "after",
+            Some(1),
+            K::After,
+            "view#main",
+            Some("#editor"),
+            43,
+            NodeKind::TEXT,
+            "open-count",
+            None,
+        ),
+        (
+            "replace",
+            Some(1),
+            K::Swap,
+            "sheet#editor",
+            None,
+            44,
+            NodeKind::STACK,
+            "editor",
+            None,
+        ),
+        (
+            "wrong",
+            Some(1),
+            K::Remove,
+            "sheet#editor",
+            None,
+            0,
+            NodeKind::UNKNOWN,
+            "",
+            Some("WrongTargetKind"),
+        ),
+        (
+            "duplicate",
+            Some(1),
+            K::Swap,
+            "#editor",
+            None,
+            45,
+            NodeKind::TEXT,
+            "open-count",
+            Some("DuplicateName"),
+        ),
+        (
+            "ambiguous",
+            None,
+            K::Append,
+            "",
+            None,
+            46,
+            NodeKind::TEXT,
+            "wrong",
+            Some("AmbiguousView"),
+        ),
+        (
+            "specific",
+            None,
+            K::Append,
+            "view#second",
+            None,
+            47,
+            NodeKind::TEXT,
+            "extra",
+            None,
+        ),
+        (
+            "remove",
+            Some(1),
+            K::Remove,
+            "#open-count",
+            None,
+            0,
+            NodeKind::UNKNOWN,
+            "",
+            None,
+        ),
+        (
+            "reuse",
+            Some(1),
+            K::Append,
+            "",
+            None,
+            48,
+            NodeKind::TEXT,
+            "open-count",
+            None,
+        ),
+        (
+            "column-duplicate",
+            Some(1),
+            K::Swap,
+            "#editor",
+            None,
+            50,
+            NodeKind::TEXT,
+            "open-count",
+            Some("DuplicateName"),
+        ),
+        (
+            "custom",
+            Some(1),
+            K::Remove,
+            "InvoiceEditor#save",
+            None,
+            0,
+            NodeKind::UNKNOWN,
+            "",
+            None,
+        ),
+    ];
+    let mut frames = vec![];
+    let mut store = RefStore::new();
+    assert!(store.register_view("main", 1));
+    assert!(store.register_view("second", 7));
+    for (name, mount, kind, target, child, id, node_kind, element, error) in cases {
+        if name == "custom" {
+            assert!(store.register_element("save", "InvoiceEditor", 42));
+        }
+        let target = if target.is_empty() {
+            Box::new(table!(TargetSelectorT {
+                kind: SelectorKind::Receiving
+            }))
+        } else {
+            selector(target)
+        };
+        let place = table!(PlaceT {
+            kind: kind,
+            target: Some(target),
+            child: child.map(selector),
+            root_node: id,
+            operations: if kind == K::Remove {
+                None
+            } else if name == "column-duplicate" {
+                let rows = node(id, node_kind, element)
+                    .into_iter()
+                    .map(|r| r.ui)
+                    .collect::<Vec<_>>();
+                Some(vec![table!(OperationT {
+                    columnar: Some(Box::new(columnar_batch(&rows).unwrap()))
+                })])
+            } else {
+                Some(node(id, node_kind, element))
+            }
+        });
+        let bytes = encode(vec![shared(UiOperationT::Place(Box::new(place)))], 0, false);
+        let before: serde_json::Value = serde_json::from_str(&store.snapshot_json()).unwrap();
+        assert!(store.receive_at(&bytes, mount));
+        let snapshot: serde_json::Value = serde_json::from_str(&store.snapshot_json()).unwrap();
+        let reports = snapshot["reports"].as_array().unwrap();
+        let added = &reports[before["reports"].as_array().unwrap().len()..];
+        assert_eq!(
+            added
+                .iter()
+                .map(|r| r["code"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            error.into_iter().collect::<Vec<_>>(),
+            "{name}"
+        );
+        frames.push(serde_json::json!({"case":name,"mount":mount,"bytes":bytes,"error":error}));
+    }
+    fixture(
+        "portable_targets.json",
+        &serde_json::to_vec(&frames).unwrap(),
+    );
 }

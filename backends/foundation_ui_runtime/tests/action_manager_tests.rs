@@ -130,7 +130,9 @@ fn shared_route_vectors_submit_exactly_once_or_reject_before_send() {
                 other => panic!("Unknown transport {other}"),
             };
         }
-        manager.apply_caps(&caps(route.advertised));
+        let mut negotiated = caps(route.advertised);
+        negotiated.stream_id = 71;
+        manager.apply_caps(&negotiated);
         let result = immediate(manager.trigger(&route.reference, event()));
         let host_requests = host.requests.lock().unwrap();
         let server_requests = server.requests.lock().unwrap();
@@ -157,7 +159,15 @@ fn shared_route_vectors_submit_exactly_once_or_reject_before_send() {
                         frame.stream_id(),
                         frame.sequence_id()
                     ),
-                    (SCHEMA_VERSION, 11, 1)
+                    (
+                        SCHEMA_VERSION,
+                        if route.expect.starts_with("server:") {
+                            71
+                        } else {
+                            11
+                        },
+                        1
+                    )
                 );
                 let request = frame.kind_as_frame_request().unwrap();
                 assert!(request.hello().is_none());

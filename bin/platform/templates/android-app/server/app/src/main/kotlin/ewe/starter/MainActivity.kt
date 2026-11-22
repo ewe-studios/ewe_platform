@@ -3,6 +3,8 @@ package {{ APP_ID }}
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme
 import ewe.ui.compose.RemoteEweScreen
 import io.github.ewe_studios.ewe.core.NativeCore
@@ -15,9 +17,9 @@ class MainActivity : ComponentActivity() {
         val endpoint = (intent.getStringExtra("server") ?: "http://10.0.2.2:8180/").toHttpUrl()
         setContent {
             MaterialTheme {
-                RemoteEweScreen(endpoint, "native-starter", {
+                RemoteEweScreen(endpoint, "open-count", {
                     NativeCore.remote(NativePlatform.ANDROID, listOf("refresh_count"), it)
-                })
+                }, modifier = Modifier.safeDrawingPadding())
             }
         }
     }

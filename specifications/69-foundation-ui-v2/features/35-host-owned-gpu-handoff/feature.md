@@ -1,6 +1,6 @@
 # Feature 35. Use a graphics device that the host already owns
 
-Status: Approved for implementation.
+Status: Complete on the tested targets.
 
 ## Glossary
 

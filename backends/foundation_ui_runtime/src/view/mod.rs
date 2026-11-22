@@ -59,6 +59,7 @@ pub enum LowerError {
     MissingState,
     ReservedAttribute,
     BadTarget,
+    DuplicateName(String),
 }
 
 impl fmt::Display for LowerError {
@@ -78,6 +79,7 @@ impl fmt::Display for LowerError {
             Self::IdOverflow => f.write_str("view exhausted its node identifiers"),
             Self::MissingState => f.write_str("a marked element requires component state"),
             Self::ReservedAttribute => f.write_str("the runtime owns the state attribute"),
+            Self::DuplicateName(name) => write!(f, "duplicate element name {name}"),
             Self::BadTarget => f.write_str("invalid placement target or content"),
         }
     }

@@ -15,6 +15,7 @@ fn message_frame(messages: Vec<MessageT>) -> FrameT {
         stream_id: 7,
         sequence_id: 20,
         kind: FrameKindT::FrameMessage(Box::new(table!(FrameMessageT {
+            subscription_id: 0,
             ack: 5,
             messages: Some(messages),
         }))),
@@ -242,6 +243,7 @@ pub(super) fn columnar_bytes(second_blob_start: u32) -> Vec<u8> {
     let kind = FrameMessage::create(
         &mut builder,
         &FrameMessageArgs {
+            subscription_id: 0,
             ack: 5,
             messages: Some(messages),
         },

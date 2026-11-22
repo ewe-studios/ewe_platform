@@ -52,6 +52,8 @@ const SHARED: &[(&str, &[&str])] = &[
             "TRANSPORT",
             "ENDPOINT",
             "RESUME_FROM",
+            "SHARING",
+            "KEEP_ALIVE",
         ],
     ),
     (

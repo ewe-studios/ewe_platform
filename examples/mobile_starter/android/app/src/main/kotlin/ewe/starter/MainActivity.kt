@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         val endpoint = (intent.getStringExtra("server") ?: "http://10.0.2.2:8180/").toHttpUrl()
         setContent {
             MaterialTheme {
-                RemoteEweScreen(endpoint, "native-starter", {
+                RemoteEweScreen(endpoint, "open-count", {
                     NativeCore.remote(NativePlatform.ANDROID, listOf("refresh_count"), it)
                 })
             }

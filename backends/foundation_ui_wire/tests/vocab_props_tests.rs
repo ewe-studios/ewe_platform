@@ -21,6 +21,7 @@ const PROPS: &[(PropId, PropKind)] = &[
     (PropId::HEIGHT, PropKind::Length),
     (PropId::HIDDEN, PropKind::Bool),
     (PropId::UTILITY_CLASSES, PropKind::Text),
+    (PropId::ID, PropKind::Text),
 ];
 
 #[test]

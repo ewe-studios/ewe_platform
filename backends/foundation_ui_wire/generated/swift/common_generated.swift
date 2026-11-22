@@ -64,8 +64,9 @@ public enum ewe_ui_NodeKind: UInt16, Enum, Verifiable {
   case sheetTitle = 22
   case submitButton = 23
   case cancelButton = 24
+  case drawingSurface = 25
 
-  public static var max: ewe_ui_NodeKind { return .cancelButton }
+  public static var max: ewe_ui_NodeKind { return .drawingSurface }
   public static var min: ewe_ui_NodeKind { return .unknown }
 }
 
@@ -93,8 +94,9 @@ public enum ewe_ui_PropId: UInt16, Enum, Verifiable {
   case hidden = 16
   case presentation = 17
   case utilityClasses = 18
+  case id = 19
 
-  public static var max: ewe_ui_PropId { return .utilityClasses }
+  public static var max: ewe_ui_PropId { return .id }
   public static var min: ewe_ui_PropId { return .unknown }
 }
 

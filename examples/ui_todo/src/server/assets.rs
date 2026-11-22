@@ -78,6 +78,22 @@ pub(super) fn register(
             .as_slice(),
         ),
         (
+            "/foundation-ui-recovery.js",
+            "text/javascript",
+            include_bytes!(
+                "../../../../backends/foundation_wasm_ui/runtimes/foundation-ui-recovery.js"
+            )
+            .as_slice(),
+        ),
+        (
+            "/foundation-ui-connections.js",
+            "text/javascript",
+            include_bytes!(
+                "../../../../backends/foundation_wasm_ui/runtimes/foundation-ui-connections.js"
+            )
+            .as_slice(),
+        ),
+        (
             "/foundation-ui-behaviours.js",
             "text/javascript",
             include_bytes!(

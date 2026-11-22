@@ -41,6 +41,8 @@ public struct LiveSpec: Equatable, Sendable {
   public let transport: String
   public let endpoint: String
   public let resumeFrom: UInt64
+  public var shared: Bool? = nil
+  public var keepAlive: Bool = false
 }
 @MainActor @Observable public final class NodeRecord: Identifiable {
   public nonisolated let id: UInt32

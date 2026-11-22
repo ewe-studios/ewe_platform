@@ -1,0 +1,60 @@
+[package]
+name = "foundation_ui_gpu"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "A host-owned execution queue for local graphics work."
+autotests = false
+
+[lib]
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[dependencies]
+foundation_ui_runtime = { path = "../foundation_ui_runtime" }
+foundation_ui_wire = { path = "../foundation_ui_wire" }
+foundation_errstacks = { path = "../foundation_errstacks" }
+serde.workspace = true
+rand_core.workspace = true
+async-channel.workspace = true
+futures-util.workspace = true
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+thiserror.workspace = true
+wgpu.workspace = true
+
+[target.'cfg(all(not(target_family = "wasm"), target_vendor = "apple"))'.dependencies]
+wgpu = { workspace = true, features = ["metal"] }
+objc2.workspace = true
+objc2-metal = { workspace = true, features = ["MTLCommandBuffer", "MTLCommandQueue", "MTLDevice", "MTLResource", "MTLTexture", "MTLPixelFormat"] }
+
+[target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]
+wgpu = { workspace = true, features = ["vulkan"] }
+ash.workspace = true
+
+[target.'cfg(target_os = "windows")'.dependencies]
+wgpu = { workspace = true, features = ["dx12", "vulkan"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+futures-lite.workspace = true
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+wgpu = { workspace = true, features = ["webgpu"] }
+foundation_compact = { path = "../foundation_compact", default-features = false, features = ["std","wasm-bindgen"] }
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = ["console","Window", "Navigator", "Document", "HtmlCanvasElement"] }
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true
+
+[[example]]
+name = "browser_handoff_test"
+path = "tests/browser/connected.rs"
+crate-type = ["cdylib"]

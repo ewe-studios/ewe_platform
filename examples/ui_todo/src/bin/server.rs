@@ -12,6 +12,18 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
     let app = if std::env::args().nth(2).as_deref() == Some("--data-only") {
         ui_todo::server::data_app()?
+    } else if let Some(history) = std::env::var_os("EWE_TODO_HISTORY") {
+        use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
+        let limit = history
+            .to_str()
+            .ok_or("Expected a replay history length")?
+            .parse()?;
+        let channel = LiveChannel::new(
+            1,
+            BacklogConfig::default().max_frames(limit),
+            Default::default(),
+        );
+        ui_todo::server::app_with_channel(&module, channel)?
     } else {
         ui_todo::server::app(&module)?
     };

@@ -9,7 +9,7 @@ use foundation_ui_runtime::state::{
 };
 use foundation_ui_runtime::view::{render, template_types::Html, ViewIds};
 use foundation_ui_runtime::{action, html};
-use foundation_ui_wire::{ErrorCode, MountSurface};
+use foundation_ui_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
@@ -41,7 +41,7 @@ pub struct TodoApp {
 #[derive(Default)]
 pub struct TodoStore(Mutex<StoreState>);
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct StoreState {
     last_id: u64,
     items: Vec<Todo>,
@@ -69,6 +69,19 @@ impl TodoStore {
             items: vec![item],
             ..Default::default()
         }))
+    }
+
+    /// Capture the view and its published cursor while mutations hold the same lock.
+    #[cfg(all(feature = "server", not(target_family = "wasm")))]
+    pub(crate) fn published_snapshot(
+        &self,
+        feed: &foundation_wasm_ui::server::LiveChannel,
+    ) -> (TodoApp, u64) {
+        let state = self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        (state.snapshot(), feed.last_sequence())
     }
 
     #[must_use]
@@ -124,13 +137,13 @@ fn row(item: &Todo, local: bool) -> Html {
     </ChecklistRow> }
 }
 
-fn page(ctx: &Context, state: &TodoApp, web: bool) -> ActionResult {
-    let (tree, state) = page_tree(state, web, ctx.get::<OnDevice>().is_some());
+fn page(ctx: &Context, state: &TodoApp) -> ActionResult {
+    let (tree, state) = page_tree(state, ctx.get::<OnDevice>().is_some());
     render(ctx, ctx.receiver(), tree, Some(state))?;
     Ok(())
 }
 
-pub(crate) fn page_tree(state: &TodoApp, web: bool, local: bool) -> (Html, &TodoApp) {
+pub(crate) fn page_tree(state: &TodoApp, local: bool) -> (Html, &TodoApp) {
     let rows = state
         .items
         .iter()
@@ -141,20 +154,9 @@ pub(crate) fn page_tree(state: &TodoApp, web: bool, local: bool) -> (Html, &Todo
         })
         .map(|item| row(item, local));
     let count = state.items.iter().filter(|item| !item.done).count();
-    let count_view = if web {
-        html! { <div id="open-count"><span id="count-value">{count}</span><mount-stream data-channel-id="1" api="/live" protocol="frame" target="#live-sink"/></div> }
-    } else if local {
-        open_count(count)
-    } else {
-        Html::default()
-    };
-    let header = if web {
-        html! { <NavigationTitle on:tap="host:scroll_to_top">Todos</NavigationTitle> }
-    } else {
-        html! { <NavigationTitle>Todos</NavigationTitle> }
-    };
+    let count_view = open_count(count);
     html! { state = state, <Stack>
-        {header}
+        <NavigationTitle>Todos</NavigationTitle>
         <ToolbarButton primal::state on:tap={open_add_dialog}>Add</ToolbarButton>
         <SegmentedControl a11y_label="Filter todos">
             <Button value="all" checked={state.filter == Filter::All} primal::state on:tap={filter_todos}>All</Button>
@@ -167,8 +169,12 @@ pub(crate) fn page_tree(state: &TodoApp, web: bool, local: bool) -> (Html, &Todo
 }
 
 pub(crate) fn open_count(count: usize) -> Html {
+    html! {<ListFooter id="open-count">{open_count_label(count)}</ListFooter>}
+}
+
+pub(crate) fn open_count_label(count: usize) -> String {
     let unit = if count == 1 { "todo" } else { "todos" };
-    html! {<ListFooter>{format!("{count} open {unit}")}</ListFooter>}
+    format!("{count} open {unit}")
 }
 
 /// Builds a screen whose only action runs on the server.
@@ -181,7 +187,7 @@ pub fn starter_view(ctx: &Context, count: usize) -> ActionResult {
 }
 
 pub(crate) fn starter_tree(count: usize) -> Html {
-    html! { <Stack><Text>Open todos</Text><Text>{count}</Text>
+    html! { <Stack><Text>Open todos</Text><Text id="open-count">{count}</Text>
     <Button on:tap={refresh_count}>Refresh</Button></Stack> }
 }
 
@@ -206,14 +212,14 @@ async fn refresh_count(ctx: &Context, _event: Interaction<()>) -> ActionResult {
 /// # Errors
 /// Returns a view or state serialization error.
 pub fn app(ctx: &Context, state: &TodoApp) -> ActionResult {
-    page(ctx, state, false)
+    page(ctx, state)
 }
-/// Renders the todo page with its web header and live count.
+/// Renders the shared page for existing browser callers.
 ///
 /// # Errors
 /// Returns a view or state serialization error.
 pub fn web_app(ctx: &Context, state: &TodoApp) -> ActionResult {
-    page(ctx, state, true)
+    page(ctx, state)
 }
 
 fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
@@ -289,10 +295,10 @@ async fn filter_todos(ctx: &Context, event: Interaction<TodoApp>) -> ActionResul
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         guard.filter = filter;
-        return page(ctx, &guard.snapshot(), false);
+        return page(ctx, &guard.snapshot());
     }
     state.filter = filter;
-    page(ctx, &state, ctx.surface() == MountSurface::Web)
+    page(ctx, &state)
 }
 
 fn todo_store(ctx: &Context) -> Result<Arc<TodoStore>, ErrorTrace<ActionError>> {
@@ -309,13 +315,13 @@ fn mutate(
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    let StoreState { last_id, items, .. } = &mut *guard;
-    change(last_id, items)?;
-    let state = guard.snapshot();
-    page(ctx, &state, ctx.surface() == MountSurface::Web)?;
+    let mut next = guard.clone();
+    change(&mut next.last_id, &mut next.items)?;
+    let state = next.snapshot();
+    page(ctx, &state)?;
     dialog(ctx, &state)?;
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    if let Some(channels) = ctx.get::<crate::server::TodoChannels>() {
+    if let Some(channels) = ctx.get::<crate::server::TodoFeed>() {
         channels
             .publish(
                 ctx.inner(),
@@ -323,6 +329,7 @@ fn mutate(
             )
             .map_err(|failure| error(&failure.to_string()))?;
     }
+    *guard = next;
     Ok(())
 }
 

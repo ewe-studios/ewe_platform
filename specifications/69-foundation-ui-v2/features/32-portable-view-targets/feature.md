@@ -1,6 +1,6 @@
 # Feature 32. Target views and elements by name
 
-Status: Approved for implementation.
+Status: Complete.
 
 ## Glossary
 

@@ -15,9 +15,10 @@ let package = Package(name: "EweUI", platforms: [.iOS(.v17), .macOS(.v14)],
     dependencies: [.package(url: "https://github.com/google/flatbuffers.git", exact: "25.9.23")],
     targets: [
         core,
+        .target(name: "EweGraphicsBridge", path: "mobile/ios/Sources/EweGraphicsBridge"),
         .target(name: "EweCore", dependencies: ["EweCoreFFI"], path: "mobile/ios/Sources/EweCore"),
         .target(name: "EweWire", dependencies: [.product(name: "FlatBuffers", package: "flatbuffers")], path: "mobile/ios/Sources/EweWire"),
-        .target(name: "EweUI", dependencies: ["EweWire", .product(name: "FlatBuffers", package: "flatbuffers"),
+        .target(name: "EweUI", dependencies: ["EweGraphicsBridge", "EweWire", .product(name: "FlatBuffers", package: "flatbuffers"),
             .target(name: "EweCore", condition: .when(platforms: [.iOS, .macOS]))], path: "mobile/ios/Sources/EweUI"),
         .testTarget(name: "EweUITests", dependencies: ["EweUI"], path: "mobile/ios/Tests/EweUITests", resources: [.copy("Fixtures")])
     ], swiftLanguageModes: [.v5])

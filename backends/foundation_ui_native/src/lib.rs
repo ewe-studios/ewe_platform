@@ -3,6 +3,7 @@ uniffi::setup_scaffolding!();
 
 pub mod command;
 mod core;
+pub mod graphics;
 mod host;
 pub mod rpc;
 pub use core::{CoreConfig, NativeCore, NativeCoreBuilder, NativePlatform};

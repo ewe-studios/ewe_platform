@@ -191,7 +191,14 @@ impl OperationGate<'_> {
             UiOperationT::Place(place) if place.kind == crate::PlacementKind::FullView => {
                 self.version.version < 6
             }
-            UiOperationT::Place(_) => self.version.version < 3,
+            UiOperationT::Place(place) => {
+                self.version.version < 3
+                    || self.version.version < crate::vocab::PORTABLE_TARGET_VERSION
+                        && [place.target.as_deref(), place.child.as_deref()]
+                            .into_iter()
+                            .flatten()
+                            .any(|selector| selector.kind.0 > crate::SelectorKind::Query.0)
+            }
             UiOperationT::SetProp(prop) => {
                 prop.prop.0 > self.version.max_prop_id
                     || crate::vocab::prop_kind(prop.prop).is_none()
