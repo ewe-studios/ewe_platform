@@ -21,7 +21,7 @@ related_specs:
   - "specifications/completed/54-foundation-deployment-docker"
   - "specifications/completed/76-shared-context"
   - "specifications/84-context-injection"
-  - "specifications/85-wasm-fetch-transport"
+  - "specifications/completed/85-wasm-fetch-transport"
   - "specifications/86-auth-primitives"
   - "specifications/87-mutual-tls"
 features:

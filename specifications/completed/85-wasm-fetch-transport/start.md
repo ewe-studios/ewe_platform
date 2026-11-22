@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/85-wasm-fetch-transport"
-this_file: "specifications/85-wasm-fetch-transport/start.md"
+spec_directory: "specifications/completed/85-wasm-fetch-transport"
+this_file: "specifications/completed/85-wasm-fetch-transport/start.md"
 created: 2026-11-15
 ---
 
@@ -12,12 +12,12 @@ created: 2026-11-15
 1. Read `requirements.md` in full. Sections 4 and 5 are the design and the rules.
 2. Read `fetch.md` for the shared reader, the exchange task, the response builder, the sink,
    the DO stub client and the error table.
-3. Read `../84-context-injection/requirements.md` sections 5.1 and 5.4. The clock and the
+3. Read `../../84-context-injection/requirements.md` sections 5.1 and 5.4. The clock and the
    timer come from `Ctx`.
-4. Read `../83-agent-rpc-serving-system/features/05-worker-host-and-web-client/worker-and-web.md`
+4. Read `../../83-agent-rpc-serving-system/features/05-worker-host-and-web-client/worker-and-web.md`
    sections 5.3 to 5.5 and 6.2. They show how a Worker serves through `foundation_http` and
    calls its DOs. `fetch.md` is the authority when the two disagree.
-5. Read `../77-foundation-platform-sandbox/features/07-cloudflare-control-plane/feature.md`
+5. Read `../../77-foundation-platform-sandbox/features/07-cloudflare-control-plane/feature.md`
    section 6.5 and `features/08-cloudflare-worker/feature.md` section 6.2. They are the two
    sandbox consumers.
 6. Read `.agents/skills/rust-valtron-usage/skill.md` before T4. Its test section is older than

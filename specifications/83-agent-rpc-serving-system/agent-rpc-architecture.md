@@ -60,7 +60,7 @@ Each feature holds its own design files. This file holds only what the features 
 | [84 Context injection](../84-context-injection/requirements.md) | [`env.md`](../84-context-injection/env.md), [`deterministic-simulation-testing.md`](../84-context-injection/deterministic-simulation-testing.md) | The `Env` bundle in `Ctx`: timer, entropy and id source; the builders; the lint; DST in plain words |
 | [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | — (small; the feature file says what to change) | connectrpc request extensions and clock; TLS peer certificates |
 | [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | [`migrations.md`](../80-platform-prerequisites/features/01-migration-groups/migrations.md) | Migrations per database, as ordered groups, each numbered from 1 and recorded by group |
-| [85 Wasm HTTP streaming](../85-wasm-fetch-transport/requirements.md) | [`fetch.md`](../85-wasm-fetch-transport/fetch.md) | the streaming response body of the wasm client, `streaming_response_with`, the streaming bridges and sink, `StubHttpClient` |
+| [85 Wasm HTTP streaming](../completed/85-wasm-fetch-transport/requirements.md) | [`fetch.md`](../completed/85-wasm-fetch-transport/fetch.md) | the streaming response body of the wasm client, `streaming_response_with`, the streaming bridges and sink, `StubHttpClient` |
 | [86 Auth primitives](../86-auth-primitives/requirements.md) | — | `Secret`, `constant_time_eq`, the bearer parser, `ClientAuth`, `AuthInfo`, `StaticToken` |
 | [87 Mutual TLS](../87-mutual-tls/requirements.md) | [`mtls.md`](../87-mutual-tls/mtls.md) | The CA, the trust store, the rustls verifiers, the mTLS providers |
 | [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | [`auth.md`](../81-foundation-auth/features/00-foundation-auth/auth.md) | Signed secrets, operator key files, the provider set, the interceptor |
@@ -490,7 +490,7 @@ rest) is last, and starts only after the proof of concept works.
 | [84 Context injection](../84-context-injection/requirements.md) | T1 to T6 | The `Env` bundle in `Ctx`, the builders, the `SandboxIdPolicy` rename, the lint | yes |
 | [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | T3, T4 | connectrpc keeps request extensions and uses the `Ctx` clock; `foundation_http` reports the TLS peer certificate | yes |
 | [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | T25 | Migration groups per database, from code or directories; `FleetRunner` | yes |
-| [85 Wasm fetch transport](../85-wasm-fetch-transport/requirements.md) | T1 to T5 | The fetch plumbing that feature 05 and spec 77 use | no |
+| [85 Wasm fetch transport](../completed/85-wasm-fetch-transport/requirements.md) | T1 to T5 | The fetch plumbing that feature 05 and spec 77 use | no |
 | [86 Auth primitives](../86-auth-primitives/requirements.md) | T1 to T6 | The trait, the result types, `Secret`, the bearer parser | yes |
 | [87 Mutual TLS](../87-mutual-tls/requirements.md) | T1 to T6 | The CA, the trust store, the verifiers, the mTLS providers | yes |
 | [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | T5, T7, T11 | Signed secrets, operator key files, the provider set, the interceptor | yes |

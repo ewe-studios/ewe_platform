@@ -26,7 +26,7 @@ decide its coverage.
 
 1. `requirements.md` sections 2.4, 2.6, 2.7, 4 (D2), 5, 6 and 9.
 2. `features/03-connectrpc-runtime/feature.md` in full.
-3. `specifications/85-wasm-fetch-transport/fetch.md` sections 1 and 5. Spec 85 may create this
+3. `specifications/completed/85-wasm-fetch-transport/fetch.md` sections 1 and 5. Spec 85 may create this
    crate first. If `backends/foundation_connectrpc/integration/wasm/` exists when you start,
    extend it; do not create a second one, and say which spec created it in your report.
 4. `backends/foundation_db/integration/wasm_cf/` — the working standalone-crate precedent.

@@ -28,7 +28,7 @@ has_features: true
 has_fundamentals: false
 builds_on: "specifications/68-valtron-wasm-web-tests"
 related_specs:
-  - "specifications/85-wasm-fetch-transport"
+  - "specifications/completed/85-wasm-fetch-transport"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/completed/43-rust-browser-testing"
   - "specifications/completed/44-embedded-deno-runtime"

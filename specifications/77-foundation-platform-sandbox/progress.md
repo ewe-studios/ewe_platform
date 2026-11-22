@@ -79,7 +79,7 @@ ASD-STE100.
 
   | Defect | Direction | What changed here |
   |---|---|---|
-  | The wasm fetch pump was planned in three places | One owner, delivered first | [Spec 85](../85-wasm-fetch-transport/requirements.md) owns the wasm gaps: the streaming response body of the wasm client, the streaming bridges and sink, and `StubHttpClient`. Feature 07 section 6.5 and feature 08 section 6.4 use `H1Transport` over a `DynNetClient` and write no pump. |
+  | The wasm fetch pump was planned in three places | One owner, delivered first | [Spec 85](../completed/85-wasm-fetch-transport/requirements.md) owns the wasm gaps: the streaming response body of the wasm client, the streaming bridges and sink, and `StubHttpClient`. Feature 07 section 6.5 and feature 08 section 6.4 use `H1Transport` over a `DynNetClient` and write no pump. |
   | Mutual TLS was deferred to spec 65, which no longer owns it | One specification for mTLS | [Spec 87](../87-mutual-tls/requirements.md) owns the CA, the trust store, the verifiers and the mTLS providers. Question Q4 points there. Feature 06 section 6.5 names `ServerTlsConfig` and `MtlsAuth`. |
   | Two `Secret` types and two bearer parsers | One small specification in `foundation_auth` | [Spec 86](../86-auth-primitives/requirements.md) owns `Secret`, `constant_time_eq` and the bearer parser. Feature 00 section 6.10 defines none; feature 02 section 6.10 has `authorize` over spec 86's `Secret`. |
   | Two meanings of `IdSource`, and an `Env` design that did not match `Ctx` | One featureless specification | [Spec 84](../84-context-injection/requirements.md) owns the `Env` entry. Feature 02's enum is renamed `SandboxIdPolicy`, and the field is `id_policy`. |
