@@ -18,9 +18,8 @@ tasks:
 
 # Valtron Runtime
 
-_Status: **done**, feature 01 of spec 88. The work is on `spec88/f01-valtron-runtime`, not yet
-committed. Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay
-as they are._
+_Status: **done and merged**, feature 01 of spec 88, as `447519256`. Written in ASD-STE100
+Simplified Technical English (STE). Code and identifiers stay as they are._
 
 **Abbreviations.** JavaScript (JS); WebAssembly (wasm); Simplified Technical English (STE);
 continuous integration (CI).

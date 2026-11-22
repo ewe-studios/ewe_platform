@@ -34,10 +34,10 @@ related_specs:
   - "specifications/completed/44-embedded-deno-runtime"
   - "specifications/68-valtron-wasm-web-tests"
 features:
-  completed: 1
-  uncompleted: 3
+  completed: 2
+  uncompleted: 2
   total: 4
-  completion_percentage: 25%
+  completion_percentage: 50%
 ---
 
 # Spec 88: Wasm Runtime Coverage

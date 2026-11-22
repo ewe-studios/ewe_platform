@@ -2,9 +2,7 @@
 
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is implemented on the branch
-`spec88/f01-valtron-runtime`** (not yet committed). Features 02 and 03 remain, so the
-specification is open.
+**Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`. Features 02 and 03 remain, so the specification is open.
 
 ## Where this specification is
 
@@ -27,7 +25,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
-| 01-valtron-runtime | `implemented`: T1 to T6 done; the work is on `spec88/f01-valtron-runtime` and waits for the Main Agent review | one agent, sonnet | 00 merged (T9 included) |
+| 01-valtron-runtime | `done`: T1 to T6 done, reviewed and merged as `447519256` | one agent, sonnet | nothing |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
 
