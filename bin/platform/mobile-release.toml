@@ -1,5 +1,5 @@
 # Local candidate. Publication uses exact source revisions in the release record.
-version = "0.1.0"
+version = "0.1.1"
 repository = "ewe-studios/ewe_platform"
 maven_group = "io.github.ewe-studios"
 swift_product = "EweUI"
