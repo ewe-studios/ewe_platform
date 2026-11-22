@@ -1,12 +1,12 @@
 # Spec 82 Progress: Proxy Registration and Registrar
 
-_Last updated: 2026-11-14._
+_Last updated: 2026-11-23._
 
 ## Status at a glance
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — proxy registration | ⏳ 0/11, design complete | Moved from spec 83 feature 03 |
+| 00 — proxy registration | ✅ 11/11; all tasks green | Moved from spec 83 feature 03 |
 | 01 — registrar sidecar | ⏳ 0/10, design complete | Moved from spec 83 feature 04 |
 
 ## What moved
@@ -25,17 +25,82 @@ The existing proxy parts that the new code extends:
 | Persisted state | `backends/foundation_proxy/src/persistence.rs` |
 | TLS | `backends/foundation_proxy/src/tls.rs` |
 
-## Next steps
+## Landed — feature 00 stage 1 (T1–T6), 2026-11-23
 
-1. Add the nine-section story wrapper to both features. The internal feature references now point
-   at the new homes (old 02 → 78/79, old 07/11 → 81, old 08 → 80). Feature 01 now points at
-   feature 00, section 5.5, for the Unix socket design.
-2. Run feature 00 T1 (the registration contract) against spec 78's `proxy` and `probes` blocks.
-3. Feature 01 can use a fake registration server until feature 00 lands. Its final end-to-end
-   task needs spec 79.
+| Task | State | Where |
+|---|---|---|
+| T1 — proto and generated types | ✅ | `proto/ewe/proxy/registration/v1/registration.proto`, `build.rs`, `src/registration/proto.rs` |
+| T2 — `RouterHandle` | ✅ | `src/router.rs`, `src/state.rs` |
+| T3 — registry and sessions | ✅ | `src/registration/registry.rs` |
+| T4 — leases and sweeper | ✅ | `src/registration/registry.rs`, `src/registration/mod.rs` |
+| T5 — rotation rule | ✅ | registry snapshot + `BackendRuntime::is_eligible` |
+| T6 — address policy | ✅ | `src/registration/policy.rs`, `src/registration/config.rs` |
+
+Tests: `registration_registry_tests` (12 pass) and `registration_failure_tests`
+(11 pass) cover rows 7.1–7.9, 7.12 and 7.13 with a simulated clock. The whole
+crate test suite, `cargo fmt --all -- --check` and clippy pass.
+
+`ProxyConfig` gained `registration: Option<RegistrationConfig>`, and
+`foundation_proxy` went from 0.1.9 to 0.2.0 because the public API grew. No
+workspace crate depends on `foundation_proxy`.
+
+## Next — feature 00 stage 2 (T7–T11)
+
+1. T7: enrollment and the mutual-TLS registration listener over `foundation_auth`.
+2. T8: certificate renewal and revocation.
+3. T9: the Unix socket transport with its permission check.
+4. T10: control socket `issue-registrar-token`, `revoke-registrar`, registered rows in `list`.
+5. T11: the end-to-end test (register, route, redeploy, proxy restart).
+
+The `server_proof` of `EnrollResponse` waits on a public signer in
+`foundation_auth` (see `LEARNINGS.md`). Feature 01 can start against the landed
+contract now.
 
 ## Open questions
 
 - 00: save the registry across restarts; the Unix socket transport; mTLS through the proxy (SNI
   passthrough); shared enrollment in `foundation_auth`; metrics for load balancing.
 - 01: restart on liveness failure; Kubernetes probes; more metrics.
+
+
+## Feature 00 complete — stage 2 (T7–T11), 2026-11-23
+
+| Task | State | Where |
+|---|---|---|
+| T7 — enrollment and mTLS listener | ✅ | `src/registration/enroll.rs`, `authority.rs`, `service.rs` |
+| T8 — renewal and revocation | ✅ | `enroll.rs` (`renew`, `revoke_host`), `registry.rs` (`drain_host`) |
+| T9 — Unix socket transport | ✅ | `src/registration/unix.rs` |
+| T10 — control commands | ✅ | `src/control.rs` (`issue-registrar-token`, `revoke-registrar`, rows in `list`) |
+| T11 — end to end | ✅ | `tests/registration_e2e_tests.rs` |
+
+The registration authority starts from `RegistrationConfig`: it loads or
+generates the registration certificate authority (CA) in `state_dir`, opens the
+trust store, loads or makes the enrollment-token key seed in `state_dir` from
+the `Ctx` `Env` entropy, and serves the mTLS listener, the server-auth
+enrollment listener and the optional Unix socket. The proxy holds it and stops
+it on teardown.
+
+Tests: `registration_auth_tests` (8), `registration_e2e_tests` (1),
+`registration_registry_tests` (12) and `registration_failure_tests` (11). The
+whole crate suite, `cargo fmt --all -- --check` and clippy pass.
+
+Notes:
+- `ProxyServer::start` now returns a boxed future, because the start future holds
+  the registration authority's future and the trait solver overflows when a test
+  calls `.block()` on the unboxed type.
+- A `Ctx` without the host `Env` is a typed start error: enrollment needs
+  entropy for the token key and the server proof. A host installs it with
+  `foundation_core::env::install`.
+- The enrollment-token key seed is a 32-byte file, `registrar_token.key`, in
+  `state_dir`, mode 0600 on Unix. The first start makes it from the `Env`
+  entropy; every later start reads it. A token that the operator issued
+  therefore still enrolls after a proxy restart. A test proves it.
+- The Unix transport is gated by `cfg(unix)`. A `unix_socket` setting on another
+  operating system is a typed start error, not a silent skip.
+
+## What is left
+
+- Feature 01 (`foundation_registrar`) is not started. It can use the landed
+  contract now.
+- Open questions of the specification (saved registry across restarts, SNI
+  passthrough, shared enrollment in `foundation_auth`) remain open.

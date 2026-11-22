@@ -184,6 +184,17 @@ impl ServiceRuntime {
             .cloned()
             .map(|t| Arc::new(BackendRuntime::new(t)))
             .collect();
+        Self::with_backends(config, backends)
+    }
+
+    /// Build runtime state for `config` over already-made backends.
+    ///
+    /// WHY: the registration authority rebuilds a service's backend list when a
+    /// sidecar registers or reports. A backend whose address did not change
+    /// must keep its [`BackendRuntime`] (in-flight count, weight state and proxy
+    /// health), so the caller passes the runtimes it already holds.
+    #[must_use]
+    pub fn with_backends(config: ServiceConfig, backends: Vec<Arc<BackendRuntime>>) -> Self {
         Self {
             config,
             backends,

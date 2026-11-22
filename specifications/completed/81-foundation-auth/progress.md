@@ -100,6 +100,20 @@ feature 08. This library accepts operator key files for the proof of concept.
 The main agent reviewed the change. Every test suite passes. The merge into master is complete.
 The spec is in `specifications/completed/81-foundation-auth`.
 
+## Follow-up for spec 82 (2026-11-23)
+
+The proxy registration authority (spec 82 feature 00) must send the enrollment server proof
+of `auth.md` section 9.1.1. The crate had no public signer, because `SigningKey::sign` is
+`pub(crate)`. The crate now publishes:
+
+- `SecretIssuer::sign_enroll_proof`,
+- `VerifyingKey::verify_enroll_proof`,
+- `SignedSecret::verifying_key`, and
+- `secret::enroll_proof_message` for an audit and a golden test.
+
+Four tests in `tests/secret/enroll_proof.rs` cover the round trip, each changed field, a
+wrong key and the exact byte layout. The version is 0.0.14.
+
 ## Next steps
 
 1. The consumers (spec 83 host wiring, spec 82 proxy registration) build the provider set from

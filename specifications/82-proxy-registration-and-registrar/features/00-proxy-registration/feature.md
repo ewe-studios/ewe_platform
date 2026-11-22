@@ -1,7 +1,7 @@
 ---
 feature: "Proxy Registration Authority"
 description: "Extend foundation_proxy with a registration authority: a separate mutual-TLS listener where enrolled registrar sidecars register backends, report their health and metrics on a lease, and deregister them; plus a live backend registry that feeds the existing router with no dropped connections."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["completed/81-foundation-auth/features/00-foundation-auth"]
 builds_on:
@@ -9,13 +9,13 @@ builds_on:
   - "specifications/completed/81-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in its auth.md)"
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-11-14
+last_updated: 2026-11-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Proxy Registration Authority

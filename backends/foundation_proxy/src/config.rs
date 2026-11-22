@@ -122,6 +122,10 @@ pub struct ProxyConfig {
     /// streaming uploads. Defaults to 1 MiB (nginx `client_max_body_size`).
     #[serde(default = "default_max_request_body")]
     pub max_request_body: usize,
+    /// The registration authority's settings (spec 82 feature 00). `None` turns
+    /// the feature off. Every limit is a field with a documented default.
+    #[serde(default)]
+    pub registration: Option<crate::registration::RegistrationConfig>,
     /// How often [`crate::ProxyServer::drain_complete`] re-checks the in-flight
     /// count. Defaults to 50 ms.
     #[serde(default = "default_drain_poll", with = "duration_millis")]
@@ -151,7 +155,16 @@ impl ProxyConfig {
             client_read_timeout: default_client_read_timeout(),
             max_request_body: default_max_request_body(),
             drain_poll: default_drain_poll(),
+            registration: None,
         }
+    }
+
+    /// Enable the registration authority with `config` (spec 82 feature 00).
+    /// `None` turns it off.
+    #[must_use]
+    pub fn registration(mut self, config: Option<crate::registration::RegistrationConfig>) -> Self {
+        self.registration = config;
+        self
     }
 
     /// Set [`Self::drain_poll`]. Default 50 ms.
