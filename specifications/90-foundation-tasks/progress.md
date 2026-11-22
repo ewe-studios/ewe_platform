@@ -142,3 +142,11 @@ Coordinate the Todo integration with its implementation owner.
 Feature 1 passes the complete verification set. Both installed command names run the public runtime task.
 The central executable suite passes three tests. Strict Clippy passes for the optional build and task features.
 The packaged mobile release record now matches version 0.1.1 in the canonical record.
+
+### Feature 3 resource staging and reads
+
+The foundation_resources package reads package-relative declarations and generated inputs.
+It stages a complete target-specific set and protects other destination files.
+Concurrent staging, name conflicts, a failed replacement, and stale file removal pass the native tests.
+The application context exposes resources.open(name). The browser reader checks the response before streaming its body.
+The WebAssembly browser target compiles. Mobile packaging and application integration continue.

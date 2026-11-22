@@ -96,3 +96,6 @@ The classic entry imports the frame runtime. Todo loads its action module separa
 
 A relocated CMake build tree can retain absolute paths. Regenerate its build directory before testing the platform executable.
 The platform build also checks the packaged release record against the canonical one.
+
+A browser response can fail after a successful open. Each streamed resource chunk therefore carries its own result.
+Track each source directory as well as its files. Cargo can then detect new directory entries.

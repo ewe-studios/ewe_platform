@@ -6536,6 +6536,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_resources"
+version = "0.1.0"
+dependencies = [
+ "blocking",
+ "derive_more",
+ "foundation_context",
+ "futures-lite",
+ "futures-util",
+ "js-sys",
+ "serde",
+ "tempfile",
+ "toml 0.9.6",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "foundation_runtimes"
 version = "0.0.6"
 dependencies = [
