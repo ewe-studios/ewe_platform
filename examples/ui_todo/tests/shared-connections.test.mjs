@@ -1,7 +1,6 @@
 // Run against the compiled todo server. Each test run starts a fresh store.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createInterface } from "node:readline";
@@ -88,10 +87,13 @@ test("shared socket actions and per-subscription replay on SSE and streamed HTTP
   const {body,control} = packet(await result.promise);
   assert.equal(body.ack(), 1n);
   assert.equal(control?.error(), undefined);
-  const countFrame = Buffer.from(await latest.promise);
-  const fixture = new URL("../../../backends/foundation_ui_wire/fixtures/native/portable_count.bin", import.meta.url);
-  if (process.env.UPDATE_FIXTURES === "1") writeFileSync(fixture,countFrame);
-  assert.deepEqual(countFrame,readFileSync(fixture));
+  const update = packet(await latest.promise).body.unpack();
+  const placements = update.messages.map(message => message.operation?.ui);
+  const texts = placements.flatMap(place => place?.operations ?? [])
+    .filter(operation => operation.uiType === w.UiOperation.SetText)
+    .map(operation => operation.ui.text);
+  assert.ok(texts.includes("Socket todo"));
+  assert.ok(texts.includes("1 open todo"));
   const nextReply = Promise.withResolvers();
   screens[0].server.onReply = nextReply.resolve;
   await screens[0].actions.trigger("server:add_todo", {...field,value:"Second task"}, {type:"submit"});
@@ -134,8 +136,8 @@ test("shared socket actions and per-subscription replay on SSE and streamed HTTP
   const hello = packet((await frames.next()).value).control.caps();
   assert.ok(hello.subscriptionResume());
   assert.equal((await post(resume(hello.streamId(), 92n, 0n))).status, 204);
-  const update = packet((await frames.next()).value);
-  assert.equal(update.body.subscriptionId(), 92n);
-  assert.equal(update.frame.sequenceId(), 1n);
+  const binaryUpdate = packet((await frames.next()).value);
+  assert.equal(binaryUpdate.body.subscriptionId(), 92n);
+  assert.equal(binaryUpdate.frame.sequenceId(), 1n);
   await frames.return();
 });

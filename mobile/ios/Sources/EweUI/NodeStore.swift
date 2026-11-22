@@ -36,6 +36,7 @@ import Observation
   let sleep: @Sendable (Duration) async throws -> Void
   @ObservationIgnored public var onGap: ((UInt64, UInt64) -> Void)?
   @ObservationIgnored public var onError: ((String, String) -> Void)?
+  @ObservationIgnored var onLiveTransportRecovered: ((String) -> Void)?
   @ObservationIgnored public var onData: ((UInt32, ewe_ui_Data) -> Void)?
   @ObservationIgnored public var onSnapshot: ((UInt32, UInt64) -> Void)?
   @ObservationIgnored var subscriptionReplay = false

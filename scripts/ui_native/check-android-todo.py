@@ -8,8 +8,8 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 
-adb, device, phase = sys.argv[1:]
-app = "ewe.todo" if phase.startswith("server") else "ewe.todo.local"
+adb, device, phase, *labels = sys.argv[1:]
+app = "ewe.todo" if phase.startswith(("server", "peer-")) else "ewe.todo.local"
 timeout = int(os.getenv("EWE_ANDROID_VIEW_TIMEOUT", "60"))
 
 
@@ -19,7 +19,7 @@ def shell(*args, command_timeout=10):
     )
 
 
-def wait_for(*present, absent=()):
+def wait_for(*present, absent=(), condition=lambda _: True):
     snapshot = "/sdcard/ewe-todo.xml"
     deadline = time.monotonic() + timeout
     visible = {}
@@ -35,9 +35,12 @@ def wait_for(*present, absent=()):
                 if node.get("package") == app and node.get("text")
             }
             for node in nodes:
-                if node.get("package") == app and node.get("content-desc"):
-                    visible.setdefault(node.get("content-desc"), node)
-            if all(label in visible for label in present) and all(label not in visible for label in absent):
+                if node.get("package") == app:
+                    if node.get("content-desc"):
+                        visible.setdefault(node.get("content-desc"), node)
+                    if node.get("class") == "android.widget.EditText":
+                        visible.setdefault("<editor>", node)
+            if all(label in visible for label in present) and all(label not in visible for label in absent) and condition(visible):
                 return visible
         except (ET.ParseError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
             pass
@@ -50,7 +53,7 @@ def wait_for(*present, absent=()):
 def tap(text, *also_visible):
     node = wait_for(text, *also_visible)[text]
     left, top, right, bottom = map(int, re.findall(r"-?\d+", node.attrib["bounds"]))
-    shell("input", "tap", str((left + right) // 2), str((top + bottom) // 2))
+    shell("input", "tap", str((left + right) // 2), str((top + bottom) // 2), command_timeout=timeout)
 
 
 def create(title):
@@ -103,6 +106,47 @@ elif phase == "server-delete":
 elif phase == "isolation":
     wait_for(local_title, "1 open todo", absent=(server_title,))
     print("Offline app retained its own todo after the server app submitted a todo.")
+elif phase == "peer-ready":
+    wait_for("Todos", "Add", "0 open todos")
+elif phase == "peer-draft":
+    tap("Done")
+    tap("Add", "Todos")
+    wait_for("New todo", "Todo title", "Cancel")
+elif phase == "peer-check-draft":
+    wait_for("New todo", "Todo title", "Cancel")
+    tap("Cancel")
+    wait_for("Done", absent=(labels[0], "New todo"))
+elif phase == "peer-check":
+    title, state = labels
+    if state == "absent":
+        wait_for("Todos", absent=(title,))
+    else:
+        wait_for(title, state)
+elif phase == "peer-show-all":
+    tap("All")
+elif phase == "peer-add":
+    title = labels[0]
+    tap("Add", "Todos")
+    tap("<editor>", "New todo")
+    def editor_ready(nodes):
+        return nodes["<editor>"].get("focused") == "true" or (
+            "mInputShown=true" in shell("dumpsys", "input_method")
+        )
+    wait_for("<editor>", condition=editor_ready)
+    shell("input", "text", title.replace(" ", "%s"), command_timeout=timeout)
+    wait_for(title, "New todo")
+    tap("Add", "New todo")
+    wait_for(title, absent=("New todo",))
+elif phase == "peer-complete":
+    tap("Complete", labels[0])
+    wait_for(labels[0], "Reopen")
+elif phase == "peer-reopen":
+    tap("Reopen", labels[0])
+    wait_for(labels[0], "Complete")
+elif phase == "peer-delete":
+    tap("Delete", labels[0])
+    tap("Confirm", "Delete this todo?")
+    wait_for("Todos", absent=(labels[0], "Delete this todo?"))
 elif phase == "theme-review":
     output = Path(os.environ["EWE_THEME_CAPTURES"])
     output.mkdir(parents=True, exist_ok=True)

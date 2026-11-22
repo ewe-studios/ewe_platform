@@ -1,6 +1,6 @@
 [package]
 name = "ui_todo"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -28,6 +28,7 @@ foundation_ui_connectrpc = { path = "../../backends/foundation_ui_connectrpc", o
 foundation_connectrpc = { path = "../../backends/foundation_connectrpc", default-features = false, optional = true }
 foundation_ui_http = { workspace = true, optional = true }
 futures-lite = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 
 foundation_browser = { path = "../../backends/foundation_browser", optional = true }
 
@@ -50,7 +51,7 @@ workspace = true
 
 [features]
 default = ["server"]
-server = ["dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+server = ["dep:serde_json", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 web = ["dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
 mobile = ["dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
 browser-tests = ["server", "dep:foundation_browser"]

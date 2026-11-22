@@ -10,8 +10,18 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if !listener.local_addr()?.ip().is_loopback() {
         return Err("The single-user example requires a loopback address".into());
     }
-    let app = if std::env::args().nth(2).as_deref() == Some("--data-only") {
+    let mode = std::env::args().nth(2);
+    let app = if mode.as_deref() == Some("--data-only") {
         ui_todo::server::data_app()?
+    } else if mode.as_deref() == Some("--restore") {
+        let path = std::env::args_os()
+            .nth(3)
+            .ok_or("Pass the todo backup path")?;
+        let file = std::fs::File::open(path)?;
+        if file.metadata()?.len() > foundation_ui_wire::WireLimits::default().frame_bytes() as u64 {
+            return Err("The todo backup exceeds the view size limit".into());
+        }
+        ui_todo::server::app_with_todos(&module, serde_json::from_reader(file)?)?
     } else if let Some(history) = std::env::var_os("EWE_TODO_HISTORY") {
         use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
         let limit = history
@@ -21,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let channel = LiveChannel::new(
             1,
             BacklogConfig::default().max_frames(limit),
-            Default::default(),
+            foundation_ui_wire::writer::WriterConfig::default(),
         );
         ui_todo::server::app_with_channel(&module, channel)?
     } else {

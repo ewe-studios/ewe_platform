@@ -65,6 +65,120 @@ final class TodoTests: XCTestCase {
     } catch TodoServiceError.NotFound { }
   }
 
+  @MainActor func testBrowserPeerUpdatesRowsWithoutReplacingFilterOrDraft() async throws {
+    let env = ProcessInfo.processInfo.environment
+    guard let testAddress = env["EWE_TODO_PEER_TEST_URL"] else {
+      throw XCTSkip("This check needs the browser peer test driver")
+    }
+    continueAfterFailure = false
+    let driver = try XCTUnwrap(URL(string: testAddress))
+    let allPlatforms = env["EWE_TODO_PEER_ANDROID"] == "1"
+    let title = env["EWE_TODO_PEER_TITLE"] ?? "Browser peer todo"
+    let count = Int(env["EWE_TODO_PEER_OPEN_COUNT"] ?? "0") ?? 0
+    let label = "\(count) open \(count == 1 ? "todo" : "todos")"
+    let app = XCUIApplication()
+    app.launchEnvironment["EWE_TODO_URL"] = try XCTUnwrap(env["EWE_TODO_URL"])
+    app.launch()
+    let add = app.navigationBars["Todos"].buttons["Add"]
+    XCTAssertTrue(add.waitForExistence(timeout: 20))
+
+    func peer(_ action: String) async throws {
+      var request = URLRequest(url: driver.appending(path: action))
+      request.timeoutInterval = 120
+      let (_, response) = try await URLSession.shared.data(for: request)
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 204)
+    }
+
+    let filters = app.segmentedControls.firstMatch
+    let all = filters.coordinate(withNormalizedOffset: CGVector(dx: 1.0 / 6.0, dy: 0.5))
+    let done = filters.coordinate(withNormalizedOffset: CGVector(dx: 5.0 / 6.0, dy: 0.5))
+    let doneButton = filters.buttons["Done"]
+    XCTAssertTrue(doneButton.waitForExistence(timeout: 5))
+    done.tap()
+    XCTAssertTrue(doneButton.isSelected)
+
+    add.tap()
+    let draft = app.textFields["Todo title"]
+    XCTAssertTrue(draft.waitForExistence(timeout: 5))
+    draft.tap()
+    draft.typeText("Keep this draft")
+    try await peer("add")
+    XCTAssertEqual(draft.value as? String, "Keep this draft")
+    app.buttons["Cancel"].tap()
+
+    let row = app.staticTexts[title]
+    XCTAssertFalse(row.exists)
+    XCTAssertTrue(doneButton.isSelected)
+
+    func checkBrowserOpenRow() {
+      all.tap()
+      XCTAssertTrue(row.waitForExistence(timeout: 10))
+      XCTAssertTrue(app.buttons["Complete"].exists)
+      done.tap()
+      XCTAssertTrue(row.waitForNonExistence(timeout: 5))
+      XCTAssertTrue(doneButton.isSelected)
+    }
+
+    if allPlatforms { checkBrowserOpenRow() }
+    try await peer("toggle")
+    XCTAssertTrue(row.waitForExistence(timeout: 10))
+    XCTAssertTrue(app.buttons["Reopen"].exists)
+    XCTAssertTrue(doneButton.isSelected)
+    XCTAssertTrue(app.staticTexts[label].exists)
+
+    if allPlatforms {
+      try await peer("reopen")
+      XCTAssertTrue(row.waitForNonExistence(timeout: 10))
+      XCTAssertTrue(doneButton.isSelected)
+      checkBrowserOpenRow()
+      try await peer("toggle")
+      XCTAssertTrue(row.waitForExistence(timeout: 10))
+    }
+
+    try await peer("delete-during-disconnect")
+    XCTAssertTrue(row.waitForNonExistence(timeout: 15))
+    XCTAssertTrue(app.buttons["Reconnect"].waitForNonExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts[label].exists)
+
+    if allPlatforms {
+      all.tap()
+      XCTAssertTrue(filters.buttons["All"].isSelected)
+
+      try await peer("pause-browser")
+      add.tap()
+      XCTAssertTrue(draft.waitForExistence(timeout: 5))
+      draft.tap()
+      draft.typeText("iPhone peer todo\n")
+      let ios = app.staticTexts["iPhone peer todo"]
+      XCTAssertTrue(ios.waitForExistence(timeout: 10))
+      try await peer("check-ios-add")
+
+      app.buttons["Complete"].tap()
+      XCTAssertTrue(app.buttons["Reopen"].waitForExistence(timeout: 5))
+      try await peer("check-ios-complete")
+      app.buttons["Reopen"].tap()
+      XCTAssertTrue(app.buttons["Complete"].waitForExistence(timeout: 5))
+      try await peer("check-ios-reopen")
+      ios.swipeLeft()
+      app.buttons["Delete"].tap()
+      app.alerts.firstMatch.buttons["Confirm"].tap()
+      XCTAssertTrue(ios.waitForNonExistence(timeout: 10))
+      try await peer("check-ios-delete")
+
+      let android = app.staticTexts["Android peer todo"]
+      try await peer("android-add")
+      XCTAssertTrue(android.waitForExistence(timeout: 10))
+      XCTAssertTrue(app.buttons["Complete"].exists)
+      try await peer("android-complete")
+      XCTAssertTrue(app.buttons["Reopen"].waitForExistence(timeout: 10))
+      try await peer("android-reopen")
+      XCTAssertTrue(app.buttons["Complete"].waitForExistence(timeout: 10))
+      try await peer("android-delete")
+      XCTAssertTrue(android.waitForNonExistence(timeout: 10))
+      XCTAssertTrue(app.staticTexts[label].exists)
+    }
+  }
+
   func testAddTaskToFreshServerStore() {
     let app = XCUIApplication()
     app.launchEnvironment["EWE_TODO_URL"] =

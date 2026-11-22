@@ -7,6 +7,7 @@ import ewe.ui.EventId
 import ewe.ui.PropId
 import ewe.ui.android.CoreBinding
 import ewe.ui.android.HttpActionConnection
+import ewe.ui.android.OkHttpChannelFactory
 import ewe.ui.runtime.*
 import io.github.ewe_studios.ewe.core.NativeCore
 import io.github.ewe_studios.ewe.core.NativePlatform
@@ -87,49 +88,65 @@ class ReplayCheck : Instrumentation() {
                     results.putString("stream", "GetTodo returned 42, Buy milk, and NotFound.")
                     return@runBlocking
                 }
-                val connection = HttpActionConnection(OkHttpClient(), base.toHttpUrl())
-                val store = NodeStore(GapTimer { _, _ -> Cancel {} })
-                val native =
-                    NativeCore.remote(
-                        NativePlatform.ANDROID,
-                        listOf("add_todo", "confirm_delete"),
-                        connection,
-                    )
-                CoreBinding(native, store, this).use { core ->
-                    check(store.receive(connection.negotiate(core)))
-                    check(store.receive(connection.initial("initial")))
-                    check(store.nodes.any { it.text == "Android server todo" }) {
-                        "The second client did not receive the server app's todo"
-                    }
-                    val title = "Android replay verification"
-                    val add = EventInput(1u, "submit", title, false, 0u, byteArrayOf())
-                    check(store.receive(requireNotNull(core.trigger("server:add_todo", add))))
-                    val label = store.nodes.last { it.text == title }
-                    var row = label
-                    while (
-                        row.children.none {
-                            store.record(it)?.actions?.get(EventId.TAP) == "server:toggle_todo"
+                withContext(Dispatchers.Main) {
+                    val client = OkHttpClient()
+                    val endpoint = base.toHttpUrl()
+                    val connection = HttpActionConnection(client, endpoint)
+                    val store = NodeStore(GapTimer { _, _ -> Cancel {} })
+                    val native =
+                        NativeCore.remote(
+                            NativePlatform.ANDROID,
+                            listOf("add_todo", "confirm_delete"),
+                            connection,
+                        )
+                    LiveMountHost(store, OkHttpChannelFactory(client, endpoint)).use {
+                        CoreBinding(native, store, this).use { core ->
+                            check(store.receive(connection.negotiate(core)))
+                            check(store.receive(connection.initial("initial")))
+                            check(store.nodes.any { it.text == "Android server todo" }) {
+                                "The second client did not receive the server app's todo"
+                            }
+                            val title = "Android replay verification"
+                            val add = EventInput(1u, "submit", title, false, 0u, byteArrayOf())
+                            check(store.receive(requireNotNull(core.trigger("server:add_todo", add))))
+                            val label = withTimeout(5000) {
+                                var updated = store.nodes.lastOrNull { it.text == title }
+                                while (updated == null) {
+                                    delay(50)
+                                    updated = store.nodes.lastOrNull { it.text == title }
+                                }
+                                updated
+                            }
+                            var row = label
+                            while (
+                                row.children.none {
+                                    store.record(it)?.actions?.get(EventId.TAP) == "server:toggle_todo"
+                                }
+                            ) {
+                                row = store.record(requireNotNull(row.parent))!!
+                            }
+                            val toggle =
+                                row.children.mapNotNull(store::record).first {
+                                    it.actions[EventId.TAP] == "server:toggle_todo"
+                                }
+                            val id = toggle.props.getValue(PropId.VALUE).label
+                            val event = EventInput(toggle.id, "tap", id, false, row.id, byteArrayOf())
+                            var failure: String? = null
+                            store.onError = { code, message -> failure = "$code $message" }
+                            check(
+                                store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
+                            )
+                            check(failure == null) { "First deletion failed: $failure" }
+                            withTimeout(5000) {
+                                while (store.nodes.any { it.text == title }) delay(50)
+                            }
+                            check(
+                                store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
+                            )
+                            check(failure != null) { "Repeated delete was accepted" }
+                            results.putString("stream", "Second client received the todo. Second delete refused: $failure")
                         }
-                    ) {
-                        row = store.record(requireNotNull(row.parent))!!
                     }
-                    val toggle =
-                        row.children.mapNotNull(store::record).first {
-                            it.actions[EventId.TAP] == "server:toggle_todo"
-                        }
-                    val id = toggle.props.getValue(PropId.VALUE).label
-                    val event = EventInput(toggle.id, "tap", id, false, row.id, byteArrayOf())
-                    var failure: String? = null
-                    store.onError = { code, message -> failure = "$code $message" }
-                    check(
-                        store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
-                    )
-                    check(failure == null) { "First deletion failed: $failure" }
-                    check(
-                        store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
-                    )
-                    check(failure != null) { "Repeated delete was accepted" }
-                    results.putString("stream", "Second client received the todo. Second delete refused: $failure")
                 }
             }
             finish(Activity.RESULT_OK, results)

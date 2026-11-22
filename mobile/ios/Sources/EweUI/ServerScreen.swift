@@ -157,6 +157,9 @@
         }
         loader.onInstalled = { self.issue = nil }
         store.onError = { code, message in self.issue = code + " " + message }
+        store.onLiveTransportRecovered = { message in
+          if self.issue == "Transport " + message { self.issue = nil }
+        }
         try await loader.open()
         connection = bridge
       } catch { if !Task.isCancelled { issue = error.localizedDescription } }

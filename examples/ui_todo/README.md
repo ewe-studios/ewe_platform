@@ -186,3 +186,21 @@ node examples/ui_todo/tests/recovery-race.mjs http://127.0.0.1:57634/
 
 The fixture disconnects the three feeds and adds three todos. It holds all three recovery snapshots through revision four.
 It adds a fifth todo before sending those snapshots. Each client's count reaches five after replay.
+
+### Verify list changes from a browser peer
+
+Build the server, browser module, and iPhone package with the commands above.
+Run `node examples/ui_todo/tests/mobile-list-peer.mjs` from the repository root.
+Use the two printed addresses as `TEST_RUNNER_EWE_TODO_URL` and `TEST_RUNNER_EWE_TODO_PEER_TEST_URL` for the TodoServer test scheme.
+Select `TodoServerUITests/TodoTests/testBrowserPeerUpdatesRowsWithoutReplacingFilterOrDraft`.
+The driver starts a separate server. It adds a row, completes it, and deletes it while the iPhone stream is disconnected.
+
+The example server can start with an existing list. Pass `--restore /path/to/todos.json` after the listen address.
+The backup contains an array of items with `id`, `text`, and `done` fields.
+The server keeps those identifiers and allocates new identifiers above the largest restored value.
+
+To add the Android peer, install Todo Server on an Android 16 Automated Test Device emulator.
+Set `EWE_TODO_PEER_ADB` to the Android Debug Bridge executable before you start the driver.
+Set `EWE_TODO_PEER_ANDROID_SERIAL` if the emulator uses a serial other than `emulator-5554`.
+Set `TEST_RUNNER_EWE_TODO_PEER_ANDROID=1` for the iPhone test.
+Each client adds, completes, reopens, and deletes one todo. The other two clients check the row after each change.

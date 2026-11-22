@@ -16125,7 +16125,7 @@ dependencies = [
 
 [[package]]
 name = "ui_todo"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "async-trait",
  "buffa",
@@ -16145,6 +16145,7 @@ dependencies = [
  "foundation_wasm_ui",
  "futures-lite",
  "serde",
+ "serde_json",
  "thiserror 2.0.19",
  "uniffi",
 ]

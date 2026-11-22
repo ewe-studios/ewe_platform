@@ -172,6 +172,7 @@ pub static WEB_EVENTS: &[(EventId, &str)] = &[
 
 /// Base stylesheet for shared node classes.
 pub const CORE_CSS: &str = "\
+[primal-id][hidden]{display:none!important}
 .ewe-stack{display:flex;flex-direction:column}
 .ewe-list{display:flex;flex-direction:column}
 .ewe-scroll{overflow:auto}

@@ -43,7 +43,25 @@ fn count_screen(req: ViewRequest) -> Result<Response, Error> {
 /// # Errors
 /// Returns an error when route or asset setup fails.
 pub fn app(module: &Path) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_channel(module, services::channel(1))
+    app_with_todos(module, Vec::new())
+}
+
+/// Starts the todo server with a supplied list and its existing identifiers.
+///
+/// # Errors
+/// Returns an error for duplicate or zero identifiers, or if route setup fails.
+pub fn app_with_todos(
+    module: &Path,
+    items: Vec<crate::Todo>,
+) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    let mut ids = std::collections::HashSet::with_capacity(items.len());
+    if items
+        .iter()
+        .any(|item| item.id == 0 || !ids.insert(item.id))
+    {
+        return Err("Invalid restored todo identifiers".into());
+    }
+    app_with_store(module, services::channel(1), TodoStore::with_items(items))
 }
 
 /// Builds the application with a host-supplied stream for replay tests.
@@ -54,9 +72,17 @@ pub fn app_with_channel(
     module: &Path,
     channel: LiveChannel,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    app_with_store(module, channel, TodoStore::default())
+}
+
+fn app_with_store(
+    module: &Path,
+    channel: LiveChannel,
+    store: TodoStore,
+) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut app = HttpApp::new_serve();
     let ctx = app.context().clone();
-    let channels = services::install(&ctx, channel)?;
+    let channels = services::install(&ctx, channel, store)?;
     register(&mut app.router, &ctx, channels)?;
     assets::register(&mut app.router, module)?;
     Ok(app)
@@ -108,11 +134,11 @@ fn register(
 /// Returns the route registration error.
 pub fn data_app() -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut app = HttpApp::new_serve();
-    app.context().store(TodoStore::with_item(crate::Todo {
+    app.context().store(TodoStore::with_items(vec![crate::Todo {
         id: 42,
         text: "Buy milk".into(),
         done: false,
-    }));
+    }]));
     let mut rpc = foundation_connectrpc::Router::new();
     crate::todo_rpc::register_todos(&mut rpc, Arc::new(services::Todos));
     app.router.at(

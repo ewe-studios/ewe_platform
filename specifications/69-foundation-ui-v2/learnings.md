@@ -815,3 +815,23 @@ A count update proves delivery of one value. It cannot verify the contents of a 
 Test the row title and completion state on another client after each change.
 The current snapshot contains visible items. It omits the last allocated identifier and retained delivery history.
 A server restart loses that state.
+
+### Todo list synchronization
+
+The todo mutation reply and live stream use different delivery paths.
+A late mutation reply can replace newer content if both paths write to the list.
+The stream now owns the list. The action reply owns the dialog for the client that made the request.
+
+Each filter has a stable section and list target. The local action changes section visibility.
+The server replaces list content beneath those sections. The server does not need each client's filter.
+
+An active server can export the list from the signed initial frame. The restore option retains the identifiers of the saved rows.
+A server restart starts a new replay history. Compare only the saved rows when other users can edit the live store.
+
+The shared browser stylesheet must hide a node even when its regular style uses a flex layout.
+The host clears a transient iPhone transport issue after its active delivery accepts a resume request.
+An older delivery can return a late resume error. The new delivery keeps its own result.
+
+The Android Google APIs image reports input timeouts when the host uses software graphics during the three-client check.
+The Android thread trace enters text layout. The test waits for the full title before it submits the form.
+Issue #698 tracks this test environment limit. The check uses the Android Automated Test Device image.

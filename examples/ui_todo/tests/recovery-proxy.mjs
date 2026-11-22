@@ -6,22 +6,34 @@ import {spawn} from "node:child_process";
 import {createInterface} from "node:readline";
 
 const backend = spawn(process.env.EWE_TODO_BIN ?? "target/uat/ui_todo", ["127.0.0.1:0"], {
-  env: {...process.env, EWE_TODO_HISTORY:"1"}, stdio:["ignore","pipe","inherit"],
+  env: {...process.env, EWE_TODO_HISTORY:process.env.EWE_TODO_HISTORY ?? "1"}, stdio:["ignore","pipe","inherit"],
 });
 const [line] = await once(createInterface({input:backend.stdout}),"line");
 const upstream = new URL(line.match(/http:\/\/\S+/)[0]);
-const feeds = new Set(), waiting = new Set(), snapshots = new Set();
-let blocked = false, holdSnapshots = false, loads = 0, resumes = 0;
+const feeds = new Map(), waiting = new Map(), snapshots = new Set();
+const blocked = new Set();
+let holdSnapshots = false, loads = 0, resumes = 0;
 function release(queue) { for (const run of queue) run(); queue.clear(); }
 const proxy = http.createServer((req,res) => {
-  const path = new URL(req.url,"http://localhost").pathname;
+  const url = new URL(req.url,"http://localhost");
+  const path = url.pathname;
+  const agent = req.headers["user-agent"] ?? "";
+  const client = agent.includes("Chrome/") ? "web" : agent.includes("CFNetwork/") ? "ios"
+    : agent.includes("okhttp/") ? "android" : "other";
+  const paused = peer => blocked.has("*") || blocked.has(peer);
   if (path.startsWith("/test/")) {
+    const target = url.searchParams.get("client") ?? "*";
     switch (path) {
       case "/test/pause":
-        blocked = true;
-        for (const live of feeds) live.destroy();
+        blocked.add(target);
+        for (const [live, peer] of feeds) if (paused(peer)) live.destroy();
         break;
-      case "/test/resume": blocked = false; release(waiting); break;
+      case "/test/resume":
+        blocked.delete(target);
+        for (const [run, peer] of waiting) {
+          if (!paused(peer)) { waiting.delete(run); run(); }
+        }
+        break;
       case "/test/hold": holdSnapshots = true; break;
       case "/test/install": holdSnapshots = false; release(snapshots); break;
       case "/test/status": break;
@@ -43,7 +55,7 @@ const proxy = http.createServer((req,res) => {
       if (path === "/initial") loads++;
       if (path === "/live" && req.method === "POST") resumes++;
       if (path === "/live" && req.method === "GET") {
-        feeds.add(res);
+        feeds.set(res, client);
         res.on("close",() => feeds.delete(res));
       }
       function send() {
@@ -59,8 +71,8 @@ const proxy = http.createServer((req,res) => {
     out.on("error",error => { if (!res.destroyed) res.destroy(error); });
     req.pipe(out);
   }
-  if (path === "/live" && req.method === "GET" && blocked) {
-    waiting.add(forward);
+  if (path === "/live" && req.method === "GET" && paused(client)) {
+    waiting.set(forward, client);
     res.on("close",() => waiting.delete(forward));
   } else forward();
 });

@@ -39,10 +39,12 @@ fn server_and_host_actions_work() {
         let other = driver.new_page().unwrap();
         other.goto(&url).unwrap();
         let shared_count = other.locator("#open-count");
+        let peer_toggle =
+            other.locator(r#"button[primal\:onclick="server:toggle_todo"]:not([hidden] *)"#);
         shared_count.expect().to_have_text("0 open todos").unwrap();
         let page = driver.new_page().unwrap();
         page.goto(&url).unwrap();
-        let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]"#);
+        let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]:not([hidden] *)"#);
         let add = page.locator(&button("host:open_add_dialog"));
         add.expect()
             .to_be_visible()
@@ -92,10 +94,31 @@ fn server_and_host_actions_work() {
             Some("rgb(102, 51, 153)|17px|true")
         );
         shared_count.expect().to_have_text("1 open todo").unwrap();
+        peer_toggle.expect().to_have_text("Complete").unwrap();
+        other.locator("button[value=done]").click().unwrap();
+        peer_toggle.expect().to_have_count(0).unwrap();
+        let peer_add = other.locator(&button("host:open_add_dialog"));
+        peer_add.click().unwrap();
+        let peer_sheet = other.locator("dialog:modal input");
+        peer_sheet.fill("Keep this draft").unwrap();
         submit_with_keyboard(&page, &add, "second todo");
         shared_count.expect().to_have_text("2 open todos").unwrap();
-        let second_delete =
-            page.locator(r#"button[primal\:onclick="host:open_delete_dialog"][value="2"]"#);
+        peer_sheet.expect().to_be_visible().unwrap();
+        assert_eq!(
+            other
+                .eval("document.querySelector('dialog:modal input').value")
+                .unwrap()
+                .as_str(),
+            Some("Keep this draft")
+        );
+        other
+            .locator("dialog:modal .ewe-cancel-button")
+            .click()
+            .unwrap();
+        peer_toggle.expect().to_have_count(0).unwrap();
+        let second_delete = page.locator(
+            r#"button[primal\:onclick="host:open_delete_dialog"][value="2"]:not([hidden] *)"#,
+        );
         second_delete.expect().to_be_visible().unwrap();
         second_delete.click().unwrap();
         let confirm_second = page.locator(&button("server:confirm_delete"));
@@ -153,22 +176,26 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_text("0 open todos")
             .unwrap();
-        page.locator(&button("host:open_delete_dialog"))
+        peer_toggle.expect().to_have_text("Reopen").unwrap();
+        other
+            .locator(&button("host:open_delete_dialog"))
             .click()
             .unwrap();
-        let confirm = page.locator(&button("server:confirm_delete"));
+        let confirm = other.locator(&button("server:confirm_delete"));
         confirm.expect().to_be_visible().unwrap();
-        capture_page(&page, "confirmation");
+        capture_page(&other, "confirmation");
         confirm.expect().to_be_visible().unwrap();
-        page.eval(r"window.staleTodoButton = Array.from(document.querySelectorAll('button')).find(el => el.getAttribute('primal:onclick') === 'server:confirm_delete').cloneNode(true); true").unwrap();
+        other.eval(r"window.staleTodoButton = Array.from(document.querySelectorAll('button')).find(el => el.getAttribute('primal:onclick') === 'server:confirm_delete').cloneNode(true); true").unwrap();
         confirm.click().unwrap();
         toggle.expect().to_have_count(0).unwrap();
-        page.eval(r"{
+        peer_toggle.expect().to_have_count(0).unwrap();
+        other.eval(r"{
             document.body.appendChild(window.staleTodoButton);
             window.FoundationWasmUiRuntime.Patcher.runtime.dispatcher.scanAndWire(window.staleTodoButton);
             window.staleTodoButton.click();
         }").unwrap();
-        page.locator("#notice")
+        other
+            .locator("#notice")
             .expect()
             .to_have_text("ActionFailed")
             .unwrap();

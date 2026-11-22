@@ -54,6 +54,8 @@ enum SubscriptionFrames {
   private weak var store: NodeStore?
   private var pending: UInt64?
   private var session: UInt64?
+  private var sessionGeneration: UInt64 = 0
+  private var lastTransportError: String?
   private var socket: Bool { spec.transport.lowercased() == "websocket" }
 
   init(manager: ConnectionManager, spec: LiveSpec, endpoint: URL, mount: UInt32, store: NodeStore) throws {
@@ -78,8 +80,9 @@ enum SubscriptionFrames {
       }, onContext: { [weak self] data in self?.context(data) }, onError: { [weak self] cause in
         guard let self else { return }
         session = nil
+        sessionGeneration &+= 1
         if socket || spec.shared != true { pending = self.store?.cursor(stream: spec.channelID) }
-        self.store?.error("Transport", cause)
+        reportTransportError(cause)
       }, receive: { [weak self] data in
         guard let self else { return }
         if SubscriptionFrames.caps(data) != nil { context(data) }
@@ -91,17 +94,43 @@ enum SubscriptionFrames {
     guard let caps = SubscriptionFrames.caps(bytes), caps.subscriptionResume, !socket || caps.requestTag == id else { return }
     session = caps.streamId
     if let pending { self.pending = nil; resume(pending) }
+    else { transportRecovered() }
+  }
+
+  private func reportTransportError(_ message: String) {
+    lastTransportError = message
+    store?.error("Transport", message)
+  }
+
+  private func transportRecovered() {
+    guard let lastTransportError else { return }
+    self.lastTransportError = nil
+    store?.onLiveTransportRecovered?(lastTransportError)
   }
 
   func resume(_ cursor: UInt64) {
     guard let session else { pending = cursor; return }
     let bytes = SubscriptionFrames.resume(session: session, id: id, stream: spec.channelID, after: cursor)
+    let generation = sessionGeneration
     Task { @MainActor in
-      do { try await handle?.send(bytes) }
-      catch ChannelError.httpStatus(410) { store?.onSnapshot?(mount,spec.channelID) }
-      catch { store?.error("Transport", String(describing: error)) }
+      guard generation == sessionGeneration, let handle else { return }
+      do {
+        try await handle.send(bytes)
+        if generation == sessionGeneration { transportRecovered() }
+      } catch {
+        guard generation == sessionGeneration else { return }
+        if case ChannelError.httpStatus(410) = error {
+          store?.onSnapshot?(mount, spec.channelID)
+        } else {
+          reportTransportError(String(describing: error))
+        }
+      }
     }
   }
 
-  func close() { handle?.close(); handle = nil }
+  func close() {
+    sessionGeneration &+= 1
+    handle?.close()
+    handle = nil
+  }
 }

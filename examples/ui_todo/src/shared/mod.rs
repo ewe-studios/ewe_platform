@@ -16,6 +16,16 @@ use std::sync::{Arc, Mutex};
 /// Stable roots created by the page shell.
 pub const PAGE_ROOT: u32 = 40;
 pub const DIALOG_ROOT: u32 = 41;
+const ALL_LIST: u32 = 42;
+const OPEN_LIST: u32 = 43;
+const DONE_LIST: u32 = 44;
+const ALL_SECTION: u32 = 45;
+const OPEN_SECTION: u32 = 46;
+const DONE_SECTION: u32 = 47;
+const ALL_FILTER: u32 = 48;
+const OPEN_FILTER: u32 = 49;
+const DONE_FILTER: u32 = 50;
+const NOTIFICATION_ROOT: u32 = 51;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Filter {
@@ -61,12 +71,12 @@ impl StoreState {
 struct OnDevice;
 
 impl TodoStore {
-    /// Builds a store with one known task for the standalone RPC example.
+    /// Builds a store with its existing task identifiers.
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    pub(crate) fn with_item(item: Todo) -> Self {
+    pub(crate) fn with_items(items: Vec<Todo>) -> Self {
         Self(Mutex::new(StoreState {
-            last_id: item.id,
-            items: vec![item],
+            last_id: items.iter().map(|item| item.id).max().unwrap_or(0),
+            items,
             ..Default::default()
         }))
     }
@@ -143,29 +153,107 @@ fn page(ctx: &Context, state: &TodoApp) -> ActionResult {
     Ok(())
 }
 
-pub(crate) fn page_tree(state: &TodoApp, local: bool) -> (Html, &TodoApp) {
-    let rows = state
-        .items
+fn list(items: &[Todo], filter: &Filter, local: bool) -> Html {
+    let rows = items
         .iter()
-        .filter(|item| match state.filter {
+        .filter(|item| match filter {
             Filter::Done => item.done,
             Filter::Open => !item.done,
             Filter::All => true,
         })
         .map(|item| row(item, local));
-    let count = state.items.iter().filter(|item| !item.done).count();
-    let count_view = open_count(count);
+    html! { <InsetList>{rows}</InsetList> }
+}
+
+pub(crate) fn page_tree(state: &TodoApp, local: bool) -> (Html, &TodoApp) {
+    use foundation_ui_runtime::view::anchor;
+
+    let count_view = open_count(state.items.iter().filter(|item| !item.done).count());
+    let all = html! { <Button value="all" checked={state.filter == Filter::All} on:tap={filter_todos}>All</Button> };
+    let open = html! { <Button value="open" checked={state.filter == Filter::Open} on:tap={filter_todos}>Open</Button> };
+    let done = html! { <Button value="done" checked={state.filter == Filter::Done} on:tap={filter_todos}>Done</Button> };
+    let (all, open, done, rows) = if local {
+        (all, open, done, list(&state.items, &state.filter, local))
+    } else {
+        let all_rows = anchor(ALL_LIST, list(&state.items, &Filter::All, false));
+        let open_rows = anchor(OPEN_LIST, list(&state.items, &Filter::Open, false));
+        let done_rows = anchor(DONE_LIST, list(&state.items, &Filter::Done, false));
+        let all_section = anchor(
+            ALL_SECTION,
+            html! {
+                <Stack hidden={state.filter != Filter::All}>{all_rows}</Stack>
+            },
+        );
+        let open_section = anchor(
+            OPEN_SECTION,
+            html! {
+                <Stack hidden={state.filter != Filter::Open}>{open_rows}</Stack>
+            },
+        );
+        let done_section = anchor(
+            DONE_SECTION,
+            html! {
+                <Stack hidden={state.filter != Filter::Done}>{done_rows}</Stack>
+            },
+        );
+        (
+            anchor(ALL_FILTER, all),
+            anchor(OPEN_FILTER, open),
+            anchor(DONE_FILTER, done),
+            html! { <Stack>{all_section}{open_section}{done_section}</Stack> },
+        )
+    };
+    let notice = (!local).then(|| anchor(NOTIFICATION_ROOT, html! { <Text/> }));
     html! { state = state, <Stack>
         <NavigationTitle>Todos</NavigationTitle>
-        <ToolbarButton primal::state on:tap={open_add_dialog}>Add</ToolbarButton>
-        <SegmentedControl a11y_label="Filter todos">
-            <Button value="all" checked={state.filter == Filter::All} primal::state on:tap={filter_todos}>All</Button>
-            <Button value="open" checked={state.filter == Filter::Open} primal::state on:tap={filter_todos}>Open</Button>
-            <Button value="done" checked={state.filter == Filter::Done} primal::state on:tap={filter_todos}>Done</Button>
-        </SegmentedControl>
-        <InsetList>{rows}</InsetList>
+        <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
+        <SegmentedControl a11y_label="Filter todos">{all}{open}{done}</SegmentedControl>
+        {rows}
         {count_view}
+        {notice}
     </Stack> }
+}
+
+#[cfg(all(feature = "server", not(target_family = "wasm")))]
+pub(crate) fn render_live_lists(ctx: &Context, state: &TodoApp) -> ActionResult {
+    for (root, filter) in [
+        (ALL_LIST, Filter::All),
+        (OPEN_LIST, Filter::Open),
+        (DONE_LIST, Filter::Done),
+    ] {
+        let shell = Context::for_action(ctx.inner().clone(), ctx.surface(), Some(root));
+        render(
+            &shell,
+            ctx.receiver(),
+            list(&state.items, &filter, false),
+            None::<&()>,
+        )?;
+    }
+    Ok(())
+}
+
+fn set_filter(ctx: &Context, filter: &Filter) {
+    use foundation_ui_wire::{BoolValueT, OperationT, PropId, PropValueT, SetPropT, UiOperationT};
+    for (current, section, button) in [
+        (Filter::All, ALL_SECTION, ALL_FILTER),
+        (Filter::Open, OPEN_SECTION, OPEN_FILTER),
+        (Filter::Done, DONE_SECTION, DONE_FILTER),
+    ] {
+        for (id, prop, value) in [
+            (section, PropId::HIDDEN, current != *filter),
+            (button, PropId::CHECKED, current == *filter),
+        ] {
+            let mut boolean = BoolValueT::default();
+            boolean.v = value;
+            let mut property = SetPropT::default();
+            property.node_id = id;
+            property.prop = prop;
+            property.value = PropValueT::Bool(Box::new(boolean));
+            let mut operation = OperationT::default();
+            operation.ui = UiOperationT::SetProp(Box::new(property));
+            ctx.receiver().render_op(operation);
+        }
+    }
 }
 
 pub(crate) fn open_count(count: usize) -> Html {
@@ -256,10 +344,14 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
 }
 
 #[action(host)]
-async fn open_add_dialog(ctx: &Context, event: Interaction<TodoApp>) -> ActionResult {
-    let mut state = event.state;
-    state.add_dialog = true;
-    dialog(ctx, &state)
+async fn open_add_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
+    dialog(
+        ctx,
+        &TodoApp {
+            add_dialog: true,
+            ..TodoApp::default()
+        },
+    )
 }
 #[action(host)]
 async fn open_delete_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult {
@@ -280,8 +372,7 @@ async fn close_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
     dialog(ctx, &TodoApp::default())
 }
 #[action(host)]
-async fn filter_todos(ctx: &Context, event: Interaction<TodoApp>) -> ActionResult {
-    let mut state = event.state;
+async fn filter_todos(ctx: &Context, event: Interaction<()>) -> ActionResult {
     let filter = match event.input_value.as_str() {
         "all" => Filter::All,
         "open" => Filter::Open,
@@ -297,8 +388,8 @@ async fn filter_todos(ctx: &Context, event: Interaction<TodoApp>) -> ActionResul
         guard.filter = filter;
         return page(ctx, &guard.snapshot());
     }
-    state.filter = filter;
-    page(ctx, &state)
+    set_filter(ctx, &filter);
+    Ok(())
 }
 
 fn todo_store(ctx: &Context) -> Result<Arc<TodoStore>, ErrorTrace<ActionError>> {
@@ -318,17 +409,17 @@ fn mutate(
     let mut next = guard.clone();
     change(&mut next.last_id, &mut next.items)?;
     let state = next.snapshot();
-    page(ctx, &state)?;
-    dialog(ctx, &state)?;
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
     if let Some(channels) = ctx.get::<crate::server::TodoFeed>() {
+        dialog(ctx, &state)?;
         channels
-            .publish(
-                ctx.inner(),
-                state.items.iter().filter(|todo| !todo.done).count(),
-            )
+            .publish(ctx.inner(), &state)
             .map_err(|failure| error(&failure.to_string()))?;
+        *guard = next;
+        return Ok(());
     }
+    page(ctx, &state)?;
+    dialog(ctx, &state)?;
     *guard = next;
     Ok(())
 }
@@ -473,6 +564,13 @@ pub fn host_registry() -> Result<ActionRegistry, RegistrationError> {
 /// Mobile hosts render the same notification through a shared action.
 #[action(host, mobile)]
 async fn notify(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    let out = ctx.receiver();
-    foundation_ui_runtime::html_add! {PAGE_ROOT,ctx,out,<Text>Todo added</Text>}
+    let destination =
+        Context::for_action(ctx.inner().clone(), ctx.surface(), Some(NOTIFICATION_ROOT));
+    render(
+        &destination,
+        ctx.receiver(),
+        html! { <Text>Todo added</Text> },
+        None::<&()>,
+    )?;
+    Ok(())
 }

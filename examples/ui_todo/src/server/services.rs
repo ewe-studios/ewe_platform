@@ -1,6 +1,6 @@
-//! Configure the host and publish counts after a successful change.
+//! Configure the host and publish the list and count after a successful change.
 use super::Error;
-use crate::{open_count_label, TodoStore, PAGE_ROOT};
+use crate::{open_count_label, render_live_lists, TodoApp, TodoStore, PAGE_ROOT};
 use foundation_context::Ctx;
 use foundation_ui_http::ActionRequestPolicy;
 use foundation_ui_runtime::{
@@ -16,8 +16,10 @@ use std::sync::Arc;
 pub(crate) struct TodoFeed(pub(super) LiveChannel);
 
 impl TodoFeed {
-    pub(crate) fn publish(&self, ctx: &Ctx, count: usize) -> Result<(), Error> {
+    pub(crate) fn publish(&self, ctx: &Ctx, state: &TodoApp) -> Result<(), Error> {
         let view = Context::for_render(ctx.clone());
+        render_live_lists(&view, state)?;
+        let count = state.items.iter().filter(|item| !item.done).count();
         html_swap! {"#open-count", &view, view.receiver(), <ListFooter id="open-count">{open_count_label(count)}</ListFooter>}?;
         self.0
             .sender()
@@ -39,13 +41,13 @@ impl ActionRequestPolicy for BusinessActions {
     }
 }
 
-pub(super) fn install(ctx: &Ctx, web: LiveChannel) -> Result<TodoFeed, Error> {
+pub(super) fn install(ctx: &Ctx, web: LiveChannel, store: TodoStore) -> Result<TodoFeed, Error> {
     if web.stream_id() != 1 {
         return Err("The todo page listens to stream 1".into());
     }
     crate::install_view_services(ctx, 100, (1 << 31) - 1)?;
     ctx.store(RenderTarget(PAGE_ROOT));
-    ctx.store(TodoStore::default());
+    ctx.store(store);
     ctx.store(Arc::new(BusinessActions) as Arc<dyn ActionRequestPolicy>);
     let channels = TodoFeed(web);
     let feed = channels.0.clone();

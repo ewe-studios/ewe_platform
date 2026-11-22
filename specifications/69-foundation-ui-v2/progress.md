@@ -858,3 +858,18 @@ Issue #692 tracks a separate Android dialog test failure. Physical phone coverag
 The shared todo server publishes the open count. Connected clients also need the changed rows.
 The sync repair owner handles the framework changes and the browser-to-phone test.
 Port 8080 keeps the current session and its data during this work.
+
+### Todo list synchronization
+
+- Issue #693 tracks missing list changes on clients that subscribe to the todo stream.
+- The server puts the list projections and open count in one ordered frame.
+- The receiving view keeps its filter, dialog, and live mount during list changes.
+- Browser and mobile checks exercise mutations from a second client and replay after a disconnect.
+- The worktree server restarted on port 8080 with all four existing todo identifiers, titles, and completion values.
+- Chrome and the iPhone simulator verified live row creation and completion on port 8080. The temporary check row was removed.
+- The isolated iPhone test verifies draft and filter preservation plus replayed deletion without pressing Reconnect.
+- The two-browser check, 95 wire tests, todo action test, and streamed replay checks pass.
+- Chrome and the iPhone each added, completed, reopened, and deleted a todo. Both peer platforms received the changes.
+- Chrome, iPhone, and Android each recovered by replay. The test recorded three initial snapshots and six resume requests.
+- Android-origin checks remain open. The Android emulator stalled during text entry on the Google APIs image.
+- The Android test image run stopped before the Android-origin sequence completed. Issues #693 and #698 remain open.
