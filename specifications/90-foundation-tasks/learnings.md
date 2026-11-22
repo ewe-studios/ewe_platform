@@ -99,3 +99,6 @@ The platform build also checks the packaged release record against the canonical
 
 A browser response can fail after a successful open. Each streamed resource chunk therefore carries its own result.
 Track each source directory as well as its files. Cargo can then detect new directory entries.
+
+Browser stream readers stay on their JavaScript thread.
+Native readers need movable streams so application workers can await the same resource operation.

@@ -1,7 +1,10 @@
 //! Open one validated resource through the reader installed by the host.
 use crate::ResourceName;
 use foundation_context::Ctx;
-use futures_util::{future::LocalBoxFuture, stream::LocalBoxStream};
+#[cfg(not(target_family = "wasm"))]
+use futures_util::{future::BoxFuture, stream::BoxStream};
+#[cfg(target_family = "wasm")]
+use futures_util::{future::LocalBoxFuture as BoxFuture, stream::LocalBoxStream as BoxStream};
 use std::{num::NonZeroUsize, sync::Arc};
 
 /// Failures before or during a streamed resource read.
@@ -32,14 +35,14 @@ impl ResourceError {
 }
 
 /// A stream that reads bytes on demand and can report a later read failure.
-pub type Resource = LocalBoxStream<'static, Result<Vec<u8>, ResourceError>>;
+pub type Resource = BoxStream<'static, Result<Vec<u8>, ResourceError>>;
+
+/// A pending resource open. Native hosts can move this future between threads.
+pub type OpenFuture<'a> = BoxFuture<'a, Result<Resource, ResourceError>>;
 
 /// A host implementation that opens resources by logical name.
 pub trait ResourceReader: Send + Sync {
-    fn open<'a>(
-        &'a self,
-        name: ResourceName,
-    ) -> LocalBoxFuture<'a, Result<Resource, ResourceError>>;
+    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a>;
 }
 
 /// Application access to the reader that the host installs.
@@ -113,10 +116,7 @@ impl DirectoryReader {
 }
 #[cfg(not(target_family = "wasm"))]
 impl ResourceReader for DirectoryReader {
-    fn open<'a>(
-        &'a self,
-        name: ResourceName,
-    ) -> LocalBoxFuture<'a, Result<Resource, ResourceError>> {
+    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a> {
         use std::io::Read;
         let root = self.root.clone();
         let cap = self.config.chunk_bytes();

@@ -150,3 +150,6 @@ It stages a complete target-specific set and protects other destination files.
 Concurrent staging, name conflicts, a failed replacement, and stale file removal pass the native tests.
 The application context exposes resources.open(name). The browser reader checks the response before streaming its body.
 The WebAssembly browser target compiles. Mobile packaging and application integration continue.
+
+Feature 3 native resource streams can move between worker threads.
+The macOS resource suite passes four staging and runtime tests with the UAT profile.

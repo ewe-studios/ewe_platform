@@ -1,9 +1,10 @@
 #![cfg(all(feature = "runtime", not(target_arch = "wasm32")))]
 use foundation_context::Ctx;
 use foundation_resources::{
-    DirectoryReader, ReadConfig, Resource, ResourceError, ResourceName, ResourceReader, Resources,
+    DirectoryReader, OpenFuture, ReadConfig, Resource, ResourceError, ResourceName, ResourceReader,
+    Resources,
 };
-use futures_util::{future::LocalBoxFuture, StreamExt};
+use futures_util::StreamExt;
 use std::{fs, num::NonZeroUsize, sync::Arc};
 
 #[test]
@@ -42,13 +43,10 @@ fn host_context_streams_the_named_file_in_bounded_chunks() {
 
 struct Interrupted;
 impl ResourceReader for Interrupted {
-    fn open<'a>(
-        &'a self,
-        name: ResourceName,
-    ) -> LocalBoxFuture<'a, Result<Resource, ResourceError>> {
+    fn open<'a>(&'a self, name: ResourceName) -> OpenFuture<'a> {
         Box::pin(async move {
             Ok(Box::pin(futures_util::stream::iter([
-                Ok(vec![1]),
+                Ok(vec![1_u8]),
                 Err(ResourceError::Read {
                     name: name.as_str().into(),
                     reason: "interrupted".into(),
