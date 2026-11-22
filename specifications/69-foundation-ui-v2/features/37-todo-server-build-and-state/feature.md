@@ -90,11 +90,20 @@ The submitting host renders pending work before waiting for the server.
 ## Browser startup and storage
 
 The browser runtime provides the public loader, application builder, and boot operation.
-The Rust browser adapter belongs in `foundation_wasm_ui`. Browser key-value providers belong in `foundation_db`.
-Use the existing memory provider where supported. Supply browser adapters for localStorage and IndexedDB with the same typed storage operations.
-The host chooses the provider and namespace. Propagate denied access, quota errors, and failed transactions to the caller.
-Support read, write, remove, and prefix listing. Verify persistent entries survive reload and memory entries expire with the host.
-Use platform storage transactions where concurrent updates require them. Test independent writes from two tabs.
+The existing Cloudflare storage providers require Worker services. Browser applications need providers for storage on the user's device.
+Implement optional IndexedDB and `localStorage` providers in `foundation_db` through its existing `KeyValueStore` trait.
+Keep browser bindings, serialization, and typed storage errors in those providers.
+Verify a standalone browser consumer can use either provider without importing `foundation_wasm_ui` or supplying Cloudflare bindings.
+During boot, `foundation_wasm_ui` installs the selected provider and namespace in the host context.
+Todo uses IndexedDB for durable pending changes. Each operation has its own key, scoped to the account and server.
+Use the memory provider for temporary sessions and tests. Offer `localStorage` for simple settings.
+Todo actions read and write typed records through the installed service. Remove Todo-specific JavaScript storage callbacks.
+
+Test both browser providers through `get`, `set`, `delete`, and prefix-based `list_keys`.
+Reload the page and verify stored records. Check that a new memory provider starts empty.
+Open two tabs in the same namespace. Write distinct pending changes concurrently and verify both survive reload.
+Confirm one change in the first tab. Verify the other change remains pending in the second tab.
+Check namespace isolation and propagate denied access, quota errors, and failed IndexedDB transactions to the caller.
 
 The proposed application startup shape is:
 

@@ -1176,3 +1176,5 @@ Feature 27 requires one deployed JavaScript entry and one framework resource han
 Feature 37 consolidates the Todo redesign. The production startup branches still exist. Implementation and acceptance checks remain open.
 
 Feature 37 now assigns browser startup, storage adapters, and transport wiring to their framework owners. Implementation remains open.
+
+Feature 37 selects IndexedDB for durable browser Todo submissions and assigns both browser storage providers to `foundation_db`. Implementation remains pending.
