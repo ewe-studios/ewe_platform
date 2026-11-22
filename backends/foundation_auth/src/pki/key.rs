@@ -78,7 +78,7 @@ impl CaKey {
                 let mut seed = [0_u8; 32];
                 ctx.rng()
                     .lock()
-                    .unwrap_or_else(PoisonError::into_inner)
+                    .unwrap_or_else(|e| e.into_inner())
                     .fill_bytes(&mut seed);
                 Self::ed25519_from_seed(&seed)
             }

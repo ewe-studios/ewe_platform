@@ -22,7 +22,7 @@ impl TrustIndex {
     pub fn get(&self, fingerprint: &str) -> Option<TrustedClient> {
         self.0
             .read()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(|e| e.into_inner())
             .get(fingerprint)
             .cloned()
     }
@@ -31,14 +31,14 @@ impl TrustIndex {
     pub fn insert(&self, client: TrustedClient) {
         self.0
             .write()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(|e| e.into_inner())
             .insert(client.fingerprint_sha256.clone(), client);
     }
 
     /// The number of clients in the index.
     #[must_use]
     pub fn len(&self) -> usize {
-        self.0.read().unwrap_or_else(PoisonError::into_inner).len()
+        self.0.read().unwrap_or_else(|e| e.into_inner()).len()
     }
 
     /// Whether the index holds no client.
@@ -51,7 +51,7 @@ impl TrustIndex {
         if let Some(client) = self
             .0
             .write()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(|e| e.into_inner())
             .get_mut(fingerprint)
         {
             client.last_seen_at = Some(at);
@@ -62,7 +62,7 @@ impl TrustIndex {
         if let Some(client) = self
             .0
             .write()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(|e| e.into_inner())
             .get_mut(fingerprint)
         {
             client.revoked_at = Some(at);
@@ -70,7 +70,7 @@ impl TrustIndex {
     }
 
     fn replace(&self, clients: HashMap<String, TrustedClient>) {
-        *self.0.write().unwrap_or_else(PoisonError::into_inner) = clients;
+        *self.0.write().unwrap_or_else(|e| e.into_inner()) = clients;
     }
 }
 
@@ -153,10 +153,7 @@ impl TrustedClients {
         }
         drop(stream);
         self.index.replace(clients);
-        *self
-            .last_refresh
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner) = Some(self.clock.now());
+        *self.last_refresh.lock().unwrap_or_else(|e| e.into_inner()) = Some(self.clock.now());
         Ok(())
     }
 
@@ -181,7 +178,7 @@ impl TrustedClients {
             .index
             .0
             .read()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(|e| e.into_inner())
             .values()
             .cloned()
             .collect();
@@ -335,10 +332,7 @@ impl TrustedClients {
     }
 
     fn is_stale(&self, age: foundation_compact::Duration) -> bool {
-        let last = *self
-            .last_refresh
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner);
+        let last = *self.last_refresh.lock().unwrap_or_else(|e| e.into_inner());
         last.is_none_or(|last| last.elapsed() >= age)
     }
 }

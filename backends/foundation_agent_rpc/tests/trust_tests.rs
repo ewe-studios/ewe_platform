@@ -46,7 +46,7 @@ async fn clients_persist_across_reopen() {
     {
         let store = open(&path).await;
         store.init().await.expect("init");
-        assert!(list(store.as_ref()).await.is_empty());
+        assert_eq!(list(store.as_ref()).await, Vec::new());
         store
             .record_enrollment(&client("aa", "laptop", 100), "PEM-A")
             .await
@@ -109,7 +109,7 @@ async fn a_fingerprint_is_recorded_once() {
     );
 }
 
-fn use_of<'a>(secret_id: &'a str, valid_until: u64, max_uses: u32, now: u64) -> SecretUse<'a> {
+fn use_of(secret_id: &str, valid_until: u64, max_uses: u32, now: u64) -> SecretUse<'_> {
     SecretUse {
         secret_id,
         valid_until,

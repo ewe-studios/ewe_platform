@@ -68,7 +68,7 @@ impl TrustStore for MemoryTrustStore {
             let mut clients: Vec<TrustedClient> = self
                 .clients
                 .read()
-                .unwrap_or_else(PoisonError::into_inner)
+                .unwrap_or_else(|e| e.into_inner())
                 .values()
                 .map(|stored| stored.client.clone())
                 .collect();
@@ -85,7 +85,7 @@ impl TrustStore for MemoryTrustStore {
             Ok(self
                 .clients
                 .read()
-                .unwrap_or_else(PoisonError::into_inner)
+                .unwrap_or_else(|e| e.into_inner())
                 .get(fingerprint)
                 .map(|stored| stored.client.clone()))
         })
@@ -97,7 +97,7 @@ impl TrustStore for MemoryTrustStore {
         cert_pem: &'a str,
     ) -> TrustFuture<'a, ()> {
         Box::pin(async move {
-            let mut clients = self.clients.write().unwrap_or_else(PoisonError::into_inner);
+            let mut clients = self.clients.write().unwrap_or_else(|e| e.into_inner());
             if clients.contains_key(&client.fingerprint_sha256) {
                 return Err(super::client::TrustError::Duplicate(
                     client.fingerprint_sha256.clone(),
@@ -116,7 +116,7 @@ impl TrustStore for MemoryTrustStore {
 
     fn revoke_client<'a>(&'a self, fingerprint: &'a str, at: u64) -> TrustFuture<'a, bool> {
         Box::pin(async move {
-            let mut clients = self.clients.write().unwrap_or_else(PoisonError::into_inner);
+            let mut clients = self.clients.write().unwrap_or_else(|e| e.into_inner());
             match clients.get_mut(fingerprint) {
                 Some(stored) if stored.client.revoked_at.is_none() => {
                     stored.client.revoked_at = Some(at);
@@ -132,7 +132,7 @@ impl TrustStore for MemoryTrustStore {
             if let Some(stored) = self
                 .clients
                 .write()
-                .unwrap_or_else(PoisonError::into_inner)
+                .unwrap_or_else(|e| e.into_inner())
                 .get_mut(fingerprint)
             {
                 stored.client.last_seen_at = Some(at);
@@ -146,7 +146,7 @@ impl TrustStore for MemoryTrustStore {
             if one_use.max_uses == 0 || one_use.valid_until <= one_use.now {
                 return Ok(UseOutcome::Spent);
             }
-            let mut uses = self.uses.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut uses = self.uses.lock().unwrap_or_else(|e| e.into_inner());
             let record = uses
                 .entry(one_use.secret_id.to_string())
                 .or_insert(UseRecord {
@@ -169,7 +169,7 @@ impl TrustStore for MemoryTrustStore {
         _at: u64,
     ) -> TrustFuture<'a, bool> {
         Box::pin(async move {
-            let mut revoked = self.revoked.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut revoked = self.revoked.lock().unwrap_or_else(|e| e.into_inner());
             if revoked.contains_key(secret_id) {
                 return Ok(false);
             }
@@ -184,7 +184,7 @@ impl TrustStore for MemoryTrustStore {
             Ok(self
                 .revoked
                 .lock()
-                .unwrap_or_else(PoisonError::into_inner)
+                .unwrap_or_else(|e| e.into_inner())
                 .contains_key(&secret_id))
         })
     }
@@ -193,13 +193,13 @@ impl TrustStore for MemoryTrustStore {
         Box::pin(async move {
             let mut removed = 0_u64;
             {
-                let mut uses = self.uses.lock().unwrap_or_else(PoisonError::into_inner);
+                let mut uses = self.uses.lock().unwrap_or_else(|e| e.into_inner());
                 let before = uses.len();
                 uses.retain(|_, record| record.valid_until >= cutoff);
                 removed += u64::try_from(before - uses.len()).unwrap_or(0);
             }
             {
-                let mut revoked = self.revoked.lock().unwrap_or_else(PoisonError::into_inner);
+                let mut revoked = self.revoked.lock().unwrap_or_else(|e| e.into_inner());
                 let before = revoked.len();
                 revoked.retain(|_, record| record.valid_until >= cutoff);
                 removed += u64::try_from(before - revoked.len()).unwrap_or(0);

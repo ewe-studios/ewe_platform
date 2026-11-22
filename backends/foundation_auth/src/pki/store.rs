@@ -83,7 +83,7 @@ impl CaStore {
         match &self.kind {
             CaStoreKind::File(dir) => load_or_generate_file(dir, config, ctx),
             CaStoreKind::Memory(state) => {
-                let stored = state.lock().unwrap_or_else(PoisonError::into_inner).take();
+                let stored = state.lock().unwrap_or_else(|e| e.into_inner()).take();
                 if let Some(mut stored) = stored {
                     let key = super::CaKey::from_pem(&stored.key_pem)?;
                     let (ca, fresh) =
@@ -93,14 +93,14 @@ impl CaStore {
                     if let Some(fresh_pem) = &fresh {
                         stored.cert_pem.clone_from(fresh_pem);
                     }
-                    *state.lock().unwrap_or_else(PoisonError::into_inner) = Some(stored);
+                    *state.lock().unwrap_or_else(|e| e.into_inner()) = Some(stored);
                     Ok((ca, fresh))
                 } else {
                     let key = super::CaKey::generate(config.key_algorithm, ctx)?;
                     let key_pem = key.to_pem();
                     let (ca, fresh) = CertificateAuthority::from_key(key, None, config, ctx)?;
                     let cert_pem = fresh.clone().unwrap_or_default();
-                    *state.lock().unwrap_or_else(PoisonError::into_inner) =
+                    *state.lock().unwrap_or_else(|e| e.into_inner()) =
                         Some(StoredCa { cert_pem, key_pem });
                     Ok((ca, fresh))
                 }
