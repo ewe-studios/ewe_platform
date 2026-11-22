@@ -183,8 +183,7 @@ in the feature's "Lifecycle of one entry".
 - **Health and readiness.** The installer proves that a program *started*. The registrar proves
   that it is *healthy* (spec 82).
 - **A package registry.** The installer reads manifests; it does not publish or sign them.
-- **Windows and macOS services.** Version 1 targets systemd on Linux and Docker. A future spec
-  may add launchd or Windows Services.
+- **Windows and macOS services.** Version 1 targets systemd on Linux and Docker, we should also add launchd (mac osx) then later Windows Services.
 
 ## 8. Implementation location
 
