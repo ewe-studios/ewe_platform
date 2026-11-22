@@ -93,6 +93,7 @@ window.verifyHostLease = async () => {
 window.verifyConnectedHost = async () => {
   const fixture = await import("/target/ui-gpu-web/browser_handoff_test.js");
   await fixture.default();
+  await fixture.verify_shared_shutdown(document.createElement("canvas"));
   const device = await (await navigator.gpu.requestAdapter()).requestDevice();
   const returned = Promise.withResolvers();
   const completion = Promise.withResolvers();

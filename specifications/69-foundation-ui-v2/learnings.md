@@ -858,3 +858,12 @@ The Linux graphics test process can exit with a segmentation fault after it repo
 A native graphics worker can still release its Vulkan resources after the work queue closes.
 Wait for the worker to release its resources with `shutdown().await` before the host exits.
 The completion signal wakes every service clone. [Issue 696](https://github.com/ewe-studios/ewe_platform/issues/696)
+
+The browser owner reads two queues. Shared work and canvas work use separate senders.
+Application code can start shutdown through the shared service while the browser still holds the canvas sender.
+The owner must close the canvas queue after the shared queue drains.
+It signals completion after it releases the graphics resources. [Issue 700](https://github.com/ewe-studios/ewe_platform/issues/700)
+
+The Arm Linux guest can run all three adapter tests through Mesa llvmpipe.
+Use a separate test run to include the adapter tests.
+The Vulkan adapter report identifies software rendering in this guest.

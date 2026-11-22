@@ -951,3 +951,35 @@ A serial run on the same binary passed.
 The fix adds an asynchronous shutdown method and a test for concurrent waiters.
 The fixed Linux AMD64 suite passed three default-concurrency runs. Each run passed seven tests and skipped three hardware tests.
 The full crate checks and native Linux 64-bit Arm (ARM64) checks remain open.
+
+### External drive verification on 2026-11-22
+
+Branch `resume/69-graphics` starts at `35939b13e`.
+Its worktree uses the Git directory on the external drive.
+The browser build at this checkpoint fails with Rust error E0063.
+The browser constructor omits the worker completion receiver. [Issue 700](https://github.com/ewe-studios/ewe_platform/issues/700)
+
+The repair closes the canvas queue when the shared queue drains.
+Both queues finish their accepted work before the owner releases its resources.
+A browser test starts shutdown from a service clone while the browser host remains open.
+
+The WebAssembly library and its browser test program compile.
+The full Chrome graphics test passes on the Apple Metal 3 adapter.
+The shared service completes the accepted canvas request before shutdown returns.
+The next canvas request fails as expected.
+The screenshot samples match red, blue, and blue.
+
+Native Arm Linux passes seven default tests and three adapter tests in separate runs.
+The adapter report identifies Mesa llvmpipe as a software renderer.
+On macOS, the Metal adapter also passes all ten tests across those two runs.
+Clippy rejects two unnamed default values in the lease tests.
+The test now names both graphics descriptor types. [Issue 701](https://github.com/ewe-studios/ewe_platform/issues/701)
+
+After the lint repair, two native Arm Linux runs each pass all ten tests together at default concurrency.
+Both runs use `cargo test --profile uat -p foundation_ui_gpu --test integration -- --include-ignored`.
+Strict Clippy passes on native Arm Linux, Linux AMD64, and macOS.
+The macOS repeat passes seven default tests and all three Metal adapter tests.
+
+The full Linux AMD64 crate check passes formatting, build, strict Clippy, tests, and the WebAssembly check.
+The default integration test passes seven tests and skips three adapter tests.
+The workspace manifest still reports three unused dependencies. [Issue 596](https://github.com/ewe-studios/ewe_platform/issues/596)

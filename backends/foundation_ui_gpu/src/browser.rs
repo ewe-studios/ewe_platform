@@ -59,14 +59,30 @@ impl BrowserGraphics {
         ensure_available()?;
         let (send, work) = async_channel::bounded::<Work>(config.queue_capacity);
         let (local, ui) = async_channel::bounded::<LocalWork>(config.queue_capacity);
-        let service = GpuService { work: send };
+        let (finished, stopped) = async_channel::bounded(1);
+        let service = GpuService {
+            work: send,
+            stopped,
+        };
         wasm_bindgen_futures::spawn_local(async move {
             let mut owner = GpuService::owner(config, std::sync::Arc::new(crate::SystemDevice));
-            let jobs = stream::select(work.map(|job| job as LocalWork), ui);
+            // Every service clone can close the shared queue while the browser still holds its canvas sender.
+            let shared = stream::unfold((work, ui.clone()), |(work, ui)| async move {
+                match work.recv().await {
+                    Ok(job) => Some((job as LocalWork, (work, ui))),
+                    Err(_) => {
+                        ui.close();
+                        None
+                    }
+                }
+            });
+            let jobs = stream::select(shared, ui);
             futures_util::pin_mut!(jobs);
             while let Some(job) = jobs.next().await {
                 job(&mut owner).await;
             }
+            drop(owner);
+            drop(finished);
         });
         Ok(Self { local, service })
     }
@@ -115,6 +131,9 @@ impl BrowserGraphics {
         name: String,
         canvas: HtmlCanvasElement,
     ) -> Result<BrowserSurface, JsError> {
+        if self.service.work.is_closed() {
+            return Err(GpuError::Cancelled.into());
+        }
         let (tx, rx) = async_channel::bounded(1);
         self.local
             .send(Box::new(move |owner| {
