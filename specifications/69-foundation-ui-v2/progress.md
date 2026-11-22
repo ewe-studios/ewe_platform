@@ -1160,3 +1160,5 @@ Seven Rust action and mobile tests passed. Both concurrent snapshot and socket r
 
 The device log is `target/agent-work/todo-logs/uuid-threehost-xcode.log`.
 The row log is `target/agent-work/todo-logs/uuid-threehost-peer.log`.
+
+The packaging contract assigns Todo browser module production, validation, and staging to the build. Runtime migration remains pending.

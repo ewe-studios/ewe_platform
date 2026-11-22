@@ -83,3 +83,13 @@ Allow target restrictions for files such as the browser bootstrap module.
 7. Change, rename, and delete source files. Verify incremental rebuilds, stale file removal, and recovery after a failed build.
 8. Run concurrent mobile builds and verify package contents. Test custom target directories and profiles.
 9. Use the Todo application as the first consumer under Specification 69 Feature 27.
+
+## Generated browser module handoff
+
+The resource manifest is a build input. The producer declares the generated file and its stable logical name.
+For Todo, the browser target produces the module. The JavaScript bundler produces scripts.
+The server build hook calls the resource stager after both producers finish.
+Stage the Todo module under the web target as `public/module.wasm`. Track the generated artifact for subsequent builds.
+Use the same staged bytes for development file serving and release embedding.
+The runtime asset handler resolves `/module.wasm` without reading the manifest or searching Cargo directories.
+See [Todo packaging checks](../../../69-foundation-ui-v2/features/27-single-todo-package/feature.md#proposed-revision-build-the-deployable-todo-directory).

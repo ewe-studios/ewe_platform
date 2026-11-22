@@ -220,3 +220,5 @@ The rebuilt Apple starter contains exactly `app/title.txt` and `app/version.txt`
 The native and browser resource targets pass scoped strict Clippy checks after the staging path cleanup.
 All nine resource tests pass on macOS and Linux with both `build` and `server` enabled.
 The additional Windows cross-check with `server` stopped because the host lacks `x86_64-w64-mingw32-gcc`.
+
+The packaging contract assigns Todo browser module production, validation, and staging to the build. Runtime migration remains pending.

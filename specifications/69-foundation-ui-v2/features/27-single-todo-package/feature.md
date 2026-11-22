@@ -203,7 +203,11 @@ The build produces a complete directory before the server starts.
 - Build the browser target and generated client before staging. Keep nested Cargo builds out of the server build script.
 - Track all staging inputs. Support custom Cargo target directories, target triples, profiles, and repeated builds.
 - Stage the page, application script, theme, runtime files, both bundles, browser module, and generated client dependencies.
-- Report missing inputs during the build. Verify the module header there.
+- The build task compiles the Todo browser module. The JavaScript bundler produces the runtime scripts.
+- Declare the generated browser module in `resources.toml` with the web target and the logical name `module.wasm`.
+- The server build hook stages the validated module at `public/module.wasm` before release embedding.
+- Fail the build for a missing module or invalid WebAssembly header. Identify the failed input.
+- Serve `/module.wasm` through the same asset handler as the scripts. Remove the runtime `EWE_TODO_MODULE` override.
 - Mount application routes before the static fallback. Serve the index at the root and preserve media types.
 - Remove module discovery, header checks, source checkout paths, embedded asset tables, and module path parameters from server startup.
 - Provide one full server constructor that accepts a prepared Todo store and live channel.
@@ -233,3 +237,7 @@ Use the proposed [platform resource manager](../../../90-foundation-tasks/featur
 Todo declares its icon, browser script, and generated version in resources.toml.
 Chrome, the iPhone simulator, and the Android emulator stream the same packaged icon bytes.
 The mobile packages exclude the browser script. Specification 90 Feature 3 records the host checks.
+
+Verify that both relocated builds serve `/module.wasm` with status 200 and media type `application/wasm`.
+Compare the response bytes with the browser build output. Start the application in Chrome and trigger a local action.
+Repeat with a missing module and an invalid module header. Verify that each build fails before packaging.
