@@ -270,3 +270,5 @@ Mount the framework resource handler once after the application routes. It serve
 Inspect each output for stray JavaScript files. Test with a fresh browser cache.
 Exercise startup, a local action, a Connect call, and a resource read. Assert that the only JavaScript request is `/bundle.js`.
 Check that the former module addresses return a missing-resource response.
+
+Declare one packaged resource type and pass its instance to the framework static handler. Remove the local registration adapter and all profile branches.

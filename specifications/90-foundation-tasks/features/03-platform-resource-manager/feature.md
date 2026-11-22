@@ -111,3 +111,14 @@ Providers isolate cross-target Cargo outputs and suppress server packaging when 
 External consumers need no shell script, prepared browser directory, or separate task invocation before Cargo builds the server.
 
 Stage only the selected application `bundle.js` as public JavaScript. Keep intermediate runtime and binding scripts outside the public and embedded resource trees.
+
+## Static handler for a packaged resource set
+
+The application declares one resource type and passes its instance to one framework static handler.
+The resource type supplies lookup for declared names and binary contents. The framework selects live files or embedded bytes.
+Keep the build-generated file index inside the provider. The caller supplies no index file, environment variable, or lookup callback.
+The framework owns the default index document, media types, missing-resource responses, and development directory resolution.
+Select embedding from the consuming application's build mode, including when the procedural macro uses a different profile.
+Application code needs no conditional compilation or forced embedding attribute for this standard setup.
+Verify a binary WebAssembly response, the index at the root, an unknown name, and a live development file edit.
+Use a package instance in an external consumer test. Check the same registration statement in both profiles.
