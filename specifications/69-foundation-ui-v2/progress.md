@@ -4,6 +4,8 @@
 
 Use the project root at `/Volumes/Outside/Dev/ewe_platform`.
 Keep each active checkout under its `.worktrees` directory.
+Keep build caches, install prefixes, and verification outputs under `/Volumes/Outside/Dev/ewe_platform/target/agent-work/`.
+Commit and push each work checkpoint. Verify the remote commit before stopping.
 
 | Agent | Worktree | Branch | Assignment |
 | --- | --- | --- | --- |
