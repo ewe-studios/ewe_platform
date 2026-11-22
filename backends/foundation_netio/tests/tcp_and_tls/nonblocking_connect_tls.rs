@@ -136,8 +136,12 @@ fn expect_refused(err: &Arc<dyn std::error::Error + Send + Sync + 'static>) {
 /// HOW: the listener has a backlog of zero and nothing calls `accept`. Some
 /// non-blocking connects fill the queue. On Linux the kernel then drops each
 /// new SYN, so the next connect hangs and retries until its deadline. The
-/// constructor proves this with a probe connect and panics if the connect
-/// completes, so the test never passes for the wrong reason.
+/// constructor proves this with a probe connect.
+///
+/// Some hosts (macOS) do not drop the SYN: the accept queue accepts more
+/// connects, or the probe gets `ECONNRESET`. The helper then returns `None`,
+/// and the test prints a skip line (#485). A wrong result cannot pass: the
+/// probe must time out.
 struct FullBacklogListener {
     addr: SocketAddr,
     _listener: socket2::Socket,
@@ -145,7 +149,18 @@ struct FullBacklogListener {
 }
 
 impl FullBacklogListener {
-    fn new() -> Self {
+    /// A full listener, or `None` when this host cannot make a hanging dial.
+    fn new() -> Option<Self> {
+        // Linux fills at once with 8. macOS may accept far more.
+        for fillers in [8_usize, 64, 256] {
+            if let Some(listener) = Self::try_with(fillers) {
+                return Some(listener);
+            }
+        }
+        None
+    }
+
+    fn try_with(filler_count: usize) -> Option<Self> {
         let listener = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
             .expect("create the listener socket");
         let any: SocketAddr = "127.0.0.1:0".parse().expect("loopback addr");
@@ -159,7 +174,7 @@ impl FullBacklogListener {
 
         // Fill the accept queue. The sockets stay open so the queue stays full.
         let mut fillers = Vec::new();
-        for _ in 0..8 {
+        for _ in 0..filler_count {
             let filler = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
                 .expect("create a filler socket");
             filler.set_nonblocking(true).expect("non-blocking filler");
@@ -173,23 +188,19 @@ impl FullBacklogListener {
         let probe = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
             .expect("create the probe socket");
         let probe_result = probe.connect_timeout(&addr.into(), Duration::from_millis(300));
-        assert!(
-            probe_result.is_err(),
-            "the host accepted a connect on a full listener; this host cannot make a hanging dial"
+        let hangs = matches!(
+            probe_result.as_ref().err().map(std::io::Error::kind),
+            Some(std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock)
         );
-        assert!(
-            matches!(
-                probe_result.as_ref().err().map(std::io::Error::kind),
-                Some(std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock)
-            ),
-            "the full listener must make a connect hang, got {probe_result:?}"
-        );
+        if !hangs {
+            return None;
+        }
 
-        Self {
+        Some(Self {
             addr,
             _listener: listener,
             _fillers: fillers,
-        }
+        })
     }
 
     fn addr(&self) -> SocketAddr {
@@ -208,7 +219,10 @@ fn connect_to_blackhole_does_not_hold_a_worker() {
     // A local listener whose accept queue is full never answers a new connect:
     // the kernel drops the SYN, so the dial hangs until the client's own
     // deadline. This does not depend on the host network (issue #485).
-    let blackhole_listener = FullBacklogListener::new();
+    let Some(blackhole_listener) = FullBacklogListener::new() else {
+        eprintln!("skipped: this host cannot make a hanging dial (#485)");
+        return;
+    };
     let blackhole: SocketAddr = blackhole_listener.addr();
     let blackhole_url = format!("http://blackhole.test:{}/", blackhole.port());
     let resolver = MockDnsResolver::new().with_response("blackhole.test", vec![blackhole]);

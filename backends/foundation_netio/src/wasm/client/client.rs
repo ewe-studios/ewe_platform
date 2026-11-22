@@ -421,7 +421,7 @@ pub(crate) fn build_web_request(
         &JsValue::from_str(redirect_mode),
     );
 
-    let body_js = send_safe_body_to_js(req.body)?;
+    let body_js = send_safe_body_to_js(req.body, req.body_readiness)?;
     if !body_js.is_undefined() {
         init.set_body(&body_js);
     }
@@ -438,7 +438,11 @@ pub(crate) fn build_web_request(
 /// Convert a `SendSafeBody` into a `JsValue` suitable for `RequestInit.body`.
 ///
 /// Returns `JsValue::UNDEFINED` for `None` (no body set on the request).
-fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> {
+fn send_safe_body_to_js(
+    body: SendSafeBody,
+    readiness: Option<crate::shared::http::BodyReadiness>,
+) -> Result<JsValue, HttpClientError> {
+    use js_stream::JsStreamItem;
     match body {
         SendSafeBody::None => Ok(JsValue::UNDEFINED),
         SendSafeBody::Text(text) => Ok(JsValue::from_str(&text)),
@@ -449,11 +453,15 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
         SendSafeBody::Stream(opt_iter) => {
             let iter = opt_iter
                 .ok_or_else(|| HttpClientError::Reason("stream body already consumed".into()))?;
-            let byte_iter = Box::new(iter.filter_map(|result| match result {
-                Ok(Data::Bytes(bytes)) => Some(bytes),
-                Ok(Data::Retry) | Err(_) => None,
+            // A `Retry` item becomes `Pending`, so the pull parks. It must not
+            // call `next()` again in the same pull: on one wasm thread that
+            // spins forever and the producer never runs.
+            let items = Box::new(iter.map(|result| match result {
+                Ok(Data::Bytes(bytes)) => JsStreamItem::Chunk(bytes),
+                Ok(Data::Retry) => JsStreamItem::Pending,
+                Err(error) => JsStreamItem::Error(error.to_string()),
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+            let stream = js_stream::iterator_to_readable_stream(items, readiness).map_err(|e| {
                 HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
             })?;
             Ok(stream.into())
@@ -462,18 +470,14 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
             let iter = opt_iter.ok_or_else(|| {
                 HttpClientError::Reason("chunked stream body already consumed".into())
             })?;
-            let byte_iter = Box::new(iter.filter_map(|result| match result {
+            let items = Box::new(iter.filter_map(|result| match result {
                 Ok(mut chunk) => {
                     let bytes = chunk.into_bytes();
-                    if bytes.is_empty() {
-                        None
-                    } else {
-                        Some(bytes)
-                    }
+                    (!bytes.is_empty()).then_some(JsStreamItem::Chunk(bytes))
                 }
-                Err(_) => None,
+                Err(error) => Some(JsStreamItem::Error(error.to_string())),
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+            let stream = js_stream::iterator_to_readable_stream(items, readiness).map_err(|e| {
                 HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
             })?;
             Ok(stream.into())
@@ -482,11 +486,14 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
             let iter = opt_iter.ok_or_else(|| {
                 HttpClientError::Reason("line feed stream body already consumed".into())
             })?;
-            let byte_iter = Box::new(iter.filter_map(|result| match result {
-                Ok(LineFeed::Line(line)) => Some(format!("{line}\n").into_bytes()),
-                Ok(LineFeed::END) | Ok(LineFeed::SKIP) | Err(_) => None,
+            let items = Box::new(iter.filter_map(|result| match result {
+                Ok(LineFeed::Line(line)) => {
+                    Some(JsStreamItem::Chunk(format!("{line}\n").into_bytes()))
+                }
+                Ok(LineFeed::END) | Ok(LineFeed::SKIP) => None,
+                Err(error) => Some(JsStreamItem::Error(error.to_string())),
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+            let stream = js_stream::iterator_to_readable_stream(items, readiness).map_err(|e| {
                 HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
             })?;
             Ok(stream.into())
@@ -495,7 +502,7 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
             let iter = opt_iter.ok_or_else(|| {
                 HttpClientError::Reason("SSE stream body already consumed".into())
             })?;
-            let byte_iter = Box::new(iter.filter_map(|result| match result {
+            let items = Box::new(iter.filter_map(|result| match result {
                 Ok(parse_result) => {
                     use crate::event_source::Event;
                     let mut buf = String::new();
@@ -528,12 +535,12 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
                     if buf.is_empty() {
                         None
                     } else {
-                        Some(buf.into_bytes())
+                        Some(JsStreamItem::Chunk(buf.into_bytes()))
                     }
                 }
-                Err(_) => None,
+                Err(error) => Some(JsStreamItem::Error(error.to_string())),
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+            let stream = js_stream::iterator_to_readable_stream(items, readiness).map_err(|e| {
                 HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
             })?;
             Ok(stream.into())
