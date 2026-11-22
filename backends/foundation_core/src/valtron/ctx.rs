@@ -39,6 +39,10 @@ pub struct SimulatedClock {
 impl SimulatedClock {
     /// A clock whose monotonic offset starts at `origin` and whose wall clock
     /// starts at the UNIX epoch.
+    // The simulated clock takes one real reading as its origin. A real
+    // `Instant` has no constructor, and code only compares differences of
+    // `Instant`s, so the run stays identical. Test-only code.
+    #[allow(clippy::disallowed_methods)]
     #[must_use]
     pub fn new(origin: Duration) -> Self {
         Self {

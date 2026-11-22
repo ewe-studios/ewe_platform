@@ -20,6 +20,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_context::env::EnvError;
 use foundation_context::Ctx;
 use foundation_core::valtron::{
     drive_iterator, park_on, CancelOutcome, CancellableFutureTask, DrivenTaskIterator,
@@ -401,7 +402,7 @@ pub(crate) fn join_text_chunks(chunks: &[&str]) -> String {
     let is_snapshots =
         chunks.len() > 1 && chunks.windows(2).all(|pair| pair[1].starts_with(pair[0]));
     if is_snapshots {
-        chunks.last().map(|c| (*c).to_string()).unwrap_or_default()
+        chunks.last().map_or_default(|c| (*c).to_string())
     } else {
         chunks.concat()
     }
@@ -511,7 +512,10 @@ fn coalesce_turn(collected: &[Messages]) -> Vec<Messages> {
 /// one assistant text message (the prose around the calls, if any) followed
 /// by one assistant message per call, carrying the last chunk's metadata and
 /// usage so the ledger still records the turn correctly.
-fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Messages> {
+fn with_text_protocol_tool_calls(
+    collected: Vec<Messages>,
+    ctx: &Ctx,
+) -> Result<Vec<Messages>, EnvError> {
     let has_native_call = collected.iter().any(|message| {
         matches!(
             message,
@@ -522,20 +526,20 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Mes
         )
     });
     if has_native_call {
-        return collected;
+        return Ok(collected);
     }
 
     let text = assembled_answer(&collected);
     if !text.contains("<ToolCall>") {
-        return collected;
+        return Ok(collected);
     }
 
     let extracted = match TextBasedFormatter.extract_tool_calls(&text) {
         Ok(extracted) if extracted.has_tool_calls => extracted,
-        Ok(_) => return collected,
+        Ok(_) => return Ok(collected),
         Err(err) => {
             tracing::debug!(error = ?err, "agent: could not parse text-protocol tool calls");
-            return collected;
+            return Ok(collected);
         }
     };
 
@@ -551,11 +555,13 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Mes
         .find(|message| matches!(message, Messages::Assistant { .. }))
         .cloned()
     else {
-        return collected;
+        return Ok(collected);
     };
 
+    let env = ctx.require_env()?;
+
     let make = |content: ModelOutput, stop_reason: StopReason| Messages::Assistant {
-        id: foundation_compact::ids::new_scru128(),
+        id: env.ids().next_id(),
         model: model.clone(),
         timestamp: ctx.clock().wall_now(),
         usage: usage.clone(),
@@ -589,7 +595,7 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Mes
                 execution_hint,
                 ..
             } => ModelOutput::ToolCall {
-                id: foundation_compact::ids::new_scru128_string(),
+                id: env.ids().next_id().to_string(),
                 name,
                 arguments,
                 signature,
@@ -600,7 +606,7 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Mes
         };
         turn.push(make(call, StopReason::ToolUse));
     }
-    turn
+    Ok(turn)
 }
 
 /// The nudge sent when a turn produced no usable answer.
@@ -608,9 +614,9 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Mes
 /// Names the actual problem rather than reusing the loop wording — a model told
 /// "you are repeating yourself" when it in fact said nothing has been given the
 /// wrong correction.
-fn vacuous_answer_redirect() -> Messages {
-    Messages::User {
-        id: foundation_compact::ids::new_scru128(),
+fn vacuous_answer_redirect(ctx: &Ctx) -> Result<Messages, EnvError> {
+    Ok(Messages::User {
+        id: ctx.require_env()?.ids().next_id(),
         role: MessageRole::System,
         content: UserModelContent::Text(TextContent {
             content: "Your last reply contained no answer - only punctuation or \
@@ -620,7 +626,12 @@ fn vacuous_answer_redirect() -> Messages {
             signature: None,
         }),
         signature: None,
-    }
+    })
+}
+
+/// The agent-stream failure record for a missing effect environment.
+fn env_failure(error: &EnvError) -> SessionRecord {
+    AgenticError::Unexpected(format!("effect environment: {error}")).into_failed_action()
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
@@ -951,7 +962,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         let Some(item) = stream.next() else {
             // Stream finished — run loop detection, extract tool calls.
             self.breaker.on_success();
-            let collected = with_text_protocol_tool_calls(collected, ctx);
+            let collected = match with_text_protocol_tool_calls(collected, ctx) {
+                Ok(collected) => collected,
+                Err(error) => return TaskStatus::Ready(env_failure(&error)),
+            };
             return self.on_generation_complete(&collected, ctx);
         };
 
@@ -1031,6 +1045,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         collected: &[Messages],
         ctx: &Ctx,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
+        let env = match ctx.require_env() {
+            Ok(env) => env,
+            Err(error) => return TaskStatus::Ready(env_failure(&error)),
+        };
         // Run loop detection (F17) synchronously on the model outputs.
         // Check the coalesced turn, not the raw chunks: HTTP backends stream
         // snapshots (each chunk re-sends the text so far), and consecutive
@@ -1044,7 +1062,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                         Escalation::Redirect => {
                             // Inject a system redirect message and re-assemble.
                             let redirect = Messages::User {
-                                id: foundation_compact::ids::new_scru128(),
+                                id: env.ids().next_id(),
                                 role: MessageRole::System,
                                 content: UserModelContent::Text(TextContent {
                                     content: "Loop detected. Please try a different approach — \
@@ -1065,7 +1083,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                                 self.current_model = fallback;
                             }
                             let redirect = Messages::User {
-                                id: foundation_compact::ids::new_scru128(),
+                                id: env.ids().next_id(),
                                 role: MessageRole::System,
                                 content: UserModelContent::Text(TextContent {
                                     content: "Loop detected after redirect. Switching approach."
@@ -1151,14 +1169,20 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                             attempt = self.detector.redirect_count(),
                             "agent: turn produced no usable answer, asking again"
                         );
-                        self.push_user_message(vacuous_answer_redirect());
+                        self.push_user_message(match vacuous_answer_redirect(ctx) {
+                            Ok(message) => message,
+                            Err(error) => return TaskStatus::Ready(env_failure(&error)),
+                        });
                         self.state = AgentLoopState::InnerAssemble;
                         // Streaming already handed the caller every token of the
                         // turn being thrown away, so tell it to drop them —
                         // otherwise the retry's answer is appended to the junk
                         // it was meant to replace.
                         return TaskStatus::Ready(SessionRecord::Retracted {
-                            id: foundation_compact::ids::new_scru128(),
+                            id: match ctx.require_env() {
+                                Ok(env) => env.ids().next_id(),
+                                Err(error) => return TaskStatus::Ready(env_failure(&error)),
+                            },
                             reason: format!(
                                 "turn produced no usable answer ({answer:?}), retrying"
                             ),
@@ -1350,6 +1374,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                 "transition_inner_executing requires AgentLoopState::InnerExecuting, found {actual}"
             )
         };
+        let env = match ctx.require_env() {
+            Ok(env) => env,
+            Err(error) => return TaskStatus::Ready(env_failure(&error)),
+        };
 
         // Check for steering cancel — abort all in-flight tool futures.
         if self.queues.has_priority() {
@@ -1383,7 +1411,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                         ),
                     };
                     Messages::ToolResult {
-                        id: foundation_compact::ids::new_scru128(),
+                        id: env.ids().next_id(),
                         tool_call_id: req.id,
                         name: req.name,
                         timestamp: ctx.clock().wall_now(),

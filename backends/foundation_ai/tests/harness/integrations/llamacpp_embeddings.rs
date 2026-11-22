@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Local llama.cpp embedding integration test (spec 67).
 //!
 //! WHY: the llama.cpp embedding branch used to return `EmbeddingsError::NotEnabled`
@@ -108,9 +111,12 @@ fn embedding_interaction(text: &str) -> ModelInteraction {
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 /// Unit (no model): the embedding context enables embeddings + the configured

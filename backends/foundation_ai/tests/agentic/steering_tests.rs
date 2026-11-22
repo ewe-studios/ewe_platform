@@ -1,3 +1,5 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
 #![allow(unused_imports)]
 use foundation_ai::agentic::internals::{CancelCode, SteeringQueues};
 use foundation_ai::types::{base_types::TextContent, MessageRole, Messages, UserModelContent};

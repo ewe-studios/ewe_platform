@@ -1,6 +1,6 @@
 [package]
 name = "foundation_context"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -11,6 +11,7 @@ keywords = ["context", "clock", "wasm", "deterministic"]
 
 [dependencies]
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false, features = ["std"] }
+derive_more = { workspace = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }

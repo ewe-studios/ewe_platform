@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Spec 70 feature 41 — the static file handler writes every byte once, in
 //! order, and does not hold a worker while a slow client downloads.
 //!

@@ -26,13 +26,8 @@ use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::netcap::ssl::SSLConnector;
 use foundation_netio::HttpClientBuilder;
-use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
-use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
-use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
-use rustls::{DigitallySignedStruct, SignatureScheme};
 use zeroize::Zeroizing;
 
-use crate::auth::sha256_fingerprint;
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::proto::v1::agent_service::AgentServiceClient;
 use crate::proto::v1::bootstrap_service::BootstrapServiceClient;
@@ -65,18 +60,8 @@ impl std::fmt::Debug for ClientIdentity {
 /// # Errors
 /// [`AgentRpcError::Config`] when key generation or CSR serialization fails.
 pub fn generate_csr(client_name: &str) -> AgentRpcResult<(Zeroizing<String>, String)> {
-    let err = |what: &str, e: rcgen::Error| {
-        ErrorTrace::new(AgentRpcError::Config(format!("{what}: {e}")))
-    };
-    let key = KeyPair::generate().map_err(|e| err("client key", e))?;
-    let mut params =
-        CertificateParams::new(Vec::<String>::new()).map_err(|e| err("CSR params", e))?;
-    let mut dn = DistinguishedName::new();
-    dn.push(DnType::CommonName, client_name);
-    params.distinguished_name = dn;
-    let csr = params.serialize_request(&key).map_err(|e| err("CSR", e))?;
-    let csr_pem = csr.pem().map_err(|e| err("CSR PEM", e))?;
-    Ok((Zeroizing::new(key.serialize_pem()), csr_pem))
+    foundation_auth::pki::generate_csr(client_name)
+        .map_err(|e| ErrorTrace::new(AgentRpcError::Config(format!("client CSR: {e}"))))
 }
 
 /// Enroll with the bootstrap listener at `bootstrap_url` (`https://host:port`),
@@ -198,81 +183,7 @@ pub fn connect_mtls_with(
 }
 
 fn pinned_connector(fingerprint_sha256: &str) -> AgentRpcResult<SSLConnector> {
-    let provider = foundation_netio::netcap::ssl::rustls::initialize_tls_provider()
-        .map(Arc::new)
-        .ok_or_else(|| {
-            ErrorTrace::new(AgentRpcError::Config("no rustls crypto provider".into()))
-        })?;
-    let verifier = PinnedCertVerifier {
-        fingerprint_sha256: fingerprint_sha256.to_ascii_lowercase(),
-        provider: Arc::clone(&provider),
-    };
-    let config = rustls::ClientConfig::builder_with_provider(provider)
-        .with_safe_default_protocol_versions()
-        .map_err(|e| ErrorTrace::new(AgentRpcError::Config(format!("TLS versions: {e}"))))?
-        .dangerous()
-        .with_custom_certificate_verifier(Arc::new(verifier))
-        .with_no_client_auth();
-    Ok(SSLConnector::with_config(Arc::new(config)))
-}
-
-/// Trusts exactly one server certificate, identified by its SHA-256; the
-/// handshake signatures are verified normally.
-#[derive(Debug)]
-struct PinnedCertVerifier {
-    fingerprint_sha256: String,
-    provider: Arc<rustls::crypto::CryptoProvider>,
-}
-
-impl ServerCertVerifier for PinnedCertVerifier {
-    fn verify_server_cert(
-        &self,
-        end_entity: &CertificateDer<'_>,
-        _intermediates: &[CertificateDer<'_>],
-        _server_name: &ServerName<'_>,
-        _ocsp_response: &[u8],
-        _now: UnixTime,
-    ) -> Result<ServerCertVerified, rustls::Error> {
-        if sha256_fingerprint(end_entity) == self.fingerprint_sha256 {
-            Ok(ServerCertVerified::assertion())
-        } else {
-            Err(rustls::Error::InvalidCertificate(
-                rustls::CertificateError::ApplicationVerificationFailure,
-            ))
-        }
-    }
-
-    fn verify_tls12_signature(
-        &self,
-        message: &[u8],
-        cert: &CertificateDer<'_>,
-        dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls12_signature(
-            message,
-            cert,
-            dss,
-            &self.provider.signature_verification_algorithms,
-        )
-    }
-
-    fn verify_tls13_signature(
-        &self,
-        message: &[u8],
-        cert: &CertificateDer<'_>,
-        dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls13_signature(
-            message,
-            cert,
-            dss,
-            &self.provider.signature_verification_algorithms,
-        )
-    }
-
-    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        self.provider
-            .signature_verification_algorithms
-            .supported_schemes()
-    }
+    let config = foundation_auth::mtls::client_config_pinned_default(fingerprint_sha256)
+        .map_err(|e| ErrorTrace::new(AgentRpcError::Config(format!("pinned TLS: {e}"))))?;
+    Ok(SSLConnector::with_config(config))
 }

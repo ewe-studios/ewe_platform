@@ -10,6 +10,8 @@
 //!
 //! HOW: Plain `#[test]` functions for the synchronous values and
 //! `#[valtron_test]` for the async `ClientAuth::authenticate` call.
+// Tests measure real time on purpose.
+#![allow(clippy::disallowed_methods)]
 
 use std::fs;
 use std::hint::black_box;

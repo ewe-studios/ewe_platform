@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Queue readiness types are event-driven (spec 70 feature 77, E3).
 //!
 //! WHY: a task parked on a queue readiness was re-checked every millisecond,

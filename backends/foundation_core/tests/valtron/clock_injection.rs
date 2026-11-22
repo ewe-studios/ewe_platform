@@ -1,3 +1,5 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
 #![cfg(feature = "test-clock")]
 
 //! A host installs its own clock in the pool [`Ctx`], and every task sees it.

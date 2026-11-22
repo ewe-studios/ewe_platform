@@ -22,9 +22,12 @@ fn text_and_role(message: &Messages) -> (String, MessageRole) {
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 #[test]
@@ -86,9 +89,7 @@ fn anthropic() -> foundation_ai::backends::anthropic_messages_provider::Anthropi
     };
     use foundation_auth::{AuthCredential, ConfidentialText};
     AnthropicMessagesProvider::with_config(
-        AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-            "k",
-        ))),
+        AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new("k"))),
         test_clock(),
     )
 }
@@ -97,9 +98,7 @@ fn openai() -> foundation_ai::backends::openai_provider::OpenAIProvider {
     use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
     use foundation_auth::{AuthCredential, ConfidentialText};
     OpenAIProvider::with_config(
-        OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-            "k",
-        ))),
+        OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new("k"))),
         test_clock(),
     )
 }

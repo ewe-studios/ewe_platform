@@ -2,6 +2,10 @@
 //!
 //! This module provides a thin wrapper around [`LlamaBackends`] that adds
 //! automatic GGUF model downloading from `HuggingFace` Hub.
+// The local backend path still mints message ids with the global generator,
+// so a DST run does not repeat them here. Issue #677 injects `Env` into the
+// provider constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use std::path::PathBuf;
 

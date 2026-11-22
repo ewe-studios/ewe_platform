@@ -4,6 +4,10 @@
 //! Uses `foundation_netio`'s `DynNetClient` (the native client, or the fetch
 //! client on wasm32) for HTTP I/O with
 //! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
+// The provider path still mints message ids with the global generator, so a
+// DST run does not repeat them here. Issue #677 injects `Env` into the provider
+// constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use foundation_compact::SendWrapper;
 use std::collections::HashMap;
@@ -531,7 +535,7 @@ impl ModelProvider for OpenAIProvider {
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
             models_cache: Arc::clone(&self.models_cache),
-            pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+            pricing: self.describe().ok().map_or_default(|d| d.cost),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             ctx: self.ctx.clone(),
         })
@@ -1989,10 +1993,9 @@ pub fn build_chat_request(
                         tool_type: String::from("function"),
                         function: OpenAIFunctionCall {
                             name: name.clone(),
-                            arguments: arguments
-                                .as_ref()
-                                .map(|args| serde_json::to_string(args).unwrap_or_default())
-                                .unwrap_or_default(),
+                            arguments: arguments.as_ref().map_or_default(|args| {
+                                serde_json::to_string(args).unwrap_or_default()
+                            }),
                         },
                     }];
                     messages.push(OpenAIMessage {
@@ -2280,10 +2283,8 @@ fn build_metadata(
     let mut metadata = Vec::new();
 
     if let Some(lp) = logprobs {
-        let content: Vec<crate::types::base_types::ContentLogProb> = lp
-            .content
-            .as_ref()
-            .map(|items| {
+        let content: Vec<crate::types::base_types::ContentLogProb> =
+            lp.content.as_ref().map_or_default(|items| {
                 items
                     .iter()
                     .map(|p| crate::types::base_types::ContentLogProb {
@@ -2301,8 +2302,7 @@ fn build_metadata(
                         }),
                     })
                     .collect()
-            })
-            .unwrap_or_default();
+            });
 
         let refusal_probs: Option<Vec<crate::types::base_types::RefusalLogProb>> =
             lp.refusal.as_ref().map(|items| {

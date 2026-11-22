@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Feature 08 — `ConnectionResult::Async` for long-lived HTTP/1.1 handlers.
 //!
 //! A handler that needs to wait returns `Async(future)` at once. The connection
