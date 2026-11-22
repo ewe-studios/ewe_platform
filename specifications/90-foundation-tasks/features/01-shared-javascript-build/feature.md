@@ -73,7 +73,7 @@ Record the resolved dependencies, test commands, browser results, and changed ca
 
 ## Current verification records
 
-The todo server embeds both Cargo outputs. It serves them at `/foundation-ui-runtime.js` and `/foundation-ui-runtime.min.js`.
+The earlier Todo server embedded both Cargo outputs. It served them at `/foundation-ui-runtime.js` and `/foundation-ui-runtime.min.js`.
 The package task and the platform task use the same exported task set.
 The all-target build graph excludes asynchronous executors. The browser target excludes the JavaScript build tools.
 
@@ -89,3 +89,11 @@ The all-target build graph excludes asynchronous executors. The browser target e
 | Rust tests | The code generator passes 74 tests. The browser build tools pass 11 tests. |
 | Platform executable | All three central command tests pass. Both executable names run the public task. |
 | Strict Clippy | The code generator and browser task features pass the all-targets gate. |
+
+### Application bundle output
+
+The standalone runtime distribution retains its readable and minified artifacts.
+For an application build, accept the application entry and select one output profile.
+Emit one public `bundle.js` containing application code and all required JavaScript bindings.
+Inline dynamic JavaScript imports into that artifact. Preserve initialization order and generated WebAssembly asset resolution.
+Verify the actual Todo entry in development and release. Reject extra public JavaScript files and additional browser script requests.

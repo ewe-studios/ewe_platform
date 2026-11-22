@@ -1170,3 +1170,5 @@ Feature 32 explicitly retires the custom Todo outbox when the shared action and 
 Feature 32 assigns wire encoding and decoding to the framework. Todo handlers supply typed data or markup.
 
 Feature 32 extends the simplification review to the entire shared Todo directory. The implementation remains with the next owner.
+
+Feature 27 requires one deployed JavaScript entry and one framework resource handler. The current per-file routes await replacement.

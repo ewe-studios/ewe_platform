@@ -210,12 +210,12 @@ The build produces a complete directory before the server starts.
 - Verify that the example uses public build dependencies and has no cross-crate source inclusion.
 - Calling the packaging hook from the server's `build.rs` must produce missing browser artifacts during an ordinary Cargo build.
 - The browser provider builds the app module. The Connect provider builds its browser module and generates its JavaScript bindings with `wasm-bindgen`.
-- The resource provider generates its browser bindings through the same build sequence. Stage all generated imports with their modules.
+- The resource provider generates its browser bindings through the same build sequence. Bundle generated JavaScript imports into the application entry. Stage the required WebAssembly binaries as assets.
 - Keep the explicit service schema call for the Todo service. It serves a different purpose from the Connect browser transport build.
 - Expose the same producer implementations as importable framework tasks. Make native verification call them.
 - Retire `examples/ui_todo/build-module.sh` and its callers once the clean build test passes.
 - Track all staging inputs. Support custom Cargo target directories, target triples, profiles, and repeated builds.
-- Stage the page, application script, theme, runtime files, both bundles, browser module, and generated client dependencies.
+- Stage the page, application script, theme, runtime files, the application bundle, browser module, and generated client dependencies.
 - The build task compiles the Todo browser module. The JavaScript bundler produces the runtime scripts.
 - Declare the generated browser module in `resources.toml` with the web target and the logical name `module.wasm`.
 - The server build hook stages the validated module at `public/module.wasm` before release embedding.
@@ -240,7 +240,7 @@ Compare response bytes and media types across both builds, including the browser
 Verify the macro selects the consuming artifact mode under custom profiles and build dependency overrides.
 Verify development path resolution uses the executable directory after relocation. Extend the shared asset helper if necessary.
 Open the page in Chrome and run a local action, a server action, and a generated client call.
-Verify static responses for the module and both bundles. Verify a missing file returns a missing-resource response.
+Verify static responses for the module and the application bundle. Verify a missing file returns a missing-resource response.
 Repeat replay, restore, and native data checks. This revision awaits owner approval.
 
 Use the proposed [platform resource manager](../../../90-foundation-tasks/features/03-platform-resource-manager/feature.md) for shared staging and mobile package inputs.
@@ -258,3 +258,15 @@ Repeat with a missing module and an invalid module header. Verify that each buil
 Start with an empty Cargo target directory and no generated browser files. Build the Todo server using Cargo alone.
 Start the result and call the generated Connect service from Chrome. Verify that all imported modules load.
 Repeat after changing a producer input. Check that the build completes without recursive invocation or a shared Cargo target lock.
+
+### One public JavaScript entry
+
+Each Todo build outputs exactly one public JavaScript file named `bundle.js`.
+Development emits readable code. Release emits minified code at the same address.
+The framework bundler starts from the Todo entry and includes its transitive runtime, Connect, and resource bindings.
+Resolve static and dynamic JavaScript imports during bundling. Keep the generated bindings able to locate their WebAssembly binaries.
+The page loads only `/bundle.js`. Remove all application-owned static route registration from `src/server/assets.rs`.
+Mount the framework resource handler once after the application routes. It serves the public tree or embedded release assets.
+Inspect each output for stray JavaScript files. Test with a fresh browser cache.
+Exercise startup, a local action, a Connect call, and a resource read. Assert that the only JavaScript request is `/bundle.js`.
+Check that the former module addresses return a missing-resource response.

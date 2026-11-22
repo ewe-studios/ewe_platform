@@ -109,3 +109,5 @@ Require the same consumer script to package development and release assets throu
 The hook builds missing application, Connect browser transport, and resource artifacts on demand.
 Providers isolate cross-target Cargo outputs and suppress server packaging when compiling the browser target.
 External consumers need no shell script, prepared browser directory, or separate task invocation before Cargo builds the server.
+
+Stage only the selected application `bundle.js` as public JavaScript. Keep intermediate runtime and binding scripts outside the public and embedded resource trees.
