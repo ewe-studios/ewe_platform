@@ -156,3 +156,10 @@ The macOS resource suite passes four staging and runtime tests with the UAT prof
 
 Todo now declares its shared icon, browser script, and generated version in resources.toml.
 Its Cargo hook stages those files after generation. Web package verification is in progress.
+
+The moved Todo development server serves an edited icon on the next request.
+The embedding path also serves the icon from a moved executable without a public directory.
+Gradle assembles the Android debug package with the shared icon and version file.
+The package excludes the browser script. Xcode copies the same resources to the simulator bundle.
+The generic simulator build cannot link the local Arm-only framework for x86-64.
+The Arm simulator build and installed host reads remain open.

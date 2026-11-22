@@ -105,3 +105,7 @@ Native readers need movable streams so application workers can await the same re
 
 The embedding derive accepts an environment variable followed by a slash and a path.
 A build script can supply its staging directory before macro expansion.
+
+Android generated asset registration orders the producer once per variant.
+Xcode needs a folder reference and a producer output that refer to the same derived directory.
+Select the Arm simulator when the local native framework contains only Arm simulator code.

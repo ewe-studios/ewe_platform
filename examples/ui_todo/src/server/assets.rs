@@ -132,6 +132,7 @@ pub(super) fn register(
 #[cfg(not(debug_assertions))]
 #[derive(foundation_macros::EmbedDirectoryAs)]
 #[source = "$EWE_STAGED_RESOURCES/."]
+#[always_embed]
 struct PackagedResources;
 
 fn register_resources(router: &mut Router<Arc<dyn Serve>>) -> Result<(), super::Error> {

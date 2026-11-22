@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EE9000030000000000000003 /* EweResources in Resources */ = {isa = PBXBuildFile; fileRef = EE9000030000000000000002; };
 		12EDCE4434F17C2B2334F513 /* TodoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB7CFD9FE593F477A3429B9 /* TodoTests.swift */; };
 		5DAC712F52D8B5AD4E7E3073 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306DBC8958E95277691BA73A /* App.swift */; };
 		79F34E4A5A3127244828D20A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
@@ -28,6 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EE9000030000000000000002 /* EweResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EweResources; sourceTree = DERIVED_FILE_DIR; };
 		306DBC8958E95277691BA73A /* App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		35DBB79263E15025D7F23DAA /* TodoServerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TodoServerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		960E82007BA4E62435E20FA6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -119,6 +121,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D18BFB4CA94C0E5D2E743FA6 /* Build configuration list for PBXNativeTarget "TodoServer" */;
 			buildPhases = (
+                EE9000030000000000000001 /* Stage resources */,
 				6ADF9BFF7F7858E7B43C725B /* Sources */,
 				32D7E7088ABCAACE75F0AFEA /* Frameworks */,
 				B3E280C5118F062FCD76E7FC /* Resources */,
@@ -188,11 +191,27 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+        EE9000030000000000000001 /* Stage resources */ = {
+            isa = PBXShellScriptBuildPhase;
+            alwaysOutOfDate = 1;
+            buildActionMask = 2147483647;
+            files = ();
+            inputPaths = ();
+            name = "Stage resources";
+            outputPaths = ("$(DERIVED_FILE_DIR)/EweResources");
+            runOnlyForDeploymentPostprocessing = 0;
+            shellPath = /bin/sh;
+            shellScript = "set -eu\nexport PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\"\nexport EWE_RESOURCE_TARGET=apple\nexport EWE_RESOURCE_DEST=\"$DERIVED_FILE_DIR/EweResources\"\nexport CARGO_TARGET_DIR=\"${CARGO_TARGET_DIR:-$PROJECT_TEMP_DIR/resource-producer}\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\ncargo check --manifest-path \"$SRCROOT/../../Cargo.toml\" --no-default-features --lib\n";
+        };
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXResourcesBuildPhase section */
 		B3E280C5118F062FCD76E7FC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                EE9000030000000000000003 /* EweResources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
