@@ -72,3 +72,75 @@ fn empty_managed_directories_disappear_and_nested_user_files_survive() {
     assert!(!output.join("art/empty").exists());
     assert_eq!(fs::read(output.join("art/user.txt")).unwrap(), b"keep");
 }
+
+#[test]
+#[cfg(any(target_vendor = "apple", target_os = "linux", target_os = "android"))]
+fn a_reader_sees_complete_versions_during_directory_replacement() {
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Barrier,
+    };
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let manifest = root.join("resources.toml");
+    fs::write(&manifest, "[[resource]]\nname='version'\npath='version'").unwrap();
+    fs::write(root.join("version"), "first").unwrap();
+    let dest = root.join("staged");
+    stage(&manifest, root, Target::Apple, &dest).unwrap();
+    let running = AtomicBool::new(true);
+    let barrier = Barrier::new(2);
+    std::thread::scope(|threads| {
+        let reader = threads.spawn(|| {
+            barrier.wait();
+            while running.load(Ordering::Acquire) {
+                let bytes = fs::read(dest.join("version")).unwrap();
+                assert!(bytes == b"first" || bytes == b"second");
+            }
+        });
+        barrier.wait();
+        for _ in 0..12 {
+            fs::write(root.join("version"), "second").unwrap();
+            stage(&manifest, root, Target::Apple, &dest).unwrap();
+        }
+        running.store(false, Ordering::Release);
+        reader.join().unwrap();
+    });
+}
+
+#[test]
+fn a_stage_cannot_copy_its_own_output() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let manifest = root.join("resources.toml");
+    fs::create_dir(root.join("art")).unwrap();
+    fs::write(root.join("art/icon"), "icon").unwrap();
+    fs::write(&manifest, "[[resource]]\nname='art'\npath='art'").unwrap();
+    for destination in [
+        root.to_path_buf(),
+        root.join("art"),
+        root.join("art/nested/staged"),
+    ] {
+        assert!(stage(&manifest, root, Target::Web, &destination).is_err());
+    }
+    assert!(!root.join("art/nested").exists());
+}
+
+#[test]
+fn unchanged_publication_keeps_existing_file_times_and_restores_missing_files() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let manifest = root.join("resources.toml");
+    fs::write(&manifest, "[[resource]]\nname='icon'\npath='original'").unwrap();
+    fs::write(root.join("original"), "app").unwrap();
+    let dest = root.join("output");
+    stage(&manifest, root, Target::Android, &dest).unwrap();
+    let modified = fs::metadata(dest.join("icon")).unwrap().modified().unwrap();
+    stage(&manifest, root, Target::Android, &dest).unwrap();
+    assert_eq!(
+        fs::metadata(dest.join("icon")).unwrap().modified().unwrap(),
+        modified
+    );
+    fs::remove_file(dest.join("icon")).unwrap();
+    stage(&manifest, root, Target::Android, &dest).unwrap();
+    assert_eq!(fs::read(dest.join("icon")).unwrap(), b"app");
+}

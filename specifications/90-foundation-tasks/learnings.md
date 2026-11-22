@@ -128,3 +128,7 @@ Use openResourceFile and closeFile for the package callbacks.
 Use a companion browser module for the resource service. Its JavaScript bindings own the browser fetch context.
 The Todo action module keeps its existing host import interface. Both native hosts use the same Rust open operation.
 The iPhone test must use the installed application bundle. The test runner has a different bundle.
+
+Cargo compares tracked output timestamps with the start of the previous build.
+Writing an equal index on every run keeps the package dirty. Preserve unchanged files and index timestamps.
+Reject output directories that contain inputs or lie inside a declared input directory.

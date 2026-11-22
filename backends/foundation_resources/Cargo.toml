@@ -14,7 +14,7 @@ crate-type = ["rlib", "cdylib"]
 [features]
 browser-bindings = ["runtime", "foundation_context/wasm-bindgen"]
 default = ["runtime"]
-build = ["dep:serde", "dep:toml", "dep:tempfile"]
+build = ["dep:serde", "dep:toml", "dep:tempfile", "dep:rustix"]
 runtime = ["dep:foundation_context", "dep:futures-util", "dep:blocking", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 
 [dependencies]
@@ -24,6 +24,9 @@ tempfile = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
 foundation_context = { path = "../foundation_context", version = "0.0.4", optional = true }
 derive_more.workspace = true
+
+[target.'cfg(any(target_vendor = "apple", target_os = "linux", target_os = "android"))'.dependencies]
+rustix = { version = "1.1.4", default-features = false, features = ["fs"], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 blocking = { workspace = true, optional = true }

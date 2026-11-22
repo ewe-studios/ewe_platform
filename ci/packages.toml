@@ -224,6 +224,11 @@ runs = ["", "native-manifest"]
 [packages.foundation_ui_gpu]
 wasm = "enforce"
 
+[packages.foundation_resources]
+runs = ["build"]
+wasm = "enforce"
+wasm-runs = ["browser-bindings"]
+
 [packages.foundation_tasks]
 runs = [""]
 

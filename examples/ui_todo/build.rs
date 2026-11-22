@@ -3,6 +3,21 @@
 #[path = "../../backends/foundation_wasm_ui/src/runtime_build.rs"]
 mod runtime_build;
 
+fn write_changed(path: &std::path::Path, contents: &str) -> std::io::Result<()> {
+    match std::fs::metadata(path) {
+        Ok(info)
+            if info.len() == contents.len() as u64
+                && std::fs::read(path)? == contents.as_bytes() =>
+        {
+            return Ok(())
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error),
+    }
+    std::fs::write(path, contents)
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(any(feature = "server", feature = "mobile"))]
     foundation_connectrpc_codegen::build::compile_service("proto", "todos", "todo_service.rs")?;
@@ -18,8 +33,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let output =
         std::path::PathBuf::from(std::env::var_os("OUT_DIR").ok_or("Cargo did not set OUT_DIR")?);
-    std::fs::write(output.join("app-version.txt"), env!("CARGO_PKG_VERSION"))?;
+    write_changed(&output.join("app-version.txt"), env!("CARGO_PKG_VERSION"))?;
     let staged = foundation_resources::build::stage_from_cargo()?;
-    std::fs::write(output.join("resource-names"), staged.names.join("\n"))?;
+    write_changed(&output.join("resource-names"), &staged.names.join("\n"))?;
     Ok(())
 }

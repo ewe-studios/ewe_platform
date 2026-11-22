@@ -187,3 +187,10 @@ The iPhone test runs once with no failures. Android instrumentation returns RESU
 Both native tests check missing host, invalid name, and the absence of browser-only app.js.
 The Todo browser integration passes. A separate Chrome check covers a server error before reading its body.
 The platform build task and build-module.sh now prepare the browser resource module.
+
+Issue #733 fixes repeated Cargo invalidation after a package build.
+An unchanged build becomes fresh. A missing managed file is restored.
+Apple and Linux exchange whole resource directories atomically. A concurrent reader test passes on macOS.
+Eight resource tests pass. Native and browser resource code pass scoped strict Clippy checks.
+The CI package configuration selects staging tests on all three desktop operating systems.
+Issue #734 records existing strict lint failures in the browser time backend dependency.

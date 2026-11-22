@@ -201,6 +201,27 @@ pub fn stage(
         .ok_or_else(|| invalid("Resource manifest needs a directory"))?;
     let declarations: Manifest = toml::from_str(&fs::read_to_string(manifest)?)
         .map_err(|e| invalid(format!("{}: {e}", manifest.display())))?;
+    let destination_path = std::path::absolute(destination)?;
+    let existing = destination_path
+        .ancestors()
+        .find(|path| path.exists())
+        .ok_or_else(|| {
+            invalid(format!(
+                "Cannot resolve destination {}",
+                destination.display()
+            ))
+        })?;
+    let resolved_destination = existing.canonicalize()?.join(
+        destination_path
+            .strip_prefix(existing)
+            .map_err(|e| invalid(e.to_string()))?,
+    );
+    if manifest.canonicalize()?.starts_with(&resolved_destination) {
+        return Err(invalid(format!(
+            "Resource destination {} contains the manifest",
+            destination.display()
+        )));
+    }
     let mut inputs = Inputs::default();
     inputs.paths.insert(manifest.to_owned());
     let mut names = BTreeSet::new();
@@ -231,14 +252,73 @@ pub fn stage(
                 ),
             )
         })?;
+        if src.starts_with(&resolved_destination) || resolved_destination.starts_with(&src) {
+            return Err(invalid(format!(
+                "Resource {} overlaps destination {}",
+                entry.name,
+                destination.display()
+            )));
+        }
         inputs.add(&entry.name, &src)?;
     }
-    publish(&inputs, destination)?;
+    publish(&inputs, destination).map_err(|error| {
+        io::Error::new(
+            error.kind(),
+            format!(
+                "Cannot publish resources to {}: {error}",
+                destination.display()
+            ),
+        )
+    })?;
     Ok(Staged {
         directory: destination.to_owned(),
         names: inputs.files.into_keys().collect(),
         inputs: inputs.paths,
     })
+}
+
+fn same_file(first: &Path, second: &Path) -> io::Result<bool> {
+    use std::io::BufRead;
+    let meta = match fs::metadata(second) {
+        Ok(meta) => meta,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(error),
+    };
+    if !meta.is_file() || fs::metadata(first)?.len() != meta.len() {
+        return Ok(false);
+    }
+    let mut a = io::BufReader::new(fs::File::open(first)?);
+    let mut b = io::BufReader::new(fs::File::open(second)?);
+    loop {
+        let left = a.fill_buf()?;
+        let right = b.fill_buf()?;
+        let count = left.len().min(right.len());
+        if count == 0 {
+            return Ok(left.is_empty() && right.is_empty());
+        }
+        if left[..count] != right[..count] {
+            return Ok(false);
+        }
+        a.consume(count);
+        b.consume(count);
+    }
+}
+
+fn recover_previous(dest: &Path, backup: &Path) -> io::Result<()> {
+    if backup.exists() {
+        if !backup.join(INDEX).is_file() {
+            return Err(invalid(format!(
+                "Resource backup path contains user files: {}",
+                backup.display()
+            )));
+        }
+        if dest.exists() {
+            fs::remove_dir_all(backup)?;
+        } else {
+            fs::rename(backup, dest)?;
+        }
+    }
+    Ok(())
 }
 
 fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
@@ -263,19 +343,7 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
         )));
     }
     let backup = parent.join(format!(".{name}.ewe-resources.previous"));
-    if backup.exists() {
-        if !backup.join(INDEX).is_file() {
-            return Err(invalid(format!(
-                "Resource backup path contains user files: {}",
-                backup.display()
-            )));
-        }
-        if dest.exists() {
-            fs::remove_dir_all(&backup)?;
-        } else {
-            fs::rename(&backup, dest)?;
-        }
-    }
+    recover_previous(dest, &backup)?;
     let stage = tempfile::tempdir_in(parent)?;
     if dest.exists() {
         let list = match fs::read_to_string(dest.join(INDEX)) {
@@ -311,6 +379,30 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
         stage.path().join(INDEX),
         index.into_iter().collect::<Vec<_>>().join("\n"),
     )?;
+    let mut unchanged = same_file(&stage.path().join(INDEX), &dest.join(INDEX))?;
+    if unchanged {
+        for (name, is_directory) in inputs.portable.values() {
+            let path = dest.join(name);
+            let matches = if *is_directory {
+                path.is_dir()
+            } else {
+                same_file(&stage.path().join(name), &path)?
+            };
+            if !matches {
+                unchanged = false;
+                break;
+            }
+        }
+    }
+    if unchanged {
+        return stage.close();
+    }
+    #[cfg(any(target_vendor = "apple", target_os = "linux", target_os = "android"))]
+    if dest.exists() {
+        use rustix::fs::{renameat_with, RenameFlags, CWD};
+        renameat_with(CWD, stage.path(), CWD, dest, RenameFlags::EXCHANGE)?;
+        return stage.close();
+    }
     if dest.exists() {
         fs::rename(dest, &backup)?;
     }
@@ -345,20 +437,22 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
     };
     let package = var("CARGO_MANIFEST_DIR")?;
     let generated = var("OUT_DIR")?;
-    let target = match env::var("EWE_RESOURCE_TARGET")
-        .ok()
-        .as_deref()
-        .unwrap_or(&env::var("CARGO_CFG_TARGET_OS").unwrap_or_default())
-    {
-        "apple" | "ios" => "apple",
-        "android" => "android",
-        "web" | "macos" | "linux" | "windows" | "unknown" => "web",
-        other => return Err(invalid(format!("Unknown resource target {other}"))),
-    };
-    let target = match target {
-        "apple" => Target::Apple,
-        "android" => Target::Android,
-        _ => Target::Web,
+    let target = match env::var("EWE_RESOURCE_TARGET") {
+        Ok(value) => match value.as_str() {
+            "apple" => Target::Apple,
+            "android" => Target::Android,
+            "web" => Target::Web,
+            other => return Err(invalid(format!("Unknown resource target {other}"))),
+        },
+        Err(env::VarError::NotPresent) => match env::var("CARGO_CFG_TARGET_OS")
+            .map_err(|e| invalid(e.to_string()))?
+            .as_str()
+        {
+            "ios" | "tvos" | "watchos" | "visionos" => Target::Apple,
+            "android" => Target::Android,
+            _ => Target::Web,
+        },
+        Err(error) => return Err(invalid(error.to_string())),
     };
     let dest =
         env::var_os("EWE_RESOURCE_DEST").map_or_else(|| generated.join("resources"), PathBuf::from);
