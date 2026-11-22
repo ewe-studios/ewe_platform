@@ -71,6 +71,42 @@ async function boot() {
     const manager = installActionRuntime(ui, { registry, frames, server, local, behaviours, document, onError: report });
     const send = server.send.bind(server);
     const page = document.querySelector("#page");
+    const awaitingReply = new Map();
+    async function reportFailure(bytes, key) {
+        const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+        if (frame.kindType() !== wire.FrameKind.FrameMessage) return;
+        const body = frame.kind(new wire.FrameMessage());
+        for (let i = 0; i < body.messagesLength(); i++) {
+            const error = body.messages(i)?.control()?.error();
+            if (error) {
+                const validation = error.code() === wire.ErrorCode.InvalidInput ? error.message() || "Check the title" : null;
+                await manager.deliverHostPayload("host:uncertain_todo_request", page, { key, validation });
+                return;
+            }
+        }
+    }
+    if (server instanceof WebSocketActionTransport) {
+        const receive = server.onReply;
+        server.onReply = async bytes => {
+            const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+            const ack = frame.kind(new wire.FrameMessage()).ack();
+            const key = awaitingReply.get(ack);
+            awaitingReply.delete(ack);
+            try {
+                if (key) await reportFailure(bytes, key);
+            } catch (error) { report(error); }
+            return receive(bytes);
+        };
+        const disconnect = server.onDisconnect;
+        server.onDisconnect = cause => {
+            const pending = [...awaitingReply.values()];
+            awaitingReply.clear();
+            for (const key of pending) {
+                manager.deliverHostPayload("host:uncertain_todo_request", page, { key }).catch(report);
+            }
+            disconnect(cause);
+        };
+    }
     server.send = async original => {
         const reader = wire.Frame.getRootAsFrame(new wire.ByteBuffer(original));
         if (reader.kindType() !== wire.FrameKind.FrameRequest || !reader.kind(new wire.FrameRequest()).action()) return send(original);
@@ -85,16 +121,14 @@ async function boot() {
         if (!plan) throw Error("Cannot prepare Todo submission");
         if (!plan.request.length) return [];
         try {
+            if (plan.key && server instanceof WebSocketActionTransport) awaitingReply.set(reader.sequenceId(), plan.key);
             const replies = await send(plan.request);
-            if (plan.key && replies.some(bytes => {
-                const response = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
-                const body = response.kind(new wire.FrameMessage());
-                return Array.from({length:body.messagesLength()}, (_,i)=>body.messages(i)).some(message=>message.control()?.error());
-            })) {
-                await manager.deliverHostPayload("host:uncertain_todo_request", page, {key:plan.key});
+            if (plan.key) {
+                for (const bytes of replies) await reportFailure(bytes, plan.key);
             }
             return replies;
         } catch (cause) {
+            awaitingReply.delete(reader.sequenceId());
             if (plan.key) await manager.deliverHostPayload("host:uncertain_todo_request", page, {key:plan.key});
             throw cause;
         }

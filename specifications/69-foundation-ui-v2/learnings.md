@@ -936,3 +936,6 @@ A macro must resolve generated paths through the package that the caller imports
 
 A frozen search can contain a row after its authoritative deletion.
 Use the pending deletion identifier to remove only that row after saving the updated pending requests.
+
+A temporary transport failure and a rejected title need different controls.
+Retry uses the original creation identifier. Editing a rejected title starts a new submission.

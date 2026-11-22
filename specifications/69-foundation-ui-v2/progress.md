@@ -1069,3 +1069,8 @@ The restart test keeps the original creation identifier and displays the pending
 Four Todo action tests and three native dispatch tests pass on macOS.
 Chrome adds, completes, reopens, and deletes a row on the isolated server.
 The JavaScript suite passes 158 tests and skips one. The updated three-host run is pending under #714.
+
+The native restart test now covers a server validation error after retry.
+The app preserves the title, shows the server message, and lets the user edit the rejected submission.
+A corrected title gets a new creation identifier. The pending store removes the rejected entry in the same write.
+All three native dispatch tests pass.

@@ -18,6 +18,8 @@ pub enum PendingChange {
 pub struct Pending {
     pub change: PendingChange,
     pub retry: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub validation: Option<String>,
 }
 
 type Entries = BTreeMap<String, Pending>;
@@ -192,11 +194,23 @@ pub(crate) async fn prepare(
             return Ok((true, Some(entry.change.clone())));
         }
         let change = proposed.ok_or_else(|| error("The pending addition has already finished"))?;
+        if let PendingChange::Add { .. } = change {
+            let correction = todo_store(ctx)?
+                .0
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .correcting
+                .clone();
+            if let Some(previous) = correction {
+                entries.remove(&previous);
+            }
+        }
         entries.insert(
             key.clone(),
             Pending {
                 change: change.clone(),
                 retry: false,
+                validation: None,
             },
         );
         Ok((true, Some(change)))
@@ -223,6 +237,7 @@ pub(crate) async fn prepare(
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
+    state.correcting = None;
     state.add_dialog = false;
     state.delete_target = None;
     state.draft.clear();
@@ -234,12 +249,15 @@ pub(crate) async fn prepare(
     })
 }
 
-pub(crate) async fn failed(ctx: &Context, key: &str) -> ActionResult {
+pub(crate) async fn failed(ctx: &Context, key: &str, validation: Option<String>) -> ActionResult {
     let changed = change_pending(ctx, |entries| {
         let Some(entry) = entries.get_mut(key) else {
             return Ok((false, false));
         };
         entry.retry = true;
+        if validation.is_some() && matches!(entry.change, PendingChange::Add { .. }) {
+            entry.validation = validation;
+        }
         Ok((true, true))
     })
     .await?;
@@ -331,6 +349,7 @@ pub(super) async fn prepare_todo_request(
 #[derive(Deserialize)]
 pub(super) struct FailedRequest {
     key: String,
+    validation: Option<String>,
 }
 
 #[foundation_ui_runtime::action(host, web)]
@@ -338,5 +357,5 @@ pub(super) async fn uncertain_todo_request(
     ctx: &Context,
     event: foundation_ui_runtime::action::Interaction<(), FailedRequest>,
 ) -> ActionResult {
-    failed(ctx, &event.input_value.key).await
+    failed(ctx, &event.input_value.key, event.input_value.validation).await
 }

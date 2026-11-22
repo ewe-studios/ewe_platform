@@ -162,10 +162,26 @@ async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
             let frame = read_frame(&request, &WireLimits::default()).unwrap();
             let action = frame.kind_as_frame_request().unwrap().action().unwrap();
             let payload = action.input().unwrap().json().unwrap().bytes();
-            self.0
-                .lock()
-                .unwrap()
-                .push(serde_json::from_slice(payload).unwrap());
+            let mut requests = self.0.lock().unwrap();
+            requests.push(serde_json::from_slice(payload).unwrap());
+            if requests.len() == 2 {
+                let mut error = foundation_ui_wire::ActionErrorT::default();
+                error.code = foundation_ui_wire::ErrorCode::InvalidInput;
+                error.message = Some("Choose another title".into());
+                let header = foundation_ui_wire::writer::FrameHeader {
+                    stream_id: frame.stream_id(),
+                    sequence_id: 1,
+                    ack: frame.sequence_id(),
+                };
+                return Ok(Some(
+                    foundation_ui_wire::writer::write_error(
+                        &error,
+                        header,
+                        &WriterConfig::default(),
+                    )
+                    .unwrap(),
+                ));
+            }
             Err(CoreError::Transport {
                 detail: "Offline".into(),
             })
@@ -231,8 +247,38 @@ async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
     assert!(response.is_err() || response.unwrap().is_some());
     assert_eq!(
         transport.0.lock().unwrap().as_slice(),
-        &[payload.clone(), payload]
+        &[payload.clone(), payload.clone()]
     );
+    drop(next);
+    let corrected = open();
+    let first = operations(&initial_todo_frame(corrected.clone()).await.unwrap());
+    assert!(shows(&first, "Choose another title"));
+    assert!(shows(&first, "Edit title"));
+    let sheet = trigger(
+        &corrected,
+        &first,
+        "host:open_add_dialog",
+        &format!("correct-add:{key}"),
+    )
+    .await;
+    let (node_id, _) = binding(&sheet, "server:add_todo");
+    let event = EventInput {
+        node_id,
+        event_name: "submit".into(),
+        value: "Corrected title".into(),
+        ..EventInput::receiving_view()
+    };
+    assert!(corrected
+        .trigger("server:add_todo".into(), event)
+        .await
+        .is_err());
+    let requests = transport.0.lock().unwrap();
+    assert_eq!(requests[2]["title"], "Corrected title");
+    assert_ne!(requests[2]["creation_id"], payload["creation_id"]);
+    let saved: std::collections::BTreeMap<String, ui_todo::Pending> =
+        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(saved.len(), 1);
+    assert!(!saved.contains_key(&format!("add:{key}")));
 }
 
 #[valtron_test]
@@ -242,6 +288,7 @@ async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
     let removal = ui_todo::Pending {
         change: ui_todo::PendingChange::Delete { id: 1 },
         retry: false,
+        validation: None,
     };
     std::fs::write(
         &path,

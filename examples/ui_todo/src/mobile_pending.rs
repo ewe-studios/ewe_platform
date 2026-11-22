@@ -87,23 +87,31 @@ impl HostTransport for Sender {
             return Ok(None);
         };
         let result = self.transport.send(request).await;
-        let uncertain = match &result {
-            Err(_) => true,
-            Ok(Some(bytes)) => read_frame(bytes, &WireLimits::default()).is_ok_and(|frame| {
-                frame
+        let failure = match &result {
+            Err(_) => Some(None),
+            Ok(Some(bytes)) => match read_frame(bytes, &WireLimits::default()) {
+                Err(_) => Some(None),
+                Ok(frame) => frame
                     .kind_as_frame_message()
                     .and_then(|body| body.messages())
-                    .is_some_and(|messages| {
-                        messages
-                            .iter()
-                            .any(|message| message.control().and_then(|c| c.error()).is_some())
-                    })
-            }),
-            Ok(None) => false,
+                    .and_then(|messages| {
+                        messages.iter().find_map(|message| {
+                            let error = message.control()?.error()?;
+                            Some(
+                                (error.code() == foundation_ui_wire::ErrorCode::InvalidInput).then(
+                                    || error.message().unwrap_or("Check the title").to_owned(),
+                                ),
+                            )
+                        })
+                    }),
+            },
+            Ok(None) => None,
         };
-        if let Some(key) = plan.key.filter(|_| uncertain) {
+        if let (Some(key), Some(validation)) = (plan.key, failure) {
             let context = Context::for_render_on(self.ctx.clone(), MountSurface::Native);
-            outbox::failed(&context, &key).await.map_err(failed)?;
+            outbox::failed(&context, &key, validation)
+                .await
+                .map_err(failed)?;
             self.publish(context)?;
         }
         result

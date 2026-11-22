@@ -57,6 +57,7 @@ struct StoreState {
     query: String,
     pending: std::collections::BTreeMap<String, Pending>,
     search_rows: Option<Vec<Todo>>,
+    correcting: Option<String>,
     add_dialog: bool,
     delete_target: Option<u64>,
     draft: String,
@@ -238,7 +239,15 @@ fn list(state: &TodoApp) -> Html {
 }
 
 fn pending_row(title: &str, status: &str, pending: &Pending) -> Html {
-    let retry = if pending.retry {
+    let validation = pending.validation.as_deref();
+    let retry = if validation.is_some() {
+        match &pending.change {
+            PendingChange::Add { creation_id, .. } => Some(
+                html! {<Button value={format!("correct-add:{creation_id}")} on:tap={open_add_dialog}>Edit title</Button>},
+            ),
+            PendingChange::Delete { .. } => None,
+        }
+    } else if pending.retry {
         Some(match &pending.change {
             PendingChange::Add { creation_id, .. } => {
                 html! {<Button value={format!("retry-add:{creation_id}")} on:tap={add_todo}>Try again</Button>}
@@ -250,6 +259,7 @@ fn pending_row(title: &str, status: &str, pending: &Pending) -> Html {
     } else {
         None
     };
+    let status = validation.unwrap_or(status);
     html! {<ChecklistRow class="animate-pulse opacity-70"><Text>{title}</Text><Text>{status}</Text>{retry}</ChecklistRow>}
 }
 
@@ -355,12 +365,26 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
 }
 
 #[action(host)]
-async fn open_add_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
+async fn open_add_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult {
     let store = todo_store(ctx)?;
     let mut cache = store
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.correcting = None;
+    if let Some(id) = event.input_value.strip_prefix("correct-add:") {
+        let key = format!("add:{id}");
+        let Some(Pending {
+            change: PendingChange::Add { title, .. },
+            validation: Some(_),
+            ..
+        }) = cache.pending.get(&key)
+        else {
+            return Err(error("This submission is no longer pending"));
+        };
+        cache.draft = title.clone();
+        cache.correcting = Some(key);
+    }
     cache.add_dialog = true;
     cache.delete_target = None;
     dialog(ctx, &cache.snapshot())
@@ -376,6 +400,7 @@ async fn open_delete_dialog(ctx: &Context, event: Interaction<()>) -> ActionResu
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.correcting = None;
     cache.add_dialog = false;
     cache.delete_target = Some(id);
     dialog(ctx, &cache.snapshot())
@@ -387,6 +412,7 @@ async fn close_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.correcting = None;
     cache.add_dialog = false;
     cache.delete_target = None;
     cache.draft.clear();
@@ -664,7 +690,10 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
     let input = event.input_value;
     let title = input.title.trim();
     if title.is_empty() {
-        return Err(error("Enter a todo title"));
+        return Err(ErrorTrace::new(ActionError::new(
+            ErrorCode::InvalidInput,
+            "Enter a todo title",
+        )));
     }
     let store = todo_store(ctx)?;
     let mut state = store
@@ -677,9 +706,10 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         .and_then(|id| state.creations.get_key_value(id))
     {
         if receipt.submitted_title != input.title {
-            return Err(error(
+            return Err(ErrorTrace::new(ActionError::new(
+                ErrorCode::InvalidInput,
                 "The creation identifier already belongs to a different submission",
-            ));
+            )));
         }
         let (position, change) = match state.removed.get(&receipt.item.id) {
             Some(position) => {
@@ -704,6 +734,7 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         done: false,
     };
     let delivery = commit(ctx, &mut state, RecordChange::Upsert(item.clone()))?;
+    let legacy = input.creation_id.is_none();
     if let Some(key) = input.creation_id {
         let position = state.position;
         state.creations.insert(
@@ -716,10 +747,12 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         );
     }
     delivery.send(ctx)?;
-    TodoDelivery::Added {
-        submitted_title: title.to_owned(),
+    if legacy {
+        TodoDelivery::Added {
+            submitted_title: title.to_owned(),
+        }
+        .send(ctx)?;
     }
-    .send(ctx)?;
     ctx.receiver().data_in_view(b"\xabhost:notify".to_vec());
     Ok(())
 }
