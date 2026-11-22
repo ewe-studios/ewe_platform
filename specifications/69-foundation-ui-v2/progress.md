@@ -1174,3 +1174,5 @@ Feature 32 extends the simplification review to the entire shared Todo directory
 Feature 27 requires one deployed JavaScript entry and one framework resource handler. The current per-file routes await replacement.
 
 Feature 37 consolidates the Todo redesign. The production startup branches still exist. Implementation and acceptance checks remain open.
+
+Feature 37 now assigns browser startup, storage adapters, and transport wiring to their framework owners. Implementation remains open.

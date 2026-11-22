@@ -87,6 +87,41 @@ The submitting host renders pending work before waiting for the server.
 - Share one registration list and page declaration. Use receiving views and named elements. Keep dialog, draft, search, and filter state on the host.
 - Keep the confirmed count consistent with the host cache. The independent count screen retains its server-rendered demonstration.
 
+## Browser startup and storage
+
+The browser runtime provides the public loader, application builder, and boot operation.
+The Rust browser adapter belongs in `foundation_wasm_ui`. Browser key-value providers belong in `foundation_db`.
+Use the existing memory provider where supported. Supply browser adapters for localStorage and IndexedDB with the same typed storage operations.
+The host chooses the provider and namespace. Propagate denied access, quota errors, and failed transactions to the caller.
+Support read, write, remove, and prefix listing. Verify persistent entries survive reload and memory entries expire with the host.
+Use platform storage transactions where concurrent updates require them. Test independent writes from two tabs.
+
+The proposed application startup shape is:
+
+```js
+const module = await loadWasm("/module.wasm");
+const app = createApp({ module, mount, initialRoute, storage });
+await app.boot();
+```
+
+1. The loader checks response status before compiling. Return a typed load error for missing, malformed, or incompatible modules.
+2. Boot supplies imports, attaches memory, installs the Rust host context and selected services, and registers the application's declared actions.
+3. The application supplies its mount, initial route, typed delivery action, and optional capabilities through configuration.
+4. Use the default transport or register a custom transport before boot. Applications supply endpoint choices through configuration.
+5. The runtime owns the handshake, frames, socket acknowledgements, request correlation, disconnect handling, initial load, and recovery.
+6. Accept serializable JavaScript values and typed Rust action inputs. Keep transport errors available through the public action call.
+7. Dispose partial startup on failure. Repeated startup must not register duplicate handlers or leave open connections.
+
+Remove Todo-specific storage imports, pointer callbacks, numeric scope translation, and prepared-request callbacks from `src/web.rs`.
+Remove manual module instantiation, frame inspection, send overrides, and socket callback replacement from `web/app.js`.
+The framework can use native browser bindings internally. Application authors use its public interfaces.
+
+Test a missing module, a successful response containing an error page, and an invalid WebAssembly binary.
+Verify that no host starts after a load failure. Preserve the request address and the available status or compiler cause.
+Boot a minimal external app with the default transport. Repeat with a registered custom transport.
+Verify typed local and remote actions, retry, reconnect, and view recovery without editing the transport instance.
+Verify the deployed Todo entry still requests one JavaScript file.
+
 ## Required verification
 
 1. Start the full server against a new store. Add a record, stop the process, and reopen the same path.
