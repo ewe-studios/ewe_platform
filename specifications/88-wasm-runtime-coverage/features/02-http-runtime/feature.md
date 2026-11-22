@@ -18,7 +18,7 @@ tasks:
 
 # HTTP Runtime
 
-_Status: **todo**, feature 02 of spec 88. Written in ASD-STE100 Simplified Technical English
+_Status: **done and merged** as `c12e94aec`, feature 02 of spec 88. Written in ASD-STE100 Simplified Technical English
 (STE). Code and identifiers stay as they are._
 
 **Abbreviations.** Cloudflare (CF); JavaScript (JS); WebAssembly (wasm); Web standard (web);
