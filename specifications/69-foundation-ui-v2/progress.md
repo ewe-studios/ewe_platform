@@ -943,3 +943,23 @@ These checks complete the two remaining directions in the six-direction test.
 Issues #693 and #698 contain the results and are closed.
 After the test, the iPhone simulator connects to the regular server on port 8080.
 The restored screen shows five open todos.
+
+### 2026-11-22 — Integration with master
+
+The local candidate merges preview `dc3776fa4` and master `17e64db06`.
+Its merge commits are `d2cce054e` and `1307ac73a`.
+The review covers 96 package manifests, 12 lockfiles, four Rust files, and one workflow.
+All 118 workspace packages resolve with the locked versions.
+All local version requirements match their workspace packages.
+The workflow retains all 11 changed feature steps and all seven changed master steps.
+
+- Issue #702 covers the clock methods on the action context. The repository check now recognizes these approved methods.
+- Issue #703 covers the native error derives. The error types retain their names, variants, and message text.
+- Issue #704 covers development dependencies. The repository check now counts error traces in test sources.
+- Issue #705 covers the graphics error derives. The graphics service uses the workspace derives.
+
+All 131 infrastructure tests pass. The browser script suites pass 172 tests and skip one.
+The native, wire, web handler, and remote call suites pass 129 tests and ignore one documentation example.
+The keychain and graphics suites pass 85 tests. A separate macOS run passes all three graphics hardware tests.
+The action context test passes for the forwarded clock methods.
+The broader macro and runtime fixture suites continue on this candidate.

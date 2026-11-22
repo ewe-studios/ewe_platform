@@ -70,6 +70,18 @@ class CheckErrStacks(unittest.TestCase):
             self.assertEqual(result.returncode, 1, result.stdout)
             self.assertIn("never uses ErrorTrace", result.stdout)
 
+    def test_test_sources_can_use_a_development_dependency(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = "backends/demo/Cargo.toml"
+            dependency = 'foundation_errstacks = "0.0.4"\n'
+            write(root, manifest, "[dev-dependencies]\n" + dependency)
+            self.assertEqual(run(root).returncode, 1)
+            write(root, "backends/demo/tests/error.rs", "use foundation_errstacks::ErrorTrace;")
+            self.assertEqual(run(root).returncode, 0)
+            write(root, manifest, "[dependencies]\n" + dependency)
+            self.assertEqual(run(root).returncode, 1)
+
     def test_used_errstacks_passes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -6,8 +6,8 @@ its fallible API returns `Result<T, ErrorTrace<CrateError>>`, where
 `CrateError` is a `derive_more` enum. Two conditions fail this check:
 
 1. A crate manifest names `thiserror`.
-2. A crate manifest names `foundation_errstacks`, but no file under the
-   crate's `src/` uses `ErrorTrace`.
+2. A crate declares `foundation_errstacks` but its sources do not use `ErrorTrace`.
+   A dependency for tests can appear in tests, examples, or benchmarks.
 
 `foundation_boringtun` is skipped by name: it is a published BSD-3-Clause
 fork of Cloudflare's boringtun. It keeps `thiserror` and the upstream error
@@ -22,7 +22,7 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
-import re
+import tomllib
 import sys
 from pathlib import Path
 
@@ -31,12 +31,6 @@ MANIFEST_GLOBS = ("backends/*/Cargo.toml", "crates/*/Cargo.toml")
 
 # The published upstream fork keeps thiserror and its error shape.
 SKIP = {"foundation_boringtun"}
-
-THISERROR_DEP = re.compile(r"^\s*thiserror\s*=")
-THISERROR_TABLE = re.compile(r"^\s*\[(?:[^\]]*\.)?thiserror\]\s*$")
-ERRSTACKS_DEP = re.compile(r"^\s*foundation_errstacks\s*=")
-ERRSTACKS_TABLE = re.compile(r"^\s*\[(?:[^\]]*\.)?foundation_errstacks\]\s*$")
-
 
 def manifests(root: Path):
     for pattern in MANIFEST_GLOBS:
@@ -49,8 +43,15 @@ def uses_errstacks(src: Path) -> bool:
     return any("ErrorTrace" in path.read_text(errors="replace") for path in src.rglob("*.rs"))
 
 
-def declares(lines: list[str], dependency: re.Pattern[str], table: re.Pattern[str]) -> bool:
-    return any(dependency.match(line) or table.match(line) for line in lines)
+def dependency_scopes(manifest: dict, package: str) -> set[str]:
+    scopes = set()
+    for group in (manifest, *manifest.get("target", {}).values()):
+        for scope in ("dependencies", "dev-dependencies", "build-dependencies"):
+            for name, options in group.get(scope, {}).items():
+                actual = options.get("package", name) if isinstance(options, dict) else name
+                if actual == package:
+                    scopes.add(scope)
+    return scopes
 
 
 def violations(root: Path) -> list[str]:
@@ -60,15 +61,18 @@ def violations(root: Path) -> list[str]:
         if crate in SKIP:
             continue
         rel = manifest.relative_to(root).as_posix()
-        lines = manifest.read_text(errors="replace").splitlines()
-        if declares(lines, THISERROR_DEP, THISERROR_TABLE):
+        config = tomllib.loads(manifest.read_text())
+        if dependency_scopes(config, "thiserror"):
             found.append(f"{rel}: declares thiserror (use foundation_errstacks)")
-        if declares(lines, ERRSTACKS_DEP, ERRSTACKS_TABLE) and not uses_errstacks(
-            manifest.parent / "src"
-        ):
-            found.append(
-                f"{rel}: declares foundation_errstacks but src/ never uses ErrorTrace"
-            )
+        scopes = dependency_scopes(config, "foundation_errstacks")
+        if not scopes:
+            continue
+        sources = ["src"]
+        if scopes == {"dev-dependencies"}:
+            sources.extend(("tests", "examples", "benches"))
+        if not any(uses_errstacks(manifest.parent / source) for source in sources):
+            names = ", ".join(f"{source}/" for source in sources)
+            found.append(f"{rel}: declares foundation_errstacks but {names} never uses ErrorTrace")
     return sorted(found)
 
 

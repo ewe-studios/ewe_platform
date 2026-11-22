@@ -851,3 +851,14 @@ Text recognition can misread that title. Inspect the screenshot to verify the co
 The simulator keeps the test server address until the next app launch.
 After an isolated test, launch the app with the regular server address.
 Verify that the saved list appears before ending the test.
+
+### Review the master merge
+
+Check a resolved package dependency against the version of its local crate.
+The two branches can update the same crate to different versions.
+The higher shared version can satisfy both branches.
+Compare the workflow steps by job. A valid workflow can omit a step from one branch.
+The wire crate uses the error trace library in its tests. Its production code does not need that dependency.
+Cargo accepts dotted dependency keys. A manifest check must recognize them.
+The error derive treats a single unnamed field as a source by default.
+The graphics text fields contain diagnostic messages. Mark these fields as messages to keep the original error behavior.

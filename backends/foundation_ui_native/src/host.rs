@@ -29,25 +29,25 @@ impl From<EventInput> for TriggerEvent {
     }
 }
 
-#[derive(uniffi::Error, Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[derive(uniffi::Error, Debug, Clone, PartialEq, Eq, derive_more::Display, derive_more::Error)]
 pub enum CoreError {
-    #[error("Invalid action reference: {detail}")]
+    #[display("Invalid action reference: {detail}")]
     BadReference { detail: String },
-    #[error("Unknown action: {reference}")]
+    #[display("Unknown action: {reference}")]
     UnknownAction { reference: String },
-    #[error("Unsupported action: {reference}")]
+    #[display("Unsupported action: {reference}")]
     UnsupportedAction { reference: String },
-    #[error("Unavailable origin: {origin}")]
+    #[display("Unavailable origin: {origin}")]
     UnavailableOrigin { origin: String },
-    #[error("{detail}")]
+    #[display("{detail}")]
     Transport { detail: String },
-    #[error("No frame listener")]
+    #[display("No frame listener")]
     NoListener,
-    #[error("{detail}")]
+    #[display("{detail}")]
     Write { detail: String },
-    #[error("Invalid input: {detail}")]
+    #[display("Invalid input: {detail}")]
     InvalidInput { detail: String },
-    #[error("The peer did not negotiate structured action input")]
+    #[display("The peer did not negotiate structured action input")]
     UnsupportedInput,
 }
 
@@ -96,11 +96,11 @@ pub trait FrameListener: Send + Sync {
     fn on_frame(&self, frame: Vec<u8>);
 }
 /// Reports a failure to obtain the native sender for a named service.
-#[derive(uniffi::Error, thiserror::Error, Debug)]
+#[derive(uniffi::Error, derive_more::Display, derive_more::Error, Debug)]
 pub enum ServiceError {
-    #[error("Unknown service {name}")]
+    #[display("Unknown service {name}")]
     UnknownService { name: String },
-    #[error("Cannot open service: {detail}")]
+    #[display("Cannot open service: {detail}")]
     Unavailable { detail: String },
 }
 

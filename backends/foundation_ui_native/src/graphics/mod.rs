@@ -7,25 +7,25 @@ mod target;
 #[cfg(target_os = "android")]
 mod vulkan;
 
-#[derive(Debug, thiserror::Error, Clone, uniffi::Error)]
+#[derive(Debug, derive_more::Display, derive_more::Error, Clone, uniffi::Error)]
 pub enum GraphicsError {
-    #[error("The host denied the graphics request")]
+    #[display("The host denied the graphics request")]
     Denied,
-    #[error("Graphics service unavailable: {reason}")]
+    #[display("Graphics service unavailable: {reason}")]
     Unavailable { reason: String },
-    #[error("The device does not support the requested features or limits")]
+    #[display("The device does not support the requested features or limits")]
     Unsupported,
-    #[error("The graphics device was lost")]
+    #[display("The graphics device was lost")]
     DeviceLost,
-    #[error("The surface has been removed")]
+    #[display("The surface has been removed")]
     StaleSurface,
-    #[error("The device cannot use this surface")]
+    #[display("The device cannot use this surface")]
     IncompatibleSurface,
-    #[error("The surface is suspended")]
+    #[display("The surface is suspended")]
     Suspended,
-    #[error("The service stopped")]
+    #[display("The service stopped")]
     Cancelled,
-    #[error("Graphics operation failed: {reason}")]
+    #[display("Graphics operation failed: {reason}")]
     Operation { reason: String },
 }
 impl From<GpuError> for GraphicsError {

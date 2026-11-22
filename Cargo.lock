@@ -6618,6 +6618,7 @@ version = "0.1.0"
 dependencies = [
  "ash",
  "async-channel",
+ "derive_more",
  "foundation_compact",
  "foundation_context",
  "foundation_errstacks",
@@ -6630,7 +6631,6 @@ dependencies = [
  "objc2-metal",
  "rand_core 0.10.1",
  "serde",
- "thiserror 2.0.19",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -6665,6 +6665,7 @@ dependencies = [
  "ash",
  "async-channel",
  "async-trait",
+ "derive_more",
  "foundation_connectrpc",
  "foundation_context",
  "foundation_core",
@@ -6680,7 +6681,6 @@ dependencies = [
  "ndk",
  "objc2",
  "objc2-metal",
- "thiserror 2.0.19",
  "uniffi",
 ]
 
