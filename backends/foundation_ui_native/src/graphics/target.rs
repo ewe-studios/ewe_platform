@@ -32,7 +32,7 @@ impl Target {
             .map_err(|e| GpuError::Operation(e.to_string()));
         #[cfg(not(any(target_vendor = "apple", target_os = "android")))]
         {
-            let _ = instance;
+            let _ = (self, instance);
             Err(GpuError::IncompatibleSurface)
         }
     }

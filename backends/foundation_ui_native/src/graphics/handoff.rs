@@ -71,6 +71,7 @@ pub struct NativeDeviceGrant {
 }
 type Import = Box<dyn FnOnce() -> Result<ImportedDevice, LeaseError> + Send>;
 impl NativeDeviceGrant {
+    #[cfg(any(target_vendor = "apple", target_os = "android"))]
     pub(crate) fn new(import: Import) -> Self {
         Self {
             import: Mutex::new(Some(import)),
