@@ -1,5 +1,26 @@
 # Spec 69 progress
 
+## Resume after the external drive copy
+
+Use `69-foundation-ui-v2` for Specification 69. Commit `b0215cfcf` contains the todo sync repair.
+Commit `1641f0aa0` records the separate Specification 79 edit.
+
+1. Test Android as the source of a todo change. Connect Chrome and an iPhone to the same test server.
+2. Add, complete, reopen, and delete a todo on Android. Check the row on both peers after each action.
+3. Record the results in issues #693 and #698. The earlier run covers the other four directions and replay on all three clients.
+4. Review the graphics worker fix on `fix/696-gpu-worker-shutdown` at `35939b13e`. Native Linux Arm verification remains open.
+5. Review Specification 90 on `90-foundation-tasks` at `622c8b71b`. Its process tests still reference Tokio.
+6. Verify the Valtron replacement before integration. The owner requires Valtron for background work.
+7. Merge the reviewed branches into `69-foundation-ui-v2`. Then fetch and merge the latest master.
+
+Branch `checkpoint/69-master-preview` at `dc3776fa` contains an unverified trial merge. It predates the sync and task checkpoints.
+All three work agents stopped after pushing their branches.
+
+The external project root is `/Volumes/Outside/Dev/ewe_platform`.
+The copy preserves absolute Git links in existing worktrees. These links still point to the internal drive.
+Create a separate worktree from the external project root before editing a feature branch there.
+
+
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
