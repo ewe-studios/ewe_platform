@@ -22,13 +22,14 @@ The candidate records the final checksum and Swift tag revision.
 If the build produces a different archive, the release changes only the checksum in a separate Swift commit.
 
 ```sh
+cargo install --locked --path backends/foundation_ui_native --features tasks --bin native-task
 mise run toolchain:android
-scripts/ui_native/sync-ios.sh --check
-scripts/ui_native/sync-android.sh --check
+native-task task run native:bindings:sync-ios --check
+native-task task run native:bindings:sync-android --check
 python3 scripts/ui/check_behaviours.py ios
 python3 scripts/ui/check_behaviours.py android
-scripts/ui_native/release/prepare.sh --config release/native-ui.toml --output dist/native-ui
-scripts/ui_native/release/verify.sh --candidate dist/native-ui --templates both
+native-task task run native:release:prepare --config release/native-ui.toml --output dist/native-ui
+native-task task run native:release:verify --candidate dist/native-ui --templates both
 ```
 
 The prepare command validates the Apple archive, Maven archives and Maven dependency declarations.
@@ -39,11 +40,11 @@ The public Android check uses a fresh Gradle cache.
 Run the package-only Android starter on an emulator with the local Maven candidate.
 
 ```sh
-mise exec -- scripts/ui_native/release/test-android-starter.sh --maven "$PWD/target/native-ui/maven"
+mise exec -- native-task task run native:release:test-android-starter --maven "$PWD/target/native-ui/maven"
 ```
 
 Omit `--maven` to resolve the release version from Maven Central.
-The script creates a temporary Android 36 emulator and starts the Rust todo host.
+The task creates a temporary Android 36 emulator and starts the Rust todo host.
 It checks the visible count, adds one todo through the public action endpoint, and taps **Refresh**.
 The test passes when the count changes from zero to one.
 Linux runners need read and write access to `/dev/kvm` for hardware acceleration.
@@ -52,7 +53,7 @@ Run the same count check on an iPhone simulator with Xcode and an installed iOS 
 Point the local Swift package at the candidate archive before the test.
 
 ```sh
-mise exec -- scripts/ui_native/release/test-ios-starter.sh --local-package "$PWD"
+mise exec -- native-task task run native:release:test-ios-starter --local-package "$PWD"
 ```
 
 Omit `--local-package` to test the published Swift package. The script removes its temporary simulator after the test.
@@ -69,13 +70,13 @@ Protect the `native-ui-release` environment in GitHub. Configure these environme
 | `NATIVE_GPG_FINGERPRINT` (environment variable) | Select the signing key. |
 | `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | Authenticate with a Central Portal user token for the verified Maven namespace. |
 
-Run the manual workflow to build a read-only preview. A tag such as `native-ui-v0.1.0` runs the protected publication job.
+Run the manual workflow to build a read-only preview. A tag such as `native-ui-v0.1.1` runs the protected publication job.
 Keep the signed workflow artifact for a retry. The release command compares each existing tag and asset before writing.
 A Central deployment receipt on the draft release records the deployment identifier. The command resumes that deployment after an interruption.
 
 ```sh
-scripts/ui_native/release/publish.sh --candidate /path/to/signed-candidate --resume
-scripts/ui_native/release/verify.sh --candidate /path/to/signed-candidate --templates both --public
+native-task task run native:release:publish --candidate /path/to/signed-candidate --resume
+native-task task run native:release:verify --candidate /path/to/signed-candidate --templates both --public
 ```
 
 The release job publishes the Apple archive, Android bundle and manifest on GitHub.
@@ -87,13 +88,13 @@ SwiftPM can resolve the tag directly. Follow the portal procedure if Central rep
 Add the Swift package by its exact version. Import `EweUI` in the application.
 
 ```swift
-.package(url: "https://github.com/ewe-studios/ewe_platform.git", exact: "0.1.0")
+.package(url: "https://github.com/ewe-studios/ewe_platform.git", exact: "0.1.1")
 ```
 
 Add `google()` and `mavenCentral()` to the Android repositories. Add the renderer dependency.
 
 ```kotlin
-implementation("io.github.ewe-studios:ewe-ui:0.1.0")
+implementation("io.github.ewe-studios:ewe-ui:0.1.1")
 ```
 
 The renderer pulls the binding and core modules. The package-only starters call a remote Rust action.

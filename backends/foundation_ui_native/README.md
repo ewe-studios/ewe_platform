@@ -74,8 +74,8 @@ The optional `app` feature supplies `CoreSink` for local signals.
 Run these commands from the workspace root.
 
 ```sh
-scripts/ui_native/generate-bindings.sh --out target/native-ui/bindings
-scripts/ui_native/generate-bindings.sh --check --out target/native-ui/bindings
+native-task task run native:bindings:generate --out target/native-ui/bindings
+native-task task run native:bindings:generate --check --out target/native-ui/bindings
 cargo test --profile uat -p foundation_ui_native --features app
 cargo check --profile uat -p foundation_ui_native --lib --target aarch64-apple-ios
 cargo check --profile uat -p foundation_ui_native --lib --target aarch64-linux-android

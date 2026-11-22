@@ -1,6 +1,6 @@
 # Feature 32. Target views and elements by name
 
-The framework placement stages and count migration are complete. The remaining Todo target migration awaits approval.
+The framework placement stages and count migration are complete. The Todo agent owns the remaining target migration under issue #714.
 
 ## Glossary
 
@@ -137,6 +137,8 @@ Each action has one owner and one purpose.
 
 Build the initial page once. Give each addressed element a name in the shared markup.
 Use one dialog builder. Its inputs select the dialog kind and the affected todo record.
+Use declarative controls such as `Either` to select visible content. Keep each action binding in one place.
+The closed, add, and delete states share the named dialog area. Only deletion carries a target record.
 Submitting a title records a pending row before sending the server action `add_todo`. Bind deletion confirmation to `confirm_delete`. Bind cancellation to `close_dialog`.
 Remove the duplicate device mutation handlers and their registrations.
 Remove the `local` argument and the `OnDevice` checks from page, row, dialog, filter, and mutation code.

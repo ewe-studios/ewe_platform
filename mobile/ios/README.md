@@ -28,7 +28,7 @@ Ewe UI draws portable wire frames with SwiftUI. A frame contains the complete ch
 Add this dependency to a Swift package. Xcode also accepts the same package address and version.
 
 ```swift
-.package(url: "https://github.com/ewe-studios/ewe_platform.git", exact: "0.1.0")
+.package(url: "https://github.com/ewe-studios/ewe_platform.git", exact: "0.1.1")
 ```
 
 Add the `EweUI` product to your iOS application. SwiftPM checks the archive checksum and links the native library. The example uses a local release candidate until the public tag is available.
@@ -46,7 +46,7 @@ struct Home: View {
 }
 ```
 
-The starter uses the server registry for all business actions. Open `examples/mobile_starter/ios/Starter.xcodeproj` for a complete application. Its package reference points to version 0.1.0.
+The starter uses the server registry for all business actions. Open `examples/mobile_starter/ios/Starter.xcodeproj` for a complete application. Its package reference points to version 0.1.1.
 
 The server accepts the native hello at `POST /action` and returns its capabilities. The initial route returns one EWF1 frame. A tap sends the registered action name, control identifier, input value and attached state. The server returns its render instructions. Each HTTP action response starts with a four-byte little-endian frame length.
 
@@ -118,7 +118,7 @@ Change the Rust fixture builder first. Run the reference tests with `UPDATE_FIXT
 
 ```sh
 cargo test -p foundation_ui_wire --profile uat --features reference
-scripts/ui_native/sync-ios.sh --check
+native-task task run native:bindings:sync-ios --check
 swift test
 ```
 
@@ -202,7 +202,7 @@ rustup target add aarch64-apple-ios-sim  # Apple silicon simulator
 rustup target add x86_64-apple-ios      # Intel
 ```
 
-From the repository root, run `scripts/ui_native/prepare-ios-todo.sh`.
+From the repository root, run `native-task task run native:todo:prepare-ios`.
 The script builds a device and simulator package with the reusable renderer and the todo bridge.
 The bridge links to the same native core in one archive.
 
@@ -213,7 +213,7 @@ The bridge links to the same native core in one archive.
 Build and test the library at the repository root.
 
 ```sh
-scripts/ui_native/build-ios.sh
+native-task task run native:build-ios
 mkdir -p .build-inputs
 unzip -o target/native-ui/apple/EweCoreFFI.xcframework.zip -d .build-inputs
 swift test
@@ -297,7 +297,7 @@ WebSocket mounts share by default. Set the attribute to `"false"` for a dedicate
 Use `data-connection-keep-alive="true"` to keep a connection open between listeners. A listener can request replay from its own cursor.
 
 Run the package tests and the server example on an iPhone simulator.
-Set `TEST_RUNNER_EWE_TODO_SOCKET=1` when running `scripts/ui_native/test-ios-todo.sh <simulator-id>`.
+Set `TEST_RUNNER_EWE_TODO_SOCKET=1` when running `native-task task run native:todo:test-ios <simulator-id>`.
 
 Streamed HTTP also accepts a separate resume request. The original response delivers length-prefixed frames.
 The native integration tests request an expired cursor over SSE, streamed HTTP, and WebSocket. Each checks the subscription identifier.
@@ -305,15 +305,14 @@ The native integration tests request an expired cursor over SSE, streamed HTTP, 
 ## Register a named view
 
 ```swift
-try store.registerView("editor", root: 7)
-let editor = store.viewStore(named: "editor")
-let accepted = store.receive(frame, at: 7)
+let editor = try store.registerView("editor")
+let accepted = editor.receive(frame)
 try store.unregisterView("editor")
 ```
 
 An append with no target adds a child to the receiving view. A full view replaces its content.
 Use `view#editor` to select that root. Use `sheet#details` to check the shared element type before replacement.
-A custom control can call `try editor?.registerElement("details", tag: "InvoiceEditor", node: id)`.
+A custom control can call `try editor.registerElement("details", tag: "InvoiceEditor", node: id)`.
 Render the named view with its own store. Each store owns its node identifiers and stream positions.
 Closing one view releases its listeners and children. Other views keep their content and positions.
 

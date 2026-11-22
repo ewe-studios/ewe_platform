@@ -35,21 +35,24 @@ The `--data-only` mode skips the module check.
 | `open_add_dialog` | Host | Shows the form and focuses the title field. |
 | `open_delete_dialog` | Host | Opens a confirmation dialog for the selected identifier. |
 | `close_dialog` | Host | Closes the dialog. |
-| `filter_todos` | Host | Renders the selected rows from the input's signed snapshot. |
+| `search_todos` | Host | Filters cached titles when the query changes. |
+| `edit_draft` | Host | Saves the current title while the dialog is open. |
+| `filter_todos` | Host | Renders selected rows from the local cache. |
 | `add_todo` | Server | Checks the submitted title, appends one item and sends a notification. |
 | `toggle_todo` | Server | Finds the item in the current list and changes its completion status. |
-| `confirm_delete` | Server | Removes the item. Repeating a delete returns an action error. |
+| `confirm_delete` | Server | Removes the item. A retry returns the original removal position. |
 | `notify` | Web page or mobile host | Announces a successful add. |
 | `scroll_to_top` | Web page | Scrolls to the list header. |
 
 The browser boots its local dispatcher before it requests the initial frame.
-The server advertises its three actions during the hello exchange.
+The server advertises its callable actions during the hello exchange.
 An action carries the triggering element's value and its own optional signed bytes.
 All three platforms render the same `<Modal><BottomSheet>…</BottomSheet></Modal>` tree. The input owns the submit action and supplies its current value.
 
 Only presentation actions consume signed state. The demo signer protects snapshots used by the local dispatcher.
 Its demo key is present in the module. The server rejects any attached presentation snapshot at its business endpoint.
-The server looks up each item in its own store. The initial page and every successful mutation use the same Rust render function.
+The server looks up each item in its own store. Each mutation returns a record change and publishes it at the same stream position.
+Each host applies the change once and updates its named list and count.
 Server and browser allocate node identifiers in separate ranges. Each producer keeps both page roots stable.
 
 ## Wire format and tests
@@ -113,8 +116,8 @@ This crate builds the example's Rust action registry. Its `create_todo_core` fun
 The host handles `open_add_dialog`, `close_dialog`, `open_delete_dialog` and `filter_todos`. The server handles `add_todo`, `toggle_todo` and `confirm_delete`. The example signs presentation state. Business actions read the server's store and reject attached presentation state.
 
 On-device apps call `create_local_todo_core` with a platform. Call `initial_todo_frame` once to mount its first screen.
-The core owns an in-memory store for the app session. Its action registry runs add, complete, reopen and delete on the device.
-Each reply updates the list and count. The on-device core requires no transport.
+The core holds the session cache. Opening a dialog, changing the filter, and cancelling work offline.
+Adding, completing, reopening, and deleting a record require a connection to the server.
 
 The compiler links the domain actions and native core into one library. Swift and Kotlin refer to that same library for callback handles and Rust buffers. The independent starter uses the package's remote factory.
 
@@ -129,8 +132,8 @@ The package selects one entry point for each host.
 |---|---|---|---|
 | Server | `src/bin/server.rs` | `cargo build --profile uat -p ui_todo --bin ui_todo` | `target/uat/ui_todo` |
 | Browser | `src/web.rs` | `examples/ui_todo/build-module.sh` | `examples/ui_todo/target/web/ui_todo.wasm` |
-| iOS | `src/mobile.rs` | `scripts/ui_native/prepare-ios-todo.sh` | `target/native-ui/ios-todo/.build-inputs/EweCoreFFI.xcframework` |
-| Android | `src/mobile.rs` | `scripts/ui_native/build-android.sh --with-todo` | Each example gets `app/src/main/jniLibs/<abi>/libui_todo.so`. |
+| iOS | `src/mobile.rs` | `native-task task run native:todo:prepare-ios` | `target/native-ui/ios-todo/.build-inputs/EweCoreFFI.xcframework` |
+| Android | `src/mobile.rs` | `native-task task run native:build-android --with-todo` | Each example gets `app/src/main/jniLibs/<abi>/libui_todo.so`. |
 
 The server is the default Cargo feature. The browser script selects `web`. The mobile scripts select `mobile`.
 Swift imports `EweTodoCore`. Kotlin imports the actions from `io.github.ewe_studios.ewe.todo`.

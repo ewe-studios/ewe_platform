@@ -1,6 +1,6 @@
 [package]
 name = "foundation_codegen"
-version = "0.2.1"
+version = "0.2.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,6 +10,15 @@ description = "Build-time source scanning library for finding macro-annotated Ru
 keywords = ["codegen", "source-scanning", "syn", "ast-parsing"]
 
 [dependencies]
+anyhow = { workspace = true, optional = true }
+swc_bundler = { workspace = true, optional = true }
+swc_common = { workspace = true, optional = true }
+swc_ecma_ast = { workspace = true, optional = true }
+swc_ecma_loader = { workspace = true, optional = true }
+swc_ecma_parser = { workspace = true, optional = true }
+swc_ecma_codegen = { workspace = true, optional = true }
+swc_ecma_minifier = { workspace = true, optional = true }
+swc_ecma_transforms_base = { workspace = true, optional = true }
 syn = { version = "2", features = ["full", "visit", "parsing", "extra-traits"] }
 quote = "1"
 proc-macro2 = { version = "1", features = ["span-locations"] }
@@ -32,6 +41,7 @@ wasmprinter = { version = "0.207", optional = true }
 
 [features]
 default = []
+javascript = ["dep:anyhow", "dep:swc_bundler", "dep:swc_common", "dep:swc_ecma_ast", "dep:swc_ecma_loader", "dep:swc_ecma_parser", "dep:swc_ecma_codegen", "dep:swc_ecma_minifier", "dep:swc_ecma_transforms_base"]
 # wasm proposals (ported from wasmbin; same gating)
 proposals = ["extended-name-section", "threads", "custom-page-sizes"]
 extended-name-section = []

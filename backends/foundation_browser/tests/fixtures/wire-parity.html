@@ -27,7 +27,7 @@
     const local = read();
     if (frames.registry.get(88).textContent !== "rendered") throw Error("Local output differs");
     clear();
-    frames.cursors.clear();
+    frames.viewState(document).cursors.clear();
     const mount = document.createElement("mount-stream");
     mount.setAttribute("protocol","frame"); mount.setAttribute("transport","sse");
     mount.setAttribute("api","/__primal/stream");

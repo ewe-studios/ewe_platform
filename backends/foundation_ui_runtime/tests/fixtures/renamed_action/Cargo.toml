@@ -4,7 +4,26 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+foundation_ui_wire = { path = "../../../../foundation_ui_wire" }
 ui = { package = "foundation_ui_runtime", path = "../../.." }
+
+browser_probe = { path = "browser_probe", optional = true }
+
+mobile_probe = { path = "mobile_probe", optional = true }
+
+server_probe = { path = "server_probe", optional = true }
+
+[features]
+browser = ["ui/action-browser", "dep:browser_probe"]
+mobile = ["ui/action-mobile", "dep:mobile_probe"]
+server = ["ui/action-server", "dep:server_probe"]
+default = ["browser", "mobile", "server"]
+
+[dev-dependencies]
+foundation_context = { path = "../../../../foundation_context" }
 
 [workspace]

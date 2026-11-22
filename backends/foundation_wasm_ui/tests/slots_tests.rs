@@ -280,8 +280,7 @@ fn card(ctx: &Context, rcv: &SharedInstructionReceiver, slots: &CardSlots) -> Ht
     let badge = slots
         .badge
         .as_ref()
-        .map(|b| b.render(ctx, rcv))
-        .unwrap_or_default();
+        .map_or_else(Html::default, |b| b.render(ctx, rcv));
     let children: Vec<Html> = slots.children.iter().map(|s| s.render(ctx, rcv)).collect();
     html! { ctx, rcv,
         <div class="card">

@@ -22,7 +22,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[must_use]
 pub fn command() -> Command {
-    Command::new("wasm-bundle")
+    let command = Command::new("wasm-bundle")
         .about("Build WASM entrypoints with their JS wrappers and bundles (feature 10)")
         .subcommand_required(true)
         .subcommand(
@@ -67,7 +67,12 @@ pub fn command() -> Command {
                 .about("Dry-run: list what build would generate")
                 .arg(crate_dir_arg())
                 .arg(Arg::new("output").long("output").default_value("build").value_parser(clap::value_parser!(PathBuf))),
-        )
+        );
+    #[cfg(feature = "tasks")]
+    let command = command.subcommand(<crate::tasks::RuntimeArgs as clap::Args>::augment_args(
+        Command::new("runtime").about("Generate or verify the classic browser runtime scripts"),
+    ));
+    command
 }
 
 fn crate_dir_arg() -> Arg {
@@ -95,6 +100,12 @@ pub fn run(args: &ArgMatches) -> Result<(), BoxedError> {
 /// Returns an error from the selected command.
 pub fn run_subcommand(name: &str, arguments: &ArgMatches) -> Result<(), BoxedError> {
     match name {
+        #[cfg(feature = "tasks")]
+        "runtime" => {
+            <crate::tasks::RuntimeArgs as clap::FromArgMatches>::from_arg_matches(arguments)?
+                .generate()?;
+            Ok(())
+        }
         "build" => run_build(arguments),
         "plan" => run_plan(arguments),
         _ => unreachable!("subcommand_required"),
@@ -172,7 +183,7 @@ fn runtime_assets() -> Vec<(&'static str, &'static Path)> {
     );
     assets.push((
         "bundle.js",
-        Path::new("backends/foundation_wasm_ui/runtimes/foundation-ui-runtime.js"),
+        Path::new("backends/foundation_wasm_ui/runtimes/foundation-ui-runtime.min.js"),
     ));
     assets
 }

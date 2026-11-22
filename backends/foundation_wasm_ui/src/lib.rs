@@ -13,6 +13,11 @@ extern crate std;
 pub mod build_tools;
 #[cfg(not(target_family = "wasm"))]
 pub mod cli;
+#[cfg(all(feature = "tasks", not(target_family = "wasm")))]
+mod runtime_build;
+#[cfg(all(feature = "tasks", not(target_family = "wasm")))]
+pub mod tasks;
+
 // Server-driven UI fan-out (broadcaster + App sink). Native (std), like the CLI.
 #[cfg(not(target_family = "wasm"))]
 pub mod server;
@@ -39,6 +44,8 @@ pub use app::{App, SentBatches};
 pub use events::{
     install_app_bridge, install_event_bridge, invoke_signal_callback, uninstall_event_bridge,
 };
+/// Shared template types used by the exported `html!` macro.
+pub use foundation_ui_traits as template_types;
 pub use foundation_ui_wire::{ops, OperationT};
 pub use html_macro::MaybeCallback;
 pub use instruction::InstructionReceiver;

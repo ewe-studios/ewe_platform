@@ -23,12 +23,17 @@ pub(crate) use services::TodoFeed;
 #[foundation_ui_http::get("/initial")]
 fn initial(req: ViewRequest) -> Result<Response, Error> {
     let feed = req.require::<TodoFeed>()?;
-    let (state, cursor) = req.require::<TodoStore>()?.published_snapshot(&feed.0);
-    Ok(Response::frame(screens::page(
-        state,
-        feed.0.stream_id(),
-        cursor,
-    )))
+    let (state, cursor, retired_creations) = req.require::<TodoStore>()?.published_snapshot(&feed.0);
+    let ctx = req.render_context();
+    let page = screens::page(&state, feed.0.stream_id(), cursor);
+    foundation_ui_runtime::view::full_view(&ctx, ctx.receiver(), &page, None::<&()>)?;
+    crate::TodoDelivery::Snapshot {
+        position: cursor,
+        items: state.items,
+        retired_creations,
+    }
+    .send(&ctx)?;
+    Ok(Response::frame(ctx))
 }
 
 #[foundation_ui_http::get("/open-count")]
@@ -135,6 +140,7 @@ fn register(
 pub fn data_app() -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut app = HttpApp::new_serve();
     app.context().store(TodoStore::with_items(vec![crate::Todo {
+        creation_id: None,
         id: 42,
         text: "Buy milk".into(),
         done: false,

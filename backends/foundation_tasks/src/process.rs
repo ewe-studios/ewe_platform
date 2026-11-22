@@ -853,6 +853,8 @@ fn host(
     entry: impl FnOnce(TaskRunner) -> BoxFuture<'static, TaskResult>,
 ) -> TaskResult {
     let ctx = Ctx::try_host().map_err(TaskError::operation)?;
+    foundation_core::env::install(&ctx, foundation_core::env::system)
+        .map_err(TaskError::operation)?;
     let cancellation = Cancellation::new();
     let output = Arc::new(Console);
     ctx.store(TaskEnv {

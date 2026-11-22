@@ -14,6 +14,7 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     runner.register(platform_tasks::codegen()?)?;
     runner.register(platform_tasks::wasm_bins()?)?;
     runner.register(platform_tasks::wasm_bundle()?)?;
+    runner.register(foundation_wasm_ui::tasks::set()?)?;
     runner
         .context()
         .store(foundation_ui_native::tasks::NativeBuildEnv::from_workspace());

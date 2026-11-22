@@ -299,6 +299,25 @@ impl LiveTx {
     }
 
     pub(super) fn publish(&self, messages: Vec<MessageT>) -> Result<(u64, usize), LiveError> {
+        self.publish_with(|_| Ok(messages))
+    }
+
+    /// Build an update with its assigned stream position before publishing it.
+    /// The builder must not call this channel while it holds the position.
+    ///
+    /// # Errors
+    /// A builder or writer error leaves the cursor and history unchanged.
+    pub fn push_with<E: From<LiveError>>(
+        &self,
+        build: impl FnOnce(u64) -> Result<Vec<MessageT>, E>,
+    ) -> Result<u64, E> {
+        self.publish_with(build).map(|(position, _)| position)
+    }
+
+    fn publish_with<E: From<LiveError>>(
+        &self,
+        build: impl FnOnce(u64) -> Result<Vec<MessageT>, E>,
+    ) -> Result<(u64, usize), E> {
         let mut locked = self.0.lock();
         let inner = &mut *locked;
         let sequence = inner
@@ -306,6 +325,7 @@ impl LiveTx {
             .last()
             .checked_add(1)
             .ok_or(LiveError::SequenceExhausted)?;
+        let messages = build(sequence)?;
         let header = FrameHeader {
             stream_id: inner.sequence.stream_id(),
             sequence_id: sequence,

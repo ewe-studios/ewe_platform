@@ -93,9 +93,14 @@ public enum ViewRecoveryError: Error { case invalidSnapshot, missingCursor, atte
 
   func installSnapshot(_ bytes: Data, required: Set<UInt64>) throws {
     guard bytes.count <= maxFrameBytes, let f = try? frame(bytes),
-      let body = f.kind(type:ewe_ui_FrameMessage.self), body.messagesCount == 1,
+      let body = f.kind(type:ewe_ui_FrameMessage.self), body.messagesCount >= 1,
       let op = body.messages(at:0)?.operation, op.uiType == .place,
       op.ui(type:ewe_ui_Place.self)?.kind == .fullview else { throw ViewRecoveryError.invalidSnapshot }
+    for index in 1..<body.messagesCount {
+      guard let message = body.messages(at:index), message.data != nil, message.operation == nil, message.control == nil else {
+        throw ViewRecoveryError.invalidSnapshot
+      }
+    }
     let probe = NodeStore(maxFrameBytes:maxFrameBytes)
     probe.behaviours = behaviours
     guard probe.receive(bytes), probe.reports.isEmpty else { throw ViewRecoveryError.invalidSnapshot }

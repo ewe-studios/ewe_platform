@@ -11,6 +11,19 @@ class ConformanceTest {
         requireNotNull(javaClass.getResource("/native/$name")).readBytes()
 
     @Test
+    fun namedViewsAllocateSeparateMounts() {
+        val store = NodeStore(timer)
+        val main = store.registerView("todos")
+        val game = store.registerView("game")
+        assertSame(store, main)
+        assertNotSame(main, game)
+        assertSame(game, store.viewStore("game"))
+        assertThrows(IllegalArgumentException::class.java) { store.registerView("game") }
+        store.unregisterView("game")
+        assertSame(main, store.viewStore("todos"))
+    }
+
+    @Test
     fun portableTargets() {
         val store = NodeStore(GapTimer { _, _ -> Cancel {} })
         store.registerView("main", 1u)

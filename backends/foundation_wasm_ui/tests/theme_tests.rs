@@ -192,7 +192,7 @@ fn inject_theme_css_queues_the_head_sequence() {
     inject_theme_css(&receiver, AppTheme::CSS);
     receiver.flush().expect("theme batch ships");
 
-    let batch: Vec<_> = sent.borrow()[0].iter().cloned().collect();
+    let batch: Vec<_> = sent.borrow()[0].to_vec();
     assert!(matches!(
         batch[0],
         OperationT { web: Web::WebElement(ref row), .. }
@@ -249,7 +249,7 @@ fn theme_macro_builds_app_injects_and_reads_back() {
 
     // The CSS was queued toward <head> on install.
     app.receiver().flush().expect("theme batch ships");
-    let batch: Vec<_> = sent.borrow()[0].iter().cloned().collect();
+    let batch: Vec<_> = sent.borrow()[0].to_vec();
     assert!(matches!(
         &batch[3],
         OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default().contains("--color-primary")

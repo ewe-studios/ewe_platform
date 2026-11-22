@@ -52,6 +52,21 @@ public struct EweTheme {
   }
 }
 
+private struct PulseStyle: ViewModifier {
+  let enabled: Bool
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  @ViewBuilder func body(content: Content) -> some View {
+    if enabled && !reduceMotion {
+      content.phaseAnimator([false, true]) { view, dim in
+        view.opacity(dim ? 0.5 : 0.7)
+      } animation: { _ in .easeInOut(duration: 2) }
+    } else {
+      content.opacity(enabled ? 0.7 : 1)
+    }
+  }
+}
+
 struct EweNodeStyle: ViewModifier {
   let theme: EweTheme
   let node: NodeRecord
@@ -59,7 +74,8 @@ struct EweNodeStyle: ViewModifier {
   @ScaledMetric private var fontScale: CGFloat = 1
 
   func body(content: Content) -> some View {
-    let values = theme.values(node.props[.utilityClasses]?.description ?? "", dark: scheme == .dark)
+    let classes = node.props[.utilityClasses]?.description ?? ""
+    let values = theme.values(classes, dark: scheme == .dark)
     var padding = values["padding"].flatMap(EweTheme.length) ?? 0
     if case .length(let points, "pt") = node.props[.padding] { padding = CGFloat(points) }
     var color = values["color"].flatMap(EweTheme.color)
@@ -69,6 +85,7 @@ struct EweNodeStyle: ViewModifier {
     var font = values["font-size"].flatMap(EweTheme.length).map { Font.system(size: $0 * fontScale) }
     if case .font(let token) = node.props[.font] { font = theme.fonts[token] }
     return content.padding(padding)
+      .modifier(PulseStyle(enabled: classes.split(separator: " ").contains("animate-pulse")))
       .foregroundColor(color)
       .background(background ?? Color.clear)
       .transformEnvironment(\.font) { if let font { $0 = font } }

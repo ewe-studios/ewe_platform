@@ -1,5 +1,12 @@
 package ewe.ui.compose
 
+import android.animation.ValueAnimator
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.alpha
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -122,6 +129,13 @@ private fun RenderNode(
     }
     val dark = isSystemInDarkTheme()
     val appearance = NodeAppearance(record, style, dark)
+    if (record.props[PropId.UTILITY_CLASSES]?.label?.split(' ')?.contains("animate-pulse") == true) {
+        val opacity = if (ValueAnimator.areAnimatorsEnabled()) {
+            val transition = rememberInfiniteTransition(label = "Pulse")
+            transition.animateFloat(0.7f, 0.5f, infiniteRepeatable(tween(2000), RepeatMode.Reverse), label = "Opacity").value
+        } else 0.7f
+        m = m.alpha(opacity)
+    }
     appearance.background?.let { m = m.background(it) }
     m = when (record.kind) {
         NodeKind.INSET_LIST -> m.fillMaxWidth()

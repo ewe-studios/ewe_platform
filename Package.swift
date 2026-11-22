@@ -7,7 +7,7 @@ let directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
 let core: Target = FileManager.default.fileExists(atPath: directory.appending(path: localBinary).path)
     ? .binaryTarget(name: "EweCoreFFI", path: localBinary)
     : .binaryTarget(name: "EweCoreFFI",
-        url: "https://github.com/ewe-studios/ewe_platform/releases/download/native-ui-v0.1.0/EweCoreFFI.xcframework.zip",
+        url: "https://github.com/ewe-studios/ewe_platform/releases/download/native-ui-v0.1.1/EweCoreFFI.xcframework.zip",
         checksum: "1c339daa36ebb995d62dbd611b9fd423a40bfc8bd548fdae6cf26d4494948aa6")
 
 let package = Package(name: "EweUI", platforms: [.iOS(.v17), .macOS(.v14)],

@@ -1,39 +1,14671 @@
-(()=>{var sc=Object.defineProperty;var qi=(s,t)=>{for(var e in t)sc(s,e,{get:t[e],enumerable:!0})};var et=class{constructor(t){this.id=t}get value(){return this.id}},Tt=class extends et{},qt=class extends et{},Qi=class extends et{},Ht=class{constructor(t){this.code=t}},$t=class{constructor(t,e){this.sliceType=t,this.content=e}},C=class{constructor(t,e){this.type=t,this.value=e}},_s=class{constructor(t){this.tag=t}},ws=class extends Error{constructor(t,e){if(!Number.isInteger(t))throw new Error("Only numbers allowed to represent the code to be sent");super(`Reply failed with error code: ${t}`,e),this.code=t}},y=Object.freeze({Null:0,Undefined:1,Bool:2,Text8:3,Text16:4,Int8:5,Int16:6,Int32:7,Int64:8,Uint8:9,Uint16:10,Uint32:11,Uint64:12,Float32:13,Float64:14,ExternalReference:15,Uint8Array:16,Uint16Array:17,Uint32Array:18,Uint64Array:19,Int8Array:20,Int16Array:21,Int32Array:22,Int64Array:23,Float32Array:24,Float64Array:25,InternalReference:26,Int128:27,Uint128:28,CachedText:29,TypedArraySlice:30,ErrorCode:31}),m=Object.freeze({Bool:1,Text8:2,Int8:3,Int16:4,Int32:5,Int64:6,Uint8:7,Uint16:8,Uint32:9,Uint64:10,Float32:11,Float64:12,Int128:13,Uint128:14,MemorySlice:15,ExternalReference:16,InternalReference:17,Object:28,DOMObject:29,None:30,ErrorCode:31,TypedArraySlice:32}),nc=new Set([m.Bool,m.Uint8,m.Uint16,m.Uint32,m.Uint64,m.Int8,m.Int16,m.Int32,m.Int64,m.Float32,m.Float64,m.Object,m.DOMObject,m.ErrorCode,m.MemorySlice,m.InternalReference,m.ExternalReference]),st=Object.freeze({None:0,One:1,Multi:2,List:3}),vs=Object.freeze({One:70,Two:80,Three:90}),Hi=Object.freeze({Start:200,Stop:201}),Kr=Object.freeze({Begin:100,End:101}),An={1:Int8Array,2:Int16Array,3:Int32Array,4:BigInt64Array,5:Uint8Array,6:Uint16Array,7:Uint32Array,8:BigUint64Array,9:Float32Array,10:Float64Array},Is=class{constructor(){this.items=[],this.free=[]}#t(t){let e=BigInt(t);return{index:Number(e>>32n),generation:e&0xffffffffn}}create(t){let e;if(this.free.length>0){e=this.free.pop();let n=this.items[e];n.generation+=1n,n.active=!0,n.item=t}else e=this.items.length,this.items.push({item:t,generation:0n,active:!0});return BigInt(e)<<32n|this.items[e].generation}get(t){let{index:e,generation:n}=this.#t(t),i=this.items[e];if(!(!i||!i.active||i.generation!==n))return i.item}update(t,e){let{index:n,generation:i}=this.#t(t),r=this.items[n];return!r||r.generation!==i?!1:(r.item=e,r.active=!0,!0)}destroy(t){let{index:e,generation:n}=this.#t(t),i=this.items[e];return!i||!i.active||i.generation!==n?!1:(i.item=null,i.active=!1,this.free.push(e),!0)}};function ic(s){if(s instanceof $t){let t=s.content;return{sliceType:s.sliceType,u8:new Uint8Array(t.buffer,t.byteOffset,t.byteLength)}}for(let[t,e]of Object.entries(An))if(s instanceof e&&s.constructor===e)return{sliceType:Number(t),u8:new Uint8Array(s.buffer,s.byteOffset,s.byteLength)};throw new Error("TypedArraySlice return: expected a TypedArray or TypedArraySliceValue")}function $i(s){return s instanceof Ht||s&&Number.isInteger(s.code)?s.code:Number.isInteger(s)?s:typeof s=="bigint"?Number(s):1}function rc(s,t){switch(t){case m.None:return s==null;case m.Bool:return typeof s=="boolean";case m.Text8:return typeof s=="string";case m.Int8:case m.Int16:case m.Int32:case m.Uint8:case m.Uint16:case m.Uint32:return typeof s=="number"&&Number.isInteger(s);case m.Int64:case m.Uint64:case m.Int128:case m.Uint128:return typeof s=="bigint"||typeof s=="number"&&Number.isInteger(s);case m.Float32:case m.Float64:return typeof s=="number";case m.ErrorCode:return s instanceof Ht||s instanceof ws||typeof s=="number"&&Number.isInteger(s);case m.ExternalReference:return s instanceof Tt;case m.InternalReference:return s instanceof qt;case m.TypedArraySlice:return s instanceof $t||ArrayBuffer.isView(s);case m.MemorySlice:return typeof s=="bigint"||typeof s=="number"||ArrayBuffer.isView(s);case m.DOMObject:return s instanceof _s||typeof Node<"u"&&s instanceof Node||typeof s=="object"&&s!==null;case m.Object:return typeof s=="object"&&s!==null;default:return!1}}var on=class{constructor(t,e){this.bridge=t,this.strings=e}parse(t,e){let n=Number(t),i=Number(e),r=new DataView(this.bridge.memory.buffer,n,i),o=[],a=0;for(;a<i;){let c=r.getUint8(a);a+=1,a=this.#e(c,a,r,o)}return o}#t(t,e){let n=Number(t.getBigUint64(e,!0));e+=8;let i=Number(t.getBigUint64(e,!0));return e+=8,[e,n,i]}#e(t,e,n,i){let r=this.bridge.memory.buffer;switch(t){case y.Null:return i.push(null),e;case y.Undefined:return i.push(void 0),e;case y.Bool:return i.push(n.getUint8(e)===1),e+1;case y.Int8:return i.push(n.getInt8(e)),e+1;case y.Uint8:return i.push(n.getUint8(e)),e+1;case y.Int16:return i.push(n.getInt16(e,!0)),e+2;case y.Uint16:return i.push(n.getUint16(e,!0)),e+2;case y.ErrorCode:return i.push(new Ht(n.getUint16(e,!0))),e+2;case y.Int32:return i.push(n.getInt32(e,!0)),e+4;case y.Uint32:return i.push(n.getUint32(e,!0)),e+4;case y.Float32:return i.push(n.getFloat32(e,!0)),e+4;case y.Float64:return i.push(n.getFloat64(e,!0)),e+8;case y.Int64:return i.push(n.getBigInt64(e,!0)),e+8;case y.Uint64:return i.push(n.getBigUint64(e,!0)),e+8;case y.ExternalReference:return i.push(new Tt(n.getBigUint64(e,!0))),e+8;case y.InternalReference:return i.push(new qt(n.getBigUint64(e,!0))),e+8;case y.CachedText:{let o=n.getBigUint64(e,!0),a=this.strings.get(o);if(a===void 0)throw new Error(`CachedText: no string for handle ${o}`);return i.push(a),e+8}case y.Int128:{let o=n.getBigInt64(e,!0),a=n.getBigUint64(e+8,!0);return i.push(o<<64n|a),e+8+8}case y.Uint128:{let o=n.getBigUint64(e,!0),a=n.getBigUint64(e+8,!0);return i.push(o<<64n|a),e+8+8}case y.Text8:{let[o,a,c]=this.#t(n,e);return i.push(new TextDecoder().decode(new Uint8Array(r,a,c))),o}case y.Text16:{let[o,a,c]=this.#t(n,e);return i.push(new TextDecoder("utf-16le").decode(new Uint8Array(r,a,c))),o}case y.TypedArraySlice:{let o=n.getUint8(e),[a,c,u]=this.#t(n,e+1),l=An[o]??Uint8Array;return i.push(new $t(o,new l(r.slice(c,c+u*l.BYTES_PER_ELEMENT)))),a}default:{let o=oc[t];if(!o)throw new Error(`ParameterParser: unknown ParamType ${t}`);let[a,c,u]=this.#t(n,e);return i.push(new o(r.slice(c,c+u*o.BYTES_PER_ELEMENT))),a}}}},oc={[y.Uint8Array]:Uint8Array,[y.Uint16Array]:Uint16Array,[y.Uint32Array]:Uint32Array,[y.Uint64Array]:BigUint64Array,[y.Int8Array]:Int8Array,[y.Int16Array]:Int16Array,[y.Int32Array]:Int32Array,[y.Int64Array]:BigInt64Array,[y.Float32Array]:Float32Array,[y.Float64Array]:Float64Array},ys=class s{constructor(t){this.bridge=t}parse(t,e){let n=new DataView(this.bridge.memory.buffer,Number(t),Number(e)),[,i]=s.parseFrom(n,0);return i}static parseFrom(t,e){if(t.getUint8(e)!==Hi.Start)throw new Error("hint: missing Start");e+=1;let n=t.getUint8(e);e+=1;let i=[];if(n!==st.None)for(;t.getUint8(e)!==Hi.Stop;){let r=t.getUint8(e);e+=1;let o=r===vs.One?1:r===vs.Two?2:3,a=[];for(let c=0;c<o;c++)a.push(t.getUint8(e)),e+=1;i.push({stateId:r,types:a})}if(t.getUint8(e)!==Hi.Stop)throw new Error("hint: missing Stop");return e+=1,[e,{id:n,states:i}]}},an=class{constructor(t){this.memory=t,this.objects=null,this.dom=null}immediate(t,e,n){if(t.id===st.None){if(e==null)return-1n;throw new Error(`Expected NoReturn but got ${e}`)}let i=this.#e(t,e);return t.id===st.One&&i.length===1&&nc.has(i[0].type)&&!n?this.#t(i[0]):this.encodeIntoMemory(i)}#t({type:t,value:e}){switch(t){case m.Object:{if(!this.objects)throw new Error("ReplyEncoder: no object heap wired");return e instanceof et?e.value:this.objects.create(e)}case m.DOMObject:{if(!this.dom)throw new Error("ReplyEncoder: no DOM heap wired");return e instanceof et?e.value:this.dom.create(e)}case m.ExternalReference:case m.InternalReference:return e instanceof et?e.value:e;case m.ErrorCode:return $i(e);default:return e}}#e(t,e){let n=(i,r)=>r instanceof C?{type:r.type,value:r.value}:{type:this.#s(i,r),value:r};switch(t.id){case st.One:return[n(t.states[0],e)];case st.List:{let i=t.states[0];return Array.from(e).map(r=>n(i,r))}case st.Multi:{let i=Array.from(e);return t.states.map((r,o)=>n(r,i[o]))}default:return[]}}#s(t,e){let{types:n}=t;if(n.length===1)return n[0];for(let i of n)if(rc(e,i))return i;throw new Error(`return value ${e} matches none of the hinted types [${n}]`)}encodeIntoMemory(t){let e=this.encode(t),n=this.memory.create(e.length);return this.memory.write(n,e),n}callbackSuccess(t,e,n,i){let r=this.encode(this.#e(n,i));t.invoke(e,r)}callbackFailure(t,e,n){let i=this.encode([{type:m.ErrorCode,value:$i(n)}]);t.invoke(e,i)}encode(t){let e=[Kr.Begin],n=(i,r)=>{for(let o=0;o<r;o++)e.push(Number(BigInt(i)>>BigInt(8*o)&0xffn))};for(let{type:i,value:r}of t)switch(e.push(i),i){case m.None:break;case m.Bool:e.push(r?1:0);break;case m.Uint8:case m.Int8:n(r,1);break;case m.Uint16:case m.Int16:n(r,2);break;case m.ErrorCode:n($i(r),2);break;case m.Uint32:case m.Int32:n(r,4);break;case m.Uint64:case m.Int64:n(BigInt(r),8);break;case m.Float32:{let o=new Uint8Array(4);new DataView(o.buffer).setFloat32(0,r,!0),e.push(...o);break}case m.Float64:{let o=new Uint8Array(8);new DataView(o.buffer).setFloat64(0,r,!0),e.push(...o);break}case m.Int128:case m.Uint128:{let o=BigInt(r);n(o>>64n&0xffffffffffffffffn,8),n(o&0xffffffffffffffffn,8);break}case m.ExternalReference:case m.InternalReference:n(BigInt(r instanceof et?r.value:r),8);break;case m.Text8:{let o=new TextEncoder().encode(String(r)),a=this.memory.create(o.length);this.memory.write(a,o),n(a,8);break}case m.MemorySlice:{if(typeof r=="bigint"||typeof r=="number"){n(BigInt(r),8);break}let o=r instanceof Uint8Array?r:new Uint8Array(r.buffer??r),a=this.memory.create(o.length);this.memory.write(a,o),n(a,8);break}case m.Object:{if(!this.objects)throw new Error("ReplyEncoder: no object heap wired");n(r instanceof et?r.value:this.objects.create(r),8);break}case m.DOMObject:{if(!this.dom)throw new Error("ReplyEncoder: no DOM heap wired");n(r instanceof et?r.value:this.dom.create(r),8);break}case m.TypedArraySlice:{let{sliceType:o,u8:a}=ic(r),c=this.memory.create(a.length);this.memory.write(c,a),e.push(o),n(this.memory.get(c).ptr,8),n(a.length,8);break}default:throw new Error(`ReplyEncoder: unsupported return type ${i}`)}return e.push(Kr.End),Uint8Array.from(e)}},cn=class s{constructor(t,e,n,i){this.bridge=t,this.params=new on(t,n),this.hints=new ys(t),this.reply=new an(e),this.callbacks=i,this.heap=new Is,this.context=this}static compile(t){return Function(`"use strict"; return(${t})`)()}register(t,e,n){let i=Number(n)===16?"utf-16le":"utf-8",r=new Uint8Array(this.bridge.memory.buffer,Number(t),Number(e)),o=new TextDecoder(i).decode(r);return this.heap.create(s.compile(o))}allocate(){return this.heap.create(null)}unregister(t){this.heap.destroy(BigInt(t))}#t(t,e,n){let i=this.heap.get(BigInt(t));if(!i)throw new Error(`invoke: no function for handle ${t}`);return i.apply(this.context,this.params.parse(e,n))}invoke(t,e,n,i,r){let o=this.hints.parse(i,r),a=this.#t(t,e,n),c=this.reply.immediate(o,a,!0);return typeof c=="bigint"?c:BigInt(c)}invokeNakedAs(t,e,n,i){let r={id:st.One,states:[{stateId:vs.One,types:[i]}]};return this.reply.immediate(r,this.#t(t,e,n),!1)}invokeAsync(t,e,n,i,r,o){let a=this.hints.parse(r,o),c=this.#t(t,n,i);if(a.id===st.None)return;let u=BigInt(e),l=Promise.resolve(c).then(h=>this.reply.callbackSuccess(this.callbacks,u,a,h),h=>this.reply.callbackFailure(this.callbacks,u,h));this.tasks&&this.tasks.add(l)}invokeAsBool(t,e,n){return this.invokeNakedAs(t,e,n,m.Bool)?1:0}invokeAsFloat(t,e,n){return Number(this.invokeNakedAs(t,e,n,m.Float64))}invokeAsInt(t,e,n){let i=this.invokeNakedAs(t,e,n,m.Int64);return typeof i=="bigint"?Number(i):i}invokeAsBigInt(t,e,n){let i=this.invokeNakedAs(t,e,n,m.Uint64);return typeof i=="bigint"?i:BigInt(i)}invokeAsObject(t,e,n){let i=this.invokeNakedAs(t,e,n,m.Object);return typeof i=="bigint"?i:BigInt(i)}invokeAsString(t,e,n){let i=new TextEncoder().encode(String(this.#t(t,e,n))),r=this.reply.memory.create(i.length);return this.reply.memory.write(r,i),r}asNone(){return new C(m.None,void 0)}asBool(t){return new C(m.Bool,!!t)}asText8(t){return new C(m.Text8,String(t))}asInt8(t){return new C(m.Int8,t)}asInt16(t){return new C(m.Int16,t)}asInt32(t){return new C(m.Int32,t)}asInt64(t){return new C(m.Int64,BigInt(t))}asUint8(t){return new C(m.Uint8,t)}asUint16(t){return new C(m.Uint16,t)}asUint32(t){return new C(m.Uint32,t)}asUint64(t){return new C(m.Uint64,BigInt(t))}asFloat32(t){return new C(m.Float32,t)}asFloat64(t){return new C(m.Float64,t)}asInt128(t,e=0){return new C(m.Int128,BigInt(e)<<64n|BigInt(t)&0xffffffffffffffffn)}asUint128(t,e=0){return new C(m.Uint128,BigInt(e)<<64n|BigInt(t)&0xffffffffffffffffn)}asErrorCode(t){return new C(m.ErrorCode,t instanceof Ht?t.code:t)}asReplyError(t){return new ws(t)}asObject(t){if(typeof t!="object"||t===null)throw new Error("Value must be a JS Object/object");if(!this.reply.objects)throw new Error("asObject: no object heap wired");return new C(m.Object,new Tt(this.reply.objects.create(t)))}asDOMObject(t){if(!this.reply.dom)throw new Error("asDOMObject: no DOM heap wired");return new C(m.DOMObject,new qt(this.reply.dom.create(t)))}asFakeNode(t){if(typeof t!="string")throw new Error("Value must be a JS string");return this.asDOMObject(new _s(t))}asMemorySlice(t){let e=typeof t=="bigint"||typeof t=="number"?BigInt(t):t;return new C(m.MemorySlice,e)}asTypedArraySlice(t,e){return new C(m.TypedArraySlice,new $t(t,e))}asInternalReference(t){return new C(m.InternalReference,t instanceof et?t:new qt(BigInt(t)))}asExternalReference(t){return new C(m.ExternalReference,t instanceof et?t:new Tt(BigInt(t)))}#e(t,e){if(!(e instanceof t))throw new Error(`Value must be a ${t.name}`);return new C(m.MemorySlice,new Uint8Array(e.buffer,e.byteOffset,e.byteLength))}asUint8Array(t){return this.#e(Uint8Array,t)}asUint16Array(t){return this.#e(Uint16Array,t)}asUint32Array(t){return this.#e(Uint32Array,t)}asUint64Array(t){return this.#e(BigUint64Array,t)}asInt8Array(t){return this.#e(Int8Array,t)}asInt16Array(t){return this.#e(Int16Array,t)}asInt32Array(t){return this.#e(Int32Array,t)}asInt64Array(t){return this.#e(BigInt64Array,t)}asFloat32Array(t){return this.#e(Float32Array,t)}asFloat64Array(t){return this.#e(Float64Array,t)}},Dt=Object.freeze({Begin:0,MakeFunction:1,Invoke:2,InvokeAsync:3,End:254,Stop:255}),ms=Object.freeze({Start:1,Begin:2,End:3,Stop:4}),U=Object.freeze({None:0,QuantizedInt16AsI8:1,QuantizedInt32AsI8:2,QuantizedInt32AsI16:3,QuantizedInt64AsI8:4,QuantizedInt64AsI16:5,QuantizedInt64AsI32:6,QuantizedUint16AsU8:7,QuantizedUint32AsU8:8,QuantizedUint32AsU16:9,QuantizedUint64AsU8:10,QuantizedUint64AsU16:11,QuantizedUint64AsU32:12,QuantizedF64AsF32:13,QuantizedF128AsF32:14,QuantizedF128AsF64:15,QuantizedInt128AsI8:16,QuantizedInt128AsI16:17,QuantizedInt128AsI32:18,QuantizedInt128AsI64:19,QuantizedUint128AsU8:20,QuantizedUint128AsU16:21,QuantizedUint128AsU32:22,QuantizedUint128AsU64:23,QuantizedPtrAsU8:24,QuantizedPtrAsU16:25,QuantizedPtrAsU32:26,QuantizedPtrAsU64:27}),Xr=Object.freeze({Start:111,Stop:222});function V(s,t,e){let n=s.getUint8(t);switch(t+=1,n){case U.None:return e(s,t);case U.QuantizedInt16AsI8:case U.QuantizedInt32AsI8:case U.QuantizedInt64AsI8:case U.QuantizedInt128AsI8:return[t+1,s.getInt8(t)];case U.QuantizedInt32AsI16:case U.QuantizedInt64AsI16:case U.QuantizedInt128AsI16:return[t+2,s.getInt16(t,!0)];case U.QuantizedInt64AsI32:case U.QuantizedInt128AsI32:return[t+4,s.getInt32(t,!0)];case U.QuantizedInt128AsI64:return[t+8,s.getBigInt64(t,!0)];case U.QuantizedUint16AsU8:case U.QuantizedUint32AsU8:case U.QuantizedUint64AsU8:case U.QuantizedUint128AsU8:case U.QuantizedPtrAsU8:return[t+1,s.getUint8(t)];case U.QuantizedUint32AsU16:case U.QuantizedUint64AsU16:case U.QuantizedUint128AsU16:case U.QuantizedPtrAsU16:return[t+2,s.getUint16(t,!0)];case U.QuantizedUint64AsU32:case U.QuantizedUint128AsU32:case U.QuantizedPtrAsU32:return[t+4,s.getUint32(t,!0)];case U.QuantizedUint128AsU64:case U.QuantizedPtrAsU64:return[t+8,s.getBigUint64(t,!0)];case U.QuantizedF64AsF32:case U.QuantizedF128AsF32:return[t+4,s.getFloat32(t,!0)];case U.QuantizedF128AsF64:return[t+8,s.getFloat64(t,!0)];default:throw new Error(`readQuantized: unknown TypeOptimization ${n}`)}}var ac=(s,t)=>[t+2,s.getInt16(t,!0)],Zr=(s,t)=>[t+2,s.getUint16(t,!0)],cc=(s,t)=>[t+4,s.getInt32(t,!0)],hc=(s,t)=>[t+4,s.getUint32(t,!0)],dc=(s,t)=>[t+8,s.getBigInt64(t,!0)],Z=(s,t)=>[t+8,s.getBigUint64(t,!0)],uc=(s,t)=>[t+8,s.getFloat64(t,!0)],lc=(s,t)=>[t+16,s.getBigInt64(t,!0)<<64n|s.getBigUint64(t+8,!0)],fc=(s,t)=>[t+16,s.getBigUint64(t,!0)<<64n|s.getBigUint64(t+8,!0)],hn=class{constructor(t,e){this.bridge=t,this.strings=e}parseParams(t,e,n){let i=[];for(;t.getUint8(e)!==ms.Stop;){if(t.getUint8(e)!==ms.Begin)throw new Error(`batch args: expected Begin marker, got ${t.getUint8(e)}`);e+=1;let r;if([e,r]=this.parseParam(t,e,n),i.push(r),t.getUint8(e)!==ms.End)throw new Error(`batch args: expected End marker, got ${t.getUint8(e)}`);e+=1}return e+=1,[e,i]}parseParam(t,e,n){let i=t.getUint8(e);switch(e+=1,i){case y.Null:return[e,null];case y.Undefined:return[e,void 0];case y.Bool:return[e+1,t.getUint8(e)===1];case y.Int8:return[e+1,t.getInt8(e)];case y.Uint8:return[e+1,t.getUint8(e)];case y.Float32:return[e+4,t.getFloat32(e,!0)];case y.Int16:return V(t,e,ac);case y.Uint16:return V(t,e,Zr);case y.Int32:return V(t,e,cc);case y.Uint32:return V(t,e,hc);case y.Int64:return V(t,e,dc);case y.Uint64:return V(t,e,Z);case y.Float64:return V(t,e,uc);case y.Int128:return V(t,e,lc);case y.Uint128:return V(t,e,fc);case y.ErrorCode:{let[r,o]=V(t,e,Zr);return[r,new Ht(Number(o))]}case y.CachedText:{let[r,o]=V(t,e,Z),a=this.strings.get(BigInt(o));if(a===void 0)throw new Error(`batch CachedText: no string for handle ${o}`);return[r,a]}case y.ExternalReference:{let[r,o]=V(t,e,Z);return[r,new Tt(BigInt(o))]}case y.InternalReference:{let[r,o]=V(t,e,Z);return[r,new qt(BigInt(o))]}case y.Text8:{let r,o;return[e,r]=V(t,e,Z),[e,o]=V(t,e,Z),[e,n.substr(Number(r),Number(o))]}case y.Text16:{let r,o;[e,r]=V(t,e,Z),[e,o]=V(t,e,Z);let a=new Uint8Array(this.bridge.memory.buffer,Number(r),Number(o)*2);return[e,new TextDecoder("utf-16le").decode(a)]}case y.TypedArraySlice:{let r=t.getUint8(e);e+=1;let o,a;[e,o]=V(t,e,Z),[e,a]=V(t,e,Z);let c=this.bridge.memory.buffer.slice(Number(o),Number(o)+Number(a)),u=An[r]??Uint8Array;return[e,new $t(r,new u(c))]}default:{let r=pc[i];if(!r)throw new Error(`batch param: unknown ParamType ${i}`);let o,a;[e,o]=V(t,e,Z),[e,a]=V(t,e,Z);let c=Number(o),u=this.bridge.memory.buffer.slice(c,c+Number(a)*r.BYTES_PER_ELEMENT);return[e,new r(u)]}}}},pc={[y.Uint8Array]:Uint8Array,[y.Uint16Array]:Uint16Array,[y.Uint32Array]:Uint32Array,[y.Uint64Array]:BigUint64Array,[y.Int8Array]:Int8Array,[y.Int16Array]:Int16Array,[y.Int32Array]:Int32Array,[y.Int64Array]:BigInt64Array,[y.Float32Array]:Float32Array,[y.Float64Array]:Float64Array},bc=Object.freeze({id:st.One,states:[{stateId:vs.One,types:[m.ExternalReference]}]}),dn=class s{constructor(t,e,n,i,r){this.bridge=t,this.memory=e,this.functions=i,this.callbacks=r,this.reply=i.reply,this.params=new hn(t,n),this.operations=new Map([[Dt.MakeFunction,s.makeFunction],[Dt.Invoke,s.invoke],[Dt.InvokeAsync,s.invokeAsync]])}registerOperation(t,e){return this.operations.set(t,e),this}applyNoReturn(t,e,n,i){for(let r of this.#t(t,e,n,i))r(this)}applyReturning(t,e,n,i){let r=[];for(let u of this.#t(t,e,n,i)){let l=u(this);if(l==null)continue;let h=this.reply.immediate(l.hint,l.value,!0);r.push({hint:l.hint,memId:BigInt(h)})}if(r.length===0)return-1n;let o=[Xr.Start];for(let{hint:u,memId:l}of r){o.push(u.id),u.id===st.Multi&&o.push(Number(u.states.length&255),Number(u.states.length>>8&255));for(let h of u.states)o.push(h.stateId,...h.types);for(let h=0;h<8;h++)o.push(Number(l>>BigInt(8*h)&0xffn))}o.push(Xr.Stop);let a=Uint8Array.from(o),c=this.memory.create(a.length);return this.memory.write(c,a),c}#t(t,e,n,i){let r=Number(t),o=this.bridge.memory.buffer.slice(r,r+Number(e)),a=Number(n),c=new Uint8Array(this.bridge.memory.buffer,a,Number(i)),u=new TextDecoder().decode(c),l=new DataView(o),h=0;if(l.getUint8(h)!==Dt.Begin)throw new Error(`batch: expected Operations.Begin, got ${l.getUint8(h)}`);h+=1;let d=[];for(;h<l.byteLength&&l.getUint8(h)!==Dt.Stop;){let f=l.getUint8(h);h+=1;let p=this.operations.get(f);if(!p)throw new Error(`batch: unhandled operation ${f}`);let b;[h,b]=p(this,f,h,l,u),b&&d.push(b)}return d}static readExternalHandle(t,e){let n=t.getUint8(e);if(n!==y.ExternalReference)throw new Error(`batch: expected ExternalReference param, got ${n}`);let[i,r]=V(t,e+1,Z);return[i,BigInt(r)]}static makeFunction(t,e,n,i,r){let o;if([n,o]=s.readExternalHandle(i,n),i.getUint8(n)!==y.Text8)throw new Error(`batch MakeFunction: expected Text8, got ${i.getUint8(n)}`);n+=1;let a=Number(i.getBigUint64(n,!0));n+=8;let c=Number(i.getBigUint64(n,!0));if(n+=8,i.getUint8(n)!==Dt.End)throw new Error(`batch MakeFunction: expected Operations.End, got ${i.getUint8(n)}`);n+=1;let u=r.substr(a,c);return[n,h=>{let d=h.functions.constructor.compile(u);return h.functions.heap.update(o,d),{hint:bc,value:new Tt(o)}}]}static parseCallParts(t,e,n,i,r){let o;[e,o]=s.readExternalHandle(n,e);let a=null;if(r){let l=n.getUint8(e);if(l!==y.InternalReference)throw new Error(`batch: expected InternalReference param, got ${l}`);let h;[e,h]=V(n,e+1,Z),a=BigInt(h)}let c;if([e,c]=ys.parseFrom(n,e),n.getUint8(e)!==ms.Start)throw new Error(`batch args: expected Start marker, got ${n.getUint8(e)}`);e+=1;let u;if([e,u]=t.params.parseParams(n,e,i),n.getUint8(e)!==Dt.End)throw new Error(`batch: expected Operations.End, got ${n.getUint8(e)}`);return e+=1,[e,o,a,c,u]}static invoke(t,e,n,i,r){let o,a,c;return[n,o,,a,c]=s.parseCallParts(t,n,i,r,!1),[n,l=>{let h=l.functions.heap.get(o);if(!h)throw new Error(`batch invoke: no function for handle ${o}`);let d=h.apply(l.functions.context,c);return a.id===st.None?null:{hint:a,value:d}}]}static invokeAsync(t,e,n,i,r){let o,a,c,u;return[n,o,a,c,u]=s.parseCallParts(t,n,i,r,!0),[n,h=>{let d=h.functions.heap.get(o);if(!d)throw new Error(`batch invokeAsync: no function for handle ${o}`);let f=d.apply(h.functions.context,u);if(c.id===st.None)return null;let p=Promise.resolve(f).then(b=>h.reply.callbackSuccess(h.callbacks,a,c,b),b=>h.reply.callbackFailure(h.callbacks,a,b));return h.functions.tasks&&h.functions.tasks.add(p),null}]}},un=class s{static HEADER_LEN=14;static write(t,e,n,i){let r=new Uint8Array(s.HEADER_LEN+i.length),o=new DataView(r.buffer);return o.setUint8(0,t),o.setUint8(1,e),o.setBigUint64(2,BigInt(n),!0),o.setUint32(10,i.length,!0),r.set(i,s.HEADER_LEN),r}static parse(t,e=0){let n=t instanceof Uint8Array?t:new Uint8Array(t,e);if(n.length<s.HEADER_LEN)throw new RangeError("WasmEnvelope: buffer shorter than 14-byte header");let i=new DataView(n.buffer,n.byteOffset,n.byteLength),r=i.getUint8(0),o=i.getUint8(1),a=i.getBigUint64(2,!0),c=i.getUint32(10,!0),u=s.HEADER_LEN+c;if(n.length<u)throw new RangeError("WasmEnvelope: payload length exceeds buffer");return{protocol:r,version:o,memoryId:a,length:c,payload:n.subarray(s.HEADER_LEN,u)}}},ln=class{constructor(t={}){this.handlers=t}setHandler(t,e){return this.handlers[t]=e,this}setRawHandler(t,e){this.rawHandler={matches:t,apply:e}}dispatch(t){if(this.rawHandler?.matches(t))return this.rawHandler.apply(t);let{protocol:e,memoryId:n,payload:i}=un.parse(t),r=this.handlers[e];if(!r)throw new Error(`unknown protocol: ${e}`);return r.apply(n,i)}},fn=class{constructor(t){this.bridge=t}create(t){return this.bridge.exports.create_allocation(BigInt(t))}get(t){let e=Number(this.bridge.exports.allocation_start_pointer(BigInt(t))),n=Number(this.bridge.exports.allocation_length(BigInt(t)));return{ptr:e,len:n,bytes:new Uint8Array(this.bridge.memory.buffer,e,n)}}write(t,e){this.get(t).bytes.set(e)}dispose(t){this.bridge.exports.dispose_allocation(BigInt(t))}clear(t){this.bridge.exports.clear_allocation(BigInt(t))}},pn=class{constructor(t,e=globalThis){this.bridge=t,this.host=e,this.timeouts=new Map,this.intervals=new Map,this.disposed=!1}scheduleTimeout(t,e){if(this.disposed)return;let n=String(t),i=this.host.setTimeout(()=>{this.timeouts.delete(n),!this.disposed&&this.bridge.exports.run_scheduled_callback(BigInt(t))},e);this.timeouts.set(n,i)}scheduleMicrotask(t){if(this.disposed)return;(this.host.queueMicrotask?this.host.queueMicrotask.bind(this.host):n=>Promise.resolve().then(n))(()=>{this.disposed||this.bridge.exports.run_scheduled_callback(BigInt(t))})}cancelTimeout(t){let e=String(t),n=this.timeouts.get(e);n!==void 0&&(this.host.clearTimeout(n),this.timeouts.delete(e))}scheduleInterval(t,e){if(this.disposed)return;let n=String(t),i=this.host.setInterval(()=>{Number(this.bridge.exports.run_interval_callback(BigInt(t)))===0&&this.cancelInterval(t)},e);this.intervals.set(n,i)}cancelInterval(t){let e=String(t),n=this.intervals.get(e);n!==void 0&&(this.host.clearInterval(n),this.intervals.delete(e))}cancelAll(){this.disposed=!0;for(let t of this.timeouts.values())this.host.clearTimeout(t);for(let t of this.intervals.values())this.host.clearInterval(t);this.timeouts.clear(),this.intervals.clear()}},bn=class{constructor(t,e){this.bridge=t,this.memory=e}invoke(t,e){let n=this.memory.create(e.length);this.memory.write(n,e),this.bridge.exports.invoke_callback(BigInt(t),BigInt(n))}unregister(t){this.bridge.exports.unregister_callback(BigInt(t))}},gn=class{constructor(t){this.bridge=t,this.byString=new Map,this.byHandle=new Map,this.next=1n}cache(t,e,n=0){let i=new Uint8Array(this.bridge.memory.buffer,Number(t),Number(e)),o=(n===1?new TextDecoder("utf-16le"):new TextDecoder).decode(i),a=this.byString.get(o);return a===void 0&&(a=this.next,this.next+=1n,this.byString.set(o,a),this.byHandle.set(a,o)),a}get(t){return this.byHandle.get(BigInt(t))}drop(t){let e=BigInt(t),n=this.byHandle.get(e);return n===void 0?!1:(this.byHandle.delete(e),this.byString.delete(n),!0)}},mn=class{constructor(t,e){this.bridge=t,this.raf=e??gc(),this.running=!1,this.handle=null}start(){this.running||(this.running=!0,this.#t())}#t(){this.handle=this.raf.request(t=>this.#e(t))}#e(t){this.bridge.exports.trigger_animation_callbacks(t),Number(this.bridge.exports.get_total_animation_callbacks())>0?this.#t():(this.running=!1,this.handle=null)}stop(){this.handle!==null&&this.raf.cancel(this.handle),this.running=!1,this.handle=null}};function gc(){if(typeof globalThis.requestAnimationFrame=="function")return{request:t=>globalThis.requestAnimationFrame(t),cancel:t=>globalThis.cancelAnimationFrame?.(t)};let s=()=>globalThis.performance?.now?.()??Date.now();return{request:t=>setTimeout(()=>t(s()),16),cancel:t=>clearTimeout(t)}}var _n=class{static PASS=0;static FAIL=1;static IGNORED=2;constructor(){this.reports=[],this.waiters=[]}push(t,e){let n={status:t,message:e},i=this.waiters.shift();i?i(n):this.reports.push(n)}next(){let t=this.reports.shift();return t?Promise.resolve(t):new Promise(e=>this.waiters.push(e))}get pending(){return this.reports.length}};function to(s){return{apply(t,e){if(e.byteLength<8)throw new Error("batch payload: missing header");let n=new DataView(e.buffer,e.byteOffset,e.byteLength),i=n.getUint32(0,!0),r=n.getUint32(4,!0);if(i<8||i+r>e.byteLength)throw new Error("batch payload: header out of range");let o=e.byteOffset;s.applyNoReturn(o+8,i-8,o+i,r)}}}var wn=class{constructor(t=!1){this.tasks=[],this.collect=t}enable(){this.collect=!0}disable(){this.collect=!1}add(t){if(!(t instanceof Promise))throw new Error("Item must be a Promise");this.collect&&this.tasks.push(t)}clear(){this.tasks.length=0}awaitAll(){return Promise.all(this.tasks)}},mc=0,Gi={},vn=class{constructor(t){this._id=++mc,this._onData=t&&t.onData||function(){},this._onEnd=t&&t.onEnd||function(){},this._onError=t&&t.onError||function(){},Gi[this._id]=this}static _push(t,e,n,i){var r=Gi[t];if(r)try{i?(r._onEnd(),delete Gi[t]):r._onData({data:e,sequence:n})}catch(o){r._onError(o)}}get receiverId(){return this._id}},_c=0,rn={},As=class{constructor(t,e){this._id=++_c,this._onChunk=t||function(){},this._onEnd=e||function(){},rn[this._id]=this}static _send(t,e,n){var i=rn[t];i&&i._onChunk({data:e,sequence:n})}static _end(t){var e=rn[t];e&&(e._onEnd(),delete rn[t])}get senderId(){return this._id}},In=class{constructor(t={}){this.bridge={exports:null,memory:null},this.memory=new fn(this.bridge),this.timers=new pn(this.bridge,t.timerHost),this.callbacks=new bn(this.bridge,this.memory),this.animation=new mn(this.bridge,t.rafHost),this.strings=new gn(this.bridge),this.functions=new cn(this.bridge,this.memory,this.strings,this.callbacks),this.objects=new Is,this.functions.reply.objects=this.objects,this.tasks=new wn(!1),this.functions.tasks=this.tasks,this.testReports=new _n,this.batches=new dn(this.bridge,this.memory,this.strings,this.functions,this.callbacks),this.dispatcher=new ln,this.dispatcher.setHandler(0,to(this.batches)),this._capTriggerHandler=null,this._ipcTriggerHandler=null,this.dispatcher.setHandler(3,{apply:(e,n)=>this._dispatchCapTrigger(e,n)}),this.dispatcher.setHandler(4,{apply:(e,n)=>this._dispatchIpcTrigger(e,n)}),this._streamRegistry=null,this._streamRegistry={},this._nextStreamId=1}triggerCapability(t){return this._capTriggerHandler?this._capTriggerHandler(t):Promise.reject(new Error("triggerCapability: no handler registered"))}triggerIpc(t){return this._ipcTriggerHandler?this._ipcTriggerHandler(t):Promise.reject(new Error("triggerIpc: no handler registered"))}registerTriggerHandlers(t){t.onCapability&&(this._capTriggerHandler=t.onCapability),t.onIpc&&(this._ipcTriggerHandler=t.onIpc)}_dispatchCapTrigger(t,e){if(this._capTriggerHandler){try{var n=JSON.parse(new TextDecoder().decode(e));this._capTriggerHandler(n)}catch{}this.memory.dispose(t)}}_dispatchIpcTrigger(t,e){if(this._ipcTriggerHandler){try{var n=JSON.parse(new TextDecoder().decode(e));this._ipcTriggerHandler(n)}catch{}this.memory.dispose(t)}}get web_abi(){let t=this,{bridge:e,memory:n,dispatcher:i,timers:r,animation:o,strings:a,functions:c,objects:u,batches:l}=this;return{host_apply(h,d,f){try{i.dispatch(n.get(h).bytes)}finally{n.dispose(h)}},schedule_timeout(h,d){r.scheduleTimeout(d,Number(h))},unschedule_timeout(h){r.cancelTimeout(h)},schedule_microtask(h){r.scheduleMicrotask(h)},schedule_interval(h,d){r.scheduleInterval(d,Number(h))},unschedule_interval(h){r.cancelInterval(h)},hook_up_animation_frames(){o.start()},host_cache_string(h,d,f){return a.cache(h,d,Number(f))},host_report:(h,d,f)=>{let p=Number(f),b=p?new TextDecoder().decode(new Uint8Array(this.bridge.memory.buffer,Number(d),p)):"";this.testReports.push(Number(h),b)},host_monotonic_now_ms(){return globalThis.performance?.now?.()??Date.now()},host_time_origin_ms(){return globalThis.performance?.timeOrigin??0},host_wall_clock_ms(){return Date.now()},host_fill_random:(h,d)=>{let f=globalThis.crypto;if(typeof f?.getRandomValues!="function")return 1;let p=65536,b=Number(h),_=Number(d);try{for(let g=0;g<_;g+=p){let w=Math.min(p,_-g),v=this.bridge.memory.buffer,E=new Uint8Array(v,b+g,w);if(typeof SharedArrayBuffer<"u"&&v instanceof SharedArrayBuffer){let k=new Uint8Array(w);f.getRandomValues(k),E.set(k)}else f.getRandomValues(E)}}catch{return 1}return 0},host_console_log(h,d){let f=Number(d),p=f?new TextDecoder().decode(new Uint8Array(this.bridge.memory.buffer,Number(h),f)):"";console.log(p)},host_register_function(h,d,f){return c.register(h,d,f)},host_invoke_function(h,d,f,p,b){return c.invoke(h,d,f,p,b)},host_invoke_async_function(h,d,f,p,b,_){c.invokeAsync(h,d,f,p,b,_)},host_invoke_function_as_bool:(h,d,f)=>c.invokeAsBool(h,d,f),host_invoke_function_as_f32:(h,d,f)=>c.invokeAsFloat(h,d,f),host_invoke_function_as_f64:(h,d,f)=>c.invokeAsFloat(h,d,f),host_invoke_function_as_u8:(h,d,f)=>c.invokeAsInt(h,d,f),host_invoke_function_as_u16:(h,d,f)=>c.invokeAsInt(h,d,f),host_invoke_function_as_u32:(h,d,f)=>c.invokeAsInt(h,d,f),host_invoke_function_as_i8:(h,d,f)=>c.invokeAsInt(h,d,f),host_invoke_function_as_i16:(h,d,f)=>c.invokeAsInt(h,d,f),host_invoke_function_as_i32:(h,d,f)=>c.invokeAsInt(h,d,f),host_invoke_function_as_u64:(h,d,f)=>c.invokeAsBigInt(h,d,f),host_invoke_function_as_object:(h,d,f)=>c.invokeAsObject(h,d,f),host_invoke_function_as_i64:(h,d,f)=>c.invokeAsBigInt(h,d,f),host_unregister_function(h){c.unregister(h)},host_function_drop_external_pointer(h){c.unregister(h)},host_invoke_function_as_str:(h,d,f)=>c.invokeAsString(h,d,f),host_abort(){throw new Error("WasmInstance called abort")},function_allocate_external_pointer:()=>c.allocate(),object_allocate_external_pointer:()=>u.create(null),host_object_drop_external_pointer(h){u.destroy(BigInt(h))},host_string_cache_drop_external_pointer(h){a.drop(h)},host_batch_apply(h,d,f,p){l.applyNoReturn(h,d,f,p)},host_batch_returning_apply(h,d,f,p){return l.applyReturning(h,d,f,p)},host_stream_create(){var h=t._nextStreamId++;return t._streamRegistry[h]={chunks:[],onChunk:null,onEnd:null,ended:!1,bind:function(d,f){if(this.onChunk=d||null,this.onEnd=f||null,this.onChunk){for(var p=0;p<this.chunks.length;p++)this.onChunk(this.chunks[p]);this.chunks.length=0}this.ended&&this.onEnd&&this.onEnd()}},BigInt(h)},host_stream_bind(h,d,f){var p=t._streamRegistry[Number(h)];if(p){if(p.onChunk=typeof d=="function"?d:null,p.onEnd=typeof f=="function"?f:null,p.onChunk){for(var b=0;b<p.chunks.length;b++)p.onChunk(p.chunks[b]);p.chunks.length=0}p.ended&&p.onEnd&&p.onEnd()}},host_sender_send(h,d,f,p){var b=Number(h),_=new Uint8Array(e.memory.buffer,Number(d),Number(f)),g=t._streamRegistry[b];if(g){var w={data:_,sequence:Number(p)};g.onChunk?g.onChunk(w):g.chunks.push(w)}else As._send(b,_,Number(p))},host_sender_end(h){var d=Number(h),f=t._streamRegistry[d];f?(f.ended=!0,f.onEnd&&f.onEnd(),delete t._streamRegistry[d]):As._end(d)},host_receiver_push(h,d,f,p,b){var _=new Uint8Array(e.memory.buffer,Number(d),Number(f));vn._push(Number(h),_,Number(p),b!==0)}}}init(t){let e=t.instance??t;return this.bridge.exports=e.exports,this.bridge.memory=e.exports.memory,this}dispose(){this.timers.cancelAll(),this.animation.stop()}setProtocolHandler(t,e){return this.dispatcher.setHandler(t,e),this}awaitTasks(){return this.tasks.awaitAll()}},yn=class s{constructor(t={}){this.runtime=new In(t),this.environment=t.environment??{},this.compileOptions=s.compileOptionsOf(t.compileOptions),this.memory=new WebAssembly.Memory({initial:t.initialMemory??10,maximum:t.maximumMemory??200}),this.module=null}static compileOptionsOf(t){return{builtins:t?.builtins??["js-strings"],importedStringConstants:t?.importedStringConstants??"imported_strings"}}get imports(){return{abi:this.runtime.web_abi,js:{mem:this.memory},...this.environment}}async loadURL(t){let e=await WebAssembly.instantiateStreaming(fetch(t),this.imports,this.compileOptions);return this.#t(e),this}async loadBytes(t){let e=await WebAssembly.instantiate(t,this.imports,this.compileOptions);return this.#t(e),this}#t(t){this.module=t,this.runtime.init(t)}run(){if(!this.module)throw new Error("No wasm module loaded");let t=this.module.instance.exports.main;if(!t)throw new Error("wasm module has no exported main function");return t()}static async fromScripts(t={}){let e=document.querySelectorAll('script[type="application/wasm"]'),n=[];for(let i of e)i.src&&n.push(new s(t).loadURL(i.src));return Promise.all(n)}},Yi=class s{constructor(t={}){this.modules=yn.fromScripts(t)}static default(t){return new s({environment:t})}async runAll(){let t=await this.modules;for(let e of t)e.run();return t}};globalThis.FoundationWasmRuntime=Object.freeze({FoundationWasm:In,batchProtocolHandler:to,WasmLoader:yn,WasmWebScripts:Yi,AsyncTaskCollector:wn,TestReports:_n,WasmEnvelope:un,ProtocolDispatcher:ln,MemoryAllocations:fn,TimerRegistry:pn,CallbackRegistry:bn,StringCache:gn,AnimationDriver:mn,FunctionRegistry:cn,ParameterParser:on,ReturnHintParser:ys,ReplyEncoder:an,ExternalHeap:Is,BatchInstructions:dn,BatchParameterParser:hn,Operations:Dt,ArgumentOperations:ms,TypeOptimization:U,ParamType:y,ReturnType:m,ReturnIds:st,ThreeStateId:vs,ExternalPointer:Tt,InternalPointer:qt,CachePointer:Qi,ErrorCodeValue:Ht,TypedArraySliceValue:$t,TypedSliceArray:An,ReplyContainer:C,FakeNode:_s,ReplyError:ws,WasmStreamReceiver:vn,WasmStreamSender:As});var lr={};qi(lr,{CONVENIENCE_EVENTS:()=>Zi,ChunkedTransport:()=>Vn,DomHeap:()=>Bn,EventDispatcher:()=>Ge,FetchEventSource:()=>Bs,FetchTransport:()=>Un,FrameHandler:()=>me,HtmlHandler:()=>Es,Hydrator:()=>Nt,IslandComponent:()=>Rs,JsonHandler:()=>xs,MorphDom:()=>$e,MountDataComponent:()=>Us,MountStreamComponent:()=>Fs,NodeRegistry:()=>Gt,Patcher:()=>P,ProtocolHandler:()=>tt,RESERVED:()=>ks,RawHandler:()=>jn,RequestQueue:()=>xn,SSETransport:()=>Fn,SseParser:()=>Ns,Transport:()=>Ot,WSBatchQueue:()=>En,WebSocketTransport:()=>Cn,WorkerBatchQueue:()=>Rn,WorkerTransport:()=>Ln,buildEventData:()=>Ts,callbackDeliver:()=>Nn,createPrimal:()=>ur,decodeEnvelopeFrame:()=>ho,domAbi:()=>ao,frameConnections:()=>rr,frameMountTarget:()=>Wn,frameStats:()=>Ac,initEventRuntime:()=>sr,moveBefore:()=>On,parseBatchEntry:()=>co,parseCallbackId:()=>Os,probeBatching:()=>ir,reconnectDelay:()=>Mn,registerWasmApp:()=>Dn,registerWebComponents:()=>Cs,resolveDelegateTarget:()=>er,resolveFunctionRef:()=>tr,resolveMountTarget:()=>zn,scopeCss:()=>hr,signalDeliver:()=>nr});var kn=class{#t=new Map;#e=new Set;#s=!1;#n=0n;nextTag(){if(this.#n===0xffffffffffffffffn)throw new Error("Connection identifiers exhausted");return++this.#n}supports(t){return this.#t.has(t)}register(t,e){if(this.#s||this.#t.has(t))throw new Error("Connection adapter is unavailable");return this.#t.set(t,e),this}acquire(t,e={}){if(this.#s)throw new Error("Connection manager is closed");let{transport:n,endpoint:i,shared:r=n==="websocket",keepAlive:o=!1,settings:a=null,authority:c=null,protocol:u="frame"}=t,l=new URL(i,t.base??globalThis.location?.href);if(l.username||l.password)throw new Error("Use the connection authentication context");l.hash="",n==="websocket"&&(l.protocol==="https:"&&(l.protocol="wss:"),l.protocol==="http:"&&(l.protocol="ws:"));let h=r&&Array.from(this.#e).find(b=>b.shared&&b.transport===n&&b.address===l.href&&b.settings===a&&b.authority===c&&b.protocol===u),d={...e};if(h)h.handles.add(d),(h.opened||h.context)&&queueMicrotask(()=>{h.handles.has(d)&&(h.opened&&d.onOpen?.(),h.context&&d.onContext?.(h.context.slice()))});else{let b=this.#t.get(n);if(!b)throw new Error("Unknown connection transport: "+n);h={shared:r,address:l.href,settings:a,authority:c,transport:n,protocol:u,retainers:new Set,handles:new Set([d])},this.#e.add(h);try{h.connection=b({...t,endpoint:l.href},{listening:()=>[...h.handles].some(_=>_.receive),deliver:_=>{if(!this.#e.has(h))return;if(t.isContext?.(_)){h.context=new Uint8Array(_).slice();for(let w of[...h.handles])w.onContext?.(h.context.slice());return}let g=new Set;for(let w of[...h.handles])if(!(!h.handles.has(w)||!w.receive||w.owner&&g.has(w.owner)))try{let v=new Uint8Array(_).slice();if(w.accept&&!w.accept(v))continue;w.receive(v),w.owner&&g.add(w.owner)}catch(v){w.onError?.(v)}},opened:()=>{h.opened=!0;for(let _ of[...h.handles])_.onOpen?.()},disconnected:_=>{h.opened=!1,h.context=null;for(let g of[...h.handles])g.onError?.(_)}})}catch(_){throw this.#e.delete(h),_}}let f={};o&&h.retainers.add(f);let p=()=>{!h.handles.size&&!h.retainers.size&&this.#i(h)};return{send:async b=>{if(!h.handles.has(d)||!h.connection?.send)throw new Error("Connection cannot send");await h.connection.send(b)},close:()=>{h.handles.delete(d),p()},releaseRetention:()=>{h.retainers.delete(f),p()}}}#i(t){this.#e.delete(t)&&(t.handles.clear(),t.connection?.close())}close(){this.#s=!0;for(let t of[...this.#e])this.#i(t)}};var ks=Object.freeze({HEAD:0,BODY:1,HTML:2}),Gt=class{constructor(){this.nodes=new Map,this.pending=new Map}seedDocument(t){return t.head&&this.nodes.set(ks.HEAD,t.head),t.body&&this.nodes.set(ks.BODY,t.body),t.documentElement&&this.nodes.set(ks.HTML,t.documentElement),this}register(t,e){return this.nodes.set(t,e),e}get(t){return this.nodes.get(t)}expect(t){let e=this.nodes.get(t);if(e===void 0)throw new Error(`NodeRegistry: unknown node id ${t}`);return e}unregister(t){this.nodes.delete(t)}stage(t,e){return this.pending.set(t,e),e}applyRegister(t,e){if(this.nodes.has(t))return this.nodes.get(t);let n=this.pending.get(t);if(n!==void 0)return this.pending.delete(t),this.register(t,n);let i=e.querySelector?.(`[primal-id="${t}"]`);if(i)return this.register(t,i);throw new Error(`NodeRegistry: REGISTER_NODE ${t} matches no staged node or [primal-id]`)}expectOrStaged(t){let e=this.nodes.get(t);if(e!==void 0)return e;let n=this.pending.get(t);if(n!==void 0)return this.pending.delete(t),n;throw new Error(`NodeRegistry: unknown node id ${t}`)}get size(){return this.nodes.size}},ut=s=>s?s.nodeType!==void 0?s.nodeType===1:typeof s.getAttributeNames=="function"&&(s.tag??"")!=="#text":!1,gt=s=>(s.tagName??s.tag??"").toUpperCase(),Ss=s=>Array.from(s.childNodes??s.children??[]),Tn=s=>s.nodeValue!==void 0&&s.nodeValue!==null?s.nodeValue:s.textContent,wc=(s,t)=>{s.nodeValue!==void 0&&s.nodeValue!==null?s.nodeValue=t:s.textContent=t},He=(s,t)=>s.getAttribute?s.getAttribute(t):null,Sn=s=>He(s,"id")??He(s,"primal-id");function Ji(s,t){ut(s)&&t(s);for(let e of Ss(s))Ji(e,t)}function On(s,t,e){typeof s.moveBefore=="function"?s.moveBefore(t,e):(t.parentNode?.removeChild?.(t),s.insertBefore(t,e))}var Ki=class{constructor(t){this.doc=t,this.idMap=new Map,this.persistentIds=new Set,this.oldIdTagMap=new Map,this.duplicates=new Set,this.pantry=null}computePersistentIds(t,e){Ji(t,n=>{let i=Sn(n);i&&(this.oldIdTagMap.has(i)?this.duplicates.add(i):this.oldIdTagMap.set(i,gt(n)))}),Ji(e,n=>{let i=Sn(n);!i||this.duplicates.has(i)||this.oldIdTagMap.get(i)===gt(n)&&this.persistentIds.add(i)})}populateIdMap(t){let e=n=>{let i=new Set,r=ut(n)?Sn(n):null;r&&this.persistentIds.has(r)&&i.add(r);for(let o of Ss(n))for(let a of e(o))i.add(a);return i.size>0&&this.idMap.set(n,i),i};e(t)}hasConflictingId(t){let e=ut(t)?Sn(t):null;return!!e&&!this.persistentIds.has(e)}findBestMatch(t,e){if(!ut(e))return t&&!ut(t)?t:null;let n=this.idMap.get(e)??new Set;if(n.size>0){let i=r=>{if(!ut(r)||gt(r)!==gt(e)||!this.idMap.has(r))return!1;let o=this.idMap.get(r);for(let a of n)if(o.has(a))return!0;return!1};for(let r=t;r;r=r.nextSibling)if(i(r))return r;if(this.pantry){for(let r of Ss(this.pantry))if(i(r))return r}}if(t&&ut(t)===ut(e)&&gt(t)===gt(e)&&!this.hasConflictingId(t)){if(typeof t.isEqualNode=="function"){if(t.isEqualNode(e))return t;let i=e.nextSibling??null;if(i&&t.isEqualNode(i))return null}return t}return null}removeNode(t){this.idMap.has(t)?(this.pantry||(this.pantry=this.doc.createElement("div")),On(this.pantry,t,null)):t.parentNode?.removeChild?.(t)}morphChildren(t,e){let n=t.firstChild??null;for(let i of Ss(e)){if(n&&He(n,"data-ignore-morph")!==null&&He(i,"data-ignore-morph")!==null){n=n.nextSibling;continue}let r=this.findBestMatch(n,i);if(r){for(;n&&n!==r;){let o=n.nextSibling;this.removeNode(n),n=o}r!==n&&On(t,r,n),this.morphNode(r,i),n=r.nextSibling}else{let o=ro(this.doc,i);t.insertBefore(o,n)}}for(;n;){let i=n.nextSibling;this.removeNode(n),n=i}}morphNode(t,e){if(!ut(t)||!ut(e)){Tn(t)!==Tn(e)&&wc(t,Tn(e));return}if(typeof t.isEqualNode=="function"&&t.isEqualNode(e))return;this.syncAttributes(t,e),vc(t,e);let n=gt(t);n==="INPUT"||n==="TEXTAREA"||n==="SELECT"||this.morphChildren(t,e)}syncAttributes(t,e){let n=(He(t,"data-preserve-attr")||"").split(",").map(i=>i.trim()).filter(Boolean);for(let i of e.getAttributeNames())n.includes(i)||t.setAttribute(i,e.getAttribute(i));for(let i of t.getAttributeNames())!n.includes(i)&&e.getAttribute(i)===null&&t.removeAttribute(i)}cleanup(){if(this.pantry)for(;this.pantry.firstChild;)this.pantry.removeChild(this.pantry.firstChild);this.idMap.clear(),this.persistentIds.clear(),this.oldIdTagMap.clear(),this.duplicates.clear()}};function vc(s,t){if(gt(s)===gt(t))switch(gt(s)){case"INPUT":{let e=He(s,"type");e==="checkbox"||e==="radio"?t.checked=s.checked:e!=="file"&&(t.value=s.value);break}case"TEXTAREA":t.value=s.value;break;case"SELECT":t.selectedIndex=s.selectedIndex;break;default:}}function ro(s,t){if(typeof t.cloneNode=="function")return t.cloneNode(!0);if(!ut(t))return s.createTextNode(Tn(t)??"");let e=s.createElement(t.tag??t.tagName);for(let n of t.getAttributeNames())e.setAttribute(n,t.getAttribute(n));t.value!=null&&(e.value=t.value),t.checked!=null&&(e.checked=t.checked);for(let n of Ss(t))e.appendChild(ro(s,n));return e}var $e=class s{static scripts=new WeakSet;static morph(t,e,n=t.ownerDocument??(typeof document>"u"?null:document)){let i=new Ki(n);try{i.computePersistentIds(t,e),i.populateIdMap(t),i.populateIdMap(e),i.morphChildren(t,e),s.executeNewScripts(t,n)}finally{i.cleanup()}}static executeNewScripts(t,e){if(!(!e||typeof t.querySelectorAll!="function"))for(let n of t.querySelectorAll("script")){if(s.scripts.has(n))continue;let i=e.createElement("script");for(let r of n.getAttributeNames())i.setAttribute(r,n.getAttribute(r));i.textContent=n.textContent,n.parentNode?.replaceChild?.(i,n),s.scripts.add(i)}}},eo="primal:on";function Ts(s,t,e){return{type:s,primalId:e.getAttribute?e.getAttribute("primal-id"):null,value:e.value??null,checked:e.checked??null,keyCode:t.keyCode??null,modifiers:{alt:!!t.altKey,ctrl:!!t.ctrlKey,shift:!!t.shiftKey,meta:!!t.metaKey}}}function Os(s){if(s==null)return null;let t=String(s).trim(),e=t.startsWith("callback-")?t.slice(9):t;return/^\d+$/.test(e)?Number(e):null}var Ge=class s{static actionHook=null;constructor(t,e={}){this.deliver=t,this.deliverSignal=e.deliverSignal??t,this.scope=e.scope??globalThis,this.listeners=new WeakMap,this.cleanupQueue=[],this.cleanupScheduled=!1,this.observer=null}scanAndWire(t){Xi(t,e=>{for(let n of e.getAttributeNames()){if(!n.startsWith(eo))continue;let i=n.slice(eo.length),[r,o]=i.split(":");r&&(o==="delegate"?this.wireDelegated(e,r,e.getAttribute(n)):o===void 0&&this.wire(e,r,e.getAttribute(n)))}})}wire(t,e,n){let i=this.#t(t,e,n);if(!i){console.warn(`EventDispatcher: unresolvable handler "${n}" for ${e}`);return}this.off(t,e),t.addEventListener(e,i),this.#e(t).set(e,i)}#t(t,e,n){if(/^(server|host):/.test(String(n)))return a=>{if(s.actionHook)return s.actionHook(String(n),t,a,e);console.warn("No action runtime for",n)};let i=Os(n);if(i!==null)return a=>this.deliver(i,Ts(e,a,t));let r=Os(t.getAttribute?.("primal:setter"));if(r!==null)return a=>this.deliverSignal(r,Ts(e,a,t));let o=tr(this.scope,n);return o?o.bind(t):null}wireDelegated(t,e,n){let i=er(t,n,this.documentOf(t));if(!i){console.warn(`EventDispatcher: delegate target "${n}" not found`);return}let r=u=>{(t===u.target||t.contains&&t.contains(u.target))&&(u.delegateTarget=t)},o=`${e}:delegate:${t.getAttribute?.("primal-id")||t.id||""}`,a=this.#e(i),c=a.get(o);c&&i.removeEventListener(e,c),a.set(o,r),i.addEventListener(e,r)}documentOf(t){return t.ownerDocument??(typeof document>"u"?null:document)}#e(t){let e=this.listeners.get(t);return e||(e=new Map,this.listeners.set(t,e)),e}off(t,e){let n=this.listeners.get(t);if(n){if(e!==void 0){for(let[i,r]of n)(i===e||i.startsWith(`${e}:`))&&(t.removeEventListener(e,r),n.delete(i));return}for(let[i,r]of n)t.removeEventListener(i.split(":")[0],r);n.clear(),this.listeners.delete(t)}}removeListeners(t){Xi(t,e=>this.off(e))}trackRemoved(t){this.cleanupQueue.push(t),!this.cleanupScheduled&&(this.cleanupScheduled=!0,queueMicrotask(()=>{let e=this.cleanupQueue.splice(0);this.cleanupScheduled=!1;for(let n of e)this.removeListeners(n)}))}handleMutations(t){for(let e of t)if(e.type==="childList"){for(let n of e.addedNodes)!so(n)||no(n)||(this.scanAndWire(n),Nt.hydrate(n));for(let n of e.removedNodes)!so(n)||no(n)||this.removeListeners(n)}}observe(t){typeof MutationObserver>"u"||this.observer||(this.observer=new MutationObserver(e=>this.handleMutations(e)),this.observer.observe(t,{subtree:!0,childList:!0}))}on(t,e,n,i={}){i.delegate?this.wireDelegated(t,e,i.delegate):this.wire(t,e,n)}},Zi=["click","change","submit","keydown","keyup","focus","blur","scroll","input","mousedown","mouseup"];for(let s of Zi)Ge.prototype[`on${s}`]=function(t,e,n){this.on(t,s,e,n)};function Xi(s,t){typeof s.getAttributeNames=="function"&&t(s);for(let e of s.children||[])Xi(e,t)}function so(s){return!!s&&typeof s.getAttributeNames=="function"}function no(s){if(typeof s.closest=="function")return s.closest("island")!==null;for(let t=s;t;t=t.parent??t.parentElement??null)if((t.tag??t.tagName??"").toLowerCase()==="island")return!0;return!1}function tr(s,t){if(typeof t!="string"||t.length===0)return null;let e=s;for(let n of t.split(".")){if(e==null)return null;e=e[n]}return typeof e=="function"?e:null}function er(s,t,e){return t?t==="parent"?s.parentElement??s.parent??null:t==="body"?e?.body??null:e?.querySelector?e.querySelector(t):null:null}function sr(s,t=typeof document>"u"?null:document){if(!t)return;let e=()=>{s.scanAndWire(t.body),s.observe(t)};t.addEventListener?.("DOMContentLoaded",e),t.readyState!=="loading"&&e()}function Nn(s,t=oo){return(e,n)=>s.invoke(e,t(n))}function nr(s,t=oo){return(e,n)=>{let i=t(n),r=s.exports.create_allocation(BigInt(i.length)),o=Number(s.exports.allocation_start_pointer(r)),a=typeof s.memory=="function"?s.memory():s.memory;new Uint8Array(a.buffer,o,i.length).set(i),s.exports.invoke_signal_callback(BigInt(e),r)}}function oo(s){return new TextEncoder().encode(JSON.stringify(s))}var Bn=class s{static RESERVED_SLOTS=5;constructor(t=globalThis){this.items=[],this.free=[];let e=t.document??null;this.create(typeof self<"u"?self:this),this.create(this),this.create(t.window??null),this.create(e),this.create(e&&e.body?e.body:null)}#t(t){let e=BigInt(t);return e<BigInt(s.RESERVED_SLOTS)?{index:Number(e),generation:0n}:{index:Number(e>>32n),generation:e&0xffffffffn}}create(t){let e;if(this.free.length>0){e=this.free.pop();let n=this.items[e];n.generation+=1n,n.active=!0,n.item=t}else e=this.items.length,this.items.push({item:t,generation:0n,active:!0});return BigInt(e)<<32n|this.items[e].generation}get(t){let{index:e,generation:n}=this.#t(t),i=this.items[e];if(!(!i||!i.active||i.generation!==n))return i.item}update(t,e){let{index:n,generation:i}=this.#t(t),r=this.items[n];return!r||r.generation!==i?!1:(r.item=e,r.active=!0,!0)}destroy(t){let{index:e,generation:n}=this.#t(t);if(e<s.RESERVED_SLOTS)return!1;let i=this.items[e];return!i||!i.active||i.generation!==n?!1:(i.item=null,i.active=!1,this.free.push(e),!0)}};function ao(s,t){return s.functions.reply.dom=t,{dom_allocate_external_pointer:()=>t.create(null),host_dom_drop_external_pointer:e=>{t.destroy(BigInt(e))},host_invoke_function_as_dom:(e,n,i)=>{let r=s.functions.invokeNakedAs(e,n,i,29);return typeof r=="bigint"?r:BigInt(r)}}}function Mn(s){return Math.min(1e3*2**s,3e4)}async function ir(s=globalThis.fetch){try{let t=await s("/primal/messages",{method:"HEAD"});return!!t&&t.ok===!0}catch{return!1}}var xn=class{constructor(t){this.queue=[],this.scheduled=!1,this.transport=t,this.bundlingEnabled=!1,this.nextId=1}async probe(t=globalThis.fetch){return this.bundlingEnabled=await ir(t),this.bundlingEnabled}enqueue(t){return this.bundlingEnabled?(this.queue.push({id:this.nextId++,url:t.url,method:t.method??"GET",headers:t.headers,body:t.data}),this.scheduled||(this.scheduled=!0,queueMicrotask(()=>this.flush())),null):this.transport.send(t.url,t.method,t.data)}flush(){if(this.scheduled=!1,this.queue.length===0)return;let t=this.queue.splice(0);if(t.length===1){let e=t[0];this.transport.send(e.url,e.method,e.body);return}this.transport.send("/primal/messages","POST",t)}};function co(s){let t=s.headers?.["content-type"]??s.headers?.["Content-Type"]??"";return t.includes("primal-json")?{id:s.id,...Pn(s.body)}:t.includes("primal-html")||t.includes("text/html")?{id:s.id,...or(String(s.body))}:t.includes("primal-arrow")?{id:s.id,...ar()}:{id:s.id,type:"raw",text:String(s.body??"")}}var En=class{constructor(t){this.ws=t,this.queue=[],this.scheduled=!1}send(t){this.queue.push(t),this.scheduled||(this.scheduled=!0,queueMicrotask(()=>this.flush()))}flush(){this.scheduled=!1,this.queue.length===1?this.ws.send(JSON.stringify(this.queue.splice(0,1)[0])):this.queue.length>1&&this.ws.send(JSON.stringify({batch:this.queue.splice(0)}))}},Rn=class{constructor(t){this.worker=t,this.queue=[],this.scheduled=!1}postMessage(t){this.queue.push(t),this.scheduled||(this.scheduled=!0,queueMicrotask(()=>this.flush()))}flush(){if(this.scheduled=!1,this.queue.length===0)return;let t=this.queue.splice(0),e=t.map(n=>n?.transferable).filter(Boolean);this.worker.postMessage({batch:t},e)}},Un=class{constructor(t={}){this.config=t,this.fetchFn=t.fetchFn??((...e)=>globalThis.fetch(...e))}async send(t,e="POST",n=void 0){let i={method:e,headers:this.config.headers};n!==void 0&&e!=="GET"&&e!=="HEAD"&&(i.body=typeof n=="string"?n:JSON.stringify(n));let r=await this.fetchFn(t,i);if(!r.ok)throw new Error(`FetchTransport: ${e} ${t} -> ${r.status}`);return(tt.named(this.config.protocol)??tt.fromContentType(r)).process(r)}disconnect(){}},Ns=class{constructor(){this.decoder=new TextDecoder("utf-8"),this.textBuffer="",this.sawCarriageReturn=!1,this.lastEventId=null,this.#t()}#t(){this.id=null,this.eventType=null,this.data=[],this.retry=null}push(t){let e=this.decoder.decode(t,{stream:!0});this.sawCarriageReturn&&(this.sawCarriageReturn=!1,e.startsWith(`
-`)&&(e=e.slice(1))),e.endsWith("\r")&&(this.sawCarriageReturn=!0),this.textBuffer+=e;let n=[];for(;;){let i=this.#e();if(i===null)break;let[r,o]=i;this.textBuffer=o;let a=this.#s(r);a&&n.push(a)}return n}end(){let t=this.decoder.decode();t&&(this.textBuffer+=t);let e=[];if(this.textBuffer.length>0){let i=this.#s(this.textBuffer.replace(/\r$/,""));this.textBuffer="",i&&e.push(i)}let n=this.#n();return n&&e.push(n),e}#e(){let t=this.textBuffer;for(let e=0;e<t.length;e++){let n=t[e];if(n===`
-`)return[t.slice(0,e),t.slice(e+1)];if(n==="\r"){if(e+1<t.length){let i=t[e+1]===`
-`?2:1;return[t.slice(0,e),t.slice(e+i)]}return null}}return null}#s(t){if(t.length===0)return this.#n();if(t.startsWith(":"))return{type:"comment",comment:t.slice(1).replace(/^ /,"").trimStart(),lastEventId:this.lastEventId};let e=t.indexOf(":");if(e===-1)return null;let n=t.slice(0,e),i=t.slice(e+1);switch(i.startsWith(" ")&&(i=i.slice(1)),n){case"id":i.includes("\0")||(this.id=i);break;case"event":this.eventType=i;break;case"data":this.data.push(i);break;case"retry":{let r=Number(i);Number.isInteger(r)&&r>=0&&/^\d+$/.test(i)&&(this.retry=r);break}default:}return null}#n(){if(this.data.length===0)return this.#t(),null;this.id!==null&&(this.lastEventId=this.id);let t={type:"message",event:this.eventType,data:this.data.join(`
-`),id:this.id,lastEventId:this.lastEventId,retry:this.retry};return this.#t(),t}},Bs=class{constructor(t,e={}){this.url=t,this.options=e,this.fetchFn=e.fetchFn??((...n)=>globalThis.fetch(...n)),this.closed=!1,this.attempt=0,this.retryOverride=null,this.lastEventId=null,this.abort=null}async connect(){this.closed=!1,await this.#t()}async#t(){if(this.closed)return;this.abort=typeof AbortController>"u"?null:new AbortController;let t={accept:"text/event-stream",...this.options.headers??{}};this.lastEventId!==null&&(t["last-event-id"]=this.lastEventId);let e;try{if(e=await this.fetchFn(this.options.nextUrl?.(this.url)??this.url,{method:this.options.method??"GET",cache:"no-store",headers:t,body:this.options.body,signal:this.abort?.signal}),e.status===410&&this.options.onExpired){this.close(),this.options.onExpired();return}if(!e.ok)throw new Error(`FetchEventSource: ${e.status}`)}catch(r){this.options.onError?.(r),this.#s();return}this.options.onOpen?.(e),this.attempt=0;let n=new Ns,i=e.body.getReader();try{for(;;){let{done:r,value:o}=await i.read();if(r)break;for(let a of n.push(o))this.#e(a)}for(let r of n.end())this.#e(r)}catch(r){this.closed||this.options.onError?.(r)}this.lastEventId=n.lastEventId??this.lastEventId,this.#s()}#e(t){if(t.type==="comment"){this.options.onComment?.(t);return}t.retry!==null&&t.retry!==void 0&&(this.retryOverride=t.retry),t.id!==null&&(this.lastEventId=t.id),this.options.onEvent?.(t)}#s(){if(this.closed)return;let t=this.retryOverride??Mn(this.attempt);this.attempt+=1,this.reconnectTimer=setTimeout(()=>{this.closed||this.#t()},t)}close(){this.closed=!0,clearTimeout(this.reconnectTimer),this.abort?.abort?.()}},Fn=class{constructor(t={}){this.config=t,this.source=null}connect(t,e,n){let i=this.config.method??(e===void 0?"GET":"POST");return this.source=new Bs(t,{method:i,headers:{...e===void 0?{}:{"content-type":"application/json"},...this.config.headers??{}},body:e===void 0?void 0:JSON.stringify(e),fetchFn:this.config.fetchFn,onEvent:r=>{this.config.listening?.()!==!1&&n(uo(this.config.protocol??r.event??"html",r.data))},onOpen:this.config.onOpen,onError:this.config.onError,nextUrl:this.config.nextUrl,onExpired:this.config.onExpired}),this.source.connect()}disconnect(){this.source?.close?.(),this.source=null}},Cn=class{constructor(t={}){this.config=t,this.ws=null,this.attempt=0,this.closed=!1}connect(t,e,n){let i=this.config.wsFactory??(typeof WebSocket>"u"?null:o=>new WebSocket(o));if(!i)throw new Error("WebSocketTransport: WebSocket unavailable in this environment");this.closed=!1,this.url=t,this.onResult=n;let r=i(this.config.nextUrl?.(t)??t);this.ws=r,"binaryType"in this.ws&&(this.ws.binaryType="arraybuffer"),this.ws.onopen=()=>{this.ws!==r||this.closed||(this.attempt=0,this.config.onOpen?.())},this.ws.onmessage=o=>{if(this.ws!==r||this.closed||this.config.listening?.()===!1)return;let{data:a}=o;if(a instanceof ArrayBuffer||ArrayBuffer.isView(a)){let c=ho(a instanceof ArrayBuffer?new Uint8Array(a):new Uint8Array(a.buffer,a.byteOffset,a.byteLength));c&&n(c);return}n(uo(this.config.protocol??"json",a))},this.ws.onclose=()=>{if(this.closed||this.ws!==r)return;this.config.onError?.(new Error("WebSocket disconnected"));let o=Mn(this.attempt);this.attempt+=1,setTimeout(()=>{!this.closed&&this.ws===r&&this.connect(this.url,void 0,this.onResult)},o)}}send(t){if(!this.ws||this.ws.readyState!==void 0&&this.ws.readyState!==1)throw new Error("WebSocket is closed");this.ws.send(typeof t=="string"||ArrayBuffer.isView(t)||t instanceof ArrayBuffer?t:JSON.stringify(t))}disconnect(){this.closed=!0,this.ws?.close?.(),this.ws=null}},Vn=class{constructor(t={}){this.config=t,this.abort=null,this.fetchFn=t.fetchFn??((...e)=>globalThis.fetch(...e))}async connect(t,e,n){this.abort=new AbortController;let i=await this.fetchFn(t,{method:e===void 0?"GET":"POST",body:e===void 0?void 0:JSON.stringify(e),signal:this.abort.signal,headers:this.config.headers});if(i.status===410&&this.config.onExpired){this.config.onExpired();return}if(!i.ok)throw new Error("Stream request failed with HTTP "+i.status);this.config.onOpen?.();let r=tt.named(this.config.protocol)??tt.fromContentType(i);if(r instanceof me&&cr(i))n(await r.process(i));else if(r instanceof me){let o=tt.frameHook;if(!o)throw new Error("Install the frame runtime before opening a frame stream");for await(let a of o.readFrames(i.body,o.maxFrameBytes))this.config.listening?.()!==!1&&n({type:"frame",frames:[a]})}else{let o=this.config.maxDocumentBytes??tt.frameHook?.maxFrameBytes??4194304,a=0,c=i.body.pipeThrough(new TransformStream({transform(u,l){if(a+=u.byteLength,a>o)throw new RangeError("Streamed document exceeds byte limit");l.enqueue(u)}}));n(await r.process(new Response(c,{headers:i.headers})))}}disconnect(){this.abort?.abort?.(),this.abort=null}},Ln=class{constructor(t={}){this.worker=t.worker}send(t,e,n){this.worker.postMessage(n)}onMessage(t){this.worker.onmessage=e=>t(e.data)}disconnect(){this.worker?.terminate?.()}},Ot=class{static create(t={}){switch(t.transport){case"sse":return new Fn(t);case"ws":case"websocket":return new Cn(t);case"chunked":return new Vn(t);case"worker":return new Ln(t);default:return new Un(t)}}};function rr(s={}){let t=new kn;for(let e of["sse","websocket","chunked"])t.register(e,(n,i)=>{let r=n.channel??Ot.create({...s,headers:{...s.headers,...n.headers},transport:e,protocol:"frame"}),o=[],a=()=>{for(let l of o.splice(0))l.resolve();i.opened()},c=l=>{for(let h of o.splice(0))h.reject(l);i.disconnected(l)};r.config&&Object.assign(r.config,{onOpen:a,onError:c,listening:i.listening});let u=r.connect(n.endpoint,n.data,l=>{if(l.type!=="frame"){c(new Error("Expected a Foundation frame"));return}for(let h of l.frames)i.deliver(h)});return Promise.resolve(u).catch(c),{send:e==="websocket"?async l=>{r.ws?.readyState===0&&await new Promise((h,d)=>o.push({resolve:h,reject:d})),r.send(l)}:void 0,close(){for(let l of o.splice(0))l.reject(new Error("Connection closed"));r.disconnect()}}});return t}function ho(s){if(tt.frameHook?.isFrame(s))return{type:"frame",frames:[s]};if(s instanceof Uint8Array||(s=new Uint8Array(s)),s.byteLength<6)return console.error("decodeEnvelopeFrame: truncated header",s.byteLength),null;let t=new DataView(s.buffer,s.byteOffset,s.byteLength),e=t.getUint8(0),n=t.getUint8(1),i=t.getUint32(2,!0),r=s.subarray(6);if(r.byteLength!==i)return console.error(`decodeEnvelopeFrame: length mismatch (header ${i}, payload ${r.byteLength})`),null;if(e===2)try{return Pn(JSON.parse(new TextDecoder().decode(r)))}catch(o){return console.error("decodeEnvelopeFrame: json payload did not parse",o),null}return console.error(`decodeEnvelopeFrame: unknown protocol ${e} v${n}`),null}function Ic(s){let t=atob(String(s).trim()),e=new Uint8Array(t.length);for(let n=0;n<t.length;n+=1)e[n]=t.charCodeAt(n);return e}function uo(s,t){if(s==="frame")return{type:"frame",frames:[Ic(t)]};if(s==="json")try{return Pn(JSON.parse(t))}catch{return{type:"raw",text:String(t)}}return s==="arrow"?ar():or(String(t))}function Pn(s){return s&&typeof s=="object"&&s.morph?{type:"json-morph",morph:s.morph}:{type:"json",patches:s}}function or(s){let t=/^\s*<island\b[^>]*data-target="([^"]+)"[^>]*data-action="([^"]+)"[^>]*>([\s\S]*)<\/island>\s*$/.exec(s);return t?{type:"html-morph",target:t[1],action:t[2],content:t[3]}:{type:"html",html:s}}function ar(){return console.error('mount: protocol "arrow" was removed; use "frame"'),{type:"raw",text:""}}var yc={process:async()=>({type:"raw",text:""})},xs=class{async process(t){return Pn(await t.json())}},Es=class{async process(t){return or(await t.text())}},jn=class{async process(t){return{type:"raw",text:await t.text()}}};function cr(s){return s.headers?.get?.("content-type")?.split(";")[0].trim().toLowerCase()==="application/vnd.ewe.frame"}var me=class{async process(t){if(!t.ok)throw new Error("Frame request failed with HTTP "+t.status);let e=tt.frameHook;if(!e)return console.error("frame received but the frame runtime is not installed"),{type:"raw",text:""};if(cr(t))return{type:"frame",frames:[await e.readViewResponse(t,e.maxFrameBytes)]};let n=[],i=0;for await(let r of e.readFrames(t.body,e.maxFrameBytes)){if(i+=r.length,i>e.maxFrameBytes)throw new RangeError("Frame reply exceeds byte limit");n.push(r)}return{type:"frame",frames:n}}},tt=class s{static frameHook=null;static named(t){switch(t){case"frame":return new me;case"arrow":return ar(),yc;case"json":return new xs;case"html":return new Es;default:return null}}static fromContentType(t){let e=t.headers?.get?.("content-type")||"";return cr(t)||e.includes("primal-frame")?new me:e.includes("primal-arrow")||e.includes("event-stream-arrow")?s.named("arrow"):e.includes("primal-json")||e.includes("event-stream-json")?new xs:e.includes("primal-html")||e.includes("event-stream-html")||e.includes("text/html")?new Es:new jn}};function hr(s,t){return s.replace(/(^|\})\s*([^@{}][^{}]*)\{/g,(e,n,i)=>{let r=i.split(",").map(o=>`${t} ${o.trim()}`).join(", ");return`${n}
-${r} {`})}var Nt=class s{static scopeExtensions=[];static behaviourMarkers=null;static createScope(t){let e=[],n={targets:()=>t.querySelectorAll("[primal-id]"),parent:()=>t,querySelector:i=>t.querySelector(i),querySelectorAll:i=>t.querySelectorAll(i),addEvent(i,r,o,a){let c=typeof i=="string"?t.querySelector(i):i;c&&(c.addEventListener(r,o,a),e.push(()=>c.removeEventListener(r,o,a)))},onDispose(i){e.push(i)},cleanup(){for(let i of e.splice(0))i()}};for(let i of s.scopeExtensions)i(n,t);return n}static hydrate(t,e=t.ownerDocument??globalThis.document){if(typeof t.querySelectorAll=="function"){s.behaviourMarkers?.(t);for(let n of t.querySelectorAll("style[primal\\:style]")){let i=t.id?`#${t.id}`:`[primal-id="${t.getAttribute?.("primal-id")??""}"]`,r=hr(n.textContent,i);if(typeof CSSStyleSheet=="function"&&e?.adoptedStyleSheets){let o=new CSSStyleSheet;o.replaceSync(r),e.adoptedStyleSheets=[...e.adoptedStyleSheets,o],(t._sheets??=[]).push(o)}n.remove?.()}for(let n of t.querySelectorAll("script[primal\\:script]")){let i=n.parentElement??t,r=s.createScope(i);try{let o=n.textContent.trim(),a=/^(?:async\s+)?function\s*\(/.test(o)?`(${o})(scope)`:o;new Function("scope",a)(r),P.registerUnmount(i,()=>r.cleanup())}catch(o){r.cleanup(),console.error("Hydrator: scoped script failed",o)}n.remove?.()}}}},P=class s{static runtime={dispatcher:null,registry:null,signalBridge:null,frames:null};static frameSeq=0;static localScopes=new WeakMap;static registerUnmount(t,e){let n=s.localScopes.get(t);n||s.localScopes.set(t,n=new Set),n.add(e)}static releaseScope(t){let e=s.localScopes.get(t);if(s.localScopes.delete(t),e)for(let n of e)try{n()}catch(i){console.error("Component cleanup failed",i)}}static releaseTree(t){for(let e of Array.from(t.childNodes??[]))s.releaseTree(e);s.releaseScope(t)}static materialize(t,e,n=e.ownerDocument??globalThis.document){if(typeof n?.createRange=="function"){let i=n.createRange().createContextualFragment(t);e.appendChild(i)}else e.innerHTML=t;Nt.hydrate(e,n),s.runtime.dispatcher?.scanAndWire?.(e)}static ensureRegistry(t){return s.runtime.document!==t&&(s.runtime.document=t,s.runtime.registry=new Gt().seedDocument(t)),s.runtime.registry}static applySignalPatches(t){let e=s.runtime.signalBridge;e?.applyPatches?e.applyPatches(t):console.warn("Patcher: no signalBridge installed; JSON patches dropped",t)}static route(t,e,n){s.applyRoute(t,e,n),t.type!=="frame"&&s.markApplied()}static markApplied(){s.frameSeq+=1;let t=typeof performance<"u"?performance.now():Date.now();typeof globalThis<"u"&&(globalThis.__primalFrames={seq:s.frameSeq,at:t})}static applyRoute(t,e,n){switch(t.type){case"frame":if(!s.runtime.frames)console.error("frame received but the frame runtime is not installed");else for(let i of t.frames)s.runtime.frames.receive(i,{viewMount:e});break;case"html":s.materialize(t.html,e,n);break;case"html-morph":{let i=n.querySelector(t.target);i&&typeof n.createRange=="function"&&$e.morph(i,n.createRange().createContextualFragment(t.content),n);break}case"json-morph":{let i=n.querySelector(t.morph.target);i&&typeof n.createRange=="function"&&$e.morph(i,n.createRange().createContextualFragment(t.morph.content),n);break}case"json":s.applySignalPatches(t.patches);break;default:e.textContent=t.text??""}}};function Wn(s,t,e){return t?t==="parent"?s.parentElement:e.querySelector(t):s}function zn(s,t,e){if(!t){let i=e.createElement("div");return s.parentNode?.replaceChild?.(i,s),i}if(t==="parent"){let i=s.parentElement??s.parent??null;if(!i)throw new Error("mount target not found: parent");return io(i),i}let n=e.querySelector(t);if(!n)throw new Error(`mount target not found: ${t}`);return io(n),n}function io(s){for(;s.firstChild;)s.removeChild(s.firstChild)}var dr=typeof HTMLElement>"u"?class{}:HTMLElement,Rs=class extends dr{connectedCallback(){Nt.hydrate(this),P.runtime.dispatcher?.scanAndWire?.(this)}disconnectedCallback(){let t=this.ownerDocument??globalThis.document;this._sheets?.length&&t?.adoptedStyleSheets&&(t.adoptedStyleSheets=t.adoptedStyleSheets.filter(e=>!this._sheets.includes(e))),this._sheets=[],P.runtime.dispatcher?.removeListeners?.(this)}};function lo(s,t={}){let e=s.getAttribute("api");if(!e)throw new Error(`${s.tagName?.toLowerCase()??"mount"}: missing api attribute`);let n={};try{n=JSON.parse(s.getAttribute("data")||"{}")}catch(r){console.error("mount: invalid JSON in data attribute",r)}let i=s._transportOverride??Ot.create({transport:s.getAttribute("transport")??t.transport,protocol:s.getAttribute("protocol")??void 0,url:e});return{api:e,data:n,transport:i,target:s.getAttribute("target")}}var Us=class extends dr{async connectedCallback(){let t=this.ownerDocument??globalThis.document;try{let e=P.runtime.onMountConnect?.(this,!1);if(this._frameMount=e,e?.local)return;let{api:n,data:i,transport:r,target:o}=lo(this);this._transport=r;let a=this.getAttribute("method")||"POST",c=await r.send(e?e.url(n):n,a,i);if(e)e.receive(c);else{let u=c.type==="frame"?Wn(this,o,t):zn(this,o,t);P.route(c,u,t)}}catch(e){console.error("mount-data:",e)}}disconnectedCallback(){this._frameMount?.close(),this._transport?.disconnect?.()}},Fs=class extends dr{connectedCallback(){let t=this.ownerDocument??globalThis.document;try{let e=P.runtime.onMountConnect?.(this,!0);if(this._frameMount=e,e?.local)return;let n=0,i=()=>{let r=++n,{api:o,data:a,transport:c,target:u}=lo(this,{transport:"sse"}),l=e?null:zn(this,u,t);if(e?.managed){let d=e.managed({api:o,data:a,transport:c});if(d){this._transport={disconnect:()=>d.close()};return}}this._transport=c,!e&&this.isConnected===!1&&l?.isConnected&&!this._targetObserver&&(this._targetObserver=new MutationObserver(()=>{l.isConnected||this.disconnectedCallback()}),this._targetObserver.observe(t,{childList:!0,subtree:!0})),e&&c.config&&(c.config.nextUrl=d=>e.url(d),c.config.onExpired=e.expired);let h=e&&this.getAttribute("data")===null?void 0:a;c.connect(e?e.url(o):o,h,d=>{r!==n||c!==this._transport||(e?e.receive(d):P.route(d,l,t))})};this._restartFrameStream=()=>{this._transport?.disconnect?.(),i()},i()}catch(e){console.error("mount-stream:",e)}}disconnectedCallback(){this._frameMount?.close(),this._restartFrameStream=null,this._targetObserver?.disconnect(),this._targetObserver=null,this._transport?.disconnect?.(),this._transport=null}};function Cs(){typeof customElements>"u"||(customElements.get("primal-island")||customElements.define("primal-island",Rs),customElements.get("mount-data")||customElements.define("mount-data",Us),customElements.get("mount-stream")||customElements.define("mount-stream",Fs))}function Dn(s,t={}){let e=t.document??globalThis.document;if(!e){console.error("registerWasmApp: no document available (non-browser environment)");return}let n=s.bridge??s,i=globalThis.EweFrames?.installFrameRuntime(globalThis.FoundationWasmUiRuntime,t);if(!i)throw new Error("registerWasmApp requires foundation-ui-frames.js");let r=P.runtime.dispatcher??new Ge(Nn(s.callbacks));r.deliver=Nn(s.callbacks),r.deliverSignal=nr(n),P.runtime.dispatcher=r;let o=new WeakSet,a=(u,l)=>{!o.has(l)&&n.exports?.ewe_ui_dispose_mount&&(o.add(l),P.registerUnmount(l,()=>n.exports.ewe_ui_dispose_mount(u)))},c=(u,l,h,d)=>{let f=Os(d.getAttribute?.("primal:setter"));f!==null&&r.deliverSignal(f,Ts(u,h,d))};s.dispatcher.setRawHandler(tt.frameHook.isFrame,u=>u.byteLength>i.maxFrameBytes?i.receive(u):i.receive(Uint8Array.from(u),{onMount:a,onEvent:c})),sr(r,e)}function Ac(){return globalThis.__primalFrames??{seq:P.frameSeq,at:null}}function ur({dispatcher:s,doc:t=globalThis.document}={}){return{mountData(e,n,i,r={}){return Ot.create({transport:r.transport,url:e}).send(e,r.method||"POST",n).then(a=>P.route(a,i,t))},mountStream(e,n,i,r={}){let o=Ot.create({transport:r.transport??"sse",url:e});return o.connect(e,n,a=>P.route(a,i,t)),o},unmount(e){e.disconnectedCallback?.(),e.remove?.()},on:(e,n,i)=>t.querySelector(e)?.addEventListener(n,i),onclick(e,n){this.on(e,"click",n)},onchange(e,n){this.on(e,"change",n)},off:(e,n,i)=>t.querySelector(e)?.removeEventListener(n,i),scope:e=>Nt.createScope(e),dispatcher:s,Transport:Ot,ProtocolHandler:tt,Patcher:P,Hydrator:Nt}}typeof window<"u"&&(queueMicrotask(Cs),window.primal??=ur({}));globalThis.FoundationWasmUiRuntime=Object.freeze({RESERVED:ks,NodeRegistry:Gt,MorphDom:$e,moveBefore:On,buildEventData:Ts,parseCallbackId:Os,EventDispatcher:Ge,CONVENIENCE_EVENTS:Zi,callbackDeliver:Nn,signalDeliver:nr,resolveFunctionRef:tr,resolveDelegateTarget:er,initEventRuntime:sr,Transport:Ot,ProtocolHandler:tt,Patcher:P,Hydrator:Nt,scopeCss:hr,RequestQueue:xn,SseParser:Ns,FetchEventSource:Bs,WSBatchQueue:En,WorkerBatchQueue:Rn,probeBatching:ir,parseBatchEntry:co,reconnectDelay:Mn,resolveMountTarget:zn,IslandComponent:Rs,MountDataComponent:Us,MountStreamComponent:Fs,registerWebComponents:Cs,registerWasmApp:Dn,createPrimal:ur,DomHeap:Bn,domAbi:ao});var qn=class{constructor(t,e,{maxAttempts:n=3,onError:i=()=>{}}={}){if(!Number.isSafeInteger(n)||n<1)throw new RangeError("Invalid recovery attempt limit");this.load=t,this.install=e,this.maxAttempts=n,this.onError=i,this.attempts=0,this.generation=0,this.active=!0,this.ready=!1,this.expiredStreams=new Set}open(){return this.run()}expire(t){if(this.active){if(this.expiredStreams.add(t),this.flight)return this.flight;if(this.attempts>=this.maxAttempts){this.ready=!1,this.onError(new Error("View recovery attempt limit reached"));return}return this.attempts++,this.run()}}retry(){return this.flight?this.flight:(this.attempts=0,this.run())}run(){if(!this.active||this.flight)return this.flight;let t=++this.generation;this.ready=!1;let e=new AbortController;return this.abort=e,this.flight=Promise.resolve().then(()=>this.load(e.signal)).then(n=>{!this.active||this.generation!==t||(this.ready=!0,this.install(n,this.expiredStreams),this.expiredStreams.clear())}).catch(n=>{if(!(!this.active||this.generation!==t))throw this.ready=!1,this.onError(n),n}).finally(()=>{this.generation===t&&(this.flight=null)}),this.flight}accepts(t){return this.active&&this.ready&&t===this.generation}close(){this.active=!1,this.ready=!1,this.generation++,this.abort?.abort(),this.expiredStreams.clear()}};var Ks={};qi(Ks,{ActionError:()=>Nr,ActionErrorT:()=>mo,ActionInput:()=>$n,ActionInputT:()=>_o,ActionRequest:()=>jt,ActionRequestT:()=>wo,Alignment:()=>vo,AlignmentValue:()=>Zn,AlignmentValueT:()=>Io,AppendChild:()=>ti,AppendChildT:()=>yo,ArrowIpcBlob:()=>Gn,ArrowIpcBlobT:()=>Ao,AttachState:()=>Ls,AttachStateT:()=>ko,Axis:()=>ei,AxisValue:()=>si,AxisValueT:()=>So,BehaviourArg:()=>Hs,BehaviourArgT:()=>Ro,BehaviourId:()=>$s,BindAction:()=>ai,BindActionT:()=>Fo,BoolValue:()=>ni,BoolValueT:()=>To,Bools:()=>je,BoolsT:()=>Co,Builder:()=>Or,ByteBuffer:()=>Ve,CapsStatus:()=>Vo,ClientHello:()=>xr,ClientHelloT:()=>di,ColorToken:()=>ii,ColorTokenT:()=>Oo,Column:()=>Qn,ColumnData:()=>us,ColumnT:()=>Wo,ColumnarBatch:()=>_t,ColumnarBatchT:()=>zo,ConnectionSharing:()=>le,Control:()=>Mt,ControlT:()=>Qo,CreateNode:()=>ui,CreateNodeT:()=>Yo,Data:()=>de,DataT:()=>Xo,DataTable:()=>Jn,DataTableT:()=>Jo,ErrorCode:()=>Xn,EventId:()=>Uo,F64s:()=>Me,F64sT:()=>Lo,FontToken:()=>ri,FontTokenT:()=>No,Frame:()=>fe,FrameKind:()=>yt,FrameMessage:()=>vt,FrameMessageT:()=>Ca,FrameRequest:()=>ue,FrameRequestT:()=>Js,FrameT:()=>Ci,HtmlMorph:()=>_i,HtmlMorphT:()=>ba,I32s:()=>Pe,I32sT:()=>jo,I64s:()=>We,I64sT:()=>Mo,InsertBefore:()=>pi,InsertBeforeT:()=>ra,Length:()=>Br,LengthT:()=>Bo,LengthUnit:()=>qs,LengthValue:()=>oi,LengthValueT:()=>xo,LiveKind:()=>Gs,LiveMount:()=>ls,LiveMountT:()=>oa,LiveTransport:()=>Qs,Message:()=>Ce,MessagePackBlob:()=>Kn,MessagePackBlobT:()=>Ko,MessageT:()=>Fa,MobileBehaviour:()=>js,MobileBehaviourId:()=>Zo,MobileBehaviourT:()=>ta,MobileOperation:()=>fi,MorphAction:()=>Wt,MountSurface:()=>ci,MountWebView:()=>li,MountWebViewT:()=>ea,NativeArg:()=>Cr,NativeArgT:()=>sa,NativeCommand:()=>Ms,NativeCommandId:()=>na,NativeCommandT:()=>ia,NodeKind:()=>It,Operation:()=>rt,OperationT:()=>Ua,Place:()=>ot,PlaceT:()=>ca,PlacementKind:()=>Ys,Platform:()=>hi,PropId:()=>fs,PropValue:()=>De,Remove:()=>bi,RemoveT:()=>ha,ReplaceSubtree:()=>Ws,ReplaceSubtreeT:()=>da,ReplayExpired:()=>Er,ReplayExpiredT:()=>Do,ResumeSubscription:()=>Vr,ResumeSubscriptionT:()=>Fi,ScriptNode:()=>wi,ScriptNodeT:()=>ga,SelectorKind:()=>X,ServerAction:()=>Rr,ServerActionT:()=>qo,ServerCaps:()=>Yn,ServerCapsT:()=>Ho,SetProp:()=>ps,SetPropT:()=>ua,SetText:()=>gi,SetTextT:()=>la,SignedState:()=>Vs,SignedStateT:()=>Va,StateExpired:()=>Ur,StateExpiredT:()=>$o,Strings:()=>ze,StringsT:()=>Po,TargetSelector:()=>Ps,TargetSelectorT:()=>aa,TextValue:()=>ds,TextValueT:()=>Eo,UiBehaviour:()=>zs,UiBehaviourT:()=>fa,UiOperation:()=>ft,UnbindAction:()=>mi,UnbindActionT:()=>pa,UpdateRequired:()=>Fr,UpdateRequiredT:()=>Go,WebAddClass:()=>vi,WebAddClassT:()=>ma,WebAddListener:()=>Ii,WebAddListenerT:()=>_a,WebBehaviour:()=>Ds,WebBehaviourId:()=>wa,WebBehaviourT:()=>va,WebDetachChild:()=>yi,WebDetachChildT:()=>Ia,WebElement:()=>Ai,WebElementT:()=>ya,WebOperation:()=>bs,WebProperty:()=>ki,WebPropertyT:()=>Aa,WebRegisterNode:()=>Si,WebRegisterNodeT:()=>ka,WebRemoveAttribute:()=>Ti,WebRemoveAttributeT:()=>Sa,WebRemoveClass:()=>Oi,WebRemoveClassT:()=>Ta,WebRemoveListener:()=>Ni,WebRemoveListenerT:()=>Oa,WebReplaceNode:()=>Bi,WebReplaceNodeT:()=>Na,WebSetAttribute:()=>xi,WebSetAttributeT:()=>Ba,WebStyle:()=>Ei,WebStyleT:()=>xa,WebText:()=>Ri,WebTextT:()=>Ea,WebUnregisterNode:()=>Ui,WebUnregisterNodeT:()=>Ra,unionListToColumnData:()=>Sc,unionListToFrameKind:()=>Bc,unionListToMobileOperation:()=>Tc,unionListToPropValue:()=>kc,unionListToUiOperation:()=>Oc,unionListToWebOperation:()=>Nc,unionToColumnData:()=>gr,unionToFrameKind:()=>Tr,unionToMobileOperation:()=>wr,unionToPropValue:()=>Le,unionToUiOperation:()=>Ir,unionToWebOperation:()=>yr});var fr=2,wt=4,Pt=4,I=4,he=new Int32Array(2),fo=new Float32Array(he.buffer),po=new Float64Array(he.buffer),Hn=new Uint16Array(new Uint8Array([1,0]).buffer)[0]===1,pr;(function(s){s[s.UTF8_BYTES=1]="UTF8_BYTES",s[s.UTF16_STRING=2]="UTF16_STRING"})(pr||(pr={}));var Ve=class bo{constructor(t){this.bytes_=t,this.position_=0,this.text_decoder_=new TextDecoder}static allocate(t){return new bo(new Uint8Array(t))}clear(){this.position_=0}bytes(){return this.bytes_}position(){return this.position_}setPosition(t){this.position_=t}capacity(){return this.bytes_.length}readInt8(t){return this.readUint8(t)<<24>>24}readUint8(t){return this.bytes_[t]}readInt16(t){return this.readUint16(t)<<16>>16}readUint16(t){return this.bytes_[t]|this.bytes_[t+1]<<8}readInt32(t){return this.bytes_[t]|this.bytes_[t+1]<<8|this.bytes_[t+2]<<16|this.bytes_[t+3]<<24}readUint32(t){return this.readInt32(t)>>>0}readInt64(t){return BigInt.asIntN(64,BigInt(this.readUint32(t))+(BigInt(this.readUint32(t+4))<<BigInt(32)))}readUint64(t){return BigInt.asUintN(64,BigInt(this.readUint32(t))+(BigInt(this.readUint32(t+4))<<BigInt(32)))}readFloat32(t){return he[0]=this.readInt32(t),fo[0]}readFloat64(t){return he[Hn?0:1]=this.readInt32(t),he[Hn?1:0]=this.readInt32(t+4),po[0]}writeInt8(t,e){this.bytes_[t]=e}writeUint8(t,e){this.bytes_[t]=e}writeInt16(t,e){this.bytes_[t]=e,this.bytes_[t+1]=e>>8}writeUint16(t,e){this.bytes_[t]=e,this.bytes_[t+1]=e>>8}writeInt32(t,e){this.bytes_[t]=e,this.bytes_[t+1]=e>>8,this.bytes_[t+2]=e>>16,this.bytes_[t+3]=e>>24}writeUint32(t,e){this.bytes_[t]=e,this.bytes_[t+1]=e>>8,this.bytes_[t+2]=e>>16,this.bytes_[t+3]=e>>24}writeInt64(t,e){this.writeInt32(t,Number(BigInt.asIntN(32,e))),this.writeInt32(t+4,Number(BigInt.asIntN(32,e>>BigInt(32))))}writeUint64(t,e){this.writeUint32(t,Number(BigInt.asUintN(32,e))),this.writeUint32(t+4,Number(BigInt.asUintN(32,e>>BigInt(32))))}writeFloat32(t,e){fo[0]=e,this.writeInt32(t,he[0])}writeFloat64(t,e){po[0]=e,this.writeInt32(t,he[Hn?0:1]),this.writeInt32(t+4,he[Hn?1:0])}getBufferIdentifier(){if(this.bytes_.length<this.position_+wt+Pt)throw new Error("FlatBuffers: ByteBuffer is too short to contain an identifier.");let t="";for(let e=0;e<Pt;e++)t+=String.fromCharCode(this.readInt8(this.position_+wt+e));return t}__offset(t,e){let n=t-this.readInt32(t);return e<this.readInt16(n)?this.readInt16(n+e):0}__union(t,e){return t.bb_pos=e+this.readInt32(e),t.bb=this,t}__string(t,e){t+=this.readInt32(t);let n=this.readInt32(t);t+=wt;let i=this.bytes_.subarray(t,t+n);return e===pr.UTF8_BYTES?i:this.text_decoder_.decode(i)}__union_with_string(t,e){return typeof t=="string"?this.__string(e):this.__union(t,e)}__indirect(t){return t+this.readInt32(t)}__vector(t){return t+this.readInt32(t)+wt}__vector_len(t){return this.readInt32(t+this.readInt32(t))}__has_identifier(t){if(t.length!=Pt)throw new Error("FlatBuffers: file identifier must be length "+Pt);for(let e=0;e<Pt;e++)if(t.charCodeAt(e)!=this.readInt8(this.position()+wt+e))return!1;return!0}createScalarList(t,e){let n=[];for(let i=0;i<e;++i){let r=t(i);r!==null&&n.push(r)}return n}createObjList(t,e){let n=[];for(let i=0;i<e;++i){let r=t(i);r!==null&&n.push(r.unpack())}return n}},Or=class go{constructor(t){this.minalign=1,this.vtable=null,this.vtable_in_use=0,this.isNested=!1,this.object_start=0,this.vtables=[],this.vector_num_elems=0,this.force_defaults=!1,this.string_maps=null,this.text_encoder=new TextEncoder;let e;t?e=t:e=1024,this.bb=Ve.allocate(e),this.space=e}clear(){this.bb.clear(),this.space=this.bb.capacity(),this.minalign=1,this.vtable=null,this.vtable_in_use=0,this.isNested=!1,this.object_start=0,this.vtables=[],this.vector_num_elems=0,this.force_defaults=!1,this.string_maps=null}forceDefaults(t){this.force_defaults=t}dataBuffer(){return this.bb}asUint8Array(){return this.bb.bytes().subarray(this.bb.position(),this.bb.position()+this.offset())}prep(t,e){t>this.minalign&&(this.minalign=t);let n=~(this.bb.capacity()-this.space+e)+1&t-1;for(;this.space<n+t+e;){let i=this.bb.capacity();this.bb=go.growByteBuffer(this.bb),this.space+=this.bb.capacity()-i}this.pad(n)}pad(t){for(let e=0;e<t;e++)this.bb.writeInt8(--this.space,0)}writeInt8(t){this.bb.writeInt8(this.space-=1,t)}writeInt16(t){this.bb.writeInt16(this.space-=2,t)}writeInt32(t){this.bb.writeInt32(this.space-=4,t)}writeInt64(t){this.bb.writeInt64(this.space-=8,t)}writeFloat32(t){this.bb.writeFloat32(this.space-=4,t)}writeFloat64(t){this.bb.writeFloat64(this.space-=8,t)}addInt8(t){this.prep(1,0),this.writeInt8(t)}addInt16(t){this.prep(2,0),this.writeInt16(t)}addInt32(t){this.prep(4,0),this.writeInt32(t)}addInt64(t){this.prep(8,0),this.writeInt64(t)}addFloat32(t){this.prep(4,0),this.writeFloat32(t)}addFloat64(t){this.prep(8,0),this.writeFloat64(t)}addFieldInt8(t,e,n){(this.force_defaults||e!=n)&&(this.addInt8(e),this.slot(t))}addFieldInt16(t,e,n){(this.force_defaults||e!=n)&&(this.addInt16(e),this.slot(t))}addFieldInt32(t,e,n){(this.force_defaults||e!=n)&&(this.addInt32(e),this.slot(t))}addFieldInt64(t,e,n){(this.force_defaults||e!==n)&&(this.addInt64(e),this.slot(t))}addFieldFloat32(t,e,n){(this.force_defaults||e!=n)&&(this.addFloat32(e),this.slot(t))}addFieldFloat64(t,e,n){(this.force_defaults||e!=n)&&(this.addFloat64(e),this.slot(t))}addFieldOffset(t,e,n){(this.force_defaults||e!=n)&&(this.addOffset(e),this.slot(t))}addFieldStruct(t,e,n){e!=n&&(this.nested(e),this.slot(t))}nested(t){if(t!=this.offset())throw new TypeError("FlatBuffers: struct must be serialized inline.")}notNested(){if(this.isNested)throw new TypeError("FlatBuffers: object serialization must not be nested.")}slot(t){this.vtable!==null&&(this.vtable[t]=this.offset())}offset(){return this.bb.capacity()-this.space}static growByteBuffer(t){let e=t.capacity();if(e&3221225472)throw new Error("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");let n=e<<1,i=Ve.allocate(n);return i.setPosition(n-e),i.bytes().set(t.bytes(),n-e),i}addOffset(t){this.prep(wt,0),this.writeInt32(this.offset()-t+wt)}startObject(t){this.notNested(),this.vtable==null&&(this.vtable=[]),this.vtable_in_use=t;for(let e=0;e<t;e++)this.vtable[e]=0;this.isNested=!0,this.object_start=this.offset()}endObject(){if(this.vtable==null||!this.isNested)throw new Error("FlatBuffers: endObject called without startObject");this.addInt32(0);let t=this.offset(),e=this.vtable_in_use-1;for(;e>=0&&this.vtable[e]==0;e--);let n=e+1;for(;e>=0;e--)this.addInt16(this.vtable[e]!=0?t-this.vtable[e]:0);let i=2;this.addInt16(t-this.object_start);let r=(n+i)*fr;this.addInt16(r);let o=0,a=this.space;t:for(e=0;e<this.vtables.length;e++){let c=this.bb.capacity()-this.vtables[e];if(r==this.bb.readInt16(c)){for(let u=fr;u<r;u+=fr)if(this.bb.readInt16(a+u)!=this.bb.readInt16(c+u))continue t;o=this.vtables[e];break}}return o?(this.space=this.bb.capacity()-t,this.bb.writeInt32(this.space,o-t)):(this.vtables.push(this.offset()),this.bb.writeInt32(this.bb.capacity()-t,this.offset()-t)),this.isNested=!1,t}finish(t,e,n){let i=n?I:0;if(e){let r=e;if(this.prep(this.minalign,wt+Pt+i),r.length!=Pt)throw new TypeError("FlatBuffers: file identifier must be length "+Pt);for(let o=Pt-1;o>=0;o--)this.writeInt8(r.charCodeAt(o))}this.prep(this.minalign,wt+i),this.addOffset(t),i&&this.addInt32(this.bb.capacity()-this.space),this.bb.setPosition(this.space)}finishSizePrefixed(t,e){this.finish(t,e,!0)}requiredField(t,e){let n=this.bb.capacity()-t,i=n-this.bb.readInt32(n);if(!(e<this.bb.readInt16(i)&&this.bb.readInt16(i+e)!=0))throw new TypeError("FlatBuffers: field "+e+" must be set")}startVector(t,e,n){this.notNested(),this.vector_num_elems=e,this.prep(wt,t*e),this.prep(n,t*e)}endVector(){return this.writeInt32(this.vector_num_elems),this.offset()}createSharedString(t){if(!t)return 0;if(this.string_maps||(this.string_maps=new Map),this.string_maps.has(t))return this.string_maps.get(t);let e=this.createString(t);return this.string_maps.set(t,e),e}createString(t){if(t==null)return 0;let e;return t instanceof Uint8Array?e=t:e=this.text_encoder.encode(t),this.addInt8(0),this.startVector(1,e.length,1),this.bb.setPosition(this.space-=e.length),this.bb.bytes().set(e,this.space),this.endVector()}createByteVector(t){return t==null?0:(this.startVector(1,t.length,1),this.bb.setPosition(this.space-=t.length),this.bb.bytes().set(t,this.space),this.endVector())}createObjectOffset(t){return t===null?0:typeof t=="string"?this.createString(t):t.pack(this)}createObjectOffsetList(t){let e=[];for(let n=0;n<t.length;++n){let i=t[n];if(i!==null)e.push(this.createObjectOffset(i));else throw new TypeError("FlatBuffers: Argument for createObjectOffsetList cannot contain null.")}return e}createStructOffsetList(t,e){return e(this,t.length),this.createObjectOffsetList(t.slice().reverse()),this.endVector()}},Xn=(s=>(s[s.Unknown=0]="Unknown",s[s.BadRequest=1]="BadRequest",s[s.UnknownAction=2]="UnknownAction",s[s.UnavailableOrigin=3]="UnavailableOrigin",s[s.UnsupportedAction=4]="UnsupportedAction",s[s.StateRejected=5]="StateRejected",s[s.StateExpired=6]="StateExpired",s[s.RateLimited=7]="RateLimited",s[s.ActionFailed=8]="ActionFailed",s[s.UpdateRequired=9]="UpdateRequired",s[s.UnsupportedPlatformOp=10]="UnsupportedPlatformOp",s[s.InvalidInput=11]="InvalidInput",s))(Xn||{}),Nr=class Qt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsActionError(t,e){return(e||new Qt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsActionError(t,e){return t.setPosition(t.position()+I),(e||new Qt).__init(t.readInt32(t.position())+t.position(),t)}code(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint16(this.bb_pos+t):0}message(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}rowIndex(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint32(this.bb_pos+t):0}static startActionError(t){t.startObject(3)}static addCode(t,e){t.addFieldInt16(0,e,0)}static addMessage(t,e){t.addFieldOffset(1,e,0)}static addRowIndex(t,e){t.addFieldInt32(2,e,0)}static endActionError(t){return t.endObject()}static createActionError(t,e,n,i){return Qt.startActionError(t),Qt.addCode(t,e),Qt.addMessage(t,n),Qt.addRowIndex(t,i),Qt.endActionError(t)}unpack(){return new mo(this.code(),this.message(),this.rowIndex())}unpackTo(t){t.code=this.code(),t.message=this.message(),t.rowIndex=this.rowIndex()}},mo=class{constructor(s=0,t=null,e=0){this.code=s,this.message=t,this.rowIndex=e}code;message;rowIndex;pack(s){let t=this.message!==null?s.createString(this.message):0;return Nr.createActionError(s,this.code,t,this.rowIndex)}},$n=class ct{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsActionInput(t,e){return(e||new ct).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsActionInput(t,e){return t.setPosition(t.position()+I),(e||new ct).__init(t.readInt32(t.position())+t.position(),t)}eventName(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.__string(this.bb_pos+e,t):null}value(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}checked(){let t=this.bb.__offset(this.bb_pos,8);return t?!!this.bb.readInt8(this.bb_pos+t):!1}keyCode(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint32(this.bb_pos+t):0}modifiers(){let t=this.bb.__offset(this.bb_pos,12);return t?this.bb.readUint8(this.bb_pos+t):0}parentNode(){let t=this.bb.__offset(this.bb_pos,14);return t?this.bb.readUint32(this.bb_pos+t):0}json(t){let e=this.bb.__offset(this.bb_pos,16);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}jsonLength(){let t=this.bb.__offset(this.bb_pos,16);return t?this.bb.__vector_len(this.bb_pos+t):0}jsonArray(){let t=this.bb.__offset(this.bb_pos,16);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startActionInput(t){t.startObject(7)}static addEventName(t,e){t.addFieldOffset(0,e,0)}static addValue(t,e){t.addFieldOffset(1,e,0)}static addChecked(t,e){t.addFieldInt8(2,+e,0)}static addKeyCode(t,e){t.addFieldInt32(3,e,0)}static addModifiers(t,e){t.addFieldInt8(4,e,0)}static addParentNode(t,e){t.addFieldInt32(5,e,0)}static addJson(t,e){t.addFieldOffset(6,e,0)}static createJsonVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startJsonVector(t,e){t.startVector(1,e,1)}static endActionInput(t){return t.endObject()}static createActionInput(t,e,n,i,r,o,a,c){return ct.startActionInput(t),ct.addEventName(t,e),ct.addValue(t,n),ct.addChecked(t,i),ct.addKeyCode(t,r),ct.addModifiers(t,o),ct.addParentNode(t,a),ct.addJson(t,c),ct.endActionInput(t)}unpack(){return new _o(this.eventName(),this.value(),this.checked(),this.keyCode(),this.modifiers(),this.parentNode(),this.jsonArray()===null?null:Array.from(this.jsonArray()))}unpackTo(t){t.eventName=this.eventName(),t.value=this.value(),t.checked=this.checked(),t.keyCode=this.keyCode(),t.modifiers=this.modifiers(),t.parentNode=this.parentNode(),t.json=this.jsonArray()===null?null:Array.from(this.jsonArray())}},_o=class{constructor(s=null,t=null,e=!1,n=0,i=0,r=0,o=null){this.eventName=s,this.value=t,this.checked=e,this.keyCode=n,this.modifiers=i,this.parentNode=r,this.json=o}eventName;value;checked;keyCode;modifiers;parentNode;json;pack(s){let t=this.eventName!==null?s.createString(this.eventName):0,e=this.value!==null?s.createString(this.value):0,n=this.json===null?0:$n.createJsonVector(s,this.json);return $n.createActionInput(s,t,e,this.checked,this.keyCode,this.modifiers,this.parentNode,n)}},jt=class br{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsActionRequest(t,e){return(e||new br).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsActionRequest(t,e){return t.setPosition(t.position()+I),(e||new br).__init(t.readInt32(t.position())+t.position(),t)}action(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.__string(this.bb_pos+e,t):null}nodeId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}input(t){let e=this.bb.__offset(this.bb_pos,8);return e?(t||new $n).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}state(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}stateLength(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.__vector_len(this.bb_pos+t):0}stateArray(){let t=this.bb.__offset(this.bb_pos,10);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startActionRequest(t){t.startObject(4)}static addAction(t,e){t.addFieldOffset(0,e,0)}static addNodeId(t,e){t.addFieldInt32(1,e,0)}static addInput(t,e){t.addFieldOffset(2,e,0)}static addState(t,e){t.addFieldOffset(3,e,0)}static createStateVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startStateVector(t,e){t.startVector(1,e,1)}static endActionRequest(t){return t.endObject()}unpack(){return new wo(this.action(),this.nodeId(),this.input()!==null?this.input().unpack():null,this.bb.createScalarList(this.state.bind(this),this.stateLength()))}unpackTo(t){t.action=this.action(),t.nodeId=this.nodeId(),t.input=this.input()!==null?this.input().unpack():null,t.state=this.bb.createScalarList(this.state.bind(this),this.stateLength())}},wo=class{constructor(s=null,t=0,e=null,n=[]){this.action=s,this.nodeId=t,this.input=e,this.state=n}action;nodeId;input;state;pack(s){let t=this.action!==null?s.createString(this.action):0,e=this.input!==null?this.input.pack(s):0,n=jt.createStateVector(s,this.state);return jt.startActionRequest(s),jt.addAction(s,t),jt.addNodeId(s,this.nodeId),jt.addInput(s,e),jt.addState(s,n),jt.endActionRequest(s)}},vo=(s=>(s[s.Start=0]="Start",s[s.Center=1]="Center",s[s.End=2]="End",s[s.Stretch=3]="Stretch",s))(vo||{}),Zn=class Qe{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsAlignmentValue(t,e){return(e||new Qe).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsAlignmentValue(t,e){return t.setPosition(t.position()+I),(e||new Qe).__init(t.readInt32(t.position())+t.position(),t)}v(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint8(this.bb_pos+t):0}static startAlignmentValue(t){t.startObject(1)}static addV(t,e){t.addFieldInt8(0,e,0)}static endAlignmentValue(t){return t.endObject()}static createAlignmentValue(t,e){return Qe.startAlignmentValue(t),Qe.addV(t,e),Qe.endAlignmentValue(t)}unpack(){return new Io(this.v())}unpackTo(t){t.v=this.v()}},Io=class{constructor(s=0){this.v=s}v;pack(s){return Zn.createAlignmentValue(s,this.v)}},ti=class _e{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsAppendChild(t,e){return(e||new _e).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsAppendChild(t,e){return t.setPosition(t.position()+I),(e||new _e).__init(t.readInt32(t.position())+t.position(),t)}parentId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}childId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}static startAppendChild(t){t.startObject(2)}static addParentId(t,e){t.addFieldInt32(0,e,0)}static addChildId(t,e){t.addFieldInt32(1,e,0)}static endAppendChild(t){return t.endObject()}static createAppendChild(t,e,n){return _e.startAppendChild(t),_e.addParentId(t,e),_e.addChildId(t,n),_e.endAppendChild(t)}unpack(){return new yo(this.parentId(),this.childId())}unpackTo(t){t.parentId=this.parentId(),t.childId=this.childId()}},yo=class{constructor(s=0,t=0){this.parentId=s,this.childId=t}parentId;childId;pack(s){return ti.createAppendChild(s,this.parentId,this.childId)}},Gn=class we{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsArrowIpcBlob(t,e){return(e||new we).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsArrowIpcBlob(t,e){return t.setPosition(t.position()+I),(e||new we).__init(t.readInt32(t.position())+t.position(),t)}targetNode(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}bytes(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}bytesLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}bytesArray(){let t=this.bb.__offset(this.bb_pos,6);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startArrowIpcBlob(t){t.startObject(2)}static addTargetNode(t,e){t.addFieldInt32(0,e,0)}static addBytes(t,e){t.addFieldOffset(1,e,0)}static createBytesVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startBytesVector(t,e){t.startVector(1,e,1)}static endArrowIpcBlob(t){return t.endObject()}static createArrowIpcBlob(t,e,n){return we.startArrowIpcBlob(t),we.addTargetNode(t,e),we.addBytes(t,n),we.endArrowIpcBlob(t)}unpack(){return new Ao(this.targetNode(),this.bb.createScalarList(this.bytes.bind(this),this.bytesLength()))}unpackTo(t){t.targetNode=this.targetNode(),t.bytes=this.bb.createScalarList(this.bytes.bind(this),this.bytesLength())}},Ao=class{constructor(s=0,t=[]){this.targetNode=s,this.bytes=t}targetNode;bytes;pack(s){let t=Gn.createBytesVector(s,this.bytes);return Gn.createArrowIpcBlob(s,this.targetNode,t)}},Ls=class ve{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsAttachState(t,e){return(e||new ve).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsAttachState(t,e){return t.setPosition(t.position()+I),(e||new ve).__init(t.readInt32(t.position())+t.position(),t)}rootNode(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}state(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}stateLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}stateArray(){let t=this.bb.__offset(this.bb_pos,6);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startAttachState(t){t.startObject(2)}static addRootNode(t,e){t.addFieldInt32(0,e,0)}static addState(t,e){t.addFieldOffset(1,e,0)}static createStateVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startStateVector(t,e){t.startVector(1,e,1)}static endAttachState(t){return t.endObject()}static createAttachState(t,e,n){return ve.startAttachState(t),ve.addRootNode(t,e),ve.addState(t,n),ve.endAttachState(t)}unpack(){return new ko(this.rootNode(),this.bb.createScalarList(this.state.bind(this),this.stateLength()))}unpackTo(t){t.rootNode=this.rootNode(),t.state=this.bb.createScalarList(this.state.bind(this),this.stateLength())}},ko=class{constructor(s=0,t=[]){this.rootNode=s,this.state=t}rootNode;state;pack(s){let t=Ls.createStateVector(s,this.state);return Ls.createAttachState(s,this.rootNode,t)}},ei=(s=>(s[s.Vertical=0]="Vertical",s[s.Horizontal=1]="Horizontal",s))(ei||{}),si=class Ye{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsAxisValue(t,e){return(e||new Ye).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsAxisValue(t,e){return t.setPosition(t.position()+I),(e||new Ye).__init(t.readInt32(t.position())+t.position(),t)}v(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint8(this.bb_pos+t):0}static startAxisValue(t){t.startObject(1)}static addV(t,e){t.addFieldInt8(0,e,0)}static endAxisValue(t){return t.endObject()}static createAxisValue(t,e){return Ye.startAxisValue(t),Ye.addV(t,e),Ye.endAxisValue(t)}unpack(){return new So(this.v())}unpackTo(t){t.v=this.v()}},So=class{constructor(s=0){this.v=s}v;pack(s){return si.createAxisValue(s,this.v)}},ni=class Je{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsBoolValue(t,e){return(e||new Je).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsBoolValue(t,e){return t.setPosition(t.position()+I),(e||new Je).__init(t.readInt32(t.position())+t.position(),t)}v(){let t=this.bb.__offset(this.bb_pos,4);return t?!!this.bb.readInt8(this.bb_pos+t):!1}static startBoolValue(t){t.startObject(1)}static addV(t,e){t.addFieldInt8(0,+e,0)}static endBoolValue(t){return t.endObject()}static createBoolValue(t,e){return Je.startBoolValue(t),Je.addV(t,e),Je.endBoolValue(t)}unpack(){return new To(this.v())}unpackTo(t){t.v=this.v()}},To=class{constructor(s=!1){this.v=s}v;pack(s){return ni.createBoolValue(s,this.v)}},ii=class Ke{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsColorToken(t,e){return(e||new Ke).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsColorToken(t,e){return t.setPosition(t.position()+I),(e||new Ke).__init(t.readInt32(t.position())+t.position(),t)}id(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}static startColorToken(t){t.startObject(1)}static addId(t,e){t.addFieldInt32(0,e,0)}static endColorToken(t){return t.endObject()}static createColorToken(t,e){return Ke.startColorToken(t),Ke.addId(t,e),Ke.endColorToken(t)}unpack(){return new Oo(this.id())}unpackTo(t){t.id=this.id()}},Oo=class{constructor(s=0){this.id=s}id;pack(s){return ii.createColorToken(s,this.id)}},ri=class Xe{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsFontToken(t,e){return(e||new Xe).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsFontToken(t,e){return t.setPosition(t.position()+I),(e||new Xe).__init(t.readInt32(t.position())+t.position(),t)}id(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}static startFontToken(t){t.startObject(1)}static addId(t,e){t.addFieldInt32(0,e,0)}static endFontToken(t){return t.endObject()}static createFontToken(t,e){return Xe.startFontToken(t),Xe.addId(t,e),Xe.endFontToken(t)}unpack(){return new No(this.id())}unpackTo(t){t.id=this.id()}},No=class{constructor(s=0){this.id=s}id;pack(s){return ri.createFontToken(s,this.id)}},qs=(s=>(s[s.Point=0]="Point",s[s.Percent=1]="Percent",s[s.Auto=2]="Auto",s))(qs||{}),Br=class{bb=null;bb_pos=0;__init(s,t){return this.bb_pos=s,this.bb=t,this}value(){return this.bb.readFloat32(this.bb_pos)}unit(){return this.bb.readUint8(this.bb_pos+4)}static sizeOf(){return 8}static createLength(s,t,e){return s.prep(4,8),s.pad(3),s.writeInt8(e),s.writeFloat32(t),s.offset()}unpack(){return new Bo(this.value(),this.unit())}unpackTo(s){s.value=this.value(),s.unit=this.unit()}},Bo=class{constructor(s=0,t=0){this.value=s,this.unit=t}value;unit;pack(s){return Br.createLength(s,this.value,this.unit)}},oi=class Ze{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsLengthValue(t,e){return(e||new Ze).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsLengthValue(t,e){return t.setPosition(t.position()+I),(e||new Ze).__init(t.readInt32(t.position())+t.position(),t)}v(t){let e=this.bb.__offset(this.bb_pos,4);return e?(t||new Br).__init(this.bb_pos+e,this.bb):null}static startLengthValue(t){t.startObject(1)}static addV(t,e){t.addFieldStruct(0,e,0)}static endLengthValue(t){return t.endObject()}static createLengthValue(t,e){return Ze.startLengthValue(t),Ze.addV(t,e),Ze.endLengthValue(t)}unpack(){return new xo(this.v()!==null?this.v().unpack():null)}unpackTo(t){t.v=this.v()!==null?this.v().unpack():null}},xo=class{constructor(s=null){this.v=s}v;pack(s){return oi.createLengthValue(s,this.v!==null?this.v.pack(s):0)}},ds=class ts{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsTextValue(t,e){return(e||new ts).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsTextValue(t,e){return t.setPosition(t.position()+I),(e||new ts).__init(t.readInt32(t.position())+t.position(),t)}v(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.__string(this.bb_pos+e,t):null}static startTextValue(t){t.startObject(1)}static addV(t,e){t.addFieldOffset(0,e,0)}static endTextValue(t){return t.endObject()}static createTextValue(t,e){return ts.startTextValue(t),ts.addV(t,e),ts.endTextValue(t)}unpack(){return new Eo(this.v())}unpackTo(t){t.v=this.v()}},Eo=class{constructor(s=null){this.v=s}v;pack(s){let t=this.v!==null?s.createString(this.v):0;return ds.createTextValue(s,t)}},De=(s=>(s[s.NONE=0]="NONE",s[s.Length=1]="Length",s[s.ColorToken=2]="ColorToken",s[s.FontToken=3]="FontToken",s[s.Alignment=4]="Alignment",s[s.Axis=5]="Axis",s[s.Bool=6]="Bool",s[s.Text=7]="Text",s))(De||{});function Le(s,t){switch(De[s]){case"NONE":return null;case"Length":return t(new oi);case"ColorToken":return t(new ii);case"FontToken":return t(new ri);case"Alignment":return t(new Zn);case"Axis":return t(new si);case"Bool":return t(new ni);case"Text":return t(new ds);default:return null}}function kc(s,t,e){switch(De[s]){case"NONE":return null;case"Length":return t(e,new oi);case"ColorToken":return t(e,new ii);case"FontToken":return t(e,new ri);case"Alignment":return t(e,new Zn);case"Axis":return t(e,new si);case"Bool":return t(e,new ni);case"Text":return t(e,new ds);default:return null}}var Hs=class Yt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsBehaviourArg(t,e){return(e||new Yt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsBehaviourArg(t,e){return t.setPosition(t.position()+I),(e||new Yt).__init(t.readInt32(t.position())+t.position(),t)}name(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.__string(this.bb_pos+e,t):null}valueType(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}value(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__union(t,this.bb_pos+e):null}static startBehaviourArg(t){t.startObject(3)}static addName(t,e){t.addFieldOffset(0,e,0)}static addValueType(t,e){t.addFieldInt8(1,e,0)}static addValue(t,e){t.addFieldOffset(2,e,0)}static endBehaviourArg(t){return t.endObject()}static createBehaviourArg(t,e,n,i){return Yt.startBehaviourArg(t),Yt.addName(t,e),Yt.addValueType(t,n),Yt.addValue(t,i),Yt.endBehaviourArg(t)}unpack(){return new Ro(this.name(),this.valueType(),(()=>{let t=Le(this.valueType(),this.value.bind(this));return t===null?null:t.unpack()})())}unpackTo(t){t.name=this.name(),t.valueType=this.valueType(),t.value=(()=>{let e=Le(this.valueType(),this.value.bind(this));return e===null?null:e.unpack()})()}},Ro=class{constructor(s=null,t=0,e=null){this.name=s,this.valueType=t,this.value=e}name;valueType;value;pack(s){let t=this.name!==null?s.createString(this.name):0,e=s.createObjectOffset(this.value);return Hs.createBehaviourArg(s,t,this.valueType,e)}},$s=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s[s.DIALOG=1]="DIALOG",s[s.DISMISS=2]="DISMISS",s[s.SCROLL_LOCK=3]="SCROLL_LOCK",s[s.TRANSITION=4]="TRANSITION",s))($s||{}),Uo=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s[s.TAP=1]="TAP",s[s.CHANGE=2]="CHANGE",s[s.SUBMIT=3]="SUBMIT",s[s.FOCUS=4]="FOCUS",s[s.BLUR=5]="BLUR",s))(Uo||{}),ai=class Jt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsBindAction(t,e){return(e||new Jt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsBindAction(t,e){return t.setPosition(t.position()+I),(e||new Jt).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}event(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}action(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startBindAction(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addEvent(t,e){t.addFieldInt16(1,e,0)}static addAction(t,e){t.addFieldOffset(2,e,0)}static endBindAction(t){return t.endObject()}static createBindAction(t,e,n,i){return Jt.startBindAction(t),Jt.addNodeId(t,e),Jt.addEvent(t,n),Jt.addAction(t,i),Jt.endBindAction(t)}unpack(){return new Fo(this.nodeId(),this.event(),this.action())}unpackTo(t){t.nodeId=this.nodeId(),t.event=this.event(),t.action=this.action()}},Fo=class{constructor(s=0,t=0,e=null){this.nodeId=s,this.event=t,this.action=e}nodeId;event;action;pack(s){let t=this.action!==null?s.createString(this.action):0;return ai.createBindAction(s,this.nodeId,this.event,t)}},je=class es{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsBools(t,e){return(e||new es).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsBools(t,e){return t.setPosition(t.position()+I),(e||new es).__init(t.readInt32(t.position())+t.position(),t)}values(t){let e=this.bb.__offset(this.bb_pos,4);return e?!!this.bb.readInt8(this.bb.__vector(this.bb_pos+e)+t):!1}valuesLength(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.__vector_len(this.bb_pos+t):0}valuesArray(){let t=this.bb.__offset(this.bb_pos,4);return t?new Int8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startBools(t){t.startObject(1)}static addValues(t,e){t.addFieldOffset(0,e,0)}static createValuesVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(+e[n]);return t.endVector()}static startValuesVector(t,e){t.startVector(1,e,1)}static endBools(t){return t.endObject()}static createBools(t,e){return es.startBools(t),es.addValues(t,e),es.endBools(t)}unpack(){return new Co(this.bb.createScalarList(this.values.bind(this),this.valuesLength()))}unpackTo(t){t.values=this.bb.createScalarList(this.values.bind(this),this.valuesLength())}},Co=class{constructor(s=[]){this.values=s}values;pack(s){let t=je.createValuesVector(s,this.values);return je.createBools(s,t)}},Vo=(s=>(s[s.Ok=0]="Ok",s[s.UpdateRequired=1]="UpdateRequired",s))(Vo||{}),ci=(s=>(s[s.Native=0]="Native",s[s.Web=1]="Web",s))(ci||{}),hi=(s=>(s[s.Unknown=0]="Unknown",s[s.Web=1]="Web",s[s.Ios=2]="Ios",s[s.Android=3]="Android",s[s.Desktop=4]="Desktop",s))(hi||{}),xr=class lt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsClientHello(t,e){return(e||new lt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsClientHello(t,e){return t.setPosition(t.position()+I),(e||new lt).__init(t.readInt32(t.position())+t.position(),t)}vocabularyVersion(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}platform(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}mount(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint8(this.bb_pos+t):0}resumeFrom(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}subscriptionResume(){let t=this.bb.__offset(this.bb_pos,12);return t?!!this.bb.readInt8(this.bb_pos+t):!1}requestTag(){let t=this.bb.__offset(this.bb_pos,14);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}static startClientHello(t){t.startObject(6)}static addVocabularyVersion(t,e){t.addFieldInt32(0,e,0)}static addPlatform(t,e){t.addFieldInt8(1,e,0)}static addMount(t,e){t.addFieldInt8(2,e,0)}static addResumeFrom(t,e){t.addFieldInt64(3,e,BigInt("0"))}static addSubscriptionResume(t,e){t.addFieldInt8(4,+e,0)}static addRequestTag(t,e){t.addFieldInt64(5,e,BigInt("0"))}static endClientHello(t){return t.endObject()}static createClientHello(t,e,n,i,r,o,a){return lt.startClientHello(t),lt.addVocabularyVersion(t,e),lt.addPlatform(t,n),lt.addMount(t,i),lt.addResumeFrom(t,r),lt.addSubscriptionResume(t,o),lt.addRequestTag(t,a),lt.endClientHello(t)}unpack(){return new di(this.vocabularyVersion(),this.platform(),this.mount(),this.resumeFrom(),this.subscriptionResume(),this.requestTag())}unpackTo(t){t.vocabularyVersion=this.vocabularyVersion(),t.platform=this.platform(),t.mount=this.mount(),t.resumeFrom=this.resumeFrom(),t.subscriptionResume=this.subscriptionResume(),t.requestTag=this.requestTag()}},di=class{constructor(s=0,t=0,e=0,n=BigInt("0"),i=!1,r=BigInt("0")){this.vocabularyVersion=s,this.platform=t,this.mount=e,this.resumeFrom=n,this.subscriptionResume=i,this.requestTag=r}vocabularyVersion;platform;mount;resumeFrom;subscriptionResume;requestTag;pack(s){return xr.createClientHello(s,this.vocabularyVersion,this.platform,this.mount,this.resumeFrom,this.subscriptionResume,this.requestTag)}},Me=class ss{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsF64s(t,e){return(e||new ss).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsF64s(t,e){return t.setPosition(t.position()+I),(e||new ss).__init(t.readInt32(t.position())+t.position(),t)}values(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.readFloat64(this.bb.__vector(this.bb_pos+e)+t*8):0}valuesLength(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.__vector_len(this.bb_pos+t):0}valuesArray(){let t=this.bb.__offset(this.bb_pos,4);return t?new Float64Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startF64s(t){t.startObject(1)}static addValues(t,e){t.addFieldOffset(0,e,0)}static createValuesVector(t,e){t.startVector(8,e.length,8);for(let n=e.length-1;n>=0;n--)t.addFloat64(e[n]);return t.endVector()}static startValuesVector(t,e){t.startVector(8,e,8)}static endF64s(t){return t.endObject()}static createF64s(t,e){return ss.startF64s(t),ss.addValues(t,e),ss.endF64s(t)}unpack(){return new Lo(this.bb.createScalarList(this.values.bind(this),this.valuesLength()))}unpackTo(t){t.values=this.bb.createScalarList(this.values.bind(this),this.valuesLength())}},Lo=class{constructor(s=[]){this.values=s}values;pack(s){let t=Me.createValuesVector(s,this.values);return Me.createF64s(s,t)}},Pe=class ns{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsI32s(t,e){return(e||new ns).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsI32s(t,e){return t.setPosition(t.position()+I),(e||new ns).__init(t.readInt32(t.position())+t.position(),t)}values(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.readInt32(this.bb.__vector(this.bb_pos+e)+t*4):0}valuesLength(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.__vector_len(this.bb_pos+t):0}valuesArray(){let t=this.bb.__offset(this.bb_pos,4);return t?new Int32Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startI32s(t){t.startObject(1)}static addValues(t,e){t.addFieldOffset(0,e,0)}static createValuesVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addInt32(e[n]);return t.endVector()}static startValuesVector(t,e){t.startVector(4,e,4)}static endI32s(t){return t.endObject()}static createI32s(t,e){return ns.startI32s(t),ns.addValues(t,e),ns.endI32s(t)}unpack(){return new jo(this.bb.createScalarList(this.values.bind(this),this.valuesLength()))}unpackTo(t){t.values=this.bb.createScalarList(this.values.bind(this),this.valuesLength())}},jo=class{constructor(s=[]){this.values=s}values;pack(s){let t=Pe.createValuesVector(s,this.values);return Pe.createI32s(s,t)}},We=class is{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsI64s(t,e){return(e||new is).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsI64s(t,e){return t.setPosition(t.position()+I),(e||new is).__init(t.readInt32(t.position())+t.position(),t)}values(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.readInt64(this.bb.__vector(this.bb_pos+e)+t*8):BigInt(0)}valuesLength(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.__vector_len(this.bb_pos+t):0}static startI64s(t){t.startObject(1)}static addValues(t,e){t.addFieldOffset(0,e,0)}static createValuesVector(t,e){t.startVector(8,e.length,8);for(let n=e.length-1;n>=0;n--)t.addInt64(e[n]);return t.endVector()}static startValuesVector(t,e){t.startVector(8,e,8)}static endI64s(t){return t.endObject()}static createI64s(t,e){return is.startI64s(t),is.addValues(t,e),is.endI64s(t)}unpack(){return new Mo(this.bb.createScalarList(this.values.bind(this),this.valuesLength()))}unpackTo(t){t.values=this.bb.createScalarList(this.values.bind(this),this.valuesLength())}},Mo=class{constructor(s=[]){this.values=s}values;pack(s){let t=We.createValuesVector(s,this.values);return We.createI64s(s,t)}},ze=class rs{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsStrings(t,e){return(e||new rs).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsStrings(t,e){return t.setPosition(t.position()+I),(e||new rs).__init(t.readInt32(t.position())+t.position(),t)}values(t,e){let n=this.bb.__offset(this.bb_pos,4);return n?this.bb.__string(this.bb.__vector(this.bb_pos+n)+t*4,e):null}valuesLength(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.__vector_len(this.bb_pos+t):0}static startStrings(t){t.startObject(1)}static addValues(t,e){t.addFieldOffset(0,e,0)}static createValuesVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startValuesVector(t,e){t.startVector(4,e,4)}static endStrings(t){return t.endObject()}static createStrings(t,e){return rs.startStrings(t),rs.addValues(t,e),rs.endStrings(t)}unpack(){return new Po(this.bb.createScalarList(this.values.bind(this),this.valuesLength()))}unpackTo(t){t.values=this.bb.createScalarList(this.values.bind(this),this.valuesLength())}},Po=class{constructor(s=[]){this.values=s}values;pack(s){let t=ze.createValuesVector(s,s.createObjectOffsetList(this.values));return ze.createStrings(s,t)}},us=(s=>(s[s.NONE=0]="NONE",s[s.I32=1]="I32",s[s.I64=2]="I64",s[s.F64=3]="F64",s[s.Bool=4]="Bool",s[s.Utf8=5]="Utf8",s))(us||{});function gr(s,t){switch(us[s]){case"NONE":return null;case"I32":return t(new Pe);case"I64":return t(new We);case"F64":return t(new Me);case"Bool":return t(new je);case"Utf8":return t(new ze);default:return null}}function Sc(s,t,e){switch(us[s]){case"NONE":return null;case"I32":return t(e,new Pe);case"I64":return t(e,new We);case"F64":return t(e,new Me);case"Bool":return t(e,new je);case"Utf8":return t(e,new ze);default:return null}}var Qn=class Bt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsColumn(t,e){return(e||new Bt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsColumn(t,e){return t.setPosition(t.position()+I),(e||new Bt).__init(t.readInt32(t.position())+t.position(),t)}name(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.__string(this.bb_pos+e,t):null}dataType(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}data(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__union(t,this.bb_pos+e):null}validity(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}validityLength(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.__vector_len(this.bb_pos+t):0}validityArray(){let t=this.bb.__offset(this.bb_pos,10);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startColumn(t){t.startObject(4)}static addName(t,e){t.addFieldOffset(0,e,0)}static addDataType(t,e){t.addFieldInt8(1,e,0)}static addData(t,e){t.addFieldOffset(2,e,0)}static addValidity(t,e){t.addFieldOffset(3,e,0)}static createValidityVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startValidityVector(t,e){t.startVector(1,e,1)}static endColumn(t){return t.endObject()}static createColumn(t,e,n,i,r){return Bt.startColumn(t),Bt.addName(t,e),Bt.addDataType(t,n),Bt.addData(t,i),Bt.addValidity(t,r),Bt.endColumn(t)}unpack(){return new Wo(this.name(),this.dataType(),(()=>{let t=gr(this.dataType(),this.data.bind(this));return t===null?null:t.unpack()})(),this.bb.createScalarList(this.validity.bind(this),this.validityLength()))}unpackTo(t){t.name=this.name(),t.dataType=this.dataType(),t.data=(()=>{let e=gr(this.dataType(),this.data.bind(this));return e===null?null:e.unpack()})(),t.validity=this.bb.createScalarList(this.validity.bind(this),this.validityLength())}},Wo=class{constructor(s=null,t=0,e=null,n=[]){this.name=s,this.dataType=t,this.data=e,this.validity=n}name;dataType;data;validity;pack(s){let t=this.name!==null?s.createString(this.name):0,e=s.createObjectOffset(this.data),n=Qn.createValidityVector(s,this.validity);return Qn.createColumn(s,t,this.dataType,e,n)}},_t=class ht{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsColumnarBatch(t,e){return(e||new ht).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsColumnarBatch(t,e){return t.setPosition(t.position()+I),(e||new ht).__init(t.readInt32(t.position())+t.position(),t)}opCodes(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}opCodesLength(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.__vector_len(this.bb_pos+t):0}opCodesArray(){let t=this.bb.__offset(this.bb_pos,4);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}nodeIds(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.readUint32(this.bb.__vector(this.bb_pos+e)+t*4):0}nodeIdsLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}nodeIdsArray(){let t=this.bb.__offset(this.bb_pos,6);return t?new Uint32Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}argA(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.readUint32(this.bb.__vector(this.bb_pos+e)+t*4):0}argALength(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.__vector_len(this.bb_pos+t):0}argAArray(){let t=this.bb.__offset(this.bb_pos,8);return t?new Uint32Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}argB(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.readUint32(this.bb.__vector(this.bb_pos+e)+t*4):0}argBLength(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.__vector_len(this.bb_pos+t):0}argBArray(){let t=this.bb.__offset(this.bb_pos,10);return t?new Uint32Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}blobAOff(t){let e=this.bb.__offset(this.bb_pos,12);return e?this.bb.readUint32(this.bb.__vector(this.bb_pos+e)+t*4):0}blobAOffLength(){let t=this.bb.__offset(this.bb_pos,12);return t?this.bb.__vector_len(this.bb_pos+t):0}blobAOffArray(){let t=this.bb.__offset(this.bb_pos,12);return t?new Uint32Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}blobBOff(t){let e=this.bb.__offset(this.bb_pos,14);return e?this.bb.readUint32(this.bb.__vector(this.bb_pos+e)+t*4):0}blobBOffLength(){let t=this.bb.__offset(this.bb_pos,14);return t?this.bb.__vector_len(this.bb_pos+t):0}blobBOffArray(){let t=this.bb.__offset(this.bb_pos,14);return t?new Uint32Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}blobBytes(t){let e=this.bb.__offset(this.bb_pos,16);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}blobBytesLength(){let t=this.bb.__offset(this.bb_pos,16);return t?this.bb.__vector_len(this.bb_pos+t):0}blobBytesArray(){let t=this.bb.__offset(this.bb_pos,16);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startColumnarBatch(t){t.startObject(7)}static addOpCodes(t,e){t.addFieldOffset(0,e,0)}static createOpCodesVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startOpCodesVector(t,e){t.startVector(1,e,1)}static addNodeIds(t,e){t.addFieldOffset(1,e,0)}static createNodeIdsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addInt32(e[n]);return t.endVector()}static startNodeIdsVector(t,e){t.startVector(4,e,4)}static addArgA(t,e){t.addFieldOffset(2,e,0)}static createArgAVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addInt32(e[n]);return t.endVector()}static startArgAVector(t,e){t.startVector(4,e,4)}static addArgB(t,e){t.addFieldOffset(3,e,0)}static createArgBVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addInt32(e[n]);return t.endVector()}static startArgBVector(t,e){t.startVector(4,e,4)}static addBlobAOff(t,e){t.addFieldOffset(4,e,0)}static createBlobAOffVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addInt32(e[n]);return t.endVector()}static startBlobAOffVector(t,e){t.startVector(4,e,4)}static addBlobBOff(t,e){t.addFieldOffset(5,e,0)}static createBlobBOffVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addInt32(e[n]);return t.endVector()}static startBlobBOffVector(t,e){t.startVector(4,e,4)}static addBlobBytes(t,e){t.addFieldOffset(6,e,0)}static createBlobBytesVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startBlobBytesVector(t,e){t.startVector(1,e,1)}static endColumnarBatch(t){return t.endObject()}static createColumnarBatch(t,e,n,i,r,o,a,c){return ht.startColumnarBatch(t),ht.addOpCodes(t,e),ht.addNodeIds(t,n),ht.addArgA(t,i),ht.addArgB(t,r),ht.addBlobAOff(t,o),ht.addBlobBOff(t,a),ht.addBlobBytes(t,c),ht.endColumnarBatch(t)}unpack(){return new zo(this.bb.createScalarList(this.opCodes.bind(this),this.opCodesLength()),this.bb.createScalarList(this.nodeIds.bind(this),this.nodeIdsLength()),this.bb.createScalarList(this.argA.bind(this),this.argALength()),this.bb.createScalarList(this.argB.bind(this),this.argBLength()),this.bb.createScalarList(this.blobAOff.bind(this),this.blobAOffLength()),this.bb.createScalarList(this.blobBOff.bind(this),this.blobBOffLength()),this.bb.createScalarList(this.blobBytes.bind(this),this.blobBytesLength()))}unpackTo(t){t.opCodes=this.bb.createScalarList(this.opCodes.bind(this),this.opCodesLength()),t.nodeIds=this.bb.createScalarList(this.nodeIds.bind(this),this.nodeIdsLength()),t.argA=this.bb.createScalarList(this.argA.bind(this),this.argALength()),t.argB=this.bb.createScalarList(this.argB.bind(this),this.argBLength()),t.blobAOff=this.bb.createScalarList(this.blobAOff.bind(this),this.blobAOffLength()),t.blobBOff=this.bb.createScalarList(this.blobBOff.bind(this),this.blobBOffLength()),t.blobBytes=this.bb.createScalarList(this.blobBytes.bind(this),this.blobBytesLength())}},zo=class{constructor(s=[],t=[],e=[],n=[],i=[],r=[],o=[]){this.opCodes=s,this.nodeIds=t,this.argA=e,this.argB=n,this.blobAOff=i,this.blobBOff=r,this.blobBytes=o}opCodes;nodeIds;argA;argB;blobAOff;blobBOff;blobBytes;pack(s){let t=_t.createOpCodesVector(s,this.opCodes),e=_t.createNodeIdsVector(s,this.nodeIds),n=_t.createArgAVector(s,this.argA),i=_t.createArgBVector(s,this.argB),r=_t.createBlobAOffVector(s,this.blobAOff),o=_t.createBlobBOffVector(s,this.blobBOff),a=_t.createBlobBytesVector(s,this.blobBytes);return _t.createColumnarBatch(s,t,e,n,i,r,o,a)}},le=(s=>(s[s.TransportDefault=0]="TransportDefault",s[s.Shared=1]="Shared",s[s.Dedicated=2]="Dedicated",s))(le||{}),Er=class Ie{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsReplayExpired(t,e){return(e||new Ie).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsReplayExpired(t,e){return t.setPosition(t.position()+I),(e||new Ie).__init(t.readInt32(t.position())+t.position(),t)}streamId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}after(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}static startReplayExpired(t){t.startObject(2)}static addStreamId(t,e){t.addFieldInt64(0,e,BigInt("0"))}static addAfter(t,e){t.addFieldInt64(1,e,BigInt("0"))}static endReplayExpired(t){return t.endObject()}static createReplayExpired(t,e,n){return Ie.startReplayExpired(t),Ie.addStreamId(t,e),Ie.addAfter(t,n),Ie.endReplayExpired(t)}unpack(){return new Do(this.streamId(),this.after())}unpackTo(t){t.streamId=this.streamId(),t.after=this.after()}},Do=class{constructor(s=BigInt("0"),t=BigInt("0")){this.streamId=s,this.after=t}streamId;after;pack(s){return Er.createReplayExpired(s,this.streamId,this.after)}},Rr=class ye{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsServerAction(t,e){return(e||new ye).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsServerAction(t,e){return t.setPosition(t.position()+I),(e||new ye).__init(t.readInt32(t.position())+t.position(),t)}hash(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}name(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}static startServerAction(t){t.startObject(2)}static addHash(t,e){t.addFieldInt64(0,e,BigInt("0"))}static addName(t,e){t.addFieldOffset(1,e,0)}static endServerAction(t){return t.endObject()}static createServerAction(t,e,n){return ye.startServerAction(t),ye.addHash(t,e),ye.addName(t,n),ye.endServerAction(t)}unpack(){return new qo(this.hash(),this.name())}unpackTo(t){t.hash=this.hash(),t.name=this.name()}},qo=class{constructor(s=BigInt("0"),t=null){this.hash=s,this.name=t}hash;name;pack(s){let t=this.name!==null?s.createString(this.name):0;return Rr.createServerAction(s,this.hash,t)}},Yn=class nt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsServerCaps(t,e){return(e||new nt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsServerCaps(t,e){return t.setPosition(t.position()+I),(e||new nt).__init(t.readInt32(t.position())+t.position(),t)}status(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint8(this.bb_pos+t):0}schemaVersion(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}vocabularyVersion(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint32(this.bb_pos+t):0}streamId(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}resumeFrom(){let t=this.bb.__offset(this.bb_pos,12);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}actions(t,e){let n=this.bb.__offset(this.bb_pos,14);return n?(e||new Rr).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}actionsLength(){let t=this.bb.__offset(this.bb_pos,14);return t?this.bb.__vector_len(this.bb_pos+t):0}subscriptionResume(){let t=this.bb.__offset(this.bb_pos,16);return t?!!this.bb.readInt8(this.bb_pos+t):!1}requestTag(){let t=this.bb.__offset(this.bb_pos,18);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}static startServerCaps(t){t.startObject(8)}static addStatus(t,e){t.addFieldInt8(0,e,0)}static addSchemaVersion(t,e){t.addFieldInt16(1,e,0)}static addVocabularyVersion(t,e){t.addFieldInt32(2,e,0)}static addStreamId(t,e){t.addFieldInt64(3,e,BigInt("0"))}static addResumeFrom(t,e){t.addFieldInt64(4,e,BigInt("0"))}static addActions(t,e){t.addFieldOffset(5,e,0)}static createActionsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startActionsVector(t,e){t.startVector(4,e,4)}static addSubscriptionResume(t,e){t.addFieldInt8(6,+e,0)}static addRequestTag(t,e){t.addFieldInt64(7,e,BigInt("0"))}static endServerCaps(t){return t.endObject()}static createServerCaps(t,e,n,i,r,o,a,c,u){return nt.startServerCaps(t),nt.addStatus(t,e),nt.addSchemaVersion(t,n),nt.addVocabularyVersion(t,i),nt.addStreamId(t,r),nt.addResumeFrom(t,o),nt.addActions(t,a),nt.addSubscriptionResume(t,c),nt.addRequestTag(t,u),nt.endServerCaps(t)}unpack(){return new Ho(this.status(),this.schemaVersion(),this.vocabularyVersion(),this.streamId(),this.resumeFrom(),this.bb.createObjList(this.actions.bind(this),this.actionsLength()),this.subscriptionResume(),this.requestTag())}unpackTo(t){t.status=this.status(),t.schemaVersion=this.schemaVersion(),t.vocabularyVersion=this.vocabularyVersion(),t.streamId=this.streamId(),t.resumeFrom=this.resumeFrom(),t.actions=this.bb.createObjList(this.actions.bind(this),this.actionsLength()),t.subscriptionResume=this.subscriptionResume(),t.requestTag=this.requestTag()}},Ho=class{constructor(s=0,t=0,e=0,n=BigInt("0"),i=BigInt("0"),r=[],o=!1,a=BigInt("0")){this.status=s,this.schemaVersion=t,this.vocabularyVersion=e,this.streamId=n,this.resumeFrom=i,this.actions=r,this.subscriptionResume=o,this.requestTag=a}status;schemaVersion;vocabularyVersion;streamId;resumeFrom;actions;subscriptionResume;requestTag;pack(s){let t=Yn.createActionsVector(s,s.createObjectOffsetList(this.actions));return Yn.createServerCaps(s,this.status,this.schemaVersion,this.vocabularyVersion,this.streamId,this.resumeFrom,t,this.subscriptionResume,this.requestTag)}},Ur=class os{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsStateExpired(t,e){return(e||new os).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsStateExpired(t,e){return t.setPosition(t.position()+I),(e||new os).__init(t.readInt32(t.position())+t.position(),t)}tokenIssuedAt(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}static startStateExpired(t){t.startObject(1)}static addTokenIssuedAt(t,e){t.addFieldInt64(0,e,BigInt("0"))}static endStateExpired(t){return t.endObject()}static createStateExpired(t,e){return os.startStateExpired(t),os.addTokenIssuedAt(t,e),os.endStateExpired(t)}unpack(){return new $o(this.tokenIssuedAt())}unpackTo(t){t.tokenIssuedAt=this.tokenIssuedAt()}},$o=class{constructor(s=BigInt("0")){this.tokenIssuedAt=s}tokenIssuedAt;pack(s){return Ur.createStateExpired(s,this.tokenIssuedAt)}},Fr=class Ae{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsUpdateRequired(t,e){return(e||new Ae).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsUpdateRequired(t,e){return t.setPosition(t.position()+I),(e||new Ae).__init(t.readInt32(t.position())+t.position(),t)}clientSchemaVersion(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint16(this.bb_pos+t):0}serverSchemaVersion(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}static startUpdateRequired(t){t.startObject(2)}static addClientSchemaVersion(t,e){t.addFieldInt16(0,e,0)}static addServerSchemaVersion(t,e){t.addFieldInt16(1,e,0)}static endUpdateRequired(t){return t.endObject()}static createUpdateRequired(t,e,n){return Ae.startUpdateRequired(t),Ae.addClientSchemaVersion(t,e),Ae.addServerSchemaVersion(t,n),Ae.endUpdateRequired(t)}unpack(){return new Go(this.clientSchemaVersion(),this.serverSchemaVersion())}unpackTo(t){t.clientSchemaVersion=this.clientSchemaVersion(),t.serverSchemaVersion=this.serverSchemaVersion()}},Go=class{constructor(s=0,t=0){this.clientSchemaVersion=s,this.serverSchemaVersion=t}clientSchemaVersion;serverSchemaVersion;pack(s){return Fr.createUpdateRequired(s,this.clientSchemaVersion,this.serverSchemaVersion)}},Mt=class mr{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsControl(t,e){return(e||new mr).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsControl(t,e){return t.setPosition(t.position()+I),(e||new mr).__init(t.readInt32(t.position())+t.position(),t)}caps(t){let e=this.bb.__offset(this.bb_pos,4);return e?(t||new Yn).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}stateExpired(t){let e=this.bb.__offset(this.bb_pos,6);return e?(t||new Ur).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}updateRequired(t){let e=this.bb.__offset(this.bb_pos,8);return e?(t||new Fr).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}error(t){let e=this.bb.__offset(this.bb_pos,10);return e?(t||new Nr).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}replayExpired(t){let e=this.bb.__offset(this.bb_pos,12);return e?(t||new Er).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}static startControl(t){t.startObject(5)}static addCaps(t,e){t.addFieldOffset(0,e,0)}static addStateExpired(t,e){t.addFieldOffset(1,e,0)}static addUpdateRequired(t,e){t.addFieldOffset(2,e,0)}static addError(t,e){t.addFieldOffset(3,e,0)}static addReplayExpired(t,e){t.addFieldOffset(4,e,0)}static endControl(t){return t.endObject()}unpack(){return new Qo(this.caps()!==null?this.caps().unpack():null,this.stateExpired()!==null?this.stateExpired().unpack():null,this.updateRequired()!==null?this.updateRequired().unpack():null,this.error()!==null?this.error().unpack():null,this.replayExpired()!==null?this.replayExpired().unpack():null)}unpackTo(t){t.caps=this.caps()!==null?this.caps().unpack():null,t.stateExpired=this.stateExpired()!==null?this.stateExpired().unpack():null,t.updateRequired=this.updateRequired()!==null?this.updateRequired().unpack():null,t.error=this.error()!==null?this.error().unpack():null,t.replayExpired=this.replayExpired()!==null?this.replayExpired().unpack():null}},Qo=class{constructor(s=null,t=null,e=null,n=null,i=null){this.caps=s,this.stateExpired=t,this.updateRequired=e,this.error=n,this.replayExpired=i}caps;stateExpired;updateRequired;error;replayExpired;pack(s){let t=this.caps!==null?this.caps.pack(s):0,e=this.stateExpired!==null?this.stateExpired.pack(s):0,n=this.updateRequired!==null?this.updateRequired.pack(s):0,i=this.error!==null?this.error.pack(s):0,r=this.replayExpired!==null?this.replayExpired.pack(s):0;return Mt.startControl(s),Mt.addCaps(s,t),Mt.addStateExpired(s,e),Mt.addUpdateRequired(s,n),Mt.addError(s,i),Mt.addReplayExpired(s,r),Mt.endControl(s)}},It=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s[s.STACK=1]="STACK",s[s.TEXT=2]="TEXT",s[s.IMAGE=3]="IMAGE",s[s.BUTTON=4]="BUTTON",s[s.TEXT_INPUT=5]="TEXT_INPUT",s[s.TOGGLE=6]="TOGGLE",s[s.LIST=7]="LIST",s[s.SCROLL=8]="SCROLL",s[s.SPACER=9]="SPACER",s[s.OVERLAY=10]="OVERLAY",s[s.MODAL=11]="MODAL",s[s.BOTTOM_SHEET=12]="BOTTOM_SHEET",s[s.NAVIGATION_TITLE=13]="NAVIGATION_TITLE",s[s.TOOLBAR_BUTTON=14]="TOOLBAR_BUTTON",s[s.SEGMENTED_CONTROL=15]="SEGMENTED_CONTROL",s[s.INSET_LIST=16]="INSET_LIST",s[s.CHECKLIST_ROW=17]="CHECKLIST_ROW",s[s.CHECKMARK_BUTTON=18]="CHECKMARK_BUTTON",s[s.DESTRUCTIVE_BUTTON=19]="DESTRUCTIVE_BUTTON",s[s.LIST_FOOTER=20]="LIST_FOOTER",s[s.CONFIRMATION_DIALOG=21]="CONFIRMATION_DIALOG",s[s.SHEET_TITLE=22]="SHEET_TITLE",s[s.SUBMIT_BUTTON=23]="SUBMIT_BUTTON",s[s.CANCEL_BUTTON=24]="CANCEL_BUTTON",s[s.DRAWING_SURFACE=25]="DRAWING_SURFACE",s))(It||{}),ui=class ke{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsCreateNode(t,e){return(e||new ke).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsCreateNode(t,e){return t.setPosition(t.position()+I),(e||new ke).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}kind(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}static startCreateNode(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addKind(t,e){t.addFieldInt16(1,e,0)}static endCreateNode(t){return t.endObject()}static createCreateNode(t,e,n){return ke.startCreateNode(t),ke.addNodeId(t,e),ke.addKind(t,n),ke.endCreateNode(t)}unpack(){return new Yo(this.nodeId(),this.kind())}unpackTo(t){t.nodeId=this.nodeId(),t.kind=this.kind()}},Yo=class{constructor(s=0,t=0){this.nodeId=s,this.kind=t}nodeId;kind;pack(s){return ui.createCreateNode(s,this.nodeId,this.kind)}},Jn=class Kt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsDataTable(t,e){return(e||new Kt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsDataTable(t,e){return t.setPosition(t.position()+I),(e||new Kt).__init(t.readInt32(t.position())+t.position(),t)}targetNode(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}rows(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}columns(t,e){let n=this.bb.__offset(this.bb_pos,8);return n?(e||new Qn).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}columnsLength(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.__vector_len(this.bb_pos+t):0}static startDataTable(t){t.startObject(3)}static addTargetNode(t,e){t.addFieldInt32(0,e,0)}static addRows(t,e){t.addFieldInt64(1,e,BigInt("0"))}static addColumns(t,e){t.addFieldOffset(2,e,0)}static createColumnsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startColumnsVector(t,e){t.startVector(4,e,4)}static endDataTable(t){return t.endObject()}static createDataTable(t,e,n,i){return Kt.startDataTable(t),Kt.addTargetNode(t,e),Kt.addRows(t,n),Kt.addColumns(t,i),Kt.endDataTable(t)}unpack(){return new Jo(this.targetNode(),this.rows(),this.bb.createObjList(this.columns.bind(this),this.columnsLength()))}unpackTo(t){t.targetNode=this.targetNode(),t.rows=this.rows(),t.columns=this.bb.createObjList(this.columns.bind(this),this.columnsLength())}},Jo=class{constructor(s=0,t=BigInt("0"),e=[]){this.targetNode=s,this.rows=t,this.columns=e}targetNode;rows;columns;pack(s){let t=Jn.createColumnsVector(s,s.createObjectOffsetList(this.columns));return Jn.createDataTable(s,this.targetNode,this.rows,t)}},Kn=class Se{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsMessagePackBlob(t,e){return(e||new Se).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsMessagePackBlob(t,e){return t.setPosition(t.position()+I),(e||new Se).__init(t.readInt32(t.position())+t.position(),t)}targetNode(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}bytes(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}bytesLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}bytesArray(){let t=this.bb.__offset(this.bb_pos,6);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startMessagePackBlob(t){t.startObject(2)}static addTargetNode(t,e){t.addFieldInt32(0,e,0)}static addBytes(t,e){t.addFieldOffset(1,e,0)}static createBytesVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startBytesVector(t,e){t.startVector(1,e,1)}static endMessagePackBlob(t){return t.endObject()}static createMessagePackBlob(t,e,n){return Se.startMessagePackBlob(t),Se.addTargetNode(t,e),Se.addBytes(t,n),Se.endMessagePackBlob(t)}unpack(){return new Ko(this.targetNode(),this.bb.createScalarList(this.bytes.bind(this),this.bytesLength()))}unpackTo(t){t.targetNode=this.targetNode(),t.bytes=this.bb.createScalarList(this.bytes.bind(this),this.bytesLength())}},Ko=class{constructor(s=0,t=[]){this.targetNode=s,this.bytes=t}targetNode;bytes;pack(s){let t=Kn.createBytesVector(s,this.bytes);return Kn.createMessagePackBlob(s,this.targetNode,t)}},de=class _r{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsData(t,e){return(e||new _r).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsData(t,e){return t.setPosition(t.position()+I),(e||new _r).__init(t.readInt32(t.position())+t.position(),t)}targetNode(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}arrow(t){let e=this.bb.__offset(this.bb_pos,6);return e?(t||new Gn).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}table(t){let e=this.bb.__offset(this.bb_pos,8);return e?(t||new Jn).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}msgpack(t){let e=this.bb.__offset(this.bb_pos,10);return e?(t||new Kn).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}static startData(t){t.startObject(4)}static addTargetNode(t,e){t.addFieldInt32(0,e,0)}static addArrow(t,e){t.addFieldOffset(1,e,0)}static addTable(t,e){t.addFieldOffset(2,e,0)}static addMsgpack(t,e){t.addFieldOffset(3,e,0)}static endData(t){return t.endObject()}unpack(){return new Xo(this.targetNode(),this.arrow()!==null?this.arrow().unpack():null,this.table()!==null?this.table().unpack():null,this.msgpack()!==null?this.msgpack().unpack():null)}unpackTo(t){t.targetNode=this.targetNode(),t.arrow=this.arrow()!==null?this.arrow().unpack():null,t.table=this.table()!==null?this.table().unpack():null,t.msgpack=this.msgpack()!==null?this.msgpack().unpack():null}},Xo=class{constructor(s=0,t=null,e=null,n=null){this.targetNode=s,this.arrow=t,this.table=e,this.msgpack=n}targetNode;arrow;table;msgpack;pack(s){let t=this.arrow!==null?this.arrow.pack(s):0,e=this.table!==null?this.table.pack(s):0,n=this.msgpack!==null?this.msgpack.pack(s):0;return de.startData(s),de.addTargetNode(s,this.targetNode),de.addArrow(s,t),de.addTable(s,e),de.addMsgpack(s,n),de.endData(s)}},Zo=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s))(Zo||{}),js=class xt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsMobileBehaviour(t,e){return(e||new xt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsMobileBehaviour(t,e){return t.setPosition(t.position()+I),(e||new xt).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}behaviour(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}custom(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}args(t,e){let n=this.bb.__offset(this.bb_pos,10);return n?(e||new Hs).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}argsLength(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.__vector_len(this.bb_pos+t):0}static startMobileBehaviour(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addBehaviour(t,e){t.addFieldInt16(1,e,0)}static addCustom(t,e){t.addFieldOffset(2,e,0)}static addArgs(t,e){t.addFieldOffset(3,e,0)}static createArgsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startArgsVector(t,e){t.startVector(4,e,4)}static endMobileBehaviour(t){return t.endObject()}static createMobileBehaviour(t,e,n,i,r){return xt.startMobileBehaviour(t),xt.addNodeId(t,e),xt.addBehaviour(t,n),xt.addCustom(t,i),xt.addArgs(t,r),xt.endMobileBehaviour(t)}unpack(){return new ta(this.nodeId(),this.behaviour(),this.custom(),this.bb.createObjList(this.args.bind(this),this.argsLength()))}unpackTo(t){t.nodeId=this.nodeId(),t.behaviour=this.behaviour(),t.custom=this.custom(),t.args=this.bb.createObjList(this.args.bind(this),this.argsLength())}},ta=class{constructor(s=0,t=0,e=null,n=[]){this.nodeId=s,this.behaviour=t,this.custom=e,this.args=n}nodeId;behaviour;custom;args;pack(s){let t=this.custom!==null?s.createString(this.custom):0,e=js.createArgsVector(s,s.createObjectOffsetList(this.args));return js.createMobileBehaviour(s,this.nodeId,this.behaviour,t,e)}},li=class Xt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsMountWebView(t,e){return(e||new Xt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsMountWebView(t,e){return t.setPosition(t.position()+I),(e||new Xt).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}parentId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}url(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startMountWebView(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addParentId(t,e){t.addFieldInt32(1,e,0)}static addUrl(t,e){t.addFieldOffset(2,e,0)}static endMountWebView(t){return t.endObject()}static createMountWebView(t,e,n,i){return Xt.startMountWebView(t),Xt.addNodeId(t,e),Xt.addParentId(t,n),Xt.addUrl(t,i),Xt.endMountWebView(t)}unpack(){return new ea(this.nodeId(),this.parentId(),this.url())}unpackTo(t){t.nodeId=this.nodeId(),t.parentId=this.parentId(),t.url=this.url()}},ea=class{constructor(s=0,t=0,e=null){this.nodeId=s,this.parentId=t,this.url=e}nodeId;parentId;url;pack(s){let t=this.url!==null?s.createString(this.url):0;return li.createMountWebView(s,this.nodeId,this.parentId,t)}},Cr=class Zt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsNativeArg(t,e){return(e||new Zt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsNativeArg(t,e){return t.setPosition(t.position()+I),(e||new Zt).__init(t.readInt32(t.position())+t.position(),t)}name(t){let e=this.bb.__offset(this.bb_pos,4);return e?this.bb.__string(this.bb_pos+e,t):null}valueType(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}value(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__union(t,this.bb_pos+e):null}static startNativeArg(t){t.startObject(3)}static addName(t,e){t.addFieldOffset(0,e,0)}static addValueType(t,e){t.addFieldInt8(1,e,0)}static addValue(t,e){t.addFieldOffset(2,e,0)}static endNativeArg(t){return t.endObject()}static createNativeArg(t,e,n,i){return Zt.startNativeArg(t),Zt.addName(t,e),Zt.addValueType(t,n),Zt.addValue(t,i),Zt.endNativeArg(t)}unpack(){return new sa(this.name(),this.valueType(),(()=>{let t=Le(this.valueType(),this.value.bind(this));return t===null?null:t.unpack()})())}unpackTo(t){t.name=this.name(),t.valueType=this.valueType(),t.value=(()=>{let e=Le(this.valueType(),this.value.bind(this));return e===null?null:e.unpack()})()}},sa=class{constructor(s=null,t=0,e=null){this.name=s,this.valueType=t,this.value=e}name;valueType;value;pack(s){let t=this.name!==null?s.createString(this.name):0,e=s.createObjectOffset(this.value);return Cr.createNativeArg(s,t,this.valueType,e)}},na=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s[s.HAPTIC=1]="HAPTIC",s[s.OPEN_URL=2]="OPEN_URL",s[s.SHARE=3]="SHARE",s))(na||{}),Ms=class Te{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsNativeCommand(t,e){return(e||new Te).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsNativeCommand(t,e){return t.setPosition(t.position()+I),(e||new Te).__init(t.readInt32(t.position())+t.position(),t)}command(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint16(this.bb_pos+t):0}args(t,e){let n=this.bb.__offset(this.bb_pos,6);return n?(e||new Cr).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}argsLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}static startNativeCommand(t){t.startObject(2)}static addCommand(t,e){t.addFieldInt16(0,e,0)}static addArgs(t,e){t.addFieldOffset(1,e,0)}static createArgsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startArgsVector(t,e){t.startVector(4,e,4)}static endNativeCommand(t){return t.endObject()}static createNativeCommand(t,e,n){return Te.startNativeCommand(t),Te.addCommand(t,e),Te.addArgs(t,n),Te.endNativeCommand(t)}unpack(){return new ia(this.command(),this.bb.createObjList(this.args.bind(this),this.argsLength()))}unpackTo(t){t.command=this.command(),t.args=this.bb.createObjList(this.args.bind(this),this.argsLength())}},ia=class{constructor(s=0,t=[]){this.command=s,this.args=t}command;args;pack(s){let t=Ms.createArgsVector(s,s.createObjectOffsetList(this.args));return Ms.createNativeCommand(s,this.command,t)}},fi=(s=>(s[s.NONE=0]="NONE",s[s.MountWebView=1]="MountWebView",s[s.NativeCommand=2]="NativeCommand",s[s.MobileBehaviour=3]="MobileBehaviour",s))(fi||{});function wr(s,t){switch(fi[s]){case"NONE":return null;case"MountWebView":return t(new li);case"NativeCommand":return t(new Ms);case"MobileBehaviour":return t(new js);default:return null}}function Tc(s,t,e){switch(fi[s]){case"NONE":return null;case"MountWebView":return t(e,new li);case"NativeCommand":return t(e,new Ms);case"MobileBehaviour":return t(e,new js);default:return null}}var pi=class te{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsInsertBefore(t,e){return(e||new te).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsInsertBefore(t,e){return t.setPosition(t.position()+I),(e||new te).__init(t.readInt32(t.position())+t.position(),t)}parentId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}childId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}beforeId(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint32(this.bb_pos+t):0}static startInsertBefore(t){t.startObject(3)}static addParentId(t,e){t.addFieldInt32(0,e,0)}static addChildId(t,e){t.addFieldInt32(1,e,0)}static addBeforeId(t,e){t.addFieldInt32(2,e,0)}static endInsertBefore(t){return t.endObject()}static createInsertBefore(t,e,n,i){return te.startInsertBefore(t),te.addParentId(t,e),te.addChildId(t,n),te.addBeforeId(t,i),te.endInsertBefore(t)}unpack(){return new ra(this.parentId(),this.childId(),this.beforeId())}unpackTo(t){t.parentId=this.parentId(),t.childId=this.childId(),t.beforeId=this.beforeId()}},ra=class{constructor(s=0,t=0,e=0){this.parentId=s,this.childId=t,this.beforeId=e}parentId;childId;beforeId;pack(s){return pi.createInsertBefore(s,this.parentId,this.childId,this.beforeId)}},Gs=(s=>(s[s.Stream=0]="Stream",s[s.Data=1]="Data",s))(Gs||{}),Qs=(s=>(s[s.Local=0]="Local",s[s.Sse=1]="Sse",s[s.WebSocket=2]="WebSocket",s[s.Http=3]="Http",s))(Qs||{}),ls=class it{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsLiveMount(t,e){return(e||new it).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsLiveMount(t,e){return t.setPosition(t.position()+I),(e||new it).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}kind(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}channelId(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}transport(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint8(this.bb_pos+t):0}endpoint(t){let e=this.bb.__offset(this.bb_pos,12);return e?this.bb.__string(this.bb_pos+e,t):null}resumeFrom(){let t=this.bb.__offset(this.bb_pos,14);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}sharing(){let t=this.bb.__offset(this.bb_pos,16);return t?this.bb.readUint8(this.bb_pos+t):0}keepAlive(){let t=this.bb.__offset(this.bb_pos,18);return t?!!this.bb.readInt8(this.bb_pos+t):!1}static startLiveMount(t){t.startObject(8)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addKind(t,e){t.addFieldInt8(1,e,0)}static addChannelId(t,e){t.addFieldInt64(2,e,BigInt("0"))}static addTransport(t,e){t.addFieldInt8(3,e,0)}static addEndpoint(t,e){t.addFieldOffset(4,e,0)}static addResumeFrom(t,e){t.addFieldInt64(5,e,BigInt("0"))}static addSharing(t,e){t.addFieldInt8(6,e,0)}static addKeepAlive(t,e){t.addFieldInt8(7,+e,0)}static endLiveMount(t){return t.endObject()}static createLiveMount(t,e,n,i,r,o,a,c,u){return it.startLiveMount(t),it.addNodeId(t,e),it.addKind(t,n),it.addChannelId(t,i),it.addTransport(t,r),it.addEndpoint(t,o),it.addResumeFrom(t,a),it.addSharing(t,c),it.addKeepAlive(t,u),it.endLiveMount(t)}unpack(){return new oa(this.nodeId(),this.kind(),this.channelId(),this.transport(),this.endpoint(),this.resumeFrom(),this.sharing(),this.keepAlive())}unpackTo(t){t.nodeId=this.nodeId(),t.kind=this.kind(),t.channelId=this.channelId(),t.transport=this.transport(),t.endpoint=this.endpoint(),t.resumeFrom=this.resumeFrom(),t.sharing=this.sharing(),t.keepAlive=this.keepAlive()}},oa=class{constructor(s=0,t=0,e=BigInt("0"),n=0,i=null,r=BigInt("0"),o=0,a=!1){this.nodeId=s,this.kind=t,this.channelId=e,this.transport=n,this.endpoint=i,this.resumeFrom=r,this.sharing=o,this.keepAlive=a}nodeId;kind;channelId;transport;endpoint;resumeFrom;sharing;keepAlive;pack(s){let t=this.endpoint!==null?s.createString(this.endpoint):0;return ls.createLiveMount(s,this.nodeId,this.kind,this.channelId,this.transport,t,this.resumeFrom,this.sharing,this.keepAlive)}},Ys=(s=>(s[s.Append=0]="Append",s[s.Before=1]="Before",s[s.After=2]="After",s[s.Swap=3]="Swap",s[s.Remove=4]="Remove",s[s.FullView=5]="FullView",s))(Ys||{}),X=(s=>(s[s.NodeId=0]="NodeId",s[s.Id=1]="Id",s[s.Class=2]="Class",s[s.Query=3]="Query",s[s.TypedId=4]="TypedId",s[s.View=5]="View",s[s.Receiving=6]="Receiving",s))(X||{}),Ps=class ee{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsTargetSelector(t,e){return(e||new ee).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsTargetSelector(t,e){return t.setPosition(t.position()+I),(e||new ee).__init(t.readInt32(t.position())+t.position(),t)}kind(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint8(this.bb_pos+t):0}nodeId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}text(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startTargetSelector(t){t.startObject(3)}static addKind(t,e){t.addFieldInt8(0,e,0)}static addNodeId(t,e){t.addFieldInt32(1,e,0)}static addText(t,e){t.addFieldOffset(2,e,0)}static endTargetSelector(t){return t.endObject()}static createTargetSelector(t,e,n,i){return ee.startTargetSelector(t),ee.addKind(t,e),ee.addNodeId(t,n),ee.addText(t,i),ee.endTargetSelector(t)}unpack(){return new aa(this.kind(),this.nodeId(),this.text())}unpackTo(t){t.kind=this.kind(),t.nodeId=this.nodeId(),t.text=this.text()}},aa=class{constructor(s=0,t=0,e=null){this.kind=s,this.nodeId=t,this.text=e}kind;nodeId;text;pack(s){let t=this.text!==null?s.createString(this.text):0;return Ps.createTargetSelector(s,this.kind,this.nodeId,t)}},ot=class vr{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsPlace(t,e){return(e||new vr).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsPlace(t,e){return t.setPosition(t.position()+I),(e||new vr).__init(t.readInt32(t.position())+t.position(),t)}kind(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint8(this.bb_pos+t):0}target(t){let e=this.bb.__offset(this.bb_pos,6);return e?(t||new Ps).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}child(t){let e=this.bb.__offset(this.bb_pos,8);return e?(t||new Ps).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}rootNode(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint32(this.bb_pos+t):0}operations(t,e){let n=this.bb.__offset(this.bb_pos,12);return n?(e||new rt).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}operationsLength(){let t=this.bb.__offset(this.bb_pos,12);return t?this.bb.__vector_len(this.bb_pos+t):0}static startPlace(t){t.startObject(5)}static addKind(t,e){t.addFieldInt8(0,e,0)}static addTarget(t,e){t.addFieldOffset(1,e,0)}static addChild(t,e){t.addFieldOffset(2,e,0)}static addRootNode(t,e){t.addFieldInt32(3,e,0)}static addOperations(t,e){t.addFieldOffset(4,e,0)}static createOperationsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startOperationsVector(t,e){t.startVector(4,e,4)}static endPlace(t){return t.endObject()}unpack(){return new ca(this.kind(),this.target()!==null?this.target().unpack():null,this.child()!==null?this.child().unpack():null,this.rootNode(),this.bb.createObjList(this.operations.bind(this),this.operationsLength()))}unpackTo(t){t.kind=this.kind(),t.target=this.target()!==null?this.target().unpack():null,t.child=this.child()!==null?this.child().unpack():null,t.rootNode=this.rootNode(),t.operations=this.bb.createObjList(this.operations.bind(this),this.operationsLength())}},ca=class{constructor(s=0,t=null,e=null,n=0,i=[]){this.kind=s,this.target=t,this.child=e,this.rootNode=n,this.operations=i}kind;target;child;rootNode;operations;pack(s){let t=this.target!==null?this.target.pack(s):0,e=this.child!==null?this.child.pack(s):0,n=ot.createOperationsVector(s,s.createObjectOffsetList(this.operations));return ot.startPlace(s),ot.addKind(s,this.kind),ot.addTarget(s,t),ot.addChild(s,e),ot.addRootNode(s,this.rootNode),ot.addOperations(s,n),ot.endPlace(s)}},bi=class as{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsRemove(t,e){return(e||new as).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsRemove(t,e){return t.setPosition(t.position()+I),(e||new as).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}static startRemove(t){t.startObject(1)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static endRemove(t){return t.endObject()}static createRemove(t,e){return as.startRemove(t),as.addNodeId(t,e),as.endRemove(t)}unpack(){return new ha(this.nodeId())}unpackTo(t){t.nodeId=this.nodeId()}},ha=class{constructor(s=0){this.nodeId=s}nodeId;pack(s){return bi.createRemove(s,this.nodeId)}},Ws=class Oe{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsReplaceSubtree(t,e){return(e||new Oe).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsReplaceSubtree(t,e){return t.setPosition(t.position()+I),(e||new Oe).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}operations(t,e){let n=this.bb.__offset(this.bb_pos,6);return n?(e||new rt).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}operationsLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}static startReplaceSubtree(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addOperations(t,e){t.addFieldOffset(1,e,0)}static createOperationsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startOperationsVector(t,e){t.startVector(4,e,4)}static endReplaceSubtree(t){return t.endObject()}static createReplaceSubtree(t,e,n){return Oe.startReplaceSubtree(t),Oe.addNodeId(t,e),Oe.addOperations(t,n),Oe.endReplaceSubtree(t)}unpack(){return new da(this.nodeId(),this.bb.createObjList(this.operations.bind(this),this.operationsLength()))}unpackTo(t){t.nodeId=this.nodeId(),t.operations=this.bb.createObjList(this.operations.bind(this),this.operationsLength())}},da=class{constructor(s=0,t=[]){this.nodeId=s,this.operations=t}nodeId;operations;pack(s){let t=Ws.createOperationsVector(s,s.createObjectOffsetList(this.operations));return Ws.createReplaceSubtree(s,this.nodeId,t)}},fs=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s[s.PADDING=1]="PADDING",s[s.SPACING=2]="SPACING",s[s.ALIGN=3]="ALIGN",s[s.COLOR=4]="COLOR",s[s.FONT=5]="FONT",s[s.ENABLED=6]="ENABLED",s[s.A11Y_LABEL=7]="A11Y_LABEL",s[s.AXIS=8]="AXIS",s[s.VALUE=9]="VALUE",s[s.CHECKED=10]="CHECKED",s[s.SOURCE=11]="SOURCE",s[s.PLACEHOLDER=12]="PLACEHOLDER",s[s.BACKGROUND=13]="BACKGROUND",s[s.WIDTH=14]="WIDTH",s[s.HEIGHT=15]="HEIGHT",s[s.HIDDEN=16]="HIDDEN",s[s.PRESENTATION=17]="PRESENTATION",s[s.UTILITY_CLASSES=18]="UTILITY_CLASSES",s[s.ID=19]="ID",s))(fs||{}),ps=class Et{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsSetProp(t,e){return(e||new Et).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsSetProp(t,e){return t.setPosition(t.position()+I),(e||new Et).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}prop(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}valueType(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint8(this.bb_pos+t):0}value(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.__union(t,this.bb_pos+e):null}static startSetProp(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addProp(t,e){t.addFieldInt16(1,e,0)}static addValueType(t,e){t.addFieldInt8(2,e,0)}static addValue(t,e){t.addFieldOffset(3,e,0)}static endSetProp(t){return t.endObject()}static createSetProp(t,e,n,i,r){return Et.startSetProp(t),Et.addNodeId(t,e),Et.addProp(t,n),Et.addValueType(t,i),Et.addValue(t,r),Et.endSetProp(t)}unpack(){return new ua(this.nodeId(),this.prop(),this.valueType(),(()=>{let t=Le(this.valueType(),this.value.bind(this));return t===null?null:t.unpack()})())}unpackTo(t){t.nodeId=this.nodeId(),t.prop=this.prop(),t.valueType=this.valueType(),t.value=(()=>{let e=Le(this.valueType(),this.value.bind(this));return e===null?null:e.unpack()})()}},ua=class{constructor(s=0,t=0,e=0,n=null){this.nodeId=s,this.prop=t,this.valueType=e,this.value=n}nodeId;prop;valueType;value;pack(s){let t=s.createObjectOffset(this.value);return ps.createSetProp(s,this.nodeId,this.prop,this.valueType,t)}},gi=class Ne{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsSetText(t,e){return(e||new Ne).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsSetText(t,e){return t.setPosition(t.position()+I),(e||new Ne).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}text(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}static startSetText(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addText(t,e){t.addFieldOffset(1,e,0)}static endSetText(t){return t.endObject()}static createSetText(t,e,n){return Ne.startSetText(t),Ne.addNodeId(t,e),Ne.addText(t,n),Ne.endSetText(t)}unpack(){return new la(this.nodeId(),this.text())}unpackTo(t){t.nodeId=this.nodeId(),t.text=this.text()}},la=class{constructor(s=0,t=null){this.nodeId=s,this.text=t}nodeId;text;pack(s){let t=this.text!==null?s.createString(this.text):0;return gi.createSetText(s,this.nodeId,t)}},zs=class se{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsUiBehaviour(t,e){return(e||new se).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsUiBehaviour(t,e){return t.setPosition(t.position()+I),(e||new se).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}behaviour(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}args(t,e){let n=this.bb.__offset(this.bb_pos,8);return n?(e||new Hs).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}argsLength(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.__vector_len(this.bb_pos+t):0}static startUiBehaviour(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addBehaviour(t,e){t.addFieldInt16(1,e,0)}static addArgs(t,e){t.addFieldOffset(2,e,0)}static createArgsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startArgsVector(t,e){t.startVector(4,e,4)}static endUiBehaviour(t){return t.endObject()}static createUiBehaviour(t,e,n,i){return se.startUiBehaviour(t),se.addNodeId(t,e),se.addBehaviour(t,n),se.addArgs(t,i),se.endUiBehaviour(t)}unpack(){return new fa(this.nodeId(),this.behaviour(),this.bb.createObjList(this.args.bind(this),this.argsLength()))}unpackTo(t){t.nodeId=this.nodeId(),t.behaviour=this.behaviour(),t.args=this.bb.createObjList(this.args.bind(this),this.argsLength())}},fa=class{constructor(s=0,t=0,e=[]){this.nodeId=s,this.behaviour=t,this.args=e}nodeId;behaviour;args;pack(s){let t=zs.createArgsVector(s,s.createObjectOffsetList(this.args));return zs.createUiBehaviour(s,this.nodeId,this.behaviour,t)}},mi=class Be{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsUnbindAction(t,e){return(e||new Be).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsUnbindAction(t,e){return t.setPosition(t.position()+I),(e||new Be).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}event(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}static startUnbindAction(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addEvent(t,e){t.addFieldInt16(1,e,0)}static endUnbindAction(t){return t.endObject()}static createUnbindAction(t,e,n){return Be.startUnbindAction(t),Be.addNodeId(t,e),Be.addEvent(t,n),Be.endUnbindAction(t)}unpack(){return new pa(this.nodeId(),this.event())}unpackTo(t){t.nodeId=this.nodeId(),t.event=this.event()}},pa=class{constructor(s=0,t=0){this.nodeId=s,this.event=t}nodeId;event;pack(s){return mi.createUnbindAction(s,this.nodeId,this.event)}},ft=(s=>(s[s.NONE=0]="NONE",s[s.CreateNode=1]="CreateNode",s[s.SetText=2]="SetText",s[s.SetProp=3]="SetProp",s[s.AppendChild=4]="AppendChild",s[s.InsertBefore=5]="InsertBefore",s[s.Remove=6]="Remove",s[s.ReplaceSubtree=7]="ReplaceSubtree",s[s.BindAction=8]="BindAction",s[s.UnbindAction=9]="UnbindAction",s[s.AttachState=10]="AttachState",s[s.LiveMount=11]="LiveMount",s[s.UiBehaviour=12]="UiBehaviour",s[s.Place=13]="Place",s))(ft||{});function Ir(s,t){switch(ft[s]){case"NONE":return null;case"CreateNode":return t(new ui);case"SetText":return t(new gi);case"SetProp":return t(new ps);case"AppendChild":return t(new ti);case"InsertBefore":return t(new pi);case"Remove":return t(new bi);case"ReplaceSubtree":return t(new Ws);case"BindAction":return t(new ai);case"UnbindAction":return t(new mi);case"AttachState":return t(new Ls);case"LiveMount":return t(new ls);case"UiBehaviour":return t(new zs);case"Place":return t(new ot);default:return null}}function Oc(s,t,e){switch(ft[s]){case"NONE":return null;case"CreateNode":return t(e,new ui);case"SetText":return t(e,new gi);case"SetProp":return t(e,new ps);case"AppendChild":return t(e,new ti);case"InsertBefore":return t(e,new pi);case"Remove":return t(e,new bi);case"ReplaceSubtree":return t(e,new Ws);case"BindAction":return t(e,new ai);case"UnbindAction":return t(e,new mi);case"AttachState":return t(e,new Ls);case"LiveMount":return t(e,new ls);case"UiBehaviour":return t(e,new zs);case"Place":return t(e,new ot);default:return null}}var Wt=(s=>(s[s.ReplaceChildren=0]="ReplaceChildren",s[s.ReplaceElement=1]="ReplaceElement",s[s.InsertBefore=2]="InsertBefore",s[s.InsertAfter=3]="InsertAfter",s[s.AppendSibling=4]="AppendSibling",s))(Wt||{}),_i=class ne{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsHtmlMorph(t,e){return(e||new ne).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsHtmlMorph(t,e){return t.setPosition(t.position()+I),(e||new ne).__init(t.readInt32(t.position())+t.position(),t)}target(t){let e=this.bb.__offset(this.bb_pos,4);return e?(t||new Ps).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}action(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}content(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startHtmlMorph(t){t.startObject(3)}static addTarget(t,e){t.addFieldOffset(0,e,0)}static addAction(t,e){t.addFieldInt8(1,e,0)}static addContent(t,e){t.addFieldOffset(2,e,0)}static endHtmlMorph(t){return t.endObject()}static createHtmlMorph(t,e,n,i){return ne.startHtmlMorph(t),ne.addTarget(t,e),ne.addAction(t,n),ne.addContent(t,i),ne.endHtmlMorph(t)}unpack(){return new ba(this.target()!==null?this.target().unpack():null,this.action(),this.content())}unpackTo(t){t.target=this.target()!==null?this.target().unpack():null,t.action=this.action(),t.content=this.content()}},ba=class{constructor(s=null,t=0,e=null){this.target=s,this.action=t,this.content=e}target;action;content;pack(s){let t=this.target!==null?this.target.pack(s):0,e=this.content!==null?s.createString(this.content):0;return _i.createHtmlMorph(s,t,this.action,e)}},wi=class ie{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsScriptNode(t,e){return(e||new ie).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsScriptNode(t,e){return t.setPosition(t.position()+I),(e||new ie).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}parentId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}body(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startScriptNode(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addParentId(t,e){t.addFieldInt32(1,e,0)}static addBody(t,e){t.addFieldOffset(2,e,0)}static endScriptNode(t){return t.endObject()}static createScriptNode(t,e,n,i){return ie.startScriptNode(t),ie.addNodeId(t,e),ie.addParentId(t,n),ie.addBody(t,i),ie.endScriptNode(t)}unpack(){return new ga(this.nodeId(),this.parentId(),this.body())}unpackTo(t){t.nodeId=this.nodeId(),t.parentId=this.parentId(),t.body=this.body()}},ga=class{constructor(s=0,t=0,e=null){this.nodeId=s,this.parentId=t,this.body=e}nodeId;parentId;body;pack(s){let t=this.body!==null?s.createString(this.body):0;return wi.createScriptNode(s,this.nodeId,this.parentId,t)}},vi=class xe{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebAddClass(t,e){return(e||new xe).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebAddClass(t,e){return t.setPosition(t.position()+I),(e||new xe).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}className(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebAddClass(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addClassName(t,e){t.addFieldOffset(1,e,0)}static endWebAddClass(t){return t.endObject()}static createWebAddClass(t,e,n){return xe.startWebAddClass(t),xe.addNodeId(t,e),xe.addClassName(t,n),xe.endWebAddClass(t)}unpack(){return new ma(this.nodeId(),this.className())}unpackTo(t){t.nodeId=this.nodeId(),t.className=this.className()}},ma=class{constructor(s=0,t=null){this.nodeId=s,this.className=t}nodeId;className;pack(s){let t=this.className!==null?s.createString(this.className):0;return vi.createWebAddClass(s,this.nodeId,t)}},Ii=class re{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebAddListener(t,e){return(e||new re).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebAddListener(t,e){return t.setPosition(t.position()+I),(e||new re).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}nameId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customName(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebAddListener(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addNameId(t,e){t.addFieldInt16(1,e,0)}static addCustomName(t,e){t.addFieldOffset(2,e,0)}static endWebAddListener(t){return t.endObject()}static createWebAddListener(t,e,n,i){return re.startWebAddListener(t),re.addNodeId(t,e),re.addNameId(t,n),re.addCustomName(t,i),re.endWebAddListener(t)}unpack(){return new _a(this.nodeId(),this.nameId(),this.customName())}unpackTo(t){t.nodeId=this.nodeId(),t.nameId=this.nameId(),t.customName=this.customName()}},_a=class{constructor(s=0,t=0,e=null){this.nodeId=s,this.nameId=t,this.customName=e}nodeId;nameId;customName;pack(s){let t=this.customName!==null?s.createString(this.customName):0;return Ii.createWebAddListener(s,this.nodeId,this.nameId,t)}},wa=(s=>(s[s.UNKNOWN=0]="UNKNOWN",s))(wa||{}),Ds=class Rt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebBehaviour(t,e){return(e||new Rt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebBehaviour(t,e){return t.setPosition(t.position()+I),(e||new Rt).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}behaviour(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}custom(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}args(t,e){let n=this.bb.__offset(this.bb_pos,10);return n?(e||new Hs).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}argsLength(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.__vector_len(this.bb_pos+t):0}static startWebBehaviour(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addBehaviour(t,e){t.addFieldInt16(1,e,0)}static addCustom(t,e){t.addFieldOffset(2,e,0)}static addArgs(t,e){t.addFieldOffset(3,e,0)}static createArgsVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startArgsVector(t,e){t.startVector(4,e,4)}static endWebBehaviour(t){return t.endObject()}static createWebBehaviour(t,e,n,i,r){return Rt.startWebBehaviour(t),Rt.addNodeId(t,e),Rt.addBehaviour(t,n),Rt.addCustom(t,i),Rt.addArgs(t,r),Rt.endWebBehaviour(t)}unpack(){return new va(this.nodeId(),this.behaviour(),this.custom(),this.bb.createObjList(this.args.bind(this),this.argsLength()))}unpackTo(t){t.nodeId=this.nodeId(),t.behaviour=this.behaviour(),t.custom=this.custom(),t.args=this.bb.createObjList(this.args.bind(this),this.argsLength())}},va=class{constructor(s=0,t=0,e=null,n=[]){this.nodeId=s,this.behaviour=t,this.custom=e,this.args=n}nodeId;behaviour;custom;args;pack(s){let t=this.custom!==null?s.createString(this.custom):0,e=Ds.createArgsVector(s,s.createObjectOffsetList(this.args));return Ds.createWebBehaviour(s,this.nodeId,this.behaviour,t,e)}},yi=class Ee{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebDetachChild(t,e){return(e||new Ee).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebDetachChild(t,e){return t.setPosition(t.position()+I),(e||new Ee).__init(t.readInt32(t.position())+t.position(),t)}parentId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}childId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}static startWebDetachChild(t){t.startObject(2)}static addParentId(t,e){t.addFieldInt32(0,e,0)}static addChildId(t,e){t.addFieldInt32(1,e,0)}static endWebDetachChild(t){return t.endObject()}static createWebDetachChild(t,e,n){return Ee.startWebDetachChild(t),Ee.addParentId(t,e),Ee.addChildId(t,n),Ee.endWebDetachChild(t)}unpack(){return new Ia(this.parentId(),this.childId())}unpackTo(t){t.parentId=this.parentId(),t.childId=this.childId()}},Ia=class{constructor(s=0,t=0){this.parentId=s,this.childId=t}parentId;childId;pack(s){return yi.createWebDetachChild(s,this.parentId,this.childId)}},Ai=class Ut{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebElement(t,e){return(e||new Ut).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebElement(t,e){return t.setPosition(t.position()+I),(e||new Ut).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}tagId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customTag(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}className(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebElement(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addTagId(t,e){t.addFieldInt16(1,e,0)}static addCustomTag(t,e){t.addFieldOffset(2,e,0)}static addClassName(t,e){t.addFieldOffset(3,e,0)}static endWebElement(t){return t.endObject()}static createWebElement(t,e,n,i,r){return Ut.startWebElement(t),Ut.addNodeId(t,e),Ut.addTagId(t,n),Ut.addCustomTag(t,i),Ut.addClassName(t,r),Ut.endWebElement(t)}unpack(){return new ya(this.nodeId(),this.tagId(),this.customTag(),this.className())}unpackTo(t){t.nodeId=this.nodeId(),t.tagId=this.tagId(),t.customTag=this.customTag(),t.className=this.className()}},ya=class{constructor(s=0,t=0,e=null,n=null){this.nodeId=s,this.tagId=t,this.customTag=e,this.className=n}nodeId;tagId;customTag;className;pack(s){let t=this.customTag!==null?s.createString(this.customTag):0,e=this.className!==null?s.createString(this.className):0;return Ai.createWebElement(s,this.nodeId,this.tagId,t,e)}},ki=class Ft{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebProperty(t,e){return(e||new Ft).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebProperty(t,e){return t.setPosition(t.position()+I),(e||new Ft).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}nameId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customName(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}value(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebProperty(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addNameId(t,e){t.addFieldInt16(1,e,0)}static addCustomName(t,e){t.addFieldOffset(2,e,0)}static addValue(t,e){t.addFieldOffset(3,e,0)}static endWebProperty(t){return t.endObject()}static createWebProperty(t,e,n,i,r){return Ft.startWebProperty(t),Ft.addNodeId(t,e),Ft.addNameId(t,n),Ft.addCustomName(t,i),Ft.addValue(t,r),Ft.endWebProperty(t)}unpack(){return new Aa(this.nodeId(),this.nameId(),this.customName(),this.value())}unpackTo(t){t.nodeId=this.nodeId(),t.nameId=this.nameId(),t.customName=this.customName(),t.value=this.value()}},Aa=class{constructor(s=0,t=0,e=null,n=null){this.nodeId=s,this.nameId=t,this.customName=e,this.value=n}nodeId;nameId;customName;value;pack(s){let t=this.customName!==null?s.createString(this.customName):0,e=this.value!==null?s.createString(this.value):0;return ki.createWebProperty(s,this.nodeId,this.nameId,t,e)}},Si=class cs{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebRegisterNode(t,e){return(e||new cs).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebRegisterNode(t,e){return t.setPosition(t.position()+I),(e||new cs).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}static startWebRegisterNode(t){t.startObject(1)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static endWebRegisterNode(t){return t.endObject()}static createWebRegisterNode(t,e){return cs.startWebRegisterNode(t),cs.addNodeId(t,e),cs.endWebRegisterNode(t)}unpack(){return new ka(this.nodeId())}unpackTo(t){t.nodeId=this.nodeId()}},ka=class{constructor(s=0){this.nodeId=s}nodeId;pack(s){return Si.createWebRegisterNode(s,this.nodeId)}},Ti=class oe{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebRemoveAttribute(t,e){return(e||new oe).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebRemoveAttribute(t,e){return t.setPosition(t.position()+I),(e||new oe).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}attrId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customAttr(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebRemoveAttribute(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addAttrId(t,e){t.addFieldInt16(1,e,0)}static addCustomAttr(t,e){t.addFieldOffset(2,e,0)}static endWebRemoveAttribute(t){return t.endObject()}static createWebRemoveAttribute(t,e,n,i){return oe.startWebRemoveAttribute(t),oe.addNodeId(t,e),oe.addAttrId(t,n),oe.addCustomAttr(t,i),oe.endWebRemoveAttribute(t)}unpack(){return new Sa(this.nodeId(),this.attrId(),this.customAttr())}unpackTo(t){t.nodeId=this.nodeId(),t.attrId=this.attrId(),t.customAttr=this.customAttr()}},Sa=class{constructor(s=0,t=0,e=null){this.nodeId=s,this.attrId=t,this.customAttr=e}nodeId;attrId;customAttr;pack(s){let t=this.customAttr!==null?s.createString(this.customAttr):0;return Ti.createWebRemoveAttribute(s,this.nodeId,this.attrId,t)}},Oi=class Re{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebRemoveClass(t,e){return(e||new Re).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebRemoveClass(t,e){return t.setPosition(t.position()+I),(e||new Re).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}className(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebRemoveClass(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addClassName(t,e){t.addFieldOffset(1,e,0)}static endWebRemoveClass(t){return t.endObject()}static createWebRemoveClass(t,e,n){return Re.startWebRemoveClass(t),Re.addNodeId(t,e),Re.addClassName(t,n),Re.endWebRemoveClass(t)}unpack(){return new Ta(this.nodeId(),this.className())}unpackTo(t){t.nodeId=this.nodeId(),t.className=this.className()}},Ta=class{constructor(s=0,t=null){this.nodeId=s,this.className=t}nodeId;className;pack(s){let t=this.className!==null?s.createString(this.className):0;return Oi.createWebRemoveClass(s,this.nodeId,t)}},Ni=class ae{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebRemoveListener(t,e){return(e||new ae).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebRemoveListener(t,e){return t.setPosition(t.position()+I),(e||new ae).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}nameId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customName(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebRemoveListener(t){t.startObject(3)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addNameId(t,e){t.addFieldInt16(1,e,0)}static addCustomName(t,e){t.addFieldOffset(2,e,0)}static endWebRemoveListener(t){return t.endObject()}static createWebRemoveListener(t,e,n,i){return ae.startWebRemoveListener(t),ae.addNodeId(t,e),ae.addNameId(t,n),ae.addCustomName(t,i),ae.endWebRemoveListener(t)}unpack(){return new Oa(this.nodeId(),this.nameId(),this.customName())}unpackTo(t){t.nodeId=this.nodeId(),t.nameId=this.nameId(),t.customName=this.customName()}},Oa=class{constructor(s=0,t=0,e=null){this.nodeId=s,this.nameId=t,this.customName=e}nodeId;nameId;customName;pack(s){let t=this.customName!==null?s.createString(this.customName):0;return Ni.createWebRemoveListener(s,this.nodeId,this.nameId,t)}},Bi=class Ue{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebReplaceNode(t,e){return(e||new Ue).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebReplaceNode(t,e){return t.setPosition(t.position()+I),(e||new Ue).__init(t.readInt32(t.position())+t.position(),t)}oldId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}newId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint32(this.bb_pos+t):0}static startWebReplaceNode(t){t.startObject(2)}static addOldId(t,e){t.addFieldInt32(0,e,0)}static addNewId(t,e){t.addFieldInt32(1,e,0)}static endWebReplaceNode(t){return t.endObject()}static createWebReplaceNode(t,e,n){return Ue.startWebReplaceNode(t),Ue.addOldId(t,e),Ue.addNewId(t,n),Ue.endWebReplaceNode(t)}unpack(){return new Na(this.oldId(),this.newId())}unpackTo(t){t.oldId=this.oldId(),t.newId=this.newId()}},Na=class{constructor(s=0,t=0){this.oldId=s,this.newId=t}oldId;newId;pack(s){return Bi.createWebReplaceNode(s,this.oldId,this.newId)}},xi=class Ct{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebSetAttribute(t,e){return(e||new Ct).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebSetAttribute(t,e){return t.setPosition(t.position()+I),(e||new Ct).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}attrId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customAttr(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}value(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebSetAttribute(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addAttrId(t,e){t.addFieldInt16(1,e,0)}static addCustomAttr(t,e){t.addFieldOffset(2,e,0)}static addValue(t,e){t.addFieldOffset(3,e,0)}static endWebSetAttribute(t){return t.endObject()}static createWebSetAttribute(t,e,n,i,r){return Ct.startWebSetAttribute(t),Ct.addNodeId(t,e),Ct.addAttrId(t,n),Ct.addCustomAttr(t,i),Ct.addValue(t,r),Ct.endWebSetAttribute(t)}unpack(){return new Ba(this.nodeId(),this.attrId(),this.customAttr(),this.value())}unpackTo(t){t.nodeId=this.nodeId(),t.attrId=this.attrId(),t.customAttr=this.customAttr(),t.value=this.value()}},Ba=class{constructor(s=0,t=0,e=null,n=null){this.nodeId=s,this.attrId=t,this.customAttr=e,this.value=n}nodeId;attrId;customAttr;value;pack(s){let t=this.customAttr!==null?s.createString(this.customAttr):0,e=this.value!==null?s.createString(this.value):0;return xi.createWebSetAttribute(s,this.nodeId,this.attrId,t,e)}},Ei=class Vt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebStyle(t,e){return(e||new Vt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebStyle(t,e){return t.setPosition(t.position()+I),(e||new Vt).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}nameId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint16(this.bb_pos+t):0}customName(t){let e=this.bb.__offset(this.bb_pos,8);return e?this.bb.__string(this.bb_pos+e,t):null}value(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebStyle(t){t.startObject(4)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addNameId(t,e){t.addFieldInt16(1,e,0)}static addCustomName(t,e){t.addFieldOffset(2,e,0)}static addValue(t,e){t.addFieldOffset(3,e,0)}static endWebStyle(t){return t.endObject()}static createWebStyle(t,e,n,i,r){return Vt.startWebStyle(t),Vt.addNodeId(t,e),Vt.addNameId(t,n),Vt.addCustomName(t,i),Vt.addValue(t,r),Vt.endWebStyle(t)}unpack(){return new xa(this.nodeId(),this.nameId(),this.customName(),this.value())}unpackTo(t){t.nodeId=this.nodeId(),t.nameId=this.nameId(),t.customName=this.customName(),t.value=this.value()}},xa=class{constructor(s=0,t=0,e=null,n=null){this.nodeId=s,this.nameId=t,this.customName=e,this.value=n}nodeId;nameId;customName;value;pack(s){let t=this.customName!==null?s.createString(this.customName):0,e=this.value!==null?s.createString(this.value):0;return Ei.createWebStyle(s,this.nodeId,this.nameId,t,e)}},Ri=class Fe{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebText(t,e){return(e||new Fe).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebText(t,e){return t.setPosition(t.position()+I),(e||new Fe).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}content(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__string(this.bb_pos+e,t):null}static startWebText(t){t.startObject(2)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static addContent(t,e){t.addFieldOffset(1,e,0)}static endWebText(t){return t.endObject()}static createWebText(t,e,n){return Fe.startWebText(t),Fe.addNodeId(t,e),Fe.addContent(t,n),Fe.endWebText(t)}unpack(){return new Ea(this.nodeId(),this.content())}unpackTo(t){t.nodeId=this.nodeId(),t.content=this.content()}},Ea=class{constructor(s=0,t=null){this.nodeId=s,this.content=t}nodeId;content;pack(s){let t=this.content!==null?s.createString(this.content):0;return Ri.createWebText(s,this.nodeId,t)}},Ui=class hs{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsWebUnregisterNode(t,e){return(e||new hs).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsWebUnregisterNode(t,e){return t.setPosition(t.position()+I),(e||new hs).__init(t.readInt32(t.position())+t.position(),t)}nodeId(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint32(this.bb_pos+t):0}static startWebUnregisterNode(t){t.startObject(1)}static addNodeId(t,e){t.addFieldInt32(0,e,0)}static endWebUnregisterNode(t){return t.endObject()}static createWebUnregisterNode(t,e){return hs.startWebUnregisterNode(t),hs.addNodeId(t,e),hs.endWebUnregisterNode(t)}unpack(){return new Ra(this.nodeId())}unpackTo(t){t.nodeId=this.nodeId()}},Ra=class{constructor(s=0){this.nodeId=s}nodeId;pack(s){return Ui.createWebUnregisterNode(s,this.nodeId)}},bs=(s=>(s[s.NONE=0]="NONE",s[s.WebElement=1]="WebElement",s[s.WebText=2]="WebText",s[s.WebSetAttribute=3]="WebSetAttribute",s[s.WebRemoveAttribute=4]="WebRemoveAttribute",s[s.WebProperty=5]="WebProperty",s[s.WebAddListener=6]="WebAddListener",s[s.WebRemoveListener=7]="WebRemoveListener",s[s.WebReplaceNode=8]="WebReplaceNode",s[s.WebStyle=9]="WebStyle",s[s.WebAddClass=10]="WebAddClass",s[s.WebRemoveClass=11]="WebRemoveClass",s[s.HtmlMorph=12]="HtmlMorph",s[s.WebRegisterNode=13]="WebRegisterNode",s[s.WebUnregisterNode=14]="WebUnregisterNode",s[s.ScriptNode=15]="ScriptNode",s[s.WebBehaviour=16]="WebBehaviour",s[s.WebDetachChild=17]="WebDetachChild",s))(bs||{});function yr(s,t){switch(bs[s]){case"NONE":return null;case"WebElement":return t(new Ai);case"WebText":return t(new Ri);case"WebSetAttribute":return t(new xi);case"WebRemoveAttribute":return t(new Ti);case"WebProperty":return t(new ki);case"WebAddListener":return t(new Ii);case"WebRemoveListener":return t(new Ni);case"WebReplaceNode":return t(new Bi);case"WebStyle":return t(new Ei);case"WebAddClass":return t(new vi);case"WebRemoveClass":return t(new Oi);case"HtmlMorph":return t(new _i);case"WebRegisterNode":return t(new Si);case"WebUnregisterNode":return t(new Ui);case"ScriptNode":return t(new wi);case"WebBehaviour":return t(new Ds);case"WebDetachChild":return t(new yi);default:return null}}function Nc(s,t,e){switch(bs[s]){case"NONE":return null;case"WebElement":return t(e,new Ai);case"WebText":return t(e,new Ri);case"WebSetAttribute":return t(e,new xi);case"WebRemoveAttribute":return t(e,new Ti);case"WebProperty":return t(e,new ki);case"WebAddListener":return t(e,new Ii);case"WebRemoveListener":return t(e,new Ni);case"WebReplaceNode":return t(e,new Bi);case"WebStyle":return t(e,new Ei);case"WebAddClass":return t(e,new vi);case"WebRemoveClass":return t(e,new Oi);case"HtmlMorph":return t(e,new _i);case"WebRegisterNode":return t(e,new Si);case"WebUnregisterNode":return t(e,new Ui);case"ScriptNode":return t(e,new wi);case"WebBehaviour":return t(e,new Ds);case"WebDetachChild":return t(e,new yi);default:return null}}var rt=class Ar{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsOperation(t,e){return(e||new Ar).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsOperation(t,e){return t.setPosition(t.position()+I),(e||new Ar).__init(t.readInt32(t.position())+t.position(),t)}uiType(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint8(this.bb_pos+t):0}ui(t){let e=this.bb.__offset(this.bb_pos,6);return e?this.bb.__union(t,this.bb_pos+e):null}webType(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint8(this.bb_pos+t):0}web(t){let e=this.bb.__offset(this.bb_pos,10);return e?this.bb.__union(t,this.bb_pos+e):null}mobileType(){let t=this.bb.__offset(this.bb_pos,12);return t?this.bb.readUint8(this.bb_pos+t):0}mobile(t){let e=this.bb.__offset(this.bb_pos,14);return e?this.bb.__union(t,this.bb_pos+e):null}columnar(t){let e=this.bb.__offset(this.bb_pos,16);return e?(t||new _t).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}static startOperation(t){t.startObject(7)}static addUiType(t,e){t.addFieldInt8(0,e,0)}static addUi(t,e){t.addFieldOffset(1,e,0)}static addWebType(t,e){t.addFieldInt8(2,e,0)}static addWeb(t,e){t.addFieldOffset(3,e,0)}static addMobileType(t,e){t.addFieldInt8(4,e,0)}static addMobile(t,e){t.addFieldOffset(5,e,0)}static addColumnar(t,e){t.addFieldOffset(6,e,0)}static endOperation(t){return t.endObject()}unpack(){return new Ua(this.uiType(),(()=>{let t=Ir(this.uiType(),this.ui.bind(this));return t===null?null:t.unpack()})(),this.webType(),(()=>{let t=yr(this.webType(),this.web.bind(this));return t===null?null:t.unpack()})(),this.mobileType(),(()=>{let t=wr(this.mobileType(),this.mobile.bind(this));return t===null?null:t.unpack()})(),this.columnar()!==null?this.columnar().unpack():null)}unpackTo(t){t.uiType=this.uiType(),t.ui=(()=>{let e=Ir(this.uiType(),this.ui.bind(this));return e===null?null:e.unpack()})(),t.webType=this.webType(),t.web=(()=>{let e=yr(this.webType(),this.web.bind(this));return e===null?null:e.unpack()})(),t.mobileType=this.mobileType(),t.mobile=(()=>{let e=wr(this.mobileType(),this.mobile.bind(this));return e===null?null:e.unpack()})(),t.columnar=this.columnar()!==null?this.columnar().unpack():null}},Ua=class{constructor(s=0,t=null,e=0,n=null,i=0,r=null,o=null){this.uiType=s,this.ui=t,this.webType=e,this.web=n,this.mobileType=i,this.mobile=r,this.columnar=o}uiType;ui;webType;web;mobileType;mobile;columnar;pack(s){let t=s.createObjectOffset(this.ui),e=s.createObjectOffset(this.web),n=s.createObjectOffset(this.mobile),i=this.columnar!==null?this.columnar.pack(s):0;return rt.startOperation(s),rt.addUiType(s,this.uiType),rt.addUi(s,t),rt.addWebType(s,this.webType),rt.addWeb(s,e),rt.addMobileType(s,this.mobileType),rt.addMobile(s,n),rt.addColumnar(s,i),rt.endOperation(s)}},Ce=class kr{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsMessage(t,e){return(e||new kr).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsMessage(t,e){return t.setPosition(t.position()+I),(e||new kr).__init(t.readInt32(t.position())+t.position(),t)}operation(t){let e=this.bb.__offset(this.bb_pos,4);return e?(t||new rt).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}data(t){let e=this.bb.__offset(this.bb_pos,6);return e?(t||new de).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}control(t){let e=this.bb.__offset(this.bb_pos,8);return e?(t||new Mt).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}static startMessage(t){t.startObject(3)}static addOperation(t,e){t.addFieldOffset(0,e,0)}static addData(t,e){t.addFieldOffset(1,e,0)}static addControl(t,e){t.addFieldOffset(2,e,0)}static endMessage(t){return t.endObject()}unpack(){return new Fa(this.operation()!==null?this.operation().unpack():null,this.data()!==null?this.data().unpack():null,this.control()!==null?this.control().unpack():null)}unpackTo(t){t.operation=this.operation()!==null?this.operation().unpack():null,t.data=this.data()!==null?this.data().unpack():null,t.control=this.control()!==null?this.control().unpack():null}},Fa=class{constructor(s=null,t=null,e=null){this.operation=s,this.data=t,this.control=e}operation;data;control;pack(s){let t=this.operation!==null?this.operation.pack(s):0,e=this.data!==null?this.data.pack(s):0,n=this.control!==null?this.control.pack(s):0;return Ce.startMessage(s),Ce.addOperation(s,t),Ce.addData(s,e),Ce.addControl(s,n),Ce.endMessage(s)}},vt=class ce{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsFrameMessage(t,e){return(e||new ce).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsFrameMessage(t,e){return t.setPosition(t.position()+I),(e||new ce).__init(t.readInt32(t.position())+t.position(),t)}ack(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}messages(t,e){let n=this.bb.__offset(this.bb_pos,6);return n?(e||new Ce).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos+n)+t*4),this.bb):null}messagesLength(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.__vector_len(this.bb_pos+t):0}subscriptionId(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}static startFrameMessage(t){t.startObject(3)}static addAck(t,e){t.addFieldInt64(0,e,BigInt("0"))}static addMessages(t,e){t.addFieldOffset(1,e,0)}static createMessagesVector(t,e){t.startVector(4,e.length,4);for(let n=e.length-1;n>=0;n--)t.addOffset(e[n]);return t.endVector()}static startMessagesVector(t,e){t.startVector(4,e,4)}static addSubscriptionId(t,e){t.addFieldInt64(2,e,BigInt("0"))}static endFrameMessage(t){return t.endObject()}static createFrameMessage(t,e,n,i){return ce.startFrameMessage(t),ce.addAck(t,e),ce.addMessages(t,n),ce.addSubscriptionId(t,i),ce.endFrameMessage(t)}unpack(){return new Ca(this.ack(),this.bb.createObjList(this.messages.bind(this),this.messagesLength()),this.subscriptionId())}unpackTo(t){t.ack=this.ack(),t.messages=this.bb.createObjList(this.messages.bind(this),this.messagesLength()),t.subscriptionId=this.subscriptionId()}},Ca=class{constructor(s=BigInt("0"),t=[],e=BigInt("0")){this.ack=s,this.messages=t,this.subscriptionId=e}ack;messages;subscriptionId;pack(s){let t=vt.createMessagesVector(s,s.createObjectOffsetList(this.messages));return vt.createFrameMessage(s,this.ack,t,this.subscriptionId)}},Vr=class Lt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsResumeSubscription(t,e){return(e||new Lt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsResumeSubscription(t,e){return t.setPosition(t.position()+I),(e||new Lt).__init(t.readInt32(t.position())+t.position(),t)}deliverySession(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}subscriptionId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}streamId(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}after(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}static startResumeSubscription(t){t.startObject(4)}static addDeliverySession(t,e){t.addFieldInt64(0,e,BigInt("0"))}static addSubscriptionId(t,e){t.addFieldInt64(1,e,BigInt("0"))}static addStreamId(t,e){t.addFieldInt64(2,e,BigInt("0"))}static addAfter(t,e){t.addFieldInt64(3,e,BigInt("0"))}static endResumeSubscription(t){return t.endObject()}static createResumeSubscription(t,e,n,i,r){return Lt.startResumeSubscription(t),Lt.addDeliverySession(t,e),Lt.addSubscriptionId(t,n),Lt.addStreamId(t,i),Lt.addAfter(t,r),Lt.endResumeSubscription(t)}unpack(){return new Fi(this.deliverySession(),this.subscriptionId(),this.streamId(),this.after())}unpackTo(t){t.deliverySession=this.deliverySession(),t.subscriptionId=this.subscriptionId(),t.streamId=this.streamId(),t.after=this.after()}},Fi=class{constructor(s=BigInt("0"),t=BigInt("0"),e=BigInt("0"),n=BigInt("0")){this.deliverySession=s,this.subscriptionId=t,this.streamId=e,this.after=n}deliverySession;subscriptionId;streamId;after;pack(s){return Vr.createResumeSubscription(s,this.deliverySession,this.subscriptionId,this.streamId,this.after)}},ue=class Sr{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsFrameRequest(t,e){return(e||new Sr).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsFrameRequest(t,e){return t.setPosition(t.position()+I),(e||new Sr).__init(t.readInt32(t.position())+t.position(),t)}action(t){let e=this.bb.__offset(this.bb_pos,4);return e?(t||new jt).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}hello(t){let e=this.bb.__offset(this.bb_pos,6);return e?(t||new xr).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}resume(t){let e=this.bb.__offset(this.bb_pos,8);return e?(t||new Vr).__init(this.bb.__indirect(this.bb_pos+e),this.bb):null}static startFrameRequest(t){t.startObject(3)}static addAction(t,e){t.addFieldOffset(0,e,0)}static addHello(t,e){t.addFieldOffset(1,e,0)}static addResume(t,e){t.addFieldOffset(2,e,0)}static endFrameRequest(t){return t.endObject()}unpack(){return new Js(this.action()!==null?this.action().unpack():null,this.hello()!==null?this.hello().unpack():null,this.resume()!==null?this.resume().unpack():null)}unpackTo(t){t.action=this.action()!==null?this.action().unpack():null,t.hello=this.hello()!==null?this.hello().unpack():null,t.resume=this.resume()!==null?this.resume().unpack():null}},Js=class{constructor(s=null,t=null,e=null){this.action=s,this.hello=t,this.resume=e}action;hello;resume;pack(s){let t=this.action!==null?this.action.pack(s):0,e=this.hello!==null?this.hello.pack(s):0,n=this.resume!==null?this.resume.pack(s):0;return ue.startFrameRequest(s),ue.addAction(s,t),ue.addHello(s,e),ue.addResume(s,n),ue.endFrameRequest(s)}},yt=(s=>(s[s.NONE=0]="NONE",s[s.FrameRequest=1]="FrameRequest",s[s.FrameMessage=2]="FrameMessage",s))(yt||{});function Tr(s,t){switch(yt[s]){case"NONE":return null;case"FrameRequest":return t(new ue);case"FrameMessage":return t(new vt);default:return null}}function Bc(s,t,e){switch(yt[s]){case"NONE":return null;case"FrameRequest":return t(e,new ue);case"FrameMessage":return t(e,new vt);default:return null}}var fe=class mt{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsFrame(t,e){return(e||new mt).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsFrame(t,e){return t.setPosition(t.position()+I),(e||new mt).__init(t.readInt32(t.position())+t.position(),t)}static bufferHasIdentifier(t){return t.__has_identifier("EWF1")}schemaVersion(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint16(this.bb_pos+t):0}streamId(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}sequenceId(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}kindType(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint8(this.bb_pos+t):0}kind(t){let e=this.bb.__offset(this.bb_pos,12);return e?this.bb.__union(t,this.bb_pos+e):null}static startFrame(t){t.startObject(5)}static addSchemaVersion(t,e){t.addFieldInt16(0,e,0)}static addStreamId(t,e){t.addFieldInt64(1,e,BigInt("0"))}static addSequenceId(t,e){t.addFieldInt64(2,e,BigInt("0"))}static addKindType(t,e){t.addFieldInt8(3,e,0)}static addKind(t,e){t.addFieldOffset(4,e,0)}static endFrame(t){return t.endObject()}static finishFrameBuffer(t,e){t.finish(e,"EWF1")}static finishSizePrefixedFrameBuffer(t,e){t.finish(e,"EWF1",!0)}static createFrame(t,e,n,i,r,o){return mt.startFrame(t),mt.addSchemaVersion(t,e),mt.addStreamId(t,n),mt.addSequenceId(t,i),mt.addKindType(t,r),mt.addKind(t,o),mt.endFrame(t)}unpack(){return new Ci(this.schemaVersion(),this.streamId(),this.sequenceId(),this.kindType(),(()=>{let t=Tr(this.kindType(),this.kind.bind(this));return t===null?null:t.unpack()})())}unpackTo(t){t.schemaVersion=this.schemaVersion(),t.streamId=this.streamId(),t.sequenceId=this.sequenceId(),t.kindType=this.kindType(),t.kind=(()=>{let e=Tr(this.kindType(),this.kind.bind(this));return e===null?null:e.unpack()})()}},Ci=class{constructor(s=0,t=BigInt("0"),e=BigInt("0"),n=0,i=null){this.schemaVersion=s,this.streamId=t,this.sequenceId=e,this.kindType=n,this.kind=i}schemaVersion;streamId;sequenceId;kindType;kind;pack(s){let t=s.createObjectOffset(this.kind);return fe.createFrame(s,this.schemaVersion,this.streamId,this.sequenceId,this.kindType,t)}},Vs=class K{bb=null;bb_pos=0;__init(t,e){return this.bb_pos=t,this.bb=e,this}static getRootAsSignedState(t,e){return(e||new K).__init(t.readInt32(t.position())+t.position(),t)}static getSizePrefixedRootAsSignedState(t,e){return t.setPosition(t.position()+I),(e||new K).__init(t.readInt32(t.position())+t.position(),t)}static bufferHasIdentifier(t){return t.__has_identifier("EWS1")}formatVersion(){let t=this.bb.__offset(this.bb_pos,4);return t?this.bb.readUint16(this.bb_pos+t):0}flags(){let t=this.bb.__offset(this.bb_pos,6);return t?this.bb.readUint8(this.bb_pos+t):0}keyId(){let t=this.bb.__offset(this.bb_pos,8);return t?this.bb.readUint32(this.bb_pos+t):0}issuedAt(){let t=this.bb.__offset(this.bb_pos,10);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}expiresAt(){let t=this.bb.__offset(this.bb_pos,12);return t?this.bb.readUint64(this.bb_pos+t):BigInt("0")}componentType(){let t=this.bb.__offset(this.bb_pos,14);return t?this.bb.readUint32(this.bb_pos+t):0}rootNode(){let t=this.bb.__offset(this.bb_pos,16);return t?this.bb.readUint32(this.bb_pos+t):0}sessionBinding(t){let e=this.bb.__offset(this.bb_pos,18);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}sessionBindingLength(){let t=this.bb.__offset(this.bb_pos,18);return t?this.bb.__vector_len(this.bb_pos+t):0}sessionBindingArray(){let t=this.bb.__offset(this.bb_pos,18);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}body(t){let e=this.bb.__offset(this.bb_pos,20);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}bodyLength(){let t=this.bb.__offset(this.bb_pos,20);return t?this.bb.__vector_len(this.bb_pos+t):0}bodyArray(){let t=this.bb.__offset(this.bb_pos,20);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}tag(t){let e=this.bb.__offset(this.bb_pos,22);return e?this.bb.readUint8(this.bb.__vector(this.bb_pos+e)+t):0}tagLength(){let t=this.bb.__offset(this.bb_pos,22);return t?this.bb.__vector_len(this.bb_pos+t):0}tagArray(){let t=this.bb.__offset(this.bb_pos,22);return t?new Uint8Array(this.bb.bytes().buffer,this.bb.bytes().byteOffset+this.bb.__vector(this.bb_pos+t),this.bb.__vector_len(this.bb_pos+t)):null}static startSignedState(t){t.startObject(10)}static addFormatVersion(t,e){t.addFieldInt16(0,e,0)}static addFlags(t,e){t.addFieldInt8(1,e,0)}static addKeyId(t,e){t.addFieldInt32(2,e,0)}static addIssuedAt(t,e){t.addFieldInt64(3,e,BigInt("0"))}static addExpiresAt(t,e){t.addFieldInt64(4,e,BigInt("0"))}static addComponentType(t,e){t.addFieldInt32(5,e,0)}static addRootNode(t,e){t.addFieldInt32(6,e,0)}static addSessionBinding(t,e){t.addFieldOffset(7,e,0)}static createSessionBindingVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startSessionBindingVector(t,e){t.startVector(1,e,1)}static addBody(t,e){t.addFieldOffset(8,e,0)}static createBodyVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startBodyVector(t,e){t.startVector(1,e,1)}static addTag(t,e){t.addFieldOffset(9,e,0)}static createTagVector(t,e){t.startVector(1,e.length,1);for(let n=e.length-1;n>=0;n--)t.addInt8(e[n]);return t.endVector()}static startTagVector(t,e){t.startVector(1,e,1)}static endSignedState(t){return t.endObject()}static finishSignedStateBuffer(t,e){t.finish(e,"EWS1")}static finishSizePrefixedSignedStateBuffer(t,e){t.finish(e,"EWS1",!0)}static createSignedState(t,e,n,i,r,o,a,c,u,l,h){return K.startSignedState(t),K.addFormatVersion(t,e),K.addFlags(t,n),K.addKeyId(t,i),K.addIssuedAt(t,r),K.addExpiresAt(t,o),K.addComponentType(t,a),K.addRootNode(t,c),K.addSessionBinding(t,u),K.addBody(t,l),K.addTag(t,h),K.endSignedState(t)}unpack(){return new Va(this.formatVersion(),this.flags(),this.keyId(),this.issuedAt(),this.expiresAt(),this.componentType(),this.rootNode(),this.bb.createScalarList(this.sessionBinding.bind(this),this.sessionBindingLength()),this.bb.createScalarList(this.body.bind(this),this.bodyLength()),this.bb.createScalarList(this.tag.bind(this),this.tagLength()))}unpackTo(t){t.formatVersion=this.formatVersion(),t.flags=this.flags(),t.keyId=this.keyId(),t.issuedAt=this.issuedAt(),t.expiresAt=this.expiresAt(),t.componentType=this.componentType(),t.rootNode=this.rootNode(),t.sessionBinding=this.bb.createScalarList(this.sessionBinding.bind(this),this.sessionBindingLength()),t.body=this.bb.createScalarList(this.body.bind(this),this.bodyLength()),t.tag=this.bb.createScalarList(this.tag.bind(this),this.tagLength())}},Va=class{constructor(s=0,t=0,e=0,n=BigInt("0"),i=BigInt("0"),r=0,o=0,a=[],c=[],u=[]){this.formatVersion=s,this.flags=t,this.keyId=e,this.issuedAt=n,this.expiresAt=i,this.componentType=r,this.rootNode=o,this.sessionBinding=a,this.body=c,this.tag=u}formatVersion;flags;keyId;issuedAt;expiresAt;componentType;rootNode;sessionBinding;body;tag;pack(s){let t=Vs.createSessionBindingVector(s,this.sessionBinding),e=Vs.createBodyVector(s,this.body),n=Vs.createTagVector(s,this.tag);return Vs.createSignedState(s,this.formatVersion,this.flags,this.keyId,this.issuedAt,this.expiresAt,this.componentType,this.rootNode,t,e,n)}};var Lr=Object.freeze([null,"Length","Length","Alignment","ColorToken","FontToken","Bool","Text","Axis","Text","Bool","Text","Text","ColorToken","Length","Length","Bool",null,"Text","Text"]),La=Object.freeze([null,Object.freeze({tag:"div",cls:"ewe-stack",attrs:Object.freeze([])}),Object.freeze({tag:"span",cls:"ewe-text",attrs:Object.freeze([])}),Object.freeze({tag:"img",cls:"ewe-image",attrs:Object.freeze([])}),Object.freeze({tag:"button",cls:"ewe-button",attrs:Object.freeze([Object.freeze(["type","button"])])}),Object.freeze({tag:"input",cls:"ewe-text-input",attrs:Object.freeze([Object.freeze(["type","text"])])}),Object.freeze({tag:"input",cls:"ewe-toggle",attrs:Object.freeze([Object.freeze(["type","checkbox"]),Object.freeze(["role","switch"])])}),Object.freeze({tag:"div",cls:"ewe-list",attrs:Object.freeze([Object.freeze(["role","list"])])}),Object.freeze({tag:"div",cls:"ewe-scroll",attrs:Object.freeze([])}),Object.freeze({tag:"div",cls:"ewe-spacer",attrs:Object.freeze([Object.freeze(["aria-hidden","true"])])}),Object.freeze({tag:"div",cls:"ewe-overlay",attrs:Object.freeze([])}),Object.freeze({tag:"dialog",cls:"ewe-modal",attrs:Object.freeze([])}),Object.freeze({tag:"section",cls:"ewe-bottom-sheet",attrs:Object.freeze([])}),Object.freeze({tag:"h1",cls:"ewe-navigation-title",attrs:Object.freeze([])}),Object.freeze({tag:"button",cls:"ewe-toolbar-button",attrs:Object.freeze([Object.freeze(["type","button"])])}),Object.freeze({tag:"div",cls:"ewe-segmented-control",attrs:Object.freeze([Object.freeze(["role","group"])])}),Object.freeze({tag:"ul",cls:"ewe-inset-list",attrs:Object.freeze([])}),Object.freeze({tag:"li",cls:"ewe-checklist-row",attrs:Object.freeze([])}),Object.freeze({tag:"button",cls:"ewe-checkmark-button",attrs:Object.freeze([Object.freeze(["type","button"])])}),Object.freeze({tag:"button",cls:"ewe-destructive-button",attrs:Object.freeze([Object.freeze(["type","button"])])}),Object.freeze({tag:"p",cls:"ewe-list-footer",attrs:Object.freeze([])}),Object.freeze({tag:"dialog",cls:"ewe-confirmation-dialog",attrs:Object.freeze([Object.freeze(["role","alertdialog"])])}),Object.freeze({tag:"h2",cls:"ewe-sheet-title",attrs:Object.freeze([])}),Object.freeze({tag:"button",cls:"ewe-submit-button",attrs:Object.freeze([Object.freeze(["type","submit"])])}),Object.freeze({tag:"button",cls:"ewe-cancel-button",attrs:Object.freeze([Object.freeze(["type","button"])])}),Object.freeze({tag:"canvas",cls:"ewe-drawing-surface",attrs:Object.freeze([])})]),ja=Object.freeze([null,"click","change","submit","focus","blur"]),Ma=Object.freeze(["div","span","input","button","html","head","body","title","base","link","meta","style","script","noscript","template","slot","main","section","nav","article","aside","header","footer","address","h1","h2","h3","h4","h5","h6","hgroup","p","hr","pre","blockquote","ol","ul","menu","li","dl","dt","dd","figure","figcaption","search","a","em","strong","small","s","cite","q","dfn","abbr","ruby","rt","rp","data","time","code","var","samp","kbd","sub","sup","i","b","u","mark","bdi","bdo","br","wbr","ins","del","picture","source","img","iframe","embed","object","video","audio","track","map","area","svg","math","canvas","table","caption","colgroup","col","tbody","thead","tfoot","tr","td","th","form","label","select","datalist","optgroup","option","textarea","output","progress","meter","fieldset","legend","details","summary","dialog"]),jr=Object.freeze(["class","id","style","value","title","lang","dir","hidden","tabindex","accesskey","draggable","contenteditable","spellcheck","translate","role","slot","part","is","href","src","srcset","sizes","alt","rel","target","download","referrerpolicy","crossorigin","integrity","loading","media","type","name","placeholder","disabled","readonly","required","checked","selected","multiple","min","max","step","pattern","minlength","maxlength","autocomplete","autofocus","for","form","action","method","enctype","novalidate","accept","rows","cols","wrap","list","size","colspan","rowspan","headers","scope","width","height","controls","autoplay","loop","muted","preload","poster","playsinline","charset","content","http-equiv","open","label","datetime","cite","data"]),Pa=`[primal-id][hidden]{display:none!important}
-.ewe-stack{display:flex;flex-direction:column}
-.ewe-list{display:flex;flex-direction:column}
-.ewe-scroll{overflow:auto}
-.ewe-spacer{flex:1 1 auto}
-.ewe-drawing-surface{width:300px;height:150px}
-.ewe-navigation-title,.ewe-sheet-title{font-family:system-ui,sans-serif;line-height:1.2;letter-spacing:-.025em;margin:.3em 0}
-.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}
-.ewe-toolbar-button,.ewe-submit-button{align-self:flex-start;background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText))}
-.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}
-.ewe-destructive-button{background:Canvas;color:var(--color-error,#a51f26)}
-.ewe-segmented-control,.ewe-checklist-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45em}
-.ewe-segmented-control{margin-block:.75em}
-.ewe-checklist-row{padding-block:.6em;border-block-end:1px solid color-mix(in srgb,CanvasText 15%,Canvas)}
-.ewe-checklist-row>.ewe-text{flex:1 1 auto}
-.ewe-inset-list{padding-inline-start:0;list-style:none;margin-block:.5em}
-.ewe-list-footer{font-size:.9em}
-.ewe-segmented-control button[aria-pressed=true]{background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText));font-weight:600}
-.ewe-confirmation-dialog,.ewe-modal{font:inherit;color:CanvasText;background:Canvas;border:1px solid ButtonBorder;border-radius:.75em}
-.ewe-confirmation-dialog::backdrop,.ewe-modal::backdrop{background:rgb(0 0 0 / .35)}
-.ewe-confirmation-dialog>.ewe-sheet-title{margin-block-end:.8em}
-.ewe-overlay{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;pointer-events:none}
-.ewe-overlay[popover]{margin:0;border:0;padding:0;inline-size:auto;block-size:auto;overflow:visible;background:transparent;color:inherit}
-.ewe-overlay[popover]:not(:popover-open){display:none}
-.ewe-overlay>*{pointer-events:auto}
-.ewe-modal{max-block-size:100dvh;box-sizing:border-box}
-.ewe-modal:has(>.ewe-bottom-sheet){inset:auto 0 0;margin:0;inline-size:100%;max-inline-size:none;padding:0;border:0}
-.ewe-bottom-sheet{display:flex;flex-direction:column;margin-block-start:auto;max-block-size:100dvh;overflow:auto;padding-block-end:env(safe-area-inset-bottom);box-sizing:border-box;background:Canvas;color:CanvasText}
-.ewe-bottom-sheet:has(>.ewe-submit-button){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8em;padding:1.25em max(1.25em,calc((100% - 36em)/2)) max(1.25em,env(safe-area-inset-bottom))}
-.ewe-bottom-sheet:has(>.ewe-submit-button)>*{grid-column:1/-1}
-.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-cancel-button{grid-column:1;justify-self:end}
-.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-submit-button{grid-column:2}
-.ewe-bottom-sheet>.ewe-text-input{font:inherit;padding:.65em .8em;border:1px solid GrayText;border-radius:.5em}
-`;function Wa(s,t){let e=new Or,n=new Ci(1,s,0n,yt.FrameRequest,t);return fe.finishFrameBuffer(e,n.pack(e)),e.asUint8Array()}function Vi(s){let t=fe.getRootAsFrame(new Ve(s)),e=t.kindType()===yt.FrameMessage&&t.kind(new vt),n=e&&e.messagesLength()?e.messages(0)?.control():null;return{frame:t,body:e,control:n}}function za(s,t){let e=s.getAttribute(t);if(e===null)return;if(!/^\d+$/.test(e))throw new TypeError("Expected an unsigned integer for "+t);let n=BigInt(e);if(n>0xffffffffffffffffn)throw new RangeError(t+" exceeds u64");return n}function Da(s,t){let e=new Map,n=t.deps.connections??rr();s.connections=n;let i=t.deps.onGap;t.deps.onGap=r=>{for(let o of e.get(r.streamId)??[])(!r.view||r.view===o.owner)&&o.resume(r.resumeFrom);i?.(r)},s.onMountConnect=(r,o)=>{if(r.getAttribute("protocol")!=="frame")return null;let a=za(r,"data-channel-id"),c=t.viewOwner(r),u=t.loaders.get(c),l=u?.generation,h=()=>b&&(!u||u.accepts(l)),d=()=>{h()&&(u?Promise.resolve(u.expire(a)).catch(()=>{}):t.deps.requestSnapshot?Promise.resolve(t.deps.requestSnapshot({element:r,stream:a})).catch(v=>t.deps.onError?.(v)):t.deps.onError?.({code:"ReplayExpired",stream:a}))},f=za(r,"data-resume-from")??0n,p=r.getAttribute("transport")==="local",b=!0,_;function g(v){if(a=v,f&&t.cursor(v,c)===void 0&&t.setCursor(v,f,c),o&&!p){let E=e.get(v);E||e.set(v,E=new Set),E.add(w)}}let w={local:p,owner:c,expired:d,managed({api:v,data:E,transport:k}){let J=r.getAttribute("transport")??"sse",W=r.getAttribute("data-connection-shared"),L=W===null?J==="websocket"||J==="ws":W==="true",at=r.getAttribute("data-connection-keep-alive")==="true",D=J==="websocket"||J==="ws",S=D?"websocket":J==="http"?"chunked":J;if(!n.supports(S))return null;let A=!!t.deps.deliverySession&&(D||["sse","chunked"].includes(S));if(!L&&!at&&!A||W===null&&!at&&!A&&!t.deps.connections)return null;let R=L||A?v:w.url(v),B=n.nextTag(),G=new di(12,hi.Web,ci.Web,0n,!0,B),F=Wa(0n,new Js(null,G)),Q=T=>t.deps.onError?.({code:"Transport",detail:String(T)}),Y,H,j=!1,N=u&&!(L&&S==="sse")?f:f||null,O=async T=>{if(a===void 0||!H){N=T;return}let q=new Js(null,null,new Fi(H,B,a,T)),z=Wa(H,q);if(D)await Y.send(z);else{let $=await(t.deps.fetchFn??fetch)(R,{method:"POST",body:z,headers:{...t.deps.connectionHeaders,"content-type":"application/primal-frame"}});if($.status===410){d();return}if(!$.ok)throw new Error("Resume request failed with HTTP "+$.status)}},M=T=>{let q=Vi(T).control?.caps();if(!(!q?.subscriptionResume()||D&&q.requestTag()!==B)&&(H=q.streamId(),j&&!L&&a!==void 0&&(N??=t.cursor(a,c)??f),j=!0,N!==null)){let z=N;N=null,O(z).catch(Q)}};return A&&(_=T=>O(T).catch(Q)),Y=n.acquire({transport:S,endpoint:R,shared:L,keepAlive:at,base:r.ownerDocument?.baseURI??globalThis.location?.href,headers:A&&!D?{...t.deps.connectionHeaders,Accept:S==="chunked"?"application/primal-frame":"text/event-stream","X-Ewe-Hello":Mr(F)}:t.deps.connectionHeaders,isContext:!D&&A?T=>!!Vi(T).control?.caps():void 0,channel:r._transportOverride,settings:r._transportOverride??(r.hasAttribute?.("data")?E:t.deps.connectionSettings),authority:t.deps.authority,data:r.getAttribute("data")===null?void 0:E},{owner:c,onOpen(){D&&A&&queueMicrotask(()=>{b&&Y.send(F).catch(Q)})},onContext:M,accept(T){let{frame:q,body:z,control:$}=Vi(T);return z?$?.caps()?D&&$.caps().requestTag()===B:(a===void 0||a===q.streamId())&&!z.ack()&&(!z.subscriptionId()||z.subscriptionId()===B):!1},receive(T){let{control:q}=Vi(T);if(q?.caps()){M(T);return}if(q?.replayExpired()){d();return}w.receive({type:"frame",frames:[T]})},onError(T){H=null,(D||!L)&&a!==void 0&&(N=t.cursor(a,c)??f),Q(T)}}),Y},url(v){let E=a===void 0?void 0:t.cursor(a,c)??f;if(a===void 0||!E)return v;let k=new URL(v,r.ownerDocument?.baseURI??globalThis.location.href);return k.searchParams.set("stream_id",a.toString()),k.searchParams.set("resume_from",E.toString()),k.href},receive(v){if(h()){if(v.type!=="frame")throw new Error("Frame mount received another protocol");for(let E of v.frames)t.receive(E,{active:h,get viewMount(){return b&&Wn(r,r.getAttribute("target"),r.ownerDocument)},observeStream(k){if(a===void 0)g(k);else if(a!==k)throw new Error("Unexpected stream identifier")}})}},resume(v){h()&&(r.setAttribute("data-resume-from",String(v)),_?_(v):r._restartFrameStream?.())},close(){b=!1;let v=e.get(a);v?.delete(w),v?.size===0&&e.delete(a)}};return a!==void 0&&g(a),w}}var zr={};qi(zr,{SHARED:()=>$a,WEB_ONLY:()=>Pr,applyBehaviour:()=>Qa,applyWebBehaviour:()=>Ya,disposeBehaviours:()=>Wr,hydrateMarkers:()=>ji,registerWebBehaviour:()=>Hc});function Rc(s){var t=s.parent();if(!t||t.__composite)return;t.__composite=!0;var e=t.getAttribute("data-orientation")||"horizontal",n=t.getAttribute("data-loop")!=="false";function i(){return Array.prototype.slice.call(t.querySelectorAll("[data-composite-item]")).filter(function(p){return!p.hasAttribute("disabled")&&p.getAttribute("aria-disabled")!=="true"})}function r(){var p=i(),b=p.findIndex(function(_){return _.hasAttribute("data-composite-active")});b<0&&(b=0),p.forEach(function(_,g){_.tabIndex=g===b?0:-1})}function o(p){var b=i();p<0&&(p=n?b.length-1:0),p>=b.length&&(p=n?0:b.length-1),b.forEach(function(_,g){_.tabIndex=g===p?0:-1}),b[p]&&(b[p].focus(),t.hasAttribute("data-composite-select")&&b[p].click())}var a=e==="vertical"?"ArrowDown":"ArrowRight",c=e==="vertical"?"ArrowUp":"ArrowLeft",u="",l=0,h=-1;function d(p){return(p.getAttribute("data-label")||p.textContent||"").trim().toLowerCase()}function f(p){var b=i();if(b.length){var _=Date.now();_-l>750&&(u=""),l=_;var g=b.indexOf(document.activeElement);u===""&&(h=g);var w=b.every(function(J){var W=d(J);return W.length<2||W[0]!==W[1]});w&&u===p.toLowerCase()&&(u=""),u+=p.toLowerCase();for(var v=(h>=0?h:g)+1,E=0;E<b.length;E++){var k=((v+E)%b.length+b.length)%b.length;if(d(b[k]).indexOf(u)===0){h=k,o(k);return}}u=""}}s.addEvent(t,"keydown",function(p){var b=i(),_=b.indexOf(document.activeElement),g=null;if(p.key===a)g=_+1;else if(p.key===c)g=_-1;else if(p.key==="Home")g=0;else if(p.key==="End")g=b.length-1;else if(p.key.length===1&&!p.ctrlKey&&!p.metaKey&&!p.altKey){p.preventDefault(),f(p.key);return}else return;_<0&&p.key!=="Home"&&p.key!=="End"||(p.preventDefault(),o(g))}),r()}function Uc(s){var t=s.parent();if(!t||t.__dialog||!t.showModal)return;t.__dialog=!0;var e=t.getAttribute("data-dialog-mode")!=="nonmodal";function n(){var o=t.hasAttribute("data-open");if(o&&!t.open)try{e?t.showModal():t.show()}catch{}else!o&&t.open&&t.close()}function i(o){var a=t.querySelector("[data-dialog-close]");a&&(a.setAttribute("data-dismiss-reason",o),a.click())}s.addEvent(t,"cancel",function(o){o.preventDefault(),i("escape-key")}),s.addEvent(t,"click",function(o){o.target===t&&t.getAttribute("data-dialog-dismissable")!=="false"&&i("outside-press")}),n();var r=new MutationObserver(n);s.onDispose(()=>r.disconnect()),r.observe(t,{attributes:!0,attributeFilter:["data-open","data-closed"]})}function Fc(s){var t=s.parent();if(!t||t.__dismiss)return;t.__dismiss=!0;var e=t.ownerDocument||document;function n(i){var r=t.querySelector("[data-dismiss-action]");r&&(r.setAttribute("data-dismiss-reason",i),r.click())}t.getAttribute("data-dismiss-escape")!=="false"&&s.addEvent(e,"keydown",function(i){i.key!=="Escape"&&i.key!=="Esc"||(i.preventDefault(),n("escape-key"))}),t.getAttribute("data-dismiss-outside")!=="false"&&s.addEvent(e,"pointerdown",function(i){if(!t.contains(i.target)){var r=t.getAttribute("data-anchor");if(r){var o=e.getElementById(r);if(o&&o.contains(i.target))return}n("outside-press")}})}function Cc(s){var t=s.parent();if(!t||t.__focusTrap)return;t.__focusTrap=!0;var e=t.ownerDocument||document,n='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';function i(){return Array.prototype.slice.call(t.querySelectorAll(n)).filter(function(l){return l.offsetWidth||l.offsetHeight||l.getClientRects().length})}var r=null;function o(){r=e.activeElement;var l=t.getAttribute("data-initial-focus");if(l!=="none"){var h=l?t.querySelector(l):i()[0]||t;h&&h.focus&&h.focus()}}function a(){var l=r&&r.focus?r:null;if(!l){var h=t.getAttribute("data-anchor");if(h){var d=e.getElementById(h);d&&(l=d)}}l&&l.focus&&l.focus(),r=null}s.addEvent(t,"keydown",function(l){if(l.key==="Tab"){var h=i();if(!h.length){l.preventDefault();return}var d=h[0],f=h[h.length-1];l.shiftKey&&e.activeElement===d?(l.preventDefault(),f.focus()):!l.shiftKey&&e.activeElement===f&&(l.preventDefault(),d.focus())}});var c=t.hasAttribute("data-open");c&&o();var u=new MutationObserver(function(){var l=t.hasAttribute("data-open");l!==c&&(c=l,l?o():a())});s.onDispose(()=>u.disconnect()),u.observe(t,{attributes:!0,attributeFilter:["data-open","data-closed"]})}function qa(s){var t=s.parent();if(!t||t.__slider)return;t.__slider=!0;var e=t.ownerDocument&&t.ownerDocument.defaultView||window,n=t.querySelector("[data-slider-control]"),i=t.querySelector("[data-slider-input]");if(!n||!i)return;function r(g){var w=parseFloat(t.getAttribute(g));return isNaN(w)?null:w}var o=r("data-min");o==null&&(o=0);var a=r("data-max");a==null&&(a=100);var c=r("data-step")||1,u=r("data-large-step")||10,l=t.getAttribute("data-orientation")==="vertical",h=t.getAttribute("dir")==="rtl";function d(g){return Math.round((g-o)/c)*c+o}function f(g){return Math.max(o,Math.min(a,g))}function p(g){var w=n.getBoundingClientRect(),v;return l?v=(w.bottom-g.clientY)/w.height:v=h?(w.right-g.clientX)/w.width:(g.clientX-w.left)/w.width,v=Math.max(0,Math.min(1,v)),f(d((a-o)*v+o))}function b(g){i.value=String(g),i.dispatchEvent(new Event("change",{bubbles:!0}))}var _=!1;s.addEvent(n,"pointerdown",function(g){if(!g.button){if(g.preventDefault(),_=!0,t.setAttribute("data-dragging",""),n.setPointerCapture)try{n.setPointerCapture(g.pointerId)}catch{}i.focus&&i.focus(),b(p(g))}}),s.addEvent(e,"pointermove",function(g){_&&b(p(g))}),s.addEvent(e,"pointerup",function(){_&&(_=!1,t.removeAttribute("data-dragging"))}),s.addEvent(i,"keydown",function(g){var w=parseFloat(i.value);isNaN(w)&&(w=o),g.key==="PageUp"?(g.preventDefault(),b(f(w+u))):g.key==="PageDown"&&(g.preventDefault(),b(f(w-u)))})}function Vc(s){var t=s.parent();if(!t||t.__swipe)return;t.__swipe=!0;var e=t.ownerDocument&&t.ownerDocument.defaultView||window,n=t.getAttribute("data-swipe-direction")||"down",i=t.getAttribute("data-swipe-prefix")||"--swipe",r=parseFloat(t.getAttribute("data-swipe-threshold"))||50,o=n==="left"||n==="right",a=n==="up"||n==="left"?-1:1,c=0,u=0,l=!1,h=0,d=0;function f(){t.style.setProperty(i+"-movement-x",h+"px"),t.style.setProperty(i+"-movement-y",d+"px");var b=o?h:d,_=Math.max(0,Math.min(1,b*a/Math.max(1,t.offsetHeight||t.offsetWidth)));t.style.setProperty("--drawer-swipe-progress",String(_))}function p(){h=0,d=0,f()}p(),s.addEvent(t,"pointerdown",function(b){if(!b.button&&(l=!0,c=b.clientX,u=b.clientY,t.setAttribute("data-swiping",""),t.setAttribute("data-swipe-direction",n),t.setPointerCapture))try{t.setPointerCapture(b.pointerId)}catch{}}),s.addEvent(t,"pointermove",function(b){if(l){var _=b.clientX-c,g=b.clientY-u;h=o?a>0?Math.max(0,_):Math.min(0,_):0,d=o?0:a>0?Math.max(0,g):Math.min(0,g),f()}}),s.addEvent(t,"pointerup",function(){if(l){l=!1,t.removeAttribute("data-swiping");var b=(o?h:d)*a;if(b>=r){var _=t.querySelector("[data-swipe-dismiss]");_&&_.click()}p()}})}function Lc(s){var t=s.parent();if(!t||t.__snap)return;t.__snap=!0;var e=t.getAttribute("data-swipe-direction")||"bottom";function n(){return e==="up"||e==="left"?-1:1}var i=e==="left"||e==="right",r=(t.getAttribute("data-snap-points")||"1").split(",").map(parseFloat).filter(function(b){return!isNaN(b)}).sort(function(b,_){return b-_});r.length||(r=[1]);var o=t.getAttribute("data-snap-sequential")==="true",a=t.querySelector("[data-snap-input]"),c=i?t.offsetWidth:t.offsetHeight,u=0,l=!1,h=r.length-1,d=0;function f(b){return(1-b)*c}function p(b){t.style.setProperty("--drawer-offset",b+"px"),t.style.setProperty("--drawer-snap-progress",String(c?1-b/c:1))}p(f(r[h])),s.addEvent(t,"pointerdown",function(b){if(!b.button&&(l=!0,u=i?b.clientX:b.clientY,d=f(r[h]),t.setAttribute("data-swiping",""),t.setPointerCapture))try{t.setPointerCapture(b.pointerId)}catch{}}),s.addEvent(t,"pointermove",function(b){if(l){var _=(i?b.clientX:b.clientY)-u,g=Math.max(0,Math.min(d+n()*_,c));p(g)}}),s.addEvent(t,"pointerup",function(){if(l){l=!1,t.removeAttribute("data-swiping");var b=parseFloat(t.style.getPropertyValue("--drawer-offset"))||0,_=c?1-b/c:1;if(_<r[0]/2){var g=t.querySelector("[data-swipe-dismiss]");if(g){g.click();return}}for(var w=0,v=1/0,E=0;E<r.length;E++){var k=Math.abs(r[E]-_);k<v&&(v=k,w=E)}o&&(w=Math.max(h-1,Math.min(h+1,w))),h=w,p(f(r[h])),a&&(a.value=String(h),a.dispatchEvent(new Event("change",{bubbles:!0})))}})}function jc(s){var t=s.parent();if(!t||t.__hover)return;t.__hover=!0;var e=t.ownerDocument||document,n=e.defaultView||window,i=t.parentNode,r=parseInt(t.getAttribute("data-hover-delay"),10)||0,o=parseInt(t.getAttribute("data-hover-close-delay"),10)||0;function a(){return i&&i.querySelector("[data-hover-popup]")}function c(S){var A=i&&i.querySelector(S);A&&A.click()}var u=null,l=null,h=null,d=null;function f(){u&&(n.clearTimeout(u),u=null)}function p(){l&&(n.clearTimeout(l),l=null)}function b(){h&&(n.clearTimeout(h),h=null)}function _(){d&&(e.removeEventListener("mousemove",d),d=null),b()}s.onDispose(()=>{f(),p(),_()});function g(){p(),_(),f(),u=n.setTimeout(function(){c("[data-hover-open]")},r)}function w(){_(),p(),l=n.setTimeout(function(){c("[data-hover-close]")},o)}var v=.5,E=.1;function k(S,A,R,B,G,F){return B>=A!=F>=A&&S<=(G-R)*(A-B)/(F-B)+R}function J(S,A,R,B,G,F,Q,Y,H,j){var N=!1;return k(S,A,R,B,G,F)&&(N=!N),k(S,A,G,F,Q,Y)&&(N=!N),k(S,A,Q,Y,H,j)&&(N=!N),k(S,A,H,j,R,B)&&(N=!N),N}function W(S,A,R){return S>=R.left&&S<=R.right&&A>=R.top&&A<=R.bottom}function L(S,A,R,B,G,F){return S>=Math.min(R,G)&&S<=Math.max(R,G)&&A>=Math.min(B,F)&&A<=Math.max(B,F)}function at(S,A){var R=a();if(!R){w();return}var B=R.getAttribute("data-side")||"bottom",G=!1,F=null,Q=null,Y=n.performance?n.performance.now():Date.now();function H(j,N){var O=n.performance?n.performance.now():Date.now(),M=O-Y;if(F===null||M===0)return F=j,Q=N,Y=O,!1;var T=j-F,q=N-Q,z=T*T+q*q,$=M*M*E*E;return F=j,Q=N,Y=O,z<$}p(),d=function(j){b();var N=t.getBoundingClientRect(),O=R.getBoundingClientRect(),M=j.clientX,T=j.clientY,q=j.target;if(R.contains(q)){G=!0;return}if(t.contains(q)){G=!0;return}var z=S>O.right-O.width/2,$=A>O.bottom-O.height/2,At=O.width>N.width,kt=O.height>N.height,Zs=(At?N:O).left,bt=(At?N:O).right,pe=(kt?N:O).top,gs=(kt?N:O).bottom;if(B==="top"&&A>=N.bottom-1||B==="bottom"&&A<=N.top+1||B==="left"&&S>=N.right-1||B==="right"&&S<=N.left+1){w();return}var zt=!1;if(B==="top"?zt=L(M,T,Zs,N.top+1,bt,O.bottom-1):B==="bottom"?zt=L(M,T,Zs,O.top+1,bt,N.bottom-1):B==="left"?zt=L(M,T,O.right-1,gs,N.left+1,pe):B==="right"&&(zt=L(M,T,N.right-1,gs,O.left+1,pe)),!zt){if(G&&!W(M,T,N)){w();return}if(H(M,T)){w();return}var be=!1;if(B==="top"||B==="bottom"){var St=At?v/2:v*4,dt=At||z?S+St:S-St,tn=At?S-St:z?S+St:S-St,ge=B==="top"?A+v+1:A-v,en=B==="top"?O.bottom-v:O.top+v,Hr=B==="top"?O.top:O.bottom,tc=z||At?en:Hr,ec=z?At?en:Hr:en;be=J(M,T,dt,ge,tn,ge,O.left,tc,O.right,ec)}else{var qe=kt?v/2:v*4,$r=kt||$?A+qe:A-qe,Gr=kt?A-qe:$?A+qe:A-qe,sn=B==="left"?S+v+1:S-v,nn=B==="left"?O.right-v:O.left+v,Qr=B==="left"?O.left:O.right,Yr=$||kt?nn:Qr,Jr=$?kt?nn:Qr:nn;B==="left"?be=J(M,T,Yr,O.top,Jr,O.bottom,sn,$r,sn,Gr):be=J(M,T,sn,$r,sn,Gr,Yr,O.top,Jr,O.bottom)}be?G||(h=n.setTimeout(function(){c("[data-hover-close]")},40)):w()}},e.addEventListener("mousemove",d)}s.addEvent(t,"pointerenter",g),s.addEvent(t,"pointerleave",function(S){f(),at(S.clientX,S.clientY)}),s.addEvent(t,"focus",function(){p(),_(),f(),c("[data-hover-open]")}),s.addEvent(t,"blur",function(){w()});var D=a();D&&(s.addEvent(D,"pointerenter",function(){p(),_()}),s.addEvent(D,"pointerleave",function(S){at(S.clientX,S.clientY)}))}function Mc(s){var t=s.parent();if(!t||t.__listbox)return;t.__listbox=!0;var e=t.getAttribute("data-loop")!=="false",n="",i=0;function r(){return Array.prototype.slice.call(t.querySelectorAll("[data-list-item]")).filter(function(f){return!f.hasAttribute("disabled")&&f.getAttribute("aria-disabled")!=="true"&&f.offsetParent!==null})}function o(){for(var f=r(),p=0;p<f.length;p++)if(f[p].hasAttribute("data-highlighted"))return p;return-1}function a(f){var p=r();if(p.forEach(function(_){_.removeAttribute("data-highlighted")}),f>=0&&f<p.length){var b=p[f];b.setAttribute("data-highlighted",""),b.id&&t.setAttribute("aria-activedescendant",b.id),b.scrollIntoView&&b.scrollIntoView({block:"nearest"})}else t.removeAttribute("aria-activedescendant")}function c(f){var p=r();if(p.length){var b=o()+f;b<0&&(b=e?p.length-1:0),b>=p.length&&(b=e?0:p.length-1),a(b)}}function u(f){var p=Date.now();p-i>750&&(n=""),i=p,n+=f.toLowerCase();var b=r();if(b.length)for(var _=(o()+1)%b.length,g=0;g<b.length;g++){var w=(_+g)%b.length,v=(b[w].getAttribute("data-label")||b[w].textContent||"").trim().toLowerCase();if(v.indexOf(n)===0){a(w);return}}}s.addEvent(t,"keydown",function(f){if(f.key==="ArrowDown")f.preventDefault(),c(1);else if(f.key==="ArrowUp")f.preventDefault(),c(-1);else if(f.key==="Home")f.preventDefault(),a(0);else if(f.key==="End")f.preventDefault(),a(r().length-1);else if(f.key==="Enter"||f.key===" "){var p=o(),b=r();p>=0&&(f.preventDefault(),b[p].click())}else f.key.length===1&&!f.ctrlKey&&!f.metaKey&&!f.altKey&&u(f.key)}),s.addEvent(t,"pointermove",function(f){var p=f.target.closest?f.target.closest("[data-list-item]"):null;if(p){var b=r().indexOf(p);b>=0&&a(b)}});for(var l=r(),h=-1,d=0;d<l.length;d++)if(l[d].hasAttribute("data-active-item")){h=d;break}a(h)}function Pc(s){var t=s.parent();if(!t||t.__panelSize)return;t.__panelSize=!0;var e=t.ownerDocument&&t.ownerDocument.defaultView||window,n=t.getAttribute("data-size-var")||"--panel";function i(){t.style.setProperty(n+"-height",t.scrollHeight+"px"),t.style.setProperty(n+"-width",t.scrollWidth+"px")}if(i(),e.ResizeObserver){var r=new e.ResizeObserver(i);r.observe(t),s.onDispose(()=>r.disconnect())}s.addEvent(e,"resize",i)}function Wc(s){var t=s.parent();if(!t||t.__tabIndicator)return;t.__tabIndicator=!0;var e=t.ownerDocument&&t.ownerDocument.defaultView||window;function n(){var o=t.querySelector('[role="tab"][data-active]');if(o){var a=t.getBoundingClientRect(),c=o.getBoundingClientRect(),u=t.style;u.setProperty("--active-tab-left",c.left-a.left+"px"),u.setProperty("--active-tab-right",a.right-c.right+"px"),u.setProperty("--active-tab-top",c.top-a.top+"px"),u.setProperty("--active-tab-bottom",a.bottom-c.bottom+"px"),u.setProperty("--active-tab-width",c.width+"px"),u.setProperty("--active-tab-height",c.height+"px")}}n();var i=new MutationObserver(n);if(s.onDispose(()=>i.disconnect()),i.observe(t,{attributes:!0,subtree:!0,attributeFilter:["data-active"]}),e.ResizeObserver){var r=new e.ResizeObserver(n);r.observe(t),s.onDispose(()=>r.disconnect())}s.addEvent(e,"resize",n)}function zc(s){var t=s.parent();if(!t)return;var e=t.ownerDocument||document,n=e.defaultView||window,i=t.getAttribute("data-anchor"),r=t.getAttribute("data-prefer-side")||"bottom",o=t.getAttribute("data-prefer-align")||"center",a=parseFloat(t.getAttribute("data-offset"))||0,c=parseFloat(t.getAttribute("data-collision-padding"));isNaN(c)&&(c=5);var u=t.getAttribute("data-collision-side")||"flip",l=t.getAttribute("data-collision-align")||"flip",h=t.getAttribute("data-fallback-axis")||"none",d=t.getAttribute("data-sticky")==="true",f=parseFloat(t.getAttribute("data-arrow-padding"));isNaN(f)&&(f=5);var p=t.getAttribute("dir")==="rtl",b=t.getAttribute("data-disable-anchor-tracking")!=="true";function _(E){return{top:"bottom",bottom:"top",left:"right",right:"left"}[E]}function g(E){return E==="top"||E==="bottom"}function w(){return i?e.getElementById(i):t.previousElementSibling}function v(){var E=w();if(!E)return;var k=E.getBoundingClientRect(),J=t.getBoundingClientRect(),W=J.width,L=J.height,at=e.documentElement.clientWidth,D=e.documentElement.clientHeight,S={top:k.top-c,bottom:D-k.bottom-c,left:k.left-c,right:at-k.right-c},A=r,R=o,B=(g(A)?L:W)+a;if(u==="flip"&&S[A]<B&&S[_(A)]>S[A]&&(A=_(A)),h!=="none"&&S[A]<B&&S[_(A)]<B){var G=(g(A)?W:L)+a,F=g(A)?["left","right"]:["top","bottom"];g(A)&&p&&(F=["right","left"]),h==="end"&&(F=[F[1],F[0]]);for(var Q=null,Y=0;Y<F.length;Y++)if(S[F[Y]]>=G){Q=F[Y];break}Q||(Q=S[F[0]]>=S[F[1]]?F[0]:F[1]),A=Q}var H,j;A==="top"?j=k.top-L-a:A==="bottom"?j=k.bottom+a:A==="left"?H=k.left-W-a:H=k.right+a;function N(ge){return g(A)?ge==="start"?k.left:ge==="end"?k.right-W:k.left+(k.width-W)/2:ge==="start"?k.top:ge==="end"?k.bottom-L:k.top+(k.height-L)/2}var O=c,M=g(A)?at-W-c:D-L-c,T=N(R);if(l==="flip"&&(R==="start"||R==="end")){if(T<O||T>M){var q=R==="start"?"end":"start",z=N(q);z>=O&&z<=M&&(R=q,T=z)}}else l==="shift"&&(T>M&&(T=M),T<O&&(T=O));g(A)?H=T:j=T,d&&(H=Math.max(c,Math.min(H,at-W-c)),j=Math.max(c,Math.min(j,D-L-c)));var $=t.getAttribute("data-position-method")==="fixed";t.style.position=$?"fixed":"absolute";var At=$?0:n.scrollX||0,kt=$?0:n.scrollY||0;t.style.left=H+At+"px",t.style.top=j+kt+"px",t.setAttribute("data-side",A),t.setAttribute("data-align",R);var Zs=k.bottom<0||k.right<0||k.top>D||k.left>at;Zs&&!d?t.setAttribute("data-anchor-hidden",""):t.removeAttribute("data-anchor-hidden");var bt=t.querySelector("[data-arrow]");if(bt){var pe=bt.style;if(g(A)){var gs=k.left+k.width/2-H,zt=Math.max(f,Math.min(gs,W-f));pe.setProperty("--arrow-x",zt+"px"),pe.removeProperty("--arrow-y"),zt!==gs?bt.setAttribute("data-uncentered",""):bt.removeAttribute("data-uncentered")}else{var be=k.top+k.height/2-j,St=Math.max(f,Math.min(be,L-f));pe.setProperty("--arrow-y",St+"px"),pe.removeProperty("--arrow-x"),St!==be?bt.setAttribute("data-uncentered",""):bt.removeAttribute("data-uncentered")}bt.setAttribute("data-side",A)}var dt=t.style;dt.setProperty("--anchor-width",k.width+"px"),dt.setProperty("--anchor-height",k.height+"px"),dt.setProperty("--available-width",Math.max(0,g(A)?at-2*c:S[A])+"px"),dt.setProperty("--available-height",Math.max(0,g(A)?S[A]:D-2*c)+"px"),dt.setProperty("--positioner-width",W+"px"),dt.setProperty("--positioner-height",L+"px"),dt.setProperty("--popup-width",W+"px"),dt.setProperty("--popup-height",L+"px");var tn=R==="start"?"0%":R==="end"?"100%":"50%";dt.setProperty("--transform-origin",g(A)?tn+" "+(A==="top"?"100%":"0%"):(A==="left"?"100%":"0%")+" "+tn)}v(),b&&(s.addEvent(e,"scroll",v,!0),s.addEvent(n,"resize",v))}function Dc(s){var t=s.parent();if(!t||t.__scrollLock)return;t.__scrollLock=!0;var e=t.ownerDocument||document,n=e.defaultView||window,i=e.documentElement,r=e.body;function o(){var d=n.getComputedStyle(r),f=d.overflowY;return f==="scroll"||f==="hidden"||f==="auto"?r:i}var a=null;function c(){if(!a){var d=o(),f=n.CSS&&n.CSS.supports&&n.CSS.supports("scrollbar-gutter","stable");if(a={t:d,overflowY:d.style.overflowY,gutter:d.style.scrollbarGutter,padding:d.style.paddingRight},d.style.overflowY="hidden",f)d.style.scrollbarGutter="stable";else{var p=n.innerWidth-i.clientWidth;p>0&&(d.style.paddingRight=parseFloat(n.getComputedStyle(d).paddingRight)+p+"px")}}}function u(){a&&(a.t.style.overflowY=a.overflowY,a.t.style.scrollbarGutter=a.gutter,a.t.style.paddingRight=a.padding,a=null)}s.onDispose(u);function l(){t.hasAttribute("data-open")?c():u()}l();var h=new MutationObserver(l);s.onDispose(()=>h.disconnect()),h.observe(t,{attributes:!0,attributeFilter:["data-open","data-closed"]})}function qc(s){var t=s.parent();if(!t||t.__transition)return;t.__transition=!0;var e=t.ownerDocument&&t.ownerDocument.defaultView||window;function n(u){e.requestAnimationFrame(function(){e.requestAnimationFrame(u)})}function i(u){if(u.target===t){t.removeEventListener("transitionend",i),t.removeAttribute("data-ending-style");var l=t.querySelector("[data-transition-complete]");l&&l.click()}}function r(){t.removeAttribute("data-ending-style"),t.removeEventListener("transitionend",i),!t.hasAttribute("data-instant")&&(t.setAttribute("data-starting-style",""),n(function(){t.removeAttribute("data-starting-style")}))}function o(){if(t.removeAttribute("data-starting-style"),t.hasAttribute("data-instant")){t.removeAttribute("data-ending-style");return}t.setAttribute("data-ending-style",""),s.addEvent(t,"transitionend",i)}var a=t.hasAttribute("data-open");a&&r();var c=new MutationObserver(function(){var u=t.hasAttribute("data-open");u!==a&&(a=u,u?r():o())});s.onDispose(()=>c.disconnect()),c.observe(t,{attributes:!0,attributeFilter:["data-open","data-closed"]})}var Li=new WeakMap,Ha=new Map;function pt(s){return(t,e)=>{let n=[];return s({parent:()=>t,onDispose:r=>n.push(r),args:e,addEvent:(r,o,a,c)=>{typeof r=="string"&&(r=t.querySelector(r)),r&&(r.addEventListener(o,a,c),n.push(()=>r.removeEventListener(o,a,c)))}}),()=>{for(let r of n)r()}}}var $a=Object.freeze({DIALOG:pt(Uc),DISMISS:pt(Fc),SCROLL_LOCK:pt(Dc),TRANSITION:pt(qc)}),Pr=Object.freeze({composite:pt(Rc),focus_trap:pt(Cc),gestures:pt(s=>{let t=s.args.find(e=>e.name==="mode")?.value?.v;({slider:qa,swipe:Vc,snap:Lc}[t]??qa)(s)}),hover:pt(jc),listbox:pt(Mc),measure:pt(s=>{(s.args.find(e=>e.name==="mode")?.value?.v==="tab_indicator"?Wc:Pc)(s)}),position:pt(zc)});function Hc(s,t){if(typeof t!="function")throw new TypeError("Expected a behaviour function");Ha.set(s,t)}function Ga(s,t,e,n){if(!n)return!1;let i=Li.get(s);return i||Li.set(s,i=new Map),i.has(t)||i.set(t,n(s,e)),!0}function Qa(s,t,e=[]){let n=$s[t];return Ga(s,n,e,$a[n])}function Ya(s,t,e=[]){let n=t==="gestures"||t==="measure"?e?.find(r=>r.name==="mode")?.value?.v:void 0,i=n===void 0?t:t+":"+n;return Ga(s,i,e,Object.hasOwn(Pr,t)?Pr[t]:Ha.get(t))}function Wr(s){let t=Li.get(s);if(Li.delete(s),t)for(let e of t.values())typeof e=="function"&&e()}function ji(s){for(let t of s.querySelectorAll?.("span[data-ewe-behaviour]")??[]){let e=t.parentElement??t.parentNode;if(!e)continue;let n=t.getAttribute("data-ewe-behaviour"),i=t.getAttribute("data-ewe-mode"),r=i===null?[]:[{name:"mode",value:{v:i}}],o=$s[n.toUpperCase()];(o?Qa(e,o,r):Ya(e,n,r))||console.error("Unknown component behaviour",n),t.remove()}}var Pi=s=>ArrayBuffer.isView(s)?new Uint8Array(s.buffer,s.byteOffset,s.byteLength):new Uint8Array(s),Mi=new TextDecoder("utf-8",{fatal:!0}),Di=4*1024*1024;function Xs(s){let t=Pi(s);return t.length>=8&&t[4]===69&&t[5]===87&&t[6]===70&&t[7]===49}var Wi=class{constructor(t){this.limit=t,this.prefix=new Uint8Array(4),this.used=0,this.frame=null}*push(t){let e=Pi(t),n=0;for(;n<e.length;){let i=this.frame??this.prefix,r=Math.min(i.length-this.used,e.length-n);if(i.set(e.subarray(n,n+r),this.used),this.used+=r,n+=r,this.used===i.length)if(this.used=0,this.frame){if(this.frame=null,!Xs(i))throw new Error("Invalid EWF1 identifier");yield i}else{let o=new DataView(i.buffer).getUint32(0,!0);if(o<8||o>this.limit)throw new RangeError("Invalid frame size");this.frame=new Uint8Array(o)}}}finish(){if(this.frame||this.used)throw new Error("Truncated frame")}};function $c(s,t=Di){let e=new Wi(t),n=Array.from(e.push(s));return e.finish(),n}async function*Gc(s,t=Di){let e=new Wi(t);if(!s)throw new Error("Missing frame response body");let n=s.getReader(),i=!1;try{for(;;){let r=await n.read();if(r.done){e.finish(),i=!0;break}yield*e.push(r.value)}}finally{try{i||await n.cancel()}finally{n.releaseLock()}}}async function Qc(s,t=Di){if(!s.ok)throw new Error("View request failed with HTTP "+s.status);if(!s.body)throw new Error("Missing view response body");let e=s.body.getReader(),n=[],i=0,r=!1;try{for(;;){let{done:c,value:u}=await e.read();if(c){r=!0;break}if(i+=u.byteLength,i>t)throw new RangeError("View exceeds frame limit");n.push(u)}}finally{try{r||await e.cancel()}finally{e.releaseLock()}}let o=new Uint8Array(i),a=0;for(let c of n)o.set(c,a),a+=c.byteLength;if(!Xs(o))throw new Error("Invalid view frame");return o}function Mr(s){let t="";for(let e of s)t+=String.fromCharCode(e);return btoa(t).replaceAll("+","-").replaceAll("/","_").replace(/=+$/,"")}var zi=class extends Ve{check(t,e){if(t<0||e<0||t+e>this.bytes().length)throw new Error("Truncated frame field")}readInt8(t){return this.check(t,1),super.readInt8(t)}readUint8(t){return this.check(t,1),super.readUint8(t)}readInt16(t){return this.check(t,2),super.readInt16(t)}readUint16(t){return this.check(t,2),super.readUint16(t)}readInt32(t){return this.check(t,4),super.readInt32(t)}readUint32(t){return this.check(t,4),super.readUint32(t)}__vector_len(t){let e=super.__vector_len(t);return this.check(super.__vector(t),e),e}__string(t,e){let n=t+this.readInt32(t);return this.check(n+4,this.readInt32(n)),super.__string(t,e)}};function Ja(s,t,e,n,i){let r=s[t+"Length"](),o=s.bb,a=o.__offset(s.bb_pos,e);if(!a)return new n;let c=o.__vector(s.bb_pos+a);return o.check(c,r*n.BYTES_PER_ELEMENT),(o.bytes().byteOffset+c)%n.BYTES_PER_ELEMENT===0?(i&&i.zeroCopyColumns++,s[t+"Array"]?.()??new n(o.bytes().buffer,o.bytes().byteOffset+c,r)):(i&&i.copiedColumns++,n.from({length:r},(u,l)=>s[t](l)))}function x(s,t={}){return Object.assign(new Error(s),{report:{code:s,...t}})}var Ka=new WeakMap;function Yc(s,t){let e=Ka.get(s)??[];for(let c of e)s.classList.remove(c);let n=(t??"").split(/\s+/).filter(Boolean),i=n.filter(c=>!/^(ios|android|web)-/.test(c)),r=n.filter(c=>c.startsWith("web-")).map(c=>c.slice(4)),o=[...i,...r],a=[];for(let c of o)s.classList.contains(c)||(s.classList.add(c),a.push(c));s.setAttribute("data-ewe-themed","");for(let[c,u,l]of[["text-",["color"],"color"],["text-",["font-size"],"font-size"],["bg-",["color"],"background"],["p-",["padding","spacing"],"padding"]]){let h="";for(let f of o){let p=f.slice(c.length);if(!(!f.startsWith(c)||!/^[a-zA-Z0-9_-]+$/.test(p)))for(let b of u)h="var(--"+b+"-"+p+(h?","+h:"")+")"}let d="--ewe-utility-"+l;h?s.style.setProperty?.(d,h):s.style.removeProperty?.(d)}Ka.set(s,a)}var Xa={PADDING:"padding",SPACING:"gap",WIDTH:"width",HEIGHT:"height"};function Jc(s,t,e,n){if(!n||De[e]!==Lr[t])throw x("BadFrame");let i=fs[t],r=n.v;if(Object.hasOwn(Xa,i)){s.style[Xa[i]]=r.unit===qs.Auto?"auto":String(r.value)+(r.unit===qs.Percent?"%":"px");return}switch(i){case"ID":s.setAttribute("id",r);break;case"ALIGN":s.style.alignItems=["flex-start","center","flex-end","stretch"][r];break;case"AXIS":s.style.flexDirection=r===ei.Horizontal?"row":"column";break;case"FONT":s.style.font="var(--ewe-font-"+n.id+")";break;case"COLOR":case"BACKGROUND":s.style[i==="COLOR"?"color":"backgroundColor"]="var(--ewe-color-"+n.id+")";break;case"ENABLED":case"HIDDEN":{let o=i==="HIDDEN"?"hidden":"disabled";(i==="HIDDEN"?r:!r)?s.setAttribute(o,""):s.removeAttribute(o);break}case"UTILITY_CLASSES":Yc(s,r);break;case"A11Y_LABEL":s.setAttribute("aria-label",r??"");break;case"SOURCE":s.setAttribute("src",r??"");break;case"PLACEHOLDER":s.setAttribute("placeholder",r??"");break;case"VALUE":s.value=r??"";break;case"CHECKED":s.checked=r,s.tagName==="BUTTON"&&s.setAttribute("aria-pressed",String(r));break;default:throw x("UnknownOp")}}function Za(s,t,e){let n=s.ownerDocument?.defaultView?.CustomEvent??globalThis.CustomEvent;s.dispatchEvent?.(n?new n(t,{bubbles:!0,detail:e}):{type:t,detail:e,bubbles:!0})}function Kc(s){if(!s.classList?.contains("ewe-submit-button")||!s.closest?.(".ewe-bottom-sheet"))return null;let t=Array.from(s.parentElement.children).filter(e=>e.tagName==="INPUT"&&!e.disabled&&!e.hidden&&e.hasAttribute("primal:onsubmit"));return t.length===1?t[0]:null}function Xc(s,t){function e(n){if(n&&!n.disabled){let i=s.ownerDocument.defaultView.Event;n.dispatchEvent(new i("submit",{cancelable:!0}))}}s.addEventListener("keydown",n=>{let i=n.target;n.key!=="Enter"||n.isComposing||i.closest(".ewe-bottom-sheet")!==s||i.tagName!=="INPUT"||!i.hasAttribute("primal:onsubmit")||(n.preventDefault(),n.repeat||e(i))},t),s.addEventListener("click",n=>{let i=n.target.closest?.("button.ewe-submit-button");!i||i.closest(".ewe-bottom-sheet")!==s||i.hasAttribute("primal:onclick")||e(Kc(i))},t)}var Dr=class s{constructor(t){this.deps=t,this.document=t.document,this.registry=t.registry,this.elementListeners=new WeakMap,this.bindings=[],this.layers=new Set,this.containerEvents=new WeakMap,this.maxFrameBytes=t.maxFrameBytes??Di,this.gapTimeoutMs=t.gapTimeoutMs??1e3,this.maxPendingFrames=t.maxPendingFrames??128,this.timer=t.timer??{set:setTimeout,clear:clearTimeout},this.schedule=t.schedule??(e=>{this.document.visibilityState==="hidden"||!globalThis.requestAnimationFrame?queueMicrotask(e):globalThis.requestAnimationFrame(e)}),this.stats={frames:0,rows:0,reports:0,copiedColumns:0,zeroCopyColumns:0},this.defaultView={registry:t.registry,cursors:new Map,gaps:new Map},this.viewStates=new Map,this.loaders=new Map,this.queue=[],this.scheduled=!1,this.cssInstalled=!1,this.nodeIds=new WeakMap,this.origins=new WeakMap,this.views=new Map,this.sharedKinds=new WeakMap,this.drawingTargets=[],this.drawingJobs=new Map}bindDrawing(t,e){let n=this.deps.graphics;if(!n||!t.isConnected)return;let i=t.id||String(e),r=this.document.defaultView,o,a=!1,c,u=h=>{let f=(this.drawingJobs.get(i)??Promise.resolve()).then(h).catch(p=>this.report("Graphics",{node:e,detail:p.message}));this.drawingJobs.set(i,f),f.then(()=>{this.drawingJobs.get(i)===f&&this.drawingJobs.delete(i)})},l=()=>{if(a)return;let h=t.getBoundingClientRect(),d=r.devicePixelRatio||1,f=Math.round(h.width*d),p=Math.round(h.height*d);t.width===f&&t.height===p&&o||(t.width!==f&&(t.width=f),t.height!==p&&(t.height=p),u(async()=>{a||(o?await o.resize(f,p):o=await n.attach(i,t))}))};l(),r.ResizeObserver&&(c=new r.ResizeObserver(l),c.observe(t)),this.registerUnmount(t,()=>{a=!0,c?.disconnect(),u(async()=>{o&&await o.remove()})})}viewOwner(t){for(let e=t;e;e=e.parentNode)if(this.viewStates.has(e))return e;return this.deps.viewMount??this}viewState(t){return this.viewStates.get(this.viewOwner(t))??this.defaultView}cursor(t,e){return this.viewState(e).cursors.get(t)}setCursor(t,e,n){let{gaps:i,cursors:r}=this.viewState(n),o=i.get(t);o&&this.timer.clear(o.timer),i.delete(t),r.set(t,e)}registerUnmount(t,e){P.registerUnmount(t,e)}report(t,e={}){this.stats.reports++;let n={code:t,...e};this.deps.onReport?this.deps.onReport(n):console.error("Frame operation failed",n)}receive(t,e){try{let n=Pi(t);if(n.length>this.maxFrameBytes)return this.report("TooLarge"),!1;if(!Xs(n))throw x("BadFrame");let i=fe.getRootAsFrame(new zi(n));if(i.kindType()!==yt.FrameMessage)throw x("BadFrame");let r=i.kind(new vt);if(!r)throw x("BadFrame");let o=r.messagesLength();if(o){let u=r.bb;u.check(u.__vector(r.bb_pos+u.__offset(r.bb_pos,6)),o*4)}let a=i.sequenceId(),c=i.streamId();return e&&(this.origins.set(r,e),e.observeStream?.(c)),a===0n||r.ack()!==0n?this.enqueue(r):this.order(c,a,r),!0}catch(n){return this.report("BadFrame",{detail:n.message}),!1}}order(t,e,n){let i=this.viewOwner(this.origins.get(n)?.viewMount),{cursors:r,gaps:o}=this.viewState(i),a=r.get(t);if(a!==void 0&&e<=a)return;let c=o.get(t);if(a!==void 0&&e>a+1n){c||(c={held:new Map,timer:this.timer.set(()=>{o.delete(t),this.deps.onGap?.({streamId:t,...this.viewStates.has(i)?{view:i}:{},resumeFrom:r.get(t)})},this.gapTimeoutMs)},o.set(t,c)),!c.held.has(e)&&c.held.size>=this.maxPendingFrames?(this.timer.clear(c.timer),o.delete(t),this.deps.onGap?.({streamId:t,...this.viewStates.has(i)?{view:i}:{},resumeFrom:a})):c.held.set(e,n);return}for(this.enqueue(n);c?.held.has(e+1n);)e++,this.enqueue(c.held.get(e)),c.held.delete(e);r.set(t,e),c&&!c.held.size&&(this.timer.clear(c.timer),o.delete(t))}enqueue(t){this.queue.push(t),this.scheduled||(this.scheduled=!0,this.schedule(()=>this.flush()))}flush(){this.scheduled=!1;for(let t of this.queue.splice(0)){let e=this.origin;if(this.origin=this.origins.get(t),this.origin?.active&&!this.origin.active()){this.origin=e;continue}let n=this.registry;this.registry=this.viewState(this.origin?.viewMount).registry,this.stats.frames++;for(let i=0;i<t.messagesLength();i++)try{let r=t.messages(i);r.operation()&&this.applyUnit(r.operation(),i),r.data()&&this.applyData(r.data()),r.control()&&this.applyControl(r.control())}catch(r){this.report(r.report?.code??"BadFrame",{unitIndex:i,...r.report??{},detail:r.message})}for(let{node:i,id:r,index:o,name:a,args:c,shared:u,registry:l}of this.bindings.splice(0)){if(l.get(r)!==i)continue;let h=this.deps.behaviours??zr;try{(u?h.applyBehaviour(i,a,c):h.applyWebBehaviour(i,a,c))||this.report("UnknownBehaviour",{unitIndex:o,node:r,name:String(a)})}catch(d){this.report("BadFrame",{unitIndex:o,node:r,detail:d.message})}}for(let i of this.layers){if(!i.isConnected)continue;let r=i.closest("[hidden]")!==null;if(i.tagName==="DIALOG")r&&i.open?i.close():!r&&!i.open&&i.showModal();else{let o=i.matches(":popover-open");r&&o?i.hidePopover():!r&&!o&&i.showPopover()}}for(let[i,r]of this.drawingTargets.splice(0))this.bindDrawing(i,r);this.registry=n,this.origin=e,this.deps.onApplied?.()}}node(t,e=!1){let n=this.registry.get(t);if(n)return n;if(e&&this.registry.pending.has(t))return this.registry.expectOrStaged(t);throw x("UnknownNode",{node:t})}applyUnit(t,e){let n=(o,a,c)=>{let u=t[o+"Type"]();if(!u)return!1;let l=a[u];if(!Ks[l])throw x("UnknownOp",{field:o});let h=t[o](new Ks[l]);if(!h)throw x("BadFrame");return c.call(this,l,h,e),this.stats.rows++,!0},i=n("ui",ft,this.applyUiReader),r=n("web",bs,this.applyWebReader);t.columnar()&&this.applyColumnar(t.columnar(),e),t.mobileType()?this.report("UnsupportedPlatformOp",{unitIndex:e,field:"mobile"}):!i&&!r&&!t.columnar()&&this.report("UnknownOp",{unitIndex:e})}applyUiReader(t,e,n){if(t==="ReplaceSubtree"){let i=this.node(e.nodeId());for(let r of Array.from(i.childNodes))this.discard(r),i.removeChild(r);this.applyNested(e,n)}else t==="Place"?this.place(e,n):this.applyUi(t,e.unpack(),n)}applyNested(t,e){for(let n=0;n<t.operationsLength();n++)this.applyUnit(t.operations(n),e)}discard(t){this.layers.delete(t)&&(t.tagName==="DIALOG"&&t.open?t.close():t.hasAttribute("popover")&&t.matches(":popover-open")&&t.hidePopover()),this.containerEvents.get(t)?.abort(),this.containerEvents.delete(t);for(let n of Array.from(t.childNodes??[]))this.discard(n);P.releaseScope(t),Wr(t),this.deps.onUnmount?.(t),(this.deps.dispatcher??this.deps.runtime?.dispatcher)?.off?.(t);let e=this.nodeIds.get(t)??t.getAttribute?.("primal-id");e!=null&&this.registry.get(Number(e))===t&&this.registry.unregister(Number(e));for(let[n,i]of this.elementListeners.get(t)??[])t.removeEventListener(n,i);this.elementListeners.delete(t),this.nodeIds.delete(t)}selectorQuery(t){let e=t.text,n=this.document.defaultView?.CSS?.escape??globalThis.CSS?.escape;if(t.kind===X.Id)return"#"+n(e);if(t.kind===X.Class)return"."+n(e);if(t.kind===X.Query)return e;throw x("UnknownOp")}resolve(t){return t?t.kind===X.NodeId?this.registry.get(t.nodeId):t.kind===X.Id?this.document.getElementById(t.text):this.document.querySelector(this.selectorQuery(t)):null}registerView(t,e){if(!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(t)||!e||this.views.has(t)||[...this.views.values()].includes(e))throw x("DuplicateView",{detail:t});let i=e===this.deps.viewMount||!this.deps.viewMount&&this.views.size===0?this.defaultView:{registry:new Gt,cursors:new Map,gaps:new Map};return this.viewStates.set(e,i),this.views.set(t,e),()=>{if(this.views.get(t)!==e)return;let r=this.registry;this.registry=i.registry;try{for(let o of Array.from(e.childNodes))this.discard(o),o.remove()}finally{this.registry=r;for(let o of i.gaps.values())this.timer.clear(o.timer);i.gaps.clear(),i.cursors.clear(),this.loaders.get(e)?.close(),this.loaders.delete(e),this.views.delete(t),this.viewStates.delete(e)}}}registerLoader(t,e,n={}){if(this.loaders.get(t)?.active)throw new Error("View already has a loader");let i=new qn(e,(r,o)=>{if(!Xs(r)||r.byteLength>this.maxFrameBytes)throw new Error("Invalid view snapshot");let a=fe.getRootAsFrame(new zi(Pi(r))),c=a.kindType()===yt.FrameMessage&&a.kind(new vt);if(!c||c.messagesLength()!==1)throw new Error("Expected one full view");let u=c.messages(0).operation(),l=u?.uiType()===ft.Place&&u.ui(new ot);if(!l||l.kind()!==Ys.FullView)throw new Error("Expected a full view");let h=this.deps.snapshotDocument?.()??this.document.implementation.createHTMLDocument(""),d=h.createElement("main");h.body.appendChild(d);let f=[];if(!new s({document:h,registry:new Gt().seedDocument(h),viewMount:d,schedule:g=>g(),maxFrameBytes:this.maxFrameBytes,onReport:g=>f.push(g)}).receive(r)||f.length)throw new Error("Invalid snapshot content");let b=new Map;for(let g=0;g<l.operationsLength();g++){let w=l.operations(g);if(w.uiType()!==ft.LiveMount)continue;let v=w.ui(new ls);if(!(v.kind()!==Gs.Stream||v.transport()===Qs.Local||v.transport()===Qs.Sse&&v.sharing()===le.Shared)){if(b.has(v.channelId())&&b.get(v.channelId())!==v.resumeFrom())throw new Error("Conflicting stream cursors");b.set(v.channelId(),v.resumeFrom())}}for(let g of o)if(!b.has(g))throw new Error("Snapshot is missing the expired stream");let _=this.viewState(t);for(let g of _.gaps.values())this.timer.clear(g.timer);_.gaps.clear(),_.cursors.clear();for(let[g,w]of b)this.setCursor(g,w,t);if(!this.receive(r,{viewMount:t}))throw new Error("Invalid view snapshot");this.flush()},n);return this.loaders.set(t,i),i}registerElement(t,e,n){let i=/^[A-Za-z_][A-Za-z0-9_-]*$/;if(!i.test(t)||!i.test(e)||e.toLowerCase()==="view")throw x("InvalidName");let r=n;for(;r.parentNode&&![...this.views.values(),this.deps.viewMount].includes(r);)r=r.parentNode;let o=this.namedElements(r).get(t);if(o&&o!==n)throw x("DuplicateName",{detail:t});n.setAttribute("id",t),this.sharedKinds.set(n,e)}receivingView(){let t=this.origin&&"viewMount"in this.origin?this.origin.viewMount:null;if(t){for(let n=t;n;n=n.parentNode)if(n===this.deps.viewMount||[...this.views.values()].includes(n))return n;return t}let e=new Set(this.views.values());if(this.deps.viewMount&&e.add(this.deps.viewMount),e.size>1)throw x("AmbiguousView");return e.values().next().value}namedElements(t){let e=new Map,n=[t],i=new Set(this.views.values());for(;n.length;){let r=n.pop();if(!r||r!==t&&i.has(r))continue;let o=r.getAttribute?.("id");if(o){if(e.has(o))throw x("DuplicateName",{detail:o});e.set(o,r)}for(let a of r.children??[])n.push(a)}return e}placementTarget(t,e,n){if(!t)return null;let i=X;if(t.kind===i.NodeId){let a=this.registry.get(t.nodeId);return a&&(!e||a.parentNode===e)?a:null}if(t.kind===i.View)return this.views.get(t.text);if(t.kind===i.Receiving)return this.receivingView();if(t.kind===i.Id||t.kind===i.TypedId){let a=t.kind===i.TypedId,c=a?t.text?.split("#"):[null,t.text];if(c?.length!==2||a&&!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(c[0]))throw x("InvalidName");let[u,l]=c;if(!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(l))throw x("InvalidName");let h=n??this.receivingView()??this.document.body,d=this.namedElements(h).get(l);if(!d||e&&d.parentNode!==e)return null;if(a){let f=b=>b?.replace(/[-_]/g,"").toLowerCase(),p=f(u)==="sheet"?"bottomsheet":f(u);if(f(this.sharedKinds.get(d)??d.localName)!==p)throw x("WrongTargetKind",{detail:t.text})}return d}let r=this.selectorQuery(t),o=e?Array.from(e.children).filter(a=>a.matches(r)):this.document.querySelectorAll(r);return o.length===1?o[0]:null}validatePlacementNames(t,e,n){let i=this.namedElements(e);for(let[o,a]of i)n?.some(c=>c===a||c.contains?.(a))&&i.delete(o);let r=o=>{if(!o||!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(o))throw x("InvalidName");if(i.has(o))throw x("DuplicateName",{detail:o});i.set(o,!0)};for(let o=0;o<t.operationsLength();o++){let a=t.operations(o);if(a.uiType()===ft.SetProp){let l=a.ui(new ps);l.prop()===fs.ID&&r(l.value(new ds)?.v())}let c=a.columnar();if(!c)continue;let u=c.blobBytesArray()??new Uint8Array;for(let l=0;l<c.opCodesLength();l++){if(c.opCodes(l)!==ft.SetProp||(c.argA(l)&65535)!==fs.ID)continue;let h=c.blobAOff(l),d=c.blobAOff(l+1);if(h>d||d>u.length)throw x("BadFrame");r(Mi.decode(u.subarray(h,d)))}}}place(t,e){let n=t.target(),i=n?.kind()===X.View?this.views.get(n.text()):this.origin?.viewMount,r=this.registry;this.registry=this.viewState(i).registry;try{this.applyPlacement(t,e)}finally{this.registry=r}}applyPlacement(t,e){let n=Ys[t.kind()];if(n==="FullView"){let h=this.origin&&"viewMount"in this.origin?this.origin.viewMount:this.receivingView();if(!h||h.isConnected===!1)throw x("UnknownNode",{detail:"Missing receiving view mount"});this.validatePlacementNames(t,h,Array.from(h.childNodes));for(let d of Array.from(h.childNodes))this.discard(d),d.remove();this.applyNested(t,e),h.appendChild(this.node(t.rootNode(),!0));return}let i=t.target()?.unpack(),r=i?.kind===X.View?this.views.get(i.text):this.receivingView()??this.document.body,o=this.placementTarget(i,null,r),a=h=>[X.Id,X.View,X.TypedId,X.Receiving].includes(h?.kind)?"MissingTarget":"UnknownNode";if(!o)throw x(a(i),{detail:"Placement needs one target"});let c=t.child()?.unpack(),u=c&&this.placementTarget(c,o,r);if(c&&(!u||u.parentNode!==o))throw x(a(c),{detail:"Placement child missing"});if(this.validatePlacementNames(t,r,n==="Swap"?[o]:[]),n==="Remove"){this.discard(o),o.remove();return}n==="Swap"&&this.discard(o),this.applyNested(t,e);let l=this.node(t.rootNode(),!0);switch(n){case"Append":o.appendChild(l);break;case"Swap":o.replaceWith(l);break;case"Before":o.insertBefore(l,u??o.firstChild);break;case"After":o.insertBefore(l,u?.nextSibling??null);break;default:throw x("UnknownOp")}}applyUi(t,e,n){let i=this.document;switch(t){case"CreateNode":{if(!this.cssInstalled){let a=i.createElement("style");a.setAttribute("data-ewe-core",""),a.textContent=Pa,i.head.appendChild(a),this.cssInstalled=!0}let r=La[e.kind];r||this.report("UnknownKind",{unitIndex:n,node:e.nodeId});let o=i.createElement(r?.tag??"div");this.sharedKinds.set(o,It[e.kind]),o.className=r?.cls??"ewe-unknown",e.kind===It.DRAWING_SURFACE&&this.drawingTargets.push([o,e.nodeId]);for(let[a,c]of r?.attrs??[])o.setAttribute(a,c);if(o.setAttribute("primal-id",String(e.nodeId)),e.kind===It.OVERLAY&&o.showPopover&&(o.setAttribute("popover","manual"),this.layers.add(o)),[It.MODAL,It.CONFIRMATION_DIALOG,It.BOTTOM_SHEET].includes(e.kind)){let a=i.defaultView?.AbortController??globalThis.AbortController,c=new a;this.containerEvents.set(o,c);let u={signal:c.signal};e.kind!==It.BOTTOM_SHEET?(this.layers.add(o),o.addEventListener("cancel",l=>{l.preventDefault(),Array.from(o.querySelectorAll(".ewe-cancel-button")).find(d=>d.closest("dialog")===o&&!d.disabled&&!d.closest("[hidden]")&&d.hasAttribute("primal:onclick"))?.click()},u)):Xc(o,u)}e.sharing!==le.TransportDefault&&o.setAttribute("data-connection-shared",String(e.sharing===le.Shared)),e.keepAlive&&o.setAttribute("data-connection-keep-alive","true"),this.origin?.onMount?.(e.nodeId,o),this.registry.register(e.nodeId,o);break}case"SetText":{let r=this.node(e.nodeId);for(let o of Array.from(r.childNodes))this.discard(o);r.textContent=e.text??"";break}case"SetProp":Jc(this.node(e.nodeId),e.prop,e.valueType,e.value);break;case"AppendChild":this.node(e.parentId).appendChild(this.node(e.childId,!0));break;case"InsertBefore":{let r=this.node(e.parentId),o=this.node(e.beforeId);r.insertBefore(this.node(e.childId,!0),o);break}case"Remove":{let r=this.node(e.nodeId);this.discard(r),r.remove(),this.registry.unregister(e.nodeId);break}case"BindAction":case"UnbindAction":{let r=this.node(e.nodeId),o=ja[e.event];if(!o)throw x("UnknownOp");let a="primal:on"+o,c=this.deps.dispatcher??this.deps.runtime?.dispatcher;t==="BindAction"?(r.setAttribute(a,e.action),c?.scanAndWire?.(r)):(r.removeAttribute(a),c?.off?.(r,o));break}case"AttachState":this.node(e.rootNode).setAttribute("primal::state",Mr(e.state??[]));break;case"UiBehaviour":this.bindings.push({registry:this.registry,node:this.node(e.nodeId),id:e.nodeId,index:n,name:e.behaviour,args:e.args,shared:!0});break;case"LiveMount":{let r=i.createElement(e.kind===Gs.Stream?"mount-stream":"mount-data"),o=["local","sse","websocket","fetch"][e.transport];for(let[a,c]of Object.entries({api:e.endpoint,transport:o,protocol:"frame","data-channel-id":e.channelId,"data-resume-from":e.resumeFrom,"primal-id":e.nodeId}))r.setAttribute(a,String(c));e.sharing!==le.TransportDefault&&r.setAttribute("data-connection-shared",String(e.sharing===le.Shared)),e.keepAlive&&r.setAttribute("data-connection-keep-alive","true"),this.origin?.onMount?.(e.nodeId,r),this.registry.register(e.nodeId,r);break}default:throw x("UnknownOp",{field:"ui"})}}applyWebReader(t,e,n){let i=e.unpack(),r=this.document,o=i.nodeId,a=(u,l,h)=>{let d=u?h[u-1]:l;if(!d)throw x("BadFrame");return d},c=()=>a(i.nameId,i.customName,jr);switch(t){case"WebElement":{let u=r.createElement(a(i.tagId,i.customTag,Ma));i.className&&(u.className=i.className),this.origin?.onMount?.(o,u),this.nodeIds.set(u,o),this.registry.stage(o,u);break}case"WebText":{let u=r.createTextNode(i.content??"");this.origin?.onMount?.(o,u),this.nodeIds.set(u,o),this.registry.stage(o,u);break}case"WebRegisterNode":this.registry.applyRegister(o,r);break;case"WebUnregisterNode":this.registry.unregister(o);break;case"WebReplaceNode":{let u=this.node(i.oldId),l=this.node(i.newId,!0);this.discard(u),u.replaceWith(l),this.registry.unregister(i.oldId),this.registry.register(i.newId,l);break}case"WebDetachChild":this.node(i.parentId).removeChild(this.node(i.childId));break;case"WebSetAttribute":case"WebRemoveAttribute":{let u=a(i.attrId,i.customAttr,jr);if(u.toLowerCase()==="primal::state")throw x("BadFrame");t==="WebSetAttribute"?this.node(o).setAttribute(u,i.value??""):this.node(o).removeAttribute(u);break}case"HtmlMorph":{let u=this.resolve(i.target);if(!u)throw x("Morph");if(i.action===Wt.ReplaceChildren&&this.deps.morph&&r.createRange){let l=Array.from(u.querySelectorAll("*"));this.deps.morph(u,r.createRange().createContextualFragment(i.content),r);let h=new Set(l.filter(d=>!u.contains(d)));for(let d of h)h.has(d.parentNode)||this.discard(d)}else switch(i.action){case Wt.ReplaceChildren:for(let l of Array.from(u.childNodes??[]))this.discard(l);u.innerHTML=i.content;break;case Wt.ReplaceElement:u.insertAdjacentHTML("afterend",i.content),this.discard(u),u.remove();break;case Wt.InsertBefore:u.insertAdjacentHTML("beforebegin",i.content);break;case Wt.InsertAfter:u.insertAdjacentHTML("afterend",i.content);break;case Wt.AppendSibling:(u.parentNode??u.parent)?.insertAdjacentHTML("beforeend",i.content);break;default:throw x("Morph")}break}case"ScriptNode":{let u=r.createElement("script");u.setAttribute("primal:script",""),u.setAttribute("scoped",""),u.type="application/primal-script",u.textContent=i.body;let l=this.node(i.parentId);l.appendChild(u),this.deps.hydrate?.(l,r);break}case"WebBehaviour":{this.bindings.push({registry:this.registry,node:this.node(o),id:o,index:n,name:i.custom,args:i.args,shared:!1});break}case"WebProperty":{let u=i.value;try{u=JSON.parse(u)}catch{}this.node(o)[c()]=u;break}case"WebStyle":this.node(o).style[c()]=i.value;break;case"WebAddClass":this.node(o).classList.add(i.className);break;case"WebRemoveClass":this.node(o).classList.remove(i.className);break;case"WebAddListener":case"WebRemoveListener":{let u=this.node(o),l=c(),h=this.elementListeners.get(u);if(h||this.elementListeners.set(u,h=new Map),t==="WebAddListener"&&!h.has(l)){let d=this.origin?.onEvent??this.deps.onEvent,f=p=>d?.(l,o,p,u);h.set(l,f),u.addEventListener(l,f)}else t==="WebRemoveListener"&&h.has(l)&&(u.removeEventListener(l,h.get(l)),h.delete(l));break}default:throw x("UnknownOp",{field:"web"})}}applyColumnar(t,e){let n=t.opCodesArray()??[],i=["nodeIds","argA","argB","blobAOff","blobBOff"].map((d,f)=>Ja(t,d,6+2*f,Uint32Array,this.stats)),[r,o,a,c,u]=i,l=t.blobBytesArray()??new Uint8Array;if(i.some((d,f)=>d.length!==n.length+ +(f>=3))||c[0]!==0||c.at(-1)!==l.length||u[0]!==0&&u[0]!==l.length)throw x("BadFrame");let h=new DataView(new ArrayBuffer(4));for(let d=0;d<n.length;d++)try{if(c[d]>c[d+1]||c[d+1]>l.length||u[d]!==u[d+1])throw x("BadFrame");let f=l.subarray(c[d],c[d+1]),p=ft[n[d]],b=r[d],_=o[d],g=a[d],w={nodeId:b};switch(p){case"CreateNode":w.kind=_;break;case"SetText":w.text=Mi.decode(f);break;case"SetProp":{w.prop=_&65535;let v=Lr[w.prop];switch(w.valueType=De[v],h.setUint32(0,g,!0),v){case"Text":w.value={v:Mi.decode(f)};break;case"Length":w.value={v:{value:h.getFloat32(0,!0),unit:_>>>16}};break;case"ColorToken":case"FontToken":w.value={id:g};break;case"Bool":w.value={v:!!g};break;case"Axis":case"Alignment":w.value={v:g};break;default:throw x("BadFrame")}break}case"InsertBefore":case"AppendChild":Object.assign(w,{parentId:b,childId:_,beforeId:g});break;case"Remove":break;case"BindAction":w.action=Mi.decode(f),w.event=_;break;case"UnbindAction":w.event=_;break;case"AttachState":w.rootNode=b,w.state=f;break;default:throw x("UnknownOp",{field:"columnar"})}this.applyUi(p,w,e),this.stats.rows++}catch(f){this.report(f.report?.code??"BadFrame",{unitIndex:e,...f.report??{},row:d})}}applyData(t){let e=t.table(),n;if(e){let r=[],o={I32:[Pe,Int32Array],I64:[We,BigInt64Array],F64:[Me,Float64Array],Bool:[je,Uint8Array],Utf8:[ze]};for(let a=0;a<e.columnsLength();a++){let c=e.columns(a),u=o[us[c.dataType()]];if(!u)throw x("BadFrame");let l=c.data(new u[0]),h=u[1]?Ja(l,"values",4,u[1]):Array.from({length:l.valuesLength()},(d,f)=>l.values(f));r.push({name:c.name(),data:h,validity:c.validityArray()})}n={kind:"table",table:{rows:e.rows(),columns:r}}}else{let r=t.arrow()??t.msgpack();if(!r)throw x("BadFrame");n={kind:t.arrow()?"arrow-ipc":"messagepack",bytes:r.bytesArray()}}let i=t.targetNode()&&this.registry.get(t.targetNode());Za(i||this.document,"ewe:data",n)}applyControl(t){t.caps()&&this.deps.onCaps?.(t.caps().unpack());for(let[e,n]of[["stateExpired","StateExpired"],["updateRequired","UpdateRequired"]])t[e]()&&this.deps.onError?.({...t[e]().unpack(),code:n});if(t.error()){let e=t.error().unpack(),n={...e,code:Xn[e.code]};this.deps.onError?.(n),Za(this.document,"ewe:error",n)}}};function qr(s,t={}){let e=t.document??globalThis.document,n=s.Patcher.runtime;return n.frames?.document===e||(n.document&&n.document!==e&&(n.dispatcher=null),n.frames=new Dr({document:e,registry:s.Patcher.ensureRegistry(e),morph:s.MorphDom.morph,hydrate:s.Hydrator.hydrate,runtime:n,onApplied:s.Patcher.markApplied,...t}),Da(n,n.frames),s.Hydrator.behaviourMarkers=ji,e.body&&ji(e.body),s.ProtocolHandler.frameHook={isFrame:Xs,splitFrames:$c,readFrames:Gc,readViewResponse:Qc,maxFrameBytes:n.frames.maxFrameBytes}),n.frames}globalThis.EweFrames={installFrameRuntime:qr};function Zc(s,t={}){let e=qr(lr,t);return Dn(s,t),Cs(),e}globalThis.FoundationUiBootstrap={registerFrameApp:Zc};(function(){"use strict";var s=["ewe","foundation","platform"],t="http://";function e(h){if(!h)return!1;for(var d=0;d<s.length;d++){var f=s[d]+"://";if(h.indexOf(f)===0)return s[d]}return null}function n(h){var d=e(h);return d?h.replace(d+"://",t+d+"."):null}function i(){return/android/i.test(navigator.userAgent)}if(!i())return;document.addEventListener("click",function(h){var d=h.target.closest("a");if(d){var f=d.getAttribute("href")||d.href,p=n(f);p&&(h.preventDefault(),h.stopImmediatePropagation(),location.href=p)}},!0);var r=location.assign,o=location.replace,a=Object.getOwnPropertyDescriptor(Location.prototype,"href");function c(h){return function(d){var f=n(d);return f&&(d=f),h.call(this,d)}}try{location.assign=c(r)}catch{try{Object.defineProperty(location,"assign",{value:c(r),writable:!0,configurable:!0})}catch{}}try{location.replace=c(o)}catch{try{Object.defineProperty(location,"replace",{value:c(o),writable:!0,configurable:!0})}catch{}}if(a&&a.set){var u=a.set;Object.defineProperty(location,"href",{get:a.get,set:function(h){var d=n(h);u.call(this,d||h)},configurable:!0,enumerable:!0})}var l=window.open;window.open=function(h){var d=n(h);return d&&(arguments[0]=d),l.apply(this,arguments)}})();})();
+(function() {
+    const B1 = 1, B8 = 8;
+    class RefPointer {
+        constructor(id){
+            this.id = id;
+        }
+        get value() {
+            return this.id;
+        }
+    }
+    class ExternalPointer extends RefPointer {
+    }
+    class InternalPointer extends RefPointer {
+    }
+    class CachePointer extends RefPointer {
+    }
+    class ErrorCodeValue {
+        constructor(code){
+            this.code = code;
+        }
+    }
+    class TypedArraySliceValue {
+        constructor(sliceType, content){
+            this.sliceType = sliceType;
+            this.content = content;
+        }
+    }
+    class ReplyContainer {
+        constructor(type, value){
+            this.type = type;
+            this.value = value;
+        }
+    }
+    class FakeNode {
+        constructor(tag){
+            this.tag = tag;
+        }
+    }
+    class ReplyError extends Error {
+        constructor(code, options){
+            if (!Number.isInteger(code)) {
+                throw new Error("Only numbers allowed to represent the code to be sent");
+            }
+            super(`Reply failed with error code: ${code}`, options);
+            this.code = code;
+        }
+    }
+    const ParamType = Object.freeze({
+        Null: 0,
+        Undefined: 1,
+        Bool: 2,
+        Text8: 3,
+        Text16: 4,
+        Int8: 5,
+        Int16: 6,
+        Int32: 7,
+        Int64: 8,
+        Uint8: 9,
+        Uint16: 10,
+        Uint32: 11,
+        Uint64: 12,
+        Float32: 13,
+        Float64: 14,
+        ExternalReference: 15,
+        Uint8Array: 16,
+        Uint16Array: 17,
+        Uint32Array: 18,
+        Uint64Array: 19,
+        Int8Array: 20,
+        Int16Array: 21,
+        Int32Array: 22,
+        Int64Array: 23,
+        Float32Array: 24,
+        Float64Array: 25,
+        InternalReference: 26,
+        Int128: 27,
+        Uint128: 28,
+        CachedText: 29,
+        TypedArraySlice: 30,
+        ErrorCode: 31
+    });
+    const ReturnType = Object.freeze({
+        Bool: 1,
+        Text8: 2,
+        Int8: 3,
+        Int16: 4,
+        Int32: 5,
+        Int64: 6,
+        Uint8: 7,
+        Uint16: 8,
+        Uint32: 9,
+        Uint64: 10,
+        Float32: 11,
+        Float64: 12,
+        Int128: 13,
+        Uint128: 14,
+        MemorySlice: 15,
+        ExternalReference: 16,
+        InternalReference: 17,
+        Object: 28,
+        DOMObject: 29,
+        None: 30,
+        ErrorCode: 31,
+        TypedArraySlice: 32
+    });
+    const RETURN_NAKED = new Set([
+        ReturnType.Bool,
+        ReturnType.Uint8,
+        ReturnType.Uint16,
+        ReturnType.Uint32,
+        ReturnType.Uint64,
+        ReturnType.Int8,
+        ReturnType.Int16,
+        ReturnType.Int32,
+        ReturnType.Int64,
+        ReturnType.Float32,
+        ReturnType.Float64,
+        ReturnType.Object,
+        ReturnType.DOMObject,
+        ReturnType.ErrorCode,
+        ReturnType.MemorySlice,
+        ReturnType.InternalReference,
+        ReturnType.ExternalReference
+    ]);
+    const ReturnIds = Object.freeze({
+        None: 0,
+        One: 1,
+        Multi: 2,
+        List: 3
+    });
+    const ThreeStateId = Object.freeze({
+        One: 70,
+        Two: 80,
+        Three: 90
+    });
+    const ReturnHintMarker = Object.freeze({
+        Start: 200,
+        Stop: 201
+    });
+    const ReturnValueMarker = Object.freeze({
+        Begin: 100,
+        End: 101
+    });
+    const TypedSliceArray = {
+        1: Int8Array,
+        2: Int16Array,
+        3: Int32Array,
+        4: BigInt64Array,
+        5: Uint8Array,
+        6: Uint16Array,
+        7: Uint32Array,
+        8: BigUint64Array,
+        9: Float32Array,
+        10: Float64Array
+    };
+    class ExternalHeap {
+        constructor(){
+            this.items = [];
+            this.free = [];
+        }
+        #unpack(uid) {
+            const v = BigInt(uid);
+            return {
+                index: Number(v >> 32n),
+                generation: v & 0xffffffffn
+            };
+        }
+        create(item) {
+            let index;
+            if (this.free.length > 0) {
+                index = this.free.pop();
+                const slot = this.items[index];
+                slot.generation += 1n;
+                slot.active = true;
+                slot.item = item;
+            } else {
+                index = this.items.length;
+                this.items.push({
+                    item,
+                    generation: 0n,
+                    active: true
+                });
+            }
+            return BigInt(index) << 32n | this.items[index].generation;
+        }
+        get(uid) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || !slot.active || slot.generation !== generation) return undefined;
+            return slot.item;
+        }
+        update(uid, item) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || slot.generation !== generation) return false;
+            slot.item = item;
+            slot.active = true;
+            return true;
+        }
+        destroy(uid) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || !slot.active || slot.generation !== generation) return false;
+            slot.item = null;
+            slot.active = false;
+            this.free.push(index);
+            return true;
+        }
+    }
+    function asTypedSlice(value) {
+        if (value instanceof TypedArraySliceValue) {
+            const content = value.content;
+            return {
+                sliceType: value.sliceType,
+                u8: new Uint8Array(content.buffer, content.byteOffset, content.byteLength)
+            };
+        }
+        for (const [id, Ctor] of Object.entries(TypedSliceArray)){
+            if (value instanceof Ctor && value.constructor === Ctor) {
+                return {
+                    sliceType: Number(id),
+                    u8: new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+                };
+            }
+        }
+        throw new Error("TypedArraySlice return: expected a TypedArray or TypedArraySliceValue");
+    }
+    function errorCodeOf(value) {
+        if (value instanceof ErrorCodeValue) return value.code;
+        if (value && Number.isInteger(value.code)) return value.code;
+        if (Number.isInteger(value)) return value;
+        if (typeof value === "bigint") return Number(value);
+        return 1;
+    }
+    function matchesReturnType(value, type) {
+        switch(type){
+            case ReturnType.None:
+                return value === undefined || value === null;
+            case ReturnType.Bool:
+                return typeof value === "boolean";
+            case ReturnType.Text8:
+                return typeof value === "string";
+            case ReturnType.Int8:
+            case ReturnType.Int16:
+            case ReturnType.Int32:
+            case ReturnType.Uint8:
+            case ReturnType.Uint16:
+            case ReturnType.Uint32:
+                return typeof value === "number" && Number.isInteger(value);
+            case ReturnType.Int64:
+            case ReturnType.Uint64:
+            case ReturnType.Int128:
+            case ReturnType.Uint128:
+                return typeof value === "bigint" || typeof value === "number" && Number.isInteger(value);
+            case ReturnType.Float32:
+            case ReturnType.Float64:
+                return typeof value === "number";
+            case ReturnType.ErrorCode:
+                return value instanceof ErrorCodeValue || value instanceof ReplyError || typeof value === "number" && Number.isInteger(value);
+            case ReturnType.ExternalReference:
+                return value instanceof ExternalPointer;
+            case ReturnType.InternalReference:
+                return value instanceof InternalPointer;
+            case ReturnType.TypedArraySlice:
+                return value instanceof TypedArraySliceValue || ArrayBuffer.isView(value);
+            case ReturnType.MemorySlice:
+                return typeof value === "bigint" || typeof value === "number" || ArrayBuffer.isView(value);
+            case ReturnType.DOMObject:
+                return value instanceof FakeNode || typeof Node !== "undefined" && value instanceof Node || typeof value === "object" && value !== null;
+            case ReturnType.Object:
+                return typeof value === "object" && value !== null;
+            default:
+                return false;
+        }
+    }
+    class ParameterParser {
+        constructor(bridge, strings){
+            this.bridge = bridge;
+            this.strings = strings;
+        }
+        parse(ptr, len) {
+            const start = Number(ptr);
+            const total = Number(len);
+            const view = new DataView(this.bridge.memory.buffer, start, total);
+            const args = [];
+            let i = 0;
+            while(i < total){
+                const type = view.getUint8(i);
+                i += B1;
+                i = this.#one(type, i, view, args);
+            }
+            return args;
+        }
+        #slice(view, i) {
+            const ptr = Number(view.getBigUint64(i, true));
+            i += B8;
+            const len = Number(view.getBigUint64(i, true));
+            i += B8;
+            return [
+                i,
+                ptr,
+                len
+            ];
+        }
+        #one(type, i, view, args) {
+            const mem = this.bridge.memory.buffer;
+            switch(type){
+                case ParamType.Null:
+                    args.push(null);
+                    return i;
+                case ParamType.Undefined:
+                    args.push(undefined);
+                    return i;
+                case ParamType.Bool:
+                    args.push(view.getUint8(i) === 1);
+                    return i + 1;
+                case ParamType.Int8:
+                    args.push(view.getInt8(i));
+                    return i + 1;
+                case ParamType.Uint8:
+                    args.push(view.getUint8(i));
+                    return i + 1;
+                case ParamType.Int16:
+                    args.push(view.getInt16(i, true));
+                    return i + 2;
+                case ParamType.Uint16:
+                    args.push(view.getUint16(i, true));
+                    return i + 2;
+                case ParamType.ErrorCode:
+                    args.push(new ErrorCodeValue(view.getUint16(i, true)));
+                    return i + 2;
+                case ParamType.Int32:
+                    args.push(view.getInt32(i, true));
+                    return i + 4;
+                case ParamType.Uint32:
+                    args.push(view.getUint32(i, true));
+                    return i + 4;
+                case ParamType.Float32:
+                    args.push(view.getFloat32(i, true));
+                    return i + 4;
+                case ParamType.Float64:
+                    args.push(view.getFloat64(i, true));
+                    return i + 8;
+                case ParamType.Int64:
+                    args.push(view.getBigInt64(i, true));
+                    return i + 8;
+                case ParamType.Uint64:
+                    args.push(view.getBigUint64(i, true));
+                    return i + 8;
+                case ParamType.ExternalReference:
+                    args.push(new ExternalPointer(view.getBigUint64(i, true)));
+                    return i + 8;
+                case ParamType.InternalReference:
+                    args.push(new InternalPointer(view.getBigUint64(i, true)));
+                    return i + 8;
+                case ParamType.CachedText:
+                    {
+                        const handle = view.getBigUint64(i, true);
+                        const text = this.strings.get(handle);
+                        if (text === undefined) throw new Error(`CachedText: no string for handle ${handle}`);
+                        args.push(text);
+                        return i + 8;
+                    }
+                case ParamType.Int128:
+                    {
+                        const msb = view.getBigInt64(i, true), lsb = view.getBigUint64(i + 8, true);
+                        args.push(msb << 64n | lsb);
+                        return i + 8 + 8;
+                    }
+                case ParamType.Uint128:
+                    {
+                        const msb = view.getBigUint64(i, true), lsb = view.getBigUint64(i + 8, true);
+                        args.push(msb << 64n | lsb);
+                        return i + 8 + 8;
+                    }
+                case ParamType.Text8:
+                    {
+                        const [ni, p, l] = this.#slice(view, i);
+                        args.push(new TextDecoder().decode(new Uint8Array(mem, p, l)));
+                        return ni;
+                    }
+                case ParamType.Text16:
+                    {
+                        const [ni, p, l] = this.#slice(view, i);
+                        args.push(new TextDecoder("utf-16le").decode(new Uint8Array(mem, p, l)));
+                        return ni;
+                    }
+                case ParamType.TypedArraySlice:
+                    {
+                        const sliceType = view.getUint8(i);
+                        const [ni, p, l] = this.#slice(view, i + 1);
+                        const Ctor = TypedSliceArray[sliceType] ?? Uint8Array;
+                        args.push(new TypedArraySliceValue(sliceType, new Ctor(mem.slice(p, p + l * Ctor.BYTES_PER_ELEMENT))));
+                        return ni;
+                    }
+                default:
+                    {
+                        const Ctor = ARRAY_BUFFER_CTORS[type];
+                        if (!Ctor) throw new Error(`ParameterParser: unknown ParamType ${type}`);
+                        const [ni, p, l] = this.#slice(view, i);
+                        args.push(new Ctor(mem.slice(p, p + l * Ctor.BYTES_PER_ELEMENT)));
+                        return ni;
+                    }
+            }
+        }
+    }
+    const ARRAY_BUFFER_CTORS = {
+        [ParamType.Uint8Array]: Uint8Array,
+        [ParamType.Uint16Array]: Uint16Array,
+        [ParamType.Uint32Array]: Uint32Array,
+        [ParamType.Uint64Array]: BigUint64Array,
+        [ParamType.Int8Array]: Int8Array,
+        [ParamType.Int16Array]: Int16Array,
+        [ParamType.Int32Array]: Int32Array,
+        [ParamType.Int64Array]: BigInt64Array,
+        [ParamType.Float32Array]: Float32Array,
+        [ParamType.Float64Array]: Float64Array
+    };
+    class ReturnHintParser {
+        constructor(bridge){
+            this.bridge = bridge;
+        }
+        parse(ptr, len) {
+            const view = new DataView(this.bridge.memory.buffer, Number(ptr), Number(len));
+            const [, hint] = ReturnHintParser.parseFrom(view, 0);
+            return hint;
+        }
+        static parseFrom(view, i) {
+            if (view.getUint8(i) !== ReturnHintMarker.Start) throw new Error("hint: missing Start");
+            i += B1;
+            const id = view.getUint8(i);
+            i += B1;
+            const states = [];
+            if (id !== ReturnIds.None) {
+                while(view.getUint8(i) !== ReturnHintMarker.Stop){
+                    const stateId = view.getUint8(i);
+                    i += B1;
+                    const n = stateId === ThreeStateId.One ? 1 : stateId === ThreeStateId.Two ? 2 : 3;
+                    const types = [];
+                    for(let k = 0; k < n; k++){
+                        types.push(view.getUint8(i));
+                        i += B1;
+                    }
+                    states.push({
+                        stateId,
+                        types
+                    });
+                }
+            }
+            if (view.getUint8(i) !== ReturnHintMarker.Stop) throw new Error("hint: missing Stop");
+            i += B1;
+            return [
+                i,
+                {
+                    id,
+                    states
+                }
+            ];
+        }
+    }
+    class ReplyEncoder {
+        constructor(memory){
+            this.memory = memory;
+            this.objects = null;
+            this.dom = null;
+        }
+        immediate(hint, value, alwaysEncoded) {
+            if (hint.id === ReturnIds.None) {
+                if (value === undefined || value === null) return -1n;
+                throw new Error(`Expected NoReturn but got ${value}`);
+            }
+            const containers = this.#containers(hint, value);
+            if (hint.id === ReturnIds.One && containers.length === 1 && RETURN_NAKED.has(containers[0].type) && !alwaysEncoded) {
+                return this.#naked(containers[0]);
+            }
+            return this.encodeIntoMemory(containers);
+        }
+        #naked({ type, value }) {
+            switch(type){
+                case ReturnType.Object:
+                    {
+                        if (!this.objects) throw new Error("ReplyEncoder: no object heap wired");
+                        return value instanceof RefPointer ? value.value : this.objects.create(value);
+                    }
+                case ReturnType.DOMObject:
+                    {
+                        if (!this.dom) throw new Error("ReplyEncoder: no DOM heap wired");
+                        return value instanceof RefPointer ? value.value : this.dom.create(value);
+                    }
+                case ReturnType.ExternalReference:
+                case ReturnType.InternalReference:
+                    return value instanceof RefPointer ? value.value : value;
+                case ReturnType.ErrorCode:
+                    return errorCodeOf(value);
+                default:
+                    return value;
+            }
+        }
+        #containers(hint, value) {
+            const resolve = (state, v)=>v instanceof ReplyContainer ? {
+                    type: v.type,
+                    value: v.value
+                } : {
+                    type: this.#pickType(state, v),
+                    value: v
+                };
+            switch(hint.id){
+                case ReturnIds.One:
+                    return [
+                        resolve(hint.states[0], value)
+                    ];
+                case ReturnIds.List:
+                    {
+                        const state = hint.states[0];
+                        return Array.from(value).map((v)=>resolve(state, v));
+                    }
+                case ReturnIds.Multi:
+                    {
+                        const arr = Array.from(value);
+                        return hint.states.map((state, k)=>resolve(state, arr[k]));
+                    }
+                default:
+                    return [];
+            }
+        }
+        #pickType(state, value) {
+            const { types } = state;
+            if (types.length === 1) return types[0];
+            for (const candidate of types){
+                if (matchesReturnType(value, candidate)) return candidate;
+            }
+            throw new Error(`return value ${value} matches none of the hinted types [${types}]`);
+        }
+        encodeIntoMemory(containers) {
+            const bytes = this.encode(containers);
+            const id = this.memory.create(bytes.length);
+            this.memory.write(id, bytes);
+            return id;
+        }
+        callbackSuccess(callbacks, callbackId, hint, value) {
+            const bytes = this.encode(this.#containers(hint, value));
+            callbacks.invoke(callbackId, bytes);
+        }
+        callbackFailure(callbacks, callbackId, error) {
+            const bytes = this.encode([
+                {
+                    type: ReturnType.ErrorCode,
+                    value: errorCodeOf(error)
+                }
+            ]);
+            callbacks.invoke(callbackId, bytes);
+        }
+        encode(containers) {
+            const out = [
+                ReturnValueMarker.Begin
+            ];
+            const push = (n, bytes)=>{
+                for(let k = 0; k < bytes; k++)out.push(Number(BigInt(n) >> BigInt(8 * k) & 0xffn));
+            };
+            for (const { type, value } of containers){
+                out.push(type);
+                switch(type){
+                    case ReturnType.None:
+                        break;
+                    case ReturnType.Bool:
+                        out.push(value ? 1 : 0);
+                        break;
+                    case ReturnType.Uint8:
+                    case ReturnType.Int8:
+                        push(value, 1);
+                        break;
+                    case ReturnType.Uint16:
+                    case ReturnType.Int16:
+                        push(value, 2);
+                        break;
+                    case ReturnType.ErrorCode:
+                        push(errorCodeOf(value), 2);
+                        break;
+                    case ReturnType.Uint32:
+                    case ReturnType.Int32:
+                        push(value, 4);
+                        break;
+                    case ReturnType.Uint64:
+                    case ReturnType.Int64:
+                        push(BigInt(value), 8);
+                        break;
+                    case ReturnType.Float32:
+                        {
+                            const b = new Uint8Array(4);
+                            new DataView(b.buffer).setFloat32(0, value, true);
+                            out.push(...b);
+                            break;
+                        }
+                    case ReturnType.Float64:
+                        {
+                            const b = new Uint8Array(8);
+                            new DataView(b.buffer).setFloat64(0, value, true);
+                            out.push(...b);
+                            break;
+                        }
+                    case ReturnType.Int128:
+                    case ReturnType.Uint128:
+                        {
+                            const v = BigInt(value);
+                            push(v >> 64n & 0xffffffffffffffffn, 8);
+                            push(v & 0xffffffffffffffffn, 8);
+                            break;
+                        }
+                    case ReturnType.ExternalReference:
+                    case ReturnType.InternalReference:
+                        push(BigInt(value instanceof RefPointer ? value.value : value), 8);
+                        break;
+                    case ReturnType.Text8:
+                        {
+                            const bytes = new TextEncoder().encode(String(value));
+                            const slot = this.memory.create(bytes.length);
+                            this.memory.write(slot, bytes);
+                            push(slot, 8);
+                            break;
+                        }
+                    case ReturnType.MemorySlice:
+                        {
+                            if (typeof value === "bigint" || typeof value === "number") {
+                                push(BigInt(value), 8);
+                                break;
+                            }
+                            const u8 = value instanceof Uint8Array ? value : new Uint8Array(value.buffer ?? value);
+                            const slot = this.memory.create(u8.length);
+                            this.memory.write(slot, u8);
+                            push(slot, 8);
+                            break;
+                        }
+                    case ReturnType.Object:
+                        {
+                            if (!this.objects) throw new Error("ReplyEncoder: no object heap wired");
+                            push(value instanceof RefPointer ? value.value : this.objects.create(value), 8);
+                            break;
+                        }
+                    case ReturnType.DOMObject:
+                        {
+                            if (!this.dom) throw new Error("ReplyEncoder: no DOM heap wired");
+                            push(value instanceof RefPointer ? value.value : this.dom.create(value), 8);
+                            break;
+                        }
+                    case ReturnType.TypedArraySlice:
+                        {
+                            const { sliceType, u8 } = asTypedSlice(value);
+                            const slot = this.memory.create(u8.length);
+                            this.memory.write(slot, u8);
+                            out.push(sliceType);
+                            push(this.memory.get(slot).ptr, 8);
+                            push(u8.length, 8);
+                            break;
+                        }
+                    default:
+                        throw new Error(`ReplyEncoder: unsupported return type ${type}`);
+                }
+            }
+            out.push(ReturnValueMarker.End);
+            return Uint8Array.from(out);
+        }
+    }
+    class FunctionRegistry {
+        constructor(bridge, memory, strings, callbacks){
+            this.bridge = bridge;
+            this.params = new ParameterParser(bridge, strings);
+            this.hints = new ReturnHintParser(bridge);
+            this.reply = new ReplyEncoder(memory);
+            this.callbacks = callbacks;
+            this.heap = new ExternalHeap();
+            this.context = this;
+        }
+        static compile(source) {
+            return Function(`"use strict"; return(${source})`)();
+        }
+        register(start, len, utf) {
+            const enc = Number(utf) === 16 ? "utf-16le" : "utf-8";
+            const bytes = new Uint8Array(this.bridge.memory.buffer, Number(start), Number(len));
+            const source = new TextDecoder(enc).decode(bytes);
+            return this.heap.create(FunctionRegistry.compile(source));
+        }
+        allocate() {
+            return this.heap.create(null);
+        }
+        unregister(handle) {
+            this.heap.destroy(BigInt(handle));
+        }
+        #call(handle, pPtr, pLen) {
+            const fn = this.heap.get(BigInt(handle));
+            if (!fn) throw new Error(`invoke: no function for handle ${handle}`);
+            return fn.apply(this.context, this.params.parse(pPtr, pLen));
+        }
+        invoke(handle, pPtr, pLen, rPtr, rLen) {
+            const hint = this.hints.parse(rPtr, rLen);
+            const result = this.#call(handle, pPtr, pLen);
+            const reply = this.reply.immediate(hint, result, true);
+            return typeof reply === "bigint" ? reply : BigInt(reply);
+        }
+        invokeNakedAs(handle, pPtr, pLen, returnTypeId) {
+            const hint = {
+                id: ReturnIds.One,
+                states: [
+                    {
+                        stateId: ThreeStateId.One,
+                        types: [
+                            returnTypeId
+                        ]
+                    }
+                ]
+            };
+            return this.reply.immediate(hint, this.#call(handle, pPtr, pLen), false);
+        }
+        invokeAsync(handle, callbackHandle, pPtr, pLen, rPtr, rLen) {
+            const hint = this.hints.parse(rPtr, rLen);
+            const result = this.#call(handle, pPtr, pLen);
+            if (hint.id === ReturnIds.None) return;
+            const callbackId = BigInt(callbackHandle);
+            const settled = Promise.resolve(result).then((value)=>this.reply.callbackSuccess(this.callbacks, callbackId, hint, value), (error)=>this.reply.callbackFailure(this.callbacks, callbackId, error));
+            if (this.tasks) this.tasks.add(settled);
+        }
+        invokeAsBool(handle, pPtr, pLen) {
+            return this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Bool) ? 1 : 0;
+        }
+        invokeAsFloat(handle, pPtr, pLen) {
+            return Number(this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Float64));
+        }
+        invokeAsInt(handle, pPtr, pLen) {
+            const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Int64);
+            return typeof v === "bigint" ? Number(v) : v;
+        }
+        invokeAsBigInt(handle, pPtr, pLen) {
+            const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Uint64);
+            return typeof v === "bigint" ? v : BigInt(v);
+        }
+        invokeAsObject(handle, pPtr, pLen) {
+            const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Object);
+            return typeof v === "bigint" ? v : BigInt(v);
+        }
+        invokeAsString(handle, pPtr, pLen) {
+            const bytes = new TextEncoder().encode(String(this.#call(handle, pPtr, pLen)));
+            const slot = this.reply.memory.create(bytes.length);
+            this.reply.memory.write(slot, bytes);
+            return slot;
+        }
+        asNone() {
+            return new ReplyContainer(ReturnType.None, undefined);
+        }
+        asBool(v) {
+            return new ReplyContainer(ReturnType.Bool, Boolean(v));
+        }
+        asText8(v) {
+            return new ReplyContainer(ReturnType.Text8, String(v));
+        }
+        asInt8(v) {
+            return new ReplyContainer(ReturnType.Int8, v);
+        }
+        asInt16(v) {
+            return new ReplyContainer(ReturnType.Int16, v);
+        }
+        asInt32(v) {
+            return new ReplyContainer(ReturnType.Int32, v);
+        }
+        asInt64(v) {
+            return new ReplyContainer(ReturnType.Int64, BigInt(v));
+        }
+        asUint8(v) {
+            return new ReplyContainer(ReturnType.Uint8, v);
+        }
+        asUint16(v) {
+            return new ReplyContainer(ReturnType.Uint16, v);
+        }
+        asUint32(v) {
+            return new ReplyContainer(ReturnType.Uint32, v);
+        }
+        asUint64(v) {
+            return new ReplyContainer(ReturnType.Uint64, BigInt(v));
+        }
+        asFloat32(v) {
+            return new ReplyContainer(ReturnType.Float32, v);
+        }
+        asFloat64(v) {
+            return new ReplyContainer(ReturnType.Float64, v);
+        }
+        asInt128(lsb, msb = 0) {
+            return new ReplyContainer(ReturnType.Int128, BigInt(msb) << 64n | BigInt(lsb) & 0xffffffffffffffffn);
+        }
+        asUint128(lsb, msb = 0) {
+            return new ReplyContainer(ReturnType.Uint128, BigInt(msb) << 64n | BigInt(lsb) & 0xffffffffffffffffn);
+        }
+        asErrorCode(v) {
+            return new ReplyContainer(ReturnType.ErrorCode, v instanceof ErrorCodeValue ? v.code : v);
+        }
+        asReplyError(code) {
+            return new ReplyError(code);
+        }
+        asObject(value) {
+            if (typeof value !== "object" || value === null) {
+                throw new Error("Value must be a JS Object/object");
+            }
+            if (!this.reply.objects) throw new Error("asObject: no object heap wired");
+            return new ReplyContainer(ReturnType.Object, new ExternalPointer(this.reply.objects.create(value)));
+        }
+        asDOMObject(value) {
+            if (!this.reply.dom) throw new Error("asDOMObject: no DOM heap wired");
+            return new ReplyContainer(ReturnType.DOMObject, new InternalPointer(this.reply.dom.create(value)));
+        }
+        asFakeNode(tag) {
+            if (typeof tag !== "string") throw new Error("Value must be a JS string");
+            return this.asDOMObject(new FakeNode(tag));
+        }
+        asMemorySlice(value) {
+            const id = typeof value === "bigint" || typeof value === "number" ? BigInt(value) : value;
+            return new ReplyContainer(ReturnType.MemorySlice, id);
+        }
+        asTypedArraySlice(sliceType, content) {
+            return new ReplyContainer(ReturnType.TypedArraySlice, new TypedArraySliceValue(sliceType, content));
+        }
+        asInternalReference(v) {
+            return new ReplyContainer(ReturnType.InternalReference, v instanceof RefPointer ? v : new InternalPointer(BigInt(v)));
+        }
+        asExternalReference(v) {
+            return new ReplyContainer(ReturnType.ExternalReference, v instanceof RefPointer ? v : new ExternalPointer(BigInt(v)));
+        }
+        #asArray(Ctor, v) {
+            if (!(v instanceof Ctor)) throw new Error(`Value must be a ${Ctor.name}`);
+            return new ReplyContainer(ReturnType.MemorySlice, new Uint8Array(v.buffer, v.byteOffset, v.byteLength));
+        }
+        asUint8Array(v) {
+            return this.#asArray(Uint8Array, v);
+        }
+        asUint16Array(v) {
+            return this.#asArray(Uint16Array, v);
+        }
+        asUint32Array(v) {
+            return this.#asArray(Uint32Array, v);
+        }
+        asUint64Array(v) {
+            return this.#asArray(BigUint64Array, v);
+        }
+        asInt8Array(v) {
+            return this.#asArray(Int8Array, v);
+        }
+        asInt16Array(v) {
+            return this.#asArray(Int16Array, v);
+        }
+        asInt32Array(v) {
+            return this.#asArray(Int32Array, v);
+        }
+        asInt64Array(v) {
+            return this.#asArray(BigInt64Array, v);
+        }
+        asFloat32Array(v) {
+            return this.#asArray(Float32Array, v);
+        }
+        asFloat64Array(v) {
+            return this.#asArray(Float64Array, v);
+        }
+    }
+    const Operations = Object.freeze({
+        Begin: 0,
+        MakeFunction: 1,
+        Invoke: 2,
+        InvokeAsync: 3,
+        End: 254,
+        Stop: 255
+    });
+    const ArgumentOperations = Object.freeze({
+        Start: 1,
+        Begin: 2,
+        End: 3,
+        Stop: 4
+    });
+    const TypeOptimization = Object.freeze({
+        None: 0,
+        QuantizedInt16AsI8: 1,
+        QuantizedInt32AsI8: 2,
+        QuantizedInt32AsI16: 3,
+        QuantizedInt64AsI8: 4,
+        QuantizedInt64AsI16: 5,
+        QuantizedInt64AsI32: 6,
+        QuantizedUint16AsU8: 7,
+        QuantizedUint32AsU8: 8,
+        QuantizedUint32AsU16: 9,
+        QuantizedUint64AsU8: 10,
+        QuantizedUint64AsU16: 11,
+        QuantizedUint64AsU32: 12,
+        QuantizedF64AsF32: 13,
+        QuantizedF128AsF32: 14,
+        QuantizedF128AsF64: 15,
+        QuantizedInt128AsI8: 16,
+        QuantizedInt128AsI16: 17,
+        QuantizedInt128AsI32: 18,
+        QuantizedInt128AsI64: 19,
+        QuantizedUint128AsU8: 20,
+        QuantizedUint128AsU16: 21,
+        QuantizedUint128AsU32: 22,
+        QuantizedUint128AsU64: 23,
+        QuantizedPtrAsU8: 24,
+        QuantizedPtrAsU16: 25,
+        QuantizedPtrAsU32: 26,
+        QuantizedPtrAsU64: 27
+    });
+    const GroupReturnHintMarker = Object.freeze({
+        Start: 111,
+        Stop: 222
+    });
+    function readQuantized(view, i, none) {
+        const tq = view.getUint8(i);
+        i += B1;
+        switch(tq){
+            case TypeOptimization.None:
+                return none(view, i);
+            case TypeOptimization.QuantizedInt16AsI8:
+            case TypeOptimization.QuantizedInt32AsI8:
+            case TypeOptimization.QuantizedInt64AsI8:
+            case TypeOptimization.QuantizedInt128AsI8:
+                return [
+                    i + 1,
+                    view.getInt8(i)
+                ];
+            case TypeOptimization.QuantizedInt32AsI16:
+            case TypeOptimization.QuantizedInt64AsI16:
+            case TypeOptimization.QuantizedInt128AsI16:
+                return [
+                    i + 2,
+                    view.getInt16(i, true)
+                ];
+            case TypeOptimization.QuantizedInt64AsI32:
+            case TypeOptimization.QuantizedInt128AsI32:
+                return [
+                    i + 4,
+                    view.getInt32(i, true)
+                ];
+            case TypeOptimization.QuantizedInt128AsI64:
+                return [
+                    i + 8,
+                    view.getBigInt64(i, true)
+                ];
+            case TypeOptimization.QuantizedUint16AsU8:
+            case TypeOptimization.QuantizedUint32AsU8:
+            case TypeOptimization.QuantizedUint64AsU8:
+            case TypeOptimization.QuantizedUint128AsU8:
+            case TypeOptimization.QuantizedPtrAsU8:
+                return [
+                    i + 1,
+                    view.getUint8(i)
+                ];
+            case TypeOptimization.QuantizedUint32AsU16:
+            case TypeOptimization.QuantizedUint64AsU16:
+            case TypeOptimization.QuantizedUint128AsU16:
+            case TypeOptimization.QuantizedPtrAsU16:
+                return [
+                    i + 2,
+                    view.getUint16(i, true)
+                ];
+            case TypeOptimization.QuantizedUint64AsU32:
+            case TypeOptimization.QuantizedUint128AsU32:
+            case TypeOptimization.QuantizedPtrAsU32:
+                return [
+                    i + 4,
+                    view.getUint32(i, true)
+                ];
+            case TypeOptimization.QuantizedUint128AsU64:
+            case TypeOptimization.QuantizedPtrAsU64:
+                return [
+                    i + 8,
+                    view.getBigUint64(i, true)
+                ];
+            case TypeOptimization.QuantizedF64AsF32:
+            case TypeOptimization.QuantizedF128AsF32:
+                return [
+                    i + 4,
+                    view.getFloat32(i, true)
+                ];
+            case TypeOptimization.QuantizedF128AsF64:
+                return [
+                    i + 8,
+                    view.getFloat64(i, true)
+                ];
+            default:
+                throw new Error(`readQuantized: unknown TypeOptimization ${tq}`);
+        }
+    }
+    const noneI16 = (v, i)=>[
+            i + 2,
+            v.getInt16(i, true)
+        ];
+    const noneU16 = (v, i)=>[
+            i + 2,
+            v.getUint16(i, true)
+        ];
+    const noneI32 = (v, i)=>[
+            i + 4,
+            v.getInt32(i, true)
+        ];
+    const noneU32 = (v, i)=>[
+            i + 4,
+            v.getUint32(i, true)
+        ];
+    const noneI64 = (v, i)=>[
+            i + 8,
+            v.getBigInt64(i, true)
+        ];
+    const noneU64 = (v, i)=>[
+            i + 8,
+            v.getBigUint64(i, true)
+        ];
+    const noneF64 = (v, i)=>[
+            i + 8,
+            v.getFloat64(i, true)
+        ];
+    const noneI128 = (v, i)=>[
+            i + 16,
+            v.getBigInt64(i, true) << 64n | v.getBigUint64(i + 8, true)
+        ];
+    const noneU128 = (v, i)=>[
+            i + 16,
+            v.getBigUint64(i, true) << 64n | v.getBigUint64(i + 8, true)
+        ];
+    class BatchParameterParser {
+        constructor(bridge, strings){
+            this.bridge = bridge;
+            this.strings = strings;
+        }
+        parseParams(view, i, texts) {
+            const args = [];
+            while(view.getUint8(i) !== ArgumentOperations.Stop){
+                if (view.getUint8(i) !== ArgumentOperations.Begin) {
+                    throw new Error(`batch args: expected Begin marker, got ${view.getUint8(i)}`);
+                }
+                i += B1;
+                let value;
+                [i, value] = this.parseParam(view, i, texts);
+                args.push(value);
+                if (view.getUint8(i) !== ArgumentOperations.End) {
+                    throw new Error(`batch args: expected End marker, got ${view.getUint8(i)}`);
+                }
+                i += B1;
+            }
+            i += B1;
+            return [
+                i,
+                args
+            ];
+        }
+        parseParam(view, i, texts) {
+            const type = view.getUint8(i);
+            i += B1;
+            switch(type){
+                case ParamType.Null:
+                    return [
+                        i,
+                        null
+                    ];
+                case ParamType.Undefined:
+                    return [
+                        i,
+                        undefined
+                    ];
+                case ParamType.Bool:
+                    return [
+                        i + 1,
+                        view.getUint8(i) === 1
+                    ];
+                case ParamType.Int8:
+                    return [
+                        i + 1,
+                        view.getInt8(i)
+                    ];
+                case ParamType.Uint8:
+                    return [
+                        i + 1,
+                        view.getUint8(i)
+                    ];
+                case ParamType.Float32:
+                    return [
+                        i + 4,
+                        view.getFloat32(i, true)
+                    ];
+                case ParamType.Int16:
+                    return readQuantized(view, i, noneI16);
+                case ParamType.Uint16:
+                    return readQuantized(view, i, noneU16);
+                case ParamType.Int32:
+                    return readQuantized(view, i, noneI32);
+                case ParamType.Uint32:
+                    return readQuantized(view, i, noneU32);
+                case ParamType.Int64:
+                    return readQuantized(view, i, noneI64);
+                case ParamType.Uint64:
+                    return readQuantized(view, i, noneU64);
+                case ParamType.Float64:
+                    return readQuantized(view, i, noneF64);
+                case ParamType.Int128:
+                    return readQuantized(view, i, noneI128);
+                case ParamType.Uint128:
+                    return readQuantized(view, i, noneU128);
+                case ParamType.ErrorCode:
+                    {
+                        const [ni, code] = readQuantized(view, i, noneU16);
+                        return [
+                            ni,
+                            new ErrorCodeValue(Number(code))
+                        ];
+                    }
+                case ParamType.CachedText:
+                    {
+                        const [ni, handle] = readQuantized(view, i, noneU64);
+                        const text = this.strings.get(BigInt(handle));
+                        if (text === undefined) throw new Error(`batch CachedText: no string for handle ${handle}`);
+                        return [
+                            ni,
+                            text
+                        ];
+                    }
+                case ParamType.ExternalReference:
+                    {
+                        const [ni, id] = readQuantized(view, i, noneU64);
+                        return [
+                            ni,
+                            new ExternalPointer(BigInt(id))
+                        ];
+                    }
+                case ParamType.InternalReference:
+                    {
+                        const [ni, id] = readQuantized(view, i, noneU64);
+                        return [
+                            ni,
+                            new InternalPointer(BigInt(id))
+                        ];
+                    }
+                case ParamType.Text8:
+                    {
+                        let index, length;
+                        [i, index] = readQuantized(view, i, noneU64);
+                        [i, length] = readQuantized(view, i, noneU64);
+                        return [
+                            i,
+                            texts.substr(Number(index), Number(length))
+                        ];
+                    }
+                case ParamType.Text16:
+                    {
+                        let ptr, length;
+                        [i, ptr] = readQuantized(view, i, noneU64);
+                        [i, length] = readQuantized(view, i, noneU64);
+                        const bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(length) * 2);
+                        return [
+                            i,
+                            new TextDecoder("utf-16le").decode(bytes)
+                        ];
+                    }
+                case ParamType.TypedArraySlice:
+                    {
+                        const sliceType = view.getUint8(i);
+                        i += B1;
+                        let ptr, length;
+                        [i, ptr] = readQuantized(view, i, noneU64);
+                        [i, length] = readQuantized(view, i, noneU64);
+                        const copy = this.bridge.memory.buffer.slice(Number(ptr), Number(ptr) + Number(length));
+                        const Ctor = TypedSliceArray[sliceType] ?? Uint8Array;
+                        return [
+                            i,
+                            new TypedArraySliceValue(sliceType, new Ctor(copy))
+                        ];
+                    }
+                default:
+                    {
+                        const Ctor = BATCH_ARRAY_CTORS[type];
+                        if (!Ctor) throw new Error(`batch param: unknown ParamType ${type}`);
+                        let ptr, length;
+                        [i, ptr] = readQuantized(view, i, noneU64);
+                        [i, length] = readQuantized(view, i, noneU64);
+                        const start = Number(ptr);
+                        const copy = this.bridge.memory.buffer.slice(start, start + Number(length) * Ctor.BYTES_PER_ELEMENT);
+                        return [
+                            i,
+                            new Ctor(copy)
+                        ];
+                    }
+            }
+        }
+    }
+    const BATCH_ARRAY_CTORS = {
+        [ParamType.Uint8Array]: Uint8Array,
+        [ParamType.Uint16Array]: Uint16Array,
+        [ParamType.Uint32Array]: Uint32Array,
+        [ParamType.Uint64Array]: BigUint64Array,
+        [ParamType.Int8Array]: Int8Array,
+        [ParamType.Int16Array]: Int16Array,
+        [ParamType.Int32Array]: Int32Array,
+        [ParamType.Int64Array]: BigInt64Array,
+        [ParamType.Float32Array]: Float32Array,
+        [ParamType.Float64Array]: Float64Array
+    };
+    const MAKE_FUNCTION_HINT = Object.freeze({
+        id: ReturnIds.One,
+        states: [
+            {
+                stateId: ThreeStateId.One,
+                types: [
+                    ReturnType.ExternalReference
+                ]
+            }
+        ]
+    });
+    class BatchInstructions {
+        constructor(bridge, memory, strings, functions, callbacks){
+            this.bridge = bridge;
+            this.memory = memory;
+            this.functions = functions;
+            this.callbacks = callbacks;
+            this.reply = functions.reply;
+            this.params = new BatchParameterParser(bridge, strings);
+            this.operations = new Map([
+                [
+                    Operations.MakeFunction,
+                    BatchInstructions.makeFunction
+                ],
+                [
+                    Operations.Invoke,
+                    BatchInstructions.invoke
+                ],
+                [
+                    Operations.InvokeAsync,
+                    BatchInstructions.invokeAsync
+                ]
+            ]);
+        }
+        registerOperation(opId, handler) {
+            this.operations.set(opId, handler);
+            return this;
+        }
+        applyNoReturn(opsPtr, opsLen, textPtr, textLen) {
+            for (const thunk of this.#parse(opsPtr, opsLen, textPtr, textLen)){
+                thunk(this);
+            }
+        }
+        applyReturning(opsPtr, opsLen, textPtr, textLen) {
+            const results = [];
+            for (const thunk of this.#parse(opsPtr, opsLen, textPtr, textLen)){
+                const result = thunk(this);
+                if (result === null || result === undefined) continue;
+                const memId = this.reply.immediate(result.hint, result.value, true);
+                results.push({
+                    hint: result.hint,
+                    memId: BigInt(memId)
+                });
+            }
+            if (results.length === 0) return -1n;
+            const out = [
+                GroupReturnHintMarker.Start
+            ];
+            for (const { hint, memId } of results){
+                out.push(hint.id);
+                if (hint.id === ReturnIds.Multi) {
+                    out.push(Number(hint.states.length & 0xff), Number(hint.states.length >> 8 & 0xff));
+                }
+                for (const state of hint.states){
+                    out.push(state.stateId, ...state.types);
+                }
+                for(let k = 0; k < 8; k++)out.push(Number(memId >> BigInt(8 * k) & 0xffn));
+            }
+            out.push(GroupReturnHintMarker.Stop);
+            const bytes = Uint8Array.from(out);
+            const slot = this.memory.create(bytes.length);
+            this.memory.write(slot, bytes);
+            return slot;
+        }
+        #parse(opsPtr, opsLen, textPtr, textLen) {
+            const opsStart = Number(opsPtr);
+            const ops = this.bridge.memory.buffer.slice(opsStart, opsStart + Number(opsLen));
+            const textStart = Number(textPtr);
+            const textBytes = new Uint8Array(this.bridge.memory.buffer, textStart, Number(textLen));
+            const texts = new TextDecoder().decode(textBytes);
+            const view = new DataView(ops);
+            let i = 0;
+            if (view.getUint8(i) !== Operations.Begin) {
+                throw new Error(`batch: expected Operations.Begin, got ${view.getUint8(i)}`);
+            }
+            i += B1;
+            const thunks = [];
+            while(i < view.byteLength && view.getUint8(i) !== Operations.Stop){
+                const opId = view.getUint8(i);
+                i += B1;
+                const handler = this.operations.get(opId);
+                if (!handler) throw new Error(`batch: unhandled operation ${opId}`);
+                let thunk;
+                [i, thunk] = handler(this, opId, i, view, texts);
+                if (thunk) thunks.push(thunk);
+            }
+            return thunks;
+        }
+        static readExternalHandle(view, i) {
+            const vt = view.getUint8(i);
+            if (vt !== ParamType.ExternalReference) {
+                throw new Error(`batch: expected ExternalReference param, got ${vt}`);
+            }
+            const [ni, raw] = readQuantized(view, i + 1, noneU64);
+            return [
+                ni,
+                BigInt(raw)
+            ];
+        }
+        static makeFunction(batch, _opId, i, view, texts) {
+            let handle;
+            [i, handle] = BatchInstructions.readExternalHandle(view, i);
+            if (view.getUint8(i) !== ParamType.Text8) {
+                throw new Error(`batch MakeFunction: expected Text8, got ${view.getUint8(i)}`);
+            }
+            i += B1;
+            const index = Number(view.getBigUint64(i, true));
+            i += B8;
+            const length = Number(view.getBigUint64(i, true));
+            i += B8;
+            if (view.getUint8(i) !== Operations.End) {
+                throw new Error(`batch MakeFunction: expected Operations.End, got ${view.getUint8(i)}`);
+            }
+            i += B1;
+            const source = texts.substr(index, length);
+            const thunk = (b)=>{
+                const fn = b.functions.constructor.compile(source);
+                b.functions.heap.update(handle, fn);
+                return {
+                    hint: MAKE_FUNCTION_HINT,
+                    value: new ExternalPointer(handle)
+                };
+            };
+            return [
+                i,
+                thunk
+            ];
+        }
+        static parseCallParts(batch, i, view, texts, hasCallback) {
+            let handle;
+            [i, handle] = BatchInstructions.readExternalHandle(view, i);
+            let callbackId = null;
+            if (hasCallback) {
+                const vt = view.getUint8(i);
+                if (vt !== ParamType.InternalReference) {
+                    throw new Error(`batch: expected InternalReference param, got ${vt}`);
+                }
+                let raw;
+                [i, raw] = readQuantized(view, i + B1, noneU64);
+                callbackId = BigInt(raw);
+            }
+            let hint;
+            [i, hint] = ReturnHintParser.parseFrom(view, i);
+            if (view.getUint8(i) !== ArgumentOperations.Start) {
+                throw new Error(`batch args: expected Start marker, got ${view.getUint8(i)}`);
+            }
+            i += B1;
+            let args;
+            [i, args] = batch.params.parseParams(view, i, texts);
+            if (view.getUint8(i) !== Operations.End) {
+                throw new Error(`batch: expected Operations.End, got ${view.getUint8(i)}`);
+            }
+            i += B1;
+            return [
+                i,
+                handle,
+                callbackId,
+                hint,
+                args
+            ];
+        }
+        static invoke(batch, _opId, i, view, texts) {
+            let handle, hint, args;
+            [i, handle, , hint, args] = BatchInstructions.parseCallParts(batch, i, view, texts, false);
+            const thunk = (b)=>{
+                const fn = b.functions.heap.get(handle);
+                if (!fn) throw new Error(`batch invoke: no function for handle ${handle}`);
+                const result = fn.apply(b.functions.context, args);
+                if (hint.id === ReturnIds.None) return null;
+                return {
+                    hint,
+                    value: result
+                };
+            };
+            return [
+                i,
+                thunk
+            ];
+        }
+        static invokeAsync(batch, _opId, i, view, texts) {
+            let handle, callbackId, hint, args;
+            [i, handle, callbackId, hint, args] = BatchInstructions.parseCallParts(batch, i, view, texts, true);
+            const thunk = (b)=>{
+                const fn = b.functions.heap.get(handle);
+                if (!fn) throw new Error(`batch invokeAsync: no function for handle ${handle}`);
+                const result = fn.apply(b.functions.context, args);
+                if (hint.id === ReturnIds.None) return null;
+                const settled = Promise.resolve(result).then((value)=>b.reply.callbackSuccess(b.callbacks, callbackId, hint, value), (error)=>b.reply.callbackFailure(b.callbacks, callbackId, error));
+                if (b.functions.tasks) b.functions.tasks.add(settled);
+                return null;
+            };
+            return [
+                i,
+                thunk
+            ];
+        }
+    }
+    class WasmEnvelope {
+        static HEADER_LEN = 14;
+        static write(protocol, version, memoryId, payload) {
+            const buf = new Uint8Array(WasmEnvelope.HEADER_LEN + payload.length);
+            const view = new DataView(buf.buffer);
+            view.setUint8(0, protocol);
+            view.setUint8(1, version);
+            view.setBigUint64(2, BigInt(memoryId), true);
+            view.setUint32(10, payload.length, true);
+            buf.set(payload, WasmEnvelope.HEADER_LEN);
+            return buf;
+        }
+        static parse(bytes, byteOffset = 0) {
+            const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes, byteOffset);
+            if (u8.length < WasmEnvelope.HEADER_LEN) {
+                throw new RangeError("WasmEnvelope: buffer shorter than 14-byte header");
+            }
+            const view = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+            const protocol = view.getUint8(0);
+            const version = view.getUint8(1);
+            const memoryId = view.getBigUint64(2, true);
+            const length = view.getUint32(10, true);
+            const end = WasmEnvelope.HEADER_LEN + length;
+            if (u8.length < end) {
+                throw new RangeError("WasmEnvelope: payload length exceeds buffer");
+            }
+            return {
+                protocol,
+                version,
+                memoryId,
+                length,
+                payload: u8.subarray(WasmEnvelope.HEADER_LEN, end)
+            };
+        }
+    }
+    class ProtocolDispatcher {
+        constructor(handlers = {}){
+            this.handlers = handlers;
+        }
+        setHandler(protocol, handler) {
+            this.handlers[protocol] = handler;
+            return this;
+        }
+        setRawHandler(matches, apply) {
+            this.rawHandler = {
+                matches,
+                apply
+            };
+        }
+        dispatch(buffer) {
+            if (this.rawHandler?.matches(buffer)) return this.rawHandler.apply(buffer);
+            const { protocol, memoryId, payload } = WasmEnvelope.parse(buffer);
+            const handler = this.handlers[protocol];
+            if (!handler) {
+                throw new Error(`unknown protocol: ${protocol}`);
+            }
+            return handler.apply(memoryId, payload);
+        }
+    }
+    class MemoryAllocations {
+        constructor(bridge){
+            this.bridge = bridge;
+        }
+        create(size) {
+            return this.bridge.exports.create_allocation(BigInt(size));
+        }
+        get(id) {
+            const ptr = Number(this.bridge.exports.allocation_start_pointer(BigInt(id)));
+            const len = Number(this.bridge.exports.allocation_length(BigInt(id)));
+            return {
+                ptr,
+                len,
+                bytes: new Uint8Array(this.bridge.memory.buffer, ptr, len)
+            };
+        }
+        write(id, data) {
+            this.get(id).bytes.set(data);
+        }
+        dispose(id) {
+            this.bridge.exports.dispose_allocation(BigInt(id));
+        }
+        clear(id) {
+            this.bridge.exports.clear_allocation(BigInt(id));
+        }
+    }
+    class TimerRegistry {
+        constructor(bridge, host = globalThis){
+            this.bridge = bridge;
+            this.host = host;
+            this.timeouts = new Map();
+            this.intervals = new Map();
+            this.disposed = false;
+        }
+        scheduleTimeout(callbackId, delayMs) {
+            if (this.disposed) return;
+            const key = String(callbackId);
+            const handle = this.host.setTimeout(()=>{
+                this.timeouts.delete(key);
+                if (this.disposed) return;
+                this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
+            }, delayMs);
+            this.timeouts.set(key, handle);
+        }
+        scheduleMicrotask(callbackId) {
+            if (this.disposed) return;
+            const queue = this.host.queueMicrotask ? this.host.queueMicrotask.bind(this.host) : (fn)=>Promise.resolve().then(fn);
+            queue(()=>{
+                if (this.disposed) return;
+                this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
+            });
+        }
+        cancelTimeout(callbackId) {
+            const key = String(callbackId);
+            const handle = this.timeouts.get(key);
+            if (handle !== undefined) {
+                this.host.clearTimeout(handle);
+                this.timeouts.delete(key);
+            }
+        }
+        scheduleInterval(callbackId, intervalMs) {
+            if (this.disposed) return;
+            const key = String(callbackId);
+            const handle = this.host.setInterval(()=>{
+                if (Number(this.bridge.exports.run_interval_callback(BigInt(callbackId))) === 0) {
+                    this.cancelInterval(callbackId);
+                }
+            }, intervalMs);
+            this.intervals.set(key, handle);
+        }
+        cancelInterval(callbackId) {
+            const key = String(callbackId);
+            const handle = this.intervals.get(key);
+            if (handle !== undefined) {
+                this.host.clearInterval(handle);
+                this.intervals.delete(key);
+            }
+        }
+        cancelAll() {
+            this.disposed = true;
+            for (const handle of this.timeouts.values())this.host.clearTimeout(handle);
+            for (const handle of this.intervals.values())this.host.clearInterval(handle);
+            this.timeouts.clear();
+            this.intervals.clear();
+        }
+    }
+    class CallbackRegistry {
+        constructor(bridge, memory){
+            this.bridge = bridge;
+            this.memory = memory;
+        }
+        invoke(id, data) {
+            const slot = this.memory.create(data.length);
+            this.memory.write(slot, data);
+            this.bridge.exports.invoke_callback(BigInt(id), BigInt(slot));
+        }
+        unregister(id) {
+            this.bridge.exports.unregister_callback(BigInt(id));
+        }
+    }
+    class StringCache {
+        constructor(bridge){
+            this.bridge = bridge;
+            this.byString = new Map();
+            this.byHandle = new Map();
+            this.next = 1n;
+        }
+        cache(ptr, len, encoding = 0) {
+            const bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
+            const decoder = encoding === 1 ? new TextDecoder("utf-16le") : new TextDecoder();
+            const str = decoder.decode(bytes);
+            let handle = this.byString.get(str);
+            if (handle === undefined) {
+                handle = this.next;
+                this.next += 1n;
+                this.byString.set(str, handle);
+                this.byHandle.set(handle, str);
+            }
+            return handle;
+        }
+        get(handle) {
+            return this.byHandle.get(BigInt(handle));
+        }
+        drop(handle) {
+            const key = BigInt(handle);
+            const str = this.byHandle.get(key);
+            if (str === undefined) return false;
+            this.byHandle.delete(key);
+            this.byString.delete(str);
+            return true;
+        }
+    }
+    class AnimationDriver {
+        constructor(bridge, raf){
+            this.bridge = bridge;
+            this.raf = raf ?? defaultRaf();
+            this.running = false;
+            this.handle = null;
+        }
+        start() {
+            if (this.running) return;
+            this.running = true;
+            this.#schedule();
+        }
+        #schedule() {
+            this.handle = this.raf.request((ts)=>this.#frame(ts));
+        }
+        #frame(ts) {
+            this.bridge.exports.trigger_animation_callbacks(ts);
+            if (Number(this.bridge.exports.get_total_animation_callbacks()) > 0) {
+                this.#schedule();
+            } else {
+                this.running = false;
+                this.handle = null;
+            }
+        }
+        stop() {
+            if (this.handle !== null) this.raf.cancel(this.handle);
+            this.running = false;
+            this.handle = null;
+        }
+    }
+    function defaultRaf() {
+        if (typeof globalThis.requestAnimationFrame === "function") {
+            return {
+                request: (cb)=>globalThis.requestAnimationFrame(cb),
+                cancel: (h)=>globalThis.cancelAnimationFrame?.(h)
+            };
+        }
+        const now = ()=>globalThis.performance?.now?.() ?? Date.now();
+        return {
+            request: (cb)=>setTimeout(()=>cb(now()), 16),
+            cancel: (h)=>clearTimeout(h)
+        };
+    }
+    class TestReports {
+        static PASS = 0;
+        static FAIL = 1;
+        static IGNORED = 2;
+        constructor(){
+            this.reports = [];
+            this.waiters = [];
+            this.last = null;
+        }
+        push(status, message) {
+            const report = {
+                status,
+                message
+            };
+            const waiter = this.waiters.shift();
+            if (waiter) {
+                this.last = report;
+                waiter(report);
+            } else this.reports.push(report);
+        }
+        next() {
+            const buffered = this.reports.shift();
+            if (buffered) return Promise.resolve(buffered);
+            this.last = null;
+            return new Promise((resolve)=>this.waiters.push(resolve));
+        }
+        snapshot() {
+            return this.last ? [
+                ...this.reports,
+                this.last
+            ] : [
+                ...this.reports
+            ];
+        }
+        get pending() {
+            return this.reports.length;
+        }
+    }
+    function batchProtocolHandler(batches) {
+        return {
+            apply (_memoryId, payload) {
+                if (payload.byteLength < 8) throw new Error("batch payload: missing header");
+                const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+                const textsOff = view.getUint32(0, true);
+                const textsLen = view.getUint32(4, true);
+                if (textsOff < 8 || textsOff + textsLen > payload.byteLength) {
+                    throw new Error("batch payload: header out of range");
+                }
+                const base = payload.byteOffset;
+                batches.applyNoReturn(base + 8, textsOff - 8, base + textsOff, textsLen);
+            }
+        };
+    }
+    class AsyncTaskCollector {
+        constructor(collect = false){
+            this.tasks = [];
+            this.collect = collect;
+        }
+        enable() {
+            this.collect = true;
+        }
+        disable() {
+            this.collect = false;
+        }
+        add(task) {
+            if (!(task instanceof Promise)) throw new Error("Item must be a Promise");
+            if (this.collect) this.tasks.push(task);
+        }
+        clear() {
+            this.tasks.length = 0;
+        }
+        awaitAll() {
+            return Promise.all(this.tasks);
+        }
+    }
+    let _receiverIdCounter = 0;
+    const _receivers = {};
+    class WasmStreamReceiver {
+        constructor(opts){
+            this._id = ++_receiverIdCounter;
+            this._onData = opts && opts.onData || function() {};
+            this._onEnd = opts && opts.onEnd || function() {};
+            this._onError = opts && opts.onError || function() {};
+            _receivers[this._id] = this;
+        }
+        static _push(id, data, sequence, isLast) {
+            var r = _receivers[id];
+            if (!r) return;
+            try {
+                if (isLast) {
+                    r._onEnd();
+                    delete _receivers[id];
+                } else {
+                    r._onData({
+                        data: data,
+                        sequence: sequence
+                    });
+                }
+            } catch (e) {
+                r._onError(e);
+            }
+        }
+        get receiverId() {
+            return this._id;
+        }
+    }
+    let _senderIdCounter = 0;
+    const _senders = {};
+    class WasmStreamSender {
+        constructor(onChunk, onEnd){
+            this._id = ++_senderIdCounter;
+            this._onChunk = onChunk || function() {};
+            this._onEnd = onEnd || function() {};
+            _senders[this._id] = this;
+        }
+        static _send(id, data, sequence) {
+            var s = _senders[id];
+            if (s) s._onChunk({
+                data: data,
+                sequence: sequence
+            });
+        }
+        static _end(id) {
+            var s = _senders[id];
+            if (s) {
+                s._onEnd();
+                delete _senders[id];
+            }
+        }
+        get senderId() {
+            return this._id;
+        }
+    }
+    class FoundationWasm {
+        constructor(opts = {}){
+            this.bridge = {
+                exports: null,
+                memory: null
+            };
+            this.memory = new MemoryAllocations(this.bridge);
+            this.timers = new TimerRegistry(this.bridge, opts.timerHost);
+            this.callbacks = new CallbackRegistry(this.bridge, this.memory);
+            this.animation = new AnimationDriver(this.bridge, opts.rafHost);
+            this.strings = new StringCache(this.bridge);
+            this.functions = new FunctionRegistry(this.bridge, this.memory, this.strings, this.callbacks);
+            this.objects = new ExternalHeap();
+            this.functions.reply.objects = this.objects;
+            this.tasks = new AsyncTaskCollector(false);
+            this.functions.tasks = this.tasks;
+            this.testReports = new TestReports();
+            this.batches = new BatchInstructions(this.bridge, this.memory, this.strings, this.functions, this.callbacks);
+            this.dispatcher = new ProtocolDispatcher();
+            this.dispatcher.setHandler(0, batchProtocolHandler(this.batches));
+            this._capTriggerHandler = null;
+            this._ipcTriggerHandler = null;
+            this.dispatcher.setHandler(3, {
+                apply: (mid, payload)=>this._dispatchCapTrigger(mid, payload)
+            });
+            this.dispatcher.setHandler(4, {
+                apply: (mid, payload)=>this._dispatchIpcTrigger(mid, payload)
+            });
+            this._streamRegistry = null;
+            this._streamRegistry = {};
+            this._nextStreamId = 1;
+        }
+        triggerCapability(request) {
+            if (!this._capTriggerHandler) {
+                return Promise.reject(new Error('triggerCapability: no handler registered'));
+            }
+            return this._capTriggerHandler(request);
+        }
+        triggerIpc(request) {
+            if (!this._ipcTriggerHandler) {
+                return Promise.reject(new Error('triggerIpc: no handler registered'));
+            }
+            return this._ipcTriggerHandler(request);
+        }
+        registerTriggerHandlers(handlers) {
+            if (handlers.onCapability) this._capTriggerHandler = handlers.onCapability;
+            if (handlers.onIpc) this._ipcTriggerHandler = handlers.onIpc;
+        }
+        _dispatchCapTrigger(memoryId, payload) {
+            if (!this._capTriggerHandler) return;
+            try {
+                var req = JSON.parse(new TextDecoder().decode(payload));
+                this._capTriggerHandler(req);
+            } catch (_) {}
+            this.memory.dispose(memoryId);
+        }
+        _dispatchIpcTrigger(memoryId, payload) {
+            if (!this._ipcTriggerHandler) return;
+            try {
+                var req = JSON.parse(new TextDecoder().decode(payload));
+                this._ipcTriggerHandler(req);
+            } catch (_) {}
+            this.memory.dispose(memoryId);
+        }
+        get web_abi() {
+            const self1 = this;
+            const { bridge, memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
+            return {
+                host_apply (memId, ptr, len) {
+                    try {
+                        dispatcher.dispatch(memory.get(memId).bytes);
+                    } finally{
+                        memory.dispose(memId);
+                    }
+                },
+                schedule_timeout (timing, callbackId) {
+                    timers.scheduleTimeout(callbackId, Number(timing));
+                },
+                unschedule_timeout (callbackId) {
+                    timers.cancelTimeout(callbackId);
+                },
+                schedule_microtask (callbackId) {
+                    timers.scheduleMicrotask(callbackId);
+                },
+                schedule_interval (timing, callbackId) {
+                    timers.scheduleInterval(callbackId, Number(timing));
+                },
+                unschedule_interval (callbackId) {
+                    timers.cancelInterval(callbackId);
+                },
+                hook_up_animation_frames () {
+                    animation.start();
+                },
+                host_cache_string (ptr, len, encoding) {
+                    return strings.cache(ptr, len, Number(encoding));
+                },
+                host_report: (status, ptr, len)=>{
+                    const length = Number(len);
+                    const message = length ? new TextDecoder().decode(new Uint8Array(this.bridge.memory.buffer, Number(ptr), length)) : "";
+                    this.testReports.push(Number(status), message);
+                },
+                host_monotonic_now_ms () {
+                    return globalThis.performance?.now?.() ?? Date.now();
+                },
+                host_time_origin_ms () {
+                    return globalThis.performance?.timeOrigin ?? 0;
+                },
+                host_wall_clock_ms () {
+                    return Date.now();
+                },
+                host_fill_random: (ptr, len)=>{
+                    const crypto = globalThis.crypto;
+                    if (typeof crypto?.getRandomValues !== "function") return 1;
+                    const MAX_PER_CALL = 65536;
+                    const start = Number(ptr);
+                    const total = Number(len);
+                    try {
+                        for(let done = 0; done < total; done += MAX_PER_CALL){
+                            const n = Math.min(65536, total - done);
+                            const buffer = this.bridge.memory.buffer;
+                            const dest = new Uint8Array(buffer, start + done, n);
+                            if (typeof SharedArrayBuffer !== "undefined" && buffer instanceof SharedArrayBuffer) {
+                                const scratch = new Uint8Array(n);
+                                crypto.getRandomValues(scratch);
+                                dest.set(scratch);
+                            } else {
+                                crypto.getRandomValues(dest);
+                            }
+                        }
+                    } catch (_) {
+                        return 1;
+                    }
+                    return 0;
+                },
+                host_console_log (ptr, len) {
+                    const length = Number(len);
+                    const message = length ? new TextDecoder().decode(new Uint8Array(this.bridge.memory.buffer, Number(ptr), length)) : "";
+                    console.log(message);
+                },
+                host_register_function (start, len, utf) {
+                    return functions.register(start, len, utf);
+                },
+                host_invoke_function (handle, pPtr, pLen, rPtr, rLen) {
+                    return functions.invoke(handle, pPtr, pLen, rPtr, rLen);
+                },
+                host_invoke_async_function (handle, callbackHandle, pPtr, pLen, rPtr, rLen) {
+                    functions.invokeAsync(handle, callbackHandle, pPtr, pLen, rPtr, rLen);
+                },
+                host_invoke_function_as_bool: (h, p, l)=>functions.invokeAsBool(h, p, l),
+                host_invoke_function_as_f32: (h, p, l)=>functions.invokeAsFloat(h, p, l),
+                host_invoke_function_as_f64: (h, p, l)=>functions.invokeAsFloat(h, p, l),
+                host_invoke_function_as_u8: (h, p, l)=>functions.invokeAsInt(h, p, l),
+                host_invoke_function_as_u16: (h, p, l)=>functions.invokeAsInt(h, p, l),
+                host_invoke_function_as_u32: (h, p, l)=>functions.invokeAsInt(h, p, l),
+                host_invoke_function_as_i8: (h, p, l)=>functions.invokeAsInt(h, p, l),
+                host_invoke_function_as_i16: (h, p, l)=>functions.invokeAsInt(h, p, l),
+                host_invoke_function_as_i32: (h, p, l)=>functions.invokeAsInt(h, p, l),
+                host_invoke_function_as_u64: (h, p, l)=>functions.invokeAsBigInt(h, p, l),
+                host_invoke_function_as_object: (h, p, l)=>functions.invokeAsObject(h, p, l),
+                host_invoke_function_as_i64: (h, p, l)=>functions.invokeAsBigInt(h, p, l),
+                host_unregister_function (handle) {
+                    functions.unregister(handle);
+                },
+                host_function_drop_external_pointer (handle) {
+                    functions.unregister(handle);
+                },
+                host_invoke_function_as_str: (h, p, l)=>functions.invokeAsString(h, p, l),
+                host_abort () {
+                    throw new Error("WasmInstance called abort");
+                },
+                function_allocate_external_pointer: ()=>functions.allocate(),
+                object_allocate_external_pointer: ()=>objects.create(null),
+                host_object_drop_external_pointer (handle) {
+                    objects.destroy(BigInt(handle));
+                },
+                host_string_cache_drop_external_pointer (handle) {
+                    strings.drop(handle);
+                },
+                host_batch_apply (opsPtr, opsLen, textPtr, textLen) {
+                    batches.applyNoReturn(opsPtr, opsLen, textPtr, textLen);
+                },
+                host_batch_returning_apply (opsPtr, opsLen, textPtr, textLen) {
+                    return batches.applyReturning(opsPtr, opsLen, textPtr, textLen);
+                },
+                host_stream_create () {
+                    var id = self1._nextStreamId++;
+                    self1._streamRegistry[id] = {
+                        chunks: [],
+                        onChunk: null,
+                        onEnd: null,
+                        ended: false,
+                        bind: function(chunkFn, endFn) {
+                            this.onChunk = chunkFn || null;
+                            this.onEnd = endFn || null;
+                            if (this.onChunk) {
+                                for(var i = 0; i < this.chunks.length; i++){
+                                    this.onChunk(this.chunks[i]);
+                                }
+                                this.chunks.length = 0;
+                            }
+                            if (this.ended && this.onEnd) {
+                                this.onEnd();
+                            }
+                        }
+                    };
+                    return BigInt(id);
+                },
+                host_stream_bind (streamId, cbOnChunk, cbOnEnd) {
+                    var s = self1._streamRegistry[Number(streamId)];
+                    if (!s) return;
+                    s.onChunk = typeof cbOnChunk === "function" ? cbOnChunk : null;
+                    s.onEnd = typeof cbOnEnd === "function" ? cbOnEnd : null;
+                    if (s.onChunk) {
+                        for(var i = 0; i < s.chunks.length; i++){
+                            s.onChunk(s.chunks[i]);
+                        }
+                        s.chunks.length = 0;
+                    }
+                    if (s.ended && s.onEnd) {
+                        s.onEnd();
+                    }
+                },
+                host_sender_send (streamId, dataPtr, dataLen, seq) {
+                    var id = Number(streamId);
+                    var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
+                    var s = self1._streamRegistry[id];
+                    if (s) {
+                        var chunk = {
+                            data: data,
+                            sequence: Number(seq)
+                        };
+                        if (s.onChunk) {
+                            s.onChunk(chunk);
+                        } else {
+                            s.chunks.push(chunk);
+                        }
+                    } else {
+                        WasmStreamSender._send(id, data, Number(seq));
+                    }
+                },
+                host_sender_end (streamId) {
+                    var id = Number(streamId);
+                    var s = self1._streamRegistry[id];
+                    if (s) {
+                        s.ended = true;
+                        if (s.onEnd) s.onEnd();
+                        delete self1._streamRegistry[id];
+                    } else {
+                        WasmStreamSender._end(id);
+                    }
+                },
+                host_receiver_push (receiverId, dataPtr, dataLen, seq, isLast) {
+                    var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
+                    WasmStreamReceiver._push(Number(receiverId), data, Number(seq), isLast !== 0);
+                }
+            };
+        }
+        init(moduleOrInstance) {
+            const instance = moduleOrInstance.instance ?? moduleOrInstance;
+            this.bridge.exports = instance.exports;
+            this.bridge.memory = instance.exports.memory;
+            return this;
+        }
+        dispose() {
+            this.timers.cancelAll();
+            this.animation.stop();
+        }
+        setProtocolHandler(protocol, handler) {
+            this.dispatcher.setHandler(protocol, handler);
+            return this;
+        }
+        awaitTasks() {
+            return this.tasks.awaitAll();
+        }
+    }
+    class WasmLoader {
+        constructor(opts = {}){
+            this.runtime = new FoundationWasm(opts);
+            this.environment = opts.environment ?? {};
+            this.compileOptions = WasmLoader.compileOptionsOf(opts.compileOptions);
+            this.memory = new WebAssembly.Memory({
+                initial: opts.initialMemory ?? 10,
+                maximum: opts.maximumMemory ?? 200
+            });
+            this.module = null;
+        }
+        static compileOptionsOf(compileOptions) {
+            return {
+                builtins: compileOptions?.builtins ?? [
+                    "js-strings"
+                ],
+                importedStringConstants: compileOptions?.importedStringConstants ?? "imported_strings"
+            };
+        }
+        get imports() {
+            return {
+                abi: this.runtime.web_abi,
+                js: {
+                    mem: this.memory
+                },
+                ...this.environment
+            };
+        }
+        async loadURL(url) {
+            const module = await WebAssembly.instantiateStreaming(fetch(url), this.imports, this.compileOptions);
+            this.#bind(module);
+            return this;
+        }
+        async loadBytes(bytes) {
+            const module = await WebAssembly.instantiate(bytes, this.imports, this.compileOptions);
+            this.#bind(module);
+            return this;
+        }
+        #bind(module) {
+            this.module = module;
+            this.runtime.init(module);
+        }
+        run() {
+            if (!this.module) throw new Error("No wasm module loaded");
+            const main = this.module.instance.exports.main;
+            if (!main) throw new Error("wasm module has no exported main function");
+            return main();
+        }
+        static async fromScripts(opts = {}) {
+            const scripts = document.querySelectorAll('script[type="application/wasm"]');
+            const loading = [];
+            for (const script of scripts){
+                if (!script.src) continue;
+                loading.push(new WasmLoader(opts).loadURL(script.src));
+            }
+            return Promise.all(loading);
+        }
+    }
+    class WasmWebScripts {
+        constructor(opts = {}){
+            this.modules = WasmLoader.fromScripts(opts);
+        }
+        static default(environment) {
+            return new WasmWebScripts({
+                environment
+            });
+        }
+        async runAll() {
+            const loaders = await this.modules;
+            for (const loader of loaders)loader.run();
+            return loaders;
+        }
+    }
+    globalThis.FoundationWasmRuntime = Object.freeze({
+        FoundationWasm,
+        batchProtocolHandler,
+        WasmLoader,
+        WasmWebScripts,
+        AsyncTaskCollector,
+        TestReports,
+        WasmEnvelope,
+        ProtocolDispatcher,
+        MemoryAllocations,
+        TimerRegistry,
+        CallbackRegistry,
+        StringCache,
+        AnimationDriver,
+        FunctionRegistry,
+        ParameterParser,
+        ReturnHintParser,
+        ReplyEncoder,
+        ExternalHeap,
+        BatchInstructions,
+        BatchParameterParser,
+        Operations,
+        ArgumentOperations,
+        TypeOptimization,
+        ParamType,
+        ReturnType,
+        ReturnIds,
+        ThreeStateId,
+        ExternalPointer,
+        InternalPointer,
+        CachePointer,
+        ErrorCodeValue,
+        TypedArraySliceValue,
+        TypedSliceArray,
+        ReplyContainer,
+        FakeNode,
+        ReplyError,
+        WasmStreamReceiver,
+        WasmStreamSender
+    });
+    class ConnectionManager {
+        #adapters = new Map();
+        #connections = new Set();
+        #closed = false;
+        #tag = 0n;
+        nextTag() {
+            if (this.#tag === 0xffffffffffffffffn) throw new Error("Connection identifiers exhausted");
+            return ++this.#tag;
+        }
+        supports(transport) {
+            return this.#adapters.has(transport);
+        }
+        register(transport, open) {
+            if (this.#closed || this.#adapters.has(transport)) throw new Error("Connection adapter is unavailable");
+            this.#adapters.set(transport, open);
+            return this;
+        }
+        acquire(options, listener = {}) {
+            if (this.#closed) throw new Error("Connection manager is closed");
+            const { transport, endpoint, shared = transport === "websocket", keepAlive = false, settings = null, authority = null, protocol = "frame" } = options;
+            const url = new URL(endpoint, options.base ?? globalThis.location?.href);
+            if (url.username || url.password) throw new Error("Use the connection authentication context");
+            url.hash = "";
+            if (transport === "websocket") {
+                if (url.protocol === "https:") url.protocol = "wss:";
+                if (url.protocol === "http:") url.protocol = "ws:";
+            }
+            let entry = shared && Array.from(this.#connections).find((c)=>c.shared && c.transport === transport && c.address === url.href && c.settings === settings && c.authority === authority && c.protocol === protocol);
+            const handle = {
+                ...listener
+            };
+            if (!entry) {
+                const open = this.#adapters.get(transport);
+                if (!open) throw new Error("Unknown connection transport: " + transport);
+                entry = {
+                    shared,
+                    address: url.href,
+                    settings,
+                    authority,
+                    transport,
+                    protocol,
+                    retainers: new Set(),
+                    handles: new Set([
+                        handle
+                    ])
+                };
+                this.#connections.add(entry);
+                try {
+                    entry.connection = open({
+                        ...options,
+                        endpoint: url.href
+                    }, {
+                        listening: ()=>[
+                                ...entry.handles
+                            ].some((h)=>h.receive),
+                        deliver: (bytes)=>{
+                            if (!this.#connections.has(entry)) return;
+                            if (options.isContext?.(bytes)) {
+                                entry.context = new Uint8Array(bytes).slice();
+                                for (const h of [
+                                    ...entry.handles
+                                ])h.onContext?.(entry.context.slice());
+                                return;
+                            }
+                            const delivered = new Set();
+                            for (const h of [
+                                ...entry.handles
+                            ]){
+                                if (!entry.handles.has(h) || !h.receive || h.owner && delivered.has(h.owner)) continue;
+                                try {
+                                    const copy = new Uint8Array(bytes).slice();
+                                    if (h.accept && !h.accept(copy)) continue;
+                                    h.receive(copy);
+                                    if (h.owner) delivered.add(h.owner);
+                                } catch (cause) {
+                                    h.onError?.(cause);
+                                }
+                            }
+                        },
+                        opened: ()=>{
+                            entry.opened = true;
+                            for (const h of [
+                                ...entry.handles
+                            ])h.onOpen?.();
+                        },
+                        disconnected: (cause)=>{
+                            entry.opened = false;
+                            entry.context = null;
+                            for (const h of [
+                                ...entry.handles
+                            ])h.onError?.(cause);
+                        }
+                    });
+                } catch (cause) {
+                    this.#connections.delete(entry);
+                    throw cause;
+                }
+            } else {
+                entry.handles.add(handle);
+                if (entry.opened || entry.context) queueMicrotask(()=>{
+                    if (!entry.handles.has(handle)) return;
+                    if (entry.opened) handle.onOpen?.();
+                    if (entry.context) handle.onContext?.(entry.context.slice());
+                });
+            }
+            const retention = {};
+            if (keepAlive) entry.retainers.add(retention);
+            const releaseUnused = ()=>{
+                if (!entry.handles.size && !entry.retainers.size) this.#close(entry);
+            };
+            return {
+                send: async (bytes)=>{
+                    if (!entry.handles.has(handle) || !entry.connection?.send) throw new Error("Connection cannot send");
+                    await entry.connection.send(bytes);
+                },
+                close: ()=>{
+                    entry.handles.delete(handle);
+                    releaseUnused();
+                },
+                releaseRetention: ()=>{
+                    entry.retainers.delete(retention);
+                    releaseUnused();
+                }
+            };
+        }
+        #close(entry) {
+            if (!this.#connections.delete(entry)) return;
+            entry.handles.clear();
+            entry.connection?.close();
+        }
+        close() {
+            this.#closed = true;
+            for (const entry of [
+                ...this.#connections
+            ])this.#close(entry);
+        }
+    }
+    const RESERVED = Object.freeze({
+        HEAD: 0,
+        BODY: 1,
+        HTML: 2
+    });
+    class NodeRegistry {
+        constructor(){
+            this.nodes = new Map();
+            this.pending = new Map();
+        }
+        seedDocument(doc) {
+            if (doc.head) this.nodes.set(RESERVED.HEAD, doc.head);
+            if (doc.body) this.nodes.set(RESERVED.BODY, doc.body);
+            if (doc.documentElement) this.nodes.set(RESERVED.HTML, doc.documentElement);
+            return this;
+        }
+        register(id, node) {
+            this.nodes.set(id, node);
+            return node;
+        }
+        get(id) {
+            return this.nodes.get(id);
+        }
+        expect(id) {
+            const node = this.nodes.get(id);
+            if (node === undefined) throw new Error(`NodeRegistry: unknown node id ${id}`);
+            return node;
+        }
+        unregister(id) {
+            this.nodes.delete(id);
+        }
+        stage(id, node) {
+            this.pending.set(id, node);
+            return node;
+        }
+        applyRegister(id, document1) {
+            if (this.nodes.has(id)) return this.nodes.get(id);
+            const staged = this.pending.get(id);
+            if (staged !== undefined) {
+                this.pending.delete(id);
+                return this.register(id, staged);
+            }
+            const found = document1.querySelector?.(`[primal-id="${id}"]`);
+            if (found) return this.register(id, found);
+            throw new Error(`NodeRegistry: REGISTER_NODE ${id} matches no staged node or [primal-id]`);
+        }
+        expectOrStaged(id) {
+            const node = this.nodes.get(id);
+            if (node !== undefined) return node;
+            const staged = this.pending.get(id);
+            if (staged !== undefined) {
+                this.pending.delete(id);
+                return staged;
+            }
+            throw new Error(`NodeRegistry: unknown node id ${id}`);
+        }
+        get size() {
+            return this.nodes.size;
+        }
+    }
+    const morphIsElement = (n)=>{
+        if (!n) return false;
+        if (n.nodeType !== undefined) return n.nodeType === 1;
+        return typeof n.getAttributeNames === "function" && (n.tag ?? "") !== "#text";
+    };
+    const morphTag = (n)=>(n.tagName ?? n.tag ?? "").toUpperCase();
+    const morphKids = (n)=>Array.from(n.childNodes ?? n.children ?? []);
+    const morphText = (n)=>n.nodeValue !== undefined && n.nodeValue !== null ? n.nodeValue : n.textContent;
+    const morphSetText = (n, v)=>{
+        if (n.nodeValue !== undefined && n.nodeValue !== null) n.nodeValue = v;
+        else n.textContent = v;
+    };
+    const morphAttr = (n, name)=>n.getAttribute ? n.getAttribute(name) : null;
+    const morphIdentity = (n)=>morphAttr(n, "id") ?? morphAttr(n, "primal-id");
+    function morphWalk(root, fn) {
+        if (morphIsElement(root)) fn(root);
+        for (const child of morphKids(root))morphWalk(child, fn);
+    }
+    function moveBefore(parent, node, ref) {
+        if (typeof parent.moveBefore === "function") parent.moveBefore(node, ref);
+        else {
+            node.parentNode?.removeChild?.(node);
+            parent.insertBefore(node, ref);
+        }
+    }
+    class MorphContext {
+        constructor(doc){
+            this.doc = doc;
+            this.idMap = new Map();
+            this.persistentIds = new Set();
+            this.oldIdTagMap = new Map();
+            this.duplicates = new Set();
+            this.pantry = null;
+        }
+        computePersistentIds(oldRoot, newRoot) {
+            morphWalk(oldRoot, (el)=>{
+                const id = morphIdentity(el);
+                if (!id) return;
+                if (this.oldIdTagMap.has(id)) this.duplicates.add(id);
+                else this.oldIdTagMap.set(id, morphTag(el));
+            });
+            morphWalk(newRoot, (el)=>{
+                const id = morphIdentity(el);
+                if (!id || this.duplicates.has(id)) return;
+                if (this.oldIdTagMap.get(id) === morphTag(el)) this.persistentIds.add(id);
+            });
+        }
+        populateIdMap(root) {
+            const build = (node)=>{
+                const ids = new Set();
+                const own = morphIsElement(node) ? morphIdentity(node) : null;
+                if (own && this.persistentIds.has(own)) ids.add(own);
+                for (const child of morphKids(node)){
+                    for (const id of build(child))ids.add(id);
+                }
+                if (ids.size > 0) this.idMap.set(node, ids);
+                return ids;
+            };
+            build(root);
+        }
+        hasConflictingId(node) {
+            const id = morphIsElement(node) ? morphIdentity(node) : null;
+            return !!id && !this.persistentIds.has(id);
+        }
+        findBestMatch(oldCursor, newChild) {
+            if (!morphIsElement(newChild)) {
+                return oldCursor && !morphIsElement(oldCursor) ? oldCursor : null;
+            }
+            const newIds = this.idMap.get(newChild) ?? new Set();
+            if (newIds.size > 0) {
+                const intersects = (candidate)=>{
+                    if (!morphIsElement(candidate) || morphTag(candidate) !== morphTag(newChild) || !this.idMap.has(candidate)) {
+                        return false;
+                    }
+                    const ids = this.idMap.get(candidate);
+                    for (const id of newIds){
+                        if (ids.has(id)) return true;
+                    }
+                    return false;
+                };
+                for(let candidate = oldCursor; candidate; candidate = candidate.nextSibling){
+                    if (intersects(candidate)) return candidate;
+                }
+                if (this.pantry) {
+                    for (const candidate of morphKids(this.pantry)){
+                        if (intersects(candidate)) return candidate;
+                    }
+                }
+            }
+            if (oldCursor && morphIsElement(oldCursor) === morphIsElement(newChild) && morphTag(oldCursor) === morphTag(newChild) && !this.hasConflictingId(oldCursor)) {
+                if (typeof oldCursor.isEqualNode === "function") {
+                    if (oldCursor.isEqualNode(newChild)) return oldCursor;
+                    const nextNew = newChild.nextSibling ?? null;
+                    if (nextNew && oldCursor.isEqualNode(nextNew)) return null;
+                }
+                return oldCursor;
+            }
+            return null;
+        }
+        removeNode(node) {
+            if (this.idMap.has(node)) {
+                if (!this.pantry) this.pantry = this.doc.createElement("div");
+                moveBefore(this.pantry, node, null);
+            } else {
+                node.parentNode?.removeChild?.(node);
+            }
+        }
+        morphChildren(oldParent, newParent) {
+            let oldCursor = oldParent.firstChild ?? null;
+            for (const newChild of morphKids(newParent)){
+                if (oldCursor && morphAttr(oldCursor, "data-ignore-morph") !== null && morphAttr(newChild, "data-ignore-morph") !== null) {
+                    oldCursor = oldCursor.nextSibling;
+                    continue;
+                }
+                const match = this.findBestMatch(oldCursor, newChild);
+                if (match) {
+                    while(oldCursor && oldCursor !== match){
+                        const next = oldCursor.nextSibling;
+                        this.removeNode(oldCursor);
+                        oldCursor = next;
+                    }
+                    if (match !== oldCursor) moveBefore(oldParent, match, oldCursor);
+                    this.morphNode(match, newChild);
+                    oldCursor = match.nextSibling;
+                } else {
+                    const clone = cloneNode(this.doc, newChild);
+                    oldParent.insertBefore(clone, oldCursor);
+                }
+            }
+            while(oldCursor){
+                const next = oldCursor.nextSibling;
+                this.removeNode(oldCursor);
+                oldCursor = next;
+            }
+        }
+        morphNode(oldNode, newNode) {
+            if (!morphIsElement(oldNode) || !morphIsElement(newNode)) {
+                if (morphText(oldNode) !== morphText(newNode)) {
+                    morphSetText(oldNode, morphText(newNode));
+                }
+                return;
+            }
+            if (typeof oldNode.isEqualNode === "function" && oldNode.isEqualNode(newNode)) {
+                return;
+            }
+            this.syncAttributes(oldNode, newNode);
+            preserveFormState(oldNode, newNode);
+            const tag = morphTag(oldNode);
+            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+            this.morphChildren(oldNode, newNode);
+        }
+        syncAttributes(oldEl, newEl) {
+            const preserved = (morphAttr(oldEl, "data-preserve-attr") || "").split(",").map((sliver)=>sliver.trim()).filter(Boolean);
+            for (const name of newEl.getAttributeNames()){
+                if (!preserved.includes(name)) oldEl.setAttribute(name, newEl.getAttribute(name));
+            }
+            for (const name of oldEl.getAttributeNames()){
+                if (!preserved.includes(name) && newEl.getAttribute(name) === null) {
+                    oldEl.removeAttribute(name);
+                }
+            }
+        }
+        cleanup() {
+            if (this.pantry) {
+                while(this.pantry.firstChild)this.pantry.removeChild(this.pantry.firstChild);
+            }
+            this.idMap.clear();
+            this.persistentIds.clear();
+            this.oldIdTagMap.clear();
+            this.duplicates.clear();
+        }
+    }
+    function preserveFormState(oldEl, newEl) {
+        if (morphTag(oldEl) !== morphTag(newEl)) return;
+        switch(morphTag(oldEl)){
+            case "INPUT":
+                {
+                    const type = morphAttr(oldEl, "type");
+                    if (type === "checkbox" || type === "radio") newEl.checked = oldEl.checked;
+                    else if (type !== "file") newEl.value = oldEl.value;
+                    break;
+                }
+            case "TEXTAREA":
+                newEl.value = oldEl.value;
+                break;
+            case "SELECT":
+                newEl.selectedIndex = oldEl.selectedIndex;
+                break;
+            default:
+        }
+    }
+    function cloneNode(doc, node) {
+        if (typeof node.cloneNode === "function") return node.cloneNode(true);
+        if (!morphIsElement(node)) return doc.createTextNode(morphText(node) ?? "");
+        const el = doc.createElement(node.tag ?? node.tagName);
+        for (const name of node.getAttributeNames())el.setAttribute(name, node.getAttribute(name));
+        if (node.value != null) el.value = node.value;
+        if (node.checked != null) el.checked = node.checked;
+        for (const child of morphKids(node))el.appendChild(cloneNode(doc, child));
+        return el;
+    }
+    class MorphDom {
+        static scripts = new WeakSet();
+        static morph(target, newContent, doc = target.ownerDocument ?? (typeof document === "undefined" ? null : document)) {
+            const ctx = new MorphContext(doc);
+            try {
+                ctx.computePersistentIds(target, newContent);
+                ctx.populateIdMap(target);
+                ctx.populateIdMap(newContent);
+                ctx.morphChildren(target, newContent);
+                MorphDom.executeNewScripts(target, doc);
+            } finally{
+                ctx.cleanup();
+            }
+        }
+        static executeNewScripts(root, doc) {
+            if (!doc || typeof root.querySelectorAll !== "function") return;
+            for (const script of root.querySelectorAll("script")){
+                if (MorphDom.scripts.has(script)) continue;
+                const clone = doc.createElement("script");
+                for (const name of script.getAttributeNames()){
+                    clone.setAttribute(name, script.getAttribute(name));
+                }
+                clone.textContent = script.textContent;
+                script.parentNode?.replaceChild?.(clone, script);
+                MorphDom.scripts.add(clone);
+            }
+        }
+    }
+    const PRIMAL_ON = "primal:on";
+    function buildEventData(eventType, event, el) {
+        return {
+            type: eventType,
+            primalId: el.getAttribute ? el.getAttribute("primal-id") : null,
+            value: el.value ?? null,
+            checked: el.checked ?? null,
+            keyCode: event.keyCode ?? null,
+            modifiers: {
+                alt: !!event.altKey,
+                ctrl: !!event.ctrlKey,
+                shift: !!event.shiftKey,
+                meta: !!event.metaKey
+            }
+        };
+    }
+    function parseCallbackId(ref) {
+        if (ref == null) return null;
+        const s = String(ref).trim();
+        const body = s.startsWith("callback-") ? s.slice("callback-".length) : s;
+        return /^\d+$/.test(body) ? Number(body) : null;
+    }
+    class EventDispatcher {
+        static actionHook = null;
+        constructor(deliver, options = {}){
+            this.deliver = deliver;
+            this.deliverSignal = options.deliverSignal ?? deliver;
+            this.scope = options.scope ?? globalThis;
+            this.listeners = new WeakMap();
+            this.cleanupQueue = [];
+            this.cleanupScheduled = false;
+            this.observer = null;
+        }
+        scanAndWire(root) {
+            visit(root, (el)=>{
+                for (const name of el.getAttributeNames()){
+                    if (!name.startsWith(PRIMAL_ON)) continue;
+                    const rest = name.slice(PRIMAL_ON.length);
+                    const [eventType, mode] = rest.split(":");
+                    if (!eventType) continue;
+                    if (mode === "delegate") {
+                        this.wireDelegated(el, eventType, el.getAttribute(name));
+                    } else if (mode === undefined) {
+                        this.wire(el, eventType, el.getAttribute(name));
+                    }
+                }
+            });
+        }
+        wire(el, eventType, handlerRef) {
+            const listener = this.#buildListener(el, eventType, handlerRef);
+            if (!listener) {
+                console.warn(`EventDispatcher: unresolvable handler "${handlerRef}" for ${eventType}`);
+                return;
+            }
+            this.off(el, eventType);
+            el.addEventListener(eventType, listener);
+            this.#listenerMap(el).set(eventType, listener);
+        }
+        #buildListener(el, eventType, handlerRef) {
+            if (/^(server|host):/.test(String(handlerRef))) {
+                return (event)=>{
+                    if (EventDispatcher.actionHook) return EventDispatcher.actionHook(String(handlerRef), el, event, eventType);
+                    console.warn("No action runtime for", handlerRef);
+                };
+            }
+            const callbackId = parseCallbackId(handlerRef);
+            if (callbackId !== null) {
+                return (event)=>this.deliver(callbackId, buildEventData(eventType, event, el));
+            }
+            const setterId = parseCallbackId(el.getAttribute?.("primal:setter"));
+            if (setterId !== null) {
+                return (event)=>this.deliverSignal(setterId, buildEventData(eventType, event, el));
+            }
+            const fn = resolveFunctionRef(this.scope, handlerRef);
+            if (fn) return fn.bind(el);
+            return null;
+        }
+        wireDelegated(el, eventType, selector) {
+            const target = resolveDelegateTarget(el, selector, this.documentOf(el));
+            if (!target) {
+                console.warn(`EventDispatcher: delegate target "${selector}" not found`);
+                return;
+            }
+            const listener = (event)=>{
+                if (el === event.target || el.contains && el.contains(event.target)) {
+                    event.delegateTarget = el;
+                }
+            };
+            const key = `${eventType}:delegate:${el.getAttribute?.("primal-id") || el.id || ""}`;
+            const map = this.#listenerMap(target);
+            const prior = map.get(key);
+            if (prior) target.removeEventListener(eventType, prior);
+            map.set(key, listener);
+            target.addEventListener(eventType, listener);
+        }
+        documentOf(el) {
+            return el.ownerDocument ?? (typeof document === "undefined" ? null : document);
+        }
+        #listenerMap(el) {
+            let map = this.listeners.get(el);
+            if (!map) {
+                map = new Map();
+                this.listeners.set(el, map);
+            }
+            return map;
+        }
+        off(el, eventType) {
+            const map = this.listeners.get(el);
+            if (!map) return;
+            if (eventType !== undefined) {
+                for (const [key, listener] of map){
+                    if (key === eventType || key.startsWith(`${eventType}:`)) {
+                        el.removeEventListener(eventType, listener);
+                        map.delete(key);
+                    }
+                }
+                return;
+            }
+            for (const [key, listener] of map){
+                el.removeEventListener(key.split(":")[0], listener);
+            }
+            map.clear();
+            this.listeners.delete(el);
+        }
+        removeListeners(root) {
+            visit(root, (el)=>this.off(el));
+        }
+        trackRemoved(node) {
+            this.cleanupQueue.push(node);
+            if (this.cleanupScheduled) return;
+            this.cleanupScheduled = true;
+            queueMicrotask(()=>{
+                const batch = this.cleanupQueue.splice(0);
+                this.cleanupScheduled = false;
+                for (const item of batch)this.removeListeners(item);
+            });
+        }
+        handleMutations(mutations) {
+            for (const mutation of mutations){
+                if (mutation.type !== "childList") continue;
+                for (const node of mutation.addedNodes){
+                    if (!isElement(node) || insideIsland(node)) continue;
+                    this.scanAndWire(node);
+                    Hydrator.hydrate(node);
+                }
+                for (const node of mutation.removedNodes){
+                    if (!isElement(node) || insideIsland(node)) continue;
+                    this.removeListeners(node);
+                }
+            }
+        }
+        observe(doc) {
+            if (typeof MutationObserver === "undefined" || this.observer) return;
+            this.observer = new MutationObserver((mutations)=>this.handleMutations(mutations));
+            this.observer.observe(doc, {
+                subtree: true,
+                childList: true
+            });
+        }
+        on(el, eventType, handlerRef, options = {}) {
+            if (options.delegate) this.wireDelegated(el, eventType, options.delegate);
+            else this.wire(el, eventType, handlerRef);
+        }
+    }
+    const CONVENIENCE_EVENTS = [
+        "click",
+        "change",
+        "submit",
+        "keydown",
+        "keyup",
+        "focus",
+        "blur",
+        "scroll",
+        "input",
+        "mousedown",
+        "mouseup"
+    ];
+    for (const evt of CONVENIENCE_EVENTS){
+        EventDispatcher.prototype[`on${evt}`] = function(el, handlerRef, options) {
+            this.on(el, evt, handlerRef, options);
+        };
+    }
+    function visit(node, fn) {
+        if (typeof node.getAttributeNames === "function") fn(node);
+        for (const child of node.children || [])visit(child, fn);
+    }
+    function isElement(node) {
+        return !!node && typeof node.getAttributeNames === "function";
+    }
+    function insideIsland(node) {
+        if (typeof node.closest === "function") return node.closest("island") !== null;
+        for(let cur = node; cur; cur = cur.parent ?? cur.parentElement ?? null){
+            if ((cur.tag ?? cur.tagName ?? "").toLowerCase() === "island") return true;
+        }
+        return false;
+    }
+    function resolveFunctionRef(scope, handlerRef) {
+        if (typeof handlerRef !== "string" || handlerRef.length === 0) return null;
+        let current = scope;
+        for (const part of handlerRef.split(".")){
+            if (current == null) return null;
+            current = current[part];
+        }
+        return typeof current === "function" ? current : null;
+    }
+    function resolveDelegateTarget(el, selector, doc) {
+        if (!selector) return null;
+        if (selector === "parent") return el.parentElement ?? el.parent ?? null;
+        if (selector === "body") return doc?.body ?? null;
+        return doc?.querySelector ? doc.querySelector(selector) : null;
+    }
+    function initEventRuntime(dispatcher, doc = typeof document === "undefined" ? null : document) {
+        if (!doc) return;
+        const boot = ()=>{
+            dispatcher.scanAndWire(doc.body);
+            dispatcher.observe(doc);
+        };
+        doc.addEventListener?.("DOMContentLoaded", boot);
+        if (doc.readyState !== "loading") boot();
+    }
+    function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
+        return (callbackId, eventData)=>callbackRegistry.invoke(callbackId, encode(eventData));
+    }
+    function signalDeliver(bridge, encode = jsonEncodeEventData) {
+        return (setterId, eventData)=>{
+            const bytes = encode(eventData);
+            const memId = bridge.exports.create_allocation(BigInt(bytes.length));
+            const ptr = Number(bridge.exports.allocation_start_pointer(memId));
+            const memory = typeof bridge.memory === "function" ? bridge.memory() : bridge.memory;
+            new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
+            bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
+        };
+    }
+    function jsonEncodeEventData(eventData) {
+        return new TextEncoder().encode(JSON.stringify(eventData));
+    }
+    class DomHeap {
+        static RESERVED_SLOTS = 5;
+        constructor(host = globalThis){
+            this.items = [];
+            this.free = [];
+            const doc = host.document ?? null;
+            this.create(typeof self !== "undefined" ? self : this);
+            this.create(this);
+            this.create(host.window ?? null);
+            this.create(doc);
+            this.create(doc && doc.body ? doc.body : null);
+        }
+        #unpack(uid) {
+            const v = BigInt(uid);
+            if (v < BigInt(DomHeap.RESERVED_SLOTS)) return {
+                index: Number(v),
+                generation: 0n
+            };
+            return {
+                index: Number(v >> 32n),
+                generation: v & 0xffffffffn
+            };
+        }
+        create(item) {
+            let index;
+            if (this.free.length > 0) {
+                index = this.free.pop();
+                const slot = this.items[index];
+                slot.generation += 1n;
+                slot.active = true;
+                slot.item = item;
+            } else {
+                index = this.items.length;
+                this.items.push({
+                    item,
+                    generation: 0n,
+                    active: true
+                });
+            }
+            return BigInt(index) << 32n | this.items[index].generation;
+        }
+        get(uid) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || !slot.active || slot.generation !== generation) return undefined;
+            return slot.item;
+        }
+        update(uid, item) {
+            const { index, generation } = this.#unpack(uid);
+            const slot = this.items[index];
+            if (!slot || slot.generation !== generation) return false;
+            slot.item = item;
+            slot.active = true;
+            return true;
+        }
+        destroy(uid) {
+            const { index, generation } = this.#unpack(uid);
+            if (index < DomHeap.RESERVED_SLOTS) return false;
+            const slot = this.items[index];
+            if (!slot || !slot.active || slot.generation !== generation) return false;
+            slot.item = null;
+            slot.active = false;
+            this.free.push(index);
+            return true;
+        }
+    }
+    function domAbi(rt, dom) {
+        rt.functions.reply.dom = dom;
+        return {
+            dom_allocate_external_pointer: ()=>dom.create(null),
+            host_dom_drop_external_pointer: (handle)=>{
+                dom.destroy(BigInt(handle));
+            },
+            host_invoke_function_as_dom: (h, p, l)=>{
+                const v = rt.functions.invokeNakedAs(h, p, l, 29);
+                return typeof v === "bigint" ? v : BigInt(v);
+            }
+        };
+    }
+    function reconnectDelay(attempt) {
+        return Math.min(1000 * 2 ** attempt, 30_000);
+    }
+    async function probeBatching(fetchFn = globalThis.fetch) {
+        try {
+            const res = await fetchFn("/primal/messages", {
+                method: "HEAD"
+            });
+            return !!res && res.ok === true;
+        } catch  {
+            return false;
+        }
+    }
+    class RequestQueue {
+        constructor(transport){
+            this.queue = [];
+            this.scheduled = false;
+            this.transport = transport;
+            this.bundlingEnabled = false;
+            this.nextId = 1;
+        }
+        async probe(fetchFn = globalThis.fetch) {
+            this.bundlingEnabled = await probeBatching(fetchFn);
+            return this.bundlingEnabled;
+        }
+        enqueue(request) {
+            if (!this.bundlingEnabled) {
+                return this.transport.send(request.url, request.method, request.data);
+            }
+            this.queue.push({
+                id: this.nextId++,
+                url: request.url,
+                method: request.method ?? "GET",
+                headers: request.headers,
+                body: request.data
+            });
+            if (!this.scheduled) {
+                this.scheduled = true;
+                queueMicrotask(()=>this.flush());
+            }
+            return null;
+        }
+        flush() {
+            this.scheduled = false;
+            if (this.queue.length === 0) return;
+            const batch = this.queue.splice(0);
+            if (batch.length === 1) {
+                const only = batch[0];
+                this.transport.send(only.url, only.method, only.body);
+                return;
+            }
+            this.transport.send("/primal/messages", "POST", batch);
+        }
+    }
+    function parseBatchEntry(entry) {
+        const ct = entry.headers?.["content-type"] ?? entry.headers?.["Content-Type"] ?? "";
+        if (ct.includes("primal-json")) return {
+            id: entry.id,
+            ...routeJson(entry.body)
+        };
+        if (ct.includes("primal-html") || ct.includes("text/html")) {
+            return {
+                id: entry.id,
+                ...routeHtml(String(entry.body))
+            };
+        }
+        if (ct.includes("primal-arrow")) {
+            return {
+                id: entry.id,
+                ...removedArrow()
+            };
+        }
+        return {
+            id: entry.id,
+            type: "raw",
+            text: String(entry.body ?? "")
+        };
+    }
+    class WSBatchQueue {
+        constructor(ws){
+            this.ws = ws;
+            this.queue = [];
+            this.scheduled = false;
+        }
+        send(data) {
+            this.queue.push(data);
+            if (!this.scheduled) {
+                this.scheduled = true;
+                queueMicrotask(()=>this.flush());
+            }
+        }
+        flush() {
+            this.scheduled = false;
+            if (this.queue.length === 1) {
+                this.ws.send(JSON.stringify(this.queue.splice(0, 1)[0]));
+            } else if (this.queue.length > 1) {
+                this.ws.send(JSON.stringify({
+                    batch: this.queue.splice(0)
+                }));
+            }
+        }
+    }
+    class WorkerBatchQueue {
+        constructor(worker){
+            this.worker = worker;
+            this.queue = [];
+            this.scheduled = false;
+        }
+        postMessage(data) {
+            this.queue.push(data);
+            if (!this.scheduled) {
+                this.scheduled = true;
+                queueMicrotask(()=>this.flush());
+            }
+        }
+        flush() {
+            this.scheduled = false;
+            if (this.queue.length === 0) return;
+            const batch = this.queue.splice(0);
+            const transfers = batch.map((d)=>d?.transferable).filter(Boolean);
+            this.worker.postMessage({
+                batch
+            }, transfers);
+        }
+    }
+    class FetchTransport {
+        constructor(config = {}){
+            this.config = config;
+            this.fetchFn = config.fetchFn ?? ((...args)=>globalThis.fetch(...args));
+        }
+        async send(url, method = "POST", data = undefined) {
+            const init = {
+                method,
+                headers: this.config.headers
+            };
+            if (data !== undefined && method !== "GET" && method !== "HEAD") {
+                init.body = typeof data === "string" ? data : JSON.stringify(data);
+            }
+            const response = await this.fetchFn(url, init);
+            if (!response.ok) throw new Error(`FetchTransport: ${method} ${url} -> ${response.status}`);
+            const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
+            return handler.process(response);
+        }
+        disconnect() {}
+    }
+    class SseParser {
+        constructor(){
+            this.decoder = new TextDecoder("utf-8");
+            this.textBuffer = "";
+            this.sawCarriageReturn = false;
+            this.lastEventId = null;
+            this.#resetBuilder();
+        }
+        #resetBuilder() {
+            this.id = null;
+            this.eventType = null;
+            this.data = [];
+            this.retry = null;
+        }
+        push(chunk) {
+            let text = this.decoder.decode(chunk, {
+                stream: true
+            });
+            if (this.sawCarriageReturn) {
+                this.sawCarriageReturn = false;
+                if (text.startsWith("\n")) text = text.slice(1);
+            }
+            if (text.endsWith("\r")) {
+                this.sawCarriageReturn = true;
+            }
+            this.textBuffer += text;
+            const events = [];
+            for(;;){
+                const cut = this.#nextLineEnd();
+                if (cut === null) break;
+                const [line, rest] = cut;
+                this.textBuffer = rest;
+                const event = this.#processLine(line);
+                if (event) events.push(event);
+            }
+            return events;
+        }
+        end() {
+            const tail = this.decoder.decode();
+            if (tail) this.textBuffer += tail;
+            const events = [];
+            if (this.textBuffer.length > 0) {
+                const event = this.#processLine(this.textBuffer.replace(/\r$/, ""));
+                this.textBuffer = "";
+                if (event) events.push(event);
+            }
+            const flushed = this.#dispatch();
+            if (flushed) events.push(flushed);
+            return events;
+        }
+        #nextLineEnd() {
+            const buf = this.textBuffer;
+            for(let i = 0; i < buf.length; i++){
+                const ch = buf[i];
+                if (ch === "\n") return [
+                    buf.slice(0, i),
+                    buf.slice(i + 1)
+                ];
+                if (ch === "\r") {
+                    if (i + 1 < buf.length) {
+                        const skip = buf[i + 1] === "\n" ? 2 : 1;
+                        return [
+                            buf.slice(0, i),
+                            buf.slice(i + skip)
+                        ];
+                    }
+                    return null;
+                }
+            }
+            return null;
+        }
+        #processLine(line) {
+            if (line.length === 0) {
+                return this.#dispatch();
+            }
+            if (line.startsWith(":")) {
+                return {
+                    type: "comment",
+                    comment: line.slice(1).replace(/^ /, "").trimStart(),
+                    lastEventId: this.lastEventId
+                };
+            }
+            const colon = line.indexOf(":");
+            if (colon === -1) return null;
+            const field = line.slice(0, colon);
+            let value = line.slice(colon + 1);
+            if (value.startsWith(" ")) value = value.slice(1);
+            switch(field){
+                case "id":
+                    if (!value.includes("\0")) this.id = value;
+                    break;
+                case "event":
+                    this.eventType = value;
+                    break;
+                case "data":
+                    this.data.push(value);
+                    break;
+                case "retry":
+                    {
+                        const ms = Number(value);
+                        if (Number.isInteger(ms) && ms >= 0 && /^\d+$/.test(value)) this.retry = ms;
+                        break;
+                    }
+                default:
+            }
+            return null;
+        }
+        #dispatch() {
+            if (this.data.length === 0) {
+                this.#resetBuilder();
+                return null;
+            }
+            if (this.id !== null) this.lastEventId = this.id;
+            const event = {
+                type: "message",
+                event: this.eventType,
+                data: this.data.join("\n"),
+                id: this.id,
+                lastEventId: this.lastEventId,
+                retry: this.retry
+            };
+            this.#resetBuilder();
+            return event;
+        }
+    }
+    class FetchEventSource {
+        constructor(url, options = {}){
+            this.url = url;
+            this.options = options;
+            this.fetchFn = options.fetchFn ?? ((...args)=>globalThis.fetch(...args));
+            this.closed = false;
+            this.attempt = 0;
+            this.retryOverride = null;
+            this.lastEventId = null;
+            this.abort = null;
+        }
+        async connect() {
+            this.closed = false;
+            await this.#attemptOnce();
+        }
+        async #attemptOnce() {
+            if (this.closed) return;
+            this.abort = typeof AbortController === "undefined" ? null : new AbortController();
+            const headers = {
+                accept: "text/event-stream",
+                ...this.options.headers ?? {}
+            };
+            if (this.lastEventId !== null) headers["last-event-id"] = this.lastEventId;
+            let response;
+            try {
+                response = await this.fetchFn(this.options.nextUrl?.(this.url) ?? this.url, {
+                    method: this.options.method ?? "GET",
+                    cache: "no-store",
+                    headers,
+                    body: this.options.body,
+                    signal: this.abort?.signal
+                });
+                if (response.status === 410 && this.options.onExpired) {
+                    this.close();
+                    this.options.onExpired();
+                    return;
+                }
+                if (!response.ok) throw new Error(`FetchEventSource: ${response.status}`);
+            } catch (error) {
+                this.options.onError?.(error);
+                this.#scheduleReconnect();
+                return;
+            }
+            this.options.onOpen?.(response);
+            this.attempt = 0;
+            const parser = new SseParser();
+            const reader = response.body.getReader();
+            try {
+                for(;;){
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    for (const event of parser.push(value))this.#deliver(event);
+                }
+                for (const event of parser.end())this.#deliver(event);
+            } catch (error) {
+                if (!this.closed) this.options.onError?.(error);
+            }
+            this.lastEventId = parser.lastEventId ?? this.lastEventId;
+            this.#scheduleReconnect();
+        }
+        #deliver(event) {
+            if (event.type === "comment") {
+                this.options.onComment?.(event);
+                return;
+            }
+            if (event.retry !== null && event.retry !== undefined) {
+                this.retryOverride = event.retry;
+            }
+            if (event.id !== null) this.lastEventId = event.id;
+            this.options.onEvent?.(event);
+        }
+        #scheduleReconnect() {
+            if (this.closed) return;
+            const delay = this.retryOverride ?? reconnectDelay(this.attempt);
+            this.attempt += 1;
+            this.reconnectTimer = setTimeout(()=>{
+                if (!this.closed) this.#attemptOnce();
+            }, delay);
+        }
+        close() {
+            this.closed = true;
+            clearTimeout(this.reconnectTimer);
+            this.abort?.abort?.();
+        }
+    }
+    class SSETransport {
+        constructor(config = {}){
+            this.config = config;
+            this.source = null;
+        }
+        connect(url, data, onResult) {
+            const method = this.config.method ?? (data === undefined ? "GET" : "POST");
+            this.source = new FetchEventSource(url, {
+                method,
+                headers: {
+                    ...data === undefined ? {} : {
+                        "content-type": "application/json"
+                    },
+                    ...this.config.headers ?? {}
+                },
+                body: data === undefined ? undefined : JSON.stringify(data),
+                fetchFn: this.config.fetchFn,
+                onEvent: (event)=>{
+                    if (this.config.listening?.() !== false) onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data));
+                },
+                onOpen: this.config.onOpen,
+                onError: this.config.onError,
+                nextUrl: this.config.nextUrl,
+                onExpired: this.config.onExpired
+            });
+            return this.source.connect();
+        }
+        disconnect() {
+            this.source?.close?.();
+            this.source = null;
+        }
+    }
+    class WebSocketTransport {
+        constructor(config = {}){
+            this.config = config;
+            this.ws = null;
+            this.attempt = 0;
+            this.closed = false;
+        }
+        connect(url, _data, onResult) {
+            const factory = this.config.wsFactory ?? (typeof WebSocket === "undefined" ? null : (target)=>new WebSocket(target));
+            if (!factory) {
+                throw new Error("WebSocketTransport: WebSocket unavailable in this environment");
+            }
+            this.closed = false;
+            this.url = url;
+            this.onResult = onResult;
+            const socket = factory(this.config.nextUrl?.(url) ?? url);
+            this.ws = socket;
+            if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
+            this.ws.onopen = ()=>{
+                if (this.ws !== socket || this.closed) return;
+                this.attempt = 0;
+                this.config.onOpen?.();
+            };
+            this.ws.onmessage = (event)=>{
+                if (this.ws !== socket || this.closed || this.config.listening?.() === false) return;
+                const { data } = event;
+                if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+                    const result = decodeEnvelopeFrame(data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+                    if (result) onResult(result);
+                    return;
+                }
+                onResult(streamEventResult(this.config.protocol ?? "json", data));
+            };
+            this.ws.onclose = ()=>{
+                if (this.closed || this.ws !== socket) return;
+                this.config.onError?.(new Error("WebSocket disconnected"));
+                const delay = reconnectDelay(this.attempt);
+                this.attempt += 1;
+                setTimeout(()=>{
+                    if (!this.closed && this.ws === socket) this.connect(this.url, undefined, this.onResult);
+                }, delay);
+            };
+        }
+        send(data) {
+            if (!this.ws || this.ws.readyState !== undefined && this.ws.readyState !== 1) throw new Error("WebSocket is closed");
+            this.ws.send(typeof data === "string" || ArrayBuffer.isView(data) || data instanceof ArrayBuffer ? data : JSON.stringify(data));
+        }
+        disconnect() {
+            this.closed = true;
+            this.ws?.close?.();
+            this.ws = null;
+        }
+    }
+    class ChunkedTransport {
+        constructor(config = {}){
+            this.config = config;
+            this.abort = null;
+            this.fetchFn = config.fetchFn ?? ((...args)=>globalThis.fetch(...args));
+        }
+        async connect(url, data, onChunk) {
+            this.abort = new AbortController();
+            const response = await this.fetchFn(url, {
+                method: data === undefined ? "GET" : "POST",
+                body: data === undefined ? undefined : JSON.stringify(data),
+                signal: this.abort.signal,
+                headers: this.config.headers
+            });
+            if (response.status === 410 && this.config.onExpired) {
+                this.config.onExpired();
+                return;
+            }
+            if (!response.ok) throw new Error("Stream request failed with HTTP " + response.status);
+            this.config.onOpen?.();
+            const handler = ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
+            if (handler instanceof FrameHandler && isViewResponse(response)) {
+                onChunk(await handler.process(response));
+            } else if (handler instanceof FrameHandler) {
+                const hook = ProtocolHandler.frameHook;
+                if (!hook) throw new Error("Install the frame runtime before opening a frame stream");
+                for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)){
+                    if (this.config.listening?.() !== false) onChunk({
+                        type: "frame",
+                        frames: [
+                            frame
+                        ]
+                    });
+                }
+            } else {
+                const limit = this.config.maxDocumentBytes ?? ProtocolHandler.frameHook?.maxFrameBytes ?? 4 * 1024 * 1024;
+                let size = 0;
+                const body = response.body.pipeThrough(new TransformStream({
+                    transform (bytes, controller) {
+                        size += bytes.byteLength;
+                        if (size > limit) throw new RangeError("Streamed document exceeds byte limit");
+                        controller.enqueue(bytes);
+                    }
+                }));
+                onChunk(await handler.process(new Response(body, {
+                    headers: response.headers
+                })));
+            }
+        }
+        disconnect() {
+            this.abort?.abort?.();
+            this.abort = null;
+        }
+    }
+    class WorkerTransport {
+        constructor(config = {}){
+            this.worker = config.worker;
+        }
+        send(_url, _method, data) {
+            this.worker.postMessage(data);
+        }
+        onMessage(callback) {
+            this.worker.onmessage = (event)=>callback(event.data);
+        }
+        disconnect() {
+            this.worker?.terminate?.();
+        }
+    }
+    class Transport {
+        static create(config = {}) {
+            switch(config.transport){
+                case "sse":
+                    return new SSETransport(config);
+                case "ws":
+                case "websocket":
+                    return new WebSocketTransport(config);
+                case "chunked":
+                    return new ChunkedTransport(config);
+                case "worker":
+                    return new WorkerTransport(config);
+                default:
+                    return new FetchTransport(config);
+            }
+        }
+    }
+    function frameConnections(config = {}) {
+        const manager = new ConnectionManager();
+        for (const transport of [
+            "sse",
+            "websocket",
+            "chunked"
+        ])manager.register(transport, (options, events)=>{
+            const channel = options.channel ?? Transport.create({
+                ...config,
+                headers: {
+                    ...config.headers,
+                    ...options.headers
+                },
+                transport,
+                protocol: "frame"
+            });
+            let waiting = [];
+            const opened = ()=>{
+                for (const pending of waiting.splice(0))pending.resolve();
+                events.opened();
+            };
+            const disconnected = (cause)=>{
+                for (const pending of waiting.splice(0))pending.reject(cause);
+                events.disconnected(cause);
+            };
+            if (channel.config) Object.assign(channel.config, {
+                onOpen: opened,
+                onError: disconnected,
+                listening: events.listening
+            });
+            const result = channel.connect(options.endpoint, options.data, (message)=>{
+                if (message.type !== "frame") {
+                    disconnected(new Error("Expected a Foundation frame"));
+                    return;
+                }
+                for (const frame of message.frames)events.deliver(frame);
+            });
+            Promise.resolve(result).catch(disconnected);
+            return {
+                send: transport === "websocket" ? async (bytes)=>{
+                    if (channel.ws?.readyState === 0) await new Promise((resolve, reject)=>waiting.push({
+                            resolve,
+                            reject
+                        }));
+                    channel.send(bytes);
+                } : undefined,
+                close () {
+                    for (const pending of waiting.splice(0))pending.reject(new Error("Connection closed"));
+                    channel.disconnect();
+                }
+            };
+        });
+        return manager;
+    }
+    function decodeEnvelopeFrame(bytes) {
+        if (ProtocolHandler.frameHook?.isFrame(bytes)) return {
+            type: "frame",
+            frames: [
+                bytes
+            ]
+        };
+        if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
+        if (bytes.byteLength < 6) {
+            console.error("decodeEnvelopeFrame: truncated header", bytes.byteLength);
+            return null;
+        }
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const protocol = view.getUint8(0);
+        const version = view.getUint8(1);
+        const length = view.getUint32(2, true);
+        const payload = bytes.subarray(6);
+        if (payload.byteLength !== length) {
+            console.error(`decodeEnvelopeFrame: length mismatch (header ${length}, payload ${payload.byteLength})`);
+            return null;
+        }
+        if (protocol === 2) {
+            try {
+                return routeJson(JSON.parse(new TextDecoder().decode(payload)));
+            } catch (error) {
+                console.error("decodeEnvelopeFrame: json payload did not parse", error);
+                return null;
+            }
+        }
+        console.error(`decodeEnvelopeFrame: unknown protocol ${protocol} v${version}`);
+        return null;
+    }
+    function base64ToBytes(text) {
+        const bin = atob(String(text).trim());
+        const bytes = new Uint8Array(bin.length);
+        for(let i = 0; i < bin.length; i += 1)bytes[i] = bin.charCodeAt(i);
+        return bytes;
+    }
+    function streamEventResult(kind, raw) {
+        if (kind === "frame") return {
+            type: "frame",
+            frames: [
+                base64ToBytes(raw)
+            ]
+        };
+        if (kind === "json") {
+            try {
+                return routeJson(JSON.parse(raw));
+            } catch  {
+                return {
+                    type: "raw",
+                    text: String(raw)
+                };
+            }
+        }
+        if (kind === "arrow") return removedArrow();
+        return routeHtml(String(raw));
+    }
+    function routeJson(value) {
+        if (value && typeof value === "object" && value.morph) {
+            return {
+                type: "json-morph",
+                morph: value.morph
+            };
+        }
+        return {
+            type: "json",
+            patches: value
+        };
+    }
+    function routeHtml(html) {
+        const match = /^\s*<island\b[^>]*data-target="([^"]+)"[^>]*data-action="([^"]+)"[^>]*>([\s\S]*)<\/island>\s*$/.exec(html);
+        if (match) {
+            return {
+                type: "html-morph",
+                target: match[1],
+                action: match[2],
+                content: match[3]
+            };
+        }
+        return {
+            type: "html",
+            html
+        };
+    }
+    function removedArrow() {
+        console.error('mount: protocol "arrow" was removed; use "frame"');
+        return {
+            type: "raw",
+            text: ""
+        };
+    }
+    const emptyProtocolHandler = {
+        process: async ()=>({
+                type: "raw",
+                text: ""
+            })
+    };
+    class JsonHandler {
+        async process(response) {
+            return routeJson(await response.json());
+        }
+    }
+    class HtmlHandler {
+        async process(response) {
+            return routeHtml(await response.text());
+        }
+    }
+    class RawHandler {
+        async process(response) {
+            return {
+                type: "raw",
+                text: await response.text()
+            };
+        }
+    }
+    function isViewResponse(response) {
+        return response.headers?.get?.("content-type")?.split(";")[0].trim().toLowerCase() === "application/vnd.ewe.frame";
+    }
+    class FrameHandler {
+        async process(response) {
+            if (!response.ok) throw new Error("Frame request failed with HTTP " + response.status);
+            const hook = ProtocolHandler.frameHook;
+            if (!hook) {
+                console.error("frame received but the frame runtime is not installed");
+                return {
+                    type: "raw",
+                    text: ""
+                };
+            }
+            if (isViewResponse(response)) {
+                return {
+                    type: "frame",
+                    frames: [
+                        await hook.readViewResponse(response, hook.maxFrameBytes)
+                    ]
+                };
+            }
+            const frames = [];
+            let total = 0;
+            for await (const frame of hook.readFrames(response.body, hook.maxFrameBytes)){
+                total += frame.length;
+                if (total > hook.maxFrameBytes) throw new RangeError("Frame reply exceeds byte limit");
+                frames.push(frame);
+            }
+            return {
+                type: "frame",
+                frames
+            };
+        }
+    }
+    class ProtocolHandler {
+        static frameHook = null;
+        static named(name) {
+            switch(name){
+                case "frame":
+                    return new FrameHandler();
+                case "arrow":
+                    removedArrow();
+                    return emptyProtocolHandler;
+                case "json":
+                    return new JsonHandler();
+                case "html":
+                    return new HtmlHandler();
+                default:
+                    return null;
+            }
+        }
+        static fromContentType(response) {
+            const ct = response.headers?.get?.("content-type") || "";
+            if (isViewResponse(response) || ct.includes("primal-frame")) return new FrameHandler();
+            if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return ProtocolHandler.named("arrow");
+            if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
+            if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
+                return new HtmlHandler();
+            }
+            return new RawHandler();
+        }
+    }
+    function scopeCss(cssText, prefix) {
+        return cssText.replace(/(^|\})\s*([^@{}][^{}]*)\{/g, (_, brace, selectors)=>{
+            const scoped = selectors.split(",").map((sel)=>`${prefix} ${sel.trim()}`).join(", ");
+            return `${brace}\n${scoped} {`;
+        });
+    }
+    class Hydrator {
+        static scopeExtensions = [];
+        static behaviourMarkers = null;
+        static createScope(targetElement) {
+            const eventCleanups = [];
+            const scope = {
+                targets: ()=>targetElement.querySelectorAll("[primal-id]"),
+                parent: ()=>targetElement,
+                querySelector: (sel)=>targetElement.querySelector(sel),
+                querySelectorAll: (sel)=>targetElement.querySelectorAll(sel),
+                addEvent (target, event, handler, options) {
+                    const el = typeof target === "string" ? targetElement.querySelector(target) : target;
+                    if (el) {
+                        el.addEventListener(event, handler, options);
+                        eventCleanups.push(()=>el.removeEventListener(event, handler, options));
+                    }
+                },
+                onDispose (dispose) {
+                    eventCleanups.push(dispose);
+                },
+                cleanup () {
+                    for (const cleanup of eventCleanups.splice(0))cleanup();
+                }
+            };
+            for (const extend of Hydrator.scopeExtensions)extend(scope, targetElement);
+            return scope;
+        }
+        static hydrate(root, doc = root.ownerDocument ?? globalThis.document) {
+            if (typeof root.querySelectorAll !== "function") return;
+            Hydrator.behaviourMarkers?.(root);
+            for (const style of root.querySelectorAll("style[primal\\:style]")){
+                const prefix = root.id ? `#${root.id}` : `[primal-id="${root.getAttribute?.("primal-id") ?? ""}"]`;
+                const scoped = scopeCss(style.textContent, prefix);
+                if (typeof CSSStyleSheet === "function" && doc?.adoptedStyleSheets) {
+                    const sheet = new CSSStyleSheet();
+                    sheet.replaceSync(scoped);
+                    doc.adoptedStyleSheets = [
+                        ...doc.adoptedStyleSheets,
+                        sheet
+                    ];
+                    (root._sheets ??= []).push(sheet);
+                }
+                style.remove?.();
+            }
+            for (const script of root.querySelectorAll("script[primal\\:script]")){
+                const owner = script.parentElement ?? root;
+                const scope = Hydrator.createScope(owner);
+                try {
+                    const source = script.textContent.trim();
+                    const body = /^(?:async\s+)?function\s*\(/.test(source) ? `(${source})(scope)` : source;
+                    new Function("scope", body)(scope);
+                    Patcher.registerUnmount(owner, ()=>scope.cleanup());
+                } catch (error) {
+                    scope.cleanup();
+                    console.error("Hydrator: scoped script failed", error);
+                }
+                script.remove?.();
+            }
+        }
+    }
+    class Patcher {
+        static runtime = {
+            dispatcher: null,
+            registry: null,
+            signalBridge: null,
+            frames: null
+        };
+        static frameSeq = 0;
+        static localScopes = new WeakMap();
+        static registerUnmount(node, dispose) {
+            let hooks = Patcher.localScopes.get(node);
+            if (!hooks) Patcher.localScopes.set(node, hooks = new Set());
+            hooks.add(dispose);
+        }
+        static releaseScope(node) {
+            const hooks = Patcher.localScopes.get(node);
+            Patcher.localScopes.delete(node);
+            if (hooks) for (const dispose of hooks){
+                try {
+                    dispose();
+                } catch (error) {
+                    console.error("Component cleanup failed", error);
+                }
+            }
+        }
+        static releaseTree(node) {
+            for (const child of Array.from(node.childNodes ?? []))Patcher.releaseTree(child);
+            Patcher.releaseScope(node);
+        }
+        static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
+            if (typeof doc?.createRange === "function") {
+                const fragment = doc.createRange().createContextualFragment(html);
+                target.appendChild(fragment);
+            } else {
+                target.innerHTML = html;
+            }
+            Hydrator.hydrate(target, doc);
+            Patcher.runtime.dispatcher?.scanAndWire?.(target);
+        }
+        static ensureRegistry(doc) {
+            if (Patcher.runtime.document !== doc) {
+                Patcher.runtime.document = doc;
+                Patcher.runtime.registry = new NodeRegistry().seedDocument(doc);
+            }
+            return Patcher.runtime.registry;
+        }
+        static applySignalPatches(patches) {
+            const bridge = Patcher.runtime.signalBridge;
+            if (bridge?.applyPatches) bridge.applyPatches(patches);
+            else console.warn("Patcher: no signalBridge installed; JSON patches dropped", patches);
+        }
+        static route(result, targetEl, doc) {
+            Patcher.applyRoute(result, targetEl, doc);
+            if (result.type !== "frame") Patcher.markApplied();
+        }
+        static markApplied() {
+            Patcher.frameSeq += 1;
+            const stamp = typeof performance !== "undefined" ? performance.now() : Date.now();
+            if (typeof globalThis !== "undefined") {
+                globalThis.__primalFrames = {
+                    seq: Patcher.frameSeq,
+                    at: stamp
+                };
+            }
+        }
+        static applyRoute(result, targetEl, doc) {
+            switch(result.type){
+                case "frame":
+                    if (!Patcher.runtime.frames) console.error("frame received but the frame runtime is not installed");
+                    else for (const frame of result.frames)Patcher.runtime.frames.receive(frame, {
+                        viewMount: targetEl
+                    });
+                    break;
+                case "html":
+                    Patcher.materialize(result.html, targetEl, doc);
+                    break;
+                case "html-morph":
+                    {
+                        const morphTarget = doc.querySelector(result.target);
+                        if (morphTarget && typeof doc.createRange === "function") {
+                            MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.content), doc);
+                        }
+                        break;
+                    }
+                case "json-morph":
+                    {
+                        const morphTarget = doc.querySelector(result.morph.target);
+                        if (morphTarget && typeof doc.createRange === "function") {
+                            MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.morph.content), doc);
+                        }
+                        break;
+                    }
+                case "json":
+                    Patcher.applySignalPatches(result.patches);
+                    break;
+                default:
+                    targetEl.textContent = result.text ?? "";
+            }
+        }
+    }
+    function frameMountTarget(element, target, doc) {
+        if (!target) return element;
+        return target === "parent" ? element.parentElement : doc.querySelector(target);
+    }
+    function resolveMountTarget(element, target, doc) {
+        if (!target) {
+            const container = doc.createElement("div");
+            element.parentNode?.replaceChild?.(container, element);
+            return container;
+        }
+        if (target === "parent") {
+            const parent = element.parentElement ?? element.parent ?? null;
+            if (!parent) throw new Error("mount target not found: parent");
+            clearChildren(parent);
+            return parent;
+        }
+        const found = doc.querySelector(target);
+        if (!found) throw new Error(`mount target not found: ${target}`);
+        clearChildren(found);
+        return found;
+    }
+    function clearChildren(el) {
+        while(el.firstChild)el.removeChild(el.firstChild);
+    }
+    const BaseElement = typeof HTMLElement === "undefined" ? class {
+    } : HTMLElement;
+    class IslandComponent extends BaseElement {
+        connectedCallback() {
+            Hydrator.hydrate(this);
+            Patcher.runtime.dispatcher?.scanAndWire?.(this);
+        }
+        disconnectedCallback() {
+            const doc = this.ownerDocument ?? globalThis.document;
+            if (this._sheets?.length && doc?.adoptedStyleSheets) {
+                doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter((s)=>!this._sheets.includes(s));
+            }
+            this._sheets = [];
+            Patcher.runtime.dispatcher?.removeListeners?.(this);
+        }
+    }
+    function mountSetup(element, defaults = {}) {
+        const api = element.getAttribute("api");
+        if (!api) throw new Error(`${element.tagName?.toLowerCase() ?? "mount"}: missing api attribute`);
+        let data = {};
+        try {
+            data = JSON.parse(element.getAttribute("data") || "{}");
+        } catch (error) {
+            console.error("mount: invalid JSON in data attribute", error);
+        }
+        const transport = element._transportOverride ?? Transport.create({
+            transport: element.getAttribute("transport") ?? defaults.transport,
+            protocol: element.getAttribute("protocol") ?? undefined,
+            url: api
+        });
+        return {
+            api,
+            data,
+            transport,
+            target: element.getAttribute("target")
+        };
+    }
+    class MountDataComponent extends BaseElement {
+        async connectedCallback() {
+            const doc = this.ownerDocument ?? globalThis.document;
+            try {
+                const binding = Patcher.runtime.onMountConnect?.(this, false);
+                this._frameMount = binding;
+                if (binding?.local) return;
+                const { api, data, transport, target } = mountSetup(this);
+                this._transport = transport;
+                const method = this.getAttribute("method") || "POST";
+                const result = await transport.send(binding ? binding.url(api) : api, method, data);
+                if (binding) binding.receive(result);
+                else {
+                    const mount = result.type === "frame" ? frameMountTarget(this, target, doc) : resolveMountTarget(this, target, doc);
+                    Patcher.route(result, mount, doc);
+                }
+            } catch (error) {
+                console.error("mount-data:", error);
+            }
+        }
+        disconnectedCallback() {
+            this._frameMount?.close();
+            this._transport?.disconnect?.();
+        }
+    }
+    class MountStreamComponent extends BaseElement {
+        connectedCallback() {
+            const doc = this.ownerDocument ?? globalThis.document;
+            try {
+                const binding = Patcher.runtime.onMountConnect?.(this, true);
+                this._frameMount = binding;
+                if (binding?.local) return;
+                let generation = 0;
+                const open = ()=>{
+                    const current = ++generation;
+                    const { api, data, transport, target } = mountSetup(this, {
+                        transport: "sse"
+                    });
+                    const targetEl = binding ? null : resolveMountTarget(this, target, doc);
+                    if (binding?.managed) {
+                        const handle = binding.managed({
+                            api,
+                            data,
+                            transport
+                        });
+                        if (handle) {
+                            this._transport = {
+                                disconnect: ()=>handle.close()
+                            };
+                            return;
+                        }
+                    }
+                    this._transport = transport;
+                    if (!binding && this.isConnected === false && targetEl?.isConnected && !this._targetObserver) {
+                        this._targetObserver = new MutationObserver(()=>{
+                            if (!targetEl.isConnected) this.disconnectedCallback();
+                        });
+                        this._targetObserver.observe(doc, {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
+                    if (binding && transport.config) {
+                        transport.config.nextUrl = (url)=>binding.url(url);
+                        transport.config.onExpired = binding.expired;
+                    }
+                    const payload = binding && this.getAttribute("data") === null ? undefined : data;
+                    transport.connect(binding ? binding.url(api) : api, payload, (result)=>{
+                        if (current !== generation || transport !== this._transport) return;
+                        if (binding) binding.receive(result);
+                        else Patcher.route(result, targetEl, doc);
+                    });
+                };
+                this._restartFrameStream = ()=>{
+                    this._transport?.disconnect?.();
+                    open();
+                };
+                open();
+            } catch (error) {
+                console.error("mount-stream:", error);
+            }
+        }
+        disconnectedCallback() {
+            this._frameMount?.close();
+            this._restartFrameStream = null;
+            this._targetObserver?.disconnect();
+            this._targetObserver = null;
+            this._transport?.disconnect?.();
+            this._transport = null;
+        }
+    }
+    function registerWebComponents() {
+        if (typeof customElements === "undefined") return;
+        if (!customElements.get("primal-island")) customElements.define("primal-island", IslandComponent);
+        if (!customElements.get("mount-data")) customElements.define("mount-data", MountDataComponent);
+        if (!customElements.get("mount-stream")) customElements.define("mount-stream", MountStreamComponent);
+    }
+    function registerWasmApp(runtime, opts = {}) {
+        const doc = opts.document ?? globalThis.document;
+        if (!doc) {
+            console.error("registerWasmApp: no document available (non-browser environment)");
+            return;
+        }
+        const bridge = runtime.bridge ?? runtime;
+        const frames = globalThis.EweFrames?.installFrameRuntime(globalThis.FoundationWasmUiRuntime, opts);
+        if (!frames) throw new Error("registerWasmApp requires foundation-ui-frames.js");
+        const dispatcher = Patcher.runtime.dispatcher ?? new EventDispatcher(callbackDeliver(runtime.callbacks));
+        dispatcher.deliver = callbackDeliver(runtime.callbacks);
+        dispatcher.deliverSignal = signalDeliver(bridge);
+        Patcher.runtime.dispatcher = dispatcher;
+        const owned = new WeakSet();
+        const onMount = (id, node)=>{
+            if (!owned.has(node) && bridge.exports?.ewe_ui_dispose_mount) {
+                owned.add(node);
+                Patcher.registerUnmount(node, ()=>bridge.exports.ewe_ui_dispose_mount(id));
+            }
+        };
+        const onEvent = (name, id, event, el)=>{
+            const setter = parseCallbackId(el.getAttribute?.("primal:setter"));
+            if (setter !== null) dispatcher.deliverSignal(setter, buildEventData(name, event, el));
+        };
+        runtime.dispatcher.setRawHandler(ProtocolHandler.frameHook.isFrame, (bytes)=>{
+            if (bytes.byteLength > frames.maxFrameBytes) return frames.receive(bytes);
+            return frames.receive(Uint8Array.from(bytes), {
+                onMount,
+                onEvent
+            });
+        });
+        initEventRuntime(dispatcher, doc);
+    }
+    function frameStats() {
+        return globalThis.__primalFrames ?? {
+            seq: Patcher.frameSeq,
+            at: null
+        };
+    }
+    function createPrimal({ dispatcher, doc = globalThis.document } = {}) {
+        return {
+            mountData (api, data, targetNode, opts = {}) {
+                const transport = Transport.create({
+                    transport: opts.transport,
+                    url: api
+                });
+                return transport.send(api, opts.method || "POST", data).then((result)=>Patcher.route(result, targetNode, doc));
+            },
+            mountStream (api, data, targetNode, opts = {}) {
+                const transport = Transport.create({
+                    transport: opts.transport ?? "sse",
+                    url: api
+                });
+                transport.connect(api, data, (result)=>Patcher.route(result, targetNode, doc));
+                return transport;
+            },
+            unmount (element) {
+                element.disconnectedCallback?.();
+                element.remove?.();
+            },
+            on: (selector, event, handler)=>doc.querySelector(selector)?.addEventListener(event, handler),
+            onclick (selector, handler) {
+                this.on(selector, "click", handler);
+            },
+            onchange (selector, handler) {
+                this.on(selector, "change", handler);
+            },
+            off: (selector, event, handler)=>doc.querySelector(selector)?.removeEventListener(event, handler),
+            scope: (element)=>Hydrator.createScope(element),
+            dispatcher,
+            Transport,
+            ProtocolHandler,
+            Patcher,
+            Hydrator
+        };
+    }
+    if (typeof window !== "undefined") {
+        queueMicrotask(registerWebComponents);
+        window.primal ??= createPrimal({});
+    }
+    globalThis.FoundationWasmUiRuntime = Object.freeze({
+        RESERVED,
+        NodeRegistry,
+        MorphDom,
+        moveBefore,
+        buildEventData,
+        parseCallbackId,
+        EventDispatcher,
+        CONVENIENCE_EVENTS,
+        callbackDeliver,
+        signalDeliver,
+        resolveFunctionRef,
+        resolveDelegateTarget,
+        initEventRuntime,
+        Transport,
+        ProtocolHandler,
+        Patcher,
+        Hydrator,
+        scopeCss,
+        RequestQueue,
+        SseParser,
+        FetchEventSource,
+        WSBatchQueue,
+        WorkerBatchQueue,
+        probeBatching,
+        parseBatchEntry,
+        reconnectDelay,
+        resolveMountTarget,
+        IslandComponent,
+        MountDataComponent,
+        MountStreamComponent,
+        registerWebComponents,
+        registerWasmApp,
+        createPrimal,
+        DomHeap,
+        domAbi
+    });
+    const mod = {
+        RESERVED: RESERVED,
+        NodeRegistry: NodeRegistry,
+        moveBefore: moveBefore,
+        MorphDom: MorphDom,
+        buildEventData: buildEventData,
+        parseCallbackId: parseCallbackId,
+        EventDispatcher: EventDispatcher,
+        CONVENIENCE_EVENTS: CONVENIENCE_EVENTS,
+        resolveFunctionRef: resolveFunctionRef,
+        resolveDelegateTarget: resolveDelegateTarget,
+        initEventRuntime: initEventRuntime,
+        callbackDeliver: callbackDeliver,
+        signalDeliver: signalDeliver,
+        DomHeap: DomHeap,
+        domAbi: domAbi,
+        reconnectDelay: reconnectDelay,
+        probeBatching: probeBatching,
+        RequestQueue: RequestQueue,
+        parseBatchEntry: parseBatchEntry,
+        WSBatchQueue: WSBatchQueue,
+        WorkerBatchQueue: WorkerBatchQueue,
+        FetchTransport: FetchTransport,
+        SseParser: SseParser,
+        FetchEventSource: FetchEventSource,
+        SSETransport: SSETransport,
+        WebSocketTransport: WebSocketTransport,
+        ChunkedTransport: ChunkedTransport,
+        WorkerTransport: WorkerTransport,
+        Transport: Transport,
+        frameConnections: frameConnections,
+        decodeEnvelopeFrame: decodeEnvelopeFrame,
+        JsonHandler: JsonHandler,
+        HtmlHandler: HtmlHandler,
+        RawHandler: RawHandler,
+        FrameHandler: FrameHandler,
+        ProtocolHandler: ProtocolHandler,
+        scopeCss: scopeCss,
+        Hydrator: Hydrator,
+        Patcher: Patcher,
+        frameMountTarget: frameMountTarget,
+        resolveMountTarget: resolveMountTarget,
+        IslandComponent: IslandComponent,
+        MountDataComponent: MountDataComponent,
+        MountStreamComponent: MountStreamComponent,
+        registerWebComponents: registerWebComponents,
+        registerWasmApp: registerWasmApp,
+        frameStats: frameStats,
+        createPrimal: createPrimal
+    };
+    var SIZEOF_SHORT = 2;
+    var SIZEOF_INT = 4;
+    var FILE_IDENTIFIER_LENGTH = 4;
+    var SIZE_PREFIX_LENGTH = 4;
+    var int32 = new Int32Array(2);
+    var float32 = new Float32Array(int32.buffer);
+    var float64 = new Float64Array(int32.buffer);
+    var isLittleEndian = new Uint16Array(new Uint8Array([
+        1,
+        0
+    ]).buffer)[0] === 1;
+    var Encoding;
+    (function(Encoding2) {
+        Encoding2[Encoding2["UTF8_BYTES"] = 1] = "UTF8_BYTES";
+        Encoding2[Encoding2["UTF16_STRING"] = 2] = "UTF16_STRING";
+    })(Encoding || (Encoding = {}));
+    var ByteBuffer = class _ByteBuffer {
+        constructor(bytes_){
+            this.bytes_ = bytes_;
+            this.position_ = 0;
+            this.text_decoder_ = new TextDecoder;
+        }
+        static allocate(byte_size) {
+            return new _ByteBuffer(new Uint8Array(byte_size));
+        }
+        clear() {
+            this.position_ = 0;
+        }
+        bytes() {
+            return this.bytes_;
+        }
+        position() {
+            return this.position_;
+        }
+        setPosition(position) {
+            this.position_ = position;
+        }
+        capacity() {
+            return this.bytes_.length;
+        }
+        readInt8(offset) {
+            return this.readUint8(offset) << 24 >> 24;
+        }
+        readUint8(offset) {
+            return this.bytes_[offset];
+        }
+        readInt16(offset) {
+            return this.readUint16(offset) << 16 >> 16;
+        }
+        readUint16(offset) {
+            return this.bytes_[offset] | this.bytes_[offset + 1] << 8;
+        }
+        readInt32(offset) {
+            return this.bytes_[offset] | this.bytes_[offset + 1] << 8 | this.bytes_[offset + 2] << 16 | this.bytes_[offset + 3] << 24;
+        }
+        readUint32(offset) {
+            return this.readInt32(offset) >>> 0;
+        }
+        readInt64(offset) {
+            return BigInt.asIntN(64, BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32)));
+        }
+        readUint64(offset) {
+            return BigInt.asUintN(64, BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32)));
+        }
+        readFloat32(offset) {
+            int32[0] = this.readInt32(offset);
+            return float32[0];
+        }
+        readFloat64(offset) {
+            int32[isLittleEndian ? 0 : 1] = this.readInt32(offset);
+            int32[isLittleEndian ? 1 : 0] = this.readInt32(offset + 4);
+            return float64[0];
+        }
+        writeInt8(offset, value) {
+            this.bytes_[offset] = value;
+        }
+        writeUint8(offset, value) {
+            this.bytes_[offset] = value;
+        }
+        writeInt16(offset, value) {
+            this.bytes_[offset] = value;
+            this.bytes_[offset + 1] = value >> 8;
+        }
+        writeUint16(offset, value) {
+            this.bytes_[offset] = value;
+            this.bytes_[offset + 1] = value >> 8;
+        }
+        writeInt32(offset, value) {
+            this.bytes_[offset] = value;
+            this.bytes_[offset + 1] = value >> 8;
+            this.bytes_[offset + 2] = value >> 16;
+            this.bytes_[offset + 3] = value >> 24;
+        }
+        writeUint32(offset, value) {
+            this.bytes_[offset] = value;
+            this.bytes_[offset + 1] = value >> 8;
+            this.bytes_[offset + 2] = value >> 16;
+            this.bytes_[offset + 3] = value >> 24;
+        }
+        writeInt64(offset, value) {
+            this.writeInt32(offset, Number(BigInt.asIntN(32, value)));
+            this.writeInt32(offset + 4, Number(BigInt.asIntN(32, value >> BigInt(32))));
+        }
+        writeUint64(offset, value) {
+            this.writeUint32(offset, Number(BigInt.asUintN(32, value)));
+            this.writeUint32(offset + 4, Number(BigInt.asUintN(32, value >> BigInt(32))));
+        }
+        writeFloat32(offset, value) {
+            float32[0] = value;
+            this.writeInt32(offset, int32[0]);
+        }
+        writeFloat64(offset, value) {
+            float64[0] = value;
+            this.writeInt32(offset, int32[isLittleEndian ? 0 : 1]);
+            this.writeInt32(offset + 4, int32[isLittleEndian ? 1 : 0]);
+        }
+        getBufferIdentifier() {
+            if (this.bytes_.length < this.position_ + SIZEOF_INT + FILE_IDENTIFIER_LENGTH) {
+                throw new Error("FlatBuffers: ByteBuffer is too short to contain an identifier.");
+            }
+            let result = "";
+            for(let i = 0; i < FILE_IDENTIFIER_LENGTH; i++){
+                result += String.fromCharCode(this.readInt8(this.position_ + SIZEOF_INT + i));
+            }
+            return result;
+        }
+        __offset(bb_pos, vtable_offset) {
+            const vtable = bb_pos - this.readInt32(bb_pos);
+            return vtable_offset < this.readInt16(vtable) ? this.readInt16(vtable + vtable_offset) : 0;
+        }
+        __union(t, offset) {
+            t.bb_pos = offset + this.readInt32(offset);
+            t.bb = this;
+            return t;
+        }
+        __string(offset, opt_encoding) {
+            offset += this.readInt32(offset);
+            const length = this.readInt32(offset);
+            offset += SIZEOF_INT;
+            const utf8bytes = this.bytes_.subarray(offset, offset + length);
+            if (opt_encoding === Encoding.UTF8_BYTES) return utf8bytes;
+            else return this.text_decoder_.decode(utf8bytes);
+        }
+        __union_with_string(o, offset) {
+            if (typeof o === "string") {
+                return this.__string(offset);
+            }
+            return this.__union(o, offset);
+        }
+        __indirect(offset) {
+            return offset + this.readInt32(offset);
+        }
+        __vector(offset) {
+            return offset + this.readInt32(offset) + SIZEOF_INT;
+        }
+        __vector_len(offset) {
+            return this.readInt32(offset + this.readInt32(offset));
+        }
+        __has_identifier(ident) {
+            if (ident.length != FILE_IDENTIFIER_LENGTH) {
+                throw new Error("FlatBuffers: file identifier must be length " + FILE_IDENTIFIER_LENGTH);
+            }
+            for(let i = 0; i < FILE_IDENTIFIER_LENGTH; i++){
+                if (ident.charCodeAt(i) != this.readInt8(this.position() + SIZEOF_INT + i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        createScalarList(listAccessor, listLength) {
+            const ret = [];
+            for(let i = 0; i < listLength; ++i){
+                const val = listAccessor(i);
+                if (val !== null) {
+                    ret.push(val);
+                }
+            }
+            return ret;
+        }
+        createObjList(listAccessor, listLength) {
+            const ret = [];
+            for(let i = 0; i < listLength; ++i){
+                const val = listAccessor(i);
+                if (val !== null) {
+                    ret.push(val.unpack());
+                }
+            }
+            return ret;
+        }
+    };
+    var Builder = class _Builder {
+        constructor(opt_initial_size){
+            this.minalign = 1;
+            this.vtable = null;
+            this.vtable_in_use = 0;
+            this.isNested = false;
+            this.object_start = 0;
+            this.vtables = [];
+            this.vector_num_elems = 0;
+            this.force_defaults = false;
+            this.string_maps = null;
+            this.text_encoder = new TextEncoder;
+            let initial_size;
+            if (!opt_initial_size) {
+                initial_size = 1024;
+            } else {
+                initial_size = opt_initial_size;
+            }
+            this.bb = ByteBuffer.allocate(initial_size);
+            this.space = initial_size;
+        }
+        clear() {
+            this.bb.clear();
+            this.space = this.bb.capacity();
+            this.minalign = 1;
+            this.vtable = null;
+            this.vtable_in_use = 0;
+            this.isNested = false;
+            this.object_start = 0;
+            this.vtables = [];
+            this.vector_num_elems = 0;
+            this.force_defaults = false;
+            this.string_maps = null;
+        }
+        forceDefaults(forceDefaults) {
+            this.force_defaults = forceDefaults;
+        }
+        dataBuffer() {
+            return this.bb;
+        }
+        asUint8Array() {
+            return this.bb.bytes().subarray(this.bb.position(), this.bb.position() + this.offset());
+        }
+        prep(size, additional_bytes) {
+            if (size > this.minalign) {
+                this.minalign = size;
+            }
+            const align_size = ~(this.bb.capacity() - this.space + additional_bytes) + 1 & size - 1;
+            while(this.space < align_size + size + additional_bytes){
+                const old_buf_size = this.bb.capacity();
+                this.bb = _Builder.growByteBuffer(this.bb);
+                this.space += this.bb.capacity() - old_buf_size;
+            }
+            this.pad(align_size);
+        }
+        pad(byte_size) {
+            for(let i = 0; i < byte_size; i++){
+                this.bb.writeInt8(--this.space, 0);
+            }
+        }
+        writeInt8(value) {
+            this.bb.writeInt8(this.space -= 1, value);
+        }
+        writeInt16(value) {
+            this.bb.writeInt16(this.space -= 2, value);
+        }
+        writeInt32(value) {
+            this.bb.writeInt32(this.space -= 4, value);
+        }
+        writeInt64(value) {
+            this.bb.writeInt64(this.space -= 8, value);
+        }
+        writeFloat32(value) {
+            this.bb.writeFloat32(this.space -= 4, value);
+        }
+        writeFloat64(value) {
+            this.bb.writeFloat64(this.space -= 8, value);
+        }
+        addInt8(value) {
+            this.prep(1, 0);
+            this.writeInt8(value);
+        }
+        addInt16(value) {
+            this.prep(2, 0);
+            this.writeInt16(value);
+        }
+        addInt32(value) {
+            this.prep(4, 0);
+            this.writeInt32(value);
+        }
+        addInt64(value) {
+            this.prep(8, 0);
+            this.writeInt64(value);
+        }
+        addFloat32(value) {
+            this.prep(4, 0);
+            this.writeFloat32(value);
+        }
+        addFloat64(value) {
+            this.prep(8, 0);
+            this.writeFloat64(value);
+        }
+        addFieldInt8(voffset, value, defaultValue) {
+            if (this.force_defaults || value != defaultValue) {
+                this.addInt8(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldInt16(voffset, value, defaultValue) {
+            if (this.force_defaults || value != defaultValue) {
+                this.addInt16(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldInt32(voffset, value, defaultValue) {
+            if (this.force_defaults || value != defaultValue) {
+                this.addInt32(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldInt64(voffset, value, defaultValue) {
+            if (this.force_defaults || value !== defaultValue) {
+                this.addInt64(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldFloat32(voffset, value, defaultValue) {
+            if (this.force_defaults || value != defaultValue) {
+                this.addFloat32(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldFloat64(voffset, value, defaultValue) {
+            if (this.force_defaults || value != defaultValue) {
+                this.addFloat64(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldOffset(voffset, value, defaultValue) {
+            if (this.force_defaults || value != defaultValue) {
+                this.addOffset(value);
+                this.slot(voffset);
+            }
+        }
+        addFieldStruct(voffset, value, defaultValue) {
+            if (value != defaultValue) {
+                this.nested(value);
+                this.slot(voffset);
+            }
+        }
+        nested(obj) {
+            if (obj != this.offset()) {
+                throw new TypeError("FlatBuffers: struct must be serialized inline.");
+            }
+        }
+        notNested() {
+            if (this.isNested) {
+                throw new TypeError("FlatBuffers: object serialization must not be nested.");
+            }
+        }
+        slot(voffset) {
+            if (this.vtable !== null) this.vtable[voffset] = this.offset();
+        }
+        offset() {
+            return this.bb.capacity() - this.space;
+        }
+        static growByteBuffer(bb) {
+            const old_buf_size = bb.capacity();
+            if (old_buf_size & 3221225472) {
+                throw new Error("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
+            }
+            const new_buf_size = old_buf_size << 1;
+            const nbb = ByteBuffer.allocate(new_buf_size);
+            nbb.setPosition(new_buf_size - old_buf_size);
+            nbb.bytes().set(bb.bytes(), new_buf_size - old_buf_size);
+            return nbb;
+        }
+        addOffset(offset) {
+            this.prep(SIZEOF_INT, 0);
+            this.writeInt32(this.offset() - offset + SIZEOF_INT);
+        }
+        startObject(numfields) {
+            this.notNested();
+            if (this.vtable == null) {
+                this.vtable = [];
+            }
+            this.vtable_in_use = numfields;
+            for(let i = 0; i < numfields; i++){
+                this.vtable[i] = 0;
+            }
+            this.isNested = true;
+            this.object_start = this.offset();
+        }
+        endObject() {
+            if (this.vtable == null || !this.isNested) {
+                throw new Error("FlatBuffers: endObject called without startObject");
+            }
+            this.addInt32(0);
+            const vtableloc = this.offset();
+            let i = this.vtable_in_use - 1;
+            for(; i >= 0 && this.vtable[i] == 0; i--){}
+            const trimmed_size = i + 1;
+            for(; i >= 0; i--){
+                this.addInt16(this.vtable[i] != 0 ? vtableloc - this.vtable[i] : 0);
+            }
+            this.addInt16(vtableloc - this.object_start);
+            const len = (trimmed_size + 2) * SIZEOF_SHORT;
+            this.addInt16(len);
+            let existing_vtable = 0;
+            const vt1 = this.space;
+            outer_loop: for(i = 0; i < this.vtables.length; i++){
+                const vt2 = this.bb.capacity() - this.vtables[i];
+                if (len == this.bb.readInt16(vt2)) {
+                    for(let j = SIZEOF_SHORT; j < len; j += SIZEOF_SHORT){
+                        if (this.bb.readInt16(vt1 + j) != this.bb.readInt16(vt2 + j)) {
+                            continue outer_loop;
+                        }
+                    }
+                    existing_vtable = this.vtables[i];
+                    break;
+                }
+            }
+            if (existing_vtable) {
+                this.space = this.bb.capacity() - vtableloc;
+                this.bb.writeInt32(this.space, existing_vtable - vtableloc);
+            } else {
+                this.vtables.push(this.offset());
+                this.bb.writeInt32(this.bb.capacity() - vtableloc, this.offset() - vtableloc);
+            }
+            this.isNested = false;
+            return vtableloc;
+        }
+        finish(root_table, opt_file_identifier, opt_size_prefix) {
+            const size_prefix = opt_size_prefix ? SIZE_PREFIX_LENGTH : 0;
+            if (opt_file_identifier) {
+                const file_identifier = opt_file_identifier;
+                this.prep(this.minalign, SIZEOF_INT + FILE_IDENTIFIER_LENGTH + size_prefix);
+                if (file_identifier.length != FILE_IDENTIFIER_LENGTH) {
+                    throw new TypeError("FlatBuffers: file identifier must be length " + FILE_IDENTIFIER_LENGTH);
+                }
+                for(let i = FILE_IDENTIFIER_LENGTH - 1; i >= 0; i--){
+                    this.writeInt8(file_identifier.charCodeAt(i));
+                }
+            }
+            this.prep(this.minalign, SIZEOF_INT + size_prefix);
+            this.addOffset(root_table);
+            if (size_prefix) {
+                this.addInt32(this.bb.capacity() - this.space);
+            }
+            this.bb.setPosition(this.space);
+        }
+        finishSizePrefixed(root_table, opt_file_identifier) {
+            this.finish(root_table, opt_file_identifier, true);
+        }
+        requiredField(table, field) {
+            const table_start = this.bb.capacity() - table;
+            const vtable_start = table_start - this.bb.readInt32(table_start);
+            const ok = field < this.bb.readInt16(vtable_start) && this.bb.readInt16(vtable_start + field) != 0;
+            if (!ok) {
+                throw new TypeError("FlatBuffers: field " + field + " must be set");
+            }
+        }
+        startVector(elem_size, num_elems, alignment) {
+            this.notNested();
+            this.vector_num_elems = num_elems;
+            this.prep(SIZEOF_INT, elem_size * num_elems);
+            this.prep(alignment, elem_size * num_elems);
+        }
+        endVector() {
+            this.writeInt32(this.vector_num_elems);
+            return this.offset();
+        }
+        createSharedString(s) {
+            if (!s) {
+                return 0;
+            }
+            if (!this.string_maps) {
+                this.string_maps = new Map;
+            }
+            if (this.string_maps.has(s)) {
+                return this.string_maps.get(s);
+            }
+            const offset = this.createString(s);
+            this.string_maps.set(s, offset);
+            return offset;
+        }
+        createString(s) {
+            if (s === null || s === void 0) {
+                return 0;
+            }
+            let utf8;
+            if (s instanceof Uint8Array) {
+                utf8 = s;
+            } else {
+                utf8 = this.text_encoder.encode(s);
+            }
+            this.addInt8(0);
+            this.startVector(1, utf8.length, 1);
+            this.bb.setPosition(this.space -= utf8.length);
+            this.bb.bytes().set(utf8, this.space);
+            return this.endVector();
+        }
+        createByteVector(v) {
+            if (v === null || v === void 0) {
+                return 0;
+            }
+            this.startVector(1, v.length, 1);
+            this.bb.setPosition(this.space -= v.length);
+            this.bb.bytes().set(v, this.space);
+            return this.endVector();
+        }
+        createObjectOffset(obj) {
+            if (obj === null) {
+                return 0;
+            }
+            if (typeof obj === "string") {
+                return this.createString(obj);
+            } else {
+                return obj.pack(this);
+            }
+        }
+        createObjectOffsetList(list) {
+            const ret = [];
+            for(let i = 0; i < list.length; ++i){
+                const val = list[i];
+                if (val !== null) {
+                    ret.push(this.createObjectOffset(val));
+                } else {
+                    throw new TypeError("FlatBuffers: Argument for createObjectOffsetList cannot contain null.");
+                }
+            }
+            return ret;
+        }
+        createStructOffsetList(list, startFunc) {
+            startFunc(this, list.length);
+            this.createObjectOffsetList(list.slice().reverse());
+            return this.endVector();
+        }
+    };
+    var ErrorCode = ((ErrorCode2)=>{
+        ErrorCode2[ErrorCode2["Unknown"] = 0] = "Unknown";
+        ErrorCode2[ErrorCode2["BadRequest"] = 1] = "BadRequest";
+        ErrorCode2[ErrorCode2["UnknownAction"] = 2] = "UnknownAction";
+        ErrorCode2[ErrorCode2["UnavailableOrigin"] = 3] = "UnavailableOrigin";
+        ErrorCode2[ErrorCode2["UnsupportedAction"] = 4] = "UnsupportedAction";
+        ErrorCode2[ErrorCode2["StateRejected"] = 5] = "StateRejected";
+        ErrorCode2[ErrorCode2["StateExpired"] = 6] = "StateExpired";
+        ErrorCode2[ErrorCode2["RateLimited"] = 7] = "RateLimited";
+        ErrorCode2[ErrorCode2["ActionFailed"] = 8] = "ActionFailed";
+        ErrorCode2[ErrorCode2["UpdateRequired"] = 9] = "UpdateRequired";
+        ErrorCode2[ErrorCode2["UnsupportedPlatformOp"] = 10] = "UnsupportedPlatformOp";
+        ErrorCode2[ErrorCode2["InvalidInput"] = 11] = "InvalidInput";
+        return ErrorCode2;
+    })(ErrorCode || {});
+    var ActionError = class _ActionError {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsActionError(bb, obj) {
+            return (obj || new _ActionError).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsActionError(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ActionError).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        code() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        message(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        rowIndex() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startActionError(builder) {
+            builder.startObject(3);
+        }
+        static addCode(builder, code) {
+            builder.addFieldInt16(0, code, 0);
+        }
+        static addMessage(builder, messageOffset) {
+            builder.addFieldOffset(1, messageOffset, 0);
+        }
+        static addRowIndex(builder, rowIndex) {
+            builder.addFieldInt32(2, rowIndex, 0);
+        }
+        static endActionError(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createActionError(builder, code, messageOffset, rowIndex) {
+            _ActionError.startActionError(builder);
+            _ActionError.addCode(builder, code);
+            _ActionError.addMessage(builder, messageOffset);
+            _ActionError.addRowIndex(builder, rowIndex);
+            return _ActionError.endActionError(builder);
+        }
+        unpack() {
+            return new ActionErrorT(this.code(), this.message(), this.rowIndex());
+        }
+        unpackTo(_o) {
+            _o.code = this.code();
+            _o.message = this.message();
+            _o.rowIndex = this.rowIndex();
+        }
+    };
+    var ActionErrorT = class {
+        constructor(code = 0, message = null, rowIndex = 0){
+            this.code = code;
+            this.message = message;
+            this.rowIndex = rowIndex;
+        }
+        code;
+        message;
+        rowIndex;
+        pack(builder) {
+            const message = this.message !== null ? builder.createString(this.message) : 0;
+            return ActionError.createActionError(builder, this.code, message, this.rowIndex);
+        }
+    };
+    var ActionInput = class _ActionInput {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsActionInput(bb, obj) {
+            return (obj || new _ActionInput).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsActionInput(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ActionInput).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        eventName(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        value(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        checked() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+        }
+        keyCode() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        modifiers() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        parentNode() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        json(index) {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        jsonLength() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        jsonArray() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startActionInput(builder) {
+            builder.startObject(7);
+        }
+        static addEventName(builder, eventNameOffset) {
+            builder.addFieldOffset(0, eventNameOffset, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(1, valueOffset, 0);
+        }
+        static addChecked(builder, checked) {
+            builder.addFieldInt8(2, +checked, 0);
+        }
+        static addKeyCode(builder, keyCode) {
+            builder.addFieldInt32(3, keyCode, 0);
+        }
+        static addModifiers(builder, modifiers) {
+            builder.addFieldInt8(4, modifiers, 0);
+        }
+        static addParentNode(builder, parentNode) {
+            builder.addFieldInt32(5, parentNode, 0);
+        }
+        static addJson(builder, jsonOffset) {
+            builder.addFieldOffset(6, jsonOffset, 0);
+        }
+        static createJsonVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startJsonVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endActionInput(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createActionInput(builder, eventNameOffset, valueOffset, checked, keyCode, modifiers, parentNode, jsonOffset) {
+            _ActionInput.startActionInput(builder);
+            _ActionInput.addEventName(builder, eventNameOffset);
+            _ActionInput.addValue(builder, valueOffset);
+            _ActionInput.addChecked(builder, checked);
+            _ActionInput.addKeyCode(builder, keyCode);
+            _ActionInput.addModifiers(builder, modifiers);
+            _ActionInput.addParentNode(builder, parentNode);
+            _ActionInput.addJson(builder, jsonOffset);
+            return _ActionInput.endActionInput(builder);
+        }
+        unpack() {
+            return new ActionInputT(this.eventName(), this.value(), this.checked(), this.keyCode(), this.modifiers(), this.parentNode(), this.jsonArray() === null ? null : Array.from(this.jsonArray()));
+        }
+        unpackTo(_o) {
+            _o.eventName = this.eventName();
+            _o.value = this.value();
+            _o.checked = this.checked();
+            _o.keyCode = this.keyCode();
+            _o.modifiers = this.modifiers();
+            _o.parentNode = this.parentNode();
+            _o.json = this.jsonArray() === null ? null : Array.from(this.jsonArray());
+        }
+    };
+    var ActionInputT = class {
+        constructor(eventName = null, value = null, checked = false, keyCode = 0, modifiers = 0, parentNode = 0, json = null){
+            this.eventName = eventName;
+            this.value = value;
+            this.checked = checked;
+            this.keyCode = keyCode;
+            this.modifiers = modifiers;
+            this.parentNode = parentNode;
+            this.json = json;
+        }
+        eventName;
+        value;
+        checked;
+        keyCode;
+        modifiers;
+        parentNode;
+        json;
+        pack(builder) {
+            const eventName = this.eventName !== null ? builder.createString(this.eventName) : 0;
+            const value = this.value !== null ? builder.createString(this.value) : 0;
+            const json = this.json === null ? 0 : ActionInput.createJsonVector(builder, this.json);
+            return ActionInput.createActionInput(builder, eventName, value, this.checked, this.keyCode, this.modifiers, this.parentNode, json);
+        }
+    };
+    var ActionRequest = class _ActionRequest {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsActionRequest(bb, obj) {
+            return (obj || new _ActionRequest).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsActionRequest(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ActionRequest).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        action(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        input(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new ActionInput).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        state(index) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        stateLength() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        stateArray() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startActionRequest(builder) {
+            builder.startObject(4);
+        }
+        static addAction(builder, actionOffset) {
+            builder.addFieldOffset(0, actionOffset, 0);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(1, nodeId, 0);
+        }
+        static addInput(builder, inputOffset) {
+            builder.addFieldOffset(2, inputOffset, 0);
+        }
+        static addState(builder, stateOffset) {
+            builder.addFieldOffset(3, stateOffset, 0);
+        }
+        static createStateVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startStateVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endActionRequest(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new ActionRequestT(this.action(), this.nodeId(), this.input() !== null ? this.input().unpack() : null, this.bb.createScalarList(this.state.bind(this), this.stateLength()));
+        }
+        unpackTo(_o) {
+            _o.action = this.action();
+            _o.nodeId = this.nodeId();
+            _o.input = this.input() !== null ? this.input().unpack() : null;
+            _o.state = this.bb.createScalarList(this.state.bind(this), this.stateLength());
+        }
+    };
+    var ActionRequestT = class {
+        constructor(action = null, nodeId = 0, input = null, state = []){
+            this.action = action;
+            this.nodeId = nodeId;
+            this.input = input;
+            this.state = state;
+        }
+        action;
+        nodeId;
+        input;
+        state;
+        pack(builder) {
+            const action = this.action !== null ? builder.createString(this.action) : 0;
+            const input = this.input !== null ? this.input.pack(builder) : 0;
+            const state = ActionRequest.createStateVector(builder, this.state);
+            ActionRequest.startActionRequest(builder);
+            ActionRequest.addAction(builder, action);
+            ActionRequest.addNodeId(builder, this.nodeId);
+            ActionRequest.addInput(builder, input);
+            ActionRequest.addState(builder, state);
+            return ActionRequest.endActionRequest(builder);
+        }
+    };
+    var Alignment = ((Alignment2)=>{
+        Alignment2[Alignment2["Start"] = 0] = "Start";
+        Alignment2[Alignment2["Center"] = 1] = "Center";
+        Alignment2[Alignment2["End"] = 2] = "End";
+        Alignment2[Alignment2["Stretch"] = 3] = "Stretch";
+        return Alignment2;
+    })(Alignment || {});
+    var AlignmentValue = class _AlignmentValue {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsAlignmentValue(bb, obj) {
+            return (obj || new _AlignmentValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsAlignmentValue(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _AlignmentValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        v() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        static startAlignmentValue(builder) {
+            builder.startObject(1);
+        }
+        static addV(builder, v) {
+            builder.addFieldInt8(0, v, 0);
+        }
+        static endAlignmentValue(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createAlignmentValue(builder, v) {
+            _AlignmentValue.startAlignmentValue(builder);
+            _AlignmentValue.addV(builder, v);
+            return _AlignmentValue.endAlignmentValue(builder);
+        }
+        unpack() {
+            return new AlignmentValueT(this.v());
+        }
+        unpackTo(_o) {
+            _o.v = this.v();
+        }
+    };
+    var AlignmentValueT = class {
+        constructor(v = 0){
+            this.v = v;
+        }
+        v;
+        pack(builder) {
+            return AlignmentValue.createAlignmentValue(builder, this.v);
+        }
+    };
+    var AppendChild = class _AppendChild {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsAppendChild(bb, obj) {
+            return (obj || new _AppendChild).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsAppendChild(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _AppendChild).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        parentId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        childId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startAppendChild(builder) {
+            builder.startObject(2);
+        }
+        static addParentId(builder, parentId) {
+            builder.addFieldInt32(0, parentId, 0);
+        }
+        static addChildId(builder, childId) {
+            builder.addFieldInt32(1, childId, 0);
+        }
+        static endAppendChild(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createAppendChild(builder, parentId, childId) {
+            _AppendChild.startAppendChild(builder);
+            _AppendChild.addParentId(builder, parentId);
+            _AppendChild.addChildId(builder, childId);
+            return _AppendChild.endAppendChild(builder);
+        }
+        unpack() {
+            return new AppendChildT(this.parentId(), this.childId());
+        }
+        unpackTo(_o) {
+            _o.parentId = this.parentId();
+            _o.childId = this.childId();
+        }
+    };
+    var AppendChildT = class {
+        constructor(parentId = 0, childId = 0){
+            this.parentId = parentId;
+            this.childId = childId;
+        }
+        parentId;
+        childId;
+        pack(builder) {
+            return AppendChild.createAppendChild(builder, this.parentId, this.childId);
+        }
+    };
+    var ArrowIpcBlob = class _ArrowIpcBlob {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsArrowIpcBlob(bb, obj) {
+            return (obj || new _ArrowIpcBlob).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsArrowIpcBlob(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ArrowIpcBlob).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        targetNode() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        bytes(index) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        bytesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        bytesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startArrowIpcBlob(builder) {
+            builder.startObject(2);
+        }
+        static addTargetNode(builder, targetNode) {
+            builder.addFieldInt32(0, targetNode, 0);
+        }
+        static addBytes(builder, bytesOffset) {
+            builder.addFieldOffset(1, bytesOffset, 0);
+        }
+        static createBytesVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startBytesVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endArrowIpcBlob(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createArrowIpcBlob(builder, targetNode, bytesOffset) {
+            _ArrowIpcBlob.startArrowIpcBlob(builder);
+            _ArrowIpcBlob.addTargetNode(builder, targetNode);
+            _ArrowIpcBlob.addBytes(builder, bytesOffset);
+            return _ArrowIpcBlob.endArrowIpcBlob(builder);
+        }
+        unpack() {
+            return new ArrowIpcBlobT(this.targetNode(), this.bb.createScalarList(this.bytes.bind(this), this.bytesLength()));
+        }
+        unpackTo(_o) {
+            _o.targetNode = this.targetNode();
+            _o.bytes = this.bb.createScalarList(this.bytes.bind(this), this.bytesLength());
+        }
+    };
+    var ArrowIpcBlobT = class {
+        constructor(targetNode = 0, bytes = []){
+            this.targetNode = targetNode;
+            this.bytes = bytes;
+        }
+        targetNode;
+        bytes;
+        pack(builder) {
+            const bytes = ArrowIpcBlob.createBytesVector(builder, this.bytes);
+            return ArrowIpcBlob.createArrowIpcBlob(builder, this.targetNode, bytes);
+        }
+    };
+    var AttachState = class _AttachState {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsAttachState(bb, obj) {
+            return (obj || new _AttachState).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsAttachState(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _AttachState).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        rootNode() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        state(index) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        stateLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        stateArray() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startAttachState(builder) {
+            builder.startObject(2);
+        }
+        static addRootNode(builder, rootNode) {
+            builder.addFieldInt32(0, rootNode, 0);
+        }
+        static addState(builder, stateOffset) {
+            builder.addFieldOffset(1, stateOffset, 0);
+        }
+        static createStateVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startStateVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endAttachState(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createAttachState(builder, rootNode, stateOffset) {
+            _AttachState.startAttachState(builder);
+            _AttachState.addRootNode(builder, rootNode);
+            _AttachState.addState(builder, stateOffset);
+            return _AttachState.endAttachState(builder);
+        }
+        unpack() {
+            return new AttachStateT(this.rootNode(), this.bb.createScalarList(this.state.bind(this), this.stateLength()));
+        }
+        unpackTo(_o) {
+            _o.rootNode = this.rootNode();
+            _o.state = this.bb.createScalarList(this.state.bind(this), this.stateLength());
+        }
+    };
+    var AttachStateT = class {
+        constructor(rootNode = 0, state = []){
+            this.rootNode = rootNode;
+            this.state = state;
+        }
+        rootNode;
+        state;
+        pack(builder) {
+            const state = AttachState.createStateVector(builder, this.state);
+            return AttachState.createAttachState(builder, this.rootNode, state);
+        }
+    };
+    var Axis = ((Axis2)=>{
+        Axis2[Axis2["Vertical"] = 0] = "Vertical";
+        Axis2[Axis2["Horizontal"] = 1] = "Horizontal";
+        return Axis2;
+    })(Axis || {});
+    var AxisValue = class _AxisValue {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsAxisValue(bb, obj) {
+            return (obj || new _AxisValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsAxisValue(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _AxisValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        v() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        static startAxisValue(builder) {
+            builder.startObject(1);
+        }
+        static addV(builder, v) {
+            builder.addFieldInt8(0, v, 0);
+        }
+        static endAxisValue(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createAxisValue(builder, v) {
+            _AxisValue.startAxisValue(builder);
+            _AxisValue.addV(builder, v);
+            return _AxisValue.endAxisValue(builder);
+        }
+        unpack() {
+            return new AxisValueT(this.v());
+        }
+        unpackTo(_o) {
+            _o.v = this.v();
+        }
+    };
+    var AxisValueT = class {
+        constructor(v = 0){
+            this.v = v;
+        }
+        v;
+        pack(builder) {
+            return AxisValue.createAxisValue(builder, this.v);
+        }
+    };
+    var BoolValue = class _BoolValue {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsBoolValue(bb, obj) {
+            return (obj || new _BoolValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsBoolValue(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _BoolValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        v() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+        }
+        static startBoolValue(builder) {
+            builder.startObject(1);
+        }
+        static addV(builder, v) {
+            builder.addFieldInt8(0, +v, 0);
+        }
+        static endBoolValue(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createBoolValue(builder, v) {
+            _BoolValue.startBoolValue(builder);
+            _BoolValue.addV(builder, v);
+            return _BoolValue.endBoolValue(builder);
+        }
+        unpack() {
+            return new BoolValueT(this.v());
+        }
+        unpackTo(_o) {
+            _o.v = this.v();
+        }
+    };
+    var BoolValueT = class {
+        constructor(v = false){
+            this.v = v;
+        }
+        v;
+        pack(builder) {
+            return BoolValue.createBoolValue(builder, this.v);
+        }
+    };
+    var ColorToken = class _ColorToken {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsColorToken(bb, obj) {
+            return (obj || new _ColorToken).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsColorToken(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ColorToken).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        id() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startColorToken(builder) {
+            builder.startObject(1);
+        }
+        static addId(builder, id) {
+            builder.addFieldInt32(0, id, 0);
+        }
+        static endColorToken(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createColorToken(builder, id) {
+            _ColorToken.startColorToken(builder);
+            _ColorToken.addId(builder, id);
+            return _ColorToken.endColorToken(builder);
+        }
+        unpack() {
+            return new ColorTokenT(this.id());
+        }
+        unpackTo(_o) {
+            _o.id = this.id();
+        }
+    };
+    var ColorTokenT = class {
+        constructor(id = 0){
+            this.id = id;
+        }
+        id;
+        pack(builder) {
+            return ColorToken.createColorToken(builder, this.id);
+        }
+    };
+    var FontToken = class _FontToken {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsFontToken(bb, obj) {
+            return (obj || new _FontToken).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsFontToken(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _FontToken).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        id() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startFontToken(builder) {
+            builder.startObject(1);
+        }
+        static addId(builder, id) {
+            builder.addFieldInt32(0, id, 0);
+        }
+        static endFontToken(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createFontToken(builder, id) {
+            _FontToken.startFontToken(builder);
+            _FontToken.addId(builder, id);
+            return _FontToken.endFontToken(builder);
+        }
+        unpack() {
+            return new FontTokenT(this.id());
+        }
+        unpackTo(_o) {
+            _o.id = this.id();
+        }
+    };
+    var FontTokenT = class {
+        constructor(id = 0){
+            this.id = id;
+        }
+        id;
+        pack(builder) {
+            return FontToken.createFontToken(builder, this.id);
+        }
+    };
+    var LengthUnit = ((LengthUnit2)=>{
+        LengthUnit2[LengthUnit2["Point"] = 0] = "Point";
+        LengthUnit2[LengthUnit2["Percent"] = 1] = "Percent";
+        LengthUnit2[LengthUnit2["Auto"] = 2] = "Auto";
+        return LengthUnit2;
+    })(LengthUnit || {});
+    var Length = class {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        value() {
+            return this.bb.readFloat32(this.bb_pos);
+        }
+        unit() {
+            return this.bb.readUint8(this.bb_pos + 4);
+        }
+        static sizeOf() {
+            return 8;
+        }
+        static createLength(builder, value, unit) {
+            builder.prep(4, 8);
+            builder.pad(3);
+            builder.writeInt8(unit);
+            builder.writeFloat32(value);
+            return builder.offset();
+        }
+        unpack() {
+            return new LengthT(this.value(), this.unit());
+        }
+        unpackTo(_o) {
+            _o.value = this.value();
+            _o.unit = this.unit();
+        }
+    };
+    var LengthT = class {
+        constructor(value = 0, unit = 0){
+            this.value = value;
+            this.unit = unit;
+        }
+        value;
+        unit;
+        pack(builder) {
+            return Length.createLength(builder, this.value, this.unit);
+        }
+    };
+    var LengthValue = class _LengthValue {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsLengthValue(bb, obj) {
+            return (obj || new _LengthValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsLengthValue(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _LengthValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        v(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? (obj || new Length).__init(this.bb_pos + offset, this.bb) : null;
+        }
+        static startLengthValue(builder) {
+            builder.startObject(1);
+        }
+        static addV(builder, vOffset) {
+            builder.addFieldStruct(0, vOffset, 0);
+        }
+        static endLengthValue(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createLengthValue(builder, vOffset) {
+            _LengthValue.startLengthValue(builder);
+            _LengthValue.addV(builder, vOffset);
+            return _LengthValue.endLengthValue(builder);
+        }
+        unpack() {
+            return new LengthValueT(this.v() !== null ? this.v().unpack() : null);
+        }
+        unpackTo(_o) {
+            _o.v = this.v() !== null ? this.v().unpack() : null;
+        }
+    };
+    var LengthValueT = class {
+        constructor(v = null){
+            this.v = v;
+        }
+        v;
+        pack(builder) {
+            return LengthValue.createLengthValue(builder, this.v !== null ? this.v.pack(builder) : 0);
+        }
+    };
+    var TextValue = class _TextValue {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsTextValue(bb, obj) {
+            return (obj || new _TextValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsTextValue(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _TextValue).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        v(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startTextValue(builder) {
+            builder.startObject(1);
+        }
+        static addV(builder, vOffset) {
+            builder.addFieldOffset(0, vOffset, 0);
+        }
+        static endTextValue(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createTextValue(builder, vOffset) {
+            _TextValue.startTextValue(builder);
+            _TextValue.addV(builder, vOffset);
+            return _TextValue.endTextValue(builder);
+        }
+        unpack() {
+            return new TextValueT(this.v());
+        }
+        unpackTo(_o) {
+            _o.v = this.v();
+        }
+    };
+    var TextValueT = class {
+        constructor(v = null){
+            this.v = v;
+        }
+        v;
+        pack(builder) {
+            const v = this.v !== null ? builder.createString(this.v) : 0;
+            return TextValue.createTextValue(builder, v);
+        }
+    };
+    var PropValue = ((PropValue2)=>{
+        PropValue2[PropValue2["NONE"] = 0] = "NONE";
+        PropValue2[PropValue2["Length"] = 1] = "Length";
+        PropValue2[PropValue2["ColorToken"] = 2] = "ColorToken";
+        PropValue2[PropValue2["FontToken"] = 3] = "FontToken";
+        PropValue2[PropValue2["Alignment"] = 4] = "Alignment";
+        PropValue2[PropValue2["Axis"] = 5] = "Axis";
+        PropValue2[PropValue2["Bool"] = 6] = "Bool";
+        PropValue2[PropValue2["Text"] = 7] = "Text";
+        return PropValue2;
+    })(PropValue || {});
+    function unionToPropValue(type, accessor) {
+        switch(PropValue[type]){
+            case "NONE":
+                return null;
+            case "Length":
+                return accessor(new LengthValue);
+            case "ColorToken":
+                return accessor(new ColorToken);
+            case "FontToken":
+                return accessor(new FontToken);
+            case "Alignment":
+                return accessor(new AlignmentValue);
+            case "Axis":
+                return accessor(new AxisValue);
+            case "Bool":
+                return accessor(new BoolValue);
+            case "Text":
+                return accessor(new TextValue);
+            default:
+                return null;
+        }
+    }
+    function unionListToPropValue(type, accessor, index) {
+        switch(PropValue[type]){
+            case "NONE":
+                return null;
+            case "Length":
+                return accessor(index, new LengthValue);
+            case "ColorToken":
+                return accessor(index, new ColorToken);
+            case "FontToken":
+                return accessor(index, new FontToken);
+            case "Alignment":
+                return accessor(index, new AlignmentValue);
+            case "Axis":
+                return accessor(index, new AxisValue);
+            case "Bool":
+                return accessor(index, new BoolValue);
+            case "Text":
+                return accessor(index, new TextValue);
+            default:
+                return null;
+        }
+    }
+    var BehaviourArg = class _BehaviourArg {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsBehaviourArg(bb, obj) {
+            return (obj || new _BehaviourArg).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsBehaviourArg(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _BehaviourArg).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        name(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        valueType() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        value(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        static startBehaviourArg(builder) {
+            builder.startObject(3);
+        }
+        static addName(builder, nameOffset) {
+            builder.addFieldOffset(0, nameOffset, 0);
+        }
+        static addValueType(builder, valueType) {
+            builder.addFieldInt8(1, valueType, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(2, valueOffset, 0);
+        }
+        static endBehaviourArg(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createBehaviourArg(builder, nameOffset, valueType, valueOffset) {
+            _BehaviourArg.startBehaviourArg(builder);
+            _BehaviourArg.addName(builder, nameOffset);
+            _BehaviourArg.addValueType(builder, valueType);
+            _BehaviourArg.addValue(builder, valueOffset);
+            return _BehaviourArg.endBehaviourArg(builder);
+        }
+        unpack() {
+            return new BehaviourArgT(this.name(), this.valueType(), (()=>{
+                const temp = unionToPropValue(this.valueType(), this.value.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })());
+        }
+        unpackTo(_o) {
+            _o.name = this.name();
+            _o.valueType = this.valueType();
+            _o.value = (()=>{
+                const temp = unionToPropValue(this.valueType(), this.value.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+        }
+    };
+    var BehaviourArgT = class {
+        constructor(name = null, valueType = 0, value = null){
+            this.name = name;
+            this.valueType = valueType;
+            this.value = value;
+        }
+        name;
+        valueType;
+        value;
+        pack(builder) {
+            const name = this.name !== null ? builder.createString(this.name) : 0;
+            const value = builder.createObjectOffset(this.value);
+            return BehaviourArg.createBehaviourArg(builder, name, this.valueType, value);
+        }
+    };
+    var BehaviourId = ((BehaviourId2)=>{
+        BehaviourId2[BehaviourId2["UNKNOWN"] = 0] = "UNKNOWN";
+        BehaviourId2[BehaviourId2["DIALOG"] = 1] = "DIALOG";
+        BehaviourId2[BehaviourId2["DISMISS"] = 2] = "DISMISS";
+        BehaviourId2[BehaviourId2["SCROLL_LOCK"] = 3] = "SCROLL_LOCK";
+        BehaviourId2[BehaviourId2["TRANSITION"] = 4] = "TRANSITION";
+        return BehaviourId2;
+    })(BehaviourId || {});
+    var EventId = ((EventId2)=>{
+        EventId2[EventId2["UNKNOWN"] = 0] = "UNKNOWN";
+        EventId2[EventId2["TAP"] = 1] = "TAP";
+        EventId2[EventId2["CHANGE"] = 2] = "CHANGE";
+        EventId2[EventId2["SUBMIT"] = 3] = "SUBMIT";
+        EventId2[EventId2["FOCUS"] = 4] = "FOCUS";
+        EventId2[EventId2["BLUR"] = 5] = "BLUR";
+        return EventId2;
+    })(EventId || {});
+    var BindAction = class _BindAction {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsBindAction(bb, obj) {
+            return (obj || new _BindAction).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsBindAction(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _BindAction).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        event() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        action(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startBindAction(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addEvent(builder, event) {
+            builder.addFieldInt16(1, event, 0);
+        }
+        static addAction(builder, actionOffset) {
+            builder.addFieldOffset(2, actionOffset, 0);
+        }
+        static endBindAction(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createBindAction(builder, nodeId, event, actionOffset) {
+            _BindAction.startBindAction(builder);
+            _BindAction.addNodeId(builder, nodeId);
+            _BindAction.addEvent(builder, event);
+            _BindAction.addAction(builder, actionOffset);
+            return _BindAction.endBindAction(builder);
+        }
+        unpack() {
+            return new BindActionT(this.nodeId(), this.event(), this.action());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.event = this.event();
+            _o.action = this.action();
+        }
+    };
+    var BindActionT = class {
+        constructor(nodeId = 0, event = 0, action = null){
+            this.nodeId = nodeId;
+            this.event = event;
+            this.action = action;
+        }
+        nodeId;
+        event;
+        action;
+        pack(builder) {
+            const action = this.action !== null ? builder.createString(this.action) : 0;
+            return BindAction.createBindAction(builder, this.nodeId, this.event, action);
+        }
+    };
+    var Bools = class _Bools {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsBools(bb, obj) {
+            return (obj || new _Bools).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsBools(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Bools).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        values(index) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? !!this.bb.readInt8(this.bb.__vector(this.bb_pos + offset) + index) : false;
+        }
+        valuesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        valuesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? new Int8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startBools(builder) {
+            builder.startObject(1);
+        }
+        static addValues(builder, valuesOffset) {
+            builder.addFieldOffset(0, valuesOffset, 0);
+        }
+        static createValuesVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(+data[i]);
+            }
+            return builder.endVector();
+        }
+        static startValuesVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endBools(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createBools(builder, valuesOffset) {
+            _Bools.startBools(builder);
+            _Bools.addValues(builder, valuesOffset);
+            return _Bools.endBools(builder);
+        }
+        unpack() {
+            return new BoolsT(this.bb.createScalarList(this.values.bind(this), this.valuesLength()));
+        }
+        unpackTo(_o) {
+            _o.values = this.bb.createScalarList(this.values.bind(this), this.valuesLength());
+        }
+    };
+    var BoolsT = class {
+        constructor(values = []){
+            this.values = values;
+        }
+        values;
+        pack(builder) {
+            const values = Bools.createValuesVector(builder, this.values);
+            return Bools.createBools(builder, values);
+        }
+    };
+    var CapsStatus = ((CapsStatus2)=>{
+        CapsStatus2[CapsStatus2["Ok"] = 0] = "Ok";
+        CapsStatus2[CapsStatus2["UpdateRequired"] = 1] = "UpdateRequired";
+        return CapsStatus2;
+    })(CapsStatus || {});
+    var MountSurface = ((MountSurface2)=>{
+        MountSurface2[MountSurface2["Native"] = 0] = "Native";
+        MountSurface2[MountSurface2["Web"] = 1] = "Web";
+        return MountSurface2;
+    })(MountSurface || {});
+    var Platform = ((Platform2)=>{
+        Platform2[Platform2["Unknown"] = 0] = "Unknown";
+        Platform2[Platform2["Web"] = 1] = "Web";
+        Platform2[Platform2["Ios"] = 2] = "Ios";
+        Platform2[Platform2["Android"] = 3] = "Android";
+        Platform2[Platform2["Desktop"] = 4] = "Desktop";
+        return Platform2;
+    })(Platform || {});
+    var ClientHello = class _ClientHello {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsClientHello(bb, obj) {
+            return (obj || new _ClientHello).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsClientHello(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ClientHello).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        vocabularyVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        platform() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        mount() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        resumeFrom() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        subscriptionResume() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+        }
+        requestTag() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        static startClientHello(builder) {
+            builder.startObject(6);
+        }
+        static addVocabularyVersion(builder, vocabularyVersion) {
+            builder.addFieldInt32(0, vocabularyVersion, 0);
+        }
+        static addPlatform(builder, platform) {
+            builder.addFieldInt8(1, platform, 0);
+        }
+        static addMount(builder, mount) {
+            builder.addFieldInt8(2, mount, 0);
+        }
+        static addResumeFrom(builder, resumeFrom) {
+            builder.addFieldInt64(3, resumeFrom, BigInt("0"));
+        }
+        static addSubscriptionResume(builder, subscriptionResume) {
+            builder.addFieldInt8(4, +subscriptionResume, 0);
+        }
+        static addRequestTag(builder, requestTag) {
+            builder.addFieldInt64(5, requestTag, BigInt("0"));
+        }
+        static endClientHello(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createClientHello(builder, vocabularyVersion, platform, mount, resumeFrom, subscriptionResume, requestTag) {
+            _ClientHello.startClientHello(builder);
+            _ClientHello.addVocabularyVersion(builder, vocabularyVersion);
+            _ClientHello.addPlatform(builder, platform);
+            _ClientHello.addMount(builder, mount);
+            _ClientHello.addResumeFrom(builder, resumeFrom);
+            _ClientHello.addSubscriptionResume(builder, subscriptionResume);
+            _ClientHello.addRequestTag(builder, requestTag);
+            return _ClientHello.endClientHello(builder);
+        }
+        unpack() {
+            return new ClientHelloT(this.vocabularyVersion(), this.platform(), this.mount(), this.resumeFrom(), this.subscriptionResume(), this.requestTag());
+        }
+        unpackTo(_o) {
+            _o.vocabularyVersion = this.vocabularyVersion();
+            _o.platform = this.platform();
+            _o.mount = this.mount();
+            _o.resumeFrom = this.resumeFrom();
+            _o.subscriptionResume = this.subscriptionResume();
+            _o.requestTag = this.requestTag();
+        }
+    };
+    var ClientHelloT = class {
+        constructor(vocabularyVersion = 0, platform = 0, mount = 0, resumeFrom = BigInt("0"), subscriptionResume = false, requestTag = BigInt("0")){
+            this.vocabularyVersion = vocabularyVersion;
+            this.platform = platform;
+            this.mount = mount;
+            this.resumeFrom = resumeFrom;
+            this.subscriptionResume = subscriptionResume;
+            this.requestTag = requestTag;
+        }
+        vocabularyVersion;
+        platform;
+        mount;
+        resumeFrom;
+        subscriptionResume;
+        requestTag;
+        pack(builder) {
+            return ClientHello.createClientHello(builder, this.vocabularyVersion, this.platform, this.mount, this.resumeFrom, this.subscriptionResume, this.requestTag);
+        }
+    };
+    var F64s = class _F64s {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsF64s(bb, obj) {
+            return (obj || new _F64s).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsF64s(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _F64s).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        values(index) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readFloat64(this.bb.__vector(this.bb_pos + offset) + index * 8) : 0;
+        }
+        valuesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        valuesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startF64s(builder) {
+            builder.startObject(1);
+        }
+        static addValues(builder, valuesOffset) {
+            builder.addFieldOffset(0, valuesOffset, 0);
+        }
+        static createValuesVector(builder, data) {
+            builder.startVector(8, data.length, 8);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addFloat64(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startValuesVector(builder, numElems) {
+            builder.startVector(8, numElems, 8);
+        }
+        static endF64s(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createF64s(builder, valuesOffset) {
+            _F64s.startF64s(builder);
+            _F64s.addValues(builder, valuesOffset);
+            return _F64s.endF64s(builder);
+        }
+        unpack() {
+            return new F64sT(this.bb.createScalarList(this.values.bind(this), this.valuesLength()));
+        }
+        unpackTo(_o) {
+            _o.values = this.bb.createScalarList(this.values.bind(this), this.valuesLength());
+        }
+    };
+    var F64sT = class {
+        constructor(values = []){
+            this.values = values;
+        }
+        values;
+        pack(builder) {
+            const values = F64s.createValuesVector(builder, this.values);
+            return F64s.createF64s(builder, values);
+        }
+    };
+    var I32s = class _I32s {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsI32s(bb, obj) {
+            return (obj || new _I32s).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsI32s(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _I32s).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        values(index) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readInt32(this.bb.__vector(this.bb_pos + offset) + index * 4) : 0;
+        }
+        valuesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        valuesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? new Int32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startI32s(builder) {
+            builder.startObject(1);
+        }
+        static addValues(builder, valuesOffset) {
+            builder.addFieldOffset(0, valuesOffset, 0);
+        }
+        static createValuesVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt32(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startValuesVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endI32s(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createI32s(builder, valuesOffset) {
+            _I32s.startI32s(builder);
+            _I32s.addValues(builder, valuesOffset);
+            return _I32s.endI32s(builder);
+        }
+        unpack() {
+            return new I32sT(this.bb.createScalarList(this.values.bind(this), this.valuesLength()));
+        }
+        unpackTo(_o) {
+            _o.values = this.bb.createScalarList(this.values.bind(this), this.valuesLength());
+        }
+    };
+    var I32sT = class {
+        constructor(values = []){
+            this.values = values;
+        }
+        values;
+        pack(builder) {
+            const values = I32s.createValuesVector(builder, this.values);
+            return I32s.createI32s(builder, values);
+        }
+    };
+    var I64s = class _I64s {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsI64s(bb, obj) {
+            return (obj || new _I64s).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsI64s(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _I64s).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        values(index) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readInt64(this.bb.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
+        }
+        valuesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startI64s(builder) {
+            builder.startObject(1);
+        }
+        static addValues(builder, valuesOffset) {
+            builder.addFieldOffset(0, valuesOffset, 0);
+        }
+        static createValuesVector(builder, data) {
+            builder.startVector(8, data.length, 8);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt64(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startValuesVector(builder, numElems) {
+            builder.startVector(8, numElems, 8);
+        }
+        static endI64s(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createI64s(builder, valuesOffset) {
+            _I64s.startI64s(builder);
+            _I64s.addValues(builder, valuesOffset);
+            return _I64s.endI64s(builder);
+        }
+        unpack() {
+            return new I64sT(this.bb.createScalarList(this.values.bind(this), this.valuesLength()));
+        }
+        unpackTo(_o) {
+            _o.values = this.bb.createScalarList(this.values.bind(this), this.valuesLength());
+        }
+    };
+    var I64sT = class {
+        constructor(values = []){
+            this.values = values;
+        }
+        values;
+        pack(builder) {
+            const values = I64s.createValuesVector(builder, this.values);
+            return I64s.createI64s(builder, values);
+        }
+    };
+    var Strings = class _Strings {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsStrings(bb, obj) {
+            return (obj || new _Strings).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsStrings(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Strings).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        values(index, optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+        }
+        valuesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startStrings(builder) {
+            builder.startObject(1);
+        }
+        static addValues(builder, valuesOffset) {
+            builder.addFieldOffset(0, valuesOffset, 0);
+        }
+        static createValuesVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startValuesVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endStrings(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createStrings(builder, valuesOffset) {
+            _Strings.startStrings(builder);
+            _Strings.addValues(builder, valuesOffset);
+            return _Strings.endStrings(builder);
+        }
+        unpack() {
+            return new StringsT(this.bb.createScalarList(this.values.bind(this), this.valuesLength()));
+        }
+        unpackTo(_o) {
+            _o.values = this.bb.createScalarList(this.values.bind(this), this.valuesLength());
+        }
+    };
+    var StringsT = class {
+        constructor(values = []){
+            this.values = values;
+        }
+        values;
+        pack(builder) {
+            const values = Strings.createValuesVector(builder, builder.createObjectOffsetList(this.values));
+            return Strings.createStrings(builder, values);
+        }
+    };
+    var ColumnData = ((ColumnData2)=>{
+        ColumnData2[ColumnData2["NONE"] = 0] = "NONE";
+        ColumnData2[ColumnData2["I32"] = 1] = "I32";
+        ColumnData2[ColumnData2["I64"] = 2] = "I64";
+        ColumnData2[ColumnData2["F64"] = 3] = "F64";
+        ColumnData2[ColumnData2["Bool"] = 4] = "Bool";
+        ColumnData2[ColumnData2["Utf8"] = 5] = "Utf8";
+        return ColumnData2;
+    })(ColumnData || {});
+    function unionToColumnData(type, accessor) {
+        switch(ColumnData[type]){
+            case "NONE":
+                return null;
+            case "I32":
+                return accessor(new I32s);
+            case "I64":
+                return accessor(new I64s);
+            case "F64":
+                return accessor(new F64s);
+            case "Bool":
+                return accessor(new Bools);
+            case "Utf8":
+                return accessor(new Strings);
+            default:
+                return null;
+        }
+    }
+    function unionListToColumnData(type, accessor, index) {
+        switch(ColumnData[type]){
+            case "NONE":
+                return null;
+            case "I32":
+                return accessor(index, new I32s);
+            case "I64":
+                return accessor(index, new I64s);
+            case "F64":
+                return accessor(index, new F64s);
+            case "Bool":
+                return accessor(index, new Bools);
+            case "Utf8":
+                return accessor(index, new Strings);
+            default:
+                return null;
+        }
+    }
+    var Column = class _Column {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsColumn(bb, obj) {
+            return (obj || new _Column).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsColumn(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Column).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        name(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        dataType() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        data(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        validity(index) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        validityLength() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        validityArray() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startColumn(builder) {
+            builder.startObject(4);
+        }
+        static addName(builder, nameOffset) {
+            builder.addFieldOffset(0, nameOffset, 0);
+        }
+        static addDataType(builder, dataType) {
+            builder.addFieldInt8(1, dataType, 0);
+        }
+        static addData(builder, dataOffset) {
+            builder.addFieldOffset(2, dataOffset, 0);
+        }
+        static addValidity(builder, validityOffset) {
+            builder.addFieldOffset(3, validityOffset, 0);
+        }
+        static createValidityVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startValidityVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endColumn(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createColumn(builder, nameOffset, dataType, dataOffset, validityOffset) {
+            _Column.startColumn(builder);
+            _Column.addName(builder, nameOffset);
+            _Column.addDataType(builder, dataType);
+            _Column.addData(builder, dataOffset);
+            _Column.addValidity(builder, validityOffset);
+            return _Column.endColumn(builder);
+        }
+        unpack() {
+            return new ColumnT(this.name(), this.dataType(), (()=>{
+                const temp = unionToColumnData(this.dataType(), this.data.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })(), this.bb.createScalarList(this.validity.bind(this), this.validityLength()));
+        }
+        unpackTo(_o) {
+            _o.name = this.name();
+            _o.dataType = this.dataType();
+            _o.data = (()=>{
+                const temp = unionToColumnData(this.dataType(), this.data.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+            _o.validity = this.bb.createScalarList(this.validity.bind(this), this.validityLength());
+        }
+    };
+    var ColumnT = class {
+        constructor(name = null, dataType = 0, data = null, validity = []){
+            this.name = name;
+            this.dataType = dataType;
+            this.data = data;
+            this.validity = validity;
+        }
+        name;
+        dataType;
+        data;
+        validity;
+        pack(builder) {
+            const name = this.name !== null ? builder.createString(this.name) : 0;
+            const data = builder.createObjectOffset(this.data);
+            const validity = Column.createValidityVector(builder, this.validity);
+            return Column.createColumn(builder, name, this.dataType, data, validity);
+        }
+    };
+    var ColumnarBatch = class _ColumnarBatch {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsColumnarBatch(bb, obj) {
+            return (obj || new _ColumnarBatch).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsColumnarBatch(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ColumnarBatch).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        opCodes(index) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        opCodesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        opCodesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        nodeIds(index) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb.__vector(this.bb_pos + offset) + index * 4) : 0;
+        }
+        nodeIdsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        nodeIdsArray() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        argA(index) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint32(this.bb.__vector(this.bb_pos + offset) + index * 4) : 0;
+        }
+        argALength() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        argAArray() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        argB(index) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint32(this.bb.__vector(this.bb_pos + offset) + index * 4) : 0;
+        }
+        argBLength() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        argBArray() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        blobAOff(index) {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.readUint32(this.bb.__vector(this.bb_pos + offset) + index * 4) : 0;
+        }
+        blobAOffLength() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        blobAOffArray() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        blobBOff(index) {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.readUint32(this.bb.__vector(this.bb_pos + offset) + index * 4) : 0;
+        }
+        blobBOffLength() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        blobBOffArray() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? new Uint32Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        blobBytes(index) {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        blobBytesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        blobBytesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startColumnarBatch(builder) {
+            builder.startObject(7);
+        }
+        static addOpCodes(builder, opCodesOffset) {
+            builder.addFieldOffset(0, opCodesOffset, 0);
+        }
+        static createOpCodesVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startOpCodesVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static addNodeIds(builder, nodeIdsOffset) {
+            builder.addFieldOffset(1, nodeIdsOffset, 0);
+        }
+        static createNodeIdsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt32(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startNodeIdsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addArgA(builder, argAOffset) {
+            builder.addFieldOffset(2, argAOffset, 0);
+        }
+        static createArgAVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt32(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startArgAVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addArgB(builder, argBOffset) {
+            builder.addFieldOffset(3, argBOffset, 0);
+        }
+        static createArgBVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt32(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startArgBVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addBlobAOff(builder, blobAOffOffset) {
+            builder.addFieldOffset(4, blobAOffOffset, 0);
+        }
+        static createBlobAOffVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt32(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startBlobAOffVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addBlobBOff(builder, blobBOffOffset) {
+            builder.addFieldOffset(5, blobBOffOffset, 0);
+        }
+        static createBlobBOffVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt32(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startBlobBOffVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addBlobBytes(builder, blobBytesOffset) {
+            builder.addFieldOffset(6, blobBytesOffset, 0);
+        }
+        static createBlobBytesVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startBlobBytesVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endColumnarBatch(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createColumnarBatch(builder, opCodesOffset, nodeIdsOffset, argAOffset, argBOffset, blobAOffOffset, blobBOffOffset, blobBytesOffset) {
+            _ColumnarBatch.startColumnarBatch(builder);
+            _ColumnarBatch.addOpCodes(builder, opCodesOffset);
+            _ColumnarBatch.addNodeIds(builder, nodeIdsOffset);
+            _ColumnarBatch.addArgA(builder, argAOffset);
+            _ColumnarBatch.addArgB(builder, argBOffset);
+            _ColumnarBatch.addBlobAOff(builder, blobAOffOffset);
+            _ColumnarBatch.addBlobBOff(builder, blobBOffOffset);
+            _ColumnarBatch.addBlobBytes(builder, blobBytesOffset);
+            return _ColumnarBatch.endColumnarBatch(builder);
+        }
+        unpack() {
+            return new ColumnarBatchT(this.bb.createScalarList(this.opCodes.bind(this), this.opCodesLength()), this.bb.createScalarList(this.nodeIds.bind(this), this.nodeIdsLength()), this.bb.createScalarList(this.argA.bind(this), this.argALength()), this.bb.createScalarList(this.argB.bind(this), this.argBLength()), this.bb.createScalarList(this.blobAOff.bind(this), this.blobAOffLength()), this.bb.createScalarList(this.blobBOff.bind(this), this.blobBOffLength()), this.bb.createScalarList(this.blobBytes.bind(this), this.blobBytesLength()));
+        }
+        unpackTo(_o) {
+            _o.opCodes = this.bb.createScalarList(this.opCodes.bind(this), this.opCodesLength());
+            _o.nodeIds = this.bb.createScalarList(this.nodeIds.bind(this), this.nodeIdsLength());
+            _o.argA = this.bb.createScalarList(this.argA.bind(this), this.argALength());
+            _o.argB = this.bb.createScalarList(this.argB.bind(this), this.argBLength());
+            _o.blobAOff = this.bb.createScalarList(this.blobAOff.bind(this), this.blobAOffLength());
+            _o.blobBOff = this.bb.createScalarList(this.blobBOff.bind(this), this.blobBOffLength());
+            _o.blobBytes = this.bb.createScalarList(this.blobBytes.bind(this), this.blobBytesLength());
+        }
+    };
+    var ColumnarBatchT = class {
+        constructor(opCodes = [], nodeIds = [], argA = [], argB = [], blobAOff = [], blobBOff = [], blobBytes = []){
+            this.opCodes = opCodes;
+            this.nodeIds = nodeIds;
+            this.argA = argA;
+            this.argB = argB;
+            this.blobAOff = blobAOff;
+            this.blobBOff = blobBOff;
+            this.blobBytes = blobBytes;
+        }
+        opCodes;
+        nodeIds;
+        argA;
+        argB;
+        blobAOff;
+        blobBOff;
+        blobBytes;
+        pack(builder) {
+            const opCodes = ColumnarBatch.createOpCodesVector(builder, this.opCodes);
+            const nodeIds = ColumnarBatch.createNodeIdsVector(builder, this.nodeIds);
+            const argA = ColumnarBatch.createArgAVector(builder, this.argA);
+            const argB = ColumnarBatch.createArgBVector(builder, this.argB);
+            const blobAOff = ColumnarBatch.createBlobAOffVector(builder, this.blobAOff);
+            const blobBOff = ColumnarBatch.createBlobBOffVector(builder, this.blobBOff);
+            const blobBytes = ColumnarBatch.createBlobBytesVector(builder, this.blobBytes);
+            return ColumnarBatch.createColumnarBatch(builder, opCodes, nodeIds, argA, argB, blobAOff, blobBOff, blobBytes);
+        }
+    };
+    var ConnectionSharing = ((ConnectionSharing2)=>{
+        ConnectionSharing2[ConnectionSharing2["TransportDefault"] = 0] = "TransportDefault";
+        ConnectionSharing2[ConnectionSharing2["Shared"] = 1] = "Shared";
+        ConnectionSharing2[ConnectionSharing2["Dedicated"] = 2] = "Dedicated";
+        return ConnectionSharing2;
+    })(ConnectionSharing || {});
+    var ReplayExpired = class _ReplayExpired {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsReplayExpired(bb, obj) {
+            return (obj || new _ReplayExpired).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsReplayExpired(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ReplayExpired).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        streamId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        after() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        static startReplayExpired(builder) {
+            builder.startObject(2);
+        }
+        static addStreamId(builder, streamId) {
+            builder.addFieldInt64(0, streamId, BigInt("0"));
+        }
+        static addAfter(builder, after) {
+            builder.addFieldInt64(1, after, BigInt("0"));
+        }
+        static endReplayExpired(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createReplayExpired(builder, streamId, after) {
+            _ReplayExpired.startReplayExpired(builder);
+            _ReplayExpired.addStreamId(builder, streamId);
+            _ReplayExpired.addAfter(builder, after);
+            return _ReplayExpired.endReplayExpired(builder);
+        }
+        unpack() {
+            return new ReplayExpiredT(this.streamId(), this.after());
+        }
+        unpackTo(_o) {
+            _o.streamId = this.streamId();
+            _o.after = this.after();
+        }
+    };
+    var ReplayExpiredT = class {
+        constructor(streamId = BigInt("0"), after = BigInt("0")){
+            this.streamId = streamId;
+            this.after = after;
+        }
+        streamId;
+        after;
+        pack(builder) {
+            return ReplayExpired.createReplayExpired(builder, this.streamId, this.after);
+        }
+    };
+    var ServerAction = class _ServerAction {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsServerAction(bb, obj) {
+            return (obj || new _ServerAction).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsServerAction(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ServerAction).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        hash() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        name(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startServerAction(builder) {
+            builder.startObject(2);
+        }
+        static addHash(builder, hash) {
+            builder.addFieldInt64(0, hash, BigInt("0"));
+        }
+        static addName(builder, nameOffset) {
+            builder.addFieldOffset(1, nameOffset, 0);
+        }
+        static endServerAction(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createServerAction(builder, hash, nameOffset) {
+            _ServerAction.startServerAction(builder);
+            _ServerAction.addHash(builder, hash);
+            _ServerAction.addName(builder, nameOffset);
+            return _ServerAction.endServerAction(builder);
+        }
+        unpack() {
+            return new ServerActionT(this.hash(), this.name());
+        }
+        unpackTo(_o) {
+            _o.hash = this.hash();
+            _o.name = this.name();
+        }
+    };
+    var ServerActionT = class {
+        constructor(hash = BigInt("0"), name = null){
+            this.hash = hash;
+            this.name = name;
+        }
+        hash;
+        name;
+        pack(builder) {
+            const name = this.name !== null ? builder.createString(this.name) : 0;
+            return ServerAction.createServerAction(builder, this.hash, name);
+        }
+    };
+    var ServerCaps = class _ServerCaps {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsServerCaps(bb, obj) {
+            return (obj || new _ServerCaps).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsServerCaps(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ServerCaps).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        status() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        schemaVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        vocabularyVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        streamId() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        resumeFrom() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        actions(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? (obj || new ServerAction).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        actionsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        subscriptionResume() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+        }
+        requestTag() {
+            const offset = this.bb.__offset(this.bb_pos, 18);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        static startServerCaps(builder) {
+            builder.startObject(8);
+        }
+        static addStatus(builder, status) {
+            builder.addFieldInt8(0, status, 0);
+        }
+        static addSchemaVersion(builder, schemaVersion) {
+            builder.addFieldInt16(1, schemaVersion, 0);
+        }
+        static addVocabularyVersion(builder, vocabularyVersion) {
+            builder.addFieldInt32(2, vocabularyVersion, 0);
+        }
+        static addStreamId(builder, streamId) {
+            builder.addFieldInt64(3, streamId, BigInt("0"));
+        }
+        static addResumeFrom(builder, resumeFrom) {
+            builder.addFieldInt64(4, resumeFrom, BigInt("0"));
+        }
+        static addActions(builder, actionsOffset) {
+            builder.addFieldOffset(5, actionsOffset, 0);
+        }
+        static createActionsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startActionsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addSubscriptionResume(builder, subscriptionResume) {
+            builder.addFieldInt8(6, +subscriptionResume, 0);
+        }
+        static addRequestTag(builder, requestTag) {
+            builder.addFieldInt64(7, requestTag, BigInt("0"));
+        }
+        static endServerCaps(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createServerCaps(builder, status, schemaVersion, vocabularyVersion, streamId, resumeFrom, actionsOffset, subscriptionResume, requestTag) {
+            _ServerCaps.startServerCaps(builder);
+            _ServerCaps.addStatus(builder, status);
+            _ServerCaps.addSchemaVersion(builder, schemaVersion);
+            _ServerCaps.addVocabularyVersion(builder, vocabularyVersion);
+            _ServerCaps.addStreamId(builder, streamId);
+            _ServerCaps.addResumeFrom(builder, resumeFrom);
+            _ServerCaps.addActions(builder, actionsOffset);
+            _ServerCaps.addSubscriptionResume(builder, subscriptionResume);
+            _ServerCaps.addRequestTag(builder, requestTag);
+            return _ServerCaps.endServerCaps(builder);
+        }
+        unpack() {
+            return new ServerCapsT(this.status(), this.schemaVersion(), this.vocabularyVersion(), this.streamId(), this.resumeFrom(), this.bb.createObjList(this.actions.bind(this), this.actionsLength()), this.subscriptionResume(), this.requestTag());
+        }
+        unpackTo(_o) {
+            _o.status = this.status();
+            _o.schemaVersion = this.schemaVersion();
+            _o.vocabularyVersion = this.vocabularyVersion();
+            _o.streamId = this.streamId();
+            _o.resumeFrom = this.resumeFrom();
+            _o.actions = this.bb.createObjList(this.actions.bind(this), this.actionsLength());
+            _o.subscriptionResume = this.subscriptionResume();
+            _o.requestTag = this.requestTag();
+        }
+    };
+    var ServerCapsT = class {
+        constructor(status = 0, schemaVersion = 0, vocabularyVersion = 0, streamId = BigInt("0"), resumeFrom = BigInt("0"), actions = [], subscriptionResume = false, requestTag = BigInt("0")){
+            this.status = status;
+            this.schemaVersion = schemaVersion;
+            this.vocabularyVersion = vocabularyVersion;
+            this.streamId = streamId;
+            this.resumeFrom = resumeFrom;
+            this.actions = actions;
+            this.subscriptionResume = subscriptionResume;
+            this.requestTag = requestTag;
+        }
+        status;
+        schemaVersion;
+        vocabularyVersion;
+        streamId;
+        resumeFrom;
+        actions;
+        subscriptionResume;
+        requestTag;
+        pack(builder) {
+            const actions = ServerCaps.createActionsVector(builder, builder.createObjectOffsetList(this.actions));
+            return ServerCaps.createServerCaps(builder, this.status, this.schemaVersion, this.vocabularyVersion, this.streamId, this.resumeFrom, actions, this.subscriptionResume, this.requestTag);
+        }
+    };
+    var StateExpired = class _StateExpired {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsStateExpired(bb, obj) {
+            return (obj || new _StateExpired).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsStateExpired(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _StateExpired).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        tokenIssuedAt() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        static startStateExpired(builder) {
+            builder.startObject(1);
+        }
+        static addTokenIssuedAt(builder, tokenIssuedAt) {
+            builder.addFieldInt64(0, tokenIssuedAt, BigInt("0"));
+        }
+        static endStateExpired(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createStateExpired(builder, tokenIssuedAt) {
+            _StateExpired.startStateExpired(builder);
+            _StateExpired.addTokenIssuedAt(builder, tokenIssuedAt);
+            return _StateExpired.endStateExpired(builder);
+        }
+        unpack() {
+            return new StateExpiredT(this.tokenIssuedAt());
+        }
+        unpackTo(_o) {
+            _o.tokenIssuedAt = this.tokenIssuedAt();
+        }
+    };
+    var StateExpiredT = class {
+        constructor(tokenIssuedAt = BigInt("0")){
+            this.tokenIssuedAt = tokenIssuedAt;
+        }
+        tokenIssuedAt;
+        pack(builder) {
+            return StateExpired.createStateExpired(builder, this.tokenIssuedAt);
+        }
+    };
+    var UpdateRequired = class _UpdateRequired {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsUpdateRequired(bb, obj) {
+            return (obj || new _UpdateRequired).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsUpdateRequired(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _UpdateRequired).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        clientSchemaVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        serverSchemaVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        static startUpdateRequired(builder) {
+            builder.startObject(2);
+        }
+        static addClientSchemaVersion(builder, clientSchemaVersion) {
+            builder.addFieldInt16(0, clientSchemaVersion, 0);
+        }
+        static addServerSchemaVersion(builder, serverSchemaVersion) {
+            builder.addFieldInt16(1, serverSchemaVersion, 0);
+        }
+        static endUpdateRequired(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createUpdateRequired(builder, clientSchemaVersion, serverSchemaVersion) {
+            _UpdateRequired.startUpdateRequired(builder);
+            _UpdateRequired.addClientSchemaVersion(builder, clientSchemaVersion);
+            _UpdateRequired.addServerSchemaVersion(builder, serverSchemaVersion);
+            return _UpdateRequired.endUpdateRequired(builder);
+        }
+        unpack() {
+            return new UpdateRequiredT(this.clientSchemaVersion(), this.serverSchemaVersion());
+        }
+        unpackTo(_o) {
+            _o.clientSchemaVersion = this.clientSchemaVersion();
+            _o.serverSchemaVersion = this.serverSchemaVersion();
+        }
+    };
+    var UpdateRequiredT = class {
+        constructor(clientSchemaVersion = 0, serverSchemaVersion = 0){
+            this.clientSchemaVersion = clientSchemaVersion;
+            this.serverSchemaVersion = serverSchemaVersion;
+        }
+        clientSchemaVersion;
+        serverSchemaVersion;
+        pack(builder) {
+            return UpdateRequired.createUpdateRequired(builder, this.clientSchemaVersion, this.serverSchemaVersion);
+        }
+    };
+    var Control = class _Control {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsControl(bb, obj) {
+            return (obj || new _Control).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsControl(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Control).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        caps(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? (obj || new ServerCaps).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        stateExpired(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new StateExpired).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        updateRequired(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new UpdateRequired).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        error(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? (obj || new ActionError).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        replayExpired(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? (obj || new ReplayExpired).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        static startControl(builder) {
+            builder.startObject(5);
+        }
+        static addCaps(builder, capsOffset) {
+            builder.addFieldOffset(0, capsOffset, 0);
+        }
+        static addStateExpired(builder, stateExpiredOffset) {
+            builder.addFieldOffset(1, stateExpiredOffset, 0);
+        }
+        static addUpdateRequired(builder, updateRequiredOffset) {
+            builder.addFieldOffset(2, updateRequiredOffset, 0);
+        }
+        static addError(builder, errorOffset) {
+            builder.addFieldOffset(3, errorOffset, 0);
+        }
+        static addReplayExpired(builder, replayExpiredOffset) {
+            builder.addFieldOffset(4, replayExpiredOffset, 0);
+        }
+        static endControl(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new ControlT(this.caps() !== null ? this.caps().unpack() : null, this.stateExpired() !== null ? this.stateExpired().unpack() : null, this.updateRequired() !== null ? this.updateRequired().unpack() : null, this.error() !== null ? this.error().unpack() : null, this.replayExpired() !== null ? this.replayExpired().unpack() : null);
+        }
+        unpackTo(_o) {
+            _o.caps = this.caps() !== null ? this.caps().unpack() : null;
+            _o.stateExpired = this.stateExpired() !== null ? this.stateExpired().unpack() : null;
+            _o.updateRequired = this.updateRequired() !== null ? this.updateRequired().unpack() : null;
+            _o.error = this.error() !== null ? this.error().unpack() : null;
+            _o.replayExpired = this.replayExpired() !== null ? this.replayExpired().unpack() : null;
+        }
+    };
+    var ControlT = class {
+        constructor(caps = null, stateExpired = null, updateRequired = null, error = null, replayExpired = null){
+            this.caps = caps;
+            this.stateExpired = stateExpired;
+            this.updateRequired = updateRequired;
+            this.error = error;
+            this.replayExpired = replayExpired;
+        }
+        caps;
+        stateExpired;
+        updateRequired;
+        error;
+        replayExpired;
+        pack(builder) {
+            const caps = this.caps !== null ? this.caps.pack(builder) : 0;
+            const stateExpired = this.stateExpired !== null ? this.stateExpired.pack(builder) : 0;
+            const updateRequired = this.updateRequired !== null ? this.updateRequired.pack(builder) : 0;
+            const error = this.error !== null ? this.error.pack(builder) : 0;
+            const replayExpired = this.replayExpired !== null ? this.replayExpired.pack(builder) : 0;
+            Control.startControl(builder);
+            Control.addCaps(builder, caps);
+            Control.addStateExpired(builder, stateExpired);
+            Control.addUpdateRequired(builder, updateRequired);
+            Control.addError(builder, error);
+            Control.addReplayExpired(builder, replayExpired);
+            return Control.endControl(builder);
+        }
+    };
+    var NodeKind = ((NodeKind2)=>{
+        NodeKind2[NodeKind2["UNKNOWN"] = 0] = "UNKNOWN";
+        NodeKind2[NodeKind2["STACK"] = 1] = "STACK";
+        NodeKind2[NodeKind2["TEXT"] = 2] = "TEXT";
+        NodeKind2[NodeKind2["IMAGE"] = 3] = "IMAGE";
+        NodeKind2[NodeKind2["BUTTON"] = 4] = "BUTTON";
+        NodeKind2[NodeKind2["TEXT_INPUT"] = 5] = "TEXT_INPUT";
+        NodeKind2[NodeKind2["TOGGLE"] = 6] = "TOGGLE";
+        NodeKind2[NodeKind2["LIST"] = 7] = "LIST";
+        NodeKind2[NodeKind2["SCROLL"] = 8] = "SCROLL";
+        NodeKind2[NodeKind2["SPACER"] = 9] = "SPACER";
+        NodeKind2[NodeKind2["OVERLAY"] = 10] = "OVERLAY";
+        NodeKind2[NodeKind2["MODAL"] = 11] = "MODAL";
+        NodeKind2[NodeKind2["BOTTOM_SHEET"] = 12] = "BOTTOM_SHEET";
+        NodeKind2[NodeKind2["NAVIGATION_TITLE"] = 13] = "NAVIGATION_TITLE";
+        NodeKind2[NodeKind2["TOOLBAR_BUTTON"] = 14] = "TOOLBAR_BUTTON";
+        NodeKind2[NodeKind2["SEGMENTED_CONTROL"] = 15] = "SEGMENTED_CONTROL";
+        NodeKind2[NodeKind2["INSET_LIST"] = 16] = "INSET_LIST";
+        NodeKind2[NodeKind2["CHECKLIST_ROW"] = 17] = "CHECKLIST_ROW";
+        NodeKind2[NodeKind2["CHECKMARK_BUTTON"] = 18] = "CHECKMARK_BUTTON";
+        NodeKind2[NodeKind2["DESTRUCTIVE_BUTTON"] = 19] = "DESTRUCTIVE_BUTTON";
+        NodeKind2[NodeKind2["LIST_FOOTER"] = 20] = "LIST_FOOTER";
+        NodeKind2[NodeKind2["CONFIRMATION_DIALOG"] = 21] = "CONFIRMATION_DIALOG";
+        NodeKind2[NodeKind2["SHEET_TITLE"] = 22] = "SHEET_TITLE";
+        NodeKind2[NodeKind2["SUBMIT_BUTTON"] = 23] = "SUBMIT_BUTTON";
+        NodeKind2[NodeKind2["CANCEL_BUTTON"] = 24] = "CANCEL_BUTTON";
+        NodeKind2[NodeKind2["DRAWING_SURFACE"] = 25] = "DRAWING_SURFACE";
+        return NodeKind2;
+    })(NodeKind || {});
+    var CreateNode = class _CreateNode {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsCreateNode(bb, obj) {
+            return (obj || new _CreateNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsCreateNode(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _CreateNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        kind() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        static startCreateNode(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addKind(builder, kind) {
+            builder.addFieldInt16(1, kind, 0);
+        }
+        static endCreateNode(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createCreateNode(builder, nodeId, kind) {
+            _CreateNode.startCreateNode(builder);
+            _CreateNode.addNodeId(builder, nodeId);
+            _CreateNode.addKind(builder, kind);
+            return _CreateNode.endCreateNode(builder);
+        }
+        unpack() {
+            return new CreateNodeT(this.nodeId(), this.kind());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.kind = this.kind();
+        }
+    };
+    var CreateNodeT = class {
+        constructor(nodeId = 0, kind = 0){
+            this.nodeId = nodeId;
+            this.kind = kind;
+        }
+        nodeId;
+        kind;
+        pack(builder) {
+            return CreateNode.createCreateNode(builder, this.nodeId, this.kind);
+        }
+    };
+    var DataTable = class _DataTable {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsDataTable(bb, obj) {
+            return (obj || new _DataTable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsDataTable(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _DataTable).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        targetNode() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        rows() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        columns(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new Column).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        columnsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startDataTable(builder) {
+            builder.startObject(3);
+        }
+        static addTargetNode(builder, targetNode) {
+            builder.addFieldInt32(0, targetNode, 0);
+        }
+        static addRows(builder, rows) {
+            builder.addFieldInt64(1, rows, BigInt("0"));
+        }
+        static addColumns(builder, columnsOffset) {
+            builder.addFieldOffset(2, columnsOffset, 0);
+        }
+        static createColumnsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startColumnsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endDataTable(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createDataTable(builder, targetNode, rows, columnsOffset) {
+            _DataTable.startDataTable(builder);
+            _DataTable.addTargetNode(builder, targetNode);
+            _DataTable.addRows(builder, rows);
+            _DataTable.addColumns(builder, columnsOffset);
+            return _DataTable.endDataTable(builder);
+        }
+        unpack() {
+            return new DataTableT(this.targetNode(), this.rows(), this.bb.createObjList(this.columns.bind(this), this.columnsLength()));
+        }
+        unpackTo(_o) {
+            _o.targetNode = this.targetNode();
+            _o.rows = this.rows();
+            _o.columns = this.bb.createObjList(this.columns.bind(this), this.columnsLength());
+        }
+    };
+    var DataTableT = class {
+        constructor(targetNode = 0, rows = BigInt("0"), columns = []){
+            this.targetNode = targetNode;
+            this.rows = rows;
+            this.columns = columns;
+        }
+        targetNode;
+        rows;
+        columns;
+        pack(builder) {
+            const columns = DataTable.createColumnsVector(builder, builder.createObjectOffsetList(this.columns));
+            return DataTable.createDataTable(builder, this.targetNode, this.rows, columns);
+        }
+    };
+    var MessagePackBlob = class _MessagePackBlob {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsMessagePackBlob(bb, obj) {
+            return (obj || new _MessagePackBlob).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsMessagePackBlob(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _MessagePackBlob).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        targetNode() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        bytes(index) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        bytesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        bytesArray() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startMessagePackBlob(builder) {
+            builder.startObject(2);
+        }
+        static addTargetNode(builder, targetNode) {
+            builder.addFieldInt32(0, targetNode, 0);
+        }
+        static addBytes(builder, bytesOffset) {
+            builder.addFieldOffset(1, bytesOffset, 0);
+        }
+        static createBytesVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startBytesVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endMessagePackBlob(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createMessagePackBlob(builder, targetNode, bytesOffset) {
+            _MessagePackBlob.startMessagePackBlob(builder);
+            _MessagePackBlob.addTargetNode(builder, targetNode);
+            _MessagePackBlob.addBytes(builder, bytesOffset);
+            return _MessagePackBlob.endMessagePackBlob(builder);
+        }
+        unpack() {
+            return new MessagePackBlobT(this.targetNode(), this.bb.createScalarList(this.bytes.bind(this), this.bytesLength()));
+        }
+        unpackTo(_o) {
+            _o.targetNode = this.targetNode();
+            _o.bytes = this.bb.createScalarList(this.bytes.bind(this), this.bytesLength());
+        }
+    };
+    var MessagePackBlobT = class {
+        constructor(targetNode = 0, bytes = []){
+            this.targetNode = targetNode;
+            this.bytes = bytes;
+        }
+        targetNode;
+        bytes;
+        pack(builder) {
+            const bytes = MessagePackBlob.createBytesVector(builder, this.bytes);
+            return MessagePackBlob.createMessagePackBlob(builder, this.targetNode, bytes);
+        }
+    };
+    var Data = class _Data {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsData(bb, obj) {
+            return (obj || new _Data).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsData(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Data).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        targetNode() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        arrow(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new ArrowIpcBlob).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        table(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new DataTable).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        msgpack(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? (obj || new MessagePackBlob).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        static startData(builder) {
+            builder.startObject(4);
+        }
+        static addTargetNode(builder, targetNode) {
+            builder.addFieldInt32(0, targetNode, 0);
+        }
+        static addArrow(builder, arrowOffset) {
+            builder.addFieldOffset(1, arrowOffset, 0);
+        }
+        static addTable(builder, tableOffset) {
+            builder.addFieldOffset(2, tableOffset, 0);
+        }
+        static addMsgpack(builder, msgpackOffset) {
+            builder.addFieldOffset(3, msgpackOffset, 0);
+        }
+        static endData(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new DataT(this.targetNode(), this.arrow() !== null ? this.arrow().unpack() : null, this.table() !== null ? this.table().unpack() : null, this.msgpack() !== null ? this.msgpack().unpack() : null);
+        }
+        unpackTo(_o) {
+            _o.targetNode = this.targetNode();
+            _o.arrow = this.arrow() !== null ? this.arrow().unpack() : null;
+            _o.table = this.table() !== null ? this.table().unpack() : null;
+            _o.msgpack = this.msgpack() !== null ? this.msgpack().unpack() : null;
+        }
+    };
+    var DataT = class {
+        constructor(targetNode = 0, arrow = null, table = null, msgpack = null){
+            this.targetNode = targetNode;
+            this.arrow = arrow;
+            this.table = table;
+            this.msgpack = msgpack;
+        }
+        targetNode;
+        arrow;
+        table;
+        msgpack;
+        pack(builder) {
+            const arrow = this.arrow !== null ? this.arrow.pack(builder) : 0;
+            const table = this.table !== null ? this.table.pack(builder) : 0;
+            const msgpack = this.msgpack !== null ? this.msgpack.pack(builder) : 0;
+            Data.startData(builder);
+            Data.addTargetNode(builder, this.targetNode);
+            Data.addArrow(builder, arrow);
+            Data.addTable(builder, table);
+            Data.addMsgpack(builder, msgpack);
+            return Data.endData(builder);
+        }
+    };
+    var MobileBehaviourId = ((MobileBehaviourId2)=>{
+        MobileBehaviourId2[MobileBehaviourId2["UNKNOWN"] = 0] = "UNKNOWN";
+        return MobileBehaviourId2;
+    })(MobileBehaviourId || {});
+    var MobileBehaviour = class _MobileBehaviour {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsMobileBehaviour(bb, obj) {
+            return (obj || new _MobileBehaviour).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsMobileBehaviour(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _MobileBehaviour).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        behaviour() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        custom(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        args(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? (obj || new BehaviourArg).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        argsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startMobileBehaviour(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addBehaviour(builder, behaviour) {
+            builder.addFieldInt16(1, behaviour, 0);
+        }
+        static addCustom(builder, customOffset) {
+            builder.addFieldOffset(2, customOffset, 0);
+        }
+        static addArgs(builder, argsOffset) {
+            builder.addFieldOffset(3, argsOffset, 0);
+        }
+        static createArgsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startArgsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endMobileBehaviour(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createMobileBehaviour(builder, nodeId, behaviour, customOffset, argsOffset) {
+            _MobileBehaviour.startMobileBehaviour(builder);
+            _MobileBehaviour.addNodeId(builder, nodeId);
+            _MobileBehaviour.addBehaviour(builder, behaviour);
+            _MobileBehaviour.addCustom(builder, customOffset);
+            _MobileBehaviour.addArgs(builder, argsOffset);
+            return _MobileBehaviour.endMobileBehaviour(builder);
+        }
+        unpack() {
+            return new MobileBehaviourT(this.nodeId(), this.behaviour(), this.custom(), this.bb.createObjList(this.args.bind(this), this.argsLength()));
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.behaviour = this.behaviour();
+            _o.custom = this.custom();
+            _o.args = this.bb.createObjList(this.args.bind(this), this.argsLength());
+        }
+    };
+    var MobileBehaviourT = class {
+        constructor(nodeId = 0, behaviour = 0, custom = null, args = []){
+            this.nodeId = nodeId;
+            this.behaviour = behaviour;
+            this.custom = custom;
+            this.args = args;
+        }
+        nodeId;
+        behaviour;
+        custom;
+        args;
+        pack(builder) {
+            const custom = this.custom !== null ? builder.createString(this.custom) : 0;
+            const args = MobileBehaviour.createArgsVector(builder, builder.createObjectOffsetList(this.args));
+            return MobileBehaviour.createMobileBehaviour(builder, this.nodeId, this.behaviour, custom, args);
+        }
+    };
+    var MountWebView = class _MountWebView {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsMountWebView(bb, obj) {
+            return (obj || new _MountWebView).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsMountWebView(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _MountWebView).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        parentId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        url(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startMountWebView(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addParentId(builder, parentId) {
+            builder.addFieldInt32(1, parentId, 0);
+        }
+        static addUrl(builder, urlOffset) {
+            builder.addFieldOffset(2, urlOffset, 0);
+        }
+        static endMountWebView(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createMountWebView(builder, nodeId, parentId, urlOffset) {
+            _MountWebView.startMountWebView(builder);
+            _MountWebView.addNodeId(builder, nodeId);
+            _MountWebView.addParentId(builder, parentId);
+            _MountWebView.addUrl(builder, urlOffset);
+            return _MountWebView.endMountWebView(builder);
+        }
+        unpack() {
+            return new MountWebViewT(this.nodeId(), this.parentId(), this.url());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.parentId = this.parentId();
+            _o.url = this.url();
+        }
+    };
+    var MountWebViewT = class {
+        constructor(nodeId = 0, parentId = 0, url = null){
+            this.nodeId = nodeId;
+            this.parentId = parentId;
+            this.url = url;
+        }
+        nodeId;
+        parentId;
+        url;
+        pack(builder) {
+            const url = this.url !== null ? builder.createString(this.url) : 0;
+            return MountWebView.createMountWebView(builder, this.nodeId, this.parentId, url);
+        }
+    };
+    var NativeArg = class _NativeArg {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsNativeArg(bb, obj) {
+            return (obj || new _NativeArg).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsNativeArg(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _NativeArg).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        name(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        valueType() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        value(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        static startNativeArg(builder) {
+            builder.startObject(3);
+        }
+        static addName(builder, nameOffset) {
+            builder.addFieldOffset(0, nameOffset, 0);
+        }
+        static addValueType(builder, valueType) {
+            builder.addFieldInt8(1, valueType, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(2, valueOffset, 0);
+        }
+        static endNativeArg(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createNativeArg(builder, nameOffset, valueType, valueOffset) {
+            _NativeArg.startNativeArg(builder);
+            _NativeArg.addName(builder, nameOffset);
+            _NativeArg.addValueType(builder, valueType);
+            _NativeArg.addValue(builder, valueOffset);
+            return _NativeArg.endNativeArg(builder);
+        }
+        unpack() {
+            return new NativeArgT(this.name(), this.valueType(), (()=>{
+                const temp = unionToPropValue(this.valueType(), this.value.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })());
+        }
+        unpackTo(_o) {
+            _o.name = this.name();
+            _o.valueType = this.valueType();
+            _o.value = (()=>{
+                const temp = unionToPropValue(this.valueType(), this.value.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+        }
+    };
+    var NativeArgT = class {
+        constructor(name = null, valueType = 0, value = null){
+            this.name = name;
+            this.valueType = valueType;
+            this.value = value;
+        }
+        name;
+        valueType;
+        value;
+        pack(builder) {
+            const name = this.name !== null ? builder.createString(this.name) : 0;
+            const value = builder.createObjectOffset(this.value);
+            return NativeArg.createNativeArg(builder, name, this.valueType, value);
+        }
+    };
+    var NativeCommandId = ((NativeCommandId2)=>{
+        NativeCommandId2[NativeCommandId2["UNKNOWN"] = 0] = "UNKNOWN";
+        NativeCommandId2[NativeCommandId2["HAPTIC"] = 1] = "HAPTIC";
+        NativeCommandId2[NativeCommandId2["OPEN_URL"] = 2] = "OPEN_URL";
+        NativeCommandId2[NativeCommandId2["SHARE"] = 3] = "SHARE";
+        return NativeCommandId2;
+    })(NativeCommandId || {});
+    var NativeCommand = class _NativeCommand {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsNativeCommand(bb, obj) {
+            return (obj || new _NativeCommand).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsNativeCommand(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _NativeCommand).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        command() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        args(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new NativeArg).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        argsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startNativeCommand(builder) {
+            builder.startObject(2);
+        }
+        static addCommand(builder, command) {
+            builder.addFieldInt16(0, command, 0);
+        }
+        static addArgs(builder, argsOffset) {
+            builder.addFieldOffset(1, argsOffset, 0);
+        }
+        static createArgsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startArgsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endNativeCommand(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createNativeCommand(builder, command, argsOffset) {
+            _NativeCommand.startNativeCommand(builder);
+            _NativeCommand.addCommand(builder, command);
+            _NativeCommand.addArgs(builder, argsOffset);
+            return _NativeCommand.endNativeCommand(builder);
+        }
+        unpack() {
+            return new NativeCommandT(this.command(), this.bb.createObjList(this.args.bind(this), this.argsLength()));
+        }
+        unpackTo(_o) {
+            _o.command = this.command();
+            _o.args = this.bb.createObjList(this.args.bind(this), this.argsLength());
+        }
+    };
+    var NativeCommandT = class {
+        constructor(command = 0, args = []){
+            this.command = command;
+            this.args = args;
+        }
+        command;
+        args;
+        pack(builder) {
+            const args = NativeCommand.createArgsVector(builder, builder.createObjectOffsetList(this.args));
+            return NativeCommand.createNativeCommand(builder, this.command, args);
+        }
+    };
+    var MobileOperation = ((MobileOperation2)=>{
+        MobileOperation2[MobileOperation2["NONE"] = 0] = "NONE";
+        MobileOperation2[MobileOperation2["MountWebView"] = 1] = "MountWebView";
+        MobileOperation2[MobileOperation2["NativeCommand"] = 2] = "NativeCommand";
+        MobileOperation2[MobileOperation2["MobileBehaviour"] = 3] = "MobileBehaviour";
+        return MobileOperation2;
+    })(MobileOperation || {});
+    function unionToMobileOperation(type, accessor) {
+        switch(MobileOperation[type]){
+            case "NONE":
+                return null;
+            case "MountWebView":
+                return accessor(new MountWebView);
+            case "NativeCommand":
+                return accessor(new NativeCommand);
+            case "MobileBehaviour":
+                return accessor(new MobileBehaviour);
+            default:
+                return null;
+        }
+    }
+    function unionListToMobileOperation(type, accessor, index) {
+        switch(MobileOperation[type]){
+            case "NONE":
+                return null;
+            case "MountWebView":
+                return accessor(index, new MountWebView);
+            case "NativeCommand":
+                return accessor(index, new NativeCommand);
+            case "MobileBehaviour":
+                return accessor(index, new MobileBehaviour);
+            default:
+                return null;
+        }
+    }
+    var InsertBefore = class _InsertBefore {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsInsertBefore(bb, obj) {
+            return (obj || new _InsertBefore).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsInsertBefore(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _InsertBefore).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        parentId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        childId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        beforeId() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startInsertBefore(builder) {
+            builder.startObject(3);
+        }
+        static addParentId(builder, parentId) {
+            builder.addFieldInt32(0, parentId, 0);
+        }
+        static addChildId(builder, childId) {
+            builder.addFieldInt32(1, childId, 0);
+        }
+        static addBeforeId(builder, beforeId) {
+            builder.addFieldInt32(2, beforeId, 0);
+        }
+        static endInsertBefore(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createInsertBefore(builder, parentId, childId, beforeId) {
+            _InsertBefore.startInsertBefore(builder);
+            _InsertBefore.addParentId(builder, parentId);
+            _InsertBefore.addChildId(builder, childId);
+            _InsertBefore.addBeforeId(builder, beforeId);
+            return _InsertBefore.endInsertBefore(builder);
+        }
+        unpack() {
+            return new InsertBeforeT(this.parentId(), this.childId(), this.beforeId());
+        }
+        unpackTo(_o) {
+            _o.parentId = this.parentId();
+            _o.childId = this.childId();
+            _o.beforeId = this.beforeId();
+        }
+    };
+    var InsertBeforeT = class {
+        constructor(parentId = 0, childId = 0, beforeId = 0){
+            this.parentId = parentId;
+            this.childId = childId;
+            this.beforeId = beforeId;
+        }
+        parentId;
+        childId;
+        beforeId;
+        pack(builder) {
+            return InsertBefore.createInsertBefore(builder, this.parentId, this.childId, this.beforeId);
+        }
+    };
+    var LiveKind = ((LiveKind2)=>{
+        LiveKind2[LiveKind2["Stream"] = 0] = "Stream";
+        LiveKind2[LiveKind2["Data"] = 1] = "Data";
+        return LiveKind2;
+    })(LiveKind || {});
+    var LiveTransport = ((LiveTransport2)=>{
+        LiveTransport2[LiveTransport2["Local"] = 0] = "Local";
+        LiveTransport2[LiveTransport2["Sse"] = 1] = "Sse";
+        LiveTransport2[LiveTransport2["WebSocket"] = 2] = "WebSocket";
+        LiveTransport2[LiveTransport2["Http"] = 3] = "Http";
+        return LiveTransport2;
+    })(LiveTransport || {});
+    var LiveMount = class _LiveMount {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsLiveMount(bb, obj) {
+            return (obj || new _LiveMount).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsLiveMount(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _LiveMount).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        kind() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        channelId() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        transport() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        endpoint(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        resumeFrom() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        sharing() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        keepAlive() {
+            const offset = this.bb.__offset(this.bb_pos, 18);
+            return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+        }
+        static startLiveMount(builder) {
+            builder.startObject(8);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addKind(builder, kind) {
+            builder.addFieldInt8(1, kind, 0);
+        }
+        static addChannelId(builder, channelId) {
+            builder.addFieldInt64(2, channelId, BigInt("0"));
+        }
+        static addTransport(builder, transport) {
+            builder.addFieldInt8(3, transport, 0);
+        }
+        static addEndpoint(builder, endpointOffset) {
+            builder.addFieldOffset(4, endpointOffset, 0);
+        }
+        static addResumeFrom(builder, resumeFrom) {
+            builder.addFieldInt64(5, resumeFrom, BigInt("0"));
+        }
+        static addSharing(builder, sharing) {
+            builder.addFieldInt8(6, sharing, 0);
+        }
+        static addKeepAlive(builder, keepAlive) {
+            builder.addFieldInt8(7, +keepAlive, 0);
+        }
+        static endLiveMount(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createLiveMount(builder, nodeId, kind, channelId, transport, endpointOffset, resumeFrom, sharing, keepAlive) {
+            _LiveMount.startLiveMount(builder);
+            _LiveMount.addNodeId(builder, nodeId);
+            _LiveMount.addKind(builder, kind);
+            _LiveMount.addChannelId(builder, channelId);
+            _LiveMount.addTransport(builder, transport);
+            _LiveMount.addEndpoint(builder, endpointOffset);
+            _LiveMount.addResumeFrom(builder, resumeFrom);
+            _LiveMount.addSharing(builder, sharing);
+            _LiveMount.addKeepAlive(builder, keepAlive);
+            return _LiveMount.endLiveMount(builder);
+        }
+        unpack() {
+            return new LiveMountT(this.nodeId(), this.kind(), this.channelId(), this.transport(), this.endpoint(), this.resumeFrom(), this.sharing(), this.keepAlive());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.kind = this.kind();
+            _o.channelId = this.channelId();
+            _o.transport = this.transport();
+            _o.endpoint = this.endpoint();
+            _o.resumeFrom = this.resumeFrom();
+            _o.sharing = this.sharing();
+            _o.keepAlive = this.keepAlive();
+        }
+    };
+    var LiveMountT = class {
+        constructor(nodeId = 0, kind = 0, channelId = BigInt("0"), transport = 0, endpoint = null, resumeFrom = BigInt("0"), sharing = 0, keepAlive = false){
+            this.nodeId = nodeId;
+            this.kind = kind;
+            this.channelId = channelId;
+            this.transport = transport;
+            this.endpoint = endpoint;
+            this.resumeFrom = resumeFrom;
+            this.sharing = sharing;
+            this.keepAlive = keepAlive;
+        }
+        nodeId;
+        kind;
+        channelId;
+        transport;
+        endpoint;
+        resumeFrom;
+        sharing;
+        keepAlive;
+        pack(builder) {
+            const endpoint = this.endpoint !== null ? builder.createString(this.endpoint) : 0;
+            return LiveMount.createLiveMount(builder, this.nodeId, this.kind, this.channelId, this.transport, endpoint, this.resumeFrom, this.sharing, this.keepAlive);
+        }
+    };
+    var PlacementKind = ((PlacementKind2)=>{
+        PlacementKind2[PlacementKind2["Append"] = 0] = "Append";
+        PlacementKind2[PlacementKind2["Before"] = 1] = "Before";
+        PlacementKind2[PlacementKind2["After"] = 2] = "After";
+        PlacementKind2[PlacementKind2["Swap"] = 3] = "Swap";
+        PlacementKind2[PlacementKind2["Remove"] = 4] = "Remove";
+        PlacementKind2[PlacementKind2["FullView"] = 5] = "FullView";
+        return PlacementKind2;
+    })(PlacementKind || {});
+    var SelectorKind = ((SelectorKind2)=>{
+        SelectorKind2[SelectorKind2["NodeId"] = 0] = "NodeId";
+        SelectorKind2[SelectorKind2["Id"] = 1] = "Id";
+        SelectorKind2[SelectorKind2["Class"] = 2] = "Class";
+        SelectorKind2[SelectorKind2["Query"] = 3] = "Query";
+        SelectorKind2[SelectorKind2["TypedId"] = 4] = "TypedId";
+        SelectorKind2[SelectorKind2["View"] = 5] = "View";
+        SelectorKind2[SelectorKind2["Receiving"] = 6] = "Receiving";
+        return SelectorKind2;
+    })(SelectorKind || {});
+    var TargetSelector = class _TargetSelector {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsTargetSelector(bb, obj) {
+            return (obj || new _TargetSelector).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsTargetSelector(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _TargetSelector).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        kind() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        text(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startTargetSelector(builder) {
+            builder.startObject(3);
+        }
+        static addKind(builder, kind) {
+            builder.addFieldInt8(0, kind, 0);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(1, nodeId, 0);
+        }
+        static addText(builder, textOffset) {
+            builder.addFieldOffset(2, textOffset, 0);
+        }
+        static endTargetSelector(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createTargetSelector(builder, kind, nodeId, textOffset) {
+            _TargetSelector.startTargetSelector(builder);
+            _TargetSelector.addKind(builder, kind);
+            _TargetSelector.addNodeId(builder, nodeId);
+            _TargetSelector.addText(builder, textOffset);
+            return _TargetSelector.endTargetSelector(builder);
+        }
+        unpack() {
+            return new TargetSelectorT(this.kind(), this.nodeId(), this.text());
+        }
+        unpackTo(_o) {
+            _o.kind = this.kind();
+            _o.nodeId = this.nodeId();
+            _o.text = this.text();
+        }
+    };
+    var TargetSelectorT = class {
+        constructor(kind = 0, nodeId = 0, text = null){
+            this.kind = kind;
+            this.nodeId = nodeId;
+            this.text = text;
+        }
+        kind;
+        nodeId;
+        text;
+        pack(builder) {
+            const text = this.text !== null ? builder.createString(this.text) : 0;
+            return TargetSelector.createTargetSelector(builder, this.kind, this.nodeId, text);
+        }
+    };
+    var Place = class _Place {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsPlace(bb, obj) {
+            return (obj || new _Place).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsPlace(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Place).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        kind() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        target(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new TargetSelector).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        child(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new TargetSelector).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        rootNode() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        operations(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? (obj || new Operation).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        operationsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startPlace(builder) {
+            builder.startObject(5);
+        }
+        static addKind(builder, kind) {
+            builder.addFieldInt8(0, kind, 0);
+        }
+        static addTarget(builder, targetOffset) {
+            builder.addFieldOffset(1, targetOffset, 0);
+        }
+        static addChild(builder, childOffset) {
+            builder.addFieldOffset(2, childOffset, 0);
+        }
+        static addRootNode(builder, rootNode) {
+            builder.addFieldInt32(3, rootNode, 0);
+        }
+        static addOperations(builder, operationsOffset) {
+            builder.addFieldOffset(4, operationsOffset, 0);
+        }
+        static createOperationsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startOperationsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endPlace(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new PlaceT(this.kind(), this.target() !== null ? this.target().unpack() : null, this.child() !== null ? this.child().unpack() : null, this.rootNode(), this.bb.createObjList(this.operations.bind(this), this.operationsLength()));
+        }
+        unpackTo(_o) {
+            _o.kind = this.kind();
+            _o.target = this.target() !== null ? this.target().unpack() : null;
+            _o.child = this.child() !== null ? this.child().unpack() : null;
+            _o.rootNode = this.rootNode();
+            _o.operations = this.bb.createObjList(this.operations.bind(this), this.operationsLength());
+        }
+    };
+    var PlaceT = class {
+        constructor(kind = 0, target = null, child = null, rootNode = 0, operations = []){
+            this.kind = kind;
+            this.target = target;
+            this.child = child;
+            this.rootNode = rootNode;
+            this.operations = operations;
+        }
+        kind;
+        target;
+        child;
+        rootNode;
+        operations;
+        pack(builder) {
+            const target = this.target !== null ? this.target.pack(builder) : 0;
+            const child = this.child !== null ? this.child.pack(builder) : 0;
+            const operations = Place.createOperationsVector(builder, builder.createObjectOffsetList(this.operations));
+            Place.startPlace(builder);
+            Place.addKind(builder, this.kind);
+            Place.addTarget(builder, target);
+            Place.addChild(builder, child);
+            Place.addRootNode(builder, this.rootNode);
+            Place.addOperations(builder, operations);
+            return Place.endPlace(builder);
+        }
+    };
+    var Remove = class _Remove {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsRemove(bb, obj) {
+            return (obj || new _Remove).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsRemove(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Remove).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startRemove(builder) {
+            builder.startObject(1);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static endRemove(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createRemove(builder, nodeId) {
+            _Remove.startRemove(builder);
+            _Remove.addNodeId(builder, nodeId);
+            return _Remove.endRemove(builder);
+        }
+        unpack() {
+            return new RemoveT(this.nodeId());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+        }
+    };
+    var RemoveT = class {
+        constructor(nodeId = 0){
+            this.nodeId = nodeId;
+        }
+        nodeId;
+        pack(builder) {
+            return Remove.createRemove(builder, this.nodeId);
+        }
+    };
+    var ReplaceSubtree = class _ReplaceSubtree {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsReplaceSubtree(bb, obj) {
+            return (obj || new _ReplaceSubtree).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsReplaceSubtree(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ReplaceSubtree).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        operations(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new Operation).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        operationsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startReplaceSubtree(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addOperations(builder, operationsOffset) {
+            builder.addFieldOffset(1, operationsOffset, 0);
+        }
+        static createOperationsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startOperationsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endReplaceSubtree(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createReplaceSubtree(builder, nodeId, operationsOffset) {
+            _ReplaceSubtree.startReplaceSubtree(builder);
+            _ReplaceSubtree.addNodeId(builder, nodeId);
+            _ReplaceSubtree.addOperations(builder, operationsOffset);
+            return _ReplaceSubtree.endReplaceSubtree(builder);
+        }
+        unpack() {
+            return new ReplaceSubtreeT(this.nodeId(), this.bb.createObjList(this.operations.bind(this), this.operationsLength()));
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.operations = this.bb.createObjList(this.operations.bind(this), this.operationsLength());
+        }
+    };
+    var ReplaceSubtreeT = class {
+        constructor(nodeId = 0, operations = []){
+            this.nodeId = nodeId;
+            this.operations = operations;
+        }
+        nodeId;
+        operations;
+        pack(builder) {
+            const operations = ReplaceSubtree.createOperationsVector(builder, builder.createObjectOffsetList(this.operations));
+            return ReplaceSubtree.createReplaceSubtree(builder, this.nodeId, operations);
+        }
+    };
+    var PropId = ((PropId2)=>{
+        PropId2[PropId2["UNKNOWN"] = 0] = "UNKNOWN";
+        PropId2[PropId2["PADDING"] = 1] = "PADDING";
+        PropId2[PropId2["SPACING"] = 2] = "SPACING";
+        PropId2[PropId2["ALIGN"] = 3] = "ALIGN";
+        PropId2[PropId2["COLOR"] = 4] = "COLOR";
+        PropId2[PropId2["FONT"] = 5] = "FONT";
+        PropId2[PropId2["ENABLED"] = 6] = "ENABLED";
+        PropId2[PropId2["A11Y_LABEL"] = 7] = "A11Y_LABEL";
+        PropId2[PropId2["AXIS"] = 8] = "AXIS";
+        PropId2[PropId2["VALUE"] = 9] = "VALUE";
+        PropId2[PropId2["CHECKED"] = 10] = "CHECKED";
+        PropId2[PropId2["SOURCE"] = 11] = "SOURCE";
+        PropId2[PropId2["PLACEHOLDER"] = 12] = "PLACEHOLDER";
+        PropId2[PropId2["BACKGROUND"] = 13] = "BACKGROUND";
+        PropId2[PropId2["WIDTH"] = 14] = "WIDTH";
+        PropId2[PropId2["HEIGHT"] = 15] = "HEIGHT";
+        PropId2[PropId2["HIDDEN"] = 16] = "HIDDEN";
+        PropId2[PropId2["PRESENTATION"] = 17] = "PRESENTATION";
+        PropId2[PropId2["UTILITY_CLASSES"] = 18] = "UTILITY_CLASSES";
+        PropId2[PropId2["ID"] = 19] = "ID";
+        return PropId2;
+    })(PropId || {});
+    var SetProp = class _SetProp {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsSetProp(bb, obj) {
+            return (obj || new _SetProp).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsSetProp(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _SetProp).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        prop() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        valueType() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        value(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        static startSetProp(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addProp(builder, prop) {
+            builder.addFieldInt16(1, prop, 0);
+        }
+        static addValueType(builder, valueType) {
+            builder.addFieldInt8(2, valueType, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(3, valueOffset, 0);
+        }
+        static endSetProp(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createSetProp(builder, nodeId, prop, valueType, valueOffset) {
+            _SetProp.startSetProp(builder);
+            _SetProp.addNodeId(builder, nodeId);
+            _SetProp.addProp(builder, prop);
+            _SetProp.addValueType(builder, valueType);
+            _SetProp.addValue(builder, valueOffset);
+            return _SetProp.endSetProp(builder);
+        }
+        unpack() {
+            return new SetPropT(this.nodeId(), this.prop(), this.valueType(), (()=>{
+                const temp = unionToPropValue(this.valueType(), this.value.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.prop = this.prop();
+            _o.valueType = this.valueType();
+            _o.value = (()=>{
+                const temp = unionToPropValue(this.valueType(), this.value.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+        }
+    };
+    var SetPropT = class {
+        constructor(nodeId = 0, prop = 0, valueType = 0, value = null){
+            this.nodeId = nodeId;
+            this.prop = prop;
+            this.valueType = valueType;
+            this.value = value;
+        }
+        nodeId;
+        prop;
+        valueType;
+        value;
+        pack(builder) {
+            const value = builder.createObjectOffset(this.value);
+            return SetProp.createSetProp(builder, this.nodeId, this.prop, this.valueType, value);
+        }
+    };
+    var SetText = class _SetText {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsSetText(bb, obj) {
+            return (obj || new _SetText).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsSetText(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _SetText).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        text(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startSetText(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addText(builder, textOffset) {
+            builder.addFieldOffset(1, textOffset, 0);
+        }
+        static endSetText(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createSetText(builder, nodeId, textOffset) {
+            _SetText.startSetText(builder);
+            _SetText.addNodeId(builder, nodeId);
+            _SetText.addText(builder, textOffset);
+            return _SetText.endSetText(builder);
+        }
+        unpack() {
+            return new SetTextT(this.nodeId(), this.text());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.text = this.text();
+        }
+    };
+    var SetTextT = class {
+        constructor(nodeId = 0, text = null){
+            this.nodeId = nodeId;
+            this.text = text;
+        }
+        nodeId;
+        text;
+        pack(builder) {
+            const text = this.text !== null ? builder.createString(this.text) : 0;
+            return SetText.createSetText(builder, this.nodeId, text);
+        }
+    };
+    var UiBehaviour = class _UiBehaviour {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsUiBehaviour(bb, obj) {
+            return (obj || new _UiBehaviour).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsUiBehaviour(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _UiBehaviour).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        behaviour() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        args(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new BehaviourArg).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        argsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startUiBehaviour(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addBehaviour(builder, behaviour) {
+            builder.addFieldInt16(1, behaviour, 0);
+        }
+        static addArgs(builder, argsOffset) {
+            builder.addFieldOffset(2, argsOffset, 0);
+        }
+        static createArgsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startArgsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endUiBehaviour(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createUiBehaviour(builder, nodeId, behaviour, argsOffset) {
+            _UiBehaviour.startUiBehaviour(builder);
+            _UiBehaviour.addNodeId(builder, nodeId);
+            _UiBehaviour.addBehaviour(builder, behaviour);
+            _UiBehaviour.addArgs(builder, argsOffset);
+            return _UiBehaviour.endUiBehaviour(builder);
+        }
+        unpack() {
+            return new UiBehaviourT(this.nodeId(), this.behaviour(), this.bb.createObjList(this.args.bind(this), this.argsLength()));
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.behaviour = this.behaviour();
+            _o.args = this.bb.createObjList(this.args.bind(this), this.argsLength());
+        }
+    };
+    var UiBehaviourT = class {
+        constructor(nodeId = 0, behaviour = 0, args = []){
+            this.nodeId = nodeId;
+            this.behaviour = behaviour;
+            this.args = args;
+        }
+        nodeId;
+        behaviour;
+        args;
+        pack(builder) {
+            const args = UiBehaviour.createArgsVector(builder, builder.createObjectOffsetList(this.args));
+            return UiBehaviour.createUiBehaviour(builder, this.nodeId, this.behaviour, args);
+        }
+    };
+    var UnbindAction = class _UnbindAction {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsUnbindAction(bb, obj) {
+            return (obj || new _UnbindAction).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsUnbindAction(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _UnbindAction).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        event() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        static startUnbindAction(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addEvent(builder, event) {
+            builder.addFieldInt16(1, event, 0);
+        }
+        static endUnbindAction(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createUnbindAction(builder, nodeId, event) {
+            _UnbindAction.startUnbindAction(builder);
+            _UnbindAction.addNodeId(builder, nodeId);
+            _UnbindAction.addEvent(builder, event);
+            return _UnbindAction.endUnbindAction(builder);
+        }
+        unpack() {
+            return new UnbindActionT(this.nodeId(), this.event());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.event = this.event();
+        }
+    };
+    var UnbindActionT = class {
+        constructor(nodeId = 0, event = 0){
+            this.nodeId = nodeId;
+            this.event = event;
+        }
+        nodeId;
+        event;
+        pack(builder) {
+            return UnbindAction.createUnbindAction(builder, this.nodeId, this.event);
+        }
+    };
+    var UiOperation = ((UiOperation2)=>{
+        UiOperation2[UiOperation2["NONE"] = 0] = "NONE";
+        UiOperation2[UiOperation2["CreateNode"] = 1] = "CreateNode";
+        UiOperation2[UiOperation2["SetText"] = 2] = "SetText";
+        UiOperation2[UiOperation2["SetProp"] = 3] = "SetProp";
+        UiOperation2[UiOperation2["AppendChild"] = 4] = "AppendChild";
+        UiOperation2[UiOperation2["InsertBefore"] = 5] = "InsertBefore";
+        UiOperation2[UiOperation2["Remove"] = 6] = "Remove";
+        UiOperation2[UiOperation2["ReplaceSubtree"] = 7] = "ReplaceSubtree";
+        UiOperation2[UiOperation2["BindAction"] = 8] = "BindAction";
+        UiOperation2[UiOperation2["UnbindAction"] = 9] = "UnbindAction";
+        UiOperation2[UiOperation2["AttachState"] = 10] = "AttachState";
+        UiOperation2[UiOperation2["LiveMount"] = 11] = "LiveMount";
+        UiOperation2[UiOperation2["UiBehaviour"] = 12] = "UiBehaviour";
+        UiOperation2[UiOperation2["Place"] = 13] = "Place";
+        return UiOperation2;
+    })(UiOperation || {});
+    function unionToUiOperation(type, accessor) {
+        switch(UiOperation[type]){
+            case "NONE":
+                return null;
+            case "CreateNode":
+                return accessor(new CreateNode);
+            case "SetText":
+                return accessor(new SetText);
+            case "SetProp":
+                return accessor(new SetProp);
+            case "AppendChild":
+                return accessor(new AppendChild);
+            case "InsertBefore":
+                return accessor(new InsertBefore);
+            case "Remove":
+                return accessor(new Remove);
+            case "ReplaceSubtree":
+                return accessor(new ReplaceSubtree);
+            case "BindAction":
+                return accessor(new BindAction);
+            case "UnbindAction":
+                return accessor(new UnbindAction);
+            case "AttachState":
+                return accessor(new AttachState);
+            case "LiveMount":
+                return accessor(new LiveMount);
+            case "UiBehaviour":
+                return accessor(new UiBehaviour);
+            case "Place":
+                return accessor(new Place);
+            default:
+                return null;
+        }
+    }
+    function unionListToUiOperation(type, accessor, index) {
+        switch(UiOperation[type]){
+            case "NONE":
+                return null;
+            case "CreateNode":
+                return accessor(index, new CreateNode);
+            case "SetText":
+                return accessor(index, new SetText);
+            case "SetProp":
+                return accessor(index, new SetProp);
+            case "AppendChild":
+                return accessor(index, new AppendChild);
+            case "InsertBefore":
+                return accessor(index, new InsertBefore);
+            case "Remove":
+                return accessor(index, new Remove);
+            case "ReplaceSubtree":
+                return accessor(index, new ReplaceSubtree);
+            case "BindAction":
+                return accessor(index, new BindAction);
+            case "UnbindAction":
+                return accessor(index, new UnbindAction);
+            case "AttachState":
+                return accessor(index, new AttachState);
+            case "LiveMount":
+                return accessor(index, new LiveMount);
+            case "UiBehaviour":
+                return accessor(index, new UiBehaviour);
+            case "Place":
+                return accessor(index, new Place);
+            default:
+                return null;
+        }
+    }
+    var MorphAction = ((MorphAction2)=>{
+        MorphAction2[MorphAction2["ReplaceChildren"] = 0] = "ReplaceChildren";
+        MorphAction2[MorphAction2["ReplaceElement"] = 1] = "ReplaceElement";
+        MorphAction2[MorphAction2["InsertBefore"] = 2] = "InsertBefore";
+        MorphAction2[MorphAction2["InsertAfter"] = 3] = "InsertAfter";
+        MorphAction2[MorphAction2["AppendSibling"] = 4] = "AppendSibling";
+        return MorphAction2;
+    })(MorphAction || {});
+    var HtmlMorph = class _HtmlMorph {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsHtmlMorph(bb, obj) {
+            return (obj || new _HtmlMorph).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsHtmlMorph(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _HtmlMorph).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        target(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? (obj || new TargetSelector).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        action() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        content(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startHtmlMorph(builder) {
+            builder.startObject(3);
+        }
+        static addTarget(builder, targetOffset) {
+            builder.addFieldOffset(0, targetOffset, 0);
+        }
+        static addAction(builder, action) {
+            builder.addFieldInt8(1, action, 0);
+        }
+        static addContent(builder, contentOffset) {
+            builder.addFieldOffset(2, contentOffset, 0);
+        }
+        static endHtmlMorph(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createHtmlMorph(builder, targetOffset, action, contentOffset) {
+            _HtmlMorph.startHtmlMorph(builder);
+            _HtmlMorph.addTarget(builder, targetOffset);
+            _HtmlMorph.addAction(builder, action);
+            _HtmlMorph.addContent(builder, contentOffset);
+            return _HtmlMorph.endHtmlMorph(builder);
+        }
+        unpack() {
+            return new HtmlMorphT(this.target() !== null ? this.target().unpack() : null, this.action(), this.content());
+        }
+        unpackTo(_o) {
+            _o.target = this.target() !== null ? this.target().unpack() : null;
+            _o.action = this.action();
+            _o.content = this.content();
+        }
+    };
+    var HtmlMorphT = class {
+        constructor(target = null, action = 0, content = null){
+            this.target = target;
+            this.action = action;
+            this.content = content;
+        }
+        target;
+        action;
+        content;
+        pack(builder) {
+            const target = this.target !== null ? this.target.pack(builder) : 0;
+            const content = this.content !== null ? builder.createString(this.content) : 0;
+            return HtmlMorph.createHtmlMorph(builder, target, this.action, content);
+        }
+    };
+    var ScriptNode = class _ScriptNode {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsScriptNode(bb, obj) {
+            return (obj || new _ScriptNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsScriptNode(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ScriptNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        parentId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        body(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startScriptNode(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addParentId(builder, parentId) {
+            builder.addFieldInt32(1, parentId, 0);
+        }
+        static addBody(builder, bodyOffset) {
+            builder.addFieldOffset(2, bodyOffset, 0);
+        }
+        static endScriptNode(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createScriptNode(builder, nodeId, parentId, bodyOffset) {
+            _ScriptNode.startScriptNode(builder);
+            _ScriptNode.addNodeId(builder, nodeId);
+            _ScriptNode.addParentId(builder, parentId);
+            _ScriptNode.addBody(builder, bodyOffset);
+            return _ScriptNode.endScriptNode(builder);
+        }
+        unpack() {
+            return new ScriptNodeT(this.nodeId(), this.parentId(), this.body());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.parentId = this.parentId();
+            _o.body = this.body();
+        }
+    };
+    var ScriptNodeT = class {
+        constructor(nodeId = 0, parentId = 0, body = null){
+            this.nodeId = nodeId;
+            this.parentId = parentId;
+            this.body = body;
+        }
+        nodeId;
+        parentId;
+        body;
+        pack(builder) {
+            const body = this.body !== null ? builder.createString(this.body) : 0;
+            return ScriptNode.createScriptNode(builder, this.nodeId, this.parentId, body);
+        }
+    };
+    var WebAddClass = class _WebAddClass {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebAddClass(bb, obj) {
+            return (obj || new _WebAddClass).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebAddClass(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebAddClass).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        className(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebAddClass(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addClassName(builder, classNameOffset) {
+            builder.addFieldOffset(1, classNameOffset, 0);
+        }
+        static endWebAddClass(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebAddClass(builder, nodeId, classNameOffset) {
+            _WebAddClass.startWebAddClass(builder);
+            _WebAddClass.addNodeId(builder, nodeId);
+            _WebAddClass.addClassName(builder, classNameOffset);
+            return _WebAddClass.endWebAddClass(builder);
+        }
+        unpack() {
+            return new WebAddClassT(this.nodeId(), this.className());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.className = this.className();
+        }
+    };
+    var WebAddClassT = class {
+        constructor(nodeId = 0, className = null){
+            this.nodeId = nodeId;
+            this.className = className;
+        }
+        nodeId;
+        className;
+        pack(builder) {
+            const className = this.className !== null ? builder.createString(this.className) : 0;
+            return WebAddClass.createWebAddClass(builder, this.nodeId, className);
+        }
+    };
+    var WebAddListener = class _WebAddListener {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebAddListener(bb, obj) {
+            return (obj || new _WebAddListener).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebAddListener(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebAddListener).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        nameId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customName(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebAddListener(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addNameId(builder, nameId) {
+            builder.addFieldInt16(1, nameId, 0);
+        }
+        static addCustomName(builder, customNameOffset) {
+            builder.addFieldOffset(2, customNameOffset, 0);
+        }
+        static endWebAddListener(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebAddListener(builder, nodeId, nameId, customNameOffset) {
+            _WebAddListener.startWebAddListener(builder);
+            _WebAddListener.addNodeId(builder, nodeId);
+            _WebAddListener.addNameId(builder, nameId);
+            _WebAddListener.addCustomName(builder, customNameOffset);
+            return _WebAddListener.endWebAddListener(builder);
+        }
+        unpack() {
+            return new WebAddListenerT(this.nodeId(), this.nameId(), this.customName());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.nameId = this.nameId();
+            _o.customName = this.customName();
+        }
+    };
+    var WebAddListenerT = class {
+        constructor(nodeId = 0, nameId = 0, customName = null){
+            this.nodeId = nodeId;
+            this.nameId = nameId;
+            this.customName = customName;
+        }
+        nodeId;
+        nameId;
+        customName;
+        pack(builder) {
+            const customName = this.customName !== null ? builder.createString(this.customName) : 0;
+            return WebAddListener.createWebAddListener(builder, this.nodeId, this.nameId, customName);
+        }
+    };
+    var WebBehaviourId = ((WebBehaviourId2)=>{
+        WebBehaviourId2[WebBehaviourId2["UNKNOWN"] = 0] = "UNKNOWN";
+        return WebBehaviourId2;
+    })(WebBehaviourId || {});
+    var WebBehaviour = class _WebBehaviour {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebBehaviour(bb, obj) {
+            return (obj || new _WebBehaviour).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebBehaviour(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebBehaviour).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        behaviour() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        custom(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        args(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? (obj || new BehaviourArg).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        argsLength() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        static startWebBehaviour(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addBehaviour(builder, behaviour) {
+            builder.addFieldInt16(1, behaviour, 0);
+        }
+        static addCustom(builder, customOffset) {
+            builder.addFieldOffset(2, customOffset, 0);
+        }
+        static addArgs(builder, argsOffset) {
+            builder.addFieldOffset(3, argsOffset, 0);
+        }
+        static createArgsVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startArgsVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static endWebBehaviour(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebBehaviour(builder, nodeId, behaviour, customOffset, argsOffset) {
+            _WebBehaviour.startWebBehaviour(builder);
+            _WebBehaviour.addNodeId(builder, nodeId);
+            _WebBehaviour.addBehaviour(builder, behaviour);
+            _WebBehaviour.addCustom(builder, customOffset);
+            _WebBehaviour.addArgs(builder, argsOffset);
+            return _WebBehaviour.endWebBehaviour(builder);
+        }
+        unpack() {
+            return new WebBehaviourT(this.nodeId(), this.behaviour(), this.custom(), this.bb.createObjList(this.args.bind(this), this.argsLength()));
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.behaviour = this.behaviour();
+            _o.custom = this.custom();
+            _o.args = this.bb.createObjList(this.args.bind(this), this.argsLength());
+        }
+    };
+    var WebBehaviourT = class {
+        constructor(nodeId = 0, behaviour = 0, custom = null, args = []){
+            this.nodeId = nodeId;
+            this.behaviour = behaviour;
+            this.custom = custom;
+            this.args = args;
+        }
+        nodeId;
+        behaviour;
+        custom;
+        args;
+        pack(builder) {
+            const custom = this.custom !== null ? builder.createString(this.custom) : 0;
+            const args = WebBehaviour.createArgsVector(builder, builder.createObjectOffsetList(this.args));
+            return WebBehaviour.createWebBehaviour(builder, this.nodeId, this.behaviour, custom, args);
+        }
+    };
+    var WebDetachChild = class _WebDetachChild {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebDetachChild(bb, obj) {
+            return (obj || new _WebDetachChild).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebDetachChild(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebDetachChild).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        parentId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        childId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startWebDetachChild(builder) {
+            builder.startObject(2);
+        }
+        static addParentId(builder, parentId) {
+            builder.addFieldInt32(0, parentId, 0);
+        }
+        static addChildId(builder, childId) {
+            builder.addFieldInt32(1, childId, 0);
+        }
+        static endWebDetachChild(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebDetachChild(builder, parentId, childId) {
+            _WebDetachChild.startWebDetachChild(builder);
+            _WebDetachChild.addParentId(builder, parentId);
+            _WebDetachChild.addChildId(builder, childId);
+            return _WebDetachChild.endWebDetachChild(builder);
+        }
+        unpack() {
+            return new WebDetachChildT(this.parentId(), this.childId());
+        }
+        unpackTo(_o) {
+            _o.parentId = this.parentId();
+            _o.childId = this.childId();
+        }
+    };
+    var WebDetachChildT = class {
+        constructor(parentId = 0, childId = 0){
+            this.parentId = parentId;
+            this.childId = childId;
+        }
+        parentId;
+        childId;
+        pack(builder) {
+            return WebDetachChild.createWebDetachChild(builder, this.parentId, this.childId);
+        }
+    };
+    var WebElement = class _WebElement {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebElement(bb, obj) {
+            return (obj || new _WebElement).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebElement(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebElement).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        tagId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customTag(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        className(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebElement(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addTagId(builder, tagId) {
+            builder.addFieldInt16(1, tagId, 0);
+        }
+        static addCustomTag(builder, customTagOffset) {
+            builder.addFieldOffset(2, customTagOffset, 0);
+        }
+        static addClassName(builder, classNameOffset) {
+            builder.addFieldOffset(3, classNameOffset, 0);
+        }
+        static endWebElement(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebElement(builder, nodeId, tagId, customTagOffset, classNameOffset) {
+            _WebElement.startWebElement(builder);
+            _WebElement.addNodeId(builder, nodeId);
+            _WebElement.addTagId(builder, tagId);
+            _WebElement.addCustomTag(builder, customTagOffset);
+            _WebElement.addClassName(builder, classNameOffset);
+            return _WebElement.endWebElement(builder);
+        }
+        unpack() {
+            return new WebElementT(this.nodeId(), this.tagId(), this.customTag(), this.className());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.tagId = this.tagId();
+            _o.customTag = this.customTag();
+            _o.className = this.className();
+        }
+    };
+    var WebElementT = class {
+        constructor(nodeId = 0, tagId = 0, customTag = null, className = null){
+            this.nodeId = nodeId;
+            this.tagId = tagId;
+            this.customTag = customTag;
+            this.className = className;
+        }
+        nodeId;
+        tagId;
+        customTag;
+        className;
+        pack(builder) {
+            const customTag = this.customTag !== null ? builder.createString(this.customTag) : 0;
+            const className = this.className !== null ? builder.createString(this.className) : 0;
+            return WebElement.createWebElement(builder, this.nodeId, this.tagId, customTag, className);
+        }
+    };
+    var WebProperty = class _WebProperty {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebProperty(bb, obj) {
+            return (obj || new _WebProperty).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebProperty(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebProperty).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        nameId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customName(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        value(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebProperty(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addNameId(builder, nameId) {
+            builder.addFieldInt16(1, nameId, 0);
+        }
+        static addCustomName(builder, customNameOffset) {
+            builder.addFieldOffset(2, customNameOffset, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(3, valueOffset, 0);
+        }
+        static endWebProperty(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebProperty(builder, nodeId, nameId, customNameOffset, valueOffset) {
+            _WebProperty.startWebProperty(builder);
+            _WebProperty.addNodeId(builder, nodeId);
+            _WebProperty.addNameId(builder, nameId);
+            _WebProperty.addCustomName(builder, customNameOffset);
+            _WebProperty.addValue(builder, valueOffset);
+            return _WebProperty.endWebProperty(builder);
+        }
+        unpack() {
+            return new WebPropertyT(this.nodeId(), this.nameId(), this.customName(), this.value());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.nameId = this.nameId();
+            _o.customName = this.customName();
+            _o.value = this.value();
+        }
+    };
+    var WebPropertyT = class {
+        constructor(nodeId = 0, nameId = 0, customName = null, value = null){
+            this.nodeId = nodeId;
+            this.nameId = nameId;
+            this.customName = customName;
+            this.value = value;
+        }
+        nodeId;
+        nameId;
+        customName;
+        value;
+        pack(builder) {
+            const customName = this.customName !== null ? builder.createString(this.customName) : 0;
+            const value = this.value !== null ? builder.createString(this.value) : 0;
+            return WebProperty.createWebProperty(builder, this.nodeId, this.nameId, customName, value);
+        }
+    };
+    var WebRegisterNode = class _WebRegisterNode {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebRegisterNode(bb, obj) {
+            return (obj || new _WebRegisterNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebRegisterNode(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebRegisterNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startWebRegisterNode(builder) {
+            builder.startObject(1);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static endWebRegisterNode(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebRegisterNode(builder, nodeId) {
+            _WebRegisterNode.startWebRegisterNode(builder);
+            _WebRegisterNode.addNodeId(builder, nodeId);
+            return _WebRegisterNode.endWebRegisterNode(builder);
+        }
+        unpack() {
+            return new WebRegisterNodeT(this.nodeId());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+        }
+    };
+    var WebRegisterNodeT = class {
+        constructor(nodeId = 0){
+            this.nodeId = nodeId;
+        }
+        nodeId;
+        pack(builder) {
+            return WebRegisterNode.createWebRegisterNode(builder, this.nodeId);
+        }
+    };
+    var WebRemoveAttribute = class _WebRemoveAttribute {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebRemoveAttribute(bb, obj) {
+            return (obj || new _WebRemoveAttribute).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebRemoveAttribute(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebRemoveAttribute).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        attrId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customAttr(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebRemoveAttribute(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addAttrId(builder, attrId) {
+            builder.addFieldInt16(1, attrId, 0);
+        }
+        static addCustomAttr(builder, customAttrOffset) {
+            builder.addFieldOffset(2, customAttrOffset, 0);
+        }
+        static endWebRemoveAttribute(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebRemoveAttribute(builder, nodeId, attrId, customAttrOffset) {
+            _WebRemoveAttribute.startWebRemoveAttribute(builder);
+            _WebRemoveAttribute.addNodeId(builder, nodeId);
+            _WebRemoveAttribute.addAttrId(builder, attrId);
+            _WebRemoveAttribute.addCustomAttr(builder, customAttrOffset);
+            return _WebRemoveAttribute.endWebRemoveAttribute(builder);
+        }
+        unpack() {
+            return new WebRemoveAttributeT(this.nodeId(), this.attrId(), this.customAttr());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.attrId = this.attrId();
+            _o.customAttr = this.customAttr();
+        }
+    };
+    var WebRemoveAttributeT = class {
+        constructor(nodeId = 0, attrId = 0, customAttr = null){
+            this.nodeId = nodeId;
+            this.attrId = attrId;
+            this.customAttr = customAttr;
+        }
+        nodeId;
+        attrId;
+        customAttr;
+        pack(builder) {
+            const customAttr = this.customAttr !== null ? builder.createString(this.customAttr) : 0;
+            return WebRemoveAttribute.createWebRemoveAttribute(builder, this.nodeId, this.attrId, customAttr);
+        }
+    };
+    var WebRemoveClass = class _WebRemoveClass {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebRemoveClass(bb, obj) {
+            return (obj || new _WebRemoveClass).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebRemoveClass(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebRemoveClass).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        className(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebRemoveClass(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addClassName(builder, classNameOffset) {
+            builder.addFieldOffset(1, classNameOffset, 0);
+        }
+        static endWebRemoveClass(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebRemoveClass(builder, nodeId, classNameOffset) {
+            _WebRemoveClass.startWebRemoveClass(builder);
+            _WebRemoveClass.addNodeId(builder, nodeId);
+            _WebRemoveClass.addClassName(builder, classNameOffset);
+            return _WebRemoveClass.endWebRemoveClass(builder);
+        }
+        unpack() {
+            return new WebRemoveClassT(this.nodeId(), this.className());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.className = this.className();
+        }
+    };
+    var WebRemoveClassT = class {
+        constructor(nodeId = 0, className = null){
+            this.nodeId = nodeId;
+            this.className = className;
+        }
+        nodeId;
+        className;
+        pack(builder) {
+            const className = this.className !== null ? builder.createString(this.className) : 0;
+            return WebRemoveClass.createWebRemoveClass(builder, this.nodeId, className);
+        }
+    };
+    var WebRemoveListener = class _WebRemoveListener {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebRemoveListener(bb, obj) {
+            return (obj || new _WebRemoveListener).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebRemoveListener(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebRemoveListener).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        nameId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customName(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebRemoveListener(builder) {
+            builder.startObject(3);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addNameId(builder, nameId) {
+            builder.addFieldInt16(1, nameId, 0);
+        }
+        static addCustomName(builder, customNameOffset) {
+            builder.addFieldOffset(2, customNameOffset, 0);
+        }
+        static endWebRemoveListener(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebRemoveListener(builder, nodeId, nameId, customNameOffset) {
+            _WebRemoveListener.startWebRemoveListener(builder);
+            _WebRemoveListener.addNodeId(builder, nodeId);
+            _WebRemoveListener.addNameId(builder, nameId);
+            _WebRemoveListener.addCustomName(builder, customNameOffset);
+            return _WebRemoveListener.endWebRemoveListener(builder);
+        }
+        unpack() {
+            return new WebRemoveListenerT(this.nodeId(), this.nameId(), this.customName());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.nameId = this.nameId();
+            _o.customName = this.customName();
+        }
+    };
+    var WebRemoveListenerT = class {
+        constructor(nodeId = 0, nameId = 0, customName = null){
+            this.nodeId = nodeId;
+            this.nameId = nameId;
+            this.customName = customName;
+        }
+        nodeId;
+        nameId;
+        customName;
+        pack(builder) {
+            const customName = this.customName !== null ? builder.createString(this.customName) : 0;
+            return WebRemoveListener.createWebRemoveListener(builder, this.nodeId, this.nameId, customName);
+        }
+    };
+    var WebReplaceNode = class _WebReplaceNode {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebReplaceNode(bb, obj) {
+            return (obj || new _WebReplaceNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebReplaceNode(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebReplaceNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        oldId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        newId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startWebReplaceNode(builder) {
+            builder.startObject(2);
+        }
+        static addOldId(builder, oldId) {
+            builder.addFieldInt32(0, oldId, 0);
+        }
+        static addNewId(builder, newId) {
+            builder.addFieldInt32(1, newId, 0);
+        }
+        static endWebReplaceNode(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebReplaceNode(builder, oldId, newId) {
+            _WebReplaceNode.startWebReplaceNode(builder);
+            _WebReplaceNode.addOldId(builder, oldId);
+            _WebReplaceNode.addNewId(builder, newId);
+            return _WebReplaceNode.endWebReplaceNode(builder);
+        }
+        unpack() {
+            return new WebReplaceNodeT(this.oldId(), this.newId());
+        }
+        unpackTo(_o) {
+            _o.oldId = this.oldId();
+            _o.newId = this.newId();
+        }
+    };
+    var WebReplaceNodeT = class {
+        constructor(oldId = 0, newId = 0){
+            this.oldId = oldId;
+            this.newId = newId;
+        }
+        oldId;
+        newId;
+        pack(builder) {
+            return WebReplaceNode.createWebReplaceNode(builder, this.oldId, this.newId);
+        }
+    };
+    var WebSetAttribute = class _WebSetAttribute {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebSetAttribute(bb, obj) {
+            return (obj || new _WebSetAttribute).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebSetAttribute(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebSetAttribute).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        attrId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customAttr(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        value(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebSetAttribute(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addAttrId(builder, attrId) {
+            builder.addFieldInt16(1, attrId, 0);
+        }
+        static addCustomAttr(builder, customAttrOffset) {
+            builder.addFieldOffset(2, customAttrOffset, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(3, valueOffset, 0);
+        }
+        static endWebSetAttribute(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebSetAttribute(builder, nodeId, attrId, customAttrOffset, valueOffset) {
+            _WebSetAttribute.startWebSetAttribute(builder);
+            _WebSetAttribute.addNodeId(builder, nodeId);
+            _WebSetAttribute.addAttrId(builder, attrId);
+            _WebSetAttribute.addCustomAttr(builder, customAttrOffset);
+            _WebSetAttribute.addValue(builder, valueOffset);
+            return _WebSetAttribute.endWebSetAttribute(builder);
+        }
+        unpack() {
+            return new WebSetAttributeT(this.nodeId(), this.attrId(), this.customAttr(), this.value());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.attrId = this.attrId();
+            _o.customAttr = this.customAttr();
+            _o.value = this.value();
+        }
+    };
+    var WebSetAttributeT = class {
+        constructor(nodeId = 0, attrId = 0, customAttr = null, value = null){
+            this.nodeId = nodeId;
+            this.attrId = attrId;
+            this.customAttr = customAttr;
+            this.value = value;
+        }
+        nodeId;
+        attrId;
+        customAttr;
+        value;
+        pack(builder) {
+            const customAttr = this.customAttr !== null ? builder.createString(this.customAttr) : 0;
+            const value = this.value !== null ? builder.createString(this.value) : 0;
+            return WebSetAttribute.createWebSetAttribute(builder, this.nodeId, this.attrId, customAttr, value);
+        }
+    };
+    var WebStyle = class _WebStyle {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebStyle(bb, obj) {
+            return (obj || new _WebStyle).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebStyle(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebStyle).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        nameId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        customName(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        value(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebStyle(builder) {
+            builder.startObject(4);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addNameId(builder, nameId) {
+            builder.addFieldInt16(1, nameId, 0);
+        }
+        static addCustomName(builder, customNameOffset) {
+            builder.addFieldOffset(2, customNameOffset, 0);
+        }
+        static addValue(builder, valueOffset) {
+            builder.addFieldOffset(3, valueOffset, 0);
+        }
+        static endWebStyle(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebStyle(builder, nodeId, nameId, customNameOffset, valueOffset) {
+            _WebStyle.startWebStyle(builder);
+            _WebStyle.addNodeId(builder, nodeId);
+            _WebStyle.addNameId(builder, nameId);
+            _WebStyle.addCustomName(builder, customNameOffset);
+            _WebStyle.addValue(builder, valueOffset);
+            return _WebStyle.endWebStyle(builder);
+        }
+        unpack() {
+            return new WebStyleT(this.nodeId(), this.nameId(), this.customName(), this.value());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.nameId = this.nameId();
+            _o.customName = this.customName();
+            _o.value = this.value();
+        }
+    };
+    var WebStyleT = class {
+        constructor(nodeId = 0, nameId = 0, customName = null, value = null){
+            this.nodeId = nodeId;
+            this.nameId = nameId;
+            this.customName = customName;
+            this.value = value;
+        }
+        nodeId;
+        nameId;
+        customName;
+        value;
+        pack(builder) {
+            const customName = this.customName !== null ? builder.createString(this.customName) : 0;
+            const value = this.value !== null ? builder.createString(this.value) : 0;
+            return WebStyle.createWebStyle(builder, this.nodeId, this.nameId, customName, value);
+        }
+    };
+    var WebText = class _WebText {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebText(bb, obj) {
+            return (obj || new _WebText).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebText(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebText).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        content(optionalEncoding) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+        }
+        static startWebText(builder) {
+            builder.startObject(2);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static addContent(builder, contentOffset) {
+            builder.addFieldOffset(1, contentOffset, 0);
+        }
+        static endWebText(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebText(builder, nodeId, contentOffset) {
+            _WebText.startWebText(builder);
+            _WebText.addNodeId(builder, nodeId);
+            _WebText.addContent(builder, contentOffset);
+            return _WebText.endWebText(builder);
+        }
+        unpack() {
+            return new WebTextT(this.nodeId(), this.content());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+            _o.content = this.content();
+        }
+    };
+    var WebTextT = class {
+        constructor(nodeId = 0, content = null){
+            this.nodeId = nodeId;
+            this.content = content;
+        }
+        nodeId;
+        content;
+        pack(builder) {
+            const content = this.content !== null ? builder.createString(this.content) : 0;
+            return WebText.createWebText(builder, this.nodeId, content);
+        }
+    };
+    var WebUnregisterNode = class _WebUnregisterNode {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsWebUnregisterNode(bb, obj) {
+            return (obj || new _WebUnregisterNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsWebUnregisterNode(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _WebUnregisterNode).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        nodeId() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        static startWebUnregisterNode(builder) {
+            builder.startObject(1);
+        }
+        static addNodeId(builder, nodeId) {
+            builder.addFieldInt32(0, nodeId, 0);
+        }
+        static endWebUnregisterNode(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createWebUnregisterNode(builder, nodeId) {
+            _WebUnregisterNode.startWebUnregisterNode(builder);
+            _WebUnregisterNode.addNodeId(builder, nodeId);
+            return _WebUnregisterNode.endWebUnregisterNode(builder);
+        }
+        unpack() {
+            return new WebUnregisterNodeT(this.nodeId());
+        }
+        unpackTo(_o) {
+            _o.nodeId = this.nodeId();
+        }
+    };
+    var WebUnregisterNodeT = class {
+        constructor(nodeId = 0){
+            this.nodeId = nodeId;
+        }
+        nodeId;
+        pack(builder) {
+            return WebUnregisterNode.createWebUnregisterNode(builder, this.nodeId);
+        }
+    };
+    var WebOperation = ((WebOperation2)=>{
+        WebOperation2[WebOperation2["NONE"] = 0] = "NONE";
+        WebOperation2[WebOperation2["WebElement"] = 1] = "WebElement";
+        WebOperation2[WebOperation2["WebText"] = 2] = "WebText";
+        WebOperation2[WebOperation2["WebSetAttribute"] = 3] = "WebSetAttribute";
+        WebOperation2[WebOperation2["WebRemoveAttribute"] = 4] = "WebRemoveAttribute";
+        WebOperation2[WebOperation2["WebProperty"] = 5] = "WebProperty";
+        WebOperation2[WebOperation2["WebAddListener"] = 6] = "WebAddListener";
+        WebOperation2[WebOperation2["WebRemoveListener"] = 7] = "WebRemoveListener";
+        WebOperation2[WebOperation2["WebReplaceNode"] = 8] = "WebReplaceNode";
+        WebOperation2[WebOperation2["WebStyle"] = 9] = "WebStyle";
+        WebOperation2[WebOperation2["WebAddClass"] = 10] = "WebAddClass";
+        WebOperation2[WebOperation2["WebRemoveClass"] = 11] = "WebRemoveClass";
+        WebOperation2[WebOperation2["HtmlMorph"] = 12] = "HtmlMorph";
+        WebOperation2[WebOperation2["WebRegisterNode"] = 13] = "WebRegisterNode";
+        WebOperation2[WebOperation2["WebUnregisterNode"] = 14] = "WebUnregisterNode";
+        WebOperation2[WebOperation2["ScriptNode"] = 15] = "ScriptNode";
+        WebOperation2[WebOperation2["WebBehaviour"] = 16] = "WebBehaviour";
+        WebOperation2[WebOperation2["WebDetachChild"] = 17] = "WebDetachChild";
+        return WebOperation2;
+    })(WebOperation || {});
+    function unionToWebOperation(type, accessor) {
+        switch(WebOperation[type]){
+            case "NONE":
+                return null;
+            case "WebElement":
+                return accessor(new WebElement);
+            case "WebText":
+                return accessor(new WebText);
+            case "WebSetAttribute":
+                return accessor(new WebSetAttribute);
+            case "WebRemoveAttribute":
+                return accessor(new WebRemoveAttribute);
+            case "WebProperty":
+                return accessor(new WebProperty);
+            case "WebAddListener":
+                return accessor(new WebAddListener);
+            case "WebRemoveListener":
+                return accessor(new WebRemoveListener);
+            case "WebReplaceNode":
+                return accessor(new WebReplaceNode);
+            case "WebStyle":
+                return accessor(new WebStyle);
+            case "WebAddClass":
+                return accessor(new WebAddClass);
+            case "WebRemoveClass":
+                return accessor(new WebRemoveClass);
+            case "HtmlMorph":
+                return accessor(new HtmlMorph);
+            case "WebRegisterNode":
+                return accessor(new WebRegisterNode);
+            case "WebUnregisterNode":
+                return accessor(new WebUnregisterNode);
+            case "ScriptNode":
+                return accessor(new ScriptNode);
+            case "WebBehaviour":
+                return accessor(new WebBehaviour);
+            case "WebDetachChild":
+                return accessor(new WebDetachChild);
+            default:
+                return null;
+        }
+    }
+    function unionListToWebOperation(type, accessor, index) {
+        switch(WebOperation[type]){
+            case "NONE":
+                return null;
+            case "WebElement":
+                return accessor(index, new WebElement);
+            case "WebText":
+                return accessor(index, new WebText);
+            case "WebSetAttribute":
+                return accessor(index, new WebSetAttribute);
+            case "WebRemoveAttribute":
+                return accessor(index, new WebRemoveAttribute);
+            case "WebProperty":
+                return accessor(index, new WebProperty);
+            case "WebAddListener":
+                return accessor(index, new WebAddListener);
+            case "WebRemoveListener":
+                return accessor(index, new WebRemoveListener);
+            case "WebReplaceNode":
+                return accessor(index, new WebReplaceNode);
+            case "WebStyle":
+                return accessor(index, new WebStyle);
+            case "WebAddClass":
+                return accessor(index, new WebAddClass);
+            case "WebRemoveClass":
+                return accessor(index, new WebRemoveClass);
+            case "HtmlMorph":
+                return accessor(index, new HtmlMorph);
+            case "WebRegisterNode":
+                return accessor(index, new WebRegisterNode);
+            case "WebUnregisterNode":
+                return accessor(index, new WebUnregisterNode);
+            case "ScriptNode":
+                return accessor(index, new ScriptNode);
+            case "WebBehaviour":
+                return accessor(index, new WebBehaviour);
+            case "WebDetachChild":
+                return accessor(index, new WebDetachChild);
+            default:
+                return null;
+        }
+    }
+    var Operation = class _Operation {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsOperation(bb, obj) {
+            return (obj || new _Operation).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsOperation(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Operation).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        uiType() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        ui(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        webType() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        web(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        mobileType() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        mobile(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        columnar(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? (obj || new ColumnarBatch).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        static startOperation(builder) {
+            builder.startObject(7);
+        }
+        static addUiType(builder, uiType) {
+            builder.addFieldInt8(0, uiType, 0);
+        }
+        static addUi(builder, uiOffset) {
+            builder.addFieldOffset(1, uiOffset, 0);
+        }
+        static addWebType(builder, webType) {
+            builder.addFieldInt8(2, webType, 0);
+        }
+        static addWeb(builder, webOffset) {
+            builder.addFieldOffset(3, webOffset, 0);
+        }
+        static addMobileType(builder, mobileType) {
+            builder.addFieldInt8(4, mobileType, 0);
+        }
+        static addMobile(builder, mobileOffset) {
+            builder.addFieldOffset(5, mobileOffset, 0);
+        }
+        static addColumnar(builder, columnarOffset) {
+            builder.addFieldOffset(6, columnarOffset, 0);
+        }
+        static endOperation(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new OperationT3(this.uiType(), (()=>{
+                const temp = unionToUiOperation(this.uiType(), this.ui.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })(), this.webType(), (()=>{
+                const temp = unionToWebOperation(this.webType(), this.web.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })(), this.mobileType(), (()=>{
+                const temp = unionToMobileOperation(this.mobileType(), this.mobile.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })(), this.columnar() !== null ? this.columnar().unpack() : null);
+        }
+        unpackTo(_o) {
+            _o.uiType = this.uiType();
+            _o.ui = (()=>{
+                const temp = unionToUiOperation(this.uiType(), this.ui.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+            _o.webType = this.webType();
+            _o.web = (()=>{
+                const temp = unionToWebOperation(this.webType(), this.web.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+            _o.mobileType = this.mobileType();
+            _o.mobile = (()=>{
+                const temp = unionToMobileOperation(this.mobileType(), this.mobile.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+            _o.columnar = this.columnar() !== null ? this.columnar().unpack() : null;
+        }
+    };
+    var OperationT3 = class {
+        constructor(uiType = 0, ui = null, webType = 0, web = null, mobileType = 0, mobile = null, columnar = null){
+            this.uiType = uiType;
+            this.ui = ui;
+            this.webType = webType;
+            this.web = web;
+            this.mobileType = mobileType;
+            this.mobile = mobile;
+            this.columnar = columnar;
+        }
+        uiType;
+        ui;
+        webType;
+        web;
+        mobileType;
+        mobile;
+        columnar;
+        pack(builder) {
+            const ui = builder.createObjectOffset(this.ui);
+            const web = builder.createObjectOffset(this.web);
+            const mobile = builder.createObjectOffset(this.mobile);
+            const columnar = this.columnar !== null ? this.columnar.pack(builder) : 0;
+            Operation.startOperation(builder);
+            Operation.addUiType(builder, this.uiType);
+            Operation.addUi(builder, ui);
+            Operation.addWebType(builder, this.webType);
+            Operation.addWeb(builder, web);
+            Operation.addMobileType(builder, this.mobileType);
+            Operation.addMobile(builder, mobile);
+            Operation.addColumnar(builder, columnar);
+            return Operation.endOperation(builder);
+        }
+    };
+    var Message = class _Message {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsMessage(bb, obj) {
+            return (obj || new _Message).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsMessage(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Message).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        operation(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? (obj || new Operation).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        data(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new Data).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        control(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new Control).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        static startMessage(builder) {
+            builder.startObject(3);
+        }
+        static addOperation(builder, operationOffset) {
+            builder.addFieldOffset(0, operationOffset, 0);
+        }
+        static addData(builder, dataOffset) {
+            builder.addFieldOffset(1, dataOffset, 0);
+        }
+        static addControl(builder, controlOffset) {
+            builder.addFieldOffset(2, controlOffset, 0);
+        }
+        static endMessage(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new MessageT(this.operation() !== null ? this.operation().unpack() : null, this.data() !== null ? this.data().unpack() : null, this.control() !== null ? this.control().unpack() : null);
+        }
+        unpackTo(_o) {
+            _o.operation = this.operation() !== null ? this.operation().unpack() : null;
+            _o.data = this.data() !== null ? this.data().unpack() : null;
+            _o.control = this.control() !== null ? this.control().unpack() : null;
+        }
+    };
+    var MessageT = class {
+        constructor(operation = null, data = null, control = null){
+            this.operation = operation;
+            this.data = data;
+            this.control = control;
+        }
+        operation;
+        data;
+        control;
+        pack(builder) {
+            const operation = this.operation !== null ? this.operation.pack(builder) : 0;
+            const data = this.data !== null ? this.data.pack(builder) : 0;
+            const control = this.control !== null ? this.control.pack(builder) : 0;
+            Message.startMessage(builder);
+            Message.addOperation(builder, operation);
+            Message.addData(builder, data);
+            Message.addControl(builder, control);
+            return Message.endMessage(builder);
+        }
+    };
+    var FrameMessage = class _FrameMessage {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsFrameMessage(bb, obj) {
+            return (obj || new _FrameMessage).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsFrameMessage(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _FrameMessage).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        ack() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        messages(index, obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new Message).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+        }
+        messagesLength() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        subscriptionId() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        static startFrameMessage(builder) {
+            builder.startObject(3);
+        }
+        static addAck(builder, ack) {
+            builder.addFieldInt64(0, ack, BigInt("0"));
+        }
+        static addMessages(builder, messagesOffset) {
+            builder.addFieldOffset(1, messagesOffset, 0);
+        }
+        static createMessagesVector(builder, data) {
+            builder.startVector(4, data.length, 4);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addOffset(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startMessagesVector(builder, numElems) {
+            builder.startVector(4, numElems, 4);
+        }
+        static addSubscriptionId(builder, subscriptionId) {
+            builder.addFieldInt64(2, subscriptionId, BigInt("0"));
+        }
+        static endFrameMessage(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createFrameMessage(builder, ack, messagesOffset, subscriptionId) {
+            _FrameMessage.startFrameMessage(builder);
+            _FrameMessage.addAck(builder, ack);
+            _FrameMessage.addMessages(builder, messagesOffset);
+            _FrameMessage.addSubscriptionId(builder, subscriptionId);
+            return _FrameMessage.endFrameMessage(builder);
+        }
+        unpack() {
+            return new FrameMessageT(this.ack(), this.bb.createObjList(this.messages.bind(this), this.messagesLength()), this.subscriptionId());
+        }
+        unpackTo(_o) {
+            _o.ack = this.ack();
+            _o.messages = this.bb.createObjList(this.messages.bind(this), this.messagesLength());
+            _o.subscriptionId = this.subscriptionId();
+        }
+    };
+    var FrameMessageT = class {
+        constructor(ack = BigInt("0"), messages = [], subscriptionId = BigInt("0")){
+            this.ack = ack;
+            this.messages = messages;
+            this.subscriptionId = subscriptionId;
+        }
+        ack;
+        messages;
+        subscriptionId;
+        pack(builder) {
+            const messages = FrameMessage.createMessagesVector(builder, builder.createObjectOffsetList(this.messages));
+            return FrameMessage.createFrameMessage(builder, this.ack, messages, this.subscriptionId);
+        }
+    };
+    var ResumeSubscription = class _ResumeSubscription {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsResumeSubscription(bb, obj) {
+            return (obj || new _ResumeSubscription).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsResumeSubscription(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _ResumeSubscription).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        deliverySession() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        subscriptionId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        streamId() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        after() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        static startResumeSubscription(builder) {
+            builder.startObject(4);
+        }
+        static addDeliverySession(builder, deliverySession) {
+            builder.addFieldInt64(0, deliverySession, BigInt("0"));
+        }
+        static addSubscriptionId(builder, subscriptionId) {
+            builder.addFieldInt64(1, subscriptionId, BigInt("0"));
+        }
+        static addStreamId(builder, streamId) {
+            builder.addFieldInt64(2, streamId, BigInt("0"));
+        }
+        static addAfter(builder, after) {
+            builder.addFieldInt64(3, after, BigInt("0"));
+        }
+        static endResumeSubscription(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static createResumeSubscription(builder, deliverySession, subscriptionId, streamId, after) {
+            _ResumeSubscription.startResumeSubscription(builder);
+            _ResumeSubscription.addDeliverySession(builder, deliverySession);
+            _ResumeSubscription.addSubscriptionId(builder, subscriptionId);
+            _ResumeSubscription.addStreamId(builder, streamId);
+            _ResumeSubscription.addAfter(builder, after);
+            return _ResumeSubscription.endResumeSubscription(builder);
+        }
+        unpack() {
+            return new ResumeSubscriptionT(this.deliverySession(), this.subscriptionId(), this.streamId(), this.after());
+        }
+        unpackTo(_o) {
+            _o.deliverySession = this.deliverySession();
+            _o.subscriptionId = this.subscriptionId();
+            _o.streamId = this.streamId();
+            _o.after = this.after();
+        }
+    };
+    var ResumeSubscriptionT = class {
+        constructor(deliverySession = BigInt("0"), subscriptionId = BigInt("0"), streamId = BigInt("0"), after = BigInt("0")){
+            this.deliverySession = deliverySession;
+            this.subscriptionId = subscriptionId;
+            this.streamId = streamId;
+            this.after = after;
+        }
+        deliverySession;
+        subscriptionId;
+        streamId;
+        after;
+        pack(builder) {
+            return ResumeSubscription.createResumeSubscription(builder, this.deliverySession, this.subscriptionId, this.streamId, this.after);
+        }
+    };
+    var FrameRequest = class _FrameRequest {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsFrameRequest(bb, obj) {
+            return (obj || new _FrameRequest).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsFrameRequest(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _FrameRequest).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        action(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? (obj || new ActionRequest).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        hello(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? (obj || new ClientHello).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        resume(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? (obj || new ResumeSubscription).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+        }
+        static startFrameRequest(builder) {
+            builder.startObject(3);
+        }
+        static addAction(builder, actionOffset) {
+            builder.addFieldOffset(0, actionOffset, 0);
+        }
+        static addHello(builder, helloOffset) {
+            builder.addFieldOffset(1, helloOffset, 0);
+        }
+        static addResume(builder, resumeOffset) {
+            builder.addFieldOffset(2, resumeOffset, 0);
+        }
+        static endFrameRequest(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        unpack() {
+            return new FrameRequestT(this.action() !== null ? this.action().unpack() : null, this.hello() !== null ? this.hello().unpack() : null, this.resume() !== null ? this.resume().unpack() : null);
+        }
+        unpackTo(_o) {
+            _o.action = this.action() !== null ? this.action().unpack() : null;
+            _o.hello = this.hello() !== null ? this.hello().unpack() : null;
+            _o.resume = this.resume() !== null ? this.resume().unpack() : null;
+        }
+    };
+    var FrameRequestT = class {
+        constructor(action = null, hello = null, resume = null){
+            this.action = action;
+            this.hello = hello;
+            this.resume = resume;
+        }
+        action;
+        hello;
+        resume;
+        pack(builder) {
+            const action = this.action !== null ? this.action.pack(builder) : 0;
+            const hello = this.hello !== null ? this.hello.pack(builder) : 0;
+            const resume = this.resume !== null ? this.resume.pack(builder) : 0;
+            FrameRequest.startFrameRequest(builder);
+            FrameRequest.addAction(builder, action);
+            FrameRequest.addHello(builder, hello);
+            FrameRequest.addResume(builder, resume);
+            return FrameRequest.endFrameRequest(builder);
+        }
+    };
+    var FrameKind = ((FrameKind2)=>{
+        FrameKind2[FrameKind2["NONE"] = 0] = "NONE";
+        FrameKind2[FrameKind2["FrameRequest"] = 1] = "FrameRequest";
+        FrameKind2[FrameKind2["FrameMessage"] = 2] = "FrameMessage";
+        return FrameKind2;
+    })(FrameKind || {});
+    function unionToFrameKind(type, accessor) {
+        switch(FrameKind[type]){
+            case "NONE":
+                return null;
+            case "FrameRequest":
+                return accessor(new FrameRequest);
+            case "FrameMessage":
+                return accessor(new FrameMessage);
+            default:
+                return null;
+        }
+    }
+    function unionListToFrameKind(type, accessor, index) {
+        switch(FrameKind[type]){
+            case "NONE":
+                return null;
+            case "FrameRequest":
+                return accessor(index, new FrameRequest);
+            case "FrameMessage":
+                return accessor(index, new FrameMessage);
+            default:
+                return null;
+        }
+    }
+    var Frame = class _Frame {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsFrame(bb, obj) {
+            return (obj || new _Frame).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsFrame(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _Frame).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static bufferHasIdentifier(bb) {
+            return bb.__has_identifier("EWF1");
+        }
+        schemaVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        streamId() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        sequenceId() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        kindType() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        kind(obj) {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
+        }
+        static startFrame(builder) {
+            builder.startObject(5);
+        }
+        static addSchemaVersion(builder, schemaVersion) {
+            builder.addFieldInt16(0, schemaVersion, 0);
+        }
+        static addStreamId(builder, streamId) {
+            builder.addFieldInt64(1, streamId, BigInt("0"));
+        }
+        static addSequenceId(builder, sequenceId) {
+            builder.addFieldInt64(2, sequenceId, BigInt("0"));
+        }
+        static addKindType(builder, kindType) {
+            builder.addFieldInt8(3, kindType, 0);
+        }
+        static addKind(builder, kindOffset) {
+            builder.addFieldOffset(4, kindOffset, 0);
+        }
+        static endFrame(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static finishFrameBuffer(builder, offset) {
+            builder.finish(offset, "EWF1");
+        }
+        static finishSizePrefixedFrameBuffer(builder, offset) {
+            builder.finish(offset, "EWF1", true);
+        }
+        static createFrame(builder, schemaVersion, streamId, sequenceId, kindType, kindOffset) {
+            _Frame.startFrame(builder);
+            _Frame.addSchemaVersion(builder, schemaVersion);
+            _Frame.addStreamId(builder, streamId);
+            _Frame.addSequenceId(builder, sequenceId);
+            _Frame.addKindType(builder, kindType);
+            _Frame.addKind(builder, kindOffset);
+            return _Frame.endFrame(builder);
+        }
+        unpack() {
+            return new FrameT(this.schemaVersion(), this.streamId(), this.sequenceId(), this.kindType(), (()=>{
+                const temp = unionToFrameKind(this.kindType(), this.kind.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })());
+        }
+        unpackTo(_o) {
+            _o.schemaVersion = this.schemaVersion();
+            _o.streamId = this.streamId();
+            _o.sequenceId = this.sequenceId();
+            _o.kindType = this.kindType();
+            _o.kind = (()=>{
+                const temp = unionToFrameKind(this.kindType(), this.kind.bind(this));
+                if (temp === null) {
+                    return null;
+                }
+                return temp.unpack();
+            })();
+        }
+    };
+    var FrameT = class {
+        constructor(schemaVersion = 0, streamId = BigInt("0"), sequenceId = BigInt("0"), kindType = 0, kind = null){
+            this.schemaVersion = schemaVersion;
+            this.streamId = streamId;
+            this.sequenceId = sequenceId;
+            this.kindType = kindType;
+            this.kind = kind;
+        }
+        schemaVersion;
+        streamId;
+        sequenceId;
+        kindType;
+        kind;
+        pack(builder) {
+            const kind = builder.createObjectOffset(this.kind);
+            return Frame.createFrame(builder, this.schemaVersion, this.streamId, this.sequenceId, this.kindType, kind);
+        }
+    };
+    var SignedState = class _SignedState {
+        bb = null;
+        bb_pos = 0;
+        __init(i, bb) {
+            this.bb_pos = i;
+            this.bb = bb;
+            return this;
+        }
+        static getRootAsSignedState(bb, obj) {
+            return (obj || new _SignedState).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static getSizePrefixedRootAsSignedState(bb, obj) {
+            bb.setPosition(bb.position() + SIZE_PREFIX_LENGTH);
+            return (obj || new _SignedState).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+        }
+        static bufferHasIdentifier(bb) {
+            return bb.__has_identifier("EWS1");
+        }
+        formatVersion() {
+            const offset = this.bb.__offset(this.bb_pos, 4);
+            return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
+        }
+        flags() {
+            const offset = this.bb.__offset(this.bb_pos, 6);
+            return offset ? this.bb.readUint8(this.bb_pos + offset) : 0;
+        }
+        keyId() {
+            const offset = this.bb.__offset(this.bb_pos, 8);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        issuedAt() {
+            const offset = this.bb.__offset(this.bb_pos, 10);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        expiresAt() {
+            const offset = this.bb.__offset(this.bb_pos, 12);
+            return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt("0");
+        }
+        componentType() {
+            const offset = this.bb.__offset(this.bb_pos, 14);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        rootNode() {
+            const offset = this.bb.__offset(this.bb_pos, 16);
+            return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
+        }
+        sessionBinding(index) {
+            const offset = this.bb.__offset(this.bb_pos, 18);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        sessionBindingLength() {
+            const offset = this.bb.__offset(this.bb_pos, 18);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        sessionBindingArray() {
+            const offset = this.bb.__offset(this.bb_pos, 18);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        body(index) {
+            const offset = this.bb.__offset(this.bb_pos, 20);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        bodyLength() {
+            const offset = this.bb.__offset(this.bb_pos, 20);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        bodyArray() {
+            const offset = this.bb.__offset(this.bb_pos, 20);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        tag(index) {
+            const offset = this.bb.__offset(this.bb_pos, 22);
+            return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+        }
+        tagLength() {
+            const offset = this.bb.__offset(this.bb_pos, 22);
+            return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+        }
+        tagArray() {
+            const offset = this.bb.__offset(this.bb_pos, 22);
+            return offset ? new Uint8Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
+        }
+        static startSignedState(builder) {
+            builder.startObject(10);
+        }
+        static addFormatVersion(builder, formatVersion) {
+            builder.addFieldInt16(0, formatVersion, 0);
+        }
+        static addFlags(builder, flags) {
+            builder.addFieldInt8(1, flags, 0);
+        }
+        static addKeyId(builder, keyId) {
+            builder.addFieldInt32(2, keyId, 0);
+        }
+        static addIssuedAt(builder, issuedAt) {
+            builder.addFieldInt64(3, issuedAt, BigInt("0"));
+        }
+        static addExpiresAt(builder, expiresAt) {
+            builder.addFieldInt64(4, expiresAt, BigInt("0"));
+        }
+        static addComponentType(builder, componentType) {
+            builder.addFieldInt32(5, componentType, 0);
+        }
+        static addRootNode(builder, rootNode) {
+            builder.addFieldInt32(6, rootNode, 0);
+        }
+        static addSessionBinding(builder, sessionBindingOffset) {
+            builder.addFieldOffset(7, sessionBindingOffset, 0);
+        }
+        static createSessionBindingVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startSessionBindingVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static addBody(builder, bodyOffset) {
+            builder.addFieldOffset(8, bodyOffset, 0);
+        }
+        static createBodyVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startBodyVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static addTag(builder, tagOffset) {
+            builder.addFieldOffset(9, tagOffset, 0);
+        }
+        static createTagVector(builder, data) {
+            builder.startVector(1, data.length, 1);
+            for(let i = data.length - 1; i >= 0; i--){
+                builder.addInt8(data[i]);
+            }
+            return builder.endVector();
+        }
+        static startTagVector(builder, numElems) {
+            builder.startVector(1, numElems, 1);
+        }
+        static endSignedState(builder) {
+            const offset = builder.endObject();
+            return offset;
+        }
+        static finishSignedStateBuffer(builder, offset) {
+            builder.finish(offset, "EWS1");
+        }
+        static finishSizePrefixedSignedStateBuffer(builder, offset) {
+            builder.finish(offset, "EWS1", true);
+        }
+        static createSignedState(builder, formatVersion, flags, keyId, issuedAt, expiresAt, componentType, rootNode, sessionBindingOffset, bodyOffset, tagOffset) {
+            _SignedState.startSignedState(builder);
+            _SignedState.addFormatVersion(builder, formatVersion);
+            _SignedState.addFlags(builder, flags);
+            _SignedState.addKeyId(builder, keyId);
+            _SignedState.addIssuedAt(builder, issuedAt);
+            _SignedState.addExpiresAt(builder, expiresAt);
+            _SignedState.addComponentType(builder, componentType);
+            _SignedState.addRootNode(builder, rootNode);
+            _SignedState.addSessionBinding(builder, sessionBindingOffset);
+            _SignedState.addBody(builder, bodyOffset);
+            _SignedState.addTag(builder, tagOffset);
+            return _SignedState.endSignedState(builder);
+        }
+        unpack() {
+            return new SignedStateT(this.formatVersion(), this.flags(), this.keyId(), this.issuedAt(), this.expiresAt(), this.componentType(), this.rootNode(), this.bb.createScalarList(this.sessionBinding.bind(this), this.sessionBindingLength()), this.bb.createScalarList(this.body.bind(this), this.bodyLength()), this.bb.createScalarList(this.tag.bind(this), this.tagLength()));
+        }
+        unpackTo(_o) {
+            _o.formatVersion = this.formatVersion();
+            _o.flags = this.flags();
+            _o.keyId = this.keyId();
+            _o.issuedAt = this.issuedAt();
+            _o.expiresAt = this.expiresAt();
+            _o.componentType = this.componentType();
+            _o.rootNode = this.rootNode();
+            _o.sessionBinding = this.bb.createScalarList(this.sessionBinding.bind(this), this.sessionBindingLength());
+            _o.body = this.bb.createScalarList(this.body.bind(this), this.bodyLength());
+            _o.tag = this.bb.createScalarList(this.tag.bind(this), this.tagLength());
+        }
+    };
+    var SignedStateT = class {
+        constructor(formatVersion = 0, flags = 0, keyId = 0, issuedAt = BigInt("0"), expiresAt = BigInt("0"), componentType = 0, rootNode = 0, sessionBinding = [], body = [], tag = []){
+            this.formatVersion = formatVersion;
+            this.flags = flags;
+            this.keyId = keyId;
+            this.issuedAt = issuedAt;
+            this.expiresAt = expiresAt;
+            this.componentType = componentType;
+            this.rootNode = rootNode;
+            this.sessionBinding = sessionBinding;
+            this.body = body;
+            this.tag = tag;
+        }
+        formatVersion;
+        flags;
+        keyId;
+        issuedAt;
+        expiresAt;
+        componentType;
+        rootNode;
+        sessionBinding;
+        body;
+        tag;
+        pack(builder) {
+            const sessionBinding = SignedState.createSessionBindingVector(builder, this.sessionBinding);
+            const body = SignedState.createBodyVector(builder, this.body);
+            const tag = SignedState.createTagVector(builder, this.tag);
+            return SignedState.createSignedState(builder, this.formatVersion, this.flags, this.keyId, this.issuedAt, this.expiresAt, this.componentType, this.rootNode, sessionBinding, body, tag);
+        }
+    };
+    const mod1 = {
+        ActionError: ActionError,
+        ActionErrorT: ActionErrorT,
+        ActionInput: ActionInput,
+        ActionInputT: ActionInputT,
+        ActionRequest: ActionRequest,
+        ActionRequestT: ActionRequestT,
+        Alignment: Alignment,
+        AlignmentValue: AlignmentValue,
+        AlignmentValueT: AlignmentValueT,
+        AppendChild: AppendChild,
+        AppendChildT: AppendChildT,
+        ArrowIpcBlob: ArrowIpcBlob,
+        ArrowIpcBlobT: ArrowIpcBlobT,
+        AttachState: AttachState,
+        AttachStateT: AttachStateT,
+        Axis: Axis,
+        AxisValue: AxisValue,
+        AxisValueT: AxisValueT,
+        BehaviourArg: BehaviourArg,
+        BehaviourArgT: BehaviourArgT,
+        BehaviourId: BehaviourId,
+        BindAction: BindAction,
+        BindActionT: BindActionT,
+        BoolValue: BoolValue,
+        BoolValueT: BoolValueT,
+        Bools: Bools,
+        BoolsT: BoolsT,
+        Builder: Builder,
+        ByteBuffer: ByteBuffer,
+        CapsStatus: CapsStatus,
+        ClientHello: ClientHello,
+        ClientHelloT: ClientHelloT,
+        ColorToken: ColorToken,
+        ColorTokenT: ColorTokenT,
+        Column: Column,
+        ColumnData: ColumnData,
+        ColumnT: ColumnT,
+        ColumnarBatch: ColumnarBatch,
+        ColumnarBatchT: ColumnarBatchT,
+        ConnectionSharing: ConnectionSharing,
+        Control: Control,
+        ControlT: ControlT,
+        CreateNode: CreateNode,
+        CreateNodeT: CreateNodeT,
+        Data: Data,
+        DataT: DataT,
+        DataTable: DataTable,
+        DataTableT: DataTableT,
+        ErrorCode: ErrorCode,
+        EventId: EventId,
+        F64s: F64s,
+        F64sT: F64sT,
+        FontToken: FontToken,
+        FontTokenT: FontTokenT,
+        Frame: Frame,
+        FrameKind: FrameKind,
+        FrameMessage: FrameMessage,
+        FrameMessageT: FrameMessageT,
+        FrameRequest: FrameRequest,
+        FrameRequestT: FrameRequestT,
+        FrameT: FrameT,
+        HtmlMorph: HtmlMorph,
+        HtmlMorphT: HtmlMorphT,
+        I32s: I32s,
+        I32sT: I32sT,
+        I64s: I64s,
+        I64sT: I64sT,
+        InsertBefore: InsertBefore,
+        InsertBeforeT: InsertBeforeT,
+        Length: Length,
+        LengthT: LengthT,
+        LengthUnit: LengthUnit,
+        LengthValue: LengthValue,
+        LengthValueT: LengthValueT,
+        LiveKind: LiveKind,
+        LiveMount: LiveMount,
+        LiveMountT: LiveMountT,
+        LiveTransport: LiveTransport,
+        Message: Message,
+        MessagePackBlob: MessagePackBlob,
+        MessagePackBlobT: MessagePackBlobT,
+        MessageT: MessageT,
+        MobileBehaviour: MobileBehaviour,
+        MobileBehaviourId: MobileBehaviourId,
+        MobileBehaviourT: MobileBehaviourT,
+        MobileOperation: MobileOperation,
+        MorphAction: MorphAction,
+        MountSurface: MountSurface,
+        MountWebView: MountWebView,
+        MountWebViewT: MountWebViewT,
+        NativeArg: NativeArg,
+        NativeArgT: NativeArgT,
+        NativeCommand: NativeCommand,
+        NativeCommandId: NativeCommandId,
+        NativeCommandT: NativeCommandT,
+        NodeKind: NodeKind,
+        Operation: Operation,
+        OperationT: OperationT3,
+        Place: Place,
+        PlaceT: PlaceT,
+        PlacementKind: PlacementKind,
+        Platform: Platform,
+        PropId: PropId,
+        PropValue: PropValue,
+        Remove: Remove,
+        RemoveT: RemoveT,
+        ReplaceSubtree: ReplaceSubtree,
+        ReplaceSubtreeT: ReplaceSubtreeT,
+        ReplayExpired: ReplayExpired,
+        ReplayExpiredT: ReplayExpiredT,
+        ResumeSubscription: ResumeSubscription,
+        ResumeSubscriptionT: ResumeSubscriptionT,
+        ScriptNode: ScriptNode,
+        ScriptNodeT: ScriptNodeT,
+        SelectorKind: SelectorKind,
+        ServerAction: ServerAction,
+        ServerActionT: ServerActionT,
+        ServerCaps: ServerCaps,
+        ServerCapsT: ServerCapsT,
+        SetProp: SetProp,
+        SetPropT: SetPropT,
+        SetText: SetText,
+        SetTextT: SetTextT,
+        SignedState: SignedState,
+        SignedStateT: SignedStateT,
+        StateExpired: StateExpired,
+        StateExpiredT: StateExpiredT,
+        Strings: Strings,
+        StringsT: StringsT,
+        TargetSelector: TargetSelector,
+        TargetSelectorT: TargetSelectorT,
+        TextValue: TextValue,
+        TextValueT: TextValueT,
+        UiBehaviour: UiBehaviour,
+        UiBehaviourT: UiBehaviourT,
+        UiOperation: UiOperation,
+        UnbindAction: UnbindAction,
+        UnbindActionT: UnbindActionT,
+        UpdateRequired: UpdateRequired,
+        UpdateRequiredT: UpdateRequiredT,
+        WebAddClass: WebAddClass,
+        WebAddClassT: WebAddClassT,
+        WebAddListener: WebAddListener,
+        WebAddListenerT: WebAddListenerT,
+        WebBehaviour: WebBehaviour,
+        WebBehaviourId: WebBehaviourId,
+        WebBehaviourT: WebBehaviourT,
+        WebDetachChild: WebDetachChild,
+        WebDetachChildT: WebDetachChildT,
+        WebElement: WebElement,
+        WebElementT: WebElementT,
+        WebOperation: WebOperation,
+        WebProperty: WebProperty,
+        WebPropertyT: WebPropertyT,
+        WebRegisterNode: WebRegisterNode,
+        WebRegisterNodeT: WebRegisterNodeT,
+        WebRemoveAttribute: WebRemoveAttribute,
+        WebRemoveAttributeT: WebRemoveAttributeT,
+        WebRemoveClass: WebRemoveClass,
+        WebRemoveClassT: WebRemoveClassT,
+        WebRemoveListener: WebRemoveListener,
+        WebRemoveListenerT: WebRemoveListenerT,
+        WebReplaceNode: WebReplaceNode,
+        WebReplaceNodeT: WebReplaceNodeT,
+        WebSetAttribute: WebSetAttribute,
+        WebSetAttributeT: WebSetAttributeT,
+        WebStyle: WebStyle,
+        WebStyleT: WebStyleT,
+        WebText: WebText,
+        WebTextT: WebTextT,
+        WebUnregisterNode: WebUnregisterNode,
+        WebUnregisterNodeT: WebUnregisterNodeT,
+        unionListToColumnData: unionListToColumnData,
+        unionListToFrameKind: unionListToFrameKind,
+        unionListToMobileOperation: unionListToMobileOperation,
+        unionListToPropValue: unionListToPropValue,
+        unionListToUiOperation: unionListToUiOperation,
+        unionListToWebOperation: unionListToWebOperation,
+        unionToColumnData: unionToColumnData,
+        unionToFrameKind: unionToFrameKind,
+        unionToMobileOperation: unionToMobileOperation,
+        unionToPropValue: unionToPropValue,
+        unionToUiOperation: unionToUiOperation,
+        unionToWebOperation: unionToWebOperation
+    };
+    const VOCABULARY_VERSION = 12;
+    const PROP_KIND = Object.freeze([
+        null,
+        "Length",
+        "Length",
+        "Alignment",
+        "ColorToken",
+        "FontToken",
+        "Bool",
+        "Text",
+        "Axis",
+        "Text",
+        "Bool",
+        "Text",
+        "Text",
+        "ColorToken",
+        "Length",
+        "Length",
+        "Bool",
+        null,
+        "Text",
+        "Text"
+    ]);
+    const WEB_KINDS = Object.freeze([
+        null,
+        Object.freeze({
+            tag: "div",
+            cls: "ewe-stack",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "span",
+            cls: "ewe-text",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "img",
+            cls: "ewe-image",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "button",
+            cls: "ewe-button",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "button"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "input",
+            cls: "ewe-text-input",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "text"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "input",
+            cls: "ewe-toggle",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "checkbox"
+                ]),
+                Object.freeze([
+                    "role",
+                    "switch"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "div",
+            cls: "ewe-list",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "role",
+                    "list"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "div",
+            cls: "ewe-scroll",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "div",
+            cls: "ewe-spacer",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "aria-hidden",
+                    "true"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "div",
+            cls: "ewe-overlay",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "dialog",
+            cls: "ewe-modal",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "section",
+            cls: "ewe-bottom-sheet",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "h1",
+            cls: "ewe-navigation-title",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "button",
+            cls: "ewe-toolbar-button",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "button"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "div",
+            cls: "ewe-segmented-control",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "role",
+                    "group"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "ul",
+            cls: "ewe-inset-list",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "li",
+            cls: "ewe-checklist-row",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "button",
+            cls: "ewe-checkmark-button",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "button"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "button",
+            cls: "ewe-destructive-button",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "button"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "p",
+            cls: "ewe-list-footer",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "dialog",
+            cls: "ewe-confirmation-dialog",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "role",
+                    "alertdialog"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "h2",
+            cls: "ewe-sheet-title",
+            attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "button",
+            cls: "ewe-submit-button",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "submit"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "button",
+            cls: "ewe-cancel-button",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "button"
+                ])
+            ])
+        }),
+        Object.freeze({
+            tag: "canvas",
+            cls: "ewe-drawing-surface",
+            attrs: Object.freeze([])
+        })
+    ]);
+    const WEB_EVENTS = Object.freeze([
+        null,
+        "click",
+        "change",
+        "submit",
+        "focus",
+        "blur"
+    ]);
+    const TAG_NAMES = Object.freeze([
+        "div",
+        "span",
+        "input",
+        "button",
+        "html",
+        "head",
+        "body",
+        "title",
+        "base",
+        "link",
+        "meta",
+        "style",
+        "script",
+        "noscript",
+        "template",
+        "slot",
+        "main",
+        "section",
+        "nav",
+        "article",
+        "aside",
+        "header",
+        "footer",
+        "address",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "hgroup",
+        "p",
+        "hr",
+        "pre",
+        "blockquote",
+        "ol",
+        "ul",
+        "menu",
+        "li",
+        "dl",
+        "dt",
+        "dd",
+        "figure",
+        "figcaption",
+        "search",
+        "a",
+        "em",
+        "strong",
+        "small",
+        "s",
+        "cite",
+        "q",
+        "dfn",
+        "abbr",
+        "ruby",
+        "rt",
+        "rp",
+        "data",
+        "time",
+        "code",
+        "var",
+        "samp",
+        "kbd",
+        "sub",
+        "sup",
+        "i",
+        "b",
+        "u",
+        "mark",
+        "bdi",
+        "bdo",
+        "br",
+        "wbr",
+        "ins",
+        "del",
+        "picture",
+        "source",
+        "img",
+        "iframe",
+        "embed",
+        "object",
+        "video",
+        "audio",
+        "track",
+        "map",
+        "area",
+        "svg",
+        "math",
+        "canvas",
+        "table",
+        "caption",
+        "colgroup",
+        "col",
+        "tbody",
+        "thead",
+        "tfoot",
+        "tr",
+        "td",
+        "th",
+        "form",
+        "label",
+        "select",
+        "datalist",
+        "optgroup",
+        "option",
+        "textarea",
+        "output",
+        "progress",
+        "meter",
+        "fieldset",
+        "legend",
+        "details",
+        "summary",
+        "dialog"
+    ]);
+    const ATTR_NAMES = Object.freeze([
+        "class",
+        "id",
+        "style",
+        "value",
+        "title",
+        "lang",
+        "dir",
+        "hidden",
+        "tabindex",
+        "accesskey",
+        "draggable",
+        "contenteditable",
+        "spellcheck",
+        "translate",
+        "role",
+        "slot",
+        "part",
+        "is",
+        "href",
+        "src",
+        "srcset",
+        "sizes",
+        "alt",
+        "rel",
+        "target",
+        "download",
+        "referrerpolicy",
+        "crossorigin",
+        "integrity",
+        "loading",
+        "media",
+        "type",
+        "name",
+        "placeholder",
+        "disabled",
+        "readonly",
+        "required",
+        "checked",
+        "selected",
+        "multiple",
+        "min",
+        "max",
+        "step",
+        "pattern",
+        "minlength",
+        "maxlength",
+        "autocomplete",
+        "autofocus",
+        "for",
+        "form",
+        "action",
+        "method",
+        "enctype",
+        "novalidate",
+        "accept",
+        "rows",
+        "cols",
+        "wrap",
+        "list",
+        "size",
+        "colspan",
+        "rowspan",
+        "headers",
+        "scope",
+        "width",
+        "height",
+        "controls",
+        "autoplay",
+        "loop",
+        "muted",
+        "preload",
+        "poster",
+        "playsinline",
+        "charset",
+        "content",
+        "http-equiv",
+        "open",
+        "label",
+        "datetime",
+        "cite",
+        "data"
+    ]);
+    const CORE_CSS = "[primal-id][hidden]{display:none!important}\n.ewe-stack{display:flex;flex-direction:column}\n.ewe-list{display:flex;flex-direction:column}\n.ewe-scroll{overflow:auto}\n.ewe-spacer{flex:1 1 auto}\n.ewe-drawing-surface{width:300px;height:150px}\n.ewe-navigation-title,.ewe-sheet-title{font-family:system-ui,sans-serif;line-height:1.2;letter-spacing:-.025em;margin:.3em 0}\n.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}\n.ewe-toolbar-button,.ewe-submit-button{align-self:flex-start;background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText))}\n.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}\n.ewe-destructive-button{background:Canvas;color:var(--color-error,#a51f26)}\n.ewe-segmented-control,.ewe-checklist-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45em}\n.ewe-segmented-control{margin-block:.75em}\n.ewe-checklist-row{padding-block:.6em;border-block-end:1px solid color-mix(in srgb,CanvasText 15%,Canvas)}\n.ewe-checklist-row>.ewe-text{flex:1 1 auto}\n.ewe-inset-list{padding-inline-start:0;list-style:none;margin-block:.5em}\n.ewe-list-footer{font-size:.9em}\n.ewe-segmented-control button[aria-pressed=true]{background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText));font-weight:600}\n.ewe-confirmation-dialog,.ewe-modal{font:inherit;color:CanvasText;background:Canvas;border:1px solid ButtonBorder;border-radius:.75em}\n.ewe-confirmation-dialog::backdrop,.ewe-modal::backdrop{background:rgb(0 0 0 / .35)}\n.ewe-confirmation-dialog>.ewe-sheet-title{margin-block-end:.8em}\n.ewe-overlay{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;pointer-events:none}\n.ewe-overlay[popover]{margin:0;border:0;padding:0;inline-size:auto;block-size:auto;overflow:visible;background:transparent;color:inherit}\n.ewe-overlay[popover]:not(:popover-open){display:none}\n.ewe-overlay>*{pointer-events:auto}\n.ewe-modal{max-block-size:100dvh;box-sizing:border-box}\n.ewe-modal:has(>.ewe-bottom-sheet){inset:auto 0 0;margin:0;inline-size:100%;max-inline-size:none;padding:0;border:0}\n.ewe-bottom-sheet{display:flex;flex-direction:column;margin-block-start:auto;max-block-size:100dvh;overflow:auto;padding-block-end:env(safe-area-inset-bottom);box-sizing:border-box;background:Canvas;color:CanvasText}\n.ewe-bottom-sheet:has(>.ewe-submit-button){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8em;padding:1.25em max(1.25em,calc((100% - 36em)/2)) max(1.25em,env(safe-area-inset-bottom))}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>*{grid-column:1/-1}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-cancel-button{grid-column:1;justify-self:end}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-submit-button{grid-column:2}\n.ewe-bottom-sheet>.ewe-text-input{font:inherit;padding:.65em .8em;border:1px solid GrayText;border-radius:.5em}\n";
+    class ViewRecovery {
+        constructor(load, install, { maxAttempts = 3, onError = ()=>{} } = {}){
+            if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1) throw new RangeError("Invalid recovery attempt limit");
+            this.load = load;
+            this.install = install;
+            this.maxAttempts = maxAttempts;
+            this.onError = onError;
+            this.attempts = 0;
+            this.generation = 0;
+            this.active = true;
+            this.ready = false;
+            this.expiredStreams = new Set();
+        }
+        open() {
+            return this.run();
+        }
+        expire(stream) {
+            if (!this.active) return;
+            this.expiredStreams.add(stream);
+            if (this.flight) return this.flight;
+            if (this.attempts >= this.maxAttempts) {
+                this.ready = false;
+                this.onError(new Error("View recovery attempt limit reached"));
+                return;
+            }
+            this.attempts++;
+            return this.run();
+        }
+        retry() {
+            if (this.flight) return this.flight;
+            this.attempts = 0;
+            return this.run();
+        }
+        run() {
+            if (!this.active || this.flight) return this.flight;
+            const generation = ++this.generation;
+            this.ready = false;
+            const controller = new AbortController();
+            this.abort = controller;
+            this.flight = Promise.resolve().then(()=>this.load(controller.signal)).then((bytes)=>{
+                if (!this.active || this.generation !== generation) return;
+                this.ready = true;
+                this.install(bytes, this.expiredStreams);
+                this.expiredStreams.clear();
+            }).catch((error)=>{
+                if (!this.active || this.generation !== generation) return;
+                this.ready = false;
+                this.onError(error);
+                throw error;
+            }).finally(()=>{
+                if (this.generation === generation) this.flight = null;
+            });
+            return this.flight;
+        }
+        accepts(generation) {
+            return this.active && this.ready && generation === this.generation;
+        }
+        close() {
+            this.active = false;
+            this.ready = false;
+            this.generation++;
+            this.abort?.abort();
+            this.expiredStreams.clear();
+        }
+    }
+    function composite(scope) {
+        var root = scope.parent();
+        if (!root || root.__composite) return;
+        root.__composite = true;
+        var orientation = root.getAttribute('data-orientation') || 'horizontal';
+        var loop = root.getAttribute('data-loop') !== 'false';
+        function items() {
+            return Array.prototype.slice.call(root.querySelectorAll('[data-composite-item]')).filter(function(el) {
+                return !el.hasAttribute('disabled') && el.getAttribute('aria-disabled') !== 'true';
+            });
+        }
+        function seed() {
+            var list = items();
+            var active = list.findIndex(function(el) {
+                return el.hasAttribute('data-composite-active');
+            });
+            if (active < 0) active = 0;
+            list.forEach(function(el, i) {
+                el.tabIndex = i === active ? 0 : -1;
+            });
+        }
+        function move(idx) {
+            var list = items();
+            if (idx < 0) idx = loop ? list.length - 1 : 0;
+            if (idx >= list.length) idx = loop ? 0 : list.length - 1;
+            list.forEach(function(el, i) {
+                el.tabIndex = i === idx ? 0 : -1;
+            });
+            if (list[idx]) {
+                list[idx].focus();
+                if (root.hasAttribute('data-composite-select')) list[idx].click();
+            }
+        }
+        var nextKey = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight';
+        var prevKey = orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
+        var buf = '', bufAt = 0, matchIdx = -1;
+        function label(el) {
+            return (el.getAttribute('data-label') || el.textContent || '').trim().toLowerCase();
+        }
+        function typeahead(ch) {
+            var list = items();
+            if (!list.length) return;
+            var now = Date.now();
+            if (now - bufAt > 750) {
+                buf = '';
+            }
+            bufAt = now;
+            var cur = list.indexOf(document.activeElement);
+            if (buf === '') matchIdx = cur;
+            var allowRapid = list.every(function(el) {
+                var t = label(el);
+                return t.length < 2 || t[0] !== t[1];
+            });
+            if (allowRapid && buf === ch.toLowerCase()) {
+                buf = '';
+            }
+            buf += ch.toLowerCase();
+            var start = (matchIdx >= 0 ? matchIdx : cur) + 1;
+            for(var k = 0; k < list.length; k++){
+                var i = ((start + k) % list.length + list.length) % list.length;
+                if (label(list[i]).indexOf(buf) === 0) {
+                    matchIdx = i;
+                    move(i);
+                    return;
+                }
+            }
+            buf = '';
+        }
+        scope.addEvent(root, 'keydown', function(e) {
+            var list = items();
+            var cur = list.indexOf(document.activeElement);
+            var next = null;
+            if (e.key === nextKey) next = cur + 1;
+            else if (e.key === prevKey) next = cur - 1;
+            else if (e.key === 'Home') next = 0;
+            else if (e.key === 'End') next = list.length - 1;
+            else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                typeahead(e.key);
+                return;
+            } else return;
+            if (cur < 0 && e.key !== 'Home' && e.key !== 'End') return;
+            e.preventDefault();
+            move(next);
+        });
+        seed();
+    }
+    function dialog(scope) {
+        var dlg = scope.parent();
+        if (!dlg || dlg.__dialog || !dlg.showModal) return;
+        dlg.__dialog = true;
+        var modal = dlg.getAttribute('data-dialog-mode') !== 'nonmodal';
+        function sync() {
+            var want = dlg.hasAttribute('data-open');
+            if (want && !dlg.open) {
+                try {
+                    modal ? dlg.showModal() : dlg.show();
+                } catch (e) {}
+            } else if (!want && dlg.open) {
+                dlg.close();
+            }
+        }
+        function requestClose(reason) {
+            var act = dlg.querySelector('[data-dialog-close]');
+            if (act) {
+                act.setAttribute('data-dismiss-reason', reason);
+                act.click();
+            }
+        }
+        scope.addEvent(dlg, 'cancel', function(e) {
+            e.preventDefault();
+            requestClose('escape-key');
+        });
+        scope.addEvent(dlg, 'click', function(e) {
+            if (e.target === dlg && dlg.getAttribute('data-dialog-dismissable') !== 'false') {
+                requestClose('outside-press');
+            }
+        });
+        sync();
+        var mo = new MutationObserver(sync);
+        scope.onDispose(()=>mo.disconnect());
+        mo.observe(dlg, {
+            attributes: true,
+            attributeFilter: [
+                'data-open',
+                'data-closed'
+            ]
+        });
+    }
+    function dismiss(scope) {
+        var popup = scope.parent();
+        if (!popup || popup.__dismiss) return;
+        popup.__dismiss = true;
+        var doc = popup.ownerDocument || document;
+        function dismiss(reason) {
+            var act = popup.querySelector('[data-dismiss-action]');
+            if (!act) return;
+            act.setAttribute('data-dismiss-reason', reason);
+            act.click();
+        }
+        if (popup.getAttribute('data-dismiss-escape') !== 'false') {
+            scope.addEvent(doc, 'keydown', function(e) {
+                if (e.key !== 'Escape' && e.key !== 'Esc') return;
+                e.preventDefault();
+                dismiss('escape-key');
+            });
+        }
+        if (popup.getAttribute('data-dismiss-outside') !== 'false') {
+            scope.addEvent(doc, 'pointerdown', function(e) {
+                if (popup.contains(e.target)) return;
+                var anchor = popup.getAttribute('data-anchor');
+                if (anchor) {
+                    var trig = doc.getElementById(anchor);
+                    if (trig && trig.contains(e.target)) return;
+                }
+                dismiss('outside-press');
+            });
+        }
+    }
+    function focus_trap(scope) {
+        var el = scope.parent();
+        if (!el || el.__focusTrap) return;
+        el.__focusTrap = true;
+        var doc = el.ownerDocument || document;
+        var SEL = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+        function tabbables() {
+            return Array.prototype.slice.call(el.querySelectorAll(SEL)).filter(function(n) {
+                return n.offsetWidth || n.offsetHeight || n.getClientRects().length;
+            });
+        }
+        var restore = null;
+        function activate() {
+            restore = doc.activeElement;
+            var init = el.getAttribute('data-initial-focus');
+            if (init === 'none') return;
+            var node = init ? el.querySelector(init) : tabbables()[0] || el;
+            if (node && node.focus) node.focus();
+        }
+        function deactivate() {
+            var node = restore && restore.focus ? restore : null;
+            if (!node) {
+                var anchor = el.getAttribute('data-anchor');
+                if (anchor) {
+                    var t = doc.getElementById(anchor);
+                    if (t) node = t;
+                }
+            }
+            if (node && node.focus) node.focus();
+            restore = null;
+        }
+        scope.addEvent(el, 'keydown', function(e) {
+            if (e.key !== 'Tab') return;
+            var list = tabbables();
+            if (!list.length) {
+                e.preventDefault();
+                return;
+            }
+            var first = list[0], last = list[list.length - 1];
+            if (e.shiftKey && doc.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && doc.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
+        var isOpen = el.hasAttribute('data-open');
+        if (isOpen) activate();
+        var mo = new MutationObserver(function() {
+            var now = el.hasAttribute('data-open');
+            if (now === isOpen) return;
+            isOpen = now;
+            if (now) activate();
+            else deactivate();
+        });
+        scope.onDispose(()=>mo.disconnect());
+        mo.observe(el, {
+            attributes: true,
+            attributeFilter: [
+                'data-open',
+                'data-closed'
+            ]
+        });
+    }
+    function slider_drag(scope) {
+        var root = scope.parent();
+        if (!root || root.__slider) return;
+        root.__slider = true;
+        var win = root.ownerDocument && root.ownerDocument.defaultView || window;
+        var control = root.querySelector('[data-slider-control]');
+        var input = root.querySelector('[data-slider-input]');
+        if (!control || !input) return;
+        function num(a) {
+            var v = parseFloat(root.getAttribute(a));
+            return isNaN(v) ? null : v;
+        }
+        var min = num('data-min');
+        if (min == null) min = 0;
+        var max = num('data-max');
+        if (max == null) max = 100;
+        var step = num('data-step') || 1;
+        var largeStep = num('data-large-step') || 10;
+        var vertical = root.getAttribute('data-orientation') === 'vertical';
+        var rtl = root.getAttribute('dir') === 'rtl';
+        function roundStep(v) {
+            return Math.round((v - min) / step) * step + min;
+        }
+        function clampV(v) {
+            return Math.max(min, Math.min(max, v));
+        }
+        function fingerValue(e) {
+            var rect = control.getBoundingClientRect(), pct;
+            if (vertical) pct = (rect.bottom - e.clientY) / rect.height;
+            else pct = rtl ? (rect.right - e.clientX) / rect.width : (e.clientX - rect.left) / rect.width;
+            pct = Math.max(0, Math.min(1, pct));
+            return clampV(roundStep((max - min) * pct + min));
+        }
+        function commit(v) {
+            input.value = String(v);
+            input.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        }
+        var dragging = false;
+        scope.addEvent(control, 'pointerdown', function(e) {
+            if (e.button) return;
+            e.preventDefault();
+            dragging = true;
+            root.setAttribute('data-dragging', '');
+            if (control.setPointerCapture) {
+                try {
+                    control.setPointerCapture(e.pointerId);
+                } catch (_) {}
+            }
+            if (input.focus) input.focus();
+            commit(fingerValue(e));
+        });
+        scope.addEvent(win, 'pointermove', function(e) {
+            if (dragging) commit(fingerValue(e));
+        });
+        scope.addEvent(win, 'pointerup', function() {
+            if (!dragging) return;
+            dragging = false;
+            root.removeAttribute('data-dragging');
+        });
+        scope.addEvent(input, 'keydown', function(e) {
+            var cur = parseFloat(input.value);
+            if (isNaN(cur)) cur = min;
+            if (e.key === 'PageUp') {
+                e.preventDefault();
+                commit(clampV(cur + largeStep));
+            } else if (e.key === 'PageDown') {
+                e.preventDefault();
+                commit(clampV(cur - largeStep));
+            }
+        });
+    }
+    function swipe(scope) {
+        var el = scope.parent();
+        if (!el || el.__swipe) return;
+        el.__swipe = true;
+        el.ownerDocument && el.ownerDocument.defaultView || window;
+        var dir = el.getAttribute('data-swipe-direction') || 'down';
+        var prefix = el.getAttribute('data-swipe-prefix') || '--swipe';
+        var threshold = parseFloat(el.getAttribute('data-swipe-threshold')) || 50;
+        var horizontal = dir === 'left' || dir === 'right';
+        var sign = dir === 'up' || dir === 'left' ? -1 : 1;
+        var startX = 0, startY = 0, swiping = false, mx = 0, my = 0;
+        function setVars() {
+            el.style.setProperty(prefix + '-movement-x', mx + 'px');
+            el.style.setProperty(prefix + '-movement-y', my + 'px');
+            var along = horizontal ? mx : my;
+            var progress = Math.max(0, Math.min(1, along * sign / Math.max(1, el.offsetHeight || el.offsetWidth)));
+            el.style.setProperty('--drawer-swipe-progress', String(progress));
+        }
+        function reset() {
+            mx = 0;
+            my = 0;
+            setVars();
+        }
+        reset();
+        scope.addEvent(el, 'pointerdown', function(e) {
+            if (e.button) return;
+            swiping = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            el.setAttribute('data-swiping', '');
+            el.setAttribute('data-swipe-direction', dir);
+            if (el.setPointerCapture) {
+                try {
+                    el.setPointerCapture(e.pointerId);
+                } catch (_) {}
+            }
+        });
+        scope.addEvent(el, 'pointermove', function(e) {
+            if (!swiping) return;
+            var dx = e.clientX - startX, dy = e.clientY - startY;
+            mx = horizontal ? sign > 0 ? Math.max(0, dx) : Math.min(0, dx) : 0;
+            my = horizontal ? 0 : sign > 0 ? Math.max(0, dy) : Math.min(0, dy);
+            setVars();
+        });
+        scope.addEvent(el, 'pointerup', function() {
+            if (!swiping) return;
+            swiping = false;
+            el.removeAttribute('data-swiping');
+            var along = (horizontal ? mx : my) * sign;
+            if (along >= threshold) {
+                var act = el.querySelector('[data-swipe-dismiss]');
+                if (act) act.click();
+            }
+            reset();
+        });
+    }
+    function snap(scope) {
+        var el = scope.parent();
+        if (!el || el.__snap) return;
+        el.__snap = true;
+        var dir = el.getAttribute('data-swipe-direction') || 'bottom';
+        function sign() {
+            return dir === 'up' || dir === 'left' ? -1 : 1;
+        }
+        var horizontal = dir === 'left' || dir === 'right';
+        var points = (el.getAttribute('data-snap-points') || '1').split(',').map(parseFloat).filter(function(n) {
+            return !isNaN(n);
+        }).sort(function(a, b) {
+            return a - b;
+        });
+        if (!points.length) points = [
+            1
+        ];
+        var sequential = el.getAttribute('data-snap-sequential') === 'true';
+        var snapInput = el.querySelector('[data-snap-input]');
+        var full = horizontal ? el.offsetWidth : el.offsetHeight;
+        var startCoord = 0, dragging = false, curIdx = points.length - 1, base = 0;
+        function toOffset(f) {
+            return (1 - f) * full;
+        }
+        function setOffset(px) {
+            el.style.setProperty('--drawer-offset', px + 'px');
+            el.style.setProperty('--drawer-snap-progress', String(full ? 1 - px / full : 1));
+        }
+        setOffset(toOffset(points[curIdx]));
+        scope.addEvent(el, 'pointerdown', function(e) {
+            if (e.button) return;
+            dragging = true;
+            startCoord = horizontal ? e.clientX : e.clientY;
+            base = toOffset(points[curIdx]);
+            el.setAttribute('data-swiping', '');
+            if (el.setPointerCapture) {
+                try {
+                    el.setPointerCapture(e.pointerId);
+                } catch (_) {}
+            }
+        });
+        scope.addEvent(el, 'pointermove', function(e) {
+            if (!dragging) return;
+            var d = (horizontal ? e.clientX : e.clientY) - startCoord;
+            var off = Math.max(0, Math.min(base + sign() * d, full));
+            setOffset(off);
+        });
+        scope.addEvent(el, 'pointerup', function() {
+            if (!dragging) return;
+            dragging = false;
+            el.removeAttribute('data-swiping');
+            var off = parseFloat(el.style.getPropertyValue('--drawer-offset')) || 0;
+            var frac = full ? 1 - off / full : 1;
+            if (frac < points[0] / 2) {
+                var act = el.querySelector('[data-swipe-dismiss]');
+                if (act) {
+                    act.click();
+                    return;
+                }
+            }
+            var best = 0, bestD = Infinity;
+            for(var i = 0; i < points.length; i++){
+                var dd = Math.abs(points[i] - frac);
+                if (dd < bestD) {
+                    bestD = dd;
+                    best = i;
+                }
+            }
+            if (sequential) best = Math.max(curIdx - 1, Math.min(curIdx + 1, best));
+            curIdx = best;
+            setOffset(toOffset(points[curIdx]));
+            if (snapInput) {
+                snapInput.value = String(curIdx);
+                snapInput.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+        });
+    }
+    function hover(scope) {
+        var trig = scope.parent();
+        if (!trig || trig.__hover) return;
+        trig.__hover = true;
+        var doc = trig.ownerDocument || document;
+        var win = doc.defaultView || window;
+        var root = trig.parentNode;
+        var openDelay = parseInt(trig.getAttribute('data-hover-delay'), 10) || 0;
+        var closeDelay = parseInt(trig.getAttribute('data-hover-close-delay'), 10) || 0;
+        function floating() {
+            return root && root.querySelector('[data-hover-popup]');
+        }
+        function fire(sel) {
+            var a = root && root.querySelector(sel);
+            if (a) a.click();
+        }
+        var openT = null, closeT = null, polyT = null, moveHandler = null;
+        function clearOpen() {
+            if (openT) {
+                win.clearTimeout(openT);
+                openT = null;
+            }
+        }
+        function clearClose() {
+            if (closeT) {
+                win.clearTimeout(closeT);
+                closeT = null;
+            }
+        }
+        function clearPoly() {
+            if (polyT) {
+                win.clearTimeout(polyT);
+                polyT = null;
+            }
+        }
+        function removeMove() {
+            if (moveHandler) {
+                doc.removeEventListener('mousemove', moveHandler);
+                moveHandler = null;
+            }
+            clearPoly();
+        }
+        scope.onDispose(()=>{
+            clearOpen();
+            clearClose();
+            removeMove();
+        });
+        function open() {
+            clearClose();
+            removeMove();
+            clearOpen();
+            openT = win.setTimeout(function() {
+                fire('[data-hover-open]');
+            }, openDelay);
+        }
+        function scheduleClose() {
+            removeMove();
+            clearClose();
+            closeT = win.setTimeout(function() {
+                fire('[data-hover-close]');
+            }, closeDelay);
+        }
+        var BUF = 0.5, SPEED = 0.1;
+        function edge(px, py, xi, yi, xj, yj) {
+            return yi >= py !== yj >= py && px <= (xj - xi) * (py - yi) / (yj - yi) + xi;
+        }
+        function inQuad(px, py, x1, y1, x2, y2, x3, y3, x4, y4) {
+            var s = false;
+            if (edge(px, py, x1, y1, x2, y2)) s = !s;
+            if (edge(px, py, x2, y2, x3, y3)) s = !s;
+            if (edge(px, py, x3, y3, x4, y4)) s = !s;
+            if (edge(px, py, x4, y4, x1, y1)) s = !s;
+            return s;
+        }
+        function inRect(px, py, r) {
+            return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
+        }
+        function inAA(px, py, x1, y1, x2, y2) {
+            return px >= Math.min(x1, x2) && px <= Math.max(x1, x2) && py >= Math.min(y1, y2) && py <= Math.max(y1, y2);
+        }
+        function startPolygon(x, y) {
+            var fl = floating();
+            if (!fl) {
+                scheduleClose();
+                return;
+            }
+            var side = fl.getAttribute('data-side') || 'bottom';
+            var landed = false, lastX = null, lastY = null, lastT = win.performance ? win.performance.now() : Date.now();
+            function slow(nx, ny) {
+                var t = win.performance ? win.performance.now() : Date.now(), dt = t - lastT;
+                if (lastX === null || dt === 0) {
+                    lastX = nx;
+                    lastY = ny;
+                    lastT = t;
+                    return false;
+                }
+                var dx = nx - lastX, dy = ny - lastY, d2 = dx * dx + dy * dy, th = dt * dt * SPEED * SPEED;
+                lastX = nx;
+                lastY = ny;
+                lastT = t;
+                return d2 < th;
+            }
+            clearClose();
+            moveHandler = function(e) {
+                clearPoly();
+                var refRect = trig.getBoundingClientRect(), rect = fl.getBoundingClientRect();
+                var cx = e.clientX, cy = e.clientY, target = e.target;
+                if (fl.contains(target)) {
+                    landed = true;
+                    return;
+                }
+                if (trig.contains(target)) {
+                    landed = true;
+                    return;
+                }
+                var leaveRight = x > rect.right - rect.width / 2, leaveBottom = y > rect.bottom - rect.height / 2;
+                var wider = rect.width > refRect.width, taller = rect.height > refRect.height;
+                var left = (wider ? refRect : rect).left, right = (wider ? refRect : rect).right;
+                var top = (taller ? refRect : rect).top, bottom = (taller ? refRect : rect).bottom;
+                if (side === 'top' && y >= refRect.bottom - 1 || side === 'bottom' && y <= refRect.top + 1 || side === 'left' && x >= refRect.right - 1 || side === 'right' && x <= refRect.left + 1) {
+                    scheduleClose();
+                    return;
+                }
+                var trough = false;
+                if (side === 'top') trough = inAA(cx, cy, left, refRect.top + 1, right, rect.bottom - 1);
+                else if (side === 'bottom') trough = inAA(cx, cy, left, rect.top + 1, right, refRect.bottom - 1);
+                else if (side === 'left') trough = inAA(cx, cy, rect.right - 1, bottom, refRect.left + 1, top);
+                else if (side === 'right') trough = inAA(cx, cy, refRect.right - 1, bottom, rect.left + 1, top);
+                if (trough) return;
+                if (landed && !inRect(cx, cy, refRect)) {
+                    scheduleClose();
+                    return;
+                }
+                if (slow(cx, cy)) {
+                    scheduleClose();
+                    return;
+                }
+                var inside = false;
+                if (side === 'top' || side === 'bottom') {
+                    var off = wider ? BUF / 2 : BUF * 4;
+                    var p1x = wider ? x + off : leaveRight ? x + off : x - off;
+                    var p2x = wider ? x - off : leaveRight ? x + off : x - off;
+                    var py = side === 'top' ? y + BUF + 1 : y - BUF;
+                    var nearY = side === 'top' ? rect.bottom - BUF : rect.top + BUF;
+                    var farY = side === 'top' ? rect.top : rect.bottom;
+                    var cyL = leaveRight ? nearY : wider ? nearY : farY;
+                    var cyR = leaveRight ? wider ? nearY : farY : nearY;
+                    inside = inQuad(cx, cy, p1x, py, p2x, py, rect.left, cyL, rect.right, cyR);
+                } else {
+                    var offY = taller ? BUF / 2 : BUF * 4;
+                    var p1y = taller ? y + offY : leaveBottom ? y + offY : y - offY;
+                    var p2y = taller ? y - offY : leaveBottom ? y + offY : y - offY;
+                    var px = side === 'left' ? x + BUF + 1 : x - BUF;
+                    var nearX = side === 'left' ? rect.right - BUF : rect.left + BUF;
+                    var farX = side === 'left' ? rect.left : rect.right;
+                    var cxT = leaveBottom ? nearX : taller ? nearX : farX;
+                    var cxB = leaveBottom ? taller ? nearX : farX : nearX;
+                    if (side === 'left') inside = inQuad(cx, cy, cxT, rect.top, cxB, rect.bottom, px, p1y, px, p2y);
+                    else inside = inQuad(cx, cy, px, p1y, px, p2y, cxT, rect.top, cxB, rect.bottom);
+                }
+                if (!inside) {
+                    scheduleClose();
+                } else if (!landed) {
+                    polyT = win.setTimeout(function() {
+                        fire('[data-hover-close]');
+                    }, 40);
+                }
+            };
+            doc.addEventListener('mousemove', moveHandler);
+        }
+        scope.addEvent(trig, 'pointerenter', open);
+        scope.addEvent(trig, 'pointerleave', function(e) {
+            clearOpen();
+            startPolygon(e.clientX, e.clientY);
+        });
+        scope.addEvent(trig, 'focus', function() {
+            clearClose();
+            removeMove();
+            clearOpen();
+            fire('[data-hover-open]');
+        });
+        scope.addEvent(trig, 'blur', function() {
+            scheduleClose();
+        });
+        var fl0 = floating();
+        if (fl0) {
+            scope.addEvent(fl0, 'pointerenter', function() {
+                clearClose();
+                removeMove();
+            });
+            scope.addEvent(fl0, 'pointerleave', function(e) {
+                startPolygon(e.clientX, e.clientY);
+            });
+        }
+    }
+    function listbox(scope) {
+        var pop = scope.parent();
+        if (!pop || pop.__listbox) return;
+        pop.__listbox = true;
+        var loop = pop.getAttribute('data-loop') !== 'false';
+        var buf = '', bufAt = 0;
+        function items() {
+            return Array.prototype.slice.call(pop.querySelectorAll('[data-list-item]')).filter(function(el) {
+                return !el.hasAttribute('disabled') && el.getAttribute('aria-disabled') !== 'true' && el.offsetParent !== null;
+            });
+        }
+        function current() {
+            var l = items();
+            for(var i = 0; i < l.length; i++)if (l[i].hasAttribute('data-highlighted')) return i;
+            return -1;
+        }
+        function setHL(idx) {
+            var l = items();
+            l.forEach(function(el) {
+                el.removeAttribute('data-highlighted');
+            });
+            if (idx >= 0 && idx < l.length) {
+                var el = l[idx];
+                el.setAttribute('data-highlighted', '');
+                if (el.id) pop.setAttribute('aria-activedescendant', el.id);
+                if (el.scrollIntoView) el.scrollIntoView({
+                    block: 'nearest'
+                });
+            } else {
+                pop.removeAttribute('aria-activedescendant');
+            }
+        }
+        function move(delta) {
+            var l = items();
+            if (!l.length) return;
+            var idx = current() + delta;
+            if (idx < 0) idx = loop ? l.length - 1 : 0;
+            if (idx >= l.length) idx = loop ? 0 : l.length - 1;
+            setHL(idx);
+        }
+        function typeahead(ch) {
+            var now = Date.now();
+            if (now - bufAt > 750) buf = '';
+            bufAt = now;
+            buf += ch.toLowerCase();
+            var l = items();
+            if (!l.length) return;
+            var start = (current() + 1) % l.length;
+            for(var k = 0; k < l.length; k++){
+                var i = (start + k) % l.length;
+                var label = (l[i].getAttribute('data-label') || l[i].textContent || '').trim().toLowerCase();
+                if (label.indexOf(buf) === 0) {
+                    setHL(i);
+                    return;
+                }
+            }
+        }
+        scope.addEvent(pop, 'keydown', function(e) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                move(1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                move(-1);
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                setHL(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                setHL(items().length - 1);
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                var c = current();
+                var l = items();
+                if (c >= 0) {
+                    e.preventDefault();
+                    l[c].click();
+                }
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                typeahead(e.key);
+            }
+        });
+        scope.addEvent(pop, 'pointermove', function(e) {
+            var item = e.target.closest ? e.target.closest('[data-list-item]') : null;
+            if (item) {
+                var i = items().indexOf(item);
+                if (i >= 0) setHL(i);
+            }
+        });
+        var l = items();
+        var active = -1;
+        for(var i = 0; i < l.length; i++)if (l[i].hasAttribute('data-active-item')) {
+            active = i;
+            break;
+        }
+        setHL(active);
+    }
+    function panel_size(scope) {
+        var el = scope.parent();
+        if (!el || el.__panelSize) return;
+        el.__panelSize = true;
+        var win = el.ownerDocument && el.ownerDocument.defaultView || window;
+        var prefix = el.getAttribute('data-size-var') || '--panel';
+        function measure() {
+            el.style.setProperty(prefix + '-height', el.scrollHeight + 'px');
+            el.style.setProperty(prefix + '-width', el.scrollWidth + 'px');
+        }
+        measure();
+        if (win.ResizeObserver) {
+            var ro = new win.ResizeObserver(measure);
+            ro.observe(el);
+            scope.onDispose(()=>ro.disconnect());
+        }
+        scope.addEvent(win, 'resize', measure);
+    }
+    function tab_indicator(scope) {
+        var list = scope.parent();
+        if (!list || list.__tabIndicator) return;
+        list.__tabIndicator = true;
+        var win = list.ownerDocument && list.ownerDocument.defaultView || window;
+        function measure() {
+            var tab = list.querySelector('[role="tab"][data-active]');
+            if (!tab) return;
+            var l = list.getBoundingClientRect(), t = tab.getBoundingClientRect();
+            var s = list.style;
+            s.setProperty('--active-tab-left', t.left - l.left + 'px');
+            s.setProperty('--active-tab-right', l.right - t.right + 'px');
+            s.setProperty('--active-tab-top', t.top - l.top + 'px');
+            s.setProperty('--active-tab-bottom', l.bottom - t.bottom + 'px');
+            s.setProperty('--active-tab-width', t.width + 'px');
+            s.setProperty('--active-tab-height', t.height + 'px');
+        }
+        measure();
+        var mo = new MutationObserver(measure);
+        scope.onDispose(()=>mo.disconnect());
+        mo.observe(list, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: [
+                'data-active'
+            ]
+        });
+        if (win.ResizeObserver) {
+            var ro = new win.ResizeObserver(measure);
+            ro.observe(list);
+            scope.onDispose(()=>ro.disconnect());
+        }
+        scope.addEvent(win, 'resize', measure);
+    }
+    function position(scope) {
+        var pos = scope.parent();
+        if (!pos) return;
+        var doc = pos.ownerDocument || document;
+        var win = doc.defaultView || window;
+        var anchorId = pos.getAttribute('data-anchor');
+        var prefSide = pos.getAttribute('data-prefer-side') || 'bottom';
+        var prefAlign = pos.getAttribute('data-prefer-align') || 'center';
+        var offset = parseFloat(pos.getAttribute('data-offset')) || 0;
+        var pad = parseFloat(pos.getAttribute('data-collision-padding'));
+        if (isNaN(pad)) pad = 5;
+        var sideMode = pos.getAttribute('data-collision-side') || 'flip';
+        var alignMode = pos.getAttribute('data-collision-align') || 'flip';
+        var fallbackAxis = pos.getAttribute('data-fallback-axis') || 'none';
+        var sticky = pos.getAttribute('data-sticky') === 'true';
+        var arrowPad = parseFloat(pos.getAttribute('data-arrow-padding'));
+        if (isNaN(arrowPad)) arrowPad = 5;
+        var rtl = pos.getAttribute('dir') === 'rtl';
+        var track = pos.getAttribute('data-disable-anchor-tracking') !== 'true';
+        function opposite(s) {
+            return ({
+                top: 'bottom',
+                bottom: 'top',
+                left: 'right',
+                right: 'left'
+            })[s];
+        }
+        function vertical(s) {
+            return s === 'top' || s === 'bottom';
+        }
+        function anchorEl() {
+            return anchorId ? doc.getElementById(anchorId) : pos.previousElementSibling;
+        }
+        function place() {
+            var anchor = anchorEl();
+            if (!anchor) return;
+            var a = anchor.getBoundingClientRect();
+            var p = pos.getBoundingClientRect();
+            var w = p.width, h = p.height;
+            var vw = doc.documentElement.clientWidth;
+            var vh = doc.documentElement.clientHeight;
+            var space = {
+                top: a.top - pad,
+                bottom: vh - a.bottom - pad,
+                left: a.left - pad,
+                right: vw - a.right - pad
+            };
+            var side = prefSide, align = prefAlign;
+            var need = (vertical(side) ? h : w) + offset;
+            if (sideMode === 'flip' && space[side] < need && space[opposite(side)] > space[side]) side = opposite(side);
+            if (fallbackAxis !== 'none' && space[side] < need && space[opposite(side)] < need) {
+                var perpNeed = (vertical(side) ? w : h) + offset;
+                var perp = vertical(side) ? [
+                    'left',
+                    'right'
+                ] : [
+                    'top',
+                    'bottom'
+                ];
+                if (vertical(side) && rtl) perp = [
+                    'right',
+                    'left'
+                ];
+                if (fallbackAxis === 'end') perp = [
+                    perp[1],
+                    perp[0]
+                ];
+                var chosen = null;
+                for(var pi = 0; pi < perp.length; pi++){
+                    if (space[perp[pi]] >= perpNeed) {
+                        chosen = perp[pi];
+                        break;
+                    }
+                }
+                if (!chosen) chosen = space[perp[0]] >= space[perp[1]] ? perp[0] : perp[1];
+                side = chosen;
+            }
+            var left, top;
+            if (side === 'top') top = a.top - h - offset;
+            else if (side === 'bottom') top = a.bottom + offset;
+            else if (side === 'left') left = a.left - w - offset;
+            else left = a.right + offset;
+            function cross(al) {
+                if (vertical(side)) return al === 'start' ? a.left : al === 'end' ? a.right - w : a.left + (a.width - w) / 2;
+                return al === 'start' ? a.top : al === 'end' ? a.bottom - h : a.top + (a.height - h) / 2;
+            }
+            var lo = pad;
+            var hi = vertical(side) ? vw - w - pad : vh - h - pad;
+            var c = cross(align);
+            if (alignMode === 'flip' && (align === 'start' || align === 'end')) {
+                if (c < lo || c > hi) {
+                    var alt = align === 'start' ? 'end' : 'start', c2 = cross(alt);
+                    if (c2 >= lo && c2 <= hi) {
+                        align = alt;
+                        c = c2;
+                    }
+                }
+            } else if (alignMode === 'shift') {
+                if (c > hi) c = hi;
+                if (c < lo) c = lo;
+            }
+            if (vertical(side)) left = c;
+            else top = c;
+            if (sticky) {
+                left = Math.max(pad, Math.min(left, vw - w - pad));
+                top = Math.max(pad, Math.min(top, vh - h - pad));
+            }
+            var fixed = pos.getAttribute('data-position-method') === 'fixed';
+            pos.style.position = fixed ? 'fixed' : 'absolute';
+            var sx = fixed ? 0 : win.scrollX || 0, sy = fixed ? 0 : win.scrollY || 0;
+            pos.style.left = left + sx + 'px';
+            pos.style.top = top + sy + 'px';
+            pos.setAttribute('data-side', side);
+            pos.setAttribute('data-align', align);
+            var hidden = a.bottom < 0 || a.right < 0 || a.top > vh || a.left > vw;
+            if (hidden && !sticky) pos.setAttribute('data-anchor-hidden', '');
+            else pos.removeAttribute('data-anchor-hidden');
+            var arrow = pos.querySelector('[data-arrow]');
+            if (arrow) {
+                var as = arrow.style;
+                if (vertical(side)) {
+                    var center = a.left + a.width / 2 - left;
+                    var clamped = Math.max(arrowPad, Math.min(center, w - arrowPad));
+                    as.setProperty('--arrow-x', clamped + 'px');
+                    as.removeProperty('--arrow-y');
+                    if (clamped !== center) arrow.setAttribute('data-uncentered', '');
+                    else arrow.removeAttribute('data-uncentered');
+                } else {
+                    var centerY = a.top + a.height / 2 - top;
+                    var clampedY = Math.max(arrowPad, Math.min(centerY, h - arrowPad));
+                    as.setProperty('--arrow-y', clampedY + 'px');
+                    as.removeProperty('--arrow-x');
+                    if (clampedY !== centerY) arrow.setAttribute('data-uncentered', '');
+                    else arrow.removeAttribute('data-uncentered');
+                }
+                arrow.setAttribute('data-side', side);
+            }
+            var st = pos.style;
+            st.setProperty('--anchor-width', a.width + 'px');
+            st.setProperty('--anchor-height', a.height + 'px');
+            st.setProperty('--available-width', Math.max(0, vertical(side) ? vw - 2 * pad : space[side]) + 'px');
+            st.setProperty('--available-height', Math.max(0, vertical(side) ? space[side] : vh - 2 * pad) + 'px');
+            st.setProperty('--positioner-width', w + 'px');
+            st.setProperty('--positioner-height', h + 'px');
+            st.setProperty('--popup-width', w + 'px');
+            st.setProperty('--popup-height', h + 'px');
+            var ox = align === 'start' ? '0%' : align === 'end' ? '100%' : '50%';
+            st.setProperty('--transform-origin', vertical(side) ? ox + ' ' + (side === 'top' ? '100%' : '0%') : (side === 'left' ? '100%' : '0%') + ' ' + ox);
+        }
+        place();
+        if (track) {
+            scope.addEvent(doc, 'scroll', place, true);
+            scope.addEvent(win, 'resize', place);
+        }
+    }
+    function scroll_lock(scope) {
+        var el = scope.parent();
+        if (!el || el.__scrollLock) return;
+        el.__scrollLock = true;
+        var doc = el.ownerDocument || document;
+        var win = doc.defaultView || window;
+        var html = doc.documentElement, body = doc.body;
+        function targetEl() {
+            var bs = win.getComputedStyle(body), oy = bs.overflowY;
+            return oy === 'scroll' || oy === 'hidden' || oy === 'auto' ? body : html;
+        }
+        var saved = null;
+        function lock() {
+            if (saved) return;
+            var t = targetEl();
+            var stable = win.CSS && win.CSS.supports && win.CSS.supports('scrollbar-gutter', 'stable');
+            saved = {
+                t: t,
+                overflowY: t.style.overflowY,
+                gutter: t.style.scrollbarGutter,
+                padding: t.style.paddingRight
+            };
+            t.style.overflowY = 'hidden';
+            if (stable) {
+                t.style.scrollbarGutter = 'stable';
+            } else {
+                var sbw = win.innerWidth - html.clientWidth;
+                if (sbw > 0) t.style.paddingRight = parseFloat(win.getComputedStyle(t).paddingRight) + sbw + 'px';
+            }
+        }
+        function unlock() {
+            if (!saved) return;
+            saved.t.style.overflowY = saved.overflowY;
+            saved.t.style.scrollbarGutter = saved.gutter;
+            saved.t.style.paddingRight = saved.padding;
+            saved = null;
+        }
+        scope.onDispose(unlock);
+        function sync() {
+            if (el.hasAttribute('data-open')) lock();
+            else unlock();
+        }
+        sync();
+        var mo = new MutationObserver(sync);
+        scope.onDispose(()=>mo.disconnect());
+        mo.observe(el, {
+            attributes: true,
+            attributeFilter: [
+                'data-open',
+                'data-closed'
+            ]
+        });
+    }
+    function transition(scope) {
+        var el = scope.parent();
+        if (!el || el.__transition) return;
+        el.__transition = true;
+        var win = el.ownerDocument && el.ownerDocument.defaultView || window;
+        function twoFrames(fn) {
+            win.requestAnimationFrame(function() {
+                win.requestAnimationFrame(fn);
+            });
+        }
+        function onEnd(e) {
+            if (e.target !== el) return;
+            el.removeEventListener('transitionend', onEnd);
+            el.removeAttribute('data-ending-style');
+            var act = el.querySelector('[data-transition-complete]');
+            if (act) act.click();
+        }
+        function enter() {
+            el.removeAttribute('data-ending-style');
+            el.removeEventListener('transitionend', onEnd);
+            if (el.hasAttribute('data-instant')) return;
+            el.setAttribute('data-starting-style', '');
+            twoFrames(function() {
+                el.removeAttribute('data-starting-style');
+            });
+        }
+        function leave() {
+            el.removeAttribute('data-starting-style');
+            if (el.hasAttribute('data-instant')) {
+                el.removeAttribute('data-ending-style');
+                return;
+            }
+            el.setAttribute('data-ending-style', '');
+            scope.addEvent(el, 'transitionend', onEnd);
+        }
+        var isOpen = el.hasAttribute('data-open');
+        if (isOpen) enter();
+        var mo = new MutationObserver(function() {
+            var now = el.hasAttribute('data-open');
+            if (now === isOpen) return;
+            isOpen = now;
+            if (now) enter();
+            else leave();
+        });
+        scope.onDispose(()=>mo.disconnect());
+        mo.observe(el, {
+            attributes: true,
+            attributeFilter: [
+                'data-open',
+                'data-closed'
+            ]
+        });
+    }
+    const active = new WeakMap();
+    const custom = new Map();
+    function machinery(fn) {
+        return (node, args)=>{
+            const removals = [];
+            const scope = {
+                parent: ()=>node,
+                onDispose: (cleanup)=>removals.push(cleanup),
+                args,
+                addEvent: (target, name, callback, options)=>{
+                    if (typeof target === "string") target = node.querySelector(target);
+                    if (!target) return;
+                    target.addEventListener(name, callback, options);
+                    removals.push(()=>target.removeEventListener(name, callback, options));
+                }
+            };
+            fn(scope);
+            return ()=>{
+                for (const remove of removals)remove();
+            };
+        };
+    }
+    const SHARED = Object.freeze({
+        DIALOG: machinery(dialog),
+        DISMISS: machinery(dismiss),
+        SCROLL_LOCK: machinery(scroll_lock),
+        TRANSITION: machinery(transition)
+    });
+    const WEB_ONLY = Object.freeze({
+        composite: machinery(composite),
+        focus_trap: machinery(focus_trap),
+        gestures: machinery((scope)=>{
+            const mode = scope.args.find((arg)=>arg.name === "mode")?.value?.v;
+            (({
+                slider: slider_drag,
+                swipe,
+                snap
+            })[mode] ?? slider_drag)(scope);
+        }),
+        hover: machinery(hover),
+        listbox: machinery(listbox),
+        measure: machinery((scope)=>{
+            const mode = scope.args.find((arg)=>arg.name === "mode")?.value?.v;
+            (mode === "tab_indicator" ? tab_indicator : panel_size)(scope);
+        }),
+        position: machinery(position)
+    });
+    function registerWebBehaviour(name, fn) {
+        if (typeof fn !== "function") throw new TypeError("Expected a behaviour function");
+        custom.set(name, fn);
+    }
+    function apply(node, name, args, run) {
+        if (!run) return false;
+        let entries = active.get(node);
+        if (!entries) active.set(node, entries = new Map());
+        if (!entries.has(name)) entries.set(name, run(node, args));
+        return true;
+    }
+    function applyBehaviour(node, id, args = []) {
+        const name = BehaviourId[id];
+        return apply(node, name, args, SHARED[name]);
+    }
+    function applyWebBehaviour(node, name, args = []) {
+        const mode = name === "gestures" || name === "measure" ? args?.find((arg)=>arg.name === "mode")?.value?.v : undefined;
+        const key = mode === undefined ? name : name + ":" + mode;
+        return apply(node, key, args, Object.hasOwn(WEB_ONLY, name) ? WEB_ONLY[name] : custom.get(name));
+    }
+    function disposeBehaviours(node) {
+        const entries = active.get(node);
+        active.delete(node);
+        if (entries) {
+            for (const cleanup of entries.values())if (typeof cleanup === "function") cleanup();
+        }
+    }
+    function hydrateMarkers(root) {
+        for (const marker of root.querySelectorAll?.("span[data-ewe-behaviour]") ?? []){
+            const parent = marker.parentElement ?? marker.parentNode;
+            if (!parent) continue;
+            const name = marker.getAttribute("data-ewe-behaviour");
+            const mode = marker.getAttribute("data-ewe-mode");
+            const args = mode === null ? [] : [
+                {
+                    name: "mode",
+                    value: {
+                        v: mode
+                    }
+                }
+            ];
+            const shared = BehaviourId[name.toUpperCase()];
+            const applied = shared ? applyBehaviour(parent, shared, args) : applyWebBehaviour(parent, name, args);
+            if (!applied) console.error("Unknown component behaviour", name);
+            marker.remove();
+        }
+    }
+    const mod2 = {
+        SHARED: SHARED,
+        WEB_ONLY: WEB_ONLY,
+        registerWebBehaviour: registerWebBehaviour,
+        applyBehaviour: applyBehaviour,
+        applyWebBehaviour: applyWebBehaviour,
+        disposeBehaviours: disposeBehaviours,
+        hydrateMarkers: hydrateMarkers
+    };
+    const asBytes = (input)=>ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input);
+    function requestBytes(session, request) {
+        const builder = new Builder();
+        const frame = new FrameT(1, session, 0n, FrameKind.FrameRequest, request);
+        Frame.finishFrameBuffer(builder, frame.pack(builder));
+        return builder.asUint8Array();
+    }
+    const utf8 = new TextDecoder("utf-8", {
+        fatal: true
+    });
+    const defaultFrameBytes = 4 * 1024 * 1024;
+    function isFrame(input) {
+        const b = asBytes(input);
+        return b.length >= 8 && b[4] === 69 && b[5] === 87 && b[6] === 70 && b[7] === 49;
+    }
+    class FrameSplitter {
+        constructor(limit){
+            this.limit = limit;
+            this.prefix = new Uint8Array(4);
+            this.used = 0;
+            this.frame = null;
+        }
+        *push(input) {
+            const bytes = asBytes(input);
+            let cursor = 0;
+            while(cursor < bytes.length){
+                const dest = this.frame ?? this.prefix;
+                const count = Math.min(dest.length - this.used, bytes.length - cursor);
+                dest.set(bytes.subarray(cursor, cursor + count), this.used);
+                this.used += count;
+                cursor += count;
+                if (this.used !== dest.length) continue;
+                this.used = 0;
+                if (this.frame) {
+                    this.frame = null;
+                    if (!isFrame(dest)) throw new Error("Invalid EWF1 identifier");
+                    yield dest;
+                } else {
+                    const size = new DataView(dest.buffer).getUint32(0, true);
+                    if (size < 8 || size > this.limit) throw new RangeError("Invalid frame size");
+                    this.frame = new Uint8Array(size);
+                }
+            }
+        }
+        finish() {
+            if (this.frame || this.used) throw new Error("Truncated frame");
+        }
+    }
+    function splitFrames(input, limit = defaultFrameBytes) {
+        const splitter = new FrameSplitter(limit);
+        const frames = Array.from(splitter.push(input));
+        splitter.finish();
+        return frames;
+    }
+    async function* readFrames(body, limit = defaultFrameBytes) {
+        const splitter = new FrameSplitter(limit);
+        if (!body) throw new Error("Missing frame response body");
+        const reader = body.getReader();
+        let done = false;
+        try {
+            while(true){
+                const chunk = await reader.read();
+                if (chunk.done) {
+                    splitter.finish();
+                    done = true;
+                    break;
+                }
+                yield* splitter.push(chunk.value);
+            }
+        } finally{
+            try {
+                if (!done) await reader.cancel();
+            } finally{
+                reader.releaseLock();
+            }
+        }
+    }
+    async function readViewResponse(response, limit = defaultFrameBytes) {
+        if (!response.ok) throw new Error("View request failed with HTTP " + response.status);
+        if (!response.body) throw new Error("Missing view response body");
+        const reader = response.body.getReader();
+        const chunks = [];
+        let size = 0, complete = false;
+        try {
+            while(true){
+                const { done, value } = await reader.read();
+                if (done) {
+                    complete = true;
+                    break;
+                }
+                size += value.byteLength;
+                if (size > limit) throw new RangeError("View exceeds frame limit");
+                chunks.push(value);
+            }
+        } finally{
+            try {
+                if (!complete) await reader.cancel();
+            } finally{
+                reader.releaseLock();
+            }
+        }
+        const frame = new Uint8Array(size);
+        let offset = 0;
+        for (const chunk of chunks){
+            frame.set(chunk, offset);
+            offset += chunk.byteLength;
+        }
+        if (!isFrame(frame)) throw new Error("Invalid view frame");
+        return frame;
+    }
+    function base64urlEncode(bytes) {
+        let binary = "";
+        for (const value of bytes)binary += String.fromCharCode(value);
+        return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    }
+    class CheckedBuffer extends mod1.ByteBuffer {
+        check(pos, length) {
+            if (pos < 0 || length < 0 || pos + length > this.bytes().length) throw new Error("Truncated frame field");
+        }
+        readInt8(pos) {
+            this.check(pos, 1);
+            return super.readInt8(pos);
+        }
+        readUint8(pos) {
+            this.check(pos, 1);
+            return super.readUint8(pos);
+        }
+        readInt16(pos) {
+            this.check(pos, 2);
+            return super.readInt16(pos);
+        }
+        readUint16(pos) {
+            this.check(pos, 2);
+            return super.readUint16(pos);
+        }
+        readInt32(pos) {
+            this.check(pos, 4);
+            return super.readInt32(pos);
+        }
+        readUint32(pos) {
+            this.check(pos, 4);
+            return super.readUint32(pos);
+        }
+        __vector_len(pos) {
+            const len = super.__vector_len(pos);
+            this.check(super.__vector(pos), len);
+            return len;
+        }
+        __string(pos, encoding) {
+            const start = pos + this.readInt32(pos);
+            this.check(start + 4, this.readInt32(start));
+            return super.__string(pos, encoding);
+        }
+    }
+    function vector(table, field, vtableOffset, Type, stats) {
+        const count = table[field + "Length"]();
+        const bb = table.bb;
+        const offset = bb.__offset(table.bb_pos, vtableOffset);
+        if (!offset) return new Type();
+        const start = bb.__vector(table.bb_pos + offset);
+        bb.check(start, count * Type.BYTES_PER_ELEMENT);
+        if ((bb.bytes().byteOffset + start) % Type.BYTES_PER_ELEMENT === 0) {
+            if (stats) stats.zeroCopyColumns++;
+            return table[field + "Array"]?.() ?? new Type(bb.bytes().buffer, bb.bytes().byteOffset + start, count);
+        }
+        if (stats) stats.copiedColumns++;
+        return Type.from({
+            length: count
+        }, (_, i)=>table[field](i));
+    }
+    function problem(code, fields = {}) {
+        return Object.assign(new Error(code), {
+            report: {
+                code,
+                ...fields
+            }
+        });
+    }
+    const utilityClasses = new WeakMap();
+    function applyClasses(node, classes) {
+        const previous = utilityClasses.get(node) ?? [];
+        for (const cls of previous)node.classList.remove(cls);
+        const words = (classes ?? "").split(/\s+/).filter(Boolean);
+        const shared = words.filter((word)=>!/^(ios|android|web)-/.test(word));
+        const overrides = words.filter((word)=>word.startsWith("web-")).map((word)=>word.slice(4));
+        const ordered = [
+            ...shared,
+            ...overrides
+        ];
+        const applied = [];
+        for (const word of ordered){
+            if (!node.classList.contains(word)) {
+                node.classList.add(word);
+                applied.push(word);
+            }
+        }
+        node.setAttribute("data-ewe-themed", "");
+        for (const [prefix, categories, field] of [
+            [
+                "text-",
+                [
+                    "color"
+                ],
+                "color"
+            ],
+            [
+                "text-",
+                [
+                    "font-size"
+                ],
+                "font-size"
+            ],
+            [
+                "bg-",
+                [
+                    "color"
+                ],
+                "background"
+            ],
+            [
+                "p-",
+                [
+                    "padding",
+                    "spacing"
+                ],
+                "padding"
+            ]
+        ]){
+            let value = "";
+            for (const word of ordered){
+                const name = word.slice(prefix.length);
+                if (!word.startsWith(prefix) || !/^[a-zA-Z0-9_-]+$/.test(name)) continue;
+                for (const category of categories)value = "var(--" + category + "-" + name + (value ? "," + value : "") + ")";
+            }
+            const property = "--ewe-utility-" + field;
+            if (value) node.style.setProperty?.(property, value);
+            else node.style.removeProperty?.(property);
+        }
+        utilityClasses.set(node, applied);
+    }
+    const propStyles = {
+        PADDING: "padding",
+        SPACING: "gap",
+        WIDTH: "width",
+        HEIGHT: "height"
+    };
+    function applyProp(node, id, type, value) {
+        if (!value || mod1.PropValue[type] !== PROP_KIND[id]) throw problem("BadFrame");
+        const prop = mod1.PropId[id];
+        const v = value.v;
+        if (Object.hasOwn(propStyles, prop)) {
+            node.style[propStyles[prop]] = v.unit === mod1.LengthUnit.Auto ? "auto" : String(v.value) + (v.unit === mod1.LengthUnit.Percent ? "%" : "px");
+            return;
+        }
+        switch(prop){
+            case "ID":
+                node.setAttribute("id", v);
+                break;
+            case "ALIGN":
+                node.style.alignItems = [
+                    "flex-start",
+                    "center",
+                    "flex-end",
+                    "stretch"
+                ][v];
+                break;
+            case "AXIS":
+                node.style.flexDirection = v === mod1.Axis.Horizontal ? "row" : "column";
+                break;
+            case "FONT":
+                node.style.font = "var(--ewe-font-" + value.id + ")";
+                break;
+            case "COLOR":
+            case "BACKGROUND":
+                node.style[prop === "COLOR" ? "color" : "backgroundColor"] = "var(--ewe-color-" + value.id + ")";
+                break;
+            case "ENABLED":
+            case "HIDDEN":
+                {
+                    const attr = prop === "HIDDEN" ? "hidden" : "disabled";
+                    if (prop === "HIDDEN" ? v : !v) node.setAttribute(attr, "");
+                    else node.removeAttribute(attr);
+                    break;
+                }
+            case "UTILITY_CLASSES":
+                applyClasses(node, v);
+                break;
+            case "A11Y_LABEL":
+                node.setAttribute("aria-label", v ?? "");
+                break;
+            case "SOURCE":
+                node.setAttribute("src", v ?? "");
+                break;
+            case "PLACEHOLDER":
+                node.setAttribute("placeholder", v ?? "");
+                break;
+            case "VALUE":
+                node.value = v ?? "";
+                break;
+            case "CHECKED":
+                node.checked = v;
+                if (node.tagName === "BUTTON") node.setAttribute("aria-pressed", String(v));
+                break;
+            default:
+                throw problem("UnknownOp");
+        }
+    }
+    function dispatchEvent(target, name, detail) {
+        const EventType = target.ownerDocument?.defaultView?.CustomEvent ?? globalThis.CustomEvent;
+        target.dispatchEvent?.(EventType ? new EventType(name, {
+            bubbles: true,
+            detail
+        }) : {
+            type: name,
+            detail,
+            bubbles: true
+        });
+    }
+    function sheetSubmitField(button) {
+        if (!button.classList?.contains("ewe-submit-button") || !button.closest?.(".ewe-bottom-sheet")) return null;
+        const fields = Array.from(button.parentElement.children).filter((node)=>node.tagName === "INPUT" && !node.disabled && !node.hidden && node.hasAttribute("primal:onsubmit"));
+        return fields.length === 1 ? fields[0] : null;
+    }
+    function wireBottomSheet(sheet, options) {
+        function submit(input) {
+            if (input && !input.disabled) {
+                const EventType = sheet.ownerDocument.defaultView.Event;
+                input.dispatchEvent(new EventType("submit", {
+                    cancelable: true
+                }));
+            }
+        }
+        sheet.addEventListener("keydown", (event)=>{
+            const input = event.target;
+            if (event.key !== "Enter" || event.isComposing || input.closest(".ewe-bottom-sheet") !== sheet) return;
+            if (input.tagName !== "INPUT" || !input.hasAttribute("primal:onsubmit")) return;
+            event.preventDefault();
+            if (!event.repeat) submit(input);
+        }, options);
+        sheet.addEventListener("click", (event)=>{
+            const button = event.target.closest?.('button.ewe-submit-button');
+            if (!button || button.closest(".ewe-bottom-sheet") !== sheet || button.hasAttribute("primal:onclick")) return;
+            submit(sheetSubmitField(button));
+        }, options);
+    }
+    class FrameApplicator {
+        constructor(deps){
+            this.deps = deps;
+            this.document = deps.document;
+            this.registry = deps.registry;
+            this.elementListeners = new WeakMap();
+            this.bindings = [];
+            this.layers = new Set();
+            this.containerEvents = new WeakMap();
+            this.maxFrameBytes = deps.maxFrameBytes ?? defaultFrameBytes;
+            this.gapTimeoutMs = deps.gapTimeoutMs ?? 1000;
+            this.maxPendingFrames = deps.maxPendingFrames ?? 128;
+            this.timer = deps.timer ?? {
+                set: setTimeout,
+                clear: clearTimeout
+            };
+            this.schedule = deps.schedule ?? ((run)=>{
+                if (this.document.visibilityState === "hidden" || !globalThis.requestAnimationFrame) queueMicrotask(run);
+                else globalThis.requestAnimationFrame(run);
+            });
+            this.stats = {
+                frames: 0,
+                rows: 0,
+                reports: 0,
+                copiedColumns: 0,
+                zeroCopyColumns: 0
+            };
+            this.defaultView = {
+                registry: deps.registry,
+                cursors: new Map(),
+                gaps: new Map()
+            };
+            this.viewStates = new Map();
+            this.loaders = new Map();
+            this.queue = [];
+            this.scheduled = false;
+            this.cssInstalled = false;
+            this.nodeIds = new WeakMap();
+            this.origins = new WeakMap();
+            this.views = new Map();
+            this.sharedKinds = new WeakMap();
+            this.drawingTargets = [];
+            this.drawingJobs = new Map();
+        }
+        bindDrawing(canvas, nodeId) {
+            const graphics = this.deps.graphics;
+            if (!graphics || !canvas.isConnected) return;
+            const name = canvas.id || String(nodeId);
+            const host = this.document.defaultView;
+            let surface, removed = false, observer;
+            const enqueue = (work)=>{
+                const previous = this.drawingJobs.get(name) ?? Promise.resolve();
+                const job = previous.then(work).catch((error)=>this.report("Graphics", {
+                        node: nodeId,
+                        detail: error.message
+                    }));
+                this.drawingJobs.set(name, job);
+                job.then(()=>{
+                    if (this.drawingJobs.get(name) === job) this.drawingJobs.delete(name);
+                });
+            };
+            const resize = ()=>{
+                if (removed) return;
+                const rect = canvas.getBoundingClientRect();
+                const scale = host.devicePixelRatio || 1;
+                const width = Math.round(rect.width * scale), height = Math.round(rect.height * scale);
+                if (canvas.width === width && canvas.height === height && surface) return;
+                if (canvas.width !== width) canvas.width = width;
+                if (canvas.height !== height) canvas.height = height;
+                enqueue(async ()=>{
+                    if (removed) return;
+                    if (surface) await surface.resize(width, height);
+                    else surface = await graphics.attach(name, canvas);
+                });
+            };
+            resize();
+            if (host.ResizeObserver) {
+                observer = new host.ResizeObserver(resize);
+                observer.observe(canvas);
+            }
+            this.registerUnmount(canvas, ()=>{
+                removed = true;
+                observer?.disconnect();
+                enqueue(async ()=>{
+                    if (surface) await surface.remove();
+                });
+            });
+        }
+        viewOwner(mount) {
+            for(let node = mount; node; node = node.parentNode){
+                if (this.viewStates.has(node)) return node;
+            }
+            return this.deps.viewMount ?? this;
+        }
+        viewState(mount) {
+            return this.viewStates.get(this.viewOwner(mount)) ?? this.defaultView;
+        }
+        cursor(stream, mount) {
+            return this.viewState(mount).cursors.get(stream);
+        }
+        setCursor(stream, sequence, mount) {
+            const { gaps, cursors } = this.viewState(mount);
+            const gap = gaps.get(stream);
+            if (gap) this.timer.clear(gap.timer);
+            gaps.delete(stream);
+            cursors.set(stream, sequence);
+        }
+        registerUnmount(node, hook) {
+            Patcher.registerUnmount(node, hook);
+        }
+        report(code, fields = {}) {
+            this.stats.reports++;
+            const report = {
+                code,
+                ...fields
+            };
+            if (this.deps.onReport) this.deps.onReport(report);
+            else console.error("Frame operation failed", report);
+        }
+        receive(input, origin) {
+            try {
+                const bytes = asBytes(input);
+                if (bytes.length > this.maxFrameBytes) {
+                    this.report("TooLarge");
+                    return false;
+                }
+                if (!isFrame(bytes)) throw problem("BadFrame");
+                const frame = mod1.Frame.getRootAsFrame(new CheckedBuffer(bytes));
+                if (frame.kindType() !== mod1.FrameKind.FrameMessage) throw problem("BadFrame");
+                const msg = frame.kind(new mod1.FrameMessage());
+                if (!msg) throw problem("BadFrame");
+                const count = msg.messagesLength();
+                if (count) {
+                    const bb = msg.bb;
+                    bb.check(bb.__vector(msg.bb_pos + bb.__offset(msg.bb_pos, 6)), count * 4);
+                }
+                const seq = frame.sequenceId();
+                const stream = frame.streamId();
+                if (origin) {
+                    this.origins.set(msg, origin);
+                    origin.observeStream?.(stream);
+                }
+                if (seq === 0n || msg.ack() !== 0n) this.enqueue(msg);
+                else this.order(stream, seq, msg);
+                return true;
+            } catch (error) {
+                this.report("BadFrame", {
+                    detail: error.message
+                });
+                return false;
+            }
+        }
+        order(stream, seq, msg) {
+            const owner = this.viewOwner(this.origins.get(msg)?.viewMount);
+            const { cursors, gaps } = this.viewState(owner);
+            const cursor = cursors.get(stream);
+            if (cursor !== undefined && seq <= cursor) return;
+            let gap = gaps.get(stream);
+            if (cursor !== undefined && seq > cursor + 1n) {
+                if (!gap) {
+                    gap = {
+                        held: new Map(),
+                        timer: this.timer.set(()=>{
+                            gaps.delete(stream);
+                            this.deps.onGap?.({
+                                streamId: stream,
+                                ...this.viewStates.has(owner) ? {
+                                    view: owner
+                                } : {},
+                                resumeFrom: cursors.get(stream)
+                            });
+                        }, this.gapTimeoutMs)
+                    };
+                    gaps.set(stream, gap);
+                }
+                if (!gap.held.has(seq) && gap.held.size >= this.maxPendingFrames) {
+                    this.timer.clear(gap.timer);
+                    gaps.delete(stream);
+                    this.deps.onGap?.({
+                        streamId: stream,
+                        ...this.viewStates.has(owner) ? {
+                            view: owner
+                        } : {},
+                        resumeFrom: cursor
+                    });
+                } else gap.held.set(seq, msg);
+                return;
+            }
+            this.enqueue(msg);
+            while(gap?.held.has(seq + 1n)){
+                seq++;
+                this.enqueue(gap.held.get(seq));
+                gap.held.delete(seq);
+            }
+            cursors.set(stream, seq);
+            if (gap && !gap.held.size) {
+                this.timer.clear(gap.timer);
+                gaps.delete(stream);
+            }
+        }
+        enqueue(msg) {
+            this.queue.push(msg);
+            if (!this.scheduled) {
+                this.scheduled = true;
+                this.schedule(()=>this.flush());
+            }
+        }
+        flush() {
+            this.scheduled = false;
+            for (const msg of this.queue.splice(0)){
+                const previousOrigin = this.origin;
+                this.origin = this.origins.get(msg);
+                if (this.origin?.active && !this.origin.active()) {
+                    this.origin = previousOrigin;
+                    continue;
+                }
+                const previousRegistry = this.registry;
+                this.registry = this.viewState(this.origin?.viewMount).registry;
+                this.stats.frames++;
+                for(let i = 0; i < msg.messagesLength(); i++){
+                    try {
+                        const m = msg.messages(i);
+                        if (m.operation()) this.applyUnit(m.operation(), i);
+                        if (m.data()) this.applyData(m.data());
+                        if (m.control()) this.applyControl(m.control());
+                    } catch (e) {
+                        this.report(e.report?.code ?? "BadFrame", {
+                            unitIndex: i,
+                            ...e.report ?? {},
+                            detail: e.message
+                        });
+                    }
+                }
+                for (const { node, id, index, name, args, shared, registry: nodeRegistry } of this.bindings.splice(0)){
+                    if (nodeRegistry.get(id) !== node) continue;
+                    const registry = this.deps.behaviours ?? mod2;
+                    try {
+                        const applied = shared ? registry.applyBehaviour(node, name, args) : registry.applyWebBehaviour(node, name, args);
+                        if (!applied) this.report("UnknownBehaviour", {
+                            unitIndex: index,
+                            node: id,
+                            name: String(name)
+                        });
+                    } catch (error) {
+                        this.report("BadFrame", {
+                            unitIndex: index,
+                            node: id,
+                            detail: error.message
+                        });
+                    }
+                }
+                for (const layer of this.layers){
+                    if (!layer.isConnected) continue;
+                    const hidden = layer.closest("[hidden]") !== null;
+                    if (layer.tagName === "DIALOG") {
+                        if (hidden && layer.open) layer.close();
+                        else if (!hidden && !layer.open) layer.showModal();
+                    } else {
+                        const open = layer.matches(":popover-open");
+                        if (hidden && open) layer.hidePopover();
+                        else if (!hidden && !open) layer.showPopover();
+                    }
+                }
+                for (const [canvas, nodeId] of this.drawingTargets.splice(0))this.bindDrawing(canvas, nodeId);
+                this.registry = previousRegistry;
+                this.origin = previousOrigin;
+                this.deps.onApplied?.();
+            }
+        }
+        node(id, staged = false) {
+            const n = this.registry.get(id);
+            if (n) return n;
+            if (staged && this.registry.pending.has(id)) return this.registry.expectOrStaged(id);
+            throw problem("UnknownNode", {
+                node: id
+            });
+        }
+        applyUnit(op, index) {
+            const read = (key, enumType, handler)=>{
+                const id = op[key + "Type"]();
+                if (!id) return false;
+                const name = enumType[id];
+                if (!mod1[name]) throw problem("UnknownOp", {
+                    field: key
+                });
+                const reader = op[key](new mod1[name]());
+                if (!reader) throw problem("BadFrame");
+                handler.call(this, name, reader, index);
+                this.stats.rows++;
+                return true;
+            };
+            const ui = read("ui", mod1.UiOperation, this.applyUiReader);
+            const web = read("web", mod1.WebOperation, this.applyWebReader);
+            if (op.columnar()) this.applyColumnar(op.columnar(), index);
+            if (op.mobileType()) this.report("UnsupportedPlatformOp", {
+                unitIndex: index,
+                field: "mobile"
+            });
+            else if (!ui && !web && !op.columnar()) this.report("UnknownOp", {
+                unitIndex: index
+            });
+        }
+        applyUiReader(name, reader, index) {
+            if (name === "ReplaceSubtree") {
+                const root = this.node(reader.nodeId());
+                for (const child of Array.from(root.childNodes)){
+                    this.discard(child);
+                    root.removeChild(child);
+                }
+                this.applyNested(reader, index);
+            } else if (name === "Place") this.place(reader, index);
+            else this.applyUi(name, reader.unpack(), index);
+        }
+        applyNested(reader, index) {
+            for(let i = 0; i < reader.operationsLength(); i++)this.applyUnit(reader.operations(i), index);
+        }
+        discard(node) {
+            if (this.layers.delete(node)) {
+                if (node.tagName === "DIALOG" && node.open) node.close();
+                else if (node.hasAttribute("popover") && node.matches(":popover-open")) node.hidePopover();
+            }
+            this.containerEvents.get(node)?.abort();
+            this.containerEvents.delete(node);
+            for (const child of Array.from(node.childNodes ?? []))this.discard(child);
+            Patcher.releaseScope(node);
+            mod2.disposeBehaviours(node);
+            this.deps.onUnmount?.(node);
+            (this.deps.dispatcher ?? this.deps.runtime?.dispatcher)?.off?.(node);
+            const id = this.nodeIds.get(node) ?? node.getAttribute?.("primal-id");
+            if (id != null && this.registry.get(Number(id)) === node) {
+                this.registry.unregister(Number(id));
+            }
+            for (const [name, handler] of this.elementListeners.get(node) ?? []){
+                node.removeEventListener(name, handler);
+            }
+            this.elementListeners.delete(node);
+            this.nodeIds.delete(node);
+        }
+        selectorQuery(selector) {
+            const text = selector.text;
+            const escape = this.document.defaultView?.CSS?.escape ?? globalThis.CSS?.escape;
+            if (selector.kind === mod1.SelectorKind.Id) return "#" + escape(text);
+            if (selector.kind === mod1.SelectorKind.Class) return "." + escape(text);
+            if (selector.kind === mod1.SelectorKind.Query) return text;
+            throw problem("UnknownOp");
+        }
+        resolve(selector) {
+            if (!selector) return null;
+            if (selector.kind === mod1.SelectorKind.NodeId) return this.registry.get(selector.nodeId);
+            if (selector.kind === mod1.SelectorKind.Id) return this.document.getElementById(selector.text);
+            return this.document.querySelector(this.selectorQuery(selector));
+        }
+        registerView(name, root) {
+            if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(name) || !root || this.views.has(name) || [
+                ...this.views.values()
+            ].includes(root)) throw problem("DuplicateView", {
+                detail: name
+            });
+            const primary = root === this.deps.viewMount || !this.deps.viewMount && this.views.size === 0;
+            const state = primary ? this.defaultView : {
+                registry: new NodeRegistry(),
+                cursors: new Map(),
+                gaps: new Map()
+            };
+            this.viewStates.set(root, state);
+            this.views.set(name, root);
+            return ()=>{
+                if (this.views.get(name) !== root) return;
+                const previous = this.registry;
+                this.registry = state.registry;
+                try {
+                    for (const child of Array.from(root.childNodes)){
+                        this.discard(child);
+                        child.remove();
+                    }
+                } finally{
+                    this.registry = previous;
+                    for (const gap of state.gaps.values())this.timer.clear(gap.timer);
+                    state.gaps.clear();
+                    state.cursors.clear();
+                    this.loaders.get(root)?.close();
+                    this.loaders.delete(root);
+                    this.views.delete(name);
+                    this.viewStates.delete(root);
+                }
+            };
+        }
+        registerLoader(root, load, options = {}) {
+            if (this.loaders.get(root)?.active) throw new Error("View already has a loader");
+            const recovery = new ViewRecovery(load, (bytes, expired)=>{
+                if (!isFrame(bytes) || bytes.byteLength > this.maxFrameBytes) throw new Error("Invalid view snapshot");
+                const frame = mod1.Frame.getRootAsFrame(new CheckedBuffer(asBytes(bytes)));
+                const body = frame.kindType() === mod1.FrameKind.FrameMessage && frame.kind(new mod1.FrameMessage());
+                if (!body || !body.messagesLength()) throw new Error("Expected a full view");
+                for(let index = 1; index < body.messagesLength(); index++){
+                    const message = body.messages(index);
+                    if (!message.data() || message.operation() || message.control()) throw new Error("Expected snapshot data");
+                }
+                const operation = body.messages(0).operation();
+                const place = operation?.uiType() === mod1.UiOperation.Place && operation.ui(new mod1.Place());
+                if (!place || place.kind() !== mod1.PlacementKind.FullView) throw new Error("Expected a full view");
+                const doc = this.deps.snapshotDocument?.() ?? this.document.implementation.createHTMLDocument("");
+                const detached = doc.createElement("main");
+                doc.body.appendChild(detached);
+                const issues = [];
+                const probe = new FrameApplicator({
+                    document: doc,
+                    registry: new NodeRegistry().seedDocument(doc),
+                    viewMount: detached,
+                    schedule: (run)=>run(),
+                    maxFrameBytes: this.maxFrameBytes,
+                    onReport: (error)=>issues.push(error)
+                });
+                if (!probe.receive(bytes) || issues.length) throw new Error("Invalid snapshot content");
+                const cursors = new Map();
+                for(let i = 0; i < place.operationsLength(); i++){
+                    const op = place.operations(i);
+                    if (op.uiType() !== mod1.UiOperation.LiveMount) continue;
+                    const mount = op.ui(new mod1.LiveMount());
+                    if (mount.kind() !== mod1.LiveKind.Stream || mount.transport() === mod1.LiveTransport.Local || mount.transport() === mod1.LiveTransport.Sse && mount.sharing() === mod1.ConnectionSharing.Shared) continue;
+                    if (cursors.has(mount.channelId()) && cursors.get(mount.channelId()) !== mount.resumeFrom()) throw new Error("Conflicting stream cursors");
+                    cursors.set(mount.channelId(), mount.resumeFrom());
+                }
+                for (const stream of expired)if (!cursors.has(stream)) throw new Error("Snapshot is missing the expired stream");
+                const state = this.viewState(root);
+                for (const gap of state.gaps.values())this.timer.clear(gap.timer);
+                state.gaps.clear();
+                state.cursors.clear();
+                for (const [stream, cursor] of cursors)this.setCursor(stream, cursor, root);
+                if (!this.receive(bytes, {
+                    viewMount: root
+                })) throw new Error("Invalid view snapshot");
+                this.flush();
+            }, options);
+            this.loaders.set(root, recovery);
+            return recovery;
+        }
+        registerElement(name, tag, node) {
+            const valid = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+            if (!valid.test(name) || !valid.test(tag) || tag.toLowerCase() === "view") throw problem("InvalidName");
+            let root = node;
+            while(root.parentNode && ![
+                ...this.views.values(),
+                this.deps.viewMount
+            ].includes(root))root = root.parentNode;
+            const other = this.namedElements(root).get(name);
+            if (other && other !== node) throw problem("DuplicateName", {
+                detail: name
+            });
+            node.setAttribute("id", name);
+            this.sharedKinds.set(node, tag);
+        }
+        receivingView(supplied = this.origin?.viewMount) {
+            if (supplied) {
+                for(let node = supplied; node; node = node.parentNode){
+                    if (node === this.deps.viewMount || [
+                        ...this.views.values()
+                    ].includes(node)) return node;
+                }
+                return supplied;
+            }
+            const roots = new Set(this.views.values());
+            if (this.deps.viewMount) roots.add(this.deps.viewMount);
+            if (roots.size > 1) throw problem("AmbiguousView");
+            return roots.values().next().value;
+        }
+        namedElements(root) {
+            const names = new Map(), pending = [
+                root
+            ];
+            const otherViews = new Set(this.views.values());
+            while(pending.length){
+                const node = pending.pop();
+                if (!node || node !== root && otherViews.has(node)) continue;
+                const name = node.getAttribute?.("id");
+                if (name) {
+                    if (names.has(name)) throw problem("DuplicateName", {
+                        detail: name
+                    });
+                    names.set(name, node);
+                }
+                for (const child of node.children ?? [])pending.push(child);
+            }
+            return names;
+        }
+        placementTarget(selector, parent, scope) {
+            if (!selector) return null;
+            const kinds = mod1.SelectorKind;
+            if (selector.kind === kinds.NodeId) {
+                const node = this.registry.get(selector.nodeId);
+                return node && (!parent || node.parentNode === parent) ? node : null;
+            }
+            if (selector.kind === kinds.View) return this.views.get(selector.text);
+            if (selector.kind === kinds.Receiving) return this.receivingView();
+            if (selector.kind === kinds.Id || selector.kind === kinds.TypedId) {
+                const typed = selector.kind === kinds.TypedId;
+                const parts = typed ? selector.text?.split("#") : [
+                    null,
+                    selector.text
+                ];
+                if (parts?.length !== 2 || typed && !/^[A-Za-z_][A-Za-z0-9_-]*$/.test(parts[0])) throw problem("InvalidName");
+                const [tag, name] = parts;
+                if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(name)) throw problem("InvalidName");
+                const root = scope ?? this.receivingView() ?? this.document.body;
+                const node = this.namedElements(root).get(name);
+                if (!node || parent && node.parentNode !== parent) return null;
+                if (typed) {
+                    const compact = (text)=>text?.replace(/[-_]/g, "").toLowerCase();
+                    const expected = compact(tag) === "sheet" ? "bottomsheet" : compact(tag);
+                    if (compact(this.sharedKinds.get(node) ?? node.localName) !== expected) throw problem("WrongTargetKind", {
+                        detail: selector.text
+                    });
+                }
+                return node;
+            }
+            const query = this.selectorQuery(selector);
+            const matches = parent ? Array.from(parent.children).filter((node)=>node.matches(query)) : this.document.querySelectorAll(query);
+            return matches.length === 1 ? matches[0] : null;
+        }
+        validatePlacementNames(reader, scope, outgoing) {
+            const names = this.namedElements(scope);
+            for (const [name, node] of names)if (outgoing?.some((root)=>root === node || root.contains?.(node))) names.delete(name);
+            const check = (name)=>{
+                if (!name || !/^[A-Za-z_][A-Za-z0-9_-]*$/.test(name)) throw problem("InvalidName");
+                if (names.has(name)) throw problem("DuplicateName", {
+                    detail: name
+                });
+                names.set(name, true);
+            };
+            for(let i = 0; i < reader.operationsLength(); i++){
+                const unit = reader.operations(i);
+                if (unit.uiType() === mod1.UiOperation.SetProp) {
+                    const prop = unit.ui(new mod1.SetProp());
+                    if (prop.prop() === mod1.PropId.ID) check(prop.value(new mod1.TextValue())?.v());
+                }
+                const batch = unit.columnar();
+                if (!batch) continue;
+                const bytes = batch.blobBytesArray() ?? new Uint8Array();
+                for(let row = 0; row < batch.opCodesLength(); row++){
+                    if (batch.opCodes(row) !== mod1.UiOperation.SetProp || (batch.argA(row) & 0xffff) !== mod1.PropId.ID) continue;
+                    const start = batch.blobAOff(row), end = batch.blobAOff(row + 1);
+                    if (start > end || end > bytes.length) throw problem("BadFrame");
+                    check(utf8.decode(bytes.subarray(start, end)));
+                }
+            }
+        }
+        place(reader, index) {
+            const target = reader.target();
+            const root = target?.kind() === mod1.SelectorKind.View ? this.views.get(target.text()) : this.origin?.viewMount;
+            const previous = this.registry;
+            this.registry = this.viewState(root).registry;
+            try {
+                this.applyPlacement(reader, index);
+            } finally{
+                this.registry = previous;
+            }
+        }
+        applyPlacement(reader, index) {
+            const kind = mod1.PlacementKind[reader.kind()];
+            if (kind === "FullView") {
+                const mount = this.receivingView();
+                if (!mount || mount.isConnected === false) throw problem("UnknownNode", {
+                    detail: "Missing receiving view mount"
+                });
+                this.validatePlacementNames(reader, mount, Array.from(mount.childNodes));
+                for (const node of Array.from(mount.childNodes)){
+                    this.discard(node);
+                    node.remove();
+                }
+                this.applyNested(reader, index);
+                mount.appendChild(this.node(reader.rootNode(), true));
+                return;
+            }
+            const selector = reader.target()?.unpack();
+            const scope = selector?.kind === mod1.SelectorKind.View ? this.views.get(selector.text) : this.receivingView() ?? this.document.body;
+            const target = this.placementTarget(selector, null, scope);
+            const missing = (value)=>[
+                    mod1.SelectorKind.Id,
+                    mod1.SelectorKind.View,
+                    mod1.SelectorKind.TypedId,
+                    mod1.SelectorKind.Receiving
+                ].includes(value?.kind) ? "MissingTarget" : "UnknownNode";
+            if (!target) throw problem(missing(selector), {
+                detail: "Placement needs one target"
+            });
+            const childSelector = reader.child()?.unpack();
+            const child = childSelector && this.placementTarget(childSelector, target, scope);
+            if (childSelector && (!child || child.parentNode !== target)) throw problem(missing(childSelector), {
+                detail: "Placement child missing"
+            });
+            this.validatePlacementNames(reader, scope, kind === "Swap" ? [
+                target
+            ] : []);
+            if (kind === "Remove") {
+                this.discard(target);
+                target.remove();
+                return;
+            }
+            if (kind === "Swap") this.discard(target);
+            this.applyNested(reader, index);
+            const root = this.node(reader.rootNode(), true);
+            switch(kind){
+                case "Append":
+                    target.appendChild(root);
+                    break;
+                case "Swap":
+                    target.replaceWith(root);
+                    break;
+                case "Before":
+                    target.insertBefore(root, child ?? target.firstChild);
+                    break;
+                case "After":
+                    target.insertBefore(root, child?.nextSibling ?? null);
+                    break;
+                default:
+                    throw problem("UnknownOp");
+            }
+        }
+        applyUi(name, m, index) {
+            const d = this.document;
+            switch(name){
+                case "CreateNode":
+                    {
+                        if (!this.cssInstalled) {
+                            const style = d.createElement("style");
+                            style.setAttribute("data-ewe-core", "");
+                            style.textContent = CORE_CSS;
+                            d.head.appendChild(style);
+                            this.cssInstalled = true;
+                        }
+                        const kind = WEB_KINDS[m.kind];
+                        if (!kind) this.report("UnknownKind", {
+                            unitIndex: index,
+                            node: m.nodeId
+                        });
+                        const el = d.createElement(kind?.tag ?? "div");
+                        this.sharedKinds.set(el, mod1.NodeKind[m.kind]);
+                        el.className = kind?.cls ?? "ewe-unknown";
+                        if (m.kind === mod1.NodeKind.DRAWING_SURFACE) this.drawingTargets.push([
+                            el,
+                            m.nodeId
+                        ]);
+                        for (const [attr, value] of kind?.attrs ?? [])el.setAttribute(attr, value);
+                        el.setAttribute("primal-id", String(m.nodeId));
+                        if (m.kind === mod1.NodeKind.OVERLAY && el.showPopover) {
+                            el.setAttribute("popover", "manual");
+                            this.layers.add(el);
+                        }
+                        if ([
+                            mod1.NodeKind.MODAL,
+                            mod1.NodeKind.CONFIRMATION_DIALOG,
+                            mod1.NodeKind.BOTTOM_SHEET
+                        ].includes(m.kind)) {
+                            const Controller = d.defaultView?.AbortController ?? globalThis.AbortController;
+                            const controller = new Controller();
+                            this.containerEvents.set(el, controller);
+                            const options = {
+                                signal: controller.signal
+                            };
+                            if (m.kind !== mod1.NodeKind.BOTTOM_SHEET) {
+                                this.layers.add(el);
+                                el.addEventListener("cancel", (event)=>{
+                                    event.preventDefault();
+                                    const cancel = Array.from(el.querySelectorAll('.ewe-cancel-button')).find((node)=>node.closest("dialog") === el && !node.disabled && !node.closest("[hidden]") && node.hasAttribute("primal:onclick"));
+                                    cancel?.click();
+                                }, options);
+                            } else {
+                                wireBottomSheet(el, options);
+                            }
+                        }
+                        if (m.sharing !== mod1.ConnectionSharing.TransportDefault) {
+                            el.setAttribute("data-connection-shared", String(m.sharing === mod1.ConnectionSharing.Shared));
+                        }
+                        if (m.keepAlive) el.setAttribute("data-connection-keep-alive", "true");
+                        this.origin?.onMount?.(m.nodeId, el);
+                        this.registry.register(m.nodeId, el);
+                        break;
+                    }
+                case "SetText":
+                    {
+                        const node = this.node(m.nodeId);
+                        for (const child of Array.from(node.childNodes))this.discard(child);
+                        node.textContent = m.text ?? "";
+                        break;
+                    }
+                case "SetProp":
+                    applyProp(this.node(m.nodeId), m.prop, m.valueType, m.value);
+                    break;
+                case "AppendChild":
+                    this.node(m.parentId).appendChild(this.node(m.childId, true));
+                    break;
+                case "InsertBefore":
+                    {
+                        const parent = this.node(m.parentId);
+                        const before = this.node(m.beforeId);
+                        parent.insertBefore(this.node(m.childId, true), before);
+                        break;
+                    }
+                case "Remove":
+                    {
+                        const node = this.node(m.nodeId);
+                        this.discard(node);
+                        node.remove();
+                        this.registry.unregister(m.nodeId);
+                        break;
+                    }
+                case "BindAction":
+                case "UnbindAction":
+                    {
+                        const el = this.node(m.nodeId), event = WEB_EVENTS[m.event];
+                        if (!event) throw problem("UnknownOp");
+                        const attr = "primal:on" + event;
+                        const dispatcher = this.deps.dispatcher ?? this.deps.runtime?.dispatcher;
+                        if (name === "BindAction") {
+                            el.setAttribute(attr, m.action);
+                            dispatcher?.scanAndWire?.(el);
+                        } else {
+                            el.removeAttribute(attr);
+                            dispatcher?.off?.(el, event);
+                        }
+                        break;
+                    }
+                case "AttachState":
+                    this.node(m.rootNode).setAttribute("primal::state", base64urlEncode(m.state ?? []));
+                    break;
+                case "UiBehaviour":
+                    this.bindings.push({
+                        registry: this.registry,
+                        node: this.node(m.nodeId),
+                        id: m.nodeId,
+                        index,
+                        name: m.behaviour,
+                        args: m.args,
+                        shared: true
+                    });
+                    break;
+                case "LiveMount":
+                    {
+                        const el = d.createElement(m.kind === mod1.LiveKind.Stream ? "mount-stream" : "mount-data");
+                        const transport = [
+                            "local",
+                            "sse",
+                            "websocket",
+                            "fetch"
+                        ][m.transport];
+                        for (const [key, value] of Object.entries({
+                            api: m.endpoint,
+                            transport,
+                            protocol: "frame",
+                            "data-channel-id": m.channelId,
+                            "data-resume-from": m.resumeFrom,
+                            "primal-id": m.nodeId
+                        }))el.setAttribute(key, String(value));
+                        if (m.sharing !== mod1.ConnectionSharing.TransportDefault) {
+                            el.setAttribute("data-connection-shared", String(m.sharing === mod1.ConnectionSharing.Shared));
+                        }
+                        if (m.keepAlive) el.setAttribute("data-connection-keep-alive", "true");
+                        this.origin?.onMount?.(m.nodeId, el);
+                        this.registry.register(m.nodeId, el);
+                        break;
+                    }
+                default:
+                    throw problem("UnknownOp", {
+                        field: "ui"
+                    });
+            }
+        }
+        applyWebReader(name, reader, index) {
+            const m = reader.unpack();
+            const d = this.document;
+            const id = m.nodeId;
+            const resolveName = (id, custom, names)=>{
+                const value = id ? names[id - 1] : custom;
+                if (!value) throw problem("BadFrame");
+                return value;
+            };
+            const property = ()=>resolveName(m.nameId, m.customName, ATTR_NAMES);
+            switch(name){
+                case "WebElement":
+                    {
+                        const el = d.createElement(resolveName(m.tagId, m.customTag, TAG_NAMES));
+                        if (m.className) el.className = m.className;
+                        this.origin?.onMount?.(id, el);
+                        this.nodeIds.set(el, id);
+                        this.registry.stage(id, el);
+                        break;
+                    }
+                case "WebText":
+                    {
+                        const node = d.createTextNode(m.content ?? "");
+                        this.origin?.onMount?.(id, node);
+                        this.nodeIds.set(node, id);
+                        this.registry.stage(id, node);
+                        break;
+                    }
+                case "WebRegisterNode":
+                    this.registry.applyRegister(id, d);
+                    break;
+                case "WebUnregisterNode":
+                    this.registry.unregister(id);
+                    break;
+                case "WebReplaceNode":
+                    {
+                        const old = this.node(m.oldId), next = this.node(m.newId, true);
+                        this.discard(old);
+                        old.replaceWith(next);
+                        this.registry.unregister(m.oldId);
+                        this.registry.register(m.newId, next);
+                        break;
+                    }
+                case "WebDetachChild":
+                    this.node(m.parentId).removeChild(this.node(m.childId));
+                    break;
+                case "WebSetAttribute":
+                case "WebRemoveAttribute":
+                    {
+                        const attr = resolveName(m.attrId, m.customAttr, ATTR_NAMES);
+                        if (attr.toLowerCase() === "primal::state") throw problem("BadFrame");
+                        if (name === "WebSetAttribute") this.node(id).setAttribute(attr, m.value ?? "");
+                        else this.node(id).removeAttribute(attr);
+                        break;
+                    }
+                case "HtmlMorph":
+                    {
+                        const target = this.resolve(m.target);
+                        if (!target) throw problem("Morph");
+                        if (m.action === mod1.MorphAction.ReplaceChildren && this.deps.morph && d.createRange) {
+                            const previous = Array.from(target.querySelectorAll("*"));
+                            this.deps.morph(target, d.createRange().createContextualFragment(m.content), d);
+                            const removed = new Set(previous.filter((n)=>!target.contains(n)));
+                            for (const n of removed)if (!removed.has(n.parentNode)) this.discard(n);
+                        } else {
+                            switch(m.action){
+                                case mod1.MorphAction.ReplaceChildren:
+                                    for (const child of Array.from(target.childNodes ?? []))this.discard(child);
+                                    target.innerHTML = m.content;
+                                    break;
+                                case mod1.MorphAction.ReplaceElement:
+                                    target.insertAdjacentHTML("afterend", m.content);
+                                    this.discard(target);
+                                    target.remove();
+                                    break;
+                                case mod1.MorphAction.InsertBefore:
+                                    target.insertAdjacentHTML("beforebegin", m.content);
+                                    break;
+                                case mod1.MorphAction.InsertAfter:
+                                    target.insertAdjacentHTML("afterend", m.content);
+                                    break;
+                                case mod1.MorphAction.AppendSibling:
+                                    (target.parentNode ?? target.parent)?.insertAdjacentHTML("beforeend", m.content);
+                                    break;
+                                default:
+                                    throw problem("Morph");
+                            }
+                        }
+                        break;
+                    }
+                case "ScriptNode":
+                    {
+                        const el = d.createElement("script");
+                        el.setAttribute("primal:script", "");
+                        el.setAttribute("scoped", "");
+                        el.type = "application/primal-script";
+                        el.textContent = m.body;
+                        const parent = this.node(m.parentId);
+                        parent.appendChild(el);
+                        this.deps.hydrate?.(parent, d);
+                        break;
+                    }
+                case "WebBehaviour":
+                    {
+                        this.bindings.push({
+                            registry: this.registry,
+                            node: this.node(id),
+                            id,
+                            index,
+                            name: m.custom,
+                            args: m.args,
+                            shared: false
+                        });
+                        break;
+                    }
+                case "WebProperty":
+                    {
+                        let value = m.value;
+                        try {
+                            value = JSON.parse(value);
+                        } catch  {}
+                        this.node(id)[property()] = value;
+                        break;
+                    }
+                case "WebStyle":
+                    this.node(id).style[property()] = m.value;
+                    break;
+                case "WebAddClass":
+                    this.node(id).classList.add(m.className);
+                    break;
+                case "WebRemoveClass":
+                    this.node(id).classList.remove(m.className);
+                    break;
+                case "WebAddListener":
+                case "WebRemoveListener":
+                    {
+                        const node = this.node(id), event = property();
+                        let listeners = this.elementListeners.get(node);
+                        if (!listeners) this.elementListeners.set(node, listeners = new Map());
+                        if (name === "WebAddListener" && !listeners.has(event)) {
+                            const deliver = this.origin?.onEvent ?? this.deps.onEvent;
+                            const handler = (value)=>deliver?.(event, id, value, node);
+                            listeners.set(event, handler);
+                            node.addEventListener(event, handler);
+                        } else if (name === "WebRemoveListener" && listeners.has(event)) {
+                            node.removeEventListener(event, listeners.get(event));
+                            listeners.delete(event);
+                        }
+                        break;
+                    }
+                default:
+                    throw problem("UnknownOp", {
+                        field: "web"
+                    });
+            }
+        }
+        applyColumnar(batch, index) {
+            const codes = batch.opCodesArray() ?? [];
+            const cols = [
+                "nodeIds",
+                "argA",
+                "argB",
+                "blobAOff",
+                "blobBOff"
+            ].map((name, i)=>vector(batch, name, 6 + 2 * i, Uint32Array, this.stats));
+            const [nodes, args, values, starts, second] = cols;
+            const bytes = batch.blobBytesArray() ?? new Uint8Array();
+            if (cols.some((v, i)=>v.length !== codes.length + Number(i >= 3)) || starts[0] !== 0 || starts.at(-1) !== bytes.length || second[0] !== 0 && second[0] !== bytes.length) throw problem("BadFrame");
+            const bits = new DataView(new ArrayBuffer(4));
+            for(let i = 0; i < codes.length; i++){
+                try {
+                    if (starts[i] > starts[i + 1] || starts[i + 1] > bytes.length || second[i] !== second[i + 1]) throw problem("BadFrame");
+                    const blob = bytes.subarray(starts[i], starts[i + 1]);
+                    const name = mod1.UiOperation[codes[i]];
+                    const nodeId = nodes[i], a = args[i], b = values[i];
+                    const m = {
+                        nodeId
+                    };
+                    switch(name){
+                        case "CreateNode":
+                            m.kind = a;
+                            break;
+                        case "SetText":
+                            m.text = utf8.decode(blob);
+                            break;
+                        case "SetProp":
+                            {
+                                m.prop = a & 0xffff;
+                                const kind = PROP_KIND[m.prop];
+                                m.valueType = mod1.PropValue[kind];
+                                bits.setUint32(0, b, true);
+                                switch(kind){
+                                    case "Text":
+                                        m.value = {
+                                            v: utf8.decode(blob)
+                                        };
+                                        break;
+                                    case "Length":
+                                        m.value = {
+                                            v: {
+                                                value: bits.getFloat32(0, true),
+                                                unit: a >>> 16
+                                            }
+                                        };
+                                        break;
+                                    case "ColorToken":
+                                    case "FontToken":
+                                        m.value = {
+                                            id: b
+                                        };
+                                        break;
+                                    case "Bool":
+                                        m.value = {
+                                            v: Boolean(b)
+                                        };
+                                        break;
+                                    case "Axis":
+                                    case "Alignment":
+                                        m.value = {
+                                            v: b
+                                        };
+                                        break;
+                                    default:
+                                        throw problem("BadFrame");
+                                }
+                                break;
+                            }
+                        case "InsertBefore":
+                        case "AppendChild":
+                            Object.assign(m, {
+                                parentId: nodeId,
+                                childId: a,
+                                beforeId: b
+                            });
+                            break;
+                        case "Remove":
+                            break;
+                        case "BindAction":
+                            m.action = utf8.decode(blob);
+                            m.event = a;
+                            break;
+                        case "UnbindAction":
+                            m.event = a;
+                            break;
+                        case "AttachState":
+                            m.rootNode = nodeId;
+                            m.state = blob;
+                            break;
+                        default:
+                            throw problem("UnknownOp", {
+                                field: "columnar"
+                            });
+                    }
+                    this.applyUi(name, m, index);
+                    this.stats.rows++;
+                } catch (e) {
+                    this.report(e.report?.code ?? "BadFrame", {
+                        unitIndex: index,
+                        ...e.report ?? {},
+                        row: i
+                    });
+                }
+            }
+        }
+        applyData(data) {
+            const table = data.table();
+            let detail;
+            if (table) {
+                const columns = [];
+                const types = {
+                    I32: [
+                        mod1.I32s,
+                        Int32Array
+                    ],
+                    I64: [
+                        mod1.I64s,
+                        BigInt64Array
+                    ],
+                    F64: [
+                        mod1.F64s,
+                        Float64Array
+                    ],
+                    Bool: [
+                        mod1.Bools,
+                        Uint8Array
+                    ],
+                    Utf8: [
+                        mod1.Strings
+                    ]
+                };
+                for(let i = 0; i < table.columnsLength(); i++){
+                    const col = table.columns(i);
+                    const type = types[mod1.ColumnData[col.dataType()]];
+                    if (!type) throw problem("BadFrame");
+                    const values = col.data(new type[0]());
+                    const items = type[1] ? vector(values, "values", 4, type[1]) : Array.from({
+                        length: values.valuesLength()
+                    }, (_, j)=>values.values(j));
+                    columns.push({
+                        name: col.name(),
+                        data: items,
+                        validity: col.validityArray()
+                    });
+                }
+                detail = {
+                    kind: "table",
+                    table: {
+                        rows: table.rows(),
+                        columns
+                    }
+                };
+            } else {
+                const blob = data.arrow() ?? data.msgpack();
+                if (!blob) throw problem("BadFrame");
+                detail = {
+                    kind: data.arrow() ? "arrow-ipc" : "messagepack",
+                    bytes: blob.bytesArray()
+                };
+            }
+            const target = data.targetNode() ? this.node(data.targetNode()) : this.receivingView();
+            dispatchEvent(target || this.document, "ewe:data", detail);
+        }
+        applyControl(control) {
+            if (control.caps()) this.deps.onCaps?.(control.caps().unpack());
+            for (const [field, code] of [
+                [
+                    "stateExpired",
+                    "StateExpired"
+                ],
+                [
+                    "updateRequired",
+                    "UpdateRequired"
+                ]
+            ]){
+                if (control[field]()) this.deps.onError?.({
+                    ...control[field]().unpack(),
+                    code
+                });
+            }
+            if (control.error()) {
+                const error = control.error().unpack();
+                const detail = {
+                    ...error,
+                    code: mod1.ErrorCode[error.code]
+                };
+                this.deps.onError?.(detail);
+                dispatchEvent(this.document, "ewe:error", detail);
+            }
+        }
+    }
+    function pushed(bytes) {
+        const frame = Frame.getRootAsFrame(new ByteBuffer(bytes));
+        const body = frame.kindType() === FrameKind.FrameMessage && frame.kind(new FrameMessage());
+        const control = body && body.messagesLength() ? body.messages(0)?.control() : null;
+        return {
+            frame,
+            body,
+            control
+        };
+    }
+    function integer(element, attribute) {
+        const raw = element.getAttribute(attribute);
+        if (raw === null) return undefined;
+        if (!/^\d+$/.test(raw)) throw new TypeError("Expected an unsigned integer for " + attribute);
+        const n = BigInt(raw);
+        if (n > 0xffffffffffffffffn) throw new RangeError(attribute + " exceeds u64");
+        return n;
+    }
+    function bindLiveMounts(runtime, frames) {
+        const streams = new Map();
+        const connections = frames.deps.connections ?? frameConnections();
+        runtime.connections = connections;
+        const previousGap = frames.deps.onGap;
+        frames.deps.onGap = (gap)=>{
+            for (const binding of streams.get(gap.streamId) ?? []){
+                if (!gap.view || gap.view === binding.owner) binding.resume(gap.resumeFrom);
+            }
+            previousGap?.(gap);
+        };
+        runtime.onMountConnect = (element, streaming)=>{
+            if (element.getAttribute("protocol") !== "frame") return null;
+            let stream = integer(element, "data-channel-id");
+            const owner = frames.viewOwner(element);
+            const recovery = frames.loaders.get(owner);
+            const generation = recovery?.generation;
+            const current = ()=>active && (!recovery || recovery.accepts(generation));
+            const expired = ()=>{
+                if (!current()) return;
+                if (recovery) {
+                    Promise.resolve(recovery.expire(stream)).catch(()=>{});
+                } else if (frames.deps.requestSnapshot) Promise.resolve(frames.deps.requestSnapshot({
+                    element,
+                    stream
+                })).catch((error)=>frames.deps.onError?.(error));
+                else frames.deps.onError?.({
+                    code: "ReplayExpired",
+                    stream
+                });
+            };
+            const start = integer(element, "data-resume-from") ?? 0n;
+            const local = element.getAttribute("transport") === "local";
+            let active = true;
+            let resumeOnConnection;
+            function attach(id) {
+                stream = id;
+                if (start && frames.cursor(id, owner) === undefined) frames.setCursor(id, start, owner);
+                if (streaming && !local) {
+                    let mounts = streams.get(id);
+                    if (!mounts) streams.set(id, mounts = new Set());
+                    mounts.add(binding);
+                }
+            }
+            const binding = {
+                local,
+                owner,
+                expired,
+                managed ({ api, data, transport }) {
+                    const kind = element.getAttribute("transport") ?? "sse";
+                    const sharing = element.getAttribute("data-connection-shared");
+                    const shared = sharing === null ? kind === "websocket" || kind === "ws" : sharing === "true";
+                    const keepAlive = element.getAttribute("data-connection-keep-alive") === "true";
+                    const socket = kind === "websocket" || kind === "ws";
+                    const adapter = socket ? "websocket" : kind === "http" ? "chunked" : kind;
+                    if (!connections.supports(adapter)) return null;
+                    const negotiate = Boolean(frames.deps.deliverySession) && (socket || [
+                        "sse",
+                        "chunked"
+                    ].includes(adapter));
+                    if (!shared && !keepAlive && !negotiate) return null;
+                    if (sharing === null && !keepAlive && !negotiate && !frames.deps.connections) return null;
+                    const endpoint = shared || negotiate ? api : binding.url(api);
+                    const subscription = connections.nextTag();
+                    const hello = new ClientHelloT(VOCABULARY_VERSION, Platform.Web, MountSurface.Web, 0n, true, subscription);
+                    const greeting = requestBytes(0n, new FrameRequestT(null, hello));
+                    const report = (error)=>frames.deps.onError?.({
+                            code: "Transport",
+                            detail: String(error)
+                        });
+                    let handle, session, wasConnected = false, pendingCursor = recovery && !(shared && adapter === "sse") ? start : start || null;
+                    const resume = async (cursor)=>{
+                        if (stream === undefined || !session) {
+                            pendingCursor = cursor;
+                            return;
+                        }
+                        const request = new FrameRequestT(null, null, new ResumeSubscriptionT(session, subscription, stream, cursor));
+                        const bytes = requestBytes(session, request);
+                        if (socket) await handle.send(bytes);
+                        else {
+                            const response = await (frames.deps.fetchFn ?? fetch)(endpoint, {
+                                method: "POST",
+                                body: bytes,
+                                headers: {
+                                    ...frames.deps.connectionHeaders,
+                                    "content-type": "application/primal-frame"
+                                }
+                            });
+                            if (response.status === 410) {
+                                expired();
+                                return;
+                            }
+                            if (!response.ok) throw new Error("Resume request failed with HTTP " + response.status);
+                        }
+                    };
+                    const context = (bytes)=>{
+                        const caps = pushed(bytes).control?.caps();
+                        if (!caps?.subscriptionResume() || socket && caps.requestTag() !== subscription) return;
+                        session = caps.streamId();
+                        if (wasConnected && !shared && stream !== undefined) pendingCursor ??= frames.cursor(stream, owner) ?? start;
+                        wasConnected = true;
+                        if (pendingCursor !== null) {
+                            const cursor = pendingCursor;
+                            pendingCursor = null;
+                            resume(cursor).catch(report);
+                        }
+                    };
+                    if (negotiate) resumeOnConnection = (cursor)=>resume(cursor).catch(report);
+                    handle = connections.acquire({
+                        transport: adapter,
+                        endpoint,
+                        shared,
+                        keepAlive,
+                        base: element.ownerDocument?.baseURI ?? globalThis.location?.href,
+                        headers: negotiate && !socket ? {
+                            ...frames.deps.connectionHeaders,
+                            Accept: adapter === "chunked" ? "application/primal-frame" : "text/event-stream",
+                            "X-Ewe-Hello": base64urlEncode(greeting)
+                        } : frames.deps.connectionHeaders,
+                        isContext: !socket && negotiate ? (bytes)=>Boolean(pushed(bytes).control?.caps()) : undefined,
+                        channel: element._transportOverride,
+                        settings: element._transportOverride ?? (element.hasAttribute?.("data") ? data : frames.deps.connectionSettings),
+                        authority: frames.deps.authority,
+                        data: element.getAttribute("data") === null ? undefined : data
+                    }, {
+                        owner,
+                        onOpen () {
+                            if (socket && negotiate) queueMicrotask(()=>{
+                                if (active) handle.send(greeting).catch(report);
+                            });
+                        },
+                        onContext: context,
+                        accept (bytes) {
+                            const { frame, body, control } = pushed(bytes);
+                            if (!body) return false;
+                            if (control?.caps()) return socket && control.caps().requestTag() === subscription;
+                            return (stream === undefined || stream === frame.streamId()) && !body.ack() && (!body.subscriptionId() || body.subscriptionId() === subscription);
+                        },
+                        receive (bytes) {
+                            const { control } = pushed(bytes);
+                            if (control?.caps()) {
+                                context(bytes);
+                                return;
+                            }
+                            if (control?.replayExpired()) {
+                                expired();
+                                return;
+                            }
+                            binding.receive({
+                                type: "frame",
+                                frames: [
+                                    bytes
+                                ]
+                            });
+                        },
+                        onError (cause) {
+                            session = null;
+                            if ((socket || !shared) && stream !== undefined) pendingCursor = frames.cursor(stream, owner) ?? start;
+                            report(cause);
+                        }
+                    });
+                    return handle;
+                },
+                url (api) {
+                    const cursor = stream === undefined ? undefined : frames.cursor(stream, owner) ?? start;
+                    if (stream === undefined || !cursor) return api;
+                    const url = new URL(api, element.ownerDocument?.baseURI ?? globalThis.location.href);
+                    url.searchParams.set("stream_id", stream.toString());
+                    url.searchParams.set("resume_from", cursor.toString());
+                    return url.href;
+                },
+                receive (result) {
+                    if (!current()) return;
+                    if (result.type !== "frame") throw new Error("Frame mount received another protocol");
+                    for (const bytes of result.frames){
+                        frames.receive(bytes, {
+                            active: current,
+                            get viewMount () {
+                                return active && frameMountTarget(element, element.getAttribute("target"), element.ownerDocument);
+                            },
+                            observeStream (id) {
+                                if (stream === undefined) attach(id);
+                                else if (stream !== id) throw new Error("Unexpected stream identifier");
+                            }
+                        });
+                    }
+                },
+                resume (cursor) {
+                    if (!current()) return;
+                    element.setAttribute("data-resume-from", String(cursor));
+                    if (resumeOnConnection) resumeOnConnection(cursor);
+                    else element._restartFrameStream?.();
+                },
+                close () {
+                    active = false;
+                    const mounts = streams.get(stream);
+                    mounts?.delete(binding);
+                    if (mounts?.size === 0) streams.delete(stream);
+                }
+            };
+            if (stream !== undefined) attach(stream);
+            return binding;
+        };
+    }
+    function installFrameRuntime(wasmUi, options = {}) {
+        const doc = options.document ?? globalThis.document;
+        const runtime = wasmUi.Patcher.runtime;
+        if (runtime.frames?.document === doc) return runtime.frames;
+        if (runtime.document && runtime.document !== doc) runtime.dispatcher = null;
+        runtime.frames = new FrameApplicator({
+            document: doc,
+            registry: wasmUi.Patcher.ensureRegistry(doc),
+            morph: wasmUi.MorphDom.morph,
+            hydrate: wasmUi.Hydrator.hydrate,
+            runtime,
+            onApplied: wasmUi.Patcher.markApplied,
+            ...options
+        });
+        bindLiveMounts(runtime, runtime.frames);
+        wasmUi.Hydrator.behaviourMarkers = mod2.hydrateMarkers;
+        if (doc.body) mod2.hydrateMarkers(doc.body);
+        wasmUi.ProtocolHandler.frameHook = {
+            isFrame,
+            splitFrames,
+            readFrames,
+            readViewResponse,
+            maxFrameBytes: runtime.frames.maxFrameBytes
+        };
+        return runtime.frames;
+    }
+    globalThis.EweFrames = {
+        installFrameRuntime
+    };
+    function registerFrameApp(runtime, options = {}) {
+        const frames = installFrameRuntime(mod, options);
+        mod.registerWasmApp(runtime, options);
+        mod.registerWebComponents();
+        return frames;
+    }
+    globalThis.FoundationUiBootstrap = {
+        registerFrameApp
+    };
+    (function() {
+        'use strict';
+        var PLATFORM_SCHEMES = [
+            'ewe',
+            'foundation',
+            'platform'
+        ];
+        var PREFIX = 'http://';
+        function isPlatformScheme(href) {
+            if (!href) return false;
+            for(var i = 0; i < PLATFORM_SCHEMES.length; i++){
+                var prefix = PLATFORM_SCHEMES[i] + '://';
+                if (href.indexOf(prefix) === 0) return PLATFORM_SCHEMES[i];
+            }
+            return null;
+        }
+        function toWorkaroundUrl(href) {
+            var scheme = isPlatformScheme(href);
+            if (!scheme) return null;
+            return href.replace(scheme + '://', PREFIX + scheme + '.');
+        }
+        function isAndroid() {
+            return /android/i.test(navigator.userAgent);
+        }
+        if (!isAndroid()) return;
+        document.addEventListener('click', function(e) {
+            var a = e.target.closest('a');
+            if (!a) return;
+            var href = a.getAttribute('href') || a.href;
+            var newUrl = toWorkaroundUrl(href);
+            if (!newUrl) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            location.href = newUrl;
+        }, true);
+        var _origAssign = location.assign;
+        var _origReplace = location.replace;
+        var _origSetHref = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
+        function wrap(fn) {
+            return function(url) {
+                var rewritten = toWorkaroundUrl(url);
+                if (rewritten) {
+                    url = rewritten;
+                }
+                return fn.call(this, url);
+            };
+        }
+        try {
+            location.assign = wrap(_origAssign);
+        } catch (_) {
+            try {
+                Object.defineProperty(location, 'assign', {
+                    value: wrap(_origAssign),
+                    writable: true,
+                    configurable: true
+                });
+            } catch (__) {}
+        }
+        try {
+            location.replace = wrap(_origReplace);
+        } catch (_) {
+            try {
+                Object.defineProperty(location, 'replace', {
+                    value: wrap(_origReplace),
+                    writable: true,
+                    configurable: true
+                });
+            } catch (__) {}
+        }
+        if (_origSetHref && _origSetHref.set) {
+            var _set = _origSetHref.set;
+            Object.defineProperty(location, 'href', {
+                get: _origSetHref.get,
+                set: function(url) {
+                    var rewritten = toWorkaroundUrl(url);
+                    _set.call(this, rewritten || url);
+                },
+                configurable: true,
+                enumerable: true
+            });
+        }
+        var _origOpen = window.open;
+        window.open = function(url) {
+            var rewritten = toWorkaroundUrl(url);
+            if (rewritten) {
+                arguments[0] = rewritten;
+            }
+            return _origOpen.apply(this, arguments);
+        };
+    })();
+    return {};
+})();

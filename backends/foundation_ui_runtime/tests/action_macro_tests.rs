@@ -260,3 +260,37 @@ async fn typed_action_decodes_the_declared_input_after_verifying_state() {
         Err(InvokeError::Action(e)) if e.current_context().code == ErrorCode::InvalidInput)
     );
 }
+
+#[test]
+fn only_one_callable_can_fill_an_exact_declaration() {
+    use foundation_ui_runtime::action::RegistrationError;
+    let mut registry = ActionRegistry::new();
+    registry
+        .declare(Some(Origin::Host), "picker", Scope::Web)
+        .unwrap();
+    registry.register(web::picker).unwrap();
+    registry.register(mobile::picker).unwrap();
+    assert_eq!(
+        registry.register(web::picker),
+        Err(RegistrationError::Duplicate)
+    );
+    assert_eq!(
+        registry.declare(Some(Origin::Host), "picker", Scope::All),
+        Err(RegistrationError::Duplicate)
+    );
+    registry
+        .declare(Some(Origin::Server), "picker", Scope::All)
+        .unwrap();
+    assert!(
+        registry
+            .lookup(Origin::Host, "picker", Surface::Web)
+            .unwrap()
+            .local
+    );
+    assert!(
+        !registry
+            .lookup(Origin::Server, "picker", Surface::Web)
+            .unwrap()
+            .local
+    );
+}

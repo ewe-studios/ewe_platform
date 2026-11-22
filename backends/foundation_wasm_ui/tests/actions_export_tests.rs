@@ -82,6 +82,9 @@ async fn press(_ctx: &Context, _event: Interaction<()>) -> ActionResult {
 
 #[test]
 fn ready_action_returns_frame() {
+    use foundation_ui_wire::{
+        finish_frame, ActionRequestT, FrameKindT, FrameRequestT, FrameT, SCHEMA_VERSION,
+    };
     single::initialize_pool(4);
     let mut registry = ActionRegistry::new();
     registry.register(press).unwrap();
@@ -96,9 +99,7 @@ fn ready_action_returns_frame() {
             received.borrow_mut().push((id, take(slot)));
         },
     );
-    use foundation_ui_wire::{
-        finish_frame, ActionRequestT, FrameKindT, FrameRequestT, FrameT, SCHEMA_VERSION,
-    };
+
     let mut action = ActionRequestT::default();
     action.action = Some("host:press".into());
     action.node_id = 9;
@@ -159,7 +160,7 @@ fn pending_action_wakes_and_returns_frame() {
                 } else {
                     Some(take(slot))
                 },
-            ))
+            ));
         },
     );
     for id in 1..=3_u8 {

@@ -1,0 +1,85 @@
+# Feature 3. Package application resources
+
+Status: Approved. The tasks agent starts after its current assignment.
+
+## Terms
+
+A resource is a file that the application reads by a stable relative name.
+A resource set lists files, directories, generated outputs, and the targets that use them.
+A staging directory holds generated packaging inputs. Each target owns its staging directory.
+
+## Existing design
+
+The platform demo calls one function from its Cargo build script.
+The old generator discovers sibling applications, builds browser modules, and writes public files and generated Rust modules.
+The generated mobile asset type accepts a root from the host session.
+The session checks for a development public directory and otherwise uses its packaged root.
+Keep the stable logical names and the single build hook.
+Use explicit resource inputs and return errors for failed reads, writes, and packaging steps.
+
+## Proposed interface
+
+Store application declarations in a package-relative `resources.toml`. Build providers can also supply generated inputs by logical name.
+Use the Feature 2 installer to add the hook to existing applications. Include it in new application templates.
+The proposed Cargo build script call is `foundation_resources::build::stage_from_cargo()?`.
+The package declares resources once. Target adapters supply packaging destinations and runtime readers.
+Expose a host resource service through the application context. Open a resource by name and return a readable stream or a typed error.
+Keep the build helper synchronous. Inject the host reader for runtime tests.
+
+## Shared runtime interface
+
+Use one asynchronous operation on all three hosts: `resources.open(name).await`.
+Return a resource with a byte stream. Keep read failures visible after the stream opens.
+A logical name is a validated relative path such as `art/train.png`.
+The host entry point installs the reader in the application context. Application code uses the same call on every host.
+The browser reader resolves names against the configured public base address and checks the response status before streaming.
+The Apple reader resolves names inside the installed resource bundle. The Android reader uses the application asset manager.
+Report invalid names, missing resources, missing host configuration, and read failures through typed errors.
+Use an injected reader for shared tests. Run the same lookup and error cases against each host adapter.
+
+```mermaid
+flowchart LR
+    Declarations[Resource set] --> Hook[Cargo build hook]
+    Generated[Generated files] --> Hook
+    Hook --> Web[Public tree]
+    Hook --> Apple[Bundle resource folder]
+    Hook --> Android[Packaged assets directory]
+    Web --> Embed[Server asset derive]
+```
+
+Each output preserves the same resource name.
+
+| Target | Build destination | Consumer |
+|---|---|---|
+| Web development | Sibling public directory for the server executable | Static handler reads files from disk. |
+| Web release | Staged public tree before macro expansion | The server asset derive embeds the tree. |
+| Apple mobile | Generated folder registered once in the application target resource build phase | The host opens the name in the application bundle. |
+| Android | Generated asset directory registered once in the application variant | The host opens the name with the Android asset manager. |
+
+For example, declare `art/train.png` once. Serve it at `/art/train.png` on the web.
+Open `art/train.png` through the native resource service on both phones.
+Allow target restrictions for files such as the browser bootstrap module.
+
+## Build contract
+
+1. Resolve inputs against the declaring package or a registered generator output.
+2. Reject missing inputs, duplicate names, path escapes, and conflicting names on case-insensitive platforms.
+3. Track declared directories, files, generator outputs, and relevant environment values for Cargo rebuilds.
+4. Run producers before staging. Use the existing task graph for builds that require a different compiler target.
+5. Register target-specific packaging inputs through the template or installer. Define build ordering for ordinary Xcode and Gradle builds.
+6. Isolate concurrent builds by application, output target, and profile. Share a complete staged tree only after successful production.
+7. Remove stale managed files after a rename or deletion. Preserve all user-owned files.
+8. Package Apple simulator and device resources once per application. Keep Android resources independent of native processor variants.
+9. Surface build errors with the resource name and destination. Never publish a partial resource set.
+
+## Verification
+
+1. Generate one application with a shared resource, a browser-only resource, and one generated resource.
+2. Build through Cargo, Xcode, and Gradle with no manual file copy or project edit.
+3. Fetch the shared resource from the web server. Read it from an installed Apple and Android application. Compare the bytes.
+4. Inspect both mobile packages for the expected logical paths and the absence of browser-only files.
+5. Move the development executable and its public tree. Edit a staged file and verify the next request reads it.
+6. Run the release server alone outside the checkout. Fetch the embedded file using the same address.
+7. Change, rename, and delete source files. Verify incremental rebuilds, stale file removal, and recovery after a failed build.
+8. Run concurrent mobile builds and verify package contents. Test custom target directories and profiles.
+9. Use the Todo application as the first consumer under Specification 69 Feature 27.

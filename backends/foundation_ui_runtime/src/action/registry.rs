@@ -116,10 +116,20 @@ pub type ActionFuture<'a> = Pin<Box<dyn Future<Output = ActionResult> + 'a>>;
 pub trait Action<E = String>: Send + Sync + 'static {
     type State: Serialize + DeserializeOwned + Send + 'static;
     const NAME: &'static str;
+    /// Indicates whether this output includes the handler.
+    const IMPLEMENTED: bool = true;
     fn origin() -> Option<Origin>;
     fn scope() -> Scope;
-    fn call<'a>(&'a self, ctx: &'a Context, event: Interaction<Self::State, E>)
-        -> ActionFuture<'a>;
+    fn call<'a>(
+        &'a self,
+        _ctx: &'a Context,
+        _event: Interaction<Self::State, E>,
+    ) -> ActionFuture<'a> {
+        Box::pin(std::future::ready(Err(ErrorTrace::new(ActionError::new(
+            ErrorCode::UnavailableOrigin,
+            "This output only declares the action",
+        )))))
+    }
 }
 
 /// The dispatcher supplies these fields after it verifies the signed bytes.
@@ -150,7 +160,11 @@ impl From<&str> for RawInput {
 }
 
 impl RawInput {
-    fn decode<E: DeserializeOwned + 'static>(self) -> Result<E, ErrorTrace<ActionError>> {
+    /// Decode text or structured input using the default action contract.
+    ///
+    /// # Errors
+    /// Rejects a mismatched encoding or invalid input.
+    pub fn decode<E: DeserializeOwned + 'static>(self) -> Result<E, ErrorTrace<ActionError>> {
         let invalid = |message| ErrorTrace::new(ActionError::new(ErrorCode::InvalidInput, message));
         if TypeId::of::<E>() == TypeId::of::<String>() {
             let text = match self {
@@ -178,7 +192,12 @@ pub trait ErasedAction: Send + Sync {
     fn call_raw<'a>(&'a self, ctx: &'a Context, event: RawInteraction) -> ActionFuture<'a>;
 }
 
-struct Adapter<A, E>(A, std::marker::PhantomData<fn() -> E>);
+type DecodeInput<E> = fn(RawInput) -> Result<E, ErrorTrace<ActionError>>;
+
+struct Adapter<A, E> {
+    action: A,
+    decode: DecodeInput<E>,
+}
 
 impl<A: Action<E>, E: DeserializeOwned + 'static> ErasedAction for Adapter<A, E> {
     fn name(&self) -> &'static str {
@@ -216,10 +235,10 @@ impl<A: Action<E>, E: DeserializeOwned + 'static> ErasedAction for Adapter<A, E>
             let event = Interaction {
                 node_id: event.node_id,
                 event_name: event.event_name,
-                input_value: event.input_value.decode()?,
+                input_value: (self.decode)(event.input_value)?,
                 state,
             };
-            self.0.call(ctx, event).await
+            self.action.call(ctx, event).await
         })
     }
 }
@@ -307,15 +326,74 @@ impl ActionRegistry {
         A: Action<E>,
         E: DeserializeOwned + 'static,
     {
+        self.insert_action(action, RawInput::decode)
+    }
+
+    fn insert_action<A, E>(
+        &mut self,
+        action: A,
+        decode: DecodeInput<E>,
+    ) -> Result<(), RegistrationError>
+    where
+        A: Action<E>,
+        E: DeserializeOwned + 'static,
+    {
+        if !A::IMPLEMENTED {
+            return self.declare(A::origin(), A::NAME, A::scope());
+        }
         self.insert(
             A::origin(),
             A::NAME,
             A::scope(),
-            Implementation::Rust(std::sync::Arc::new(Adapter(
-                action,
-                std::marker::PhantomData,
-            ))),
+            Implementation::Rust(std::sync::Arc::new(Adapter { action, decode })),
         )
+    }
+
+    /// Register an action on its owning endpoint. Other endpoints keep only its declaration.
+    ///
+    /// # Errors
+    /// Rejects invalid names and overlapping declarations.
+    pub fn register_for<A, E>(
+        &mut self,
+        endpoint: Origin,
+        action: A,
+    ) -> Result<(), RegistrationError>
+    where
+        A: Action<E>,
+        E: DeserializeOwned + 'static,
+    {
+        self.register_for_with_input(endpoint, action, RawInput::decode)
+    }
+
+    /// Register one input decoder with the handler that owns the action.
+    /// Use this to accept older event encodings during a protocol migration.
+    ///
+    /// # Errors
+    /// Rejects invalid names and overlapping declarations.
+    pub fn register_for_with_input<A, E>(
+        &mut self,
+        endpoint: Origin,
+        action: A,
+        decode: fn(RawInput) -> Result<E, ErrorTrace<ActionError>>,
+    ) -> Result<(), RegistrationError>
+    where
+        A: Action<E>,
+        E: DeserializeOwned + 'static,
+    {
+        if A::origin().is_none_or(|owner| owner == endpoint) {
+            self.insert_action(action, decode)
+        } else {
+            self.declare(A::origin(), A::NAME, A::scope())
+        }
+    }
+
+    /// Visit the origin and surface declarations available to a platform binding.
+    pub fn declarations(&self) -> impl Iterator<Item = (&str, Option<Origin>, Scope)> {
+        self.entries.iter().flat_map(|(name, entries)| {
+            entries
+                .iter()
+                .map(move |entry| (name.as_str(), entry.origin, entry.scope))
+        })
     }
 
     /// Registers a function provided by the page script transport.

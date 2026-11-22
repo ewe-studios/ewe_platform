@@ -12,6 +12,7 @@ autobins = false
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
+foundation_compact = { path = "../../backends/foundation_compact", version = "0.2.7", default-features = false }
 foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
 foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
 foundation_context = { path = "../../backends/foundation_context" }
@@ -19,6 +20,10 @@ foundation_errstacks = { path = "../../backends/foundation_errstacks" }
 foundation_ui_runtime = { path = "../../backends/foundation_ui_runtime" }
 foundation_ui_wire = { path = "../../backends/foundation_ui_wire" }
 serde = { workspace = true }
+serde_json = { workspace = true }
+futures-util = { workspace = true }
+async-trait = { workspace = true }
+rmp-serde = { workspace = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_core = { path = "../../backends/foundation_core", optional = true }
@@ -28,7 +33,8 @@ foundation_ui_connectrpc = { path = "../../backends/foundation_ui_connectrpc", o
 foundation_connectrpc = { path = "../../backends/foundation_connectrpc", default-features = false, optional = true }
 foundation_ui_http = { workspace = true, optional = true }
 futures-lite = { workspace = true, optional = true }
-serde_json = { workspace = true, optional = true }
+blocking = { workspace = true, optional = true }
+tempfile = { workspace = true, optional = true }
 
 foundation_browser = { path = "../../backends/foundation_browser", optional = true }
 
@@ -40,10 +46,12 @@ thiserror = { workspace = true, optional = true }
 foundation_core = { path = "../../backends/foundation_core", optional = true, features = ["js-foundation-wasm"] }
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+foundation_ui_runtime = { path = "../../backends/foundation_ui_runtime", features = ["action-browser", "action-mobile", "action-server"] }
 async-trait = { workspace = true }
 foundation_core = { path = "../../backends/foundation_core" }
 
 [build-dependencies]
+foundation_codegen = { path = "../../backends/foundation_codegen", version = "0.2.2", default-features = false, features = ["javascript"], optional = true }
 foundation_connectrpc_codegen = { path = "../../backends/foundation_connectrpc_codegen", optional = true }
 
 [lints]
@@ -51,9 +59,9 @@ workspace = true
 
 [features]
 default = ["server"]
-server = ["dep:serde_json", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
-web = ["dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
-mobile = ["dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
+server = ["foundation_ui_runtime/action-server", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+web = ["foundation_ui_runtime/action-browser", "dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
+mobile = ["foundation_ui_runtime/action-mobile", "dep:foundation_core", "dep:blocking", "dep:tempfile", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
 browser-tests = ["server", "dep:foundation_browser"]
 
 [[bin]]

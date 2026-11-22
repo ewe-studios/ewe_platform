@@ -40,6 +40,16 @@ pub(super) fn register(
             include_bytes!("../../web/app.js").as_slice(),
         ),
         (
+            "/foundation-ui-runtime.js",
+            "text/javascript",
+            include_bytes!(concat!(env!("OUT_DIR"), "/foundation-ui-runtime.js")).as_slice(),
+        ),
+        (
+            "/foundation-ui-runtime.min.js",
+            "text/javascript",
+            include_bytes!(concat!(env!("OUT_DIR"), "/foundation-ui-runtime.min.js")).as_slice(),
+        ),
+        (
             "/foundation-wasm.js",
             "text/javascript",
             include_bytes!("../../../../backends/foundation_wasm/runtime/foundation-wasm.js")

@@ -190,8 +190,8 @@ export class WebActionManager {
     }
   }
 
-  async receive(bytes) {
-    if (await this.deps.frames.receive(bytes) === false) throw new Error("Invalid action reply");
+  async receive(bytes, viewMount) {
+    if (await this.deps.frames.receive(bytes, viewMount ? { viewMount } : undefined) === false) throw new Error("Invalid action reply");
   }
 
   reportControl(detail) {
@@ -211,7 +211,18 @@ export class WebActionManager {
     return this.#submit(reference, el, event, type, payload);
   }
 
-  async #submit(reference, el, event, type, payload) {
+  /** Deliver a data instruction to the host action configured by the receiving view. */
+  async deliverViewData(reference, el, bytes) {
+    return this.deliverHostPayload(reference, el, Array.from(bytes));
+  }
+
+  /** Invoke the registered local handler for a configured host callback. */
+  async deliverHostPayload(reference, el, payload) {
+    if (parseReference(reference).origin !== "host") return this.onError({code:"UnavailableOrigin"});
+    return this.#submit(reference, el, {type:"data"}, "data", payload, true);
+  }
+
+  async #submit(reference, el, event, type, payload, delivery = false) {
     let claimed;
     let fault = "BadRequest";
     try {
@@ -231,14 +242,17 @@ export class WebActionManager {
       if (payload !== undefined && choice.route === "server" && !this.#structured) {
         return this.onError({ code: "UnsupportedAction", detail: "The peer did not negotiate structured input." });
       }
+      const viewMount = this.deps.frames?.receivingView?.(el);
       const root = el.closest("[data-ewe-root]") ?? el;
-      if (this.#busy.has(root)) return this.onError({ code: "Busy" });
-      claimed = root;
-      this.#busy.add(root);
+      if (!delivery) {
+        if (this.#busy.has(root)) return this.onError({ code: "Busy" });
+        claimed = root;
+        this.#busy.add(root);
+      }
       if (choice.route === "host" && page) {
         fault = "HostThrew";
         const result = await page.call(el, { node: el, parent: el.parentElement, event, data: payload === undefined ? buildEventData(type, event, el) : payload });
-        for (const bytes of (Array.isArray(result) ? result : [result])) if (bytes instanceof Uint8Array) await this.receive(bytes);
+        for (const bytes of (Array.isArray(result) ? result : [result])) if (bytes instanceof Uint8Array) await this.receive(bytes, viewMount);
         return;
       }
       const state = stateBytes(el.getAttribute("primal::state"), this.limit);
@@ -255,7 +269,7 @@ export class WebActionManager {
       ++this.#next;
       fault = "Transport";
       const transport = choice.route === "host" ? this.deps.local : this.deps.server;
-      for (const reply of await transport.send(bytes)) await this.receive(reply);
+      for (const reply of await transport.send(bytes)) await this.receive(reply, viewMount);
     } catch (cause) {
       this.onError({ code: fault, detail: String(cause) });
     } finally {

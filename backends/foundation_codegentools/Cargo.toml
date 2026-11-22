@@ -15,7 +15,7 @@ cli = ["dep:clap", "dep:sha2", "dep:hex"]
 [dependencies]
 hex = { workspace = true, optional = true }
 clap = { version = "4", features = ["derive"], optional = true }
-foundation_codegen = { path = "../foundation_codegen", version = "0.2.1", features = ["wat"] }
+foundation_codegen = { path = "../foundation_codegen", version = "0.2.2", features = ["wat"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }

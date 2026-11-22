@@ -80,4 +80,4 @@ bash scripts/toolchain/proof_test.sh
 
 The shell fixtures exercise missing tools, version mismatches, repeated package setup and binding generation.
 The lock test checks the platforms and checksums for the pins.
-The drift test checks the Gradle wrapper and Kotlin catalog when the Feature 15 project exists.
+The drift test checks the Gradle wrapper and Kotlin catalog in `mobile/android`. Both files are required.

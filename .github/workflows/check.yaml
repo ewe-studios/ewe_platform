@@ -119,7 +119,7 @@ jobs:
         shell: bash
         run: |
           bash scripts/toolchain/lock_test.sh
-          bash scripts/toolchain/drift_test.sh
+          bash scripts/toolchain/drift_test.sh mobile/android
           bash scripts/toolchain/check_test.sh
           bash scripts/toolchain/android_test.sh
           bash scripts/toolchain/proof_test.sh
@@ -257,7 +257,7 @@ jobs:
         run: |
           pnpm --filter foundation-ui-wire-bindings install --frozen-lockfile
           scripts/ui_wire/check.sh
-          bash scripts/ui_web/bundle.sh --check
+          cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime --check
           node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs
 
       - name: Use the pinned toolchain
@@ -444,7 +444,7 @@ jobs:
         run: |
           docker exec ci pnpm --filter foundation-ui-wire-bindings install --frozen-lockfile
           docker exec ci scripts/ui_wire/check.sh
-          docker exec ci bash scripts/ui_web/bundle.sh --check
+          docker exec ci cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime --check
           docker exec ci node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs
 
       - name: rustfmt

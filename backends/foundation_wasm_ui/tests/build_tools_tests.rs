@@ -6,7 +6,7 @@
 //! in-macro), 9-14 (wrapper/bundle structure) + attribute mapping.
 
 use foundation_wasm_ui::build_tools::{
-    bundler, entrypoint_from_attrs, js_wrapper, BundleMode, Encoding, JsPackaging,
+    BundleMode, Encoding, JsPackaging, bundler, entrypoint_from_attrs, js_wrapper,
 };
 
 /// Test 9 — bin wrapper structure.
@@ -141,10 +141,14 @@ fn cli_flags_parse() {
     };
     assert!(sub.get_flag("release"));
     assert!(sub.get_flag("skip_runtimes"));
-    assert_eq!(sub.get_one::<String>("output").unwrap(), "dist");
     assert_eq!(
-        sub.get_one::<String>("crate_directory").unwrap(),
-        "my-crate"
+        sub.get_one::<std::path::PathBuf>("output").unwrap(),
+        std::path::Path::new("dist")
+    );
+    assert_eq!(
+        sub.get_one::<std::path::PathBuf>("crate_directory")
+            .unwrap(),
+        std::path::Path::new("my-crate")
     );
 }
 
@@ -169,4 +173,43 @@ fn scanned_modes_generate_the_same_rust_sources_that_build_uses() {
         assert!(main.contains(&format!("use sample::screen::{name};")));
     }
     fs::remove_dir_all(fixture).unwrap();
+}
+
+#[cfg(feature = "tasks")]
+#[test]
+fn runtime_task_checks_both_outputs_without_rewriting_them() {
+    let directory = tempfile::tempdir().unwrap();
+    let runtime = directory.path().join("runtime");
+    let output = directory.path().join("output");
+    std::fs::create_dir(&runtime).unwrap();
+    std::fs::write(
+        runtime.join("runtime-entry.js"),
+        "globalThis.booted = true;",
+    )
+    .unwrap();
+    let run = |check: bool| {
+        let mut command = std::process::Command::new(env!("CARGO_BIN_EXE_ewe-wasm-bundle"));
+        command
+            .args(["task", "run", "wasm-bundle:runtime", "--runtime-dir"])
+            .arg(&runtime)
+            .arg("--output")
+            .arg(&output);
+        if check {
+            command.arg("--check");
+        }
+        command.output().unwrap()
+    };
+    assert!(run(false).status.success());
+    assert!(run(true).status.success());
+    for name in ["foundation-ui-runtime.js", "foundation-ui-runtime.min.js"] {
+        let path = output.join(name);
+        let original = std::fs::read(&path).unwrap();
+        std::fs::write(&path, b"changed").unwrap();
+        let result = run(true);
+        assert!(!result.status.success());
+        assert!(String::from_utf8_lossy(&result.stderr).contains(name));
+        assert_eq!(std::fs::read(&path).unwrap(), b"changed");
+        std::fs::write(&path, original).unwrap();
+    }
+    assert!(run(true).status.success());
 }

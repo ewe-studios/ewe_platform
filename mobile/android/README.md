@@ -20,7 +20,7 @@ Use one Gradle dependency after the release is available. Set `mavenCentral()` i
 
 ```kotlin
 dependencies {
-    implementation("io.github.ewe-studios:ewe-ui:0.1.0")
+    implementation("io.github.ewe-studios:ewe-ui:0.1.1")
 }
 ```
 
@@ -156,8 +156,8 @@ Run these commands from the repository root. The toolchain task installs the pin
 
 ```sh
 mise run toolchain:android
-scripts/ui_native/sync-android.sh --check
-scripts/ui_native/build-android.sh
+native-task task run native:bindings:sync-android --check
+native-task task run native:build-android
 mise exec -- mobile/android/gradlew -p mobile/android :core:test :ui:testDebugUnitTest
 mise exec -- mobile/android/gradlew -p mobile/android publishToMavenLocal \
   -Dmaven.repo.local="$PWD/target/native-ui/maven"
@@ -270,15 +270,14 @@ The native integration tests request an expired cursor over SSE, streamed HTTP, 
 ## Register a named view
 
 ```kotlin
-store.registerView("editor", 7u)
-val editor = store.viewStore("editor")
-val accepted = store.receive(frame, 7u)
+val editor = store.registerView("editor")
+val accepted = editor.receive(frame)
 store.unregisterView("editor")
 ```
 
 An append with no target adds a child to the receiving view. A full view replaces its content.
 Use `view#editor` to select that root. Use `sheet#details` to check the shared element type before replacement.
-A custom control can call `editor?.registerElement("details", "InvoiceEditor", id)`.
+A custom control can call `editor.registerElement("details", "InvoiceEditor", id)`.
 Render the named view with its own store. Each store owns its node identifiers and stream positions.
 Closing one view releases its listeners and children. Other views keep their content and positions.
 

@@ -176,3 +176,23 @@ test("structured events preserve field presence and require negotiated support",
   assert.equal(text.jsonArray(), null);
   assert.equal(text.value(), "buy milk");
 });
+
+test("a delayed reply retains the receiving view after its control disappears", async () => {
+  const mount = element(6), clicked = element(12);
+  clicked.parentElement = mount;
+  const destinations = [];
+  let finish;
+  const { manager, errors } = setup({
+    frames: {
+      receivingView: el => el.parentElement,
+      receive: (_, origin) => destinations.push(origin.viewMount),
+    },
+    server: { send: () => new Promise(resolve => { finish = resolve; }) },
+  });
+  const pending = manager.trigger("server:save", clicked);
+  clicked.parentElement = null;
+  finish([Uint8Array.of(1)]);
+  await pending;
+  assert.deepEqual(errors, []);
+  assert.deepEqual(destinations, [mount]);
+});

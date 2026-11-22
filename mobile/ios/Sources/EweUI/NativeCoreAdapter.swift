@@ -7,12 +7,34 @@
     public let raw: EweCore.NativeCore
     private weak var store: NodeStore?
 
-    public init(_ core: EweCore.NativeCore, store: NodeStore) {
+    public init(_ core: EweCore.NativeCore, store: NodeStore, viewDataAction: String? = nil) {
       #if os(iOS)
         store.graphicsProvider = { try core.graphics() }
       #endif
       raw = core
       self.store = store
+      if let action = viewDataAction {
+        precondition(action.hasPrefix("host:"))
+        let previous = store.onData
+        var pending: Task<Void, Never>?
+        store.onData = { [weak store, weak core] id, data in
+          previous?(id, data)
+          guard let packet = data.msgpack else { return }
+          let bytes = packet.bytes
+          let prior = pending
+          pending = Task { @MainActor [weak store, weak core] in
+            await prior?.value
+            guard let store, let core else { return }
+            do {
+              let input = EweCore.EventInput(nodeId: id, eventName: "data", value: "", checked: false, parentNode: 0, state: Data())
+              let json = try JSONEncoder().encode(bytes)
+              if let reply = try await core.triggerStructured(reference: action, event: input, json: json) {
+                _ = store.receive(reply, at: id)
+              }
+            } catch { store.onError?("ViewData", error.localizedDescription) }
+          }
+        }
+      }
       raw.setFrameListener(listener: FrameDelivery(store))
     }
 

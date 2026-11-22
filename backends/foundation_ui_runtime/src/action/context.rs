@@ -178,6 +178,11 @@ impl ActionReceiver {
         self.push(Output::Data { target, bytes });
     }
 
+    /// Send MessagePack data to the view that receives this action or subscription.
+    pub fn data_in_view(&self, bytes: Vec<u8>) {
+        self.data(0, bytes);
+    }
+
     /// Records an operation from the template renderer.
     #[doc(hidden)]
     pub fn render_op(&self, operation: OperationT) {

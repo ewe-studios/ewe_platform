@@ -1,5 +1,6 @@
 import { FoundationWasm } from "./foundation-wasm.js";
 import * as ui from "./foundation-wasm-ui.js";
+import * as wire from "./foundation-ui-wire.js";
 import * as behaviours from "./foundation-ui-behaviours.js";
 import { installFrameRuntime, base64urlEncode, readViewResponse } from "./foundation-ui-frames.js";
 import { FetchActionTransport, WebSocketActionTransport, WasmActionTransport, JsActionRegistry, installActionRuntime } from "./foundation-ui-actions.js";
@@ -18,9 +19,38 @@ async function boot() {
     const runtime = new FoundationWasm();
     const dom = new ui.DomHeap({ window, document });
     let local;
+    const storageKey = "ewe.todo.pending.v1";
+    const encoder = new TextEncoder(), decoder = new TextDecoder();
+    const memory = (offset, length) => new Uint8Array(instance.exports.memory.buffer, offset, length);
+    const prepared = new Map();
+    let nextCall = 0;
+    let stored;
+    const registry = new JsActionRegistry();
     const imports = {
         abi: { ...runtime.web_abi, ...ui.domAbi(runtime, dom) },
-        env: { ewe_ui_action_done: (call, slot) => local.complete(call, slot) },
+        env: {
+            ewe_todo_storage_size() {
+                try { stored = encoder.encode(localStorage.getItem(storageKey) ?? ""); return stored.length; }
+                catch { return -1; }
+            },
+            ewe_todo_storage_read(offset, length) {
+                if (!stored || stored.length !== length) return -1;
+                memory(offset, length).set(stored); stored = undefined; return 0;
+            },
+            ewe_todo_storage_save(offset, length) {
+                try { localStorage.setItem(storageKey, decoder.decode(memory(offset, length))); return 0; }
+                catch { return -1; }
+            },
+            ewe_todo_prepared(call, pointer, length, keyPointer, keyLength) {
+                if (!prepared.has(call)) throw Error("Unknown Todo submission");
+                prepared.set(call, { request: memory(pointer, length).slice(), key: decoder.decode(memory(keyPointer, keyLength)) });
+            },
+            ewe_ui_action_done: (call, slot) => local.complete(call, slot),
+            ewe_todo_declare: (origin, pointer, length, scope) => {
+                const name = new TextDecoder().decode(new Uint8Array(instance.exports.memory.buffer, pointer, length));
+                registry.declare([null, "host", "server"][origin], name, ["all", "web", "mobile"][scope]);
+            },
+        },
     };
     const { instance } = await WebAssembly.instantiateStreaming(fetch("/module.wasm"), imports);
     runtime.init(instance);
@@ -29,9 +59,6 @@ async function boot() {
 
     const notice = document.querySelector("#notice");
     const report = error => { notice.value = error.code; console.error(error); };
-    const registry = new JsActionRegistry();
-    for (const name of ["add_todo", "toggle_todo", "confirm_delete", "refresh_count"]) registry.declare("server", name);
-    for (const name of ["open_add_dialog", "open_delete_dialog", "close_dialog", "filter_todos"]) registry.declare("host", name);
     ui.Patcher.runtime.dispatcher = new ui.EventDispatcher(() => {});
     const connections = ui.frameConnections();
     const frames = installFrameRuntime(ui, { connections, onReport: report, viewMount: document.querySelector("#page") });
@@ -42,11 +69,44 @@ async function boot() {
         ? await connectSender()
         : new FetchActionTransport({ url: "/action", hello: () => manager.hello() });
     const manager = installActionRuntime(ui, { registry, frames, server, local, behaviours, document, onError: report });
+    const send = server.send.bind(server);
+    const page = document.querySelector("#page");
+    server.send = async original => {
+        const reader = wire.Frame.getRootAsFrame(new wire.ByteBuffer(original));
+        if (reader.kindType() !== wire.FrameKind.FrameRequest || !reader.kind(new wire.FrameRequest()).action()) return send(original);
+        if (nextCall >= 0xffffffff) throw Error("Todo request counter exhausted");
+        const call = ++nextCall;
+        prepared.set(call, null);
+        let plan;
+        try {
+            await manager.deliverHostPayload("host:prepare_todo_request", page, { call, bytes: Array.from(original) });
+            plan = prepared.get(call);
+        } finally { prepared.delete(call); }
+        if (!plan) throw Error("Cannot prepare Todo submission");
+        if (!plan.request.length) return [];
+        try {
+            const replies = await send(plan.request);
+            if (plan.key && replies.some(bytes => {
+                const response = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+                const body = response.kind(new wire.FrameMessage());
+                return Array.from({length:body.messagesLength()}, (_,i)=>body.messages(i)).some(message=>message.control()?.error());
+            })) {
+                await manager.deliverHostPayload("host:uncertain_todo_request", page, {key:plan.key});
+            }
+            return replies;
+        } catch (cause) {
+            if (plan.key) await manager.deliverHostPayload("host:uncertain_todo_request", page, {key:plan.key});
+            throw cause;
+        }
+    };
     const scope = ui.Hydrator.createScope(document.body);
     scope.action("notify", () => { notice.value = "Todo added"; });
 
     document.addEventListener("ewe:data", event => {
         const bytes = event.detail.bytes;
+        if (bytes && bytes[0] === 0x92) {
+            void manager.deliverViewData("host:apply_todo_delivery", event.target, bytes);
+        }
         if (bytes?.[0] === 0xab && new TextDecoder().decode(bytes.subarray(1)) === "host:notify") {
             registry.hostFunction("notify")();
         }

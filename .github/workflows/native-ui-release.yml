@@ -39,32 +39,29 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check the release version
-        run: |
-          python3 - <<'PY'
-          import os, tomllib
-          c = tomllib.load(open("release/native-ui.toml", "rb"))
-          if os.environ["GITHUB_REF_TYPE"] == "tag" and os.environ["GITHUB_REF_NAME"] != "native-ui-v" + c["version"]:
-              raise SystemExit("Tag differs from release version")
-          PY
       - name: Install pinned tools
         run: |
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
           mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
           mise run toolchain:android
+      - name: Build the native task command
+        run: |
+          cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+          echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
+      - name: Check the release tag
+        if: github.ref_type == 'tag'
+        run: native-task task run native:release:check-version --tag "$GITHUB_REF_NAME"
       - name: Check platform bindings and build the starter applications
         run: |
-          scripts/ui_native/sync-ios.sh --check
-          scripts/ui_native/sync-android.sh --check
+          native-task task run native:bindings:sync-ios --check
+          native-task task run native:bindings:sync-android --check
           python3 scripts/ui/check_behaviours.py ios
           python3 scripts/ui/check_behaviours.py android
-          scripts/ui_native/release/prepare.sh --output target/native-ui/candidate
-          scripts/ui_native/release/verify.sh --candidate target/native-ui/candidate --templates both
+          native-task task run native:release:prepare --output target/native-ui/candidate
+          native-task task run native:release:verify --candidate target/native-ui/candidate --templates both
       - name: Run both iPhone todo apps
-        run: |
-          device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys;print(next(d["udid"] for rt,ds in json.load(sys.stdin)["devices"].items() if ".iOS-" in rt for d in ds if d["name"].startswith("iPhone")))')
-          mise exec -- scripts/ui_native/test-ios-todo.sh "$device"
+        run: mise exec -- native-task task run native:todo:test-ios
       - uses: actions/upload-artifact@v4
         with:
           name: native-candidate
@@ -80,17 +77,21 @@ jobs:
       - uses: jdx/mise-action@v5.2.10
         with:
           install: false
+      - name: Build the native task command
+        run: |
+          cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+          echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Build and exercise the Android libraries and examples
         run: |
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
           mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
           mise run toolchain:android
-          scripts/ui_native/sync-android.sh --check
-          scripts/ui_native/build-android.sh --with-todo
+          native-task task run native:bindings:sync-android --check
+          native-task task run native:build-android --with-todo
           repo="$RUNNER_TEMP/maven"
-          mise exec -- mobile/android/gradlew -p mobile/android :core:test :ui:testDebugUnitTest publishToMavenLocal "-Dmaven.repo.local=$repo"
-          mise exec -- scripts/ui_native/test-android-todo.sh --maven "$repo"
+          native-task task run native:release:maven-local --repository "$repo"
+          mise exec -- native-task task run native:todo:test-android --maven "$repo"
 
   publish:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/native-ui-v')
@@ -105,22 +106,16 @@ jobs:
         with:
           name: native-candidate
           path: candidate
+      - name: Build the native task command
+        run: |
+          cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+          echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Sign the verified files
         env:
           SIGNING_KEY: ${{ secrets.NATIVE_GPG_PRIVATE_KEY }}
           GH_TOKEN: ${{ secrets.NATIVE_RELEASE_TOKEN }}
           FINGERPRINT: ${{ vars.NATIVE_GPG_FINGERPRINT }}
-        run: |
-          export GNUPGHOME="$(mktemp -d)"
-          trap 'rm -rf "$GNUPGHOME"' EXIT
-          printf '%s' "$SIGNING_KEY" | gpg --batch --import
-          gpg --batch --armor --export "$FINGERPRINT" > "$RUNNER_TEMP/native-release-public.asc"
-          previous=()
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx android-publication.zip; then
-            gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern android-publication.zip --dir "$RUNNER_TEMP"
-            previous=(--previous "$RUNNER_TEMP/android-publication.zip")
-          fi
-          python3 scripts/ui_native/release/sign.py --candidate candidate --out signed --key "$FINGERPRINT" "${previous[@]}"
+        run: native-task task run native:release:sign-job --candidate candidate --out signed --public-key "$RUNNER_TEMP/native-release-public.asc"
       - uses: actions/upload-artifact@v4
         with:
           name: signed-native-packages-${{ github.run_attempt }}
@@ -131,11 +126,7 @@ jobs:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           NATIVE_GPG_FINGERPRINT: ${{ vars.NATIVE_GPG_FINGERPRINT }}
-        run: |
-          export GNUPGHOME="$(mktemp -d)"
-          trap 'rm -rf "$GNUPGHOME"' EXIT
-          gpg --batch --import "$RUNNER_TEMP/native-release-public.asc"
-          scripts/ui_native/release/publish.sh --candidate signed --resume
+        run: native-task task run native:release:publish --candidate signed --resume --public-key "$RUNNER_TEMP/native-release-public.asc"
 
   public-install:
     needs: [preview, publish]
@@ -148,14 +139,18 @@ jobs:
         with:
           name: native-candidate
           path: candidate
+      - name: Build the native task command
+        run: |
+          cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+          echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Resolve both public packages
         run: |
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
           mise install --locked --yes java gradle http:android-sdk python node
           mise run toolchain:android
-          mise exec -- scripts/ui_native/release/verify.sh --candidate candidate --templates both --public
-          mise exec -- scripts/ui_native/release/test-ios-starter.sh
+          mise exec -- native-task task run native:release:verify --candidate candidate --templates both --public
+          mise exec -- native-task task run native:release:test-ios-starter
 
   android-device:
     needs: [preview, publish]
@@ -170,10 +165,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Build the native task command
+        run: |
+          cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+          echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Run the public Android starter
         run: |
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
           mise install --locked --yes java gradle http:android-sdk python node
           mise run toolchain:android
-          mise exec -- scripts/ui_native/release/test-android-starter.sh
+          mise exec -- native-task task run native:release:test-android-starter

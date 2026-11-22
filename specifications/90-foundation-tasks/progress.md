@@ -86,3 +86,55 @@ Cargo resolves all 119 workspace packages with the root lockfile.
 Issue #706 tracks workspace inheritance for packages outside the root workspace.
 Eighteen standalone lockfiles now include the updated local crates. Cargo resolves each with its lockfile and without network access.
 Issue #707 tracks the wire text update example. Its old lockfile also fails before this merge.
+
+## Build and deployment task ownership
+
+The owner requests task ownership of all build and deployment operations. The revised scope and acceptance checks are in migration.md. The owner approves implementation and the foundation_ci package.
+
+The proposed library exposes reusable synchronous build and code generation functions to Cargo build scripts and existing tasks. The dependency probe passes.
+
+The owner approves Feature 1. It combines the shared build helper, the Cargo build script, and the existing task runner entry.
+
+The browser package owns and exports the runtime bundle task set. The platform executable imports and registers that set.
+
+Feature 2 proposes a reusable build hook installer for new and existing Cargo packages. It awaits owner approval.
+
+### Feature 1 browser runtime
+
+The `javascript` feature of `foundation_codegen` builds a readable script and a minified script from one entry.
+The Todo server build records each imported file as a Cargo input. The browser UI package exports the runtime task.
+The two scripts pass the Chrome parity fixture after its cursor reset uses the current view. Issue #721 records the former fixture failure.
+Both scripts deliver the same 312-byte frame through WebAssembly and server-sent events.
+The host dependency graph excludes task and asynchronous runtimes. The browser artifact graph excludes the JavaScript build tools.
+Two checkout paths produce identical bytes. Check mode rejects a changed readable or compact script without writing either file.
+The current readable script has 590,242 bytes. The compact script has 275,965 bytes.
+A transitive vocabulary edit makes Cargo rebuild both scripts. Both rebuilt files contain the new code.
+The code generator passes 74 tests. All 11 build tool tests pass after the path assertion fix in issue #724.
+
+### Native continuous integration planner
+
+The Rust runner passes eight fixture tests on macOS. The tests cover group directories, invalid references, package selection, and shard failure summaries.
+The real package listing and full plan match the Python runner. The selected example and WebAssembly groups also match across all three platform plans.
+Historical comparisons match every affected package and reason. The example change selects 105 packages. The WebAssembly change selects 104 packages.
+
+### 2026-11-22. Native release and device tasks
+
+The native task crate now has Rust operations for archive, stage, sign, publish, and device checks in the combined worktree.
+The release workflow calls the native task command. Its workflow syntax check passes.
+The macOS task-enabled integration run passes 17 tests, including five offline publication and receipt tests.
+The shared host timer passes through real task dispatch.
+The complete device run and clean release build are pending. The publication tests used fake registries.
+
+The three Rust source guards pass. The clock guards report 13 direct reads and 27 clock parameter uses.
+The execution tests cover package deadlines and browser cache selection.
+Strict Clippy passes for every runner target. Cargo installs the runner offline from its lockfile. The installed executable lists nine tasks.
+
+Feature 3 specifies automatic resource staging and platform packaging through one Cargo build hook.
+The owner approves the design and shared runtime interface. The tasks agent starts after its current assignment. Specification 69 Feature 27 supplies the first consumer.
+
+### Work queue
+
+Complete Feature 1 and the continuous integration runner checks first.
+Then implement approved Feature 3 from `features/03-platform-resource-manager/feature.md`.
+Feature 3 covers automatic resource staging, streaming reads, and typed errors on browser, Apple, and Android hosts.
+Coordinate the Todo integration with its implementation owner.

@@ -9,6 +9,11 @@ authors.workspace = true
 repository.workspace = true
 description = "State signing, action registration, and event routing for user interfaces."
 
+[features]
+action-browser = []
+action-mobile = []
+action-server = []
+
 [dependencies]
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 tracing = { workspace = true }

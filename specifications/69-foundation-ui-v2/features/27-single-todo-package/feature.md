@@ -179,3 +179,48 @@ Test direct and provider-supplied senders with the same action. Verify one looku
 
 Acceptance requires a clean build without artifacts from the old packages. The browser must load its module and run a local action.
 The same mobile library must support both screen types. The installable platform libraries keep their existing package identities.
+
+## Proposed revision. Build the deployable Todo directory
+
+The build stages one public asset tree. The server declares a `TodoAssets` type with the framework derive `EmbedDirectoryAs`.
+Development serves files from the sibling `public/` directory. Release builds embed the same files in the executable.
+Mount one asset handler for both modes. The build selects the storage mode.
+Keep all browser addresses stable when the user moves the directory or changes the working directory.
+
+```mermaid
+flowchart LR
+    Task[Build task] --> Module[Browser module and generated client]
+    Module --> Stage[Shared build helper]
+    Build[Server build script] --> Stage
+    Stage --> Public[public directory beside executable]
+    Public --> Embedded[Release executable]
+    Dev[Development server] --> Public
+```
+
+The build produces a complete directory before the server starts.
+
+- Follow the small build script in `examples/platform_demo`. Put staging logic in a reusable synchronous helper.
+- Build the browser target and generated client before staging. Keep nested Cargo builds out of the server build script.
+- Track all staging inputs. Support custom Cargo target directories, target triples, profiles, and repeated builds.
+- Stage the page, application script, theme, runtime files, both bundles, browser module, and generated client dependencies.
+- Report missing inputs during the build. Verify the module header there.
+- Mount application routes before the static fallback. Serve the index at the root and preserve media types.
+- Remove module discovery, header checks, source checkout paths, embedded asset tables, and module path parameters from server startup.
+- Provide one full server constructor that accepts a prepared Todo store and live channel.
+- Keep backup validation and replay configuration at startup. Allow restore and a custom replay limit together.
+- Put the seeded data service fixture under `tests/`. Keep the shared data procedure available through the full server.
+- Make the native test runners launch the fixture. Keep the Swift and Kotlin assertions in their native test suites.
+- Make the browser replay test supply its own store and channel.
+
+Verify a clean build and a changed asset rebuild.
+Copy the development executable and public directory elsewhere. Start from another working directory.
+Edit a staged file. Verify that the next development request reads the edit without rebuilding.
+Copy only the release executable to an empty directory. Start it with the staged files and checkout unavailable.
+Compare response bytes and media types across both builds, including the browser module and generated client.
+Verify the macro selects the consuming artifact mode under custom profiles and build dependency overrides.
+Verify development path resolution uses the executable directory after relocation. Extend the shared asset helper if necessary.
+Open the page in Chrome and run a local action, a server action, and a generated client call.
+Verify static responses for the module and both bundles. Verify a missing file returns a missing-resource response.
+Repeat replay, restore, and native data checks. This revision awaits owner approval.
+
+Use the proposed [platform resource manager](../../../90-foundation-tasks/features/03-platform-resource-manager/feature.md) for shared staging and mobile package inputs.

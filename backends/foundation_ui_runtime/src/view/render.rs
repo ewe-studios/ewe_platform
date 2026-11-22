@@ -42,6 +42,16 @@ impl NodeIdAllocator for Sequence {
 pub struct ViewIds(Arc<dyn NodeIdAllocator>);
 
 impl ViewIds {
+    /// Reserve disjoint node identifiers for the server and host that share one view.
+    #[must_use]
+    pub fn for_origin(origin: crate::action::Origin) -> Self {
+        let split = 1_u32 << 31;
+        match origin {
+            crate::action::Origin::Server => Self::range(1, split - 1),
+            crate::action::Origin::Host => Self::range(split, u32::MAX),
+        }
+    }
+
     /// Starts a monotonically increasing range at `first`.
     #[must_use]
     pub fn new(first: u32) -> Self {

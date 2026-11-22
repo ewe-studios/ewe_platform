@@ -1,13 +1,9 @@
 //! Configure the host and publish the list and count after a successful change.
 use super::Error;
-use crate::{open_count_label, render_live_lists, TodoApp, TodoStore, PAGE_ROOT};
+use crate::{TodoDelivery, TodoStore};
 use foundation_context::Ctx;
 use foundation_ui_http::ActionRequestPolicy;
-use foundation_ui_runtime::{
-    action::{prepare_messages, ActionError, Context},
-    dispatch::RenderTarget,
-    html_swap,
-};
+use foundation_ui_runtime::action::{prepare_messages, ActionError, Context};
 use foundation_ui_wire::{writer::WriterConfig, ActionRequest, ErrorCode};
 use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
 use std::sync::Arc;
@@ -16,15 +12,16 @@ use std::sync::Arc;
 pub(crate) struct TodoFeed(pub(super) LiveChannel);
 
 impl TodoFeed {
-    pub(crate) fn publish(&self, ctx: &Ctx, state: &TodoApp) -> Result<(), Error> {
-        let view = Context::for_render(ctx.clone());
-        render_live_lists(&view, state)?;
-        let count = state.items.iter().filter(|item| !item.done).count();
-        html_swap! {"#open-count", &view, view.receiver(), <ListFooter id="open-count">{open_count_label(count)}</ListFooter>}?;
-        self.0
-            .sender()
-            .push_messages(prepare_messages(ctx, view.into_receiver().drain())?)?;
-        Ok(())
+    pub(crate) fn publish(&self, ctx: &Ctx, change: &crate::RecordChange) -> Result<u64, Error> {
+        self.0.sender().push_with(|position| {
+            let view = Context::for_render(ctx.clone());
+            TodoDelivery::Committed {
+                position,
+                change: change.clone(),
+            }
+            .send(&view)?;
+            Ok(prepare_messages(ctx, view.into_receiver().drain())?)
+        })
     }
 }
 
@@ -45,8 +42,7 @@ pub(super) fn install(ctx: &Ctx, web: LiveChannel, store: TodoStore) -> Result<T
     if web.stream_id() != 1 {
         return Err("The todo page listens to stream 1".into());
     }
-    crate::install_view_services(ctx, 100, (1 << 31) - 1)?;
-    ctx.store(RenderTarget(PAGE_ROOT));
+    crate::install_view_services(ctx, foundation_ui_runtime::action::Origin::Server)?;
     ctx.store(store);
     ctx.store(Arc::new(BusinessActions) as Arc<dyn ActionRequestPolicy>);
     let channels = TodoFeed(web);

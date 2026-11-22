@@ -56,6 +56,7 @@ fn existing_leaves_and_generic_names_share_argument_help() {
         ("wasm-bins:list", &["wasm_bins", "list"][..]),
         ("wasm-bins:generate", &["wasm_bins", "generate"][..]),
         ("wasm-bundle:build", &["wasm-bundle", "build"][..]),
+        ("wasm-bundle:runtime", &["wasm-bundle", "runtime"][..]),
         ("wasm-bundle:plan", &["wasm-bundle", "plan"][..]),
     ] {
         let mut direct_args = path.to_vec();
@@ -84,6 +85,38 @@ fn existing_leaves_and_generic_names_share_argument_help() {
                 "Usage: command"
             ),
             "{name}",
+        );
+    }
+}
+
+#[test]
+fn both_executables_run_the_exported_browser_bundle_task() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        dir.path().join("runtime-entry.js"),
+        "globalThis.ready = true;",
+    )
+    .unwrap();
+    for (exe, args) in [
+        (
+            env!("CARGO_BIN_EXE_platform"),
+            &["wasm-bundle", "runtime"][..],
+        ),
+        (
+            env!("CARGO_BIN_EXE_ewe_platform"),
+            &["task", "run", "wasm-bundle:runtime", "--check"][..],
+        ),
+    ] {
+        let result = Command::new(exe)
+            .args(args)
+            .arg("--runtime-dir")
+            .arg(dir.path())
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
         );
     }
 }

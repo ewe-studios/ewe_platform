@@ -38,6 +38,7 @@ fun RemoteEweScreen(
     rpcBase: HttpUrl? = null,
     socketEndpoint: String? = null,
     connections: ConnectionManager? = null,
+    viewDataAction: String? = null,
 ) {
     require(rpcBase == null || socketEndpoint == null)
     EweHost(listOf(endpoint, initialPath, actionPath, rpcBase ?: "", socketEndpoint ?: "", connections ?: ""), "Connecting…", modifier, theme) { host ->
@@ -62,7 +63,7 @@ fun RemoteEweScreen(
                 override suspend fun send(request: ByteArray): ByteArray? = rpc.exchange(request)
             }
         }
-        val binding = host.attach(createCore(sender), factory, manager)
+        val binding = host.attach(createCore(sender), factory, manager, viewDataAction)
         val hello = socket?.let { binding.helloFor(it.requestTag) } ?: binding.hello()
         connection.configure(hello)
         host.apply(requireNotNull(sender.send(hello)) { "Missing server capabilities" }, "capabilities")
@@ -151,12 +152,32 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
         cleanup.add(clean)
     }
 
-    fun attach(core: NativeCore, channels: ChannelFactory?, manager: ConnectionManager? = null): CoreBinding {
+    fun attach(core: NativeCore, channels: ChannelFactory?, manager: ConnectionManager? = null, viewDataAction: String? = null): CoreBinding {
         val binding = try {
             CoreBinding(core, store, scope)
         } catch (error: Exception) {
             core.close()
             throw error
+        }
+        if (viewDataAction != null) {
+            require(viewDataAction.startsWith("host:"))
+            val queue = kotlinx.coroutines.channels.Channel<Pair<UInt, ByteArray>>(kotlinx.coroutines.channels.Channel.BUFFERED)
+            store.onData = { id, message ->
+                message.msgpack?.let { packet ->
+                    val json = (0 until packet.bytesLength).joinToString(",", "[", "]") { packet.bytes(it).toString() }
+                    queue.trySend(id to json.toByteArray()).getOrThrow()
+                }
+            }
+            onClose { store.onData = null; queue.close() }
+            scope.launch {
+                for ((id, json) in queue) {
+                    try {
+                        val event = EventInput(id, "data", "", false, 0u, byteArrayOf(), json)
+                        binding.trigger(viewDataAction, event)?.let { check(store.receive(it, id)) { "Invalid view data reply" } }
+                    } catch (cancel: CancellationException) { throw cancel }
+                    catch (error: Exception) { store.onError?.invoke("ViewData", error.message.orEmpty()) }
+                }
+            }
         }
         graphics = core::graphics
         onClose(binding::close)

@@ -34,10 +34,7 @@ def main():
     parser.add_argument("root", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("project", type=Path, nargs="?", help="Android Gradle project directory")
     args = parser.parse_args()
-    project = args.project or args.root / "native/android/ewe-ui"
-    if args.project is None and not project.exists():
-        print("SKIP Gradle wrapper and Kotlin catalog: Feature 15 project is absent")
-        return 0
+    project = args.project or args.root / "mobile/android"
 
     wrapper = project / "gradle/wrapper/gradle-wrapper.properties"
     catalog = project / "gradle/libs.versions.toml"

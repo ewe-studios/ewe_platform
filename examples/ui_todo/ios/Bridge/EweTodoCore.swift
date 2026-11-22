@@ -744,6 +744,22 @@ public func createLocalTodoCore(platform: NativePlatform)throws  -> NativeCore  
 })
 }
 /**
+ * Open a remote Todo screen with pending submissions in the application's private file.
+ *
+ * # Errors
+ * Returns an error if the host cannot install its services.
+ */
+public func createPersistentTodoCore(platform: NativePlatform, transport: HostTransport, storageFile: String)throws  -> NativeCore  {
+    return try  FfiConverterTypeNativeCore_lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_func_create_persistent_todo_core(
+        FfiConverterTypeNativePlatform_lower(platform),
+        FfiConverterTypeHostTransport_lower(transport),
+        FfiConverterString.lower(storageFile),uniffiCallStatus
+    )
+})
+}
+/**
  * Installs the presentation signer, local todo actions, and remote server declarations.
  *
  * # Errors
@@ -825,6 +841,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_ui_todo_checksum_func_create_local_todo_core() != 57934) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_func_create_persistent_todo_core() != 11349) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_ui_todo_checksum_func_create_todo_core() != 12558) {

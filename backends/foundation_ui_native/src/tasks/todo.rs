@@ -12,9 +12,9 @@ use std::{
 #[derive(Args)]
 pub(super) struct Prepare {
     #[arg(long)]
-    sync_bridge: bool,
+    pub(super) sync_bridge: bool,
     #[arg(value_name = "OUTPUT")]
-    output: Option<PathBuf>,
+    pub(super) output: Option<PathBuf>,
 }
 
 pub(super) async fn prepare(ctx: TaskContext, args: Prepare) -> TaskResult {

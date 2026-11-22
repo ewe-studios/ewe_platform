@@ -698,6 +698,8 @@ internal object IntegrityCheckingUniffiLib {
     internal fun ensureInitialized() = Unit
     external fun uniffi_ui_todo_checksum_func_create_local_todo_core(
     ): Int
+    external fun uniffi_ui_todo_checksum_func_create_persistent_todo_core(
+    ): Int
     external fun uniffi_ui_todo_checksum_func_create_todo_core(
     ): Int
     external fun uniffi_ui_todo_checksum_func_get_todo(
@@ -723,6 +725,8 @@ internal object UniffiLib {
 
     internal fun ensureInitialized() = Unit
     external fun uniffi_ui_todo_fn_func_create_local_todo_core(`platform`: RustBufferNativePlatform.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ui_todo_fn_func_create_persistent_todo_core(`platform`: RustBufferNativePlatform.ByValue,`transport`: Long,`storageFile`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_ui_todo_fn_func_create_todo_core(`platform`: RustBufferNativePlatform.ByValue,`transport`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -852,6 +856,9 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_ui_todo_checksum_func_create_local_todo_core() and 0xFFFF) != 57934) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ui_todo_checksum_func_create_persistent_todo_core() and 0xFFFF) != 11349) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_ui_todo_checksum_func_create_todo_core() and 0xFFFF) != 12558) {
@@ -1257,6 +1264,26 @@ object CoreExceptionExternalErrorHandler : UniffiRustCallStatusErrorHandler<Core
     
         
         FfiConverterTypeNativePlatform.lower(`platform`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Open a remote Todo screen with pending submissions in the application's private file.
+         *
+         * # Errors
+         * Returns an error if the host cannot install its services.
+         */
+    @Throws(CoreException::class) fun `createPersistentTodoCore`(`platform`: NativePlatform, `transport`: HostTransport, `storageFile`: kotlin.String): NativeCore {
+            return FfiConverterTypeNativeCore.lift(
+    uniffiRustCallWithError(CoreExceptionExternalErrorHandler) { _status ->
+    UniffiLib.uniffi_ui_todo_fn_func_create_persistent_todo_core(
+    
+        
+        FfiConverterTypeNativePlatform.lower(`platform`),
+        FfiConverterTypeHostTransport.lower(`transport`),
+        FfiConverterString.lower(`storageFile`),_status)
 }
     )
     }

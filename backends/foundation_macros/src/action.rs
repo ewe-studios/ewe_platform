@@ -15,7 +15,7 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 fn expand_checked(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream> {
     let runtime = foundation_ui_runtime_path();
-    let (origin, scope) = limits(attr, &runtime)?;
+    let (origin, scope, selector) = limits(attr, &runtime)?;
     let Item::Fn(function) = syn::parse2(item.clone())? else {
         return Err(Error::new_spanned(
             item,
@@ -57,13 +57,17 @@ fn expand_checked(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
     let name = &sig.ident;
     let action_name = name.unraw().to_string();
     let context_name = &context.pat;
-    let gates_and_lints = attrs.iter().filter(|attr| {
-        attr.path().is_ident("cfg")
-            || attr.path().is_ident("allow")
-            || attr.path().is_ident("warn")
-            || attr.path().is_ident("deny")
-            || attr.path().is_ident("forbid")
-    });
+    let event_type = &event.ty;
+    let gates_and_lints = attrs
+        .iter()
+        .filter(|attr| {
+            attr.path().is_ident("cfg")
+                || attr.path().is_ident("allow")
+                || attr.path().is_ident("warn")
+                || attr.path().is_ident("deny")
+                || attr.path().is_ident("forbid")
+        })
+        .collect::<Vec<_>>();
 
     Ok(quote! {
         #(#attrs)*
@@ -72,13 +76,19 @@ fn expand_checked(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
         #vis struct #name;
 
         #(#gates_and_lints)*
+        const _: ::core::marker::PhantomData<fn(&#context_type, #event_type) -> #result> =
+            ::core::marker::PhantomData;
+
+        #(#gates_and_lints)*
         impl #runtime::action::Action<#input> for #name {
             const NAME: &'static str = #action_name;
             type State = #state;
+            const IMPLEMENTED: bool = #runtime::#selector!(@enabled);
 
             fn origin() -> ::core::option::Option<#runtime::action::Origin> { #origin }
             fn scope() -> #runtime::action::Scope { #scope }
 
+            #runtime::#selector! { @items
             fn call<'__action>(&'__action self, #context_name: &'__action #context_type, #event)
                 -> #runtime::action::ActionFuture<'__action>
             {
@@ -86,11 +96,15 @@ fn expand_checked(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
                     ::core::convert::identity::<#result>((async move #block).await)
                 })
             }
+            }
         }
     })
 }
 
-fn limits(attr: TokenStream, runtime: &TokenStream) -> syn::Result<(TokenStream, TokenStream)> {
+fn limits(
+    attr: TokenStream,
+    runtime: &TokenStream,
+) -> syn::Result<(TokenStream, TokenStream, Ident)> {
     let invalid = |tokens: &TokenStream| {
         Error::new_spanned(
             tokens,
@@ -128,7 +142,20 @@ fn limits(attr: TokenStream, runtime: &TokenStream) -> syn::Result<(TokenStream,
     if args.trailing_punct() {
         return Err(invalid(&tokens));
     }
-    Ok((origin, scope))
+    let selector = match args.first().map(Ident::to_string).as_deref() {
+        Some("server") => "__ewe_action_server",
+        Some("host") => match args.get(1).map(Ident::to_string).as_deref() {
+            Some("web") => "__ewe_action_browser",
+            Some("mobile") => "__ewe_action_mobile",
+            _ => "__ewe_action_host",
+        },
+        _ => "__ewe_action_all",
+    };
+    Ok((
+        origin,
+        scope,
+        Ident::new(selector, proc_macro2::Span::call_site()),
+    ))
 }
 
 fn parameters(sig: &Signature) -> syn::Result<[&PatType; 2]> {

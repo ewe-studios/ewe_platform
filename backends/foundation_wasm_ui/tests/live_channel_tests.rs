@@ -295,3 +295,25 @@ fn supported_older_clients_receive_live_and_replayed_frames_in_their_vocabulary(
         assert_eq!(kind(&bytes), NodeKind::DRAWING_SURFACE);
     }
 }
+
+#[test]
+fn builder_receives_the_published_position_and_failure_keeps_it_available() {
+    let channel = channel();
+    let sender = channel.sender();
+    assert_eq!(sender.push_messages(update()).unwrap(), 1);
+    let failed: Result<u64, LiveError> = sender.push_with(|position| {
+        assert_eq!(position, 2);
+        Err(LiveError::ConnectionClosed)
+    });
+    assert!(matches!(failed, Err(LiveError::ConnectionClosed)));
+    assert_eq!(channel.last_sequence(), 1);
+    assert_eq!(
+        sender
+            .push_with::<LiveError>(|position| {
+                assert_eq!(position, 2);
+                Ok(update())
+            })
+            .unwrap(),
+        2
+    );
+}

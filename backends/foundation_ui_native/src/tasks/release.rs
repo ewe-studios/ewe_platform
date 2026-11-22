@@ -1,4 +1,4 @@
-use super::{add_flag, android, apple, output::query, run_tool_at, NativeBuildEnv, Templates};
+use super::{android, apple, output::query, NativeBuildEnv, Templates};
 use clap::Args;
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
 use std::{
@@ -40,41 +40,21 @@ pub(super) async fn prepare(ctx: TaskContext, args: Prepare) -> TaskResult {
     let maven = stage.path().join("maven");
     apple::build_at(&ctx, &root, &apple).await?;
     android::build_at(&ctx, &root, false).await?;
-    let mut setting = OsString::from("-Dmaven.repo.local=");
-    setting.push(&maven);
-    ctx.exec(
-        ProcessCommand::new("mise")
-            .current_dir(&root)
-            .args([
-                "exec",
-                "--",
-                "mobile/android/gradlew",
-                "-p",
-                "mobile/android",
-                ":core:test",
-                ":ui:testDebugUnitTest",
-                "publishToMavenLocal",
-            ])
-            .arg(setting),
-    )
-    .await?;
+    install_maven(&ctx, &root, &maven).await?;
     if clean_revision(&ctx, &root).await? != revision {
         return Err(TaskError::operation(
             "The core revision changed during the build",
         ));
     }
-    run_tool_at(
+    super::stage::release(
         &ctx,
         &root,
-        "stage_release.py",
-        [
-            "--maven".into(),
-            maven.into_os_string(),
-            "--apple".into(),
-            apple.join("EweCoreFFI.xcframework.zip").into_os_string(),
-            "--out".into(),
-            args.output.into_os_string(),
-        ],
+        &maven,
+        &apple.join("EweCoreFFI.xcframework.zip"),
+        &root.join(args.output),
+        std::str::from_utf8(&revision)
+            .map_err(TaskError::operation)?
+            .trim(),
     )
     .await?;
     blocking::unblock(move || stage.close())
@@ -82,7 +62,7 @@ pub(super) async fn prepare(ctx: TaskContext, args: Prepare) -> TaskResult {
         .map_err(TaskError::operation)
 }
 
-async fn clean_revision(ctx: &TaskContext, root: &Path) -> Result<Vec<u8>, TaskError> {
+pub(super) async fn clean_revision(ctx: &TaskContext, root: &Path) -> Result<Vec<u8>, TaskError> {
     let status = query(
         ctx,
         ProcessCommand::new("git")
@@ -230,17 +210,10 @@ async fn verify_apple(
                 .arg(swift.join(".build-inputs")),
         )
         .await?;
-        run_tool_at(
-            ctx,
-            root,
-            "release/local_swift.py",
-            [
-                candidate.join("native-ui.json").into_os_string(),
-                swift.clone().into_os_string(),
-                project.join("project.pbxproj").into_os_string(),
-            ],
-        )
-        .await?;
+        let record = candidate.join("native-ui.json");
+        let package = swift.clone();
+        let project_file = project.join("project.pbxproj");
+        blocking::unblock(move || super::swift::local(&record, &package, &project_file)).await?;
         ctx.exec(cmd("swift").args(["test", "--package-path"]).arg(swift))
             .await?;
         &["generic/platform=iOS Simulator"]
@@ -306,6 +279,8 @@ pub(super) struct Publish {
     candidate: PathBuf,
     #[arg(long)]
     resume: bool,
+    #[arg(long)]
+    public_key: Option<PathBuf>,
     #[arg(long, default_value_t = 1800, value_parser = clap::value_parser!(u64).range(1..))]
     timeout: u64,
     #[arg(long, default_value_t = 15, value_parser = clap::value_parser!(u64).range(1..))]
@@ -313,18 +288,9 @@ pub(super) struct Publish {
 }
 
 pub(super) async fn publish(ctx: TaskContext, args: Publish) -> TaskResult {
-    let mut flags = vec![
-        "--candidate".into(),
-        args.candidate.clone().into_os_string(),
-        "--timeout".into(),
-        args.timeout.to_string().into(),
-        "--poll-interval".into(),
-        args.poll_interval.to_string().into(),
-    ];
-    add_flag(&mut flags, args.resume, "--resume");
     let root = ctx.require::<NativeBuildEnv>()?.root().await?;
     check_candidate(&root, &args.candidate, true).await?;
-    let candidate = root.join(args.candidate);
+    let candidate = root.join(&args.candidate);
     let lock = blocking::unblock(move || {
         let file = std::fs::OpenOptions::new()
             .write(true)
@@ -336,20 +302,26 @@ pub(super) async fn publish(ctx: TaskContext, args: Publish) -> TaskResult {
         Ok::<_, TaskError>(file)
     })
     .await?;
-    let result = run_tool_at(&ctx, &root, "release/publish.py", flags).await;
+    let result = super::publish::run(
+        &ctx,
+        &root,
+        &root.join(args.candidate),
+        args.timeout,
+        args.poll_interval,
+        args.public_key.as_deref(),
+    )
+    .await;
     drop(lock);
     result
 }
 
-async fn check_candidate(
+pub(super) async fn check_candidate(
     root: &Path,
     candidate: &Path,
     publishing: bool,
 ) -> Result<String, TaskError> {
     let candidate = root.join(candidate);
     blocking::unblock(move || {
-        use sha2::{Digest, Sha256};
-        use std::io::BufRead as _;
         let record: serde_json::Value = serde_json::from_reader(
             std::fs::File::open(candidate.join("native-ui.json")).map_err(TaskError::operation)?,
         )
@@ -388,19 +360,7 @@ async fn check_candidate(
                 .ok_or_else(|| {
                     TaskError::operation(format!("The candidate has no digest for {name}"))
                 })?;
-            let file = std::fs::File::open(candidate.join(name)).map_err(TaskError::operation)?;
-            let mut reader = std::io::BufReader::new(file);
-            let mut hash = Sha256::new();
-            loop {
-                let bytes = reader.fill_buf().map_err(TaskError::operation)?;
-                let len = bytes.len();
-                if len == 0 {
-                    break;
-                }
-                hash.update(bytes);
-                reader.consume(len);
-            }
-            if hex::encode(hash.finalize()) != expected_digest {
+            if super::stage::digest_file(&candidate.join(name))? != expected_digest {
                 return Err(TaskError::operation(format!(
                     "Artifact digest mismatch: {name}"
                 )));
@@ -408,5 +368,37 @@ async fn check_candidate(
         }
         Ok(revision.to_owned())
     })
+    .await
+}
+
+#[derive(Args)]
+pub(super) struct Maven {
+    #[arg(long)]
+    repository: PathBuf,
+}
+
+pub(super) async fn maven(ctx: TaskContext, args: Maven) -> TaskResult {
+    let root = ctx.require::<NativeBuildEnv>()?.root().await?;
+    install_maven(&ctx, &root, &root.join(args.repository)).await
+}
+
+async fn install_maven(ctx: &TaskContext, root: &Path, maven: &Path) -> TaskResult {
+    let mut setting = OsString::from("-Dmaven.repo.local=");
+    setting.push(maven);
+    ctx.exec(
+        ProcessCommand::new("mise")
+            .current_dir(root)
+            .args([
+                "exec",
+                "--",
+                "mobile/android/gradlew",
+                "-p",
+                "mobile/android",
+                ":core:test",
+                ":ui:testDebugUnitTest",
+                "publishToMavenLocal",
+            ])
+            .arg(setting),
+    )
     .await
 }

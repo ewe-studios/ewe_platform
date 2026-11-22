@@ -41,6 +41,19 @@ class NodeStore(
         return host.childStores[root] ?: host
     }
 
+    /** Register a named view and allocate its root in this host. */
+    fun registerView(name: String): NodeStore {
+        var root = 1u
+        if (root in targets.roots.values) {
+            do {
+                check(root < UInt.MAX_VALUE) { "No available view root" }
+                root++
+            } while (root in records || root in targets.roots.values)
+        }
+        registerView(name, root)
+        return childStores[root] ?: this
+    }
+
     fun registerView(name: String, root: UInt) {
         require(name.matches(targets.validName) && root != 0u)
         require(name !in targets.roots && root !in targets.roots.values)
@@ -62,6 +75,7 @@ class NodeStore(
                 pending.addAll(node.children)
             }
             if (child.record(root) == null) child.create(root, NodeKind.STACK, 0)
+            child.onData = { id, data -> onData?.invoke(id, data) }
             childStores[root] = child
             liveHost?.forView(child)
         }
@@ -102,6 +116,7 @@ class NodeStore(
     private data class PendingFrame(val bytes: ByteArray, val mount: UInt)
     private val pending = mutableMapOf<ULong, TreeMap<ULong, PendingFrame>>()
     private val timers = mutableMapOf<ULong, Cancel>()
+    var onData: ((UInt, Data) -> Unit)? = null
     var onGap: ((ULong, ULong) -> Unit)? = null
     var onChanged: (() -> Unit)? = null
     var onError: ((String, String) -> Unit)? = null
@@ -223,7 +238,11 @@ class NodeStore(
         require(bytes.size <= maxFrameBytes)
         val packet = frame(bytes)
         val body = packet.kind(FrameMessage()) as FrameMessage
-        require(body.messagesLength == 1)
+        require(body.messagesLength >= 1)
+        for (index in 1 until body.messagesLength) {
+            val message = requireNotNull(body.messages(index))
+            require(message.data != null && message.operation == null && message.control == null)
+        }
         val op = requireNotNull(body.messages(0)?.operation)
         require(op.uiType == UiOperation.Place && (op.ui(Place()) as Place).kind == PlacementKind.FullView)
         val probe = NodeStore(timer, gapTimeoutMs, maxFrameBytes, supportsBehaviour = supportsBehaviour)

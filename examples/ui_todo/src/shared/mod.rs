@@ -1,4 +1,7 @@
 //! Shared todo views and actions for server and on-device stores.
+pub(crate) mod outbox;
+pub use outbox::{install_pending_storage, Pending, PendingChange, PendingStorage};
+
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_ui_runtime::action::{
@@ -7,25 +10,13 @@ use foundation_ui_runtime::action::{
 use foundation_ui_runtime::state::{
     install_state_signer, HmacStateSigner, StateConfig, StateError,
 };
-use foundation_ui_runtime::view::{render, template_types::Html, ViewIds};
+use foundation_ui_runtime::view::{
+    full_view, place, template_types::Html, PlacementKind, Target, ViewIds,
+};
 use foundation_ui_runtime::{action, html};
 use foundation_ui_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
-
-/// Stable roots created by the page shell.
-pub const PAGE_ROOT: u32 = 40;
-pub const DIALOG_ROOT: u32 = 41;
-const ALL_LIST: u32 = 42;
-const OPEN_LIST: u32 = 43;
-const DONE_LIST: u32 = 44;
-const ALL_SECTION: u32 = 45;
-const OPEN_SECTION: u32 = 46;
-const DONE_SECTION: u32 = 47;
-const ALL_FILTER: u32 = 48;
-const OPEN_FILTER: u32 = 49;
-const DONE_FILTER: u32 = 50;
-const NOTIFICATION_ROOT: u32 = 51;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Filter {
@@ -36,6 +27,8 @@ pub enum Filter {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Todo {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_id: Option<String>,
     pub id: u64,
     pub text: String,
     pub done: bool,
@@ -46,6 +39,10 @@ pub struct TodoApp {
     pub filter: Filter,
     pub add_dialog: bool,
     pub delete_target: Option<u64>,
+    #[serde(default)]
+    pub draft: String,
+    #[serde(default)]
+    pub pending: std::collections::BTreeMap<String, Pending>,
 }
 
 #[derive(Default)]
@@ -56,6 +53,58 @@ struct StoreState {
     last_id: u64,
     items: Vec<Todo>,
     filter: Filter,
+    position: u64,
+    query: String,
+    pending: std::collections::BTreeMap<String, Pending>,
+    search_rows: Option<Vec<Todo>>,
+    add_dialog: bool,
+    delete_target: Option<u64>,
+    draft: String,
+    deferred: std::collections::BTreeMap<u64, RecordChange>,
+    removed: std::collections::BTreeMap<u64, u64>,
+    retired_creations: std::collections::BTreeSet<String>,
+    creations: std::collections::BTreeMap<String, CreationReceipt>,
+}
+
+#[derive(Clone)]
+struct CreationReceipt {
+    item: Todo,
+    submitted_title: String,
+    position: u64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct AddInput {
+    creation_id: Option<String>,
+    title: String,
+}
+
+fn decode_add(
+    input: foundation_ui_runtime::action::RawInput,
+) -> Result<AddInput, ErrorTrace<ActionError>> {
+    use foundation_ui_runtime::action::RawInput;
+    let invalid = || {
+        ErrorTrace::new(ActionError::new(
+            ErrorCode::InvalidInput,
+            "A structured addition requires a version 4 UUID",
+        ))
+    };
+    match input {
+        RawInput::Json(_) => {
+            let mut value: AddInput = input.decode()?;
+            let key = value.creation_id.as_deref().ok_or_else(invalid)?;
+            let id = foundation_compact::uuid::Uuid::try_parse(key).map_err(|_| invalid())?;
+            if id.get_version_num() != 4 {
+                return Err(invalid());
+            }
+            value.creation_id = Some(id.to_string());
+            Ok(value)
+        }
+        text => Ok(AddInput {
+            creation_id: None,
+            title: text.decode()?,
+        }),
+    }
 }
 
 impl StoreState {
@@ -63,12 +112,13 @@ impl StoreState {
         TodoApp {
             items: self.items.clone(),
             filter: self.filter.clone(),
-            ..TodoApp::default()
+            add_dialog: self.add_dialog,
+            delete_target: self.delete_target,
+            draft: self.draft.clone(),
+            pending: self.pending.clone(),
         }
     }
 }
-
-struct OnDevice;
 
 impl TodoStore {
     /// Builds a store with its existing task identifiers.
@@ -86,12 +136,16 @@ impl TodoStore {
     pub(crate) fn published_snapshot(
         &self,
         feed: &foundation_wasm_ui::server::LiveChannel,
-    ) -> (TodoApp, u64) {
+    ) -> (TodoApp, u64, Vec<String>) {
         let state = self
             .0
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        (state.snapshot(), feed.last_sequence())
+        (
+            state.snapshot(),
+            feed.last_sequence(),
+            state.retired_creations.iter().cloned().collect(),
+        )
     }
 
     #[must_use]
@@ -111,7 +165,10 @@ fn error(message: &str) -> ErrorTrace<ActionError> {
 ///
 /// # Errors
 /// Returns the validation error for the presentation signer.
-pub fn install_view_services(ctx: &Ctx, first: u32, last: u32) -> Result<(), StateError> {
+pub fn install_view_services(
+    ctx: &Ctx,
+    owner: foundation_ui_runtime::action::Origin,
+) -> Result<(), StateError> {
     install_state_signer(
         ctx,
         Arc::new(HmacStateSigner::new(
@@ -119,7 +176,7 @@ pub fn install_view_services(ctx: &Ctx, first: u32, last: u32) -> Result<(), Sta
             StateConfig::default(),
         )?),
     );
-    ctx.store(ViewIds::range(first, last));
+    ctx.store(ViewIds::for_origin(owner));
     Ok(())
 }
 
@@ -134,126 +191,104 @@ pub fn todo_theme() -> foundation_theme::GeneratedTheme {
         .build()
 }
 
-fn row(item: &Todo, local: bool) -> Html {
+fn row(item: &Todo) -> Html {
     let id = item.id.to_string();
     let status = if item.done { "Reopen" } else { "Complete" };
     html! { <ChecklistRow checked={item.done}>
         <Text class="text-primary p-md ios-p-lg android-p-sm">{item.text.as_str()}</Text>
-        <Either condition={local}>
-            <Left><CheckmarkButton value={id.as_str()} on:tap={toggle_todo}>{status}</CheckmarkButton></Left>
-            <Right><CheckmarkButton value={id.as_str()} on:tap={toggle_local_todo}>{status}</CheckmarkButton></Right>
-        </Either>
+        <CheckmarkButton value={id.as_str()} on:tap={toggle_todo}>{status}</CheckmarkButton>
         <DestructiveButton value={id.as_str()} on:tap={open_delete_dialog}>Delete</DestructiveButton>
     </ChecklistRow> }
 }
 
-fn page(ctx: &Context, state: &TodoApp) -> ActionResult {
-    let (tree, state) = page_tree(state, ctx.get::<OnDevice>().is_some());
-    render(ctx, ctx.receiver(), tree, Some(state))?;
-    Ok(())
+/// Render the shared Todo page in the receiving view.
+///
+/// # Errors
+/// Returns a view or state serialization error.
+pub fn app(ctx: &Context, state: &TodoApp) -> ActionResult {
+    full_view(ctx, ctx.receiver(), &page_tree(state), None::<&()>)
 }
 
-fn list(items: &[Todo], filter: &Filter, local: bool) -> Html {
-    let rows = items
+fn list(state: &TodoApp) -> Html {
+    let rows = state
+        .items
         .iter()
-        .filter(|item| match filter {
-            Filter::Done => item.done,
-            Filter::Open => !item.done,
+        .filter(|item| match state.filter {
             Filter::All => true,
+            Filter::Open => !item.done,
+            Filter::Done => item.done,
         })
-        .map(|item| row(item, local));
-    html! { <InsetList>{rows}</InsetList> }
+        .map(
+            |item| match state.pending.get(&format!("delete:{}", item.id)) {
+                Some(pending) => pending_row(&item.text, "Deleting…", pending),
+                None => row(item),
+            },
+        );
+    let additions = state
+        .pending
+        .values()
+        .filter_map(|pending| match &pending.change {
+            PendingChange::Add { title, .. } if state.filter != Filter::Done => {
+                Some(pending_row(title, "Pending", pending))
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    html! { <InsetList id="todo-list">{rows}{additions}</InsetList> }
 }
 
-pub(crate) fn page_tree(state: &TodoApp, local: bool) -> (Html, &TodoApp) {
-    use foundation_ui_runtime::view::anchor;
-
-    let count_view = open_count(state.items.iter().filter(|item| !item.done).count());
-    let all = html! { <Button value="all" checked={state.filter == Filter::All} on:tap={filter_todos}>All</Button> };
-    let open = html! { <Button value="open" checked={state.filter == Filter::Open} on:tap={filter_todos}>Open</Button> };
-    let done = html! { <Button value="done" checked={state.filter == Filter::Done} on:tap={filter_todos}>Done</Button> };
-    let (all, open, done, rows) = if local {
-        (all, open, done, list(&state.items, &state.filter, local))
+fn pending_row(title: &str, status: &str, pending: &Pending) -> Html {
+    let retry = if pending.retry {
+        Some(match &pending.change {
+            PendingChange::Add { creation_id, .. } => {
+                html! {<Button value={format!("retry-add:{creation_id}")} on:tap={add_todo}>Try again</Button>}
+            }
+            PendingChange::Delete { id } => {
+                html! {<Button value={id.to_string()} on:tap={confirm_delete}>Try again</Button>}
+            }
+        })
     } else {
-        let all_rows = anchor(ALL_LIST, list(&state.items, &Filter::All, false));
-        let open_rows = anchor(OPEN_LIST, list(&state.items, &Filter::Open, false));
-        let done_rows = anchor(DONE_LIST, list(&state.items, &Filter::Done, false));
-        let all_section = anchor(
-            ALL_SECTION,
-            html! {
-                <Stack hidden={state.filter != Filter::All}>{all_rows}</Stack>
-            },
-        );
-        let open_section = anchor(
-            OPEN_SECTION,
-            html! {
-                <Stack hidden={state.filter != Filter::Open}>{open_rows}</Stack>
-            },
-        );
-        let done_section = anchor(
-            DONE_SECTION,
-            html! {
-                <Stack hidden={state.filter != Filter::Done}>{done_rows}</Stack>
-            },
-        );
-        (
-            anchor(ALL_FILTER, all),
-            anchor(OPEN_FILTER, open),
-            anchor(DONE_FILTER, done),
-            html! { <Stack>{all_section}{open_section}{done_section}</Stack> },
-        )
+        None
     };
-    let notice = (!local).then(|| anchor(NOTIFICATION_ROOT, html! { <Text/> }));
-    html! { state = state, <Stack>
+    html! {<ChecklistRow class="animate-pulse opacity-70"><Text>{title}</Text><Text>{status}</Text>{retry}</ChecklistRow>}
+}
+
+fn filters(filter: &Filter) -> Html {
+    html! { <SegmentedControl id="todo-filter" a11y_label="Filter todos">
+        <Button value="all" checked={*filter == Filter::All} on:tap={filter_todos}>All</Button>
+        <Button value="open" checked={*filter == Filter::Open} on:tap={filter_todos}>Open</Button>
+        <Button value="done" checked={*filter == Filter::Done} on:tap={filter_todos}>Done</Button>
+    </SegmentedControl> }
+}
+
+fn search_input(query: &str) -> Html {
+    html! { <TextInput id="todo-search" a11y_label="Search todos" placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
+}
+
+pub(crate) fn page_tree(state: &TodoApp) -> Html {
+    let search = search_input("");
+    let controls = filters(&state.filter);
+    let rows = list(state);
+    let footer = open_count(state.items.iter().filter(|item| !item.done).count());
+    html! { <Stack>
         <NavigationTitle>Todos</NavigationTitle>
         <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
-        <SegmentedControl a11y_label="Filter todos">{all}{open}{done}</SegmentedControl>
-        {rows}
-        {count_view}
-        {notice}
+        {search}
+        {controls}{rows}{footer}
+        <Text id="notification"/><Stack id="dialog"/>
     </Stack> }
 }
 
-#[cfg(all(feature = "server", not(target_family = "wasm")))]
-pub(crate) fn render_live_lists(ctx: &Context, state: &TodoApp) -> ActionResult {
-    for (root, filter) in [
-        (ALL_LIST, Filter::All),
-        (OPEN_LIST, Filter::Open),
-        (DONE_LIST, Filter::Done),
-    ] {
-        let shell = Context::for_action(ctx.inner().clone(), ctx.surface(), Some(root));
-        render(
-            &shell,
-            ctx.receiver(),
-            list(&state.items, &filter, false),
-            None::<&()>,
-        )?;
-    }
-    Ok(())
-}
-
-fn set_filter(ctx: &Context, filter: &Filter) {
-    use foundation_ui_wire::{BoolValueT, OperationT, PropId, PropValueT, SetPropT, UiOperationT};
-    for (current, section, button) in [
-        (Filter::All, ALL_SECTION, ALL_FILTER),
-        (Filter::Open, OPEN_SECTION, OPEN_FILTER),
-        (Filter::Done, DONE_SECTION, DONE_FILTER),
-    ] {
-        for (id, prop, value) in [
-            (section, PropId::HIDDEN, current != *filter),
-            (button, PropId::CHECKED, current == *filter),
-        ] {
-            let mut boolean = BoolValueT::default();
-            boolean.v = value;
-            let mut property = SetPropT::default();
-            property.node_id = id;
-            property.prop = prop;
-            property.value = PropValueT::Bool(Box::new(boolean));
-            let mut operation = OperationT::default();
-            operation.ui = UiOperationT::SetProp(Box::new(property));
-            ctx.receiver().render_op(operation);
-        }
-    }
+fn replace(ctx: &Context, name: &str, tree: Html) -> ActionResult {
+    place(
+        ctx,
+        ctx.receiver(),
+        PlacementKind::Swap,
+        Target::from(name),
+        None,
+        Some(tree),
+        None::<&()>,
+    )
 }
 
 pub(crate) fn open_count(count: usize) -> Html {
@@ -270,8 +305,7 @@ pub(crate) fn open_count_label(count: usize) -> String {
 /// # Errors
 /// Returns a view or serialization error.
 pub fn starter_view(ctx: &Context, count: usize) -> ActionResult {
-    render(ctx, ctx.receiver(), starter_tree(count), None::<&()>)?;
-    Ok(())
+    full_view(ctx, ctx.receiver(), &starter_tree(count), None::<&()>)
 }
 
 pub(crate) fn starter_tree(count: usize) -> Html {
@@ -295,63 +329,41 @@ async fn refresh_count(ctx: &Context, _event: Interaction<()>) -> ActionResult {
     )
 }
 
-/// Renders the shared todo page.
-///
-/// # Errors
-/// Returns a view or state serialization error.
-pub fn app(ctx: &Context, state: &TodoApp) -> ActionResult {
-    page(ctx, state)
-}
-/// Renders the shared page for existing browser callers.
-///
-/// # Errors
-/// Returns a view or state serialization error.
-pub fn web_app(ctx: &Context, state: &TodoApp) -> ActionResult {
-    page(ctx, state)
-}
-
 fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
-    let shell = Context::for_action(ctx.inner().clone(), ctx.surface(), Some(DIALOG_ROOT));
-    let local = ctx.get::<OnDevice>().is_some();
-    let tree = if let Some(id) = state.delete_target {
-        let confirm = if local {
-            html! {<DestructiveButton value={id} on:tap={confirm_local_delete}>Confirm</DestructiveButton>}
-        } else {
-            html! {<DestructiveButton value={id} on:tap={confirm_delete}>Confirm</DestructiveButton>}
-        };
-        html! { <ConfirmationDialog>
-            <SheetTitle>Delete this todo?</SheetTitle>
-            {confirm}
-            <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
-        </ConfirmationDialog> }
-    } else if state.add_dialog {
-        let input = if local {
-            html! {<TextInput placeholder="Todo title" a11y_label="Todo title" on:submit={add_local_todo}/>}
-        } else {
-            html! {<TextInput placeholder="Todo title" a11y_label="Todo title" on:submit={add_todo}/>}
-        };
-        html! { <Modal a11y_label="New todo"><BottomSheet>
-            <SheetTitle>New todo</SheetTitle>
-            {input}
-            <CancelButton on:tap={close_dialog}>Cancel</CancelButton>
-            <SubmitButton>Add</SubmitButton>
-        </BottomSheet></Modal> }
-    } else {
-        html! {<Stack/>}
-    };
-    render(&shell, ctx.receiver(), tree, None::<&()>)?;
-    Ok(())
+    let cancel = html! {<CancelButton on:tap={close_dialog}>Cancel</CancelButton>};
+    let confirmation = state.delete_target.map(|id| {
+        html! {
+            <ConfirmationDialog>
+                <SheetTitle>Delete this todo?</SheetTitle>
+                <DestructiveButton value={id} on:tap={confirm_delete}>Confirm</DestructiveButton>
+                {cancel.clone()}
+            </ConfirmationDialog>
+        }
+    });
+    let tree = html! { <Stack id="dialog">
+        <Either condition={state.add_dialog}>
+            <Left>{confirmation}</Left>
+            <Right><Modal a11y_label="New todo"><BottomSheet>
+                <SheetTitle>New todo</SheetTitle>
+                <TextInput placeholder="Todo title" a11y_label="Todo title" value={state.draft.as_str()} on:change={edit_draft} on:submit={add_todo}/>
+                {cancel.clone()}
+                <SubmitButton>Add</SubmitButton>
+            </BottomSheet></Modal></Right>
+        </Either>
+    </Stack> };
+    replace(ctx, "#dialog", tree)
 }
 
 #[action(host)]
 async fn open_add_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    dialog(
-        ctx,
-        &TodoApp {
-            add_dialog: true,
-            ..TodoApp::default()
-        },
-    )
+    let store = todo_store(ctx)?;
+    let mut cache = store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.add_dialog = true;
+    cache.delete_target = None;
+    dialog(ctx, &cache.snapshot())
 }
 #[action(host)]
 async fn open_delete_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult {
@@ -359,17 +371,26 @@ async fn open_delete_dialog(ctx: &Context, event: Interaction<()>) -> ActionResu
         .input_value
         .parse()
         .map_err(|_| error("Invalid todo identifier"))?;
-    dialog(
-        ctx,
-        &TodoApp {
-            delete_target: Some(id),
-            ..TodoApp::default()
-        },
-    )
+    let store = todo_store(ctx)?;
+    let mut cache = store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.add_dialog = false;
+    cache.delete_target = Some(id);
+    dialog(ctx, &cache.snapshot())
 }
 #[action(host)]
 async fn close_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    dialog(ctx, &TodoApp::default())
+    let store = todo_store(ctx)?;
+    let mut cache = store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.add_dialog = false;
+    cache.delete_target = None;
+    cache.draft.clear();
+    dialog(ctx, &cache.snapshot())
 }
 #[action(host)]
 async fn filter_todos(ctx: &Context, event: Interaction<()>) -> ActionResult {
@@ -379,17 +400,58 @@ async fn filter_todos(ctx: &Context, event: Interaction<()>) -> ActionResult {
         "done" => Filter::Done,
         _ => return Err(error("Unknown filter")),
     };
-    if ctx.get::<OnDevice>().is_some() {
-        let store = todo_store(ctx)?;
-        let mut guard = store
-            .0
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        guard.filter = filter;
-        return page(ctx, &guard.snapshot());
-    }
-    set_filter(ctx, &filter);
+    let store = todo_store(ctx)?;
+    let mut guard = store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    guard.filter = filter;
+    replace(ctx, "#todo-filter", filters(&guard.filter))?;
+    guard.select_search();
+    guard.render_rows(ctx)
+}
+
+#[action(host)]
+async fn edit_draft(ctx: &Context, event: Interaction<()>) -> ActionResult {
+    let store = todo_store(ctx)?;
+    store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .draft = event.input_value;
     Ok(())
+}
+
+#[action(host)]
+async fn search_todos(ctx: &Context, event: Interaction<()>) -> ActionResult {
+    let store = todo_store(ctx)?;
+    let mut cache = store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    cache.query = event.input_value;
+    cache.select_search();
+    cache.render_rows(ctx)
+}
+
+impl StoreState {
+    fn select_search(&mut self) {
+        let query = self.query.trim().to_lowercase();
+        self.search_rows = (!query.is_empty()).then(|| {
+            self.items
+                .iter()
+                .filter(|item| item.text.to_lowercase().contains(&query))
+                .cloned()
+                .collect()
+        });
+    }
+    fn render_rows(&self, ctx: &Context) -> ActionResult {
+        let mut state = self.snapshot();
+        if let Some(rows) = &self.search_rows {
+            state.items.clone_from(rows);
+        }
+        replace(ctx, "#todo-list", list(&state))
+    }
 }
 
 fn todo_store(ctx: &Context) -> Result<Arc<TodoStore>, ErrorTrace<ActionError>> {
@@ -397,91 +459,299 @@ fn todo_store(ctx: &Context) -> Result<Arc<TodoStore>, ErrorTrace<ActionError>> 
         .ok_or_else(|| error("Missing todo store"))
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub(crate) enum RecordChange {
+    Upsert(Todo),
+    Remove(u64),
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) enum TodoDelivery {
+    Snapshot {
+        position: u64,
+        items: Vec<Todo>,
+        #[serde(default)]
+        retired_creations: Vec<String>,
+    },
+    Retired {
+        creation_id: String,
+    },
+    Committed {
+        position: u64,
+        change: RecordChange,
+    },
+    Added {
+        submitted_title: String,
+    },
+    Deleted {
+        id: u64,
+    },
+}
+
+impl TodoDelivery {
+    pub(crate) fn send(&self, ctx: &Context) -> ActionResult {
+        let bytes =
+            rmp_serde::to_vec_named(&("ewe.todo.v1", self)).map_err(|e| error(&e.to_string()))?;
+        ctx.receiver().data_in_view(bytes);
+        Ok(())
+    }
+}
+
+impl StoreState {
+    fn apply_change(&mut self, change: &RecordChange) {
+        match change {
+            RecordChange::Upsert(item) => {
+                self.last_id = self.last_id.max(item.id);
+                if let Some(row) = self.items.iter_mut().find(|row| row.id == item.id) {
+                    row.clone_from(item);
+                } else {
+                    self.items.push(item.clone());
+                }
+            }
+            RecordChange::Remove(id) => {
+                if let Some(index) = self.items.iter().position(|row| row.id == *id) {
+                    if let Some(creation_id) = self.items.remove(index).creation_id {
+                        self.retired_creations.insert(creation_id);
+                    }
+                }
+            }
+        }
+    }
+
+    fn ingest(&mut self, delivery: TodoDelivery) -> bool {
+        let before = self.position;
+        let snapshot = match delivery {
+            TodoDelivery::Retired { creation_id } => {
+                return self.retired_creations.insert(creation_id)
+            }
+            TodoDelivery::Snapshot {
+                position,
+                items,
+                retired_creations,
+            } if position >= self.position => {
+                self.retired_creations.extend(retired_creations);
+                self.items = items;
+                self.position = position;
+                self.deferred.retain(|seq, _| *seq > position);
+                true
+            }
+            TodoDelivery::Committed { position, change } if position > self.position => {
+                self.deferred.entry(position).or_insert(change);
+                false
+            }
+            _ => return false,
+        };
+        while let Some(next) = self.position.checked_add(1) {
+            let Some(change) = self.deferred.remove(&next) else {
+                break;
+            };
+            if let RecordChange::Remove(id) = &change {
+                self.removed.insert(*id, next);
+            }
+            self.apply_change(&change);
+            self.position = next;
+        }
+        snapshot || self.position != before
+    }
+}
+
+#[action(host)]
+async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Vec<u8>>) -> ActionResult {
+    // The view can also receive data for other applications.
+    if !event.input_value.starts_with(b"\x92\xabewe.todo.v1") {
+        return Ok(());
+    }
+    let (_, delivery): (String, TodoDelivery) =
+        rmp_serde::from_slice(&event.input_value).map_err(|e| error(&e.to_string()))?;
+    let store = todo_store(ctx)?;
+    let snapshot = matches!(delivery, TodoDelivery::Snapshot { .. });
+    let changed = {
+        let mut state = store
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        match &delivery {
+            TodoDelivery::Added { submitted_title } => {
+                if state.add_dialog && state.draft.trim() == submitted_title {
+                    state.add_dialog = false;
+                    state.draft.clear();
+                    dialog(ctx, &state.snapshot())?;
+                }
+                return Ok(());
+            }
+            TodoDelivery::Deleted { id } => {
+                if state.delete_target == Some(*id) {
+                    state.delete_target = None;
+                    dialog(ctx, &state.snapshot())?;
+                }
+                return Ok(());
+            }
+            _ => {}
+        }
+        state.ingest(delivery)
+    };
+    let reconciled = outbox::reconcile(ctx, snapshot).await?;
+    if changed || reconciled {
+        let state = store
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if state.search_rows.is_none() || snapshot || reconciled {
+            state.render_rows(ctx)?;
+        }
+        replace(
+            ctx,
+            "#open-count",
+            open_count(state.items.iter().filter(|r| !r.done).count()),
+        )?;
+        if snapshot {
+            if !state.query.is_empty() {
+                replace(ctx, "#todo-search", search_input(&state.query))?;
+            }
+            replace(ctx, "#todo-filter", filters(&state.filter))?;
+            if state.add_dialog || state.delete_target.is_some() {
+                dialog(ctx, &state.snapshot())?;
+            }
+        }
+    }
+    Ok(())
+}
+
 fn mutate(
     ctx: &Context,
-    change: impl FnOnce(&mut u64, &mut Vec<Todo>) -> ActionResult,
+    plan: impl FnOnce(&StoreState) -> Result<RecordChange, ErrorTrace<ActionError>>,
 ) -> ActionResult {
     let store = todo_store(ctx)?;
-    let mut guard = store
+    let mut state = store
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    let mut next = guard.clone();
-    change(&mut next.last_id, &mut next.items)?;
-    let state = next.snapshot();
-    #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    if let Some(channels) = ctx.get::<crate::server::TodoFeed>() {
-        dialog(ctx, &state)?;
-        channels
-            .publish(ctx.inner(), &state)
-            .map_err(|failure| error(&failure.to_string()))?;
-        *guard = next;
-        return Ok(());
+    let change = plan(&state)?;
+    if let RecordChange::Remove(id) = &change {
+        if let Some(&position) = state.removed.get(id) {
+            return TodoDelivery::Committed { position, change }.send(ctx);
+        }
     }
-    page(ctx, &state)?;
-    dialog(ctx, &state)?;
-    *guard = next;
-    Ok(())
+    commit(ctx, &mut state, change)?.send(ctx)
+}
+
+fn commit(
+    ctx: &Context,
+    state: &mut StoreState,
+    change: RecordChange,
+) -> Result<TodoDelivery, ErrorTrace<ActionError>> {
+    let position = state
+        .position
+        .checked_add(1)
+        .ok_or_else(|| error("Todo stream position exhausted"))?;
+    #[cfg(all(feature = "server", not(target_family = "wasm")))]
+    let position = match ctx.get::<crate::server::TodoFeed>() {
+        Some(feed) => feed
+            .publish(ctx.inner(), &change)
+            .map_err(|e| error(&e.to_string()))?,
+        None => position,
+    };
+    state.apply_change(&change);
+    if let RecordChange::Remove(id) = &change {
+        state.removed.insert(*id, position);
+    }
+    state.position = position;
+    Ok(TodoDelivery::Committed { position, change })
 }
 
 #[action(server)]
-async fn add_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    add(ctx, &event.input_value)
-}
-
-fn add(ctx: &Context, input: &str) -> ActionResult {
-    let title = input.trim();
+async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResult {
+    let input = event.input_value;
+    let title = input.title.trim();
     if title.is_empty() {
         return Err(error("Enter a todo title"));
     }
-    mutate(ctx, |last, items| {
-        *last = last
-            .checked_add(1)
-            .ok_or_else(|| error("No more todo identifiers"))?;
-        items.push(Todo {
-            id: *last,
-            text: title.to_owned(),
-            done: false,
-        });
-        Ok(())
-    })?;
-    if ctx.get::<OnDevice>().is_none() {
-        // MessagePack fixstr for the page notification.
-        ctx.receiver().data(PAGE_ROOT, b"\xabhost:notify".to_vec());
+    let store = todo_store(ctx)?;
+    let mut state = store
+        .0
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(receipt) = input
+        .creation_id
+        .as_ref()
+        .and_then(|id| state.creations.get(id))
+    {
+        if receipt.submitted_title != input.title {
+            return Err(error(
+                "The creation identifier already belongs to a different submission",
+            ));
+        }
+        let (position, change) = match state.removed.get(&receipt.item.id) {
+            Some(position) => {
+                TodoDelivery::Retired {
+                    creation_id: input
+                        .creation_id
+                        .clone()
+                        .expect("A creation receipt has an identifier"),
+                }
+                .send(ctx)?;
+                (*position, RecordChange::Remove(receipt.item.id))
+            }
+            None => (receipt.position, RecordChange::Upsert(receipt.item.clone())),
+        };
+        return TodoDelivery::Committed { position, change }.send(ctx);
     }
+    let id = state
+        .last_id
+        .checked_add(1)
+        .ok_or_else(|| error("No more todo identifiers"))?;
+    let item = Todo {
+        id,
+        creation_id: input.creation_id.clone(),
+        text: title.to_owned(),
+        done: false,
+    };
+    let delivery = commit(ctx, &mut state, RecordChange::Upsert(item.clone()))?;
+    if let Some(key) = input.creation_id {
+        let position = state.position;
+        state.creations.insert(
+            key,
+            CreationReceipt {
+                item,
+                position,
+                submitted_title: input.title.clone(),
+            },
+        );
+    }
+    delivery.send(ctx)?;
+    TodoDelivery::Added {
+        submitted_title: title.to_owned(),
+    }
+    .send(ctx)?;
+    ctx.receiver().data_in_view(b"\xabhost:notify".to_vec());
     Ok(())
 }
+
 #[action(server)]
 async fn toggle_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    toggle(ctx, &event.input_value)
-}
-
-fn toggle(ctx: &Context, input: &str) -> ActionResult {
-    let id = todo_id(input)?;
-    mutate(ctx, |_, items| {
-        let item = items
-            .iter_mut()
-            .find(|item| item.id == id)
+    let id = todo_id(&event.input_value)?;
+    mutate(ctx, |state| {
+        let mut item = state
+            .items
+            .iter()
+            .find(|row| row.id == id)
+            .cloned()
             .ok_or_else(|| error("Todo does not exist"))?;
         item.done = !item.done;
-        Ok(())
+        Ok(RecordChange::Upsert(item))
     })
-}
-#[action(server)]
-async fn confirm_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    delete(ctx, &event.input_value)
 }
 
-fn delete(ctx: &Context, input: &str) -> ActionResult {
-    let id = todo_id(input)?;
-    mutate(ctx, |_, items| {
-        let index = items
-            .iter()
-            .position(|item| item.id == id)
-            .ok_or_else(|| error("already deleted"))?;
-        items.remove(index);
-        Ok(())
-    })
+#[action(server)]
+async fn confirm_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
+    let id = todo_id(&event.input_value)?;
+    mutate(ctx, |state| {
+        if !state.removed.contains_key(&id) && !state.items.iter().any(|row| row.id == id) {
+            return Err(error("Todo does not exist"));
+        }
+        Ok(RecordChange::Remove(id))
+    })?;
+    TodoDelivery::Deleted { id }.send(ctx)
 }
 
 fn todo_id(input: &str) -> Result<u64, ErrorTrace<ActionError>> {
@@ -489,88 +759,61 @@ fn todo_id(input: &str) -> Result<u64, ErrorTrace<ActionError>> {
 }
 
 #[action(host, mobile)]
-async fn add_local_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    add(ctx, &event.input_value)
-}
-
-#[action(host, mobile)]
-async fn toggle_local_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    toggle(ctx, &event.input_value)
-}
-
-#[action(host, mobile)]
-async fn confirm_local_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    delete(ctx, &event.input_value)
-}
-
-#[action(host, mobile)]
 async fn initialize_todos(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    use foundation_ui_wire::{CreateNodeT, NodeKind, OperationT, UiOperationT};
-
-    let out = ctx.receiver();
-    for root in [PAGE_ROOT, DIALOG_ROOT] {
-        let mut create = CreateNodeT::default();
-        create.node_id = root;
-        create.kind = NodeKind::STACK;
-        let mut op = OperationT::default();
-        op.ui = UiOperationT::CreateNode(Box::new(create));
-        out.render_op(op);
-        out.render_op(foundation_ui_wire::ops::append_child(1, root));
-    }
+    outbox::restore(ctx).await?;
     app(ctx, &todo_store(ctx)?.snapshot())
 }
 
-/// Installs the on-device store and returns its action registry.
-///
-/// # Errors
-/// Returns an invalid or duplicate action declaration.
-pub fn local_registry(ctx: &Ctx) -> Result<ActionRegistry, RegistrationError> {
-    let mut actions = host_registry()?;
-    actions.register(initialize_todos)?;
-    actions.register(add_local_todo)?;
-    actions.register(toggle_local_todo)?;
-    actions.register(confirm_local_delete)?;
+/// Install the local display cache.
+pub fn install_cache(ctx: &Ctx) {
     ctx.store(TodoStore::default());
-    ctx.store(OnDevice);
-    Ok(actions)
+    install_pending_storage(ctx, Arc::new(outbox::MemoryStorage::default()));
 }
 
-/// Builds the server action registry.
-///
-/// # Errors
-/// Returns an invalid or duplicate action declaration.
-pub fn server_registry() -> Result<ActionRegistry, RegistrationError> {
-    let mut actions = ActionRegistry::new();
-    actions.register(refresh_count)?;
-    actions.register(add_todo)?;
-    actions.register(toggle_todo)?;
-    actions.register(confirm_delete)?;
-    Ok(actions)
+fn action_registry(
+    owner: foundation_ui_runtime::action::Origin,
+) -> Result<ActionRegistry, RegistrationError> {
+    let mut registry = ActionRegistry::new();
+    registry.register_for(owner, initialize_todos)?;
+    registry.register_for(owner, open_add_dialog)?;
+    registry.register_for(owner, open_delete_dialog)?;
+    registry.register_for(owner, close_dialog)?;
+    registry.register_for(owner, filter_todos)?;
+    registry.register_for(owner, search_todos)?;
+    registry.register_for(owner, edit_draft)?;
+    registry.register_for(owner, apply_todo_delivery)?;
+    registry.register_for(owner, outbox::prepare_todo_request)?;
+    registry.register_for(owner, outbox::uncertain_todo_request)?;
+    registry.register_for(owner, notify)?;
+    registry.register_for(owner, refresh_count)?;
+    registry.register_for_with_input(owner, add_todo, decode_add)?;
+    registry.register_for(owner, toggle_todo)?;
+    registry.register_for(owner, confirm_delete)?;
+    Ok(registry)
 }
-/// Builds the browser or native host action registry.
+
+/// Build this application's server endpoint.
 ///
 /// # Errors
-/// Returns an invalid or duplicate action declaration.
+/// Reports conflicting declarations.
+pub fn server_registry() -> Result<ActionRegistry, RegistrationError> {
+    action_registry(foundation_ui_runtime::action::Origin::Server)
+}
+
+/// Build this application's display endpoint.
+///
+/// # Errors
+/// Reports conflicting declarations.
 pub fn host_registry() -> Result<ActionRegistry, RegistrationError> {
-    let mut actions = ActionRegistry::new();
-    actions.register(open_add_dialog)?;
-    actions.register(open_delete_dialog)?;
-    actions.register(close_dialog)?;
-    actions.register(filter_todos)?;
-    actions.register(notify)?;
-    Ok(actions)
+    action_registry(foundation_ui_runtime::action::Origin::Host)
 }
 
 /// Mobile hosts render the same notification through a shared action.
 #[action(host, mobile)]
 async fn notify(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    let destination =
-        Context::for_action(ctx.inner().clone(), ctx.surface(), Some(NOTIFICATION_ROOT));
-    render(
-        &destination,
-        ctx.receiver(),
-        html! { <Text>Todo added</Text> },
-        None::<&()>,
-    )?;
-    Ok(())
+    replace(
+        ctx,
+        "#notification",
+        html! { <Text id="notification">Todo added</Text> },
+    )
 }

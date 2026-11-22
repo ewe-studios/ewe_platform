@@ -32,12 +32,18 @@ pub fn foundation_core_path() -> proc_macro2::TokenStream {
 }
 
 pub fn foundation_ui_traits_path() -> proc_macro2::TokenStream {
-    if crate_name("foundation_ui_traits").is_err() && crate_name("foundation_ui_runtime").is_ok() {
-        let runtime = foundation_ui_runtime_path();
-        quote!(#runtime::view::template_types)
-    } else {
-        resolve_crate("foundation_ui_traits")
+    if crate_name("foundation_ui_traits").is_ok() {
+        return resolve_crate("foundation_ui_traits");
     }
+    if crate_name("foundation_ui_runtime").is_ok() {
+        let runtime = foundation_ui_runtime_path();
+        return quote!(#runtime::view::template_types);
+    }
+    if crate_name("foundation_wasm_ui").is_ok() {
+        let browser = foundation_wasm_ui_path();
+        return quote!(#browser::template_types);
+    }
+    resolve_crate("foundation_ui_traits")
 }
 
 pub fn foundation_wasm_ui_path() -> proc_macro2::TokenStream {

@@ -3,7 +3,7 @@ description: "Run repository and package tasks through a shared Rust command run
 status: approved
 approved: 2026-11-22
 created: 2026-11-22
-has_features: false
+has_features: true
 has_fundamentals: false
 related_specs: ["69-foundation-ui-v2", "84-context-injection"]
 tasks:
@@ -45,7 +45,7 @@ A package executable can register the same set and supply its own services.
 A release engineer can prepare, verify, and publish a candidate with separate commands.
 A failed child command identifies the task and preserves its exit status.
 
-The first script migration covers the native UI scripts. The same runner serves scripts throughout the repository.
+The first migration covers native tasks. The revised completion criteria cover all repository build and deployment operations.
 This specification defines one implementation plan. Review the command contract and migration stages together.
 
 ## Existing code
@@ -408,11 +408,17 @@ A task invocation dispatches one selected task and waits for its owned resources
 
 ## Repository migration
 
+[Feature 2](features/02-install-build-hooks/feature.md) proposes a reusable task that installs Cargo build hooks.
+
+[Feature 1](features/01-shared-javascript-build/feature.md) defines the reusable JavaScript build helper and its two callers.
+
+The [task ownership plan](migration.md) specifies the remaining work and acceptance checks.
+
 1. Inventory callers in scripts, mise tasks, package scripts, documentation, and CI workflows.
 2. Give each operation a package owner, task name, typed arguments, output contract, and platform requirements.
 3. Port native UI operations first. Use Rust for orchestration and keep external tools for their specialized operations.
 4. Compare the old and new entry points against the same temporary workspace and candidate inputs.
-5. Switch existing callers after equivalent results. Keep compatibility launchers during the transition.
+5. Switch every caller after equivalent results. Remove the old orchestration scripts in the same migration.
 6. Apply the same procedure to the remaining repository scripts. Record each caller before retiring its launcher.
 
 | Current inputs | Proposed task names in `native` | Behavior to preserve |

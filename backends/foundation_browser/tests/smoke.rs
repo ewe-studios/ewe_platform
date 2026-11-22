@@ -576,17 +576,26 @@ fn ewf1_stream_updates_the_browser() {
 /// Compare local and streamed delivery of the same Rust frame.
 #[test]
 fn wasm_and_sse_render_the_same_button() {
+    compare_runtime_frame("foundation-ui-runtime.js");
+}
+
+#[test]
+fn compact_runtime_renders_the_same_button() {
+    compare_runtime_frame("foundation-ui-runtime.min.js");
+}
+
+fn compare_runtime_frame(runtime: &str) {
     let backends = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap();
     let harness = Harness::setup(TestConfig {
-        html: include_str!("fixtures/wire-parity.html").into(),
+        html: include_str!("fixtures/wire-parity.html").replace("foundation-ui-runtime.js", runtime),
         static_dir: Some(backends.into()),
         static_mount: "/foundation_wasm_ui".into(),
         ..TestConfig::default()
     })
     .unwrap();
-    harness.run("wasm_and_sse_render_the_same_button", |server, page| {
+    harness.run(runtime, |server, page| {
         page.locator("#result").expect().to_have_text("ready")?;
         let bytes: Vec<u8> = serde_json::from_value(page.eval("window.parityBytes")?).unwrap();
         assert_eq!(bytes.get(4..8), Some(&b"EWF1"[..]));

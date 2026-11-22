@@ -1,10 +1,8 @@
 //! Build the native todo core with the same host actions and views as the browser.
+#[path = "mobile_pending.rs"]
+mod pending;
 use foundation_context::Ctx;
 use foundation_ui_native::{CoreError, EventInput, HostTransport, NativeCore, NativePlatform};
-use foundation_ui_runtime::{
-    action::{Origin, Scope},
-    dispatch::RenderTarget,
-};
 use std::sync::Arc;
 
 /// Returns the optional native theme from the shared Rust application.
@@ -22,20 +20,53 @@ pub fn create_todo_core(
     platform: NativePlatform,
     transport: Arc<dyn HostTransport>,
 ) -> Result<Arc<NativeCore>, CoreError> {
+    remote_core(platform, transport, None)
+}
+
+/// Open a remote Todo screen with pending submissions in the application's private file.
+///
+/// # Errors
+/// Returns an error if the host cannot install its services.
+#[uniffi::export]
+pub fn create_persistent_todo_core(
+    platform: NativePlatform,
+    transport: Arc<dyn HostTransport>,
+    storage_file: String,
+) -> Result<Arc<NativeCore>, CoreError> {
+    remote_core(
+        platform,
+        transport,
+        Some(std::path::PathBuf::from(storage_file)),
+    )
+}
+
+fn remote_core(
+    platform: NativePlatform,
+    transport: Arc<dyn HostTransport>,
+    path: Option<std::path::PathBuf>,
+) -> Result<Arc<NativeCore>, CoreError> {
     let ctx = todo_context()?;
-    let mut registry = crate::host_registry().map_err(|e| CoreError::BadReference {
+    if let Some(path) = path {
+        crate::install_pending_storage(&ctx, Arc::new(pending::FileStorage(path)));
+    }
+    let registry = crate::host_registry().map_err(|e| CoreError::BadReference {
         detail: e.to_string(),
     })?;
-    for name in ["add_todo", "toggle_todo", "confirm_delete"] {
-        registry
-            .declare(Some(Origin::Server), name, Scope::All)
-            .map_err(|e| CoreError::BadReference {
-                detail: e.to_string(),
-            })?;
-    }
-    Ok(NativeCore::builder(platform, ctx, registry)
-        .with_host_transport(transport)
-        .build())
+    let sender = Arc::new(pending::Sender {
+        ctx: ctx.clone(),
+        transport,
+        core: Default::default(),
+    });
+    let core = NativeCore::builder(platform, ctx, registry)
+        .with_host_transport(sender.clone())
+        .build();
+    sender
+        .core
+        .set(Arc::downgrade(&core))
+        .map_err(|_| CoreError::Write {
+            detail: "Duplicate Todo sender".into(),
+        })?;
+    Ok(core)
 }
 
 /// Creates an on-device core and its task store.
@@ -45,7 +76,7 @@ pub fn create_todo_core(
 #[uniffi::export]
 pub fn create_local_todo_core(platform: NativePlatform) -> Result<Arc<NativeCore>, CoreError> {
     let ctx = todo_context()?;
-    let registry = crate::local_registry(&ctx).map_err(|e| CoreError::BadReference {
+    let registry = crate::host_registry().map_err(|e| CoreError::BadReference {
         detail: e.to_string(),
     })?;
     Ok(NativeCore::builder(platform, ctx, registry).build())
@@ -57,29 +88,28 @@ pub fn create_local_todo_core(platform: NativePlatform) -> Result<Arc<NativeCore
 /// Returns an error if the core cannot render the first frame.
 #[uniffi::export]
 pub async fn initial_todo_frame(core: Arc<NativeCore>) -> Result<Vec<u8>, CoreError> {
-    core.trigger(
-        "host:initialize_todos".into(),
-        EventInput {
-            node_id: crate::PAGE_ROOT,
-            event_name: String::new(),
-            value: String::new(),
-            checked: false,
-            parent_node: 0,
-            state: Vec::new(),
-        },
-    )
-    .await?
-    .ok_or_else(|| CoreError::Write {
-        detail: "Missing initial todo frame".into(),
-    })
+    core.trigger("host:initialize_todos".into(), EventInput::receiving_view())
+        .await?
+        .ok_or_else(|| CoreError::Write {
+            detail: "Missing initial todo frame".into(),
+        })
 }
 
 fn todo_context() -> Result<Ctx, CoreError> {
-    let ctx = Ctx::host();
-    crate::install_view_services(&ctx, 1 << 31, u32::MAX).map_err(|e| CoreError::Write {
+    let ctx = Ctx::try_host().map_err(|e| CoreError::Write {
         detail: e.to_string(),
     })?;
-    ctx.store(RenderTarget(crate::PAGE_ROOT));
+    ctx.store(
+        foundation_core::env::system(&ctx).map_err(|e| CoreError::Write {
+            detail: e.to_string(),
+        })?,
+    );
+    crate::install_cache(&ctx);
+    crate::install_view_services(&ctx, foundation_ui_runtime::action::Origin::Host).map_err(
+        |e| CoreError::Write {
+            detail: e.to_string(),
+        },
+    )?;
     Ok(ctx)
 }
 

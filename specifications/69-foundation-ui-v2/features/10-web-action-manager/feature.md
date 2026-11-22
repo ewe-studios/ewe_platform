@@ -593,9 +593,7 @@ with `scope.action("notify", …)` and a mobile form compiled into the native co
 the reference `host:notify`.
 
 **The web-only page script.** One page script, `scroll_to_top`, has scope `web`. Only the web
-template binds it, with `on:tap="host:scroll_to_top"` on the list header. The example has
-`app()` (the shared tree) and `web_app()` (the same tree with that one binding). The web
-server renders `web_app()`; the native examples render `app()`.
+template binds it, with `on:tap="host:scroll_to_top"` on the list header. Feature 32 supersedes the original browser wrapper. The shared Todo renderer has one entry point.
 
 **The tree.** The list behind an open dialog does not scroll: both dialogs carry the `DIALOG`
 behaviour and the list carries `SCROLL_LOCK` (feature 16). The open count sits inside a

@@ -447,3 +447,18 @@ Use one transaction or lock for a state change and its stream publication.
 When the initial handler runs, read the owned state and its committed cursor under the same lock.
 Release the lock before rendering the state. Set `data-resume-from` on the corresponding replayable `mount-stream`.
 A client can then install this snapshot and request only the updates that follow its cursor.
+
+### Build roles for actions
+
+The runtime selects action bodies for each output. Each output keeps every declaration for shared markup and registration.
+The browser and mobile roles compile their own host handlers. The server role compiles server handlers for all allowed callers.
+The registry checks the caller surface before it dispatches a request.
+
+Select roles with the runtime Cargo features `action-browser`, `action-mobile`, and `action-server`.
+Explicit features combine and override automatic target selection.
+With no explicit role, WebAssembly selects browser. Android and iOS select mobile.
+Other native targets select all roles for local development.
+Desktop binding generation uses the mobile role. A production server build uses the server role.
+
+Place platform imports inside the annotated function. Enable platform libraries with the same Cargo features that select the artifact.
+Use one registration list on every output. Both `register` and `register_for` accept declarations whose implementations belong to another role.

@@ -4,6 +4,19 @@ import Foundation
 public enum ViewTargetError: Error { case invalidName, duplicateName, duplicateView, missingView }
 
 @MainActor extension NodeStore {
+  /// Register a named view. The store allocates its root.
+  @discardableResult public func registerView(_ name: String) throws -> NodeStore {
+    var root: UInt32 = 1
+    if viewRoots.values.contains(root) {
+      repeat {
+        guard root < UInt32.max else { throw ViewTargetError.missingView }
+        root += 1
+      } while records[root] != nil || viewRoots.values.contains(root)
+    }
+    try registerView(name, root: root)
+    return childStores[root] ?? self
+  }
+
   /// Register a view with its own node identifiers and stream positions.
   public func registerView(_ name: String, root: UInt32) throws {
     guard Self.validName(name), root != 0 else { throw ViewTargetError.invalidName }

@@ -1,6 +1,6 @@
 use super::{
     output::{artifact, query},
-    run_tool_at, NativeBuildEnv,
+    NativeBuildEnv,
 };
 use clap::Args;
 use foundation_tasks::{TaskContext, TaskError, TaskResult};
@@ -118,13 +118,8 @@ pub(super) async fn build_at(ctx: &TaskContext, root: &Path, out: &Path) -> Task
             .arg(layout.join("EweCoreFFI.xcframework")),
     )
     .await?;
-    run_tool_at(
-        ctx,
-        root,
-        "archive_ios.py",
-        [layout.clone().into_os_string()],
-    )
-    .await?;
+    let archive_layout = layout.clone();
+    blocking::unblock(move || super::archive::apple(&archive_layout)).await?;
     let (archive, target) = (
         layout.join("EweCoreFFI.xcframework.zip"),
         out.join("EweCoreFFI.xcframework.zip"),

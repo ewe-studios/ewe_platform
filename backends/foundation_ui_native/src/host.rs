@@ -14,6 +14,21 @@ pub struct EventInput {
     pub state: Vec<u8>,
 }
 
+impl EventInput {
+    /// Start a host action in the receiving view without a triggering element.
+    #[must_use]
+    pub fn receiving_view() -> Self {
+        Self {
+            node_id: 0,
+            event_name: String::new(),
+            value: String::new(),
+            checked: false,
+            parent_node: 0,
+            state: Vec::new(),
+        }
+    }
+}
+
 impl From<EventInput> for TriggerEvent {
     fn from(event: EventInput) -> Self {
         let mut input = ActionInputT::default();

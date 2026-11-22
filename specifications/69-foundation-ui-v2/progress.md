@@ -1,54 +1,18 @@
 # Spec 69 progress
 
-## Resume after the external drive copy
+## Resume work on the external drive
 
-Use `69-foundation-ui-v2` for Specification 69. Commit `b0215cfcf` contains the todo sync repair.
-Commit `1641f0aa0` records the separate Specification 79 edit.
+Use the project root at `/Volumes/Outside/Dev/ewe_platform`.
+Keep each active checkout under its `.worktrees` directory.
 
-### Relaunch the three agents when implementation resumes
-
-The session owner starts three agents in parallel. Give each agent one brief below.
-Use the external repository at `/Volumes/Outside/Dev/ewe_platform`.
-Fetch the remote branches before creating fresh worktrees outside the copied repository.
-Create each worktree on a new local branch from its specified remote branch.
-Check that `git rev-parse --path-format=absolute --git-common-dir` points to the external drive.
-The copied worktrees still contain absolute Git links to the internal drive.
-
-**Specification 90 — task runner.** Start from `origin/90-foundation-tasks`. The last agent checkpoint is `622c8b71b`.
-Read `specifications/90-foundation-tasks/requirements.md` and its progress file on that branch.
-Replace the remaining Tokio calls in `backends/foundation_tasks/tests/process.rs`.
-Use Valtron for background work. Check concurrent pipe reads, private input, bounded output, cancellation, and child cleanup.
-Run `cargo test -p foundation_tasks --profile uat` first.
-Then test the native task feature, both platform executables, and installation through Cargo.
-Record which checks run on macOS, Linux, and Windows. The earlier passing runs predate the runtime change.
-
-**Specification 69 — todo synchronization.** Start from `origin/69-foundation-ui-v2`. The sync repair is in `b0215cfcf`.
-Use one isolated server for Chrome, iPhone, and Android. Use Android to add, complete, reopen, and delete a todo.
-Verify the actual row on both peers after each action. Check that neither peer needs manual reconnection.
-The earlier run covers the other four directions and automatic replay on all three clients.
-Record the remaining results in issues #693 and #698.
-
-**Specification 69 — graphics worker shutdown.** Start from `origin/fix/696-gpu-worker-shutdown`. The last agent checkpoint is `35939b13e`.
-Read issue #696 and the branch progress notes. Confirm that shutdown waits for the worker to release its graphics resources.
-The fix passes three Linux AMD64 runs at default concurrency. Three hardware tests remain outside those results.
-Run the graphics tests on native 64-bit Arm Linux. Finish the pending Clippy and Linux crate checks.
-Report test counts, skipped hardware tests, and any unavailable platforms.
-
-**Integration.** Each agent reports its branch, commit, test results, and open issues.
-The session owner reviews the three reports and integrates the verified changes into `69-foundation-ui-v2`.
-Then fetch and merge the latest master. Run the affected tests again.
-Branch `checkpoint/69-master-preview` at `dc3776fa` contains an unverified trial merge. It predates the sync and task checkpoints.
-
-### External worktrees for the resumed session
-
-All three worktrees use `/Volumes/Outside/Dev/ewe_platform/.git` for shared Git data.
-Each worktree starts at the remote commit in this table.
-
-| Assignment | Directory under `/Volumes/Outside/Dev` | Local branch | Starting commit |
+| Agent | Worktree | Branch | Assignment |
 | --- | --- | --- | --- |
-| Task runner | `ewe-resume-tasks` | `resume/90-tasks` | `622c8b71b` |
-| Android todo changes | `ewe-resume-todo` | `resume/69-todo` | `bef8c6c47` |
-| Graphics worker shutdown | `ewe-resume-graphics` | `resume/69-graphics` | `35939b13e` |
+| Tasks | `.worktrees/combined` | `resume/combined` | Continue the Specification 90 build tasks and bundle generator. |
+| Todo | `.worktrees/combined` | `resume/combined` | Continue the native release task migration. |
+| Graphics | `.worktrees/mathalley` | `work/69-mathalley` | Implement Specification 69 feature 36. |
+
+Use the feature progress files to select the next check.
+The combined branch includes the checkpoints from both retired worktrees.
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -235,7 +199,9 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
     JavaScript runtime tests), #548 (the `Broadcaster` backlog has no limit), #549
     (`chacha::encrypt` takes its nonce from the global entropy source).
 
-## Features
+## Historical feature checkpoint
+
+The following table records an earlier stage. See the [completion audit](completion-audit.md) for current status.
 
 Seven of 19 features are complete. Feature 07 is implemented. Its repository clock check remains open under [issue 594](https://github.com/ewe-studios/ewe_platform/issues/594).
 
@@ -845,7 +811,7 @@ The second view retained its count after the first closed. Columnar and table pl
 The browser suite passed 153 tests and skipped one. The iPhone simulator passed 24 tests.
 Android passed its core tests and built the Compose library. Rust passed 79 runtime tests and 100 wire tests.
 Rust also passed 11 runtime documentation tests and ignored two examples.
-Feature 32 is complete. Feature 33 is in progress.
+The first Feature 32 stages cover framework placement and the count. The Todo target migration remains open.
 
 
 ### Feature 33. Recover a receiving view
@@ -1020,7 +986,7 @@ macOS passes eight default integration tests and one documentation test. It skip
 
 ## Todo target audit
 
-Feature 32 migrates the live count. The remaining Todo target migration awaits approval under issue #714.
+Feature 32 migrates the live count. The Todo agent owns the remaining target migration under issue #714.
 
 The revised Feature 32 plan assigns mutations to the server. Host actions own dialogs, cached search, filters, and game navigation. The revision awaits approval.
 
@@ -1046,3 +1012,50 @@ One local action renders the full Todo page rows and count from the same store r
 
 The project Linux image runs the graphics test binary from commit `776b98b6c` with `--include-ignored`.
 Mesa supplies the software Vulkan adapter. All ten tests pass at default concurrency. No tests skip.
+
+## Todo target migration status
+
+Twelve application constants still assign numeric targets from 40 through 51.
+The Todo agent owns removal from shared rendering, actions, and host startup.
+Issue #714 stays open until the migration passes renderer checks.
+
+## Specification 69 completion review
+
+The [completion audit](completion-audit.md) covers every assigned feature number.
+The audit separates current checks, earlier platform runs, and pending work.
+The shared Todo renderer now has one entry point. Feature 10 no longer directs callers to the retired browser wrapper.
+
+### Feature 17 Android tool version check
+
+Issue #720 fixes the repository check for Android tool versions. The workflow checks the wrapper and catalog in `mobile/android`.
+The current Gradle and Kotlin versions pass. Missing files and mismatched versions fail the check.
+
+Feature 06 proposes compiler selection for action bodies. The current macro already provides runtime scope selection.
+The owner approves the extension. The Todo agent owns the compiler changes and external consumer checks.
+
+### 2026-11-22. Todo target migration and action output roles
+
+The combined worktree has one Todo registration list and one dialog declaration for each intent.
+The shared page uses named targets for the list, filter, count, dialog, search, and notification.
+A committed change carries data to the receiving view. The host applies it to the local cache in order.
+The Android core passes 18 tests, including named-view allocation. Compose compilation passes.
+The iPhone simulator passes 29 tests and a separate named-view allocation test.
+The macOS Swift suite passes 24 tests with the local task-enabled library and zlib.
+The JavaScript suite passes 158 tests and skips one test.
+The browser bundle check passes in Chrome for the readable and compact files.
+The action macro keeps metadata on each output. The runtime selects browser, mobile, and server implementations independently.
+All four external dependency graphs select the expected platform libraries. Each release artifact contains only its eligible handler markers.
+The native server and combined builds each pass two dispatch tests. Chrome sends `server:add_todo` from the browser-only build.
+The application uses one registration list. The browser release of Todo builds with local pending storage.
+The server keeps the original position for a repeated deletion.
+Pending Todo checks include durable retries, restart recovery, and the updated three-host run.
+Issue #714 stays open.
+
+Feature 27 proposes build-time staging beside the executable and one server constructor.
+The revision moves the seeded data service to test support. It awaits approval.
+
+The Feature 27 proposal now uses one asset declaration for development disk reads and embedded release files.
+
+The browser test build found a public macro dependency failure in issue #723.
+The browser package now exports its template types. The macro uses that export when the caller imports the browser package alone.
+The compiled Chrome fixture passes for both runtime bundles after the fix.

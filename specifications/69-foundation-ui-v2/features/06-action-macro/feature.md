@@ -398,3 +398,74 @@ _Completed: 2026-11-21._
 
 Cargo reports existing workspace dependency warnings tracked in [issue 596](https://github.com/ewe-studios/ewe_platform/issues/596).
 The isolated compiler-test workspaces also report unused workspace patches.
+
+## Proposed extension. Select action implementations at build time
+
+An output role identifies the code that an artifact can execute.
+The framework build task selects the supported roles for each artifact.
+A development artifact can support several roles.
+The compiler target alone cannot distinguish a native server from a native client.
+
+Application authors declare each action once. They use the same action name in markup and registration on every output.
+They do not add Cargo feature conditions to action functions, registration calls, or markup.
+The generated declaration keeps the name, input contract, origin, and caller scope.
+Generate the callable adapter and function body only when the output can execute the action.
+The registry uses the declaration directly when the output excludes the implementation.
+Keep the existing duplicate and overlap checks.
+
+| Declaration | Outputs that compile the handler |
+|---|---|
+| `#[action(host, web)]` | Outputs with a browser host |
+| `#[action(host, mobile)]` | Outputs with a mobile host, including desktop binding generation when requested |
+| `#[action(server, web)]` | Server outputs. Only web callers qualify at dispatch. |
+| `#[action(server, mobile)]` | Server outputs. Only mobile callers qualify at dispatch. |
+| `#[action(host)]` | All host outputs |
+| `#[action(server)]` | Server outputs |
+| `#[action]` | Preserve existing unrestricted routing for the roles the output supports. |
+
+The framework supplies role selection to macro expansion in the consuming crate.
+Keep ordinary Cargo builds and multi-role tests working. Document the default for each supported build entry point.
+Keep platform-specific imports inside their gated implementation. Cargo must select platform-specific dependencies before macro expansion.
+Inventory the template and registration macros that reference action values. Each must work with a declaration alone.
+
+```mermaid
+flowchart LR
+    A[Action declaration] --> D[Descriptor on each output]
+    R[Output roles] --> G[Generated compiler condition]
+    G --> H[Handler on eligible outputs]
+    D --> L[Shared registration list]
+    H --> L
+```
+
+The same registration list accepts a declaration or an available handler.
+
+1. Build an external consumer for browser, mobile, server, and combined roles with one registration list.
+2. Put a target-specific symbol inside each restricted handler. Compile each output without the other platform symbols.
+3. Inspect the release dependency graph and artifacts for excluded implementations and platform libraries.
+4. Call a native server handler from its allowed browser scope. Reject a mobile caller before execution.
+5. Exercise same-name handlers with disjoint scopes, plain actions, and existing runtime registration tests.
+
+The owner approves this extension. The Todo agent owns implementation and verification.
+
+### Implementation and verification on 2026-11-22
+
+The runtime build script selects the output roles. Explicit role features combine.
+The action macro sends the method item to a runtime macro. An ineligible output discards the complete method.
+The generated descriptor keeps its input type, state type, name, origin, and caller scope.
+The registration list accepts this descriptor through `register` or `register_for`.
+The HTML macros use the descriptor when they build an event binding.
+
+The external consumer is in `backends/foundation_ui_runtime/tests/fixtures/renamed_action`.
+Its web and mobile host actions share the name `focus`. Its server action `add_todo` accepts web callers.
+Each restricted body uses an optional library that supplies a distinct byte marker.
+
+| Release output | Target | Marker and dependency checks |
+|---|---|---|
+| Browser | `wasm32-unknown-unknown` | Only the browser library is present. |
+| Mobile | `aarch64-apple-ios-sim` | Only the mobile library is present. |
+| Server | `aarch64-apple-darwin` | Only the server library is present. |
+| Combined | `aarch64-apple-darwin` | All three libraries are present. |
+
+Chrome loads the browser module and sends `server:add_todo` through the registered server transport.
+The native server executes the web caller's handler. It rejects a mobile caller before execution.
+Both the server and combined test runs pass two tests.

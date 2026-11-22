@@ -88,3 +88,42 @@ fn task_errors_preserve_the_message_and_cause() {
     assert_eq!(operation.to_string(), "closed output");
     assert_eq!(operation.source().unwrap().to_string(), "closed output");
 }
+
+#[test]
+fn host_dispatch_installs_the_timer() {
+    const CHILD: &str = "EWE_TASKS_HOST_TIMER_TEST";
+    if std::env::var_os(CHILD).is_none() {
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", "runner::host_dispatch_installs_the_timer"])
+            .env(CHILD, "1")
+            .status()
+            .unwrap();
+        assert!(status.success());
+        return;
+    }
+    let exit = foundation_tasks::run_entry("fixture", |host| {
+        Box::pin(async move {
+            let mut tasks = TaskSet::new("fixture");
+            tasks.add("wait", "Wait for a timer", |ctx, _: Values| async move {
+                let services = ctx
+                    .context()
+                    .require_env()
+                    .map_err(foundation_tasks::TaskError::operation)?;
+                let deadline = ctx.context().clock().now() + std::time::Duration::from_millis(1);
+                services
+                    .timer()
+                    .sleep_until(ctx.context().clone(), deadline)
+                    .await;
+                Ok(())
+            })?;
+            let args = ["fixture", "task", "run", "wait", "--name", "timer"]
+                .into_iter()
+                .map(Into::into)
+                .collect();
+            let mut runner = TaskRunner::new(host.context().clone(), args);
+            runner.register(tasks)?;
+            runner.run().await
+        })
+    });
+    assert_eq!(exit, std::process::ExitCode::SUCCESS);
+}

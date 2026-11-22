@@ -13,8 +13,8 @@ Run these commands from the repository root. The applications build independentl
 
 ```sh
 mise run toolchain:android
-scripts/ui_native/sync-android.sh
-scripts/ui_native/build-android.sh --with-todo
+native-task task run native:bindings:sync-android
+native-task task run native:build-android --with-todo
 repo="$PWD/target/native-ui/maven"
 mise exec -- mobile/android/gradlew -p mobile/android publishToMavenLocal "-Dmaven.repo.local=$repo"
 for app in todo_server todo_on_device; do
@@ -31,7 +31,7 @@ The native build copies the application library to each app. Both apps compile t
 The device test installs both apps on one emulator. It starts the local app before it starts a fresh Rust server.
 
 ```sh
-mise exec -- scripts/ui_native/test-android-todo.sh --maven "$repo"
+mise exec -- native-task task run native:todo:test-android --maven "$repo"
 ```
 
 Set `EWE_ANDROID_SERIAL` to reuse an existing emulator. Otherwise the script starts and stops a private emulator.

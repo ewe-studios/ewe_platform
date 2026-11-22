@@ -906,3 +906,30 @@ The native screens use `/initial` and `/action` without loading the browser modu
 
 The default Cargo test command skips three compute adapter tests because they carry the Rust ignore attribute.
 The Linux AMD64 image includes a software Vulkan adapter that runs these tests.
+
+## External worktree paths
+
+A copied worktree can retain Git links to its original drive.
+Check the shared Git directory and each submodule after a move.
+
+The live count verifies named replacement for one element. It does not verify target selection for dialogs, lists, or host startup.
+
+A successful version check can hide a moved package when the checker permits missing input. Test missing input explicitly.
+
+### Android tool versions after the package move
+
+The old drift check treated its former default directory as optional. The Android package now lives in `mobile/android`.
+Check the real package and exercise missing files in a temporary directory.
+
+A native server can execute a browser-scoped server action. Handler compilation requires the output role as well as the caller scope.
+
+### 2026-11-22. Receiving views and action builds
+
+Capture the receiving view before an event handler awaits its transport. A reply can remove the original control.
+A snapshot can carry cache data after its full-view instruction. All three renderers must accept that message order.
+A server action's scope selects callers. A web-scoped server action still needs its handler in a native server.
+Cargo selects optional platform dependencies before macro expansion. The runtime supplies role macros to the consumer.
+An excluded body can then refer to an absent platform library. Shared markup still refers to its declaration.
+
+The browser smoke tests use the public browser macro without a direct template types dependency.
+A macro must resolve generated paths through the package that the caller imports. Issue #723 records this case.

@@ -6,6 +6,18 @@ import XCTest
 @testable import EweUI
 
 final class ConformanceTests: XCTestCase {
+  @MainActor func testNamedViewsAllocateSeparateMounts() throws {
+    let store = NodeStore()
+    let main = try store.registerView("todos")
+    let game = try store.registerView("game")
+    XCTAssertTrue(main === store)
+    XCTAssertFalse(main === game)
+    XCTAssertTrue(game === store.viewStore(named: "game"))
+    XCTAssertThrowsError(try store.registerView("game"))
+    try store.unregisterView("game")
+    XCTAssertTrue(main === store.viewStore(named: "todos"))
+  }
+
   @MainActor func testPortableTargets() throws {
     struct Step: Decodable { let bytes: [UInt8]; let mount: UInt32?; let error: String?; let `case`: String }
     let url = try XCTUnwrap(Bundle.module.url(forResource: "portable_targets", withExtension: "json", subdirectory: "Fixtures"))

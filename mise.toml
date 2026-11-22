@@ -144,7 +144,7 @@ run = ["bash scripts/toolchain/check.sh --scope apple", "bash scripts/toolchain/
 
 [tasks."ui-web:bundle"]
 description = "Build the self-contained browser runtime"
-run = "bash scripts/ui_web/bundle.sh"
+run = "cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime"
 
 [tasks."ui-web:test"]
 description = "Test the browser runtime and compare both instruction encoders"

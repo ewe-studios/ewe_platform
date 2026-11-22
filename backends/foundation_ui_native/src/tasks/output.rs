@@ -38,18 +38,45 @@ pub(super) async fn query(
     ctx: &TaskContext,
     command: ProcessCommand,
 ) -> Result<Vec<u8>, TaskError> {
+    let (result, bytes) = query_status(ctx, command).await?;
+    result?;
+    Ok(bytes)
+}
+
+pub(super) async fn query_status(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+) -> Result<(Result<(), TaskError>, Vec<u8>), TaskError> {
     let env = ctx.require::<super::NativeBuildEnv>()?;
+    query_limit(ctx, command, env.query_bytes).await
+}
+
+pub(super) async fn device_query(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+) -> Result<Vec<u8>, TaskError> {
+    let env = ctx.require::<super::NativeBuildEnv>()?;
+    let (result, data) = query_limit(ctx, command, env.device_query_bytes).await?;
+    result?;
+    Ok(data)
+}
+
+async fn query_limit(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+    limit: usize,
+) -> Result<(Result<(), TaskError>, Vec<u8>), TaskError> {
     let output = Arc::new(Query {
         stdout: Mutex::default(),
         forward: ctx.require::<TaskEnv>()?.output.clone(),
-        limit: env.query_bytes,
+        limit,
     });
-    ctx.exec_with_output(command, output.clone()).await?;
+    let result = ctx.exec_with_output(command, output.clone()).await;
     let mut bytes = output
         .stdout
         .lock()
         .map_err(|_| TaskError::operation("Query buffer is unavailable"))?;
-    Ok(std::mem::take(&mut *bytes))
+    Ok((result, std::mem::take(&mut *bytes)))
 }
 
 struct Artifact {

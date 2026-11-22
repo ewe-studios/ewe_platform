@@ -3,7 +3,6 @@ use foundation_core::valtron::valtron_test;
 use foundation_ui_native::{
     CoreConfig, CoreError, EventInput, HostTransport, NativeCore, NativePlatform,
 };
-use foundation_ui_runtime::dispatch::RenderTarget;
 use foundation_ui_wire::{
     read_frame, writer::WriterConfig, EventId, NodeKind, UiOperationT, WireLimits,
 };
@@ -12,7 +11,7 @@ use std::sync::{
     Arc,
 };
 use ui_todo::{create_local_todo_core, initial_todo_frame};
-use ui_todo::{install_view_services, local_registry, PAGE_ROOT};
+use ui_todo::{host_registry, install_cache, install_view_services};
 
 #[derive(Default)]
 struct FailTransport(AtomicUsize);
@@ -100,7 +99,7 @@ async fn trigger(
                 event_name: event.variant_name().unwrap().to_ascii_lowercase(),
                 value: value.into(),
                 checked: false,
-                parent_node: PAGE_ROOT,
+                parent_node: 0,
                 state: state(ops, node_id),
             },
         )
@@ -111,16 +110,16 @@ async fn trigger(
 }
 
 #[valtron_test]
-async fn todo_actions_work_without_transport_and_keep_separate_stores() {
+async fn dialogs_use_one_server_binding_and_cancel_without_transport() {
     for platform in [NativePlatform::Ios, NativePlatform::Android] {
         let ctx = Ctx::host();
-        install_view_services(&ctx, 1 << 31, u32::MAX).unwrap();
-        ctx.store(RenderTarget(PAGE_ROOT));
+        install_view_services(&ctx, foundation_ui_runtime::action::Origin::Host).unwrap();
+        install_cache(&ctx);
         let transport = Arc::new(FailTransport::default());
         let core = NativeCore::new(
             CoreConfig {
                 platform,
-                registry: Arc::new(local_registry(&ctx).unwrap()),
+                registry: Arc::new(host_registry().unwrap()),
                 ctx,
                 writer: WriterConfig::default(),
             },
@@ -143,31 +142,95 @@ async fn todo_actions_work_without_transport_and_keep_separate_stores() {
                 1,
             );
         }
-        let added = trigger(&core, &sheet, "host:add_local_todo", "Plan the week").await;
-        assert!(shows(&added, "1 open todo"));
-        assert!(shows(&added, "Plan the week"));
-        assert!(shows_control(&added, NodeKind::CHECKLIST_ROW));
-
+        let _ = binding(&sheet, "server:add_todo");
+        let closed = trigger(&core, &sheet, "host:close_dialog", "").await;
+        assert!(!shows_control(&closed, NodeKind::MODAL));
+        assert_eq!(transport.0.load(Ordering::Relaxed), 0);
         let independent = create_local_todo_core(platform).unwrap();
         let other = operations(&initial_todo_frame(independent).await.unwrap());
         assert!(shows(&other, "0 open todos"));
-        assert!(!shows(&other, "Plan the week"));
-
-        let done = trigger(&core, &added, "host:toggle_local_todo", "1").await;
-        assert!(shows(&done, "0 open todos"));
-        assert!(shows(&done, "Reopen"));
-        let filtered = trigger(&core, &done, "host:filter_todos", "done").await;
-        assert!(shows(&filtered, "Plan the week"));
-        let reopened = trigger(&core, &filtered, "host:toggle_local_todo", "1").await;
-        assert!(shows(&reopened, "1 open todo"));
-        assert!(!shows(&reopened, "Plan the week"));
-
-        let open = trigger(&core, &reopened, "host:filter_todos", "open").await;
-        let confirmation = trigger(&core, &open, "host:open_delete_dialog", "1").await;
-        assert!(shows_control(&confirmation, NodeKind::CONFIRMATION_DIALOG));
-        let deleted = trigger(&core, &confirmation, "host:confirm_local_delete", "1").await;
-        assert!(shows(&deleted, "0 open todos"));
-        assert!(!shows(&deleted, "Plan the week"));
-        assert_eq!(transport.0.load(Ordering::Relaxed), 0);
     }
+}
+
+#[valtron_test]
+async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
+    #[derive(Default)]
+    struct Offline(std::sync::Mutex<Vec<serde_json::Value>>);
+    #[async_trait::async_trait]
+    impl HostTransport for Offline {
+        async fn send(&self, request: Vec<u8>) -> Result<Option<Vec<u8>>, CoreError> {
+            let frame = read_frame(&request, &WireLimits::default()).unwrap();
+            let action = frame.kind_as_frame_request().unwrap().action().unwrap();
+            let payload = action.input().unwrap().json().unwrap().bytes();
+            self.0
+                .lock()
+                .unwrap()
+                .push(serde_json::from_slice(payload).unwrap());
+            Err(CoreError::Transport {
+                detail: "Offline".into(),
+            })
+        }
+    }
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("pending.json");
+    let transport = Arc::new(Offline::default());
+    #[derive(Default)]
+    struct Preview(std::sync::Mutex<Vec<Vec<u8>>>);
+    impl foundation_ui_native::FrameListener for Preview {
+        fn on_frame(&self, frame: Vec<u8>) {
+            self.0.lock().unwrap().push(frame);
+        }
+    }
+    let preview = Arc::new(Preview::default());
+    let open = || {
+        let core = ui_todo::create_persistent_todo_core(
+            NativePlatform::Ios,
+            transport.clone(),
+            path.to_str().unwrap().into(),
+        )
+        .unwrap();
+        core.set_frame_listener(preview.clone());
+        core
+    };
+    let first = open();
+    let ops = operations(&initial_todo_frame(first.clone()).await.unwrap());
+    let dialog = trigger(&first, &ops, "host:open_add_dialog", "").await;
+    let (node_id, _) = binding(&dialog, "server:add_todo");
+    let event = EventInput {
+        node_id,
+        event_name: "submit".into(),
+        value: "Keep this title".into(),
+        ..EventInput::receiving_view()
+    };
+    let response = first.trigger("server:add_todo".into(), event).await;
+    assert!(response.is_err() || response.unwrap().is_some());
+    assert!(preview
+        .0
+        .lock()
+        .unwrap()
+        .iter()
+        .any(|frame| shows(&operations(frame), "Pending")));
+    let payload = transport.0.lock().unwrap()[0].clone();
+    let key = payload["creation_id"].as_str().unwrap();
+    assert_eq!(payload["title"], "Keep this title");
+    assert!(path.is_file());
+    drop(first);
+    let next = open();
+    let ops = operations(&initial_todo_frame(next.clone()).await.unwrap());
+    assert!(shows(&ops, "Keep this title"));
+    assert!(shows(&ops, "0 open todos"));
+    assert!(shows(&ops, "Try again"));
+    let (node_id, _) = binding(&ops, "server:add_todo");
+    let retry = EventInput {
+        node_id,
+        event_name: "tap".into(),
+        value: format!("retry-add:{key}"),
+        ..EventInput::receiving_view()
+    };
+    let response = next.trigger("server:add_todo".into(), retry).await;
+    assert!(response.is_err() || response.unwrap().is_some());
+    assert_eq!(
+        transport.0.lock().unwrap().as_slice(),
+        &[payload.clone(), payload]
+    );
 }

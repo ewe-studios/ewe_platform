@@ -8,16 +8,22 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
     fun message(m: Message, row: Int) {
         m.operation?.let { operation(it, row) }
         m.data?.let { d ->
+            val target = if (d.targetNode != 0u) d.targetNode else store.targets.scope(mount)
+            if (target == null) {
+                store.report("AmbiguousView", row)
+                return@let
+            }
             val kind =
                 when {
                     d.arrow != null -> "ArrowIpc"
                     d.table != null -> "Table"
                     else -> "MessagePack"
                 }
+            store.onData?.invoke(target, d)
             store.data.add(
                 buildJsonObject {
                     put("data", kind)
-                    put("target", d.targetNode.toLong())
+                    put("target", target.toLong())
                 }
             )
         }

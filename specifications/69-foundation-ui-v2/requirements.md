@@ -407,10 +407,10 @@ in parallel.
 | 11 | [live-mounts-and-server-streams](./features/11-live-mounts-and-server-streams/feature.md) | The live mount contract on the web, the server stream on `Frame`, resume, local WASM frames | 03, 09 | Sonnet | Web | ✅ Complete |
 | 12 | [legacy-wire-retirement](./features/12-legacy-wire-retirement/feature.md) | The parity gate, then removal of the old envelope, encoders and parser | 08, 09, 10, 11, 20 | Sonnet | Web | ✅ Complete |
 | 13 | [native-core-and-commands](./features/13-native-core-and-commands/feature.md) | The UniFFI Rust core, the local registry on device, `NativeCommand` | 05, 07, 17 | Sonnet | Native | ✅ Complete |
-| 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ✅ Complete |
+| 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | Implemented. Signoff evidence incomplete. |
 | 15 | [native-android-renderer](./features/15-native-android-renderer/feature.md) | The Kotlin library: reader, node store, composables, event bridge, live mounts | 02, 03, 13, 17 | Sonnet | Native | ✅ Complete |
-| 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | ✅ Complete |
-| 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ✅ Complete |
+| 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 02, 03, 08, 09, 14, 15 | Sonnet | Native | Implemented. Signoff evidence incomplete. |
+| 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | Local gate corrected. See issue 720. |
 | 19 | [native-package-releases](./features/19-native-package-releases/feature.md) | Native libraries in mobile/, monorepo releases, registry publication and starter apps | 13, 14, 15, 16, 17, 21, 22 | Sonnet | Release | In progress |
 | 20 | [migrate-to-frame-writer](./features/20-migrate-to-frame-writer/feature.md) | Stage the traits, wire and browser migration with a tested detach operation | 03, 09 | Sonnet | Web | ✅ Complete |
 | 21 | [mobile-ios-package](./features/21-mobile-ios-package/feature.md) | Installable Swift library, Todo Server and Todo On Device | 13, 14, 16, 17 | Sonnet | Native | ✅ Complete |
@@ -424,11 +424,11 @@ in parallel.
 | 29 | [thread-safe-signals](./features/29-thread-safe-signals/feature.md) | Share native signals between threads and preserve local WebAssembly scopes | Existing foundation_signals | Sonnet | Cross-platform | ✅ Complete |
 | 30 | [frame-readers-and-http-routes](./features/30-frame-readers-and-http-routes/feature.md) | Read verified frames from streams and register ordinary server handlers | 01, 03, 05, 07 | Sonnet | Cross-platform | ✅ Complete |
 | 31 | [explicit-control-tags](./features/31-explicit-control-tags/feature.md) | Replace presentation roles with shared control tags | 02, 08, 23 | Sonnet | Cross-platform | ✅ Complete |
-| 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | ✅ Complete |
+| 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | Partial. See issue 714. |
 | 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | ✅ Complete |
 | 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Complete |
 | 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Complete |
-| 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | Proposed; implement last |
+| 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | In progress in the Mathalley worktree. |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 
@@ -438,7 +438,7 @@ Reconcile those instructions with the approved contracts before implementation.
 
 Number 18 is reserved for the later WebView control (D46).
 
-The completion count includes features marked complete. Feature 07 is implemented with one open repository check. Feature 18 is reserved and excluded from the total.
+The clock check for Feature 07 passes. Feature 18 is reserved. See the [completion audit](completion-audit.md) for current evidence.
 
 Feature 17 has no dependency and runs first: it pins the tools that features 01 and 13 to 15
 use. A feature whose verify needs a tool runs `scripts/toolchain/check.sh` before its own

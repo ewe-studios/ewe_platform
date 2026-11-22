@@ -65,3 +65,31 @@ Give the temporary package its own migration files so path resolution follows th
 Cargo can resolve a newer local crate even when the manifest still permits an older release.
 Compare each local dependency requirement with the local package version.
 Root workspace metadata omits excluded packages. Read their manifests separately.
+
+## Build and deployment task ownership
+
+Task discovery confirms command availability. It cannot prove migration completeness. Trace each registered handler through its child processes and workflow callers.
+
+The existing single-file wrapper embeds WebAssembly bytes. The browser runtime build resolves imports across JavaScript files. These operations serve different callers.
+
+The platform demo uses a unit-returning build entry. The Todo build entry returns a result and conditionally runs a generator. Installation must preserve both forms.
+
+### Browser runtime output
+
+Removing whitespace alone produced 376,336 bytes. Scope-aware compression and local name shortening restore the previous distribution size.
+Keep legal comments from every input and add them to both output scripts.
+The parity fixture must reset the current view before replaying its frame. The frame applicator now keeps a cursor map for each view.
+
+The browser parity test compares a 312-byte frame. It passes with the readable script and with the compact script.
+Cargo metadata describes individual crates. Build groups need explicit source directories, build recipes, and package references in the continuous integration policy.
+
+### 2026-11-22. Native release verification
+
+Save the publication receipt before a retry can start a second upload.
+The offline publication tests distinguish a missing receipt, a recoverable receipt, and an already published release.
+Install the clock and timer in the shared host entry point. A dispatched task then receives them through its context.
+
+The legacy platform separates logical resource names from the root supplied by the host.
+Mobile builds also need a packaging step. Staging files alone does not place them in the installed application.
+
+The classic entry imports the frame runtime. Todo loads its action module separately. An action-only edit preserves both classic bundle files.

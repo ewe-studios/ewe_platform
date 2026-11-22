@@ -131,7 +131,8 @@ fn list_and_help_do_not_find_release_inputs_or_start_tools() {
 #[test]
 fn verify_checks_the_candidate_before_starting_tools() {
     let root = tempfile::tempdir().unwrap();
-    std::fs::create_dir_all(root.path().join("scripts/ui_native")).unwrap();
+    std::fs::create_dir_all(root.path().join("release")).unwrap();
+    std::fs::write(root.path().join("release/native-ui.toml"), "").unwrap();
     std::fs::write(root.path().join("Cargo.toml"), "").unwrap();
     let candidate = root.path().join("candidate with spaces");
     std::fs::create_dir(&candidate).unwrap();
@@ -184,7 +185,8 @@ fn verify_checks_the_candidate_before_starting_tools() {
 fn android_build_installs_two_abis_for_the_binding_and_todo() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path().join("workspace with spaces");
-    std::fs::create_dir_all(root.join("scripts/ui_native")).unwrap();
+    std::fs::create_dir_all(root.join("release")).unwrap();
+    std::fs::write(root.join("release/native-ui.toml"), "").unwrap();
     std::fs::write(root.join("Cargo.toml"), "").unwrap();
     let process = Arc::new(FakeProcess(Mutex::default(), true));
     command(
@@ -240,4 +242,77 @@ fn android_build_installs_two_abis_for_the_binding_and_todo() {
             );
         }
     }
+}
+
+#[test]
+fn archive_checks_platform_slices_and_reproduces_the_same_bytes() {
+    use std::io::Read as _;
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    std::fs::create_dir(root.join("release")).unwrap();
+    std::fs::write(root.join("release/native-ui.toml"), "").unwrap();
+    std::fs::write(root.join("Cargo.toml"), "").unwrap();
+    let bundle = root.join("EweCoreFFI.xcframework");
+    std::fs::create_dir(&bundle).unwrap();
+    let mut slices = Vec::new();
+    for (id, platform, variant, architectures) in [
+        ("ios-arm64", "ios", None, vec!["arm64"]),
+        (
+            "ios-arm64_x86_64-simulator",
+            "ios",
+            Some("simulator"),
+            vec!["arm64", "x86_64"],
+        ),
+        ("macos-arm64_x86_64", "macos", None, vec!["arm64", "x86_64"]),
+    ] {
+        let mut lib = serde_json::json!({"LibraryIdentifier":id,"LibraryPath":"libEweCoreFFI.a","SupportedPlatform":platform,"SupportedArchitectures":architectures});
+        if let Some(variant) = variant {
+            lib["SupportedPlatformVariant"] = serde_json::json!(variant);
+        }
+        slices.push(lib);
+        std::fs::create_dir(bundle.join(id)).unwrap();
+        std::fs::write(bundle.join(id).join("libEweCoreFFI.a"), id).unwrap();
+    }
+    let info = bundle.join("Info.plist");
+    let plist = |v: &Vec<serde_json::Value>| {
+        plist::to_file_xml(&info, &serde_json::json!({"AvailableLibraries":v})).unwrap()
+    };
+    plist(&slices);
+    let invoke = || {
+        command(
+            root,
+            &[
+                "native-task",
+                "task",
+                "run",
+                "native:release:archive-ios",
+                "--stage",
+                ".",
+            ],
+            Arc::new(FakeProcess::default()),
+            Arc::new(Capture::default()),
+        )
+    };
+    invoke().unwrap();
+    let path = root.join("EweCoreFFI.xcframework.zip");
+    let original = std::fs::read(&path).unwrap();
+    invoke().unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    let mut archive = zip::ZipArchive::new(std::fs::File::open(path).unwrap()).unwrap();
+    for lib in &slices {
+        let id = lib["LibraryIdentifier"].as_str().unwrap();
+        let mut text = String::new();
+        archive
+            .by_name(&format!("EweCoreFFI.xcframework/{id}/libEweCoreFFI.a"))
+            .unwrap()
+            .read_to_string(&mut text)
+            .unwrap();
+        assert_eq!(text, id);
+    }
+    slices.pop();
+    plist(&slices);
+    assert!(invoke()
+        .unwrap_err()
+        .to_string()
+        .contains("Unexpected XCFramework slices"));
 }

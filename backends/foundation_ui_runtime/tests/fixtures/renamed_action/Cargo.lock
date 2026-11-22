@@ -85,6 +85,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "browser_probe"
+version = "0.1.0"
+
+[[package]]
 name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -527,6 +531,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "mobile_probe"
+version = "0.1.0"
+
+[[package]]
 name = "new_mime_guess"
 version = "4.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -685,7 +693,12 @@ checksum = "d902046e6a28a1e4c3cab97258a0ce11e994903f01c2d97a9447a0b3df85f4f6"
 name = "renamed_action_consumer"
 version = "0.1.0"
 dependencies = [
+ "browser_probe",
+ "foundation_context",
  "foundation_ui_runtime",
+ "foundation_ui_wire",
+ "mobile_probe",
+ "server_probe",
 ]
 
 [[package]]
@@ -764,6 +777,10 @@ dependencies = [
  "serde",
  "unsafe-libyaml",
 ]
+
+[[package]]
+name = "server_probe"
+version = "0.1.0"
 
 [[package]]
 name = "sha2"

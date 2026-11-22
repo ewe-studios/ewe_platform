@@ -93,6 +93,17 @@
 # Run what CI runs, locally:   make ci-package PACKAGE=foundation_ai
 # See every package's settings: make ci-list
 
+# Build groups own checks outside individual Cargo workspace packages.
+[groups.examples]
+directory = "examples"
+recipe = "example-applications"
+build-members = ["answerme-agent"]
+
+[groups.wasm-tests]
+directory = "backends/foundation_core/integration/wasm_tests"
+recipe = "wasm-runtime-tests"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
@@ -713,6 +724,14 @@ env = { MISE_ENV = "wasm" }
 # At zero clippy warnings (spec 70 feature 55): a new one fails CI.
 [packages.foundation_openapi]
 clippy-deny-warnings = true
+
+[packages.foundation_codegen]
+runs = ["", "javascript"]
+clippy-runs = ["", "javascript"]
+
+[packages.foundation_wasm_ui]
+runs = ["", "tasks"]
+clippy-runs = ["", "tasks"]
 
 [packages.foundation_codegentools]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.

@@ -555,7 +555,11 @@ export class FrameApplicator {
       if (!isFrame(bytes) || bytes.byteLength > this.maxFrameBytes) throw new Error("Invalid view snapshot");
       const frame = wire.Frame.getRootAsFrame(new CheckedBuffer(asBytes(bytes)));
       const body = frame.kindType() === wire.FrameKind.FrameMessage && frame.kind(new wire.FrameMessage());
-      if (!body || body.messagesLength() !== 1) throw new Error("Expected one full view");
+      if (!body || !body.messagesLength()) throw new Error("Expected a full view");
+      for (let index = 1; index < body.messagesLength(); index++) {
+        const message = body.messages(index);
+        if (!message.data() || message.operation() || message.control()) throw new Error("Expected snapshot data");
+      }
       const operation = body.messages(0).operation();
       const place = operation?.uiType() === wire.UiOperation.Place && operation.ui(new wire.Place());
       if (!place || place.kind() !== wire.PlacementKind.FullView) throw new Error("Expected a full view");
@@ -598,8 +602,7 @@ export class FrameApplicator {
     node.setAttribute("id",name);
     this.sharedKinds.set(node,tag);
   }
-  receivingView() {
-    const supplied = this.origin && "viewMount" in this.origin ? this.origin.viewMount : null;
+  receivingView(supplied = this.origin?.viewMount) {
     if (supplied) {
       for (let node = supplied; node; node = node.parentNode) {
         if (node === this.deps.viewMount || [...this.views.values()].includes(node)) return node;
@@ -693,7 +696,7 @@ export class FrameApplicator {
   applyPlacement(reader, index) {
     const kind = wire.PlacementKind[reader.kind()];
     if (kind === "FullView") {
-      const mount = this.origin && "viewMount" in this.origin ? this.origin.viewMount : this.receivingView();
+      const mount = this.receivingView();
       if (!mount || mount.isConnected === false) throw problem("UnknownNode", { detail: "Missing receiving view mount" });
       this.validatePlacementNames(reader, mount, Array.from(mount.childNodes));
       for (const node of Array.from(mount.childNodes)) { this.discard(node); node.remove(); }
@@ -986,7 +989,7 @@ export class FrameApplicator {
       if (!blob) throw problem("BadFrame");
       detail = {kind: data.arrow() ? "arrow-ipc" : "messagepack", bytes: blob.bytesArray()};
     }
-    const target = data.targetNode() && this.registry.get(data.targetNode());
+    const target = data.targetNode() ? this.node(data.targetNode()) : this.receivingView();
     dispatchEvent(target || this.document, "ewe:data", detail);
   }
   applyControl(control) {
