@@ -65,3 +65,14 @@ The Windows cross-check passes with the final manifest. Issues 550 and 596 track
 The runner uses the workspace display and error derives. Its error variants and exit codes stay compatible.
 All 15 macOS integration tests pass after this change. Clippy reports no crate warnings.
 The Windows test cross-check passes. Both macOS platform command tests pass.
+
+Linux passes all 15 task runner integration tests with the final manifest.
+Cargo installs both macOS executables from the local package.
+Each installed executable lists the same 25 tasks. Each generates the same four files for a sample iPhone project.
+The installed commands also show help for project generation and the native Android build.
+
+The platform suite passes four integration tests, including three template builds.
+The macro run passes 24 unit tests and 54 of 55 integration tests on this branch.
+Issue [712](https://github.com/ewe-studios/ewe_platform/issues/712) tracks the external target directory failure.
+The combined checkout passes the repaired migration-gap test with a fresh external target.
+Both combined executable names list 25 tasks and generate identical iPhone projects.
