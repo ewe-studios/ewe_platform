@@ -28,12 +28,12 @@ use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleOutgoingResponse, Status,
 };
 use wasm_bindgen::JsCast;
-use wasm_bindgen::{closure::Closure, JsValue};
+use wasm_bindgen::{JsValue, closure::Closure};
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen_test::wasm_bindgen_test;
 use web_sys::{
-    ReadableStream, ReadableStreamDefaultController, ReadableStreamDefaultReader,
-    RequestInit, Response, UnderlyingSource,
+    ReadableStream, ReadableStreamDefaultController, ReadableStreamDefaultReader, RequestInit,
+    Response, UnderlyingSource,
 };
 
 async fn yield_now() {
@@ -94,8 +94,7 @@ async fn inbound_body_streams() {
     let request =
         web_sys::Request::new_with_str_and_init("http://example.com/rpc", &init).expect("request");
 
-    let incoming =
-        request_from_cf(&request, 8 * 1024 * 1024, 16).expect("request_from_cf");
+    let incoming = request_from_cf(&request, 8 * 1024 * 1024, 16).expect("request_from_cf");
     let body = incoming.body.expect("the body is a stream");
     assert!(
         matches!(body, SendSafeBody::Stream(_)),
@@ -138,8 +137,9 @@ fn head(status: Status) -> SimpleOutgoingResponse {
 
 async fn read_one_chunk(response: &Response) -> Vec<u8> {
     let stream = response.body().expect("a streaming body");
-    let reader: ReadableStreamDefaultReader =
-        stream.get_reader().unchecked_into::<ReadableStreamDefaultReader>();
+    let reader: ReadableStreamDefaultReader = stream
+        .get_reader()
+        .unchecked_into::<ReadableStreamDefaultReader>();
     let result = JsFuture::from(reader.read()).await.expect("read");
     let value = js_sys::Reflect::get(&result, &JsValue::from_str("value")).expect("value");
     js_sys::Uint8Array::new(&value).to_vec()
@@ -151,7 +151,9 @@ async fn error_status_streams() {
     sink.open(head(Status::ServiceUnavailable))
         .await
         .expect("open");
-    sink.chunk(Bytes::from_static(b"frame-one")).await.expect("chunk");
+    sink.chunk(Bytes::from_static(b"frame-one"))
+        .await
+        .expect("chunk");
     sink.finish().await.expect("finish");
 
     let response = handle.into_response().expect("a response");
@@ -179,13 +181,16 @@ async fn whole_response_keeps_status() {
 async fn cancel_drops_source() {
     let (mut sink, handle) = ConnectSink::new_pair();
     sink.open(head(Status::OK)).await.expect("open");
-    sink.chunk(Bytes::from_static(b"first")).await.expect("chunk");
+    sink.chunk(Bytes::from_static(b"first"))
+        .await
+        .expect("chunk");
 
     // The client goes away: cancelling the response body drops the source.
     let response = handle.into_response().expect("a response");
     let stream = response.body().expect("a streaming body");
-    let reader: ReadableStreamDefaultReader =
-        stream.get_reader().unchecked_into::<ReadableStreamDefaultReader>();
+    let reader: ReadableStreamDefaultReader = stream
+        .get_reader()
+        .unchecked_into::<ReadableStreamDefaultReader>();
     JsFuture::from(reader.cancel()).await.expect("cancel");
 
     // The next frame cannot be delivered: the source is gone.
