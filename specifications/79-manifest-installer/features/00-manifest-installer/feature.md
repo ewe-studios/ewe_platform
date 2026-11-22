@@ -1,20 +1,20 @@
 ---
 feature: "Manifest Installer"
 description: "A manifest-driven installer (foundation_installer) that reads a JSON manifest and installs each entry through a source adapter (github-release, url, cargo, apt, mise, docker-image) and a deploy-target adapter (systemd, docker, none). It renders its scripts and units with foundation_packager and does all Docker work through foundation_deployment_docker."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 builds_on:
   - "specifications/completed/78-manifest-contract"
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-11-14
+last_updated: 2026-11-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Manifest Installer
@@ -712,25 +712,25 @@ backends/foundation_installer/
 
 ## 5. Tasks
 
-- [ ] **T1: Manifest.** `Manifest`, `Entry`, `EntryName`, `SourceSpec`, `DeploySpec`, `parse`,
+- [x] **T1: Manifest.** `Manifest`, `Entry`, `EntryName`, `SourceSpec`, `DeploySpec`, `parse`,
       `validate` with every field error. Test: an unknown source kind and a bad name each fail
       with the entry and field named.
-- [ ] **T2: `SourceAdapter`, `InstallContext`, `github-release`.** Streamed download with the
+- [x] **T2: `SourceAdapter`, `InstallContext`, `github-release`.** Streamed download with the
       checksum check. Test: a wrong checksum gives `ChecksumMismatch` and leaves no file.
-- [ ] **T3: `url`, `cargo`, `apt`, `mise`.** Test per adapter, with a fake `CommandRunner`.
-- [ ] **T4: `docker-image`.** Pull by tag and check the digest. Test: the result is
+- [x] **T3: `url`, `cargo`, `apt`, `mise`.** Test per adapter, with a fake `CommandRunner`.
+- [x] **T4: `docker-image`.** Pull by tag and check the digest. Test: the result is
       `Artifact::Image` with the digest.
-- [ ] **T5: `DeployTargetAdapter`, `systemd`, `none`.** Test: the rendered unit has the
+- [x] **T5: `DeployTargetAdapter`, `systemd`, `none`.** Test: the rendered unit has the
       expected `ExecStart`, `User` and `Restart`.
-- [ ] **T6: `docker` deploy.** Create, start, check, swap. Test: the result is
+- [x] **T6: `docker` deploy.** Create, start, check, swap. Test: the result is
       `Deployed::Container`.
-- [ ] **T7: Install record, lock, upgrade and rollback.** Test: an upgrade whose new version
+- [x] **T7: Install record, lock, upgrade and rollback.** Test: an upgrade whose new version
       does not start leaves the old version running and reports `kept`.
-- [ ] **T8: Bootstrap script.** Test: the embedded manifest decodes back to the same JSON;
+- [x] **T8: Bootstrap script.** Test: the embedded manifest decodes back to the same JSON;
       the script refuses a wrong installer checksum.
-- [ ] **T9: `Installer::run`, `plan`, `ewe-installer` binary.** Test: one bad entry gives one
+- [x] **T9: `Installer::run`, `plan`, `ewe-installer` binary.** Test: one bad entry gives one
       `Failed` and the others still apply; exit code is 1.
-- [ ] **T10: End to end (`docker-tests`).** In a test container: install a test binary as a
+- [x] **T10: End to end (`docker-tests`).** In a test container: install a test binary as a
       systemd unit and an image as a container, run again (all `Unchanged`), then upgrade one
       entry.
 

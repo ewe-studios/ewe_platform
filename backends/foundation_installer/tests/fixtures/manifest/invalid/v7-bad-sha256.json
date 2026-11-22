@@ -1,0 +1,15 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "bad-checksum",
+      "version": "1.0.0",
+      "source": {
+        "kind": "url",
+        "url": "https://example.com/releases/bad-checksum-1.0.0",
+        "sha256": "9f2c"
+      },
+      "deploy": { "kind": "none" }
+    }
+  ]
+}
