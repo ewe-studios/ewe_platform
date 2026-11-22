@@ -42,7 +42,7 @@ fn tag_name(html: &Html) -> Option<&str> {
 fn empty_div() {
     let h = html! { <div></div> };
     assert_eq!(tag_name(&h), Some("div"));
-    assert!(h.children.is_empty());
+    assert_eq!(h.children, Vec::<foundation_ui_traits::Html>::new());
     assert_eq!(attr(&h, "primal-id"), Some("0"));
 }
 
@@ -212,7 +212,7 @@ fn event_parts_on_nested_elements() {
 #[test]
 fn static_template_has_no_parts() {
     let h = html! { <div class="x">"hello"</div> };
-    assert!(h.parts.is_empty());
+    assert_eq!(h.parts, Vec::<foundation_ui_traits::Part>::new());
     assert_eq!(h.children[0].text.as_deref(), Some("hello"));
 }
 

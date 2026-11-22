@@ -107,7 +107,7 @@ fn resume_covers_exactly_the_retained_frames() {
         channel.register(client.clone(), &old, 4),
         Err(LiveError::UpdateRequired)
     );
-    assert!(client.sequences().is_empty());
+    assert_eq!(client.sequences(), [0_u64; 0]);
     let replay = channel.subscribe_web(client.clone(), 3).unwrap();
     let direct = Recorder::default();
     channel.register(direct.clone(), &caps, 3).unwrap();
@@ -232,7 +232,7 @@ fn managed_listener_starts_at_latest_and_releases_without_another_update() {
         )
         .unwrap();
     assert_eq!(feed.conn_count(), 1);
-    assert!(seen.sequences().is_empty());
+    assert_eq!(seen.sequences(), [0_u64; 0]);
     feed.sender().push_messages(update()).unwrap();
     assert_eq!(seen.sequences(), [2]);
     let replay = feed.replay(&caps, 0).unwrap();
