@@ -1002,4 +1002,8 @@ All 131 infrastructure tests pass. The browser script suites pass 172 tests and 
 The native, wire, web handler, and remote call suites pass 129 tests and ignore one documentation example.
 The keychain and graphics suites pass 85 tests. A separate macOS run passes all three graphics hardware tests.
 The action context test passes for the forwarded clock methods.
-The broader macro and runtime fixture suites continue on this candidate.
+The runtime suite passes 79 integration tests and 11 documentation tests on macOS. It ignores two documentation examples.
+The macro and browser crates pass 44 unit tests.
+The macro integration suite passes 54 tests with an external build directory.
+The remaining migration test passes when Cargo builds inside the checkout.
+Issue #712 tracks the external build directory failure.
