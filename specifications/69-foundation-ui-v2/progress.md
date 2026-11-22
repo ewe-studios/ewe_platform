@@ -1074,3 +1074,7 @@ The native restart test now covers a server validation error after retry.
 The app preserves the title, shows the server message, and lets the user edit the rejected submission.
 A corrected title gets a new creation identifier. The pending store removes the rejected entry in the same write.
 All three native dispatch tests pass.
+
+A fresh full runtime run passes 80 tests, including the action and view compiler tests.
+Chrome passes the delayed addition, failed request, retry, and confirmed deletion checks.
+Feature 32 records the pending and retry screenshots.

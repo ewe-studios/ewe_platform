@@ -939,3 +939,6 @@ Use the pending deletion identifier to remove only that row after saving the upd
 
 A temporary transport failure and a rejected title need different controls.
 Retry uses the original creation identifier. Editing a rejected title starts a new submission.
+
+Hold an action request at the test proxy to verify the visible state before the server receives it.
+A successful retry must increment the confirmed count once.

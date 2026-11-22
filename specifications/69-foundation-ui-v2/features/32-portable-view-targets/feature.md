@@ -243,3 +243,13 @@ Keep live delivery active during the block. Reconcile the current block on recon
 Ignore a stale release for an older block. Test a lost request and a lost release.
 Verify pointer, keyboard, back navigation, and assistive input on all three hosts.
 Use an injected clock for timing tests. Capture pending, retry, and blocked screens on each host during implementation.
+
+### Browser verification on 2026-11-22
+
+Chrome shows the pending row before the test proxy delivers the addition. The confirmed count stays at zero.
+A temporary server failure shows **Try again**. Retrying confirms one row and increments the count once.
+The same run deletes the row and confirms its absence.
+
+![Pending addition with no confirmed open todos](screenshots/chrome-pending.png)
+
+![The same pending addition with a retry button](screenshots/chrome-retry.png)

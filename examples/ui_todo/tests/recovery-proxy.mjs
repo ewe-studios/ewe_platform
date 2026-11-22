@@ -12,6 +12,7 @@ const [line] = await once(createInterface({input:backend.stdout}),"line");
 const upstream = new URL(line.match(/http:\/\/\S+/)[0]);
 const feeds = new Map(), waiting = new Map(), snapshots = new Set();
 const blocked = new Set();
+const heldActions = new Set(), actions = new Map();
 let holdSnapshots = false, loads = 0, resumes = 0;
 function release(queue) { for (const run of queue) run(); queue.clear(); }
 const proxy = http.createServer((req,res) => {
@@ -34,12 +35,23 @@ const proxy = http.createServer((req,res) => {
           if (!paused(peer)) { waiting.delete(run); run(); }
         }
         break;
+      case "/test/hold-actions": heldActions.add(target); break;
+      case "/test/send-actions":
+      case "/test/fail-actions":
+        heldActions.delete(target);
+        for (const [response, entry] of actions) {
+          if (target !== "*" && entry.client !== target) continue;
+          actions.delete(response);
+          if (path === "/test/send-actions") entry.forward();
+          else { entry.request.resume(); response.writeHead(503).end(); }
+        }
+        break;
       case "/test/hold": holdSnapshots = true; break;
       case "/test/install": holdSnapshots = false; release(snapshots); break;
       case "/test/status": break;
       default: res.writeHead(404); res.end(); return;
     }
-    res.end(JSON.stringify({feeds:feeds.size, waiting:waiting.size, snapshots:snapshots.size, loads, resumes}));
+    res.end(JSON.stringify({feeds:feeds.size, waiting:waiting.size, snapshots:snapshots.size, actions:actions.size, loads, resumes}));
     return;
   }
   if (process.env.EWE_TEST_EXPIRE_HTTP === "1" && path === "/live" && req.method === "POST" && holdSnapshots) {
@@ -71,7 +83,10 @@ const proxy = http.createServer((req,res) => {
     out.on("error",error => { if (!res.destroyed) res.destroy(error); });
     req.pipe(out);
   }
-  if (path === "/live" && req.method === "GET" && paused(client)) {
+  if (path === "/action" && req.method === "POST" && (heldActions.has("*") || heldActions.has(client))) {
+    actions.set(res, {client, request:req, forward});
+    res.once("close", () => actions.delete(res));
+  } else if (path === "/live" && req.method === "GET" && paused(client)) {
     waiting.set(forward, client);
     res.on("close",() => waiting.delete(forward));
   } else forward();

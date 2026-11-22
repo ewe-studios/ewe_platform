@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -158,6 +158,37 @@ try {
   }
 
   const scenarios = {
+    async "pending-retry"() {
+      assert.ok(proxy, "Use a separate server for pending requests");
+      const record = "Retry this request";
+      const capture = async name => {
+        const directory = process.env.EWE_WEB_CAPTURES;
+        if (!directory) return;
+        await mkdir(directory, { recursive: true });
+        const screenshot = await send("Page.captureScreenshot", { format: "png" });
+        await writeFile(join(directory, name + ".png"), Buffer.from(screenshot.data, "base64"));
+      };
+      await gate("hold-actions?client=web");
+      try {
+        await click(global(action("host:open_add_dialog")));
+        await waitFor(() => evaluate("Boolean(document.querySelector('dialog:modal input'))"), "Missing add dialog");
+        await evaluate(`document.querySelector('dialog:modal input').value = ${JSON.stringify(record)}`);
+        await click(global("dialog:modal .ewe-submit-button"));
+        await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Pending")`), "Missing pending row");
+        assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "0 open todos");
+        await capture("chrome-pending");
+        await waitFor(async () => (await gate("status")).actions === 1, "The proxy did not receive the addition");
+        await gate("fail-actions?client=web");
+        await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Try again")`), "Missing retry action");
+        await capture("chrome-retry");
+        await click(rowAction(record, "server:add_todo"));
+        await status(record,"Complete");
+        assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "1 open todo");
+        await click(rowAction(record, "host:open_delete_dialog"));
+        await click(global(action("server:confirm_delete")));
+        await status(record,"absent");
+      } finally { await gate("send-actions?client=web"); }
+    },
     async add() {
       if (proxy) await waitFor(async () => (await gate("status")).feeds >= (adb ? 3 : 2), "All clients need live subscriptions");
       if (adb) {
