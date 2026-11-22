@@ -970,3 +970,9 @@ Numeric records can grow when a universally unique identifier (UUID) replaces th
 Apply the restore size limit to both the input stream and the converted bytes.
 Reserve all saved creation identifiers before generating identifiers for other rows.
 Keep the original order and the old identifier map. A pending numeric delete needs this map.
+
+### 2026-11-22 — Verify Todo identity on the receiving hosts
+
+The integration test reads the record identifier from each rendered action binding.
+It checks uniqueness across records and equality across updates. Each removal leaves the expected row absent.
+The typed mobile lookup also exercises the public string boundary with a valid, unknown, and malformed identifier.

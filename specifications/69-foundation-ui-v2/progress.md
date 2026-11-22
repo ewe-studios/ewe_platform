@@ -1140,3 +1140,23 @@ The GetTodo procedure returned each saved title and its new identifier.
 All eight completion states and record positions matched the source.
 
 Feature 32 assigns UUID generation with injected entropy to the shared UUID module. Implementation belongs to the next owner.
+
+### 2026-11-22 — Three-host UUID acceptance
+
+Chrome, the Android Pixel emulator, and the iPhone 17 simulator shared one isolated server.
+Each host added, completed, reopened, and deleted its own record. Both peers received each change.
+The test passed in 212.168 seconds. The browser recorded the same identifier through all four changes.
+
+| Origin | Record identifier |
+| --- | --- |
+| Chrome | `fac5c420-80f2-4486-bae3-96ae757085f4` |
+| iPhone | `d028b3cc-deb1-4b34-9c42-129adce51fc6` |
+| Android | `47e076d3-ca6e-4928-a38d-627305db3547` |
+
+Each phone retried a failed addition. Chrome separately retried both an addition and a deletion.
+Both native data clients returned the requested UUID, reported an unknown UUID, and rejected a numeric string.
+The browser regression passed over HTTP, WebSocket, and Connect RPC. Only the submitter saw its confirmation.
+Seven Rust action and mobile tests passed. Both concurrent snapshot and socket replay tests passed.
+
+The device log is `target/agent-work/todo-logs/uuid-threehost-xcode.log`.
+The row log is `target/agent-work/todo-logs/uuid-threehost-peer.log`.
