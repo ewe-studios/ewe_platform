@@ -256,7 +256,7 @@ What the code does:
 `cert_not_after`, `cert_serial`). It lives in the Worker host, because `foundation_auth`
 does not depend on the `worker` crate.
 
-The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../../84-context-injection/env.md),
+The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../../completed/84-context-injection/env.md),
 section 7.2). It builds `Env::system()` and the engine once per isolate. It then runs
 `with_ctx(root_ctx(), host.fetch(req))` for each request.
 

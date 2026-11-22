@@ -16,7 +16,7 @@ created: 2026-11-14
 3. Read `../03-agent-rpc-core/feature.md`, `proto.md` and `registry-and-models.md` (the core it
    hosts).
 4. Read `../../agent-rpc-architecture.md` (shared design and owner decisions).
-5. Read `../../../84-context-injection/env.md` and
+5. Read `../../../completed/84-context-injection/env.md` and
    `deterministic-simulation-testing.md` (the injected side effects and the simulation harness).
 6. Read `../../../81-foundation-auth/requirements.md` (enrollment and mTLS).
 7. Read `../../LEARNINGS.md`. Read `.agents/AGENTS.md` and the Rust skills. Generate

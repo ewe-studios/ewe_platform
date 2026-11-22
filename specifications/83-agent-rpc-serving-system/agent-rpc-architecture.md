@@ -57,12 +57,12 @@ Each feature holds its own design files. This file holds only what the features 
 |---|---|---|
 | This file | — | Overview, glossary, architecture, owner directions, breaking changes, migration, testing strategy, the feature list and order, owner decisions, open questions, how to work |
 | [65.07 Bring #126 onto master](./features/07-pluggable-agent-rpc/feature.md) (landed) | — | Task T0 only |
-| [84 Context injection](../84-context-injection/requirements.md) | [`env.md`](../84-context-injection/env.md), [`deterministic-simulation-testing.md`](../84-context-injection/deterministic-simulation-testing.md) | The `Env` bundle in `Ctx`: timer, entropy and id source; the builders; the lint; DST in plain words |
+| [84 Context injection](../completed/84-context-injection/requirements.md) | [`env.md`](../completed/84-context-injection/env.md), [`deterministic-simulation-testing.md`](../completed/84-context-injection/deterministic-simulation-testing.md) | The `Env` bundle in `Ctx`: timer, entropy and id source; the builders; the lint; DST in plain words |
 | [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | — (small; the feature file says what to change) | connectrpc request extensions and clock; TLS peer certificates |
 | [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | [`migrations.md`](../80-platform-prerequisites/features/01-migration-groups/migrations.md) | Migrations per database, as ordered groups, each numbered from 1 and recorded by group |
 | [85 Wasm HTTP streaming](../completed/85-wasm-fetch-transport/requirements.md) | [`fetch.md`](../completed/85-wasm-fetch-transport/fetch.md) | the streaming response body of the wasm client, `streaming_response_with`, the streaming bridges and sink, `StubHttpClient` |
-| [86 Auth primitives](../86-auth-primitives/requirements.md) | — | `Secret`, `constant_time_eq`, the bearer parser, `ClientAuth`, `AuthInfo`, `StaticToken` |
-| [87 Mutual TLS](../87-mutual-tls/requirements.md) | [`mtls.md`](../87-mutual-tls/mtls.md) | The CA, the trust store, the rustls verifiers, the mTLS providers |
+| [86 Auth primitives](../completed/86-auth-primitives/requirements.md) | — | `Secret`, `constant_time_eq`, the bearer parser, `ClientAuth`, `AuthInfo`, `StaticToken` |
+| [87 Mutual TLS](../completed/87-mutual-tls/requirements.md) | [`mtls.md`](../completed/87-mutual-tls/mtls.md) | The CA, the trust store, the rustls verifiers, the mTLS providers |
 | [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | [`auth.md`](../81-foundation-auth/features/00-foundation-auth/auth.md) | Signed secrets, operator key files, the provider set, the interceptor |
 | [65.03 Agent RPC core](features/03-agent-rpc-core/feature.md) | [`proto.md`](features/03-agent-rpc-core/proto.md), [`registry-and-models.md`](features/03-agent-rpc-core/registry-and-models.md) | The wire contract; model catalog, kinds and devices, the instance registry |
 | [65.04 Native host and DST](features/04-native-host-and-dst/feature.md) | [`hosts.md`](features/04-native-host-and-dst/hosts.md) | What each host gives the core, Cargo features, the native host, the native client |
@@ -388,8 +388,8 @@ sure each secret is used only as often as allowed._
 | 5 | `mark_seen` out of the TLS verifier | [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) section 7; section 4.1 here |
 | 6 | Capabilities endpoint and instance kinds | [proto.md](features/03-agent-rpc-core/proto.md); [registry-and-models.md](features/03-agent-rpc-core/registry-and-models.md) section 2 |
 | 7 | Candle device: CPU or GPU | [registry-and-models.md](features/03-agent-rpc-core/registry-and-models.md) section 2.5 |
-| 8 | Side effects as traits, for DST and mocks | [env.md](../84-context-injection/env.md); [deterministic-simulation-testing.md](../84-context-injection/deterministic-simulation-testing.md) |
-| 9 | The bundle in valtron's `Ctx` as a typed entry | [env.md](../84-context-injection/env.md) sections 5 and 6 |
+| 8 | Side effects as traits, for DST and mocks | [env.md](../completed/84-context-injection/env.md); [deterministic-simulation-testing.md](../completed/84-context-injection/deterministic-simulation-testing.md) |
+| 9 | The bundle in valtron's `Ctx` as a typed entry | [env.md](../completed/84-context-injection/env.md) sections 5 and 6 |
 
 ## 6. Configuration
 
@@ -487,12 +487,12 @@ rest) is last, and starts only after the proof of concept works.
 | Feature | Tasks | What | Proof of concept |
 |---|---|---|---|
 | [07 Bring #126 onto master](./features/07-pluggable-agent-rpc/feature.md) | T0 | Merge `master` into `65-f01-agent-rpc`; adapt to async storage and async `AgentSession` | yes |
-| [84 Context injection](../84-context-injection/requirements.md) | T1 to T6 | The `Env` bundle in `Ctx`, the builders, the `SandboxIdPolicy` rename, the lint | yes |
+| [84 Context injection](../completed/84-context-injection/requirements.md) | T1 to T6 | The `Env` bundle in `Ctx`, the builders, the `SandboxIdPolicy` rename, the lint | yes |
 | [80.00 Transport prerequisites](../80-platform-prerequisites/features/00-transport-prerequisites/feature.md) | T3, T4 | connectrpc keeps request extensions and uses the `Ctx` clock; `foundation_http` reports the TLS peer certificate | yes |
 | [80.01 Migration groups](../80-platform-prerequisites/features/01-migration-groups/feature.md) | T25 | Migration groups per database, from code or directories; `FleetRunner` | yes |
 | [85 Wasm fetch transport](../completed/85-wasm-fetch-transport/requirements.md) | T1 to T5 | The fetch plumbing that feature 05 and spec 77 use | no |
-| [86 Auth primitives](../86-auth-primitives/requirements.md) | T1 to T6 | The trait, the result types, `Secret`, the bearer parser | yes |
-| [87 Mutual TLS](../87-mutual-tls/requirements.md) | T1 to T6 | The CA, the trust store, the verifiers, the mTLS providers | yes |
+| [86 Auth primitives](../completed/86-auth-primitives/requirements.md) | T1 to T6 | The trait, the result types, `Secret`, the bearer parser | yes |
+| [87 Mutual TLS](../completed/87-mutual-tls/requirements.md) | T1 to T6 | The CA, the trust store, the verifiers, the mTLS providers | yes |
 | [81.00 Auth in `foundation_auth`](../81-foundation-auth/features/00-foundation-auth/feature.md) | T5, T7, T11 | Signed secrets, operator key files, the provider set, the interceptor | yes |
 | [65.03 Agent RPC core](features/03-agent-rpc-core/feature.md) | T13, T14, T15, T16 | `agent.proto`, model catalog, instance registry, service and enrollment handlers | yes |
 | [65.04 Native host and DST](features/04-native-host-and-dst/feature.md) | T17, T18 | The native host and the simulation harness. **Done here = the proof of concept works** | yes |
@@ -618,7 +618,7 @@ client. We record it as a separate feature for spec 50 (storage), after this one
    (write in STE) are central to this work.
 2. This file: overview, glossary, architecture, the feature list (section 10), open questions.
    Then the `feature.md` of the feature you work on, and its design files.
-3. [`deterministic-simulation-testing.md`](../84-context-injection/deterministic-simulation-testing.md): why every
+3. [`deterministic-simulation-testing.md`](../completed/84-context-injection/deterministic-simulation-testing.md): why every
    side effect is a trait.
 4. The design file of your feature (section 1.2 lists them).
 5. [`progress.md`](./progress.md) and [`LEARNINGS.md`](./LEARNINGS.md) for the state of spec 83.

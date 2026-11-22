@@ -14,11 +14,11 @@ created: 2026-11-14
 2. Read `auth.md` (the full design; 15 sections). Sections 5, 6, 7, 8.1 and 8.3 are pointers to
    spec 86 and spec 87.
 3. Read `../../requirements.md` (what this library owns and what it does not).
-4. Read `../../../86-auth-primitives/requirements.md` section 3. The trait and the result types
+4. Read `../../../completed/86-auth-primitives/requirements.md` section 3. The trait and the result types
    come from there.
-5. Read `../../../87-mutual-tls/requirements.md` section 4. The CA, the trust store, the
+5. Read `../../../completed/87-mutual-tls/requirements.md` section 4. The CA, the trust store, the
    verifiers and the mTLS providers come from there.
-6. Read `../../../84-context-injection/requirements.md` section 3 and
+6. Read `../../../completed/84-context-injection/requirements.md` section 3 and
    `../../../80-platform-prerequisites/requirements.md` (entropy, IDs, transport facts,
    migrations).
 7. Read `../../LEARNINGS.md`.

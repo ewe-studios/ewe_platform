@@ -3,7 +3,7 @@ feature: "Auth in foundation_auth"
 description: "Signed secrets (v1 and v2), operator key files (proof of concept), the signed-secret, JWT and plaintext ClientAuth providers, and the connectrpc interceptor, all in foundation_auth. The trait and result types come from spec 86; the CA, trust store, verifiers and mTLS providers come from spec 87."
 status: "pending"
 priority: "high"
-depends_on: ["specifications/86-auth-primitives", "specifications/87-mutual-tls", "specifications/completed/80-platform-prerequisites"]
+depends_on: ["specifications/completed/86-auth-primitives", "specifications/completed/87-mutual-tls", "specifications/completed/80-platform-prerequisites"]
 part_of: "specifications/83-agent-rpc-serving-system/agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
@@ -38,8 +38,8 @@ This feature does not define the auth primitives or mutual TLS:
 
 | Item | Owner |
 |---|---|
-| `ClientAuth`, `AuthInfo`, `CallCredentials`, `Principal`, `AuthMethod`, `AuthError`, `Secret`, `constant_time_eq`, the bearer parser | [Spec 86](../../../86-auth-primitives/requirements.md) |
-| The CA, the trust store, the rustls verifiers, `MtlsAuth`, `CfTlsClientAuth`, `CfMtlsAuth` | [Spec 87](../../../87-mutual-tls/requirements.md) |
+| `ClientAuth`, `AuthInfo`, `CallCredentials`, `Principal`, `AuthMethod`, `AuthError`, `Secret`, `constant_time_eq`, the bearer parser | [Spec 86](../../../completed/86-auth-primitives/requirements.md) |
+| The CA, the trust store, the rustls verifiers, `MtlsAuth`, `CfTlsClientAuth`, `CfMtlsAuth` | [Spec 87](../../../completed/87-mutual-tls/requirements.md) |
 
 It builds on them: the providers here implement the spec 86 trait, and the provider set holds
 the spec 87 mTLS providers.
@@ -51,8 +51,8 @@ Part of the agent-rpc proof of concept.
 | Design file | Sections |
 |---|---|
 | [auth.md](./auth.md) | the whole file; section 4 for the operator key files. Sections 5, 6, 7, 8.1 and 8.3 are pointers to spec 86 and spec 87. |
-| [86/requirements.md](../../../86-auth-primitives/requirements.md) | section 3 (the trait and the result types) |
-| [87/requirements.md](../../../87-mutual-tls/requirements.md) | section 4 (the CA, the trust store, the verifiers, the mTLS providers) |
+| [86/requirements.md](../../../completed/86-auth-primitives/requirements.md) | section 3 (the trait and the result types) |
+| [87/requirements.md](../../../completed/87-mutual-tls/requirements.md) | section 4 (the CA, the trust store, the verifiers, the mTLS providers) |
 | [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
 | [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
 

@@ -20,10 +20,10 @@ metadata:
   tools: []
 has_features: true
 has_fundamentals: false
-builds_on: "specifications/87-mutual-tls"
+builds_on: "specifications/completed/87-mutual-tls"
 related_specs:
-  - "specifications/86-auth-primitives"
-  - "specifications/87-mutual-tls"
+  - "specifications/completed/86-auth-primitives"
+  - "specifications/completed/87-mutual-tls"
   - "specifications/completed/80-platform-prerequisites"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/82-proxy-registration-and-registrar"
@@ -180,10 +180,10 @@ through a `RemoteKeyPair` with RFC 6979 nonces where the algorithm allows it (sp
 
 - `specifications/81-foundation-auth/features/00-foundation-auth/auth.md` — the full design,
   moved from spec 83 feature 11. Sections 5, 6 and 7 are now pointers to spec 87.
-- `specifications/86-auth-primitives/requirements.md` — the trait and the result types.
-- `specifications/87-mutual-tls/mtls.md` — the CA, trust store, verifiers and mTLS providers.
+- `specifications/completed/86-auth-primitives/requirements.md` — the trait and the result types.
+- `specifications/completed/87-mutual-tls/mtls.md` — the CA, trust store, verifiers and mTLS providers.
 - `backends/foundation_auth/src/lib.rs` — the existing public surface.
-- `specifications/84-context-injection/requirements.md` — entropy and ID injection.
+- `specifications/completed/84-context-injection/requirements.md` — entropy and ID injection.
 - `specifications/completed/80-platform-prerequisites/features/00-transport-prerequisites/feature.md` —
   TLS peer facts.
 - `specifications/completed/80-platform-prerequisites/features/01-migration-groups/feature.md` — the

@@ -308,7 +308,7 @@ receives the deadline and the `Ctx` (`:167-172`), so the test supplies a timer t
 simulated clock from the context. The frame:
 
 1. build a `Ctx` with the deterministic bundle (simulated clock), as
-   `specifications/84-context-injection` describes;
+   `specifications/completed/84-context-injection` describes;
 2. build a `DeadlineTimer` whose `sleep_until` awaits that clock;
 3. set a deadline already in the past for case 11, and one in the future for case 12;
 4. dispatch a handler that never resolves;

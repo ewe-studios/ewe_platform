@@ -25,8 +25,8 @@ specification:
 
 | Item | New home | Why |
 |---|---|---|
-| The `ClientAuth` trait, `AuthInfo`, `CallCredentials`, `Principal`, `AuthMethod`, `AuthError`, `Secret`, `constant_time_eq`, the bearer parser | [Spec 86](../86-auth-primitives/requirements.md) | The sandbox server (spec 77) needs a secret and a bearer check without the agent RPC stack. One copy serves all. |
-| `CaStore`, `CertificateAuthority`, `TrustStore`, `ClientCertVerifier`, `ServerTlsConfig`, `MtlsConfig`, `MtlsAuth`, `CfTlsClientAuth`, `CfMtlsAuth` | [Spec 87](../87-mutual-tls/requirements.md) | Mutual TLS must be scheduled and delivered before its consumers. No task in this feature needed it. |
+| The `ClientAuth` trait, `AuthInfo`, `CallCredentials`, `Principal`, `AuthMethod`, `AuthError`, `Secret`, `constant_time_eq`, the bearer parser | [Spec 86](../completed/86-auth-primitives/requirements.md) | The sandbox server (spec 77) needs a secret and a bearer check without the agent RPC stack. One copy serves all. |
+| `CaStore`, `CertificateAuthority`, `TrustStore`, `ClientCertVerifier`, `ServerTlsConfig`, `MtlsConfig`, `MtlsAuth`, `CfTlsClientAuth`, `CfMtlsAuth` | [Spec 87](../completed/87-mutual-tls/requirements.md) | Mutual TLS must be scheduled and delivered before its consumers. No task in this feature needed it. |
 
 `auth.md` now points to both specifications from sections 5, 6, 7, 8.1 and 8.3.
 

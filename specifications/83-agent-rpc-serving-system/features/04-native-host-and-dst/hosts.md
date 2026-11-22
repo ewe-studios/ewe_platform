@@ -27,7 +27,7 @@ Cloudflare tools that run a Worker on a local machine. The
 
 A **host** is the program that runs the agent-rpc core on one platform. The core is the same
 on every platform. The host gives the core its side effects: time, randomness, network,
-storage and models ([env.md](../../../84-context-injection/env.md)).
+storage and models ([env.md](../../../completed/84-context-injection/env.md)).
 
 | Host | Platform | Module | Build gate |
 |---|---|---|---|
@@ -39,7 +39,7 @@ storage and models ([env.md](../../../84-context-injection/env.md)).
 | DST harness | tests only | the package `foundation_agent_rpc_dst` | feature `testing` |
 
 The DST harness has its own file:
-[deterministic-simulation-testing.md](../../../84-context-injection/deterministic-simulation-testing.md).
+[deterministic-simulation-testing.md](../../../completed/84-context-injection/deterministic-simulation-testing.md).
 
 ## 2. What each host gives the core
 
@@ -337,7 +337,7 @@ non-loopback `bind` before it binds anything.
 
 ### 4.4 Valtron on a native host
 
-- `main` is `#[valtron(threads = N, env = Env::system())] async fn main` ([env.md](../../../84-context-injection/env.md), section 7.1). The macro starts the multi-threaded pool, puts the `Env` into its root `Ctx`, and runs `main`; `main` awaits `NativeHost::start(config, env)` and then the shutdown signal. `main` makes no blocking call; the macro is the program boundary, as the valtron rules require.
+- `main` is `#[valtron(threads = N, env = Env::system())] async fn main` ([env.md](../../../completed/84-context-injection/env.md), section 7.1). The macro starts the multi-threaded pool, puts the `Env` into its root `Ctx`, and runs `main`; `main` awaits `NativeHost::start(config, env)` and then the shutdown signal. `main` makes no blocking call; the macro is the program boundary, as the valtron rules require.
 - Each HTTP/1.1 and HTTP/2 connection is a valtron task. RPC dispatch runs inside it. So `valtron::current_ctx()` works inside a handler.
 - The agent loop of each turn is a valtron task that `foundation_ai` starts. Its events reach the handler through `TurnStream::events()`, an async stream.
 - Model loads run on `run_background_job`. A load never blocks a valtron worker.
@@ -417,7 +417,7 @@ The native client of today (`client.rs`) keeps its behavior. It moves to
   - **certificate** (default on native when the host has a CA): send a CSR, then dial `url` with mTLS (`client_config_mutual`);
   - **client key**: send a public key, then send the access secret on each call and refresh it, as the web client does.
 - `BootstrapAccess::Bearer`: dial `url` with the pin (`TlsTrust::PinnedSha256`) or the system roots (`TlsTrust::SystemRoots`), and send the token as a bearer secret on each call.
-- The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](../../../84-context-injection/env.md), section 8).
+- The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](../../../completed/84-context-injection/env.md), section 8).
 - The client checks the payload window before it dials, as today. The check uses `Env::wall_now()`.
 
 ## 8. Configuration of the hosts

@@ -1,8 +1,8 @@
 # Progress: Spec 88, Wasm Runtime Coverage
 
-_Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
+_Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Merged.** This specification is in master as `f2e4688ad` (#655). Updated 2026-11-22.
+**Feature 00 is merged** as `f2e4688ad` (#655). Features 01, 02 and 03 remain, so the specification is open.
 
 ## Where this specification is
 
@@ -24,7 +24,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 
 | Feature | State | Owner of the work | Blocked by |
 |---|---|---|---|
-| 00-executors | `in progress`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
+| 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `todo` | one agent, sonnet | 00 merged (T9 included) |
 | 02-http-runtime | `todo` | one agent, sonnet | 00 merged |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |

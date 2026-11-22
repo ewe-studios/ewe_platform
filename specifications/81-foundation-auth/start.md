@@ -10,12 +10,12 @@ created: 2026-11-14
 ## Agent Workflow
 
 1. Read `requirements.md` (purpose, order, what this specification owns and what it does not).
-2. Read `../86-auth-primitives/requirements.md` section 3. The trait, `AuthInfo` and `Secret`
+2. Read `../completed/86-auth-primitives/requirements.md` section 3. The trait, `AuthInfo` and `Secret`
    come from there; this specification implements them.
-3. Read `../87-mutual-tls/requirements.md` section 4. The CA, the trust store and the mTLS
+3. Read `../completed/87-mutual-tls/requirements.md` section 4. The CA, the trust store and the mTLS
    providers come from there.
 4. Read `../80-platform-prerequisites/requirements.md` (the transport facts and the migration
-   groups) and `../84-context-injection/requirements.md` (the entropy and IDs).
+   groups) and `../completed/84-context-injection/requirements.md` (the entropy and IDs).
 5. Read `LEARNINGS.md`.
 6. Read `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md` and
    `.agents/skills/rust-valtron-usage/skill.md`.

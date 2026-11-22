@@ -29,7 +29,7 @@ related_specs:
   - "specifications/78-manifest-contract"
   - "specifications/79-manifest-installer"
   - "specifications/81-foundation-auth"
-  - "specifications/87-mutual-tls"
+  - "specifications/completed/87-mutual-tls"
   - "specifications/completed/80-platform-prerequisites"
 features:
   completed: 0
@@ -241,7 +241,7 @@ sidecar does not read the client credential either.
 - `specifications/completed/63-connectrpc-proxy/` — the proxy that this spec builds on.
 - `specifications/78-manifest-contract/requirements.md` — the `proxy` and `probes` blocks.
 - `specifications/81-foundation-auth/` — enrollment and the signed secrets.
-- `specifications/87-mutual-tls/` — the CA, the trust store, the mTLS verifiers and the mTLS
+- `specifications/completed/87-mutual-tls/` — the CA, the trust store, the mTLS verifiers and the mTLS
   providers.
 - `specifications/83-agent-rpc-serving-system/` — the app that the end-to-end test installs.
 

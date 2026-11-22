@@ -12,7 +12,7 @@ created: 2026-11-14
 1. Read `requirements.md` (mission, order, the rotation rule, success criteria).
 2. Read `../78-manifest-contract/requirements.md` (the `proxy` and `probes` blocks).
 3. Read `../81-foundation-auth/requirements.md` (enrollment and the signed secrets).
-4. Read `../87-mutual-tls/requirements.md` (the certificate authority, the trust store, the
+4. Read `../completed/87-mutual-tls/requirements.md` (the certificate authority, the trust store, the
    mTLS verifiers and the mTLS providers).
 5. Read `LEARNINGS.md`.
 5. Read `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md` and

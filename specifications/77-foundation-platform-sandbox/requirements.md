@@ -20,10 +20,10 @@ related_specs:
   - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/completed/54-foundation-deployment-docker"
   - "specifications/completed/76-shared-context"
-  - "specifications/84-context-injection"
+  - "specifications/completed/84-context-injection"
   - "specifications/completed/85-wasm-fetch-transport"
-  - "specifications/86-auth-primitives"
-  - "specifications/87-mutual-tls"
+  - "specifications/completed/86-auth-primitives"
+  - "specifications/completed/87-mutual-tls"
 features:
   completed: 0
   uncompleted: 18

@@ -949,7 +949,7 @@ Encryption at rest with a KEK, and keys that never leave a hardware module, are
 ## 5. The CA, the trust store and the TLS verifier (moved)
 
 The certificate authority, the trust store and the rustls verifiers moved to
-[spec 87](../../../87-mutual-tls/mtls.md) on 2026-11-15. The owner direction: one specification owns
+[spec 87](../../../completed/87-mutual-tls/mtls.md) on 2026-11-15. The owner direction: one specification owns
 mTLS, and the proxy, the agent RPC server and the sandbox service build on it.
 
 | Item | Owner now |
@@ -969,7 +969,7 @@ provider stays the signed secret (`SignedSecretAuth`), not a JWT.
 ### 8.1 The trait (defined in spec 86)
 
 The `ClientAuth` trait, `CallCredentials`, `AuthInfo`, `Principal`, `AuthMethod`, `AuthError`
-and `Secret` are the auth primitives of [spec 86](../../../86-auth-primitives/requirements.md)
+and `Secret` are the auth primitives of [spec 86](../../../completed/86-auth-primitives/requirements.md)
 section 3. They land in `foundation_auth` before this feature starts, so this feature adds no
 copy of them.
 
@@ -1143,7 +1143,7 @@ impl ClientAuth for SignedSecretAuth {
 ### 8.3.1 The mTLS providers (moved)
 
 `MtlsAuth`, `CfTlsClientAuth` and `CfMtlsAuth` moved to
-[spec 87](../../../87-mutual-tls/mtls.md) section 4 on 2026-11-15. They implement the
+[spec 87](../../../completed/87-mutual-tls/mtls.md) section 4 on 2026-11-15. They implement the
 `ClientAuth` trait of spec 86 and read the trust store of spec 87. This feature keeps
 `SignedSecretAuth`, `JwtAuth`, `AnyOf` and `InsecureNoAuth`.
 
@@ -1231,7 +1231,7 @@ impl TrustConfig {
 }
 ```
 
-`MtlsAuth` and `CfMtlsAuth` are defined in [spec 87](../../../87-mutual-tls/mtls.md) section 4.
+`MtlsAuth` and `CfMtlsAuth` are defined in [spec 87](../../../completed/87-mutual-tls/mtls.md) section 4.
 Their constructors keep the shapes above. The examples in this section show the whole provider
 set of one host; a host that reads this section builds the mTLS provider from spec 87.
 
