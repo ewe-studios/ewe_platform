@@ -2,7 +2,7 @@
 feature: "Cost report, lifecycle rules and prune schedule"
 status: "planned"
 priority: "medium"
-depends_on: ["02-r2-object-client"]
+depends_on: ["02-bulk-store-client"]
 crates: []
 issues: []
 model: "haiku"

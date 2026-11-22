@@ -1,9 +1,9 @@
 ---
-description: "Store the CI Docker images and the provisioned Windows and macOS VM disks at low or zero cost. Keep the public Open Container Initiative (OCI) images in Docker Hub or GitHub Container Registry (GHCR), and add a private Cloudflare R2 bucket with a tested client for the large VM disks and build artifacts. This spec analyses the options, gives their costs, and defines the features to build the storage."
-status: "planned"
+description: "Store the CI Docker images and the provisioned Windows and macOS VM state at low or zero cost. Keep the public Open Container Initiative (OCI) images in Docker Hub by default, with GitHub Container Registry (GHCR) selectable. Build one image per OS and base for the VM volume and the installed software, and use a private Cloudflare R2 bucket for build artifacts. This spec analyses the options, gives their costs, and defines the features to build the storage."
+status: "pending"
 priority: "medium"
 created: 2026-11-08
-updated: 2026-11-08
+updated: 2026-11-23
 author: "Main Agent"
 metadata:
   version: "1.0"
@@ -145,7 +145,10 @@ GiB images. Docker Hub already supports the sizes of the current public images, 
 so at no cost with no pull limit. The registry stays an OCI registry. R2 is for artifacts
 that are not OCI images.
 
-### 3.2 Object storage option for VM disks and large artifacts
+### 3.2 Object storage option for large artifacts and disks
+
+This option serves build artifacts by default. A full guest disk may use it only where
+the licence allows (section 4). The VM volume uses the OCI image path.
 
 Cloudflare R2 is a plain object store with the S3 protocol. It fits the disks and the build
 artifacts exactly:
@@ -169,40 +172,112 @@ Docker Hub private storage, egress would dominate the cost. R2 charges $0 for it
 
 ### 3.3 Cost estimate
 
-Use these assumptions: 60 GiB of OCI images in the registry; two OS disks, two retained
-versions each, 20 GiB compressed per disk.
+Use these assumptions: 60 GiB of public OCI images; one volume image per OS (payload only,
+expected below 10 GiB); no full guest disk by default.
 
 | Item | Size | Where | Cost per month |
 | --- | --- | --- | --- |
-| OCI images, public | 60 GiB | Docker Hub or GHCR | $0 |
-| VM disks, 2 OS × 2 versions | 80 GiB | R2 | (80 − 10 free) × $0.015 = $1.05 |
-| Build artifacts and reports | 1 GiB | R2 | $0.02 |
+| Public OCI images | 60 GiB | Docker Hub or GHCR | $0 |
+| Volume image, private payload | below 10 GiB | GHCR private (free now) or Docker Hub private | $0 with GHCR; Docker Hub private needs a paid plan. |
+| Build artifacts and reports | 1 GiB | R2, S3, GCS, MEGA or local | $0 in the free tier. |
+| Full guest disk, only where the licence allows | 20 GiB × 1 | R2 | (20 − 10 free) × $0.015 = $0.15 |
 | Egress | any | R2 | $0 |
-| **Total** | | | **about $1.07** |
 
-If the owner keeps one version of each disk, the R2 cost is about $0.45. If the total stays
-below 10 GiB, the R2 cost is $0. A monthly report prints the stored bytes and the estimated
-cost, so the owner sees the change.
+If the volume image stays under 10 GiB and no full disk is stored, the cost is $0. A monthly
+report prints the stored bytes and the estimated cost for the selected stores, so the owner
+sees any change. S3 and GCS charge egress; use them only when their free tier or the owner's
+preference justifies it.
 
 A Workers-based OCI registry would add $5 per month on the Paid plan and put a fragile
 component in the critical path. It is not recommended.
 
 ## 4. Decision
 
-1. **Keep OCI images in an OCI registry.** Use Docker Hub as today. Add GHCR as a selectable
-   backend with one configuration field and native `GITHUB_TOKEN` authentication. Public
-   images are free on both. GHCR has no pull limit and is the recommended primary when the
-   owner accepts GHCR; Docker Hub stays the fallback.
-2. **Store provisioned VM disks and large build artifacts in one private R2 bucket.** Use the
-   S3 protocol with multipart upload, SHA-256 manifests, presigned downloads and a retention
-   policy. No Worker and no registry server sit in the path.
-3. **Never publish an operating system disk.** The bucket is private. The licence position
-   from the README applies: internal use only, Windows evaluation terms, macOS on Apple
-   hardware only. The owner must accept this position before feature 04 starts.
-4. **Do not build an OCI registry on Cloudflare now.** Revisit only if Docker Hub or GHCR
+1. **Keep OCI images in an OCI registry.** Docker Hub stays the default push target. Add GHCR
+   as a selectable backend with one configuration field and native `GITHUB_TOKEN`
+   authentication. Public images are free on both. The owner keeps Docker Hub for now.
+2. **Publish the VM volume as one OCI image.** Feature 04 builds a data-only image from
+   `scratch`. It holds the volume payload and the installed software at `/volume`. A job
+   extracts it into the VM storage. The image holds no vendor operating system files.
+3. **Do not store a vendor OS disk by default.** The Windows evaluation terms forbid
+   redistribution, and macOS may run only on Apple hardware. When the owner accepts the risk
+   for a Linux guest, a full disk image may go to a private bulk store. It is never public.
+4. **Add a pluggable bulk-store backend for large files.** One interface selects the store
+   from `[storage]`: Cloudflare R2 and Amazon S3 (both the S3 protocol), Google Cloud Storage,
+   MEGA (command-line client and API), or a local path or network share. Docker Hub and GHCR
+   are OCI registries, not bulk stores. Feature 02 builds the interface and the backends.
+5. **Do not build an OCI registry on Cloudflare now.** Revisit only if Docker Hub or GHCR
    fails the size or rate test in feature 07.
-5. **Keep the choice configurable.** `[storage]` in `ci/ewe-platform-image/config.toml`
-   selects the registry and the object store. No workflow hard-codes a host or a bucket.
+6. **Keep every choice configurable.** `[storage]` in
+   `ci/ewe-platform-image/config.toml` selects the registry, the bulk store and the bucket.
+   No workflow hard-codes a host, a bucket or a provider.
+
+### 4.1 One artifact or one disk?
+
+A single disk image that holds the operating system, the installed software and the data is
+possible. The common formats are qcow2, raw, VHDX, VMDK and OVA (a tar of a disk and its
+metadata). They are virtual-machine formats. A container runtime cannot run them; QEMU,
+VirtualBox or Hyper-V boots them. An OCI image is a container format. It can carry a disk
+file as a layer, but Docker does not boot that file. Buildpacks build an application image
+from source; they do not build an operating system disk. `bootc` builds a bootable Linux OCI
+image; it has no Windows or macOS path.
+
+The licence follows the content, not the format. A Windows or macOS disk inside a qcow2, an
+OVA or an OCI layer is still a copy of the vendor operating system. For Linux guests, a single
+disk image is safe to store.
+
+This spec therefore separates two cases:
+
+| Case | Artifact | Store |
+| --- | --- | --- |
+| Our volume payload and installed software, no vendor OS | OCI data image at `/volume` | Docker Hub (default) or GHCR |
+| A full guest disk, only where the licence allows | qcow2 or OVA archive | Bulk store: R2, S3, GCS, MEGA or a local share |
+
+### 4.2 How a large volume reaches a container
+
+A large volume does not belong in an image layer. A registry limits each layer, and a large
+layer makes every pull slower. Use one of these patterns:
+
+| Pattern | How | Fit |
+| --- | --- | --- |
+| Bind mount from the host | The data is already on the host; `docker run -v /host/data:/data` | The CI VM case |
+| Init step from an OCI data image | `docker pull`, then `docker cp` or `cp -a` into the volume | A small payload; feature 04 |
+| Init step from the bulk store | `rclone` or the provider client, then `tar -x` into the volume | Large volumes; no registry layer limit |
+| OCI artifact (ORAS) | `oras push` and `oras pull`, one blob or several | Files that fit the registry blob limit |
+| Object-store mount | Mountpoint for Amazon S3, GCS FUSE | Read-mostly data; Linux only; not full POSIX |
+| A VM disk | qcow2 or OVA in the bulk store, booted with QEMU | A whole guest; not a container |
+
+The CI VM is a container. The data arrives first, then the container mounts the host
+directory:
+
+```bash
+# Option A: the volume image
+docker pull registry.example/ci-volume-windows:H
+tmp=$(docker create registry.example/ci-volume-windows:H)
+docker cp "$tmp:/volume/." /mnt/vm/
+docker rm "$tmp"
+docker run --rm -v /mnt/vm:/storage ... dockurr/windows
+
+# Option B: the bulk store
+rclone copy remote:ewe-platform-ci/disks/windows/H/<sha>.tar.zst /tmp/
+tar -xzf /tmp/<sha>.tar.zst -C /mnt/vm
+docker run --rm -v /mnt/vm:/storage ... dockurr/windows
+```
+
+Docker Hub accepts a layer of about 10 GB; a full 40 to 50 GB Windows disk does not fit.
+Use option B, or an ORAS artifact with several blobs, for a file that large.
+
+Docker cannot mount a qcow2, VHDX, VMDK or OVA file as a filesystem. Those formats hold a
+virtual disk, not a filesystem that the host kernel can mount. The options are:
+
+1. Bind-mount the file into a container and run QEMU, as dockurr does.
+2. Convert the disk to raw with `qemu-img convert`, then loop-mount it on the host. This
+   needs root, and the host must support the guest filesystem. Windows NTFS is limited;
+   macOS APFS is not supported on Linux.
+3. For a directory payload, use `tar.zst` and extract it. No privilege is needed.
+
+This is why feature 04 stores the payload as a directory archive or an OCI data image, not as
+a VM disk.
 
 ## 5. Architecture
 
@@ -211,90 +286,109 @@ flowchart LR
     subgraph GHA[GitHub Actions]
         PI[platform-images.yaml<br/>build and push]
         PV[platform-vms.yaml<br/>boot and test]
-        SM[storage-r2-smoke.yaml<br/>nightly, real bucket]
+        SM[storage-smoke.yaml<br/>nightly, real stores]
     end
     subgraph TOOL[ci/platform-images]
         IM[images.nu<br/>prepare, exists, promote]
-        VMN[vm.nu<br/>up, disk push, disk pull]
-        ST[storage.nu<br/>config, manifest, prune]
+        VMN[vm.nu<br/>up, volume build/push/pull]
+        ST[storage.nu<br/>backend select, manifest, prune]
     end
-    REG[(Docker Hub or GHCR<br/>OCI images)]
-    R2[(Cloudflare R2<br/>private bucket)]
+    REG[(OCI registry<br/>Docker Hub or GHCR)]
+    BULK[(Bulk store<br/>R2, MEGA or local)]
     HOST[self-hosted Apple host<br/>persistent /storage]
     PI --> IM
     PV --> VMN
     SM --> ST
     IM -->|OCI push and pull| REG
-    VMN -->|multipart upload and download| R2
+    VMN -->|volume image| REG
+    VMN -->|full disk, licence allows| BULK
     VMN -->|local cache| HOST
-    ST --> R2
+    ST --> BULK
 ```
 
-_One-line caption: OCI images go to a registry; VM disks and large artifacts go to one private
-R2 bucket; the CI tooling is the only code that touches either store._
+_One-line caption: the volume image goes to an OCI registry; a full disk goes to the selected
+bulk store only when the licence allows; the CI tooling is the only code that touches either
+store._
 
 ```mermaid
 sequenceDiagram
     participant Job as platform-vms job
     participant VMN as vm.nu
-    participant R2 as R2 bucket
+    participant REG as OCI registry
     participant Host as host storage dir
-    Job->>VMN: disk pull --os windows --image ref --dest /mnt/vm
-    VMN->>R2: ListObjectsV2 prefix disks/windows/
-    R2-->>VMN: manifest keys, newest first
-    VMN->>R2: GetObject manifest.json
-    VMN->>R2: GetObject disk.tar.zst (multipart ranged if resumed)
-    VMN->>VMN: verify SHA-256 from the manifest
-    VMN->>Host: extract into /storage
+    Job->>VMN: volume pull --os windows --base-hash H --dest /mnt/vm
+    VMN->>REG: inspect ci-volume-windows:H
+    REG-->>VMN: image and labels
+    VMN->>REG: pull the image
+    VMN->>VMN: verify the org.ewe.volume.sha256 label
+    VMN->>Host: extract /volume into /storage
     Job->>Job: docker run (dockurr) with /storage
-    Job->>VMN: disk push --os windows --storage /mnt/vm
-    VMN->>VMN: stop VM, compress, compute SHA-256
-    VMN->>R2: CreateMultipartUpload, parts, CompleteMultipartUpload
-    VMN->>R2: PutObject manifest.json
-    VMN->>R2: prune old versions beyond the retention count
+    Job->>VMN: volume push --os windows --base-hash H --source /mnt/vm
+    VMN->>VMN: stop the VM, hash the payload
+    VMN->>REG: build and push ci-volume-windows:H
+    VMN->>REG: prune older tags for the OS and base
 ```
 
-_One-line caption: a job downloads a verified disk before boot, and publishes a new verified
-disk after provisioning._
+_One-line caption: a job pulls the verified volume image before boot, and the nightly job
+publishes a new one after provisioning._
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Current: disk push with a new SHA-256
-    Current --> Superseded: a newer version arrives
-    Superseded --> Expired: prune keeps the newest N
-    Expired --> [*]: DeleteObject
-    Current --> Current: same SHA-256, no upload
+    [*] --> Current: volume push with a new payload hash
+    Current --> Superseded: a newer image arrives
+    Superseded --> Expired: prune keeps retain_versions
+    Expired --> [*]: delete the tag
+    Current --> Current: same payload hash, no push
 ```
 
-_One-line caption: a disk version stays current until a newer one arrives; prune keeps the
-newest configured number of versions._
+_One-line caption: a volume image stays current until a newer payload arrives; prune keeps the
+configured number of versions._
 
 ## 6. Data model
 
-### 6.1 Bucket layout
+### 6.1 Store layout
+
+OCI registry (Docker Hub by default, GHCR selectable):
+
+```
+<registry>/<namespace>/ci-volume-<os>:<base-hash>
+```
+
+The image tag and its labels (section 4 of feature 04) identify the payload. Retention keeps
+`retain_versions` images per OS and base.
+
+Bulk store (R2, S3, GCS, MEGA or a local path), for build artifacts and for a full guest disk
+only where the licence allows. The format is part of the file name, so the store can hold any
+of the options:
 
 ```
 ewe-platform-ci/
   disks/
-    windows/
+    <os>/
       <base-hash>/
-        <sha256>.tar.zst
-        <sha256>.tar.zst.sha256
-        manifest.json
-    macos/
-      <base-hash>/
-        <sha256>.tar.zst
-        <sha256>.tar.zst.sha256
+        <sha256>.<format>        tar.zst | qcow2 | ova | vhdx | raw
+        <sha256>.<format>.sha256
         manifest.json
   reports/
     <YYYY-MM>.json
-  tmp/                    lifecycle: abort incomplete multipart after 1 day
+  tmp/                    R2 lifecycle: abort incomplete multipart after 1 day
 ```
 
-`<base-hash>` is the `hash-<hash>` value of the VM image tag that produced the disk. A disk
-from a different base image is not compatible, so the base hash is part of the path.
+`tar.zst` is the default. It is the smallest and the fastest to make for our payload and for
+a directory tree. `qcow2` and `ova` hold a bootable virtual disk. `vhdx` fits Hyper-V, and
+`raw` is the unformatted disk. The client moves the bytes; it does not open the format. The
+manifest records the format, the size and the SHA-256. A pull rejects a format that differs
+from the manifest.
+
+`<base-hash>` is the `hash-<hash>` value of the VM image tag that produced the payload. A
+payload from a different base image is not compatible, so the base hash is part of the tag or
+the path.
 
 ### 6.2 Manifest
+
+**Superseded for the VM volume (owner decision, 2026-11-23).** Feature 04 builds one OCI
+image per OS and base. The image tag and its labels replace this disk manifest. The section
+stays for the R2 bucket's build artifacts and for historical context.
 
 `manifest.json` is small (below 16 KiB) and is parsed in full. The disk bodies are never
 buffered.
@@ -327,11 +421,12 @@ Rules:
 
 ### 6.3 Retention
 
-1. Keep the newest `retain_versions` disks for each OS and base hash. The default is 2.
-2. `vm.nu disk prune` lists the manifests, sorts by `created_at`, and deletes the older
-   objects. It prints each deletion. It never deletes the current version.
+1. Keep the newest `retain_versions` volume images for each OS and base hash. The default is
+   1 (owner decision, 2026-11-23).
+2. `vm.nu volume prune` lists the images, sorts by creation time, and deletes the older ones.
+   It prints each deletion. It never deletes the current version.
 3. R2 lifecycle rules expire `tmp/` after 1 day and abort incomplete multipart uploads after
-   1 day. They never expire `disks/` automatically; the prune command is the only path.
+   1 day. They never expire artifacts automatically; the prune command is the only path.
 
 ## 7. Configuration, limits and secrets
 
@@ -346,6 +441,14 @@ constant in the code path.
 # The dockerhub backend uses the existing [registry] host, namespace and
 # username. The ghcr backend uses ghcr.io and the ewe-studios namespace.
 backend = "dockerhub"
+
+[storage.bulk]
+# Bulk store for build artifacts and for a full guest disk where the licence
+# allows: "r2", "s3", "gcs", "mega" or "local".
+backend = "r2"
+# The file format: "tar.zst" (default), "qcow2", "ova", "vhdx" or "raw".
+# The client moves the bytes; the caller produces and consumes the format.
+format = "tar.zst"
 
 [storage.r2]
 # Empty account_id and endpoint mean "take R2_ACCOUNT_ID from the environment".
@@ -362,9 +465,30 @@ max_retries = 3
 presign_expiry_s = 3600
 # zstd default level; a good trade between CPU and size for a disk image.
 compression_level = 3
-retain_versions = 2
+retain_versions = 1
 # The monthly report exits 1 above this value.
 cost_alert_usd = 5.0
+
+[storage.mega]
+# MEGA is a bulk store, not an OCI registry. The backend uses the `mega` CLI,
+# or `rclone` with a MEGA remote. remote_path is relative to the account.
+remote = ""
+remote_path = "ewe-platform-ci"
+# The free plan has a storage and a transfer quota. Measure before a large use.
+
+[storage.s3]
+# Amazon S3, or any S3-compatible store. The R2 backend is this backend with
+# the R2 endpoint; MinIO in the tests is the same thing.
+region = ""
+bucket = "ewe-platform-ci"
+endpoint = ""
+
+[storage.gcs]
+# Google Cloud Storage. The backend uses `gcloud storage`, or `rclone` with a
+# GCS remote. The credential is a service account with object rights on one
+# bucket.
+bucket = "ewe-platform-ci"
+project = ""
 ```
 
 Defaults and their sources:
@@ -376,7 +500,8 @@ Defaults and their sources:
 | `max_retries` | 3 | The R2 SDK default is 3 for retryable errors. |
 | `presign_expiry_s` | 3600 | R2 maximum is 604,800 s (7 days); 1 hour limits a leaked URL. |
 | `compression_level` | 3 | zstd default level; higher levels cost CPU with a small gain on a disk image. |
-| `retain_versions` | 2 | Two versions give a rollback disk and the current disk. |
+| `retain_versions` | 1 | One version per OS and base (owner decision, 2026-11-23). |
+| `format` | `tar.zst` | Smallest and fastest for a directory tree. `qcow2`, `ova`, `vhdx` and `raw` are selectable for a bootable disk. |
 | `cost_alert_usd` | 5.0 | The owner threshold from section 13; the report exits 1 above it. |
 
 ### 7.2 Secrets
@@ -389,6 +514,9 @@ Defaults and their sources:
 | `R2_ACCESS_KEY_ID` | Object store | Token with object read and write on the one bucket. |
 | `R2_SECRET_ACCESS_KEY` | Object store | Same token. |
 | `R2_READ_ONLY_ACCESS_KEY_ID` and `R2_READ_ONLY_SECRET_ACCESS_KEY` | Self-hosted host disk download | Read-only token on `disks/`. |
+| `MEGA_EMAIL` and `MEGA_PASSWORD`, or `MEGA_SESSION` | MEGA bulk store | Account login or a session key. Prefer the session key; rotate it. |
+| `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` | S3 bulk store | The credential for the one bucket. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | GCS bulk store | Path to the service-account JSON, mounted read-only. The account has object read and write on the one bucket. |
 
 Rules:
 
@@ -405,9 +533,9 @@ Rules:
 | Feature | Work | Area | Model |
 | --- | --- | --- | --- |
 | 01 storage configuration and manifest | Config schema, loader, manifest type, prune rules. | `ci/ewe-platform-image`, `ci/platform-images/scripts/storage.nu` | sonnet |
-| 02 R2 object client | Multipart upload, verified download, presigned URL, retries. | `ci/platform-images/scripts/r2.nu` | sonnet |
+| 02 bulk store client | One contract for R2, MEGA and local: upload, verified download, list and delete. | `ci/platform-images/scripts/{r2,mega}.nu` | sonnet |
 | 03 registry backend | Docker Hub and GHCR selection and authentication. | `images.nu`, `platform-images.yaml` | sonnet |
-| 04 VM disk store | Publish, fetch, verify and prune provisioned disks. | `vm.nu`, `actions/boot-vm` | sonnet |
+| 04 One image for the VM volume | Build, publish, fetch, verify and prune one image per OS and base. | `vm.nu`, `actions/boot-vm` | sonnet |
 | 05 CI wiring and documentation | Secrets, variables, workflow inputs, README. | `.github/workflows`, `ci/platform-images/README.md` | haiku |
 | 06 cost report and lifecycle | Monthly byte and cost report, R2 lifecycle rules, prune schedule. | `r2.nu`, docs | haiku |
 | 07 verification and migration | Local S3 tests, real-R2 smoke workflow, rate-limit measurement, Docker Hub cleanup list. | tests, `.github/workflows` | sonnet |
@@ -417,9 +545,9 @@ Rules:
 | Order | Feature | Why this position |
 | --- | --- | --- |
 | 1 | 01 storage configuration and manifest | Every other feature reads the config and the manifest. |
-| 2 | 02 R2 object client | Feature 04 needs the client. |
+| 2 | 02 bulk store client | Features 06 and the artifact path use it. |
 | 3 | 03 registry backend | Independent of R2; can run in parallel with 02. |
-| 4 | 04 VM disk store | Uses 01 and 02. |
+| 4 | 04 One image for the VM volume | Uses 01 and 03. |
 | 5 | 05 CI wiring and documentation | Uses 03 and 04. |
 | 6 | 06 cost report and lifecycle | Uses 02. Can run in parallel with 05. |
 | 7 | 07 verification and migration | Runs last; measures the full path. |
@@ -500,27 +628,30 @@ The full run is the GitHub CI of the PR. A run cancelled by a newer push is not 
 
 ## 11. Done when
 
-1. A provisioned disk uploads to the private R2 bucket and downloads with a matching
-   SHA-256, in the real-service workflow.
-2. A job boots a VM from the downloaded disk without the 45–75 minute install, on a fresh
+1. The volume image for one OS and base pushes to the selected OCI registry and pulls back
+   with a matching SHA-256, in the real-service workflow.
+2. A build artifact uploads and downloads through the selected bulk store (R2 or MEGA) with a
+   matching SHA-256.
+3. A job boots a VM from the volume image without the repeated setup work, on a fresh
    GitHub-hosted runner for Windows and on the self-hosted Apple host for macOS.
-3. The CI log for a full `check.yaml` run shows no Docker Hub rate-limit retry that fails the
+4. The CI log for a full `check.yaml` run shows no Docker Hub rate-limit retry that fails the
    job, on the chosen registry.
-4. `mise run storage:report` prints the stored bytes, the object count and the estimated
-   monthly cost.
-5. The bucket has a lifecycle rule for `tmp/` and a documented prune schedule.
-6. The documentation (`ci/platform-images/README.md` and
-   `ci/ewe-platform-image/README.md`) describes the stores, the secrets, the licence rules
-   and the costs.
-7. No new `severity: high` or `severity: critical` issue is open.
-8. `progress.md` and `learnings.md` record every feature and the measured costs.
+5. `mise run storage:report` prints the stored bytes, the object count and the estimated
+   monthly cost for the selected stores.
+6. The stores have a lifecycle rule for temporary objects and a documented prune schedule.
+7. The documentation (`ci/platform-images/README.md` and
+   `ci/ewe-platform-image/README.md`) describes the stores, the backends, the secrets, the
+   licence rules and the costs.
+8. No new `severity: high` or `severity: critical` issue is open.
+9. `progress.md` and `learnings.md` record every feature and the measured costs.
 
 ## 12. Risks
 
 | Risk | Feature | Control |
 | --- | --- | --- |
 | An R2 credential leaks through a log or an image layer. | 02, 05 | Mask values; keep credentials on the host; scoped tokens; rotate after a leak. |
-| A licensed disk becomes public. | 04, 05 | Private bucket; uploader refuses a wrong licence value; no public domain; review in the PR. |
+| A licensed disk becomes public. | 04, 05 | No vendor disk is stored by default. The volume image holds no vendor bits. A full disk is for Linux only, or with owner acceptance, in a private store; review in the PR. |
+| A MEGA quota is exhausted or its API changes. | 02, 06 | Measure the plan before a large use; resume on failure; keep R2 the default backend. |
 | A large upload fails after 30 minutes. | 02 | 64 MiB parts; retries; resume from the last completed part; abort and report the part number. |
 | R2 changes an S3 behaviour we rely on. | 02, 07 | Use only the calls in section 6.1; the nightly real-R2 smoke test fails on a change. |
 | Docker Hub rate limits break a matrix run. | 03, 07 | Authenticated pulls; GHCR backend with native token; measure before a switch. |
@@ -528,17 +659,28 @@ The full run is the GitHub CI of the PR. A run cancelled by a newer push is not 
 | A self-hosted host loses its local disk cache. | 04 | The archive is the recovery path. The host downloads and verifies the current disk. |
 | The R2 store becomes the only copy of a disk. | 04 | Keep the persistent host copy as a second copy; the manifest records the source. |
 
-## 13. Decisions needed from the owner
+## 13. Owner decisions (2026-11-23)
 
-1. **Registry:** keep Docker Hub, or move to GHCR? GHCR is free for public packages, has no
-   pull limit and uses `GITHUB_TOKEN`. Docker Hub keeps the current dashboard and history.
-   The default in this spec is Docker Hub, with GHCR selectable.
-2. **Licence position for disks:** accept internal copies of a Windows evaluation install and
-   of a macOS disk in a private bucket? The README says this needs an owner decision. Feature
-   04 does not start without it.
-3. **Retention:** two disk versions per OS and base (default), or one?
-4. **Cost threshold:** the spec uses $5 per month as the report threshold. Accept or change
-   it.
+| # | Question | Owner decision |
+|---|---|---|
+| 1 | Registry | Keep Docker Hub as the default push target. Add the selectable backend (feature 03), so a store can move later. |
+| 2 | Licence position for disks | Do not copy a vendor OS disk. Build one image that holds the volume and the installed software (feature 04). |
+| 3 | Retention | One version per OS and base. |
+| 4 | Cost threshold | The $5 per month threshold is accepted. Prefer free options first. |
+
+The effect on this specification:
+
+1. Feature 03 stays as written: Docker Hub is the default, GHCR is selectable.
+2. Feature 04 changes from an R2 disk archive to one OCI image per OS and base. The image
+   holds the volume payload and the installed software. It holds no vendor operating system
+   files. Section 6.2 is superseded for that path; the image tag and its labels replace the
+   disk manifest.
+3. `retain_versions` becomes 1.
+4. The R2 bucket keeps build artifacts and caches (feature 02 and feature 06). The VM volume
+   does not use it.
+
+Feature 04 is not approved for implementation yet. The main session updates its design and
+asks the owner to approve the start.
 
 ## 14. Sources
 

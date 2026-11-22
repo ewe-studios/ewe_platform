@@ -60,9 +60,9 @@ merges.
 | Lane | Feature | Work | Area |
 | --- | --- | --- | --- |
 | 1 | 01 storage configuration and manifest | design and code | ci/platform-images, ci/ewe-platform-image |
-| 2 | 02 R2 object client | design and code | ci/platform-images/scripts |
+| 2 | 02 bulk store client | design and code | ci/platform-images/scripts |
 | 3 | 03 registry backend | design and code | ci/platform-images/scripts, workflows |
-| 4 | 04 VM disk store | design and code | ci/platform-images/scripts, actions/boot-vm |
+| 4 | 04 One image for the VM volume | design and code | ci/platform-images/scripts, actions/boot-vm |
 | 5 | 05 CI wiring and documentation | mechanical | .github/workflows, docs |
 | 6 | 06 cost report and lifecycle | mechanical | ci/platform-images/scripts, docs |
 | 7 | 07 verification and migration | design and measured | tests, .github/workflows |

@@ -2,7 +2,7 @@
 feature: "Wire the storage into the workflows and document it"
 status: "planned"
 priority: "medium"
-depends_on: ["03-registry-backend", "04-vm-disk-store"]
+depends_on: ["03-registry-backend", "04-vm-volume-image"]
 crates: []
 issues: []
 model: "haiku"

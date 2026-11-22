@@ -120,3 +120,23 @@ installs remain per run:
    and gives no cost or reliability gain for public images.
 4. **Uploading a disk with one signed PUT.** Rejected because the R2 single-request limit is
    5 GiB, below a compressed disk. Multipart is mandatory.
+
+## Owner decisions (2026-11-23)
+
+The owner answered the four decisions in section 13 of `requirements.md`:
+
+1. Docker Hub stays the default push target. Feature 03 adds the selectable backend. Do not
+   move the registry now.
+2. Do not copy a vendor OS disk. Build one image for the volume and the installed software.
+   This removes the disk-archive design and its licence question.
+3. One version per OS and base. The extra rollback disk is not needed.
+4. The $5 threshold is fine. Free options come first.
+
+A later message from the owner added two requirements (2026-11-23): the store is pluggable
+across R2, S3, GCS, MEGA and a local path, and every file format is an option. `tar.zst`
+stays the default; `qcow2`, `ova`, `vhdx` and `raw` are selectable for a bootable disk.
+
+Feature 04 now publishes a data-only OCI image. It builds from `scratch`, holds the payload at
+`/volume`, and carries four labels. The image holds no vendor bits; dockurr still downloads
+the operating system on the first boot. The R2 bucket keeps build artifacts, not VM disks.
+The old disk manifest in `requirements.md` section 6.2 is marked superseded for this path.

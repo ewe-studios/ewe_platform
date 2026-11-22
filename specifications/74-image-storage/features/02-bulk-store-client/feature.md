@@ -1,15 +1,15 @@
 ---
-feature: "Cloudflare R2 object client with multipart upload, resume and checksums"
+feature: "Bulk store client: R2, S3, GCS, MEGA and local"
 status: "planned"
 priority: "medium"
 depends_on: ["01-storage-config-and-manifest"]
 crates: []
 issues: []
 model: "sonnet"
-branch: "spec74/f02-r2-client"
+branch: "spec74/f02-bulk-store"
 ---
 
-# Feature 02: Cloudflare R2 object client
+# Feature 02: Bulk store client (R2, S3, GCS, MEGA and local)
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -23,9 +23,12 @@ standard ASD-STE100.
 
 ## 1. Goal
 
-Provide one tested client that uploads, downloads, lists, presigns and deletes R2 objects.
-The client streams. It never holds a disk in memory. It survives a broken multipart upload
-and resumes from the completed parts. It verifies every byte with SHA-256.
+Provide one tested client for bulk files, with one contract and five backends. The R2 and S3
+backends use the S3 protocol. The GCS backend uses `gcloud storage` or `rclone`. The MEGA
+backend uses the `mega` CLI or `rclone`. The local backend copies files. The selected backend
+comes from `[storage.bulk]`. The client streams. It never holds a file in memory. It survives
+a broken multipart upload and resumes from the completed parts. It verifies every byte with
+SHA-256.
 
 ## 2. Measured state
 
@@ -61,6 +64,18 @@ and resumes from the completed parts. It verifies every byte with SHA-256.
    `delete` removes one object and reports a missing object as a typed error.
 10. The client masks `R2_SECRET_ACCESS_KEY`, `R2_ACCESS_KEY_ID` and the signature part of a
     presigned URL in every message it prints.
+11. `storage.nu` dispatches to the backend named by `[storage.bulk] backend`: `r2`, `s3`,
+    `gcs`, `mega` or `local`. Each backend implements the same upload, download, list and
+    delete contract.
+12. The MEGA backend uses the `mega` CLI, or `rclone` with a MEGA remote. The GCS backend
+    uses `gcloud storage`, or `rclone` with a GCS remote. A missing tool is a typed error that
+    names it. A failed transfer resumes where the backend allows it; the checksum check is
+    always on the host.
+13. A backend contract test runs the same cases against R2 (MinIO) and against a fake `mega`
+    CLI. The real MEGA account is tested in feature 07, never in a pull request.
+14. The client takes `--format` and stores the file as `<sha256>.<format>`. It moves the
+    bytes and does not convert a format. The manifest records the format. An unknown format
+    is a typed error.
 
 ## 4. Design
 
@@ -154,11 +169,17 @@ uses it.
 
 | File | Change |
 | --- | --- |
-| `ci/platform-images/scripts/r2.nu` | New client. |
-| `ci/platform-images/tests/r2_tests.nu` | New tests. |
-| `ci/platform-images/tests/docker-compose.yml` | MinIO server, pinned image, one bucket, one access key. |
-| `ci/platform-images/tests/mod.nu` | Start and stop MinIO for the R2 cases. |
-| `ci/platform-images/README.md` | Section that names the client and the local test. |
+| `ci/platform-images/scripts/r2.nu` | New R2 backend. |
+| `ci/platform-images/scripts/mega.nu` | New MEGA backend. |
+| `ci/platform-images/scripts/gcs.nu` | New GCS backend. |
+| `ci/platform-images/scripts/local.nu` | New local-path backend. |
+| `ci/platform-images/scripts/storage.nu` | Dispatch to the selected bulk backend. |
+| `ci/platform-images/tests/r2_tests.nu` | New R2 tests. |
+| `ci/platform-images/tests/mega_tests.nu` | New MEGA contract tests with a fake CLI. |
+| `ci/platform-images/tests/gcs_tests.nu` | New GCS contract tests with a fake GCS server. |
+| `ci/platform-images/tests/docker-compose.yml` | MinIO and a fake GCS server, pinned images, one bucket each. |
+| `ci/platform-images/tests/mod.nu` | Start and stop MinIO and the fake GCS server for the cases. |
+| `ci/platform-images/README.md` | Section that names the client, the backends and the local test. |
 | `mise.toml` | Pin `aws-cli` and `zstd` (feature 02 owns the pin for the client). |
 
 ## 6. Tasks
@@ -168,6 +189,9 @@ uses it.
 - [ ] Write `r2 upload` with multipart, resume and deduplication.
 - [ ] Write `r2 download` with range resume, size and SHA-256 verification.
 - [ ] Write `r2 presign`, `r2 list` and `r2 delete`.
+- [ ] Write the `mega` backend behind the same contract, with a fake CLI for the tests.
+- [ ] Write the `gcs` and `local` backends behind the same contract.
+- [ ] Write the `storage.nu` dispatch for `r2`, `mega` and `local`.
 - [ ] Write the tests in section 7.
 - [ ] Add the `aws-cli` and `zstd` pins to `mise.toml`.
 - [ ] Document the environment variables and the redaction rule.
@@ -190,6 +214,12 @@ is not R2. Feature 07 proves the real service.
 | `test r2 delete missing` | A missing key is a typed error with the key. |
 | `test r2 redacts secrets` | A forced error message contains `***` and not the test secret. |
 | `test r2 missing credential` | An unset variable is a typed error that names it. |
+| `test mega contract` | The fake `mega` CLI runs upload, download, list and delete; the SHA-256 matches. |
+| `test mega missing tool` | A missing `mega` binary is a typed error that names it. |
+| `test gcs contract` | A fake GCS server runs upload, download, list and delete; the SHA-256 matches. |
+| `test local contract` | A local path runs upload, download, list and delete; the SHA-256 matches. |
+| `test bulk backend dispatch` | `r2`, `s3`, `gcs`, `mega` and `local` each reach their backend; an unknown name is a typed error. |
+| `test bulk format name` | `--format tar.zst`, `qcow2`, `ova`, `vhdx` and `raw` name the file; an unknown format is a typed error. |
 
 ## 8. Verification
 
