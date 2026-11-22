@@ -57,7 +57,7 @@ workspace = true
 [dependencies.foundation_connectrpc]
 optional = true
 path = "../foundation_connectrpc"
-version = "0.0.15"
+version = "0.0.16"
 
 [dependencies.foundation_core]
 path = "../foundation_core"

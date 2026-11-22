@@ -10,6 +10,18 @@ pub mod shared;
 
 pub mod server_credential;
 
+/// Lowercase hexadecimal SHA-256 fingerprints (spec 81).
+pub mod fingerprint;
+
+/// Signed secrets: the issuer signs with a private key, the verifier checks
+/// with public keys only (spec 81, T5).
+#[cfg(feature = "secret")]
+pub mod secret;
+
+/// Operator key files: OpenSSH, PKCS#8 and SEC1 PEM (spec 81, T7).
+#[cfg(feature = "secret")]
+pub mod keys;
+
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 

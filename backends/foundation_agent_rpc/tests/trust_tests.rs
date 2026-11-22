@@ -12,6 +12,7 @@ use futures::StreamExt as _;
 fn client(fp: &str, name: &str, enrolled_at: u64) -> TrustedClient {
     TrustedClient {
         fingerprint_sha256: fp.into(),
+        client_id: None,
         client_name: name.into(),
         enrolled_at,
         expires_at: enrolled_at + 1000,
