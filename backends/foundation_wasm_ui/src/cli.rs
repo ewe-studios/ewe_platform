@@ -46,6 +46,7 @@ pub fn command() -> Command {
                     Arg::new("output")
                         .long("output")
                         .default_value("build")
+                        .value_parser(clap::value_parser!(PathBuf))
                         .help("Output directory"),
                 )
                 .arg(
@@ -65,7 +66,7 @@ pub fn command() -> Command {
             Command::new("plan")
                 .about("Dry-run: list what build would generate")
                 .arg(crate_dir_arg())
-                .arg(Arg::new("output").long("output").default_value("build")),
+                .arg(Arg::new("output").long("output").default_value("build").value_parser(clap::value_parser!(PathBuf))),
         )
 }
 
@@ -73,6 +74,7 @@ fn crate_dir_arg() -> Arg {
     Arg::new("crate_directory")
         .long("target")
         .default_value(".")
+        .value_parser(clap::value_parser!(PathBuf))
         .help("Crate directory to scan (the spec's --target <CRATE>)")
 }
 
@@ -81,19 +83,30 @@ fn crate_dir_arg() -> Arg {
 /// # Errors
 /// Propagates generator failures (scan, compile, IO).
 pub fn run(args: &ArgMatches) -> Result<(), BoxedError> {
-    match args.subcommand() {
-        Some(("build", sub)) => run_build(sub),
-        Some(("plan", sub)) => run_plan(sub),
+    args.subcommand().map_or_else(
+        || unreachable!("subcommand_required"),
+        |(name, matches)| run_subcommand(name, matches),
+    )
+}
+
+/// Execute a parsed leaf command.
+///
+/// # Errors
+/// Returns an error from the selected command.
+pub fn run_subcommand(name: &str, arguments: &ArgMatches) -> Result<(), BoxedError> {
+    match name {
+        "build" => run_build(arguments),
+        "plan" => run_plan(arguments),
         _ => unreachable!("subcommand_required"),
     }
 }
 
 fn generator(args: &ArgMatches) -> Result<WasmBundleGenerator, BoxedError> {
     let crate_dir = args
-        .get_one::<String>("crate_directory")
+        .get_one::<PathBuf>("crate_directory")
         .expect("defaulted");
-    let output: PathBuf = args.get_one::<String>("output").expect("defaulted").into();
-    Ok(WasmBundleGenerator::new(Path::new(crate_dir), &output)?)
+    let output = args.get_one::<PathBuf>("output").expect("defaulted");
+    Ok(WasmBundleGenerator::new(crate_dir, output)?)
 }
 
 fn run_plan(args: &ArgMatches) -> Result<(), BoxedError> {

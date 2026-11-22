@@ -507,7 +507,7 @@ dependencies = [
  "rustc-hash 2.1.3",
  "serde",
  "serde_derive",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -739,7 +739,7 @@ checksum = "ae36dc4177970ef04fde5178d3e2429882def40e57a451f919c098f72baa6cec"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -1133,7 +1133,7 @@ dependencies = [
  "regex",
  "rustc-hash 2.1.3",
  "shlex 2.0.1",
- "syn 3.0.3",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -2099,9 +2099,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.61"
+version = "4.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52fa72306bb30daf11bc97773431628e5b4916e97aaa74b7d3f625d4d495da02"
+checksum = "844c5c0b65be192cb68d570cca1b21a6444431d24e39c084dc0336177015337c"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -2109,9 +2109,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.61"
+version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2071365c5c56eae7d77414029dde2f4f4ba151cf68d5a3261c9a40de428ace93"
+checksum = "ec0797fb7aeb1406c84efac526901f7ec3ead2124f946b494e72879d4b54704d"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2121,14 +2121,14 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.61"
+version = "4.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dec5be1eea072311774b7b84ded287adbd9f293f9d23456817605c6042f4f5e0"
+checksum = "b4c174f11f949b9ca8c60580925e282b9cbd5454750e506f08648b2038080cd7"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -4198,6 +4198,7 @@ dependencies = [
 name = "ewe_platform"
 version = "0.0.4"
 dependencies = [
+ "blocking",
  "bytes",
  "clap",
  "foundation_ai",
@@ -4208,7 +4209,9 @@ dependencies = [
  "foundation_netio",
  "foundation_nostd",
  "foundation_packager",
+ "foundation_tasks",
  "foundation_toolings",
+ "foundation_ui_native",
  "foundation_wasm",
  "foundation_wasm_ui",
  "http 1.5.0",
@@ -5546,7 +5549,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_codegentools"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "clap",
  "foundation_codegen",
@@ -6117,7 +6120,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.24"
+version = "0.0.25"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -6434,6 +6437,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_tasks"
+version = "0.1.0"
+dependencies = [
+ "async-channel",
+ "clap",
+ "foundation_context",
+ "foundation_core",
+ "foundation_macros",
+ "foundation_nativeapis",
+ "futures-lite",
+ "futures-util",
+ "libc",
+ "syn 2.0.119",
+ "tempfile",
+ "thiserror 2.0.19",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "foundation_testbed"
 version = "0.0.6"
 dependencies = [
@@ -6591,16 +6613,24 @@ name = "foundation_ui_native"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "blocking",
+ "clap",
  "foundation_connectrpc",
  "foundation_context",
  "foundation_core",
  "foundation_netio",
+ "foundation_tasks",
  "foundation_ui_connectrpc",
  "foundation_ui_runtime",
  "foundation_ui_wire",
  "foundation_wasm",
  "foundation_wasm_ui",
+ "futures-lite",
  "futures-util",
+ "hex",
+ "serde_json",
+ "sha2 0.11.1",
+ "tempfile",
  "thiserror 2.0.19",
  "uniffi",
 ]
@@ -6689,7 +6719,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "clap",
  "concurrent-queue",
@@ -6705,7 +6735,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "clap",
  "foundation_codegen",
@@ -9791,7 +9821,7 @@ checksum = "77060ebe535362c3da75682cd17b0431017b6e7c5661e714fc69a7ad017d1301"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -11858,7 +11888,7 @@ dependencies = [
  "proc-macro-error-attr3",
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -12526,7 +12556,7 @@ checksum = "2c9283685feec7d69af75fb0e858d5e7378f33fe4fc699383b2916ab9273e03c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -13362,7 +13392,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -13407,7 +13437,7 @@ checksum = "8d3b1629de253c70a0508c3899572da79ca359fdab27c7920ff00406df418906"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -14298,9 +14328,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.3"
+version = "3.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
+checksum = "4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -14891,7 +14921,7 @@ checksum = "43cbfe0cf76104d42a574802844187e84a305e531ed54455f11fbde0f10541cd"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.10",
 ]
 
 [[package]]

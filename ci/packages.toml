@@ -210,8 +210,11 @@ reason = "4 pedantic warnings; clear them and delete this override (#441)"
 [packages.foundation_theme]
 runs = ["", "native-manifest"]
 
+[packages.foundation_tasks]
+runs = [""]
+
 [packages.foundation_ui_native]
-runs = ["", "app"]
+runs = ["", "app", "tasks"]
 wasm = "off"
 reason = "Swift and Kotlin use this crate on native devices."
 

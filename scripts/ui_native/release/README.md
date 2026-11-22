@@ -98,3 +98,24 @@ implementation("io.github.ewe-studios:ewe-ui:0.1.0")
 
 The renderer pulls the binding and core modules. The package-only starters call a remote Rust action.
 The separate todo examples show how an application can also register local Rust actions.
+
+## Run a native task
+
+The native package and the platform executable register the same task set.
+Run these commands from the repository checkout.
+
+```sh
+platform task ls
+platform task run native:build-android --with-todo
+platform task run native:release:prepare --config release/native-ui.toml --output dist/native-ui
+platform task run native:release:verify --candidate dist/native-ui --templates both
+cargo run -p foundation_ui_native --features tasks --bin native-task -- task ls
+```
+
+Import the trusted public signing key and set `NATIVE_GPG_FINGERPRINT` before you publish.
+The runner checks every signature against that key.
+
+Keep the draft release and the upload-attempt asset if a Maven Central upload returns an uncertain result.
+Find the deployment using the candidate name printed in the attempt asset.
+Supply a receipt with the matching deployment name and identifier before you resume.
+The resume check accepts a matching receipt and verifies it with Maven Central before continuing.

@@ -26,6 +26,7 @@ mod theme_tokens;
 mod to_arrow;
 mod type_uuid;
 mod valtron_entry;
+mod task_entry;
 mod wasm_entrypoint;
 mod wasm_logs;
 mod wasm_modes;
@@ -716,6 +717,18 @@ pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
+}
+
+/// Build the entry point of a repository task executable.
+#[proc_macro_attribute]
+pub fn task_entry(attr: TokenStream, item: TokenStream) -> TokenStream {
+    task_entry::expand(attr.into(), item.into(), false).into()
+}
+
+/// Include a build-script index and register the discovered task files.
+#[proc_macro_attribute]
+pub fn tasks(attr: TokenStream, item: TokenStream) -> TokenStream {
+    task_entry::expand(attr.into(), item.into(), true).into()
 }
 
 /// `#[valtron::task]` — wrap a transition function into a state-machine task.

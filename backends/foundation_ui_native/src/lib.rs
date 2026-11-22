@@ -15,3 +15,6 @@ pub use host::{
 mod sink;
 #[cfg(feature = "app")]
 pub use sink::CoreSink;
+
+#[cfg(feature = "tasks")]
+pub mod tasks;

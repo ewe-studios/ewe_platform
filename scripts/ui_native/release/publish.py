@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -12,6 +13,7 @@ import time
 import tomllib
 from urllib.parse import urlencode
 from uuid import UUID
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts/ui_native"))
@@ -71,6 +73,82 @@ def central(operation, token, options=()):
     return result.stdout.strip()
 
 
+
+
+def check_signatures(path, fingerprint):
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+        if len(names) != len(set(names)):
+            raise ValueError("Android bundle has duplicate members")
+        products = {name for name in names if not name.endswith((".asc", ".md5", ".sha1", ".sha256", ".sha512"))}
+        signatures = {name[:-4] for name in names if name.endswith(".asc")}
+        if not products or products != signatures:
+            raise ValueError("Android bundle requires a signature for each product")
+        with tempfile.TemporaryDirectory() as directory:
+            data = Path(directory) / "product"
+            signature = Path(directory) / "signature"
+            for name in sorted(products):
+                for key, file in [(name, data), (name + ".asc", signature)]:
+                    with archive.open(key) as src, file.open("wb") as dest:
+                        shutil.copyfileobj(src, dest)
+                status = subprocess.check_output(
+                    ["gpg", "--batch", "--status-fd", "1", "--verify", signature, data], text=True
+                )
+                matches = [line.split() for line in status.splitlines() if line.startswith("[GNUPG:] VALIDSIG ")]
+                if not any(fingerprint.upper() in (line[2], line[-1]) for line in matches):
+                    raise ValueError(f"Unexpected signer for {name}")
+
+def read_receipt(path, expected_name):
+    record = json.loads(path.read_text())
+    if record["name"] != expected_name:
+        raise ValueError("Central receipt belongs to another candidate")
+    return str(UUID(record["id"]))
+
+
+def store_receipt(path, record):
+    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as output:
+        stage = Path(output.name)
+        try:
+            json.dump(record, output)
+            output.write("\n")
+            output.flush()
+            os.fsync(output.fileno())
+            output.close()
+            stage.replace(path)
+        finally:
+            stage.unlink(missing_ok=True)
+
+
+def central_status(deployment, name, token):
+    status = json.loads(central("status?id=" + deployment, token))
+    if status["deploymentName"] != name:
+        raise ValueError("Central deployment name differs from the receipt")
+    return status["deploymentState"]
+
+
+def reconcile(directory, repo, tag, assets, receipt, name, token):
+    local = directory / ".central-deployment.json"
+    pending = directory / ".central-deployment-pending.json"
+    deployment = read_receipt(local, name) if local.is_file() else None
+    if receipt.name in assets:
+        gh("release", "download", tag, "--repo", repo, "--pattern", receipt.name, "--dir", str(receipt.parent))
+        remote = read_receipt(receipt, name)
+        if deployment is not None and deployment != remote:
+            raise ValueError("Local and remote deployment receipts differ")
+        deployment = remote
+    if deployment is not None:
+        central_status(deployment, name, token)
+    elif pending.exists() or "central-deployment-pending.json" in assets:
+        if not pending.exists():
+            gh("release", "download", tag, "--repo", repo, "--pattern", "central-deployment-pending.json",
+               "--dir", str(receipt.parent))
+            saved = json.loads((receipt.parent / "central-deployment-pending.json").read_text())
+            if saved["name"] != name:
+                raise ValueError("Central upload attempt belongs to another candidate")
+            store_receipt(pending, saved)
+        raise RuntimeError(f"Central upload outcome is unresolved. Inspect {pending} and supply the matching receipt.")
+    return deployment, local, pending
+
 def publish(directory, timeout, interval):
     cfg = tomllib.loads((ROOT / "release/native-ui.toml").read_text())
     manifest = directory / "native-ui.json"
@@ -86,6 +164,10 @@ def publish(directory, timeout, interval):
     for name in names:
         if digest(directory / name) != rec["sha256"][name]:
             raise ValueError(f"Invalid candidate digest: {name}")
+    fingerprint = os.environ.get("NATIVE_GPG_FINGERPRINT")
+    if not fingerprint:
+        raise ValueError("Configure the trusted OpenPGP fingerprint in NATIVE_GPG_FINGERPRINT")
+    check_signatures(directory / "android-publication.zip", fingerprint)
     token = base64.b64encode((os.environ["CENTRAL_USERNAME"] + ":" + os.environ["CENTRAL_PASSWORD"]).encode()).decode()
     tags = [(repo, tag, source), (repo, version, rec["swift_tag_revision"])]
     metadata_commit = rec["swift_tag_revision"] != source
@@ -95,36 +177,48 @@ def publish(directory, timeout, interval):
         raise ValueError(f"Missing commit in {repo}: {source}")
     release = lookup(f"repos/{repo}/releases/tags/{tag}")
     files = [directory / "android-publication.zip", directory / cfg["apple_archive"], manifest]
-    if release is None:
-        add_tag(*tags[0])
-        gh("release", "create", tag, "--repo", repo, "--verify-tag", "--draft", "--title", tag, "--notes", "Native user interface packages.")
-        release = lookup(f"repos/{repo}/releases/tags/{tag}")
-    assets = {a["name"]: a for a in release["assets"]}
+    assets = {a["name"]: a for a in release["assets"]} if release else {}
     for item in files:
         if item.name in assets and assets[item.name]["digest"] != "sha256:" + digest(item):
             raise ValueError(f"Asset conflict: {item.name}")
-    for item in files:
-        upload(repo, tag, item, assets)
     deployment_name = tag + "-" + digest(manifest)
     with tempfile.TemporaryDirectory() as temp:
         receipt = Path(temp) / "central-deployment.json"
-        if receipt.name in assets:
-            gh("release", "download", tag, "--repo", repo, "--pattern", receipt.name, "--dir", temp)
-            saved = json.loads(receipt.read_text())
-            if saved["name"] != deployment_name:
-                raise ValueError("Central receipt belongs to another candidate")
-            deployment = str(UUID(saved["id"]))
-        else:
+        deployment, local_receipt, pending = reconcile(directory, repo, tag, assets, receipt, deployment_name, token)
+        if release is None:
+            add_tag(*tags[0])
+            gh("release", "create", tag, "--repo", repo, "--verify-tag", "--draft", "--title", tag, "--notes", "Native user interface packages.")
+            release = lookup(f"repos/{repo}/releases/tags/{tag}")
+            if release is None:
+                raise RuntimeError("GitHub did not return the draft release")
+            assets = {a["name"]: a for a in release["assets"]}
+        for item in files:
+            upload(repo, tag, item, assets)
+        pending_asset = "central-deployment-pending.json"
+        pending_remote = pending_asset in assets
+        if deployment is None:
+            attempt = {"name": deployment_name}
+            store_receipt(pending, attempt)
+            remote_attempt = Path(temp) / pending_asset
+            store_receipt(remote_attempt, attempt)
+            upload(repo, tag, remote_attempt, assets)
+            pending_remote = True
             query = urlencode({"name": deployment_name, "publishingType": "USER_MANAGED"})
-            deployment = str(UUID(central("upload?" + query, token, ["--form", "bundle=@" + str(directory / "android-publication.zip")])))
-            receipt.write_text(json.dumps({"name": deployment_name, "id": deployment}) + "\n")
+            try:
+                deployment = str(UUID(central("upload?" + query, token, ["--form", "bundle=@" + str(directory / "android-publication.zip")])))
+            except Exception as error:
+                raise RuntimeError(f"Central upload outcome is unresolved. Inspect {pending} before retrying.") from error
+        if receipt.name not in assets:
+            saved = {"name": deployment_name, "id": deployment}
+            store_receipt(local_receipt, saved)
+            store_receipt(receipt, saved)
             upload(repo, tag, receipt, assets)
+        if pending_remote:
+            gh("release", "delete-asset", tag, pending_asset, "--repo", repo, "--yes")
+        pending.unlink(missing_ok=True)
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            status = json.loads(central("status?id=" + deployment, token))
-            if status["deploymentName"] != deployment_name:
-                raise ValueError("Central deployment name differs from the receipt")
-            state = status["deploymentState"]
+            state = central_status(deployment, deployment_name, token)
             if state == "PUBLISHED":
                 break
             if state == "VALIDATED":

@@ -13,10 +13,18 @@ autotests = false
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [features]
+tasks = ["dep:foundation_tasks", "dep:clap", "dep:blocking", "dep:tempfile", "dep:serde_json", "dep:sha2", "dep:hex"]
 bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
 
 [dependencies]
+foundation_tasks = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+blocking = { workspace = true, optional = true }
+tempfile = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
 foundation_ui_connectrpc = { path = "../foundation_ui_connectrpc" }
 foundation_connectrpc = { path = "../foundation_connectrpc", default-features = false }
 foundation_netio = { path = "../foundation_netio", default-features = false }
@@ -27,16 +35,22 @@ thiserror = { workspace = true }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.7" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.7" }
-foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.10" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.8" }
+foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.11" }
 
 [dev-dependencies]
+futures-lite.workspace = true
 foundation_core = { path = "../foundation_core" }
 
 [[bin]]
 name = "uniffi-bindgen"
 path = "src/bin/uniffi_bindgen.rs"
 required-features = ["bindgen"]
+
+[[bin]]
+name = "native-task"
+path = "src/bin/native_task.rs"
+required-features = ["tasks"]
 
 [[test]]
 name = "integration"

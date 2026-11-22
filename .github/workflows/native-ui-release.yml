@@ -114,6 +114,7 @@ jobs:
           export GNUPGHOME="$(mktemp -d)"
           trap 'rm -rf "$GNUPGHOME"' EXIT
           printf '%s' "$SIGNING_KEY" | gpg --batch --import
+          gpg --batch --armor --export "$FINGERPRINT" > "$RUNNER_TEMP/native-release-public.asc"
           previous=()
           if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx android-publication.zip; then
             gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern android-publication.zip --dir "$RUNNER_TEMP"
@@ -129,7 +130,12 @@ jobs:
           GH_TOKEN: ${{ secrets.NATIVE_RELEASE_TOKEN }}
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
-        run: scripts/ui_native/release/publish.sh --candidate signed --resume
+          NATIVE_GPG_FINGERPRINT: ${{ vars.NATIVE_GPG_FINGERPRINT }}
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          gpg --batch --import "$RUNNER_TEMP/native-release-public.asc"
+          scripts/ui_native/release/publish.sh --candidate signed --resume
 
   public-install:
     needs: [preview, publish]
