@@ -3,13 +3,18 @@
 //! The single-threaded engine is thread-local, so these tests run only without
 //! the `multi` feature. A multi-threaded pool has no thread-local root to read.
 
+#[cfg(not(feature = "multi"))]
 use std::sync::Arc;
 
+#[cfg(not(feature = "multi"))]
 use foundation_context::env::{CounterSource, Env, SeededEntropy};
+#[cfg(not(feature = "multi"))]
 use foundation_core::env::ValtronTimer;
+#[cfg(not(feature = "multi"))]
 use foundation_core::valtron::{single, valtron, valtron_test};
 
 /// An `Env` with a counter ID source, so a test can assert on the value.
+#[cfg(not(feature = "multi"))]
 fn counter_env() -> Env {
     Env::new(
         Arc::new(ValtronTimer),

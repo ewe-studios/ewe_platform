@@ -21,14 +21,17 @@ fn setup() -> (
     let coordinator = MemoryCoordinator::new(kv_store, doc_store);
     let ledger = TokenLedger::new();
 
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 7))
+        .expect("the test Env");
     let hierarchy = MemoryHierarchy::new(
         session_id,
         coordinator,
         ledger.clone(),
         MemoryConfig::default(),
-        foundation_context::Ctx::fixed(std::sync::Arc::new(
-            foundation_context::MonotonicClock::new(),
-        )),
+        ctx,
     );
     (hierarchy, ledger)
 }
