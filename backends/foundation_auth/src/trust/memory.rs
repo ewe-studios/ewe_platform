@@ -39,6 +39,8 @@ struct RevocationRecord {
 #[derive(Default)]
 pub struct MemoryTrustStore {
     clients: RwLock<HashMap<String, MemoryClient>>,
+    /// `client_id` to certificate fingerprint.
+    client_ids: RwLock<HashMap<String, String>>,
     uses: Mutex<HashMap<String, UseRecord>>,
     revoked: Mutex<HashMap<String, RevocationRecord>>,
 }
@@ -92,17 +94,47 @@ impl TrustStore for MemoryTrustStore {
         })
     }
 
+    fn client_by_id<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<TrustedClient>> {
+        Box::pin(async move {
+            let fingerprint = self
+                .client_ids
+                .read()
+                .unwrap_or_else(|e| e.into_inner())
+                .get(client_id)
+                .cloned();
+            let Some(fingerprint) = fingerprint else {
+                return Ok(None);
+            };
+            Ok(self
+                .clients
+                .read()
+                .unwrap_or_else(|e| e.into_inner())
+                .get(&fingerprint)
+                .map(|stored| stored.client.clone()))
+        })
+    }
+
     fn record_enrollment<'a>(
         &'a self,
         client: &'a TrustedClient,
         cert_pem: &'a str,
     ) -> TrustFuture<'a, ()> {
         Box::pin(async move {
+            // Lock order is always `client_ids` then `clients`.
+            let mut client_ids = self.client_ids.write().unwrap_or_else(|e| e.into_inner());
+            if let Some(client_id) = &client.client_id {
+                if client_ids.contains_key(client_id) {
+                    return Err(super::client::TrustError::Duplicate(client_id.clone()));
+                }
+            }
             let mut clients = self.clients.write().unwrap_or_else(|e| e.into_inner());
             if clients.contains_key(&client.fingerprint_sha256) {
                 return Err(super::client::TrustError::Duplicate(
                     client.fingerprint_sha256.clone(),
                 ));
+            }
+            if let Some(client_id) = &client.client_id {
+                client_ids.insert(client_id.clone(), client.fingerprint_sha256.clone());
             }
             clients.insert(
                 client.fingerprint_sha256.clone(),

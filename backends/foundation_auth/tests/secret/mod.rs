@@ -7,5 +7,7 @@
 mod common;
 mod golden_v1;
 mod pkcs8;
+#[cfg(all(feature = "secret-rsa", not(target_family = "wasm")))]
+mod rsa;
 mod v2;
 mod verify_order;

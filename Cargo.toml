@@ -99,6 +99,9 @@ regex = "1.12.2"
 concurrent-queue = { version = "2.5.0"}
 # The concrete RNG type that `Ctx` names. The workspace pins it here, so a consumer
 # that names `ChaCha8Rng` uses the workspace version.
+# A second version (0.3) is intentional: `foundation_auth`'s `secret-rsa` feature
+# seeds a `ChaCha12Rng` for RSA-PSS and gives it to `rsa` 0.9, which needs
+# `rand_core` 0.6. `rand_chacha` 0.3 is the version on that `rand_core`.
 rand_chacha = { version = "0.10", default-features = false }
 
 # tracing

@@ -4,6 +4,7 @@ use base64::Engine;
 use foundation_auth::secret::{SecretError, SigningKey};
 
 const KEY_PEM: &str = include_str!("../fixtures/test-only-ed25519-key.pem");
+#[cfg(not(feature = "secret-rsa"))]
 const RSA_PEM: &str = include_str!("../fixtures/rsa-pkcs8-key.pem");
 const ENCRYPTED_PEM: &str = include_str!("../fixtures/encrypted-pkcs8-key.pem");
 
@@ -74,6 +75,7 @@ fn version_2_key_with_a_wrong_public_key_fails() {
     ));
 }
 
+#[cfg(not(feature = "secret-rsa"))]
 #[test]
 fn rsa_key_needs_the_secret_rsa_feature() {
     // The `secret-rsa` feature is not part of this build, so an RSA key is a

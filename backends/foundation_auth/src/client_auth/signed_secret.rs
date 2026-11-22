@@ -136,10 +136,13 @@ fn secret_error_to_auth(error: &SecretError) -> AuthError {
 
 fn trust_error_to_auth(error: &TrustError) -> AuthError {
     match error {
-        TrustError::SecretRevoked => AuthError::Revoked,
+        TrustError::SecretRevoked | TrustError::ClientRevoked => AuthError::Revoked,
         TrustError::Spent => AuthError::Spent,
         TrustError::Storage(message) => AuthError::Unavailable(message.clone()),
         TrustError::Duplicate(message) => AuthError::Misconfigured(message.clone()),
+        TrustError::UnknownClient(_) => {
+            AuthError::Invalid("the secret names a client that is not enrolled".to_string())
+        }
         TrustError::NotAtomic => AuthError::Misconfigured(error.to_string()),
     }
 }
@@ -203,9 +206,15 @@ impl ClientAuth for SignedSecretAuth {
                 .await
                 .map_err(|error| trust_error_to_auth(&error))?;
             // A revocation of the client that an access secret names stops the
-            // next call. The trust store keys clients by certificate
-            // fingerprint, so this needs the client-id index; see the open
-            // issue on spec 87's trust store.
+            // next call. An access secret from enrollment or refresh has `sub`
+            // = the enrolled `client_id`; an operator-issued secret usually has
+            // no subject.
+            if let Some(client_id) = verified.subject.as_deref() {
+                self.trust
+                    .check_client_not_revoked(client_id)
+                    .await
+                    .map_err(|error| trust_error_to_auth(&error))?;
+            }
             if let Some(limit) = effective_limit(self.policy.max_uses, verified.max_uses) {
                 self.trust
                     .spend_secret(&verified.id, verified.valid_until, limit)

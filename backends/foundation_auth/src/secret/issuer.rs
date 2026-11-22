@@ -5,8 +5,8 @@ use foundation_context::Ctx;
 use zeroize::Zeroizing;
 
 use super::{
-    codec, SecretDomain, SecretError, SecretPurpose, SignedSecret, SigningAlgorithm, SigningKey,
-    SECRET_BYTES, VERSION_1, VERSION_2,
+    codec, SecretDomain, SecretError, SecretPurpose, SignedSecret, SigningKey, SECRET_BYTES,
+    VERSION_1, VERSION_2,
 };
 
 /// Makes signed secrets. Needs the private key and the injected key material
@@ -159,10 +159,12 @@ impl SecretIssuer {
         let until = from.saturating_add(seconds);
 
         let mut secret_bytes = Zeroizing::new(vec![0u8; SECRET_BYTES]);
-        self.ctx
+        let env = self
+            .ctx
             .require_env()
-            .map_err(|e| SecretError::Entropy(e.to_string()))?
-            .entropy()
+            .map_err(|e| SecretError::Entropy(e.to_string()))?;
+        let entropy = env.entropy();
+        entropy
             .fill(secret_bytes.as_mut_slice())
             .map_err(|e| SecretError::Entropy(e.to_string()))?;
 
@@ -180,7 +182,7 @@ impl SecretIssuer {
 
         let mut secret = SignedSecret {
             version,
-            alg: SigningAlgorithm::Ed25519,
+            alg: self.key.algorithm(),
             kid,
             public_key: self.key.verifying_key().as_bytes().to_vec(),
             secret: secret_bytes,
@@ -193,7 +195,7 @@ impl SecretIssuer {
             signature: Vec::new(),
         };
         let message = codec::signed_message(&secret, self.domain);
-        secret.signature = self.key.sign(&message)?;
+        secret.signature = self.key.sign(&message, entropy.as_ref())?;
         Ok(secret)
     }
 

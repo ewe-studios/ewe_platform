@@ -104,8 +104,28 @@ fn parse_pkcs8(text: &str) -> Result<ParsedKey, KeyLoadError> {
     if let Ok(secret) = SecretKey::from_pkcs8_der(&der) {
         return p256_parts(&secret);
     }
+    #[cfg(all(feature = "secret-rsa", not(target_family = "wasm")))]
+    {
+        use rsa::pkcs1::EncodeRsaPublicKey as _;
+        use rsa::pkcs8::DecodePrivateKey as _;
+        use rsa::traits::PublicKeyParts as _;
+
+        if let Ok(private) = rsa::RsaPrivateKey::from_pkcs8_der(&der) {
+            if (256..=1024).contains(&private.size()) {
+                let public = private.to_public_key().to_pkcs1_der().map_err(|error| {
+                    KeyLoadError::UnsupportedFormat(format!("RSA public key: {error}"))
+                })?;
+                return Ok(ParsedKey {
+                    algorithm: PrivateKeyAlgorithm::Rsa,
+                    pkcs8_der: der.to_vec(),
+                    public_key: public.as_bytes().to_vec(),
+                });
+            }
+        }
+    }
     Err(KeyLoadError::UnsupportedFormat(
-        "expected an Ed25519 or P-256 PKCS#8 key; an RSA key needs feature secret-rsa".to_string(),
+        "expected an Ed25519, P-256 or RSA PKCS#8 key; an RSA key needs native + feature secret-rsa"
+            .to_string(),
     ))
 }
 

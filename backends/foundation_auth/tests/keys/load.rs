@@ -63,6 +63,7 @@ fn encrypted_openssh_is_rejected() {
     ));
 }
 
+#[cfg(not(feature = "secret-rsa"))]
 #[test]
 fn rsa_is_unsupported_without_the_feature() {
     assert!(matches!(

@@ -8,7 +8,7 @@ use foundation_auth::client_auth::{
 use foundation_auth::secret::{
     SecretDomain, SecretIssuer, SecretRequest, SecretVerifier, SigningKey, VerifyPolicy,
 };
-use foundation_auth::trust::TrustedClients;
+use foundation_auth::trust::{TrustedClient, TrustedClients};
 use foundation_compact::Duration;
 use foundation_context::Ctx;
 use foundation_core::valtron::valtron_test;
@@ -46,6 +46,25 @@ fn make_auth(ctx: &Ctx, issuer: &SecretIssuer, trust: Arc<TrustedClients>) -> Si
     SignedSecretAuth::new(verifier, trust, AccessPolicy::default())
 }
 
+/// Enroll a client-key client under `client_id`, without a certificate.
+async fn enroll(trust: &TrustedClients, client_id: &str) {
+    trust
+        .record_enrollment(
+            TrustedClient {
+                fingerprint_sha256: format!("fp-{client_id}"),
+                client_id: Some(client_id.to_string()),
+                client_name: "browser".to_string(),
+                enrolled_at: T0,
+                expires_at: T0 + 86_400,
+                last_seen_at: None,
+                revoked_at: None,
+            },
+            "",
+        )
+        .await
+        .expect("enroll the client");
+}
+
 #[valtron_test]
 async fn valid_access_secret_is_accepted() {
     let (ctx, _clock, issuer, trust) = fixture().await;
@@ -74,6 +93,7 @@ async fn valid_access_secret_is_accepted() {
 #[valtron_test]
 async fn access_secret_with_a_subject_keeps_the_client_id() {
     let (ctx, _clock, issuer, trust) = fixture().await;
+    enroll(&trust, "client-1").await;
     let secret = issuer
         .issue(&SecretRequest::access_for(
             Duration::from_hours(1),
@@ -93,6 +113,58 @@ async fn access_secret_with_a_subject_keeps_the_client_id() {
         .expect("accepted");
     let principal = info.artifacts.get::<Principal>().expect("a principal");
     assert_eq!(principal.subject, "client-1");
+}
+
+#[valtron_test]
+async fn access_secret_for_a_revoked_client_is_refused() {
+    let (ctx, _clock, issuer, trust) = fixture().await;
+    enroll(&trust, "client-1").await;
+    trust
+        .revoke_client("fp-client-1")
+        .await
+        .expect("revoke the client");
+    let secret = issuer
+        .issue(&SecretRequest::access_for(
+            Duration::from_hours(1),
+            common::AUDIENCE,
+            "client-1",
+        ))
+        .expect("issue");
+    let auth = make_auth(&ctx, &issuer, trust);
+
+    let headers = common::bearer_headers(secret.encode().as_str());
+    let connection = ConnectionContext::default();
+    let extensions = Extensions::new();
+    let error = auth
+        .authenticate(common::call(&headers, &connection, &extensions, "/t/Call"))
+        .await
+        .expect_err("a revoked client is refused");
+    assert_eq!(error, foundation_auth::client_auth::AuthError::Revoked);
+}
+
+#[valtron_test]
+async fn access_secret_for_an_unknown_client_is_refused() {
+    let (ctx, _clock, issuer, trust) = fixture().await;
+    let secret = issuer
+        .issue(&SecretRequest::access_for(
+            Duration::from_hours(1),
+            common::AUDIENCE,
+            "not-enrolled",
+        ))
+        .expect("issue");
+    let auth = make_auth(&ctx, &issuer, trust);
+
+    let headers = common::bearer_headers(secret.encode().as_str());
+    let connection = ConnectionContext::default();
+    let extensions = Extensions::new();
+    let error = auth
+        .authenticate(common::call(&headers, &connection, &extensions, "/t/Call"))
+        .await
+        .expect_err("an unknown client is refused");
+    assert!(matches!(
+        error,
+        foundation_auth::client_auth::AuthError::Invalid(_)
+    ));
 }
 
 #[valtron_test]

@@ -127,3 +127,48 @@ RSA-PSS signing is randomized. `ring` takes a `SecureRandom`. The design does no
 randomness comes from, and root rule 11 forbids the system global. A correct `secret-rsa`
 implementation must capture an `Arc<dyn EntropySource>` from the `Ctx` at construction. This is
 why the feature was left out of this change rather than half-built (issue #761).
+
+## RSA-PSS with the `rsa` crate (2026-11-23, issue #761)
+
+The design named `ring` behind `secret-rsa`. `ring` seals its `SecureRandom` trait
+(`ring::rand::sealed::SecureRandom`), so a caller cannot implement it. The only random source
+that `ring` accepts is `SystemRandom`, which reads the operating system. That breaks root rule
+11: the salt must come from the injected `Ctx`.
+
+The resolution:
+
+- Use the pure-Rust `rsa` crate (0.9). It takes a caller-supplied `CryptoRngCore`, so the salt
+  comes from us.
+- Draw 32 bytes from `ctx.require_env()?.entropy()`, seed a `rand_chacha` 0.3 `ChaCha12Rng`
+  with them, and give the stream to `rsa`. The one fallible step (the seed fill) returns
+  `SecretError::Entropy`. The stream then serves every byte that signing asks for.
+- `rand_chacha` 0.3 is the version that uses `rand_core` 0.6, the version that `rsa` 0.9 uses.
+  The workspace has a second `rand_core` through `foundation_compact` (0.10); the two do not
+  mix.
+- The feature stays native only. A wasm build never compiles the RSA code, and
+  `verify_rsa_pss` returns `SecretError::UnsupportedAlgorithm`.
+
+The test `rsa_signing_draws_from_the_injected_entropy` proves the point: two issuers with the
+same seeded `Ctx` make byte-identical secrets, including the randomized signature. A system
+random source would differ on every run.
+
+A lesson: a design that names a crate must also check that the crate accepts an injected effect.
+A sealed trait is a hard stop, and it is cheaper to find it before the plan than mid-change.
+
+## A client-id index is not an optimisation (2026-11-23, issue #762)
+
+The trust store keyed clients by certificate fingerprint only. An access secret from enrollment
+or refresh carries `sub` = the `client_id`, and the design requires a revocation check on that
+ID. Without a lookup keyed by `client_id`, a revoked client-key client keeps calling until its
+access secret expires.
+
+The fix adds `TrustedClient::client_id`, `TrustStore::client_by_id` on all three backends, and
+`TrustedClients::check_client_not_revoked`. The SQL store keeps the ID in a new
+`trusted_client_ids` table. An existing `trusted-clients.db` keeps its old tables and needs
+no `ALTER TABLE`. The check reads the store on each call, like the secret revocation check, so a
+revocation stops the next call. The in-memory index is keyed by fingerprint and cannot answer
+this question.
+
+An unknown `client_id` is refused with `AuthError::Invalid`, not accepted. "The client must
+still be enrolled and not revoked" is a positive condition.
+

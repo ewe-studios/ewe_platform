@@ -6,9 +6,24 @@ _Last updated: 2026-11-23._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — foundation auth | ✅ T5, T7 and T11 implemented and verified; under main-agent review | Moved from spec 83 feature 11 |
+| 00 — foundation auth | ✅ T5, T7 and T11 implemented and verified; issues #761 and #762 fixed | Moved from spec 83 feature 11 |
 
-## What landed on 2026-11-23
+## Follow-up change on 2026-11-23 (issues #761 and #762)
+
+| Issue | What landed | Files |
+|---|---|---|
+| #761 | The `secret-rsa` feature: RSA-PSS with SHA-256 keys of 2048 to 8192 bits, native only. The salt comes from the `Ctx` entropy source. A build without the feature returns `SecretError::UnsupportedAlgorithm` from verify and `BadKey` from a key parse. | `src/secret/keys.rs`, `src/secret/issuer.rs`, `src/keys/parse.rs`, `src/keys/mod.rs`, `Cargo.toml` |
+| #762 | A `client_id` on `TrustedClient`, a `TrustStore::client_by_id` method on all three backends, and `TrustedClients::check_client_not_revoked`. `SignedSecretAuth` calls it for an access secret with `sub`. | `src/trust/`, `src/client_auth/signed_secret.rs`, `tests/client_auth/signed_secret.rs`, `tests/mtls/trust.rs` |
+
+The crate version is 0.0.12. Every consumer requires 0.0.12.
+
+**Dependency deviation from auth.md.** The design named `ring` for `secret-rsa`. `ring` seals
+its `SecureRandom` trait, so a caller cannot supply the entropy of `Ctx`; its only source is
+the operating system. The implementation uses the pure-Rust `rsa` crate, which takes a
+caller-supplied random source, and `rand_chacha` 0.3 to expand 32 bytes from the `Ctx`
+`EntropySource`. The feature stays native only and has the same wire format.
+
+## What landed on 2026-11-23 (first change)
 
 | Task | What | Files |
 |---|---|---|
@@ -16,21 +31,20 @@ _Last updated: 2026-11-23._
 | T7 | `KeySource`, `PrivateKey` (OpenSSH, PKCS#8, SEC1), `KeyLoadError`, `VerifyingKey::list_from_json` | `backends/foundation_auth/src/keys/`, `tests/keys/` |
 | T11 | `SignedSecretAuth`, `JwtAuth`, `InsecureNoAuth`, `ForwardedPrincipalAuth`, `AnyOf`, the provider set, `ClientAuthInterceptor` | `backends/foundation_auth/src/client_auth/`, `backends/foundation_connectrpc/src/shared/auth.rs`, `tests/client_auth/`, `foundation_connectrpc/tests/client_auth_interceptor_tests.rs` |
 
-The crate version is 0.0.11. Every consumer (`foundation_ai`, `foundation_agent_rpc`,
-`foundation_keychain`, `foundation_connectrpc`, `examples/cf-login-app`) requires 0.0.11.
-
 Verified commands:
 
 ```text
-cargo test -p foundation_auth --test secret_tests
-cargo test -p foundation_auth --test keys_tests
-cargo test -p foundation_auth --test client_auth_tests
-cargo test -p foundation_connectrpc --test client_auth_interceptor_tests
 cargo test -p foundation_auth
+cargo test -p foundation_auth --features secret-rsa --test secret_tests
+cargo test -p foundation_auth --features secret-rsa --test keys_tests rsa
+cargo test -p foundation_auth --test client_auth_tests signed_secret
+cargo test -p foundation_auth --test mtls_tests trust
 cargo check -p foundation_auth --target wasm32-unknown-unknown --no-default-features --features wasm,secret
 cargo fmt --all -- --check
 cargo clippy -p foundation_auth --all-targets --no-deps -- -D warnings
+cargo clippy -p foundation_auth --all-targets --no-deps --features secret-rsa -- -D warnings
 cargo check -p foundation_agent_rpc
+cargo check -p foundation_connectrpc --test client_auth_interceptor_tests
 ```
 
 ## Decisions taken during implementation
@@ -41,15 +55,16 @@ cargo check -p foundation_agent_rpc
 | `SignedSecret` has no `subject` field in the sketch | Added `subject: Option<String>` and `SecretRequest::with_subject` | Version 2 carries `sub`, and `SignedSecretAuth` reads it. The field is additive. |
 | `signed_message(domain, ..)` needs the domain | `SignedSecret::verify_self_signed()` uses `AGENT_RPC`; `verify_self_signed_for(domain)` takes any domain | The domain is not on the wire. A client helper must name its domain. |
 | The interceptor is in `foundation_connectrpc` | Implemented there, under feature `auth` | auth.md section 8.2 puts it there; `foundation_auth` cannot depend on `foundation_connectrpc` without a cycle. |
-| RSA-PSS (`secret-rsa`) | Not implemented; an RSA key is a typed error | Recorded as issue #761. |
-| Client revocation by `sub` | Not implemented; the trust store has no client-id index | Recorded as issue #762. |
+| RSA-PSS (`secret-rsa`) | Implemented with `rsa` + `rand_chacha`, native only, entropy from `Ctx` | The design named `ring`, but `ring` seals its random source to the operating system, which root rule 11 forbids. |
+| Client revocation by `sub` | Implemented with a client-id index in the trust store | The store had no client-id lookup; #762 is fixed. |
+| `TrustedClient` fields | Added `client_id: Option<String>` with `#[serde(default)]` | The `sub` check needs the ID. The default reads an old key-value record. The SQL store keeps the ID in a new table, so an existing database keeps its tables. |
 
 ## Findings filed
 
 | Issue | Severity | Summary |
 |---|---|---|
-| #761 | medium | The designed `secret-rsa` feature (RSA-PSS keys) is not implemented. |
-| #762 | high | `SignedSecretAuth` cannot check that the `sub` client is revoked. |
+| #761 | medium | The designed `secret-rsa` feature (RSA-PSS keys) is not implemented. **Fixed and closed.** |
+| #762 | high | `SignedSecretAuth` cannot check that the `sub` client is revoked. **Fixed and closed.** |
 | #763 | low | `p256` and `ssh-key` are declared in more than one crate instead of the root workspace. |
 | #764 | low | `KeySource::from_worker_secret` is absent; use `KeySource::from_value` in the Worker host. |
 
@@ -82,10 +97,10 @@ feature 08. This library accepts operator key files for the proof of concept.
 
 ## Next steps
 
-1. Main-agent review of the report against feature.md section 4 ("Done when").
-2. One pull request for T5 and T7, then one for T11 (feature.md section 5).
-3. Pick up issues #761 and #762; #762 needs a spec 87 trust-store change first.
-4. The consumers (spec 83 host wiring, spec 82 proxy registration) then build the provider set
+1. Main-agent review of this follow-up change against feature.md section 4 ("Done when").
+2. One pull request for T5 and T7, then one for T11 (feature.md section 5), with #761 and #762
+   in the same or a neighbouring change.
+3. The consumers (spec 83 host wiring, spec 82 proxy registration) then build the provider set
    from this crate and spec 87.
 
 ## Open questions

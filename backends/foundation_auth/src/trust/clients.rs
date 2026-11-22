@@ -300,6 +300,26 @@ impl TrustedClients {
         Ok(())
     }
 
+    /// Check that the client that an access secret names (`sub`) is still
+    /// enrolled and not revoked.
+    ///
+    /// The check reads the store each time, like
+    /// [`check_secret_not_revoked`](Self::check_secret_not_revoked), so a
+    /// revocation stops the next call. The in-memory index holds no client ID,
+    /// so it cannot answer this question.
+    ///
+    /// # Errors
+    /// [`TrustError::ClientRevoked`] for a revoked client,
+    /// [`TrustError::UnknownClient`] for a client that is not enrolled, and
+    /// [`TrustError::Storage`] when the store fails.
+    pub async fn check_client_not_revoked(&self, client_id: &str) -> Result<(), TrustError> {
+        match self.store.client_by_id(client_id).await? {
+            Some(client) if client.revoked_at.is_none() => Ok(()),
+            Some(_) => Err(TrustError::ClientRevoked),
+            None => Err(TrustError::UnknownClient(client_id.to_string())),
+        }
+    }
+
     /// Revoke a secret until its validity window ends.
     ///
     /// # Errors

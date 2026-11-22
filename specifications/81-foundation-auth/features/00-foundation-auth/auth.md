@@ -86,8 +86,10 @@ default = ["turso", "secret"]
 # Signed secrets with Ed25519 (pure Rust, all targets). `ssh-key` reads
 # OpenSSH private key files (section 4.3).
 secret = ["dep:ed25519-compact", "dep:ssh-key"]
-# Operator-supplied RSA-PSS keys for signed secrets. `ring` is native only.
-secret-rsa = ["secret", "dep:ring"]
+# Operator-supplied RSA-PSS keys for signed secrets. Native only: the RSA
+# code needs a caller-supplied random source, and a wasm host holds none for it.
+# `rsa` is pure Rust; `rand_chacha` expands the entropy of `Ctx` into the salt.
+secret-rsa = ["secret", "dep:rsa", "dep:rand_chacha"]
 # The CA and certificate issuance. `rcgen` + `x509-parser` verify CSRs with
 # `ring`, so this is native only.
 pki = ["secret", "dep:rcgen", "dep:p256", "dep:x509-parser", "dep:ring"]
@@ -104,7 +106,11 @@ ed25519-compact = { version = "2.6", default-features = false, features = ["std"
 ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-ring = { version = "0.17", optional = true }
+# `ring` seals its random source to the operating system, so it cannot take
+# the entropy of `Ctx`. The RSA signing code uses the pure-Rust `rsa` crate,
+# which takes a caller-supplied random source.
+rsa = { version = "0.9", optional = true }
+rand_chacha = { version = "0.3", optional = true }
 rcgen = { version = "0.13", default-features = false, features = ["pem", "x509-parser"], optional = true }
 x509-parser = { version = "0.16", features = ["verify"], optional = true }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"], optional = true }
@@ -116,7 +122,7 @@ What works on wasm (Cloudflare Workers, browsers):
 | Module | wasm | Why |
 |---|---|---|
 | `secret` with Ed25519 | yes | `ed25519-compact` is pure Rust. Randomness comes from `Env`. |
-| `secret` with RSA-PSS | no | `ring` is C code. A wasm host refuses an RSA secret with `SecretError::UnsupportedAlgorithm`. |
+| `secret` with RSA-PSS | no | The RSA code needs a caller-supplied random source; a wasm host refuses an RSA secret with `SecretError::UnsupportedAlgorithm`. |
 | `keys` with `KeySource::Inline` | yes | `ssh-key`, `ed25519-compact` and `p256` are pure Rust. |
 | `keys` with `KeySource::File` | yes, over the injected file system | The read goes through `foundation_nativeapis`'s `AsyncVfsFileSystem`, not `std::fs`. A Worker that installs no file system gets `KeyLoadError::NotFound`. |
 | `pki` | no | CSR verification uses `ring` through `x509-parser`. |
@@ -352,7 +358,10 @@ pub struct SigningKey {
 enum SigningKeyInner {
     Ed25519(ed25519_compact::KeyPair),
     #[cfg(all(feature = "secret-rsa", not(target_family = "wasm")))]
-    RsaPss { pair: ring::signature::RsaKeyPair, pkcs8: Zeroizing<Vec<u8>> },
+    RsaPss {
+        signing: Box<rsa::pss::SigningKey<sha2::Sha256>>,
+        pkcs8: Zeroizing<Vec<u8>>,
+    },
 }
 
 impl SigningKey {

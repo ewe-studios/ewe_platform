@@ -166,19 +166,22 @@ impl PrivateKey {
         &self.public_key
     }
 
-    /// The key as a secret-signing key.
+    /// The key as a secret-signing key: Ed25519 on every target, or RSA with
+    /// native + feature `secret-rsa`.
     ///
     /// # Errors
     /// [`KeyLoadError::WrongAlgorithm`] for a P-256 key.
     pub fn into_signing_key(self) -> Result<SigningKey, KeyLoadError> {
-        if self.algorithm != PrivateKeyAlgorithm::Ed25519 {
-            return Err(KeyLoadError::WrongAlgorithm {
+        match self.algorithm {
+            PrivateKeyAlgorithm::Ed25519 | PrivateKeyAlgorithm::Rsa => {
+                SigningKey::from_pkcs8_der(&self.pkcs8_der, Some(self.kid))
+                    .map_err(|error| KeyLoadError::UnsupportedFormat(error.to_string()))
+            }
+            PrivateKeyAlgorithm::EcdsaP256 => Err(KeyLoadError::WrongAlgorithm {
                 expected: PrivateKeyAlgorithm::Ed25519,
                 found: self.algorithm,
-            });
+            }),
         }
-        SigningKey::from_pkcs8_der(&self.pkcs8_der, Some(self.kid))
-            .map_err(|error| KeyLoadError::UnsupportedFormat(error.to_string()))
     }
 
     /// The PKCS#8 DER bytes, for the CA and the server identity.

@@ -62,6 +62,7 @@ async fn build_fixture(ctx: Ctx, client_lifetime: Duration, trust_expires_at: u6
         .record_enrollment(
             TrustedClient {
                 fingerprint_sha256: issued.fingerprint_sha256.clone(),
+                client_id: None,
                 client_name: "laptop".to_string(),
                 enrolled_at: NOW,
                 expires_at: trust_expires_at,

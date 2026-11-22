@@ -7,3 +7,5 @@ mod debug_output;
 mod formats_agree;
 mod legacy_state_dir;
 mod load;
+#[cfg(all(feature = "secret-rsa", not(target_family = "wasm")))]
+mod rsa;

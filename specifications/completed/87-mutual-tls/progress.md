@@ -128,6 +128,22 @@ _Last updated: 2026-11-23._
 | `foundation_jsonschema` pedantic clippy warnings | low | Open issue #441 |
 | The agent RPC listener does not write last-seen until spec 83 installs the provider | low | Open issue #682; the write belongs to the provider by design |
 
+## Follow-up: client-id index (2026-11-23)
+
+Spec 81 issue #762 needed a trust-store lookup by `client_id` for the `sub` revocation check of
+`SignedSecretAuth`. The change, made by spec 81, is in this crate's `trust/` module:
+
+- `TrustedClient` gains `client_id: Option<String>` (serde default, so an old key-value record
+  still reads).
+- `TrustStore` gains `client_by_id`; the memory, key-value and SQL backends implement it.
+- The SQL store keeps the ID in a new `trusted_client_ids` table. It does not alter the old
+  `trusted_clients` table, so an existing `trusted-clients.db` needs no migration.
+- `TrustedClients::check_client_not_revoked` reads the store on each call and returns
+  `TrustError::ClientRevoked` or `TrustError::UnknownClient`.
+
+`mtls.md` section 2.1 still shows the old field list. The change is additive and does not change
+a certificate check.
+
 ## Open questions
 
 None. Section 12 of `requirements.md` records the five decisions.
