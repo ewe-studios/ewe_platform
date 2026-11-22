@@ -942,3 +942,6 @@ Retry uses the original creation identifier. Editing a rejected title starts a n
 
 Hold an action request at the test proxy to verify the visible state before the server receives it.
 A successful retry must increment the confirmed count once.
+
+UniFFI converts foreign exceptions to the declared Rust error when that error implements the callback conversion.
+Without that conversion, the failed callback can leave its caller before the caller saves the retry state.

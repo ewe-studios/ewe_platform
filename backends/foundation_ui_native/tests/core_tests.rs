@@ -567,3 +567,15 @@ async fn native_structured_submission_reaches_the_local_handler_and_the_selected
     assert_eq!(received.json().unwrap().bytes(), json);
     assert_eq!(received.value(), None);
 }
+
+#[test]
+fn foreign_callback_failures_reach_the_native_transport_caller() {
+    let error = uniffi::UnexpectedUniFFICallbackError::new("HTTP 503");
+    let converted = <CoreError as uniffi::ConvertError<foundation_ui_native::UniFfiTag>>::try_convert_unexpected_callback_error(error).unwrap();
+    assert_eq!(
+        converted,
+        CoreError::Transport {
+            detail: "HTTP 503".into()
+        }
+    );
+}

@@ -1078,3 +1078,7 @@ All three native dispatch tests pass.
 A fresh full runtime run passes 80 tests, including the action and view compiler tests.
 Chrome passes the delayed addition, failed request, retry, and confirmed deletion checks.
 Feature 32 records the pending and retry screenshots.
+
+Android now reports a foreign transport exception through the Rust error result. Issue #729 records this fix.
+The callback conversion test passes. The Android app displays **Try again** after HTTP 503 and retries the saved addition.
+All three hosts then display the new record, its completion, its reopening, and its deletion.

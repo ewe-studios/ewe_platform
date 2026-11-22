@@ -66,6 +66,14 @@ pub enum CoreError {
     UnsupportedInput,
 }
 
+impl From<uniffi::UnexpectedUniFFICallbackError> for CoreError {
+    fn from(error: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::Transport {
+            detail: error.reason,
+        }
+    }
+}
+
 impl CoreError {
     pub(crate) fn write(error: impl std::fmt::Display) -> Self {
         Self::Write {
