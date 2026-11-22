@@ -75,17 +75,10 @@ pub async fn verify_password_hash(
 }
 
 /// Constant-time byte comparison (avoids leaking match position via timing).
-#[must_use]
-pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
-    let mut diff = 0u8;
-    for (x, y) in a.iter().zip(b.iter()) {
-        diff |= x ^ y;
-    }
-    diff == 0
-}
+///
+/// This is the workspace copy in [`foundation_auth::shared::constant_time_eq`],
+/// re-exported here for the existing callers.
+pub use foundation_auth::shared::constant_time_eq;
 
 /// `len` random bytes from the platform entropy source (rule 11).
 ///

@@ -52,6 +52,18 @@ class CheckExecutorWake(unittest.TestCase):
             write(root, "backends/foundation_http/src/x.rs", "fn idle_wakeups() {}\nfn resume_idle_x() {}\n")
             self.assertEqual(run(root).returncode, 0)
 
+    def test_a_worktree_is_skipped(self):
+        # A git worktree holds a second checkout of the repository. Its files
+        # are not the main tree, so the guard must not scan them.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write(
+                root,
+                ".worktrees/spec-x/backends/foundation_reactor/src/bad.rs",
+                "fn b() { foundation_core::valtron::request_executor_resume(); }\n",
+            )
+            self.assertEqual(run(root).returncode, 0, "worktrees are skipped")
+
     def test_a_listed_exception_passes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

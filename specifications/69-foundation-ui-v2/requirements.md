@@ -18,11 +18,11 @@ related_specs:
   - "specifications/completed/39-foundation-wasm-ui"
   - "specifications/completed/42-ui-component"
   - "specifications/52-tauri-foundation-platform"
-  - "specifications/76-shared-context"
+  - "specifications/completed/76-shared-context"
 features:
   completed: 0
-  uncompleted: 16
-  total: 16
+  uncompleted: 17
+  total: 17
   completion_percentage: 0
 ---
 
@@ -380,6 +380,9 @@ in parallel.
 | 14 | [native-ios-renderer](./features/14-native-ios-renderer/feature.md) | The Swift package: reader, node store, views, event bridge, live mounts | 02, 03, 13 | Sonnet | Native | ⬜ Pending |
 | 15 | [native-android-renderer](./features/15-native-android-renderer/feature.md) | The Kotlin library: reader, node store, composables, event bridge, live mounts | 02, 03, 13 | Sonnet | Native | ⬜ Pending |
 | 16 | [behaviour-matrix](./features/16-behaviour-matrix/feature.md) | Behaviour declarations, the platform forms, the build check | 08, 14, 15 | Sonnet | Native | ⬜ Pending |
+| 17 | [toolchain-and-ci](./features/17-toolchain-and-ci/feature.md) | The pinned tools in the root `mise.toml`, the Android SDK task, the host check, the UniFFI proof, the CI steps | none | Sonnet | Standard | ⬜ Pending |
+
+Feature 17 is available for review. The revised spec branch assigns the compiler pin to feature 17 and lists it as a dependency of feature 01.
 
 Status key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 

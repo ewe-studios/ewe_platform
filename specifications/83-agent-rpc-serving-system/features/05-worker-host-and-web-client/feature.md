@@ -3,7 +3,7 @@ feature: "Worker Host and Web Client"
 description: "agent-rpc on Cloudflare Workers (the host entry over foundation_http's CfHttpApp and the ConnectService adapter, DoSqlStore, one Durable Object per instance, the cf-agent-rpc example), the browser client over H1Transport::default(), and the history archive to R2 on DestroyInstance."
 status: "pending"
 priority: "medium"
-depends_on: ["specifications/85-wasm-fetch-transport", "specifications/80-platform-prerequisites", "03-agent-rpc-core"]
+depends_on: ["specifications/85-wasm-fetch-transport", "specifications/completed/80-platform-prerequisites", "03-agent-rpc-core"]
 part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27

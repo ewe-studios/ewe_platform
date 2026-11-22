@@ -134,7 +134,7 @@ impl HuggingFaceCandleConfigBuilder {
     #[must_use]
     pub fn hf_token(mut self, token: impl Into<String>) -> Self {
         self.config.auth = Some(foundation_auth::AuthCredential::SecretOnly(
-            foundation_auth::ConfidentialText::new(token.into()),
+            foundation_auth::ConfidentialText::new(token),
         ));
         self
     }
@@ -182,7 +182,7 @@ impl HuggingFaceCandleProvider {
                     .auth
                     .as_ref()
                     .map(|a| match a {
-                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                        foundation_auth::AuthCredential::SecretOnly(t) => t.expose().to_owned(),
                         _ => String::new(),
                     })
                     .unwrap_or_default(),

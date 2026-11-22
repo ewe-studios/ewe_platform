@@ -11,8 +11,8 @@ keywords = ["templating", "code-generation", "project-scaffolding"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.21" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.21" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.22" }
 derive_more = { workspace = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 cargo_toml = { version = "0.22.3" }

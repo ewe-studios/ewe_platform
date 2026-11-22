@@ -16,6 +16,9 @@ foundation_context = { path = "../../../foundation_context", features = ["host-a
 # Direct, for the host-ABI clock/entropy cases (core already selects the
 # `host-abi` backend through `js-foundation-wasm`).
 foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
+# The `futures_core::Stream` trait, for polling the bridge lenses with a
+# `Context` and counting wakes.
+futures-core = { version = "0.3", default-features = false }
 
 [lib]
 crate-type = ["cdylib"]

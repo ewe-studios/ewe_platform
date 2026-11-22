@@ -204,7 +204,7 @@ impl HuggingFaceGGUFConfigBuilder {
     #[must_use]
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.config.auth = Some(foundation_auth::AuthCredential::SecretOnly(
-            foundation_auth::ConfidentialText::new(token.into()),
+            foundation_auth::ConfidentialText::new(token),
         ));
         self
     }
@@ -289,7 +289,7 @@ impl HuggingFaceGGUFProvider {
                     .auth
                     .as_ref()
                     .map(|a| match a {
-                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                        foundation_auth::AuthCredential::SecretOnly(t) => t.expose().to_owned(),
                         _ => String::new(),
                     })
                     .unwrap_or_default(),

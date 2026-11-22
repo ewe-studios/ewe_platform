@@ -15,6 +15,12 @@ the per-package build, clippy and test jobs already build the same sources, and
 release-plz verifies each tarball when it publishes the dependency before its
 dependents.
 
+It also builds one tarball in isolation: `infrastructure_llama_bindings`.
+That crate's `build.rs` needs the C++ sources, and the repository supplies
+`LLAMA_DIR`, `TOOLS_DIR` and `EMSDK_DIR` from `.cargo/config.toml` and mise.
+A consumer has none of them. The isolated check extracts the `.crate` under a
+temp dir, removes those variables, and runs `cargo check --lib`.
+
 The `[patch.crates-io]` table also hides one class of bug: a publish cycle.
 A publish cycle occurs when crate A has a dev-dependency on crate B with a
 `path` and a `version`, and B reaches back to A through normal or build
@@ -29,10 +35,34 @@ Exit status is 0 only when every publishable crate packages.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
+import tarfile
 import tempfile
 from pathlib import Path
+
+# The crate whose tarball is built with no repository build environment.
+ISOLATED_CRATE = "infrastructure_llama_bindings"
+
+# Variables that the repository or mise supplies. A consumer has none of them,
+# so the isolated build removes them.
+REPO_BUILD_VARS = (
+    "LLAMA_DIR",
+    "TOOLS_DIR",
+    "EMSDK_DIR",
+    "LLAMA_BINDINGS_DIR",
+    "LLAMA_SYMLINK_DIR",
+    "LLAMA_SUBMODULE_PATH",
+    "DAWN_DIR",
+    "WHISPER_DIR",
+    "CMAKE_PREFIX_PATH",
+    "EWE_PLATFORM",
+    "EWE_PLATFORM_DIR",
+    "CARGO_PROFILE_DEV_CODEGEN_BACKEND",
+    "CARGO_PROFILE_UAT_CODEGEN_BACKEND",
+    "CARGO_UNSTABLE_CODEGEN_BACKEND",
+)
 
 
 def cargo_metadata() -> dict:
@@ -71,6 +101,10 @@ def dev_dependency_cycles(packages: list[dict]) -> list[list[str]]:
     for package in packages:
         for dep in package.get("dependencies", []):
             if dep.get("kind") == "dev" or dep["name"] not in names:
+                continue
+            # An optional dependency is absent unless its feature is on, so it
+            # cannot close a publish cycle by itself.
+            if dep.get("optional"):
                 continue
             if dep["name"] not in edges[package["name"]]:
                 edges[package["name"]].append(dep["name"])
@@ -134,6 +168,55 @@ def patch_config(packages: list[dict], path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def isolated_build(package: dict, workspace_root: Path) -> tuple[bool, str]:
+    """Build one packaged tarball with no repository build environment.
+
+    Extracts the `.crate` under a temp dir, removes every variable in
+    `REPO_BUILD_VARS`, and runs `cargo check --lib`. A failure is a tarball a
+    consumer cannot build.
+    """
+    crate = (
+        workspace_root
+        / "target"
+        / "package"
+        / f"{package['name']}-{package['version']}.crate"
+    )
+    if not crate.exists():
+        return False, f"missing tarball: {crate}"
+
+    with tempfile.TemporaryDirectory(prefix="ewe-isolated-") as tmp:
+        tmp_path = Path(tmp)
+        with tarfile.open(crate) as archive:
+            try:
+                archive.extractall(tmp_path, filter="data")
+            except TypeError:
+                # Python older than 3.12 has no `filter` argument.
+                archive.extractall(tmp_path)
+        extracted = next(
+            (path for path in tmp_path.iterdir() if path.is_dir()), None
+        )
+        if extracted is None:
+            return False, f"tarball has no top-level directory: {crate}"
+
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in REPO_BUILD_VARS
+        }
+        # Keep the build out of the repository target dir.
+        env["CARGO_TARGET_DIR"] = str(tmp_path / "target")
+        result = subprocess.run(
+            ["cargo", "check", "--lib"],
+            cwd=extracted,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return False, (result.stderr or result.stdout).strip()
+        return True, ""
+
+
 def main() -> int:
     metadata = cargo_metadata()
     packages = metadata["packages"]
@@ -170,6 +253,20 @@ def main() -> int:
             )
             if result.returncode != 0:
                 failures.append((name, (result.stderr or result.stdout).strip()))
+
+    isolated = next(
+        (package for package in publishable if package["name"] == ISOLATED_CRATE),
+        None,
+    )
+    if isolated is not None:
+        print(
+            f"building {ISOLATED_CRATE} {isolated['version']} from its tarball, "
+            "with no build env",
+            flush=True,
+        )
+        ok, output = isolated_build(isolated, Path(metadata["workspace_root"]))
+        if not ok:
+            failures.append((f"{ISOLATED_CRATE} (isolated tarball build)", output))
 
     if failures:
         print("", file=sys.stderr)

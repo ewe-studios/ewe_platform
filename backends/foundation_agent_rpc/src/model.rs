@@ -141,6 +141,11 @@ impl ModelHandle {
                 let device = *device;
                 Self::load_with(name.clone(), move || load_gguf(&name, &path, device, ctx))
             }
+            #[cfg(not(any(feature = "candle", feature = "gguf")))]
+            _ => Err(AgentRpcError::Config(
+                "build foundation_agent_rpc with the `candle` or `gguf` feature".into(),
+            )
+            .into()),
         }
     }
 

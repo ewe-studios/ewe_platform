@@ -228,13 +228,21 @@ impl TestServer {
         app.route_any::<StreamHandler>(STREAM_PATH);
         // Embedded JS assets via foundation_http's StaticAssetHandler — supply the
         // bytes + content type, register on a path. No per-asset Serve impl.
-        let js_ct = "text/javascript; charset=utf-8";
-        let runtime: Arc<dyn Serve> =
-            Arc::new(StaticAssetHandler::new(RUNTIME_JS.as_bytes(), js_ct));
-        let arrow_lib: Arc<dyn Serve> =
-            Arc::new(StaticAssetHandler::new(APACHE_ARROW_JS.as_bytes(), js_ct));
-        let primal_test: Arc<dyn Serve> =
-            Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
+        let js_type =
+            foundation_netio::shared::mime::from_extension("js").unwrap_or("text/javascript");
+        let js_ct = format!("{js_type}; charset=utf-8");
+        let runtime: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(
+            RUNTIME_JS.as_bytes(),
+            js_ct.as_str(),
+        ));
+        let arrow_lib: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(
+            APACHE_ARROW_JS.as_bytes(),
+            js_ct.as_str(),
+        ));
+        let primal_test: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(
+            PRIMAL_TEST_JS.as_bytes(),
+            js_ct.as_str(),
+        ));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
         app.router.add_route_any(ARROW_LIB_PATH, &arrow_lib);
         app.router.add_route_any(PRIMAL_TEST_PATH, &primal_test);

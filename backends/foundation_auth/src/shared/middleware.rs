@@ -118,17 +118,11 @@ pub fn extract_session_token(cookies: &[&str], cookie_name: &str) -> Option<Stri
 /// Check whether a bearer token is present in the Authorization header.
 ///
 /// Returns the token value (without the "Bearer " prefix) if found.
-/// Per RFC 9110, the scheme matching is case-insensitive.
+/// Per RFC 9110, the scheme matching is case-insensitive. The token must be
+/// visible ASCII; see [`crate::Secret::from_bearer`].
 #[must_use]
 pub fn extract_bearer_token(auth_header: Option<&str>) -> Option<String> {
-    const PREFIX: &[u8] = b"Bearer ";
-    let header = auth_header?;
-    let bytes = header.as_bytes();
-    if bytes.len() >= PREFIX.len() && bytes[..PREFIX.len()].eq_ignore_ascii_case(PREFIX) {
-        header.get(PREFIX.len()..).map(String::from)
-    } else {
-        None
-    }
+    crate::server_credential::extract_bearer_token(auth_header)
 }
 
 /// Validate that a token has one of the required scopes.

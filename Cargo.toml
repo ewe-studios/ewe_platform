@@ -49,11 +49,41 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 [workspace.dependencies]
 derive_more = { version = ">=2.0", features = ["full"] }
 
+# Async stream combinators (bounded concurrency in the migration fleet runner).
+futures-util = "0.3"
+
+# Virtual file system (VFS) traits and shared types. `foundation_nativeapis`
+# re-exports them and adds the implementations. The split keeps `foundation_db`
+# free of a package cycle: `foundation_nativeapis` has optional Cloudflare
+# delta stores that depend on `foundation_db`.
+foundation_vfs = { path = "backends/foundation_vfs", version = "0.0.1" }
+
+# Virtual file system (VFS) implementations. The `vfs` feature builds on wasm
+# too; only `NativeFs` is native. `foundation_db` tests use `MemoryFs`.
+foundation_nativeapis = { path = "backends/foundation_nativeapis", version = "0.0.15", default-features = false, features = ["vfs"] }
+
 # core library dependencies
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
 toml = { version = "0.9" }
 toml_edit = { version = "0.22" }
+
+# One media type table for the platform (spec 89).
+# `phf` builds a perfect hash map at compile time. It needs no `std`, so the
+# wasm builds of `foundation_netio` stay clean. `foundation_nostd` re-exports it
+# and no other crate names it directly.
+# `Cargo.lock` also holds phf 0.13.1 and 0.11.3, which upstream crates force:
+# cssparser (through tauri and dom_query) needs 0.13, and doxygen-rs (through
+# lmdb-master-sys) needs 0.11. They cannot use 0.14.
+phf = { version = "0.14", default-features = false }
+# `phf_codegen` writes the `phf::Map` literal that `include_json!` and
+# `include_yaml!` expand to.
+phf_codegen = "0.14"
+# The YAML parser behind `include_yaml!`.
+serde_yaml_ng = "0.10.0"
+# The second media type table. The agreement test proves both tables give the
+# same answer for common extensions; the embedders keep using this one.
+new_mime_guess = "4.0.4"
 
 regex = "1.12.2"
 concurrent-queue = { version = "2.5.0"}
@@ -78,7 +108,10 @@ thiserror = { version = "2"}
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
-bindgen = { version = "0.72.1" }
+# 0.73.2 accepts syn 3 (`syn = ">=2, <4"`), but `prettyplease` 0.2 uses syn 2.
+# The default `prettyplease` feature then fails to compile. Drop it; the
+# generated bindings are unformatted, which changes nothing in their meaning.
+bindgen = { version = "0.73.2", default-features = false, features = ["logging", "runtime"] }
 cc = { version = "1.2.49" }
 chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }

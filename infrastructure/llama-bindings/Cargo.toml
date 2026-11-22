@@ -39,6 +39,10 @@ include = [
 
     "/llama.cpp/convert_hf_to_gguf.py", # Yes, it's required
     "/llama.cpp/common/build-info.cpp.in",
+    # CMake configures these version templates and includes the .cmake files.
+    "/llama.cpp/**/*.in",
+    "/llama.cpp/**/*.cmake",
+    "/llama.cpp/LICENSE",
 
     "/llama.cpp/ggml/src/ggml-cuda.cu",
     "/llama.cpp/ggml/src/ggml-metal.m",

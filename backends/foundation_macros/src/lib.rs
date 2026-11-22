@@ -6,9 +6,11 @@ mod bindgen_test;
 mod connectrpc_service;
 mod crate_paths;
 mod docker_container;
+mod embed_migrations;
 mod embedders;
 mod from_arrow;
 mod html_macro;
+mod include_data;
 mod json_hash;
 mod json_schema;
 mod mobile_directory;
@@ -34,6 +36,75 @@ mod wireguard;
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
 // Import from foundation_nostd::macros.
+
+// ── Migration macros ──
+
+/// Embed a directory of migration files as one `MigrationSet` at build time.
+///
+/// The group name is the last path segment unless `group = "name"` is given.
+/// A gap, a repeat, a short number or a bad name fails the build.
+///
+/// ```ignore
+/// static SHARED: MigrationSet = foundation_db::embed_migrations!("migrations/shared");
+/// ```
+#[proc_macro]
+pub fn embed_migrations(input: TokenStream) -> TokenStream {
+    embed_migrations::embed_migrations_impl(input)
+}
+
+/// Embed a directory layout as an `EmbeddedLayout` at build time.
+///
+/// Each folder under the root is one group. The folders named in
+/// `templates = [...]` (default `["shared"]`) apply first to every database.
+///
+/// ```ignore
+/// static LAYOUT: EmbeddedLayout =
+///     foundation_db::embed_migration_layout!("database", templates = ["shared"]);
+/// ```
+#[proc_macro]
+pub fn embed_migration_layout(input: TokenStream) -> TokenStream {
+    embed_migrations::embed_migration_layout_impl(input)
+}
+
+// ── Compile-time data macros ──
+
+/// Read a JSON object of strings at compile time and emit a
+/// `phf::Map<&'static str, &'static str>`.
+///
+/// The path is one string literal, relative to the calling crate's
+/// `CARGO_MANIFEST_DIR`. The crate must depend on `foundation_nostd`: the
+/// emitted value names `foundation_nostd::phf`. It needs no `phf` dependency
+/// and no build script.
+///
+/// The build fails when the file is absent, the text is not an object, a value
+/// is not a string, or a key repeats. `serde_json` keeps the last pair of a
+/// repeated key, so the macro walks the object pair by pair and refuses a
+/// repeat itself.
+///
+/// ```ignore
+/// static TYPES: ::foundation_nostd::phf::Map<&'static str, &'static str> =
+///     foundation_macros::include_json!("data/types.json");
+/// ```
+#[proc_macro]
+pub fn include_json(input: TokenStream) -> TokenStream {
+    include_data::include_json(input)
+}
+
+/// Read a YAML mapping of strings at compile time and emit a
+/// `phf::Map<&'static str, &'static str>`.
+///
+/// The contract matches [`include_json`]. A scalar key becomes its text form.
+/// The macro refuses a key that is a sequence or a mapping, a repeated key, a
+/// value that is not a string, and text that is not a mapping.
+///
+/// ```ignore
+/// static TYPES: ::foundation_nostd::phf::Map<&'static str, &'static str> =
+///     foundation_macros::include_yaml!("data/types.yaml");
+/// ```
+#[proc_macro]
+pub fn include_yaml(input: TokenStream) -> TokenStream {
+    include_data::include_yaml(input)
+}
 
 // ── Embed macros ──
 

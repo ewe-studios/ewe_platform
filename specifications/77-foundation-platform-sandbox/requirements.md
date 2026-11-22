@@ -19,7 +19,7 @@ related_specs:
   - "specifications/completed/41-connectrpc"
   - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/completed/54-foundation-deployment-docker"
-  - "specifications/76-shared-context"
+  - "specifications/completed/76-shared-context"
   - "specifications/84-context-injection"
   - "specifications/85-wasm-fetch-transport"
   - "specifications/86-auth-primitives"

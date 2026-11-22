@@ -127,6 +127,18 @@ impl TaskIterator for ProtocolDetectHandler {
             }
         };
 
+        // The first readable bytes mean the TLS handshake has completed. The
+        // connection context was built before the handshake, so capture the
+        // peer chain now and give the updated context to the protocol handler.
+        if peeked > 0 && self.connection.tls.is_none() {
+            if let Some(tls) = self.stream.with_inner_ref(RawStream::tls_info) {
+                self.connection = Arc::new(ConnectionContext {
+                    tls: Some(tls),
+                    ..(*self.connection).clone()
+                });
+            }
+        }
+
         match detect_protocol(&buf[..peeked]) {
             DetectedProtocol::NeedMore => {
                 if now.saturating_duration_since(started) >= DETECT_TIMEOUT {

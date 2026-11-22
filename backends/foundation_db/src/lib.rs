@@ -39,6 +39,11 @@ pub mod native;
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-bindings"))]
 pub mod wasm;
 
+// A file system with no files, for a runner whose groups are all in code or
+// embedded. Re-exported from `foundation_vfs` for the callers of a migration
+// runner that reads no directory.
+pub use foundation_vfs::EmptyFs;
+
 // Public re-exports (shared — always available)
 pub use core::auth_store::*;
 pub use core::backends::*;

@@ -6,6 +6,7 @@
 //! secure-server lifecycle: key generation, refused enrollment, enrollment,
 //! mTLS call, replay.
 
+use foundation_context::Ctx;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -79,7 +80,7 @@ fn the_bootstrap_secret_is_never_logged() {
 
         let bootstrap = server.bootstrap_url().expect("bootstrap url");
         let fingerprint = server.tls_fingerprint().expect("fingerprint").to_string();
-        let wrong = BootstrapSecrets::new(SigningKey::generate().expect("key"))
+        let wrong = BootstrapSecrets::new(SigningKey::generate().expect("key"), Ctx::host())
             .issue()
             .expect("issue");
         enroll(&bootstrap, &fingerprint, &wrong.encode(), "laptop")

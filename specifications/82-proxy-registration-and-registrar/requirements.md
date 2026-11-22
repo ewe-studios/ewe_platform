@@ -29,7 +29,7 @@ related_specs:
   - "specifications/78-manifest-contract"
   - "specifications/79-manifest-installer"
   - "specifications/81-foundation-auth"
-  - "specifications/80-platform-prerequisites"
+  - "specifications/completed/80-platform-prerequisites"
 features:
   completed: 0
   uncompleted: 2
