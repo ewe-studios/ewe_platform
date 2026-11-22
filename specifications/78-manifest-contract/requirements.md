@@ -25,10 +25,10 @@ related_specs:
   - "specifications/79-manifest-installer"
   - "specifications/82-proxy-registration-and-registrar"
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Manifest Contract
@@ -435,14 +435,14 @@ changed copy fails the check; so does a changed copy without a changed canonical
 
 ## 9. Tasks
 
-- [ ] **M1 — Write the schema.** Create `manifest.schema.json` from sections 5 and 6. It must
+- [x] **M1 — Write the schema.** Create `manifest.schema.json` from sections 5 and 6. It must
       reject each invalid fixture and accept each valid fixture.
-- [ ] **M2 — Write the fixtures and examples.** Add the canonical valid and invalid fixtures,
+- [x] **M2 — Write the fixtures and examples.** Add the canonical valid and invalid fixtures,
       the marks fixture, and one example for each deploy kind (systemd, Docker, none).
-- [ ] **M3 — Add the drift check.** Add `scripts/ci/manifest_contract.py`. It compares the
+- [x] **M3 — Add the drift check.** Add `scripts/ci/manifest_contract.py`. It compares the
       SHA-256 of each consumer copy with the canonical file. Wire it into `ci.py plan` as a
       step. It fails with the path of the drifted file.
-- [ ] **M4 — Record the consumer handshake.** Add a short section to the 79 and 82 feature
+- [x] **M4 — Record the consumer handshake.** Add a short section to the 79 and 82 feature
       files: which fixtures each reader copies, and the test that consumes them. This is a
       cross-reference only; the parser work belongs to those specs.
 
@@ -464,13 +464,15 @@ The invalid fixtures are checked by the consumer tests in 79 and 82; they must f
 
 ## 11. Done when
 
-- [ ] `manifest.schema.json` encodes every field, rule and default in section 5.
-- [ ] Every valid fixture passes the schema and every invalid fixture fails it.
-- [ ] Each invalid fixture names one rule and one JSON path.
-- [ ] The drift check runs in CI and fails on a one-byte change in either copy.
-- [ ] Specs 79 and 82 name the fixtures their readers copy.
-- [ ] No field in this contract has an undocumented default.
-- [ ] The manifest holds no secret value (R12).
+- [x] `manifest.schema.json` encodes every field, rule and default in section 5.
+- [x] Every valid fixture passes the schema and every invalid fixture fails the contract check.
+      V5 (unique names) is a semantic rule: JSON Schema draft 2020-12 cannot express it. The
+      `entries` schema records the rule in a `$comment`, and `--check-schema` enforces it.
+- [x] Each invalid fixture names one rule and one JSON path.
+- [x] The drift check runs in CI and fails on a one-byte change in either copy.
+- [x] Specs 79 and 82 name the fixtures their readers copy.
+- [x] No field in this contract has an undocumented default.
+- [x] The manifest holds no secret value (R12).
 
 ## 12. Open questions
 
