@@ -959,7 +959,14 @@ Check the actual row and the channel status separately. Issue #732 tracks the st
 The Todo browser test host supplies its staged public directory because Cargo can place test executables outside the server directory.
 The native read tests use the installed application bundle and asset manager. The iPhone test runner bundle contains different files.
 
-### 2026-11-23 — Todo identity during retries
+### 2026-11-22 — Todo identity during retries
 
 The row identifier also identifies its original submission. A deletion receipt preserves that identifier after the row disappears.
 Stream positions still order deliveries. Two additions with the same title require separate identifiers.
+
+## Feature 32 backup conversion
+
+Numeric records can grow when a universally unique identifier (UUID) replaces the original number.
+Apply the restore size limit to both the input stream and the converted bytes.
+Reserve all saved creation identifiers before generating identifiers for other rows.
+Keep the original order and the old identifier map. A pending numeric delete needs this map.

@@ -1118,7 +1118,7 @@ Both native readers also identify missing hosts, invalid paths, and browser-only
 The moved development server serves disk edits. The release server embeds its assets and runs alone.
 Specification 90 Feature 3 records the resource implementation, package checks, and installer dependency.
 
-### 2026-11-23 — One identifier per Todo
+### 2026-11-22 — One identifier per Todo
 
 The submitting host generates a version four universally unique identifier (UUID) from injected entropy.
 Pending additions, confirmed records, deletion receipts, and the typed data service use that same identifier.
@@ -1128,3 +1128,13 @@ The Android data procedure returns the requested UUID and rejects a numeric stri
 
 Feature 32 now documents routed child actions and direct transport errors. The next owner handles implementation.
 Commit `2fc68c85a` already removed the separate notification marker.
+
+## Feature 32 saved Todo list
+
+The server restores version 4 universally unique identifiers (UUIDs).
+Use `ui_todo --convert-backup SOURCE NEW` once for a numeric backup.
+Save its identifier map with the two backup files.
+Three command-line tests pass on macOS with the `uat` profile.
+A separate loopback server restored eight converted records from a private copy of the live backup.
+The GetTodo procedure returned each saved title and its new identifier.
+All eight completion states and record positions matched the source.

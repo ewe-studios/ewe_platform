@@ -208,12 +208,34 @@ Use the two printed addresses as `TEST_RUNNER_EWE_TODO_URL` and `TEST_RUNNER_EWE
 Select `TodoServerUITests/TodoTests/testBrowserPeerUpdatesRowsWithoutReplacingFilterOrDraft`.
 The driver starts a separate server. It adds a row, completes it, and deletes it while the iPhone stream is disconnected.
 
-The example server can start with an existing list. Pass `--restore /path/to/todos.json` after the listen address.
-The backup contains an array of items with `id`, `text`, and `done` fields.
-The server keeps those identifiers and allocates new identifiers above the largest restored value.
-
 To add the Android peer, install Todo Server on an Android 16 Automated Test Device emulator.
 Set `EWE_TODO_PEER_ADB` to the Android Debug Bridge executable before you start the driver.
 Set `EWE_TODO_PEER_ANDROID_SERIAL` if the emulator uses a serial other than `emulator-5554`.
 Set `TEST_RUNNER_EWE_TODO_PEER_ANDROID=1` for the iPhone test.
 Each client adds, completes, reopens, and deletes one todo. The other two clients check the row after each change.
+
+### Restore a saved Todo list
+
+The current backup contains an array of records with `id`, `text`, and `done` fields.
+Each identifier is a unique version 4 universally unique identifier (UUID).
+To restore a current backup, pass its path after the listen address.
+
+```sh
+ui_todo 127.0.0.1:8180 --restore current.json
+```
+
+Convert a numeric backup once before restoring it.
+Use new paths for both the converted backup and the private identifier map.
+
+```sh
+umask 077
+ui_todo --convert-backup old.json current.json > id-map.tsv
+```
+
+Conversion preserves record order, titles, completion states, and valid creation identifiers.
+It generates an identifier for each record without a creation identifier.
+It refuses duplicate identifiers and existing output files. Both files must fit the server's frame size limit.
+The original backup stays available.
+The map pairs each old numeric identifier with its current UUID.
+Use that map to identify the target of an old pending delete before resubmitting it.
+If the map was lost, pair records from these same two files by position.
