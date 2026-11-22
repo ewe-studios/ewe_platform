@@ -933,3 +933,6 @@ An excluded body can then refer to an absent platform library. Shared markup sti
 
 The browser smoke tests use the public browser macro without a direct template types dependency.
 A macro must resolve generated paths through the package that the caller imports. Issue #723 records this case.
+
+A frozen search can contain a row after its authoritative deletion.
+Use the pending deletion identifier to remove only that row after saving the updated pending requests.

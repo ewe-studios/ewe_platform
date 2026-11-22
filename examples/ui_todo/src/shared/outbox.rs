@@ -259,17 +259,36 @@ pub(super) async fn reconcile(
     snapshot: bool,
 ) -> Result<bool, ErrorTrace<ActionError>> {
     let store = todo_store(ctx)?;
-    change_pending(ctx, |entries| {
+    let (changed, deleted) = change_pending(ctx, |entries| {
         let state = store
             .0
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         let before = entries.len();
-        entries.retain(|_, pending| !confirmed(&state, &pending.change, snapshot));
+        let mut deleted = std::collections::BTreeSet::new();
+        entries.retain(|_, pending| {
+            let accepted = confirmed(&state, &pending.change, snapshot);
+            if let PendingChange::Delete { id } = pending.change {
+                if accepted {
+                    deleted.insert(id);
+                }
+            }
+            !accepted
+        });
         let changed = entries.len() != before;
-        Ok((changed, changed))
+        Ok((changed, (changed, deleted)))
     })
-    .await
+    .await?;
+    if !deleted.is_empty() {
+        let mut state = store
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(rows) = &mut state.search_rows {
+            rows.retain(|row| !deleted.contains(&row.id));
+        }
+    }
+    Ok(changed)
 }
 
 fn confirmed(state: &StoreState, change: &PendingChange, snapshot: bool) -> bool {

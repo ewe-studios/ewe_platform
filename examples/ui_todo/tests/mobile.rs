@@ -234,3 +234,71 @@ async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
         &[payload.clone(), payload]
     );
 }
+
+#[valtron_test]
+async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("pending.json");
+    let removal = ui_todo::Pending {
+        change: ui_todo::PendingChange::Delete { id: 1 },
+        retry: false,
+    };
+    std::fs::write(
+        &path,
+        serde_json::to_vec(&std::collections::BTreeMap::from([("delete:1", removal)])).unwrap(),
+    )
+    .unwrap();
+    let core = ui_todo::create_persistent_todo_core(
+        NativePlatform::Android,
+        Arc::new(FailTransport::default()),
+        path.to_str().unwrap().into(),
+    )
+    .unwrap();
+    async fn deliver(core: &NativeCore, data: serde_json::Value) -> Vec<UiOperationT> {
+        let bytes = rmp_serde::to_vec_named(&("ewe.todo.v1", data)).unwrap();
+        let frame = core
+            .trigger_structured(
+                "host:apply_todo_delivery".into(),
+                EventInput::receiving_view(),
+                serde_json::to_vec(&bytes).unwrap(),
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        operations(&frame)
+    }
+    let rows = serde_json::json!([
+        {"id": 1, "text": "Task one", "done": false},
+        {"id": 2, "text": "Task two", "done": false}
+    ]);
+    deliver(
+        &core,
+        serde_json::json!({"Snapshot":{"position":2,"items":rows}}),
+    )
+    .await;
+    let mut input = EventInput::receiving_view();
+    input.value = "Task".into();
+    let frame = core
+        .trigger("host:search_todos".into(), input)
+        .await
+        .unwrap()
+        .unwrap();
+    let search = operations(&frame);
+    assert!(shows(&search, "Deleting…"));
+    assert!(shows(&search, "Task two"));
+    let unrelated = deliver(
+        &core,
+        serde_json::json!({"Committed":{"position":3,"change":{"Remove":2}}}),
+    )
+    .await;
+    assert!(!shows(&unrelated, "Task one"));
+    let confirmed = deliver(
+        &core,
+        serde_json::json!({"Committed":{"position":4,"change":{"Remove":1}}}),
+    )
+    .await;
+    assert!(!shows(&confirmed, "Task one"));
+    assert!(shows(&confirmed, "Task two"));
+    assert!(shows(&confirmed, "0 open todos"));
+    assert_eq!(std::fs::read(path).unwrap(), b"{}");
+}

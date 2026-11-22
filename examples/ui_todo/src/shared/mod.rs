@@ -671,10 +671,10 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    if let Some(receipt) = input
+    if let Some((creation_id, receipt)) = input
         .creation_id
         .as_ref()
-        .and_then(|id| state.creations.get(id))
+        .and_then(|id| state.creations.get_key_value(id))
     {
         if receipt.submitted_title != input.title {
             return Err(error(
@@ -684,10 +684,7 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         let (position, change) = match state.removed.get(&receipt.item.id) {
             Some(position) => {
                 TodoDelivery::Retired {
-                    creation_id: input
-                        .creation_id
-                        .clone()
-                        .expect("A creation receipt has an identifier"),
+                    creation_id: creation_id.clone(),
                 }
                 .send(ctx)?;
                 (*position, RecordChange::Remove(receipt.item.id))

@@ -1061,3 +1061,11 @@ The Feature 27 proposal now uses one asset declaration for development disk read
 The browser test build found a public macro dependency failure in issue #723.
 The browser package now exports its template types. The macro uses that export when the caller imports the browser package alone.
 The compiled Chrome fixture passes for both runtime bundles after the fix.
+
+### Feature 32 search during a pending deletion
+
+The host removes its confirmed deletion from frozen search results. Unrelated results stay visible until the query changes.
+The restart test keeps the original creation identifier and displays the pending title and retry button.
+Four Todo action tests and three native dispatch tests pass on macOS.
+Chrome adds, completes, reopens, and deletes a row on the isolated server.
+The JavaScript suite passes 158 tests and skips one. The updated three-host run is pending under #714.
