@@ -114,6 +114,12 @@ of `auth.md` section 9.1.1. The crate had no public signer, because `SigningKey:
 Four tests in `tests/secret/enroll_proof.rs` cover the round trip, each changed field, a
 wrong key and the exact byte layout. The version is 0.0.14.
 
+The registrar sidecar (spec 82 feature 01) also needs an enrollment TLS client before it
+holds the registration CA. `mtls::client_config_enrollment(fingerprint, ctx)` trusts one
+fingerprint when the operator gives it, and otherwise accepts any server certificate while
+the enrollment server proof authenticates the proxy. Two tests in `tests/mtls/mtls.rs` cover
+both paths. The version is 0.0.15.
+
 ## Next steps
 
 1. The consumers (spec 83 host wiring, spec 82 proxy registration) build the provider set from

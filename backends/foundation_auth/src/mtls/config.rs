@@ -264,6 +264,90 @@ pub fn client_config_pinned_default(
     Ok(Arc::new(config))
 }
 
+/// A client configuration for the enrollment call, before the client holds the
+/// registration certificate authority (CA) certificate.
+///
+/// With `fingerprint_sha256`, the client trusts exactly that certificate, as
+/// [`client_config_pinned`] does. Without it, the client accepts any server
+/// certificate; the handshake signatures are still checked. In that mode the
+/// enrollment server proof (spec 81 `auth.md` section 9.1.1) proves that the
+/// right server answered. Use the no-fingerprint form only for enrollment.
+///
+/// # Errors
+/// [`PkiError`] when a protocol version fails.
+pub fn client_config_enrollment(
+    fingerprint_sha256: Option<&str>,
+    ctx: &Ctx,
+) -> Result<Arc<rustls::ClientConfig>, PkiError> {
+    if let Some(fingerprint) = fingerprint_sha256 {
+        return client_config_pinned(fingerprint, ctx);
+    }
+    let provider = crypto_provider();
+    let config = rustls::ClientConfig::builder_with_details(provider.clone(), time_provider(ctx))
+        .with_safe_default_protocol_versions()
+        .map_err(|e| tls_error("TLS versions", e))?
+        .dangerous()
+        .with_custom_certificate_verifier(Arc::new(AnyCertVerifier { provider }))
+        .with_no_client_auth();
+    Ok(Arc::new(config))
+}
+
+/// Accepts any server certificate. The handshake signatures are still checked.
+///
+/// This verifier is for enrollment only: the server proof authenticates the
+/// server (spec 81 `auth.md` section 9.1.1).
+#[derive(Debug)]
+struct AnyCertVerifier {
+    provider: Arc<rustls::crypto::CryptoProvider>,
+}
+
+impl ServerCertVerifier for AnyCertVerifier {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &CertificateDer<'_>,
+        _intermediates: &[CertificateDer<'_>],
+        _server_name: &ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: UnixTime,
+    ) -> Result<ServerCertVerified, rustls::Error> {
+        Ok(ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls12_signature(
+            message,
+            cert,
+            dss,
+            &self.provider.signature_verification_algorithms,
+        )
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls13_signature(
+            message,
+            cert,
+            dss,
+            &self.provider.signature_verification_algorithms,
+        )
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        self.provider
+            .signature_verification_algorithms
+            .supported_schemes()
+    }
+}
+
 /// A client configuration with a client certificate that trusts `ca_pem`.
 ///
 /// # Errors

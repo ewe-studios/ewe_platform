@@ -19,8 +19,9 @@ mod time;
 mod verifier;
 
 pub use config::{
-    client_config_mutual, client_config_pinned, client_config_pinned_default, crypto_provider,
-    server_config_mutual, server_config_server_auth, MtlsConfig, ServerTlsConfig,
+    client_config_enrollment, client_config_mutual, client_config_pinned,
+    client_config_pinned_default, crypto_provider, server_config_mutual, server_config_server_auth,
+    MtlsConfig, ServerTlsConfig,
 };
 pub use time::CtxTimeProvider;
 pub use verifier::{
