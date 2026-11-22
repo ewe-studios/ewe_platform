@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import zipfile
 from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[2] / "ui_native/release/publish.py"
@@ -36,8 +37,12 @@ class PublicationTests(unittest.TestCase):
             directory = Path(temp)
             cfg = publication.tomllib.loads((publication.ROOT / "release/native-ui.toml").read_text())
             files = [directory / cfg["apple_archive"], directory / "android-publication.zip"]
-            for file in files:
-                file.write_text(file.name)
+            apple_archive, android_bundle = files
+            apple_archive.write_text(apple_archive.name)
+            fingerprint = "A" * 40
+            with zipfile.ZipFile(android_bundle, "w") as bundle:
+                bundle.writestr("example/module.pom", b"test package")
+                bundle.writestr("example/module.pom.asc", b"test signature")
             record = {
                 "repositories": {k: v for k, v in cfg.items() if k.endswith("repository")},
                 "version": cfg["version"], "source_revision": "a",
@@ -60,10 +65,20 @@ class PublicationTests(unittest.TestCase):
                 self.assertEqual(args[:2], ("release", "download"))
                 (Path(args[-1]) / "central-deployment.json").write_text(json.dumps(receipt))
 
-            with patch.dict("os.environ", CENTRAL_PASSWORD="test", CENTRAL_USERNAME="test"), \
+            def verify(command, *, text):
+                self.assertTrue(text)
+                self.assertEqual(command[:5], ["gpg", "--batch", "--status-fd", "1", "--verify"])
+                self.assertEqual(command[5].read_bytes(), b"test signature")
+                self.assertEqual(command[6].read_bytes(), b"test package")
+                return f"[GNUPG:] VALIDSIG {fingerprint} signer"
+
+            with patch.dict("os.environ", clear=True, CENTRAL_PASSWORD="test",
+                            CENTRAL_USERNAME="test", NATIVE_GPG_FINGERPRINT=fingerprint), \
+                 patch.object(publication.subprocess, "check_output", side_effect=verify) as verifier, \
                  patch.object(publication, "gh", side_effect=gh), patch.object(publication, "lookup", side_effect=lookup), \
                  patch.object(publication, "check_tag", return_value=True), \
                  patch.object(publication, "central", return_value=json.dumps({"deploymentName": name, "deploymentState": "PUBLISHED"})) as portal:
                 publication.publish(directory, 10, 1)
+            verifier.assert_called_once()
             self.assertEqual(portal.call_count, 1)
             self.assertEqual(portal.call_args.args[0], "status?id=" + receipt["id"])

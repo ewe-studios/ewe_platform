@@ -104,6 +104,24 @@ class Publication(unittest.TestCase):
         self.assertTrue(self.central)
         self.assertTrue(all(operation.startswith("status?") for operation in self.central))
 
+    def test_resume_publishes_a_validated_deployment(self):
+        self.assets.append({"name": "central-deployment.json", "digest": "unused"})
+        status = "status?id=" + DEPLOYMENT
+        publish = "deployment/" + DEPLOYMENT
+        states = iter(["VALIDATING", "VALIDATED", "PUBLISHED"])
+        operations = []
+
+        def central(operation, _token):
+            operations.append(operation)
+            if operation == publish:
+                return ""
+            self.assertEqual(operation, status)
+            return json.dumps({"deploymentName": self.name, "deploymentState": next(states)})
+
+        with patch.object(publication, "central", central), patch.object(publication.time, "sleep"):
+            publication.publish(self.candidate, 10, 1)
+        self.assertEqual(operations, [status, status, publish, status])
+
     def test_untrusted_signer_does_not_write(self):
         with patch.dict(publication.os.environ, NATIVE_GPG_FINGERPRINT="B" * 40):
             with self.assertRaisesRegex(ValueError, "Unexpected signer"):

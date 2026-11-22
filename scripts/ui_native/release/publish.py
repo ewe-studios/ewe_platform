@@ -136,8 +136,9 @@ def reconcile(directory, repo, tag, assets, receipt, name, token):
         if deployment is not None and deployment != remote:
             raise ValueError("Local and remote deployment receipts differ")
         deployment = remote
+    published = False
     if deployment is not None:
-        central_status(deployment, name, token)
+        published = central_status(deployment, name, token) == "PUBLISHED"
     elif pending.exists() or "central-deployment-pending.json" in assets:
         if not pending.exists():
             gh("release", "download", tag, "--repo", repo, "--pattern", "central-deployment-pending.json",
@@ -147,7 +148,7 @@ def reconcile(directory, repo, tag, assets, receipt, name, token):
                 raise ValueError("Central upload attempt belongs to another candidate")
             store_receipt(pending, saved)
         raise RuntimeError(f"Central upload outcome is unresolved. Inspect {pending} and supply the matching receipt.")
-    return deployment, local, pending
+    return deployment, local, pending, published
 
 def publish(directory, timeout, interval):
     cfg = tomllib.loads((ROOT / "release/native-ui.toml").read_text())
@@ -184,7 +185,9 @@ def publish(directory, timeout, interval):
     deployment_name = tag + "-" + digest(manifest)
     with tempfile.TemporaryDirectory() as temp:
         receipt = Path(temp) / "central-deployment.json"
-        deployment, local_receipt, pending = reconcile(directory, repo, tag, assets, receipt, deployment_name, token)
+        deployment, local_receipt, pending, published = reconcile(
+            directory, repo, tag, assets, receipt, deployment_name, token
+        )
         if release is None:
             add_tag(*tags[0])
             gh("release", "create", tag, "--repo", repo, "--verify-tag", "--draft", "--title", tag, "--notes", "Native user interface packages.")
@@ -217,7 +220,9 @@ def publish(directory, timeout, interval):
             gh("release", "delete-asset", tag, pending_asset, "--repo", repo, "--yes")
         pending.unlink(missing_ok=True)
         deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
+        while not published:
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Central deployment is still pending. Resume this candidate.")
             state = central_status(deployment, deployment_name, token)
             if state == "PUBLISHED":
                 break
@@ -226,8 +231,6 @@ def publish(directory, timeout, interval):
             elif state not in {"PENDING", "VALIDATING", "PUBLISHING"}:
                 raise ValueError("Unexpected Central deployment state: " + state)
             time.sleep(interval)
-        else:
-            raise TimeoutError("Central deployment is still pending. Resume this candidate.")
     if release["draft"]:
         gh("release", "edit", tag, "--repo", repo, "--draft=false")
     swift_repo, swift_tag, swift_commit = tags[1]
