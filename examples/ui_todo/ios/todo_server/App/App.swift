@@ -11,6 +11,13 @@ import SwiftUI
     return EweTheme()
   }
 
+  private func actionTransport(_ base: URL) -> ActionTransport {
+    let environment = ProcessInfo.processInfo.environment
+    if environment["EWE_TODO_RPC"] == "1" { return .connect(base) }
+    if environment["EWE_TODO_SOCKET"] == "1" { return .webSocket(base.appendingPathComponent("socket")) }
+    return .http
+  }
+
   var body: some Scene {
     WindowGroup {
       switch theme {
@@ -20,24 +27,10 @@ import SwiftUI
         if let url = URL(string: address) {
           let key = SHA256.hash(data: Data(url.absoluteString.utf8)).map { String(format: "%02x", $0) }.joined()
           let file = URL.applicationSupportDirectory.appending(path: "TodoPending/\(key).json").path
-          if ProcessInfo.processInfo.environment["EWE_TODO_RPC"] == "1" {
-            ServerScreen(base: url, initial: "initial", rpcBase: url, theme: theme) { transport, store in
-              let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
-              core.installResources(source: BundleResourceSource())
-              return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
-            }
-          } else if ProcessInfo.processInfo.environment["EWE_TODO_SOCKET"] == "1" {
-            ServerScreen(base: url, initial: "initial", socket: url.appendingPathComponent("socket"), theme: theme) { transport, store in
-              let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
-              core.installResources(source: BundleResourceSource())
-              return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
-            }
-          } else {
-          ServerScreen(base: url, initial: "initial", theme: theme) { transport, store in
+          ServerScreen(base: url, initial: "initial", transport: actionTransport(url), theme: theme) { transport, store in
             let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
             core.installResources(source: BundleResourceSource())
             return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
-          }
           }
         }
       }

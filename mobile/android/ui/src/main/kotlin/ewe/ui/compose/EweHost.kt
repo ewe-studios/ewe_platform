@@ -26,6 +26,13 @@ import kotlinx.coroutines.*
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 
+/** Selects the sender for server actions. */
+sealed interface ActionTransport {
+    data object Http : ActionTransport
+    data class Connect(val base: HttpUrl) : ActionTransport
+    data class WebSocket(val path: String) : ActionTransport
+}
+
 /** Render a server screen. The factory creates a core for this screen's action connection. */
 @Composable
 fun RemoteEweScreen(
@@ -35,13 +42,11 @@ fun RemoteEweScreen(
     modifier: Modifier = Modifier,
     actionPath: String = "action",
     theme: EweTheme = EweTheme(),
-    rpcBase: HttpUrl? = null,
-    socketEndpoint: String? = null,
+    transport: ActionTransport = ActionTransport.Http,
     connections: ConnectionManager? = null,
     viewDataAction: String? = null,
 ) {
-    require(rpcBase == null || socketEndpoint == null)
-    EweHost(listOf(endpoint, initialPath, actionPath, rpcBase ?: "", socketEndpoint ?: "", connections ?: ""), "Connecting…", modifier, theme) { host ->
+    EweHost(listOf(endpoint, initialPath, actionPath, transport, connections ?: ""), "Connecting…", modifier, theme) { host ->
         val client = OkHttpClient()
         host.onClose {
             client.dispatcher.cancelAll()
@@ -50,14 +55,14 @@ fun RemoteEweScreen(
         val connection = HttpActionConnection(client, endpoint, actionPath)
         val factory = OkHttpChannelFactory(client, endpoint)
         val manager = connections ?: factory.connectionManager().also { host.onClose(it::close) }
-        val socket = socketEndpoint?.let { path ->
-            SocketActionConnection(manager, path, { host.apply(it, "action reply") },
+        val socket = (transport as? ActionTransport.WebSocket)?.let { socketTransport ->
+            SocketActionConnection(manager, socketTransport.path, { host.apply(it, "action reply") },
                 { host.store.onError?.invoke("Transport", it.message.orEmpty()) }).also { host.onClose(it::close) }
         }
-        val sender = if (rpcBase == null) socket ?: connection else {
+        val sender = if (transport !is ActionTransport.Connect) socket ?: connection else {
             val network = NativeHttpClient(OkHttpRpcClient(client))
             host.onClose(network::close)
-            val rpc = ConnectSender(network, rpcBase.toString(), NativePlatform.ANDROID, host.store.maxFrameBytes.toUInt(), 16_384u)
+            val rpc = ConnectSender(network, transport.base.toString(), NativePlatform.ANDROID, host.store.maxFrameBytes.toUInt(), 16_384u)
             host.onClose(rpc::close)
             object : HostTransport {
                 override suspend fun send(request: ByteArray): ByteArray? = rpc.exchange(request)

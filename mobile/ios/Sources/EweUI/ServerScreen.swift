@@ -3,10 +3,17 @@
   import Foundation
   import SwiftUI
 
+  /// Selects the sender for server actions.
+  public enum ActionTransport {
+    case http
+    case connect(URL)
+    case webSocket(URL)
+  }
+
   /// Opens the action connection and applies the initial native view.
   @MainActor public struct ServerScreen: View {
     public typealias CoreFactory =
-      @MainActor (URLActionTransport, NodeStore) throws -> NativeActionCore
+      @MainActor (HostTransport, NodeStore) throws -> NativeActionCore
     #if os(iOS)
       @State private var presenter = PresentationAnchor()
     #endif
@@ -21,64 +28,43 @@
     @State private var attempt = 0
 
     public init(
-      base: URL, initial: String, session: URLSession = .shared, theme: EweTheme = EweTheme(),
+      base: URL, initial: String, transport: ActionTransport = .http,
+      connections: ConnectionManager? = nil, session: URLSession = .shared, theme: EweTheme = EweTheme(),
       create: @escaping CoreFactory
     ) {
-      self.theme = theme
-      self.base = base
-      self.initial = initial
-      self.session = session
-      self.prepare = { transport, store in
-        let core = try create(transport, store)
-        try await core.negotiate(transport)
-        return core
-      }
-    }
-
-    public init(
-      base: URL, initial: String, rpcBase: URL, session: URLSession = .shared, theme: EweTheme = EweTheme(),
-      create: @escaping @MainActor (HostTransport, NodeStore) throws -> NativeActionCore
-    ) {
-      self.base = base
-      self.initial = initial
-      self.session = session
-      self.theme = theme
-      self.prepare = { viewTransport, store in
-        let sender = try ConnectActionSender(base: rpcBase, client: URLSessionRpcClient(session: session),
-          maxFrameBytes: UInt32(store.maxFrameBytes))
-        let core = try create(sender, store)
-        let hello = core.raw.hello()
-        viewTransport.configure(hello: hello)
-        guard let caps = try await sender.send(request: hello) else {
-          throw CoreError.Transport(detail: "Missing Connect capabilities")
-        }
-        try core.applyCapsFrame(caps)
-        return core
-      }
-    }
-
-    public init(base: URL, initial: String, socket: URL, connections: ConnectionManager? = nil,
-      session: URLSession = .shared, theme: EweTheme = EweTheme(),
-      create: @escaping @MainActor (HostTransport, NodeStore) throws -> NativeActionCore) {
       self.base = base
       self.initial = initial
       self.session = session
       self.theme = theme
       self.managed = connections
       self.prepare = { viewTransport, store in
-        guard let live = store.liveHost, let manager = live.connections else { throw ConnectionError.closed }
-        let sender = try SocketActionConnection(manager: manager, endpoint: socket,
-          onReply: { [weak store] bytes in _ = store?.receive(bytes) },
-          onError: { [weak store] cause in store?.error("Transport", cause) })
-        live.onClose { sender.close() }
+        let sender: HostTransport
+        var socket: SocketActionConnection?
+        switch transport {
+        case .http:
+          sender = viewTransport
+        case .connect(let endpoint):
+          sender = try ConnectActionSender(base: endpoint, client: URLSessionRpcClient(session: session),
+            maxFrameBytes: UInt32(store.maxFrameBytes))
+        case .webSocket(let endpoint):
+          guard let live = store.liveHost, let manager = live.connections else { throw ConnectionError.closed }
+          let connection = try SocketActionConnection(manager: manager, endpoint: endpoint,
+            onReply: { [weak store] bytes in _ = store?.receive(bytes) },
+            onError: { [weak store] cause in store?.error("Transport", cause) })
+          live.onClose { connection.close() }
+          socket = connection
+          sender = connection
+        }
         do {
           let core = try create(sender, store)
-          let hello = core.raw.helloFor(requestTag: sender.requestTag)
+          let hello = socket.map { core.raw.helloFor(requestTag: $0.requestTag) } ?? core.raw.hello()
           viewTransport.configure(hello: hello)
-          guard let caps = try await sender.send(request: hello) else { throw ConnectionError.closed }
+          guard let caps = try await sender.send(request: hello) else {
+            throw CoreError.Transport(detail: "Missing server capabilities")
+          }
           try core.applyCapsFrame(caps)
           return core
-        } catch { sender.close(); throw error }
+        } catch { socket?.close(); throw error }
       }
     }
 

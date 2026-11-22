@@ -1186,3 +1186,7 @@ Feature 37 now specifies one iPhone startup path for all three action transports
 ## Feature 37 Android transport selection
 
 Feature 37 requires all three transport tests and the independent WebSocket test on both Android and iPhone. Implementation and verification remain pending.
+
+## Todo startup checkpoint
+
+Both native Todo hosts now select one action transport and use one core factory. The Rust server uses `#[valtron]`. All three backup command tests pass. Native transport checks continue.

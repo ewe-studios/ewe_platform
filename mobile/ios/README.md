@@ -260,7 +260,7 @@ print(item.title)
 ```
 
 The example method belongs to EweTodoCore. A missing identifier throws `TodoServiceError.NotFound`.
-A UI screen can separately select `ServerScreen(base:initial:rpcBase:session:theme:create:)` to send its actions through Connect.
+Pass `transport: .connect(base)` to `ServerScreen` to send actions through Connect.
 [Service setup and stream limits](../../backends/foundation_ui_connectrpc/README.md)
 
 ### Submit typed input
@@ -281,7 +281,7 @@ Rust receives `Interaction<S, AddItem>`. A remote host must negotiate vocabulary
 Supply the socket address to `ServerScreen`. The screen loads its initial view over HTTP.
 
 ```swift
-ServerScreen(base: base, initial: "initial", socket: base.appendingPathComponent("socket")) { transport, store in
+ServerScreen(base: base, initial: "initial", transport: .webSocket(base.appendingPathComponent("socket"))) { transport, store in
     NativeActionCore(try createTodoCore(platform: .ios, transport: transport), store: store)
 }
 ```

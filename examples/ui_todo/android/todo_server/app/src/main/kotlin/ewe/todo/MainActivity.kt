@@ -8,6 +8,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.MaterialTheme
+import ewe.ui.compose.ActionTransport
 import ewe.ui.compose.EweTheme
 import io.github.ewe_studios.ewe.todo.todoThemeManifest
 import ewe.ui.compose.RemoteEweScreen
@@ -26,11 +27,18 @@ class MainActivity : ComponentActivity() {
         val pendingFile = filesDir.resolve("todo-pending/$key.json").absolutePath
         val theme = if (intent.getBooleanExtra("branded", false))
             EweTheme.fromManifest(todoThemeManifest()) else EweTheme()
+        val transport = when {
+            intent.getBooleanExtra("rpc", false) -> ActionTransport.Connect(endpoint)
+            intent.getBooleanExtra("socket", false) -> ActionTransport.WebSocket("/socket")
+            else -> ActionTransport.Http
+        }
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                RemoteEweScreen(endpoint, "initial", { createPersistentTodoCore(NativePlatform.ANDROID, it, pendingFile).also { core -> core.installResources(AndroidResourceSource(assets)) } }, theme = theme, viewDataAction = "host:apply_todo_delivery",
-                    rpcBase = endpoint.takeIf { intent.getBooleanExtra("rpc", false) },
-                    socketEndpoint = "/socket".takeIf { intent.getBooleanExtra("socket", false) })
+                RemoteEweScreen(endpoint, "initial", { sender ->
+                    createPersistentTodoCore(NativePlatform.ANDROID, sender, pendingFile).also { core ->
+                        core.installResources(AndroidResourceSource(assets))
+                    }
+                }, theme = theme, transport = transport, viewDataAction = "host:apply_todo_delivery")
             }
         }
     }

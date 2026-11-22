@@ -986,3 +986,7 @@ The iPhone framework already manages WebSocket connections. The Todo launcher re
 ## Feature 37 Android transport selection
 
 Android already uses one Todo core factory. Its launcher passes two independent options to `RemoteEweScreen`. One transport setting makes the choice explicit.
+
+## Todo startup checkpoint
+
+The server uses a synchronous listener. The Valtron entry attribute supports synchronous functions and keeps the worker pool alive until the function returns.

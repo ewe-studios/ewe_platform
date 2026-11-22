@@ -41,6 +41,7 @@ fn validate_module(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+#[foundation_core::valtron::valtron(seed = 0)]
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut args = std::env::args_os().skip(1);
     let command = args.next();
@@ -65,7 +66,6 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             io::stdout().lock(),
         );
     }
-    let _pool = foundation_core::valtron::initialize_pool(0, None);
     let bind = command
         .as_deref()
         .unwrap_or(std::ffi::OsStr::new("127.0.0.1:8180"))

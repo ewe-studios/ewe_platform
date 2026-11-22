@@ -221,7 +221,7 @@ NativeHttpClient(OkHttpRpcClient(okHttpClient)).use { network ->
 ```
 
 The example method belongs to the todo application binding. A missing identifier throws `TodoServiceException.NotFound`.
-To send UI actions through Connect, pass `rpcBase` to `RemoteEweScreen`.
+Pass `transport = ActionTransport.Connect(endpoint)` to `RemoteEweScreen` to send actions through Connect.
 [Service setup and stream limits](../../backends/foundation_ui_connectrpc/README.md)
 
 ### Submit typed input
@@ -247,7 +247,7 @@ Set the socket endpoint on the remote screen. The first view still loads over HT
 RemoteEweScreen(
     endpoint, "initial",
     createCore = { transport -> createTodoCore(NativePlatform.ANDROID, transport) },
-    socketEndpoint = "/socket",
+    transport = ActionTransport.WebSocket("/socket"),
 )
 ```
 
