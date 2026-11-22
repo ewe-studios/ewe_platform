@@ -1166,3 +1166,5 @@ The packaging contract assigns Todo browser module production, validation, and s
 Feature 27 requires the server build hook to produce the browser application and Connect bindings from a clean checkout. Implementation remains pending.
 
 Feature 32 explicitly retires the custom Todo outbox when the shared action and storage path passes its acceptance checks.
+
+Feature 32 assigns wire encoding and decoding to the framework. Todo handlers supply typed data or markup.

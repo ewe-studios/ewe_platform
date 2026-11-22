@@ -296,6 +296,12 @@ This proposal awaits owner approval.
 The owner confirms that a local submission action owns persistence and preview before calling the registered server action.
 Remove the Todo transport wrapper when this route passes the existing host checks.
 Retire `examples/ui_todo/src/shared/outbox.rs` and its custom storage trait, whole-map persistence, frame rewriting, and browser preparation callbacks.
+Remove `outbox::prepare`. Build the typed submission in the host action before the framework encodes the request.
+Application actions send values implementing `Serialize` and receive values implementing `Deserialize`. They use `html!` for view content.
+Register the incoming delivery action with its payload type. The framework validates and decodes the payload before invoking the handler.
+Remove manual MessagePack encoding, byte-prefix checks, and frame parsing from Todo actions and host glue.
+Test typed Add and Delete requests, typed incoming deliveries, and markup updates through the public interface.
+Verify that malformed payloads return a typed error before the application handler runs.
 Use the host key-value service for pending records. Add and Delete host actions persist intent and render the preview before sending.
 The registered delivery action reconciles confirmed records. Retry uses the original record identifier.
 Verify restart, concurrent pending writes, duplicate delivery, and late confirmation on the replacement path.
