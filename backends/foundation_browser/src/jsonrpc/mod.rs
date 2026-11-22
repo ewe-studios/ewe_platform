@@ -15,4 +15,4 @@
 
 mod engine;
 
-pub use engine::{EventSub, RpcConfig, RpcEngine, WireProtocol};
+pub use engine::{EventSub, RpcEngine, RpcEngineConfig, WireProtocol};

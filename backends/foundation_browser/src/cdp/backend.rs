@@ -17,13 +17,20 @@ use crate::jsonrpc::{RpcEngine, WireProtocol};
 pub(crate) struct CdpBackend<'e> {
     engine: &'e RpcEngine,
     session: String,
+    navigate_timeout: Duration,
 }
 
 impl<'e> CdpBackend<'e> {
     /// Create a fresh page target and attach a flattened session to it.
-    pub(crate) fn attach(engine: &'e RpcEngine) -> Result<Self> {
+    ///
+    /// `navigate_timeout` bounds the wait for the load event of each navigation.
+    pub(crate) fn attach(engine: &'e RpcEngine, navigate_timeout: Duration) -> Result<Self> {
         let session = attach_page(engine)?;
-        Ok(Self { engine, session })
+        Ok(Self {
+            engine,
+            session,
+            navigate_timeout,
+        })
     }
 
     fn call(&self, method: &str, params: Value) -> Result<Value> {
@@ -36,10 +43,10 @@ impl Backend for CdpBackend<'_> {
         // Subscribe BEFORE navigating so the load event isn't missed.
         let load = self.engine.subscribe("Page.loadEventFired");
         self.call("Page.navigate", json!({ "url": url }))?;
-        load.recv_timeout(Duration::from_secs(30))
+        load.recv_timeout(self.navigate_timeout)
             .map_err(|_| BrowserError::Timeout {
                 op: format!("load {url}"),
-                after_ms: 30_000,
+                after_ms: u64::try_from(self.navigate_timeout.as_millis()).unwrap_or(u64::MAX),
             })?;
         Ok(())
     }

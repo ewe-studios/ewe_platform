@@ -187,3 +187,265 @@ install in the same change. A task that installs a tool no code calls is a false
 ---
 
 _Created: 2026-11-15_
+
+## 11. The page session stalled behind the read deadline (#569)
+
+**Expected.** The first command that carries a `sessionId` (`Page.enable`) never answered. Both
+observed failures were exactly 30 s, so the plan guessed that a socket read deadline equal to
+the call deadline ended the reader.
+
+**Measured.** With `PRIMAL_CDP_TRACE=1` on Chrome for Testing 157.0.8103.51, macOS arm64,
+`wasm-testbed browser integration/module --filter passes --headless` printed these frames:
+
+```
+17:29:08.224  send id=1 Target.createTarget
+17:29:08.493  recv id=1 result
+17:29:08.493  send id=2 Target.attachToTarget
+17:29:38.241  recv event Target.attachedToTarget
+17:29:38.241  recv id=2 result
+17:29:38.241  send id=3 Page.enable session=5DE5…
+17:30:08.245  reader thread exiting reason=stopped
+             error: Page.enable timed out after 30000ms
+```
+
+The answer to `Target.attachToTarget` arrived 29.7 s after the command was sent. The reader
+then delivered the next command at once and timed out again. The reader did not exit before
+the call deadline: the engine was dropped after the timeout, and the reason was `stopped`.
+
+**Root cause.** The `foundation_netio` WebSocket task drains its outbound pipe between socket
+reads, and one blocking read used the engine's read deadline (30 s). A command queued while
+the reader was blocked in that read was not written until the read timed out. So a CDP call
+could only start after the previous read returned, and the first read after a quiet moment
+cost up to 30 s. The protocol and the frame parser were correct.
+
+**Fix.** The engine sets a short read deadline (default 50 ms), so it writes a queued command
+within one read. Every call now answers in 20-50 ms in the same trace. The reader contract
+holds at the same time: a close, a read error or the end of the stream marks the connection
+dead, fails every waiting call with `ConnectionLost`, and makes a later call fail at once
+(invariant I6). `RpcEngineConfig` holds `call_timeout`, `read_timeout` and `idle_sleep`;
+`LaunchConfig` holds the engine config and `navigate_timeout`.
+
+**Two more blockers appeared after the CDP fix.** Each one is a GitHub issue.
+
+| Defect | Evidence | Result |
+|---|---|---|
+| The static server sent `.mjs` as `application/octet-stream`, and Chrome refused the module | the page stayed at "running…"; a probe page ran its module only with `text/javascript` | feature 00 staged `runner.js`; #578 was closed in the review: `StaticFileHandler` now answers `.mjs` with `text/javascript`, and `static_file_serves_mjs_as_a_module_script` proves it |
+| The runner read the first `#output` line as the verdict | "owned harness run failed with exit code 1" after `test result: ok` | last `test result:` line is the verdict; #579 |
+| Synchronous WebAssembly compile threw above 8 MiB | the core module failed with `RangeError: WebAssembly.Compile is disallowed on the main thread` | async compile and instantiate; #580 |
+| The install copied the binary without `icudtl.dat` | the binary exited before it opened the debug port; #581 | the task copies the whole archive |
+
+**Rule for the future.** A blocking transport that multiplexes reads and writes on one thread
+must wake often. A read deadline is a poll interval, not the time a caller should wait. When a
+diagnosis shows a delay equal to a timeout, measure the send and receive times of every frame
+before you change the contract.
+
+## 12. The endpoint on each host (T6)
+
+**Answer to the open question: workerd permits a subrequest to the dev server's own origin.**
+No service binding is needed. Measured on 2026-11-16 with `wrangler dev --local`: the fixture's
+`echo_endpoint_answers` case fetched `http://127.0.0.1:<port>/echo` from inside the worker and
+got 200 with its method, header and body. The first attempt failed with "Network connection
+lost", but the cause was not a refusal: workerd gave the worker a request URL without the port
+(`http://127.0.0.1`), so the fetch went to port 80. The runner now sends the origin in an
+`x-fwt-base-url` header and the worker reads it.
+
+| Fact | Evidence | Consequence |
+|---|---|---|
+| the request body arrives as a stream, not a sized value | the handler answered 400 "not chunked" with a `Content-Length` request | `EchoHandler` collects the body with `DataBytesIterator`, and stops at the limit |
+| a page and the endpoint must share one origin | the page loaded from `localhost`, the base URL used `127.0.0.1`, so Chrome blocked the fetch | `TestServer::url` now uses the same origin as `base_url` |
+| the embedded Deno runtime has no executor pool of its own | the server rejected every connection with "valtron pool not initialized" | the runner calls `foundation_browser::runtime::ensure_runtime` first |
+| the embedded Deno fetch speaks correct HTTP/1.1 | a raw listener received `POST /echo HTTP/1.1` with the headers and the body | the endpoint works on both owned hosts |
+
+**Cases that prove it.** The owned sample crate has the async case `echo_endpoint_answers`
+(registered host function + one yield per poll). The bindgen fixture has the case of the same
+name, which uses `web_sys` fetch so it runs on Deno, the page and workerd. The filter `--filter
+echo` runs each alone. The route itself has two tests in `tests/echo_server_tests.rs`.
+
+## 13. The artifact choice and the wrangler filter (T7)
+
+**Measured.** A scratch crate with two test files (`tests/one.rs`, `tests/two.rs`) built two
+wasm modules that both carry `__wbgt_` exports. The old code took the first one cargo reported
+(or the first in `deps/`), so one test target ran and the other vanished with no message.
+
+**Fix.** `build::run_impl` collects every candidate that answers the request and stops at the
+first one only when there is exactly one. Two or more fail with
+`AmbiguousTestArtifact { candidates, hint }`; the message lists both paths and says to keep one
+test target (rule R10). Verified:
+
+```
+Error: more than one wasm test artifact carries `__wbgt_` exports:
+["…/out/two-1e9256…wasm", "…/out/one-34af42…wasm"]
+Keep one test target per crate (rule R10): put every case in one tests/*.rs file, or keep a single [[test]] target.
+```
+
+**Also in T7.** `test bindgen-wrangler --filter <name>` keeps only the matching cases before it
+writes `worker.js`. On the fixture, `--filter a_passes` reported "Discovered 1 tests" and `test
+result: ok. 1 passed`. The two stale runner names are corrected (#574).
+
+## 14. The CI shape that runs all five executors (T8)
+
+**Five executors, cheapest failure first.** The `wasm-tests` package runs the owned Deno host,
+the bindgen Deno host, the 19 `dual!` cases, the worker, the owned browser host, the bindgen
+web host, then the failing fixture. The fixture step passes only when both bindgen runners
+reject `b_fails`.
+
+**Measured results of each new task.**
+
+| Task | Result |
+|---|---|
+| `test:wasm-bindgen:core` | Discovered 19 tests; `test result: ok. 19 passed` |
+| `test:wasm-bindgen:web` | Discovered 1 test; `test result: ok. 1 passed` |
+| `test:wasm-testbed:bindgen-fails` | both runners exit non-zero; the step passes |
+
+**What did not happen as planned.** `test:wasm-bindgen:web` was meant to run the valtron
+`dual!` cases. That module traps while it starts in Chromium (`RuntimeError: unreachable`), so
+the page prints no result. Feature 01 owns that runtime work; #586 records it. The web step
+runs the fixture's passing case until then, so the executor still proves it runs and reports
+the truth. The web runner also gained `--filter` here (#582), because without it the step could
+not name one case.
+
+**Chromium cost.** The Linux image links Google Chrome on `PATH`, so the install task now checks
+`PATH` before it downloads. The workflow caches `~/.cache/foundation/chromium` with a key that
+names the pinned version. The macOS job needs no browser install: Chrome is in `/Applications`,
+and the search order of invariant I4 reads that path. The macOS job runs two direct `cargo run`
+commands instead of the mise task, because the macOS runner has no mise.
+
+**Rule for the future.** A CI step that runs a mise task inherits a tool the runner may not
+have. Prefer the direct command on a platform whose tool set the image does not control.
+
+## 15. The Chromium start trap was libtest's `main` (#586)
+
+**Expected.** The web host traps inside wasm-bindgen's start function, before a case runs. The
+plan looked for a glue version mismatch, a missing import, or a valtron start path.
+
+**Measured.** With `PRIMAL_CDP_TRACE=1` on Chrome for Testing 157.0.8103.51, macOS arm64, the
+page's `#output` carried this stack (shortened):
+
+```
+at mod-<hash>.wasm.__rustc[<hash>]::__rust_abort (…wasm-function[29762])
+at mod-<hash>.wasm.__rustc[<hash>]::rust_panic (…wasm-function[29244])
+at mod-<hash>.wasm.std[<hash>]::panicking::panic_with_hook (…wasm-function[4416])
+at mod-<hash>.wasm.core[<hash>]::panicking::panic_fmt (…wasm-function[16865])
+at mod-<hash>.wasm.core[<hash>]::result::unwrap_failed (…wasm-function[11766])
+at mod-<hash>.wasm.std[<hash>]::thread::functions::spawn::<mod[<hash>]::io::buffer_pool_tests::test_concurrent_access::{closure#0}, ()> (wasm-function[3579]:0x2ace2b)
+```
+
+The trap was not a start-table walk. A plain `#[test]` case ran, and it called
+`std::thread::spawn`.
+
+**Root cause.** The wasm-bindgen CLI writes `wasm.__wbindgen_start();` into the glue at every
+target. In a test binary, that start function does two jobs. It calls the
+`__wbindgen_init_externref_table` import. Then it calls the binary's `main`, which is libtest's
+test harness. The harness runs every plain `#[test]` case. The crate's `tests/mod.rs` compiles
+`io` and `synca` for wasm, and `io::buffer_pool_tests::test_concurrent_access` spawns ten
+threads. Threads are not supported on `wasm32-unknown-unknown`, so `std::thread::spawn` panics.
+The panic aborts the module, and the browser reports `RuntimeError: unreachable`. The page
+never reaches `new WasmBindgenTestContext()`, so no `test result:` line appears.
+
+This was measured on the background wasm module: the exported `__wbindgen_start` calls import
+57 `__wbindgen_init_externref_table`, then an unnamed wrapper, then the `main` export. The
+module has 32291 code bodies, and the plain test cases are in the same module.
+
+The Deno path passed because `run_bindgen_deno` already removed the call with
+`content.replace("wasm.__wbindgen_start();", "")`. The web path in `run_bindgen_web` and in
+`bindgen_runner::run_bindgen` did not. The fixture case passed on the web host because the
+fixture crate has only `#[wasm_bindgen_test]` cases, so its libtest `main` runs nothing.
+
+**Fix.** `wasm::patch_bindgen_glue` in `foundation_testbed/src/wasm/wasm.rs` replaces the call
+in every glue target with the externref table setup only, because a `JsValue` constant maps to a
+wrong table slot without it. It appends `export { wasm };` for the deno and wrangler runners.
+It returns an error when the glue has no such call, so a changed CLI fails loudly instead of
+leaving the harness `main` in place. The web, deno and wrangler runners and
+`bindgen_runner::run_bindgen` call it. `tests/bindgen_glue_tests.rs` has three cases.
+
+**Measured after the fix.**
+
+| Check | Result |
+|---|---|
+| `test bindgen-web backends/foundation_core --features js-wasmbindgen,std --headless` | Discovered 34 tests; `test result: ok. 34 passed` |
+| `test bindgen-deno backends/foundation_core --features js-wasmbindgen,std` | 34 passed |
+| `bindgen backends/foundation_core --features js-wasmbindgen,std --headless` | 34 passed |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:core` | 19 passed |
+| `MISE_ENV=wasm mise run test:wasm-bindgen:web` | 34 passed |
+| `MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails` | both runners reject `b_fails` |
+
+**The case count.** Entry 14 names 19 cases, because the `test:wasm-bindgen:core` task filters
+to `async_first_api`. Without a filter, foundation_core has 34 wasm-bindgen cases: 19 in
+`async_first_api` and 15 in `wasm_js_yield_integration`. Both hosts run all 34.
+
+**Rule for the future.** A test binary built with `--tests` holds two test systems in one
+module: libtest's `main` and the `__wbgt_` exports. A JavaScript host must call only the
+exports. Remove the start call, and keep the externref table setup that shares its body.
+
+## 16. A trap in a host callback lost the case name (#587)
+
+**Expected.** A failing case reports its verdict and its message, and the run continues to the
+next case. The panic hook runs before the abort trap, so a panic reaches the runner.
+
+**Measured.** The owned Deno run ended with `RuntimeError: unreachable`. No `test result` line
+followed, and no case name appeared. The trap happened in a host callback: a `setTimeout`
+callback re-entered the wasm module and an assertion panicked there.
+
+**Root cause, part one (the missing name).** The runner printed case lines into its `out`
+array, but it sent the structured report to Rust only after the last case. A trap in the middle
+of the run lost every line. The line buffer was also invisible to the driver: no JavaScript
+frame held it, and the event loop returned an error to Rust.
+
+**Root cause, part two (the missing message).** The panic hook ships the message through the
+`host_report` import into `TestReports`. The runner awaits `testReports.next()` while a case is
+pending, so `push` resolved a pending promise and did not buffer the report. The awaiting
+continuation never ran after the trap, so the message sat in a dead promise.
+
+**Fix.** The runner sends a report after each case. It exposes `__FWT_DIAGNOSTICS__`: the case
+in flight, `TestReports.snapshot()` (buffered reports plus the last delivered one), and the
+line buffer. When the event loop ends with an error, `run_staged_harness` reads that object,
+appends the error and the diagnostics to the output, and counts the run as one failure.
+`BrowserRunLimits` timeout diagnostic reads the same object.
+
+**Measured after the fix.** In the `linux/amd64` CI image on an `arm64` host, the run names the
+case and the message:
+
+```
+failing case: any_readiness_resumes_when_a_child_is_ready
+case report: any_readiness_resumes_when_a_child_is_ready: panicked at
+  src/../../../tests/valtron/wasm_wake_support.rs:684:13:
+resumed 64ms after the child was ready (window 25ms)
+```
+
+**What the message shows.** The wake path passed its first check: `polls_at_fire` was 1, so the
+executor did not poll the task while it was parked. The run failed on the 25 ms resume window
+alone. The host was emulated. This is the family of #589, not a lost wake. The checks after the
+window did not run.
+
+**Rule for the future.** A harness that runs many cases in one event loop must report each case
+as it ends. An awaiting promise is not a store: anything a trap can cut off needs a copy that a
+later reader can reach.
+
+## 17. A build script needs its tool on every operating system (#599)
+
+**Symptom.** A full CI run ended with `failure` while every package job passed. The separate
+`macOS build` job panicked at `foundation_agent_rpc/build.rs:31` with "failed to run protoc
+(protoc): No such file or directory".
+
+**Root cause.** `protoc` was pinned in only one place: the Linux CI image, through
+`ci/platform-images/mise/mise.toml` and `mise.lock`. The hosted macOS and Windows runners have
+no `protoc`. Every package job ran in that image, so the gap stayed hidden until the job that
+builds on the bare runner. The macOS and Windows test jobs also need `protoc` when
+`foundation_agent_rpc` is in their matrix (`runs = ["", "gguf"]`).
+
+**Fix.** The `macos-test`, `windows-test` and `macOS build` jobs run a new
+"Install the pinned protoc" step. It picks the release asset from `uname -s` and `uname -m`,
+checks its SHA-256 against the value in `mise.lock`, unpacks it and adds `bin` to
+`$GITHUB_PATH`. The Linux image keeps its own install.
+
+**Two traps in the step.** A zip file does not record the executable bit, so unpacking with
+`zipfile.extractall` left `protoc` not executable. The step runs `chmod +x` after it. On
+Windows, `$RUNNER_TEMP` holds a native path, so the step uses `cygpath -m` to give bash and
+the native Python one path they both read.
+
+**Measured.** The step ran on this macOS `arm64` host. It verified the checksum, printed
+`libprotoc 36.2` and wrote the `bin` directory to `GITHUB_PATH`. `actionlint` accepts the
+workflow. Run 43754950849 then passed the `macOS build` job on a macOS `arm64` runner.
+
+**Rule for the future.** A tool that a build script runs is part of the build. Pin it for each
+operating system that builds the crate, in the same change that adds the build script.

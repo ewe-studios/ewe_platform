@@ -1,7 +1,8 @@
 //! Wasm binary location and wasm-bindgen CLI invocation.
 //!
 //! WHY: wasm-bindgen must be run to generate JS glue code from wasm binaries.
-//! WHAT: Locates wasm-bindgen on PATH, invokes it as a subprocess.
+//! WHAT: Locates wasm-bindgen on PATH, invokes it as a subprocess, and patches
+//!      the start call in the glue for a wasm test binary.
 //! HOW: Uses the wasm-bindgen CLI binary (not the library) to ensure
 //!      version alignment with the user's wasm-bindgen dependency.
 
@@ -11,6 +12,50 @@ use std::process::Command;
 use tracing::{debug, info};
 
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
+
+/// The start-function call that the wasm-bindgen CLI writes into its JS glue.
+const START_CALL: &str = "wasm.__wbindgen_start();";
+
+/// What [`START_CALL`] becomes in a test binary's glue.
+///
+/// The module start function does two jobs. It initialises the externref table,
+/// and it calls the binary's `main`. In a test binary, `main` is libtest's test
+/// harness. That harness runs every plain `#[test]` case, and the native-only
+/// cases spawn threads, which aborts the wasm module before any
+/// `#[wasm_bindgen_test]` case runs. wasm-bindgen's own test runner drops the
+/// call (`emit_start(false)`); the CLI has no flag for that. Keep the externref
+/// table initialisation, because a `JsValue` constant maps to a wrong table
+/// slot without it, and drop only the call to `main`.
+const START_CALL_REPLACEMENT: &str = "const __initTable = Object.values(__wbg_get_imports())\n  .map((m) => m && m.__wbindgen_init_externref_table)\n  .find((f) => f);\nif (__initTable) __initTable();";
+
+/// Patch the start call in a wasm-bindgen glue file.
+///
+/// A runner that calls the raw `__wbgt_` exports needs the `wasm` instance
+/// exported, because the glue keeps it private. Set `export_wasm` for such a
+/// runner.
+///
+/// # Errors
+///
+/// Returns an error when the glue cannot be read or written, or when it has no
+/// [`START_CALL`]. A changed CLI output must fail here, not leave the libtest
+/// `main` in place and abort the module at start.
+pub fn patch_bindgen_glue(js_file: &Path, export_wasm: bool) -> Result<()> {
+    let content = std::fs::read_to_string(js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
+    if !content.contains(START_CALL) {
+        return Err(WasmTestbedError::WasmParseFailed(format!(
+            "the wasm-bindgen glue at {} has no `{START_CALL}`; update the testbed's \
+             start-call patch for the installed wasm-bindgen version",
+            js_file.display()
+        ))
+        .trace());
+    }
+
+    let mut patched = content.replace(START_CALL, START_CALL_REPLACEMENT);
+    if export_wasm {
+        patched.push_str("\nexport { wasm };\n");
+    }
+    std::fs::write(js_file, patched).map_err(|e| WasmTestbedError::Io(e).trace())
+}
 
 /// Target platform for wasm-bindgen output.
 #[derive(Clone, Copy, Debug)]

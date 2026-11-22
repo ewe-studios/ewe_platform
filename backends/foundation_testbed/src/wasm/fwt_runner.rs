@@ -5,15 +5,16 @@
 //!
 //! WHAT: [`run_deno`], [`run_web`] — build a `foundation_wasm` cdylib to wasm32
 //! (LLVM backend), discover `__fwt_` cases, stage a self-contained harness
-//! (embedded `foundation-wasm.js` runtime + generic `runner.mjs` + the module +
+//! (embedded `foundation-wasm.js` runtime + generic `runner.js` + the module +
 //! `cases.json`), execute it, and surface the exit code/summary.
 //!
 //! HOW: Staging goes to a temp dir (everything in it is generated; nothing to
 //! commit). The SAME runner script serves both hosts: the embedded in-process Deno
 //! runtime (`run_deno` → `embedded_js::run_staged_harness`, via the `op_fwt_*` ops)
-//! and the browser (`run_web` → an `index.html` shell that Playwright polls for the
-//! `test result:` summary). The runtime assets come from `foundation_wasm_ui`'s
-//! `embedded-js` feature, so the staged harness needs no repo paths.
+//! and the browser (`run_web` → an `index.html` shell whose `#output` element the
+//! pure-Rust CDP driver reads for the `test result:` summary). The runtime assets
+//! come from `foundation_wasm_ui`'s `embedded-js` feature, so the staged harness
+//! needs no repo paths.
 
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -41,6 +42,24 @@ pub(crate) fn preflight(tools: &[(&str, &str)]) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Resolve the browser binary before the wasm build.
+///
+/// The launcher and this check use [`foundation_browser::resolve_browser`], so
+/// they read the search order of invariant I4 and agree on the binary. No
+/// `node`, `npm` or `npx` is needed: the run is pure Rust.
+fn preflight_browser() -> Result<()> {
+    let config = foundation_browser::LaunchConfig::chromium();
+    match foundation_browser::resolve_browser(&config) {
+        Ok(_) => Ok(()),
+        Err(foundation_browser::BrowserError::BrowserNotInstalled { searched, .. }) => {
+            Err(WasmTestbedError::MissingBrowser { searched }.trace())
+        }
+        Err(other) => {
+            Err(WasmTestbedError::BrowserDriver(format!("resolve browser: {other}")).trace())
+        }
+    }
 }
 
 /// Outcome of an owned-harness run.
@@ -107,7 +126,7 @@ pub fn stage_from_wasm(wasm_path: &Path, cases: &[FwtCase], stage_dir: &Path) ->
         "foundation-wasm-ui.js",
         foundation_wasm_ui::embedded::FOUNDATION_WASM_UI_JS.as_bytes(),
     )?;
-    write("runner.mjs", read_template("fwt/runner.mjs")?.as_bytes())?;
+    write("runner.js", read_template("fwt/runner.js")?.as_bytes())?;
     write("index.html", read_template("fwt/index.html")?.as_bytes())?;
     write("cases.json", cases_json(cases).as_bytes())?;
     let wasm_bytes =
@@ -147,6 +166,16 @@ fn staged_temp(
     Ok((dir, cases))
 }
 
+/// Write `harness.json` next to `cases.json`.
+///
+/// The runner reads it before the first case and sets
+/// `globalThis.__FWT_BASE_URL__` from it (spec 88 invariant I5).
+fn write_harness_json(dir: &Path, base_url: &str) -> Result<()> {
+    let path = dir.join("harness.json");
+    let body = serde_json::json!({ "baseUrl": base_url });
+    std::fs::write(&path, body.to_string()).map_err(|e| WasmTestbedError::Io(e).trace())
+}
+
 /// `wasm-testbed deno <crate>` — build → discover → stage → run the owned
 /// `#[wasm_test]` harness **in-process** on the embedded Deno runtime (`deno_core` +
 /// `deno_web`). No external `node`/`deno` binary; requires the `wasm-embedded-js`
@@ -159,8 +188,17 @@ pub fn run_deno(args: &OwnedRunArgs) -> Result<RunOutcome> {
     preflight(&[("cargo", "builds the test crate to wasm32")])?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
+    // The server submits each connection to the valtron pool, and the embedded
+    // runtime does not start one. Start it before the first case.
+    foundation_browser::runtime::ensure_runtime(None);
+    // Start the local endpoint before the first case, and tell the runner where
+    // it is (invariant I5). The endpoint answers until the last case ends.
+    let serving = server::start_serving_with_echo(dir.path(), &server::ServerLimits::default())?;
+    write_harness_json(dir.path(), &serving.base_url())?;
     let report = crate::wasm::embedded_js::run_staged_harness(dir.path())
-        .map_err(|e| WasmTestbedError::EmbeddedRunFailed(e.to_string()).trace())?;
+        .map_err(|e| WasmTestbedError::EmbeddedRunFailed(e.to_string()).trace());
+    serving.shutdown();
+    let report = report?;
     print!("{}", report.output);
     if !report.output.ends_with('\n') {
         println!();
@@ -183,37 +221,45 @@ pub fn run_deno(_args: &OwnedRunArgs) -> Result<RunOutcome> {
     Err(WasmTestbedError::EmbeddedRuntimeDisabled.trace())
 }
 
-/// `wasm-testbed web <crate>` — serve the staged harness and run it under
-/// Playwright on OUR runtime (no bindgen glue).
+/// `wasm-testbed browser <crate>` — serve the staged harness and run it in
+/// headless Chrome through the pure-Rust `DevTools` Protocol (CDP) driver.
 ///
 /// # Errors
-/// Fails on build/discovery/staging errors or when the browser run fails.
+/// Fails on build/discovery/staging errors or when the browser run fails. A
+/// missing browser fails before the wasm build, with every searched path.
 pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
-    preflight(&[
-        ("cargo", "builds the test crate to wasm32"),
-        ("node", "runs the Playwright driver script"),
-        (
-            "npm",
-            "installs Playwright for the driver (or run `mise run setup:playwright` once)",
-        ),
-        ("npx", "launches the Playwright browser installer"),
-    ])?;
+    crate::wasm::browser::ensure_supported(&args.browser)?;
+    preflight(&[("cargo", "builds the test crate to wasm32")])?;
+    preflight_browser()?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
 
-    let serving = server::start_serving(dir.path())?;
+    // The server submits each connection to the valtron pool. Start it before
+    // the server accepts a request.
+    foundation_browser::runtime::ensure_runtime(None);
+    let serving = server::start_serving_with_echo(dir.path(), &server::ServerLimits::default())?;
+    // The page reads the endpoint before its first case (invariant I5).
+    write_harness_json(dir.path(), &serving.base_url())?;
     let url = serving.url("index.html");
     info!("serving owned harness at {url}");
-    let outcome = crate::wasm::browser::run(&url, &args.browser, args.headless, ctx);
+    let outcome = crate::wasm::browser::run(
+        &url,
+        &args.browser,
+        args.headless,
+        ctx,
+        &crate::wasm::browser::BrowserRunLimits::default(),
+    );
     serving.shutdown();
     let browser_output = outcome?;
 
-    // The summary line is the verdict (the browser cannot set an exit code).
-    let exit_code = i32::from(!browser_output.test_result.contains("test result: ok"));
+    // The page prints every case line, then the summary. Print all of it: a
+    // failing case names itself and its first mismatched value there (spec 88
+    // rule R3, issue #588). The summary line is the verdict.
     print!("{}", browser_output.output);
     if !browser_output.output.ends_with('\n') {
         println!();
     }
+    let exit_code = i32::from(!browser_output.test_result.contains("test result: ok"));
     Ok(RunOutcome {
         output: browser_output.output,
         exit_code,

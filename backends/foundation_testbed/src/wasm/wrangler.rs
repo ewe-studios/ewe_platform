@@ -10,6 +10,7 @@
 //!      connection, then drains wrangler's stderr on a reader thread and kills
 //!      the process.
 
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 use std::path::Path;
@@ -85,6 +86,18 @@ fn http_get(
     read_timeout: Duration,
     tail_timeout: Duration,
 ) -> Result<(u16, String)> {
+    http_get_with_headers(host, port, path, &[], read_timeout, tail_timeout)
+}
+
+/// [`http_get`] with extra request headers.
+fn http_get_with_headers(
+    host: &str,
+    port: u16,
+    path: &str,
+    headers: &[(&str, &str)],
+    read_timeout: Duration,
+    tail_timeout: Duration,
+) -> Result<(u16, String)> {
     let addr = format!("{host}:{port}");
     let mut stream = TcpStream::connect(&addr).map_err(|e| {
         WasmTestbedError::WranglerHttpFailed(format!("connect {addr}: {e}")).trace()
@@ -94,7 +107,11 @@ fn http_get(
         .set_read_timeout(Some(read_timeout))
         .map_err(|e| WasmTestbedError::WranglerHttpFailed(format!("set timeout: {e}")).trace())?;
 
-    let request = format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n");
+    let mut request = format!("GET {path} HTTP/1.1\r\nHost: {host}\r\n");
+    for (name, value) in headers {
+        let _ = write!(request, "{name}: {value}\r\n");
+    }
+    request.push_str("Connection: close\r\n\r\n");
     stream
         .write_all(request.as_bytes())
         .map_err(|e| WasmTestbedError::WranglerHttpFailed(format!("write: {e}")).trace())?;
@@ -311,10 +328,14 @@ pub(crate) fn run_with_config(
     }
 
     info!("wrangler ready on port {port}, running the worker tests...");
-    let response = http_get(
+    // The worker cannot read this port from its own request URL (workerd gives
+    // it a URL without the port), so pass the origin a suite must call.
+    let base_url = format!("http://127.0.0.1:{port}");
+    let response = http_get_with_headers(
         "127.0.0.1",
         port,
         "/",
+        &[("x-fwt-base-url", base_url.as_str())],
         config.request_timeout,
         config.headerless_body_timeout,
     );
