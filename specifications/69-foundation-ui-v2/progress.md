@@ -1190,3 +1190,16 @@ Feature 37 requires all three transport tests and the independent WebSocket test
 ## Todo startup checkpoint
 
 Both native Todo hosts now select one action transport and use one core factory. The Rust server uses `#[valtron]`. All three backup command tests pass. Native transport checks continue.
+
+## Feature 37 native transport verification
+
+Commit `e23b24019` passes the three transport checks on the iPhone 17 simulator and Android emulator.
+Each test loads a fresh server view, opens the local dialog, adds a todo, completes it, and reopens it.
+Each test checks the confirmed count. Each transport uses a separate server process.
+
+- Swift runs `TodoTests/testAddTaskToFreshServerStore` through `xcodebuild test-without-building`.
+- Android runs `scripts/ui_native/check-android-todo.py` with the `server` argument.
+- Rust runs `cargo test -p ui_todo --test backup_cli --profile uat`. All three tests pass.
+
+The first Android Connect run submits a partial title. The repeat passes. Issue #737 tracks this result.
+The independent native WebSocket service remains pending.

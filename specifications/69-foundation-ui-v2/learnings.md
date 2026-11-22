@@ -990,3 +990,8 @@ Android already uses one Todo core factory. Its launcher passes two independent 
 ## Todo startup checkpoint
 
 The server uses a synchronous listener. The Valtron entry attribute supports synchronous functions and keeps the worker pool alive until the function returns.
+
+## Android title input during transport verification
+
+The first Android Connect run displays “Android server” and confirms one item. The test expects “Android server todo”.
+A fresh run accepts the full title. Issue #737 tracks the input and submission checks.
