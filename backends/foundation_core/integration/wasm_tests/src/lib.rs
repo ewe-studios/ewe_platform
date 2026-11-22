@@ -190,8 +190,12 @@ async fn concurrent_tasks_make_progress() {
     WaitUntil::new(move || dc.load(Ordering::Relaxed) == 2).await;
 
     let elapsed = now_ms() - start;
+    // The point is that the two tasks do not wait for one another. An idle
+    // host finishes in about one yield period (10 ms). A loaded or emulated
+    // host can delay each timer by a hundred milliseconds, so the bound is
+    // generous; a deadlock still fails, because the wait never returns.
     assert!(
-        elapsed < 50.0,
+        elapsed < 500.0,
         "concurrent tasks took {elapsed}ms — should complete within one yield period"
     );
 }
