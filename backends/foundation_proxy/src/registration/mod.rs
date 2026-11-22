@@ -20,10 +20,15 @@
 //! [`crate::router::Router`] and swaps it through [`crate::router::RouterHandle`],
 //! so a request reads one snapshot for its whole life and no connection drops.
 
+pub mod authority;
 pub mod config;
+pub mod enroll;
 pub mod policy;
 pub mod proto;
 pub mod registry;
+pub mod service;
+#[cfg(unix)]
+pub mod unix;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -34,11 +39,40 @@ use foundation_http::ShutdownSignal;
 
 use crate::config::{ProxyError, ProxyResult};
 
+pub use authority::RegistrationAuthority;
 pub use config::{RegistrationConfig, RegistrationPolicy};
+pub use enroll::{EnrollmentAuthority, EnrollmentError};
 pub use registry::{
     BackendMetricsOwned, BackendRegistry, BackendSpecOwned, PeerIdentity, RegisteredBackend,
     RegistrationError, RegistrationState, Session,
 };
+pub use service::{AccessMode, EnrollmentHandler, RegistrationHandler};
+#[cfg(unix)]
+pub use unix::UnixSocketAcceptor;
+
+/// Why the registration authority could not start.
+#[derive(Debug, Clone, PartialEq, Eq, derive_more::Display)]
+pub enum RegistrationAuthorityError {
+    /// The configuration or a key is not usable.
+    #[display("registration configuration: {_0}")]
+    Config(String),
+    /// The trust store or the state directory failed.
+    #[display("registration storage: {_0}")]
+    Storage(String),
+    /// The certificate authority or the Transport Layer Security (TLS)
+    /// configuration failed.
+    #[display("registration TLS: {_0}")]
+    Tls(String),
+    /// The Unix socket could not be bound, or its owner, group or mode is
+    /// wrong.
+    #[display("registration Unix socket: {_0}")]
+    Socket(String),
+    /// A listener, a thread or the sweeper failed.
+    #[display("registration runtime: {_0}")]
+    Runtime(String),
+}
+
+impl std::error::Error for RegistrationAuthorityError {}
 
 /// Start the lease sweeper: every `sweep_interval` call
 /// [`BackendRegistry::sweep`] until `shutdown` fires.

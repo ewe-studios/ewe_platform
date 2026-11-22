@@ -66,10 +66,32 @@ pub struct RegistrationConfig {
     #[serde(default = "default_client_cert_lifetime", with = "duration_millis")]
     pub client_cert_lifetime: Duration,
     /// Where the registration certificate authority (CA) key, the CA
-    /// certificate and the trusted-client store live. `None` uses
-    /// `Foundation::state_dir()`'s `proxy_registration` directory.
+    /// certificate, the trusted-client store and the enrollment-token key seed
+    /// live. `None` uses `std::env::temp_dir()/ewe_proxy_registration`; set a
+    /// real directory in production so the trust store and the token key
+    /// survive a restart.
     #[serde(default)]
     pub state_dir: Option<PathBuf>,
+    /// The audience that an enrollment token carries: the registration URL.
+    /// `None` = the token carries no audience. The verifier requires the same
+    /// value, so a token made for one proxy does not enroll on another.
+    #[serde(default)]
+    pub public_url: Option<String>,
+    /// Domain Name System (DNS) names and IP addresses of the registration
+    /// listener certificate. Default `localhost`, `127.0.0.1` and `::1`.
+    #[serde(default = "default_server_names")]
+    pub server_names: Vec<String>,
+    /// Lifetime of the registration listener certificate. Default 90 days.
+    #[serde(default = "default_server_cert_lifetime", with = "duration_millis")]
+    pub server_cert_lifetime: Duration,
+    /// How long an enrollment token made by `issue-registrar-token` is valid
+    /// without an explicit window. Default 1 hour.
+    #[serde(default = "default_registrar_token_validity", with = "duration_millis")]
+    pub registrar_token_validity: Duration,
+    /// How many times an enrollment token made without an explicit use count
+    /// may enroll. Default 1.
+    #[serde(default = "default_registrar_token_uses")]
+    pub registrar_token_uses: u32,
     /// The address and route policy.
     #[serde(default)]
     pub policy: RegistrationPolicy,
@@ -90,6 +112,11 @@ impl Default for RegistrationConfig {
             max_request_bytes: default_max_request_bytes(),
             client_cert_lifetime: default_client_cert_lifetime(),
             state_dir: None,
+            public_url: None,
+            server_names: default_server_names(),
+            server_cert_lifetime: default_server_cert_lifetime(),
+            registrar_token_validity: default_registrar_token_validity(),
+            registrar_token_uses: default_registrar_token_uses(),
             policy: RegistrationPolicy::default(),
         }
     }
@@ -183,6 +210,42 @@ impl RegistrationConfig {
     #[must_use]
     pub fn with_state_dir(mut self, dir: impl Into<PathBuf>) -> Self {
         self.state_dir = Some(dir.into());
+        self
+    }
+
+    /// Set the audience that enrollment tokens carry (the registration URL).
+    #[must_use]
+    pub fn with_public_url(mut self, url: impl Into<String>) -> Self {
+        self.public_url = Some(url.into());
+        self
+    }
+
+    /// Set the names of the registration listener certificate. Default
+    /// `localhost`, `127.0.0.1` and `::1`.
+    #[must_use]
+    pub fn with_server_names(mut self, names: Vec<String>) -> Self {
+        self.server_names = names;
+        self
+    }
+
+    /// Set [`Self::server_cert_lifetime`]. Default 90 days.
+    #[must_use]
+    pub fn with_server_cert_lifetime(mut self, lifetime: Duration) -> Self {
+        self.server_cert_lifetime = lifetime;
+        self
+    }
+
+    /// Set [`Self::registrar_token_validity`]. Default 1 hour.
+    #[must_use]
+    pub fn with_registrar_token_validity(mut self, validity: Duration) -> Self {
+        self.registrar_token_validity = validity;
+        self
+    }
+
+    /// Set [`Self::registrar_token_uses`]. Default 1.
+    #[must_use]
+    pub fn with_registrar_token_uses(mut self, uses: u32) -> Self {
+        self.registrar_token_uses = uses;
         self
     }
 
@@ -304,6 +367,26 @@ const fn default_max_request_bytes() -> usize {
 
 fn default_client_cert_lifetime() -> Duration {
     Duration::from_hours(30 * 24)
+}
+
+fn default_server_names() -> Vec<String> {
+    vec![
+        "localhost".to_string(),
+        "127.0.0.1".to_string(),
+        "::1".to_string(),
+    ]
+}
+
+fn default_server_cert_lifetime() -> Duration {
+    Duration::from_hours(90 * 24)
+}
+
+fn default_registrar_token_validity() -> Duration {
+    Duration::from_hours(1)
+}
+
+const fn default_registrar_token_uses() -> u32 {
+    1
 }
 
 /// Serialise a `Duration` as whole milliseconds.

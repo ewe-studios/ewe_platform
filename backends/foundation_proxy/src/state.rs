@@ -19,7 +19,7 @@ use foundation_iogate::ServerIo;
 use crate::config::BackendState;
 use crate::forward::SharedHttpClient;
 use crate::persistence::ProxyStateStore;
-use crate::registration::BackendRegistry;
+use crate::registration::{BackendRegistry, RegistrationAuthority};
 use crate::router::{Router, RouterHandle};
 
 /// Immutable-after-startup proxy state shared by every request handler.
@@ -53,10 +53,10 @@ pub struct ProxyState {
     /// The context every proxy timeout and timestamp reads its clock from. Set
     /// once at startup; there is no fallback to the real clock.
     ctx: Ctx,
-    /// The registration authority's registry, when the feature is on. The
-    /// control socket reads it for `list`, `issue-registrar-token` and
-    /// `revoke-registrar`.
-    registry: Option<Arc<BackendRegistry>>,
+    /// The registration authority, when the feature is on. The control socket
+    /// reads its registry for `list` and its enrollment service for
+    /// `issue-registrar-token` and `revoke-registrar`.
+    registration: Option<Arc<RegistrationAuthority>>,
 }
 
 /// A gauge of body bytes a relay holds in memory at once.
@@ -146,22 +146,29 @@ impl ProxyState {
             client_read_timeout: Duration::from_secs(60),
             h3_body_gauge: BufferedBytesGauge::default(),
             ctx,
-            registry: None,
+            registration: None,
         }
     }
 
-    /// Attach the registration authority's registry, so the control socket can
-    /// read it.
+    /// Attach the registration authority, so the control socket can read it.
     #[must_use]
-    pub fn with_registry(mut self, registry: Arc<BackendRegistry>) -> Self {
-        self.registry = Some(registry);
+    pub fn with_registration(mut self, registration: Arc<RegistrationAuthority>) -> Self {
+        self.registration = Some(registration);
         self
+    }
+
+    /// The registration authority, when the feature is on.
+    #[must_use]
+    pub fn registration_authority(&self) -> Option<&Arc<RegistrationAuthority>> {
+        self.registration.as_ref()
     }
 
     /// The registration authority's registry, when the feature is on.
     #[must_use]
     pub fn registry(&self) -> Option<&Arc<BackendRegistry>> {
-        self.registry.as_ref()
+        self.registration
+            .as_ref()
+            .map(|authority| authority.registry())
     }
 
     /// The context every proxy timeout and timestamp reads its clock from.

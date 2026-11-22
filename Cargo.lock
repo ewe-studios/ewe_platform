@@ -6315,6 +6315,7 @@ dependencies = [
  "toml 0.9.6",
  "tracing",
  "tracing-test",
+ "zeroize",
 ]
 
 [[package]]

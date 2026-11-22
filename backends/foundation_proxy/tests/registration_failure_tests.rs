@@ -380,9 +380,10 @@ fn a_redeploy_on_a_new_address_drains_the_old_one() {
         "host-17",
         vec![spec("host-17/agent", "127.0.0.1", 7444, "2")],
     );
-    assert!(
-        backend_urls(&h.registry).is_empty(),
-        "the new address is not ready yet"
+    assert_eq!(
+        backend_urls(&h.registry),
+        vec!["http://127.0.0.1:7443"],
+        "the old address keeps serving until the new one is ready"
     );
     report(
         &h.registry,

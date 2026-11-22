@@ -314,6 +314,19 @@ struct RegistryState {
 }
 
 impl RegistryState {
+    /// Move kept-over old addresses of `backend_id` to `Draining` once the new
+    /// address is ready.
+    fn retire_replacements(&mut self, backend_id: &str, session_id: &str, now: Instant) {
+        for old in &mut self.retired {
+            if old.spec.backend_id == backend_id
+                && old.session_id == session_id
+                && old.state.is_live()
+            {
+                old.state = RegistrationState::Draining { since: now };
+            }
+        }
+    }
+
     fn owner_is_live(&self, entry: &RegisteredBackend, now: Instant) -> bool {
         if !entry.state.is_live() || self.superseded.contains(&entry.session_id) {
             return false;
@@ -528,12 +541,13 @@ impl BackendRegistry {
 
         let mut unknown = Vec::new();
         for report in &req.backends {
+            let health = report
+                .health
+                .as_known()
+                .unwrap_or(BackendHealth::BACKEND_HEALTH_UNSPECIFIED);
             let updated = match state.entries.get_mut(&report.backend_id) {
                 Some(entry) if entry.session_id == session_id => {
-                    entry.health = report
-                        .health
-                        .as_known()
-                        .unwrap_or(BackendHealth::BACKEND_HEALTH_UNSPECIFIED);
+                    entry.health = health;
                     if let Some(metrics) = report.metrics.as_option() {
                         entry.metrics = Some(BackendMetricsOwned::from_proto(metrics));
                     }
@@ -545,7 +559,14 @@ impl BackendRegistry {
                 }
                 _ => false,
             };
-            if !updated {
+            if updated {
+                // The replacement address is ready, so the old address of the
+                // same backend leaves rotation now (7.7: the new address joined
+                // first, so no request fails).
+                if health == BackendHealth::BACKEND_HEALTH_READY {
+                    state.retire_replacements(&report.backend_id, &session_id, now);
+                }
+            } else {
                 unknown.push(report.backend_id.clone());
             }
         }
@@ -609,6 +630,32 @@ impl BackendRegistry {
         })
     }
 
+    /// Move every backend of `host_id` to `Draining` (a revoked sidecar).
+    /// Returns the number of backends that changed.
+    ///
+    /// # Panics
+    /// Panics if the registry mutex is poisoned.
+    pub fn drain_host(&self, host_id: &str) -> usize {
+        let now = self.ctx.clock().now();
+        let mut state = self.inner.lock().expect("registry mutex poisoned");
+        let ids: Vec<String> = state
+            .entries
+            .iter()
+            .filter(|(_, entry)| entry.owner_host_id == host_id)
+            .map(|(id, _)| id.clone())
+            .collect();
+        let count = ids.len();
+        for id in ids {
+            if let Some(mut entry) = state.entries.remove(&id) {
+                entry.state = RegistrationState::Draining { since: now };
+                state.retired.push(entry);
+            }
+        }
+        drop(state);
+        self.publish();
+        count
+    }
+
     /// End expired leases, remove old stale and drained entries, and publish a
     /// new router if anything changed. Called by the sweeper task.
     ///
@@ -655,7 +702,11 @@ impl BackendRegistry {
                 RegistrationState::Stale { since } => {
                     now.saturating_duration_since(since) < self.config.stale_remove_after
                 }
-                RegistrationState::Live => true,
+                // A kept-over old address stays until `drain_timeout` even if
+                // its replacement never becomes ready.
+                RegistrationState::Live => {
+                    now.saturating_duration_since(entry.last_report_at) < self.config.drain_timeout
+                }
             });
             changed |= state.retired.len() != before;
         }
@@ -816,7 +867,14 @@ impl BackendRegistry {
         }
 
         if let Some(mut old) = retire {
-            old.state = RegistrationState::Draining { since: now };
+            if old.state.is_live() {
+                // Keep the old address in rotation until the new one reports
+                // READY (7.7). `last_report_at` is its retirement time, which
+                // bounds the keep-over by `drain_timeout`.
+                old.last_report_at = now;
+            } else {
+                old.state = RegistrationState::Draining { since: now };
+            }
             state.retired.push(old);
         }
 
@@ -843,7 +901,7 @@ impl BackendRegistry {
         let state = self.inner.lock().expect("registry mutex poisoned");
         let mut groups: BTreeMap<String, Vec<(BackendSpecOwned, Arc<BackendRuntime>)>> =
             BTreeMap::new();
-        for entry in state.entries.values() {
+        for entry in state.entries.values().chain(state.retired.iter()) {
             if entry.is_in_rotation() {
                 groups
                     .entry(entry.spec.service.clone())

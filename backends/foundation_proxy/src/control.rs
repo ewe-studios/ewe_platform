@@ -319,7 +319,7 @@ async fn read_request_line(
 async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>, Option<Value>) {
     match req.command.as_str() {
         "list" => {
-            let services: Vec<Value> = state
+            let mut services: Vec<Value> = state
                 .router()
                 .services()
                 .iter()
@@ -343,7 +343,69 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                     })
                 })
                 .collect();
+            // Registered backends, including those outside rotation (stale or
+            // not ready), so the operator sees which check fails (7.12).
+            if let Some(authority) = state.registration_authority() {
+                for backend in authority.registry().snapshot() {
+                    services.push(registered_row(&backend));
+                }
+            }
             (true, None, Some(Value::Array(services)))
+        }
+
+        "issue-registrar-token" => {
+            let Some(authority) = state.registration_authority() else {
+                return (false, Some("registration is not enabled".to_string()), None);
+            };
+            let host_id = req
+                .params
+                .get("host_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let validity = req
+                .params
+                .get("validity_seconds")
+                .and_then(Value::as_u64)
+                .map(Duration::from_secs);
+            let uses = req
+                .params
+                .get("uses")
+                .and_then(Value::as_u64)
+                .and_then(|v| u32::try_from(v).ok());
+            match authority.enrollment().issue_token(host_id, validity, uses) {
+                Ok(token) => (
+                    true,
+                    None,
+                    Some(serde_json::json!({"host_id": host_id, "token": token})),
+                ),
+                Err(error) => (false, Some(error.to_string()), None),
+            }
+        }
+
+        "revoke-registrar" => {
+            let Some(authority) = state.registration_authority() else {
+                return (false, Some("registration is not enabled".to_string()), None);
+            };
+            let host_id = req
+                .params
+                .get("host_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            match authority.enrollment().revoke_host(host_id).await {
+                Ok(revoked) => {
+                    let draining = authority.registry().drain_host(host_id);
+                    (
+                        true,
+                        None,
+                        Some(serde_json::json!({
+                            "host_id": host_id,
+                            "revoked": revoked,
+                            "draining": draining,
+                        })),
+                    )
+                }
+                Err(error) => (false, Some(error.to_string()), None),
+            }
         }
 
         "status" => {
@@ -428,6 +490,33 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
             None,
         ),
     }
+}
+
+/// One registered-backend row for the `list` command.
+fn registered_row(backend: &crate::registration::RegisteredBackend) -> Value {
+    let metrics = backend.metrics.as_ref().map(|m| {
+        serde_json::json!({
+            "cpu_usage_micros": m.cpu_usage_micros,
+            "memory_bytes": m.memory_bytes,
+            "memory_limit_bytes": m.memory_limit_bytes,
+            "restarts": m.restarts,
+            "uptime_ms": m.uptime_ms,
+        })
+    });
+    serde_json::json!({
+        "name": backend.spec.service,
+        "host": backend.spec.host,
+        "registered": true,
+        "backend_id": backend.spec.backend_id,
+        "url": backend.spec.url(),
+        "state": format!("{:?}", backend.state),
+        "health": format!("{:?}", backend.health),
+        "generation": backend.generation,
+        "owner_host_id": backend.owner_host_id,
+        "session_id": backend.session_id,
+        "inflight": backend.runtime.inflight(),
+        "metrics": metrics,
+    })
 }
 
 /// Write a JSON response line to the stream, parking on write readiness.

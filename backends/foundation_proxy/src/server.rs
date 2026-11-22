@@ -39,7 +39,7 @@ use crate::h2_proxy::H2ProxyHandler;
 use crate::handler::ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
 use crate::persistence::{PersistedProxyState, ProxyStateStore};
-use crate::registration::{spawn_sweeper, BackendRegistry};
+use crate::registration::RegistrationAuthority;
 use crate::router::{Router, RouterHandle};
 use crate::runtime::ServiceRuntime;
 use crate::state::ProxyState;
@@ -63,6 +63,8 @@ pub struct ProxyServer {
     redirect_local_addr: Option<SocketAddr>,
     /// The context whose clock the drain deadline reads.
     ctx: Ctx,
+    /// The registration authority, when the feature is on (spec 82 feature 00).
+    registration: Option<Arc<RegistrationAuthority>>,
 }
 
 impl std::fmt::Debug for ProxyServer {
@@ -71,6 +73,7 @@ impl std::fmt::Debug for ProxyServer {
             .field("local_addr", &self.local_addr)
             .field("services", &self.config.services.len())
             .field("redirect_local_addr", &self.redirect_local_addr)
+            .field("registration", &self.registration)
             .finish_non_exhaustive()
     }
 }
@@ -91,9 +94,19 @@ impl ProxyServer {
     /// # Panics
     /// Never panics. (The valtron pool must already be initialised by the
     /// caller; without it the front end cannot submit connections.)
+    // Boxed: the start future holds the registration authority's own future,
+    // which is deep enough to overflow the trait solver at a caller that uses
+    // `BlockingFutureExt::block` on an unboxed future.
+    pub fn start(
+        config: ProxyConfig,
+        ctx: Ctx,
+    ) -> std::pin::Pin<Box<dyn core::future::Future<Output = ProxyResult<Self>> + Send>> {
+        Box::pin(Self::start_inner(config, ctx))
+    }
+
     // `services`, `svc` and `server` are distinct names in one startup flow.
     #[allow(clippy::similar_names)]
-    pub async fn start(config: ProxyConfig, ctx: Ctx) -> ProxyResult<Self> {
+    async fn start_inner(config: ProxyConfig, ctx: Ctx) -> ProxyResult<Self> {
         tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
         // Validate: no duplicate routes. A route is a (host, path_prefix) pair —
@@ -120,18 +133,6 @@ impl ProxyServer {
             .map(|svc| Arc::new(ServiceRuntime::new(svc)))
             .collect();
         let router_handle = RouterHandle::new(Arc::new(Router::new(services.clone())));
-        // Registration authority (spec 82 feature 00). The registry holds the
-        // config services and publishes its snapshots through the same handle
-        // the request path reads.
-        let registry = config.registration.as_ref().map(|registration| {
-            Arc::new(BackendRegistry::new(
-                services.clone(),
-                router_handle.clone(),
-                ctx.clone(),
-                registration.clone(),
-                Arc::new(SystemDnsResolver),
-            ))
-        });
 
         // Native on purpose (group B of #140): this is the forwarders'
         // `SharedHttpClient`. They take the upstream connection out of each
@@ -176,6 +177,31 @@ impl ProxyServer {
             restore_persisted_state(store, &services, &config).await;
         }
 
+        // Registration authority (spec 82 feature 00): the registry, the
+        // listeners, enrollment and the lease sweeper. It publishes its
+        // snapshots through the same handle the request path reads.
+        let shutdown = Arc::new(ShutdownSignal::new());
+        let registration = match &config.registration {
+            Some(registration_config) => {
+                // Boxed: the authority's start future is large, and inlining it
+                // makes the trait solver overflow at the call sites of this
+                // future (`BlockingFutureExt::block`).
+                let started = Box::pin(RegistrationAuthority::start(
+                    registration_config,
+                    services.clone(),
+                    router_handle.clone(),
+                    ctx.clone(),
+                    Arc::clone(&shutdown),
+                ))
+                .await;
+                Some(
+                    started
+                        .map_err(|e| ProxyError::Startup(format!("registration authority: {e}")))?,
+                )
+            }
+            None => None,
+        };
+
         let mut h1_app = HttpApp::new_serve();
         let mut proxy_state_value = ProxyState::new(
             router_handle,
@@ -191,8 +217,8 @@ impl ProxyServer {
         if let Some(store) = &store {
             proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
         }
-        if let Some(registry) = &registry {
-            proxy_state_value = proxy_state_value.with_registry(Arc::clone(registry));
+        if let Some(registration) = &registration {
+            proxy_state_value = proxy_state_value.with_registration(Arc::clone(registration));
         }
         h1_app.context().store(proxy_state_value);
         let proxy_state = h1_app
@@ -207,13 +233,6 @@ impl ProxyServer {
             Arc::new(H2ProxyHandler::new(Arc::clone(&proxy_state)));
         h2_app.route_any_h2("/*", h2_handler);
 
-        let shutdown = Arc::new(ShutdownSignal::new());
-
-        // The lease sweeper ends expired leases and removes old entries. It is
-        // a valtron task that parks on the injected clock.
-        if let Some(registry) = &registry {
-            spawn_sweeper(Arc::clone(registry), shutdown.clone(), ctx.clone())?;
-        }
         let use_tls = !matches!(config.ssl.provider, SslProvider::None);
         let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
@@ -312,7 +331,14 @@ impl ProxyServer {
             h3_local_addr,
             redirect_local_addr,
             ctx,
+            registration,
         })
+    }
+
+    /// The registration authority, when the feature is on.
+    #[must_use]
+    pub fn registration_authority(&self) -> Option<&Arc<RegistrationAuthority>> {
+        self.registration.as_ref()
     }
 
     /// The bound UDP address of the HTTP/3 front end, if enabled (F19).
@@ -424,9 +450,13 @@ impl ProxyServer {
     fn begin_teardown(&mut self) -> impl FnOnce() + Send + 'static {
         self.shutdown.turn_on();
         let control = self.control.take();
+        let registration = self.registration.take();
         let server_thread = self.server_thread.take();
         let health: Vec<HealthMonitor> = std::mem::take(&mut self.health);
         move || {
+            if let Some(registration) = registration {
+                registration.stop();
+            }
             if let Some(control) = control {
                 control.shutdown();
             }

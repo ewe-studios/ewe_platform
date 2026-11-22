@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.10"
+version = "0.0.14"
 dependencies = [
  "argon2",
  "async-trait",
@@ -1188,7 +1188,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "base64",
  "brotli 8.0.4",

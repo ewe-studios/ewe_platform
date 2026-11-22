@@ -1,3 +1,7 @@
+// The `Send` check on the deeply nested proxy start-up future (the
+// registration authority adds its own future) needs a deeper solver limit.
+#![recursion_limit = "512"]
+
 //! `foundation_proxy` — reverse proxy with health-check routing, weighted load
 //! balancing, HTTP forwarding, and raw TCP passthrough.
 //!
@@ -52,8 +56,8 @@ pub use handler::ProxyHandler;
 pub use health::{HealthMonitor, ProbeState};
 pub use passthrough::{PassthroughConfig, TcpPassthrough, UdpPassthrough};
 pub use registration::{
-    BackendRegistry, PeerIdentity, RegisteredBackend, RegistrationConfig, RegistrationError,
-    RegistrationPolicy, RegistrationState,
+    BackendRegistry, EnrollmentAuthority, PeerIdentity, RegisteredBackend, RegistrationAuthority,
+    RegistrationConfig, RegistrationError, RegistrationPolicy, RegistrationState,
 };
 pub use router::{Router, RouterHandle};
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};

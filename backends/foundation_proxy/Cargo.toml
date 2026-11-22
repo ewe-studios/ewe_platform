@@ -72,6 +72,8 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 serial_test = "3"
 # A private state directory per registration test (CA, signing key, trust DB).
 tempfile = "3"
+# The enrollment test names the client key that `generate_csr` returns.
+zeroize = "1"
 
 [build-dependencies]
 # Message types from `proto/` (buffa-build, needs `protoc`) and ConnectRPC
@@ -135,3 +137,15 @@ path = "tests/registration_registry_tests.rs"
 [[test]]
 name = "registration_failure_tests"
 path = "tests/registration_failure_tests.rs"
+
+# Registration authority: enrollment, mutual TLS, renewal, revocation and the
+# Unix socket permission check (T7-T9).
+[[test]]
+name = "registration_auth_tests"
+path = "tests/registration_auth_tests.rs"
+
+# Registration authority: real TCP end to end - register, route, redeploy and
+# restart (T11).
+[[test]]
+name = "registration_e2e_tests"
+path = "tests/registration_e2e_tests.rs"
