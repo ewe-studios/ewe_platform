@@ -181,7 +181,6 @@ impl HuggingFaceCandleProvider {
     /// Returns [`GenerationError`] if the model cannot be loaded.
     pub fn new(config: HuggingFaceCandleConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
-
             .token(
                 config
                     .auth

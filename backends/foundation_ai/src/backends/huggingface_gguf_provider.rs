@@ -288,7 +288,6 @@ impl HuggingFaceGGUFProvider {
     /// Returns an error if the `HFClient` cannot be initialized.
     pub fn new(config: HuggingFaceGGUFConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
-
             .token(
                 config
                     .auth

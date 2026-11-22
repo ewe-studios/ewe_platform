@@ -13,7 +13,6 @@
 // Tests measure real time on purpose.
 #![allow(clippy::disallowed_methods)]
 
-
 use std::fs;
 use std::hint::black_box;
 use std::path::{Path, PathBuf};
