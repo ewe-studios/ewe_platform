@@ -207,7 +207,10 @@ The build produces a complete directory before the server starts.
 - Mount application routes before the static fallback. Serve the index at the root and preserve media types.
 - Remove module discovery, header checks, source checkout paths, embedded asset tables, and module path parameters from server startup.
 - Provide one full server constructor that accepts a prepared Todo store and live channel.
-- Keep backup validation and replay configuration at startup. Allow restore and a custom replay limit together.
+- Keep the launcher responsible for binding the address, constructing the application, and serving requests.
+- Move legacy backup conversion to a maintenance task. Preserve its tested input validation and original-file protection.
+- Supply restored records and replay limits through the store and channel configuration. Test these inputs together.
+- The launcher must run without a module path, a source checkout, a fixture mode, or a conversion command.
 - Put the seeded data service fixture under `tests/`. Keep the shared data procedure available through the full server.
 - Make the native test runners launch the fixture. Keep the Swift and Kotlin assertions in their native test suites.
 - Make the browser replay test supply its own store and channel.
