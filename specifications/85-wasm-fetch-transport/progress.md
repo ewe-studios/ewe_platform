@@ -2,6 +2,8 @@
 
 _Last updated: 2026-11-22._
 
+**Merged into master as `e5801ee13` on 2026-11-22.**
+
 ## Status at a glance
 
 | Task | State |
