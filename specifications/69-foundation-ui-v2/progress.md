@@ -864,5 +864,5 @@ Port 8080 keeps the current session and its data during this work.
 The base Linux Advanced Micro Devices 64-bit (AMD64) test process exited with status 139 in four default-concurrency runs.
 A serial run on the same binary passed.
 The fix adds an asynchronous shutdown method and a test for concurrent waiters.
-The fixed Linux AMD64 test suite passed its first run with seven passes and three hardware tests skipped.
-The repeat runs, full crate checks, and native Linux 64-bit Arm (ARM64) checks remain open.
+The fixed Linux AMD64 suite passed three default-concurrency runs. Each run passed seven tests and skipped three hardware tests.
+The full crate checks and native Linux 64-bit Arm (ARM64) checks remain open.
