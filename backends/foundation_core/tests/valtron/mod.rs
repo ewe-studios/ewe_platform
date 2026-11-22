@@ -47,6 +47,10 @@ mod spread_drain;
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
 )))]
 mod state_task;
+// Dual-target `#[task]` cases. They use only `TaskStatus`, the generated struct
+// and the executor, so they also run on a JS-hosted wasm build (spec 88 T4).
+#[cfg(feature = "std")]
+mod state_task_wasm;
 #[cfg(not(target_family = "wasm"))]
 mod stream_future;
 mod stream_iterators;

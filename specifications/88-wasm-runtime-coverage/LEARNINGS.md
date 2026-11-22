@@ -449,3 +449,64 @@ workflow. Run 43754950849 then passed the `macOS build` job on a macOS `arm64` r
 
 **Rule for the future.** A tool that a build script runs is part of the build. Pin it for each
 operating system that builds the crate, in the same change that adds the build script.
+
+## 18. The `mod` target is the whole wasm-bindgen surface (feature 01)
+
+**Expected.** The target held about forty wasm-eligible modules, and no step ran them (#575).
+
+**Measured.** With feature 00's verdict fix, the target discovers 35 cases before this feature:
+19 in `async_first_api`, 15 in `wasm_js_yield_integration` and 1 in `js_stream_park`. This
+feature adds six shared scenarios to `wasm_js_yield_integration` and the two `#[task]` cases to
+`state_task_wasm`, so the target discovers 43. All 43 pass on Deno, headless Chromium and
+workerd through `wrangler dev --local`. The owned suite grew from 33 to 47 cases.
+
+**Result.** `test:wasm-bindgen:core` drops the `async_first_api` filter and fails when the
+count falls below 34. A later change that drops a module then shows as a count drop, not as a
+silent gap. The Chromium form (`test:wasm-bindgen:web`) and the workerd form run the same 43.
+
+**Rule for the future.** Keep the count floor. A test target that no step runs holds every
+compile error in that target; run it before you add cases to it.
+
+## 19. The R14 break: `WakeRegistry::fire` (feature 01 T6)
+
+**The break.** The feature names `WakeRegistry::wake_all`; the code name is
+`WakeRegistry::fire` (`backends/foundation_core/src/valtron/wake.rs:157`). The break took the
+registered callback list and called none of the callbacks.
+
+**The case.** `two_waiters_both_resume` registers two callbacks in one `WakeRegistry`. Each
+callback sets a `ResumeSignal` on which one task parks. Without the calls, neither task resumes.
+
+**Red output** (one case per host, `--filter two_waiters_both_resume`):
+
+| Host | Output |
+|---|---|
+| wasm-bindgen Deno | `two_waiters_both_resume: the parked task never ran again (a lost wake)`; `test result: FAILED. 0 passed; 1 failed`; exit 1 |
+| wasm-bindgen Chromium | the same line; `test result: FAILED. 0 passed; 1 failed`; exit 1 |
+| wasm-bindgen workerd | `{"passed":false}`, the same line; exit 1 |
+| owned Deno | `failing case: two_waiters_both_resume`; the same line; exit 1 |
+| owned Chromium | `FAILED  two_waiters_both_resume`; the same line; exit 1 |
+
+**Reverted.** Yes. The same filtered case is green on all five hosts after the revert, and the
+full suites are green.
+
+**Rule for the future.** Prove a fire-all registry with a case whose wake must reach a task. A
+registry case that only counts callbacks passes even when the wake path is broken.
+
+## 20. The owned wasm executor pays one host timer per task step (feature 01 T3)
+
+**Expected.** The feature set a bound of 3 s for `sixty_four_tasks_share_the_loop` (64 tasks of
+four yields each, 256 task steps).
+
+**Measured.** On the owned Deno host (macOS `arm64`, 2026-11-22) the case took **4.004 s**,
+about 15 ms per step. The executor hands each step to the JS event loop
+(`local.rs:3389`, `yield_for(planned)`), and a host timer costs about 10 ms
+(`constants.rs`). The 500-poll `WaitUntil` default also failed first: one harness re-entry does
+not advance every task, so the case needs its own poll bound.
+
+**Result.** The case keeps its own stated bounds: a 2000-re-entry poll bound (the anti-spin
+guard) and a 10 s wall-clock bound. Every task still ends and none starves. Issue #740 records
+the cost and the likely fix (expose the yield quantum, or emit several `Ready` values per host
+turn).
+
+**Rule for the future.** A wall-clock bound over many JS-hosted task steps must include the
+host timer cost: multiply the step count by the yield quantum before you pick the bound.
