@@ -13,6 +13,7 @@ use crate::action::{
 };
 
 pub(super) struct Admission {
+    pub(super) child_caller: Option<std::sync::Arc<dyn crate::action::ChildActionCaller>>,
     ack: u64,
     selected: Result<(std::sync::Arc<dyn ErasedAction>, ActionRequestT), Failure>,
 }
@@ -37,6 +38,7 @@ impl Dispatcher {
         match read_frame(bytes, self.wire_limits()) {
             Ok(frame) => self.admit_verified(ctx, connection, frame),
             Err(_) => Admission {
+                child_caller: None,
                 ack: 0,
                 selected: Err(Failure::bad_request()),
             },
@@ -58,7 +60,11 @@ impl Dispatcher {
             frame.schema_version(),
             frame.kind_as_frame_request(),
         );
-        Admission { ack, selected }
+        Admission {
+            ack,
+            selected,
+            child_caller: self.child_caller.clone(),
+        }
     }
 
     /// Runs a frame that the caller verified with this dispatcher's wire limits.
@@ -92,7 +98,7 @@ impl Dispatcher {
             Ok((entry, request)) => {
                 let root = (self.target_lookup)(ctx, entry.name(), request.node_id);
                 let mut call = Context::for_action(ctx.clone(), connection.surface(), root);
-                call.child_caller = self.child_caller.clone();
+                call.child_caller = admission.child_caller;
                 invoke_in_context(call, entry.as_ref(), request)
                     .await
                     .map_err(Failure::from)

@@ -181,7 +181,7 @@ if [[ $mode == todo ]]; then
     [[ $subscriptions == *"delivered targeted expiry."* ]] || exit 1
     replay=$("$adb" -s "$serial" shell am instrument -w -e server "$url" ewe.todo.test/ewe.todo.ReplayCheck)
     printf '%s\n' "$replay"
-    [[ $replay == *"Second delete refused:"* ]] || exit 1
+    [[ $replay == *"Repeated delete succeeded."* ]] || exit 1
     "$adb" -s "$serial" shell am start -n ewe.todo/.MainActivity --es server "$url" --ez rpc "${EWE_TODO_RPC:-false}" --ez socket "${EWE_TODO_SOCKET:-false}"
     python3 "$root/scripts/ui_native/check-android-todo.py" "$adb" "$serial" server-delete
     "$adb" -s "$serial" shell am start -n ewe.todo.local/.MainActivity

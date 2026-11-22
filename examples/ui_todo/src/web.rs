@@ -15,7 +15,6 @@ pub extern "C" fn init_todo_host() -> u32 {
     ctx.store(env);
     crate::install_cache(&ctx);
     crate::install_pending_storage(&ctx, Arc::new(BrowserStorage));
-    ctx.store(crate::outbox::BrowserReply(prepared));
     if crate::install_view_services(&ctx, foundation_ui_runtime::action::Origin::Host).is_err() {
         return 1;
     }
@@ -43,7 +42,9 @@ pub extern "C" fn init_todo_host() -> u32 {
             ewe_todo_declare(origin, name.as_ptr(), name.len(), scope);
         }
     }
-    LocalApp::builder(ctx, actions).build().install();
+    LocalApp::builder(ctx, actions)
+        .build()
+        .install_with_child_actions();
     0
 }
 
@@ -54,13 +55,7 @@ unsafe extern "C" {
     fn ewe_todo_storage_size() -> i32;
     fn ewe_todo_storage_read(destination: *mut u8, length: usize) -> i32;
     fn ewe_todo_storage_save(contents: *const u8, length: usize) -> i32;
-    fn ewe_todo_prepared(
-        call: u32,
-        contents: *const u8,
-        length: usize,
-        key: *const u8,
-        key_len: usize,
-    );
+
 }
 
 #[async_trait::async_trait]
@@ -83,20 +78,5 @@ impl crate::PendingStorage for BrowserStorage {
             return Err("Cannot save pending Todos".into());
         }
         Ok(())
-    }
-}
-
-fn prepared(call: u32, plan: &crate::outbox::Prepared) {
-    let request = plan.request.as_deref().unwrap_or_default();
-    let key = plan.key.as_deref().unwrap_or_default();
-    // The host copies both slices before it releases this callback.
-    unsafe {
-        ewe_todo_prepared(
-            call,
-            request.as_ptr(),
-            request.len(),
-            key.as_ptr(),
-            key.len(),
-        );
     }
 }

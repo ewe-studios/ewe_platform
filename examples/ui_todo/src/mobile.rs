@@ -52,21 +52,9 @@ fn remote_core(
     let registry = crate::host_registry().map_err(|e| CoreError::BadReference {
         detail: e.to_string(),
     })?;
-    let sender = Arc::new(pending::Sender {
-        ctx: ctx.clone(),
-        transport,
-        core: Default::default(),
-    });
-    let core = NativeCore::builder(platform, ctx, registry)
-        .with_host_transport(sender.clone())
-        .build();
-    sender
-        .core
-        .set(Arc::downgrade(&core))
-        .map_err(|_| CoreError::Write {
-            detail: "Duplicate Todo sender".into(),
-        })?;
-    Ok(core)
+    Ok(NativeCore::builder(platform, ctx, registry)
+        .with_host_transport(transport)
+        .build())
 }
 
 /// Creates an on-device core and its task store.

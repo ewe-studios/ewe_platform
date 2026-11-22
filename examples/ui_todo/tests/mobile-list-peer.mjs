@@ -230,18 +230,18 @@ try {
         await gate("fail-actions?client=web");
         await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Try again")`), "Missing retry action");
         await capture("chrome-retry");
-        await click(rowAction(record, "server:add_todo"));
+        await click(rowAction(record, "host:retry_todo"));
         await status(record,"Complete");
         assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "1 open todo");
         await gate("hold-actions?client=web");
         await click(rowAction(record, "host:open_delete_dialog"));
-        await click(global(action("server:confirm_delete")));
+        await click(global(action("host:submit_delete")));
         await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Deleting…")`), "Missing pending deletion");
         assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "1 open todo");
         await waitFor(async () => (await gate("status")).actions === 1, "The proxy did not receive the deletion");
         await gate("fail-actions?client=web");
         await waitFor(() => evaluate(`(${row(record)})?.textContent.includes("Try again")`), "Missing delete retry");
-        await click(rowAction(record, "server:confirm_delete"));
+        await click(rowAction(record, "host:retry_todo"));
         await status(record,"absent");
         assert.equal(await evaluate("document.querySelector('#open-count').textContent"), "0 open todos");
       } finally { await gate("send-actions?client=web"); }
@@ -316,7 +316,7 @@ try {
       if (proxy) await gate("pause?client=ios");
       try {
         await click(rowAction(title, "host:open_delete_dialog"));
-        await click(global(action("server:confirm_delete")));
+        await click(global(action("host:submit_delete")));
         await waitFor(() => evaluate("!document.querySelector('dialog:modal')"), "Browser did not confirm removal");
       } finally { if (proxy) await gate("resume?client=ios"); }
       await status(title, "absent");

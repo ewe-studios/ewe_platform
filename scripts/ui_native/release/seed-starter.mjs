@@ -1,4 +1,5 @@
 // Add one todo through the public action endpoint between the two starter screen checks.
+import { randomUUID } from "node:crypto";
 import assert from "node:assert/strict";
 import * as wire from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js";
 import { FetchActionTransport, JsActionRegistry, WebActionManager } from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-actions.js";
@@ -18,13 +19,17 @@ const actions = new WebActionManager({
     receive(bytes) {
       const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
       assert.equal(frame.kindType(), wire.FrameKind.FrameMessage);
-      const reply = frame.kind(new wire.FrameMessage()).unpack();
-      assert.ok(reply.messages.some(message => message.operation), "Expected a todo view update");
+      const body = frame.kind(new wire.FrameMessage());
+      const caps = body.messages(0)?.control()?.caps();
+      if (caps) return actions.applyCaps(caps);
+      const reply = body.unpack();
+      assert.ok(reply.messages.some(message => message.data), "Expected a todo confirmation");
       assert.ok(reply.messages.every(message => !message.control), "The host rejected the action");
       received = true;
     },
   },
 });
 const input = { value: "Package starter check", closest: () => null, getAttribute: () => null };
-await actions.trigger("server:add_todo", input, {type: "submit"});
+for (const reply of await server.send(actions.hello())) await actions.receive(reply);
+await actions.triggerStructured("server:add_todo", input, {id: randomUUID(), title: input.value}, {type: "submit"});
 assert.ok(received, "Missing action reply");

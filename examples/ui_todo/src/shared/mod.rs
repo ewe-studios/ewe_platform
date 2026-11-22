@@ -1,7 +1,8 @@
 //! Shared todo views and actions for server and on-device stores.
 pub use foundation_compact::uuid::UuidV4 as TodoId;
-pub(crate) mod outbox;
-pub use outbox::{install_pending_storage, Pending, PendingChange, PendingStorage};
+pub(crate) mod pending;
+use pending::{retry_todo, submit_delete, submit_todo};
+pub use pending::{install_pending_storage, Pending, PendingChange, PendingStorage};
 
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
@@ -233,10 +234,10 @@ fn pending_row(title: &str, status: &str, pending: &Pending) -> Html {
     } else if pending.retry {
         Some(match &pending.change {
             PendingChange::Add { id, .. } => {
-                html! {<Button value={format!("retry-add:{id}")} on:tap={add_todo}>Try again</Button>}
+                html! {<Button value={format!("add:{id}")} on:tap={retry_todo}>Try again</Button>}
             }
             PendingChange::Delete { id } => {
-                html! {<Button value={id.to_string()} on:tap={confirm_delete}>Try again</Button>}
+                html! {<Button value={format!("delete:{id}")} on:tap={retry_todo}>Try again</Button>}
             }
         })
     } else {
@@ -328,7 +329,7 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
         html! {
             <ConfirmationDialog>
                 <SheetTitle>Delete this todo?</SheetTitle>
-                <DestructiveButton value={id.to_string()} on:tap={confirm_delete}>Confirm</DestructiveButton>
+                <DestructiveButton value={id.to_string()} on:tap={submit_delete}>Confirm</DestructiveButton>
                 {cancel.clone()}
             </ConfirmationDialog>
         }
@@ -338,7 +339,7 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
             <Left>{confirmation}</Left>
             <Right><Modal a11y_label="New todo"><BottomSheet>
                 <SheetTitle>New todo</SheetTitle>
-                <TextInput placeholder="Todo title" a11y_label="Todo title" value={state.draft.as_str()} on:change={edit_draft} on:submit={add_todo}/>
+                <TextInput placeholder="Todo title" a11y_label="Todo title" value={state.draft.as_str()} on:change={edit_draft} on:submit={submit_todo}/>
                 {cancel.clone()}
                 <SubmitButton>Add</SubmitButton>
             </BottomSheet></Modal></Right>
@@ -581,7 +582,7 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Vec<u8>>) -> 
         }
         state.ingest(delivery)
     };
-    let reconciled = outbox::reconcile(ctx, snapshot).await?;
+    let reconciled = pending::reconcile(ctx, snapshot).await?;
     if reconciled.added {
         replace(ctx, "#notification", html! { <Text id="notification">Todo added</Text> })?;
     }
@@ -719,8 +720,8 @@ async fn toggle_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
 }
 
 #[action(server)]
-async fn confirm_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    let id = todo_id(&event.input_value)?;
+async fn confirm_delete(ctx: &Context, event: Interaction<(), TodoId>) -> ActionResult {
+    let id = event.input_value;
     mutate(ctx, |state| {
         if !state.removed.contains_key(&id) && !state.items.iter().any(|row| row.id == id) {
             return Err(error("Todo does not exist"));
@@ -738,14 +739,14 @@ fn todo_id(input: &str) -> Result<TodoId, ErrorTrace<ActionError>> {
 
 #[action(host, mobile)]
 async fn initialize_todos(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    outbox::restore(ctx).await?;
+    pending::restore(ctx).await?;
     app(ctx, &todo_store(ctx)?.snapshot())
 }
 
 /// Install the local display cache.
 pub fn install_cache(ctx: &Ctx) {
     ctx.store(TodoStore::default());
-    install_pending_storage(ctx, Arc::new(outbox::MemoryStorage::default()));
+    install_pending_storage(ctx, Arc::new(pending::MemoryStorage::default()));
 }
 
 fn action_registry(
@@ -760,12 +761,19 @@ fn action_registry(
     registry.register_for(owner, search_todos)?;
     registry.register_for(owner, edit_draft)?;
     registry.register_for(owner, apply_todo_delivery)?;
-    registry.register_for(owner, outbox::prepare_todo_request)?;
-    registry.register_for(owner, outbox::uncertain_todo_request)?;
+    registry.register_for(owner, submit_todo)?;
+    registry.register_for(owner, submit_delete)?;
+    registry.register_for(owner, retry_todo)?;
     registry.register_for(owner, refresh_count)?;
     registry.register_for(owner, add_todo)?;
     registry.register_for(owner, toggle_todo)?;
-    registry.register_for(owner, confirm_delete)?;
+    registry.register_for_with_input(owner, confirm_delete, |input| {
+        use foundation_ui_runtime::action::RawInput;
+        match input {
+            RawInput::Text(text) => todo_id(&text),
+            structured => structured.decode::<TodoId>(),
+        }
+    })?;
     Ok(registry)
 }
 

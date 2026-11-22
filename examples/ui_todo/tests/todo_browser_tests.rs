@@ -130,10 +130,10 @@ fn server_and_host_actions_work() {
         ));
         second_delete.expect().to_be_visible().unwrap();
         second_delete.click().unwrap();
-        let confirm_second = page.locator(&button("server:confirm_delete"));
+        let confirm_second = page.locator(&button("host:submit_delete"));
         confirm_second.expect().to_be_visible().unwrap();
         confirm_second.click().unwrap();
-        page.locator(&button("server:confirm_delete"))
+        page.locator(&button("host:submit_delete"))
             .expect()
             .to_have_count(0)
             .unwrap();
@@ -190,11 +190,11 @@ fn server_and_host_actions_work() {
             .locator(&button("host:open_delete_dialog"))
             .click()
             .unwrap();
-        let confirm = other.locator(&button("server:confirm_delete"));
+        let confirm = other.locator(&button("host:submit_delete"));
         confirm.expect().to_be_visible().unwrap();
         capture_page(&other, "confirmation");
         confirm.expect().to_be_visible().unwrap();
-        other.eval(r"window.staleTodoButton = Array.from(document.querySelectorAll('button')).find(el => el.getAttribute('primal:onclick') === 'server:confirm_delete').cloneNode(true); true").unwrap();
+        other.eval(r"window.staleTodoButton = Array.from(document.querySelectorAll('button')).find(el => el.getAttribute('primal:onclick') === 'host:submit_delete').cloneNode(true); true").unwrap();
         confirm.click().unwrap();
         toggle.expect().to_have_count(0).unwrap();
         peer_toggle.expect().to_have_count(0).unwrap();

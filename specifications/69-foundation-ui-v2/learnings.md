@@ -1014,3 +1014,11 @@ An action normally returns its view updates when it completes.
 A pending preview needs delivery before the child request starts.
 The native test records the number of delivered frames inside the transport send method.
 It also checks immediate reply delivery and a transport failure after the preview.
+
+## Calls from a browser action
+
+A host action can remove its submit button before the server replies.
+The browser manager captures the receiving view when it starts the host action.
+It sends the pending update to that view before the server request.
+Each managed socket request uses its sequence number to match its reply.
+A retry uses the saved todo identifier and leaves the current dialog open.

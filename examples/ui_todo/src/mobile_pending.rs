@@ -1,12 +1,6 @@
-//! Persist the mobile outbox and send its local preview before the network request.
-use crate::outbox;
-use foundation_context::Ctx;
-use foundation_ui_native::{CoreError, HostTransport, NativeCore};
-use foundation_ui_runtime::action::{prepare_messages, Context};
-use foundation_ui_wire::{read_frame, MountSurface, WireLimits};
+//! Store pending changes in the application directory.
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::{Arc, OnceLock, Weak};
 
 pub(super) struct FileStorage(pub(super) PathBuf);
 
@@ -37,83 +31,5 @@ impl crate::PendingStorage for FileStorage {
         })
         .await
         .map_err(|e| e.to_string())
-    }
-}
-
-pub(super) struct Sender {
-    pub(super) ctx: Ctx,
-    pub(super) transport: Arc<dyn HostTransport>,
-    pub(super) core: OnceLock<Weak<NativeCore>>,
-}
-
-fn failed(error: impl std::fmt::Display) -> CoreError {
-    CoreError::Transport {
-        detail: error.to_string(),
-    }
-}
-
-impl Sender {
-    fn publish(&self, context: Context) -> Result<(), CoreError> {
-        let messages =
-            prepare_messages(&self.ctx, context.into_receiver().drain()).map_err(failed)?;
-        if messages.is_empty() {
-            return Ok(());
-        }
-        let operations = messages
-            .into_iter()
-            .map(|message| {
-                message
-                    .operation
-                    .map(|op| *op)
-                    .ok_or_else(|| failed("A pending preview requires a view operation"))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        self.core
-            .get()
-            .and_then(Weak::upgrade)
-            .ok_or_else(|| failed("The Todo screen closed"))?
-            .push_ops(operations)?;
-        Ok(())
-    }
-}
-
-#[async_trait::async_trait]
-impl HostTransport for Sender {
-    async fn send(&self, original: Vec<u8>) -> Result<Option<Vec<u8>>, CoreError> {
-        let context = Context::for_render_on(self.ctx.clone(), MountSurface::Native);
-        let plan = outbox::prepare(&context, original).await.map_err(failed)?;
-        self.publish(context)?;
-        let Some(request) = plan.request else {
-            return Ok(None);
-        };
-        let result = self.transport.send(request).await;
-        let failure = match &result {
-            Err(_) => Some(None),
-            Ok(Some(bytes)) => match read_frame(bytes, &WireLimits::default()) {
-                Err(_) => Some(None),
-                Ok(frame) => frame
-                    .kind_as_frame_message()
-                    .and_then(|body| body.messages())
-                    .and_then(|messages| {
-                        messages.iter().find_map(|message| {
-                            let error = message.control()?.error()?;
-                            Some(
-                                (error.code() == foundation_ui_wire::ErrorCode::InvalidInput).then(
-                                    || error.message().unwrap_or("Check the title").to_owned(),
-                                ),
-                            )
-                        })
-                    }),
-            },
-            Ok(None) => None,
-        };
-        if let (Some(key), Some(validation)) = (plan.key, failure) {
-            let context = Context::for_render_on(self.ctx.clone(), MountSurface::Native);
-            outbox::failed(&context, &key, validation)
-                .await
-                .map_err(failed)?;
-            self.publish(context)?;
-        }
-        result
     }
 }

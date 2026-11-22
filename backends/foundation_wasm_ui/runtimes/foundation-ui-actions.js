@@ -105,8 +105,8 @@ function encodeAction(name, el, event, type, state, stream, sequence, json) {
   const id = element => Number(element?.getAttribute("primal-id") ?? 0);
   const b = new wire.Builder();
   const mods = Number(!!event.altKey) | Number(!!event.ctrlKey) << 1 | Number(!!event.shiftKey) << 2 | Number(!!event.metaKey) << 3;
-  const value = event.type === "click" ? sheetSubmitField(el)?.value ?? el.value : el.value;
-  const input = new wire.ActionInputT(type, json === null ? String(value ?? "") : null, !!el.checked, event.keyCode ?? 0, mods, id(el.parentElement), json).pack(b);
+  const value = event.type === "click" ? sheetSubmitField(el)?.value ?? el.value : el?.value;
+  const input = new wire.ActionInputT(type, json === null ? String(value ?? "") : null, !!el?.checked, event.keyCode ?? 0, mods, id(el?.parentElement), json).pack(b);
   const ref = b.createString(name);
   const attachment = state && wire.ActionRequest.createStateVector(b, state);
   wire.ActionRequest.startActionRequest(b);
@@ -222,13 +222,17 @@ export class WebActionManager {
     return this.#submit(reference, el, {type:"data"}, "data", payload, true);
   }
 
-  async #submit(reference, el, event, type, payload, delivery = false) {
+  async #submit(reference, el, event, type, payload, delivery = false, parent) {
     let claimed;
     let fault = "BadRequest";
+    const fail = detail => {
+      if (parent) throw Object.assign(new Error(detail.detail ?? detail.code), detail);
+      return this.onError(detail);
+    };
     try {
       const ref = parseReference(reference);
-      if (ref.error) return this.onError({ code: ref.error });
-      if (el.closest("[data-ewe-unavailable]")) return this.onError({ code: "UnavailableAction" });
+      if (ref.error) return fail({ code: ref.error });
+      if (!parent && el.closest("[data-ewe-unavailable]")) return fail({ code: "UnavailableAction" });
       const registry = this.deps.registry;
       const entry = registry.lookup(ref.origin, ref.name, "web");
       const scope = this.deps.scope ?? globalThis;
@@ -238,24 +242,29 @@ export class WebActionManager {
       const choice = route(ref, "web", registry.lookup.bind(registry), {
         host: page ? true : !entry.page && !!this.deps.local, server: !!this.deps.server,
       }, name => this.#advertised?.has(name));
-      if (choice.error) return this.onError({ code: choice.error });
+      if (choice.error) return fail({ code: choice.error });
       if (payload !== undefined && choice.route === "server" && !this.#structured) {
-        return this.onError({ code: "UnsupportedAction", detail: "The peer did not negotiate structured input." });
+        return fail({ code: "UnsupportedAction", detail: "The peer did not negotiate structured input." });
       }
-      const viewMount = this.deps.frames?.receivingView?.(el);
-      const root = el.closest("[data-ewe-root]") ?? el;
+      const viewMount = parent ? parent.viewMount : this.deps.frames?.receivingView?.(el);
+      const callAction = async (name, value, preview) => {
+        if (value === undefined) throw Object.assign(new Error("Missing child input"), {code:"InvalidInput"});
+        if (preview?.length) await this.receive(preview, viewMount);
+        return this.#submit(name, viewMount ?? el, {}, "", value, true, {viewMount});
+      };
+      const root = el?.closest("[data-ewe-root]") ?? el;
       if (!delivery) {
-        if (this.#busy.has(root)) return this.onError({ code: "Busy" });
+        if (this.#busy.has(root)) return fail({ code: "Busy" });
         claimed = root;
         this.#busy.add(root);
       }
       if (choice.route === "host" && page) {
         fault = "HostThrew";
-        const result = await page.call(el, { node: el, parent: el.parentElement, event, data: payload === undefined ? buildEventData(type, event, el) : payload });
+        const result = await page.call(el, { node: el, parent: el?.parentElement, event, callAction, data: payload === undefined ? buildEventData(type, event, el) : payload });
         for (const bytes of (Array.isArray(result) ? result : [result])) if (bytes instanceof Uint8Array) await this.receive(bytes, viewMount);
         return;
       }
-      const state = stateBytes(el.getAttribute("primal::state"), this.limit);
+      const state = parent ? null : stateBytes(el.getAttribute("primal::state"), this.limit);
       if (this.#next > 0xffffffffffffffffn) throw new Error("Request sequence exhausted");
       let json = null;
       if (payload !== undefined) {
@@ -264,17 +273,37 @@ export class WebActionManager {
         if (encoded === undefined) throw new Error("The payload cannot be encoded as JSON.");
         json = new TextEncoder().encode(encoded);
       }
-      const bytes = encodeAction(choice.route + ":" + ref.name, el, event, type, state, this.streamId, this.#next, json);
+      const bytes = encodeAction(choice.route + ":" + ref.name, parent ? null : el, event, type, state, this.streamId, this.#next, json);
       if (bytes.length > this.limit) throw new Error("Request too large");
       ++this.#next;
       fault = "Transport";
       const transport = choice.route === "host" ? this.deps.local : this.deps.server;
-      for (const reply of await transport.send(bytes)) await this.receive(reply, viewMount);
+      let replies;
+      if (choice.route === "host") replies = await transport.send(bytes, callAction);
+      else if (parent && transport.sendChild) replies = await transport.sendChild(bytes);
+      else replies = await transport.send(bytes);
+      for (const reply of replies) {
+        await this.receive(reply, viewMount);
+        if (parent) checkChildReply(reply);
+      }
     } catch (cause) {
+      if (parent) throw Object.assign(new Error(cause.message ?? String(cause)), {code: cause.code ?? fault});
       this.onError({ code: fault, detail: String(cause) });
     } finally {
       if (claimed) this.#busy.delete(claimed);
     }
+  }
+}
+
+function checkChildReply(bytes) {
+  const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+  const body = frame.kind(new wire.FrameMessage());
+  for (let i = 0; i < body.messagesLength(); i++) {
+    const control = body.messages(i)?.control();
+    const error = control?.error();
+    const code = error ? wire.ErrorCode[error.code()] : control?.stateExpired() ? "StateExpired" :
+      control?.updateRequired() ? "UpdateRequired" : null;
+    if (code) throw Object.assign(new Error(error?.message() || code), {code});
   }
 }
 
@@ -313,12 +342,14 @@ export class FetchActionTransport {
 }
 
 export class WebSocketActionTransport {
+  #children = new Map();
   constructor(socket) { this.socket = socket; }
 
   static connect(connections, endpoint, options = {}) {
     const sender = new WebSocketActionTransport(null);
     sender.requestTag = connections.nextTag();
     sender.timeout = options.handshakeTimeoutMs ?? 60000;
+    sender.replyTimeout = options.replyTimeoutMs ?? sender.timeout;
     sender.handle = connections.acquire({ ...options, endpoint, transport: "websocket" }, {
       accept: bytes => {
         const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
@@ -334,11 +365,16 @@ export class WebSocketActionTransport {
         if (caps) {
           sender.session = caps.status() === wire.CapsStatus.Ok ? caps.streamId() : null;
           sender.pending?.resolve([bytes]);
-        } else sender.onReply?.(bytes);
+        } else {
+          const child = sender.#children.get(body.ack());
+          if (child) child.resolve([bytes]);
+          else sender.onReply?.(bytes);
+        }
       },
       onError: cause => {
         sender.session = null;
         sender.pending?.reject(cause);
+        sender.#failChildren(cause);
         sender.onDisconnect?.(cause);
       },
       onOpen: () => sender.onOpen?.(),
@@ -370,7 +406,28 @@ export class WebSocketActionTransport {
     } finally { clearTimeout(timer); this.pending = null; }
   }
 
+  /** Keep the reply with the view that submitted the child request. */
+  async sendChild(bytes) {
+    if (!this.handle) return this.send(bytes);
+    const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(bytes));
+    const id = frame.sequenceId();
+    let timer;
+    try {
+      return await new Promise((resolve, reject) => {
+        this.#children.set(id, {resolve, reject});
+        timer = setTimeout(() => reject(new Error("Action reply timed out")), this.replyTimeout);
+        this.send(bytes).catch(reject);
+      });
+    } finally { clearTimeout(timer); this.#children.delete(id); }
+  }
+
+  #failChildren(cause) {
+    for (const child of this.#children.values()) child.reject(cause);
+    this.#children.clear();
+  }
+
   close() {
+    this.#failChildren(new Error("Action socket closed"));
     this.pending?.reject(new Error("Action socket closed"));
     this.handle?.close();
   }
@@ -383,13 +440,51 @@ export class WasmActionTransport {
 
   constructor(bridge) { this.bridge = bridge; }
 
-  send(bytes) {
+  /** Install these imports before the module starts. */
+  static imports(transport) {
+    return {
+      ewe_ui_action_done: (call, slot) => transport().complete(call, slot),
+      ewe_ui_child: (...args) => transport().#startChild(...args),
+    };
+  }
+
+  #startChild(parent, child, namePtr, nameLen, jsonPtr, jsonLen, previewPtr, previewLen) {
+    const api = this.bridge.exports;
+    const memory = this.bridge.memory().buffer;
+    const read = (ptr, len) => new Uint8Array(memory, ptr, len);
+    const decoder = new TextDecoder("utf-8", { fatal: true });
+    const run = async () => {
+      const callAction = this.#pending.get(parent)?.callAction;
+      if (!callAction) throw Object.assign(new Error("The parent action closed"), {code:"UnavailableOrigin"});
+      const name = decoder.decode(read(namePtr, nameLen));
+      const value = JSON.parse(decoder.decode(read(jsonPtr, jsonLen)));
+      await callAction(name, value, read(previewPtr, previewLen).slice());
+    };
+    run().then(() => {
+      if (!this.#closed) api.ewe_ui_child_done(child, -1, 0n);
+    }, cause => {
+      if (this.#closed) return;
+      let slot = -1n;
+      try {
+        const bytes = new TextEncoder().encode(cause?.message ?? String(cause));
+        slot = api.create_allocation(BigInt(bytes.length));
+        const pointer = Number(api.allocation_start_pointer(slot));
+        new Uint8Array(this.bridge.memory().buffer, pointer, bytes.length).set(bytes);
+      } catch {
+        if (slot !== -1n) api.dispose_allocation(slot);
+        slot = -1n;
+      }
+      api.ewe_ui_child_done(child, wire.ErrorCode[cause?.code] ?? wire.ErrorCode.ActionFailed, slot);
+    });
+  }
+
+  send(bytes, callAction) {
     return new Promise((resolve, reject) => {
       if (this.#closed) throw new Error("Action bridge is closed");
       const call = this.#next++;
       const api = this.bridge.exports;
       const slot = api.create_allocation(BigInt(bytes.length));
-      this.#pending.set(call, { resolve, reject });
+      this.#pending.set(call, { resolve, reject, callAction });
       let handedOff = false;
       try {
         const ptr = Number(api.allocation_start_pointer(slot));

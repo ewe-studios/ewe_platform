@@ -19,7 +19,19 @@ impl LocalDispatcher {
 
     /// Claims the request now. The returned task keeps its dispatch context until completion.
     pub fn submit_owned(self: std::sync::Arc<Self>, frame: &[u8]) -> TransportFuture<'static> {
-        let admission = self.dispatcher.admit(&self.ctx, &self.connection, frame);
+        self.submit_with_caller(frame, None)
+    }
+
+    /// Use the child route for this call and its receiving view.
+    pub fn submit_with_caller(
+        self: std::sync::Arc<Self>,
+        frame: &[u8],
+        caller: Option<std::sync::Arc<dyn crate::action::ChildActionCaller>>,
+    ) -> TransportFuture<'static> {
+        let mut admission = self.dispatcher.admit(&self.ctx, &self.connection, frame);
+        if caller.is_some() {
+            admission.child_caller = caller;
+        }
         Box::pin(async move {
             Ok(Some(
                 self.dispatcher

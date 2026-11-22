@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ui_runtime"
-version = "0.0.7"
+version = "0.0.8"
 autotests = false
 edition.workspace = true
 rust-version.workspace = true

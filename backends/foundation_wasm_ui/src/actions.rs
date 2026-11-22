@@ -15,7 +15,7 @@ use foundation_wasm::{internal_api, MemoryId};
 /// The browser receives this value when a call ends without a reply allocation.
 pub const MISSING_REPLY: u64 = u64::MAX;
 
-type Start = dyn Fn(&[u8]) -> TransportFuture<'static>;
+type Start = dyn Fn(u64, &[u8]) -> TransportFuture<'static>;
 type Complete = dyn Fn(u64, u64);
 
 struct Call {
@@ -58,6 +58,21 @@ impl LocalApp {
         install_local_dispatcher(self.0);
     }
 
+    /// Install browser child calls. The host supplies the imports from WasmActionTransport.
+    #[cfg(target_family = "wasm")]
+    pub fn install_with_child_actions(self) {
+        single::initialize_pool_with_ctx(0, self.0.context().clone());
+        let local = Arc::new(self.0);
+        install_bridge(
+            move |id, bytes| {
+                local
+                    .clone()
+                    .submit_with_caller(bytes, Some(Arc::new(child::BrowserCaller(id))))
+            },
+            notify_completion,
+        );
+    }
+
     /// Gives a custom host the prepared dispatcher.
     #[must_use]
     pub fn into_dispatcher(self) -> foundation_ui_runtime::dispatch::LocalDispatcher {
@@ -85,21 +100,34 @@ pub fn install_local_dispatcher(local: foundation_ui_runtime::dispatch::LocalDis
     let local = Arc::new(local);
     install_action_bridge(
         move |bytes| local.clone().submit_owned(bytes),
-        |call, slot| {
-            #[link(wasm_import_module = "env")]
-            extern "C" {
-                fn ewe_ui_action_done(call_id: u64, reply_slot: u64);
-            }
-            // The browser copies the bytes and releases every valid reply slot.
-            unsafe { ewe_ui_action_done(call, slot) };
-        },
+        notify_completion,
     );
 }
+
+#[cfg(target_family = "wasm")]
+fn notify_completion(call: u64, slot: u64) {
+    #[link(wasm_import_module = "env")]
+    extern "C" {
+        fn ewe_ui_action_done(call_id: u64, reply_slot: u64);
+    }
+    // The browser copies the bytes and releases the reply slot.
+    unsafe { ewe_ui_action_done(call, slot) };
+}
+
+#[cfg(target_family = "wasm")]
+mod child;
 
 /// Install the request and completion functions for an embedded host.
 /// The completion function owns each valid reply slot.
 pub fn install_action_bridge(
     start: impl Fn(&[u8]) -> TransportFuture<'static> + 'static,
+    complete: impl Fn(u64, u64) + 'static,
+) {
+    install_bridge(move |_, bytes| start(bytes), complete);
+}
+
+fn install_bridge(
+    start: impl Fn(u64, &[u8]) -> TransportFuture<'static> + 'static,
     complete: impl Fn(u64, u64) + 'static,
 ) {
     uninstall_local_dispatcher();
@@ -230,7 +258,7 @@ pub extern "C" fn ewe_ui_action(id: u64, slot: u64) -> u32 {
     };
     BRIDGE.with_borrow_mut(|bridge| bridge.calls.insert(id, call));
     // Admission claims the sequence before any scheduled task can poll.
-    let work = start(&bytes);
+    let work = start(id, &bytes);
     let active = BRIDGE.with_borrow_mut(|bridge| {
         matching_call(bridge, id, &generation).map(|call| call.work = Some(work))
     });

@@ -196,3 +196,22 @@ test("a delayed reply retains the receiving view after its control disappears", 
   assert.deepEqual(errors, []);
   assert.deepEqual(destinations, [mount]);
 });
+
+test("a nested action uses its parent view and a fresh input", async () => {
+  const mount = element(5), input = element(6, "BQ", mount);
+  const {manager, registry, requests, errors} = setup({
+    frames: {receivingView: () => mount, receive: () => true},
+  });
+  manager.applyCaps({status:wire.CapsStatus.Ok, vocabularyVersion:9, streamId:8n, actions:[{name:"save"}]});
+  registry.registerHost("submit", async ({callAction}) => {
+    await callAction("server:save", {title:"bread"});
+    await assert.rejects(callAction("server:missing", {}), {code:"UnknownAction"});
+  });
+  await manager.trigger("host:submit", input, {type:"click"});
+  assert.deepEqual(errors, []);
+  assert.equal(requests.length, 1);
+  const action = requests[0].kind(new wire.FrameRequest()).action();
+  assert.equal(action.nodeId(), 0);
+  assert.equal(action.stateArray(), null);
+  assert.deepEqual(JSON.parse(new TextDecoder().decode(action.input().jsonArray())), {title:"bread"});
+});

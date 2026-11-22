@@ -110,7 +110,7 @@ async fn trigger(
 }
 
 #[valtron_test]
-async fn dialogs_use_one_server_binding_and_cancel_without_transport() {
+async fn dialogs_use_one_host_binding_and_cancel_without_transport() {
     for platform in [NativePlatform::Ios, NativePlatform::Android] {
         let ctx = Ctx::host();
         install_view_services(&ctx, foundation_ui_runtime::action::Origin::Host).unwrap();
@@ -142,7 +142,7 @@ async fn dialogs_use_one_server_binding_and_cancel_without_transport() {
                 1,
             );
         }
-        let _ = binding(&sheet, "server:add_todo");
+        let _ = binding(&sheet, "host:submit_todo");
         let closed = trigger(&core, &sheet, "host:close_dialog", "").await;
         assert!(!shows_control(&closed, NodeKind::MODAL));
         assert_eq!(transport.0.load(Ordering::Relaxed), 0);
@@ -205,20 +205,28 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
             path.to_str().unwrap().into(),
         )
         .unwrap();
+        use foundation_ui_wire::{writer::{write_caps, FrameHeader}, ServerActionT, ServerCapsT, SCHEMA_VERSION};
+        let mut caps = ServerCapsT::default();
+        caps.schema_version = SCHEMA_VERSION;
+        caps.vocabulary_version = foundation_ui_wire::vocab::VOCABULARY_VERSION;
+        let mut add = ServerActionT::default();
+        add.name = Some("add_todo".into());
+        caps.actions = Some(vec![add]);
+        core.apply_caps_frame(write_caps(&caps, FrameHeader { stream_id: 1, sequence_id: 1, ack: 0 }, &WriterConfig::default()).unwrap()).unwrap();
         core.set_frame_listener(preview.clone());
         core
     };
     let first = open();
     let ops = operations(&initial_todo_frame(first.clone()).await.unwrap());
     let dialog = trigger(&first, &ops, "host:open_add_dialog", "").await;
-    let (node_id, _) = binding(&dialog, "server:add_todo");
+    let (node_id, _) = binding(&dialog, "host:submit_todo");
     let event = EventInput {
         node_id,
         event_name: "submit".into(),
         value: "Keep this title".into(),
         ..EventInput::receiving_view()
     };
-    let response = first.trigger("server:add_todo".into(), event).await;
+    let response = first.trigger("host:submit_todo".into(), event).await;
     assert!(response.is_err() || response.unwrap().is_some());
     assert!(preview
         .0
@@ -236,14 +244,14 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
     assert!(shows(&ops, "Keep this title"));
     assert!(shows(&ops, "0 open todos"));
     assert!(shows(&ops, "Try again"));
-    let (node_id, _) = binding(&ops, "server:add_todo");
+    let (node_id, _) = binding(&ops, "host:retry_todo");
     let retry = EventInput {
         node_id,
         event_name: "tap".into(),
-        value: format!("retry-add:{key}"),
+        value: format!("add:{key}"),
         ..EventInput::receiving_view()
     };
-    let response = next.trigger("server:add_todo".into(), retry).await;
+    let response = next.trigger("host:retry_todo".into(), retry).await;
     assert!(response.is_err() || response.unwrap().is_some());
     assert_eq!(
         transport.0.lock().unwrap().as_slice(),
@@ -261,17 +269,15 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
         &format!("correct-add:{key}"),
     )
     .await;
-    let (node_id, _) = binding(&sheet, "server:add_todo");
+    let (node_id, _) = binding(&sheet, "host:submit_todo");
     let event = EventInput {
         node_id,
         event_name: "submit".into(),
         value: "Corrected title".into(),
         ..EventInput::receiving_view()
     };
-    assert!(corrected
-        .trigger("server:add_todo".into(), event)
-        .await
-        .is_err());
+    let reply = corrected.trigger("host:submit_todo".into(), event).await.unwrap().unwrap();
+    assert!(shows(&operations(&reply), "Try again"));
     let requests = transport.0.lock().unwrap();
     assert_eq!(requests[2]["title"], "Corrected title");
     assert_ne!(requests[2]["id"], payload["id"]);

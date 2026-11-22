@@ -47,9 +47,9 @@ async-trait = { workspace = true }
 uniffi = { workspace = true }
 derive_more.workspace = true
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.7" }
+foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.9" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.10" }
 foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.11" }
 
 [target.'cfg(target_os = "android")'.dependencies]

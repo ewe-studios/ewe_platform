@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wasm_ui"
-version = "0.1.9"
+version = "0.1.10"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,7 +17,7 @@ path = "src/bin/ewe_wasm_bundle.rs"
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["js-foundation-wasm"] }
-foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.7" }
+foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
 foundation_wasm = { path = "../foundation_wasm", version = "0.0.11", features = ["web"] }
@@ -35,6 +35,10 @@ foundation_macros = { workspace = true }
 foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 tracing = { version = "0.1", default-features = false }
+[target.'cfg(target_family = "wasm")'.dependencies]
+async-channel.workspace = true
+async-trait.workspace = true
+
 # Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
 # build_tools — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.

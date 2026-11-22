@@ -1232,3 +1232,14 @@ The handler receives routing and immediate transport errors through its Rust res
 
 All 11 native core integration tests pass on macOS. The network application test and the browser compilation check also pass.
 Browser child dispatch and the shared Todo submission actions remain pending. The existing Todo send adapters still run.
+
+## Feature 37 shared submission actions
+
+The browser and mobile clients use the same host actions for Add, Delete, and Retry.
+Each action saves its pending change, renders the preview, and calls the server through its context.
+The browser runtime handles reply matching and child errors.
+The mobile core uses the selected transport directly.
+The browser manager tests, Chrome action test, and mobile Rust tests pass.
+Browser startup, storage providers, and resource packaging still need work.
+The iPhone simulator and Android emulator each added and updated a todo over all three transports.
+The checks covered HTTP, ConnectRPC, and WebSocket.

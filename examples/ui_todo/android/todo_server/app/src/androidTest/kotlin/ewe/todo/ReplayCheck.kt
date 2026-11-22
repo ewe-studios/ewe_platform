@@ -15,7 +15,7 @@ import kotlinx.coroutines.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 
-/** Exercises the business refusal after the first deletion has removed its control. */
+/** Replays a deletion after the first request removes its control. */
 class ReplayCheck : Instrumentation() {
     private var base = "http://127.0.0.1:8180/"
 
@@ -127,7 +127,8 @@ class ReplayCheck : Instrumentation() {
                                 "The second client did not receive the server app's todo"
                             }
                             val title = "Android replay verification"
-                            val add = EventInput(1u, "submit", title, false, 0u, byteArrayOf())
+                            val payload = org.json.JSONObject().put("id", java.util.UUID.randomUUID().toString()).put("title", title)
+                            val add = EventInput(1u, "submit", title, false, 0u, byteArrayOf(), payload.toString().encodeToByteArray())
                             check(store.receive(requireNotNull(core.trigger("server:add_todo", add))))
                             val label = withTimeout(5000) {
                                 var updated = store.nodes.lastOrNull { it.text == title }
@@ -163,8 +164,9 @@ class ReplayCheck : Instrumentation() {
                             check(
                                 store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
                             )
-                            check(failure != null) { "Repeated delete was accepted" }
-                            results.putString("stream", "Second client received the todo. Second delete refused: $failure")
+                            check(failure == null) { "Repeated delete failed: $failure" }
+                            check(store.nodes.none { it.text == title })
+                            results.putString("stream", "Second client received the todo. Repeated delete succeeded.")
                         }
                     }
                 }

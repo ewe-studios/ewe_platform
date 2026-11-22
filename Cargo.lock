@@ -6860,7 +6860,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_runtime"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "foundation_auth",
@@ -6960,8 +6960,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
+ "async-channel",
+ "async-trait",
  "blocking",
  "clap",
  "foundation_codegen",
