@@ -70,10 +70,41 @@ cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed
 
 [tasks."test:wasm-bindgen:connectrpc"]
 alias = "test-wasm-bindgen-connectrpc"
-description = "The standalone wasm test crate for foundation_connectrpc's streaming sink and foundation_http's streaming inbound bridge (spec 85 T6)."
+description = "The standalone wasm test crate for foundation_connectrpc (spec 85 streaming sink; spec 88 feature 03 router, sink, error, deadline) and foundation_http's streaming inbound bridge on the Deno host."
 run = """
 mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
 cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_connectrpc/integration/wasm
+"""
+
+[tasks."test:wasm-bindgen:connectrpc:web"]
+alias = "test-wasm-bindgen-connectrpc-web"
+description = "foundation_connectrpc's wasm cases in headless Chromium (spec 88 feature 03)."
+depends = ["test:browsers:chromium"]
+run = """
+mise install github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-web backends/foundation_connectrpc/integration/wasm --headless
+"""
+
+[tasks."test:wasm-bindgen:connectrpc:wrangler"]
+alias = "test-wasm-bindgen-connectrpc-wrangler"
+description = "foundation_connectrpc's wasm cases inside workerd (spec 88 feature 03)."
+run = """
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-wrangler backends/foundation_connectrpc/integration/wasm
+"""
+
+[tasks."test:wasm-testbed:connectrpc:deno"]
+alias = "test-wasm-testbed-connectrpc-deno"
+description = "foundation_connectrpc's pure-Rust wasm cases on the OWNED Deno harness (spec 88 feature 03, T7). The module imports no wasm-bindgen glue."
+run = """
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_connectrpc/integration/wasm_owned
+"""
+
+[tasks."test:wasm-testbed:connectrpc:browser"]
+alias = "test-wasm-testbed-connectrpc-browser"
+description = "foundation_connectrpc's pure-Rust wasm cases on the OWNED Chromium harness (spec 88 feature 03, T7)."
+depends = ["test:browsers:chromium"]
+run = """
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- browser backends/foundation_connectrpc/integration/wasm_owned --headless
 """
 
 [tasks."test:wasm-bindgen:web"]

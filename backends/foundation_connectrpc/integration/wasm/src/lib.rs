@@ -1,12 +1,469 @@
-//! Test support for the wasm streaming path of foundation_connectrpc and
-//! foundation_http.
+//! Test support for the `foundation_connectrpc` wasm cases.
 //!
-//! WHY: foundation_connectrpc's test targets cannot build for wasm32 (see the
-//! package comment in `Cargo.toml`), and the streaming request bridge of
-//! foundation_http has no wasm test runner of its own.
+//! WHY: the wasm testbed builds one test target per crate (spec 88 rule R10),
+//! and the case file needs a pass-through codec, a recording response sink, a
+//! request builder and a deterministic clock. Those helpers live here, so the
+//! cases stay in `tests/` (spec 88 rule R9) and the crate has one target.
 //!
-//! WHAT: this crate exists so the wasm testbed can build and run the tests in
-//! `tests/`. The tests live there; the library is empty.
+//! WHAT: [`IdentityCodec`], [`RecordingSink`], [`Recording`], [`request`],
+//! [`enveloped`], [`parse_envelopes`], [`SimulatedClock`], [`SimulatedTimer`]
+//! and the body helpers.
+//!
+//! HOW: the sink records every call before it returns, and each write future
+//! is ready at once, like `CollectingSink` (`shared/router/dispatch.rs`).
+//! The clock never reads real time; a case moves it by hand.
 
-/// Nothing to export: the tests are the payload of this crate.
-pub fn crate_marker() {}
+use std::future::Future;
+use std::io;
+use std::sync::{Arc, Mutex};
+
+use bytes::Bytes;
+use foundation_compact::{Duration, Instant, SystemTime};
+use foundation_connectrpc::shared::transport::BoxFuture;
+use foundation_connectrpc::{
+    Codec, CodecError, CodecFor, DeadlineTimer, EnvelopeWriter, RequestBody, ResponseSink,
+};
+use foundation_context::{Clock, Ctx};
+use foundation_netio::shared::http::{
+    Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
+    Status,
+};
+
+// ── the pass-through codec ──────────────────────────────────────────────────
+
+/// A codec that copies bytes unchanged. Its wire name is `"proto"`, the default
+/// `ClientOptions` codec name (copied from `tests/client_core_tests.rs`).
+pub struct IdentityCodec;
+
+impl Codec for IdentityCodec {
+    fn name(&self) -> &'static str {
+        "proto"
+    }
+    fn is_binary(&self) -> bool {
+        true
+    }
+}
+
+impl CodecFor<Vec<u8>> for IdentityCodec {
+    fn marshal(&self, message: &Vec<u8>) -> Result<Bytes, CodecError> {
+        Ok(Bytes::copy_from_slice(message))
+    }
+    fn unmarshal(&self, data: Bytes) -> Result<Vec<u8>, CodecError> {
+        if data.is_empty() {
+            return Err(CodecError::ZeroLength { codec: "identity" });
+        }
+        Ok(data.to_vec())
+    }
+    fn marshal_stable(&self, message: &Vec<u8>) -> Result<Bytes, CodecError> {
+        Ok(Bytes::copy_from_slice(message))
+    }
+    fn marshal_append(&self, buf: &mut Vec<u8>, message: &Vec<u8>) -> Result<(), CodecError> {
+        buf.extend_from_slice(message);
+        Ok(())
+    }
+}
+
+// ── the recording sink ──────────────────────────────────────────────────────
+
+/// One call the sink received.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Call {
+    /// A complete response (`whole`), with its status and body.
+    Whole {
+        status: Option<Status>,
+        body: Vec<u8>,
+    },
+    /// A stream head (`open`), with its status.
+    Open { status: Option<Status> },
+    /// One streamed frame (`chunk`).
+    Chunk(Vec<u8>),
+    /// The end of a stream (`finish`).
+    Finish,
+}
+
+impl Call {
+    /// The call name, for an ordered comparison in a failure message.
+    #[must_use]
+    pub fn kind(&self) -> &'static str {
+        match self {
+            Call::Whole { .. } => "whole",
+            Call::Open { .. } => "open",
+            Call::Chunk(_) => "chunk",
+            Call::Finish => "finish",
+        }
+    }
+}
+
+/// The shared list a [`RecordingSink`] appends to.
+pub type Recording = Arc<Mutex<Vec<Call>>>;
+
+/// A [`ResponseSink`] that records each call and keeps the bytes.
+///
+/// `fail_at` is the 1-based call number that fails. `None` never fails.
+pub struct RecordingSink {
+    calls: Recording,
+    fail_at: Option<usize>,
+    next: usize,
+}
+
+impl RecordingSink {
+    /// A sink that records into `calls` and never fails.
+    #[must_use]
+    pub fn new(calls: Recording) -> Self {
+        Self {
+            calls,
+            fail_at: None,
+            next: 0,
+        }
+    }
+
+    /// A sink that fails on call number `n` (1-based), before it records it.
+    #[must_use]
+    pub fn failing_on(calls: Recording, n: usize) -> Self {
+        Self {
+            calls,
+            fail_at: Some(n),
+            next: 0,
+        }
+    }
+
+    fn record(&mut self, call: Call) -> io::Result<()> {
+        self.next += 1;
+        if self.fail_at == Some(self.next) {
+            return Err(io::Error::other(format!(
+                "the sink fails on call {}",
+                self.next
+            )));
+        }
+        self.calls
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .push(call);
+        Ok(())
+    }
+}
+
+impl ResponseSink for RecordingSink {
+    fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
+        let result = self.record(Call::Whole {
+            status: Some(response.status.clone()),
+            body: response_body(&response),
+        });
+        Box::pin(std::future::ready(result))
+    }
+
+    fn open(&mut self, head: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
+        let result = self.record(Call::Open {
+            status: Some(head.status.clone()),
+        });
+        Box::pin(std::future::ready(result))
+    }
+
+    fn chunk(&mut self, bytes: Bytes) -> BoxFuture<'_, io::Result<()>> {
+        let result = self.record(Call::Chunk(bytes.to_vec()));
+        Box::pin(std::future::ready(result))
+    }
+
+    fn finish(&mut self) -> BoxFuture<'_, io::Result<()>> {
+        let result = self.record(Call::Finish);
+        Box::pin(std::future::ready(result))
+    }
+}
+
+/// The bytes of a response body that is already in memory.
+#[must_use]
+pub fn response_body(response: &SimpleOutgoingResponse) -> Vec<u8> {
+    match &response.body {
+        Some(SendSafeBody::Bytes(bytes)) => bytes.clone(),
+        Some(SendSafeBody::Text(text)) => text.clone().into_bytes(),
+        _ => Vec::new(),
+    }
+}
+
+// ── requests and envelopes ──────────────────────────────────────────────────
+
+/// Build a request with the Connect content type and an in-memory body.
+///
+/// `content_type` is `application/proto` for a unary call and
+/// `application/connect+proto` for a streaming call.
+#[must_use]
+pub fn request(
+    url: &str,
+    method: SimpleMethod,
+    content_type: &str,
+    body: Vec<u8>,
+) -> SimpleIncomingRequest {
+    SimpleIncomingRequest::builder()
+        .with_parsed_url(url)
+        .with_proto(Proto::HTTP11)
+        .with_method(method)
+        .add_header_raw(SimpleHeader::CONTENT_TYPE, content_type)
+        .with_body(SendSafeBody::Bytes(body))
+        .build()
+        .expect("the request builds")
+}
+
+/// A Connect streaming request envelope around one message.
+#[must_use]
+pub fn enveloped(message: &[u8]) -> Vec<u8> {
+    EnvelopeWriter::new(None, 0, 0)
+        .write(Bytes::copy_from_slice(message))
+        .expect("the envelope encodes")
+}
+
+/// The frames of a Connect streaming body, as `(flags, payload)`.
+///
+/// Flags `0x00` is a message; flags `0x02` is the end-stream frame.
+#[must_use]
+pub fn parse_envelopes(mut body: &[u8]) -> Vec<(u8, Vec<u8>)> {
+    let mut frames = Vec::new();
+    while body.len() >= 5 {
+        let flags = body[0];
+        let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
+        if body.len() < 5 + len {
+            break;
+        }
+        frames.push((flags, body[5..5 + len].to_vec()));
+        body = &body[5 + len..];
+    }
+    frames
+}
+
+/// An in-memory request body for `dispatch_to`.
+pub fn body(bytes: Vec<u8>) -> RequestBody<'static> {
+    foundation_connectrpc::in_memory_body(Some(SendSafeBody::Bytes(bytes)))
+}
+
+// ── the deterministic clock and timer ───────────────────────────────────────
+
+/// A [`Clock`] that never reads real time. A case moves it by hand.
+///
+/// The monotonic reading starts at `origin` and moves only through
+/// [`Self::advance`]. The wall clock starts at the UNIX epoch. The impl mirrors
+/// the shape of `foundation_core`'s `SimulatedClock`, without its executor wake.
+pub struct SimulatedClock {
+    base: Instant,
+    offset: Mutex<Duration>,
+}
+
+impl SimulatedClock {
+    /// A clock whose monotonic reading starts at zero.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            // A real `Instant` has no public constructor. Code only compares
+            // differences of `Instant`s, so the origin does not affect a run.
+            base: Instant::now(),
+            offset: Mutex::new(Duration::ZERO),
+        }
+    }
+
+    /// Move the monotonic reading forward by `by`.
+    pub fn advance(&self, by: Duration) {
+        let mut offset = self
+            .offset
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *offset += by;
+    }
+}
+
+impl Default for SimulatedClock {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Clock for SimulatedClock {
+    fn now(&self) -> Instant {
+        self.base
+            + *self
+                .offset
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    fn elapsed(&self) -> Duration {
+        *self
+            .offset
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    fn wall_now(&self) -> SystemTime {
+        SystemTime::UNIX_EPOCH
+    }
+}
+
+/// A [`DeadlineTimer`] that reads the injected clock.
+///
+/// It resolves once `deadline` has passed on `ctx.clock()`. A clock that never
+/// moves keeps the future pending, which is correct: only the test moves the
+/// deterministic clock (root rule 11). The cases that must fire the deadline
+/// set a zero timeout, so the deadline equals the current reading.
+pub struct SimulatedTimer;
+
+impl DeadlineTimer for SimulatedTimer {
+    fn sleep_until(&self, deadline: Instant, ctx: &Ctx) -> BoxFuture<'_, ()> {
+        // Read the injected clock now. The future keeps no borrow of `ctx`, so
+        // it can outlive this call, and a clock that never moves keeps it
+        // pending (root rule 11).
+        let now = ctx.clock().now();
+        Box::pin(async move {
+            if now >= deadline {
+                return;
+            }
+            std::future::pending::<()>().await;
+        })
+    }
+}
+
+/// A context with the real host clock, for a case that reads no clock.
+#[must_use]
+pub fn ctx() -> Ctx {
+    Ctx::host()
+}
+
+/// A deterministic context with a fixed seed and its own simulated clock.
+#[must_use]
+pub fn simulated_ctx() -> (Ctx, Arc<SimulatedClock>) {
+    let clock = Arc::new(SimulatedClock::new());
+    (Ctx::with_seed(clock.clone(), 7), clock)
+}
+
+// ── host detection and the transport base URL ───────────────────────────────
+
+/// The host a case runs on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Host {
+    /// Embedded Deno or the Deno `bindgen-deno` runner.
+    Deno,
+    /// The Cloudflare worker host.
+    Workerd,
+    /// A browser page (Chromium).
+    Browser,
+}
+
+/// Detect the host from a global the runtime supplies.
+#[must_use]
+pub fn host() -> Host {
+    let global = js_sys::global();
+    if js_sys::Reflect::get(&global, &wasm_bindgen::JsValue::from_str("__CF_TEST_ENV__"))
+        .map(|value| !value.is_undefined())
+        .unwrap_or(false)
+    {
+        return Host::Workerd;
+    }
+    if js_sys::Reflect::get(&global, &wasm_bindgen::JsValue::from_str("Deno"))
+        .map(|value| !value.is_undefined())
+        .unwrap_or(false)
+    {
+        return Host::Deno;
+    }
+    Host::Browser
+}
+
+/// The origin of the Connect endpoint the host serves, when it has one.
+///
+/// Every wasm host serves the endpoint (spec 88 feature 03, issue #752):
+///
+/// - the browser page loads from the Rust testbed server, so `location.origin`
+///   is the endpoint;
+/// - the Deno template answers `/connect` from its own `Deno.serve` server;
+/// - the worker answers `/connect` from its own fetch handler.
+///
+/// Each template publishes the origin as `__FWT_RPC_BASE_URL__`. The global
+/// `__FWT_BASE_URL__` and the page origin are fallbacks for a host that sets
+/// only those.
+#[must_use]
+pub fn rpc_base_url() -> Option<String> {
+    let global = js_sys::global();
+    let read = |name: &str| {
+        js_sys::Reflect::get(&global, &wasm_bindgen::JsValue::from_str(name))
+            .ok()
+            .and_then(|value| value.as_string())
+    };
+    read("__FWT_RPC_BASE_URL__")
+        .or_else(|| read("__FWT_BASE_URL__"))
+        .or_else(|| web_sys::window().and_then(|window| window.location().origin().ok()))
+}
+
+/// Drive `future` on the valtron engine until it finishes, on the wasm host.
+///
+/// WHY: `H1Transport::open` schedules its exchange pump on the valtron engine
+/// (`valtron::send`), and a server-streaming call also spawns its protocol
+/// reader/writer tasks there. An async test future alone does not drive that
+/// engine. `valtron::execute` cannot drive it from a wasm-bindgen test body: it
+/// hangs under the Deno runner (foundation_netio `tests/wasm/websocket.rs`,
+/// #565).
+///
+/// HOW: put the call on the engine as one `from_future` task whose output goes
+/// into a shared slot. Each turn calls `run_until_complete`, which is the
+/// engine's own driver: it returns to the JS event loop once every task is
+/// parked instead of spinning. The host sleep between turns lets a fetch
+/// promise settle and its resume microtask run. This is the same pattern the
+/// `js-wasmbindgen` yield tests use (`foundation_core/tests/valtron/
+/// wasm_js_yield_integration.rs`).
+///
+/// # Errors
+/// Returns the engine's scheduling error, or a timeout message.
+pub async fn drive_on_valtron<T: 'static>(
+    future: impl Future<Output = T> + 'static,
+) -> Result<T, String> {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    let _guard = foundation_core::valtron::initialize_pool(7, None);
+
+    let slot: Rc<RefCell<Option<T>>> = Rc::new(RefCell::new(None));
+    let slot_task = Rc::clone(&slot);
+    let task = foundation_core::valtron::from_future(async move {
+        *slot_task.borrow_mut() = Some(future.await);
+    });
+    foundation_core::valtron::send(task)
+        .map_err(|error| format!("the valtron engine did not accept the call: {error}"))?;
+
+    // Each turn drives the engine to its parked state and then yields to the
+    // host. 4,000 turns is far more than a loopback fetch needs, and it still
+    // fails instead of hanging (rule R4).
+    for _ in 0..4_000 {
+        foundation_core::valtron::single::run_until_complete();
+        if let Some(value) = slot.borrow_mut().take() {
+            return Ok(value);
+        }
+        sleep_host_ms(1).await;
+    }
+    Err("the transport call did not finish within 4,000 engine turns".to_string())
+}
+
+/// Resolve after `ms` on the JS event loop (`setTimeout` on the global object,
+/// so it works in Deno, browsers and Workers alike).
+pub async fn sleep_host_ms(ms: i32) {
+    use wasm_bindgen::JsCast as _;
+
+    let promise = js_sys::Promise::new(&mut |resolve, _reject| {
+        let global = js_sys::global();
+        let set_timeout =
+            js_sys::Reflect::get(&global, &wasm_bindgen::JsValue::from_str("setTimeout"))
+                .expect("setTimeout")
+                .dyn_into::<js_sys::Function>()
+                .expect("setTimeout is a function");
+        set_timeout
+            .call2(
+                &global,
+                &resolve,
+                &wasm_bindgen::JsValue::from_f64(f64::from(ms)),
+            )
+            .expect("setTimeout");
+    });
+    let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+}
+
+/// The remaining time to a call deadline, in milliseconds, as the handler reads
+/// it (case 13).
+#[must_use]
+pub fn remaining_ms(call: &foundation_connectrpc::RpcCtx) -> Option<u64> {
+    let deadline = call.request.deadline?;
+    let left = deadline.saturating_duration_since(call.ctx.clock().now());
+    Some(u64::try_from(left.as_millis()).unwrap_or(u64::MAX))
+}

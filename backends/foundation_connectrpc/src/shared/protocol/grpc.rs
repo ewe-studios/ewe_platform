@@ -459,6 +459,20 @@ impl ProtocolClient for GrpcClient {
         Bytes::from(envelope)
     }
 
+    fn encode_request_frame(
+        &self,
+        frame: Bytes,
+        send_compressor: Option<Arc<dyn Compressor>>,
+        compress_min_bytes: usize,
+        send_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // The streaming writer (`write_frames`) applies exactly this envelope,
+        // so the pre-sent body is the same on the wire.
+        let bytes = EnvelopeWriter::new(send_compressor, compress_min_bytes, send_max_bytes)
+            .write(frame)?;
+        Ok(Bytes::from(bytes))
+    }
+
     fn decode_unary_response(
         &self,
         head: &SimpleHeaders,

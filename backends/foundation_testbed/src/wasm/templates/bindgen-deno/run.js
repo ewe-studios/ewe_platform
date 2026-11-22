@@ -70,8 +70,78 @@ function base64(bytes) {
     return btoa(binary);
 }
 
+// ── the Connect endpoint (spec 88 feature 03, issue #752) ───────────────────
+// This host starts no Rust server, so it answers the real Connect request here.
+// The three procedures mirror the Rust `/connect` route in
+// `foundation_testbed::src::wasm::server.rs` byte for byte: a unary echo, an
+// `invalid_argument` error, and a three-frame server stream. This is no stub:
+// the body, the status and the Connect envelope bytes are the routed answer.
+const encoder = new TextEncoder();
+
+/** One Connect envelope: a flags byte, a big-endian u32 length, then the payload. */
+function connectEnvelope(flags, payload) {
+    const out = new Uint8Array(5 + payload.length);
+    out[0] = flags;
+    new DataView(out.buffer).setUint32(1, payload.length);
+    out.set(payload, 5);
+    return out;
+}
+
+/** Concatenate byte arrays into one `Uint8Array`. */
+function concatBytes(parts) {
+    const total = parts.reduce((sum, part) => sum + part.length, 0);
+    const out = new Uint8Array(total);
+    let offset = 0;
+    for (const part of parts) {
+        out.set(part, offset);
+        offset += part.length;
+    }
+    return out;
+}
+
+async function connect(request) {
+    const url = new URL(request.url);
+    const procedure = url.pathname.slice("/connect/".length);
+    if (procedure === "case.CaseService/Unary") {
+        const body = new Uint8Array(await request.arrayBuffer());
+        const out = concatBytes([encoder.encode("echo:"), body]);
+        return new Response(out, {
+            status: 200,
+            headers: { "content-type": "application/proto" },
+        });
+    }
+    if (procedure === "case.CaseService/Fail") {
+        await request.arrayBuffer();
+        return new Response(
+            JSON.stringify({ code: "invalid_argument", message: "the handler rejected the call" }),
+            { status: 400, headers: { "content-type": "application/json" } },
+        );
+    }
+    if (procedure === "case.CaseService/Stream") {
+        // The request holds one Connect envelope; the procedure ignores its message.
+        await request.arrayBuffer();
+        const body = concatBytes([
+            connectEnvelope(0, encoder.encode("frame-0")),
+            connectEnvelope(0, encoder.encode("frame-1")),
+            connectEnvelope(0, encoder.encode("frame-2")),
+            // The Connect EndStream frame: an empty EndStreamResponse.
+            connectEnvelope(2, encoder.encode("{}")),
+        ]);
+        return new Response(body, {
+            status: 200,
+            headers: { "content-type": "application/connect+proto" },
+        });
+    }
+    return new Response("not found", { status: 404 });
+}
+
 async function echo(request) {
     const url = new URL(request.url);
+
+    // A Connect call answers before the echo catch-all.
+    if (url.pathname.startsWith("/connect/")) {
+        return connect(request);
+    }
 
     // `/stream?chunks=N&size=M&status=S` serves a streaming body of N chunks of
     // M bytes each. The wasm fetch client tests use it to prove that a response
@@ -123,6 +193,9 @@ const listening = new Promise((resolve) => {
     }, echo);
 });
 globalThis.__FWT_BASE_URL__ = await listening;
+// The same origin answers the Connect endpoint, so the transport cases call it
+// here (spec 88 feature 03 T5).
+globalThis.__FWT_RPC_BASE_URL__ = globalThis.__FWT_BASE_URL__;
 
 const tests = [/* TEST_NAMES */];
 await cx.run(tests.map(name => wasm[name]));
