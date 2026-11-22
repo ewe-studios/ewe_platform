@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.6"
+version = "0.1.7"
 
 [dependencies]
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }

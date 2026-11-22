@@ -38,3 +38,9 @@ The replacement uses Valtron to schedule child startup.
 The child supervisor owns independent operating system workers for the blocking pipes and the child wait.
 The native signal task cancels the command through Valtron.
 Review wakeups, sink failure, and completion ordering before integration.
+
+### Check package requirements outside the workspace
+
+Cargo can resolve a newer local crate even when the manifest still permits an older release.
+Compare each local dependency requirement with the local package version.
+Root workspace metadata omits excluded packages. Read their manifests separately.

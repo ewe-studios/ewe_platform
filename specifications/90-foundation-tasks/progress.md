@@ -43,3 +43,13 @@ Before the runtime change, both platform binaries passed listing, help, and proj
 Both binary names also passed after archive extraction.
 The full platform and macro test command stopped during the template build test.
 The Cargo installation check remains pending.
+
+### Dependency versions after integration with master
+
+The combined branch aligns 49 local dependency requirements in 27 manifests.
+The Cloudflare, DigitalOcean, and Hetzner deployment crates require `foundation_codegentools` version 0.1.7.
+The interface web handler requires `foundation_wasm_ui` version 0.1.8.
+Cargo resolves all 119 workspace packages with the root lockfile.
+Issue #706 tracks workspace inheritance for packages outside the root workspace.
+Eighteen standalone lockfiles now include the updated local crates. Cargo resolves each with its lockfile and without network access.
+Issue #707 tracks the wire text update example. Its old lockfile also fails before this merge.
