@@ -1,6 +1,6 @@
 ---
 description: "A manifest-driven installer (`foundation_installer`) that puts the software of a manifest on a host, starts it as a systemd unit or a Docker container, records what it did, and upgrades or rolls back one entry at a time. The manifest format is owned by spec 78."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-14
 author: "Main Agent"
@@ -27,10 +27,10 @@ related_specs:
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:
-  completed: 0
-  uncompleted: 1
+  completed: 1
+  uncompleted: 0
   total: 1
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Manifest Installer
@@ -94,7 +94,7 @@ _The diagram shows the installer's place: it reads the manifest, gets artifacts,
 
 | # | Feature | Description | Depends on | Status |
 |---|---|---|---|---|
-| 00 | [Manifest Installer](./features/00-manifest-installer/feature.md) | Parse and validate the manifest; resolve sources (github-release, url, cargo, apt, mise, docker-image); apply systemd, Docker and none; install record, lock, upgrade and rollback; bootstrap script; `ewe-installer` CLI | Spec 78 | ⬜ Pending |
+| 00 | [Manifest Installer](./features/00-manifest-installer/feature.md) | Parse and validate the manifest; resolve sources (github-release, url, cargo, apt, mise, docker-image); apply systemd, Docker and none; install record, lock, upgrade and rollback; bootstrap script; `ewe-installer` CLI | Spec 78 | ✅ Done |
 
 The feature keeps tasks T1 to T10 from the original spec 83 feature 02. The manifest schema
 section moved to spec 78. The installer keeps its own parser and its own `Entry` types.

@@ -617,6 +617,11 @@ wasm-runs = [
 wasm = "enforce"
 wasm-runs = [""]
 
+[packages.foundation_installer]
+# The end-to-end target talks to a real Docker daemon and skips itself when no
+# daemon answers. The systemd end-to-end case runs only on a Linux host.
+runs = ["", "docker-tests"]
+
 [packages.foundation_connectrpc]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 macos-tests = "none"

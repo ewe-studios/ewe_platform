@@ -1,0 +1,17 @@
+[Unit]
+Description=EWE entry {{ name }} {{ version }}
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ user }}
+{% for pair in env %}Environment={{ pair }}
+{% endfor %}Environment="EWE_ENTRY={{ name }}"
+Environment="EWE_VERSION={{ version }}"
+Restart={{ restart }}
+TimeoutStartSec={{ start_timeout_secs }}
+ExecStart={{ exec_start }}
+
+[Install]
+WantedBy=multi-user.target

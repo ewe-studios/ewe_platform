@@ -5966,6 +5966,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_installer"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "clap",
+ "foundation_compact",
+ "foundation_context",
+ "foundation_core",
+ "foundation_deployment_docker",
+ "foundation_macros",
+ "foundation_netio",
+ "foundation_packager",
+ "fs2",
+ "futures-lite",
+ "minijinja",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.19",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_iogate"
 version = "0.0.5"
 dependencies = [

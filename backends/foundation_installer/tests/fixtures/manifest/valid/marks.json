@@ -1,0 +1,28 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "agent-rpc",
+      "version": "0.4.0",
+      "source": {
+        "kind": "url",
+        "url": "https://example.com/releases/agent-rpc-0.4.0",
+        "sha256": "1aa649039098a78de6d11eb4531d0caed6140f94697109882cdbc1c5db1fc9d6"
+      },
+      "deploy": {
+        "kind": "systemd",
+        "args": ["serve"],
+        "user": "ewe"
+      },
+      "proxy": {
+        "service": "agents",
+        "route": { "host": "agents.example.com" },
+        "port": 7443,
+        "protocol": "grpc"
+      },
+      "probes": {
+        "readiness": { "kind": "http", "port": 7443, "path": "/healthz" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "agent-rpc",
+      "version": "0.4.0",
+      "source": {
+        "kind": "url",
+        "url": "https://example.com/releases/agent-rpc-0.4.0",
+        "sha256": "1aa649039098a78de6d11eb4531d0caed6140f94697109882cdbc1c5db1fc9d6"
+      },
+      "deploy": {
+        "kind": "systemd",
+        "args": ["serve", "--bind", "0.0.0.0:7443"],
+        "env": { "RUST_LOG": "info" },
+        "user": "ewe",
+        "restart": "always"
+      }
+    }
+  ]
+}
