@@ -1215,3 +1215,10 @@ Each closes that socket and receives a rendered count from the Todo action socke
 Run `TodoTests/testIndependentWebSocket` with `EWE_SOCKET_ECHO` and `EWE_TODO_URL`.
 Run Android instrumentation `ReplayCheck` with `socket_echo` and `server`.
 Supply a WebSocket echo endpoint and a running Todo server for each test.
+
+## Shared Todo identifiers
+
+Todo uses the version four identifier from `foundation_compact`. The host entropy source supplies its bytes.
+The backup converter and pending Add use the same constructor. Todo no longer needs `shared/id.rs`.
+Two identifier tests, four action tests, three backup tests, and three mobile Rust tests pass.
+The browser WebAssembly target passes its Cargo check. The next action change moves pending Add into the host submission action.

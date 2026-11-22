@@ -76,7 +76,7 @@ std = ["fstr/std"]
 # one that needs no extra dependency.
 wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys", "dep:tracing", "dep:tracing-subscriber"]
 host-abi = ["dep:tracing", "dep:tracing-subscriber"]
-serde = ["dep:serde"]
+serde = ["dep:serde", "serde/alloc"]
 global_gen = ["std", "dep:forkguard"]
 native = ["std", "global_gen"]
 msrv = []

@@ -169,7 +169,11 @@ pub(crate) async fn prepare(
             if value.trim().is_empty() {
                 return Err(error("Enter a todo title"));
             }
-            let id = super::TodoId::generate(ctx.inner()).map_err(|reason| error(&reason))?;
+            let env = ctx.inner()
+                .get::<foundation_context::env::Env>()
+                .ok_or_else(|| error("Missing Todo entropy source"))?;
+            let id = env.entropy().uuid_v4()
+                .map_err(|cause| error(&cause.to_string()))?;
             (
                 format!("add:{id}"),
                 Some(PendingChange::Add {

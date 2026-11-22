@@ -15,7 +15,7 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 foundation_resources = { path = "../../backends/foundation_resources", default-features = false, features = ["server"], optional = true }
 foundation_macros = { workspace = true, optional = true }
 foundation_nostd = { path = "../../backends/foundation_nostd", optional = true }
-foundation_compact = { path = "../../backends/foundation_compact", version = "0.2.7", default-features = false }
+foundation_compact = { path = "../../backends/foundation_compact", version = "0.2.7", default-features = false, features = ["serde"] }
 foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
 foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
 foundation_context = { path = "../../backends/foundation_context" }

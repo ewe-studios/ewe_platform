@@ -1001,3 +1001,9 @@ A fresh run accepts the full title. Issue #737 tracks the input and submission c
 A host action can use the platform network client through its Rust context.
 The action socket keeps its own connection when the caller closes an application socket.
 The Rust networking crate also provides a direct WebSocket connector.
+
+## Shared identifier format
+
+A constructor can accept an entropy function without adding a context dependency to the compact crate.
+The shared identifier preserves the text representation in both backups and action payloads.
+A retry after restart uses the identifier from the saved submission.

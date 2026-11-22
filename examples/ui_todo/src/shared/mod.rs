@@ -1,6 +1,5 @@
 //! Shared todo views and actions for server and on-device stores.
-mod id;
-pub use id::TodoId;
+pub use foundation_compact::uuid::UuidV4 as TodoId;
 pub(crate) mod outbox;
 pub use outbox::{install_pending_storage, Pending, PendingChange, PendingStorage};
 

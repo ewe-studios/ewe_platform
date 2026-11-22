@@ -113,7 +113,10 @@ pub(super) fn convert(
         let id = if let Some(id) = item.creation_id {
             id
         } else {
-            let id = TodoId::generate(ctx)?;
+            let env = ctx
+                .get::<foundation_context::env::Env>()
+                .ok_or("Missing Todo entropy source")?;
+            let id = env.entropy().uuid_v4()?;
             if !known.insert(id) {
                 return Err(format!("Generated duplicate identifier {id}").into());
             }
