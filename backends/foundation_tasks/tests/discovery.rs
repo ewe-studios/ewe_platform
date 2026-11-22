@@ -1,13 +1,13 @@
 use std::{fs, path::Path, process::Command};
 
-const TASK: &str = r#"
+const TASK: &str = "
 use clap::Args;
 use foundation_tasks::{TaskContext, TaskResult};
 #[derive(Args)]
 pub(super) struct Arguments {}
 /// Print a greeting.
 pub(super) async fn task(_: TaskContext, _: Arguments) -> TaskResult { Ok(()) }
-"#;
+";
 
 fn cargo(manifest: &Path) -> std::process::Output {
     Command::new(env!("CARGO"))

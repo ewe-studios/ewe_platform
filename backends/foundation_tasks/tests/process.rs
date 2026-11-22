@@ -1,26 +1,32 @@
 use std::{
-    io::{self, Write},
+    io::{self, Read, Write},
     num::NonZeroUsize,
     sync::{Arc, Mutex},
 };
 
+use foundation_context::Ctx;
+use foundation_core::valtron::{sleep_async, valtron_test};
 use foundation_tasks::{
     Cancellation, NativeProcess, OutputStream, ProcessCommand, ProcessConfig, TaskError,
     TaskOutput, TaskProcess,
 };
 use futures_util::future::BoxFuture;
 
+static STDOUT_BYTES: [u8; 256 * 1024] = [b'A'; 256 * 1024];
+static STDERR_BYTES: [u8; 256 * 1024] = [b'B'; 256 * 1024];
+
 #[derive(Default)]
 struct Memory {
     chunks: Mutex<Vec<(OutputStream, Vec<u8>)>>,
-    fail: bool,
+    fail_after: Option<std::time::Duration>,
 }
 
 impl TaskOutput for Memory {
     fn write<'a>(&'a self, stream: OutputStream, bytes: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
         Box::pin(async move {
             futures_lite::future::yield_now().await;
-            if self.fail {
+            if let Some(delay) = self.fail_after {
+                sleep_async(delay, &Ctx::host()).await;
                 return Err(io::Error::new(
                     io::ErrorKind::BrokenPipe,
                     "test output closed",
@@ -44,10 +50,33 @@ fn child_entry() {
     match mode.as_str() {
         "pipes" => {
             std::thread::scope(|scope| {
-                scope.spawn(|| io::stdout().lock().write_all(&[b'A'; 32_768]).unwrap());
-                scope.spawn(|| io::stderr().lock().write_all(&[b'B'; 32_768]).unwrap());
+                scope.spawn(|| io::stdout().lock().write_all(&STDOUT_BYTES).unwrap());
+                scope.spawn(|| io::stderr().lock().write_all(&STDERR_BYTES).unwrap());
             });
             std::process::exit(7);
+        }
+        #[cfg(unix)]
+        "exit-with-id" => {
+            let address = std::env::var("FOUNDATION_TASKS_ADDRESS").unwrap();
+            let mut socket = std::net::TcpStream::connect(address).unwrap();
+            socket.write_all(&std::process::id().to_ne_bytes()).unwrap();
+            std::process::exit(0);
+        }
+        "exit" => {
+            io::stdout().lock().write_all(b"finished\n").unwrap();
+            std::process::exit(0);
+        }
+        "socket" => {
+            let address = std::env::var("FOUNDATION_TASKS_ADDRESS").unwrap();
+            let mut socket = std::net::TcpStream::connect(address).unwrap();
+            println!("owned tree ready");
+            let _ = socket.read(&mut [0]).unwrap();
+        }
+        "private" => {
+            let mut input = Vec::new();
+            io::stdin().lock().read_to_end(&mut input).unwrap();
+            assert_eq!(input, b"private test input");
+            assert!(std::env::args_os().all(|arg| arg != "private test input"));
         }
         "wait" => {
             println!("fixture ready");
@@ -84,19 +113,15 @@ fn fixture(mode: &str) -> ProcessCommand {
         .env("FOUNDATION_TASKS_CHILD", mode)
 }
 
-#[test]
-fn drains_both_pipes_in_bounded_chunks_and_preserves_exit_code() {
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+#[valtron_test(timeout = 30000)]
+async fn drains_both_pipes_in_bounded_chunks_and_preserves_exit_code() {
     let process = NativeProcess::new(
-        runtime.handle().clone(),
         ProcessConfig::default().with_chunk_bytes(NonZeroUsize::new(113).unwrap()),
     );
     let output = Arc::new(Memory::default());
-    let error = runtime
-        .block_on(process.run(fixture("pipes"), output.clone(), Cancellation::new()))
+    let error = process
+        .run(fixture("pipes"), output.clone(), Cancellation::new())
+        .await
         .unwrap_err();
     assert_eq!(error.exit_code(), 7);
     let chunks = output.chunks.lock().unwrap();
@@ -107,32 +132,30 @@ fn drains_both_pipes_in_bounded_chunks_and_preserves_exit_code() {
         .flat_map(|(_, chunk)| chunk)
         .copied()
         .collect::<Vec<_>>();
-    assert!(stdout.ends_with(&[b'A'; 32_768]));
+    assert!(stdout.ends_with(&STDOUT_BYTES));
     let stderr = chunks
         .iter()
         .filter(|(stream, _)| *stream == OutputStream::Stderr)
         .flat_map(|(_, chunk)| chunk)
         .copied()
         .collect::<Vec<_>>();
-    assert_eq!(stderr, [b'B'; 32_768]);
+    assert_eq!(stderr.as_slice(), &STDERR_BYTES);
 }
 
-#[test]
-fn a_sink_failure_stops_the_child() {
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-    let process = NativeProcess::new(runtime.handle().clone(), ProcessConfig::default());
+#[valtron_test(timeout = 30000)]
+async fn a_sink_failure_stops_the_child() {
+    let process = NativeProcess::new(ProcessConfig::default());
     let output = Arc::new(Memory {
-        fail: true,
+        fail_after: Some(std::time::Duration::ZERO),
         ..Memory::default()
     });
-    let error = runtime
-        .block_on(process.run(fixture("wait"), output, Cancellation::new()))
+    let error = process
+        .run(fixture("wait"), output, Cancellation::new())
+        .await
         .unwrap_err();
     assert!(
-        matches!(error, TaskError::Process { source, .. } if source.kind() == io::ErrorKind::BrokenPipe)
+        matches!(&error, TaskError::Process { source, .. } if source.kind() == io::ErrorKind::BrokenPipe),
+        "{error:?}"
     );
 }
 
@@ -163,48 +186,191 @@ impl TaskOutput for CancelOnReady {
     }
 }
 
-#[test]
-fn cancellation_stops_the_entire_child_tree() {
+#[valtron_test(timeout = 30000)]
+async fn cancellation_stops_the_entire_child_tree() {
     let root = tempfile::tempdir().unwrap();
     let marker = root.path().join("path with spaces");
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-    let process = NativeProcess::new(runtime.handle().clone(), ProcessConfig::default());
+    let process = NativeProcess::new(ProcessConfig::default());
     let cancellation = Cancellation::new();
     let output = Arc::new(CancelOnReady {
         bytes: Mutex::default(),
         cancellation: cancellation.clone(),
     });
-    let error = runtime
-        .block_on(process.run(
-            fixture("tree").env("FOUNDATION_TASKS_MARKER", marker.as_os_str()),
+    let error = process
+        .run(
+            fixture("tree")
+                .env("FOUNDATION_TASKS_MARKER", marker.as_os_str())
+                .private_input(vec![0; 4 * 1024 * 1024]),
             output,
             cancellation,
-        ))
+        )
+        .await
         .unwrap_err();
-    assert_eq!(error.exit_code(), 130);
-    std::thread::sleep(std::time::Duration::from_millis(750));
+    assert!(matches!(error, TaskError::Cancelled));
+    sleep_async(std::time::Duration::from_millis(750), &Ctx::host()).await;
     assert!(
         !marker.exists(),
         "An owned descendant survived cancellation"
     );
 }
 
-#[test]
-fn a_path_with_shell_characters_reaches_the_child_as_one_argument() {
+#[valtron_test(timeout = 30000)]
+async fn a_path_with_shell_characters_reaches_the_child_as_one_argument() {
     let directory = tempfile::tempdir().unwrap();
     let argument = directory.path().join("a directory with spaces; $name");
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-    let process = NativeProcess::new(runtime.handle().clone(), ProcessConfig::default());
+    let process = NativeProcess::new(ProcessConfig::default());
     let command = fixture("argument")
         .arg(argument.as_os_str())
         .env("FOUNDATION_TASKS_ARGUMENT", argument.as_os_str());
-    runtime
-        .block_on(process.run(command, Arc::new(Memory::default()), Cancellation::new()))
+    process
+        .run(command, Arc::new(Memory::default()), Cancellation::new())
+        .await
         .unwrap();
+}
+
+#[valtron_test(timeout = 30000)]
+async fn private_input_reaches_only_the_child_pipe() {
+    let process = NativeProcess::new(ProcessConfig::default());
+    let output = Arc::new(Memory::default());
+    let command = fixture("private").private_input(b"private test input".to_vec());
+    process
+        .run(command, output.clone(), Cancellation::new())
+        .await
+        .unwrap();
+    for stream in [OutputStream::Stdout, OutputStream::Stderr] {
+        let bytes: Vec<_> = output
+            .chunks
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(source, _)| *source == stream)
+            .flat_map(|(_, chunk)| chunk.iter().copied())
+            .collect();
+        assert!(!bytes
+            .windows(b"private test input".len())
+            .any(|part| part == b"private test input"));
+    }
+}
+
+#[valtron_test(timeout = 30000)]
+async fn a_late_sink_failure_preserves_the_original_error() {
+    let process = NativeProcess::new(ProcessConfig::default());
+    let output = Arc::new(Memory {
+        fail_after: Some(std::time::Duration::from_millis(200)),
+        ..Memory::default()
+    });
+    let error = process
+        .run(fixture("exit"), output, Cancellation::new())
+        .await
+        .unwrap_err();
+    assert!(
+        matches!(&error, TaskError::Process { source, .. } if source.kind() == io::ErrorKind::BrokenPipe),
+        "{error:?}"
+    );
+}
+
+#[valtron_test(timeout = 30000)]
+async fn cancellation_before_start_skips_process_creation() {
+    let process = NativeProcess::new(ProcessConfig::default());
+    let directory = tempfile::tempdir().unwrap();
+    let command = ProcessCommand::new(directory.path().join("missing-program"));
+    let cancellation = Cancellation::new();
+    cancellation.cancel();
+    let error = process
+        .run(command, Arc::new(Memory::default()), cancellation)
+        .await
+        .unwrap_err();
+    assert!(matches!(error, TaskError::Cancelled));
+}
+
+async fn drop_running_child(wait_for_output: bool) {
+    let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let address = listener.local_addr().unwrap();
+    let ready = Cancellation::new();
+    let output = Arc::new(CancelOnReady {
+        bytes: Mutex::default(),
+        cancellation: ready.clone(),
+    });
+    let process = NativeProcess::new(ProcessConfig::default());
+    let command = fixture("socket").env("FOUNDATION_TASKS_ADDRESS", address.to_string());
+    let mut run = process.run(command, output, Cancellation::new());
+    if wait_for_output {
+        use futures_util::future::{select, Either};
+        match select(run.as_mut(), Box::pin(ready.cancelled())).await {
+            Either::Right(_) => {}
+            Either::Left((result, _)) => {
+                panic!("The fixture exits before its output arrives: {result:?}")
+            }
+        }
+    } else {
+        // Start the background job. Leave its result in the handoff channel.
+        assert!(futures_lite::future::poll_once(run.as_mut())
+            .await
+            .is_none());
+    }
+    let (mut socket, _) = listener.accept().unwrap();
+    socket
+        .set_read_timeout(Some(std::time::Duration::from_secs(3)))
+        .unwrap();
+    drop(run);
+    match socket.read(&mut [0]) {
+        Ok(0) => {}
+        Err(error) if error.kind() == io::ErrorKind::ConnectionReset => {}
+        result => panic!("The child keeps its socket open after drop: {result:?}"),
+    }
+}
+
+#[valtron_test(timeout = 30000)]
+async fn dropping_the_run_terminates_a_silent_child() {
+    drop_running_child(true).await;
+}
+
+#[valtron_test(timeout = 30000)]
+async fn dropping_the_startup_handoff_terminates_a_silent_child() {
+    drop_running_child(false).await;
+}
+
+#[cfg(unix)]
+#[valtron_test(timeout = 30000)]
+async fn startup_reserves_the_exited_group_leader_until_completion() {
+    let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let address = listener.local_addr().unwrap();
+    let process = NativeProcess::new(ProcessConfig::default());
+    let command = fixture("exit-with-id").env("FOUNDATION_TASKS_ADDRESS", address.to_string());
+    let mut run = process.run(command, Arc::new(Memory::default()), Cancellation::new());
+    assert!(futures_lite::future::poll_once(run.as_mut())
+        .await
+        .is_none());
+
+    let (mut socket, _) = listener.accept().unwrap();
+    let mut bytes = [0; 4];
+    socket.read_exact(&mut bytes).unwrap();
+    let id = u32::from_ne_bytes(bytes);
+    observe_test_exit(id).unwrap();
+    sleep_async(std::time::Duration::from_millis(100), &Ctx::host()).await;
+    observe_test_exit(id).unwrap();
+    run.await.unwrap();
+    assert_eq!(
+        observe_test_exit(id).unwrap_err().raw_os_error(),
+        Some(libc::ECHILD)
+    );
+}
+
+#[cfg(unix)]
+fn observe_test_exit(id: u32) -> io::Result<()> {
+    let mut info = std::mem::MaybeUninit::<libc::siginfo_t>::uninit();
+    // Observe this test child without releasing its identifier.
+    let result = unsafe {
+        libc::waitid(
+            libc::P_PID,
+            id,
+            info.as_mut_ptr(),
+            libc::WEXITED | libc::WNOWAIT,
+        )
+    };
+    if result == 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
+    }
 }

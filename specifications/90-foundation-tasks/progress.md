@@ -44,6 +44,28 @@ Both binary names also passed after archive extraction.
 The full platform and macro test command stopped during the template build test.
 The Cargo installation check remains pending.
 
+## Valtron process verification
+
+Branch `resume/90-tasks` starts at `622c8b71b` in an external worktree.
+The first macOS build stops at the selection macro import.
+The repair uses the public macro and reads the child exit status once.
+The process tests now use Valtron. They check private input, bounded output, child status, and cancellation.
+Issue [699](https://github.com/ewe-studios/ewe_platform/issues/699) tracks verification.
+
+The macOS native task suite passes 11 integration tests and one documentation test. One documentation example stays ignored.
+The native task executable receives a termination signal while it waits for a test tool.
+It returns status 130 and reaps the tool process.
+The Windows cross-check compiles the runner and its tests. Windows execution still needs a Windows host.
+
+Review adds two tests for dropped futures. Both tests expose a surviving child before the repair.
+The supervisor now waits for the owner before it reaps the Unix group leader.
+The final macOS run passes all 14 integration tests. The final Clippy run reports no crate warnings.
+The Windows cross-check passes with the final manifest. Issues 550 and 596 track three workspace manifest warnings.
+
+The runner uses the workspace display and error derives. Its error variants and exit codes stay compatible.
+All 15 macOS integration tests pass after this change. Clippy reports no crate warnings.
+The Windows test cross-check passes. Both macOS platform command tests pass.
+
 ### Dependency versions after integration with master
 
 The combined branch aligns 49 local dependency requirements in 27 manifests.

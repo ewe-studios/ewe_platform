@@ -39,6 +39,22 @@ The child supervisor owns independent operating system workers for the blocking 
 The native signal task cancels the command through Valtron.
 Review wakeups, sink failure, and completion ordering before integration.
 
+The supervisor sends one exit status. A pending output write can still fail after the child exits.
+Read the exit status after all pipe operations complete. This keeps the status available for cleanup after a pipe failure.
+An unused input pipe still needs a completion signal. A closed channel alone cannot distinguish success from a worker failure.
+The standard process identifier is a number on both Unix and Windows.
+
+A slow output consumer exposes the double read. The regression test fails on the checkpoint after the macro import repair.
+Use separate Cargo target directories when comparing worktrees. The build output path for an integration test can match across both worktrees.
+
+Dropping the process future can abandon a silent child. The startup result must also own the right to terminate that child.
+The supervisor keeps the Unix group leader until the owner releases the right to send a signal.
+The Windows job handle keeps the tree identity after the leader exits.
+Darwin rejects a group signal when the group contains only its exited leader.
+The runner checks the leader state and group membership before it accepts this case.
+
+The workspace error derive can infer a source from an unnamed field. Explicit source attributes preserve the runner's original error chains.
+
 ### Check package requirements outside the workspace
 
 Cargo can resolve a newer local crate even when the manifest still permits an older release.
