@@ -1,9 +1,9 @@
 ---
 description: "foundation_auth social login / upstream identity provider federation. Adds OIDC/OAuth2 upstream provider configuration, redirect-based login flows (Google, Facebook, GitHub, Apple, etc.), automatic user provisioning, account linking, and admin-facing provider management to the IdP server."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-07-17
-updated: 2026-07-17
+updated: 2026-11-23
 author: "claude"
 metadata:
   version: "1.0"
@@ -22,7 +22,7 @@ builds_on:
   - "specifications/completed/38-foundation-auth-server"
 related_specs:
   - "specifications/completed/38-foundation-auth-server"
-  - "specifications/57-foundation-social-and-keychain"
+  - "specifications/completed/57-foundation-social-and-keychain"
 tasks:
   completed: 0
   uncompleted: 0
