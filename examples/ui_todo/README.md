@@ -38,10 +38,9 @@ The `--data-only` mode skips the module check.
 | `search_todos` | Host | Filters cached titles when the query changes. |
 | `edit_draft` | Host | Saves the current title while the dialog is open. |
 | `filter_todos` | Host | Renders selected rows from the local cache. |
-| `add_todo` | Server | Checks the submitted title, appends one item and sends a notification. |
+| `add_todo` | Server | Checks the submitted title, commits the item and returns its record change. |
 | `toggle_todo` | Server | Finds the item in the current list and changes its completion status. |
 | `confirm_delete` | Server | Removes the item. A retry returns the original removal position. |
-| `notify` | Web page or mobile host | Announces a successful add. |
 | `scroll_to_top` | Web page | Scrolls to the list header. |
 
 The browser boots its local dispatcher before it requests the initial frame.
@@ -62,8 +61,7 @@ It responds with `application/primal-frame`. A four-byte little-endian size prec
 The count stream at `/live` pushes a complete replacement to the count element after each successful mutation.
 The count stream has identifier 1. A subscriber sends its last applied sequence through the negotiated resume protocol.
 The server replays later count frames before it sends a new update.
-The add response carries the MessagePack string `host:notify` as a data message.
-The web page invokes its registered notification function when this message arrives.
+All hosts deliver Todo data to the registered cache action. A confirmed local addition updates the notification element.
 
 The Rust wire crate describes generated tables, size checks, fixtures and hand-written requests.
 Use its fixture generator for byte-level compatibility tests. The browser test submits a modal editor and clicks a stale delete control.

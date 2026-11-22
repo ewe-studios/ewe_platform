@@ -150,17 +150,8 @@ async function boot() {
             throw cause;
         }
     };
-    const scope = ui.Hydrator.createScope(document.body);
-    scope.action("notify", () => { notice.value = "Todo added"; });
-
     document.addEventListener("ewe:data", event => {
-        const bytes = event.detail.bytes;
-        if (bytes && bytes[0] === 0x92) {
-            void manager.deliverViewData("host:apply_todo_delivery", event.target, bytes);
-        }
-        if (bytes?.[0] === 0xab && new TextDecoder().decode(bytes.subarray(1)) === "host:notify") {
-            registry.hostFunction("notify")();
-        }
+        void manager.deliverViewData("host:apply_todo_delivery", event.target, event.detail.bytes).catch(report);
     });
     for (const bytes of await server.send(manager.hello())) await manager.receive(bytes);
     const loader = frames.registerLoader(document.querySelector("#page"), async signal => {

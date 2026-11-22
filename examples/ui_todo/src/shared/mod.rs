@@ -583,12 +583,15 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Vec<u8>>) -> 
         state.ingest(delivery)
     };
     let reconciled = outbox::reconcile(ctx, snapshot).await?;
-    if changed || reconciled {
+    if reconciled.added {
+        replace(ctx, "#notification", html! { <Text id="notification">Todo added</Text> })?;
+    }
+    if changed || reconciled.changed {
         let state = store
             .0
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if state.search_rows.is_none() || snapshot || reconciled {
+        if state.search_rows.is_none() || snapshot || reconciled.changed {
             state.render_rows(ctx)?;
         }
         replace(
@@ -698,7 +701,6 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         },
     );
     delivery.send(ctx)?;
-    ctx.receiver().data_in_view(b"\xabhost:notify".to_vec());
     Ok(())
 }
 
@@ -761,7 +763,6 @@ fn action_registry(
     registry.register_for(owner, apply_todo_delivery)?;
     registry.register_for(owner, outbox::prepare_todo_request)?;
     registry.register_for(owner, outbox::uncertain_todo_request)?;
-    registry.register_for(owner, notify)?;
     registry.register_for(owner, refresh_count)?;
     registry.register_for(owner, add_todo)?;
     registry.register_for(owner, toggle_todo)?;
@@ -783,14 +784,4 @@ pub fn server_registry() -> Result<ActionRegistry, RegistrationError> {
 /// Reports conflicting declarations.
 pub fn host_registry() -> Result<ActionRegistry, RegistrationError> {
     action_registry(foundation_ui_runtime::action::Origin::Host)
-}
-
-/// Mobile hosts render the same notification through a shared action.
-#[action(host, mobile)]
-async fn notify(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    replace(
-        ctx,
-        "#notification",
-        html! { <Text id="notification">Todo added</Text> },
-    )
 }

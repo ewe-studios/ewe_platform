@@ -59,6 +59,9 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_text("1 open todo")
             .unwrap_or_else(|e| panic!("{e:?}; {:?}", page.eval("document.body.innerText")));
+        page.locator("#notification").expect().to_have_text("Todo added").unwrap();
+        shared_count.expect().to_have_text("1 open todo").unwrap();
+        other.locator("#notification").expect().to_have_text("").unwrap();
         let toggle = page.locator(&button("server:toggle_todo"));
         toggle.expect().to_have_text("Complete").unwrap();
         capture_page(&page, "list");

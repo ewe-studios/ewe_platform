@@ -301,11 +301,12 @@ Proposed framework contract:
 1. Let a handler submit a typed child action through its context. Reuse the host action manager for lookup and dispatch.
 2. Preserve the receiving view and allocate a separate request identifier for each child call.
 3. Publish the pending preview before waiting for remote completion. Verify visibility while the test server deliberately holds the request.
-4. Return an immediate dispatch error or a request handle. Support completion through a Rust callback or a registered host action.
+4. Return a Rust `Result` to the awaiting caller. Preserve the request identifier, action, endpoint, and typed transport cause when available.
 5. Distinguish transport acceptance from an application reply. Use the same correlation for immediate and later replies.
-6. Complete a registered callback once. Handle cancellation, timeout, duplicate replies, and disposal of the receiving view.
+6. Report known failures directly to the caller. Handle cancellation, timeout, duplicate replies, and disposal of the receiving view.
 7. Keep the Todo creation identifier across retries. Each send attempt has its own request identifier.
 8. If confirmed state arrives after timeout, reconcile it through the existing delivery action.
 
 Verify immediate replies, socket acceptance followed by a delayed reply, and typed failures through each supported transport.
-The framework interface and completion semantics await approval.
+Use ordinary Rust error handling for immediate failures. Socket acceptance leaves the local change pending until confirmation.
+Route application actions through the manager. Never interpret data bytes as instructions to call a registered function directly.
