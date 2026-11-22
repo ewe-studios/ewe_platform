@@ -1007,3 +1007,10 @@ The Rust networking crate also provides a direct WebSocket connector.
 A constructor can accept an entropy function without adding a context dependency to the compact crate.
 The shared identifier preserves the text representation in both backups and action payloads.
 A retry after restart uses the identifier from the saved submission.
+
+## Order of nested action updates
+
+An action normally returns its view updates when it completes.
+A pending preview needs delivery before the child request starts.
+The native test records the number of delivered frames inside the transport send method.
+It also checks immediate reply delivery and a transport failure after the preview.

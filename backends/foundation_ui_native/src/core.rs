@@ -6,7 +6,7 @@ use crate::{
 use foundation_context::Ctx;
 use foundation_ui_runtime::{
     action::{ActionManager, ActionRegistry, Origin, Scope},
-    network::{client_hello, client_manager, reply_message, server_capabilities},
+    network::{client_hello, client_manager_with_caller, reply_message, server_capabilities},
 };
 use foundation_ui_wire::{
     read_frame,
@@ -122,23 +122,31 @@ impl NativeCore {
     pub fn new(config: CoreConfig, server: Option<Arc<dyn HostTransport>>) -> Arc<Self> {
         let caps = ClientCaps::native_current(config.platform.into());
         let graphics_ctx = config.ctx.clone();
-        let mut manager = client_manager(config.ctx, config.registry, &caps, &config.writer);
-        if let Some(server) = server {
-            manager = manager.with_server(action_sender(server));
-        }
-        Arc::new(Self {
-            graphics_ctx,
-            graphics: std::sync::OnceLock::new(),
-            manager,
-            caps,
-            writer: config.writer,
-            delivery: Mutex::new(Delivery {
-                tickets: StreamSequencer::new(0),
-                sequence: StreamSequencer::new(0),
-                queue: std::collections::VecDeque::default(),
-                draining: false,
-            }),
-            listener: Mutex::new(None),
+        Arc::new_cyclic(|core| {
+            let mut manager = client_manager_with_caller(
+                config.ctx,
+                config.registry,
+                &caps,
+                &config.writer,
+                Some(Arc::new(CoreCaller(core.clone()))),
+            );
+            if let Some(server) = server {
+                manager = manager.with_server(action_sender(server));
+            }
+            Self {
+                graphics_ctx,
+                graphics: std::sync::OnceLock::new(),
+                manager,
+                caps,
+                writer: config.writer,
+                delivery: Mutex::new(Delivery {
+                    tickets: StreamSequencer::new(0),
+                    sequence: StreamSequencer::new(0),
+                    queue: std::collections::VecDeque::default(),
+                    draining: false,
+                }),
+                listener: Mutex::new(None),
+            }
         })
     }
 
@@ -156,16 +164,23 @@ impl NativeCore {
     }
 
     pub(crate) fn prepare_push(&self, ops: Vec<OperationT>) -> Result<Push, CoreError> {
+        let messages = ops
+            .into_iter()
+            .map(foundation_ui_wire::ops::message)
+            .collect();
+        self.prepare_messages_push(messages)
+    }
+
+    fn prepare_messages_push(
+        &self,
+        messages: Vec<foundation_ui_wire::MessageT>,
+    ) -> Result<Push, CoreError> {
         let listener = self
             .listener
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .clone()
             .ok_or(CoreError::NoListener)?;
-        let messages = ops
-            .into_iter()
-            .map(foundation_ui_wire::ops::message)
-            .collect();
         // A nonzero placeholder reserves the generated sequence field in this owned buffer.
         let header = FrameHeader {
             stream_id: 0,
@@ -369,30 +384,103 @@ impl NativeCore {
         &self,
         bytes: Vec<u8>,
     ) -> Result<(), crate::graphics::GraphicsError> {
-        let body = reply_message(&bytes, self.limits(), self.caps.mount).map_err(|e| {
+        self.deliver_action_reply(bytes).map_err(|cause| {
             crate::graphics::GraphicsError::Operation {
-                reason: e.to_string(),
+                reason: cause.to_string(),
             }
+        })
+    }
+
+    fn deliver_action_reply(
+        &self,
+        bytes: Vec<u8>,
+    ) -> Result<(), foundation_ui_runtime::action::ActionError> {
+        use foundation_ui_runtime::action::ActionError;
+        use foundation_ui_wire::ErrorCode;
+        let body = reply_message(&bytes, self.limits(), self.caps.mount)
+            .map_err(|cause| ActionError::new(ErrorCode::BadRequest, cause.to_string()))?;
+        let Some(messages) = body.messages().filter(|messages| !messages.is_empty()) else {
+            return Ok(());
+        };
+        let mut recovery = None;
+        for control in messages.iter().filter_map(|message| message.control()) {
+            if let Some(error) = control.error() {
+                return Err(ActionError::new(
+                    error.code(),
+                    error.message().unwrap_or("Action failed"),
+                ));
+            }
+            if control.state_expired().is_some() {
+                recovery = Some(ActionError::new(
+                    ErrorCode::StateExpired,
+                    "The component state expired",
+                ));
+            } else if control.update_required().is_some() {
+                recovery = Some(ActionError::new(
+                    ErrorCode::UpdateRequired,
+                    "The client requires an update",
+                ));
+            }
+        }
+        let listener = self
+            .listener
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()
+            .ok_or_else(|| {
+                ActionError::new(
+                    ErrorCode::UnavailableOrigin,
+                    "The view has no frame listener",
+                )
+            })?;
+        listener.on_frame(bytes);
+        if let Some(error) = recovery {
+            return Err(error);
+        }
+        Ok(())
+    }
+}
+
+struct CoreCaller(std::sync::Weak<NativeCore>);
+
+#[async_trait::async_trait]
+impl foundation_ui_runtime::action::ChildActionCaller for CoreCaller {
+    async fn call(
+        &self,
+        reference: &str,
+        json: Vec<u8>,
+        preview: Vec<foundation_ui_wire::MessageT>,
+    ) -> Result<(), foundation_ui_runtime::action::ActionError> {
+        use foundation_ui_runtime::action::{ActionError, ManagerError, TriggerEvent};
+        use foundation_ui_wire::ErrorCode;
+
+        let core = self.0.upgrade().ok_or_else(|| {
+            ActionError::new(ErrorCode::UnavailableOrigin, "The calling view closed")
         })?;
-        if let Some(messages) = body.messages() {
-            for message in messages {
-                if let Some(error) = message.control().and_then(|c| c.error()) {
-                    return Err(crate::graphics::GraphicsError::Operation {
-                        reason: format!("{:?}", error.code()),
-                    });
-                }
-            }
-            if !messages.is_empty() {
-                let listener = self
-                    .listener
-                    .lock()
-                    .unwrap_or_else(PoisonError::into_inner)
-                    .clone()
-                    .ok_or_else(|| crate::graphics::GraphicsError::Operation {
-                        reason: "Graphics action returned a view without an active listener".into(),
-                    })?;
-                listener.on_frame(bytes);
-            }
+        if !preview.is_empty() {
+            let push = core
+                .prepare_messages_push(preview)
+                .map_err(|error| ActionError::new(ErrorCode::ActionFailed, error.to_string()))?;
+            core.publish(push);
+        }
+        let mut event: TriggerEvent = EventInput::receiving_view().into();
+        event.input.value = None;
+        event.input.json = Some(json);
+        let reply = core
+            .manager
+            .trigger(reference, event)
+            .await
+            .map_err(|cause| {
+                let code = match &cause {
+                    ManagerError::Lookup(error) => error.code(),
+                    ManagerError::InvalidInput(_) => ErrorCode::InvalidInput,
+                    ManagerError::UnsupportedInput => ErrorCode::UnsupportedAction,
+                    _ => ErrorCode::ActionFailed,
+                };
+                ActionError::new(code, cause.to_string())
+            })?;
+        if let Some(bytes) = reply {
+            core.deliver_action_reply(bytes)?;
         }
         Ok(())
     }

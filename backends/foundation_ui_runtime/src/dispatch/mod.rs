@@ -33,6 +33,7 @@ pub struct DispatcherBuilder {
     registry: Arc<ActionRegistry>,
     config: WriterConfig,
     target_lookup: TargetLookup,
+    child_caller: Option<Arc<dyn crate::action::ChildActionCaller>>,
     delivery: Option<Arc<dyn DeliveryHandler>>,
 }
 
@@ -45,7 +46,15 @@ impl DispatcherBuilder {
             config: WriterConfig::default(),
             target_lookup: Box::new(|ctx, _, _| ctx.get::<RenderTarget>().map(|target| target.0)),
             delivery: None,
+            child_caller: None,
         }
+    }
+
+    /// Use the action manager that owns this view for nested calls.
+    #[must_use]
+    pub fn child_caller(mut self, caller: Arc<dyn crate::action::ChildActionCaller>) -> Self {
+        self.child_caller = Some(caller);
+        self
     }
 
     /// Selects the encoder for successful action output.
@@ -84,6 +93,7 @@ impl DispatcherBuilder {
             delivery,
             config: self.config,
             target_lookup: self.target_lookup,
+            child_caller: self.child_caller,
         }
     }
 }
@@ -94,6 +104,7 @@ pub struct Dispatcher {
     registry: Arc<ActionRegistry>,
     config: WriterConfig,
     target_lookup: TargetLookup,
+    child_caller: Option<Arc<dyn crate::action::ChildActionCaller>>,
     delivery: Arc<dyn DeliveryHandler>,
 }
 

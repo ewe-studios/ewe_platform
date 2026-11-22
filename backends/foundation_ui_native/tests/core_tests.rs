@@ -25,6 +25,7 @@ struct Recorder {
     frames: Mutex<Vec<Vec<u8>>>,
     requests: Mutex<Vec<Vec<u8>>>,
     reply: Mutex<ResultSlot>,
+    delivered_at_send: Mutex<Vec<usize>>,
 }
 #[derive(Default)]
 enum ResultSlot {
@@ -41,6 +42,10 @@ impl FrameListener for Recorder {
 #[async_trait::async_trait]
 impl HostTransport for Recorder {
     async fn send(&self, request: Vec<u8>) -> Result<Option<Vec<u8>>, CoreError> {
+        self.delivered_at_send
+            .lock()
+            .unwrap()
+            .push(self.frames.lock().unwrap().len());
         self.requests.lock().unwrap().push(request);
         match &*self.reply.lock().unwrap() {
             ResultSlot::Handoff => Ok(None),
@@ -100,6 +105,14 @@ async fn local_numbers(ctx: &Context, event: Interaction<(), Vec<u32>>) -> Actio
     Ok(())
 }
 
+#[action(host)]
+async fn relay(ctx: &Context, event: Interaction<()>) -> ActionResult {
+    ctx.receiver()
+        .render_op(ops::set_text(event.node_id, "Sending"));
+    ctx.trigger_structured(&event.input_value, &[3_u32, 7])
+        .await
+}
+
 fn core(host: Option<Arc<dyn HostTransport>>) -> (Ctx, Arc<NativeCore>) {
     let ctx = Ctx::host();
     install_state_signer(
@@ -109,6 +122,7 @@ fn core(host: Option<Arc<dyn HostTransport>>) -> (Ctx, Arc<NativeCore>) {
     let mut registry = ActionRegistry::new();
     registry.register(local).unwrap();
     registry.register(local_numbers).unwrap();
+    registry.register(relay).unwrap();
     registry.declare(None, "advertised", Scope::All).unwrap();
     registry
         .declare(Some(Origin::Host), "picker", Scope::Web)
@@ -551,21 +565,54 @@ async fn native_structured_submission_reaches_the_local_handler_and_the_selected
         .unwrap(),
     )
     .unwrap();
-    core.trigger_structured("server:save".into(), event(), json.clone())
+    core.set_frame_listener(host.clone());
+    *host.reply.lock().unwrap() = ResultSlot::Frame(COUNTER.to_vec());
+    let mut input = event();
+    input.value = "server:save".into();
+    let response = core
+        .trigger("host:relay".into(), input)
         .await
+        .unwrap()
         .unwrap();
-    let requests = host.requests.lock().unwrap();
-    assert_eq!(requests.len(), 1);
-    let received = read_frame(&requests[0], &WireLimits::default())
+    let response = read_frame(&response, &WireLimits::default()).unwrap();
+    assert!(response
+        .kind_as_frame_message()
         .unwrap()
-        .kind_as_frame_request()
+        .messages()
+        .into_iter()
+        .flatten()
+        .all(|msg| msg.control().is_none()));
+    assert_eq!(*host.delivered_at_send.lock().unwrap(), [1]);
+    {
+        let frames = host.frames.lock().unwrap();
+        assert_eq!(frames.len(), 2);
+        assert_eq!(frames[1], COUNTER);
+        let requests = host.requests.lock().unwrap();
+        assert_eq!(requests.len(), 1);
+        let received = read_frame(&requests[0], &WireLimits::default())
+            .unwrap()
+            .kind_as_frame_request()
+            .unwrap()
+            .action()
+            .unwrap()
+            .input()
+            .unwrap();
+        assert_eq!(received.json().unwrap().bytes(), json);
+        assert_eq!(received.value(), None);
+    }
+    *host.reply.lock().unwrap() = ResultSlot::Fail("offline".into());
+    let mut retry = event();
+    retry.value = "server:save".into();
+    let response = core
+        .trigger("host:relay".into(), retry)
+        .await
         .unwrap()
-        .action()
-        .unwrap()
-        .input()
         .unwrap();
-    assert_eq!(received.json().unwrap().bytes(), json);
-    assert_eq!(received.value(), None);
+    let frame = read_frame(&response, &WireLimits::default()).unwrap();
+    let messages = frame.kind_as_frame_message().unwrap().messages().unwrap();
+    let error = messages.get(0).control().unwrap().error().unwrap();
+    assert!(error.message().unwrap().contains("offline"));
+    assert_eq!(*host.delivered_at_send.lock().unwrap(), [1, 3]);
 }
 
 #[test]
@@ -577,5 +624,33 @@ fn foreign_callback_failures_reach_the_native_transport_caller() {
         CoreError::Transport {
             detail: "HTTP 503".into()
         }
+    );
+}
+
+#[valtron_test]
+async fn child_calls_deliver_host_updates_and_report_routing_failures() {
+    let (ctx, core) = core(None);
+    core.set_frame_listener(Arc::new(Recorder::default()));
+    let mut input = event();
+    input.value = "host:local_numbers".into();
+    core.trigger("host:relay".into(), input).await.unwrap();
+    assert_eq!(ctx.get::<Vec<u32>>().unwrap().as_slice(), [3, 7]);
+    let mut input = event();
+    input.value = "server:save".into();
+    let reply = core
+        .trigger("host:relay".into(), input)
+        .await
+        .unwrap()
+        .unwrap();
+    let frame = read_frame(&reply, &WireLimits::default()).unwrap();
+    let message = frame
+        .kind_as_frame_message()
+        .unwrap()
+        .messages()
+        .unwrap()
+        .get(0);
+    assert_eq!(
+        message.control().unwrap().error().unwrap().code(),
+        foundation_ui_wire::ErrorCode::UnavailableOrigin
     );
 }

@@ -6862,6 +6862,7 @@ dependencies = [
 name = "foundation_ui_runtime"
 version = "0.0.7"
 dependencies = [
+ "async-trait",
  "foundation_auth",
  "foundation_compact",
  "foundation_context",

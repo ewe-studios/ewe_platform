@@ -3,7 +3,7 @@
 mod host;
 
 use std::collections::BTreeSet;
-use std::sync::{Mutex, PoisonError};
+use std::sync::{Arc, Mutex, PoisonError};
 
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
@@ -17,12 +17,29 @@ use serde::Serialize;
 use super::{ActionError, ActionResult};
 use crate::state::sign_state;
 
+/// Routes a child call through the action manager for this view.
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
+pub trait ChildActionCaller: Send + Sync {
+    /// Submit a structured payload and deliver any immediate reply to the view.
+    ///
+    /// # Errors
+    /// Returns the routing, transport, or reply error.
+    async fn call(
+        &self,
+        reference: &str,
+        json: Vec<u8>,
+        preview: Vec<MessageT>,
+    ) -> Result<(), ActionError>;
+}
+
 /// Services, render target and output for one call.
 pub struct Context {
     inner: Ctx,
     surface: MountSurface,
     state_root: Option<u32>,
     is_action: bool,
+    pub(crate) child_caller: Option<Arc<dyn ChildActionCaller>>,
     receiver: ActionReceiver,
 }
 
@@ -41,6 +58,7 @@ impl Context {
             surface,
             state_root: None,
             is_action: false,
+            child_caller: None,
             receiver: ActionReceiver::default(),
         }
     }
@@ -53,8 +71,42 @@ impl Context {
             surface,
             state_root,
             is_action: true,
+            child_caller: None,
             receiver: ActionReceiver::default(),
         }
+    }
+
+    /// Publish queued view updates before calling the child with a new payload.
+    /// The child starts at the receiving view with no inherited component state.
+    ///
+    /// # Errors
+    /// Returns a routing, encoding, transport, or immediate reply error.
+    pub async fn trigger_structured<T: Serialize + ?Sized>(
+        &self,
+        reference: &str,
+        input: &T,
+    ) -> ActionResult {
+        let caller = self.child_caller.as_ref().ok_or_else(|| {
+            ErrorTrace::new(ActionError::new(
+                ErrorCode::UnavailableOrigin,
+                "This view has no action caller",
+            ))
+        })?;
+        let json = serde_json::to_vec(input).map_err(|cause| {
+            ErrorTrace::new(ActionError::new(ErrorCode::InvalidInput, cause.to_string()))
+        })?;
+        let items = std::mem::take(
+            &mut *self
+                .receiver
+                .items
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner),
+        );
+        let preview = prepare_messages(self.inner(), items)?;
+        caller
+            .call(reference, json, preview)
+            .await
+            .map_err(ErrorTrace::new)
     }
 
     pub(crate) fn is_action(&self) -> bool {

@@ -1222,3 +1222,13 @@ Todo uses the version four identifier from `foundation_compact`. The host entrop
 The backup converter and pending Add use the same constructor. Todo no longer needs `shared/id.rs`.
 Two identifier tests, four action tests, three backup tests, and three mobile Rust tests pass.
 The browser WebAssembly target passes its Cargo check. The next action change moves pending Add into the host submission action.
+
+## Typed child calls from native actions
+
+A native host handler can now call `ctx.trigger_structured("server:save", &input).await`.
+The framework publishes queued view updates before the send. It uses the screen's existing action manager and transport.
+Immediate replies reach the screen listener. A socket handoff can finish before a reply arrives.
+The handler receives routing and immediate transport errors through its Rust result.
+
+All 11 native core integration tests pass on macOS. The network application test and the browser compilation check also pass.
+Browser child dispatch and the shared Todo submission actions remain pending. The existing Todo send adapters still run.

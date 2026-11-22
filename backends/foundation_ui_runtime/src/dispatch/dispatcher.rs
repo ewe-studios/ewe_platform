@@ -8,7 +8,9 @@ use foundation_ui_wire::{
 };
 
 use super::{errors::Failure, Connection, Dispatcher};
-use crate::action::{invoke_action, prepare_messages, ActionRef, ErasedAction, LookupError};
+use crate::action::{
+    invoke_in_context, prepare_messages, ActionRef, Context, ErasedAction, LookupError,
+};
 
 pub(super) struct Admission {
     ack: u64,
@@ -89,7 +91,9 @@ impl Dispatcher {
         let result = match admission.selected {
             Ok((entry, request)) => {
                 let root = (self.target_lookup)(ctx, entry.name(), request.node_id);
-                invoke_action(ctx, entry.as_ref(), connection.surface(), root, request)
+                let mut call = Context::for_action(ctx.clone(), connection.surface(), root);
+                call.child_caller = self.child_caller.clone();
+                invoke_in_context(call, entry.as_ref(), request)
                     .await
                     .map_err(Failure::from)
                     .and_then(|items| {

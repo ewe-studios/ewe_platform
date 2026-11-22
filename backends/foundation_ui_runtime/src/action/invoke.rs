@@ -40,10 +40,19 @@ pub async fn invoke_action(
     state_root: Option<u32>,
     request: ActionRequestT,
 ) -> Result<Vec<ReceiverItem>, InvokeError> {
+    let call = Context::for_action(ctx.clone(), surface, state_root);
+    invoke_in_context(call, entry, request).await
+}
+
+pub(crate) async fn invoke_in_context(
+    call: Context,
+    entry: &dyn ErasedAction,
+    request: ActionRequestT,
+) -> Result<Vec<ReceiverItem>, InvokeError> {
     let state_body = request
         .state
         .as_deref()
-        .map(|signed| verify_state(ctx, signed))
+        .map(|signed| verify_state(call.inner(), signed))
         .transpose()
         .map_err(InvokeError::State)?;
     let input = request.input.unwrap_or_default();
@@ -58,12 +67,11 @@ pub async fn invoke_action(
                 return Err(InvokeError::Action(ErrorTrace::new(ActionError::new(
                     ErrorCode::InvalidInput,
                     "The event supplied two input encodings",
-                ))))
+                ))));
             }
         },
         state_body,
     };
-    let call = Context::for_action(ctx.clone(), surface, state_root);
     entry
         .call_raw(&call, event)
         .await

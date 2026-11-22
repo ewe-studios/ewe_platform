@@ -124,9 +124,24 @@ pub fn client_manager(
     caps: &ClientCaps,
     writer: &WriterConfig,
 ) -> ActionManager {
-    let dispatcher = DispatcherBuilder::new(Origin::Host, registry.clone())
-        .writer_config(writer.clone())
-        .build();
+    client_manager_with_caller(ctx, registry, caps, writer, None)
+}
+
+/// Build a manager with an optional service for calls from host handlers.
+#[must_use]
+pub fn client_manager_with_caller(
+    ctx: Ctx,
+    registry: Arc<ActionRegistry>,
+    caps: &ClientCaps,
+    writer: &WriterConfig,
+    caller: Option<Arc<dyn crate::action::ChildActionCaller>>,
+) -> ActionManager {
+    let mut builder =
+        DispatcherBuilder::new(Origin::Host, registry.clone()).writer_config(writer.clone());
+    if let Some(caller) = caller {
+        builder = builder.child_caller(caller);
+    }
+    let dispatcher = builder.build();
     let connection = Connection::stateless(caps.clone(), caps.mount, 0);
     ActionManager::new(registry, caps.mount, 0, *writer.wire_limits())
         .with_host(Arc::new(LocalDispatcher::new(dispatcher, ctx, connection)))
