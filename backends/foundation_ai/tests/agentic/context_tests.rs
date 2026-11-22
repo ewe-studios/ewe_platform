@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Public-API coverage for `ContextProvider::assemble_from_memory` — the
 //! Decision-03 context assembly order (matrix 6.1/6.2). Deterministic; the
 //! in-memory stores resolve at once, so each test drives the async calls with

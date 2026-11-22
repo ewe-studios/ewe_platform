@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Spec 70 feature 41 — the static file handler writes every byte once, in
 //! order, and does not hold a worker while a slow client downloads.
 //!
@@ -259,6 +262,32 @@ fn static_file_large_body_is_byte_exact() {
         sha256(&data),
         "body differs from the file (duplicated or missing bytes)"
     );
+    h.stop();
+}
+
+/// A `.mjs` file is served with a JavaScript MIME type. Chrome refuses a
+/// module script that carries any other type (spec 88, issue #578).
+#[test]
+#[foundation_macros::timeout(30_000)]
+#[serial(http_test)]
+fn static_file_serves_mjs_as_a_module_script() {
+    let _pool = initialize_pool(300, Some(2));
+    let dir = TempDir::new("mjs");
+    std::fs::write(dir.path().join("app.mjs"), b"export const x = 1;\n").expect("write file");
+    let h = start_server(dir.path(), StaticFileConfig::new());
+
+    let mut stream = TcpStream::connect(h.addr).expect("connect");
+    let (head, _body) = request_head(&mut stream, "/app.mjs");
+    assert!(head.starts_with("HTTP/1.1 200"), "head: {head:?}");
+    let content_type = head
+        .lines()
+        .find_map(|l| {
+            let (k, v) = l.split_once(':')?;
+            k.eq_ignore_ascii_case("content-type")
+                .then(|| v.trim().to_string())
+        })
+        .unwrap_or_else(|| panic!("no Content-Type in head: {head:?}"));
+    assert_eq!(content_type, "text/javascript", "head: {head:?}");
     h.stop();
 }
 
@@ -642,8 +671,8 @@ fn mjs_file_is_served_as_javascript() {
         })
         .unwrap_or_else(|| panic!("no Content-Type in head: {head:?}"));
     assert!(
-        content_type.starts_with("application/javascript"),
-        ".mjs content type was {content_type:?}, expected application/javascript"
+        content_type.starts_with("text/javascript"),
+        ".mjs content type was {content_type:?}, expected text/javascript"
     );
     h.stop();
 }

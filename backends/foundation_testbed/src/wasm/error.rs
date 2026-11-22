@@ -54,6 +54,15 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     WasmBinaryNotFound(String),
 
+    #[display(
+        "more than one wasm test artifact carries `__wbgt_` exports:\n{candidates:?}\n{hint}"
+    )]
+    #[error(ignore)]
+    AmbiguousTestArtifact {
+        candidates: Vec<std::path::PathBuf>,
+        hint: String,
+    },
+
     // --- wasm.rs ---
     #[display(
         "wasm-bindgen not found on PATH.\n\
@@ -108,9 +117,31 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     MissingTool { tool: String, why: String },
 
-    #[display("owned harness run failed with exit code {_0}")]
+    #[display(
+        "browser 'chromium' not found — searched {searched:?}.\n\
+        Install it with `mise run test:browsers:chromium` or set PRIMAL_TEST_CHROMIUM_BIN."
+    )]
     #[error(ignore)]
-    OwnedRunFailed(i32),
+    MissingBrowser { searched: Vec<std::path::PathBuf> },
+
+    #[display("test result: {failed} case(s) failed across the run\n{output}")]
+    #[error(ignore)]
+    CaseFailures { failed: usize, output: String },
+
+    #[display(
+        "the run printed no `test result:` summary, so the verdict is unknown.\n\
+        Output:\n{_0}"
+    )]
+    #[error(ignore)]
+    MissingTestSummary(String),
+
+    #[display("the exit code and the summary disagree: exit code {exit_code}, summary `{summary}`")]
+    #[error(ignore)]
+    VerdictMismatch { exit_code: i32, summary: String },
+
+    #[display("owned harness run failed with exit code {exit_code}.\nOutput:\n{output}")]
+    #[error(ignore)]
+    OwnedRunFailed { exit_code: i32, output: String },
 
     // --- wasi_runner.rs ---
     #[display("WASI runner requires --target wasip1 or wasip2, got {_0}")]

@@ -334,7 +334,25 @@ jobs:
           EWE_REQUIRE_PTRACE: "1"
         run: cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
+      - name: Cache the pinned Chromium build
+        # Spec 88 T8. The task installs `chrome-headless-shell` into this
+        # directory; later runs restore it instead of downloading it again.
+        if: matrix.package == 'wasm-tests'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/foundation/chromium
+          key: chromium-${{ runner.os }}-157.0.8103.51
+
+      - name: Install Chromium when the image has none
+        # The Linux image links Google Chrome on PATH, so the task prints that
+        # path and downloads nothing. The cache covers a runner that lost it.
+        if: matrix.package == 'wasm-tests'
+        run: mise run test:browsers:chromium
+
       - name: test
+        env:
+          # The CDP wire trace only on a manual run (spec 88 T8).
+          PRIMAL_CDP_TRACE: ${{ matrix.package == 'wasm-tests' && github.event_name == 'workflow_dispatch' && '1' || '' }}
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
@@ -567,6 +585,49 @@ jobs:
           fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
+      - name: Install the pinned protoc
+        # The build script of foundation_agent_rpc runs protoc. The Linux CI
+        # image pins 36.2 (ci/platform-images/mise/mise.toml). The hosted
+        # macOS and Windows runners have no protoc, so the build failed there
+        # (#599). The asset and the checksum are the same as in mise.lock.
+        shell: bash
+        run: |
+          version=36.2
+          case "$(uname -s)-$(uname -m)" in
+            Darwin-arm64)  asset="osx-aarch_64"; sha="9cd98a532c5c5e0c4161314de0225de27e4c8a323917b6ea7b1b714d3ae23466" ;;
+            Darwin-x86_64) asset="osx-x86_64"; sha="228cc7add4616cc14ca5e80dee83209d44449a7aee95a914ae748fa374efb078" ;;
+            MINGW*-x86_64) asset="win64"; sha="f0c128dc0d8492eceece83bb459a4c0e316764b929ffbf1aa416357fd644edd3" ;;
+            *)
+              echo "::error::no pinned protoc $version asset for $(uname -s)-$(uname -m)"
+              exit 1
+              ;;
+          esac
+          # cygpath -m gives a path that both bash and the native Windows
+          # Python read.
+          if command -v cygpath >/dev/null 2>&1; then
+            dir="$(cygpath -m "$RUNNER_TEMP")/protoc-$version"
+          else
+            dir="$RUNNER_TEMP/protoc-$version"
+          fi
+          mkdir -p "$dir"
+          curl -sSL -o "$dir/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$version/protoc-$version-$asset.zip"
+          if command -v sha256sum >/dev/null 2>&1; then
+            echo "$sha  $dir/protoc.zip" | sha256sum -c -
+          else
+            echo "$sha  $dir/protoc.zip" | shasum -a 256 -c -
+          fi
+          python=$(command -v python3 || command -v python)
+          "$python" -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$dir/protoc.zip" "$dir"
+          # A zip file does not record the executable bit.
+          chmod +x "$dir"/bin/protoc*
+          "$dir/bin/protoc" --version
+          echo "$dir/bin" >> "$GITHUB_PATH"
+
+      - name: Install the wasm32 target
+        # The owned browser suite builds a wasm module (spec 88 T8). The
+        # command is a no-op when the target is present.
+        run: rustup target add wasm32-unknown-unknown
+
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
         with:
@@ -658,6 +719,44 @@ jobs:
             rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
           fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Install the pinned protoc
+        # The build script of foundation_agent_rpc runs protoc. The Linux CI
+        # image pins 36.2 (ci/platform-images/mise/mise.toml). The hosted
+        # macOS and Windows runners have no protoc, so the build failed there
+        # (#599). The asset and the checksum are the same as in mise.lock.
+        shell: bash
+        run: |
+          version=36.2
+          case "$(uname -s)-$(uname -m)" in
+            Darwin-arm64)  asset="osx-aarch_64"; sha="9cd98a532c5c5e0c4161314de0225de27e4c8a323917b6ea7b1b714d3ae23466" ;;
+            Darwin-x86_64) asset="osx-x86_64"; sha="228cc7add4616cc14ca5e80dee83209d44449a7aee95a914ae748fa374efb078" ;;
+            MINGW*-x86_64) asset="win64"; sha="f0c128dc0d8492eceece83bb459a4c0e316764b929ffbf1aa416357fd644edd3" ;;
+            *)
+              echo "::error::no pinned protoc $version asset for $(uname -s)-$(uname -m)"
+              exit 1
+              ;;
+          esac
+          # cygpath -m gives a path that both bash and the native Windows
+          # Python read.
+          if command -v cygpath >/dev/null 2>&1; then
+            dir="$(cygpath -m "$RUNNER_TEMP")/protoc-$version"
+          else
+            dir="$RUNNER_TEMP/protoc-$version"
+          fi
+          mkdir -p "$dir"
+          curl -sSL -o "$dir/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$version/protoc-$version-$asset.zip"
+          if command -v sha256sum >/dev/null 2>&1; then
+            echo "$sha  $dir/protoc.zip" | sha256sum -c -
+          else
+            echo "$sha  $dir/protoc.zip" | shasum -a 256 -c -
+          fi
+          python=$(command -v python3 || command -v python)
+          "$python" -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$dir/protoc.zip" "$dir"
+          # A zip file does not record the executable bit.
+          chmod +x "$dir"/bin/protoc*
+          "$dir/bin/protoc" --version
+          echo "$dir/bin" >> "$GITHUB_PATH"
 
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
@@ -823,6 +922,44 @@ jobs:
         env:
           MISE_LOCKED: "1"
         run: mise run toolchain:android-build
+
+      - name: Install the pinned protoc
+        # The build script of foundation_agent_rpc runs protoc. The Linux CI
+        # image pins 36.2 (ci/platform-images/mise/mise.toml). The hosted
+        # macOS and Windows runners have no protoc, so the build failed there
+        # (#599). The asset and the checksum are the same as in mise.lock.
+        shell: bash
+        run: |
+          version=36.2
+          case "$(uname -s)-$(uname -m)" in
+            Darwin-arm64)  asset="osx-aarch_64"; sha="9cd98a532c5c5e0c4161314de0225de27e4c8a323917b6ea7b1b714d3ae23466" ;;
+            Darwin-x86_64) asset="osx-x86_64"; sha="228cc7add4616cc14ca5e80dee83209d44449a7aee95a914ae748fa374efb078" ;;
+            MINGW*-x86_64) asset="win64"; sha="f0c128dc0d8492eceece83bb459a4c0e316764b929ffbf1aa416357fd644edd3" ;;
+            *)
+              echo "::error::no pinned protoc $version asset for $(uname -s)-$(uname -m)"
+              exit 1
+              ;;
+          esac
+          # cygpath -m gives a path that both bash and the native Windows
+          # Python read.
+          if command -v cygpath >/dev/null 2>&1; then
+            dir="$(cygpath -m "$RUNNER_TEMP")/protoc-$version"
+          else
+            dir="$RUNNER_TEMP/protoc-$version"
+          fi
+          mkdir -p "$dir"
+          curl -sSL -o "$dir/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$version/protoc-$version-$asset.zip"
+          if command -v sha256sum >/dev/null 2>&1; then
+            echo "$sha  $dir/protoc.zip" | sha256sum -c -
+          else
+            echo "$sha  $dir/protoc.zip" | shasum -a 256 -c -
+          fi
+          python=$(command -v python3 || command -v python)
+          "$python" -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$dir/protoc.zip" "$dir"
+          # A zip file does not record the executable bit.
+          chmod +x "$dir"/bin/protoc*
+          "$dir/bin/protoc" --version
+          echo "$dir/bin" >> "$GITHUB_PATH"
 
       - name: Cache
         uses: Swatinem/rust-cache@v2

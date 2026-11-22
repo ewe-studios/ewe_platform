@@ -1,25 +1,26 @@
 ---
 feature: "Executors"
 description: "Repair and complete the five wasm test executors: the browser host on Linux and macOS, the wasm-bindgen verdict, a local endpoint per host, a wrangler filter, and a CI step that runs all of them on every pull request."
-status: "todo"
+status: "in progress"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-15
+last_updated: 2026-11-16
 author: "Main Agent"
 model: "sonnet"
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 8
+  uncompleted: 1
+  total: 9
+  completion_percentage: 89%
 ---
 
 # Executors
 
-_Status: **todo**, the first feature of spec 88. Written in ASD-STE100 Simplified Technical
-English (STE). Code and identifiers stay as they are._
+_Status: **in progress** on branch `spec/88-executors`: T1 to T8 passed the review on
+2026-11-16, and the owner lifted #586 into T9 on the same day; the first feature of spec 88. Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay
+as they are._
 
 **Abbreviations in this file.** Chrome DevTools Protocol (CDP); continuous integration (CI);
 operating system (OS); application programming interface (API); Chrome for Testing (CfT);
@@ -242,6 +243,7 @@ Scenario: A closed CDP connection fails the next call at once
 | T6 | Give every host a local endpoint and a base URL | `src/wasm/server.rs`, `src/wasm/fwt_runner.rs`, `templates/fwt/runner.mjs`, `templates/bindgen-deno/run.js`, `templates/bindgen-web/run.js`, `templates/bindgen-wrangler/worker.js` | a case on each host gets 200 from `__FWT_BASE_URL__/echo` |
 | T7 | Add `--filter` to the wrangler runner; fail on more than one test artifact; fix the stale comments (#571, #574) | `bin/wasm-testbed.rs:174-195,313-380`, `src/wasm/build.rs:155-210`, `src/wasm/bindgen_runner.rs:1-14`, `integration/wasm_tests/Cargo.toml:1-4` | `--filter passes` runs one case; two candidate artifacts fail with both names |
 | T8 | CI: the five runners in `wasm-tests`, the negative fixture, the macOS browser job, the cache, the timeout and env | `scripts/ci/ci.py:737-780`, `ci/packages.toml:661-678`, `.github/workflows/check.yaml` | one pull request runs all five; the macOS job runs the browser suite; a failing fixture turns CI red |
+| T9 | Diagnose and fix the Chromium start trap of the `foundation_core` wasm-bindgen module (#586), so the `dual!` cases run in the web executor | `backends/foundation_core/tests/valtron/*` (only if a case is the cause), `backends/foundation_testbed/src/wasm/`, `backends/foundation_wasm/runtime/foundation-wasm.js` | `wasm-testbed test bindgen-web backends/foundation_core` prints `test result: ok`, and the `wasm-tests` web step names that module |
 
 Order: T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8. T5 and T6 are independent of T4. T8 is last
 because it names the tasks the earlier tasks create.
@@ -498,7 +500,62 @@ nightly schedule and a manual run. A normal pull request runs the Linux jobs onl
 Windows stays out: no `wrangler` and no Deno in the Windows runner's tool set. Record the
 reason (#-named in `ci/packages.toml`), as rule 15 requires.
 
-### 6.10 Fault table
+### 6.10 T9: the Chromium start trap (#586)
+
+**Measured.** `wasm-testbed test bindgen-web backends/foundation_core` printed
+`RuntimeError: unreachable` while the module started. No case ran, so the page printed no
+`test result` line (`LEARNINGS.md` entry 14). The same module ran 19 cases on Deno through
+`test bindgen-deno`, so the case code is sound. Chrome for Testing 157.0.8103.51 traps inside
+the wasm-bindgen start function.
+
+**Cause and fix (2026-11-16).** The wasm-bindgen CLI writes `wasm.__wbindgen_start();` into
+the web glue. In a test binary that start is libtest's `main`. The harness runs the plain
+`#[test]` cases. `io::buffer_pool_tests::test_concurrent_access` calls `std::thread::spawn`,
+which is not supported on wasm, and panics. The module aborts before the first
+`#[wasm_bindgen_test]` case. The Deno runner already removed the call; the web runner did not.
+`wasm::patch_bindgen_glue` now removes the call for web, deno and wrangler, and it keeps the
+externref table setup. Measured after the fix: `test result: ok. 34 passed`.
+
+**Where to look, in this order.**
+
+1. **The generated glue.** wasm-bindgen 0.2.126's `__wbindgen_start` walks the heap, the
+   descriptor table and the externref table. A glue file from another version traps at once.
+2. **The page template.** `templates/bindgen-web/run.js` builds the import object. Check that
+   it passes the imports the glue asks for, and that it awaits the async instantiate.
+3. **A valtron start path.** The pool starts on the first `#[valtron_bindgen]` case. A panic
+   inside a wasm re-entrant call also shows as `unreachable`.
+
+**Method.** Set `PRIMAL_CDP_TRACE=1` and read the page console. `RuntimeError: unreachable`
+alone does not name the function. A probe module with one `#[wasm_bindgen_test] fn ok() {}`
+separates the two families: it traps as well for a glue or template defect, and it passes for
+a valtron defect.
+
+**Rules.**
+
+- Every fix keeps the Deno run green (`test:wasm-bindgen:core`).
+- A defect outside the owned paths becomes an issue with a severity; a high one is fixed here.
+- The fix does not gate a case with `#[ignore]`. An ignored case is a false green.
+
+**Done when.**
+
+- `wasm-testbed test bindgen-web backends/foundation_core` prints `test result: ok` with the
+  module's case count.
+- The `wasm-tests` web step names `backends/foundation_core`; the fixture keeps the
+  `bindgen-fails` step that proves a failure turns the run red.
+- Issue #586 is closed with the cause in `LEARNINGS.md`.
+
+**Verify.**
+
+```bash
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat \
+  --bin wasm-testbed -- test bindgen-web backends/foundation_core \
+  --features js-wasmbindgen,std --headless
+MISE_ENV=wasm mise run test:wasm-bindgen:web
+MISE_ENV=wasm mise run test:wasm-bindgen:core
+MISE_ENV=wasm mise run test:wasm-testbed:bindgen-fails
+```
+
+### 6.11 Fault table
 
 | Step that fails | What the runner does | What the contributor sees | What is left behind |
 |---|---|---|---|

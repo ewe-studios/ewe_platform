@@ -557,15 +557,19 @@ fn keyword_score(text: &str, query_lower: &str) -> Option<f32> {
 }
 
 fn memory_record_to_message(record: &SessionRecord, label: &str) -> Option<Messages> {
-    let text = match record {
-        SessionRecord::WorkingMemory { facts, .. } => {
+    // Use the memory record's own id. It is deterministic and it ties the
+    // injected message to the record it summarizes, so a replay repeats it.
+    let (text, id) = match record {
+        SessionRecord::WorkingMemory { id, facts, .. } => {
             let lines: Vec<String> = facts.iter().map(|f| format!("- {}", f.fact)).collect();
             if lines.is_empty() {
                 return None;
             }
-            format!("[{label}]\n{}", lines.join("\n"))
+            (format!("[{label}]\n{}", lines.join("\n")), *id)
         }
-        SessionRecord::Observation { observations, .. } => {
+        SessionRecord::Observation {
+            id, observations, ..
+        } => {
             let lines: Vec<String> = observations
                 .iter()
                 .map(|o| format!("- {}", o.content))
@@ -573,20 +577,22 @@ fn memory_record_to_message(record: &SessionRecord, label: &str) -> Option<Messa
             if lines.is_empty() {
                 return None;
             }
-            format!("[{label}]\n{}", lines.join("\n"))
+            (format!("[{label}]\n{}", lines.join("\n")), *id)
         }
-        SessionRecord::Reflection { reflections, .. } => {
+        SessionRecord::Reflection {
+            id, reflections, ..
+        } => {
             let lines: Vec<String> = reflections.iter().map(|r| r.summary.clone()).collect();
             if lines.is_empty() {
                 return None;
             }
-            format!("[{label}]\n{}", lines.join("\n"))
+            (format!("[{label}]\n{}", lines.join("\n")), *id)
         }
         _ => return None,
     };
 
     Some(Messages::User {
-        id: foundation_compact::ids::new_scru128(),
+        id,
         role: MessageRole::System,
         content: UserModelContent::Text(TextContent {
             content: text,

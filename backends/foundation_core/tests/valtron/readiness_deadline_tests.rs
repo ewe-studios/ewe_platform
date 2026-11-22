@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! A task parked on a readiness that carries a deadline wakes at that deadline
 //! (spec 70 feature 75, E1).
 //!

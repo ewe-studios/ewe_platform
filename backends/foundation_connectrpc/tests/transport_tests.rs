@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Transport-seam tests (spec-41 F17 / Decision 11): capability matching, client
 //! end-of-stream semantics, cancel-woken parked receive, and a bidi deadlock
 //! stress test over split conn halves at depth 4.

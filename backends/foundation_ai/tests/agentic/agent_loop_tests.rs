@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 use std::sync::Arc;
 
 use foundation_ai::agentic::internals::{
@@ -16,6 +19,14 @@ use foundation_ai::types::{
 use foundation_context::Ctx;
 use foundation_core::valtron::{EventQueue, TaskIterator, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+/// A context with the seeded effect environment that the agent loop needs.
+fn effect_ctx() -> foundation_context::Ctx {
+    let ctx = foundation_context::Ctx::host();
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
+}
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -65,9 +76,14 @@ fn build_harness(config: AgentConfig) -> TestHarness {
         coordinator,
         ledger.clone(),
         MemoryConfig::default(),
-        foundation_context::Ctx::fixed(std::sync::Arc::new(
-            foundation_context::MonotonicClock::new(),
-        )),
+        {
+            let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            ));
+            foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+                .expect("a seeded effect environment");
+            ctx
+        },
     );
 
     let router = ProviderRouter::builder().build();
@@ -141,12 +157,12 @@ fn full_lifecycle_no_messages() {
     let mut h = default_harness();
 
     // Init
-    let s1 = h.agent.next_status(Ctx::host());
+    let s1 = h.agent.next_status(effect_ctx());
     assert!(matches!(s1, Some(TaskStatus::Init)));
     assert_eq!(h.agent.state_label(), "outer_boundary");
 
     // OuterBoundary — empty queues → Ending
-    let s2 = h.agent.next_status(Ctx::host());
+    let s2 = h.agent.next_status(effect_ctx());
     assert!(matches!(
         s2,
         Some(TaskStatus::Pending(AgentProgress::SessionEnding))
@@ -154,7 +170,7 @@ fn full_lifecycle_no_messages() {
     assert_eq!(h.agent.state_label(), "ending");
 
     // Ending → Summary
-    let s3 = h.agent.next_status(Ctx::host());
+    let s3 = h.agent.next_status(effect_ctx());
     assert!(matches!(
         s3,
         Some(TaskStatus::Ready(SessionRecord::Summary { .. }))
@@ -162,7 +178,7 @@ fn full_lifecycle_no_messages() {
     assert_eq!(h.agent.state_label(), "done");
 
     // Done → None
-    assert!(h.agent.next_status(Ctx::host()).is_none());
+    assert!(h.agent.next_status(effect_ctx()).is_none());
 }
 
 // ---------------------------------------------------------------------------
@@ -174,14 +190,14 @@ fn follow_up_message_triggers_inner_loop() {
 
     // Skip Init.
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
 
     // Inject a follow-up before polling OuterBoundary.
     inject_follow_up(&h, make_user_msg("hello"));
 
-    let status = h.agent.next_status(Ctx::host());
+    let status = h.agent.next_status(effect_ctx());
     match status {
         Some(TaskStatus::Pending(AgentProgress::Steering { source })) => {
             assert!(source.contains("follow_up"));
@@ -198,14 +214,14 @@ fn follow_up_message_triggers_inner_loop() {
 fn priority_preempts_follow_up() {
     let mut h = default_harness();
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
 
     inject_follow_up(&h, make_user_msg("follow-up"));
     inject_priority(&h, make_system_msg("urgent"));
 
-    let status = h.agent.next_status(Ctx::host());
+    let status = h.agent.next_status(effect_ctx());
     match status {
         Some(TaskStatus::Pending(AgentProgress::Steering { source })) => {
             assert!(source.contains("priority"));
@@ -226,18 +242,18 @@ fn max_outer_iterations_ends_session() {
 
     // Init → OuterBoundary (iteration 1 — at max)
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
 
     // Inject a message so we enter the inner loop
     inject_follow_up(&h, make_user_msg("go"));
-    let _ = h.agent.next_status(Ctx::host()); // Steering → inner_assemble
+    let _ = h.agent.next_status(effect_ctx()); // Steering → inner_assemble
 
     // The inner_assemble will fail on router (no provider registered),
     // which triggers handle_error → Terminate since there's no fallback.
     // That puts us in Ending.
-    let s = h.agent.next_status(Ctx::host());
+    let s = h.agent.next_status(effect_ctx());
 
     // After error we're in ending. Drive to summary.
     // We may get FailedAction or SessionEnding depending on the error path.
@@ -245,16 +261,16 @@ fn max_outer_iterations_ends_session() {
     let mut reached_done = false;
     // Process up to 5 more statuses to reach Done.
     if matches!(s, Some(TaskStatus::Ready(SessionRecord::Summary { .. }))) {
-        reached_done = h.agent.next_status(Ctx::host()).is_none();
+        reached_done = h.agent.next_status(effect_ctx()).is_none();
     } else {
         for _ in 0..5 {
-            match h.agent.next_status(Ctx::host()) {
+            match h.agent.next_status(effect_ctx()) {
                 None => {
                     reached_done = true;
                     break;
                 }
                 Some(TaskStatus::Ready(SessionRecord::Summary { .. })) => {
-                    reached_done = h.agent.next_status(Ctx::host()).is_none();
+                    reached_done = h.agent.next_status(effect_ctx()).is_none();
                     break;
                 }
                 _ => {}
@@ -289,16 +305,16 @@ fn budget_exhaustion_terminates() {
 
     // Init → OuterBoundary
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
 
     // Inject a message to enter inner loop.
     inject_follow_up(&h, make_user_msg("hello"));
-    let _ = h.agent.next_status(Ctx::host()); // Steering → InnerAssemble
+    let _ = h.agent.next_status(effect_ctx()); // Steering → InnerAssemble
 
     // InnerAssemble detects exhausted budget.
-    let status = h.agent.next_status(Ctx::host());
+    let status = h.agent.next_status(effect_ctx());
     match status {
         Some(TaskStatus::Ready(SessionRecord::FailedAction { error, .. })) => {
             assert!(
@@ -337,7 +353,7 @@ fn push_user_message_feeds_pending_messages() {
 
     // Init
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
 
@@ -345,7 +361,7 @@ fn push_user_message_feeds_pending_messages() {
     h.agent.push_user_message(make_user_msg("via push"));
     inject_follow_up(&h, make_user_msg("trigger"));
 
-    let status = h.agent.next_status(Ctx::host());
+    let status = h.agent.next_status(effect_ctx());
     // Should enter inner loop (follow-up triggers steering).
     assert!(matches!(
         status,
@@ -366,13 +382,13 @@ fn second_follow_up_triggers_second_outer_iteration() {
 
     // Init
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
 
     // First follow-up → inner loop
     inject_follow_up(&h, make_user_msg("first"));
-    let s = h.agent.next_status(Ctx::host());
+    let s = h.agent.next_status(effect_ctx());
     assert!(matches!(
         s,
         Some(TaskStatus::Pending(AgentProgress::Steering { .. }))
@@ -392,20 +408,20 @@ fn done_is_terminal() {
 
     // Drive to Done.
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Init)
     ));
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Pending(AgentProgress::SessionEnding))
     ));
     assert!(matches!(
-        h.agent.next_status(Ctx::host()),
+        h.agent.next_status(effect_ctx()),
         Some(TaskStatus::Ready(SessionRecord::Summary { .. }))
     ));
 
     // Multiple calls to Done all return None.
-    assert!(h.agent.next_status(Ctx::host()).is_none());
-    assert!(h.agent.next_status(Ctx::host()).is_none());
-    assert!(h.agent.next_status(Ctx::host()).is_none());
+    assert!(h.agent.next_status(effect_ctx()).is_none());
+    assert!(h.agent.next_status(effect_ctx()).is_none());
+    assert!(h.agent.next_status(effect_ctx()).is_none());
 }

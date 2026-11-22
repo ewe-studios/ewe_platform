@@ -19,9 +19,6 @@ pub mod traits;
 #[cfg(feature = "vfs-search")]
 pub mod search;
 
-#[cfg(feature = "vfs-arrow")]
-pub mod arrow;
-
 #[cfg(all(
     feature = "vfs-ipc",
     any(target_os = "linux", target_os = "macos", target_os = "windows")

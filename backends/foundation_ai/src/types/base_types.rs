@@ -1071,6 +1071,10 @@ pub enum Messages {
 
 /// Default for the additive `Messages.id` field: mint a fresh scru128 id when
 /// deserializing legacy fixtures that predate per-message ids.
+///
+/// A serde default has no `Ctx` and no `Env`. Issue #677 tracks the effect
+/// injection for every remaining direct call.
+#[allow(clippy::disallowed_methods)]
 fn fresh_message_id() -> foundation_compact::ids::Id {
     foundation_compact::ids::new_scru128()
 }
@@ -1096,8 +1100,12 @@ impl Messages {
     }
 
     fn text_with_role(role: MessageRole, text: impl Into<String>) -> Self {
+        // A message constructor has no `Ctx`; issue #677 tracks the effect
+        // injection for this path.
+        #[allow(clippy::disallowed_methods)]
+        let id = foundation_compact::ids::new_scru128();
         Messages::User {
-            id: foundation_compact::ids::new_scru128(),
+            id,
             role,
             content: UserModelContent::Text(TextContent {
                 content: text.into(),
@@ -1316,8 +1324,7 @@ impl Tool {
             schema
                 .get("properties")
                 .and_then(serde_json::Value::as_object)
-                .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
-                .unwrap_or_default()
+                .map_or_default(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
         }
         match self {
             Tool::SingleCommand(d) => prop_keys(&d.arguments.schema),

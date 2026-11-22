@@ -1,9 +1,10 @@
-//! F52: `wasm-testbed browser <crate>` — end-to-end wasm-bindgen browser tests.
+//! `wasm-testbed test bindgen-web <crate>` — end-to-end wasm-bindgen browser
+//! tests. The top-level `browser` subcommand runs the owned harness, not this
+//! runner.
 //!
-//! WHY: The `test bindgen-web` sub-mode was buried under the `test` command and
-//! required the user to know about `Mode::BindgenWeb`. This runner lifts that
-//! logic into a top-level `browser` subcommand, matching the `deno`/`web`
-//! command shape, for a single-command developer experience.
+//! WHY: A crate that imports wasm-bindgen glue cannot run on the owned harness
+//! (spec 88 section 2.7), so its cases need a real browser page and the
+//! wasm-bindgen output.
 //!
 //! WHAT: build → wasm-bindgen → discover tests → stage harness → serve →
 //! Chromium → poll for results.
@@ -130,6 +131,12 @@ pub fn run_bindgen(args: &BindgenArgs, ctx: &Ctx) -> Result<RunOutcome> {
         Some(&built.package_name),
     )?;
 
+    // The glue's `init` returns the exports, so no extra export is needed. Its
+    // start call must go: that start is libtest's `main`, which aborts the
+    // module before a case runs (see `wasm::patch_bindgen_glue`).
+    let js_file = staging_path.join(format!("{}.js", built.package_name));
+    wasm::patch_bindgen_glue(&js_file, false)?;
+
     // 2b. index.html (the page the browser loads)
     init::write_template_to("bindgen-web/index.html", &built.package_name, &staging_path)?;
 
@@ -157,7 +164,13 @@ pub fn run_bindgen(args: &BindgenArgs, ctx: &Ctx) -> Result<RunOutcome> {
     let url = serving.url("index.html");
     info!("serving at {url}");
 
-    let output = browser::run(&url, &crate::wasm::cli::Browser::Chrome, args.headless, ctx)?;
+    let output = browser::run(
+        &url,
+        &crate::wasm::cli::Browser::Chrome,
+        args.headless,
+        ctx,
+        &browser::BrowserRunLimits::default(),
+    )?;
     serving.shutdown();
 
     let exit_code = i32::from(!output.test_result.contains("test result: ok"));

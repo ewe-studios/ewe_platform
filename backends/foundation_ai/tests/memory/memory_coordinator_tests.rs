@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `MemoryCoordinator` integration tests (F07): dual-write to the audit
 //! `DocumentStore` + the latest-memory cache, and the cache-miss fallback that
 //! rebuilds from the audit log.

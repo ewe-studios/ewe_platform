@@ -74,3 +74,59 @@ test: `foundation_core` depends on `foundation_context`, and the `ValtronTimer` 
 The timer trait must be in a crate below `foundation_core`. `foundation_context` already sits
 there, already depends on `foundation_compact`, and already holds the clock. One crate is
 simpler than two.
+
+## A simulated clock at the epoch gives timestamp zero (2026-11-22)
+
+The scru128 generator rejects timestamp 0. A simulated clock can start at the UNIX epoch, so
+the `TimeSource` adapter in `Scru128Source` clamps the millisecond value to 1. Without the
+clamp, the first `next_id` panics in every deterministic simulation.
+
+## The wasm timer needs `SendWrapper` (2026-11-22)
+
+`Timer::sleep_until` returns `TimerFuture`, which is `Send` on every target. The
+single-threaded valtron sleep task is `!Send`, so the wasm build of `ValtronTimer` wraps that
+future in `foundation_compact::SendWrapper`. This is sound only on single-threaded wasm, which
+is the same rule that the existing wasm stores use (spec 84, section 6.6). `sleep_until_async`
+must exist in both executor builds for the same reason.
+
+## The wasm lock type differs from `std` (2026-11-22)
+
+`std::sync::PoisonError::into_inner` does not accept the `foundation_nostd` poison error. Use
+an inferred closure, `unwrap_or_else(|poisoned| poisoned.into_inner())`, so one line compiles
+on native and on wasm.
+
+## The `env =` macro argument is an expression (2026-11-22)
+
+Requirement 5.6 says `env = name` inserts `let name = ctx.require_env()?;`. The same design in
+specs 82 and 83 and in `env.md` writes `env = Env::system()`. The expression form is the one
+that works for an entry point and for a test. The macro installs the value in the root `Ctx`.
+A test that gives no expression gets `simulated(ctx, seed)`, which is the "build from the
+seed" behaviour of the requirement. The binding form was not implemented.
+
+## A serde default cannot read the environment (2026-11-22)
+
+`fresh_message_id` and `fresh_record_id` fill an id for a legacy fixture during
+deserialization. A serde default has no `Ctx` and no `Env`. Until the id is recorded before
+serialization, these two functions keep the global generator and a scoped allowance. Issue
+#677 tracks the fix with the provider backends.
+
+## One version sweep must cover table-style dependencies (2026-11-22)
+
+Most crates write `name = { path = …, version = … }`. A few use
+`[dependencies.name]` with separate lines. A sweep that matches only the inline form leaves a
+broken requirement behind, and Cargo reports it as a version conflict. Search both forms when
+a crate version moves.
+
+## The test exemption cannot be a nested `clippy.toml` (2026-11-22)
+
+An integration test is part of its package, so Clippy reads the package
+`clippy.toml` for the test target too. A second `clippy.toml` under `tests/` has
+no effect. The exemption of section 6, item 2 is therefore a file-level
+`#![allow(clippy::disallowed_methods)]` with a comment in each test file that
+builds an effect on purpose. This matters because CI lints with `--all-targets`.
+
+## A missing `Env` is a `FailedAction` record in the agent loop (2026-11-22)
+
+`AgentLoop::next_status` returns `Option<TaskStatus>`, not a `Result`. A missing `Env` becomes
+an `AgenticError::Unexpected` that the loop turns into a `SessionRecord::FailedAction`, the
+same channel that a model error uses. It never falls back to a global ID.

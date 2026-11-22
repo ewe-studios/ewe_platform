@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Protocol detection reports a refusal that never reached the peer.
 //!
 //! WHY: the refusal write discarded its outcome (`let _ = write.await`), so a

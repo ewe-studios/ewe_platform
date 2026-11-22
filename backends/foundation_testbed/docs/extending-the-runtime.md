@@ -81,7 +81,7 @@ Three invariants when extending it:
    `PermissionsContainer` — see the fetch wiring in `build_runtime_with`). Add it
    before the global is *called*, not necessarily before it's defined.
 3. Keep it a **plain script** (`execute_script`), not a module — it runs before any
-   `runner.mjs`/entry module loads, so globals exist by the time tests run.
+   `runner.js`/entry module loads, so globals exist by the time tests run.
 
 ## Adding a Web global
 

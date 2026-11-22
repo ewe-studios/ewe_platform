@@ -1,6 +1,6 @@
 [package]
 name = "foundation_agent_rpc"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,7 +14,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.23", features = 
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.
-foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi"] }
 # Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
 # SQLite default (`TrustedClientStore::open_sqlite`).
 foundation_db = { path = "../foundation_db", version = "0.0.9", default-features = false, features = ["turso"] }
@@ -28,16 +28,13 @@ foundation_http = { path = "../foundation_http", version = "0.0.13", features = 
 foundation_netio = { path = "../foundation_netio", version = "0.0.15", features = ["ssl", "multi"] }
 # Entropy for bootstrap secrets (the cross-platform substrate).
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
-# Client auth: CA + client/server certificates (ring backend, as
-# foundation_proxy), mutual-TLS server configs, fingerprints, secret hygiene.
-rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
-rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
+# Client auth: the certificate authority, the trust store and the mutual-TLS
+# (mTLS) verifier and configuration builders (spec 87).
+foundation_auth = { path = "../foundation_auth", version = "0.0.10" }
 # Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
 ring = "0.17"
-sha2 = { workspace = true }
 base64 = "0.22"
 zeroize = { workspace = true }
-time = "0.3"
 # Bootstrap payload as a QR code (terminal + SVG renderers; no image codecs).
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 derive_more = { version = "2.1", features = ["display", "error"] }
@@ -63,7 +60,7 @@ prost-types = "0.12"
 [dev-dependencies]
 tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
-foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi", "testing"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi", "testing"] }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 # State directories (CA, signing key, trusted-client DB) per test.
 tempfile = "3"

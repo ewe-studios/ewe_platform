@@ -22,9 +22,8 @@ use foundation_agent_rpc::auth::{CertificateAuthority, MtlsConfig};
 use foundation_agent_rpc::client::{connect_mtls, enroll, generate_csr, ClientIdentity};
 use foundation_agent_rpc::proto::v1::HealthRequest;
 use foundation_agent_rpc::secret::{
-    unix_secs, BootstrapSecrets, SigningKey, SigningKeyConfig, SIGNING_KEY_FILE,
+    BootstrapSecrets, SigningKey, SigningKeyConfig, SIGNING_KEY_FILE,
 };
-use foundation_agent_rpc::trust::TrustedClientStore;
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle, RunningServer};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{Code, Request, RpcCtx};
@@ -108,26 +107,33 @@ async fn a_secret_enrolls_once_then_mtls_is_required() {
 
     // …recorded in the trusted-client store…
     let store = Arc::clone(server.enrollment().expect("secure").trusted_clients());
-    let clients = store.list();
+    let clients = store.clients().await.expect("clients");
     assert_eq!(clients.len(), 1);
     assert_eq!(clients[0].client_name, "laptop");
     assert!(clients[0].last_seen_at.is_none());
 
-    // …which the mTLS listener accepts, and records the handshake.
+    // …which the mTLS listener accepts. The handshake is a pure check: the
+    // last-seen write belongs to the mutual-TLS provider on the call path
+    // (spec 87 section 4), which the agent RPC server installs in spec 83.
     assert_eq!(health(&server, &identity).await.as_deref(), Ok("serving"));
     let fp = clients[0].fingerprint_sha256.clone();
-    let deadline = SystemTime::now() + Duration::from_secs(10);
-    while store.get(&fp).expect("client").last_seen_at.is_none() {
-        assert!(SystemTime::now() < deadline, "last_seen never recorded");
-        std::thread::sleep(Duration::from_millis(20));
-    }
+    assert!(
+        store
+            .get(&fp)
+            .await
+            .expect("store")
+            .expect("client")
+            .last_seen_at
+            .is_none(),
+        "the handshake does not write last-seen"
+    );
 
     // The secret is single use: replaying it is refused.
     let replay = enroll(&url, &fingerprint, &secret, "thief")
         .await
         .expect_err("replayed secret");
     assert_eq!(replay.current_context().code(), Code::Unauthenticated);
-    assert_eq!(store.list().len(), 1);
+    assert_eq!(store.clients().await.expect("clients").len(), 1);
 
     server.graceful_shutdown().expect("clean shutdown");
 }
@@ -166,7 +172,9 @@ async fn expired_and_tampered_secrets_are_refused_by_the_server() {
             .enrollment()
             .expect("secure")
             .trusted_clients()
-            .list()
+            .clients()
+            .await
+            .expect("clients")
             .len(),
         0
     );
@@ -195,7 +203,11 @@ async fn certificates_not_enrolled_here_are_refused() {
     assert_eq!(health(&server, &sideloaded).await, Err(Code::Unavailable));
 
     // From some other CA.
-    let other_ca = CertificateAuthority::generate("someone else").expect("ca");
+    let (other_ca, _pem) = CertificateAuthority::generate(
+        &foundation_auth::pki::CaConfig::new("someone else"),
+        &Ctx::host(),
+    )
+    .expect("ca");
     let (key_pem, csr_pem) = generate_csr("intruder").expect("csr");
     let foreign = ClientIdentity {
         cert_pem: other_ca
@@ -242,15 +254,14 @@ async fn a_revoked_client_is_refused_from_the_next_handshake() {
 
     let store = server.enrollment().expect("secure").trusted_clients();
     let laptop_fp = store
-        .list()
+        .clients()
+        .await
+        .expect("clients")
         .into_iter()
-        .find(|c| c.client_name == "laptop")
+        .find(|client| client.client_name == "laptop")
         .expect("laptop")
         .fingerprint_sha256;
-    assert!(store
-        .revoke(&laptop_fp, unix_secs(SystemTime::now()))
-        .await
-        .expect("revoke"));
+    assert!(store.revoke_client(&laptop_fp).await.expect("revoke"));
 
     assert_eq!(health(&server, &laptop).await, Err(Code::Unavailable));
     assert_eq!(health(&server, &phone).await.as_deref(), Ok("serving"));
@@ -289,7 +300,9 @@ async fn enrollment_survives_a_restart_and_spent_secrets_stay_spent() {
             .enrollment()
             .expect("secure")
             .trusted_clients()
-            .list()
+            .clients()
+            .await
+            .expect("clients")
             .len(),
         2
     );
@@ -344,20 +357,30 @@ async fn the_server_must_choose_its_auth() {
     assert_eq!(err.current_context().code(), Code::FailedPrecondition);
 
     // A trusted-client store over any foundation_db SQL backend works.
-    let store = TrustedClientStore::open(Arc::new(
-        foundation_db::TursoStorage::open(":memory:", foundation_context::Ctx::host())
-            .await
-            .expect("memory db"),
-    ))
+    let store: Arc<dyn foundation_auth::trust::TrustStore> =
+        Arc::new(foundation_auth::trust::MemoryTrustStore::new());
+    let trusted = foundation_auth::trust::TrustedClients::open(
+        store,
+        &Ctx::host(),
+        foundation_auth::trust::TrustConfig::default(),
+    )
     .await
-    .expect("store");
+    .expect("trust store");
     let config = MtlsConfig::new(
-        Arc::new(CertificateAuthority::generate("in-memory CA").expect("ca")),
+        Arc::new(
+            CertificateAuthority::generate(
+                &foundation_auth::pki::CaConfig::new("in-memory CA"),
+                &Ctx::host(),
+            )
+            .expect("ca")
+            .0,
+        ),
         Arc::new(BootstrapSecrets::new(
             SigningKey::generate().expect("key"),
             Ctx::host(),
         )),
-        store,
+        trusted,
+        Ctx::host(),
     );
     AgentRpcServer::builder()
         .with_ctx(foundation_context::Ctx::host())

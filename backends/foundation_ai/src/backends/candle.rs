@@ -3,6 +3,10 @@
 //! Provides [`CandleBackend`] (CPU/CUDA/Metal) implementing [`ModelProvider`],
 //! and [`CandleModels`] implementing [`Model`] for safetensors models via
 //! `HuggingFace`'s Candle framework.
+// The local backend path still mints message ids with the global generator,
+// so a DST run does not repeat them here. Issue #677 injects `Env` into the
+// provider constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use std::collections::HashMap;
 use std::fmt::Write as _;
@@ -975,11 +979,7 @@ pub struct CandleModels {
 
 impl core::fmt::Debug for CandleModels {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let tokens_generated = self
-            .usage
-            .lock()
-            .map(|u| u.tokens_generated)
-            .unwrap_or_default();
+        let tokens_generated = self.usage.lock().map_or_default(|u| u.tokens_generated);
         f.debug_struct("CandleModels")
             .field("spec", &self.shared.spec)
             .field("tokens_generated", &tokens_generated)

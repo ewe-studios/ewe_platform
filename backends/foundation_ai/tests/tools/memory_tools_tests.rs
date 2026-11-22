@@ -19,14 +19,17 @@ fn setup() -> Arc<Hierarchy> {
         KvMemoryStore::new(MemoryStorage::new()),
         MemoryDocumentStore::new(),
     );
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 7))
+        .expect("the test Env");
     Arc::new(MemoryHierarchy::new(
         SessionId::new(),
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
-        foundation_context::Ctx::fixed(std::sync::Arc::new(
-            foundation_context::MonotonicClock::new(),
-        )),
+        ctx,
     ))
 }
 

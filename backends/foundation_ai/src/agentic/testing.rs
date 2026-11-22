@@ -450,6 +450,10 @@ pub fn mock_text(s: &str) -> Messages {
 }
 
 /// Build an `Assistant` text message with custom `UsageReport`.
+///
+/// A mock builder has no `Ctx`. This is test-only code, which the effect lint
+/// exempts (spec 84, section 6, item 2).
+#[allow(clippy::disallowed_methods)]
 #[must_use]
 pub fn mock_text_usage(s: &str, usage: UsageReport) -> Messages {
     Messages::Assistant {
@@ -470,6 +474,9 @@ pub fn mock_text_usage(s: &str, usage: UsageReport) -> Messages {
 }
 
 /// Build an `Assistant` tool-call message.
+///
+/// Test-only code; see [`mock_text_usage`].
+#[allow(clippy::disallowed_methods)]
 #[must_use]
 pub fn mock_tool_call(name: &str, args: crate::types::ToolArguments) -> Messages {
     Messages::Assistant {

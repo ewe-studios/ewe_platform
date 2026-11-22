@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 //! Migration-group tests.
 //!
 //! Written in ASD-STE100 Simplified Technical English (STE).

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Blocking consumers and the global timer read the clock of the `Ctx` they get.
 //!
 //! WHY: a blocking consumer (`NotifyQueue::wait_for_item`, the receive

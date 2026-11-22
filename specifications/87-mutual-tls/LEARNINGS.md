@@ -128,3 +128,69 @@ So the code moves to `foundation_auth`, and `foundation_agent_rpc` builds on it.
 4. Compare two fingerprints with `==`. Use `constant_time_eq` from spec 86.
 5. Run mTLS on a Worker. Use `CfMtlsAuth` and Cloudflare client certificates.
 6. Keep a certificate, a key or a token in an error message. `AuthError` has the reason only.
+
+## Implementation learnings (2026-11-22)
+
+### A remote `rcgen` key pair cannot be written to a file
+
+The design signs P-256 with RFC 6979 through `rcgen::RemoteKeyPair`. The first
+implementation followed it. `ca_round_trip` then failed: `rcgen` panics when a
+remote key pair is serialized (`serialize_pem` calls `serialize_der`). The CA
+must survive a restart, so a key that cannot be written is not usable.
+
+The fix keeps determinism and serialization: an Ed25519 key comes from a
+32-byte seed drawn from the `Ctx` random number generator, is wrapped in the
+48-byte PKCS#8 version 1 structure, and is loaded with
+`KeyPair::from_pkcs8_der_and_sign_algo`. The key is deterministic and the PEM
+round-trips. Ed25519 signatures have no nonce (RFC 8032), so two runs with the
+same seed make the same certificate bytes. P-256 stays the default for a real
+host and keeps its random nonce.
+
+### The serial number is already deterministic
+
+`rcgen` 0.13 writes a serial number from the SHA-256 of the public key when
+`serial_number` is `None`. No extra code is needed for a stable serial.
+
+### `x509-parser` follows `rcgen`
+
+`rcgen` 0.13.2 depends on `x509-parser` 0.16. Declaring 0.17 would put two
+versions of the parser in `Cargo.lock`, against root rule 17. The workspace
+declares 0.16 and records the reason.
+
+### `builder_with_details` is the clock injection point
+
+`rustls` takes the time source in `ServerConfig::builder_with_details` and
+`ClientConfig::builder_with_details`. The WebPKI verifier and the custom
+verifier then receive `now` from that source. The provider is passed
+explicitly, so no library installs a process-global provider.
+
+### A generic store over `dyn Trait` needs `?Sized + 'static`
+
+`SqlTrustStore<Q: QueryStore + ?Sized>` lets a caller hold
+`SqlTrustStore<dyn QueryStore>`. A boxed future that borrows the store also
+needs `Q: 'static`, because `TrustStore` requires `'static`. The bound is on
+the struct and every impl.
+
+### The trait's `is_secret_revoked` owns its identifier
+
+The first signature tied `&self` and `secret_id` to one lifetime. Clippy then
+asked to elide the lifetime, and the elided form does not compile: the boxed
+future may outlive the identifier. Copying the identifier into a `String`
+before the box makes the future borrow only `self`, and the elided signature
+is correct.
+
+### The spec's clippy command lints path dependencies
+
+`cargo clippy -p foundation_auth -p foundation_agent_rpc -- -D warnings`
+compiles and lints every path dependency. It fails on `foundation_jsonschema`,
+which is one of the 13 packages in open issue #441. Use `--no-deps`, as
+`.agents/AGENTS.md` says; that run is clean.
+
+### Moving last-seen changes the host
+
+The old verifier started a task that wrote last-seen during the handshake. The
+design moves that write to `MtlsAuth` on the call path, because a handshake
+cannot see a revocation on a live connection. The consequence is real: until
+spec 83 feature 04 installs the provider, the agent RPC listener records no
+last-seen time. The `auth_tests` suite now states this, so the gap is visible
+and not silent.

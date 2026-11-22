@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Connect protocol tests (spec-41 F19 / Decision 05): content-type mechanics,
 //! unary error JSON, GET query encoding + fallback precheck, client headers, and
 //! a full streaming round-trip through both protocol reader/writer stacks proving

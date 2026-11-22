@@ -236,15 +236,25 @@ if [ -n "${PRIMAL_TEST_CHROMIUM_BIN:-}" ] && [ -f "$PRIMAL_TEST_CHROMIUM_BIN" ];
   exit 0
 fi
 
-# 2. The cache path. The second run prints it and downloads nothing.
-if [ -f "$BINARY" ]; then
+# 2. The cache path. The second run prints it and downloads nothing. The
+#    resource check repairs a cache that holds the binary alone: the binary
+#    exits at once with "icudtl.dat not found in bundle" without its files.
+if [ -f "$BINARY" ] && [ -f "$CACHE_DIR/icudtl.dat" ]; then
   echo "chromium: $BINARY (cached)"
   exit 0
 fi
 
-# 3. Download a pinned headless build into the cache. It needs no sudo and reads
-#    no /etc/os-release. A Linux developer with a system Chromium already has it
-#    on PATH, so the driver finds it before this task is needed.
+# 3. A browser on PATH is already the one the driver finds (the search order of
+#    invariant I4 reads the cache first, then PATH). The Linux CI image ships
+#    one, so CI installs nothing. No sudo and no /etc/os-release.
+for name in chromium google-chrome chromium-browser chrome; do
+  if found="$(command -v "$name" 2>/dev/null)"; then
+    echo "chromium: $found (PATH)"
+    exit 0
+  fi
+done
+
+# 4. Download a pinned headless build into the cache.
 case "$(uname -s)" in
   Darwin)
     case "$(uname -m)" in
@@ -267,10 +277,14 @@ echo "downloading chrome-headless-shell ${CHROME_VERSION} (${PLATFORM})..."
 curl -fsSL "$URL" -o "$TMP_DIR/chrome.zip"
 unzip -q "$TMP_DIR/chrome.zip" -d "$TMP_DIR"
 
-# Move the binary into place in one rename, so a partial download never looks
+# Move the archive into place in one step, so a partial download never looks
 # like an installed browser. The download itself stays in the temporary dir.
+# The binary needs its resources (the data files and the SwiftShader library)
+# in the same directory, so every extracted file goes to the cache. The binary
+# moves last: the cache is complete only when the binary is there.
 mkdir -p "$CACHE_DIR"
-install -m 0755 "$TMP_DIR/chrome-headless-shell-${PLATFORM}/chrome-headless-shell" "$BINARY"
+cp -R "$TMP_DIR/chrome-headless-shell-${PLATFORM}/." "$CACHE_DIR/"
+mv -f "$CACHE_DIR/chrome-headless-shell" "$BINARY"
 echo "chrome-headless-shell ${CHROME_VERSION}: $("$BINARY" --version)"
 """
 

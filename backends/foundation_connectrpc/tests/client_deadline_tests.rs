@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Client-side deadline enforcement (features 123, 124 and 131).
 //!
 //! WHY: `RpcCtx::with_deadline` only records a timestamp. A call parked on a read

@@ -29,7 +29,8 @@ related_specs:
   - "specifications/78-manifest-contract"
   - "specifications/79-manifest-installer"
   - "specifications/81-foundation-auth"
-  - "specifications/80-platform-prerequisites"
+  - "specifications/87-mutual-tls"
+  - "specifications/completed/80-platform-prerequisites"
 features:
   completed: 0
   uncompleted: 2
@@ -102,8 +103,9 @@ _The diagram shows the sidecar reading the manifest, watching the app, and repor
    store and per-endpoint protocol selection already exist. This spec extends them.
 2. **Spec 78 must land first.** The sidecar reads the manifest's `proxy` and `probes` blocks,
    whose format 78 owns.
-3. **Spec 81 must land first.** Enrollment, signed secrets, the CA and the mTLS verifiers come
-   from `foundation_auth`.
+3. **Spec 81 and spec 87 must land first.** Enrollment and the signed secrets come from
+   `foundation_auth` (spec 81). The certificate authority (CA), the trust store, the mutual-TLS
+   (mTLS) verifiers and the mTLS providers come from spec 87.
 4. **Feature 00 runs before feature 01.** The sidecar needs the registration protocol and the
    registry to report to.
 5. **Feature 01's end-to-end task needs spec 79.** Discovery reads the marks that the installer
@@ -238,7 +240,9 @@ sidecar does not read the client credential either.
   the existing parts that the registration authority extends.
 - `specifications/completed/63-connectrpc-proxy/` — the proxy that this spec builds on.
 - `specifications/78-manifest-contract/requirements.md` — the `proxy` and `probes` blocks.
-- `specifications/81-foundation-auth/` — enrollment, CA, trust store and mTLS.
+- `specifications/81-foundation-auth/` — enrollment and the signed secrets.
+- `specifications/87-mutual-tls/` — the CA, the trust store, the mTLS verifiers and the mTLS
+  providers.
 - `specifications/83-agent-rpc-serving-system/` — the app that the end-to-end test installs.
 
 ---

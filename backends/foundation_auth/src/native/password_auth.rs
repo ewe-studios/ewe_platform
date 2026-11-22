@@ -119,7 +119,7 @@ impl PasswordAuthClient {
         self.do_login(LoginRequest {
             email: Some(email),
             username: None,
-            password: &password.get(),
+            password: password.expose(),
         })
         .await
     }
@@ -138,7 +138,7 @@ impl PasswordAuthClient {
         self.do_login(LoginRequest {
             email: None,
             username: Some(username),
-            password: &password.get(),
+            password: password.expose(),
         })
         .await
     }

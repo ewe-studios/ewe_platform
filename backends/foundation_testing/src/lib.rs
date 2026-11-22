@@ -75,6 +75,10 @@ pub mod netcap;
 pub mod scenarios;
 pub mod stress;
 
+/// The deterministic simulation testing (DST) replay harness.
+#[cfg(feature = "std")]
+pub mod dst;
+
 // HuggingFace model downloading (optional feature)
 #[cfg(feature = "huggingface")]
 pub mod huggingface;

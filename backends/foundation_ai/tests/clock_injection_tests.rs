@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Model-call and memory timestamps read the injected `Clock` (spec 70 feature 133).
 //!
 //! WHY: the agentic memory stores and the model providers stamped their
@@ -58,12 +61,15 @@ fn observation_timestamp_follows_the_injected_clock() {
         KvMemoryStore::new(MemoryStorage::new()),
         MemoryDocumentStore::new(),
     );
+    let ctx = foundation_context::Ctx::fixed(clock.clone());
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 7))
+        .expect("the test Env");
     let hierarchy = MemoryHierarchy::new(
         session_id.clone(),
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
-        foundation_context::Ctx::fixed(clock.clone()),
+        ctx,
     );
 
     block_on(hierarchy.persist_observation(vec![observation("first")], 10))
@@ -93,6 +99,8 @@ fn observation_timestamp_follows_the_injected_clock() {
 fn hierarchy_ctx_exposes_the_same_simulated_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     let ctx = Ctx::fixed(clock.clone());
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 7))
+        .expect("the test Env");
     let coordinator = MemoryCoordinator::new(
         KvMemoryStore::new(MemoryStorage::new()),
         MemoryDocumentStore::new(),

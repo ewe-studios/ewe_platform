@@ -23,7 +23,7 @@ use crate::agentic::token_ledger::TokenLedger;
 use crate::types::{MemoryFact, ModelId, SessionId, SessionRecord};
 use foundation_context::Ctx;
 use foundation_db::traits::DocumentStore;
-use foundation_db::StorageResult;
+use foundation_db::{StorageError, StorageResult};
 
 use super::memory_store::MemoryStore;
 
@@ -211,6 +211,14 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
             .store(tokens, Ordering::Relaxed);
     }
 
+    /// The effect environment of the session, or a storage error that names it.
+    fn effect_env(&self) -> StorageResult<Arc<foundation_context::env::Env>> {
+        self.inner
+            .ctx
+            .require_env()
+            .map_err(|error| StorageError::Generic(format!("effect environment: {error}")))
+    }
+
     /// Persist an observation snapshot.
     /// Appends to audit log + latest cache, then resets rolling.
     ///
@@ -221,8 +229,9 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         observations: Vec<crate::types::ObservationEntry>,
         token_count: u64,
     ) -> StorageResult<()> {
+        let env = self.effect_env()?;
         let record = SessionRecord::Observation {
-            id: foundation_compact::ids::new_scru128(),
+            id: env.ids().next_id(),
             observations,
             token_count,
             timestamp: self.inner.ctx.clock().wall_now(),
@@ -251,13 +260,14 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         reflections: Vec<crate::types::ReflectionEntry>,
         observation_token_count_before: u64,
     ) -> StorageResult<()> {
+        let env = self.effect_env()?;
         let reflection_token_count = reflections
             .iter()
             .map(|r| r.summary.len() as u64 / 4)
             .sum::<u64>();
 
         let record = SessionRecord::Reflection {
-            id: foundation_compact::ids::new_scru128(),
+            id: env.ids().next_id(),
             reflections,
             generated_at: self.inner.ctx.clock().wall_now(),
             observation_token_count_before,
@@ -283,8 +293,9 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         facts: Vec<MemoryFact>,
         prev_version: u64,
     ) -> StorageResult<()> {
+        let env = self.effect_env()?;
         let record = SessionRecord::WorkingMemory {
-            id: foundation_compact::ids::new_scru128(),
+            id: env.ids().next_id(),
             facts,
             version: prev_version + 1,
             timestamp: self.inner.ctx.clock().wall_now(),

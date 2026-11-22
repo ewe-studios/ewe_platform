@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Integration tests for `WorkersAiProvider` against a real HTTP server,
 //! verifying the Workers AI REST API (`ai/run`) — both the non-streaming
 //! (`generate`) and SSE streaming (`stream`) paths.
@@ -82,9 +85,12 @@ fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 /// Verify non-streaming generation parses `{"result":{"response":"..."}}`.

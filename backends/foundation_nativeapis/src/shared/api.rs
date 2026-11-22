@@ -37,7 +37,7 @@ pub enum NativeAPI {
     Poll,
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "poll"))]
 impl NativeAPI {
     /// Map a watcher-facing API choice onto a reactor backend preference.
     fn backend_preference(self) -> Option<crate::native::poll::BackendPreference> {
@@ -133,6 +133,7 @@ impl WatcherBuilder {
     #[cfg(target_os = "linux")]
     fn try_build_api(api: NativeAPI, _timeout: Duration) -> Result<Box<dyn NativeWatcher>> {
         // A named reactor backend must be available before we claim to honour it.
+        #[cfg(feature = "poll")]
         if let Some(preference) = api.backend_preference() {
             crate::native::poll::backend::select(preference)
                 .map_err(|e| WatchError::Io(std::io::Error::from(e)))?;

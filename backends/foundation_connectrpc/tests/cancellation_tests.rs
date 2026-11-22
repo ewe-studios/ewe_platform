@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Call cancellation and deadlines on the server side.
 //!
 //! WHY: a handler waiting on `ctx.cancelled()` must stop when the call is over
