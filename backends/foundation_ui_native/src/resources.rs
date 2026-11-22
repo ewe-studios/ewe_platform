@@ -20,7 +20,7 @@ pub trait HostResourceFile: Send + Sync {
     ///
     /// # Errors
     /// Returns the operating system close error.
-    fn close(&self) -> Result<(), CoreError>;
+    fn close_file(&self) -> Result<(), CoreError>;
 }
 
 /// The host opens files in its application bundle or asset manager.
@@ -30,13 +30,13 @@ pub trait HostResourceSource: Send + Sync {
     ///
     /// # Errors
     /// Returns the operating system open error.
-    fn open(&self, name: String) -> Result<Option<Arc<dyn HostResourceFile>>, CoreError>;
+    fn open_resource_file(&self, name: String) -> Result<Option<Arc<dyn HostResourceFile>>, CoreError>;
 }
 
 struct File(Option<Arc<dyn HostResourceFile>>);
 impl File {
     fn close(&mut self) -> Result<(), CoreError> {
-        self.0.take().map_or(Ok(()), |file| file.close())
+        self.0.take().map_or(Ok(()), |file| file.close_file())
     }
 }
 impl Drop for File {
@@ -66,7 +66,7 @@ impl ResourceReader for MobileReader {
         Box::pin(async move {
             let (file, name) = blocking::unblock(move || {
                 let file = source
-                    .open(name.as_str().into())
+                    .open_resource_file(name.as_str().into())
                     .map_err(|e| read_error(&name, e))?
                     .ok_or_else(|| ResourceError::Missing {
                         name: name.as_str().into(),

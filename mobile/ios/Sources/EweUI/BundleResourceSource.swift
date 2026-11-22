@@ -9,7 +9,7 @@ public final class BundleResourceSource: HostResourceSource, @unchecked Sendable
         directory = bundle.resourceURL?.appendingPathComponent("EweResources", isDirectory: true)
     }
 
-    public func open(name: String) throws -> HostResourceFile? {
+    public func openResourceFile(name: String) throws -> HostResourceFile? {
         guard let directory else {
             throw CoreError.Transport(detail: "The application has no resource bundle")
         }
@@ -36,7 +36,7 @@ private final class BundleResourceFile: HostResourceFile, @unchecked Sendable {
         catch { throw CoreError.Transport(detail: error.localizedDescription) }
     }
 
-    func close() throws {
+    func closeFile() throws {
         do { try handle.close() }
         catch { throw CoreError.Transport(detail: error.localizedDescription) }
     }

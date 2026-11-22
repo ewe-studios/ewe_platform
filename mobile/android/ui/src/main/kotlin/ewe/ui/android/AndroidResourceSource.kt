@@ -10,7 +10,7 @@ import java.io.InputStream
 
 /** Opens package files with the application's asset manager. */
 class AndroidResourceSource(private val assets: AssetManager) : HostResourceSource {
-    override fun open(name: String): HostResourceFile? = try {
+    override fun openResourceFile(name: String): HostResourceFile? = try {
         AssetResourceFile(assets.open("EweResources/$name", AssetManager.ACCESS_STREAMING))
     } catch (_: FileNotFoundException) {
         null
@@ -32,7 +32,7 @@ private class AssetResourceFile(private val input: InputStream) : HostResourceFi
         throw CoreException.Transport(error.toString())
     }
 
-    override fun close() {
+    override fun closeFile() {
         try { input.close() }
         catch (error: IOException) { throw CoreException.Transport(error.toString()) }
     }

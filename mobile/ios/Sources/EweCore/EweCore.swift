@@ -1784,7 +1784,7 @@ public protocol HostResourceFile: AnyObject, Sendable {
      * # Errors
      * Returns the operating system close error.
      */
-    func close() throws 
+    func closeFile() throws 
     
 }
 /**
@@ -1865,9 +1865,9 @@ open func read(capacity: UInt32)throws  -> Data  {
      * # Errors
      * Returns the operating system close error.
      */
-open func close()throws   {try rustCallWithError(FfiConverterTypeCoreError_lift) {
+open func closeFile()throws   {try rustCallWithError(FfiConverterTypeCoreError_lift) {
         uniffiCallStatus in
-    uniffi_foundation_ui_native_fn_method_hostresourcefile_close(
+    uniffi_foundation_ui_native_fn_method_hostresourcefile_close_file(
             self.uniffiCloneHandle(),uniffiCallStatus
     )
 }
@@ -1926,7 +1926,7 @@ fileprivate struct UniffiCallbackInterfaceHostResourceFile {
                 lowerError: FfiConverterTypeCoreError_lower
             )
         },
-        close: { (
+        closeFile: { (
             uniffiHandle: UInt64,
             uniffiOutReturn: UnsafeMutableRawPointer,
             uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
@@ -1936,7 +1936,7 @@ fileprivate struct UniffiCallbackInterfaceHostResourceFile {
                 guard let uniffiObj = try? FfiConverterTypeHostResourceFile.handleMap.get(handle: uniffiHandle) else {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
-                return try uniffiObj.close(
+                return try uniffiObj.closeFile(
                 )
             }
 
@@ -2039,7 +2039,7 @@ public protocol HostResourceSource: AnyObject, Sendable {
      * # Errors
      * Returns the operating system open error.
      */
-    func `open`(name: String) throws  -> HostResourceFile?
+    func openResourceFile(name: String) throws  -> HostResourceFile?
     
 }
 /**
@@ -2104,10 +2104,10 @@ open class HostResourceSourceImpl: HostResourceSource, @unchecked Sendable {
      * # Errors
      * Returns the operating system open error.
      */
-open func `open`(name: String)throws  -> HostResourceFile?  {
+open func openResourceFile(name: String)throws  -> HostResourceFile?  {
     return try  FfiConverterOptionTypeHostResourceFile.lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
         uniffiCallStatus in
-    uniffi_foundation_ui_native_fn_method_hostresourcesource_open(
+    uniffi_foundation_ui_native_fn_method_hostresourcesource_open_resource_file(
             self.uniffiCloneHandle(),
         FfiConverterString.lower(name),uniffiCallStatus
     )
@@ -2142,7 +2142,7 @@ fileprivate struct UniffiCallbackInterfaceHostResourceSource {
                 fatalError("Uniffi callback interface HostResourceSource: handle missing in uniffiClone")
             }
         },
-        `open`: { (
+        openResourceFile: { (
             uniffiHandle: UInt64,
             name: RustBuffer,
             uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
@@ -2153,7 +2153,7 @@ fileprivate struct UniffiCallbackInterfaceHostResourceSource {
                 guard let uniffiObj = try? FfiConverterTypeHostResourceSource.handleMap.get(handle: uniffiHandle) else {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
-                return try uniffiObj.`open`(
+                return try uniffiObj.openResourceFile(
                      name: try FfiConverterString.lift(name)
                 )
             }
@@ -6085,10 +6085,10 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_method_hostresourcefile_read() != 3469) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_foundation_ui_native_checksum_method_hostresourcefile_close() != 44930) {
+    if (uniffi_foundation_ui_native_checksum_method_hostresourcefile_close_file() != 55738) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_foundation_ui_native_checksum_method_hostresourcesource_open() != 53020) {
+    if (uniffi_foundation_ui_native_checksum_method_hostresourcesource_open_resource_file() != 17484) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_foundation_ui_native_checksum_method_nativeresourcestream_next_chunk() != 29116) {

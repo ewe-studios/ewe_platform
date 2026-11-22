@@ -177,3 +177,6 @@ The separate phone tests compare the installed icon digest and check missing, in
 
 Issue #730 fixes the embedded browser test host. It now supplies the staged directory explicitly.
 Chrome completes application startup. The separate action error expectation remains under investigation.
+
+Issue #731 fixes two callback names that conflicted with generated native code.
+Clang accepts the generated C header. Gradle compiles the Kotlin binding and user interface modules.

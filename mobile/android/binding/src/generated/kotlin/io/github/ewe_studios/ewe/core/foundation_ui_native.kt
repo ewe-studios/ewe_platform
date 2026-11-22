@@ -791,44 +791,44 @@ internal open class UniffiVTableCallbackInterfaceHostTransportProvider(
     }
 
 }
-@Structure.FieldOrder("uniffiFree", "uniffiClone", "read", "close")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "read", "closeFile")
 internal open class UniffiVTableCallbackInterfaceHostResourceFile(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
     @JvmField internal var `read`: UniffiCallbackInterfaceHostResourceFileMethod0? = null,
-    @JvmField internal var `close`: UniffiCallbackInterfaceHostResourceFileMethod1? = null,
+    @JvmField internal var `closeFile`: UniffiCallbackInterfaceHostResourceFileMethod1? = null,
 ) : Structure() {
     class UniffiByValue(
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
         `uniffiClone`: UniffiCallbackInterfaceClone? = null,
         `read`: UniffiCallbackInterfaceHostResourceFileMethod0? = null,
-        `close`: UniffiCallbackInterfaceHostResourceFileMethod1? = null,
-    ): UniffiVTableCallbackInterfaceHostResourceFile(`uniffiFree`,`uniffiClone`,`read`,`close`,), Structure.ByValue
+        `closeFile`: UniffiCallbackInterfaceHostResourceFileMethod1? = null,
+    ): UniffiVTableCallbackInterfaceHostResourceFile(`uniffiFree`,`uniffiClone`,`read`,`closeFile`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceHostResourceFile) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `read` = other.`read`
-        `close` = other.`close`
+        `closeFile` = other.`closeFile`
     }
 
 }
-@Structure.FieldOrder("uniffiFree", "uniffiClone", "open")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "openResourceFile")
 internal open class UniffiVTableCallbackInterfaceHostResourceSource(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-    @JvmField internal var `open`: UniffiCallbackInterfaceHostResourceSourceMethod0? = null,
+    @JvmField internal var `openResourceFile`: UniffiCallbackInterfaceHostResourceSourceMethod0? = null,
 ) : Structure() {
     class UniffiByValue(
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
         `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-        `open`: UniffiCallbackInterfaceHostResourceSourceMethod0? = null,
-    ): UniffiVTableCallbackInterfaceHostResourceSource(`uniffiFree`,`uniffiClone`,`open`,), Structure.ByValue
+        `openResourceFile`: UniffiCallbackInterfaceHostResourceSourceMethod0? = null,
+    ): UniffiVTableCallbackInterfaceHostResourceSource(`uniffiFree`,`uniffiClone`,`openResourceFile`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceHostResourceSource) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
-        `open` = other.`open`
+        `openResourceFile` = other.`openResourceFile`
     }
 
 }
@@ -976,9 +976,9 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_hostresourcefile_read(
     ): Int
-    external fun uniffi_foundation_ui_native_checksum_method_hostresourcefile_close(
+    external fun uniffi_foundation_ui_native_checksum_method_hostresourcefile_close_file(
     ): Int
-    external fun uniffi_foundation_ui_native_checksum_method_hostresourcesource_open(
+    external fun uniffi_foundation_ui_native_checksum_method_hostresourcesource_open_resource_file(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativeresourcestream_next_chunk(
     ): Int
@@ -1179,7 +1179,7 @@ internal object UniffiLib {
     ): Unit
     external fun uniffi_foundation_ui_native_fn_method_hostresourcefile_read(`ptr`: Long,`capacity`: Int,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun uniffi_foundation_ui_native_fn_method_hostresourcefile_close(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun uniffi_foundation_ui_native_fn_method_hostresourcefile_close_file(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_foundation_ui_native_fn_clone_hostresourcesource(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -1187,7 +1187,7 @@ internal object UniffiLib {
     ): Unit
     external fun uniffi_foundation_ui_native_fn_init_callback_vtable_hostresourcesource(`vtable`: UniffiVTableCallbackInterfaceHostResourceSource,
     ): Unit
-    external fun uniffi_foundation_ui_native_fn_method_hostresourcesource_open(`ptr`: Long,`name`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun uniffi_foundation_ui_native_fn_method_hostresourcesource_open_resource_file(`ptr`: Long,`name`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_foundation_ui_native_fn_clone_nativeresourcestream(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -1458,10 +1458,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_foundation_ui_native_checksum_method_hostresourcefile_read() and 0xFFFF) != 3469) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_foundation_ui_native_checksum_method_hostresourcefile_close() and 0xFFFF) != 44930) {
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostresourcefile_close_file() and 0xFFFF) != 55738) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_foundation_ui_native_checksum_method_hostresourcesource_open() and 0xFFFF) != 53020) {
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostresourcesource_open_resource_file() and 0xFFFF) != 17484) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativeresourcestream_next_chunk() and 0xFFFF) != 29116) {
@@ -3850,7 +3850,7 @@ public interface HostResourceFile {
      * # Errors
      * Returns the operating system close error.
      */
-    fun `close`()
+    fun `closeFile`()
     
     companion object
 }
@@ -3987,11 +3987,11 @@ open class HostResourceFileImpl: Disposable, AutoCloseable, HostResourceFile
      * # Errors
      * Returns the operating system close error.
      */
-    @Throws(CoreException::class)override fun `close`()
+    @Throws(CoreException::class)override fun `closeFile`()
         = 
     callWithHandle {
     uniffiRustCallWithError(CoreException) { _status ->
-    UniffiLib.uniffi_foundation_ui_native_fn_method_hostresourcefile_close(
+    UniffiLib.uniffi_foundation_ui_native_fn_method_hostresourcefile_close_file(
         it,
         _status)
 }
@@ -4034,11 +4034,11 @@ internal object uniffiCallbackInterfaceHostResourceFile {
             )
         }
     }
-    internal object `close`: UniffiCallbackInterfaceHostResourceFileMethod1 {
+    internal object `closeFile`: UniffiCallbackInterfaceHostResourceFileMethod1 {
         override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeHostResourceFile.handleMap.get(uniffiHandle)
             val makeCall = { ->
-                uniffiObj.`close`(
+                uniffiObj.`closeFile`(
                 )
             }
             val writeReturn = { _: Unit -> Unit }
@@ -4067,7 +4067,7 @@ internal object uniffiCallbackInterfaceHostResourceFile {
         uniffiFree,
         uniffiClone,
         `read`,
-        `close`,
+        `closeFile`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -4222,7 +4222,7 @@ public interface HostResourceSource {
      * # Errors
      * Returns the operating system open error.
      */
-    fun `open`(`name`: kotlin.String): HostResourceFile?
+    fun `openResourceFile`(`name`: kotlin.String): HostResourceFile?
     
     companion object
 }
@@ -4338,11 +4338,11 @@ open class HostResourceSourceImpl: Disposable, AutoCloseable, HostResourceSource
      * # Errors
      * Returns the operating system open error.
      */
-    @Throws(CoreException::class)override fun `open`(`name`: kotlin.String): HostResourceFile? {
+    @Throws(CoreException::class)override fun `openResourceFile`(`name`: kotlin.String): HostResourceFile? {
             return FfiConverterOptionalTypeHostResourceFile.lift(
     callWithHandle {
     uniffiRustCallWithError(CoreException) { _status ->
-    UniffiLib.uniffi_foundation_ui_native_fn_method_hostresourcesource_open(
+    UniffiLib.uniffi_foundation_ui_native_fn_method_hostresourcesource_open_resource_file(
         it,
         
         FfiConverterString.lower(`name`),_status)
@@ -4370,11 +4370,11 @@ open class HostResourceSourceImpl: Disposable, AutoCloseable, HostResourceSource
 
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceHostResourceSource {
-    internal object `open`: UniffiCallbackInterfaceHostResourceSourceMethod0 {
+    internal object `openResourceFile`: UniffiCallbackInterfaceHostResourceSourceMethod0 {
         override fun callback(`uniffiHandle`: Long,`name`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeHostResourceSource.handleMap.get(uniffiHandle)
             val makeCall = { ->
-                uniffiObj.`open`(
+                uniffiObj.`openResourceFile`(
                     FfiConverterString.lift(`name`),
                 )
             }
@@ -4403,7 +4403,7 @@ internal object uniffiCallbackInterfaceHostResourceSource {
     internal var vtable = UniffiVTableCallbackInterfaceHostResourceSource.UniffiByValue(
         uniffiFree,
         uniffiClone,
-        `open`,
+        `openResourceFile`,
     )
 
     // Registers the foreign callback with the Rust side.
