@@ -30,7 +30,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.16", features 
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
 # Client auth: the certificate authority, the trust store and the mutual-TLS
 # (mTLS) verifier and configuration builders (spec 87).
-foundation_auth = { path = "../foundation_auth", version = "0.0.12" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.13" }
 # Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
 ring = "0.17"
 base64 = "0.22"

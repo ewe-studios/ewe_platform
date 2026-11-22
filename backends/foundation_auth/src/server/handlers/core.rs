@@ -14,7 +14,7 @@ use super::super::config::IdpConfig;
 use super::super::models::{DeviceCode, PendingLogin};
 use super::super::services::user_service;
 use super::super::services::{
-    MfaService, SessionService, TosAcceptError, TosService, WebAuthnService,
+    MfaService, ProviderService, SessionService, TosAcceptError, TosService, WebAuthnService,
 };
 use super::super::services::{
     PasskeyLoginFinishRequest, PasskeyLoginStartRequest, WebAuthnAuthFinishRequest,
@@ -30,6 +30,8 @@ use foundation_db::{KeyValueStore, MemoryStorage};
 use futures_lite::StreamExt;
 
 use crate::shared::auth_session::{UpstreamAuthSession, UpstreamAuthSessionStore};
+use crate::shared::jwks::JwksManager;
+use crate::shared::oauth_token::OAuthToken;
 use crate::shared::provider::{ProviderMapping, ProviderType, UpstreamProvider};
 use crate::shared::upstream_client::UpstreamOidcClient;
 
@@ -270,6 +272,12 @@ pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
     /// In-memory upstream auth session store (F011). When present, social login
     /// routes are enabled.
     session_store: Option<Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>>,
+    /// The path prefix the OIDC routes are registered under. The upstream
+    /// callback URL uses it, so it must match the registered routes.
+    route_prefix: String,
+    /// Decrypts an upstream client secret at the token exchange. A provider
+    /// with a secret needs it; a public client works without it.
+    provider_service: Option<Arc<ProviderService<dyn QueryStore>>>,
 }
 
 impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
@@ -327,7 +335,25 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             mfa_service,
             session_service,
             session_store: None,
+            route_prefix: crate::server::idp_server::DEFAULT_ROUTE_PREFIX.to_string(),
+            provider_service: None,
         }
+    }
+
+    /// Set the path prefix the OIDC routes are registered under. The handlers
+    /// build the upstream callback URL from it. Default `"/idp"`.
+    #[must_use]
+    pub fn with_route_prefix(mut self, prefix: impl Into<String>) -> Self {
+        self.route_prefix = prefix.into();
+        self
+    }
+
+    /// Use this provider service to decrypt an upstream client secret at the
+    /// token exchange.
+    #[must_use]
+    pub fn with_provider_service(mut self, service: Arc<ProviderService<dyn QueryStore>>) -> Self {
+        self.provider_service = Some(service);
+        self
     }
 
     /// Use this session service (shared by all routes) to create and read
@@ -1985,6 +2011,69 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
     // ── F011 Social login handlers ────────────────────────────────────────
 
+    /// The absolute callback URL registered with the upstream provider.
+    ///
+    /// Both the authorize request and the token form must carry this exact
+    /// value, so both handlers call this helper. It reads the issuer and the
+    /// route prefix the server was built with, so it is deterministic.
+    fn upstream_callback_url(&self, provider_id: &str) -> String {
+        let origin = self.config.issuer_url.trim_end_matches('/');
+        let prefix = self.route_prefix.trim_end_matches('/');
+        let id = urlencoding::encode(provider_id);
+        format!("{origin}{prefix}/callback?provider={id}")
+    }
+
+    /// Verify the OIDC ID token of a token response.
+    ///
+    /// The token must exist, carry a valid signature from a key in the
+    /// provider's JWKS, name this provider as issuer and audience, and carry
+    /// the nonce of the login session. A failure is a `400` with a short
+    /// message. The message never holds the token, the code or the nonce.
+    async fn verify_id_token(
+        &self,
+        client: &UpstreamOidcClient,
+        provider: &UpstreamProvider,
+        token: &OAuthToken,
+        expected_nonce: Option<&str>,
+    ) -> Result<(), IdpError> {
+        let id_token = token
+            .id_token
+            .as_deref()
+            .ok_or_else(|| IdpError::BadRequest("the token response has no id_token".into()))?;
+        let discovery = client
+            .discovery()
+            .ok_or_else(|| IdpError::BadRequest("the provider has no discovery document".into()))?;
+        let expected_nonce = expected_nonce
+            .ok_or_else(|| IdpError::BadRequest("the login session has no nonce".into()))?;
+
+        let mut manager = JwksManager::new(discovery.jwks_url(), None, self.ctx.clone());
+        let keys = manager
+            .get()
+            .await
+            .map_err(|e| IdpError::BadRequest(format!("the token keys are not available: {e}")))?;
+        let key = match id_token_key_id(id_token).as_deref() {
+            Some(kid) => keys
+                .find_by_kid(kid)
+                .ok_or_else(|| IdpError::BadRequest("the id_token names an unknown key".into()))?,
+            None => keys.keys.first().ok_or_else(|| {
+                IdpError::BadRequest("the provider published no token key".into())
+            })?,
+        };
+        let verifier = key
+            .to_verifier(Some(&discovery.issuer), Some(&provider.client_id))
+            .map_err(|_| IdpError::BadRequest("the token key is not usable".into()))?;
+        let now = u64::try_from(crate::shared::clock::now_seconds(&self.ctx)).unwrap_or(0);
+        let claims = verifier
+            .verify_at(id_token, now)
+            .map_err(|_| IdpError::BadRequest("the id_token is not valid".into()))?;
+        if !claims.verify_nonce(expected_nonce) {
+            return Err(IdpError::BadRequest(
+                "the id_token nonce does not match the login session".into(),
+            ));
+        }
+        Ok(())
+    }
+
     /// `GET /authorize?provider=google&state=...&redirect_uri=...`
     ///
     /// # Errors
@@ -2028,7 +2117,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             )));
         }
 
-        let mut client = UpstreamOidcClient::new(provider.clone(), app_redirect_uri.to_string());
+        let mut client =
+            UpstreamOidcClient::new(provider.clone(), self.upstream_callback_url(provider_id));
         if provider.discovery_url.is_some() {
             let mut dc = crate::shared::discovery::DiscoveryClient::default();
             client
@@ -2041,16 +2131,18 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                 .map_err(|e| IdpError::BadRequest(format!("oauth config: {e}")))?;
         }
 
-        let upstream_state = crate::shared::oauth::OAuthManager::generate_state();
-        let (auth_url, pkce) = client
-            .authorize_url(&upstream_state)
-            .map_err(|e| IdpError::Internal(format!("authorize url: {e}")))?;
-
+        // The nonce is made here and stored in the session, so the upstream
+        // authorize request and the ID token check use the same value.
         let nonce = if provider.provider_type == ProviderType::Oidc {
             Some(crate::shared::oauth::OAuthManager::generate_nonce())
         } else {
             None
         };
+
+        let upstream_state = crate::shared::oauth::OAuthManager::generate_state();
+        let (auth_url, pkce) = client
+            .authorize_url_with_nonce(&upstream_state, nonce.as_deref())
+            .map_err(|e| IdpError::Internal(format!("authorize url: {e}")))?;
 
         session_store
             .insert(
@@ -2107,8 +2199,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                     IdpError::NotFound(format!("unknown provider: {}", session.provider_id))
                 })?;
 
-        // Build configured client, exchange code, fetch userinfo.
-        let mut client = UpstreamOidcClient::new(provider.clone(), "unused".to_string());
+        // Build configured client, exchange code, fetch userinfo. The token
+        // form must carry the same redirect URI as the authorize request.
+        let mut client = UpstreamOidcClient::new(
+            provider.clone(),
+            self.upstream_callback_url(&session.provider_id),
+        );
         if provider.discovery_url.is_some() {
             let mut dc = crate::shared::discovery::DiscoveryClient::default();
             client
@@ -2121,15 +2217,51 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                 .map_err(|e| IdpError::BadRequest(format!("oauth config: {e}")))?;
         }
 
+        // A confidential client proves its identity at the token endpoint with
+        // its secret. A public client (PKCE only) has none. The secret never
+        // enters a log line or an error message.
+        let client_secret = match self.provider_service.as_ref() {
+            Some(service) => service
+                .decrypt_provider_secret(&provider)
+                .map_err(|e| IdpError::Internal(format!("provider secret: {e}")))?,
+            None if provider.client_secret_ciphertext.is_some() => {
+                return Err(IdpError::Internal(
+                    "the provider has a client secret, but the IdP holds no ProviderService".into(),
+                ));
+            }
+            None => None,
+        };
         let token = client
-            .exchange_code(code, session.code_verifier.as_deref(), None)
+            .exchange_code(
+                code,
+                session.code_verifier.as_deref(),
+                client_secret.as_ref().map(|secret| secret.as_str()),
+            )
             .await
             .map_err(|e| IdpError::BadRequest(format!("token exchange: {e}")))?;
 
-        let profile = client
+        if provider.provider_type == ProviderType::Oidc {
+            self.verify_id_token(&client, &provider, &token, session.nonce.as_deref())
+                .await?;
+        }
+
+        let mut profile = client
             .fetch_userinfo(&token.access_token)
             .await
             .map_err(|e| IdpError::BadRequest(format!("userinfo: {e}")))?;
+
+        // GitHub returns `null` for a private email. Its email list is the
+        // authoritative source, so read it and never invent an address.
+        if provider.id.eq_ignore_ascii_case("github") && profile.email.is_none() {
+            let emails = client
+                .fetch_github_emails(&token.access_token)
+                .await
+                .map_err(|e| IdpError::BadRequest(format!("github emails: {e}")))?;
+            if let Some(email) = select_github_email(&emails) {
+                profile.email = Some(email);
+                profile.email_verified = true;
+            }
+        }
 
         let user_id =
             provision_from_upstream_profile(self.storage.query_store.as_ref(), &profile, &self.ctx)
@@ -2244,6 +2376,28 @@ fn query_param<'a>(query: &'a [(String, String)], name: &str) -> Option<&'a str>
 fn has_query_param(name: &str, req: &SimpleIncomingRequest) -> bool {
     let url = &req.request_url.url;
     extract_query(url).iter().any(|(k, _)| k == name)
+}
+
+/// The `kid` header of a JWT, or `None` when the header has none.
+fn id_token_key_id(token: &str) -> Option<String> {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+    let header = token.split('.').next()?;
+    let bytes = URL_SAFE_NO_PAD.decode(header).ok()?;
+    let value: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
+    value
+        .get("kid")
+        .and_then(serde_json::Value::as_str)
+        .map(String::from)
+}
+
+/// The first GitHub email that is primary and verified, else the first
+/// verified one. `None` when GitHub reports no verified address.
+fn select_github_email(emails: &[crate::shared::upstream_client::GithubEmail]) -> Option<String> {
+    emails
+        .iter()
+        .find(|e| e.primary && e.verified)
+        .or_else(|| emails.iter().find(|e| e.verified))
+        .map(|e| e.email.clone())
 }
 
 /// Look up an upstream provider by slug from the `IdP` database.

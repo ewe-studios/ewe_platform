@@ -145,13 +145,14 @@ Uses `foundation_db` (QueryStore + KeyValueStore). Provider credentials stored i
 
 | Feature | Description | Phase | Status |
 |---------|-------------|-------|--------|
-| [001-provider-model](features/001-provider-model/) | UpstreamProvider entity, provider secret storage, CRUD service | 1 | ⬜ |
-| [002-provider-migrations](features/002-provider-migrations/) | Enhance 006/007 for IdP-facing use, new migration for user_provider_links | 1 | ⬜ |
-| [003-oauth-upstream-client](features/003-oauth-upstream-client/) | Generic upstream OIDC/OAuth2 client: discover, authorize URL, exchange code, fetch userinfo | 2 | ⬜ |
-| [004-social-login-flow](features/004-social-login-flow/) | Redirect handler + callback handler, double-state correlation, code minting | 2 | ⬜ |
-| [005-user-provisioning](features/005-user-provisioning/) | Auto-create local user from upstream profile, account linking, email merge | 2 | ⬜ |
-| [006-provider-discovery](features/006-provider-discovery/) | Extend IdP discovery to list available providers, admin provider management API | 3 | ⬜ |
-| [007-wasm-upstream-client](features/007-wasm-upstream-client/) | wasm32 upstream client using browser fetch (for Tauri/desktop embed scenarios) | 3 | ⬜ |
+| [001-provider-model](features/001-provider-model/) | UpstreamProvider entity, provider secret storage, CRUD service | 1 | ✅ |
+| [002-provider-migrations](features/002-provider-migrations/) | Enhance 006/007 for IdP-facing use, new migration for user_provider_links | 1 | ✅ |
+| [003-oauth-upstream-client](features/003-oauth-upstream-client/) | Generic upstream OIDC/OAuth2 client: discover, authorize URL, exchange code, fetch userinfo | 2 | ✅ |
+| [004-social-login-flow](features/004-social-login-flow/) | Redirect handler + callback handler, double-state correlation, code minting | 2 | ✅ |
+| [005-user-provisioning](features/005-user-provisioning/) | Auto-create local user from upstream profile, account linking, email merge | 2 | ✅ |
+| [006-provider-discovery](features/006-provider-discovery/) | Extend IdP discovery to list available providers, admin provider management API | 3 | ✅ |
+| [007-wasm-upstream-client](features/007-wasm-upstream-client/) | wasm32 upstream client using browser fetch (for Tauri/desktop embed scenarios) | 3 | ✅ |
+| [011-social-login-provider-tests](features/011-social-login-provider-tests/) | End-to-end social flow fixes and four provider wire-shape tests | 1 | ✅ |
 
 ## Server Persistence Strategy
 

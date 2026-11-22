@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.12"
+version = "0.0.13"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -160,6 +160,9 @@ jwt = []
 server = ["dep:foundation_http", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
+# Social login end-to-end tests against a local provider simulator (spec 57,
+# F011). The tests live in the `server-test` target and need no Docker.
+social-integration-tests = ["server-test"]
 # Wasm compatibility — browser crypto and JS time APIs
 wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API

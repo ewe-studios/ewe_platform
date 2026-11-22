@@ -10,11 +10,16 @@ use foundation_http::shared::context::Ctx;
 use foundation_http::SimpleMethod;
 
 use super::config::IdpConfig;
+use super::handlers::serve_adapter::RoutePrefix;
 use super::handlers::IdpError;
 use super::handlers::ServeAdapter;
+use super::services::ProviderService;
 use super::storage::{HandlerStorage, StorageOpError};
 use crate::shared::auth_session::memory::MemoryAuthSessionStore;
-use foundation_db::{KeyValueStore, MemoryStorage};
+use foundation_db::{KeyValueStore, MemoryStorage, QueryStore};
+
+/// The path prefix the OIDC routes use when none is given.
+pub const DEFAULT_ROUTE_PREFIX: &str = "/idp";
 
 /// The `IdP` server: routes plus the config and storage its handlers share.
 ///
@@ -25,6 +30,13 @@ pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     storage: Arc<HandlerStorage<KV>>,
     social: Option<Arc<MemoryAuthSessionStore>>,
     ctx: Ctx,
+    /// The path prefix the OIDC routes are registered under. Default
+    /// [`DEFAULT_ROUTE_PREFIX`] (`"/idp"`).
+    route_prefix: String,
+    /// Decrypts upstream client secrets at the token exchange. When absent, a
+    /// provider that has a secret cannot complete social login, and the
+    /// handler answers with an error instead of a public-client exchange.
+    provider_service: Option<Arc<ProviderService<dyn QueryStore>>>,
 }
 
 impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
@@ -75,7 +87,28 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
             storage,
             social: None,
             ctx,
+            route_prefix: DEFAULT_ROUTE_PREFIX.to_string(),
+            provider_service: None,
         })
+    }
+
+    /// Give the server the provider service that decrypts upstream client
+    /// secrets at the token exchange. Social login with a provider that has a
+    /// secret needs it; social login with a public client works without it.
+    #[must_use]
+    pub fn with_provider_service(mut self, service: Arc<ProviderService<dyn QueryStore>>) -> Self {
+        self.provider_service = Some(service);
+        self
+    }
+
+    /// Set the path prefix the OIDC routes are registered under. The default is
+    /// [`DEFAULT_ROUTE_PREFIX`] (`"/idp"`). The handlers build the upstream
+    /// callback URL from this prefix, so it must match the prefix that
+    /// [`register_routes`](Self::register_routes) uses.
+    #[must_use]
+    pub fn with_route_prefix(mut self, prefix: impl Into<String>) -> Self {
+        self.route_prefix = prefix.into();
+        self
     }
 
     /// Delete expired short-lived state (`ToS` codes, MFA challenges, `PoW`
@@ -190,6 +223,18 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
 
     #[must_use]
     pub fn http_app(self) -> HttpApp<Arc<dyn Serve>> {
+        let prefix = self.route_prefix.clone();
+        self.http_app_with_prefix(prefix)
+    }
+
+    /// Build the app with the OIDC routes under `prefix`. This registers the
+    /// routes and sets [`route_prefix`](Self::with_route_prefix) in one call,
+    /// so the upstream callback URL uses the same prefix. Use it for a prefix
+    /// other than [`DEFAULT_ROUTE_PREFIX`]; [`http_app`](Self::http_app) keeps
+    /// the default.
+    #[must_use]
+    pub fn http_app_with_prefix(self, prefix: impl Into<String>) -> HttpApp<Arc<dyn Serve>> {
+        let prefix = prefix.into();
         let mut app = HttpApp::new_serve();
         // The app context carries this server's ctx, so every handler reads the
         // clock the host chose.
@@ -204,7 +249,14 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
             // looks up exactly that type.
             app.ctx.store(social);
         }
-        Self::register_routes(&mut app, "/idp");
+        if let Some(service) = self.provider_service {
+            // Stored as `Arc<ProviderService<dyn QueryStore>>`; the adapter
+            // looks up exactly that type.
+            app.ctx.store(service);
+        }
+        // The handlers build the upstream callback URL from this prefix.
+        app.ctx.store(RoutePrefix(prefix.clone()));
+        Self::register_routes(&mut app, &prefix);
         if dev_mode {
             eprintln!(
                 "WARNING: IdP dev_mode is on: POST /auth/v1/dev/register is served. \

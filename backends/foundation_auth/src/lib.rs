@@ -60,7 +60,9 @@ pub use shared::jwks::{Jwk, Jwks, JwksError, JwksManager};
 pub use shared::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 
 // Feature 03: Unified Upstream OIDC/OAuth2 Client (cross-platform — native + wasm)
-pub use shared::upstream_client::{UpstreamClientError, UpstreamOidcClient, UpstreamProfile};
+pub use shared::upstream_client::{
+    GithubEmail, UpstreamClientError, UpstreamOidcClient, UpstreamProfile,
+};
 
 // Feature 01/03: Upstream provider models (cross-platform, pure serde)
 pub use shared::provider::{ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider};

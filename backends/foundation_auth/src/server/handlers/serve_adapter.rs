@@ -13,10 +13,11 @@ use foundation_netio::shared::http::{
 };
 
 use super::super::config::IdpConfig;
+use super::super::services::ProviderService;
 use super::super::storage::HandlerStorage;
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
 use crate::shared::auth_session::memory::MemoryAuthSessionStore;
-use foundation_db::{KeyValueStore, MemoryStorage};
+use foundation_db::{KeyValueStore, MemoryStorage, QueryStore};
 
 /// Write JSON response with optional extra headers.
 fn json_with_headers(
@@ -80,6 +81,15 @@ fn status_code(code: u16) -> Status {
         n => Status::Numbered(n as usize, String::new()),
     }
 }
+
+/// The path prefix the OIDC routes are registered under. [`IdpServer`] stores
+/// it in the app `Ctx` before it registers the routes, so
+/// [`ServeAdapter::create`] can hand it to the handler core. The handlers build
+/// the upstream callback URL from this value.
+///
+/// [`IdpServer`]: crate::server::IdpServer
+#[derive(Clone, Debug)]
+pub(crate) struct RoutePrefix(pub(crate) String);
 
 /// Serves the `IdP` routes over the handlers in [`IdpHandlerCore`].
 ///
@@ -247,8 +257,14 @@ impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
         // chose. Sessions live in the shared cache with the configured key, so
         // every route sees the same sessions.
         let mut core = IdpHandlerCore::new(config, storage, ctx.clone());
+        if let Some(prefix) = ctx.get::<RoutePrefix>() {
+            core = core.with_route_prefix(prefix.0.clone());
+        }
         if let Some(social) = ctx.get::<Arc<MemoryAuthSessionStore>>() {
             core = core.with_social_login(Arc::clone(&*social));
+        }
+        if let Some(service) = ctx.get::<Arc<ProviderService<dyn QueryStore>>>() {
+            core = core.with_provider_service(Arc::clone(&*service));
         }
         Self {
             core: Arc::new(core),
