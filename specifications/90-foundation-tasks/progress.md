@@ -215,3 +215,8 @@ Linux passes all nine resource tests. Native Windows execution still needs a Win
 Issue #735 records a diagnostic from a legacy Cargo template during Git dependency discovery.
 Issue #736 removes the staging index from the Apple resource payload.
 Feature 2 remains proposed. Automatic installation into arbitrary existing Cargo packages awaits that separate approval.
+
+The rebuilt Apple starter contains exactly `app/title.txt` and `app/version.txt` in its resource payload.
+The native and browser resource targets pass scoped strict Clippy checks after the staging path cleanup.
+All nine resource tests pass on macOS and Linux with both `build` and `server` enabled.
+The additional Windows cross-check with `server` stopped because the host lacks `x86_64-w64-mingw32-gcc`.

@@ -199,6 +199,24 @@ pub fn stage(
     stage_in(manifest, generated, target, destination, None)
 }
 
+fn resolve_destination(destination: &Path) -> io::Result<PathBuf> {
+    let destination_path = std::path::absolute(destination)?;
+    let existing = destination_path
+        .ancestors()
+        .find(|path| path.exists())
+        .ok_or_else(|| {
+            invalid(format!(
+                "Cannot resolve destination {}",
+                destination.display()
+            ))
+        })?;
+    Ok(existing.canonicalize()?.join(
+        destination_path
+            .strip_prefix(existing)
+            .map_err(|e| invalid(e.to_string()))?,
+    ))
+}
+
 fn stage_in(
     manifest: &Path,
     generated: &Path,
@@ -211,21 +229,7 @@ fn stage_in(
         .ok_or_else(|| invalid("Resource manifest needs a directory"))?;
     let declarations: Manifest = toml::from_str(&fs::read_to_string(manifest)?)
         .map_err(|e| invalid(format!("{}: {e}", manifest.display())))?;
-    let destination_path = std::path::absolute(destination)?;
-    let existing = destination_path
-        .ancestors()
-        .find(|path| path.exists())
-        .ok_or_else(|| {
-            invalid(format!(
-                "Cannot resolve destination {}",
-                destination.display()
-            ))
-        })?;
-    let resolved_destination = existing.canonicalize()?.join(
-        destination_path
-            .strip_prefix(existing)
-            .map_err(|e| invalid(e.to_string()))?,
-    );
+    let resolved_destination = resolve_destination(destination)?;
     if manifest.canonicalize()?.starts_with(&resolved_destination) {
         return Err(invalid(format!(
             "Resource destination {} contains the manifest",

@@ -142,3 +142,7 @@ Local verification uses private candidate tags and the prepared native libraries
 
 A hidden staging index travels with an Xcode folder reference. Put the public payload in a child folder.
 A local Swift package mirror can verify an unpublished candidate without publishing a tag or replacing a public package fingerprint.
+
+The Apple resource build selects a payload subdirectory before it copies staged files.
+The staging index belongs to the parent directory. The application bundle then contains only declared resources.
+The optional server dependency needs a Windows C compiler when Cargo cross-compiles it from macOS.
