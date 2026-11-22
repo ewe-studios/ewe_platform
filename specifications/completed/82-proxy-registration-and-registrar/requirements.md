@@ -1,12 +1,12 @@
 ---
 description: "The proxy learns which backends are live from an authenticated registrar sidecar. The proxy gains a registration authority, a backend registry and a router that swaps only complete snapshots; the sidecar discovers manifest entries, probes them, reads metrics and reports on a lease."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-14
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-14
+  last_updated: 2026-11-23
   estimated_effort: "large"
   tags:
     - proxy

@@ -62,7 +62,7 @@ The work is merged into master. Issue #697 belongs to spec 82 and stays open.
 - `specifications/completed/79-manifest-installer/features/00-manifest-installer/feature.md` gains a
   "Fixture handshake with spec 78" section. It lists the 12 fixtures that the installer copies
   and the test `tests/manifest_tests.rs` that consumes them.
-- `specifications/82-proxy-registration-and-registrar/features/01-registrar-sidecar/feature.md`
+- `specifications/completed/82-proxy-registration-and-registrar/features/01-registrar-sidecar/feature.md`
   gains the same section. It lists the 7 fixtures that the sidecar copies and
   `tests/manifest_tests.rs`. It records that V6 and scenario 4 of spec 78 make the sidecar read
   `source.kind`, even though it ignores the other source fields.

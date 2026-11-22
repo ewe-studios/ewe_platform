@@ -24,7 +24,7 @@ has_fundamentals: false
 builds_on: "specifications/completed/78-manifest-contract"
 related_specs:
   - "specifications/completed/78-manifest-contract"
-  - "specifications/82-proxy-registration-and-registrar"
+  - "specifications/completed/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:
   completed: 1

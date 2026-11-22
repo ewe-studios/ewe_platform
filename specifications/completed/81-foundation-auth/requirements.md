@@ -26,7 +26,7 @@ related_specs:
   - "specifications/completed/87-mutual-tls"
   - "specifications/completed/80-platform-prerequisites"
   - "specifications/83-agent-rpc-serving-system"
-  - "specifications/82-proxy-registration-and-registrar"
+  - "specifications/completed/82-proxy-registration-and-registrar"
   - "specifications/48-foundation-auth-app"
 features:
   completed: 1

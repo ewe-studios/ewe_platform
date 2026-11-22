@@ -154,3 +154,13 @@ Notes:
 | The installer pulled with `repo` and `tag`, so the Docker daemon read the name as a URL and failed with "no Host in request URL". | high (blocked T10) | `foundation_installer::DockerEngine::image_pull` now sends `fromImage` and `tag`. |
 | The installer stopped the old container at once, before the sidecar could discover the new address, so requests got `502`. | high (blocked T10) | New `InstallerConfig::old_container_grace` (default 15 s, longer than the sidecar's 10 s report interval). The old container stays up while the sidecar discovers and registers the new address. |
 | `DockerClient::container_list` returns `serde_json::Value`; no generated summary type exists. | medium | Open issue #769. The discovery reads `Id` and `State` from the value until the generator emits the type. |
+
+## Completion (2026-11-23)
+
+Both features are merged into master. Every test passes. The spec moves to
+`specifications/completed/82-proxy-registration-and-registrar`.
+
+Open questions: the saved registry (option B), SNI passthrough and shared
+enrollment in `foundation_auth` stay open for later work. Open issues:
+#769 (the generated container-list type), #767 (the Unix socket group check)
+and #768 (the temporary state directory default).

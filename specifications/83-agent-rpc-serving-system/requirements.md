@@ -29,7 +29,7 @@ related_specs:
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/completed/80-platform-prerequisites"
   - "specifications/completed/81-foundation-auth"
-  - "specifications/82-proxy-registration-and-registrar"
+  - "specifications/completed/82-proxy-registration-and-registrar"
   - "specifications/completed/78-manifest-contract"
   - "specifications/completed/79-manifest-installer"
   - "specifications/completed/28-cloudflare-workers-readiness"

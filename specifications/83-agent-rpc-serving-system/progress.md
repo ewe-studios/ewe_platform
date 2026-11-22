@@ -38,7 +38,7 @@ The 2026-11-14 split moved features and their history:
 | Old feature | New spec | History |
 |---|---|---|
 | 02 manifest installer | spec 79 | `../completed/79-manifest-installer/progress.md` |
-| 03 proxy registration | spec 82 feature 00 | `../82-proxy-registration-and-registrar/progress.md` |
+| 03 proxy registration | spec 82 feature 00 | `../completed/82-proxy-registration-and-registrar/progress.md` |
 | 04 registrar sidecar | spec 82 feature 01 | same file |
 | 08 env and side effects | spec 84 (`Env`, `IdSource`), spec 80 (transport and migrations) | `../completed/84-context-injection/progress.md`; `../80-platform-prerequisites/progress.md` |
 | 09 transport prerequisites | spec 80 feature 00 | `../80-platform-prerequisites/progress.md` |

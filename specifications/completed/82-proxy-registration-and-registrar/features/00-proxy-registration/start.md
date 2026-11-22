@@ -1,20 +1,18 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/82-proxy-registration-and-registrar"
-feature_directory: "specifications/82-proxy-registration-and-registrar/features/01-registrar-sidecar"
-this_file: "specifications/82-proxy-registration-and-registrar/features/01-registrar-sidecar/start.md"
+spec_directory: "specifications/completed/82-proxy-registration-and-registrar"
+feature_directory: "specifications/completed/82-proxy-registration-and-registrar/features/00-proxy-registration"
+this_file: "specifications/completed/82-proxy-registration-and-registrar/features/00-proxy-registration/start.md"
 created: 2026-10-19
 ---
 
-# Start: Registrar Sidecar Feature
+# Start: Proxy Registration Authority Feature
 
 ## Agent Workflow
 
 1. Read `feature.md` (requirements + architecture + tasks).
-2. Read its dependencies' feature specs first:
-   - `../../../completed/78-manifest-contract/requirements.md` (the manifest contract it parses)
-   - `../../../completed/79-manifest-installer/features/00-manifest-installer/feature.md` (the installer marks)
-   - `../00-proxy-registration/feature.md` (the handshake it speaks)
+2. Read `specifications/completed/63-connectrpc-proxy/features/00-connectrpc-proxy/feature.md`
+   — this feature extends it (per-endpoint `BackendProtocol` selection).
 3. **Identify language stack** — Rust. Read `.agents/skills/rust-clean-code/skill.md`
    and `.agents/skills/rust-valtron-usage/skill.md`.
 4. Read `../../LEARNINGS.md` (past discoveries and mistakes).
@@ -33,7 +31,7 @@ created: 2026-10-19
 
 ---
 
-**Workflow:** feature.md → dependency features (01, 02) → Rust skills → Learnings → AGENTS.md → Agent Doc → Skills → Compact → Clear → Reload → ONE ITEM AT A TIME → Implement → Report → Verify → Commit → Delete compacted.md → Next
+**Workflow:** feature.md → spec 63 context → Rust skills → Learnings → AGENTS.md → Agent Doc → Skills → Compact → Clear → Reload → ONE ITEM AT A TIME → Implement → Report → Verify → Commit → Delete compacted.md → Next
 
 ---
 

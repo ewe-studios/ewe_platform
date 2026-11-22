@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/82-proxy-registration-and-registrar"
-this_file: "specifications/82-proxy-registration-and-registrar/start.md"
+spec_directory: "specifications/completed/82-proxy-registration-and-registrar"
+this_file: "specifications/completed/82-proxy-registration-and-registrar/start.md"
 created: 2026-11-14
 ---
 

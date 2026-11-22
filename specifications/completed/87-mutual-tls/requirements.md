@@ -27,7 +27,7 @@ builds_on: "specifications/completed/86-auth-primitives"
 related_specs:
   - "specifications/completed/81-foundation-auth"
   - "specifications/completed/86-auth-primitives"
-  - "specifications/82-proxy-registration-and-registrar"
+  - "specifications/completed/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/completed/80-platform-prerequisites"

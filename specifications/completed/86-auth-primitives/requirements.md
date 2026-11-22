@@ -27,7 +27,7 @@ related_specs:
   - "specifications/completed/87-mutual-tls"
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/83-agent-rpc-serving-system"
-  - "specifications/82-proxy-registration-and-registrar"
+  - "specifications/completed/82-proxy-registration-and-registrar"
   - "specifications/48-foundation-auth-app"
 tasks:
   completed: 6

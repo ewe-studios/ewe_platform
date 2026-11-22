@@ -27,7 +27,7 @@ related_specs:
   - "specifications/86-auth-primitives"
   - "specifications/87-mutual-tls"
   - "specifications/completed/81-foundation-auth"
-  - "specifications/82-proxy-registration-and-registrar"
+  - "specifications/completed/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:
   completed: 2
