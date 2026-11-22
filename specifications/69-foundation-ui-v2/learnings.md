@@ -848,3 +848,6 @@ The Android test emulator accepts the full title on a fresh start with software 
 Chrome exposes the current action on each todo row.
 The iPhone uses a check mark and draws a line through a completed title.
 Text recognition can misread that title. Inspect the screenshot to verify the completed row.
+The simulator keeps the test server address until the next app launch.
+After an isolated test, launch the app with the regular server address.
+Verify that the saved list appears before ending the test.

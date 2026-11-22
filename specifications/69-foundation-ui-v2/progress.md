@@ -940,3 +940,6 @@ The server reports three live connections after deletion.
 Each client loads its initial view once.
 Both receiving clients show all four changes without manual reconnection.
 These checks complete the two remaining directions in the six-direction test.
+Issues #693 and #698 contain the results and are closed.
+After the test, the iPhone simulator connects to the regular server on port 8080.
+The restored screen shows five open todos.
