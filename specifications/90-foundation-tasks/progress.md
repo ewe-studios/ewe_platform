@@ -138,3 +138,7 @@ Complete Feature 1 and the continuous integration runner checks first.
 Then implement approved Feature 3 from `features/03-platform-resource-manager/feature.md`.
 Feature 3 covers automatic resource staging, streaming reads, and typed errors on browser, Apple, and Android hosts.
 Coordinate the Todo integration with its implementation owner.
+
+Feature 1 passes the complete verification set. Both installed command names run the public runtime task.
+The central executable suite passes three tests. Strict Clippy passes for the optional build and task features.
+The packaged mobile release record now matches version 0.1.1 in the canonical record.

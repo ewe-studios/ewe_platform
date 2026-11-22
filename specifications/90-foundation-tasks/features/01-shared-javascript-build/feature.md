@@ -87,3 +87,5 @@ The all-target build graph excludes asynchronous executors. The browser target e
 | Compact distribution | The current compact script has 275,965 bytes. The readable script has 590,242 bytes. |
 | Cargo transitive rebuild | The Todo build script regenerates both scripts after a vocabulary edit. Both files contain the new code. |
 | Rust tests | The code generator passes 74 tests. The browser build tools pass 11 tests. |
+| Platform executable | All three central command tests pass. Both executable names run the public task. |
+| Strict Clippy | The code generator and browser task features pass the all-targets gate. |

@@ -93,3 +93,6 @@ The legacy platform separates logical resource names from the root supplied by t
 Mobile builds also need a packaging step. Staging files alone does not place them in the installed application.
 
 The classic entry imports the frame runtime. Todo loads its action module separately. An action-only edit preserves both classic bundle files.
+
+A relocated CMake build tree can retain absolute paths. Regenerate its build directory before testing the platform executable.
+The platform build also checks the packaged release record against the canonical one.
