@@ -2,6 +2,8 @@
 
 _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 
+**Merged.** This specification is in master as `23c5e6dae` (#656). Updated 2026-11-22.
+
 ## Where this specification is
 
 | Stage | State |

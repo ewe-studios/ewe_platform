@@ -2,6 +2,8 @@
 
 _Last updated: 2026-11-22._
 
+**Merged.** This specification is in master as `0b257b086` (#683).
+
 ## Status at a glance
 
 | Task | State | Commit |

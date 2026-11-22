@@ -1,13 +1,15 @@
 # Spec 80 Progress: Platform Prerequisites
 
-_Last updated: 2026-11-21._
-_Last updated: 2026-11-15._
+_Last updated: 2026-11-22._
+
+**Completed.** Both features are in master. The move to this path is `0d3e42e50` (#653).
+The old duplicate path is removed in `3525f7473`.
 
 ## Status at a glance
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — transport prerequisites | ⏳ 0/2, design complete | Moved from spec 83 feature 09 |
+| 00 — transport prerequisites | ✅ Done | Moved from spec 83 feature 09 |
 | 01 — migration groups | ✅ 1/1, task T25 landed | Moved from spec 83 feature 10 |
 
 ## Feature 01 landed (2026-11-21)
