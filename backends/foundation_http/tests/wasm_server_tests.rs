@@ -223,11 +223,12 @@ fn test_middleware_short_circuit_with_headers() {
     let response = short_circuit.unwrap();
     assert_eq!(response.status, 401);
     assert_eq!(response.headers.len(), 1);
-    assert_eq!(
-        response.headers[0],
-        (
-            "WWW-AUTHENTICATE".to_string(),
-            "Bearer realm=\"test\"".to_string()
-        )
+    // HTTP field names are case-insensitive (RFC 9110 section 5.1), and
+    // `SimpleHeader` renders the name in lower case.
+    let (name, value) = &response.headers[0];
+    assert!(
+        name.eq_ignore_ascii_case("WWW-Authenticate"),
+        "header name: {name}"
     );
+    assert_eq!(value, "Bearer realm=\"test\"");
 }

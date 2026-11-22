@@ -812,6 +812,20 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_connectrpc/integration/wasm/Cargo.toml", "--check"],
+        # Spec 88 feature 02: the foundation_http wasm-bindgen crate. It is
+        # outside the root workspace, so a `--tests` check by manifest is the
+        # form, and its formatting is checked here (the package sets fmt = off).
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_http/integration/wasm/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_http/integration/wasm/Cargo.toml", "--check"],
+        # Spec 88 feature 02 T6: the owned-harness package. It leaves out the
+        # fetch client, so its wasm module imports no wasm-bindgen glue.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_http/integration/wasm_owned/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_http/integration/wasm_owned/Cargo.toml", "--check"],
         # Spec 88 T8: the wasm bridge of foundation_http and the wasm build of
         # foundation_connectrpc were compiled by no CI run. A package-level
         # `--tests` check is not possible for foundation_http (#576), so these
@@ -847,6 +861,17 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         # foundation_core's 34 cases (spec 88 T9, #586).
         ["mise", "run", "test:wasm-testbed:browser"],
         ["mise", "run", "test:wasm-bindgen:web"],
+        # Spec 88 feature 02: the native pure-Rust wasm module suite (#570), then
+        # the foundation_http bridge and writer cases on the three hosts.
+        ["cargo", "test", "--profile", "uat", "-p", "foundation_http",
+         *feature_flags("--features wasm-test")],
+        ["mise", "run", "test:wasm-bindgen:http:deno"],
+        ["mise", "run", "test:wasm-bindgen:http:web"],
+        ["mise", "run", "test:wasm-bindgen:http:wrangler"],
+        # Spec 88 feature 02 T6: the same pure-Rust cases on the owned harness,
+        # with no fetch client in the module.
+        ["mise", "run", "test:wasm-testbed:http:deno"],
+        ["mise", "run", "test:wasm-testbed:http:browser"],
         # The suite proves it can fail: both bindgen runners must reject the
         # fixture's failing case (rules I1, I7).
         ["mise", "run", "test:wasm-testbed:bindgen-fails"],

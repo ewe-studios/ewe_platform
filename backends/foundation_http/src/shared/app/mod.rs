@@ -37,6 +37,20 @@ pub struct HttpApp<S> {
     /// Used only by the wasm bridges; the native server reads through its own
     /// body limit.
     pub max_request_bytes: usize,
+    /// The largest request body the in-memory `ServeWriter` path accepts, in
+    /// bytes.
+    ///
+    /// WHY: the writer path dispatches a request that is already in memory. A
+    /// handler never reads a body larger than this, so a case that is about a
+    /// body limit can set it and get a 413.
+    ///
+    /// WHAT: `serve_writer::handle_request` answers 413 when a sized body is
+    /// larger than this value. A streaming body keeps the wasm bridge's own
+    /// bound ([`HttpApp::max_request_bytes`]) because its length is not known
+    /// before it is read.
+    ///
+    /// The default is 1 MiB, the nginx `client_max_body_size` default.
+    pub max_writer_body_bytes: usize,
     /// How many request body chunks a wasm bridge may hold ahead of the
     /// handler.
     ///
@@ -85,6 +99,7 @@ impl<S> HttpApp<S> {
             router: Router::new(),
             middleware: Vec::new(),
             max_request_bytes: 8 * 1024 * 1024,
+            max_writer_body_bytes: 1024 * 1024,
             body_queue_chunks: 16,
         }
     }
@@ -93,6 +108,14 @@ impl<S> HttpApp<S> {
     #[must_use]
     pub fn with_max_request_bytes(mut self, bytes: usize) -> Self {
         self.max_request_bytes = bytes;
+        self
+    }
+
+    /// Replace the in-memory writer-path body limit (see
+    /// [`HttpApp::max_writer_body_bytes`]).
+    #[must_use]
+    pub fn with_max_writer_body_bytes(mut self, bytes: usize) -> Self {
+        self.max_writer_body_bytes = bytes;
         self
     }
 

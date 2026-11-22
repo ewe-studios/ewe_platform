@@ -510,3 +510,109 @@ turn).
 
 **Rule for the future.** A wall-clock bound over many JS-hosted task steps must include the
 host timer cost: multiply the step count by the yield quantum before you pick the bound.
+
+## 21. The wasm writer path routed on the full URL (feature 02 T4)
+
+**Expected.** `serve_writer::handle_request` routed a request to its handler, as the web and
+Cloudflare bridges do.
+
+**Measured.** Every writer route answered 404. The code passed `req.request_url.url` to the
+router, and that value is the whole URL (`http://example.test/writer`), not the path. No test
+exercised a writer route before (#570), so the defect was invisible.
+
+**Result.** The path now comes from `request_uri.path()`. Case 16 (`serve_writer_round_trip`)
+proves it. Issue #747 records the defect.
+
+**Rule for the future.** Route on `request_uri.path()`. A full URL has a scheme and an
+authority, and a route tree matches path segments.
+
+## 22. A route miss was a rejected promise, and a method miss was a 404 (feature 02 T2)
+
+**Expected.** `WasmHttpApp::handle_request` answers 404 for an unknown path and 405 for a known
+path with a wrong method (stories S3 and S4).
+
+**Measured.** `dispatch_web` returned `Err(ServeError::BadRequest { status: 404 })`, and the
+bridge maps every error to `JsError`. The caller got a rejected promise, not a `Response`. The
+router also returned `None` for both a path miss and a method miss, so it could not tell them
+apart.
+
+**Result.** `RouteOp::MethodNotAllowed` and `Router::dispatch_result` keep the miss kind. The
+web and Cloudflare dispatchers build a 404 or 405 `Response`. Issues #744 and #745 record the
+defects. The break of the 405 answer to 404 is the R14 record of this feature.
+
+**Rule for the future.** A route miss is an HTTP response, not a transport error. Keep the miss
+kind until the response is built.
+
+## 23. Measure wasm imports without `wasm2wat` (feature 02 T6)
+
+**Expected.** The feature's T6 measurement uses `wasm2wat <artifact> | rg '\(import '`.
+
+**Measured.** The host has no `wasm2wat`, `wasm-tools` or `wasm-objdump`. A `strings` search is
+not a substitute: it also matches internal function names.
+
+**Result.** A 40-line Python reader parses the wasm import section and prints
+`module.field (kind N)`. The owned module printed only `abi.host_report`,
+`abi.host_fill_random`, `abi.host_wall_clock_ms` and `abi.host_monotonic_now_ms`, with no
+`__wbindgen_` line. The reader ran with `python3 -I` from a temporary directory.
+
+**Rule for the future.** A wasm import proof reads the import section. `strings` does not prove
+an absence.
+
+## 24. Owned cases live in the crate lib, not `tests/` (feature 02 T6)
+
+**Expected.** The feature's section 6.8 step 5 says to write the owned cases in `tests/owned.rs`.
+
+**Measured.** The owned runner (`wasm-testbed deno` / `browser`) builds the package lib and
+reads its `__fwt_` exports (spec 88 section 5, rule R9). A case in `tests/` compiles into a
+libtest binary and never runs.
+
+**Result.** The 40 cases sit in `src/lib.rs`. The feature file records the correction. The
+precedent `foundation_core/integration/wasm_tests` already does this.
+
+**Rule for the future.** An owned case lives where the `cdylib` carries it: the crate lib.
+
+## 25. A workerd body read can starve the worker (feature 02 case 2)
+
+**Expected.** `collect_string_async` reads a streamed request body on all three hosts.
+
+**Measured.** It passed on Deno and Chromium. On workerd the worker never answered the test
+request, and the run failed after the 300 s request timeout with
+`read status: Resource temporarily unavailable (os error 35)`. `AsyncSendSafeBody` with no
+read-wake source calls `cx.waker().wake_by_ref()` on an empty turn. On workerd that did not let
+the bridge's reader task run.
+
+**Result.** The case reads the stream itself and yields one host turn (`setTimeout(0)`) per
+`Data::Retry`, with a 1,000-turn bound. It passes in 0.48 s. Issue #749 records the netio
+defect and the likely fix (a `ReadWakeSource` from `WasmByteStream`).
+
+**Rule for the future.** A wasm future that waits on host I/O must yield to the host, not
+self-wake. A self-wake is not a host turn.
+
+## 26. Chromium hides `Set-Cookie` from a constructed `Response` (feature 02 case 8)
+
+**Expected.** A case can read two `Set-Cookie` values from a `Response` and check their order.
+
+**Measured.** Deno returned them through `Headers.getSetCookie`. Chromium returned an empty
+list from both `getSetCookie` and `get`, although the response carried the headers.
+
+**Result.** Case 8 uses a normal duplicate header (`x-order`). The Fetch API joins its values in
+append order, which is the property under test. The case comment names the reason.
+
+**Rule for the future.** Test header order with a normal header. `Set-Cookie` is special in the
+Fetch API, and its order is not portable across hosts.
+
+## 27. A wasm panic aborts the module (feature 02 case 9)
+
+**Expected.** A panicking handler becomes a 500 and the host stays up.
+
+**Measured.** The panic left `serve_web` and aborted the module (`RuntimeError: unreachable`).
+wasm-bindgen-test caught it at the test boundary and reported `handler_panic_becomes_a_500 ...
+FAIL`. A `wasm32-unknown-unknown` build uses `panic = "abort"`, so `catch_unwind` cannot catch
+it.
+
+**Result.** The case is gated by the crate feature `panicking-handler-case`. Issue #742 records
+the defect and the two possible fixes (a guarded host call, or unwinding when the target
+supports it).
+
+**Rule for the future.** Do not promise a 500 from a panic in a `panic = "abort"` module. The
+module stops.

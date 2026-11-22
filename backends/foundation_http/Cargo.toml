@@ -1,6 +1,6 @@
 [package]
 name = "foundation_http"
-version = "0.0.13"
+version = "0.0.14"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -39,14 +39,18 @@ concurrent-queue = { workspace = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.5" }
 # netio is target-gated so wasm never pulls its `multi` feature (native =
-# defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
+# defaults, wasm = the crate's `wasm-fetch` feature) — mirroring
+# foundation_auth/foundation_ai.
 foundation_netio = { path = "../foundation_netio", version = "0.0.16" }
 
-# On wasm32 the crate uses netio's fetch client. Identifiers come from
-# `foundation_compact::uuid`, whose entropy backend the target selects, so the
-# crate needs no `uuid` randomness feature of its own.
+# On wasm32 the crate uses netio's fetch client only when the `wasm-fetch`
+# feature is on. The feature is part of `wasm-bindgen-http`, so every current
+# build keeps the client. A second test package (integration/wasm_owned) turns
+# it off to build a module with no wasm-bindgen glue (spec 88 feature 02, T6).
+# Identifiers come from `foundation_compact::uuid`, whose entropy backend the
+# target selects, so the crate needs no `uuid` randomness feature of its own.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { version = "0.2", optional = true }
@@ -109,12 +113,17 @@ wasm = []
 # Wasm-bindgen bridge entry points for web and Cloudflare Workers
 wasm-bindgen-http = [
     "wasm",
+    "wasm-fetch",
     "dep:wasm-bindgen",
     "dep:wasm-bindgen-futures",
     "dep:js-sys",
     "dep:web-sys",
     "dep:foundation_db",
 ]
+# Netio's outbound fetch client on wasm32. It brings wasm-bindgen glue, so the
+# owned-harness package (integration/wasm_owned) leaves it off and runs the
+# pure-Rust types only. `wasm-bindgen-http` keeps it on (spec 88 feature 02).
+wasm-fetch = ["foundation_netio/wasm-fetch"]
 # Exposes wasm module types (WasmResponse, WasmStream, run_middleware) for native testing.
 # Does NOT pull in wasm-bindgen/web-sys — only pure-Rust types are available.
 wasm-test = []

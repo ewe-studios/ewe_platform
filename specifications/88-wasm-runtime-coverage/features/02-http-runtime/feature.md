@@ -1,19 +1,19 @@
 ---
 feature: "HTTP Runtime"
 description: "Deep foundation_http cases on embedded Deno, headless Chromium and workerd: the web bridge, the Cloudflare bridge, the serve-writer path, the response builders and the wasm streams, plus the native pure-Rust wasm module suite that CI never runs."
-status: "todo"
+status: "done"
 priority: "high"
 depends_on: ["00-executors"]
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-16
+last_updated: 2026-11-23
 author: "Main Agent"
 model: "sonnet"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # HTTP Runtime
@@ -305,6 +305,11 @@ Case 9 needs care: a panic inside the dispatch either becomes a 500 or unwinds i
 Measure which. If it unwinds, that is a defect: a panicking handler must not take down the
 host (rule 9: file it and fix it, or gate the case with the issue).
 
+**Measured 2026-11-23.** A panic does not become a 500. It aborts the wasm module
+(`RuntimeError: unreachable`), and the wasm-bindgen-test host reports the case as failed. A
+`wasm32-unknown-unknown` build uses `panic = "abort"`, so `catch_unwind` cannot answer 500.
+The case is gated by the crate feature `panicking-handler-case`, and issue #742 holds the fix.
+
 Case 10 uses `Ctx::store`/`get` on a value the handler inserts, then a second request that must
 not see it.
 
@@ -349,20 +354,30 @@ on the writer app's config with a builder method and a documented default (root 
 the case proves it. Name the default's source (nginx `client_max_body_size`, 1 MiB, is a good
 comparison). This is the only production change the feature expects; keep it small.
 
+**Measured 2026-11-23.** There was none. The field is `HttpApp::max_writer_body_bytes`, with
+`with_max_writer_body_bytes`. Its default is 1 MiB, the nginx `client_max_body_size` default.
+A streaming body keeps `max_request_bytes`, because its length is unknown before it is read.
+
 Case 19 builds a raw byte buffer — a status line, headers, a blank line, a body in three
 writes — and asserts the parsed parts. `WasmStream` is a byte buffer with an optional parsed
 result (`wasm/stream.rs:8-18`).
 
 ### 6.6 What this feature does not test
 
-- **A streaming inbound body.** `request_from_web` and `request_from_cf` call `req.text()` and
-  buffer the whole body (#560, high). Spec 85 task T4 replaces that with a stream. This
-  feature's cases use small text bodies, and case 18 exercises the limit on the writer path,
-  which is in-memory by design. When spec 85 lands, its own suite covers the streamed request.
 - **A streamed response body.** `WebConn::set_body` takes a `Vec<u8>` today. Spec 85's sink is
   the path for that; this feature asserts the response's parts, not its chunk timing.
 
-Both are recorded here so a reader does not think the suite forgot them.
+**Correction, 2026-11-23.** The streaming inbound body landed before this feature (spec 85):
+`request_from_web` and `request_from_cf` now build a `WasmByteStream` and do not call
+`req.text()`. The suite therefore reads a **streamed** request body, one host turn per
+`Data::Retry`, with a 1,000-turn bound. The first attempt used `collect_string_async`. It
+passed on Deno and Chromium but hung the workerd host until the 300 s request timeout, because
+`AsyncSendSafeBody` with no read-wake source self-wakes and the reader task never ran. Issue
+#749 records the netio defect and the fix (attach a `ReadWakeSource` from `WasmByteStream`).
+The suite does not read a whole stream into memory for a streaming assertion: case 2 sends a
+5-byte body and checks its text and length.
+
+Both limits stay recorded here so a reader does not think the suite forgot them.
 
 ### 6.7 T5: CI and the native suite
 
@@ -445,9 +460,11 @@ on (`Cargo.toml:46-49`). Six steps, in order:
 
    The second command must print no `__wbindgen_` line. A line that stays keeps its case on the
    wasm-bindgen harness, and this section records the symbol.
-5. Write the cases under `#[wasm_test]` in `tests/owned.rs`. They hold the same assertions as
+5. Write the cases under `#[wasm_test]` in the crate lib. They hold the same assertions as
    `tests/wasm_response_tests.rs`, `tests/wasm_stream_tests.rs` and `tests/wasm_server_tests.rs`,
-   which run natively today.
+   which run natively today. The cases sit in `src/lib.rs`, not `tests/owned.rs`: the owned
+   runner builds the package lib and reads its `__fwt_` exports (section 5 and rule R9), so a
+   case in `tests/` never runs (measured 2026-11-23).
 6. Run the package on the owned harness, and add both to the tasks and to CI:
 
    ```
@@ -459,6 +476,15 @@ on (`Cargo.toml:46-49`). Six steps, in order:
 
 A step that fails stops T6 with a report: the cases stay on the wasm-bindgen harness, and the
 reason goes into this section and `LEARNINGS.md`. Do not fake a module with a shim.
+
+**Measured 2026-11-23.** Every step passed. The module imports only four `abi` functions
+(`host_fill_random`, `host_wall_clock_ms`, `host_monotonic_now_ms`, `host_report`); no
+`__wbindgen_` import is present. `wasm2wat` is not installed on the host, so the import list
+came from a small reader of the wasm import section; the method is recorded in `LEARNINGS.md`.
+The owned suite runs 40 cases on Deno and 40 on Chromium, all green. The fetch client is off
+through the new `wasm-fetch` crate feature, which `wasm-bindgen-http` keeps on. No source file
+needed a `#[cfg(feature = "wasm-fetch")]` gate: the only netio types the pure-Rust modules use
+(`shared::http`) build without the feature.
 
 ### 6.9 Fault table
 
@@ -474,6 +500,22 @@ reason goes into this section and `LEARNINGS.md`. Do not fake a module with a sh
 `.mjs` with `text/javascript` (`backends/foundation_http/src/native/handlers/static_file.rs`),
 and `static_file_serves_mjs_as_a_module_script` in `tests/static_file_tests.rs` proves it. A
 browser host may stage a module script again; the name `runner.js` is not a contract.
+
+### 6.10 Defects the cases proved in `foundation_http`
+
+Each fix keeps the case that failed on the old code. A fixed defect is closed in the change
+that lands it.
+
+| Case | Defect | Fix | Issue |
+|---|---|---|---|
+| 3 | A route miss rejected the JS promise; no 404 `Response` reached the caller | `dispatch_web` / `dispatch_cf` build a 404 `Response` | #744 |
+| 4 | A wrong method could not be 405: the router returned `None` for both misses | `RouteOp::MethodNotAllowed`, `Router::dispatch_result` | #745 |
+| 5 | `%2F` never decoded | `bridge::parse_request_uri` decodes only the path | #746 |
+| 16 | The writer path routed on the full URL, so every route missed | route on `request_uri.path()` | #747 |
+| 18 | No writer-path body limit | `HttpApp::max_writer_body_bytes` (1 MiB) | none (a new field) |
+| 9 | A panic aborts the module | none yet; the case is gated | #742 |
+| - | The native HTTP/1 server answers 404 for a wrong method | none yet | #743 |
+| 2 | `AsyncSendSafeBody` self-wakes without a host yield on workerd | the suite yields per `Data::Retry`; netio keeps the defect | #749 |
 
 ## 7. Tests
 
@@ -519,17 +561,17 @@ cargo clippy -p foundation_http --all-targets -- -D warnings
 
 ## 9. Done when
 
-- [ ] The crate builds for wasm32 and has one test target.
-- [ ] Twenty cases pass on Deno, Chromium and workerd, except case 14, which passes on workerd
-      and states why it does not run elsewhere.
-- [ ] `cargo test -p foundation_http --features wasm-test` is a CI step (#570 closed).
-- [ ] The owned package builds without the fetch client, `wasm2wat` shows no `__wbindgen_`
-      import, and its cases pass on Deno and Chromium. A case that keeps a glue import stays on
-      the wasm-bindgen harness, and 6.8 records its symbol.
-- [ ] A body limit is a configuration field with a documented default (case 18).
-- [ ] The R14 break is recorded per host and reverted.
-- [ ] The two paths this feature does not cover are recorded in 6.6 with their owners.
-- [ ] `progress.md` and `LEARNINGS.md` name what landed and what is next.
+- [x] The crate builds for wasm32 and has one test target.
+- [x] Nineteen cases pass on Deno, Chromium and workerd. Case 14 passes on workerd and states
+      why it does not run elsewhere. Case 9 is gated by `panicking-handler-case` with issue
+      #742: a wasm panic aborts the module, so it cannot answer 500.
+- [x] `cargo test -p foundation_http --features wasm-test` is a CI step (#570 closed).
+- [x] The owned package builds without the fetch client, the import measurement shows no
+      `__wbindgen_` import, and its 40 cases pass on Deno and Chromium.
+- [x] A body limit is a configuration field with a documented default (case 18).
+- [x] The R14 break is recorded per host and reverted.
+- [x] The two paths this feature does not cover are recorded in 6.6 with their owners.
+- [x] `progress.md` and `LEARNINGS.md` name what landed and what is next.
 
 ---
 

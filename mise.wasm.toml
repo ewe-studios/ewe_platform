@@ -85,6 +85,45 @@ mise install github:wasm-bindgen/wasm-bindgen
 cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-web ./backends/foundation_core --features js-wasmbindgen,std --headless
 """
 
+[tasks."test:wasm-bindgen:http:deno"]
+alias = "test-wasm-bindgen-http-deno"
+description = "foundation_http's web bridge, CF bridge, serve-writer path, streams and responses on the Deno host (spec 88 feature 02)."
+run = """
+mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno backends/foundation_http/integration/wasm
+"""
+
+[tasks."test:wasm-bindgen:http:web"]
+alias = "test-wasm-bindgen-http-web"
+description = "foundation_http's wasm cases in headless Chromium (spec 88 feature 02)."
+depends = ["test:browsers:chromium"]
+run = """
+mise install github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-web backends/foundation_http/integration/wasm --headless
+"""
+
+[tasks."test:wasm-bindgen:http:wrangler"]
+alias = "test-wasm-bindgen-http-wrangler"
+description = "foundation_http's wasm cases inside workerd, with the real local D1 binding (spec 88 feature 02)."
+run = """
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-wrangler backends/foundation_http/integration/wasm
+"""
+
+[tasks."test:wasm-testbed:http:deno"]
+alias = "test-wasm-testbed-http-deno"
+description = "foundation_http's pure-Rust wasm cases on the OWNED Deno harness (spec 88 feature 02, T6). The module imports no wasm-bindgen glue."
+run = """
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_http/integration/wasm_owned
+"""
+
+[tasks."test:wasm-testbed:http:browser"]
+alias = "test-wasm-testbed-http-browser"
+description = "foundation_http's pure-Rust wasm cases on the OWNED Chromium harness (spec 88 feature 02, T6)."
+depends = ["test:browsers:chromium"]
+run = """
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- browser backends/foundation_http/integration/wasm_owned --headless
+"""
+
 [tasks."test:wasm-testbed:bindgen-fails"]
 alias = "test-wasm-testbed-bindgen-fails"
 description = "Regression check: a case that fails turns both wasm-bindgen runners red (spec 88 rules I1, I7, R14). The step passes only when both commands fail."

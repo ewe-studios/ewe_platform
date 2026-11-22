@@ -1,0 +1,57 @@
+# Standalone wasm test crate for the foundation_http wasm bridges (spec 88
+# feature 02). It is outside the root workspace because the parent's
+# dev-dependencies do not build for wasm32 (rule R11): `foundation_testing`
+# pulls `socket2` (issue #576).
+#
+#   cargo run -p foundation_testbed --features wasm --profile uat \
+#     --bin wasm-testbed -- test bindgen-deno \
+#     backends/foundation_http/integration/wasm
+#
+# The same test target runs on the Deno, Chromium and workerd hosts. Keep this
+# file the only test target (rule R10).
+[package]
+name = "foundation_http_wasm_tests"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+# `wasm-bindgen-http` enables the web bridge, the Cloudflare bridge and the
+# serve-writer path.
+foundation_http = { path = "../..", features = ["wasm-bindgen-http"] }
+# The body reader reads a streamed request body without buffering it.
+foundation_netio = { path = "../../../foundation_netio", default-features = false, features = ["wasm-fetch"] }
+# The deterministic clock of the injected-clock case.
+foundation_core = { path = "../../../foundation_core", default-features = false, features = ["std", "js-wasmbindgen", "test-clock"] }
+# The Cloudflare D1 binding type the real-binding case asks for.
+foundation_db = { path = "../../../foundation_db", default-features = false, features = ["wasm", "wasm-bindgen-storage"] }
+# Pinned to the versions foundation_testbed pins and the testbed's CI installs:
+# the wasm-bindgen CLI must be >= the crate it processes (0.2.126 exactly here).
+wasm-bindgen = "=0.2.126"
+wasm-bindgen-futures = "=0.4.76"
+js-sys = "=0.3.103"
+web-sys = { version = "=0.3.103", features = [
+  "Headers",
+  "Request",
+  "RequestInit",
+  "Response",
+  "ResponseInit",
+  "ReadableStream",
+  "ReadableStreamDefaultReader",
+  "console",
+] }
+async-trait = "0.1"
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.76"
+
+[features]
+# Off by default. The gated case proves a panicking handler becomes a 500. On
+# wasm32-unknown-unknown a Rust panic aborts the module, so the case traps the
+# host instead (issue #742). Turn it on only to reproduce that measurement.
+panicking-handler-case = []
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
