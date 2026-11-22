@@ -92,8 +92,14 @@ fn losing_the_imported_device_returns_an_idle_lease() {
 
     futures_lite::future::block_on(async {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
-        let adapter = instance.request_adapter(&Default::default()).await.unwrap();
-        let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions::default())
+            .await
+            .unwrap();
+        let (device, queue) = adapter
+            .request_device(&wgpu::DeviceDescriptor::default())
+            .await
+            .unwrap();
         let host_device = device.clone();
         let (completed, result) = std::sync::mpsc::channel();
         let lease = NativeLease::import(

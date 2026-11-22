@@ -11,8 +11,10 @@ use std::{
 
 use foundation_context::Ctx;
 use foundation_ui_gpu::{
+    browser::BrowserGraphics,
     browser_handoff::BrowserDeviceExchange,
     lease::{DeviceExchange, GraphicsReady, LeaseError, Notice, Selection},
+    GpuConfig, GpuService,
 };
 use foundation_ui_runtime::{
     action::{
@@ -28,6 +30,27 @@ use foundation_ui_wire::{
 };
 use js_sys::Function;
 use wasm_bindgen::prelude::*;
+
+/// Check that a service clone drains canvas work when the browser host stays alive.
+///
+/// # Errors
+/// Return an error if the host cannot start graphics or attach the first canvas.
+#[wasm_bindgen]
+pub async fn verify_shared_shutdown(canvas: web_sys::HtmlCanvasElement) -> Result<(), JsError> {
+    let ctx = Ctx::host();
+    let browser = BrowserGraphics::install(&ctx, GpuConfig::default())?;
+    let service = ctx
+        .get::<GpuService>()
+        .ok_or_else(|| JsError::new("The browser must install the shared graphics service"))?;
+    let (surface, ()) = futures_util::future::join(
+        browser.attach("accepted".into(), canvas.clone()),
+        service.shutdown(),
+    )
+    .await;
+    surface?;
+    assert!(browser.attach("closed".into(), canvas).await.is_err());
+    Ok(())
+}
 
 #[derive(Default)]
 struct Server(AtomicUsize);
