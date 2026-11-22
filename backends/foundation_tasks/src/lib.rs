@@ -12,43 +12,43 @@ pub use foundation_macros::{task_entry as task, tasks};
 
 pub type TaskResult = Result<(), TaskError>;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, derive_more::Display, derive_more::Error)]
 pub enum TaskError {
-    #[error("Invalid task name or path: {0}")]
-    InvalidName(String),
-    #[error("Task {name} from {second} conflicts with {first}")]
+    #[display("Invalid task name or path: {_0}")]
+    InvalidName(#[error(not(source))] String),
+    #[display("Task {name} from {second} conflicts with {first}")]
     Conflict {
         name: String,
         first: &'static str,
         second: &'static str,
     },
-    #[error("Missing service {0}")]
-    MissingService(&'static str),
-    #[error("{0}")]
-    Arguments(clap::Error),
-    #[error("{0}")]
-    Operation(#[source] Box<dyn std::error::Error + Send + Sync>),
-    #[error("{task}: {source}")]
+    #[display("Missing service {_0}")]
+    MissingService(#[error(not(source))] &'static str),
+    #[display("{_0}")]
+    Arguments(#[error(not(source))] clap::Error),
+    #[display("{_0}")]
+    Operation(#[error(source)] Box<dyn std::error::Error + Send + Sync>),
+    #[display("{task}: {source}")]
     Task {
         task: String,
-        #[source]
+        #[error(source)]
         source: Box<TaskError>,
     },
-    #[error("{program:?}: {source}")]
+    #[display("{program:?}: {source}")]
     Process {
         program: OsString,
-        #[source]
+        #[error(source)]
         source: std::io::Error,
     },
-    #[error("{program:?} exited with status {code}")]
+    #[display("{program:?} exited with status {code}")]
     Exit { program: OsString, code: i32 },
-    #[error("{program:?} terminated by signal {signal}")]
+    #[display("{program:?} terminated by signal {signal}")]
     Signal { program: OsString, signal: i32 },
-    #[error("Task cancelled")]
+    #[display("Task cancelled")]
     Cancelled,
-    #[error("{source}; cleanup failed: {cleanup}")]
+    #[display("{source}; cleanup failed: {cleanup}")]
     Cleanup {
-        #[source]
+        #[error(source)]
         source: Box<TaskError>,
         cleanup: Box<TaskError>,
     },

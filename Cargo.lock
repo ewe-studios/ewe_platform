@@ -6442,6 +6442,7 @@ version = "0.1.0"
 dependencies = [
  "async-channel",
  "clap",
+ "derive_more",
  "foundation_context",
  "foundation_core",
  "foundation_macros",
@@ -6451,7 +6452,7 @@ dependencies = [
  "libc",
  "syn 2.0.119",
  "tempfile",
- "thiserror 2.0.19",
+ "tracing",
  "windows-sys 0.61.2",
 ]
 

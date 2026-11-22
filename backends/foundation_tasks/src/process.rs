@@ -3,7 +3,10 @@ use crate::{TaskError, TaskResult, TaskRunner};
 use foundation_context::Ctx;
 use foundation_core::valtron::{self, TaskIterator, TaskStatus};
 use foundation_nativeapis::signal::{signal_task, SignalEvent, SignalKind, SignalTask};
-use futures_util::future::{select_biased, try_join4, BoxFuture, FutureExt};
+use futures_util::{
+    future::{try_join3, BoxFuture, FutureExt},
+    select_biased,
+};
 use std::{
     ffi::OsString,
     io::{self, Read, Write},
@@ -138,6 +141,41 @@ impl ProcessCommand {
         self.input = Some(bytes);
         self
     }
+
+    fn into_native(self) -> (Command, Option<Vec<u8>>) {
+        let ProcessCommand {
+            program,
+            args,
+            cwd,
+            env,
+            clear_env,
+            input,
+        } = self;
+        let mut process = Command::new(program);
+        process
+            .args(args)
+            .stdin(if input.is_some() {
+                Stdio::piped()
+            } else {
+                Stdio::null()
+            })
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        if let Some(cwd) = cwd {
+            process.current_dir(cwd);
+        }
+        if clear_env {
+            process.env_clear();
+        }
+        for (key, value) in env {
+            if let Some(value) = value {
+                process.env(key, value);
+            } else {
+                process.env_remove(key);
+            }
+        }
+        (process, input)
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -255,6 +293,9 @@ async fn background<T: Send + 'static>(
 ) -> io::Result<T> {
     let (result, receiver) = async_channel::bounded(1);
     valtron::run_background_job(move || {
+        if result.is_closed() {
+            return;
+        }
         let value = operation();
         // The caller can stop waiting before the background operation ends.
         let _ = result.try_send(value);
@@ -269,8 +310,36 @@ struct ChildStreams {
     stdout: Pipe,
     stderr: Pipe,
     input: async_channel::Receiver<io::Result<()>>,
-    exit: async_channel::Receiver<Result<ExitStatus, TaskError>>,
+    observed: async_channel::Receiver<()>,
+    exit: async_channel::Receiver<io::Result<ExitStatus>>,
+    owner: ChildOwner,
+}
+
+struct ChildOwner {
     tree: Arc<tree::Tree>,
+    release: Option<std::sync::mpsc::Sender<()>>,
+}
+
+impl ChildOwner {
+    fn finish(&mut self) {
+        self.release.take();
+    }
+
+    fn terminate(&mut self) -> io::Result<()> {
+        let result = self.tree.terminate();
+        self.finish();
+        result
+    }
+}
+
+impl Drop for ChildOwner {
+    fn drop(&mut self) {
+        if self.release.is_some() {
+            if let Err(error) = self.terminate() {
+                tracing::error!(%error, "Cannot terminate an abandoned child tree");
+            }
+        }
+    }
 }
 
 async fn run_child(
@@ -292,35 +361,43 @@ async fn run_child(
         stdout,
         stderr,
         input,
+        observed,
         exit,
-        tree,
+        mut owner,
     } = child;
     let result = {
-        let joined = try_join4(
-            drain(stdout, OutputStream::Stdout, output.as_ref()),
-            drain(stderr, OutputStream::Stderr, output.as_ref()),
-            async { input.recv().await.unwrap_or(Ok(())) },
-            async { exit.recv().await.map_err(io::Error::other) },
-        );
+        let joined = async {
+            try_join3(
+                drain(stdout, OutputStream::Stdout, output.as_ref()),
+                drain(stderr, OutputStream::Stderr, output.as_ref()),
+                async { input.recv().await.map_err(io::Error::other)? },
+            )
+            .await?;
+            observed.recv().await.map_err(io::Error::other)
+        };
         let cancellation = cancellation.cancelled();
         futures_util::pin_mut!(joined, cancellation);
         select_biased! {
             () = cancellation.fuse() => Err(TaskError::Cancelled),
-            result = joined.fuse() => result.map(|((), (), (), status)| status).map_err(fail),
+            result = joined.fuse() => result.map_err(fail),
         }
     };
-    let status = match result {
-        Ok(exit_status) => exit_status?,
-        Err(error) => {
-            let stopped = tree.terminate().map_err(fail);
-            let reaped = exit
-                .recv()
-                .await
-                .map_err(io::Error::other)
-                .map_err(fail)
-                .and_then(|status| status.map(drop));
-            return with_cleanup(error, stopped.and(reaped));
+    let outcome = match result {
+        Ok(()) => {
+            owner.finish();
+            Ok(())
         }
+        Err(error) => with_cleanup(error, owner.terminate().map_err(fail)),
+    };
+    let reaped = exit
+        .recv()
+        .await
+        .map_err(io::Error::other)
+        .and_then(|status| status)
+        .map_err(fail);
+    let status = match outcome {
+        Ok(()) => reaped?,
+        Err(error) => return with_cleanup(error, reaped.map(drop)),
     };
     if status.success() {
         return Ok(());
@@ -347,7 +424,7 @@ async fn drain(pipe: Pipe, stream: OutputStream, output: &dyn TaskOutput) -> io:
 
 fn pump(
     mut reader: impl Read,
-    chunks: async_channel::Sender<io::Result<Vec<u8>>>,
+    chunks: &async_channel::Sender<io::Result<Vec<u8>>>,
     config: ProcessConfig,
 ) {
     loop {
@@ -377,97 +454,78 @@ fn start_child(
     if cancellation.is_cancelled() {
         return Err(TaskError::Cancelled);
     }
-    let ProcessCommand {
-        program,
-        args,
-        cwd,
-        env,
-        clear_env,
-        input,
-    } = command;
+    let (mut process, input) = command.into_native();
+    let program = process.get_program().to_owned();
     let fail = |source| TaskError::Process {
         program: program.clone(),
         source,
     };
-    let mut process = Command::new(&program);
-    process
-        .args(args)
-        .stdin(if input.is_some() {
-            Stdio::piped()
-        } else {
-            Stdio::null()
-        })
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    if let Some(cwd) = cwd {
-        process.current_dir(cwd);
-    }
-    if clear_env {
-        process.env_clear();
-    }
-    for (key, value) in env {
-        if let Some(value) = value {
-            process.env(key, value);
-        } else {
-            process.env_remove(key);
-        }
-    }
     tree::configure(&mut process);
     let mut child = process.spawn().map_err(fail)?;
     let tree = match tree::Tree::attach(&child) {
         Ok(tree) => Arc::new(tree),
         Err(error) => {
-            let _ = child.kill();
+            let stopped = child.kill();
             return Err(cleanup_error(
                 fail(error),
-                child.wait().map(drop).map_err(fail),
+                after_cleanup(stopped, child.wait().map(drop)).map_err(fail),
             ));
         }
     };
     let (stdout, out) = async_channel::bounded(1);
     let (stderr, err) = async_channel::bounded(1);
     let (sent, input_status) = async_channel::bounded(1);
+    let (ready, observed) = async_channel::bounded(1);
     let (finished, exit) = async_channel::bounded(1);
+    let (release, permission_to_reap) = std::sync::mpsc::channel();
     let (handoff, receive) = std::sync::mpsc::sync_channel(1);
     let owned = tree.clone();
     // A Valtron pool can have one background worker. The child wait and each
     // pipe must block independently, so the supervisor owns their OS threads.
-    let supervisor_program = program.clone();
     let supervisor = std::thread::Builder::new()
         .name("task-child".into())
         .spawn(move || {
             let Ok(mut child) = receive.recv() else {
                 return;
             };
-            let status = supervise(&mut child, &owned, stdout, stderr, sent, input, config);
-            let _ = finished.try_send(status.map_err(|source| TaskError::Process {
-                program: supervisor_program,
-                source,
-            }));
+            let supervision = supervise(&mut child, &owned, stdout, stderr, sent, input, config);
+            let _ = ready.try_send(());
+            // The owner closes this channel after its last possible group signal.
+            let _ = permission_to_reap.recv();
+            let status = after_cleanup(supervision, child.wait());
+            if let Err(error) = finished.try_send(status) {
+                if let Err(error) = error.into_inner() {
+                    tracing::error!(%error, "Cannot reap an abandoned child");
+                }
+            }
         });
     if let Err(error) = supervisor {
-        let stopped = tree.terminate().map_err(io::Error::other);
+        let stopped = stop_tree(&tree, &mut child);
         let waited = child.wait().map(drop);
         return Err(cleanup_error(
             fail(error),
-            stopped.and(waited).map_err(fail),
+            after_cleanup(stopped, waited).map_err(fail),
         ));
     }
     if let Err(error) = handoff.send(child) {
         let mut child = error.0;
-        let stopped = tree.terminate();
+        let stopped = stop_tree(&tree, &mut child);
         let waited = child.wait().map(drop);
         return Err(cleanup_error(
             fail(io::Error::other("The child supervisor stopped")),
-            stopped.and(waited).map_err(fail),
+            after_cleanup(stopped, waited).map_err(fail),
         ));
     }
     Ok(ChildStreams {
         stdout: out,
         stderr: err,
         input: input_status,
+        observed,
         exit,
-        tree,
+        owner: ChildOwner {
+            tree,
+            release: Some(release),
+        },
     })
 }
 
@@ -479,17 +537,17 @@ fn supervise(
     input_status: async_channel::Sender<io::Result<()>>,
     input: Option<Vec<u8>>,
     config: ProcessConfig,
-) -> io::Result<ExitStatus> {
+) -> io::Result<()> {
     std::thread::scope(|scope| {
         let result = (|| {
             let out = child.stdout.take().expect("standard output pipe");
             let err = child.stderr.take().expect("standard error pipe");
             std::thread::Builder::new()
                 .name("task-stdout".into())
-                .spawn_scoped(scope, move || pump(out, stdout, config))?;
+                .spawn_scoped(scope, move || pump(out, &stdout, config))?;
             std::thread::Builder::new()
                 .name("task-stderr".into())
-                .spawn_scoped(scope, move || pump(err, stderr, config))?;
+                .spawn_scoped(scope, move || pump(err, &stderr, config))?;
             if let Some(bytes) = input {
                 let mut pipe = child.stdin.take().expect("private input pipe");
                 std::thread::Builder::new()
@@ -497,22 +555,33 @@ fn supervise(
                     .spawn_scoped(scope, move || {
                         let _ = input_status.try_send(pipe.write_all(&bytes));
                     })?;
+            } else {
+                let _ = input_status.try_send(Ok(()));
             }
-            child.wait()
+            tree::observe_exit(child)
         })();
         if let Err(error) = result {
-            let stopped = tree.terminate();
-            let _ = child.kill();
-            let reaped = child.wait().map(drop);
-            if let Err(cleanup) = stopped.and(reaped) {
-                return Err(io::Error::other(format!(
-                    "{error}; cleanup failed: {cleanup}"
-                )));
-            }
-            return Err(error);
+            return after_cleanup(Err(error), stop_tree(tree, child));
         }
         result
     })
+}
+
+fn stop_tree(tree: &tree::Tree, child: &mut Child) -> io::Result<()> {
+    match tree.terminate() {
+        Ok(()) => Ok(()),
+        Err(error) => after_cleanup(Err(error), child.kill()),
+    }
+}
+
+fn after_cleanup<T>(operation: io::Result<()>, cleanup: io::Result<T>) -> io::Result<T> {
+    match (operation, cleanup) {
+        (Ok(()), result) => result,
+        (Err(error), Ok(_)) => Err(error),
+        (Err(error), Err(cleanup)) => Err(io::Error::other(format!(
+            "{error}; cleanup failed: {cleanup}"
+        ))),
+    }
 }
 
 fn cleanup_error(source: TaskError, cleanup: TaskResult) -> TaskError {
@@ -544,14 +613,35 @@ mod tree {
         command.process_group(0);
     }
 
+    pub(super) fn observe_exit(child: &Child) -> io::Result<()> {
+        let mut info = std::mem::MaybeUninit::<libc::siginfo_t>::uninit();
+        loop {
+            // The kernel writes the result. WNOWAIT reserves the group leader until the owner releases it.
+            let result = unsafe {
+                libc::waitid(
+                    libc::P_PID,
+                    child.id(),
+                    info.as_mut_ptr(),
+                    libc::WEXITED | libc::WNOWAIT,
+                )
+            };
+            if result == 0 {
+                return Ok(());
+            }
+            let error = io::Error::last_os_error();
+            if error.kind() != io::ErrorKind::Interrupted {
+                return Err(error);
+            }
+        }
+    }
+
     pub(super) struct Tree(libc::pid_t);
 
     impl Tree {
         pub(super) fn attach(child: &Child) -> io::Result<Self> {
-            Some(child.id())
-                .and_then(|id| libc::pid_t::try_from(id).ok())
+            libc::pid_t::try_from(child.id())
                 .map(Self)
-                .ok_or_else(|| io::Error::other("The child process does not have an identifier"))
+                .map_err(io::Error::other)
         }
 
         pub(super) fn terminate(&self) -> io::Result<()> {
@@ -560,11 +650,40 @@ mod tree {
                 return Ok(());
             }
             let error = io::Error::last_os_error();
+            #[cfg(target_vendor = "apple")]
+            if error.raw_os_error() == Some(libc::EPERM) && self.only_exited_leader() {
+                return Ok(());
+            }
             if error.raw_os_error() == Some(libc::ESRCH) {
                 Ok(())
             } else {
                 Err(error)
             }
+        }
+
+        #[cfg(target_vendor = "apple")]
+        fn only_exited_leader(&self) -> bool {
+            // Darwin denies a group signal when only the exited leader remains.
+            let mut info = std::mem::MaybeUninit::<libc::siginfo_t>::zeroed();
+            // The zeroed result identifies the case where the child still runs.
+            let result = unsafe {
+                libc::waitid(
+                    libc::P_PID,
+                    self.0.cast_unsigned(),
+                    info.as_mut_ptr(),
+                    libc::WEXITED | libc::WNOWAIT | libc::WNOHANG,
+                )
+            };
+            if result != 0 || unsafe { info.assume_init() }.si_pid != self.0 {
+                return false;
+            }
+            // A second slot detects another group member that might still need a signal.
+            let mut members = [0_i32; 2];
+            let size = libc::c_int::try_from(std::mem::size_of_val(&members))
+                .expect("two process identifiers fit");
+            let count =
+                unsafe { libc::proc_listpgrppids(self.0, members.as_mut_ptr().cast(), size) };
+            count == 1 && members[0] == self.0
         }
     }
 }
@@ -596,13 +715,16 @@ mod tree {
         command.creation_flags(CREATE_SUSPENDED);
     }
 
+    pub(super) fn observe_exit(child: &mut Child) -> io::Result<()> {
+        // The job handle preserves the tree identity after the process exits.
+        child.wait().map(drop)
+    }
+
     pub(super) struct Tree(OwnedHandle);
 
     impl Tree {
         pub(super) fn attach(child: &Child) -> io::Result<Self> {
-            let id = child
-                .id()
-                .ok_or_else(|| io::Error::other("The child process does not have an identifier"))?;
+            let id = child.id();
             // The returned handles belong to this function.
             let job = unsafe { CreateJobObjectW(std::ptr::null(), std::ptr::null()) };
             if job.is_null() {

@@ -16,7 +16,8 @@ foundation_macros = { workspace = true }
 clap = { workspace = true }
 futures-util.workspace = true
 async-channel.workspace = true
-thiserror.workspace = true
+derive_more.workspace = true
+tracing.workspace = true
 foundation_nativeapis = { workspace = true, features = ["signal"] }
 syn = { version = "2", features = ["full"] }
 

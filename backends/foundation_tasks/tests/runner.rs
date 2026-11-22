@@ -68,3 +68,23 @@ fn a_conflicting_set_does_not_register_other_entries() {
     futures_lite::future::block_on(runner.run()).unwrap();
     assert_eq!(*history.lock().unwrap(), ["first"]);
 }
+
+#[test]
+fn task_errors_preserve_the_message_and_cause() {
+    use foundation_tasks::TaskError;
+    use std::error::Error;
+
+    let missing = TaskError::InvalidName("bad task".into());
+    assert_eq!(missing.to_string(), "Invalid task name or path: bad task");
+    assert!(missing.source().is_none());
+
+    let source = std::io::Error::new(std::io::ErrorKind::BrokenPipe, "closed output");
+    let error = TaskError::Task {
+        task: "example".into(),
+        source: Box::new(TaskError::operation(source)),
+    };
+    assert_eq!(error.to_string(), "example: closed output");
+    let operation = error.source().unwrap();
+    assert_eq!(operation.to_string(), "closed output");
+    assert_eq!(operation.source().unwrap().to_string(), "closed output");
+}
