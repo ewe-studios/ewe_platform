@@ -44,6 +44,12 @@ The primary configuration file for all AI agents (including Codex) has been move
 16. **CI fits the free tier: jobs queue, they do not stampede** (owner rule 2026-11-11): each matrix job sets `max-parallel` from `[defaults]` in `ci/packages.toml`. Each workflow sets a concurrency group. The group cancels superseded pull request runs and queues master runs. Pull requests run only the affected packages, and the runner checks this too (`ci.py run --if-affected`). A normal pull request runs the Linux jobs only. macOS and Windows run on full runs: a push to master or `platform/release`, a pull request into or from `platform/release`, the nightly schedule and manual runs. A push to master runs what the merge affected. The full Linux, macOS and Windows run of every package happens on the nightly schedule. CI uses the free GitHub-hosted runners (the repository is public), not paid runners. Release flow: a change that needs macOS and Windows testing merges into `platform/release` first; when that full run is green on all three OSes, it merges into master. A new workflow or matrix follows the same rules.
 17. **Latest versions, one version per dependency** (owner rule 2026-11-11): use the latest stable version of every dependency. A dependency that more than one crate uses is declared once, in the root `Cargo.toml` `[workspace.dependencies]`, with its version and default features; each crate uses `dep = { workspace = true }` and adds only its own features. `Cargo.lock` holds one version of each such dependency (for example one `libsql`, which bundles its own C SQLite). A second version is allowed only when an upstream crate forces it; record the reason in a comment next to the workspace entry. A pre-release is not "latest stable".
 
+18. **Use named rendering targets.** Application and example code must never assign numeric anchors to views or elements.
+    Declare an element name with the `id` attribute. Use a named target for later updates.
+    Use the receiving view for default placement. This rule includes dialogs, filters, lists, and notifications.
+    If an operation lacks named targeting, add framework support or replace the named element.
+    Only framework internals may allocate numeric node handles for rendering and event dispatch.
+
 ---
 
 ## Migration Notice

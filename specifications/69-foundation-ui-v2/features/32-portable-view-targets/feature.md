@@ -1,6 +1,6 @@
 # Feature 32. Target views and elements by name
 
-Status: Complete.
+The framework placement stages and count migration are complete. The remaining Todo target migration awaits approval.
 
 ## Glossary
 
@@ -31,7 +31,11 @@ Reserve `view` for registered view roots.
 
 The author adds an identifier when another operation needs to address an element.
 Keep identifiers unique within one view. Different views can use the same element name.
-View names are unique within a host. Keep numeric handles available for internal node operations and event dispatch.
+View names are unique within a host.
+Application code must never assign numeric anchors or send updates to hard-coded node handles.
+Use the receiving view or a named target for application updates.
+The framework may allocate numeric handles internally for node operations and event dispatch.
+Todo record identifiers identify records. They do not address rendering operations.
 
 ## Example
 
@@ -112,3 +116,128 @@ Check that an update after initial load reaches the correct count target on each
 8. Update the framework and mobile package README files. Show default placement, explicit view selection, and a typed element target.
 
 Use the existing [mobile designs](../23-native-design-and-themes/feature.md) for the todo regression check.
+
+## Remaining Todo targets
+
+Issue #714 tracks the application targets added during the synchronization repair.
+The following revision supersedes the earlier full-page count publication. The separate count screen still demonstrates server rendering.
+
+### Action ownership
+
+The server owns todo records. Each client keeps a local copy for display and search.
+Each action has one owner and one purpose.
+
+| Intent | Owner | Result |
+|---|---|---|
+| Open, cancel, or dismiss a dialog | Host | Update the named dialog area on this client. |
+| Submit a title or confirm deletion | Server | Validate the request and change the server store. |
+| Complete or reopen a todo | Server | Change the record and publish the resulting status. |
+| Search or filter | Host | Select matching cached records and update this client's list. |
+| Open or close Mathalley | Host | Start or release the game view described in Feature 36. |
+
+Build the initial page once. Give each addressed element a name in the shared markup.
+Use one dialog builder. Its inputs select the dialog kind and the affected todo record.
+Submitting a title records a pending row before sending the server action `add_todo`. Bind deletion confirmation to `confirm_delete`. Bind cancellation to `close_dialog`.
+Remove the duplicate device mutation handlers and their registrations.
+Remove the `local` argument and the `OnDevice` checks from page, row, dialog, filter, and mutation code.
+Update callers of the standalone mobile constructor. Its host actions use the cache. Record changes require a server connection.
+Declare any platform-specific action scope at its registration and binding boundary.
+Use the same shared page and controls on each supported host.
+
+### Local cache and delivery
+
+The initial page request returns the shared page, its record snapshot, and the matching stream position.
+The host seeds its local store from that snapshot and retains outstanding submissions during recovery.
+One local rendering action owns the rows and the named open-count footer on the full Todo page.
+Keep the separate count screen as an example of a server action that renders a view.
+
+A server write returns a typed record change with its committed stream position.
+The server publishes that same change to subscribers.
+Both paths enter one local action that applies changes in stream order.
+Ignore a duplicate position. Request missing changes before advancing across a gap.
+Recover from an expired stream with a fresh snapshot and position.
+Match pending additions by record identifier. Keep local delivery status separate from confirmed records.
+Show pending and failed submissions from local state. Derive the open count from confirmed records in that same store.
+
+After applying a change, invoke the shared local rendering action for the affected named regions.
+Keep search input, focus, scroll position, and open dialogs during record updates.
+While search is active, keep its displayed rows fixed until the user changes or clears the query.
+The write reply and live publication carry the committed record change.
+A receipt alone leaves an addition pending. The store confirms it after applying the committed change in order.
+Render the changed row and footer from the same resulting store revision.
+Test reply-first, publication-first, duplicate delivery, and a gap before the committed change.
+During search, verify that the footer updates while the displayed search results remain fixed.
+
+```mermaid
+sequenceDiagram
+    participant H as Host
+    participant L as Local store
+    participant S as Todo server
+    H->>L: Save pending addition
+    L-->>H: Render pending row
+    H->>S: Submit addition with stable identifier
+    S-->>H: Return committed change and position
+    S-->>H: Publish same change through live stream
+    H->>L: Apply each committed position once
+    L-->>H: Render current local state
+```
+
+Either delivery can arrive first. The local store reconciles both before the host renders confirmed records.
+
+### Acceptance checks for this revision
+
+1. Inspect the initial page and dialog bindings on Chrome, iPhone, and Android.
+2. Verify that each mutation invokes exactly one server action. Verify that opening and cancelling send no request.
+3. Freeze search results during remote changes. Clear the query and verify all changes against the cache.
+4. Replay a duplicate update. Expire the replay history. Verify recovery without duplicate rows or lost local input.
+5. Deliver a cache instruction without any rendering operation. Verify the receiving client's cache independently of the count screen.
+6. Verify named targets and displayed rows on all three renderers. Inspect the outgoing frames for numeric application targets.
+7. Verify that platform-scoped actions respect their declared scope through framework dispatch.
+8. Use Feature 36 to verify game startup, continued todo delivery, and resource release when the game closes.
+
+### Optimistic additions
+
+Optimistic display shows a pending record before the server confirms it.
+Generate one universally unique identifier (UUID) for each new todo through the injected host service.
+Store the identifier and original submission locally before dispatch. Close the add dialog locally.
+Show the pending row immediately with a faded appearance and a gentle pulse.
+Show a pending label. Respect reduced motion settings.
+Retry sends the same identifier and original submission.
+The server records acceptance atomically with the new todo and recognizes repeated submissions.
+A conflicting creation payload for the same identifier fails. A late retry after deletion must never recreate the record.
+Use the live record or a recovery snapshot to reconcile the pending row by identifier.
+An acknowledgement can precede or follow that record. A late timeout cannot revert a confirmed row.
+Show Try again for an uncertain or temporary failure. Preserve the title for correction after a validation error.
+Keep pending submissions across an app restart. Test two distinct additions with identical titles.
+Keep the open count authoritative across pending, accepted, and replayed additions.
+
+### Optimistic deletion
+
+After the user confirms deletion, save the pending deletion locally and close the confirmation dialog.
+Keep the row visible with a “Deleting…” label. Disable further changes to that row.
+Send the delete request with the same todo identifier on every attempt.
+The server makes repeated requests for the same deletion safe.
+A confirmed removal from either delivery resolves the pending deletion, including a removal from another client.
+Remove the row once. Update the confirmed open count once if the removed todo was open.
+A temporary failure keeps the row and shows **Try again**. A late failure cannot restore a confirmed deletion.
+On restart, reconcile pending deletions against the recovered records and stream position.
+During search, show feedback for the user's own deletion. Keep unrelated search results fixed.
+Verify delayed replies, repeated taps, retry after restart, and concurrent deletion on two clients.
+This optimistic behavior applies to Add and Delete. Completion and reopening continue to use confirmed updates.
+
+### Search during delivery
+
+The host owns the visible list. Remote changes update the cache while a search is active.
+Preserve the displayed search results, including when an incoming title matches the query.
+Recompute from the latest cache when the user changes or clears the query. Preserve the selected filter.
+Validate actions on a frozen row against its current record. Handle remote deletion without affecting another record.
+
+### Separate one-minute block demonstration
+
+A host action requests a one-minute block for the initiating client. Other clients retain their own interaction state.
+The server returns a block identifier and expiry. The client shows a modal countdown and blocks application input.
+The server sends a release for that block. The host removes the matching overlay.
+Keep live delivery active during the block. Reconcile the current block on reconnect, resume, or restart.
+Ignore a stale release for an older block. Test a lost request and a lost release.
+Verify pointer, keyboard, back navigation, and assistive input on all three hosts.
+Use an injected clock for timing tests. Capture pending, retry, and blocked screens on each host during implementation.

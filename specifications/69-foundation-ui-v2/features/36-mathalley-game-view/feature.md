@@ -36,8 +36,8 @@ Use the reference’s 390 by 844 design space for drawing and input. Exclude the
 
 ## Stage 2. Use framework navigation and graphics
 
-- Add the game entry to browser, iOS, and Android todo screens, including the on-device and server-backed mobile examples.
-- Register separate todo and game views through the public framework. Use local actions to open and close the game.
+- Add the game entry to browser, iOS, and Android todo screens, through the same shared page declaration.
+- Register separate todo and game views through the public framework. Use host actions to open and close the game. The game view owns the running game loop.
 - Use Feature 32 for view targeting. Keep remote todo updates scoped to the todo view while the game is open.
 - Use Feature 34 to draw through wgpu. Exercise Feature 35 with a host-owned device in an integration configuration.
 - Keep game input, simulation, and drawing local. A server-backed todo screen can open the same local game.

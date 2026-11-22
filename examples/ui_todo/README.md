@@ -16,6 +16,18 @@ cargo run --profile uat -p ui_todo
 
 Open `http://127.0.0.1:8180`. Pass another loopback address after `--` to use a different port.
 
+To use a module from another checkout, set `EWE_TODO_MODULE` before starting the server.
+A relative path starts at the server’s working directory. An absolute path also works after moving the executable.
+When moving the assets, keep the generated `rpc` directory next to `ui_todo.wasm` for the browser Connect client.
+
+```sh
+EWE_TODO_MODULE=/path/to/ui_todo.wasm cargo run --profile uat -p ui_todo
+```
+
+The server checks the configured file and its WebAssembly header before announcing the address.
+Without this setting, the server uses the module under the build checkout. Native routes also work when that file is missing.
+The `--data-only` mode skips the module check.
+
 ## Actions and state
 
 | Action | Owner | Effect |

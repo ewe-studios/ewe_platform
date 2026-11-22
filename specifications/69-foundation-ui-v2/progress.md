@@ -1007,3 +1007,42 @@ The macro and browser crates pass 44 unit tests.
 The macro integration suite passes 54 tests with an external build directory.
 The remaining migration test passes when Cargo builds inside the checkout.
 Issue #712 tracks the external build directory failure.
+
+### 2026-11-22 — Native graphics checks on Linux
+
+Issue #713 records two Linux build warnings in the native graphics bridge.
+Only Apple and Android build the device grant constructor. Both platforms use it to import a device.
+Other targets return the existing incompatible surface error. That path now ignores both the target and the graphics instance.
+The Linux AMD64 gate passes formatting, the all-targets build, and strict Clippy at `e0640f9cf`.
+Linux passes eight default, ten app, and eleven tasks integration tests.
+Each configuration passes one documentation test and skips the builder example.
+macOS passes eight default integration tests and one documentation test. It skips the same example.
+
+## Todo target audit
+
+Feature 32 migrates the live count. The remaining Todo target migration awaits approval under issue #714.
+
+The revised Feature 32 plan assigns mutations to the server. Host actions own dialogs, cached search, filters, and game navigation. The revision awaits approval.
+
+The owner bans numeric anchors in application code. Issue #714 covers removal of the remaining Todo anchors.
+
+The review adds optimistic submission, frozen search results, and a separate one-minute block demonstration to the proposed design.
+
+The proposed full Todo page renders record changes from the local store. Server writes return and publish the same typed change.
+
+The proposed optimistic flow covers Add and Delete. The local store tracks each pending request until reconciliation.
+
+### Todo browser module after a checkout move (issue #715)
+
+`EWE_TODO_MODULE` selects the browser module at server startup. The server checks the file and header before it prints the address.
+On macOS, five temporary servers verified normal startup, bounded replay history, backup restoration, native startup, and data-only requests.
+The first three served the same 1,001,876 module bytes and the generated Connect client from the external checkout.
+The restore check found the saved test title in `/initial`. The data-only check returned task 42 with a missing module override.
+Both Rust action tests and both JavaScript transport tests passed on macOS.
+
+One local action renders the full Todo page rows and count from the same store revision. The store confirms a pending todo after applying its committed change.
+
+### Complete Linux AMD64 graphics run
+
+The project Linux image runs the graphics test binary from commit `776b98b6c` with `--include-ignored`.
+Mesa supplies the software Vulkan adapter. All ten tests pass at default concurrency. No tests skip.

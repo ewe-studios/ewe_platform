@@ -881,3 +881,28 @@ The graphics text fields contain diagnostic messages. Mark these fields as messa
 The migration test searches parent directories for its fixture.
 A build directory outside the checkout has different parent directories.
 Use both directory layouts to check the repair for issue #712.
+
+### 2026-11-22 — Native graphics imports
+
+Apple imports a device through Metal. Android imports a device through Vulkan.
+The grant constructor needs the same target conditions as those two imports.
+Other platforms expose the surface method but have no native window or layer to pass to it.
+
+## Todo target audit
+
+The peer tests check displayed rows. They can pass when a list update still uses a numeric anchor. Inspect frame targets separately.
+
+The dialog checks the device marker only to choose between duplicate mutation handlers. Refresh renders the count screen. It does not exercise data-only cache delivery.
+
+A timed-out submission can already have a committed server record. Retry must retain the original record identifier.
+
+A write reply and a live publication can describe one committed change. Both must enter the same ordered local update path.
+
+### Todo browser assets after a checkout move
+
+The server embeds its build directory in the executable. Moving the checkout can leave the home page available while its module returns 404.
+Set `EWE_TODO_MODULE` to select the module at startup. Keep the generated `rpc` directory beside it for browser Connect requests.
+The native screens use `/initial` and `/action` without loading the browser module. The data-only server uses its own routes.
+
+The default Cargo test command skips three compute adapter tests because they carry the Rust ignore attribute.
+The Linux AMD64 image includes a software Vulkan adapter that runs these tests.
