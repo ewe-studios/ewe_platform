@@ -3,8 +3,7 @@
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
 **Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`.
-**Feature 02 is implemented** on branch `spec88/f02-http-runtime`; it waits for the Main
-Agent review. Feature 03 remains, so the specification is open.
+**Feature 02 is merged** as `c12e94aec`. Feature 03 remains, so the specification is open.
 
 ## Where this specification is
 
@@ -28,7 +27,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 |---|---|---|---|
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `done`: T1 to T6 done, reviewed and merged as `447519256` | one agent, sonnet | nothing |
-| 02-http-runtime | `done`: T1 to T6 done on `spec88/f02-http-runtime`, waiting for review | one agent, sonnet | nothing |
+| 02-http-runtime | `done`: T1 to T6 done, reviewed and merged as `c12e94aec` | one agent, sonnet | nothing |
 | 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
 
 Features 01, 02 and 03 run in parallel after 00. They write different crates. 00 and 03 both
@@ -275,8 +274,7 @@ The break is reverted. After the revert the same filtered case is green on all f
 
 ## Feature 02: what landed (2026-11-23)
 
-Branch `spec88/f02-http-runtime`, base `0ac55c7fe`. The work is in the working tree; it is not
-committed.
+Merged as `c12e94aec`, on branch `spec88/f02-http-runtime-final` from base `93f9c9d9a`.
 
 ### Tasks
 
@@ -474,9 +472,8 @@ fetch client to the owned ABI: it is a product change that adds no host coverage
    selects `foundation_agent_rpc` must then prove the Windows form. The Main Agent then merges
    `spec/88-executors` into `spec/split-65`, which keeps one pull request for the
    specification (PR #553).
-2. Feature 01 is merged. Feature 02 is implemented on `spec88/f02-http-runtime` and waits for
-   the Main Agent review. Feature 03 starts next, from the same base, and keeps its own
-   standalone crate.
+2. Features 01 and 02 are merged. Feature 03 starts next, from the same base, and keeps
+   its own standalone crate.
 3. Each feature reports to the Main Agent; the Main Agent reviews against "Done when" and
    commits on the branch of that feature.
 4. The Linux job of PR #553 is the first full run of the repaired executors. A macOS and a
