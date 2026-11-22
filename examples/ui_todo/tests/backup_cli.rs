@@ -32,7 +32,7 @@ fn rejects_restore(file: &Path) {
         .output()
         .unwrap();
     assert!(!result.status.success());
-    assert!(result.stdout.is_empty());
+    assert_eq!(result.stdout.as_slice(), b"");
 }
 
 #[test]

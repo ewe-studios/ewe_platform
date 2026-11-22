@@ -110,15 +110,14 @@ pub(super) fn convert(
     let mut records = Vec::with_capacity(legacy.len());
     let mut converted = Vec::with_capacity(legacy.len());
     for item in legacy {
-        let id = match item.creation_id {
-            Some(id) => id,
-            None => {
-                let id = TodoId::generate(ctx)?;
-                if !known.insert(id) {
-                    return Err(format!("Generated duplicate identifier {id}").into());
-                }
-                id
+        let id = if let Some(id) = item.creation_id {
+            id
+        } else {
+            let id = TodoId::generate(ctx)?;
+            if !known.insert(id) {
+                return Err(format!("Generated duplicate identifier {id}").into());
             }
+            id
         };
         converted.push((item.id, id));
         records.push(Todo {
