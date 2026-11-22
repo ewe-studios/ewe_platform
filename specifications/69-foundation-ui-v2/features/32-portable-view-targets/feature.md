@@ -351,3 +351,5 @@ Keep application bindings declared once. Preserve the separate server-rendered c
 
 Verify each removal against existing behavior. Test a lost reply, duplicate delivery, a stale delete retry, and an unfinished draft during a peer update.
 Document which application abstractions disappeared and which remaining state each acceptance test requires.
+
+[Feature 37](../37-todo-server-build-and-state/feature.md) defines the current Todo implementation and removal checks.

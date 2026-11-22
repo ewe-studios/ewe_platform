@@ -976,3 +976,5 @@ Keep the original order and the old identifier map. A pending numeric delete nee
 The integration test reads the record identifier from each rendered action binding.
 It checks uniqueness across records and equality across updates. Each removal leaves the expected row absent.
 The typed mobile lookup also exercises the public string boundary with a valid, unknown, and malformed identifier.
+
+A data-only acceptance test needs an isolated service. It does not require an alternate mode in the production launcher.

@@ -157,3 +157,5 @@ Run these tests without a screen, UI handshake, action registry, frame decoder, 
 Document both native calls beside the UI example. Report the application call and frame exchange results separately.
 
 Applications define their own streaming procedures. Mapping a live UI mount to an RPC subscription remains a separate design choice.
+
+[Feature 37](../37-todo-server-build-and-state/feature.md) defines the current Todo implementation and removal checks.

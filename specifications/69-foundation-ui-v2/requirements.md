@@ -438,6 +438,7 @@ in parallel.
 | 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Complete |
 | 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Complete |
 | 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | In progress in the Mathalley worktree. |
+| 37 | [Todo server, build, and state](./features/37-todo-server-build-and-state/feature.md) | Consolidated Todo redesign and removal checks | 26, 27, 32, 33 and Specification 90 | Sonnet | Cross-platform | Pending implementation |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 

@@ -1172,3 +1172,5 @@ Feature 32 assigns wire encoding and decoding to the framework. Todo handlers su
 Feature 32 extends the simplification review to the entire shared Todo directory. The implementation remains with the next owner.
 
 Feature 27 requires one deployed JavaScript entry and one framework resource handler. The current per-file routes await replacement.
+
+Feature 37 consolidates the Todo redesign. The production startup branches still exist. Implementation and acceptance checks remain open.

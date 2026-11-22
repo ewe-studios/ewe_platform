@@ -272,3 +272,5 @@ Exercise startup, a local action, a Connect call, and a resource read. Assert th
 Check that the former module addresses return a missing-resource response.
 
 Declare one packaged resource type and pass its instance to the framework static handler. Remove the local registration adapter and all profile branches.
+
+[Feature 37](../37-todo-server-build-and-state/feature.md) defines the current Todo implementation and removal checks.
