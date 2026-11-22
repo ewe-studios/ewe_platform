@@ -835,3 +835,9 @@ An older delivery can return a late resume error. The new delivery keeps its own
 The Android Google APIs image reports input timeouts when the host uses software graphics during the three-client check.
 The Android thread trace enters text layout. The test waits for the full title before it submits the form.
 Issue #698 tracks this test environment limit. The check uses the Android Automated Test Device image.
+
+## External drive restart
+
+The copied worktrees retain the original drive paths in their Git files.
+The three fresh worktrees use the external repository for shared Git data.
+The command `git rev-parse --path-format=absolute --git-common-dir` shows that path in each worktree.

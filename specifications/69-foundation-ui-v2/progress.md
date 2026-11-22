@@ -39,6 +39,17 @@ The session owner reviews the three reports and integrates the verified changes 
 Then fetch and merge the latest master. Run the affected tests again.
 Branch `checkpoint/69-master-preview` at `dc3776fa` contains an unverified trial merge. It predates the sync and task checkpoints.
 
+### External worktrees for the resumed session
+
+All three worktrees use `/Volumes/Outside/Dev/ewe_platform/.git` for shared Git data.
+Each worktree starts at the remote commit in this table.
+
+| Assignment | Directory under `/Volumes/Outside/Dev` | Local branch | Starting commit |
+| --- | --- | --- | --- |
+| Task runner | `ewe-resume-tasks` | `resume/90-tasks` | `622c8b71b` |
+| Android todo changes | `ewe-resume-todo` | `resume/69-todo` | `bef8c6c47` |
+| Graphics worker shutdown | `ewe-resume-graphics` | `resume/69-graphics` | `35939b13e` |
+
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
