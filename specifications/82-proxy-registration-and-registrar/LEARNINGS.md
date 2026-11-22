@@ -102,3 +102,54 @@ This needs a GitHub issue against `foundation_auth`; it is not a spec 82 change.
   then its owner and group are compared with the process's effective IDs. The
   test proves the refusal with an unwritable directory, which is portable to a
   non-root test runner.
+
+## Feature 01 (registrar sidecar) landed (2026-11-23)
+
+- **Generate from the proxy's proto file, not its crate.** `foundation_registrar`'s
+  `build.rs` points `buffa-build` at `../foundation_proxy/proto`. The crate has no
+  runtime dependency on `foundation_proxy`; only the tests use the real
+  registration authority as a dev-dependency. A generated message field is
+  `buffa::MessageField<T, buffa::Inline<T>>`, so a request literal uses
+  `Some(value).into()` (the `From<Option<T>>` impl is generic over the pointer).
+- **The server proof ties the token, the nonce and the CSR text.** The sidecar
+  decodes the token, calls
+  `SignedSecret::verifying_key().verify_enroll_proof(secret.id(), nonce,
+  Sha256(csr_pem), host_id, server_proof)`, and only then stores the certificate.
+  The private key never leaves the state directory.
+- **Two thirds of the certificate life must include the CA backdate.** The CA
+  backdates `not_before` by five minutes. A test certificate with a 60-second
+  lifetime is therefore already past two thirds at issue time. Use a lifetime
+  much longer than the backdate (900 s in the test) or the renewal fires at once.
+- **A shared simulated clock drives both ends.** Passing the same `Ctx` to the
+  proxy authority and the client lets `advance_wall` move the certificate
+  lifetime without a real wait; the TLS time providers read the same clock.
+- **A blocking process cannot be bounded by an async timer on the same thread.**
+  An `exec` probe that runs `Command::output()` inline delays every other probe.
+  Run the command on a dedicated thread and await a `oneshot` channel, raced with
+  `sleep_async`; then the timeout fails that check (section 6.13).
+- **`DockerClient` is a concrete type, but the sidecar needs a fake.** The small
+  `ContainerApi` trait is the seam: production wraps `DockerClient`, tests return
+  generated `ContainerInspectResponse` and `ContainerStatsResponse` values.
+  `container_list` itself still returns `serde_json::Value` (see the finding
+  below).
+- **A removed address keeps serving until the replacement is ready.** The
+  reconciler sends `Register` with the new address and then reports the new
+  backend's health; the proxy retires the old address only when the new one
+  reports `READY`. The end-to-end test sends requests through the upgrade to
+  prove no request failed.
+- **The mtime is the change signal, and a parse error keeps it.** `ManifestSource`
+  compares the file's modification time; on a parse error it keeps the last good
+  manifest and the old mtime, so every loop retries and logs the error
+  (section 6.7). SIGHUP forces a read.
+- **A rejected backend stays dirty.** A `RegisterResult` with a
+  `rejected_reason` (another sidecar owns the ID) is not stored as accepted, so
+  the next loop sends it again until the proxy's lease frees the ID (section 6.9).
+
+### Finding outside this feature
+
+`foundation_deployment_docker::DockerClient::container_list` returns
+`serde_json::Value`, while the other container calls use generated types. The
+generated API has no `ContainerSummary` type for `GET /containers/json`, so the
+registrar reads `Id` and `State` from the raw value. Root rule 5 says to fix the
+generator and regenerate; this needs a GitHub issue against
+`foundation_deployment_docker` (severity: medium).

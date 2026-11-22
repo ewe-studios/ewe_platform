@@ -32,10 +32,10 @@ related_specs:
   - "specifications/completed/87-mutual-tls"
   - "specifications/completed/80-platform-prerequisites"
 features:
-  completed: 1
-  uncompleted: 1
+  completed: 2
+  uncompleted: 0
   total: 2
-  completion_percentage: 50
+  completion_percentage: 100
 ---
 
 # Proxy Registration and Registrar
@@ -119,7 +119,7 @@ _The diagram shows the sidecar reading the manifest, watching the app, and repor
 | # | Feature | Description | Depends on | Status |
 |---|---|---|---|---|
 | 00 | [Proxy Registration](./features/00-proxy-registration/feature.md) | The `ewe.proxy.registration.v1` contract; enrollment token → mTLS or Unix socket; `BackendRegistry`, sessions, generations and leases; the rotation rule and the router snapshot swap; the address policy; control-socket commands | Spec 78, spec 81 | ✅ Complete |
-| 01 | [Registrar Sidecar](./features/01-registrar-sidecar/feature.md) | `ManifestView`; discovery by marks; Kubernetes-style startup, liveness and readiness probes; metrics from cgroup v2 and Docker stats; the registration client and the reconcile loop; `ewe-registrar` | Feature 00; end to end also spec 79 | ⬜ Pending |
+| 01 | [Registrar Sidecar](./features/01-registrar-sidecar/feature.md) | `ManifestView`; discovery by marks; Kubernetes-style startup, liveness and readiness probes; metrics from cgroup v2 and Docker stats; the registration client and the reconcile loop; `ewe-registrar` | Feature 00; end to end also spec 79 | ✅ Complete |
 
 The features keep tasks T1 to T11 (feature 00) and T1 to T10 (feature 01) from the original
 spec 83 features 03 and 04.

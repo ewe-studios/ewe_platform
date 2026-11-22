@@ -68,6 +68,14 @@ impl DeployTargetAdapter for DockerDeploy {
             return Err(err);
         }
 
+        // Keep the old container alive while the registrar sidecar discovers
+        // the new address. The proxy moves new requests to the new address
+        // once its sidecar reports it READY; the old one drains. Without this
+        // wait, the old address stops before the proxy learns the new one.
+        if previous.is_some() {
+            ctx.sleep(ctx.config().old_container_grace).await;
+        }
+
         let replace_error = match previous {
             Some(Deployed::Container { id: old_id, .. }) => {
                 replace_old_container(entry, old_id, ctx).await.err()

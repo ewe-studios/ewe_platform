@@ -45,6 +45,11 @@ pub struct InstallerConfig {
     /// Time that Docker gets to stop a container before it is killed. Default
     /// 10 s: the default `--time` of `docker stop`.
     pub stop_container_timeout_secs: u32,
+    /// How long the old container stays up after the new container started, so
+    /// the registrar sidecar can discover the new address and the proxy can
+    /// move its traffic before the old address stops. Default 15 s: longer
+    /// than the sidecar's default 10 s report interval, with slack.
+    pub old_container_grace: Duration,
     /// Directories searched for a program that a package manager installed.
     /// Default: the binary directories of a Debian and Ubuntu `PATH`.
     pub program_search_dirs: Vec<PathBuf>,
@@ -65,6 +70,7 @@ impl Default for InstallerConfig {
             lock_timeout: Duration::from_secs(5),
             lock_poll_interval: Duration::from_millis(100),
             stop_container_timeout_secs: 10,
+            old_container_grace: Duration::from_secs(15),
             program_search_dirs: vec![
                 PathBuf::from("/usr/local/sbin"),
                 PathBuf::from("/usr/local/bin"),

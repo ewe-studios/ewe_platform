@@ -188,8 +188,11 @@ impl DockerEngine {
 #[async_trait]
 impl DockerApi for DockerEngine {
     async fn image_pull(&self, repository: &str, tag: &str) -> Result<(), DockerError> {
+        // The Docker API pulls a registry image with `fromImage` and `tag`.
+        // `repo` is for an import from a source URL; with it the daemon treats
+        // the name as a URL and fails with "no Host in request URL".
         self.client
-            .image_pull(None, None, Some(repository), Some(tag), None, None)
+            .image_pull(Some(repository), None, None, Some(tag), None, None)
             .await?
             .finish()
             .await

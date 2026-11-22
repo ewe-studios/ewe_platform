@@ -1,0 +1,65 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "agent-rpc",
+      "version": "0.4.0",
+      "source": {
+        "kind": "github-release",
+        "repo": "ewe-studios/ewe_platform",
+        "tag": "agent-rpc-v0.4.0",
+        "assets": {
+          "x86_64-unknown-linux-gnu": {
+            "name": "agent-rpc-x86_64-linux",
+            "sha256": "1a62661d5b30568dc70dd15b897fcb06fdb3a39173f818704564dd03515e3394"
+          },
+          "aarch64-unknown-linux-gnu": {
+            "name": "agent-rpc-aarch64-linux",
+            "sha256": "859fd72bf17963e7c6b2329f1a851c760fc6a09ca42be72da3c462f2315f58a1"
+          }
+        }
+      },
+      "deploy": {
+        "kind": "systemd",
+        "args": ["serve", "--bind", "0.0.0.0:7443"],
+        "env": { "RUST_LOG": "info" },
+        "user": "ewe",
+        "restart": "on-failure"
+      },
+      "proxy": {
+        "service": "agents",
+        "route": { "host": "agents.example.com", "path_prefix": "/" },
+        "port": 7443,
+        "protocol": "grpc"
+      },
+      "probes": {
+        "startup": { "kind": "tcp", "port": 7443, "period_secs": 2, "failure_threshold": 30 },
+        "liveness": { "kind": "grpc", "port": 7443, "period_secs": 10 },
+        "readiness": { "kind": "http", "port": 7443, "path": "/healthz", "period_secs": 5 }
+      }
+    },
+    {
+      "name": "ripgrep",
+      "version": "14.1.0",
+      "source": { "kind": "cargo", "crate": "ripgrep", "program": "rg" },
+      "deploy": { "kind": "none" }
+    },
+    {
+      "name": "vector-db",
+      "version": "1.9.0",
+      "source": {
+        "kind": "docker-image",
+        "repository": "ghcr.io/example/vector-db",
+        "tag": "1.9.0",
+        "digest": "sha256:fcc82113d0bcf9bf71e0918aa5a54b0aa7dff67a503645628fd2a6da1799018a"
+      },
+      "deploy": {
+        "kind": "docker",
+        "ports": [{ "host": 6333, "container": 6333, "protocol": "tcp" }],
+        "env": { "LOG_LEVEL": "info" },
+        "volumes": [{ "host": "/var/lib/vector-db", "container": "/data" }],
+        "restart": "unless-stopped"
+      }
+    }
+  ]
+}
