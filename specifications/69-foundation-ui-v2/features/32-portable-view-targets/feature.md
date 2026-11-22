@@ -278,7 +278,12 @@ Keep the existing identifier on retry. A snapshot alone cannot distinguish a del
 Remove an entry after the server confirms its outcome. Keep deletion receipts so delayed additions cannot recreate removed records.
 Use one host submission path for saving, updating the cache, rendering the pending row, and calling the server action.
 Leave network transport responsible for sending. Deliver typed errors and committed changes through the common action path.
-Keep numeric record identifiers compatible until existing backups and remote procedure clients support a migration.
+Use one universally unique identifier (UUID) as the Todo record identifier throughout its lifetime.
+The submitting client generates it once. The pending row, server record, action input, and typed data procedure use that same identifier.
+Remove the numeric allocation counter and the separate creation identifier from the current model.
+Update backup and restore, bindings, examples, and tests together. Reject incompatible input explicitly and preserve original backup files.
+Keep stream positions and transport request identifiers separate. A repeated Add after deletion must never restore a deleted record.
+The owner approves this identifier change for implementation.
 Verify independent writes from two screens, recovery after restart, duplicate delivery, failure, and late confirmation.
 Exercise file-backed key-value operations on iPhone and Android, including prefix listing and reopening the store.
 Test the writable virtual file system independently from packaged resource reads.

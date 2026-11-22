@@ -1108,3 +1108,5 @@ The four native pending and retry screenshots are in the Feature 32 screenshots 
 The peer log and Xcode log are in `target/agent-work/todo-logs/threehost-peer.log` and `threehost-xcode.log`.
 The Android screenshot also shows a stale channel error after successful reconnection. Issue #732 tracks that status message.
 The separate one-minute block demonstration remains open under issue #714.
+
+The owner approves one UUID per Todo in Feature 32. The Todo agent owns the record, protocol, binding, and fixture updates.
