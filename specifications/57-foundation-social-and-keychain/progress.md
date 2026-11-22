@@ -73,6 +73,11 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
    (`ssh-key`) + age-encrypted private keys at rest; native-gated (`core/provisioning/`); 3 tests;
    wired into the native server (`/api/apps/*`, `/api/credentials/ssh-keys/*`, X-App-Secret/Bearer auth).
 
+> **2026-11-23 — F011 design corrected from the measured code.** The handlers exist but the
+> upstream redirect URI is wrong, the OIDC ID token is not verified, and GitHub has no
+> `/user/emails` call. The tests use a local provider simulator, not `ory/hydra`: hydra is a
+> different OAuth2 server and cannot serve the provider-specific JSON. See feature 011.
+
 > **2026-07-18 restructure:** former F008–F011 (core, cloudflare, native, integration)
 > consolidated into **008-keychain-vault-and-backends** as 4 sequential stages (each
 > unlocks the next); former F012 renumbered to **009**. Reconciled with decision 01
@@ -93,7 +98,7 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 | 008: Keychain vault + backends (staged) | 1 | ✅ S1-4 (native verified) | 64 core + 1 e2e; wasm compiles |
 | 009: SSH key provisioning | 1 | ✅ Complete | 3 (provisioning) |
 | 010: Workers DO + WebSocket machinery | 1 | ✅ Complete | — (wasm32 + native compile; worker-build green; bindings verified) |
-| 011: Social login provider integration tests | 1 | 🔲 Spec written — pending | 4 Docker provider tests planned |
+| 011: Social login end-to-end correctness and tests | 1 | 🔲 Design updated 2026-11-23; implementation next | 4 provider + 6 refusal tests planned |
 
 ## Test Results (2026-07-19)
 

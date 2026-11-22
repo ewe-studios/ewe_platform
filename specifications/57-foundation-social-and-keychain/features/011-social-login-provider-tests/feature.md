@@ -1,173 +1,212 @@
-# F011: Social Login Provider Integration Tests
+# F011: Social Login End-to-End Correctness and Provider Tests
 
-**Status:** Spec written — pending implementation
-
+**Status:** Planned — design updated on 2026-11-23 after a code review
 **Depends on:** 001 (provider model), 003 (upstream client), 004 (social login flow), 005 (user provisioning), 006 (provider discovery)
 **Unblocks:** nothing — this is the verification layer
 **Decisions:** [00](../../decisions/00-identity-broker-pattern.md), [01](../../decisions/01-crypto-backend.md)
 
+_Software is written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay
+as they are._
+
+**Abbreviations in this file.** Identity Provider (IdP); Open Authorization (OAuth) version 2
+(OAuth2); OpenID Connect (OIDC); Proof Key for Code Exchange (PKCE); JavaScript Object Notation
+(JSON); JSON Web Key Set (JWKS); JSON Web Token (JWT); Hypertext Transfer Protocol (HTTP);
+Transport Layer Security (TLS); Uniform Resource Identifier (URI); Uniform Resource Locator
+(URL); commit, checkout, and Git terms stay as they are.
+
 ## WHY
 
-We have all the building blocks for social login (provider model, OIDC/OAuth2
-client, auth session store, user provisioning), but the **redirect handler** that
-chains them together — `GET /authorize?provider=google → 302 to Google →
-Google callback → exchange code → fetch userinfo → provision user → redirect
-back` — has no wired route in `IdpServer::dispatch`. The individual pieces are
-unit-tested against `TestHttpServer`, but the full flow is not.
+The building blocks for social login exist: the provider model, the OIDC/OAuth2 client, the
+auth session store and user provisioning. The two route handlers also exist in
+`foundation_auth/src/server/handlers/core.rs` (`social_authorize`, `social_callback`).
 
-We also have no tests that exercise real OAuth2 provider protocols. Each
-provider behaves differently:
+A code review on 2026-11-23 found that the wired flow cannot work against a real provider:
 
-- **Google** — OIDC with `.well-known/openid-configuration`, `nonce` in ID token,
-  `email_verified` claim, `hd` domain hint
-- **GitHub** — OAuth2 (no OIDC), Bearer token in `Authorization` header for
-  userinfo, `email` requires separate `/user/emails` endpoint
-- **Facebook** — OAuth2 with signed_request, `data_access_expiration_time`,
-  app-scoped user IDs, token introspection endpoint
-- **Twitter/X** — OAuth 1.0a + OAuth 2.0 with PKCE, `expires_in` in seconds,
-  `refresh_token` rotation
+1. **Wrong upstream redirect URI.** `social_authorize` builds the upstream client with the
+   *app's* redirect URI. `social_callback` builds it with the literal `"unused"`. A provider
+   rejects the token exchange unless this value equals the one in the authorize request. It
+   must be the IdP's own callback URL.
+2. **The OIDC nonce is never checked.** `social_authorize` makes a nonce and stores it in the
+   session. `social_callback` never verifies it against the ID token. It also never verifies
+   the ID token signature, issuer or audience. A forged or substituted token passes.
+3. **GitHub has no email.** GitHub userinfo holds `null` for a private email. Decision 00
+   requires a second call to `/user/emails`. The code has no such call.
 
-A test server that responds with the correct JSON is not enough — we need to
-exercise the **full protocol dance** against a real OAuth2 server, using our
-`#[docker_container]` infrastructure to spin up `ory/hydra` (which can be
-configured to emulate each provider's endpoints and response shapes).
+The four provider paths are also untested end to end. Each provider has a different wire
+shape. A test that returns generic JSON proves nothing.
 
 ## WHAT
 
-### Part A — Social login route handlers
+### Part A — Fix the social flow
 
-Two new route handlers in `foundation_auth::server::handlers::core`:
+1. **The upstream redirect URI is the IdP callback URL.**
+   - Add `IdpServer::route_prefix` (default `"/idp"`) and `with_route_prefix(prefix)`.
+     `http_app` and a new `http_app_with_prefix(prefix)` set it. The value must match the
+     prefix that `register_routes` uses.
+   - Add one private helper that returns
+     `{issuer_url}{prefix}/callback?provider={percent-encoded id}`. Both handlers call it.
+   - Store nothing new in the session: the helper is deterministic.
+   - The token request sends this same URI.
 
-1. **`social_authorize`** — `GET /authorize?provider=google&state=...&redirect_uri=...`
-   - Looks up `provider` by id in `ProviderService`
-   - Creates `UpstreamOidcClient` and calls `configure()` + `authorize_url(state)`
-   - Stores `UpstreamAuthSession` (with PKCE verifier, nonce, app's state +
-     redirect_uri) via `UpstreamAuthSessionStore`
-   - Returns 302 redirect to the upstream provider's authorization URL
+2. **Verify the OIDC ID token.** After `exchange_code`, when `provider_type == Oidc`:
+   - Require an `id_token` in the token response. Its absence is a 400 error.
+   - Read the discovery document that the client already fetched. Get `jwks_url()`.
+   - Fetch the keys with `JwksManager` and the injected `Ctx`, find the key by `kid`, and
+     verify the token with `JwtVerifier`: issuer = discovery issuer, audience =
+     `provider.client_id`, clock = `ctx.clock()`.
+   - Compare the `nonce` claim with `session.nonce`. A mismatch is a 400 error.
+   - The session is already consumed by `take`, so a failure cannot be retried with the same
+     state.
 
-2. **`social_callback`** — `GET /callback?provider=google&code=...&state=...`
-   - Validates the `state` parameter matches the stored session
-   - Calls `UpstreamOidcClient::exchange_code()` to get tokens
-   - Calls `UpstreamOidcClient::fetch_userinfo()` to get the profile
-   - Calls `ProvisioningService::provision_from_upstream()` to create/link user
-   - Deletes the `UpstreamAuthSession` (one-time use)
-   - Creates the IdP's own auth code (for the app to exchange)
-   - 302 redirects back to the app's `redirect_uri` with `?code=<idp_auth_code>&state=<app_state>`
+3. **GitHub email fallback.** In `social_callback`, when the provider id is `github`
+   (case-insensitive) and the profile has no email:
+   - GET `{userinfo_url}/emails` with `Authorization: Bearer <token>`.
+   - Take the first entry with `primary == true && verified == true`. Else take the first
+     entry with `verified == true`.
+   - Put that address in the profile. Never invent an address.
 
-### Part B — Docker-backed provider simulators
+4. **No Facebook or Twitter code change is needed.** The generic OAuth2 path and the
+   provider mapping cover their wire shape. The tests prove it. Facebook `signed_request` is
+   for the app-side JavaScript flow, not for a server-side code exchange. Twitter/X OAuth
+   version 1 is out of scope; we use its OAuth2 with PKCE.
 
-Four `#[docker_container]` test functions, each exercising one provider's full
-flow. Each test:
+### Part B — A local provider simulator
 
-- Starts `ory/hydra` in a Docker container (pre-configured to emulate the
-  specific provider's authorize/token/userinfo endpoints)
-- Configures a temporary `UpstreamProvider` via `ProviderService`
-- Boots a real `IdpServer` on a random port
-- Drives the full redirect flow via direct HTTP (no browser needed — the 302
-  chain is followed programmatically)
-- Asserts the final IdP auth code is valid and exchangeable
+No local form of Google, GitHub, Facebook or Twitter exists. The tests therefore run a real
+HTTP server that speaks each provider's wire shape. The test file says this in its module
+documentation. The simulator is a test double for the **provider only**: the IdP, the
+upstream client, the redirect chain and the token exchange are the real code over real TCP.
 
-The tests are gated behind a Cargo feature `social-integration-tests` (not
-`#[ignore]`), so they're opt-in and don't run in CI without Docker.
+The simulator is one module in the test tree:
+`foundation_auth/tests/integration/social_upstream/`.
+- It binds `127.0.0.1:0` with `foundation_http` and serves a small route set per provider.
+- It records the requests it receives (method, path, query, headers, form fields) so a test
+  can assert what the client sent.
+- It holds the authorize code, the expected PKCE challenge and the nonce for one flow.
+- It can sign an ID token with its own Ed25519 key and publish the matching JWKS.
+- It can return a bad signature, a wrong nonce or a wrong `aud` on request.
 
-### Part C — Provider-specific assertions
+Per-provider routes:
 
-Each test asserts provider-specific behaviour:
+| Provider | Endpoints | Wire details the test asserts |
+|---|---|---|
+| Google (OIDC) | discovery, JWKS, authorize, token, userinfo | discovery is fetched; the authorize URL has `code_challenge` (PKCE), `nonce` and our `redirect_uri`; the token form carries the same `redirect_uri` and the verifier; the ID token signature, `aud`, `iss` and `nonce` are checked; `email_verified` maps to the profile. |
+| GitHub (OAuth2) | authorize, token, userinfo, userinfo + `/emails` | explicit URLs, no discovery; userinfo carries the Bearer token; `login` maps to the username; the email comes from `/user/emails`, because userinfo has `email: null`. |
+| Facebook (OAuth2) | authorize, token, userinfo | Graph-shaped userinfo with `id` and `name`; the mapping gives `sub` and the display name. |
+| Twitter/X (OAuth2) | authorize, token, userinfo | PKCE in the authorize URL and the token form; `expires_in` and `refresh_token` stay on the token object; `data.name` maps through the username or name field. |
 
-| Provider | Tests |
-|----------|-------|
-| **Google** | OIDC discovery → authorize → `nonce` in ID token → `email_verified: true` → profile maps via OIDC claims |
-| **GitHub** | OAuth2 explicit URLs → authorize → Bearer token on userinfo → `login` maps to username → `/user/emails` fetched for primary email |
-| **Facebook** | OAuth2 authorize → token exchange → signed_request parse → `data_access_expiration_time` → app-scoped id |
-| **Twitter/X** | OAuth2 PKCE → token exchange → `expires_in` → refresh token rotation → userinfo maps `data.name` → username |
+### Part C — The four tests
 
-## HOW
+Each test:
+1. Starts the simulator and reads its address.
+2. Stores an `UpstreamProvider` row through the query store (the same path as the admin API).
+3. Starts a real `IdpServer` with `with_social_login` and an `issuer_url` equal to the test
+   server's origin, so the IdP callback URL points at the test server.
+4. Calls `GET {prefix}/authorize?provider=<id>&client_id=<app>&redirect_uri=<app uri>&state=<s>`.
+   Asserts a 302 to the simulator, then calls the simulator's `/authorize`, which 302s back to
+   the IdP `/callback`.
+5. Calls the IdP callback. Asserts a 302 to the app `redirect_uri` with `code` and the app
+   `state`.
+6. Exchanges the IdP code for tokens at `POST {prefix}/token` and asserts the user exists.
+7. Asserts the simulator saw exactly the expected requests and form fields.
 
-### Route wiring
-
-`IdpServer` gains two new optional fields (set via builder):
-
-```rust
-pub struct IdpServer<KV> {
-    // ... existing fields ...
-    /// When set, enables the social login redirect endpoints.
-    pub upstream_session_store: Option<Arc<dyn UpstreamAuthSessionStore>>,
-    pub provider_service: Option<Arc<ProviderService<TursoStore>>>,
-}
-```
-
-`IdpServer::dispatch` adds two new branches before the existing ones:
-
-```rust
-else if path.contains("/authorize") && query_has_param(url, "provider") {
-    self.social_authorize(bag, req).await
-}
-else if path.contains("/callback") && query_has_param(url, "provider") {
-    self.social_callback(bag, req).await
-}
-```
-
-### Docker test pattern
-
-Same pattern as `docker_macro_tests.rs` but with `ory/hydra` images:
-
-```rust
-#[docker_container(
-    image = "oryd/hydra:v2.2",
-    as = "hydra",
-    port = 4444,  // public port
-    wait_port = 4444,
-    wait_timeout = 30,
-    env = [
-        ("DSN", "memory"),
-        ("URLS_SELF_ISSUER", "http://localhost:4444"),
-        ("URLS_LOGIN", "http://localhost:4444/login"),
-        ("URLS_CONSENT", "http://localhost:4444/consent"),
-        ("SERVE_COOKIES_SAME_SITE_MODE", "Lax"),
-    ],
-    // Hydra uses host networking to reach our IdP
-    network_mode = "host",
-)]
-```
-
-The `network_mode = "host"` attribute would need adding to the docker_container
-macro (or we use the Docker client directly).
+Negative tests, one each:
+- A used `state` is refused (the session is one time).
+- An ID token with a wrong nonce is refused.
+- An ID token with a bad signature is refused.
+- An unknown `provider` is refused.
+- An inactive provider is refused.
+- An unregistered app `redirect_uri` is refused.
 
 ### Feature gate
 
-`foundation_auth/Cargo.toml`:
+`foundation_auth/Cargo.toml` gains:
 
 ```toml
-[features]
-social-integration-tests = [
-    "server-test",
-    "foundation_deployment_platform/docker",
-]
+social-integration-tests = ["server-test"]
 ```
 
-Tests compile only when the feature is on — no `#[ignore]` needed.
+The simulator tests live in the `server-test` integration target and compile only with this
+feature. They need no Docker. Their module documentation states why a simulator replaces the
+provider.
+
+## HOW
+
+### Route wiring (already present)
+
+`dispatch` sends `GET */authorize?provider=...` to `social_authorize` and
+`GET */callback?provider=...` to `social_callback`. Both paths exist. This feature changes the
+two handlers and the `IdpServer` prefix field. The routes in `routes.rs` stay as they are.
+
+### Prefix and callback URL
+
+```rust
+impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
+    /// The prefix the OIDC routes are registered under. Default "/idp".
+    pub fn with_route_prefix(mut self, prefix: impl Into<String>) -> Self;
+
+    /// The absolute callback URL registered with the upstream provider.
+    fn upstream_callback_url(&self, provider_id: &str) -> String {
+        let origin = self.config.issuer_url.trim_end_matches('/');
+        let prefix = self.route_prefix.trim_end_matches('/');
+        let id = urlencoding::encode(provider_id);
+        format!("{origin}{prefix}/callback?provider={id}")
+    }
+}
+```
+
+`http_app()` keeps the current `"/idp"` default and sets `route_prefix` too. A new
+`http_app_with_prefix(prefix)` registers the routes and sets the field in one call.
+
+### Error shape
+
+A failed check is a `400` (`IdpError::BadRequest`) with a short message. The message never
+contains the token, the code or the nonce.
 
 ## Task list
 
-1. Implement `social_authorize` handler in `foundation_auth::server::handlers::core`
-2. Implement `social_callback` handler
-3. Wire both into `IdpServer::dispatch` and `IdpServer::configure`
-4. Add `UpstreamAuthSessionStore` to `IdpServer` builder
-5. Add `ProviderService` field to `IdpServer` (+ builder method)
-6. Add `social-integration-tests` cargo feature to `foundation_auth`
-7. Write Google OIDC Docker test (full redirect flow)
-8. Write GitHub OAuth2 Docker test (full redirect flow + email endpoint)
-9. Write Facebook OAuth2 Docker test (full redirect flow)
-10. Write Twitter/X OAuth2 PKCE Docker test (full redirect flow)
-11. Ensure `network_mode = "host"` is supported (add to macro or use Docker client)
-12. Compile-check with `--features social-integration-tests`; all tests green
+1. Add `route_prefix`, `with_route_prefix` and `http_app_with_prefix` to `IdpServer`. Keep
+   `http_app()` behaviour.
+2. Add `upstream_callback_url` and use it in `social_authorize` and `social_callback`.
+3. Verify the OIDC ID token (signature, issuer, audience, nonce) in `social_callback`.
+4. Add the GitHub `/user/emails` fallback.
+5. Add the `social-integration-tests` feature.
+6. Write the simulator module with the four provider route sets and their recorders.
+7. Write the four provider tests.
+8. Write the six negative tests.
+9. Bump `foundation_auth` 0.0.12 to 0.0.13 and update every consumer requirement.
+10. Update `progress.md` and `LEARNINGS.md`.
 
-## Test plan / success
+## Tests
 
-- `cargo test -p foundation_auth --features social-integration-tests` runs 4
-  Docker-backed provider tests, all pass
-- Each test exercises: authorize → 302 → callback → exchange_code → fetch_userinfo →
-  provision → auth_code → 302
-- Provider-specific assertions pass (nonce in Google ID token, GitHub email
-  endpoint, Facebook signed_request, Twitter PKCE)
-- Tests skip gracefully when Docker is unavailable (print skip, return Ok)
+```bash
+cargo test -p foundation_auth --features social-integration-tests --test integration_tests social_upstream
+cargo test -p foundation_auth
+cargo fmt --all -- --check
+cargo clippy -p foundation_auth --all-targets --no-deps -- -D warnings
+cargo check -p foundation_auth --target wasm32-unknown-unknown --no-default-features --features wasm,secret
+```
+
+## Done when
+
+- The authorize URL sent upstream carries the IdP callback URL, and the token form carries the
+  same value.
+- An OIDC ID token with a bad signature, a wrong audience, a wrong issuer or a wrong nonce is
+  refused, and a test proves each case.
+- The Google, GitHub, Facebook and Twitter-shaped simulator tests pass over real TCP.
+- No test reads a body into memory when it can stream it. Test bodies are small and are parsed,
+  which rule 4 permits.
+- `progress.md` and `LEARNINGS.md` record the design changes and the result.
+
+## Out of scope
+
+- Upstream token refresh and rotation. The client keeps the issued refresh token; no refresh
+  call exists yet. File a GitHub issue if the tests show a gap.
+- Per-provider callback paths (decision 00). The shared callback with a `provider` query
+  parameter stays, because the route table and the existing handlers use it. Record the
+  deviation in `LEARNINGS.md`.
+- Facebook `signed_request` and Twitter OAuth version 1. The server-side code flow does not
+  use them.
+- A Docker image of `ory/hydra`. Hydra is a different OAuth2 server, not a stand-in for the
+  four providers; it cannot serve GitHub's `/user/emails` or the provider-specific JSON. The
+  simulator replaces it. Record this in `LEARNINGS.md`.

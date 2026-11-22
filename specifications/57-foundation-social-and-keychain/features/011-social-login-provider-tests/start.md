@@ -7,43 +7,38 @@ depends:
   - "004-social-login-flow"
   - "005-user-provisioning"
   - "006-provider-discovery"
-status: "pending"
+status: "ready"
 stages:
-  - "A-social-login-route-handlers"
-  - "B-docker-provider-simulators"
-  - "C-provider-specific-assertions"
+  - "A-social-flow-fixes"
+  - "B-local-provider-simulator"
+  - "C-provider-and-negative-tests"
 ---
 
-# Feature 011: Social Login Provider Integration Tests
+# Feature 011: Social Login End-to-End Correctness and Provider Tests
 
-## Current state
+## Current state (measured 2026-11-23)
 
-The building blocks are all implemented and tested in isolation:
-- `UpstreamProvider` model + `ProviderService` CRUD (F001)
-- `UpstreamOidcClient` with discovery, authorize_url, exchange_code, fetch_userinfo (F003)
-- `UpstreamAuthSession` store + TTL (F004)
-- `ProvisioningService` for create/link from upstream profiles (F005)
-- Provider admin API (F006)
-- Cross-platform HTTP client (F007)
+The route handlers exist. `social_authorize` and `social_callback` are in
+`foundation_auth/src/server/handlers/core.rs`, and `dispatch` sends
+`GET */authorize?provider=...` and `GET */callback?provider=...` to them.
 
-But the **social login route handlers** that chain these together (`GET
-/authorize?provider=google → 302 → upstream → callback → exchange → provision →
-redirect`) are not wired in `IdpServer::dispatch`. The `authorize` handler
-currently only handles the IdP's own password-based login — it returns
-`{"status": "login_required"}` and never redirects.
+The handlers have three defects (feature.md section "WHY"):
+1. The upstream redirect URI is the app's URI, or the literal `"unused"`.
+2. The OIDC ID token is never verified, and its nonce is never checked.
+3. GitHub's `/user/emails` fallback is absent.
 
-No integration tests exercise the full OAuth2 redirect flow against a real
-OAuth2 server. The Docker test infrastructure (`#[docker_container]`, `ory/hydra`)
-gives us a clean way to do this without external dependencies.
-
-This feature builds the route handlers and the Docker-backed provider tests.
+No test drives the full redirect flow. The building blocks are tested alone.
 
 ## Stage order
 
-1. **Social login route handlers** (`social_authorize` + `social_callback`) —
-   wires the existing building blocks into `IdpServer::dispatch`. Unlocks
-   stages B + C.
-2. **Docker-backed provider simulators** — `ory/hydra` containers configured to
-   emulate Google, GitHub, Facebook, Twitter/X endpoints.
-3. **Provider-specific assertions** — nonce, email_verified, PKCE, refresh
-   rotation, app-scoped IDs, etc.
+1. **Social flow fixes** — the IdP callback URL, ID token verification and the GitHub
+   email fallback. Unlocks the tests.
+2. **Local provider simulator** — a real HTTP server in the test tree with the
+   Google, GitHub, Facebook and Twitter wire shapes. The tests state why a
+   simulator replaces the provider.
+3. **Provider and negative tests** — the four provider flows and the six refusal
+   cases.
+
+`ory/hydra` is not used. Hydra is a different OAuth2 server, and it cannot serve
+GitHub's `/user/emails` or the provider-specific JSON. The reason is recorded in
+feature.md and goes into `LEARNINGS.md` after the change.
