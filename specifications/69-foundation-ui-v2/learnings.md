@@ -851,3 +851,10 @@ Text recognition can misread that title. Inspect the screenshot to verify the co
 The simulator keeps the test server address until the next app launch.
 After an isolated test, launch the app with the regular server address.
 Verify that the saved list appears before ending the test.
+
+## Graphics worker shutdown
+
+The Linux graphics test process can exit with a segmentation fault after it reports all test results.
+A native graphics worker can still release its Vulkan resources after the work queue closes.
+Wait for the worker to release its resources with `shutdown().await` before the host exits.
+The completion signal wakes every service clone. [Issue 696](https://github.com/ewe-studios/ewe_platform/issues/696)

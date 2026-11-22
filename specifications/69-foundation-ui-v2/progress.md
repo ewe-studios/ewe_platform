@@ -943,3 +943,11 @@ These checks complete the two remaining directions in the six-direction test.
 Issues #693 and #698 contain the results and are closed.
 After the test, the iPhone simulator connects to the regular server on port 8080.
 The restored screen shows five open todos.
+
+## Graphics worker shutdown
+
+The base Linux Advanced Micro Devices 64-bit (AMD64) test process exited with status 139 in four default-concurrency runs.
+A serial run on the same binary passed.
+The fix adds an asynchronous shutdown method and a test for concurrent waiters.
+The fixed Linux AMD64 suite passed three default-concurrency runs. Each run passed seven tests and skipped three hardware tests.
+The full crate checks and native Linux 64-bit Arm (ARM64) checks remain open.

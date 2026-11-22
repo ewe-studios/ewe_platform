@@ -56,6 +56,7 @@ impl NativeLease {
             }
         }
         let (work, receiver) = async_channel::bounded::<crate::Work>(config.queue_capacity);
+        let (finished, stopped_signal) = async_channel::bounded(1);
         let texture = parts.texture;
         let withdrawn = Arc::new(AtomicBool::new(false));
         let stopped = withdrawn.clone();
@@ -101,11 +102,15 @@ impl NativeLease {
                 drop(owner);
                 drop(device);
                 released(completion);
+                drop(finished);
             })
             .map_err(|e| LeaseError::Unavailable(e.to_string()))?;
         Ok(Arc::new(Self {
             identity,
-            service: GpuService { work },
+            service: GpuService {
+                work,
+                stopped: stopped_signal,
+            },
             withdrawn,
             lost,
         }))

@@ -3,6 +3,48 @@ mod leases;
 use foundation_context::Ctx;
 use foundation_ui_gpu::{GpuConfig, GpuError, GpuService};
 
+// WHY: Native graphics state must finish cleanup before the application exits.
+// WHAT: Every service clone can wait for the graphics owner to drop its provider.
+#[test]
+fn shutdown_waits_for_graphics_owner_cleanup() {
+    use foundation_ui_gpu::{wgpu, DeviceProvider, GraphicsDevice};
+    use futures_util::future::{join, LocalBoxFuture};
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    };
+
+    struct Provider(Arc<AtomicBool>);
+    impl DeviceProvider for Provider {
+        fn open<'a>(
+            &'a self,
+            _: &'a wgpu::Instance,
+            _: &'a GpuConfig,
+        ) -> LocalBoxFuture<'a, Result<GraphicsDevice, GpuError>> {
+            Box::pin(async { Err(GpuError::Unavailable("test adapter offline".into())) })
+        }
+    }
+    impl Drop for Provider {
+        fn drop(&mut self) {
+            self.0.store(true, Ordering::Release);
+        }
+    }
+
+    let dropped = Arc::new(AtomicBool::new(false));
+    let service = GpuService::install_with(
+        &Ctx::host(),
+        GpuConfig {
+            backends: wgpu::Backends::empty(),
+            ..GpuConfig::default()
+        },
+        Arc::new(Provider(dropped.clone())),
+    )
+    .unwrap();
+    let second = service.clone();
+    futures_lite::future::block_on(join(service.shutdown(), second.shutdown()));
+    assert!(dropped.load(Ordering::Acquire));
+}
+
 #[test]
 fn closed_service_cancels_queued_requests() {
     let ctx = Ctx::host();
@@ -13,6 +55,7 @@ fn closed_service_cancels_queued_requests() {
         futures_lite::future::block_on(service.run(|_| Box::pin(async { Ok(1) }))),
         Err(GpuError::Cancelled)
     ));
+    futures_lite::future::block_on(service.shutdown());
 }
 
 #[test]
@@ -31,7 +74,7 @@ fn compute_without_a_view() {
         })
     }))
     .unwrap();
-    service.close();
+    futures_lite::future::block_on(service.shutdown());
 }
 
 #[test]
@@ -68,6 +111,7 @@ fn device_failures_are_shared_until_reinitialization() {
             Err(GpuError::Unavailable(_))
         ));
         assert_eq!(provider.0.load(Ordering::SeqCst), 2);
+        gpu.shutdown().await;
     });
 }
 
@@ -108,6 +152,7 @@ fn dropping_a_queued_request_skips_its_job() {
         blocker.await.unwrap();
         gpu.run(|_| Box::pin(async { Ok(()) })).await.unwrap();
         assert!(!invoked.load(Ordering::SeqCst));
+        gpu.shutdown().await;
     });
 }
 
@@ -122,6 +167,7 @@ fn invalid_limits_and_destroyed_device_report_typed_failures() {
             .run(|owner| Box::pin(async { owner.device().await.map(|_| ()) }))
             .await;
         assert!(matches!(result, Err(GpuError::Unsupported)));
+        invalid.shutdown().await;
         let service = GpuService::install(&Ctx::host(), GpuConfig::default()).unwrap();
         service
             .run(|owner| {
@@ -144,5 +190,6 @@ fn invalid_limits_and_destroyed_device_report_typed_failures() {
             })
             .await
             .unwrap();
+        service.shutdown().await;
     });
 }

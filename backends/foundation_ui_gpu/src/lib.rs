@@ -184,6 +184,7 @@ type Work = Box<dyn for<'a> FnOnce(&'a mut GpuOwner) -> LocalBoxFuture<'a, ()> +
 #[derive(Clone)]
 pub struct GpuService {
     work: Sender<Work>,
+    stopped: Receiver<()>,
 }
 
 impl GpuService {
@@ -214,14 +215,21 @@ impl GpuService {
         #[cfg(target_family = "wasm")]
         browser::ensure_available()?;
         let (work, receiver) = async_channel::bounded(config.queue_capacity);
+        let (finished, stopped) = async_channel::bounded(1);
         #[cfg(not(target_family = "wasm"))]
         std::thread::Builder::new()
             .name("foundation-ui-gpu".into())
-            .spawn(move || futures_lite::future::block_on(Self::drive(config, receiver, provider)))
+            .spawn(move || {
+                futures_lite::future::block_on(Self::drive(config, receiver, provider));
+                drop(finished);
+            })
             .map_err(|e| GpuError::Unavailable(e.to_string()))?;
         #[cfg(target_family = "wasm")]
-        wasm_bindgen_futures::spawn_local(Self::drive(config, receiver, provider));
-        Ok((*ctx.get_or_insert(Self { work })).clone())
+        wasm_bindgen_futures::spawn_local(async move {
+            Self::drive(config, receiver, provider).await;
+            drop(finished);
+        });
+        Ok((*ctx.get_or_insert(Self { work, stopped })).clone())
     }
     fn owner(config: GpuConfig, provider: Arc<dyn DeviceProvider>) -> GpuOwner {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -270,8 +278,16 @@ impl GpuService {
             .map_err(|_| GpuError::Cancelled)?;
         receive.recv().await.map_err(|_| GpuError::Cancelled)?
     }
-    /// Stop accepting work and finish accepted jobs before releasing the device.
+    /// Stop accepting work. The owner finishes accepted jobs before it releases the device.
     pub fn close(&self) {
         self.work.close();
+    }
+
+    /// Stop accepting work and wait until the owner releases its graphics resources.
+    /// Call from the host outside a graphics job.
+    pub async fn shutdown(&self) {
+        self.close();
+        // Closing this signal wakes every service clone after the owner releases its resources.
+        let _ = self.stopped.recv().await;
     }
 }

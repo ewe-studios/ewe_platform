@@ -3,6 +3,7 @@
 A graphics processing unit (GPU) runs computation and draws images. The host owns this optional service.
 A shader is a program that runs on the GPU. A surface presents its output to one view.
 The service keeps one device and one command queue on their owning thread or browser event loop.
+Call `shutdown().await` from the host before it exits. This waits for accepted jobs and releases graphics resources.
 
 ## Run a shader from Rust
 
