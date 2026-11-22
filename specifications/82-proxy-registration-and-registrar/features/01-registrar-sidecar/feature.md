@@ -223,13 +223,13 @@ pub enum ProbeCheck {
 }
 ```
 
-Example: the `agent-rpc` entry in [spec 78 section 5.1](../../../78-manifest-contract/requirements.md#51-complete-example) has a `proxy` block for the
+Example: the `agent-rpc` entry in [spec 78 section 5.1](../../../completed/78-manifest-contract/requirements.md#51-complete-example) has a `proxy` block for the
 `agents` service on port 7443 with protocol `grpc`, and three probes.
 
 #### Fixture handshake with spec 78
 
 The canonical fixtures are in
-[spec 78 `fixtures/`](../../../78-manifest-contract/fixtures/). This crate copies the files
+[spec 78 `fixtures/`](../../../completed/78-manifest-contract/fixtures/). This crate copies the files
 into `tests/fixtures/manifest/`, and `tests/manifest_tests.rs` consumes them. This section is a
 cross-reference only. T2 adds the parser and the tests.
 

@@ -1,9 +1,8 @@
 # Spec 78 Progress: Manifest Contract
 
-_Last updated: 2026-11-22._
+_Last updated: 2026-11-23._
 
-**State.** Branch `spec/78-manifest-contract` is pushed at `8b2c2b50f`; not merged into master.
-Open: #697 (medium).
+**State.** Merged into master as `0aeffcc74`. The drift checks pass. Open: #697 (medium, spec 82).
 
 ## Status at a glance
 
@@ -14,14 +13,13 @@ Open: #697 (medium).
 | M3 — Drift check in CI | ✅ Done |
 | M4 — Consumer handshake in 79 and 82 | ✅ Done |
 
-The work is on branch `spec/78-manifest-contract`, in a worktree. It is not pushed and has no
-pull request yet.
+The work is merged into master. Issue #697 belongs to spec 82 and stays open.
 
 ## What landed
 
 ### M1 — The schema
 
-- `specifications/78-manifest-contract/manifest.schema.json` is a JSON Schema draft 2020-12
+- `specifications/completed/78-manifest-contract/manifest.schema.json` is a JSON Schema draft 2020-12
   document. It covers the top level, `Entry`, every `source.kind`, every `deploy.kind`, the
   `proxy` block, the `probes` block and every documented default.
 - The `entries` schema records V5 (unique names) in a `$comment`. JSON Schema draft 2020-12 has
@@ -51,7 +49,7 @@ pull request yet.
     `fixtures/` (for the fixtures). A missing consumer directory is not a fault: the readers
     have not added their copies yet.
 - `scripts/ci/ci.py` gains the synthetic `manifest-contract` package. It owns
-  `specifications/78-manifest-contract` and runs the two checks in its `build` step.
+  `specifications/completed/78-manifest-contract` and runs the two checks in its `build` step.
   `MANIFEST_CONSUMER_PREFIXES` selects the package when a reader copy changes, and also
   selects the reader crate that owns the copy.
 - `ci/packages.toml` sets the package to `build = "enforce"` and turns the other steps off.

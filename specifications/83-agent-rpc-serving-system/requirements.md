@@ -30,7 +30,7 @@ related_specs:
   - "specifications/completed/80-platform-prerequisites"
   - "specifications/81-foundation-auth"
   - "specifications/82-proxy-registration-and-registrar"
-  - "specifications/78-manifest-contract"
+  - "specifications/completed/78-manifest-contract"
   - "specifications/79-manifest-installer"
   - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/completed/63-connectrpc-proxy"

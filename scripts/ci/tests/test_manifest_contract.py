@@ -13,7 +13,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 MODULE = REPO / "scripts" / "ci" / "manifest_contract.py"
 CI = REPO / "scripts" / "ci" / "ci.py"
-SPEC = REPO / "specifications" / "78-manifest-contract"
+SPEC = REPO / "specifications" / "completed" / "78-manifest-contract"
 
 
 def load(module_path: Path, name: str):
@@ -116,7 +116,7 @@ class FixtureCopies(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.spec = self.root / "specifications" / "78-manifest-contract"
+        self.spec = self.root / "specifications" / "completed" / "78-manifest-contract"
         (self.spec / "fixtures" / "valid").mkdir(parents=True)
         shutil.copy(
             SPEC / "fixtures" / "valid" / "empty.json",
@@ -178,11 +178,11 @@ class CiSelection(unittest.TestCase):
     def test_a_canonical_fixture_change_selects_the_manifest_contract_package(self):
         packages = {
             "manifest-contract": self.ci.Package(
-                "manifest-contract", "specifications/78-manifest-contract", False
+                "manifest-contract", "specifications/completed/78-manifest-contract", False
             )
         }
         changes = self.ci.Changes(
-            ["specifications/78-manifest-contract/fixtures/valid/complete.json"]
+            ["specifications/completed/78-manifest-contract/fixtures/valid/complete.json"]
         )
         self.assertEqual(
             set(self.ci.affected_with_reasons(changes, packages)), {"manifest-contract"}
@@ -191,7 +191,7 @@ class CiSelection(unittest.TestCase):
     def test_a_consumer_copy_change_selects_the_check_and_the_reader(self):
         packages = {
             "manifest-contract": self.ci.Package(
-                "manifest-contract", "specifications/78-manifest-contract", False
+                "manifest-contract", "specifications/completed/78-manifest-contract", False
             ),
             "foundation_installer": self.ci.Package(
                 "foundation_installer", "backends/foundation_installer", False

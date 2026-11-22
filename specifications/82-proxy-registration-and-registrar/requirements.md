@@ -26,7 +26,7 @@ has_fundamentals: false
 builds_on: "specifications/completed/63-connectrpc-proxy"
 related_specs:
   - "specifications/completed/63-connectrpc-proxy"
-  - "specifications/78-manifest-contract"
+  - "specifications/completed/78-manifest-contract"
   - "specifications/79-manifest-installer"
   - "specifications/81-foundation-auth"
   - "specifications/completed/87-mutual-tls"
@@ -239,7 +239,7 @@ sidecar does not read the client credential either.
 - `backends/foundation_proxy/src/{config,router,runtime,health,control,persistence,tls}.rs` —
   the existing parts that the registration authority extends.
 - `specifications/completed/63-connectrpc-proxy/` — the proxy that this spec builds on.
-- `specifications/78-manifest-contract/requirements.md` — the `proxy` and `probes` blocks.
+- `specifications/completed/78-manifest-contract/requirements.md` — the `proxy` and `probes` blocks.
 - `specifications/81-foundation-auth/` — enrollment and the signed secrets.
 - `specifications/completed/87-mutual-tls/` — the CA, the trust store, the mTLS verifiers and the mTLS
   providers.

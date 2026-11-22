@@ -5,7 +5,7 @@ status: "pending"
 priority: "high"
 depends_on: []
 builds_on:
-  - "specifications/78-manifest-contract"
+  - "specifications/completed/78-manifest-contract"
 estimated_effort: "large"
 created: 2026-10-19
 last_updated: 2026-11-14
@@ -113,7 +113,7 @@ the registrar both read the same manifest file._
 ### 4.1 The manifest
 
 The manifest is the versioned JSON contract in
-[spec 78](../../../78-manifest-contract/requirements.md). This feature reads it; it does not
+[spec 78](../../../completed/78-manifest-contract/requirements.md). This feature reads it; it does not
 define it. Spec 78 gives the complete example, the field tables, the source and deploy kinds, the
 `proxy` and `probes` blocks, and validation rules V1 to V11.
 
@@ -166,7 +166,7 @@ exists for these blocks, and the installer never acts on them.
 #### Fixture handshake with spec 78
 
 The canonical fixtures are in
-[spec 78 `fixtures/`](../../../78-manifest-contract/fixtures/). This crate copies the files
+[spec 78 `fixtures/`](../../../completed/78-manifest-contract/fixtures/). This crate copies the files
 into `tests/fixtures/manifest/`, and `tests/manifest_tests.rs` consumes them. This section is a
 cross-reference only. T1 adds the parser and the tests.
 

@@ -1,12 +1,12 @@
 ---
 description: "The versioned JSON manifest contract that the installer (spec 79) and the registrar sidecar (spec 82) parse independently: entries, sources, deploy targets, proxy and probe blocks, and the marks that link installed services to the registrar."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-14
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-14
+  last_updated: 2026-11-23
   estimated_effort: "small"
   tags:
     - manifest
@@ -456,8 +456,8 @@ python3 -I scripts/ci/manifest_contract.py --check-schema
 python3 -I scripts/ci/manifest_contract.py --check-copies
 
 # Validate every fixture against the schema (requires check-jsonschema).
-check-jsonschema --schemafile specifications/78-manifest-contract/manifest.schema.json \
-  specifications/78-manifest-contract/fixtures/valid/*.json
+check-jsonschema --schemafile specifications/completed/78-manifest-contract/manifest.schema.json \
+  specifications/completed/78-manifest-contract/fixtures/valid/*.json
 ```
 
 The invalid fixtures are checked by the consumer tests in 79 and 82; they must fail to parse.

@@ -304,7 +304,7 @@ def load_workspace() -> dict[str, Package]:
     # fixture and consumer-copy checks. See `manifest_contract_commands`.
     packages["manifest-contract"] = Package(
         name="manifest-contract",
-        dir="specifications/78-manifest-contract",
+        dir="specifications/completed/78-manifest-contract",
         needs_llama=False,
     )
     return packages

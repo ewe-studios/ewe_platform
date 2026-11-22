@@ -10,7 +10,7 @@ created: 2026-11-14
 ## Agent Workflow
 
 1. Read `requirements.md` (mission, order, success criteria).
-2. Read `../78-manifest-contract/requirements.md` (the format that the installer parses).
+2. Read `../completed/78-manifest-contract/requirements.md` (the format that the installer parses).
 3. Read `LEARNINGS.md`.
 4. Read `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md` and
    `.agents/skills/rust-valtron-usage/skill.md`.

@@ -15,7 +15,7 @@ learnings:
 
 | Topic | New home |
 |---|---|
-| Manifest format and installer | `../78-manifest-contract/` and `../79-manifest-installer/` |
+| Manifest format and installer | `../completed/78-manifest-contract/` and `../79-manifest-installer/` |
 | Env, transport facts and migration groups | `../80-platform-prerequisites/` |
 | Signed secrets, CA, trust store and mTLS | `../81-foundation-auth/` |
 | Proxy registration authority and registrar sidecar | `../82-proxy-registration-and-registrar/` |

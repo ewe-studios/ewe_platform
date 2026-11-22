@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC_DIR = ROOT / "specifications" / "78-manifest-contract"
+SPEC_DIR = ROOT / "specifications" / "completed" / "78-manifest-contract"
 
 # The JSON Schema draft that the contract uses.
 DRAFT = "https://json-schema.org/draft/2020-12/schema"

@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/78-manifest-contract"
-this_file: "specifications/78-manifest-contract/start.md"
+spec_directory: "specifications/completed/78-manifest-contract"
+this_file: "specifications/completed/78-manifest-contract/start.md"
 created: 2026-11-14
 ---
 

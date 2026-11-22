@@ -21,9 +21,9 @@ metadata:
   tools: []
 has_features: true
 has_fundamentals: false
-builds_on: "specifications/78-manifest-contract"
+builds_on: "specifications/completed/78-manifest-contract"
 related_specs:
-  - "specifications/78-manifest-contract"
+  - "specifications/completed/78-manifest-contract"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:
@@ -200,7 +200,7 @@ in the feature's "Lifecycle of one entry".
 - `backends/foundation_packager/` — minijinja/tinytemplate script generation.
 - `backends/foundation_deployment_docker/` — pull/run/inspect/build with generated types.
 - `backends/foundation_netio/src/shared/client/http_client.rs` — the `HttpClient` trait.
-- `specifications/78-manifest-contract/requirements.md` — the JSON contract and fixtures.
+- `specifications/completed/78-manifest-contract/requirements.md` — the JSON contract and fixtures.
 - `specifications/completed/63-connectrpc-proxy/` — the proxy that the registrar feeds, for
   context only.
 
