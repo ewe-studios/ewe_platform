@@ -11,6 +11,7 @@
       #if os(iOS)
         store.graphicsProvider = { try core.graphics() }
       #endif
+      core.installWebSockets(service: AppWebSockets())
       raw = core
       self.store = store
       if let action = viewDataAction {

@@ -696,6 +696,18 @@ internal interface UniffiCallbackInterfaceHostHttpClientMethod3 : com.sun.jna.Ca
 internal interface UniffiCallbackInterfaceHttpServiceProviderMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`service`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteU64,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,)
 }
+internal interface UniffiCallbackInterfaceHostWebSocketMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteVoid,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,)
+}
+internal interface UniffiCallbackInterfaceHostWebSocketMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiFutureCallback`: UniffiForeignFutureCompleteRustBuffer,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,)
+}
+internal interface UniffiCallbackInterfaceHostWebSocketMethod2 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceHostWebSocketsMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`endpoint`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteU64,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,)
+}
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "released")
 internal open class UniffiVTableCallbackInterfaceHostDeviceCompletion(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
@@ -879,6 +891,50 @@ internal open class UniffiVTableCallbackInterfaceHttpServiceProvider(
     }
 
 }
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "sendMessage", "receiveMessage", "closeSocket")
+internal open class UniffiVTableCallbackInterfaceHostWebSocket(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `sendMessage`: UniffiCallbackInterfaceHostWebSocketMethod0? = null,
+    @JvmField internal var `receiveMessage`: UniffiCallbackInterfaceHostWebSocketMethod1? = null,
+    @JvmField internal var `closeSocket`: UniffiCallbackInterfaceHostWebSocketMethod2? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `sendMessage`: UniffiCallbackInterfaceHostWebSocketMethod0? = null,
+        `receiveMessage`: UniffiCallbackInterfaceHostWebSocketMethod1? = null,
+        `closeSocket`: UniffiCallbackInterfaceHostWebSocketMethod2? = null,
+    ): UniffiVTableCallbackInterfaceHostWebSocket(`uniffiFree`,`uniffiClone`,`sendMessage`,`receiveMessage`,`closeSocket`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceHostWebSocket) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `sendMessage` = other.`sendMessage`
+        `receiveMessage` = other.`receiveMessage`
+        `closeSocket` = other.`closeSocket`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "openSocket")
+internal open class UniffiVTableCallbackInterfaceHostWebSockets(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `openSocket`: UniffiCallbackInterfaceHostWebSocketsMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `openSocket`: UniffiCallbackInterfaceHostWebSocketsMethod0? = null,
+    ): UniffiVTableCallbackInterfaceHostWebSockets(`uniffiFree`,`uniffiClone`,`openSocket`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceHostWebSockets) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `openSocket` = other.`openSocket`
+    }
+
+}
 
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
@@ -927,6 +983,10 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_install_resources(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativecore_open_resource(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_install_web_sockets(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_nativecore_open_web_socket(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear(
     ): Int
@@ -994,6 +1054,20 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_foundation_ui_native_checksum_method_httpserviceprovider_http_client(
     ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_appwebsocket_close_socket(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_appwebsocket_receive(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_appwebsocket_send(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_hostwebsocket_send_message(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_hostwebsocket_receive_message(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_hostwebsocket_close_socket(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_method_hostwebsockets_open_socket(
+    ): Int
     external fun uniffi_foundation_ui_native_checksum_constructor_nativecore_remote(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_constructor_nativesender_new(
@@ -1001,6 +1075,8 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_foundation_ui_native_checksum_constructor_connectsender_new(
     ): Int
     external fun uniffi_foundation_ui_native_checksum_constructor_nativehttpclient_new(
+    ): Int
+    external fun uniffi_foundation_ui_native_checksum_constructor_appwebsocket_new(
     ): Int
     external fun ffi_foundation_ui_native_uniffi_contract_version(
     ): Int
@@ -1026,6 +1102,8 @@ internal object UniffiLib {
         uniffiCallbackInterfaceHostResourceSource.register(this)
         uniffiCallbackInterfaceHostTransport.register(this)
         uniffiCallbackInterfaceHostTransportProvider.register(this)
+        uniffiCallbackInterfaceHostWebSocket.register(this)
+        uniffiCallbackInterfaceHostWebSockets.register(this)
         uniffiCallbackInterfaceHttpServiceProvider.register(this)
         
     }
@@ -1060,6 +1138,10 @@ internal object UniffiLib {
     external fun uniffi_foundation_ui_native_fn_method_nativecore_install_resources(`ptr`: Long,`source`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_foundation_ui_native_fn_method_nativecore_open_resource(`ptr`: Long,`name`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_install_web_sockets(`ptr`: Long,`service`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_nativecore_open_web_socket(`ptr`: Long,`endpoint`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_foundation_ui_native_fn_clone_nativedrawingsurface(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -1231,6 +1313,38 @@ internal object UniffiLib {
     ): Unit
     external fun uniffi_foundation_ui_native_fn_constructor_nativehttpclient_new(`client`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
+    external fun uniffi_foundation_ui_native_fn_clone_appwebsocket(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_appwebsocket(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_constructor_appwebsocket_new(`socket`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_appwebsocket_close_socket(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_appwebsocket_receive(`ptr`: Long,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_appwebsocket_send(`ptr`: Long,`message`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_clone_hostwebsocket(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_hostwebsocket(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_init_callback_vtable_hostwebsocket(`vtable`: UniffiVTableCallbackInterfaceHostWebSocket,
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_hostwebsocket_send_message(`ptr`: Long,`message`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_hostwebsocket_receive_message(`ptr`: Long,
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_method_hostwebsocket_close_socket(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_clone_hostwebsockets(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_foundation_ui_native_fn_free_hostwebsockets(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_init_callback_vtable_hostwebsockets(`vtable`: UniffiVTableCallbackInterfaceHostWebSockets,
+    ): Unit
+    external fun uniffi_foundation_ui_native_fn_method_hostwebsockets_open_socket(`ptr`: Long,`endpoint`: RustBuffer.ByValue,
+    ): Long
     external fun ffi_foundation_ui_native_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun ffi_foundation_ui_native_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1386,6 +1500,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_open_resource() and 0xFFFF) != 37292) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_install_web_sockets() and 0xFFFF) != 46956) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_nativecore_open_web_socket() and 0xFFFF) != 56437) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear() and 0xFFFF) != 36509) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1485,6 +1605,27 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_foundation_ui_native_checksum_method_httpserviceprovider_http_client() and 0xFFFF) != 40824) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_appwebsocket_close_socket() and 0xFFFF) != 64395) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_appwebsocket_receive() and 0xFFFF) != 59994) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_appwebsocket_send() and 0xFFFF) != 8474) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostwebsocket_send_message() and 0xFFFF) != 33544) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostwebsocket_receive_message() and 0xFFFF) != 18448) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostwebsocket_close_socket() and 0xFFFF) != 59148) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_method_hostwebsockets_open_socket() and 0xFFFF) != 21750) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_foundation_ui_native_checksum_constructor_nativecore_remote() and 0xFFFF) != 32444) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1495,6 +1636,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_foundation_ui_native_checksum_constructor_nativehttpclient_new() and 0xFFFF) != 19711) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_foundation_ui_native_checksum_constructor_appwebsocket_new() and 0xFFFF) != 27253) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -2006,6 +2150,356 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
     override fun write(value: ByteArray, buf: ByteBuffer) {
         buf.putInt(value.size)
         buf.put(value)
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * An application owns this socket until it closes or drops the handle.
+ */
+public interface AppWebSocketInterface {
+    
+    /**
+     * Close this connection.
+     */
+    fun `closeSocket`()
+    
+    /**
+     * Receive one message or the end of the connection.
+     *
+     * # Errors
+     * Returns the host receive error.
+     */
+    suspend fun `receive`(): SocketMessage?
+    
+    /**
+     * Send one message through this connection.
+     *
+     * # Errors
+     * Returns the host send error.
+     */
+    suspend fun `send`(`message`: SocketMessage)
+    
+    companion object
+}
+
+/**
+ * An application owns this socket until it closes or drops the handle.
+ */
+open class AppWebSocket: Disposable, AutoCloseable, AppWebSocketInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+    /**
+     * Wrap one connection from the platform.
+     */
+    constructor(`socket`: HostWebSocket) :
+        this(UniffiWithHandle, 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_constructor_appwebsocket_new(
+    
+        
+        FfiConverterTypeHostWebSocket.lower(`socket`),_status)
+}
+    )
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_appwebsocket(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_appwebsocket(handle, status)
+        }
+    }
+
+    
+    /**
+     * Close this connection.
+     */override fun `closeSocket`()
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_appwebsocket_close_socket(
+        it,
+        _status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Receive one message or the end of the connection.
+     *
+     * # Errors
+     * Returns the host receive error.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `receive`() : SocketMessage? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_appwebsocket_receive(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeSocketMessage.lift(it) },
+        // Error FFI converter
+        CoreException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Send one message through this connection.
+     *
+     * # Errors
+     * Returns the host send error.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `send`(`message`: SocketMessage) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_appwebsocket_send(
+                uniffiHandle,
+                
+        FfiConverterTypeSocketMessage.lower(`message`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        CoreException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAppWebSocket: FfiConverter<AppWebSocket, Long> {
+    override fun lower(value: AppWebSocket): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): AppWebSocket {
+        return AppWebSocket(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): AppWebSocket {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: AppWebSocket) = 8UL
+
+    override fun write(value: AppWebSocket, buf: ByteBuffer) {
+        buf.putLong(lower(value))
     }
 }
 
@@ -5261,6 +5755,826 @@ public object FfiConverterTypeHostTransportProvider: FfiConverter<HostTransportP
 //
 
 
+/**
+ * The host supplies one connection for each successful open.
+ */
+public interface HostWebSocket {
+    
+    /**
+     * Send one complete application message.
+     *
+     * # Errors
+     * Returns a transport error if the socket cannot accept the message.
+     */
+    suspend fun `sendMessage`(`message`: SocketMessage)
+    
+    /**
+     * Read the next message. A normal peer close returns None.
+     *
+     * # Errors
+     * Returns a transport error if the receive fails.
+     */
+    suspend fun `receiveMessage`(): SocketMessage?
+    
+    /**
+     * Release this connection and wake pending readers. Repeated calls are safe.
+     */
+    fun `closeSocket`()
+    
+    companion object
+}
+
+/**
+ * The host supplies one connection for each successful open.
+ */
+open class HostWebSocketImpl: Disposable, AutoCloseable, HostWebSocket
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_hostwebsocket(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_hostwebsocket(handle, status)
+        }
+    }
+
+    
+    /**
+     * Send one complete application message.
+     *
+     * # Errors
+     * Returns a transport error if the socket cannot accept the message.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendMessage`(`message`: SocketMessage) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_hostwebsocket_send_message(
+                uniffiHandle,
+                
+        FfiConverterTypeSocketMessage.lower(`message`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_void(future) },
+        // lift function
+        { },
+        
+        // Error FFI converter
+        CoreException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Read the next message. A normal peer close returns None.
+     *
+     * # Errors
+     * Returns a transport error if the receive fails.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `receiveMessage`() : SocketMessage? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_hostwebsocket_receive_message(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeSocketMessage.lift(it) },
+        // Error FFI converter
+        CoreException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Release this connection and wake pending readers. Repeated calls are safe.
+     */override fun `closeSocket`()
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_hostwebsocket_close_socket(
+        it,
+        _status)
+}
+    }
+    
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceHostWebSocket {
+    internal object `sendMessage`: UniffiCallbackInterfaceHostWebSocketMethod0 {
+        override fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteVoid,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,) {
+            val uniffiObj = FfiConverterTypeHostWebSocket.handleMap.get(uniffiHandle)
+            val makeCall = suspend { ->
+                uniffiObj.`sendMessage`(
+                    FfiConverterTypeSocketMessage.lift(`message`),
+                )
+            }
+            val uniffiHandleSuccess = { _: Unit ->
+                val uniffiResult = UniffiForeignFutureResultVoid.UniffiByValue(
+                    UniffiRustCallStatus.ByValue()
+                )
+                uniffiResult.write()
+                uniffiFutureCallback.callback(uniffiCallbackData, uniffiResult)
+            }
+            val uniffiHandleError = { callStatus: UniffiRustCallStatus.ByValue ->
+                uniffiFutureCallback.callback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultVoid.UniffiByValue(
+                        callStatus,
+                    ),
+                )
+            }
+            uniffiTraitInterfaceCallAsyncWithError(
+                makeCall,
+                uniffiHandleSuccess,
+                uniffiHandleError,
+                { e: CoreException -> FfiConverterTypeCoreError.lower(e) },
+                uniffiOutDroppedCallback
+            )
+        }
+    }
+    internal object `receiveMessage`: UniffiCallbackInterfaceHostWebSocketMethod1 {
+        override fun callback(`uniffiHandle`: Long,`uniffiFutureCallback`: UniffiForeignFutureCompleteRustBuffer,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,) {
+            val uniffiObj = FfiConverterTypeHostWebSocket.handleMap.get(uniffiHandle)
+            val makeCall = suspend { ->
+                uniffiObj.`receiveMessage`(
+                )
+            }
+            val uniffiHandleSuccess = { returnValue: SocketMessage? ->
+                val uniffiResult = UniffiForeignFutureResultRustBuffer.UniffiByValue(
+                    FfiConverterOptionalTypeSocketMessage.lower(returnValue),
+                    UniffiRustCallStatus.ByValue()
+                )
+                uniffiResult.write()
+                uniffiFutureCallback.callback(uniffiCallbackData, uniffiResult)
+            }
+            val uniffiHandleError = { callStatus: UniffiRustCallStatus.ByValue ->
+                uniffiFutureCallback.callback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultRustBuffer.UniffiByValue(
+                        RustBuffer.ByValue(),
+                        callStatus,
+                    ),
+                )
+            }
+            uniffiTraitInterfaceCallAsyncWithError(
+                makeCall,
+                uniffiHandleSuccess,
+                uniffiHandleError,
+                { e: CoreException -> FfiConverterTypeCoreError.lower(e) },
+                uniffiOutDroppedCallback
+            )
+        }
+    }
+    internal object `closeSocket`: UniffiCallbackInterfaceHostWebSocketMethod2 {
+        override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeHostWebSocket.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`closeSocket`(
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeHostWebSocket.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeHostWebSocket.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceHostWebSocket.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `sendMessage`,
+        `receiveMessage`,
+        `closeSocket`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_foundation_ui_native_fn_init_callback_vtable_hostwebsocket(vtable)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHostWebSocket: FfiConverter<HostWebSocket, Long> {
+    internal val handleMap = UniffiHandleMap<HostWebSocket>()
+
+    override fun lower(value: HostWebSocket): Long {
+        if (value is HostWebSocketImpl) {
+             // Rust-implemented object.  Clone the handle and return it
+            return value.uniffiCloneHandle()
+         } else {
+            // Kotlin object, generate a new vtable handle and return that.
+            return handleMap.insert(value)
+         }
+    }
+
+    override fun lift(value: Long): HostWebSocket {
+        if ((value and 1.toLong()) == 0.toLong()) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostWebSocketImpl(UniffiWithHandle, value)
+        } else {
+            // Kotlin-generated handle, get the object from the handle map
+            return handleMap.remove(value)
+        }
+    }
+
+    override fun read(buf: ByteBuffer): HostWebSocket {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: HostWebSocket) = 8UL
+
+    override fun write(value: HostWebSocket, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * A host service opens sockets outside the action dispatcher.
+ */
+public interface HostWebSockets {
+    
+    /**
+     * Open a dedicated connection to the given endpoint.
+     *
+     * # Errors
+     * Returns the connection or handshake error.
+     */
+    suspend fun `openSocket`(`endpoint`: kotlin.String): AppWebSocket
+    
+    companion object
+}
+
+/**
+ * A host service opens sockets outside the action dispatcher.
+ */
+open class HostWebSocketsImpl: Disposable, AutoCloseable, HostWebSockets
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_foundation_ui_native_fn_free_hostwebsockets(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_foundation_ui_native_fn_clone_hostwebsockets(handle, status)
+        }
+    }
+
+    
+    /**
+     * Open a dedicated connection to the given endpoint.
+     *
+     * # Errors
+     * Returns the connection or handshake error.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `openSocket`(`endpoint`: kotlin.String) : AppWebSocket {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_hostwebsockets_open_socket(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`endpoint`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeAppWebSocket.lift(it) },
+        // Error FFI converter
+        CoreException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceHostWebSockets {
+    internal object `openSocket`: UniffiCallbackInterfaceHostWebSocketsMethod0 {
+        override fun callback(`uniffiHandle`: Long,`endpoint`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteU64,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,) {
+            val uniffiObj = FfiConverterTypeHostWebSockets.handleMap.get(uniffiHandle)
+            val makeCall = suspend { ->
+                uniffiObj.`openSocket`(
+                    FfiConverterString.lift(`endpoint`),
+                )
+            }
+            val uniffiHandleSuccess = { returnValue: AppWebSocket ->
+                val uniffiResult = UniffiForeignFutureResultU64.UniffiByValue(
+                    FfiConverterTypeAppWebSocket.lower(returnValue),
+                    UniffiRustCallStatus.ByValue()
+                )
+                uniffiResult.write()
+                uniffiFutureCallback.callback(uniffiCallbackData, uniffiResult)
+            }
+            val uniffiHandleError = { callStatus: UniffiRustCallStatus.ByValue ->
+                uniffiFutureCallback.callback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultU64.UniffiByValue(
+                        0.toLong(),
+                        callStatus,
+                    ),
+                )
+            }
+            uniffiTraitInterfaceCallAsyncWithError(
+                makeCall,
+                uniffiHandleSuccess,
+                uniffiHandleError,
+                { e: CoreException -> FfiConverterTypeCoreError.lower(e) },
+                uniffiOutDroppedCallback
+            )
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeHostWebSockets.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeHostWebSockets.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceHostWebSockets.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `openSocket`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_foundation_ui_native_fn_init_callback_vtable_hostwebsockets(vtable)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHostWebSockets: FfiConverter<HostWebSockets, Long> {
+    internal val handleMap = UniffiHandleMap<HostWebSockets>()
+
+    override fun lower(value: HostWebSockets): Long {
+        if (value is HostWebSocketsImpl) {
+             // Rust-implemented object.  Clone the handle and return it
+            return value.uniffiCloneHandle()
+         } else {
+            // Kotlin object, generate a new vtable handle and return that.
+            return handleMap.insert(value)
+         }
+    }
+
+    override fun lift(value: Long): HostWebSockets {
+        if ((value and 1.toLong()) == 0.toLong()) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostWebSocketsImpl(UniffiWithHandle, value)
+        } else {
+            // Kotlin-generated handle, get the object from the handle map
+            return handleMap.remove(value)
+        }
+    }
+
+    override fun read(buf: ByteBuffer): HostWebSockets {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: HostWebSockets) = 8UL
+
+    override fun write(value: HostWebSockets, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface HttpServiceProvider {
     
     suspend fun `httpClient`(`service`: kotlin.String): NativeHttpClient
@@ -5683,6 +6997,19 @@ public interface NativeCoreInterface {
      */
     suspend fun `openResource`(`name`: kotlin.String): NativeResourceStream
     
+    /**
+     * Install the platform service before the first action.
+     */
+    fun `installWebSockets`(`service`: HostWebSockets)
+    
+    /**
+     * Open an application connection from the core context.
+     *
+     * # Errors
+     * Returns the service lookup or connection error.
+     */
+    suspend fun `openWebSocket`(`endpoint`: kotlin.String): AppWebSocket
+    
     companion object
 }
 
@@ -6031,6 +7358,50 @@ open class NativeCore: Disposable, AutoCloseable, NativeCoreInterface
         { FfiConverterTypeNativeResourceStream.lift(it) },
         // Error FFI converter
         NativeResourceException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Install the platform service before the first action.
+     */override fun `installWebSockets`(`service`: HostWebSockets)
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_install_web_sockets(
+        it,
+        
+        FfiConverterTypeHostWebSockets.lower(`service`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Open an application connection from the core context.
+     *
+     * # Errors
+     * Returns the service lookup or connection error.
+     */
+    @Throws(CoreException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `openWebSocket`(`endpoint`: kotlin.String) : AppWebSocket {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_foundation_ui_native_fn_method_nativecore_open_web_socket(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`endpoint`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_foundation_ui_native_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_foundation_ui_native_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeAppWebSocket.lift(it) },
+        // Error FFI converter
+        CoreException.ErrorHandler,
     )
     }
 
@@ -9929,6 +11300,92 @@ public object FfiConverterTypeServiceError : FfiConverterRustBuffer<ServiceExcep
 
 
 
+/**
+ * One application message preserves its text or binary type.
+ */
+sealed class SocketMessage {
+    
+    data class Text(
+        val `value`: kotlin.String) : SocketMessage()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Binary(
+        val `value`: kotlin.ByteArray) : SocketMessage()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSocketMessage : FfiConverterRustBuffer<SocketMessage>{
+    override fun read(buf: ByteBuffer): SocketMessage {
+        return when(buf.getInt()) {
+            1 -> SocketMessage.Text(
+                FfiConverterString.read(buf),
+                )
+            2 -> SocketMessage.Binary(
+                FfiConverterByteArray.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SocketMessage): ULong = when(value) {
+        is SocketMessage.Text -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`value`)
+            )
+        }
+        is SocketMessage.Binary -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterByteArray.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: SocketMessage, buf: ByteBuffer) {
+        when(value) {
+            is SocketMessage.Text -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`value`, buf)
+                Unit
+            }
+            is SocketMessage.Binary -> {
+                buf.putInt(2)
+                FfiConverterByteArray.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 /**
  * @suppress
@@ -10019,6 +11476,38 @@ public object FfiConverterOptionalTypeHostResourceFile: FfiConverterRustBuffer<H
         } else {
             buf.put(1)
             FfiConverterTypeHostResourceFile.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeSocketMessage: FfiConverterRustBuffer<SocketMessage?> {
+    override fun read(buf: ByteBuffer): SocketMessage? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeSocketMessage.read(buf)
+    }
+
+    override fun allocationSize(value: SocketMessage?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeSocketMessage.allocationSize(value)
+        }
+    }
+
+    override fun write(value: SocketMessage?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeSocketMessage.write(value, buf)
         }
     }
 }

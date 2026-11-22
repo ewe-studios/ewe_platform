@@ -995,3 +995,9 @@ The server uses a synchronous listener. The Valtron entry attribute supports syn
 
 The first Android Connect run displays “Android server” and confirms one item. The test expects “Android server todo”.
 A fresh run accepts the full title. Issue #737 tracks the input and submission checks.
+
+## Independent WebSocket ownership
+
+A host action can use the platform network client through its Rust context.
+The action socket keeps its own connection when the caller closes an application socket.
+The Rust networking crate also provides a direct WebSocket connector.

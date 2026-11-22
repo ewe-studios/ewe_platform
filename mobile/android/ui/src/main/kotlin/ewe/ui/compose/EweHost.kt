@@ -159,6 +159,7 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
 
     fun attach(core: NativeCore, channels: ChannelFactory?, manager: ConnectionManager? = null, viewDataAction: String? = null): CoreBinding {
         val binding = try {
+            core.installWebSockets(ewe.ui.android.AppWebSockets())
             CoreBinding(core, store, scope)
         } catch (error: Exception) {
             core.close()

@@ -1203,3 +1203,15 @@ Each test checks the confirmed count. Each transport uses a separate server proc
 
 The first Android Connect run submits a partial title. The repeat passes. Issue #737 tracks this result.
 The independent native WebSocket service remains pending.
+
+## Independent native WebSocket service
+
+Rust actions can open a host WebSocket through `AppWebSocket::open`.
+Swift uses URLSession. Kotlin uses OkHttp. Each socket has its own lifetime.
+The iPhone simulator and Android emulator pass the independent socket test.
+Each test exchanges text and binary messages with an echo server.
+Each closes that socket and receives a rendered count from the Todo action socket.
+
+Run `TodoTests/testIndependentWebSocket` with `EWE_SOCKET_ECHO` and `EWE_TODO_URL`.
+Run Android instrumentation `ReplayCheck` with `socket_echo` and `server`.
+Supply a WebSocket echo endpoint and a running Todo server for each test.

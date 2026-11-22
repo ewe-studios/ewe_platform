@@ -6,6 +6,7 @@ mod core;
 pub mod graphics;
 mod host;
 pub mod rpc;
+pub mod websocket;
 #[cfg(not(target_family = "wasm"))]
 pub mod resources;
 pub use core::{CoreConfig, NativeCore, NativeCoreBuilder, NativePlatform};

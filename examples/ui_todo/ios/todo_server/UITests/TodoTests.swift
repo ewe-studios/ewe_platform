@@ -6,6 +6,37 @@ import EweWire
 import FlatBuffers
 
 final class TodoTests: XCTestCase {
+  @MainActor func testIndependentWebSocket() async throws {
+    let env = ProcessInfo.processInfo.environment
+    guard let echo = env["EWE_SOCKET_ECHO"] else { throw XCTSkip("Supply a WebSocket echo endpoint") }
+    let base = try XCTUnwrap(URL(string: try XCTUnwrap(env["EWE_TODO_URL"])))
+    let manager = URLSessionChannelFactory(baseURL: base).connectionManager()
+    defer { manager.close() }
+    let reply = expectation(description: "The server renders the count after the application socket closes")
+    let store = NodeStore()
+    let sender = try SocketActionConnection(manager: manager, endpoint: base.appending(path: "socket"),
+      onReply: { bytes in
+        XCTAssertTrue(store.receive(bytes))
+        XCTAssertTrue(store.records.values.contains { $0.text == "Open todos" })
+        reply.fulfill()
+      }, onError: { XCTFail($0) })
+    defer { sender.close() }
+    let core = try NativeCore.remote(platform: .ios, names: ["refresh_count"], transport: sender)
+    let adapter = NativeActionCore(core, store: store)
+    let caps = try await sender.send(request: core.helloFor(requestTag: sender.requestTag))
+    try core.applyCapsFrame(frame: XCTUnwrap(caps))
+    let socket = try await core.openWebSocket(endpoint: echo)
+    for message in [SocketMessage.text(value: "hello"), .binary(value: Data([0, 255]))] {
+      try await socket.send(message: message)
+      let received = try await socket.receive()
+      XCTAssertEqual(received, message)
+    }
+    socket.closeSocket()
+    let event = EweCore.EventInput(nodeId: 0, eventName: "tap", value: "", checked: false, parentNode: 0, state: Data())
+    _ = try await adapter.raw.trigger(reference: "server:refresh_count", event: event)
+    await fulfillment(of: [reply], timeout: 10)
+  }
+
   @MainActor func testSubscriptionReplayUsesTheOpenDelivery() async throws {
     let address = try XCTUnwrap(ProcessInfo.processInfo.environment["EWE_TODO_URL"])
     let base = try XCTUnwrap(URL(string: address))

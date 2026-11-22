@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient
 class ReplayCheck : Instrumentation() {
     private var base = "http://127.0.0.1:8180/"
 
+    private var echoEndpoint: String? = null
     private var resourceHash: String? = null
     private var dataOnly = false
     private var subscriptions = false
@@ -28,6 +29,7 @@ class ReplayCheck : Instrumentation() {
         base = arguments?.getString("server") ?: base
         subscriptions = arguments?.getString("subscriptions") == "true"
         dataOnly = arguments?.getString("data") == "true"
+        echoEndpoint = arguments?.getString("socket_echo")
         resourceHash = arguments?.getString("resource_hash")
         start()
     }
@@ -71,6 +73,11 @@ class ReplayCheck : Instrumentation() {
         val results = Bundle()
         try {
             runBlocking {
+                echoEndpoint?.let {
+                    withTimeout(30000) { verifyIndependentSocket(base, it) }
+                    results.putString("stream", "The action socket still returns the count.")
+                    return@runBlocking
+                }
                 resourceHash?.let {
                     verifyInstalledResources(targetContext.assets, it)
                     return@runBlocking

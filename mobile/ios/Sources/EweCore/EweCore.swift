@@ -623,6 +623,206 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 
 
 
+/**
+ * An application owns this socket until it closes or drops the handle.
+ */
+public protocol AppWebSocketProtocol: AnyObject, Sendable {
+    
+    /**
+     * Close this connection.
+     */
+    func closeSocket() 
+    
+    /**
+     * Receive one message or the end of the connection.
+     *
+     * # Errors
+     * Returns the host receive error.
+     */
+    func receive() async throws  -> SocketMessage?
+    
+    /**
+     * Send one message through this connection.
+     *
+     * # Errors
+     * Returns the host send error.
+     */
+    func send(message: SocketMessage) async throws 
+    
+}
+/**
+ * An application owns this socket until it closes or drops the handle.
+ */
+open class AppWebSocket: AppWebSocketProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_appwebsocket(self.handle, $0) }
+    }
+    /**
+     * Wrap one connection from the platform.
+     */
+public convenience init(socket: HostWebSocket) {
+    let handle =
+        try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_constructor_appwebsocket_new(
+        FfiConverterTypeHostWebSocket_lower(socket),uniffiCallStatus
+    )
+}
+    self.init(unsafeFromHandle: handle)
+}
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_appwebsocket(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Close this connection.
+     */
+open func closeSocket()  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_appwebsocket_close_socket(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+    /**
+     * Receive one message or the end of the connection.
+     *
+     * # Errors
+     * Returns the host receive error.
+     */
+open func receive()async throws  -> SocketMessage?  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_appwebsocket_receive(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionTypeSocketMessage.lift,
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+    /**
+     * Send one message through this connection.
+     *
+     * # Errors
+     * Returns the host send error.
+     */
+open func send(message: SocketMessage)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_appwebsocket_send(
+                        self.uniffiCloneHandle(),FfiConverterTypeSocketMessage_lower(message)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAppWebSocket: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = AppWebSocket
+
+    public static func lift(_ handle: UInt64) throws -> AppWebSocket {
+        return AppWebSocket(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: AppWebSocket) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AppWebSocket {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: AppWebSocket, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAppWebSocket_lift(_ handle: UInt64) throws -> AppWebSocket {
+    return try FfiConverterTypeAppWebSocket.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAppWebSocket_lower(_ value: AppWebSocket) -> UInt64 {
+    return FfiConverterTypeAppWebSocket.lower(value)
+}
+
+
+
+
+
+
 public protocol ConnectSenderProtocol: AnyObject, Sendable {
     
     /**
@@ -2724,6 +2924,597 @@ public func FfiConverterTypeHostTransportProvider_lower(_ value: HostTransportPr
 
 
 
+/**
+ * The host supplies one connection for each successful open.
+ */
+public protocol HostWebSocket: AnyObject, Sendable {
+    
+    /**
+     * Send one complete application message.
+     *
+     * # Errors
+     * Returns a transport error if the socket cannot accept the message.
+     */
+    func sendMessage(message: SocketMessage) async throws 
+    
+    /**
+     * Read the next message. A normal peer close returns None.
+     *
+     * # Errors
+     * Returns a transport error if the receive fails.
+     */
+    func receiveMessage() async throws  -> SocketMessage?
+    
+    /**
+     * Release this connection and wake pending readers. Repeated calls are safe.
+     */
+    func closeSocket() 
+    
+}
+/**
+ * The host supplies one connection for each successful open.
+ */
+open class HostWebSocketImpl: HostWebSocket, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_hostwebsocket(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_hostwebsocket(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Send one complete application message.
+     *
+     * # Errors
+     * Returns a transport error if the socket cannot accept the message.
+     */
+open func sendMessage(message: SocketMessage)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_hostwebsocket_send_message(
+                        self.uniffiCloneHandle(),FfiConverterTypeSocketMessage_lower(message)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_void,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_void,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+    /**
+     * Read the next message. A normal peer close returns None.
+     *
+     * # Errors
+     * Returns a transport error if the receive fails.
+     */
+open func receiveMessage()async throws  -> SocketMessage?  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_hostwebsocket_receive_message(
+                        self.uniffiCloneHandle()
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionTypeSocketMessage.lift,
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+    /**
+     * Release this connection and wake pending readers. Repeated calls are safe.
+     */
+open func closeSocket()  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_hostwebsocket_close_socket(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceHostWebSocket {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // Store the vtable directly.
+    static let vtable: UniffiVTableCallbackInterfaceHostWebSocket = UniffiVTableCallbackInterfaceHostWebSocket(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterTypeHostWebSocket.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface HostWebSocket: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterTypeHostWebSocket.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface HostWebSocket: handle missing in uniffiClone")
+            }
+        },
+        sendMessage: { (
+            uniffiHandle: UInt64,
+            message: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutDroppedCallback: UnsafeMutablePointer<UniffiForeignFutureDroppedCallbackStruct>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeHostWebSocket.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try await uniffiObj.sendMessage(
+                     message: try FfiConverterTypeSocketMessage_lift(message)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            uniffiTraitInterfaceCallAsyncWithError(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError,
+                lowerError: FfiConverterTypeCoreError_lower,
+                droppedCallback: uniffiOutDroppedCallback
+            )
+        },
+        receiveMessage: { (
+            uniffiHandle: UInt64,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteRustBuffer,
+            uniffiCallbackData: UInt64,
+            uniffiOutDroppedCallback: UnsafeMutablePointer<UniffiForeignFutureDroppedCallbackStruct>
+        ) in
+            let makeCall = {
+                () async throws -> SocketMessage? in
+                guard let uniffiObj = try? FfiConverterTypeHostWebSocket.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try await uniffiObj.receiveMessage(
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: SocketMessage?) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultRustBuffer(
+                        returnValue: FfiConverterOptionTypeSocketMessage.lower(returnValue),
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultRustBuffer(
+                        returnValue: RustBuffer.empty(),
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            uniffiTraitInterfaceCallAsyncWithError(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError,
+                lowerError: FfiConverterTypeCoreError_lower,
+                droppedCallback: uniffiOutDroppedCallback
+            )
+        },
+        closeSocket: { (
+            uniffiHandle: UInt64,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeHostWebSocket.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.closeSocket(
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        }
+    )
+
+    // Rust stores this pointer for future callback invocations, so it must live
+    // for the process lifetime (not just for the init function call).
+    //
+    // `nonisolated(unsafe)` is needed under Swift 6 strict concurrency.
+    // This is safe because the pointee is initialized once during static init
+    // and never mutated by either side of the FFI.  Its fields are C function pointers.
+    nonisolated(unsafe) static let vtablePtr: UnsafePointer<UniffiVTableCallbackInterfaceHostWebSocket> = {
+        let ptr = UnsafeMutablePointer<UniffiVTableCallbackInterfaceHostWebSocket>.allocate(capacity: 1)
+        ptr.initialize(to: vtable)
+        return UnsafePointer(ptr)
+    }()
+}
+
+private func uniffiCallbackInitHostWebSocket() {
+    uniffi_foundation_ui_native_fn_init_callback_vtable_hostwebsocket(UniffiCallbackInterfaceHostWebSocket.vtablePtr)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostWebSocket: FfiConverter {
+    fileprivate static let handleMap = UniffiHandleMap<HostWebSocket>()
+
+    typealias FfiType = UInt64
+    typealias SwiftType = HostWebSocket
+
+    public static func lift(_ handle: UInt64) throws -> HostWebSocket {
+        if ((handle & 1) == 0) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostWebSocketImpl(unsafeFromHandle: handle)
+        } else {
+            // Swift-generated handle, get the object from the handle map
+            return try handleMap.remove(handle: handle)
+        }
+    }
+
+    public static func lower(_ value: HostWebSocket) -> UInt64 {
+         if let rustImpl = value as? HostWebSocketImpl {
+             // Rust-implemented object.  Clone the handle and return it
+            return rustImpl.uniffiCloneHandle()
+         } else {
+            // Swift object, generate a new vtable handle and return that.
+            return handleMap.insert(obj: value)
+         }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostWebSocket {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: HostWebSocket, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostWebSocket_lift(_ handle: UInt64) throws -> HostWebSocket {
+    return try FfiConverterTypeHostWebSocket.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostWebSocket_lower(_ value: HostWebSocket) -> UInt64 {
+    return FfiConverterTypeHostWebSocket.lower(value)
+}
+
+
+
+
+
+
+/**
+ * A host service opens sockets outside the action dispatcher.
+ */
+public protocol HostWebSockets: AnyObject, Sendable {
+    
+    /**
+     * Open a dedicated connection to the given endpoint.
+     *
+     * # Errors
+     * Returns the connection or handshake error.
+     */
+    func openSocket(endpoint: String) async throws  -> AppWebSocket
+    
+}
+/**
+ * A host service opens sockets outside the action dispatcher.
+ */
+open class HostWebSocketsImpl: HostWebSockets, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_foundation_ui_native_fn_clone_hostwebsockets(self.handle, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_foundation_ui_native_fn_free_hostwebsockets(handle, $0) }
+    }
+
+    
+
+    
+    /**
+     * Open a dedicated connection to the given endpoint.
+     *
+     * # Errors
+     * Returns the connection or handshake error.
+     */
+open func openSocket(endpoint: String)async throws  -> AppWebSocket  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_hostwebsockets_open_socket(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(endpoint)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_u64,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_u64,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_u64,
+            liftFunc: FfiConverterTypeAppWebSocket_lift,
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+
+    
+}
+
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceHostWebSockets {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // Store the vtable directly.
+    static let vtable: UniffiVTableCallbackInterfaceHostWebSockets = UniffiVTableCallbackInterfaceHostWebSockets(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterTypeHostWebSockets.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface HostWebSockets: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterTypeHostWebSockets.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface HostWebSockets: handle missing in uniffiClone")
+            }
+        },
+        openSocket: { (
+            uniffiHandle: UInt64,
+            endpoint: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteU64,
+            uniffiCallbackData: UInt64,
+            uniffiOutDroppedCallback: UnsafeMutablePointer<UniffiForeignFutureDroppedCallbackStruct>
+        ) in
+            let makeCall = {
+                () async throws -> AppWebSocket in
+                guard let uniffiObj = try? FfiConverterTypeHostWebSockets.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try await uniffiObj.openSocket(
+                     endpoint: try FfiConverterString.lift(endpoint)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: AppWebSocket) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultU64(
+                        returnValue: FfiConverterTypeAppWebSocket_lower(returnValue),
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultU64(
+                        returnValue: 0,
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            uniffiTraitInterfaceCallAsyncWithError(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError,
+                lowerError: FfiConverterTypeCoreError_lower,
+                droppedCallback: uniffiOutDroppedCallback
+            )
+        }
+    )
+
+    // Rust stores this pointer for future callback invocations, so it must live
+    // for the process lifetime (not just for the init function call).
+    //
+    // `nonisolated(unsafe)` is needed under Swift 6 strict concurrency.
+    // This is safe because the pointee is initialized once during static init
+    // and never mutated by either side of the FFI.  Its fields are C function pointers.
+    nonisolated(unsafe) static let vtablePtr: UnsafePointer<UniffiVTableCallbackInterfaceHostWebSockets> = {
+        let ptr = UnsafeMutablePointer<UniffiVTableCallbackInterfaceHostWebSockets>.allocate(capacity: 1)
+        ptr.initialize(to: vtable)
+        return UnsafePointer(ptr)
+    }()
+}
+
+private func uniffiCallbackInitHostWebSockets() {
+    uniffi_foundation_ui_native_fn_init_callback_vtable_hostwebsockets(UniffiCallbackInterfaceHostWebSockets.vtablePtr)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeHostWebSockets: FfiConverter {
+    fileprivate static let handleMap = UniffiHandleMap<HostWebSockets>()
+
+    typealias FfiType = UInt64
+    typealias SwiftType = HostWebSockets
+
+    public static func lift(_ handle: UInt64) throws -> HostWebSockets {
+        if ((handle & 1) == 0) {
+            // Rust-generated handle, construct a new class that uses the handle to implement the
+            // interface
+            return HostWebSocketsImpl(unsafeFromHandle: handle)
+        } else {
+            // Swift-generated handle, get the object from the handle map
+            return try handleMap.remove(handle: handle)
+        }
+    }
+
+    public static func lower(_ value: HostWebSockets) -> UInt64 {
+         if let rustImpl = value as? HostWebSocketsImpl {
+             // Rust-implemented object.  Clone the handle and return it
+            return rustImpl.uniffiCloneHandle()
+         } else {
+            // Swift object, generate a new vtable handle and return that.
+            return handleMap.insert(obj: value)
+         }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> HostWebSockets {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: HostWebSockets, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostWebSockets_lift(_ handle: UInt64) throws -> HostWebSockets {
+    return try FfiConverterTypeHostWebSockets.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeHostWebSockets_lower(_ value: HostWebSockets) -> UInt64 {
+    return FfiConverterTypeHostWebSockets.lower(value)
+}
+
+
+
+
+
+
 public protocol HttpServiceProvider: AnyObject, Sendable {
     
     func httpClient(service: String) async throws  -> NativeHttpClient
@@ -3028,6 +3819,19 @@ public protocol NativeCoreProtocol: AnyObject, Sendable {
      */
     func openResource(name: String) async throws  -> NativeResourceStream
     
+    /**
+     * Install the platform service before the first action.
+     */
+    func installWebSockets(service: HostWebSockets) 
+    
+    /**
+     * Open an application connection from the core context.
+     *
+     * # Errors
+     * Returns the service lookup or connection error.
+     */
+    func openWebSocket(endpoint: String) async throws  -> AppWebSocket
+    
 }
 open class NativeCore: NativeCoreProtocol, @unchecked Sendable {
     fileprivate let handle: UInt64
@@ -3282,6 +4086,40 @@ open func openResource(name: String)async throws  -> NativeResourceStream  {
             freeFunc: ffi_foundation_ui_native_rust_future_free_u64,
             liftFunc: FfiConverterTypeNativeResourceStream_lift,
             errorHandler: FfiConverterTypeNativeResourceError_lift
+        )
+}
+    
+    /**
+     * Install the platform service before the first action.
+     */
+open func installWebSockets(service: HostWebSockets)  {try! rustCall() {
+        uniffiCallStatus in
+    uniffi_foundation_ui_native_fn_method_nativecore_install_web_sockets(
+            self.uniffiCloneHandle(),
+        FfiConverterTypeHostWebSockets_lower(service),uniffiCallStatus
+    )
+}
+}
+    
+    /**
+     * Open an application connection from the core context.
+     *
+     * # Errors
+     * Returns the service lookup or connection error.
+     */
+open func openWebSocket(endpoint: String)async throws  -> AppWebSocket  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_foundation_ui_native_fn_method_nativecore_open_web_socket(
+                        self.uniffiCloneHandle(),FfiConverterString.lower(endpoint)
+                )
+            },
+            pollFunc: ffi_foundation_ui_native_rust_future_poll_u64,
+            completeFunc: ffi_foundation_ui_native_rust_future_complete_u64,
+            freeFunc: ffi_foundation_ui_native_rust_future_free_u64,
+            liftFunc: FfiConverterTypeAppWebSocket_lift,
+            errorHandler: FfiConverterTypeCoreError_lift
         )
 }
     
@@ -5677,6 +6515,81 @@ public func FfiConverterTypeServiceError_lower(_ value: ServiceError) -> RustBuf
     return FfiConverterTypeServiceError.lower(value)
 }
 
+
+/**
+ * One application message preserves its text or binary type.
+ */
+
+public enum SocketMessage: Equatable, Hashable {
+    
+    case text(value: String
+    )
+    case binary(value: Data
+    )
+
+
+
+
+
+}
+
+#if compiler(>=6)
+extension SocketMessage: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSocketMessage: FfiConverterRustBuffer {
+    typealias SwiftType = SocketMessage
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SocketMessage {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .text(value: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .binary(value: try FfiConverterData.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: SocketMessage, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case let .text(value):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(value, into: &buf)
+            
+        
+        case let .binary(value):
+            writeInt(&buf, Int32(2))
+            FfiConverterData.write(value, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSocketMessage_lift(_ buf: RustBuffer) throws -> SocketMessage {
+    return try FfiConverterTypeSocketMessage.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSocketMessage_lower(_ value: SocketMessage) -> RustBuffer {
+    return FfiConverterTypeSocketMessage.lower(value)
+}
+
+
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
@@ -5744,6 +6657,30 @@ fileprivate struct FfiConverterOptionTypeHostResourceFile: FfiConverterRustBuffe
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeHostResourceFile.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionTypeSocketMessage: FfiConverterRustBuffer {
+    typealias SwiftType = SocketMessage?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeSocketMessage.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeSocketMessage.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -6013,6 +6950,12 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_method_nativecore_open_resource() != 37292) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_install_web_sockets() != 46956) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_nativecore_open_web_socket() != 56437) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_foundation_ui_native_checksum_method_nativedrawingsurface_clear() != 36509) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -6112,6 +7055,27 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_method_httpserviceprovider_http_client() != 40824) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_foundation_ui_native_checksum_method_appwebsocket_close_socket() != 64395) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_appwebsocket_receive() != 59994) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_appwebsocket_send() != 8474) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostwebsocket_send_message() != 33544) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostwebsocket_receive_message() != 18448) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostwebsocket_close_socket() != 59148) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_foundation_ui_native_checksum_method_hostwebsockets_open_socket() != 21750) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_foundation_ui_native_checksum_constructor_nativecore_remote() != 32444) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -6124,6 +7088,9 @@ private let initializationResult: InitializationResult = {
     if (uniffi_foundation_ui_native_checksum_constructor_nativehttpclient_new() != 19711) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_foundation_ui_native_checksum_constructor_appwebsocket_new() != 27253) {
+        return InitializationResult.apiChecksumMismatch
+    }
 
     uniffiCallbackInitFrameListener()
     uniffiCallbackInitHostDeviceCompletion()
@@ -6133,6 +7100,8 @@ private let initializationResult: InitializationResult = {
     uniffiCallbackInitHostResourceSource()
     uniffiCallbackInitHostTransport()
     uniffiCallbackInitHostTransportProvider()
+    uniffiCallbackInitHostWebSocket()
+    uniffiCallbackInitHostWebSockets()
     uniffiCallbackInitHttpServiceProvider()
     return InitializationResult.ok
 }()
