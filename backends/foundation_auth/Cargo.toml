@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.10"
+version = "0.0.11"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,6 +17,16 @@ foundation_db = { path = "../foundation_db", version = "0.0.9", default-features
 foundation_http = { path = "../foundation_http", version = "0.0.14", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+# The VFS trait that the operator key files read through. It builds on wasm:
+# only `NativeFs` is native. Feature `secret`.
+foundation_nativeapis = { workspace = true, optional = true }
+
+# Signed secrets (spec 81). Ed25519 is pure Rust and builds for wasm; `ssh-key`
+# reads OpenSSH private key files, and `p256` reads the P-256 PKCS#8 and SEC1
+# forms. All three are pure Rust, so the key module builds on every target.
+ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"], optional = true }
+ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"], optional = true }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -114,6 +124,11 @@ tempfile = "3"
 # code reads the injected clock instead of the real wall clock.
 foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["test-clock"] }
 foundation_testing = { path = "../foundation_testing" }
+# The in-memory file system for the key-loading tests.
+foundation_nativeapis = { workspace = true, features = ["vfs"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+base64 = "0.22"
+serde_json = "1.0"
 serial_test = { workspace = true }
 ntest = { workspace = true }
 
@@ -122,8 +137,14 @@ workspace = true
 
 [features]
 # Turso/SQLite backend (native only)
-default = ["turso"]
+default = ["turso", "secret", "jwt"]
 turso = ["foundation_db/turso"]
+# Signed secrets (spec 81) and the operator key module. Ed25519, OpenSSH key
+# parsing and P-256 key parsing are pure Rust, so this builds for wasm.
+secret = ["dep:foundation_nativeapis", "dep:ed25519-compact", "dep:ssh-key", "dep:p256"]
+# The JSON Web Token (JWT) provider (`JwtAuth`). `jwt-simple` is always a
+# dependency for the application modules; this flag gates the server provider.
+jwt = []
 # IdP server module (pulls in foundation_http + foundation_db for storage)
 server = ["dep:foundation_http", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
 # Integration tests for IdP server (real TCP, thread pool)
@@ -169,3 +190,20 @@ required-features = ["server-test"]
 [[test]]
 name = "mtls_tests"
 path = "tests/mtls/mod.rs"
+
+# Spec 81 feature 00: signed secrets and the operator key files.
+[[test]]
+name = "secret_tests"
+path = "tests/secret/mod.rs"
+required-features = ["secret"]
+
+[[test]]
+name = "keys_tests"
+path = "tests/keys/mod.rs"
+required-features = ["secret"]
+
+# Spec 81 feature 00: the signed-secret, JWT, plaintext and composite providers.
+[[test]]
+name = "client_auth_tests"
+path = "tests/client_auth/mod.rs"
+required-features = ["secret", "jwt"]

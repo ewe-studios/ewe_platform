@@ -30,6 +30,9 @@ use foundation_auth::{
     ConfidentialText,
 };
 use foundation_auth::{JwtVerifier, JwtVerifierConfig};
+// The server credential providers of spec 81.
+use foundation_auth::client_auth::AuthError;
+pub use foundation_auth::client_auth::{CallCredentials, ClientAuth};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     Extensions, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
@@ -40,7 +43,7 @@ use crate::shared::context::RpcCtx;
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::error_writer::{status_from_code, ErrorWriter};
 use crate::shared::interceptor::{
-    Interceptor, StreamingClientFunc, StreamingHandlerFunc, UnaryFunc,
+    Interceptor, StreamCall, StreamingClientFunc, StreamingHandlerFunc, UnaryCall, UnaryFunc,
 };
 use crate::shared::protocol::canonicalize_content_type;
 use crate::shared::transport::BoxFuture;
@@ -612,5 +615,123 @@ pub async fn authenticate_request(
             let _ = error_writer.write(&mut resp, request, &e);
             Err(resp)
         }
+    }
+}
+
+// ============================================================================
+// B5: ClientAuthInterceptor — run a `ClientAuth` before each handler
+// ============================================================================
+
+/// Runs a [`ClientAuth`] before each handler and puts the [`AuthInfo`] into
+/// the call `RpcCtx`, so [`get_auth_info`] and `AuthzInterceptor` work.
+///
+/// The interceptor builds one [`CallCredentials`] per call, asks the provider,
+/// and rejects a call that the provider does not accept. A rejection never runs
+/// the handler. `allow_unauthenticated` names a procedure that runs without
+/// credentials, such as the enrollment procedure.
+#[derive(Clone)]
+pub struct ClientAuthInterceptor {
+    inner: Arc<ClientAuthInner>,
+}
+
+struct ClientAuthInner {
+    auth: Arc<dyn ClientAuth>,
+    public_procedures: HashSet<String>,
+}
+
+impl ClientAuthInterceptor {
+    /// An interceptor over `auth`.
+    #[must_use]
+    pub fn new(auth: Arc<dyn ClientAuth>) -> Self {
+        Self {
+            inner: Arc::new(ClientAuthInner {
+                auth,
+                public_procedures: HashSet::new(),
+            }),
+        }
+    }
+
+    /// Let `procedure` run without credentials.
+    #[must_use]
+    pub fn allow_unauthenticated(self, procedure: impl Into<String>) -> Self {
+        let mut public_procedures = self.inner.public_procedures.clone();
+        public_procedures.insert(procedure.into());
+        Self {
+            inner: Arc::new(ClientAuthInner {
+                auth: Arc::clone(&self.inner.auth),
+                public_procedures,
+            }),
+        }
+    }
+}
+
+impl ClientAuthInner {
+    async fn check(&self, ctx: &RpcCtx) -> ConnectResult<Option<AuthInfo>> {
+        let procedure = ctx.spec().procedure.as_str();
+        if self.public_procedures.contains(procedure) {
+            return Ok(None);
+        }
+        let call = CallCredentials {
+            procedure,
+            headers: &ctx.request.headers,
+            connection: &ctx.request.connection,
+            extensions: &ctx.request.extensions,
+        };
+        match self.auth.authenticate(call).await {
+            Ok(Some(info)) => Ok(Some(info)),
+            Ok(None) => Err(ConnectError::new(Code::Unauthenticated, "no credentials").into()),
+            Err(error) => Err(ConnectError::new(auth_error_code(&error), error.to_string()).into()),
+        }
+    }
+}
+
+/// How an [`AuthError`] becomes a Connect code.
+fn auth_error_code(error: &AuthError) -> Code {
+    match error {
+        AuthError::Invalid(_)
+        | AuthError::Expired
+        | AuthError::NotYetValid
+        | AuthError::Revoked
+        | AuthError::Spent => Code::Unauthenticated,
+        AuthError::Forbidden(_) => Code::PermissionDenied,
+        AuthError::Unavailable(_) => Code::Unavailable,
+        AuthError::Misconfigured(_) => Code::Internal,
+    }
+}
+
+impl Interceptor for ClientAuthInterceptor {
+    fn wrap_unary(&self, next: UnaryFunc) -> UnaryFunc {
+        let inner = Arc::clone(&self.inner);
+        Arc::new(move |ctx: RpcCtx, call: UnaryCall| {
+            let inner = Arc::clone(&inner);
+            let next = next.clone();
+            Box::pin(async move {
+                let ctx = match inner.check(&ctx).await? {
+                    Some(info) => ctx.with_extension(info),
+                    None => ctx,
+                };
+                next(ctx, call).await
+            })
+        })
+    }
+
+    fn wrap_streaming_handler(&self, next: StreamingHandlerFunc) -> StreamingHandlerFunc {
+        let inner = Arc::clone(&self.inner);
+        Arc::new(move |ctx: RpcCtx, call: StreamCall| {
+            let inner = Arc::clone(&inner);
+            let next = next.clone();
+            Box::pin(async move {
+                let ctx = match inner.check(&ctx).await? {
+                    Some(info) => ctx.with_extension(info),
+                    None => ctx,
+                };
+                next(ctx, call).await
+            })
+        })
+    }
+
+    fn wrap_streaming_client(&self, next: StreamingClientFunc) -> StreamingClientFunc {
+        // Client side: nothing to check.
+        next
     }
 }

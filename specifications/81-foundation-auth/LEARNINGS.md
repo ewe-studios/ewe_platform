@@ -60,3 +60,70 @@ native only, and `from_worker_secret` is wasm only. A gated method is not a shap
 
 The rule: a `cfg` goes on a private inner type, a method, a module or a dependency. It never
 changes the variants of a public enum.
+
+## What the T5, T7 and T11 work taught (2026-11-23)
+
+### The version 1 golden fixture is made with plain OpenSSL
+
+The design asks for a version 1 secret made by the branch code. The branch code
+(`foundation_agent_rpc/src/secret.rs`) is on this tree, so its signed byte string is the
+authority. The fixture proves the format from outside our Rust code: `openssl genpkey` makes the
+Ed25519 key, `python3` builds the exact byte string, and `openssl pkeyutl -sign -rawin` signs it.
+`openssl pkeyutl -verify` also checked the signature before the fixture went in. A change that
+breaks the byte order or a length prefix therefore fails against an external signer, not only
+against our own signer.
+
+### The domain is not on the wire, so a client helper must name it
+
+`SecretIssuer` and `SecretVerifier` know their `SecretDomain`; the envelope does not carry it.
+The design's `SignedSecret::verify_self_signed()` has no domain argument, but an agent RPC client
+and a proxy client expect different domains. The code keeps `verify_self_signed()` as the agent
+RPC default and adds `verify_self_signed_for(domain)`.
+
+### `Env` has no clock
+
+The design sketches `SecretIssuer { env: Env }` and `self.env.unix_secs()`. `Env` (spec 84)
+deliberately holds no clock: the clock is an engine-minimum element of `Ctx`. The issuer and the
+verifier take `Ctx` and read `ctx.clock()`; entropy still comes from `ctx.require_env()`. A
+missing `Env` is `SecretError::Entropy`, never a fallback to `foundation_compact::entropy::fill`
+(the effect lint forbids that call).
+
+### PKCS#8 version 2 is 83 bytes, and its stored public key is checked
+
+`ring` writes an Ed25519 PKCS#8 key as `30 51 ... | seed | 81 21 00 | public key`. The parser
+checks all three parts and refuses a file whose stored public key does not match the seed. The
+version 1 form (48 bytes) is what `ed25519-compact` and OpenSSL write.
+
+### SEC1 parsing wants the original PEM block
+
+`p256::SecretKey::from_sec1_pem` uses the `pem` crate, which rejected a rebuilt single-line PEM
+even though the base64 was correct. The fix is to pass the original
+`-----BEGIN EC PRIVATE KEY-----` block with its line breaks. An `openssl ecparam` file also holds
+an `EC PARAMETERS` block first, so the parser searches for the private-key block, not the file
+start.
+
+### The in-memory VFS does not create parent directories
+
+`MemoryFs::create_async` returns `not found` when the parent directory is absent. A key-loading
+test must call `mkdir_all_async` first. This also showed that `PrivateKey::load` correctly maps
+the ordinary `VfsError::NotFound` to `KeyLoadError::NotFound`, with no special "no file system"
+error (auth.md section 4.4).
+
+### `expect` and `expect_err` need `Debug` on the other type
+
+`Result::expect` needs `Ok: Debug`; `Result::expect_err` needs `Err: Debug`. `UnaryReply`
+implements neither. Use `.is_ok()` with a message, or `.err().expect(..)`, in a test of an RPC
+interceptor.
+
+### The interceptor reads the call context, not `UnaryCall`
+
+`ClientAuthInner::check` builds `CallCredentials` from `ctx.request.headers`, because that is the
+per-call state a real dispatcher fills. A test must put the header on the `RpcCtx`, not only on
+the `UnaryCall` frame wrapper.
+
+### RSA-PSS needs injected randomness
+
+RSA-PSS signing is randomized. `ring` takes a `SecureRandom`. The design does not say where that
+randomness comes from, and root rule 11 forbids the system global. A correct `secret-rsa`
+implementation must capture an `Arc<dyn EntropySource>` from the `Ctx` at construction. This is
+why the feature was left out of this change rather than half-built (issue #761).

@@ -4700,7 +4700,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "argon2",
  "async-trait",
@@ -4709,12 +4709,14 @@ dependencies = [
  "chacha20poly1305",
  "chrono",
  "derive_more",
+ "ed25519-compact",
  "foundation_compact",
  "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
  "foundation_http",
+ "foundation_nativeapis",
  "foundation_netio",
  "foundation_testing",
  "futures-core",
@@ -4726,6 +4728,7 @@ dependencies = [
  "jwt-simple",
  "ntest",
  "openssl",
+ "p256",
  "pbkdf2",
  "rcgen",
  "rustls 0.23.40",
@@ -4736,6 +4739,7 @@ dependencies = [
  "serial_test",
  "sha1",
  "sha2 0.10.9",
+ "ssh-key",
  "tempfile",
  "time",
  "tracing",
@@ -5529,7 +5533,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",

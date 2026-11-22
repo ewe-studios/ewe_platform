@@ -1,19 +1,19 @@
 ---
 feature: "Auth in foundation_auth"
 description: "Signed secrets (v1 and v2), operator key files (proof of concept), the signed-secret, JWT and plaintext ClientAuth providers, and the connectrpc interceptor, all in foundation_auth. The trait and result types come from spec 86; the CA, trust store, verifiers and mTLS providers come from spec 87."
-status: "pending"
+status: "in-progress"
 priority: "high"
 depends_on: ["specifications/completed/86-auth-primitives", "specifications/completed/87-mutual-tls", "specifications/completed/80-platform-prerequisites"]
 part_of: "specifications/83-agent-rpc-serving-system/agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
-last_updated: 2026-11-15
+last_updated: 2026-11-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 3
+  completed: 3
+  uncompleted: 0
   total: 3
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Auth in foundation_auth
