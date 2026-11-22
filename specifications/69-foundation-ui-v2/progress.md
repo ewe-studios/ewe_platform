@@ -1243,3 +1243,10 @@ The browser manager tests, Chrome action test, and mobile Rust tests pass.
 Browser startup, storage providers, and resource packaging still need work.
 The iPhone simulator and Android emulator each added and updated a todo over all three transports.
 The checks covered HTTP, ConnectRPC, and WebSocket.
+
+## Feature 37 browser module loading
+
+Todo uses the shared module loader for its browser module.
+The loader reports the address and HTTP status for a missing resource.
+The loader tests cover missing resources, invalid module bytes, and a valid streamed module.
+The framework task regenerated the readable and minified bundles. Its check passed.

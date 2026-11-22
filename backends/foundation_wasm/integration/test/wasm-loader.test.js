@@ -51,3 +51,39 @@ test("AsyncTaskCollector is off by default and validates inputs", () => {
   tasks.clear();
   assert.equal(tasks.tasks.length, 0);
 });
+
+test("loadURL reports a missing module before it starts compilation", async () => {
+  const loader = new WasmLoader();
+  const body = new ReadableStream();
+  await assert.rejects(loader.loadURL("/missing.wasm", () => new Response(body, {status: 404})), {
+    name: "WasmLoadError", code: "HttpStatus", url: "/missing.wasm", status: 404,
+  });
+  assert.equal(loader.module, null);
+});
+
+test("loadURL distinguishes malformed modules and streams valid modules", async () => {
+  const loader = new WasmLoader();
+  const response = bytes => () => new Response(Uint8Array.from(bytes), {
+    headers: {"Content-Type": "application/wasm"},
+  });
+  await assert.rejects(loader.loadURL("/bad.wasm", response([0])), {code: "Compile"});
+  await loader.loadURL("/empty.wasm", response([0, 97, 115, 109, 1, 0, 0, 0]));
+  assert.equal(loader.runtime.bridge.exports, loader.module.instance.exports);
+});
+
+test("loadURL preserves the network failure and distinguishes incompatible imports", async () => {
+  const cause = new TypeError("offline");
+  const loader = new WasmLoader({environment: {host: {main: 1}}});
+  await assert.rejects(loader.loadURL("/module.wasm", () => Promise.reject(cause)), {
+    code: "Network", cause,
+  });
+  // This module imports the function host.main.
+  const bytes = Uint8Array.of(
+    0, 97, 115, 109, 1, 0, 0, 0,
+    1, 4, 1, 96, 0, 0,
+    2, 13, 1, 4, 104, 111, 115, 116, 4, 109, 97, 105, 110, 0, 0,
+  );
+  await assert.rejects(loader.loadURL("/module.wasm", () => new Response(bytes, {
+    headers: {"Content-Type": "application/wasm"},
+  })), {code: "Imports"});
+});

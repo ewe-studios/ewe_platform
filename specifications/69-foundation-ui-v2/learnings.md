@@ -1022,3 +1022,9 @@ The browser manager captures the receiving view when it starts the host action.
 It sends the pending update to that view before the server request.
 Each managed socket request uses its sequence number to match its reply.
 A retry uses the saved todo identifier and leaves the current dialog open.
+
+## Browser module loading
+
+Chrome reports a compiler error when the compiler receives a missing resource response.
+The shared module loader can check the HTTP status before it starts compilation.
+It can keep the original compiler or linker error as the cause when the resource exists.

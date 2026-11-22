@@ -2269,6 +2269,16 @@ export class FoundationWasm {
 
 // ─── WasmLoader / WasmWebScripts (megatron WASMLoader parity) ──────────────────────
 
+/** Reports the stage and address of a module load failure. */
+export class WasmLoadError extends Error {
+  constructor(code, url, detail, options) {
+    super(`Cannot load WebAssembly from ${url}: ${detail}`, options);
+    this.name = "WasmLoadError";
+    this.code = code;
+    this.url = String(url);
+  }
+}
+
 /**
  * Convenience loader: owns a FoundationWasm runtime, instantiates a module from a
  * URL (streaming) or raw bytes with the `abi` imports + a `js.mem` memory, and binds
@@ -2303,12 +2313,27 @@ export class WasmLoader {
     return { abi: this.runtime.web_abi, js: { mem: this.memory }, ...this.environment };
   }
 
-  /** Instantiate from a URL via instantiateStreaming. */
-  async loadURL(url) {
-    const module = await WebAssembly.instantiateStreaming(
-      fetch(url), this.imports, this.compileOptions,
-    );
-    this.#bind(module);
+  /** Check the response before streaming the module into the compiler. */
+  async loadURL(url, fetchModule = globalThis.fetch) {
+    let response;
+    try {
+      response = await fetchModule(url);
+    } catch (cause) {
+      throw new WasmLoadError("Network", url, cause.message, { cause });
+    }
+    if (!response.ok) {
+      const error = new WasmLoadError("HttpStatus", url, `HTTP ${response.status}`);
+      error.status = response.status;
+      await response.body?.cancel().catch(() => {});
+      throw error;
+    }
+    try {
+      this.#bind(await WebAssembly.instantiateStreaming(response, this.imports, this.compileOptions));
+    } catch (cause) {
+      const code = cause instanceof WebAssembly.LinkError ? "Imports"
+        : cause instanceof WebAssembly.CompileError ? "Compile" : "Instantiate";
+      throw new WasmLoadError(code, url, cause.message, { cause });
+    }
     return this;
   }
 
@@ -2373,6 +2398,7 @@ globalThis.FoundationWasmRuntime = Object.freeze({
   FoundationWasm,
   batchProtocolHandler,
   WasmLoader,
+  WasmLoadError,
   WasmWebScripts,
   AsyncTaskCollector,
   TestReports,

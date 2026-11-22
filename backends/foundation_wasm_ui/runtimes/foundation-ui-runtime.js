@@ -2042,6 +2042,14 @@
             return this.tasks.awaitAll();
         }
     }
+    class WasmLoadError extends Error {
+        constructor(code, url, detail, options){
+            super(`Cannot load WebAssembly from ${url}: ${detail}`, options);
+            this.name = "WasmLoadError";
+            this.code = code;
+            this.url = String(url);
+        }
+    }
     class WasmLoader {
         constructor(opts = {}){
             this.runtime = new FoundationWasm(opts);
@@ -2070,9 +2078,29 @@
                 ...this.environment
             };
         }
-        async loadURL(url) {
-            const module = await WebAssembly.instantiateStreaming(fetch(url), this.imports, this.compileOptions);
-            this.#bind(module);
+        async loadURL(url, fetchModule = globalThis.fetch) {
+            let response;
+            try {
+                response = await fetchModule(url);
+            } catch (cause) {
+                throw new WasmLoadError("Network", url, cause.message, {
+                    cause
+                });
+            }
+            if (!response.ok) {
+                const error = new WasmLoadError("HttpStatus", url, `HTTP ${response.status}`);
+                error.status = response.status;
+                await response.body?.cancel().catch(()=>{});
+                throw error;
+            }
+            try {
+                this.#bind(await WebAssembly.instantiateStreaming(response, this.imports, this.compileOptions));
+            } catch (cause) {
+                const code = cause instanceof WebAssembly.LinkError ? "Imports" : cause instanceof WebAssembly.CompileError ? "Compile" : "Instantiate";
+                throw new WasmLoadError(code, url, cause.message, {
+                    cause
+                });
+            }
             return this;
         }
         async loadBytes(bytes) {
@@ -2119,6 +2147,7 @@
         FoundationWasm,
         batchProtocolHandler,
         WasmLoader,
+        WasmLoadError,
         WasmWebScripts,
         AsyncTaskCollector,
         TestReports,

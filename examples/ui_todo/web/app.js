@@ -1,4 +1,4 @@
-import { FoundationWasm } from "./foundation-wasm.js";
+import { WasmLoader } from "./foundation-wasm.js";
 import * as ui from "./foundation-wasm-ui.js";
 import * as behaviours from "./foundation-ui-behaviours.js";
 import { installFrameRuntime, base64urlEncode, readViewResponse } from "./foundation-ui-frames.js";
@@ -32,7 +32,8 @@ export async function openResource(name) {
 }
 
 async function boot() {
-    const runtime = new FoundationWasm();
+    const moduleLoader = new WasmLoader();
+    const runtime = moduleLoader.runtime;
     const dom = new ui.DomHeap({ window, document });
     let local;
     const storageKey = "ewe.todo.pending.v1";
@@ -40,7 +41,7 @@ async function boot() {
     const memory = (offset, length) => new Uint8Array(instance.exports.memory.buffer, offset, length);
     let stored;
     const registry = new JsActionRegistry();
-    const imports = {
+    moduleLoader.environment = {
         abi: { ...runtime.web_abi, ...ui.domAbi(runtime, dom) },
         env: {
             ewe_todo_storage_size() {
@@ -62,8 +63,8 @@ async function boot() {
             },
         },
     };
-    const { instance } = await WebAssembly.instantiateStreaming(fetch("/module.wasm"), imports);
-    runtime.init(instance);
+    await moduleLoader.loadURL("/module.wasm");
+    const { instance } = moduleLoader.module;
     local = new WasmActionTransport({ exports: instance.exports, memory: () => instance.exports.memory });
     if (instance.exports.init_todo_host() !== 0) throw new Error("Cannot start the todo host");
 
