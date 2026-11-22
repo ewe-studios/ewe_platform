@@ -1,0 +1,11 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "snap-tool",
+      "version": "1.0.0",
+      "source": { "kind": "snap", "name": "snap-tool" },
+      "deploy": { "kind": "none" }
+    }
+  ]
+}
