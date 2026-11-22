@@ -331,3 +331,23 @@ The module owns byte allocation and UUID construction. Todo supplies the host en
 Keep the entropy interface below the context crate to preserve the dependency direction. Reuse that interface in the host context.
 Keep the existing platform generator. Test injected generation with a seeded source and a failing source.
 Preserve the stored identifier text and the wire representation across this change.
+
+### Review the whole shared Todo example
+
+Trace a new Add from its button to its confirmed row. The reader should encounter these application decisions:
+
+1. The host validates the title, saves a pending record, renders the preview, and submits typed input.
+2. The server commits the record once and publishes the typed change.
+3. The host applies the change, clears the matching pending entry, and updates the affected named elements.
+
+Keep the shared Todo record and typed action inputs. Give server write history and client display state separate owners.
+Keep server retry receipts with the writer. Keep the draft, selected filter, pending rows, and frozen search results with the host.
+Represent closed, adding, and confirming deletion as one dialog state. Only deletion carries the selected record identifier.
+Review the copies of items and pending entries in `StoreState::snapshot`. Build each view from the state it actually needs.
+Retain a separate snapshot when it provides a consistent revision or preserves a frozen search result.
+Use typed action inputs for retry and correction. Remove command prefixes embedded in control values.
+Use public framework operations for storage, dispatch, and render delivery. Remove Todo implementations of these operations.
+Keep application bindings declared once. Preserve the separate server-rendered count example.
+
+Verify each removal against existing behavior. Test a lost reply, duplicate delivery, a stale delete retry, and an unfinished draft during a peer update.
+Document which application abstractions disappeared and which remaining state each acceptance test requires.

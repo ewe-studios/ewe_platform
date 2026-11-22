@@ -1168,3 +1168,5 @@ Feature 27 requires the server build hook to produce the browser application and
 Feature 32 explicitly retires the custom Todo outbox when the shared action and storage path passes its acceptance checks.
 
 Feature 32 assigns wire encoding and decoding to the framework. Todo handlers supply typed data or markup.
+
+Feature 32 extends the simplification review to the entire shared Todo directory. The implementation remains with the next owner.
