@@ -27,7 +27,7 @@ builds_on: "specifications/completed/63-connectrpc-proxy"
 related_specs:
   - "specifications/completed/63-connectrpc-proxy"
   - "specifications/completed/78-manifest-contract"
-  - "specifications/79-manifest-installer"
+  - "specifications/completed/79-manifest-installer"
   - "specifications/81-foundation-auth"
   - "specifications/completed/87-mutual-tls"
   - "specifications/completed/80-platform-prerequisites"

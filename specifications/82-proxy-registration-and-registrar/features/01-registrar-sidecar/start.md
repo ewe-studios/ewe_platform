@@ -13,7 +13,7 @@ created: 2026-10-19
 1. Read `feature.md` (requirements + architecture + tasks).
 2. Read its dependencies' feature specs first:
    - `../../../completed/78-manifest-contract/requirements.md` (the manifest contract it parses)
-   - `../../../79-manifest-installer/features/00-manifest-installer/feature.md` (the installer marks)
+   - `../../../completed/79-manifest-installer/features/00-manifest-installer/feature.md` (the installer marks)
    - `../00-proxy-registration/feature.md` (the handshake it speaks)
 3. **Identify language stack** — Rust. Read `.agents/skills/rust-clean-code/skill.md`
    and `.agents/skills/rust-valtron-usage/skill.md`.

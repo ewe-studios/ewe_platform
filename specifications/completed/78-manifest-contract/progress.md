@@ -59,7 +59,7 @@ The work is merged into master. Issue #697 belongs to spec 82 and stays open.
 
 ### M4 — The consumer handshake
 
-- `specifications/79-manifest-installer/features/00-manifest-installer/feature.md` gains a
+- `specifications/completed/79-manifest-installer/features/00-manifest-installer/feature.md` gains a
   "Fixture handshake with spec 78" section. It lists the 12 fixtures that the installer copies
   and the test `tests/manifest_tests.rs` that consumes them.
 - `specifications/82-proxy-registration-and-registrar/features/01-registrar-sidecar/feature.md`

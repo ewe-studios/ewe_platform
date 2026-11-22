@@ -6,7 +6,7 @@ _Last updated: 2026-11-23._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — manifest installer | ✅ 10/10 tasks implemented and verified on macOS; review and merge are next | `backends/foundation_installer` |
+| 00 — manifest installer | ✅ 10/10 tasks implemented, verified and merged as `d804580d5` | `backends/foundation_installer` |
 
 ## What landed
 

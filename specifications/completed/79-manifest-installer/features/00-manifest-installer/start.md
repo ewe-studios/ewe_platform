@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/79-manifest-installer"
-feature_directory: "specifications/79-manifest-installer/features/00-manifest-installer"
-this_file: "specifications/79-manifest-installer/features/00-manifest-installer/start.md"
+spec_directory: "specifications/completed/79-manifest-installer"
+feature_directory: "specifications/completed/79-manifest-installer/features/00-manifest-installer"
+this_file: "specifications/completed/79-manifest-installer/features/00-manifest-installer/start.md"
 created: 2026-10-19
 ---
 

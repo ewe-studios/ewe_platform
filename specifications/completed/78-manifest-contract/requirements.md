@@ -22,7 +22,7 @@ has_features: false
 has_fundamentals: false
 builds_on: ""
 related_specs:
-  - "specifications/79-manifest-installer"
+  - "specifications/completed/79-manifest-installer"
   - "specifications/82-proxy-registration-and-registrar"
 tasks:
   completed: 4

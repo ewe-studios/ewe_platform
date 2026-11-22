@@ -3,7 +3,7 @@ feature: "Registrar Sidecar"
 description: "A sidecar (foundation_registrar, binary ewe-registrar) that runs beside the apps on bare metal, in a Docker container or in a Kubernetes pod. It reads the manifest, finds what is installed and running, runs startup, liveness and readiness probes, reads CPU and memory use, and reports all of it to the proxy registration authority (feature 00). The proxy ends client TLS; the sidecar authenticates only on its own link to the proxy."
 status: "pending"
 priority: "high"
-depends_on: ["79-manifest-installer/features/00-manifest-installer", "00-proxy-registration"]
+depends_on: ["completed/79-manifest-installer/features/00-manifest-installer", "00-proxy-registration"]
 estimated_effort: "large"
 created: 2026-10-19
 last_updated: 2026-11-14
