@@ -21,7 +21,7 @@ rand_core.workspace = true
 async-channel.workspace = true
 futures-util.workspace = true
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-thiserror.workspace = true
+derive_more.workspace = true
 wgpu.workspace = true
 
 [target.'cfg(all(not(target_family = "wasm"), target_vendor = "apple"))'.dependencies]

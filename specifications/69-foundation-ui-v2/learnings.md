@@ -867,3 +867,14 @@ It signals completion after it releases the graphics resources. [Issue 700](http
 The Arm Linux guest can run all three adapter tests through Mesa llvmpipe.
 Use a separate test run to include the adapter tests.
 The Vulkan adapter report identifies software rendering in this guest.
+
+### Review the master merge
+
+Check a resolved package dependency against the version of its local crate.
+The two branches can update the same crate to different versions.
+The higher shared version can satisfy both branches.
+Compare the workflow steps by job. A valid workflow can omit a step from one branch.
+The wire crate uses the error trace library in its tests. Its production code does not need that dependency.
+Cargo accepts dotted dependency keys. A manifest check must recognize them.
+The error derive treats a single unnamed field as a source by default.
+The graphics text fields contain diagnostic messages. Mark these fields as messages to keep the original error behavior.

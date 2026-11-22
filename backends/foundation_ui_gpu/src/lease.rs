@@ -23,20 +23,22 @@ pub struct Identity {
     pub generation: u64,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, thiserror::Error, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Eq, PartialEq, derive_more::Display, derive_more::Error, Serialize, Deserialize,
+)]
 pub enum LeaseError {
-    #[error("The host denied the request")]
+    #[display("The host denied the request")]
     Denied,
-    #[error("The request was cancelled")]
+    #[display("The request was cancelled")]
     Cancelled,
-    #[error("The supplied graphics resources are incompatible")]
+    #[display("The supplied graphics resources are incompatible")]
     Incompatible,
-    #[error("The host device was lost")]
+    #[display("The host device was lost")]
     DeviceLost,
-    #[error("This host grant is stale")]
+    #[display("This host grant is stale")]
     Stale,
-    #[error("The host graphics service is unavailable: {0}")]
-    Unavailable(String),
+    #[display("The host graphics service is unavailable: {_0}")]
+    Unavailable(#[error(not(source))] String),
 }
 
 /// This object holds the host's original device. Its owner performs all device operations.

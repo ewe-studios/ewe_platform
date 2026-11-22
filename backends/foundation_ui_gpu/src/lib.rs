@@ -46,24 +46,24 @@ impl Default for GpuConfig {
     }
 }
 
-#[derive(Debug, Clone, thiserror::Error)]
+#[derive(Debug, Clone, derive_more::Display, derive_more::Error)]
 pub enum GpuError {
-    #[error("The host graphics service has stopped")]
+    #[display("The host graphics service has stopped")]
     Cancelled,
-    #[error("The host has no compatible graphics adapter: {0}")]
-    Unavailable(String),
-    #[error("The requested features or limits exceed the adapter capabilities")]
+    #[display("The host has no compatible graphics adapter: {_0}")]
+    Unavailable(#[error(not(source))] String),
+    #[display("The requested features or limits exceed the adapter capabilities")]
     Unsupported,
-    #[error("The graphics device was lost")]
+    #[display("The graphics device was lost")]
     DeviceLost,
-    #[error("The registered surface has been removed")]
+    #[display("The registered surface has been removed")]
     StaleSurface,
-    #[error("The surface cannot present on this device")]
+    #[display("The surface cannot present on this device")]
     IncompatibleSurface,
-    #[error("The surface cannot present at its current size or visibility")]
+    #[display("The surface cannot present at its current size or visibility")]
     Suspended,
-    #[error("Graphics operation failed: {0}")]
-    Operation(String),
+    #[display("Graphics operation failed: {_0}")]
+    Operation(#[error(not(source))] String),
 }
 
 pub struct GraphicsDevice {
