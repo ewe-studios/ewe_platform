@@ -6,7 +6,7 @@ _Last updated: 2026-11-23._
 
 | Feature | State | Source |
 |---|---|---|
-| 00 — foundation auth | ✅ T5, T7 and T11 implemented and verified; issues #761 and #762 fixed | Moved from spec 83 feature 11 |
+| 00 — foundation auth | ✅ Complete: T5, T7 and T11 verified; issues #761 and #762 fixed | Merged on 2026-11-23; moved to `specifications/completed` |
 
 ## Follow-up change on 2026-11-23 (issues #761 and #762)
 
@@ -95,13 +95,15 @@ specification:
 Key protection at rest (keystore, KEK, WebCrypto, remote KMS, rotation) stays in spec 83
 feature 08. This library accepts operator key files for the proof of concept.
 
+## Completion (2026-11-23)
+
+The main agent reviewed the change. Every test suite passes. The merge into master is complete.
+The spec is in `specifications/completed/81-foundation-auth`.
+
 ## Next steps
 
-1. Main-agent review of this follow-up change against feature.md section 4 ("Done when").
-2. One pull request for T5 and T7, then one for T11 (feature.md section 5), with #761 and #762
-   in the same or a neighbouring change.
-3. The consumers (spec 83 host wiring, spec 82 proxy registration) then build the provider set
-   from this crate and spec 87.
+1. The consumers (spec 83 host wiring, spec 82 proxy registration) build the provider set from
+   this crate and spec 87.
 
 ## Open questions
 

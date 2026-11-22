@@ -17,7 +17,7 @@ learnings:
 |---|---|
 | Manifest format and installer | `../completed/78-manifest-contract/` and `../completed/79-manifest-installer/` |
 | Env, transport facts and migration groups | `../80-platform-prerequisites/` |
-| Signed secrets, CA, trust store and mTLS | `../81-foundation-auth/` |
+| Signed secrets, CA, trust store and mTLS | `../completed/81-foundation-auth/` |
 | Proxy registration authority and registrar sidecar | `../82-proxy-registration-and-registrar/` |
 
 Some dated sections below describe work that moved. Read them for the agent RPC context, and

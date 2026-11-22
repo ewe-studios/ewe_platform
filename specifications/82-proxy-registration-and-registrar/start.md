@@ -11,7 +11,7 @@ created: 2026-11-14
 
 1. Read `requirements.md` (mission, order, the rotation rule, success criteria).
 2. Read `../completed/78-manifest-contract/requirements.md` (the `proxy` and `probes` blocks).
-3. Read `../81-foundation-auth/requirements.md` (enrollment and the signed secrets).
+3. Read `../completed/81-foundation-auth/requirements.md` (enrollment and the signed secrets).
 4. Read `../completed/87-mutual-tls/requirements.md` (the certificate authority, the trust store, the
    mTLS verifiers and the mTLS providers).
 5. Read `LEARNINGS.md`.

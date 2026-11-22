@@ -3,7 +3,7 @@ feature: "Native Host and Simulation Tests"
 description: "The native agent-rpc host (config, listeners, mTLS, operator key paths, LocalCatalog with Candle devices) and the deterministic simulation test harness. Finishing this feature gives the working agent-rpc proof of concept."
 status: "pending"
 priority: "high"
-depends_on: ["80-platform-prerequisites/features/00-transport-prerequisites", "81-foundation-auth/features/00-foundation-auth", "03-agent-rpc-core"]
+depends_on: ["80-platform-prerequisites/features/00-transport-prerequisites", "completed/81-foundation-auth/features/00-foundation-auth", "03-agent-rpc-core"]
 part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27

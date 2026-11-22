@@ -43,7 +43,7 @@ The 2026-11-14 split moved features and their history:
 | 08 env and side effects | spec 84 (`Env`, `IdSource`), spec 80 (transport and migrations) | `../completed/84-context-injection/progress.md`; `../80-platform-prerequisites/progress.md` |
 | 09 transport prerequisites | spec 80 feature 00 | `../80-platform-prerequisites/progress.md` |
 | 10 migration groups | spec 80 feature 01 | same file |
-| 11 foundation auth | spec 81 feature 00 | `../81-foundation-auth/progress.md` |
+| 11 foundation auth | spec 81 feature 00 | `../completed/81-foundation-auth/progress.md` |
 
 The design files moved with their features. Spec 78 owns the manifest contract.
 

@@ -1,12 +1,12 @@
 ---
 description: "The server credential library: signed secrets, operator key files, the signed-secret and JWT providers, the plaintext loopback provider and the connectrpc interceptor. The auth primitives come from spec 86 and the certificate code from spec 87. The agent RPC server (spec 83) and the proxy (spec 82) both use the library; neither owns it."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-14
 author: "Main Agent"
 metadata:
   version: "2.0"
-  last_updated: 2026-11-15
+  last_updated: 2026-11-23
   estimated_effort: "large"
   tags:
     - auth
@@ -29,10 +29,10 @@ related_specs:
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/48-foundation-auth-app"
 features:
-  completed: 0
-  uncompleted: 1
+  completed: 1
+  uncompleted: 0
   total: 1
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Foundation Auth
@@ -178,7 +178,7 @@ through a `RemoteKeyPair` with RFC 6979 nonces where the algorithm allows it (sp
 
 ## 9. Module references
 
-- `specifications/81-foundation-auth/features/00-foundation-auth/auth.md` — the full design,
+- `specifications/completed/81-foundation-auth/features/00-foundation-auth/auth.md` — the full design,
   moved from spec 83 feature 11. Sections 5, 6 and 7 are now pointers to spec 87.
 - `specifications/completed/86-auth-primitives/requirements.md` — the trait and the result types.
 - `specifications/completed/87-mutual-tls/mtls.md` — the CA, trust store, verifiers and mTLS providers.

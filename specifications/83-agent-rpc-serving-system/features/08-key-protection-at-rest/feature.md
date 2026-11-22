@@ -3,7 +3,7 @@ feature: "Key Protection at Rest"
 description: "Deferred from feature 07 for the proof of concept: a KeyStore over foundation_db backends, keys that hosts make and store, private keys always encrypted at rest (KEK sources per platform, WebCrypto, envelope encryption with a remote KMS), passphrase-protected key files, and rotation by kid."
 status: "todo"
 priority: "low"
-depends_on: ["04-native-host-and-dst", "81-foundation-auth/features/00-foundation-auth"]
+depends_on: ["04-native-host-and-dst", "completed/81-foundation-auth/features/00-foundation-auth"]
 estimated_effort: "large"
 created: 2026-10-27
 last_updated: 2026-11-14
@@ -34,7 +34,7 @@ that. The other things can be broken into deferred features for later."
 
 So spec 81 feature 00 now loads keys in the simplest way: the operator makes each private key with `ssh-keygen` or
 `openssl`, and the host loads it from a file, an environment variable or a Worker secret
-([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4, decision 11 in
+([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 4, decision 11 in
 [agent-rpc-architecture.md](../../agent-rpc-architecture.md)). Everything else about keys moved here.
 The design is complete. It waits until the POC works end to end. It was spec 80 feature 00; the owner
 moved it to the end of the list when feature 07 was split into separate features.
@@ -69,7 +69,7 @@ _The diagram shows which task must finish before another task starts._
 
 ## 4. What the POC keeps that this feature builds on
 
-- `KeySource` and `PrivateKey` ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4.4). A
+- `KeySource` and `PrivateKey` ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 4.4). A
   `KeyStore` becomes one more place that a `PrivateKey` comes from.
 - The default file names in the state directory (`bootstrap-signing-key.pem`, `ca-key.pem`,
   `server-key.pem`). Task K3 seals them and removes the plain-text files.

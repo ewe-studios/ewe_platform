@@ -3,10 +3,10 @@ feature: "Proxy Registration Authority"
 description: "Extend foundation_proxy with a registration authority: a separate mutual-TLS listener where enrolled registrar sidecars register backends, report their health and metrics on a lease, and deregister them; plus a live backend registry that feeds the existing router with no dropped connections."
 status: "pending"
 priority: "high"
-depends_on: ["81-foundation-auth/features/00-foundation-auth"]
+depends_on: ["completed/81-foundation-auth/features/00-foundation-auth"]
 builds_on:
   - "specifications/completed/63-connectrpc-proxy"
-  - "specifications/81-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in its auth.md)"
+  - "specifications/completed/81-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in its auth.md)"
 estimated_effort: "large"
 created: 2026-10-19
 last_updated: 2026-11-14
@@ -380,7 +380,7 @@ backend in a `Register` does not fail the call: its `RegisterResult` says why.
 
 ### 5.1 The parts
 
-All the security parts come from `foundation_auth` (spec 81 feature 00, [auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md)).
+All the security parts come from `foundation_auth` (spec 81 feature 00, [auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md)).
 The proxy does not have its own copy.
 
 | Part | Type (spec 81 feature 00) | Use here |
@@ -415,7 +415,7 @@ _The diagram shows how a sidecar gets its certificate one time, and then uses mT
 call._
 
 At enrollment, the sidecar uses the same enrollment as an agent-rpc client (spec 81 feature 00,
-[auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 9.1), with the certificate credential kind:
+[auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 9.1), with the certificate credential kind:
 
 - The token's `aud` is the registration URL, inside the signature, so a changed address fails.
 - The sidecar sends a nonce. The proxy signs a server proof with the token's key, and the sidecar

@@ -15,7 +15,7 @@ created: 2026-11-14
 2. Read `keystore.md` (the key store and the sealed key records) and `key-protection.md` (the
    KEK sources, WebCrypto, envelope encryption and rotation).
 3. Read `../04-native-host-and-dst/hosts.md` (the native host and the Worker host key paths).
-4. Read `../../../81-foundation-auth/features/00-foundation-auth/auth.md` (the auth primitives
+4. Read `../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md` (the auth primitives
    that this feature extends).
 5. Read `../../agent-rpc-architecture.md` (owner decision 11 and the deferred key work).
 6. Read `../../LEARNINGS.md`. Read `.agents/AGENTS.md` and the Rust skills. Generate

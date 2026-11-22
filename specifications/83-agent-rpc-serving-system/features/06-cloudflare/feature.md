@@ -332,7 +332,7 @@ pub fn agent_rpc_plan(config: &AgentRpcConfig) -> DeploymentPlan;
 - Cloudflare ends TLS in front of a Worker, so a Worker cannot run agent-rpc's own mTLS.
   Client auth on a Worker is a signed secret sent as a bearer credential, or Cloudflare's own
   mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of spec 81 feature 00
-  ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 8).
+  ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 8).
 - Container credentials are never in the container image. The `DeploymentPlan` holds a
   `SecretRef` only, and the deployer sets the value (spec 77 feature 08, invariant I12).
 - The internal container service of spec 77 feature 07 sits behind the Worker secret. This

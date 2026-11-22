@@ -25,7 +25,7 @@ has_features: false
 has_fundamentals: false
 builds_on: "specifications/completed/86-auth-primitives"
 related_specs:
-  - "specifications/81-foundation-auth"
+  - "specifications/completed/81-foundation-auth"
   - "specifications/completed/86-auth-primitives"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"

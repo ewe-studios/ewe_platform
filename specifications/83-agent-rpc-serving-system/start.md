@@ -16,7 +16,7 @@ created: 2026-10-19
 4. Read `agent-rpc-architecture.md` for the shared design of the pluggable server.
 5. Read the requirements of the two specs this one builds on:
    `../80-platform-prerequisites/requirements.md` and
-   `../81-foundation-auth/requirements.md`.
+   `../completed/81-foundation-auth/requirements.md`.
 6. Pick a feature from the Feature Index and respect the order: 03 before 04 and 05; 06 after 05;
    08 last.
 7. Navigate to `features/[feature]/start.md`.

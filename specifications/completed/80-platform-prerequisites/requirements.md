@@ -26,7 +26,7 @@ related_specs:
   - "specifications/84-context-injection"
   - "specifications/86-auth-primitives"
   - "specifications/87-mutual-tls"
-  - "specifications/81-foundation-auth"
+  - "specifications/completed/81-foundation-auth"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
 features:

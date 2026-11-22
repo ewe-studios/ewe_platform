@@ -1055,7 +1055,7 @@ Some libraries read randomness themselves. This table says which steps can use t
 | Time in JWT checks | `jwt-simple` | its own clock (`coarsetime`) | yes, with a change | Set `VerificationOptions::artificial_time` from `Env::wall_now()` on each check. |
 
 `p256` and `ed25519-compact` are pure Rust. `jwt-simple` already brings them into the
-dependency graph, and both build for wasm. [auth.md](../../81-foundation-auth/features/00-foundation-auth/auth.md) shows the signer code.
+dependency graph, and both build for wasm. [auth.md](../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) shows the signer code.
 
 ## 9. The input/output seams
 

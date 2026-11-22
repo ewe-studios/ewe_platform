@@ -23,7 +23,7 @@ has_features: false
 has_fundamentals: false
 builds_on: "specifications/completed/84-context-injection"
 related_specs:
-  - "specifications/81-foundation-auth"
+  - "specifications/completed/81-foundation-auth"
   - "specifications/completed/87-mutual-tls"
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/83-agent-rpc-serving-system"

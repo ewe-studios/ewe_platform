@@ -54,7 +54,7 @@ its own implementation. This table shows what each host plugs into each seam.
 | Protocols served | Connect, gRPC, gRPC-Web | Connect, gRPC-Web | Connect (from the Worker only) | none | Connect |
 | Client transport | `H1Transport`, `H2Transport` | `H1Transport::new(StubHttpClient)` (to the DO) | none | `H1Transport::default()` | `MemTransport` |
 | `ClientAuth` | `MtlsAuth`, optionally `AnyOf` with `SignedSecretAuth` | `AnyOf(CfMtlsAuth, SignedSecretAuth)`, optionally `JwtAuth` | `ForwardedPrincipalAuth` | sends a bearer secret | any provider, over memory stores |
-| Key material ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4) | operator key files (`KeySource::File`), or `EWE_AGENT_RPC_*_KEY` variables | public keys from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`; the signing key from the secret `AGENT_RPC_SIGNING_KEY` only with enrollment | none | none | `KeySource::Inline` with fixture or seeded keys |
+| Key material ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 4) | operator key files (`KeySource::File`), or `EWE_AGENT_RPC_*_KEY` variables | public keys from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`; the signing key from the secret `AGENT_RPC_SIGNING_KEY` only with enrollment | none | none | `KeySource::Inline` with fixture or seeded keys |
 | `TrustStore` | `SqlTrustStore<TursoStorage>` | `SqlTrustStore<D1WasmStorage>` | none | none | `MemoryTrustStore` |
 | `ModelCatalog` | `LocalCatalog` | `RemoteCatalog` (checks requests, fills the index) | `RemoteCatalog` (runs the turns) | none | `ScriptedCatalog` |
 | `InstanceRegistry` | `LocalInstanceRegistry<InMemoryStores>` | `DurableObjectRegistry` | `LocalInstanceRegistry<DoStores>`, `max_instances = 1` | none | `LocalInstanceRegistry<InMemoryStores>` |
@@ -277,7 +277,7 @@ impl NativeHost {
 
 What the code does: it builds the parts in the order of their needs. Each step awaits its
 storage. No step reads a global clock or global randomness: each part gets `env`. The
-legacy key files of today load unchanged ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md), section 4.6).
+legacy key files of today load unchanged ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md), section 4.6).
 
 `BackgroundLoader` is the real `ModelLoader`. It runs each model load with
 `valtron::run_background_job`, because a load blocks for seconds. So a load never holds a
@@ -329,7 +329,7 @@ provider comes from `security`.
 
 `HttpServer` runs each connection as a valtron task. The rustls handshake completes on the
 first read of `ProtocolDetectHandler`. After that read, task T4 copies the peer certificates
-into `ConnectionContext::tls` ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md), section 7.4). So `MtlsAuth` finds the
+into `ConnectionContext::tls` ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md), section 7.4). So `MtlsAuth` finds the
 client certificate in `CallCredentials::connection`.
 
 `InsecurePlaintext` binds one plain listener and uses `InsecureNoAuth`. It refuses a
@@ -346,7 +346,7 @@ non-loopback `bind` before it binds anything.
 
 This diagram shows one client on a native host: it connects with mTLS, creates an instance,
 streams one chat turn, and destroys the instance. Enrollment came before
-([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md), section 9.1).
+([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md), section 9.1).
 
 ```mermaid
 sequenceDiagram

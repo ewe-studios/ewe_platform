@@ -30,7 +30,7 @@ builds_on: "specifications/completed/76-shared-context"
 related_specs:
   - "specifications/completed/76-shared-context"
   - "specifications/completed/80-platform-prerequisites"
-  - "specifications/81-foundation-auth"
+  - "specifications/completed/81-foundation-auth"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/completed/86-auth-primitives"

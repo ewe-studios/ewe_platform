@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/81-foundation-auth"
-this_file: "specifications/81-foundation-auth/start.md"
+spec_directory: "specifications/completed/81-foundation-auth"
+this_file: "specifications/completed/81-foundation-auth/start.md"
 created: 2026-11-14
 ---
 

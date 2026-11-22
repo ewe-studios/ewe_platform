@@ -444,7 +444,7 @@ is in D1 and the session is in its DO.
 
 ### 5.10 KV and R2
 
-- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4.5). Keys in KV come with the key store of [feature 08](../08-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
+- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 4.5). Keys in KV come with the key store of [feature 08](../08-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
 - **R2** holds the archive of each destroyed instance (owner decision 5). Section 5.12 describes it.
 
 ### 5.11 Model provider API keys
