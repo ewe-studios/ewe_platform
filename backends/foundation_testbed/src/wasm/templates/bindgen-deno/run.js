@@ -71,6 +71,33 @@ function base64(bytes) {
 }
 
 async function echo(request) {
+    const url = new URL(request.url);
+
+    // `/stream?chunks=N&size=M&status=S` serves a streaming body of N chunks of
+    // M bytes each. The wasm fetch client tests use it to prove that a response
+    // body streams, that a slow consumer bounds the read-ahead, and that
+    // `max_body_size` stops the transfer.
+    if (url.pathname === "/stream") {
+        const chunks = Number(url.searchParams.get("chunks") ?? "1");
+        const size = Number(url.searchParams.get("size") ?? "8");
+        const status = Number(url.searchParams.get("status") ?? "200");
+        let sent = 0;
+        const body = new ReadableStream({
+            pull(controller) {
+                if (sent >= chunks) {
+                    controller.close();
+                    return;
+                }
+                sent += 1;
+                controller.enqueue(new Uint8Array(size).fill(120));
+            },
+        });
+        return new Response(body, {
+            status,
+            headers: { "content-type": "application/octet-stream" },
+        });
+    }
+
     const bytes = new Uint8Array(await request.arrayBuffer());
     if (bytes.length > 1024 * 1024) {
         return new Response("echo body too large", { status: 413 });
@@ -81,7 +108,7 @@ async function echo(request) {
     }
     return Response.json({
         method: request.method,
-        path: new URL(request.url).pathname,
+        path: url.pathname,
         headers,
         body: base64(bytes),
         bytes: bytes.length,

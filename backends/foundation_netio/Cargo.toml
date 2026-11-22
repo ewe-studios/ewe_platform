@@ -1,6 +1,6 @@
 [package]
 name = "foundation_netio"
-version = "0.0.15"
+version = "0.0.16"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -70,6 +70,11 @@ web-sys = { version = "0.3", optional = true, features = [
     "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
 ] }
 
+# workers-rs types for the Durable Object stub client (wasm + `cloudflare`
+# only). The version matches foundation_db and foundation_deployment_cloudflare.
+[target.'cfg(target_family = "wasm")'.dependencies]
+worker = { version = "0.8.3", optional = true, default-features = false }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # The I/O reactor (poll readiness) is used only by the native `raw_stream`
 # path; it has no wasm32 poll backend, so keep it off the wasm build.
@@ -100,6 +105,8 @@ foundation_core = { path = "../foundation_core", version = "0.0.22", features = 
 # All wasm-bindgen ecosystem re-exported by foundation_testbed.
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
 wasm-bindgen-test = "=0.3.76"
+# The wasm tests implement `HttpClient`, which is an `#[async_trait]` trait.
+async-trait = "0.1.88"
 # The embedded-asset pipeline in `foundation_macros` keeps `new_mime_guess`.
 # The agreement test proves both tables give the same answer on common types.
 new_mime_guess = { workspace = true }
@@ -175,6 +182,10 @@ js-foundation-wasm = ["foundation_compact/host-abi"]
 # wasm fetch HTTP client — outbound fetch() for browser + CF Workers.
 # Enables foundation_core/js-wasmbindgen for valtron's JS ReadableStream bridge.
 wasm-fetch = ["js-event-loop", "dep:wasm-bindgen-futures", "foundation_core/js-wasmbindgen"]
+
+# A `NetClient` over a Cloudflare Durable Object stub (wasm only). Pulls
+# workers-rs; a browser build must not enable it.
+cloudflare = ["wasm-fetch", "dep:worker"]
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
 default = ["standard", "std", "ssl", "compression", "wire-native", "multi"]

@@ -44,7 +44,7 @@ use crate::shared::http::{
 };
 
 use super::headers::{simple_headers_to_web_sys, web_sys_headers_to_simple};
-use super::stream::WasmSseIterator;
+use super::stream::{WasmByteStream, WasmSseIterator};
 use super::tasks::WasmHttpExchangeTask;
 
 /// Fetch-based HTTP client for wasm32 (browser + Cloudflare Workers).
@@ -119,7 +119,15 @@ impl HttpClient for FetchHttpClient {
         // take precedence over client defaults).
         let req = self.merge_default_headers(req);
         let max_redirects = self.config.max_redirects;
-        SendWrapper::new(fetch_and_read(req, max_redirects)).await
+        let body_queue_chunks = self.config.body_queue_chunks;
+        let max_body_size = super::stream::usize_limit(self.config.max_body_size);
+        SendWrapper::new(fetch_and_read(
+            req,
+            max_redirects,
+            body_queue_chunks,
+            max_body_size,
+        ))
+        .await
     }
 
     async fn send_sse_async(
@@ -127,8 +135,10 @@ impl HttpClient for FetchHttpClient {
         req: PreparedRequest,
     ) -> Result<BoxedSseFutureStream, HttpClientError> {
         let max_redirects = self.config.max_redirects;
+        let body_queue_chunks = self.config.body_queue_chunks;
+        let max_body_size = self.config.max_body_size;
         SendWrapper::new(async move {
-            let iter = fetch_sse(req, max_redirects).await?;
+            let iter = fetch_sse(req, max_redirects, body_queue_chunks, max_body_size).await?;
             // `into_future_stream` (not the raw `into_pure_future_stream`) parks on
             // the in-band `Wait`/`Pending` states via `WasmSseIterator`'s
             // `WakeableStream` impl, so an `.await` consumer yields to the JS event
@@ -158,13 +168,25 @@ impl HttpClient for FetchHttpClient {
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
         let max_redirects = self.config.max_redirects;
+        let body_queue_chunks = self.config.body_queue_chunks;
+        let max_body_size = self.config.max_body_size;
         // Lazy: the fetch is spawned via `spawn_local` on the first poll, so the
         // single-threaded wasm isolate is never blocked waiting on the fetch.
-        Ok(Box::new(LazySseIterator::new(req, max_redirects)) as BoxedSseIterator)
+        Ok(Box::new(LazySseIterator::new(
+            req,
+            max_redirects,
+            body_queue_chunks,
+            max_body_size,
+        )) as BoxedSseIterator)
     }
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
-        let task = WasmHttpExchangeTask::new(req);
+        // The exchange task calls `send_async` on this client, not on a fresh
+        // default client. A clone shares the caller's configuration, and a
+        // custom `NetClient` supplies its own `open_exchange`.
+        let client: Arc<dyn HttpClient> =
+            Arc::new(FetchHttpClient::with_config(self.config.clone()));
+        let task = WasmHttpExchangeTask::new(client, req);
         Box::new(task)
     }
 }
@@ -180,6 +202,8 @@ impl HttpClient for FetchHttpClient {
 async fn fetch_sse(
     req: PreparedRequest,
     max_redirects: u8,
+    body_queue_chunks: usize,
+    max_body_size: Option<u64>,
 ) -> Result<WasmSseIterator, HttpClientError> {
     let ws_req = build_web_request(req, max_redirects)?;
     let resp = do_fetch(&ws_req).await?;
@@ -195,7 +219,11 @@ async fn fetch_sse(
         .body()
         .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
 
-    Ok(WasmSseIterator::new(body))
+    Ok(WasmSseIterator::new_with_limits(
+        body,
+        body_queue_chunks,
+        max_body_size,
+    ))
 }
 
 /// Lazy SSE iterator for the wasm sync `send_sse` path.
@@ -216,6 +244,8 @@ async fn fetch_sse(
 struct LazySseIterator {
     req: Option<PreparedRequest>,
     max_redirects: u8,
+    body_queue_chunks: usize,
+    max_body_size: Option<u64>,
     outcome: Arc<ConcurrentQueue<Result<WasmSseIterator, HttpClientError>>>,
     wake: Arc<WakeRegistry>,
     inner: Option<WasmSseIterator>,
@@ -224,10 +254,17 @@ struct LazySseIterator {
 }
 
 impl LazySseIterator {
-    fn new(req: PreparedRequest, max_redirects: u8) -> Self {
+    fn new(
+        req: PreparedRequest,
+        max_redirects: u8,
+        body_queue_chunks: usize,
+        max_body_size: Option<u64>,
+    ) -> Self {
         Self {
             req: Some(req),
             max_redirects,
+            body_queue_chunks,
+            max_body_size,
             outcome: Arc::new(ConcurrentQueue::unbounded()),
             wake: Arc::new(WakeRegistry::new()),
             inner: None,
@@ -244,8 +281,10 @@ impl LazySseIterator {
         let outcome = Arc::clone(&self.outcome);
         let wake = Arc::clone(&self.wake);
         let max_redirects = self.max_redirects;
+        let body_queue_chunks = self.body_queue_chunks;
+        let max_body_size = self.max_body_size;
         wasm_bindgen_futures::spawn_local(async move {
-            let result = fetch_sse(req, max_redirects).await;
+            let result = fetch_sse(req, max_redirects, body_queue_chunks, max_body_size).await;
             let _ = outcome.push(result);
             wake.fire();
         });
@@ -317,37 +356,52 @@ impl WakeableStream for LazySseIterator {
 /// - `Bytes` → `Uint8Array`
 /// - `Stream` / `ChunkedStream` / `LineFeedStream` / `SseStream` →
 ///   JS `ReadableStream` via valtron's `iterator_to_readable_stream`
-/// Perform one fetch and read the full response body into a `SimpleResponse`.
+/// Perform one fetch and return the response head with a streaming body.
 ///
 /// WHY: Extracted as a free async fn over owned data so the `send_async` future
-/// does not borrow `&FetchHttpClient`.
+/// does not borrow `&FetchHttpClient`. The body is not read here (root rule 4):
+/// the caller reads [`WasmByteStream`] chunk by chunk.
 async fn fetch_and_read(
     req: PreparedRequest,
     max_redirects: u8,
+    body_queue_chunks: usize,
+    max_body_size: Option<usize>,
 ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
     let ws_req = build_web_request(req, max_redirects)?;
     let resp = do_fetch(&ws_req).await?;
+    response_from_web(&resp, body_queue_chunks, max_body_size)
+}
 
+/// Build a `SimpleResponse` from a JS `Response` without reading its body.
+///
+/// The status and headers come first (rule 2). `Response::body()` is `None` for
+/// a 204, a 304 and a `HEAD` answer; that is not an error and stays
+/// [`SendSafeBody::None`]. Any other body becomes a [`WasmByteStream`], bounded
+/// by `body_queue_chunks` and `max_body_size`.
+pub(crate) fn response_from_web(
+    resp: &Response,
+    body_queue_chunks: usize,
+    max_body_size: Option<usize>,
+) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
     let status = Status::from(resp.status().to_string());
     let headers = web_sys_headers_to_simple(&resp.headers());
 
-    let text_promise = resp
-        .text()
-        .map_err(|e| HttpClientError::Reason(format!("body read failed: {e:?}")))?;
-    let body_js = JsFuture::from(text_promise)
-        .await
-        .map_err(|e| HttpClientError::Reason(format!("body await failed: {e:?}")))?;
-    let body_text = body_js.as_string().unwrap_or_default();
-    let body = if body_text.is_empty() {
-        SendSafeBody::None
-    } else {
-        SendSafeBody::Text(body_text)
+    let body = match resp.body() {
+        Some(stream) => SendSafeBody::Stream(Some(Box::new(WasmByteStream::new(
+            stream,
+            body_queue_chunks,
+            max_body_size,
+        )))),
+        None => SendSafeBody::None,
     };
 
     Ok(SimpleResponse::new(status, headers, body))
 }
 
-fn build_web_request(req: PreparedRequest, max_redirects: u8) -> Result<Request, HttpClientError> {
+pub(crate) fn build_web_request(
+    req: PreparedRequest,
+    max_redirects: u8,
+) -> Result<Request, HttpClientError> {
     let init = RequestInit::new();
     init.set_method(method_str(&req.method));
 
@@ -498,21 +552,29 @@ async fn do_fetch(req: &Request) -> Result<Response, HttpClientError> {
         .map_err(|_| HttpClientError::Reason("fetch returned non-Response".into()))
 }
 
-/// Runtime detection: CF Workers have `ServiceWorkerGlobalScope`, browsers
-/// have `window`. Call `fetch()` on whichever is available.
+/// Runtime detection: CF Workers have `ServiceWorkerGlobalScope`, a browser has
+/// `window`, and a test runtime such as Deno has only the global object with a
+/// `fetch` function. Call `fetch` on whichever is available.
 fn js_fetch(req: &Request) -> js_sys::Promise {
     let global = js_sys::global();
 
     if let Ok(true) = js_sys::Reflect::has(&global, &JsValue::from_str("ServiceWorkerGlobalScope"))
     {
-        global
+        return global
             .unchecked_into::<web_sys::ServiceWorkerGlobalScope>()
-            .fetch_with_request(req)
-    } else {
-        web_sys::window()
-            .expect("fetch: no window and no service worker global scope")
-            .fetch_with_request(req)
+            .fetch_with_request(req);
     }
+
+    if let Some(window) = web_sys::window() {
+        return window.fetch_with_request(req);
+    }
+
+    // Deno and other hosts expose `fetch` on the global object but no
+    // `window`. `web_sys::Window` is a thin wrapper over that object, so its
+    // `fetch_with_request` reads `globalThis.fetch`.
+    global
+        .unchecked_into::<web_sys::Window>()
+        .fetch_with_request(req)
 }
 
 fn method_str(method: &SimpleMethod) -> &'static str {

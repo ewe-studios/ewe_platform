@@ -26,7 +26,9 @@ use foundation_reactor::FdReadiness;
 const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
 const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
-const BUDGET: Duration = Duration::from_secs(5);
+/// A loaded host or an emulated CI image can be slow. The loops below yield
+/// when both drivers are idle, so a parallel test run is not starved.
+const BUDGET: Duration = Duration::from_secs(30);
 
 /// Counts its wakes.
 #[derive(Default)]
@@ -69,9 +71,28 @@ impl TaskIterator for CountingDriver {
     }
 }
 
-fn pump(sq: &mut QuicDriver, cq: &mut QuicDriver) {
-    let _ = sq.next_status(Ctx::host());
-    let _ = cq.next_status(Ctx::host());
+/// Pump both drivers once.
+///
+/// A "nothing yet" answer from both drivers means the next step is a socket
+/// edge or a timer. Sleep one millisecond instead of a busy loop, so the many
+/// tests that run in parallel keep their share of the CPU.
+fn pump<S, C>(sq: &mut S, cq: &mut C)
+where
+    S: std::borrow::BorrowMut<QuicDriver>,
+    C: std::borrow::BorrowMut<QuicDriver>,
+{
+    let server_status = sq.borrow_mut().next_status(Ctx::host());
+    let client_status = cq.borrow_mut().next_status(Ctx::host());
+    let worked = matches!(
+        server_status,
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
+    ) || matches!(
+        client_status,
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
+    );
+    if !worked {
+        std::thread::sleep(Duration::from_millis(1));
+    }
 }
 
 macro_rules! until {

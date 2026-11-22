@@ -33,14 +33,15 @@ fi
 
 # In a git worktree, `${ROOT}/.git` is a file that points at the main
 # repository's git directory, which lies outside the mount. Mount that
-# directory read-only at the same path, so the container can resolve it
-# (issue #590). A normal checkout keeps its git directory at `${ROOT}/.git`,
-# which the read-write mount already covers.
+# directory read-write at the same path, so the container can resolve it and
+# the submodule link step can register its URLs in `.git/config` (issue #590).
+# A normal checkout keeps its git directory at `${ROOT}/.git`, which the
+# read-write mount already covers.
 EXTRA_MOUNTS=()
 GIT_COMMON_DIR="$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null || true)"
 if [[ -n "$GIT_COMMON_DIR" && "$GIT_COMMON_DIR" != ".git" ]]; then
   GIT_COMMON_DIR="$(cd "$ROOT" && cd "$GIT_COMMON_DIR" && pwd)"
-  EXTRA_MOUNTS=(-v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:ro")
+  EXTRA_MOUNTS=(-v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}")
 fi
 
 docker run --rm --platform "$PLATFORM" \

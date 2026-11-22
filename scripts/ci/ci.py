@@ -755,10 +755,20 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "-p", "foundation_core", *feature_flags("--no-default-features --features std,js-wasmbindgen")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch")],
+        # Spec 85 T5: the Durable Object stub client sits behind the `cloudflare`
+        # feature, which no other step enables. A compile check keeps it honest.
+        ["cargo", "check", "--lib", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch,cloudflare")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+        # Spec 85 T6: the standalone wasm test crate for the connectrpc streaming
+        # sink and the foundation_http streaming inbound bridge. A package-level
+        # `--tests` check is not possible for either crate (#576).
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm/Cargo.toml"],
         # Spec 70 feature 76: the standalone Cloudflare wasm store tests. The
         # wrangler run below compiles them too, but this step names a compile
         # break directly, before the harness starts.
@@ -771,6 +781,8 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm/Cargo.toml", "--check"],
         # Spec 88 T8: the wasm bridge of foundation_http and the wasm build of
         # foundation_connectrpc were compiled by no CI run. A package-level
         # `--tests` check is not possible for foundation_http (#576), so these
@@ -792,6 +804,10 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         ["mise", "run", "test:wasm-bindgen:deno"],
         # Spec 88 #575: the 19 `dual!` wasm-bindgen cases.
         ["mise", "run", "test:wasm-bindgen:core"],
+        # Spec 85 T6: foundation_netio's wasm suite executes (it was compile
+        # checked only), and the standalone connectrpc/http wasm tests.
+        ["mise", "run", "test:wasm-bindgen:netio"],
+        ["mise", "run", "test:wasm-bindgen:connectrpc"],
         # Spec 70 feature 76: the D1/R2/KV wasm stores on the real local
         # bindings (`wrangler dev --local`). The REST clients use the same
         # local D1/R2 state through the explorer API.

@@ -23,14 +23,50 @@ use futures_core::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+use crate::shared::http::SimpleHeaders;
+
 type Source = Pin<Box<dyn Stream<Item = Vec<u8>>>>;
 
 /// A `200` response whose body is `body`, pulled one chunk at a time.
+///
+/// The body is read with [`streaming_response_with`], with `Content-Type` set
+/// to `content_type` and `Cache-Control: no-cache`.
 ///
 /// # Errors
 ///
 /// The `JsValue` error the runtime raised while building the response.
 pub fn streaming_response<S>(body: S, content_type: &str) -> Result<web_sys::Response, JsValue>
+where
+    S: Stream<Item = Vec<u8>> + 'static,
+{
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        crate::shared::http::SimpleHeader::CONTENT_TYPE,
+        vec![content_type.to_string()],
+    );
+    headers.insert(
+        crate::shared::http::SimpleHeader::CACHE_CONTROL,
+        vec!["no-cache".to_string()],
+    );
+    streaming_response_with(200, &headers, body)
+}
+
+/// A response with the given status, headers and streaming body.
+///
+/// The body is pulled one chunk at a time. When the client cancels the stream,
+/// the source is dropped, which stops whatever produces it (for example the
+/// model call). `streaming_response` is this function with status `200`.
+///
+/// The caller owns the header set: this function does not add a header.
+///
+/// # Errors
+///
+/// The `JsValue` error that the runtime raised while building the response.
+pub fn streaming_response_with<S>(
+    status: u16,
+    headers: &SimpleHeaders,
+    body: S,
+) -> Result<web_sys::Response, JsValue>
 where
     S: Stream<Item = Vec<u8>> + 'static,
 {
@@ -73,12 +109,23 @@ where
     underlying.set_cancel(cancel.into_js_value().unchecked_ref::<js_sys::Function>());
     let stream = web_sys::ReadableStream::new_with_underlying_source(&underlying)?;
 
-    let headers = web_sys::Headers::new()?;
-    headers.set("Content-Type", content_type)?;
-    headers.set("Cache-Control", "no-cache")?;
+    let web_headers = headers_to_web_sys(headers)?;
     let init = web_sys::ResponseInit::new();
-    init.set_headers(&headers);
+    init.set_status(status);
+    init.set_headers(&web_headers);
     web_sys::Response::new_with_opt_readable_stream_and_init(Some(&stream), &init)
+}
+
+/// Convert `SimpleHeaders` to a JS `Headers` object.
+fn headers_to_web_sys(headers: &SimpleHeaders) -> Result<web_sys::Headers, JsValue> {
+    let web_headers = web_sys::Headers::new()?;
+    for (name, values) in headers {
+        let name = name.to_string().to_lowercase();
+        for value in values {
+            web_headers.append(&name, value)?;
+        }
+    }
+    Ok(web_headers)
 }
 
 /// A `text/event-stream` response with one event per item of `events`. An

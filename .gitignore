@@ -213,6 +213,8 @@ infrastructure/docker/docker-android/
 
 # wasm-testbed bindgen-* runs regenerate these (wasm-bindgen output + run.js) on every run
 backends/*/integrations/bindgen-*/
+# The standalone crates sit one level deeper than a backend crate.
+backends/foundation_connectrpc/integration/wasm/integrations/
 .fff
 
 # Python bytecode caches

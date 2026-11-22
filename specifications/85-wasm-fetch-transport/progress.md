@@ -1,22 +1,71 @@
 # Spec 85 Progress: Wasm HTTP Streaming
 
-_Last updated: 2026-11-15._
+_Last updated: 2026-11-22._
 
 ## Status at a glance
 
 | Task | State |
 |---|---|
-| T1 — `WasmByteStream`, the streaming response body of the wasm client, `body_queue_chunks` | ⬜ Pending |
-| T2 — `open_exchange` passes `self`; the exchange task calls that client; `WASM_FETCH_CAPABILITIES` | ⬜ Pending |
-| T3 — `streaming_response_with(status, headers, body)` | ⬜ Pending |
-| T4 — the streaming inbound body in both bridges, and the connectrpc `ResponseSink` | ⬜ Pending |
-| T5 — `StubHttpClient` over `worker::Stub`, behind the `cloudflare` feature | ⬜ Pending |
-| T6 — the `mise.wasm.toml` netio task and its `scripts/ci/ci.py` step, the standalone `foundation_connectrpc` test crate, and the fix for #565 | ⬜ Pending |
+| T1 — `WasmByteStream`, the streaming response body of the wasm client, `body_queue_chunks` | ✅ Done |
+| T2 — `open_exchange` passes `self`; the exchange task calls that client; `WASM_FETCH_CAPABILITIES` | ✅ Done |
+| T3 — `streaming_response_with(status, headers, body)` | ✅ Done |
+| T4 — the streaming inbound body in both bridges, and the connectrpc `ResponseSink` | ✅ Done |
+| T5 — `StubHttpClient` over `worker::Stub`, behind the `cloudflare` feature | ✅ Done |
+| T6 — the `mise.wasm.toml` netio task and its `scripts/ci/ci.py` step, the standalone `foundation_connectrpc` test crate, and the fix for #565 | ✅ Done |
 
-## No product code exists
+**Commits.** `4e305e091` (T1 and T2, plus the version bumps); `2a063c762` (T3 to T6).
 
-This specification is a plan in a pull request for the owner's review. No file under
-`backends/` changes until the owner approves it.
+## Current state (2026-11-22)
+
+The code for all six tasks is on branch `spec/85-wasm-fetch`. It is not merged into master.
+
+Verified on macOS 27.2 (aarch64), with wasm-bindgen 0.2.126 and Deno 2.9.7:
+
+| Check | Result |
+|---|---|
+| `cargo fmt --all -- --check` | pass |
+| `cargo clippy` over the four changed crates, `--profile uat --all-targets --no-deps` | pass; only the three workspace-manifest warnings remain |
+| `cargo test` over the four changed crates, `--profile uat` | pass, except #485 and #466: this host cannot make a hanging dial |
+| `cargo check --tests --target wasm32` of `foundation_connectrpc/integration/wasm` | pass |
+| `wasm-testbed test bindgen-deno` of `foundation_netio --features wasm-fetch` | 10 of 10 pass |
+| `wasm-testbed test bindgen-deno` of `foundation_connectrpc/integration/wasm` | 5 of 5 pass |
+| `cargo check --lib --target wasm32 -p foundation_netio --features wasm-fetch,cloudflare` | pass |
+
+The verification found and fixed six defects:
+
+1. The standalone wasm test crate named `foundation_core` but did not declare it.
+2. `ConnectSink::whole` and `open` returned a future that is not `Send`: a valtron `Stream`
+   item lived across an await.
+3. `StubHttpClient::send` declared `+ Send` on a future that holds a JavaScript promise.
+4. The reader task did not cancel the JavaScript reader when the consumer closed the queue.
+5. `WASM_FETCH_CAPABILITIES.request_streaming` changed, but `transport_tests` still asserted
+   the old value.
+6. The websocket test and the Deno host disagreed about `window` and about a dropped closure.
+
+The workspace manifest still warns about three unused dependencies (`anyhow`, `fs_extra`,
+`reqwest`). Issue #709 records them.
+
+### Linux CI
+
+Run with `scripts/ci/linux.sh` on the `ewestudios/ewe-platform-ci:latest` image
+(`linux/amd64` on an arm64 Docker engine):
+
+| Package | Result |
+|---|---|
+| `foundation_netio` | pass |
+| `foundation_connectrpc` | pass |
+| `foundation_http` | pass |
+| `foundation_testbed` | pass |
+| `wasm-tests` | pass; includes netio 10 of 10 and connectrpc 5 of 5 |
+
+The first run exposed test-harness defects, not product defects:
+
+- The script mounted the shared Git directory read-only, and the submodule link step
+  writes `.git/config` (#590). Fixed in `bb5ba308f`.
+- The HTTP/3 drivers busy-polled, and the body tests timed the wait from the response
+  head (#716). Fixed in `7a6880976` and `be17f02fb`.
+- The wasm wake tests used wall-clock windows too tight for an emulated host (#717).
+  Fixed in `7a6880976` and `be17f02fb`.
 
 ## The capability map (2026-11-15)
 
@@ -158,13 +207,11 @@ It does not.
 
 ## Next steps
 
-1. T6 first: the `test:wasm-bindgen:netio` task and its CI step, the fix for #565, and the
-   standalone crate for `foundation_connectrpc`.
-2. T1 next. It is the one gap that needs the harness, and it makes the rest work.
-3. T2, and correct the capability constant in the same change.
-4. T3, which T4 needs.
-5. T4 after T3.
-6. T5 after T2, behind the `cloudflare` feature.
+1. Add the T5 Durable Object fetch test under `wrangler dev --local` (#710). The feature
+   compiles and CI checks it, but no test sends a request through a stub.
+2. Merge the branch into master.
+3. Keep #485, #466, #561, #564, #709 and #710 open. #590, #716 and #717 are fixed on this
+   branch.
 
 ## Open questions
 
