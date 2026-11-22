@@ -16,5 +16,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("cargo:rerun-if-changed=../../backends/foundation_wasm_ui/src/runtime_build.rs");
         println!("cargo:rerun-if-changed=build.rs");
     }
+    let output =
+        std::path::PathBuf::from(std::env::var_os("OUT_DIR").ok_or("Cargo did not set OUT_DIR")?);
+    std::fs::write(output.join("app-version.txt"), env!("CARGO_PKG_VERSION"))?;
+    let staged = foundation_resources::build::stage_from_cargo()?;
+    std::fs::write(output.join("resource-names"), staged.names.join("\n"))?;
     Ok(())
 }

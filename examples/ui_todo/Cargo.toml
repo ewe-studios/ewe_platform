@@ -12,6 +12,8 @@ autobins = false
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
+foundation_macros = { workspace = true, optional = true }
+foundation_nostd = { path = "../../backends/foundation_nostd", optional = true }
 foundation_compact = { path = "../../backends/foundation_compact", version = "0.2.7", default-features = false }
 foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
 foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
@@ -51,6 +53,7 @@ async-trait = { workspace = true }
 foundation_core = { path = "../../backends/foundation_core" }
 
 [build-dependencies]
+foundation_resources = { path = "../../backends/foundation_resources", default-features = false, features = ["build"] }
 foundation_codegen = { path = "../../backends/foundation_codegen", version = "0.2.2", default-features = false, features = ["javascript"], optional = true }
 foundation_connectrpc_codegen = { path = "../../backends/foundation_connectrpc_codegen", optional = true }
 
@@ -59,7 +62,7 @@ workspace = true
 
 [features]
 default = ["server"]
-server = ["foundation_ui_runtime/action-server", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+server = ["dep:foundation_macros", "dep:foundation_nostd", "foundation_ui_runtime/action-server", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 web = ["foundation_ui_runtime/action-browser", "dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
 mobile = ["foundation_ui_runtime/action-mobile", "dep:foundation_core", "dep:blocking", "dep:tempfile", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
 browser-tests = ["server", "dep:foundation_browser"]

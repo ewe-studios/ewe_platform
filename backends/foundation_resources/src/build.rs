@@ -331,6 +331,20 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
     let dest =
         env::var_os("EWE_RESOURCE_DEST").map_or_else(|| generated.join("resources"), PathBuf::from);
     let staged = stage(&package.join("resources.toml"), &generated, target, &dest)?;
+    if target == Target::Web && env::var_os("EWE_RESOURCE_DEST").is_none() {
+        let profile = generated
+            .ancestors()
+            .find(|path| path.file_name() == Some(std::ffi::OsStr::new("build")))
+            .and_then(Path::parent)
+            .ok_or_else(|| {
+                invalid(format!(
+                    "Cannot locate the profile directory from {}",
+                    generated.display()
+                ))
+            })?;
+        let public = profile.join("public").join(var("CARGO_PKG_NAME")?);
+        stage(&package.join("resources.toml"), &generated, target, &public)?;
+    }
     for path in &staged.inputs {
         println!("cargo:rerun-if-changed={}", path.display());
     }

@@ -153,3 +153,6 @@ The WebAssembly browser target compiles. Mobile packaging and application integr
 
 Feature 3 native resource streams can move between worker threads.
 The macOS resource suite passes four staging and runtime tests with the UAT profile.
+
+Todo now declares its shared icon, browser script, and generated version in resources.toml.
+Its Cargo hook stages those files after generation. Web package verification is in progress.

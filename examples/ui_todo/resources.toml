@@ -1,0 +1,12 @@
+[[resource]]
+name = "art"
+path = "resources/art"
+
+[[resource]]
+name = "app.js"
+path = "web/app.js"
+targets = ["web"]
+
+[[resource]]
+name = "app/version.txt"
+generated = "app-version.txt"

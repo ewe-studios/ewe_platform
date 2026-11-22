@@ -102,3 +102,6 @@ Track each source directory as well as its files. Cargo can then detect new dire
 
 Browser stream readers stay on their JavaScript thread.
 Native readers need movable streams so application workers can await the same resource operation.
+
+The embedding derive accepts an environment variable followed by a slash and a path.
+A build script can supply its staging directory before macro expansion.

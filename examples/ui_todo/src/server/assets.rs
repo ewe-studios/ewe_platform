@@ -5,7 +5,7 @@ use foundation_http::{
         static_asset::StaticAssetHandler,
         static_file::{StaticFileConfig, StaticFileHandler},
     },
-    shared::router::{RouteResult, Router},
+    shared::router::Router,
     Serve,
 };
 use std::sync::Arc;
@@ -13,7 +13,8 @@ use std::sync::Arc;
 pub(super) fn register(
     router: &mut Router<Arc<dyn Serve>>,
     module: &std::path::Path,
-) -> RouteResult<()> {
+) -> Result<(), super::Error> {
+    register_resources(router)?;
     router.at(
         "/module.wasm",
         get(StaticFileHandler::file(module, StaticFileConfig::default())),
@@ -33,11 +34,6 @@ pub(super) fn register(
             "/",
             "text/html; charset=utf-8",
             include_bytes!("../../web/index.html").as_slice(),
-        ),
-        (
-            "/app.js",
-            "text/javascript",
-            include_bytes!("../../web/app.js").as_slice(),
         ),
         (
             "/foundation-ui-runtime.js",
@@ -129,6 +125,49 @@ pub(super) fn register(
         ),
     ] {
         router.at(url, get(StaticAssetHandler::new(bytes, kind)))?;
+    }
+    Ok(())
+}
+
+#[cfg(not(debug_assertions))]
+#[derive(foundation_macros::EmbedDirectoryAs)]
+#[source = "$EWE_STAGED_RESOURCES/."]
+struct PackagedResources;
+
+fn register_resources(router: &mut Router<Arc<dyn Serve>>) -> Result<(), super::Error> {
+    #[cfg(debug_assertions)]
+    let public = std::env::current_exe()?
+        .parent()
+        .ok_or("Todo executable has no parent directory")?
+        .join("public")
+        .join(env!("CARGO_PKG_NAME"));
+    for name in include_str!(concat!(env!("OUT_DIR"), "/resource-names")).lines() {
+        let route = format!("/{name}");
+        #[cfg(debug_assertions)]
+        router.at(
+            &route,
+            get(StaticFileHandler::file(
+                public.join(name),
+                StaticFileConfig::default(),
+            )),
+        )?;
+        #[cfg(not(debug_assertions))]
+        {
+            use foundation_nostd::embeddable::DirectoryData;
+            let bytes = PackagedResources
+                .read_utf8_for(name)
+                .ok_or_else(|| format!("Missing packaged resource {name}"))?;
+            let content_type = match std::path::Path::new(name)
+                .extension()
+                .and_then(std::ffi::OsStr::to_str)
+            {
+                Some("js") => "text/javascript",
+                Some("svg") => "image/svg+xml",
+                Some("txt") => "text/plain",
+                _ => "application/octet-stream",
+            };
+            router.at(&route, get(StaticAssetHandler::new(bytes, content_type)))?;
+        }
     }
     Ok(())
 }
