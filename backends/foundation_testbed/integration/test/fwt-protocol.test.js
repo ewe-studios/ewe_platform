@@ -87,3 +87,16 @@ test("async case yields through schedule_timeout and reports on resolution", { s
   assert.equal(report.status, TestReports.PASS);
   assert.equal(report.message, "async_completes_after_yield");
 });
+
+test("a report delivered to a waiter stays readable after a trap (#587)", async () => {
+  const reports = new TestReports();
+  const pending = reports.next(); // the runner awaits the case report
+  reports.push(TestReports.FAIL, "case: panicked at bound");
+  const delivered = await pending;
+  // A trap that ends the event loop leaves no continuation to read `delivered`;
+  // `snapshot()` is what the driver reads then.
+  assert.deepEqual(reports.snapshot(), [delivered]);
+  // A new case clears the previous one's message.
+  reports.next(); // stays pending: this case delivered no report
+  assert.deepEqual(reports.snapshot(), []);
+});

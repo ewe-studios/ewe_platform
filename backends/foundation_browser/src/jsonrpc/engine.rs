@@ -17,56 +17,6 @@ use crate::runtime::ensure_runtime;
 /// A subscription to a protocol event method — a receiver of the event `params`.
 pub type EventSub = Receiver<Value>;
 
-/// Timeouts for the protocol channel.
-#[derive(Debug, Clone, Copy)]
-pub struct RpcConfig {
-    /// How long one command waits for its response. Default: 30 s.
-    pub call_timeout: Duration,
-    /// How long one socket read may block before the task re-polls its outbound
-    /// pipe. Default: 5 ms.
-    ///
-    /// The netio WebSocket task drains one outbound message per poll and does
-    /// not wake on a send (#610). A long read therefore adds its length to every
-    /// command. 5 ms bounds that delay and costs 200 polls per second per idle
-    /// connection. Raise it when #610 is fixed.
-    pub read_timeout: Duration,
-    /// The pause between idle polls when the socket has no data. Default: 1 ms.
-    pub sleep_timeout: Duration,
-}
-
-impl Default for RpcConfig {
-    fn default() -> Self {
-        Self {
-            call_timeout: Duration::from_secs(30),
-            read_timeout: Duration::from_millis(5),
-            sleep_timeout: Duration::from_millis(1),
-        }
-    }
-}
-
-impl RpcConfig {
-    /// Set the deadline for one command response.
-    #[must_use]
-    pub fn call_timeout(mut self, timeout: Duration) -> Self {
-        self.call_timeout = timeout;
-        self
-    }
-
-    /// Set how long one socket read may block.
-    #[must_use]
-    pub fn read_timeout(mut self, timeout: Duration) -> Self {
-        self.read_timeout = timeout;
-        self
-    }
-
-    /// Set the pause between idle polls.
-    #[must_use]
-    pub fn sleep_timeout(mut self, timeout: Duration) -> Self {
-        self.sleep_timeout = timeout;
-        self
-    }
-}
-
 type Pending = Arc<Mutex<HashMap<u64, SyncSender<Result<Value>>>>>;
 type Subs = Arc<Mutex<HashMap<String, Vec<Sender<Value>>>>>;
 
@@ -84,6 +34,79 @@ pub trait WireProtocol: Send + Sync {
     fn subscribe(&self, method: &str) -> EventSub;
 }
 
+/// Limits for one protocol connection.
+///
+/// Every field has a builder method and a documented default (owner rule 8).
+#[derive(Clone, Copy, Debug)]
+pub struct RpcEngineConfig {
+    call_timeout: Duration,
+    read_timeout: Duration,
+    idle_sleep: Duration,
+}
+
+impl Default for RpcEngineConfig {
+    fn default() -> Self {
+        Self {
+            // A local CDP call answers in under a second: `Target.createTarget`
+            // took 269 ms on Chrome 157, macOS. The 30 s budget covers a slow
+            // first paint and still fails a dead call in bounded time.
+            call_timeout: Duration::from_secs(30),
+            // The transport drains its outbound queue only between socket
+            // reads, so one blocking read must return often, or a queued
+            // command waits for the whole deadline. A 30 s read made every
+            // call wait 29.7 s (measured, spec 88 T4). 50 ms adds at most that
+            // much latency to a call that arrives during a quiet read.
+            read_timeout: Duration::from_millis(50),
+            // Back-off after the transport reports no message. The same 1 ms
+            // the engine used before the value became configuration.
+            idle_sleep: Duration::from_millis(1),
+        }
+    }
+}
+
+impl RpcEngineConfig {
+    /// Set the budget of one command.
+    #[must_use]
+    pub fn with_call_timeout(mut self, timeout: Duration) -> Self {
+        self.call_timeout = timeout;
+        self
+    }
+
+    /// Set how long one socket read may block before the reader drains its
+    /// outbound queue again. Keep it short: the transport writes queued frames
+    /// only between reads.
+    #[must_use]
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = timeout;
+        self
+    }
+
+    /// Set the pause after a read that reported no message.
+    #[must_use]
+    pub fn with_idle_sleep(mut self, sleep: Duration) -> Self {
+        self.idle_sleep = sleep;
+        self
+    }
+
+    /// The budget of one command.
+    #[must_use]
+    pub fn call_timeout(&self) -> Duration {
+        self.call_timeout
+    }
+
+    /// How long one socket read may block.
+    #[must_use]
+    pub fn read_timeout(&self) -> Duration {
+        self.read_timeout
+    }
+
+    /// The pause after a read that reported no message.
+    #[must_use]
+    pub fn idle_sleep(&self) -> Duration {
+        self.idle_sleep
+    }
+}
+
 /// JSON-RPC engine: one WebSocket connection, one reader thread, `id`→pending
 /// correlation, and a `method`→subscribers event bus.
 pub struct RpcEngine {
@@ -92,6 +115,8 @@ pub struct RpcEngine {
     pending: Pending,
     subs: Subs,
     stop: Arc<AtomicBool>,
+    alive: Arc<AtomicBool>,
+    last_reader_error: Arc<Mutex<Option<String>>>,
     reader: Option<JoinHandle<()>>,
     call_timeout: Duration,
 }
@@ -101,57 +126,77 @@ impl RpcEngine {
     ///
     /// # Errors
     /// [`BrowserError::Connect`] if the WebSocket handshake fails.
-    pub fn connect(ws_url: &str, call_timeout: Duration) -> Result<Self> {
-        Self::connect_with(
-            ws_url,
-            RpcConfig {
-                call_timeout,
-                ..RpcConfig::default()
-            },
-        )
-    }
-
-    /// Connect with explicit channel timeouts.
-    ///
-    /// # Errors
-    /// [`BrowserError::Connect`] if the WebSocket handshake fails.
-    pub(crate) fn connect_with(ws_url: &str, config: RpcConfig) -> Result<Self> {
+    pub fn connect(ws_url: &str, config: RpcEngineConfig) -> Result<Self> {
         ensure_runtime(None);
-        let RpcConfig {
-            call_timeout,
-            read_timeout,
+        let sleep_timeout = Duration::from_millis(1);
+        let (mut client, delivery) = WebSocketClient::connect(
+            SystemDnsResolver,
+            ws_url,
+            config.read_timeout,
             sleep_timeout,
-        } = config;
-        let (mut client, delivery) =
-            WebSocketClient::connect(SystemDnsResolver, ws_url, read_timeout, sleep_timeout)
-                .map_err(|e| BrowserError::Connect(e.to_string()))?;
+        )
+        .map_err(|e| BrowserError::Connect(e.to_string()))?;
 
         let pending: Pending = Arc::new(Mutex::new(HashMap::new()));
         let subs: Subs = Arc::new(Mutex::new(HashMap::new()));
         let stop = Arc::new(AtomicBool::new(false));
+        let alive = Arc::new(AtomicBool::new(true));
+        let last_reader_error: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
 
         let reader = {
             let pending = pending.clone();
             let subs = subs.clone();
             let stop = stop.clone();
+            let alive = alive.clone();
+            let last_reader_error = last_reader_error.clone();
+            let idle_sleep = config.idle_sleep;
             std::thread::Builder::new()
                 .name("cdp-reader".into())
                 .spawn(move || {
                     let mut iter = client.messages();
+                    let mut reason = String::from("stopped");
                     while !stop.load(Ordering::Relaxed) {
                         match iter.next() {
                             Some(Ok(WebSocketEvent::Message(WebSocketMessage::Text(txt)))) => {
                                 dispatch(&txt, &pending, &subs);
                             }
-                            Some(
-                                Ok(WebSocketEvent::Message(WebSocketMessage::Close(..))) | Err(_),
-                            )
-                            | None => break,
+                            Some(Ok(WebSocketEvent::Message(WebSocketMessage::Close(
+                                code,
+                                why,
+                            )))) => {
+                                reason = format!("close {code} {why}");
+                                break;
+                            }
+                            Some(Err(e)) => {
+                                reason = format!("read error: {e}");
+                                break;
+                            }
+                            None => {
+                                reason = "stream ended".to_string();
+                                break;
+                            }
                             // Skip / ping / pong / binary — keep polling, yield a touch.
-                            Some(Ok(_)) => std::thread::sleep(Duration::from_millis(1)),
+                            Some(Ok(_)) => std::thread::sleep(idle_sleep),
                         }
                     }
-                    tracing::debug!("cdp reader thread exiting");
+                    tracing::debug!(%reason, "cdp reader thread exiting");
+                    // Mark the connection closed BEFORE failing the waiters, so
+                    // a call that arrives now sees the flag and never waits.
+                    alive.store(false, Ordering::SeqCst);
+                    *last_reader_error
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(reason.clone());
+                    let drained: Vec<_> = pending
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .drain()
+                        .map(|(_, tx)| tx)
+                        .collect();
+                    for tx in drained {
+                        let _ = tx.send(Err(BrowserError::ConnectionLost {
+                            reason: reason.clone(),
+                        }));
+                    }
                 })
                 .map_err(|e| BrowserError::Connect(e.to_string()))?
         };
@@ -162,20 +207,45 @@ impl RpcEngine {
             pending,
             subs,
             stop,
+            alive,
+            last_reader_error,
             reader: Some(reader),
-            call_timeout,
+            call_timeout: config.call_timeout,
         })
+    }
+
+    /// The reason this connection is closed, or `None` while it is alive.
+    fn closed_reason(&self) -> Option<String> {
+        if self.alive.load(Ordering::SeqCst) {
+            return None;
+        }
+        Some(
+            self.last_reader_error
+                .lock()
+                .expect("reader error poisoned")
+                .clone()
+                .unwrap_or_else(|| "reader stopped".to_string()),
+        )
     }
 }
 
 /// Route one incoming frame: an `id` resolves a pending request; a `method`
 /// fans its `params` to subscribers.
 fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
+    tracing::trace!(frame = %txt, "cdp recv");
     let Ok(v) = serde_json::from_str::<Value>(txt) else {
         tracing::warn!("dropping non-JSON CDP frame");
         return;
     };
     if let Some(id) = v.get("id").and_then(Value::as_u64) {
+        tracing::debug!(
+            id,
+            session = v
+                .get("sessionId")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or(""),
+            "cdp recv response"
+        );
         let is_error =
             v.get("error").is_some() || v.get("type").and_then(Value::as_str) == Some("error");
         let result = if is_error {
@@ -207,6 +277,14 @@ fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
             let _ = tx.send(result);
         }
     } else if let Some(method) = v.get("method").and_then(Value::as_str) {
+        tracing::debug!(
+            method,
+            session = v
+                .get("sessionId")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or(""),
+            "cdp recv event"
+        );
         let params = v.get("params").cloned().unwrap_or(Value::Null);
         if let Some(list) = subs.lock().expect("subs poisoned").get(method) {
             for tx in list {
@@ -218,6 +296,11 @@ fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
 
 impl WireProtocol for RpcEngine {
     fn call(&self, method: &str, params: Value, session: Option<&str>) -> Result<Value> {
+        // A closed connection never answers. Fail now instead of waiting for
+        // the call deadline (invariant I6).
+        if let Some(reason) = self.closed_reason() {
+            return Err(BrowserError::ConnectionLost { reason });
+        }
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
         let mut frame = json!({ "id": id, "method": method, "params": params });
         if let Some(s) = session {
@@ -228,13 +311,29 @@ impl WireProtocol for RpcEngine {
             .lock()
             .expect("pending poisoned")
             .insert(id, tx);
-        self.delivery
+        // The reader marks the flag before it drains the waiters, so one of the
+        // two checks sees a close that races this call.
+        if let Some(reason) = self.closed_reason() {
+            self.pending.lock().expect("pending poisoned").remove(&id);
+            return Err(BrowserError::ConnectionLost { reason });
+        }
+        tracing::debug!(id, method, session = session.unwrap_or(""), "cdp send");
+        if let Err(e) = self
+            .delivery
             .send(WebSocketMessage::Text(frame.to_string()))
-            .map_err(|e| BrowserError::Connect(e.to_string()))?;
+        {
+            self.pending.lock().expect("pending poisoned").remove(&id);
+            return Err(BrowserError::ConnectionLost {
+                reason: format!("write failed: {e}"),
+            });
+        }
         if let Ok(result) = rx.recv_timeout(self.call_timeout) {
             result
         } else {
             self.pending.lock().expect("pending poisoned").remove(&id);
+            if let Some(reason) = self.closed_reason() {
+                return Err(BrowserError::ConnectionLost { reason });
+            }
             Err(BrowserError::Timeout {
                 op: method.to_string(),
                 after_ms: u64::try_from(self.call_timeout.as_millis()).unwrap_or(u64::MAX),

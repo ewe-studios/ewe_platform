@@ -69,8 +69,8 @@ when you do need it. (Full reasoning: [internals](./embedded-js-internals.md#the
 4. **run** (`embedded_js::run_staged_harness`) — evaluate `runner.mjs` on the
    embedded runtime, drive the event loop to completion, and read back the result.
 
-Steps 1–3 are shared with the browser runner (`wasm-testbed web`); only step 4
-differs (embedded V8 vs Playwright in a real browser).
+Steps 1–3 are shared with the browser runner (`wasm-testbed browser`); only step 4
+differs (embedded V8 vs Chrome over the DevTools Protocol).
 
 ## The runtime, in three parts
 

@@ -1681,21 +1681,38 @@ export class TestReports {
   constructor() {
     this.reports = [];
     this.waiters = [];
+    // The last report delivered to a waiter. A wasm trap can end the event loop
+    // between the delivery and the awaiting continuation, so this copy keeps the
+    // message readable after the trap (issue #587).
+    this.last = null;
   }
 
   /** Record a report (called by the host_report import). */
   push(status, message) {
     const report = { status, message };
     const waiter = this.waiters.shift();
-    if (waiter) waiter(report);
-    else this.reports.push(report);
+    if (waiter) {
+      this.last = report;
+      waiter(report);
+    } else this.reports.push(report);
   }
 
   /** Resolve with the next report — already-buffered or yet to arrive. */
   next() {
     const buffered = this.reports.shift();
     if (buffered) return Promise.resolve(buffered);
+    // A new case starts here: a report it does not deliver must not show the
+    // previous case's message in a post-trap diagnostic.
+    this.last = null;
     return new Promise((resolve) => this.waiters.push(resolve));
+  }
+
+  /**
+   * Every report not yet consumed, plus the last one delivered to a waiter.
+   * The runner's post-trap diagnostic reads this (issue #587).
+   */
+  snapshot() {
+    return this.last ? [...this.reports, this.last] : [...this.reports];
   }
 
   /** Number of buffered (unconsumed) reports. */

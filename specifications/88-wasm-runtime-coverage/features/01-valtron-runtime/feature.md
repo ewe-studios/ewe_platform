@@ -6,7 +6,7 @@ priority: "high"
 depends_on: ["00-executors"]
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-15
+last_updated: 2026-11-16
 author: "Main Agent"
 model: "sonnet"
 tasks:
@@ -211,7 +211,7 @@ Scenario: The suite proves it can fail
 | T2 | Add the shared scenarios and wire them into both suites | `tests/valtron/wasm_wake_support.rs`, `tests/valtron/wasm_js_yield_integration.rs`, `integration/wasm_tests/src/lib.rs` | each new scenario passes on Chromium (owned) and Deno (bindgen) |
 | T3 | Add the owned-only cases for the owned yielder and ABI | `integration/wasm_tests/src/lib.rs` | eight new cases pass on the `deno` and `browser` runners |
 | T4 | Prove `#[task]` on a JS-hosted wasm build | `tests/valtron/state_task*.rs`, `tests/valtron/mod.rs` | two cases pass on deno and wrangler |
-| T5 | Run the `dual!` async-API cases on every host (#575) | `mise.toml`, `tests/valtron/async_first_api.rs` | 19 cases pass on Chromium and Deno |
+| T5 | Run the `dual!` async-API cases on Chromium (#575; feature 00 closed the Deno half in T8) | `mise.toml`, `tests/valtron/async_first_api.rs` | 19 cases pass on Chromium and Deno |
 | T6 | Record the R14 break for each host | the feature's notes, `LEARNINGS.md`, issue #575 | the red output is in the record, and the break is reverted |
 
 Order: T1 first, because an unrun target hides compile errors. T2 and T3 are one design;

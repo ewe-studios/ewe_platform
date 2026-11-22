@@ -181,3 +181,64 @@ fn embedded_runs_sample_fixture_end_to_end() {
             .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored")
     );
 }
+
+/// A trap inside a host callback ends the event loop before the runner prints its
+/// summary. The run must still name the case and keep the lines it produced
+/// (issue #587).
+#[test]
+fn a_trap_in_a_host_callback_keeps_the_verdicts_and_names_the_case() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    std::fs::write(
+        dir.path().join("runner.js"),
+        r#"
+// The page-side runner exposes the case in flight; the driver reads it after
+// the event loop fails.
+globalThis.__FWT_DIAGNOSTICS__ = () => ({
+  case: "a_case_in_flight",
+  reports: [{ status: 1, message: "panicked at bound: polled while parked" }],
+  output: "",
+});
+// One verdict reported after the first case, as the runner does.
+Deno.core.ops.op_fwt_report(JSON.stringify({
+  passed: 1, failed: 0, ignored: 0, output: "ok      a_case\n",
+}));
+// The trap that escapes every JS frame the runner holds.
+setTimeout(() => {
+  throw new WebAssembly.RuntimeError("unreachable");
+}, 1);
+"#,
+    )
+    .expect("write runner");
+
+    let report = run_staged_harness(dir.path()).expect("the driver reports instead of failing");
+
+    assert_eq!(report.passed, 1, "output: {}", report.output);
+    assert_eq!(
+        report.failed, 1,
+        "a dead run is a failure: {}",
+        report.output
+    );
+    assert_eq!(report.exit_code(), 1);
+    assert!(
+        report.output.contains("ok      a_case"),
+        "the lines reported before the trap stay: {}",
+        report.output
+    );
+    assert!(
+        report.output.contains("runner error:"),
+        "the error is named: {}",
+        report.output
+    );
+    assert!(
+        report.output.contains("failing case: a_case_in_flight"),
+        "the case in flight is named: {}",
+        report.output
+    );
+    assert!(
+        report
+            .output
+            .contains("panicked at bound: polled while parked"),
+        "the panic hook's report is kept: {}",
+        report.output
+    );
+}
