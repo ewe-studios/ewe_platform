@@ -35,7 +35,7 @@ function print(line) {
   }
 }
 
-function report(passed, failed, ignored) {
+function sendReport(passed, failed, ignored) {
   // Embedded: hand the structured result to Rust. Browser: the summary line
   // already printed into #output is the verdict (the page can't set an exit code).
   if (ops?.op_fwt_report) {
@@ -43,11 +43,25 @@ function report(passed, failed, ignored) {
   }
 }
 
+// The case in flight, so a trap that escapes `runCase` still names itself.
+// The panic hook reports a FAIL into `rt.testReports` before the abort trap;
+// that report is lost if the trap leaves no JS frame to catch it (issue #587).
+let liveRun = null;
+
+// What the embedded driver reads when the event loop ends with an error.
+// `snapshot()` includes the report a trap cut off between the hook's delivery
+// and the awaiting continuation (issue #587).
+globalThis.__FWT_DIAGNOSTICS__ = () => ({
+  case: liveRun?.name ?? null,
+  reports: liveRun?.rt?.testReports?.snapshot() ?? [],
+  output: out.join("\n"),
+});
+
 async function runCase(moduleCompiled, testCase) {
   const rt = new FoundationWasm();
-  // Async instantiate for the same 8 MB main-thread rule as the compile above.
-  // A compiled module resolves to the instance; only buffer input resolves to
-  // `{ module, instance }`.
+  liveRun = { rt, name: testCase.name };
+  // Async instantiate for the same reason as the compile above: Chrome
+  // refuses the synchronous form for a module over 8 MiB on the main thread.
   const instance = await WebAssembly.instantiate(moduleCompiled, { abi: rt.web_abi });
   rt.init(instance);
 
@@ -80,11 +94,21 @@ async function runCase(moduleCompiled, testCase) {
 }
 
 async function main() {
-  const cases = JSON.parse(new TextDecoder().decode(await loadBytes(here("./cases.json"))));
-  // Async compile: Chrome refuses a synchronous compile on the main thread for a
-  // buffer larger than 8 MB (a debug wasm is larger). `WebAssembly.compile` works
-  // on every host, embedded Deno included.
-  const moduleCompiled = await WebAssembly.compile(await loadBytes(here("./module.wasm")));
+  const decoder = new TextDecoder();
+  const cases = JSON.parse(decoder.decode(await loadBytes(here("./cases.json"))));
+  // The host writes harness.json with the endpoint a case may call. Set the
+  // global before the first case runs (spec 88 invariant I5).
+  try {
+    const harness = JSON.parse(decoder.decode(await loadBytes(here("./harness.json"))));
+    if (harness.baseUrl) globalThis.__FWT_BASE_URL__ = harness.baseUrl;
+  } catch (error) {
+    console.log(`no harness.json: ${error?.message ?? error}`);
+  }
+  // Async compile: Chrome refuses a synchronous WebAssembly.Module for a buffer
+  // over 8 MiB on the main thread. The foundation_core module is larger.
+  const moduleCompiled = await WebAssembly.compile(
+    await loadBytes(here("./module.wasm")),
+  );
 
   let passed = 0;
   let failed = 0;
@@ -102,14 +126,17 @@ async function main() {
       print(`FAILED  ${testCase.name}`);
       if (report.message) print(`        ${report.message}`);
     }
+    // Report after each case: a later trap that escapes the event loop must not
+    // lose the verdicts and lines already produced (issue #587).
+    sendReport(passed, failed, ignored);
   }
 
   const status = failed === 0 ? "ok" : "FAILED";
   print(`test result: ${status}. ${passed} passed; ${failed} failed; ${ignored} ignored`);
-  report(passed, failed, ignored);
+  sendReport(passed, failed, ignored);
 }
 
 main().catch((error) => {
   print(`test result: FAILED. runner error: ${error?.stack ?? error}`);
-  report(0, 1, 0);
+  sendReport(0, 1, 0);
 });

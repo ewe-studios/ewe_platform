@@ -103,9 +103,9 @@ stdout + read the code. In-process there *is* no subprocess and no `process.exit
 the driver reads after the loop drains), and `HarnessReport::exit_code()` derives the
 verdict. No parsing, no exit-code plumbing — engine-agnostic and robust.
 
-The same `runner.mjs` still works in a real browser: it feature-detects
+The same `runner.js` still works in a real browser: it feature-detects
 `Deno.core.ops` and falls back to `fetch` (for bytes) + the `#output` summary line
-(the verdict Playwright reads). One script, two hosts.
+(the verdict the CDP browser driver reads). One script, two hosts.
 
 ## API drift notes (deno_core 0.404)
 
@@ -129,4 +129,4 @@ Things that bit us and will bite the next bump:
 | `ReportSink(Rc<RefCell<Option<String>>>)` | the cell the report op writes; the driver keeps a clone |
 | `tokio_runtime()` | the current-thread + time executor for the event loop |
 | `load_entry` / `evaluate` | resolve+load the ESM entry, then `mod_evaluate` + `run_event_loop` + await |
-| `run_staged_harness` | the harness driver: build runtime (+ `foundation_fwt`), run `runner.mjs`, read the report |
+| `run_staged_harness` | the harness driver: build runtime (+ `foundation_fwt`), run `runner.js`, read the report |

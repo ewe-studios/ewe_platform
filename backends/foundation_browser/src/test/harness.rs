@@ -101,7 +101,8 @@ impl TestConfig {
             extra_args,
             ctx: Some(self.ctx.clone()),
             wait: crate::pause::WaitConfig::default(),
-            rpc: crate::jsonrpc::RpcConfig::default(),
+            engine: crate::jsonrpc::RpcEngineConfig::default(),
+            navigate_timeout: std::time::Duration::from_secs(30),
         }
     }
 
