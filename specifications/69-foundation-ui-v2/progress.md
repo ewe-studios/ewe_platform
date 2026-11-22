@@ -858,3 +858,11 @@ Issue #692 tracks a separate Android dialog test failure. Physical phone coverag
 The shared todo server publishes the open count. Connected clients also need the changed rows.
 The sync repair owner handles the framework changes and the browser-to-phone test.
 Port 8080 keeps the current session and its data during this work.
+
+## Graphics worker shutdown
+
+The base Linux Advanced Micro Devices 64-bit (AMD64) test process exited with status 139 in four default-concurrency runs.
+A serial run on the same binary passed.
+The fix adds an asynchronous shutdown method and a test for concurrent waiters.
+The fixed Linux AMD64 test suite passed its first run with seven passes and three hardware tests skipped.
+The repeat runs, full crate checks, and native Linux 64-bit Arm (ARM64) checks remain open.

@@ -815,3 +815,10 @@ A count update proves delivery of one value. It cannot verify the contents of a 
 Test the row title and completion state on another client after each change.
 The current snapshot contains visible items. It omits the last allocated identifier and retained delivery history.
 A server restart loses that state.
+
+## Graphics worker shutdown
+
+The Linux graphics test process can exit with a segmentation fault after it reports all test results.
+A native graphics worker can still release its Vulkan resources after the work queue closes.
+Wait for the worker to release its resources with `shutdown().await` before the host exits.
+The completion signal wakes every service clone. [Issue 696](https://github.com/ewe-studios/ewe_platform/issues/696)
