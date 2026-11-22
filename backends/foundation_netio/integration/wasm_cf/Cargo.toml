@@ -1,0 +1,34 @@
+# Standalone wasm test crate for the Durable Object stub client of
+# foundation_netio (spec 85 task T5). Run it inside workerd on the real local
+# bindings:
+#
+#   cargo run -p foundation_testbed --no-default-features --features wasm \
+#     --profile uat --bin wasm-testbed -- test bindgen-wrangler \
+#     backends/foundation_netio/integration/wasm_cf
+#
+# The testbed worker binds `TEST_DO` and passes the real `env` as
+# `globalThis.__CF_TEST_ENV__`.
+[package]
+name = "foundation_netio_wasm_cf_tests"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+foundation_netio = { path = "../..", default-features = false, features = ["wasm-fetch", "cloudflare"] }
+foundation_core = { path = "../../../foundation_core", default-features = false }
+# The stub client takes `worker::Env`; the test names that type.
+worker = { version = "0.8.3", default-features = false }
+# Pinned to the versions foundation_testbed pins and the testbed's CI installs:
+# the wasm-bindgen CLI must be >= the crate it processes (0.2.126 exactly here).
+wasm-bindgen = "=0.2.126"
+wasm-bindgen-futures = "=0.4.76"
+js-sys = "=0.3.103"
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.76"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]

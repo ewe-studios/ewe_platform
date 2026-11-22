@@ -54,6 +54,8 @@ mod stream_iterators;
 mod targeted_wake;
 mod wake_registry;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
+#[cfg(target_family = "wasm")]
+mod js_stream_park;
 #[cfg(not(all(
     target_family = "wasm",
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")

@@ -66,6 +66,23 @@ async function echo(request) {
   });
 }
 
+// A Durable Object for the netio `StubHttpClient` test (spec 85 T5). It
+// echoes the request body, so the test proves the stub round trip.
+export class TestDurableObject {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request) {
+    const body = await request.text();
+    return new Response(body, {
+      status: 200,
+      headers: { "content-type": "text/plain" },
+    });
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

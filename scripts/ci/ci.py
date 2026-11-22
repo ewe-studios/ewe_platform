@@ -774,11 +774,16 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         # break directly, before the harness starts.
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "--manifest-path", "backends/foundation_db/integration/wasm_cf/Cargo.toml"],
+        # Spec 85 T5: the Durable Object stub client on the real local bindings.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_netio/integration/wasm_cf/Cargo.toml"],
         # This package sets fmt = "off" (the workspace fmt step cannot see a
         # crate outside the workspace), so the standalone crate's formatting
         # is checked here.
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_netio/integration/wasm_cf/Cargo.toml", "--check"],
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
         ["cargo", "fmt", "--manifest-path",
@@ -812,6 +817,8 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         # bindings (`wrangler dev --local`). The REST clients use the same
         # local D1/R2 state through the explorer API.
         ["mise", "run", "test:wasm-testbed:wrangler"],
+        # Spec 85 T5: the Durable Object stub client on the real local bindings.
+        ["mise", "run", "test:wasm-testbed:wrangler-netio"],
         # The owned browser host, then the wasm-bindgen web host on
         # foundation_core's 34 cases (spec 88 T9, #586).
         ["mise", "run", "test:wasm-testbed:browser"],

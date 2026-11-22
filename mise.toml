@@ -1142,6 +1142,15 @@ cargo run -p foundation_testbed --no-default-features --features wasm --profile 
 echo "✓ real-binding wasm stores green"
 """
 
+[tasks."test:wasm-testbed:wrangler-netio"]
+alias = "test-wasm-testbed-wrangler-netio"
+description = "The Durable Object stub client on the real local bindings (`wrangler dev --local`) — spec 85 T5"
+run = """
+echo "Durable Object stub client on the real local bindings..."
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-wrangler backends/foundation_netio/integration/wasm_cf
+echo "✓ Durable Object stub client green"
+"""
+
 [tasks."test:nostd:wasm"]
 alias = "test-nostd-wasm"
 description = "WASM compilation tests for foundation_nostd"
@@ -1217,28 +1226,6 @@ cargo check --package foundation_wasm --features wasi --target wasm32-wasip1
 echo "  → foundation_ai (wasm32-wasip1)"
 cargo check --package foundation_ai --target wasm32-wasip1
 echo "✓ Wasm target matrix verified (4 targets)"
-"""
-
-[tasks."test:wasm:node"]
-alias = "wasm-tests"
-description = "Build and run WASM integration tests with Node.js"
-depends = ["build:tests"]
-run = """
-#!/usr/bin/env bash
-for dir in ./tests/integrations/*/; do
-    echo "Running WASM test: $(basename "$dir")"
-    node "${dir}/index.node.js"
-done
-"""
-
-[tasks."test:wasm:node-single"]
-alias = "wasm-test"
-description = "Build and run a single WASM integration test"
-run = """
-#!/usr/bin/env bash
-TARGET_TEST="${TARGET_TEST:-tests_callfunction}"
-mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST}" TEST_PACKAGE="${TARGET_TEST}"
-node "./tests/integrations/${TARGET_TEST}/index.node.js"
 """
 
 # =============================================================================
