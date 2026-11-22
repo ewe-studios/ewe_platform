@@ -57,6 +57,7 @@ pub enum EmbeddingError {
     ModelNotFound(String),
     Routing(RouterError),
     Generation(GenerationError),
+    Effect(String),
     NoEmbeddingInOutput,
 }
 
@@ -78,6 +79,7 @@ impl core::fmt::Display for EmbeddingError {
             Self::ModelNotFound(id) => write!(f, "model not found in router: {id}"),
             Self::Routing(e) => write!(f, "routing error: {e}"),
             Self::Generation(e) => write!(f, "generation error: {e}"),
+            Self::Effect(e) => write!(f, "effect environment error: {e}"),
             Self::NoEmbeddingInOutput => write!(f, "model output contained no embedding"),
         }
     }
@@ -285,8 +287,12 @@ fn checked_dim(dim: usize) -> Result<u16, EmbeddingError> {
     u16::try_from(dim).map_err(|_| EmbeddingError::DimensionOverflow { value: dim })
 }
 
-fn make_embedding_interaction(text: &str, ctx: &Ctx) -> ModelInteraction {
-    ModelInteraction {
+fn make_embedding_interaction(
+    text: &str,
+    ctx: &Ctx,
+) -> Result<ModelInteraction, foundation_context::env::EnvError> {
+    let env = ctx.require_env()?;
+    Ok(ModelInteraction {
         system_prompt: None,
         soul: None,
         tools_shed: ToolDeclarations::default(),
@@ -294,7 +300,7 @@ fn make_embedding_interaction(text: &str, ctx: &Ctx) -> ModelInteraction {
         tool_choice: None,
         messages: vec![
             Messages::Assistant {
-                id: foundation_compact::ids::new_scru128(),
+                id: env.ids().next_id(),
                 model: ModelId::Name("embedding".to_string(), None),
                 timestamp: ctx.clock().wall_now(),
                 usage: zero_usage(),
@@ -309,7 +315,7 @@ fn make_embedding_interaction(text: &str, ctx: &Ctx) -> ModelInteraction {
                 metadata: None,
             },
             Messages::User {
-                id: foundation_compact::ids::new_scru128(),
+                id: env.ids().next_id(),
                 role: MessageRole::User,
                 content: UserModelContent::Text(TextContent {
                     content: text.to_string(),
@@ -318,7 +324,7 @@ fn make_embedding_interaction(text: &str, ctx: &Ctx) -> ModelInteraction {
                 signature: None,
             },
         ],
-    }
+    })
 }
 
 impl CachedEmbeddingProvider {
@@ -396,7 +402,8 @@ impl CachedEmbeddingProvider {
         let mid = ModelId::Name(model_id.to_string(), None);
         let model: BoxModel = self.router.get_model(&mid)?;
 
-        let interaction = make_embedding_interaction(text, &self.ctx);
+        let interaction = make_embedding_interaction(text, &self.ctx)
+            .map_err(|error| EmbeddingError::Effect(error.to_string()))?;
         let results = model.generate_async(interaction, None).await?;
 
         let (dimensions_raw, values) = results

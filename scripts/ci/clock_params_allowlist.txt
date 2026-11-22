@@ -24,3 +24,16 @@ backends/foundation_macros/src/valtron_entry.rs  # macro-generated host entry po
 backends/foundation_reactor/src/poll/sys/unix/selector/epoll.rs  # reactor poll timing
 backends/foundation_reactor/src/poll/sys/unix/selector/kqueue.rs  # reactor poll timing
 backends/foundation_reactor/src/poll/sys/unix/selector/uring.rs  # reactor poll timing
+
+# The migration runner keeps the clock it stamps rows with; a spec 76 follow-up
+# moves it onto Ctx.
+backends/foundation_db/src/core/schema/migrations.rs  # migration runner clock
+
+# Effects and the deterministic simulation harness build the first Ctx.
+backends/foundation_core/src/env.rs  # host Ctx example in a doc comment
+backends/foundation_testing/src/dst.rs  # DST harness builds the simulated clock
+backends/foundation_auth/src/client_auth/cloudflare.rs  # spec 87 TLS provider clock handle
+backends/foundation_auth/src/client_auth/mtls.rs  # spec 87 TLS provider clock handle
+backends/foundation_auth/src/mtls/time.rs  # rustls TimeProvider adapter
+backends/foundation_auth/src/pki/mod.rs  # spec 87 CA issuance clock handle
+backends/foundation_auth/src/trust/clients.rs  # spec 87 last-seen clock handle

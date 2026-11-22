@@ -14,7 +14,7 @@
 
 use std::io::Read;
 use std::net::TcpListener;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
@@ -22,7 +22,7 @@ use std::time::Duration;
 use foundation_compact::time::unix_millis;
 use foundation_context::Ctx;
 
-use crate::cdp::launch::{Browser, LaunchConfig};
+use crate::cdp::launch::{resolve_browser, Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};
 use crate::pause::{pause, WaitConfig};
 
@@ -41,7 +41,7 @@ impl BrowserProcess {
     /// [`BrowserError::BrowserNotInstalled`] if the binary is missing,
     /// [`BrowserError::Launch`] on spawn/discovery failure.
     pub fn launch(config: &LaunchConfig, ctx: &Ctx) -> Result<Self> {
-        let binary = resolve_binary(config)?;
+        let binary = resolve_browser(config)?;
         let profile_dir = unique_profile_dir(ctx);
         std::fs::create_dir_all(&profile_dir)?;
         match config.browser {
@@ -53,7 +53,7 @@ impl BrowserProcess {
     /// Chromium: `--remote-debugging-port=0` + temp profile; discover the CDP WS
     /// from the `DevToolsActivePort` file Chromium writes when ready.
     fn launch_chromium(
-        binary: &str,
+        binary: &Path,
         config: &LaunchConfig,
         profile_dir: PathBuf,
         ctx: &Ctx,
@@ -83,7 +83,7 @@ impl BrowserProcess {
     /// engine connect retries while Firefox starts listening.) Chromium-shaped
     /// `extra_args` are not applied to Firefox.
     fn launch_firefox(
-        binary: &str,
+        binary: &Path,
         config: &LaunchConfig,
         profile_dir: PathBuf,
         ctx: &Ctx,
@@ -140,13 +140,13 @@ impl Drop for BrowserProcess {
 }
 
 /// Spawn the browser with stdio silenced.
-fn spawn(binary: &str, args: &[String]) -> Result<Child> {
+fn spawn(binary: &Path, args: &[String]) -> Result<Child> {
     Command::new(binary)
         .args(args)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
-        .map_err(|e| BrowserError::Launch(format!("spawn {binary}: {e}")))
+        .map_err(|e| BrowserError::Launch(format!("spawn {}: {e}", binary.display())))
 }
 
 /// Kill+reap a child and remove its profile, returning the original error.
@@ -197,37 +197,6 @@ fn free_port() -> Result<u16> {
         .map_err(|e| BrowserError::Launch(format!("read free port: {e}")))?
         .port();
     Ok(port)
-}
-
-/// Resolve the browser binary: `*_BIN` env var, then candidates on `PATH`.
-fn resolve_binary(config: &LaunchConfig) -> Result<String> {
-    let browser = config.browser;
-    if let Ok(path) = std::env::var(browser.bin_env()) {
-        if !path.is_empty() {
-            return Ok(path);
-        }
-    }
-    for candidate in browser.binaries() {
-        if which(candidate).is_some() {
-            return Ok((*candidate).to_string());
-        }
-    }
-    Err(BrowserError::BrowserNotInstalled {
-        binary: browser.binaries()[0].to_string(),
-        mise_task: browser.mise_task().to_string(),
-    })
-}
-
-/// Minimal `which`: scan `PATH` for an executable file.
-fn which(name: &str) -> Option<PathBuf> {
-    let path = std::env::var_os("PATH")?;
-    for dir in std::env::split_paths(&path) {
-        let candidate = dir.join(name);
-        if candidate.is_file() {
-            return Some(candidate);
-        }
-    }
-    None
 }
 
 /// A counter that keeps two names from the same millisecond different.

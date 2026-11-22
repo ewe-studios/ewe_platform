@@ -1,3 +1,5 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
 #![allow(unused_imports)]
 //! Integration tests for `HuggingFaceCandleProvider`.
 //!
@@ -50,9 +52,12 @@ fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 /// Test `HuggingFaceCandleProvider` `repo_id` parsing.

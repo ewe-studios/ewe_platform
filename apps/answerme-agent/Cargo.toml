@@ -11,7 +11,7 @@ keywords.workspace = true
 
 [dependencies]
 foundation_ai = {
-    path="../../backends/foundation_ai", version = "0.0.9",
+    path="../../backends/foundation_ai", version = "0.0.10",
     features=["multi"],
 }
 foundation_compact = { path = "../../backends/foundation_compact" }

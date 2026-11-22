@@ -291,7 +291,7 @@ impl<S: CredentialStore> SessionManager<S> {
                 .signer
                 .lock()
                 .expect("signer lock")
-                .verify(&session.token.get(), token)
+                .verify(session.token.expose(), token)
         {
             return Ok(None);
         }

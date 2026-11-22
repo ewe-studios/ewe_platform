@@ -96,8 +96,7 @@ impl ToolCallSignature {
     pub fn from_tool_call(name: &str, args: &Option<ToolArguments>) -> Self {
         let mut keys: Vec<String> = args
             .as_ref()
-            .map(|m| m.keys().cloned().collect())
-            .unwrap_or_default();
+            .map_or_default(|m| m.keys().cloned().collect());
         keys.sort();
 
         let mut hasher = foundation_compact::hash::Hasher::default();

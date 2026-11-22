@@ -82,7 +82,7 @@ async fn checksum_verification_can_be_off() {
     let runner = MigrationRunner::from_static(&CHANGED_SQL)
         .with_config(MigrationConfig::default().with_verify_checksums(false));
     let summary = runner.run_async(&EmptyFs::new(), &store).await.unwrap();
-    assert!(summary.applied.is_empty());
+    assert_eq!(summary.applied, Vec::new());
 }
 
 #[valtron_test]

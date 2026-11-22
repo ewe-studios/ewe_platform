@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! MTP end-to-end speculative-generation integration test (spec-51 Phase 2).
 //!
 //! WHY: Phase 2 wires the C++ `common/speculative.h` engine (via
@@ -74,9 +77,12 @@ fn hello_interaction() -> ModelInteraction {
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 /// End-to-end: Gemma 4 E2B + MTP head → non-empty generated text.

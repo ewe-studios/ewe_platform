@@ -540,13 +540,15 @@ impl JwtToken {
     /// Get the refresh token if available.
     #[must_use]
     pub fn refresh_token(&self) -> Option<String> {
-        self.refresh_token.as_ref().map(ConfidentialText::get)
+        self.refresh_token
+            .as_ref()
+            .map(|token| token.expose().to_owned())
     }
 
     /// Get the access token.
     #[must_use]
     pub fn access_token(&self) -> String {
-        self.token.get()
+        self.token.expose().to_owned()
     }
 }
 

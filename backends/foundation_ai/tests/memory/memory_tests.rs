@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 use foundation_ai::agentic::memory::*;
 use foundation_ai::agentic::memory_coordinator::MemoryCoordinator;
 use foundation_ai::agentic::memory_store::KvMemoryStore;
@@ -18,14 +21,17 @@ fn setup() -> (
     let coordinator = MemoryCoordinator::new(kv_store, doc_store);
     let ledger = TokenLedger::new();
 
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 7))
+        .expect("the test Env");
     let hierarchy = MemoryHierarchy::new(
         session_id,
         coordinator,
         ledger.clone(),
         MemoryConfig::default(),
-        foundation_context::Ctx::fixed(std::sync::Arc::new(
-            foundation_context::MonotonicClock::new(),
-        )),
+        ctx,
     );
     (hierarchy, ledger)
 }

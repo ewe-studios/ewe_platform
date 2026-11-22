@@ -24,10 +24,10 @@ metadata:
   tools: []
 has_features: true
 has_fundamentals: true
-builds_on: "specifications/80-platform-prerequisites"
+builds_on: "specifications/completed/80-platform-prerequisites"
 related_specs:
   - "specifications/77-foundation-platform-sandbox"
-  - "specifications/80-platform-prerequisites"
+  - "specifications/completed/80-platform-prerequisites"
   - "specifications/81-foundation-auth"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/78-manifest-contract"

@@ -18,7 +18,7 @@ wasmtime = ["dep:foundation_wasmtime"]
 tauri = { version = "2.11.5", features = [] }
 
 # Embedded assets (EmbeddableDirectory trait + #[derive(EmbedDirectoryAs)])
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 
 # The injected clock every platform wall time comes from (spec 70 feature 134).
 foundation_core = { path = "../foundation_core", version = "0.0.23" }

@@ -51,32 +51,10 @@ use crate::shared::transport::BoxFuture;
 
 /// The single normalized auth result.
 ///
-/// Authenticators produce it; the authz layer reads it.
-#[derive(Clone, Debug)]
-pub struct AuthInfo {
-    /// Principal identity — subject, scopes, roles.
-    pub context: AuthContext,
-    /// Raw artifacts: `VerifiedClaims`, session object, `PeerCertificates`, ...
-    pub artifacts: Extensions,
-}
-
-impl AuthInfo {
-    /// Create a new auth info with the given context and empty artifacts.
-    #[must_use]
-    pub fn new(context: AuthContext) -> Self {
-        Self {
-            context,
-            artifacts: Extensions::new(),
-        }
-    }
-
-    /// Add a typed artifact to the auth info.
-    #[must_use]
-    pub fn with_artifact<T: Send + Sync + 'static>(mut self, artifact: T) -> Self {
-        self.artifacts.insert(artifact);
-        self
-    }
-}
+/// The type lives in `foundation_auth` (spec 86), so the sandbox service and
+/// the agent RPC server share it. This re-export keeps the connectrpc path and
+/// the rest of the auth module unchanged.
+pub use foundation_auth::AuthInfo;
 
 /// Retrieve the [`AuthInfo`] from a per-call [`RpcCtx`].
 ///

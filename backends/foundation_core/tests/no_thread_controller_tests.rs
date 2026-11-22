@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `NoThreadController::yield_for` really waits (native, single-threaded
 //! executor).
 //!

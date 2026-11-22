@@ -62,9 +62,9 @@ impl AuthToken {
                 access_token,
                 token_type,
                 ..
-            } => Some(format!("{token_type} {}", access_token.get())),
-            Self::Jwt { token, .. } => Some(format!("Bearer {}", token.get())),
-            Self::ApiKey { key } => Some(format!("Bearer {}", key.get())),
+            } => Some(format!("{token_type} {}", access_token.expose())),
+            Self::Jwt { token, .. } => Some(format!("Bearer {}", token.expose())),
+            Self::ApiKey { key } => Some(format!("Bearer {}", key.expose())),
             Self::Session { .. } => None,
         }
     }
@@ -112,11 +112,15 @@ impl From<AuthCredential> for AuthToken {
                 client_id,
                 client_secret,
             } => Self::ApiKey {
-                key: ConfidentialText::new(format!("{}:{}", client_id.get(), client_secret.get())),
+                key: ConfidentialText::new(format!(
+                    "{}:{}",
+                    client_id.expose(),
+                    client_secret.expose()
+                )),
             },
             AuthCredential::UsernameAndPassword { username, password } => {
                 use base64::{engine::general_purpose::STANDARD, Engine};
-                let encoded = STANDARD.encode(format!("{username}:{}", password.get()));
+                let encoded = STANDARD.encode(format!("{username}:{}", password.expose()));
                 Self::ApiKey {
                     key: ConfidentialText::new(format!("Basic {encoded}")),
                 }

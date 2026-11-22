@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `WireGuard` overlay HTTP integration test (spec-55, F11).
 //!
 //! Proves the full pipeline: `WgNode` mesh → `OverlayAcceptor` → `HttpServer` →

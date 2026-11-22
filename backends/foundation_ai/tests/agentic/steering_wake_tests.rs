@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The steering readinesses wake a parked task on a push (spec 70 feature 81).
 //!
 //! WHY: the steering queues were plain `ConcurrentQueue`s, so a task parked on

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The `agent` tool (sub-agent delegation): definitions, argument checks and
 //! the start / check / result / pause / resume / stop cycle over a mock
 //! provider. Moved here from the inline module in `src/agentic/tools/agent.rs`.
@@ -107,9 +110,12 @@ fn poll_until_done(t: &AgentTool<D, M>, id: &str, max_iters: usize) -> Option<se
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 #[test]

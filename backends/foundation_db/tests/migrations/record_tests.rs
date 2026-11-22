@@ -41,7 +41,7 @@ async fn an_unknown_group_is_reported() {
 
     let summary = runner.run_async(&EmptyFs::new(), &store).await.unwrap();
     assert_eq!(summary.unknown_groups, vec!["tenant_2"]);
-    assert!(summary.applied.is_empty());
+    assert_eq!(summary.applied, Vec::new());
 }
 
 #[valtron_test]

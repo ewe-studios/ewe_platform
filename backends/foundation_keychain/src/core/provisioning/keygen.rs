@@ -1,6 +1,6 @@
 //! SSH key generation + at-rest `age` encryption (feature 009, native).
 
-use std::io::{Read, Write};
+use std::io::Write;
 
 use age::secrecy::SecretString;
 use base64::engine::general_purpose::STANDARD;
@@ -53,7 +53,8 @@ pub fn generate(key_type: &str, comment: &str) -> AppResult<GeneratedKey> {
 ///
 /// Returns an error if the operation fails.
 pub fn encrypt(master_key: &str, plaintext: &[u8]) -> AppResult<String> {
-    let encryptor = age::Encryptor::with_user_passphrase(SecretString::from(master_key));
+    let encryptor =
+        age::Encryptor::with_user_passphrase(SecretString::from(master_key.to_string()));
     let mut encrypted = Vec::new();
     let mut writer = encryptor
         .wrap_output(&mut encrypted)
@@ -76,18 +77,8 @@ pub fn decrypt(master_key: &str, ciphertext_b64: &str) -> AppResult<Vec<u8>> {
     let ciphertext = STANDARD
         .decode(ciphertext_b64)
         .map_err(|e| AppError::Internal(format!("age b64 decode: {e}")))?;
-    let decryptor = age::Decryptor::new_buffered(&ciphertext[..])
-        .map_err(|e| AppError::Internal(format!("age decryptor: {e}")))?;
-    if !decryptor.is_scrypt() {
-        return Err(AppError::Internal("age: expected passphrase ciphertext".into()).into());
-    }
-    let identity = age::scrypt::Identity::new(SecretString::from(master_key));
-    let mut reader = decryptor
-        .decrypt(std::iter::once(&identity as &dyn age::Identity))
-        .map_err(|_| AppError::Internal("age decrypt failed (wrong master key?)".into()))?;
-    let mut out = Vec::new();
-    reader
-        .read_to_end(&mut out)
-        .map_err(|e| AppError::Internal(format!("age read: {e}")))?;
-    Ok(out)
+    let identity = age::scrypt::Identity::new(SecretString::from(master_key.to_string()));
+    age::decrypt(&identity, &ciphertext).map_err(|e| {
+        AppError::Internal(format!("age decrypt failed (wrong master key?): {e}")).into()
+    })
 }

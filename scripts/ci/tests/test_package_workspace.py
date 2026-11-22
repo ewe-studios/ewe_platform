@@ -19,11 +19,13 @@ def load_script():
     return module
 
 
-def dep(name: str, kind=None, req: str = "*", path: bool = True) -> dict:
+def dep(name: str, kind=None, req: str = "*", path: bool = True, optional: bool = False) -> dict:
     """Return one `cargo metadata` dependency entry."""
     entry = {"name": name, "kind": kind, "req": req}
     if path:
         entry["path"] = f"/ws/{name}"
+    if optional:
+        entry["optional"] = True
     return entry
 
 
@@ -89,6 +91,13 @@ class DevDependencyCycles(unittest.TestCase):
         packages = [
             package("nostd", [dep("core", kind="dev", req="^1", path=False)]),
             package("core", [dep("nostd", req="^1")]),
+        ]
+        self.assertEqual(self.script.dev_dependency_cycles(packages), [])
+
+    def test_optional_dependency_is_not_a_cycle(self):
+        packages = [
+            package("db", [dep("native", req="^1", optional=True)]),
+            package("native", [dep("db", kind="dev", req="^1")]),
         ]
         self.assertEqual(self.script.dev_dependency_cycles(packages), [])
 

@@ -8,6 +8,9 @@
 //!
 //! Written in ASD-STE100 Simplified Technical English (STE).
 
+#[cfg(feature = "arrow")]
+pub mod arrow;
+
 pub mod async_traits;
 pub mod empty;
 pub mod error;

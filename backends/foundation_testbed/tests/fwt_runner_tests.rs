@@ -38,7 +38,7 @@ fn full_run_is_red_with_the_deliberate_failure_named() {
     use foundation_testbed::wasm::fwt_runner::run_deno;
     let outcome = run_deno(&args(None)).expect("embedded runner executes");
     assert_eq!(outcome.exit_code, 1, "the sample contains a failing case");
-    assert_eq!(outcome.cases.len(), 5);
+    assert_eq!(outcome.cases.len(), 6);
     assert!(outcome.output.contains("FAILED  fails_with_assertion"));
     assert!(outcome.output.contains("ok      passes_simple"));
     assert!(
@@ -50,11 +50,15 @@ fn full_run_is_red_with_the_deliberate_failure_named() {
             .output
             .contains("ok      async_completes_after_yield")
     );
+    assert!(
+        outcome.output.contains("ok      echo_endpoint_answers"),
+        "the host answers its local endpoint"
+    );
     assert!(outcome.output.contains("ignored ignored_case"));
     assert!(
         outcome
             .output
-            .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored")
+            .contains("test result: FAILED. 4 passed; 1 failed; 1 ignored")
     );
 }
 
@@ -73,14 +77,33 @@ fn filtered_run_is_green_with_exit_zero() {
 }
 
 #[test]
+fn an_unsupported_browser_fails_before_the_build() {
+    use foundation_context::Ctx;
+    use foundation_testbed::wasm::fwt_runner::run_web;
+
+    let mut run_args = args(Some("passes"));
+    run_args.browser = Browser::Firefox;
+    let error = run_web(&run_args, &Ctx::host()).expect_err("Firefox has no wasm suite");
+    let message = error.to_string();
+    assert!(
+        message.contains("drives Chrome"),
+        "the error must name the supported driver: {message}"
+    );
+    assert!(
+        message.contains("no wasm suite yet"),
+        "the error must give the reason: {message}"
+    );
+}
+
+#[test]
 fn staging_produces_a_self_contained_harness() {
     let dir = tempfile::tempdir().expect("tempdir");
     let cases = stage(&sample_crate(), &args(None), dir.path()).expect("stage succeeds");
-    assert_eq!(cases.len(), 5);
+    assert_eq!(cases.len(), 6);
     for file in [
         "foundation-wasm.js",
         "foundation-wasm-ui.js",
-        "runner.mjs",
+        "runner.js",
         "index.html",
         "cases.json",
         "module.wasm",

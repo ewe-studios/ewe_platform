@@ -88,6 +88,13 @@
 //! on a new thread and receives the same root through
 //! `initialize_current_thread_with_ctx`.
 //!
+//! Both macros also take `env = expr`, an `Env` or a `Result<Env, E>` of
+//! `foundation_context::env`. The expansion installs it in the root `Ctx`
+//! before the pool starts. Without the argument, a test gets a simulated `Env`
+//! from its `seed`, and an entry point gets the host effects from
+//! `foundation_core::env::system`. The expression runs with `__valtron_ctx`
+//! and `__valtron_seed` in scope.
+//!
 //! Both macros take `slow_poll = ms`: warn when one task poll holds a worker
 //! longer than `ms` milliseconds. The default is 100 ms, so a blocked test
 //! reports itself. A warning names the task and the elapsed microseconds, at
@@ -137,6 +144,10 @@ struct Args {
     /// `ctx = expr` — the `Ctx` the engine starts with. Absent → the engine
     /// uses `Ctx::with_seed` with the real clock and the pool seed.
     ctx: Option<syn::Expr>,
+    /// `env = expr` — an `Env` or `Result<Env, E>` to install in the root
+    /// `Ctx`. Absent → the host effects, or a simulated env from `seed` in a
+    /// test.
+    env: Option<syn::Expr>,
     /// `shutdown_grace = ms` — after a `timeout`, how long the pool gets to stop
     /// before stuck workers are detached. Default
     /// `foundation_core::valtron::DEFAULT_TEST_SHUTDOWN_GRACE`.
@@ -166,6 +177,7 @@ const KNOWN_ARGS: &[&str] = &[
     "timeout",
     "slow_poll",
     "ctx",
+    "env",
     "shutdown_grace",
     "tracing",
     "tracing_targets",
@@ -195,7 +207,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `key = value` pairs (seed, threads, timeout, slow_poll, ctx, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
+            "expected `key = value` pairs (seed, threads, timeout, slow_poll, ctx, env, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
         )
     })?;
     for pair in pairs {
@@ -206,6 +218,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "timeout" => args.timeout = Some(pair.value),
             "slow_poll" => args.slow_poll = Some(pair.value),
             "ctx" => args.ctx = Some(pair.value),
+            "env" => args.env = Some(pair.value),
             "shutdown_grace" => args.shutdown_grace = Some(pair.value),
             "tracing" => args.tracing = Some(pair.value),
             "tracing_targets" => args.tracing_targets = Some(pair.value),
@@ -423,83 +436,62 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         },
     };
 
-    // `ctx = expr`: the engine root. Absent → the expansion is the same as
-    // before this argument existed. With `timeout`, the body runs on a new
-    // thread that must bring its own (single-threaded) engine up, so bind the
-    // root once and clone it for the outer pool.
+    // `ctx = expr`: the engine root. Absent → a root with the real clock and the
+    // pool seed. `env = expr`: an `Env` or `Result<Env, E>` installed in that
+    // root. Absent in a test → a simulated env from the seed; absent in an entry
+    // → the host effects. The env expression runs with `__valtron_ctx` and
+    // `__valtron_seed` in scope.
     let ctx_expr = args.ctx.as_ref();
-    let ctx_binding = match ctx_expr {
-        None => quote! {},
-        Some(expr) => quote! { let __valtron_ctx: #fc::valtron::Ctx = (#expr); },
-    };
-    let init_pool_direct = match ctx_expr {
-        // The root RNG takes the pool seed (`Ctx::with_seed`), so one seed
-        // drives the whole run. Bind the seed once: the default seed
-        // expression draws a new value each time it runs.
-        None => quote! {
-            {
-                let __valtron_seed: u64 = #seed;
-                #fc::valtron::initialize_pool_with_slow_poll_warning(
+    let ctx_and_env = {
+        let root = match ctx_expr {
+            None => quote! {
+                #fc::valtron::Ctx::with_seed(
+                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
                     __valtron_seed,
-                    #threads,
-                    #slow_poll,
-                    #fc::valtron::Ctx::with_seed(
-                        ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
-                        __valtron_seed,
-                    ),
                 )
-            }
-        },
-        Some(expr) => quote! {
-            #fc::valtron::initialize_pool_with_slow_poll_warning(
-                #seed,
-                #threads,
-                #slow_poll,
-                (#expr),
-            )
-        },
-    };
-    let init_pool_timeout = if ctx_expr.is_some() {
+            },
+            Some(expr) => quote! { (#expr) },
+        };
+        let env = match &args.env {
+            Some(expr) => quote! { #fc::valtron::__private::env_from((#expr)) },
+            None if is_test => quote! {
+                #fc::valtron::__private::env_from(
+                    #fc::valtron::__private::simulated(&__valtron_ctx, __valtron_seed)
+                )
+            },
+            None => quote! {
+                #fc::valtron::__private::env_from(#fc::valtron::__private::system(&__valtron_ctx))
+            },
+        };
         quote! {
-            #fc::valtron::initialize_pool_with_slow_poll_warning(
-                __valtron_seed,
-                #threads,
-                #slow_poll,
-                __valtron_ctx.clone(),
-            )
-        }
-    } else {
-        quote! {
-            #fc::valtron::initialize_pool_with_slow_poll_warning(
-                __valtron_seed,
-                #threads,
-                #slow_poll,
-                #fc::valtron::Ctx::with_seed(
-                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
-                    __valtron_seed,
-                ),
-            )
+            let __valtron_seed: u64 = #seed;
+            let __valtron_ctx: #fc::valtron::Ctx = #root;
+            let __valtron_env = #env;
+            __valtron_ctx.store(__valtron_env);
         }
     };
-    let init_current_thread_timeout = if ctx_expr.is_some() {
-        quote! {
-            #fc::valtron::initialize_current_thread_with_slow_poll_warning(
-                __valtron_seed,
-                #slow_poll,
-                __valtron_ctx,
-            )
-        }
-    } else {
-        quote! {
-            #fc::valtron::initialize_current_thread_with_slow_poll_warning(
-                __valtron_seed,
-                #slow_poll,
-                #fc::valtron::Ctx::with_seed(
-                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
-                    __valtron_seed,
-                ),
-            )
-        }
+    let init_pool_direct = quote! {
+        #fc::valtron::initialize_pool_with_slow_poll_warning(
+            __valtron_seed,
+            #threads,
+            #slow_poll,
+            __valtron_ctx,
+        )
+    };
+    let init_pool_timeout = quote! {
+        #fc::valtron::initialize_pool_with_slow_poll_warning(
+            __valtron_seed,
+            #threads,
+            #slow_poll,
+            __valtron_ctx.clone(),
+        )
+    };
+    let init_current_thread_timeout = quote! {
+        #fc::valtron::initialize_current_thread_with_slow_poll_warning(
+            __valtron_seed,
+            #slow_poll,
+            __valtron_ctx,
+        )
     };
 
     let test_attr = if is_test {
@@ -528,8 +520,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 // Before `initialize_pool` — workers pin the ambient dispatcher at
                 // spawn time, so a later init leaves every worker thread silent.
                 #tracing_init;
-                let __valtron_seed: u64 = #seed;
-                #ctx_binding
+                #ctx_and_env
                 let __valtron_guard = #init_pool_timeout;
                 let __timeout_ms: u64 = #timeout_ms;
                 type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
@@ -596,6 +587,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // without feature "multi" the guard has no `Drop` impl, and that call
             // is the no-op `clippy::drop_non_drop` reports.
             {
+                #ctx_and_env
                 let __valtron_guard = #init_pool_direct;
 
                 // Sync: call the inner fn. Async: drive the body future to

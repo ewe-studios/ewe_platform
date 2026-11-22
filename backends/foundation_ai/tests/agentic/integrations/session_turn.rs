@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! End-to-end `AgentSession::run_turn` tests against a real local model.
 //!
 //! WHY: `run_turn` is the session's primary API — everything an agent does goes
@@ -33,9 +36,12 @@ use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 type TestSession = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;

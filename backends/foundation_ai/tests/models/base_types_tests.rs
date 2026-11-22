@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Offline coverage for `types/base_types.rs` — the string↔enum conversions,
 //! `Messages::is_context_overflow`, the numeric/bool/null/array branches of the
 //! text tool-call parser, and the `LlamaConfig` builder chain. All pure, no I/O.

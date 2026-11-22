@@ -11,9 +11,10 @@ keywords = ["context", "clock", "wasm", "deterministic"]
 
 [dependencies]
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std"] }
+derive_more = { workspace = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 
 [features]
 # Each feature picks the matching wasm32 time and entropy backend of

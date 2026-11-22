@@ -20,12 +20,16 @@ use cli::{Cli, Command};
 use error::WasmTestbedError;
 
 fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
-        )
-        .init();
+    let mut filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
+    // PRIMAL_CDP_TRACE=1 prints the CDP wire: every frame the engine sends and
+    // every frame the browser answers. Use it to diagnose a stalled page.
+    if std::env::var("PRIMAL_CDP_TRACE").is_ok_and(|value| value == "1")
+        && let Ok(directive) = "foundation_browser=trace".parse()
+    {
+        filter = filter.add_directive(directive);
+    }
+    tracing_subscriber::fmt().with_env_filter(filter).init();
 
     let cli = Cli::parse();
 
@@ -62,7 +66,11 @@ fn run_owned(
     use error::ToTrace;
     let outcome = outcome?;
     if outcome.exit_code != 0 {
-        return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
+        return Err(WasmTestbedError::OwnedRunFailed {
+            exit_code: outcome.exit_code,
+            output: outcome.output,
+        }
+        .trace());
     }
     Ok(())
 }
@@ -75,7 +83,11 @@ fn run_bindgen_outcome(
     use error::ToTrace;
     let outcome = outcome?;
     if outcome.exit_code != 0 {
-        return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
+        return Err(WasmTestbedError::OwnedRunFailed {
+            exit_code: outcome.exit_code,
+            output: outcome.output,
+        }
+        .trace());
     }
     Ok(())
 }
@@ -131,13 +143,14 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                         &args.browser,
                         args.headless,
                         &foundation_context::Ctx::host(),
+                        &browser::BrowserRunLimits::default(),
                     )?;
-                    tracing::info!("Test output: {}", output.test_result);
+                    tracing::info!("Test output: {}", output.output);
                     server.shutdown();
                     if output.exit_code != 0 {
                         return Err(WasmTestbedError::BrowserTestFailed(
                             output.exit_code,
-                            output.test_result,
+                            output.output,
                         )
                         .trace());
                     }
@@ -183,13 +196,19 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
             let build = build::run_with_tests(&crate_path, args.release, args.features.as_deref())?;
             match args.mode {
                 Mode::BindgenWeb => {
-                    run_bindgen_web(&build, &integration_dir, &args.browser, args.headless)?;
+                    run_bindgen_web(
+                        &build,
+                        &integration_dir,
+                        &args.browser,
+                        args.headless,
+                        args.filter.as_deref(),
+                    )?;
                 }
                 Mode::BindgenDeno => {
                     run_bindgen_deno(&build, &integration_dir, args.filter.as_deref())?;
                 }
                 Mode::BindgenWrangler => {
-                    run_bindgen_wrangler(&build, &integration_dir)?;
+                    run_bindgen_wrangler(&build, &integration_dir, args.filter.as_deref())?;
                 }
                 _ => unreachable!(),
             }
@@ -204,6 +223,7 @@ fn run_bindgen_web(
     integration_dir: &std::path::Path,
     browser: &cli::Browser,
     headless: bool,
+    filter: Option<&str>,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
@@ -219,6 +239,12 @@ fn run_bindgen_web(
         Some(&build.package_name),
     )?;
 
+    // The page imports the glue's `init`, which returns the wasm exports, so
+    // the glue does not need an extra export. Its start call must still go:
+    // that start is libtest's `main`, which aborts the module before a case.
+    let js_file = integration_dir.join(format!("{}.js", build.package_name));
+    wasm::patch_bindgen_glue(&js_file, false)?;
+
     init::write_template_to(
         "bindgen-web/index.html",
         &build.package_name,
@@ -226,7 +252,13 @@ fn run_bindgen_web(
     )?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
-    let tests = wasm_test::discover_tests(&bg_wasm)?;
+    let mut tests = wasm_test::discover_tests(&bg_wasm)?;
+    if let Some(filter) = filter {
+        tests.retain(|name| name.contains(filter));
+    }
+    if tests.is_empty() {
+        return Err(WasmTestbedError::NoFwtCases(bg_wasm.display().to_string()).trace());
+    }
     tracing::info!("Discovered {} tests", tests.len());
 
     init::write_bindgen_runjs_to(
@@ -240,14 +272,30 @@ fn run_bindgen_web(
     let url = server.url("index.html");
     tracing::info!("Serving at {}", url);
 
-    let output = browser::run(&url, browser, headless, &foundation_context::Ctx::host())?;
-    tracing::info!("Test output: {}", output.test_result);
+    let output = browser::run(
+        &url,
+        browser,
+        headless,
+        &foundation_context::Ctx::host(),
+        &browser::BrowserRunLimits::default(),
+    )?;
+    tracing::info!("Test output: {}", output.output);
 
     server.shutdown();
-    if output.exit_code != 0 {
-        return Err(
-            WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace(),
-        );
+    // The page cannot set an exit code: the last `test result:` line is the
+    // verdict. A page that printed none is not a pass.
+    let summary = output.test_result.trim().to_string();
+    if !summary.contains("test result:") {
+        return Err(WasmTestbedError::MissingTestSummary(summary).trace());
+    }
+    if !summary.starts_with("test result: ok") {
+        let failed = failed_count(&summary);
+        // The whole page text names the failing cases (issue #588).
+        return Err(WasmTestbedError::CaseFailures {
+            failed,
+            output: output.output,
+        }
+        .trace());
     }
     Ok(())
 }
@@ -268,20 +316,11 @@ fn run_bindgen_deno(
         Some(&build.package_name),
     )?;
 
-    // Patch the generated JS to export the `wasm` variable (wasm exports).
-    // The deno target generates `const wasm = wasmInstance.exports;` locally;
-    // we need it exported so run.js can access __wbgt_ test functions.
+    // The deno glue keeps the instance private and starts the module at
+    // import time. Export `wasm` so run.js can call the `__wbgt_` shims, and
+    // drop the libtest `main` start call (see `wasm::patch_bindgen_glue`).
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
-    if let Ok(content) = std::fs::read_to_string(&js_file) {
-        // A test binary's start function is libtest's `main`, which runs every
-        // plain `#[test]` (threads, filesystem: they abort on wasm) before any
-        // `#[wasm_bindgen_test]` case. wasm-bindgen's own test runner skips it
-        // (`emit_start(false)`); the CLI has no flag for that, so drop the call.
-        let content = content.replace("wasm.__wbindgen_start();", "");
-        // Add `export { wasm };` at the end of the file
-        let patched = format!("{content}\nexport {{ wasm }};\n");
-        std::fs::write(&js_file, patched).map_err(|e| WasmTestbedError::Io(e).trace())?;
-    }
+    wasm::patch_bindgen_glue(&js_file, true)?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let mut tests = wasm_test::discover_tests(&bg_wasm)?;
@@ -297,24 +336,58 @@ fn run_bindgen_deno(
         integration_dir,
     )?;
 
-    let output = deno::run(integration_dir, "run.js")?;
+    // The suite exits non-zero when a case fails. Read the summary, and fail
+    // when it and the exit code disagree.
+    let output = deno::run_status(integration_dir, "run.js")?;
     if !output.stdout.is_empty() {
         println!("{}", output.stdout);
     }
+    let Some(summary) = output
+        .stdout
+        .lines()
+        .rfind(|line| line.contains("test result:"))
+        .map(|line| line.trim().to_string())
+    else {
+        return Err(WasmTestbedError::MissingTestSummary(output.stdout).trace());
+    };
+    let passed = summary.starts_with("test result: ok");
+    if passed != (output.exit_code == 0) {
+        return Err(WasmTestbedError::VerdictMismatch {
+            exit_code: output.exit_code,
+            summary: summary.clone(),
+        }
+        .trace());
+    }
+    if !passed {
+        let failed = failed_count(&summary);
+        return Err(WasmTestbedError::CaseFailures {
+            failed,
+            output: output.stdout,
+        }
+        .trace());
+    }
     Ok(())
+}
+
+/// The count before `failed` in a `test result:` summary line.
+///
+/// The line is `test result: FAILED. 1 passed; 1 failed; 0 ignored; …`.
+fn failed_count(summary: &str) -> usize {
+    summary
+        .split(';')
+        .find(|part| part.contains("failed"))
+        .and_then(|part| part.split_whitespace().next())
+        .and_then(|count| count.parse().ok())
+        .unwrap_or(0)
 }
 
 fn run_bindgen_wrangler(
     build: &build::BuildOutput,
     integration_dir: &std::path::Path,
+    filter: Option<&str>,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
-
-    // The wasm-bindgen CLI emits this call; a version that stops emitting it
-    // would leave the libtest `main` in place and skip the table setup, with
-    // no error at that point. Fail with the version rule instead.
-    const START_CALL: &str = "wasm.__wbindgen_start();";
 
     tracing::info!("Running wasm-bindgen (module)...");
     wasm::run_wasm_bindgen_with_name(
@@ -326,29 +399,19 @@ fn run_bindgen_wrangler(
 
     // The `module` target instantiates the wasm at import time and keeps the
     // instance private. Export it as `wasm` so the worker can call the
-    // `__wbgt_` test shims (raw wasm exports). Drop the libtest `main` call:
-    // it would run the plain `#[test]`s, which abort on wasm. Keep its
-    // externref-table initialisation: without it a `JsValue` constant (for
-    // example the `true`/`false` that `run` resolves to) maps to a wrong
-    // table slot.
+    // `__wbgt_` test shims (raw wasm exports). Drop the libtest `main` start
+    // call (see `wasm::patch_bindgen_glue`).
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
-    let content = std::fs::read_to_string(&js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
-    if !content.contains(START_CALL) {
-        return Err(WasmTestbedError::WasmParseFailed(format!(
-            "the wasm-bindgen `module` output has no `{START_CALL}`; update the \
-             testbed's shim for the installed wasm-bindgen version"
-        ))
-        .trace());
-    }
-    let content = content.replace(
-        START_CALL,
-        "const __initTable = Object.values(__wbg_get_imports())\n  .map((m) => m && m.__wbindgen_init_externref_table)\n  .find((f) => f);\nif (__initTable) __initTable();",
-    );
-    std::fs::write(&js_file, format!("{content}\nexport {{ wasm }};\n"))
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
+    wasm::patch_bindgen_glue(&js_file, true)?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
-    let tests = wasm_test::discover_tests(&bg_wasm)?;
+    let mut tests = wasm_test::discover_tests(&bg_wasm)?;
+    if let Some(filter) = filter {
+        tests.retain(|name| name.contains(filter));
+    }
+    if tests.is_empty() {
+        return Err(WasmTestbedError::NoFwtCases(bg_wasm.display().to_string()).trace());
+    }
     tracing::info!("Discovered {} tests", tests.len());
 
     init::write_bindgen_runjs_to(

@@ -742,15 +742,19 @@ def examples_commands(profile: str) -> dict[str, list[list[str]]]:
 
 
 def wasm_tests_commands() -> dict[str, list[list[str]]]:
-    """Commands for the synthetic `wasm-tests` package (feature 22 E4).
+    """Commands for the synthetic `wasm-tests` package (feature 22 E4, spec 88 T8).
 
-    (1) Compile every crate with wasm tests, plus the standalone wasm_tests
+    (1) Compile every crate with wasm tests, plus each standalone wasm test
     crate outside the root workspace, with `--tests --target wasm32` so the
     test code itself is checked (the default wasm gate checks libraries only,
-    which let the `wasm_bindgen_test` suites rot). (2) Run the two embedded-Deno
-    runtime suites. `MISE_ENV=wasm` (set in `ci/packages.toml`) selects
-    `mise.wasm.toml`, which pins only deno + wasm-bindgen and turns off
-    auto_install.
+    which let the `wasm_bindgen_test` suites rot). `foundation_http` and
+    `foundation_connectrpc` get a library check: their dev-dependency
+    `foundation_testing` pulls `socket2`, which has no wasm backend (#576).
+    (2) Run the five executors, cheapest first: owned Deno, bindgen Deno, the
+    valtron bindgen cases, the worker, the owned browser, bindgen web, then the
+    failing fixture, which must turn both bindgen runners red. `MISE_ENV=wasm`
+    (set in `ci/packages.toml`) selects `mise.wasm.toml`, which pins only deno +
+    wasm-bindgen and turns off auto_install.
     """
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
     plan["build"] = [
@@ -774,14 +778,38 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
+        # Spec 88 T8: the wasm bridge of foundation_http and the wasm build of
+        # foundation_connectrpc were compiled by no CI run. A package-level
+        # `--tests` check is not possible for foundation_http (#576), so these
+        # are library checks.
+        ["cargo", "check", "--target", "wasm32-unknown-unknown", "-p", "foundation_http",
+         *feature_flags("--no-default-features --features wasm-bindgen-http")],
+        ["cargo", "check", "--target", "wasm32-unknown-unknown", "-p", "foundation_connectrpc",
+         *feature_flags("--no-default-features --features rpc")],
+        # Spec 88 T5: the regression fixture with one failing case.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_testbed/integration/bindgen_failing_case/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_testbed/integration/bindgen_failing_case/Cargo.toml", "--check"],
     ]
     plan["test"] = [
+        # The five executors, cheapest failure first (spec 88 T8).
         ["mise", "run", "test:wasm-testbed:deno"],
         ["mise", "run", "test:wasm-bindgen:deno"],
+        # Spec 88 #575: the 19 `dual!` wasm-bindgen cases.
+        ["mise", "run", "test:wasm-bindgen:core"],
         # Spec 70 feature 76: the D1/R2/KV wasm stores on the real local
         # bindings (`wrangler dev --local`). The REST clients use the same
         # local D1/R2 state through the explorer API.
         ["mise", "run", "test:wasm-testbed:wrangler"],
+        # The owned browser host, then the wasm-bindgen web host on
+        # foundation_core's 34 cases (spec 88 T9, #586).
+        ["mise", "run", "test:wasm-testbed:browser"],
+        ["mise", "run", "test:wasm-bindgen:web"],
+        # The suite proves it can fail: both bindgen runners must reject the
+        # fixture's failing case (rules I1, I7).
+        ["mise", "run", "test:wasm-testbed:bindgen-fails"],
     ]
     return plan
 
@@ -797,6 +825,25 @@ def test_command(name: str, run: str, profile: str, test_args: list[str]) -> lis
 def commands(
     name: str, s: Settings, profile: str, platform: str = "linux"
 ) -> dict[str, list[list[str] | PlannedCommand]]:
+    if name == "wasm-tests" and platform in ("macos", "windows"):
+        # Spec 88 T8: the synthetic package has no cargo tests of its own. The
+        # macOS job runs the owned browser suite, which needs only cargo and the
+        # Chrome in /Applications. The Deno and wrangler runners stay Linux-only
+        # because their tools are in the image. Windows opts out in
+        # `ci/packages.toml`.
+        plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
+        if platform == "macos" and s.test != "off":
+            runner = [
+                "cargo", "run", "-p", "foundation_testbed", "--no-default-features",
+                "--features", "wasm", "--profile", profile, "--bin", "wasm-testbed", "--",
+                "browser",
+            ]
+            plan["test"] = [
+                [*runner, "backends/foundation_testbed/integration/module",
+                 "--filter", "passes", "--headless"],
+                [*runner, "backends/foundation_core/integration/wasm_tests", "--headless"],
+            ]
+        return plan
     if platform in ("macos", "windows"):
         # The macOS and Windows jobs run tests only. Format, clippy and the wasm
         # gate stay on Linux. `cargo test` builds the targets, so no build step.

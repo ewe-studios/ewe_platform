@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nostd"
-version = "0.0.9"
+version = "0.0.10"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,6 +17,9 @@ trace = ["dep:tracing"]
 
 [dependencies]
 tracing = { version = "0.1", default-features = false, optional = true }
+# A perfect hash map that works without `std`. The crate re-exports it so a
+# consumer of `include_json!` needs only this crate.
+phf = { workspace = true }
 
 [lints]
 workspace = true

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.8"
+version = "0.0.10"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -49,9 +49,14 @@ chrono = "0.4"
 uuid = { version = "1.0", features = ["v4"], optional = true }
 bytes = "1.5"
 async-trait = "0.1"
+# Diagnostics for a refused handshake (spec 87).
+tracing = { workspace = true }
 
-# Async stream plumbing for the async storage layer (gated behind `server`)
-futures-core = { version = "0.3", optional = true }
+# Async stream plumbing. `futures-core` is always on: the trust store trait
+# (spec 87) streams its clients on every target.
+futures-core = "0.3"
+# Async lock for the key-value trust store's use counter.
+futures-util = { workspace = true }
 futures-lite = { version = "2", optional = true }
 
 # WebAuthn/FIDO2 — native only (openssl dep, does not compile to wasm32).
@@ -90,6 +95,12 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.15", features 
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
 pbkdf2 = { workspace = true }
+# Certificate authority, trust verifier and TLS configuration (spec 87).
+rcgen = { workspace = true }
+rustls = { workspace = true }
+rustls-pemfile = { workspace = true }
+x509-parser = { workspace = true }
+time = { workspace = true }
 
 # NOTE: `default-features = false` is required here. Cargo unions default-features
 # across a crate's dependency declarations, so without it this target line would
@@ -106,7 +117,6 @@ foundation_core = { path = "../foundation_core", version = "0.0.23", features = 
 foundation_testing = { path = "../foundation_testing" }
 serial_test = { workspace = true }
 ntest = { workspace = true }
-tracing = "0.1"
 
 [lints]
 workspace = true
@@ -116,7 +126,7 @@ workspace = true
 default = ["turso"]
 turso = ["foundation_db/turso"]
 # IdP server module (pulls in foundation_http + foundation_db for storage)
-server = ["dep:hex", "dep:foundation_http", "dep:futures-core", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
+server = ["dep:hex", "dep:foundation_http", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
 # Wasm compatibility — browser crypto and JS time APIs
@@ -153,3 +163,10 @@ server-native = ["server", "dep:webauthn-rs", "dep:openssl", "dep:url", "dep:ser
 name = "foundation_auth_tests"
 path = "tests/lib.rs"
 required-features = ["server-test"]
+
+# Spec 87: the certificate authority, the trust store, the mutual-TLS verifier
+# and the mTLS providers. No extra feature is needed, so the verify commands of
+# the specification run this target.
+[[test]]
+name = "mtls_tests"
+path = "tests/mtls/mod.rs"

@@ -15,7 +15,7 @@ use std::time::Duration;
 use foundation_browser::browser::connect_with_retry;
 use foundation_browser::pause::{pause, WaitConfig};
 use foundation_browser::supervisor::{discover_ws_url, wait_for_port};
-use foundation_browser::{Browser, RpcConfig};
+use foundation_browser::Browser;
 use foundation_context::Ctx;
 use foundation_core::valtron::SimulatedClock;
 
@@ -137,7 +137,14 @@ fn connect_with_retry_ends_when_the_clock_passes_the_deadline() {
     // is the way to make every attempt fail at once.
     let url = "not a websocket url".to_string();
     let rx = spawn(move || {
-        connect_with_retry(&url, Browser::Firefox, &wait(), &RpcConfig::default(), &ctx).is_err()
+        connect_with_retry(
+            &url,
+            Browser::Firefox,
+            &wait(),
+            &ctx,
+            &foundation_browser::RpcEngineConfig::default(),
+        )
+        .is_err()
     });
     // The Firefox retry deadline is 20 s of clock time.
     let failed = blocked_then_released(&rx, &clock, Duration::from_secs(21));
