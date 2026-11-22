@@ -20,7 +20,7 @@ pub mod native;
 #[cfg(target_family = "wasm")]
 pub mod wasm;
 
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use wasm::sink::{ConnectSink, ConnectSinkHandle};
 
 pub use shared::error_writer::ErrorWriter;
@@ -94,7 +94,9 @@ pub use shared::transport::{
 pub use native::transport::h2::H2Transport;
 #[cfg(all(not(target_family = "wasm"), feature = "h3"))]
 pub use native::transport::h3::H3Transport;
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub use shared::transport::h1::H1Transport;
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub use shared::transport::ws::WsTransport;
 
 pub use shared::envelope::{

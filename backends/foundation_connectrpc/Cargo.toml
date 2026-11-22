@@ -1,6 +1,6 @@
 [package]
 name = "foundation_connectrpc"
-version = "0.0.14"
+version = "0.0.15"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -48,7 +48,9 @@ socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.14", default-features = false, features = ["wasm"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false, features = ["wasm-fetch"] }
+# The fetch client is optional on wasm: the owned-harness test package turns it
+# off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
 # The streaming response sink holds a JS `Response` behind a `SendWrapper`.
 web-sys = { version = "0.3", features = ["Response"] }
 foundation_auth = { path = "../foundation_auth", version = "0.0.10", optional = true, default-features = false, features = ["wasm"] }
@@ -91,6 +93,12 @@ auth = ["dep:foundation_auth"]
 
 # HTTP/3 over QUIC (F35). Pulls quinn-proto through netio's `quic` feature.
 h3 = ["foundation_netio/quic", "foundation_http/quic"]
+
+# Netio's outbound fetch client on wasm32, and the wasm response sink that
+# writes to it. It brings wasm-bindgen glue, so the owned-harness package
+# (`integration/wasm_owned`) leaves it off and runs the pure-Rust paths only.
+# Every wasm build that uses `H1Transport` must enable it (spec 88 feature 03).
+wasm-fetch = ["foundation_netio/wasm-fetch", "foundation_http/wasm-fetch"]
 
 # Tests that use the valtron pool need the multi-threaded executor (`rpc_multi`).
 # HTTP/3 transport capabilities (F35).

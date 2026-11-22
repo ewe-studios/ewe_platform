@@ -5529,7 +5529,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
@@ -6366,10 +6366,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_testbed"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
+ "bytes",
  "clap",
  "deno_core",
  "deno_error",
@@ -6383,14 +6384,17 @@ dependencies = [
  "foundation_browser",
  "foundation_codegen",
  "foundation_compact",
+ "foundation_connectrpc",
  "foundation_context",
  "foundation_core",
  "foundation_deployment_platform",
  "foundation_errstacks",
  "foundation_http",
  "foundation_macros",
+ "foundation_netio",
  "foundation_nostd",
  "foundation_wasm_ui",
+ "futures",
  "js-sys",
  "libc",
  "portpicker",

@@ -423,6 +423,17 @@ pub(crate) fn build_web_request(
 
     let body_js = send_safe_body_to_js(req.body, req.body_readiness)?;
     if !body_js.is_undefined() {
+        // A browser requires `duplex: "half"` for a streaming request body.
+        // Without it, `new Request(...)` throws a `TypeError` (measured on
+        // Chromium 157, spec 88 feature 03). Set it through `Reflect`, because
+        // the `RequestInit.duplex` setter is still experimental in web-sys.
+        if body_js.dyn_ref::<web_sys::ReadableStream>().is_some() {
+            let _ = js_sys::Reflect::set(
+                init.as_ref(),
+                &JsValue::from_str("duplex"),
+                &JsValue::from_str("half"),
+            );
+        }
         init.set_body(&body_js);
     }
 

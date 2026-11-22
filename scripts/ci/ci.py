@@ -826,6 +826,13 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "backends/foundation_http/integration/wasm_owned/Cargo.toml"],
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_http/integration/wasm_owned/Cargo.toml", "--check"],
+        # Spec 88 feature 03 T7: the foundation_connectrpc owned-harness package.
+        # It leaves out the fetch client, so its wasm module imports only `abi`.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml", "--check"],
         # Spec 88 T8: the wasm bridge of foundation_http and the wasm build of
         # foundation_connectrpc were compiled by no CI run. A package-level
         # `--tests` check is not possible for foundation_http (#576), so these
@@ -872,6 +879,13 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         # with no fetch client in the module.
         ["mise", "run", "test:wasm-testbed:http:deno"],
         ["mise", "run", "test:wasm-testbed:http:browser"],
+        # Spec 88 feature 03: the foundation_connectrpc wasm cases on the web and
+        # workerd hosts, then the pure-Rust cases on the owned harness. The
+        # Deno wasm-bindgen run is `test:wasm-bindgen:connectrpc` above.
+        ["mise", "run", "test:wasm-bindgen:connectrpc:web"],
+        ["mise", "run", "test:wasm-bindgen:connectrpc:wrangler"],
+        ["mise", "run", "test:wasm-testbed:connectrpc:deno"],
+        ["mise", "run", "test:wasm-testbed:connectrpc:browser"],
         # The suite proves it can fail: both bindgen runners must reject the
         # fixture's failing case (rules I1, I7).
         ["mise", "run", "test:wasm-testbed:bindgen-fails"],

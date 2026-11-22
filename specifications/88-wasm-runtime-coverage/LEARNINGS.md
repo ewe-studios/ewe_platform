@@ -616,3 +616,104 @@ supports it).
 
 **Rule for the future.** Do not promise a 500 from a panic in a `panic = "abort"` module. The
 module stops.
+
+## 28. The wasm-bindgen crate must not use `host-abi` (feature 03)
+
+**Expected.** The feature's T1 `Cargo.toml` block gives `foundation_context` and
+`foundation_compact` the `host-abi` feature.
+
+**Measured.** With `host-abi`, the wasm-bindgen module imports `abi`. The Deno host does not
+supply that module, and the run stops at import time:
+`error: Import "abi" not a dependency`. `host-abi` wins over `wasm-bindgen` when both are on,
+so the explicit feature overrode `foundation_core`'s `js-wasmbindgen` choice.
+
+**Result.** The wasm-bindgen crate uses no explicit clock feature. `foundation_core`'s
+`js-wasmbindgen` selects the wasm-bindgen clock and entropy backend. The owned crate keeps
+`host-abi`, because its module imports only `abi` (rule R15).
+
+**Rule for the future.** A wasm-bindgen module takes the wasm-bindgen backend. `host-abi` is
+for the owned harness only.
+
+## 29. A browser needs `duplex: "half"`, and it still cannot stream an upload to HTTP/1.1 (feature 03 T5)
+
+**Measured on Chromium 157.** Two facts, in order:
+
+1. `new Request(url, { body: ReadableStream })` throws
+   `TypeError: The duplex member must be specified for a request with a streaming body`.
+   The wasm fetch client set no `duplex` (#754). Fixed in `build_web_request`.
+2. With `duplex: "half"`, the fetch promise rejects with `TypeError: Failed to fetch` when
+   the origin is HTTP/1.1. A minimal page fetch with a one-chunk `ReadableStream` body fails
+   the same way. The Rust client is not the cause (#753).
+
+**Result.** `H1Transport` always sends a streaming body, so it cannot reach the HTTP/1.1
+testbed from a page. Feature 03 gates transport cases 14 to 16 on #752. Case 17 still runs.
+
+**What would change the answer.** Send a fixed-length body when the producer has already
+closed the body, or serve the route over HTTP/2. Do not fake the endpoint.
+
+**Rule for the future.** Upload streaming is not portable. A transport that always streams a
+request body does not work from every browser to an HTTP/1.1 origin.
+
+## 30. The `rpc` feature set is not glue-free (feature 03 T7)
+
+**Expected.** The wasm-safe set `default-features = false, features = ["rpc"]` builds a module
+with no wasm-bindgen glue, so the owned harness can load it.
+
+**Measured.** `rpc` includes `auth`. The wasm target dependency of `foundation_auth` enables its
+`wasm` feature, which enables `foundation_netio/wasm-fetch`, which brings wasm-bindgen glue.
+The tree shows `foundation_netio feature "wasm-fetch" <- foundation_auth feature "wasm" <-
+foundation_connectrpc feature "auth" <- "rpc"`.
+
+**Result.** The owned package builds with no features and no `wasm-fetch`. Its module imports
+`abi.schedule_timeout`, `abi.host_report` and `abi.host_monotonic_now_ms` only. Issue #756
+records the feature graph.
+
+**Rule for the future.** Before you promise a glue-free module, measure its imports. A feature
+set that "looks wasm-safe" can still pull the fetch client through a sibling crate.
+
+## 31. `valtron::execute` hangs in a wasm-bindgen test body (feature 03 T5)
+
+**Expected.** Drive the `H1Transport` pump, which `valtron::send` schedules, with
+`valtron::execute(from_future(call)).into_ready_future()`.
+
+**Measured.** The call never finishes and the browser run stops after 30 s. The netio suite
+records the same limit: `Driving valtron::execute from a test body hangs under the Deno runner`
+(`tests/wasm/websocket.rs`, #565).
+
+**Result.** The test driver polls the client future, steps the single-threaded engine with
+`foundation_core::valtron::single::run_once()` while it can progress, then yields to the host
+with `setTimeout(0)`. A no-op waker is enough because the loop polls every turn. A 4,000-turn
+bound fails the case instead of hanging it (rule R4).
+
+**Rule for the future.** Do not call `valtron::execute` from a wasm-bindgen test body. Poll and
+step the engine, with a host yield and a stated turn bound.
+
+## 32. The `/connect` route needs the prefix, and the body must be read first (feature 03 T4)
+
+**Measured.** Two things the first route version missed:
+
+- The router is keyed by the full path. A client calls `{base}/connect/case.CaseService/Unary`,
+  so the procedures are registered as `/connect/case.CaseService/Unary`. A registration without
+  `/connect` answers 404.
+- The router's `dispatch` reads the body with `in_memory_body`, which cannot wait on a
+  connection. A browser fetch with a streamed body sends a chunked body, and the read failed.
+  The route now reads the body first, bounded by `ServerLimits::max_connect_body`, and hands
+  `SendSafeBody::Bytes` to dispatch.
+- A route miss has no response header, and the HTTP/1.1 renderer rejects an empty header map
+  (`HeadersRequired`). The route adds a `connection` header when the map is empty.
+
+**Rule for the future.** A prefix route registers its full paths, reads its own body when the
+router cannot, and gives the renderer at least one header.
+
+## 33. A Connect stream's EndStream frame is its own sink chunk (feature 03 case 5)
+
+**Expected.** Case 5 says the sink receives open, three chunks, then finish.
+
+**Measured.** The sink receives open, four chunks, then finish. The fourth chunk is the
+Connect `0x02` EndStream frame; the protocol writer sends it as its own envelope.
+
+**Result.** The case asserts three message frames in order, then the end-stream frame, then
+finish. Nothing is weakened: the order and the frame contents are checked.
+
+**Rule for the future.** Count the protocol's terminal frame when you assert a stream's chunk
+list.

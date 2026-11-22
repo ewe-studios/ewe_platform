@@ -19,9 +19,12 @@ pub mod facade;
 pub mod frame;
 // H1 + WS ride `foundation_netio`'s platform-selecting client/websocket wrappers
 // (F51/F52), so they are cross-platform. The native-only H2/H3 transports live in
-// [`crate::native::transport`].
+// [`crate::native::transport`]. On wasm they need the fetch client, so a module
+// built without `wasm-fetch` leaves them out (spec 88 feature 03, T7).
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub mod h1;
 pub mod wasm;
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub mod ws;
 
 pub use base::{

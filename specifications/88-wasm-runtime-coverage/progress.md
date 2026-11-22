@@ -3,7 +3,9 @@
 _Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
 **Feature 00 is merged** as `f2e4688ad` (#655). **Feature 01 is merged** as `447519256`.
-**Feature 02 is merged** as `c12e94aec`. Feature 03 remains, so the specification is open.
+**Feature 02 is merged** as `c12e94aec`. **Feature 03 is in the working tree** on
+`spec88/f03-connectrpc-runtime`: T1 to T4, T6 and T7 are done; T5 is partial, because no
+host can run the transport cases yet (#752, #753).
 
 ## Where this specification is
 
@@ -28,7 +30,7 @@ Product code changes need the owner's approval of the plan. The owner approved f
 | 00-executors | `done`: T1 to T9 done and reviewed; the Linux-run fixes (#587, #588, #590) landed 2026-11-16 | one agent, sonnet | nothing |
 | 01-valtron-runtime | `done`: T1 to T6 done, reviewed and merged as `447519256` | one agent, sonnet | nothing |
 | 02-http-runtime | `done`: T1 to T6 done, reviewed and merged as `c12e94aec` | one agent, sonnet | nothing |
-| 03-connectrpc-runtime | `todo` | one agent, sonnet | 00 merged; 03 writes `server.rs` after 00 |
+| 03-connectrpc-runtime | `in progress`: T1 to T4, T6 and T7 done; T5 partial (transport cases gated on #752 and #753) | one agent, sonnet | 00 merged |
 
 Features 01, 02 and 03 run in parallel after 00. They write different crates. 00 and 03 both
 write `foundation_testbed/src/wasm/server.rs`, first 00 (the `/echo` route), then 03 (the
@@ -378,6 +380,107 @@ T5.
   assertion is now case-insensitive. The same correction is in the owned crate.
 - The first owned Deno run failed on the same upper-case assertion; it is fixed and the run is
   green.
+
+## Feature 03: what landed (2026-11-23)
+
+Branch `spec88/f03-connectrpc-runtime`, from `012fbc6be`. The work is in the working tree; it
+is not committed. Spec 85 created `integration/wasm`; feature 03 extended it and kept one test
+target (`tests/wasm.rs`, renamed from `tests/wasm_streaming.rs`).
+
+### Tasks
+
+| Task | State | What landed |
+|---|---|---|
+| T1 | done | `integration/wasm` builds for wasm32 with `rpc,wasm-fetch` and runs one target. The unary case passes on Deno, Chromium and workerd. |
+| T2 | done | Cases 1 to 10: the router, the error model, the recording sink, the four stream shapes and two services. |
+| T3 | done | Cases 11 to 13 on a deterministic clock this crate supplies. The layer reads no wall clock. |
+| T4 | done | `RpcRoute` on `/connect/*` in `foundation_testbed`, on the same origin as the page. `tests/connect_server_tests.rs` has 3 native cases. |
+| T5 | **partial** | Cases 14 to 17 are written. Case 17 (capabilities) passes on all three hosts. Cases 14 to 16 skip with a named reason on every host: #752 (no Rust endpoint on Deno/workerd) and #753 (Chromium cannot stream a body to HTTP/1.1). |
+| T6 | done | `mise.wasm.toml` has four new tasks; `scripts/ci/ci.py` checks the owned crate and runs the four hosts. |
+| T7 | done | `foundation_connectrpc` has a `wasm-fetch` feature. `integration/wasm_owned` builds without it, imports only `abi`, and runs 13 cases on Deno and 13 on Chromium. |
+
+### Case counts
+
+| Host | Harness | Cases |
+|---|---|---|
+| wasm-bindgen Deno | `test bindgen-deno` | 22 pass (transport 14 to 16 skip) |
+| wasm-bindgen Chromium | `test bindgen-web` | 22 pass (transport 14 to 16 skip) |
+| workerd | `test bindgen-wrangler` | 22 pass (transport 14 to 16 skip) |
+| owned Deno | `deno integration/wasm_owned` | 13 pass |
+| owned Chromium | `browser integration/wasm_owned --headless` | 13 pass |
+| native `/connect` route | `cargo test -p foundation_testbed` | 3 pass |
+
+### Verification
+
+| Command | Result |
+|---|---|
+| `cargo check -p foundation_connectrpc --target wasm32-unknown-unknown --no-default-features --features rpc` | `Finished` |
+| `cargo check --tests --target wasm32-unknown-unknown --manifest-path .../integration/wasm/Cargo.toml` | `Finished` |
+| `cargo check --tests --target wasm32-unknown-unknown --manifest-path .../integration/wasm_owned/Cargo.toml` | `Finished` |
+| `test bindgen-deno backends/foundation_connectrpc/integration/wasm` | `22 passed; 0 failed` |
+| `test bindgen-web ... --headless` | `22 passed; 0 failed` |
+| `test bindgen-wrangler ...` | `{"passed":true}` |
+| `wasm-testbed deno .../integration/wasm_owned` | `13 passed; 0 failed` |
+| `wasm-testbed browser .../integration/wasm_owned --headless` | `13 passed; 0 failed` |
+| `cargo test -p foundation_testbed` | all suites pass; `connect_server_tests` 3 pass |
+| import measurement of the owned module | `abi.schedule_timeout`, `abi.host_report`, `abi.host_monotonic_now_ms`; no `__wbindgen_` |
+| `cargo fmt --check` for the three crates and both standalone manifests | clean |
+| `cargo clippy -p foundation_connectrpc -p foundation_testbed --all-targets --no-deps -- -D warnings` | clean |
+| the same clippy command without `--no-deps` | fails on 16 pre-existing `foundation_wasm` warnings (#598) |
+
+`wasm2wat` is not installed on this host. The import list came from a reader of the wasm import
+section (LEARNINGS entry 23).
+
+### The R14 break
+
+`dispatch_to` was changed to call `sink.finish()` before the first chunk. Each host ran
+`--filter server_stream_frames_arrive_in_order`.
+
+| Host | Red output |
+|---|---|
+| wasm-bindgen Deno | `case 5: the first call is open; got ["finish", "open", "chunk", "chunk", "chunk", "chunk", "finish"]`; `test result: FAILED. 0 passed; 1 failed` |
+| wasm-bindgen Chromium | the same line; `test result: FAILED. 0 passed; 1 failed` |
+| workerd | `{"passed":false}`; the same line; `test result: FAILED. 0 passed; 1 failed` |
+| owned Deno | `failing case: server_stream_frames_arrive_in_order`; `case 5: open`; exit 1 |
+| owned Chromium | `FAILED  server_stream_frames_arrive_in_order`; `case 5: open`; exit 1 |
+
+The break is reverted, and the same filtered case is green on all five hosts.
+
+### Production changes the cases proved
+
+| Case | Defect | Fix | Issue |
+|---|---|---|---|
+| 14 | The wasm fetch client did not set `duplex: "half"`, so Chromium refused the `Request` | set it in `build_web_request`; the spec 85 inbound case does the same | #754 (closed) |
+| 2 | The client maps a non-Connect 404 to `NotFound`, not `unimplemented` (Decision 03) | not changed; the case asserts the documented reverse mapping | #755 |
+| T7 | `rpc` pulls `auth`, and foundation_auth's wasm feature pulls `wasm-fetch` | the owned package uses no features | #756 |
+
+### Notes and corrections
+
+- The feature's T1 `Cargo.toml` block names `foundation_context` and `foundation_compact` with
+  `host-abi`. That is wrong for the wasm-bindgen crate: the module then imports `abi`, which
+  the Deno host does not supply (`Import "abi" not a dependency`). The crate uses the
+  wasm-bindgen clock backend instead.
+- The feature's T7 example builds the owned package with `features = ["rpc"]`. Measured:
+  `rpc` pulls wasm-bindgen glue through `auth` (#756), so the package uses no features.
+- Case 5 sees four chunks, not three: the Connect EndStream frame is its own chunk. The case
+  asserts three messages in order plus the end-stream frame.
+- The `/connect` route reads a chunked body into memory, bounded by
+  `ServerLimits::max_connect_body` (default 4 MiB), before dispatch. The router's in-memory
+  `dispatch` cannot wait on a connection. A route miss has no header, so the route adds a
+  framing header before `render_message`.
+- `valtron::execute` hangs in a wasm-bindgen test body (#565). The transport driver polls the
+  client future, steps the single-threaded engine with `run_once`, and yields to the host.
+- `foundation_testbed` goes from `0.0.8` to `0.0.9` for the new `ServerLimits` field.
+
+### New issues
+
+| Issue | Severity | Problem |
+|---|---|---|
+| #752 | medium | no wasm host can run the transport cases: Deno and workerd start no Rust endpoint; Chromium cannot stream a body |
+| #753 | high | `H1Transport` cannot send a streaming body from a browser to an HTTP/1.1 origin |
+| #754 | high | the wasm fetch client omitted `RequestInit.duplex` (fixed, closed) |
+| #755 | medium | the connectrpc client maps a non-Connect 404 to `NotFound`, not `unimplemented` |
+| #756 | medium | the `rpc` feature pulls wasm-bindgen glue through `foundation_auth` |
 
 ## What the plan depends on
 

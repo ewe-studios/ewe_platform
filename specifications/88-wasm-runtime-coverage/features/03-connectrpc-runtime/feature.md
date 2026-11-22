@@ -1,19 +1,19 @@
 ---
 feature: "ConnectRPC Runtime"
 description: "Deep foundation_connectrpc cases on embedded Deno, headless Chromium and workerd: the router and its four stream types, the response-sink contract, the error model, the deadline through an injected clock, and H1Transport against each host's real fetch."
-status: "todo"
+status: "in-progress"
 priority: "high"
 depends_on: ["00-executors"]
 estimated_effort: "large"
 created: 2026-11-15
-last_updated: 2026-11-16
+last_updated: 2026-11-23
 author: "Main Agent"
 model: "sonnet"
 tasks:
-  completed: 0
-  uncompleted: 7
+  completed: 6
+  uncompleted: 1
   total: 7
-  completion_percentage: 0%
+  completion_percentage: 86%
 ---
 
 # ConnectRPC Runtime
@@ -512,3 +512,50 @@ cargo clippy -p foundation_connectrpc -p foundation_testbed --all-targets -- -D 
 ---
 
 _Created: 2026-11-15_
+
+## 10. What landed (2026-11-23)
+
+The work is on branch `spec88/f03-connectrpc-runtime`, in the working tree.
+
+| Task | State | Measured result |
+|---|---|---|
+| T1 | done | `integration/wasm` (created by spec 85; extended here, one target `tests/wasm.rs`) builds for wasm32 and runs 22 cases on Deno, Chromium and workerd |
+| T2 | done | Cases 1 to 10 pass on all three hosts |
+| T3 | done | Cases 11 to 13 pass on a deterministic clock the crate supplies |
+| T4 | done | `/connect/*` answers on the testbed server; `tests/connect_server_tests.rs` has 3 native cases |
+| T5 | **partial** | Case 17 passes everywhere. Cases 14 to 16 skip with a named reason on every host: #752 and #753 |
+| T6 | done | four new `mise.wasm.toml` tasks and their CI steps |
+| T7 | done | `integration/wasm_owned` imports only `abi` and runs 13 cases on Deno and 13 on Chromium |
+
+### Corrections to this document
+
+- Section 6.2 gives `foundation_context` and `foundation_compact` the `host-abi` feature. That is
+  wrong for the wasm-bindgen crate: the module then imports `abi`, which the Deno host does not
+  supply. The crate uses the wasm-bindgen clock backend (LEARNINGS 28).
+- Section 6.6 step 3 builds the owned package with `features = ["rpc"]`. Measured: `rpc` pulls
+  wasm-bindgen glue through `foundation_auth` (#756). The package uses no features.
+- Case 5 sees four chunks, not three: the Connect EndStream frame is its own chunk
+  (LEARNINGS 33).
+- Case 2: the router answers a path miss with a bare HTTP 404, which Decision 03 maps to
+  `unimplemented`. The case asserts the raw status, the zero handler count and that mapping.
+  The client's own fallback maps it to `NotFound` (#755).
+- Section 6.5 says the transport cases run on Deno and Chromium. Measured: no host can run them
+  yet. Deno and workerd start no Rust `/connect` endpoint (#752). Chromium cannot stream a
+  fetch body to an HTTP/1.1 origin (#753). The cases are gated with those issue numbers.
+- The `/connect` route reads a chunked body into memory, bounded by
+  `ServerLimits::max_connect_body`, because the router's in-memory dispatch cannot wait on a
+  connection. It also adds a framing header when a route miss leaves the header map empty.
+
+### New issues
+
+| Issue | Severity | Problem |
+|---|---|---|
+| #752 | medium | no wasm host can run the transport cases |
+| #753 | high | `H1Transport` cannot stream a body from a browser to HTTP/1.1 |
+| #754 | high | the fetch client omitted `RequestInit.duplex`; fixed and closed |
+| #755 | medium | the client maps a non-Connect 404 to `NotFound`, not `unimplemented` |
+| #756 | medium | `rpc` pulls wasm-bindgen glue through `foundation_auth` |
+
+The R14 break: `dispatch_to` called `finish` before the first chunk. It turned
+`server_stream_frames_arrive_in_order` red on all five hosts (Deno, Chromium, workerd, owned
+Deno, owned Chromium). The break is reverted.
