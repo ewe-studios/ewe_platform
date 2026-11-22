@@ -1182,3 +1182,7 @@ Feature 37 selects IndexedDB for durable browser Todo submissions and assigns bo
 ## Feature 37 native transport selection
 
 Feature 37 now specifies one iPhone startup path for all three action transports. Implementation and native verification remain pending.
+
+## Feature 37 Android transport selection
+
+Feature 37 requires all three transport tests and the independent WebSocket test on both Android and iPhone. Implementation and verification remain pending.

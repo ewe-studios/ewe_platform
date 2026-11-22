@@ -982,3 +982,7 @@ A data-only acceptance test needs an isolated service. It does not require an al
 ## Feature 37 native transport selection
 
 The iPhone framework already manages WebSocket connections. The Todo launcher repeats core setup when it selects the sender. Each selection still loads the initial view over Hypertext Transfer Protocol (HTTP).
+
+## Feature 37 Android transport selection
+
+Android already uses one Todo core factory. Its launcher passes two independent options to `RemoteEweScreen`. One transport setting makes the choice explicit.

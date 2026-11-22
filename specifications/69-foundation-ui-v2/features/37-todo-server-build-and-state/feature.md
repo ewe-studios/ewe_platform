@@ -136,7 +136,9 @@ Verify the deployed Todo entry still requests one JavaScript file.
 
 ## Native transport selection
 
-Give the iPhone app one `ServerScreen` entry point and one Todo core factory.
+Use one screen entry point and one Todo core factory on each platform.
+Use `ServerScreen` on iPhone and `RemoteEweScreen` on Android.
+On Android, replace the separate `rpcBase` and `socketEndpoint` options with one transport selection.
 The app supplies the server address and an action transport setting at startup.
 Support the default HTTP action endpoint, Connect RPC over HTTP, and the WebSocket action endpoint.
 The framework selects the sender and negotiates its capabilities. It passes the sender to the same factory for every selection.
@@ -144,14 +146,14 @@ The factory installs the pending store, resources, and typed delivery action onc
 Keep the initial view request on HTTP for all three selections.
 Route host actions locally. Route typed server actions through the configured sender.
 
-Expose an independent WebSocket service through the native host context for Rust callers.
+Expose the same independent WebSocket service to Rust callers through the iPhone and Android host contexts.
 The caller supplies the endpoint, opens a connection, sends and receives application messages, and closes the connection.
 The native framework owns the platform socket. Each caller owns the lifetime of its connection.
 Return connection and message errors to the caller. Keep independent messages outside the action dispatcher.
 
-Test each transport setting on iPhone with the same core factory.
+Test all three transport settings on both iPhone and Android. Use the same core factory for every setting on each platform.
 Verify the initial HTTP load, local dialog, remote Add, and typed confirmation for each setting.
-Open a separate native WebSocket from Rust while Todo uses its action socket.
+On each platform, open a separate native WebSocket from Rust while Todo uses its action socket.
 Exchange an application message and close the independent socket. Verify Todo can still send an action and receive confirmation.
 
 ## Required verification
