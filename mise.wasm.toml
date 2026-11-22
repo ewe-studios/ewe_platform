@@ -44,6 +44,22 @@ mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
 cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter async_first_api
 """
 
+[tasks."test:wasm-bindgen:netio"]
+alias = "test-wasm-bindgen-netio"
+description = "foundation_netio's wasm suite on the Deno host: the streaming body, the exchange client, SSE and WebSocket (spec 85 T6). Needs the mise-pinned deno + wasm-bindgen."
+run = """
+mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_netio --features wasm-fetch
+"""
+
+[tasks."test:wasm-bindgen:connectrpc"]
+alias = "test-wasm-bindgen-connectrpc"
+description = "The standalone wasm test crate for foundation_connectrpc's streaming sink and foundation_http's streaming inbound bridge (spec 85 T6)."
+run = """
+mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
+cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_connectrpc/integration/wasm
+"""
+
 [tasks."test:wasm-bindgen:web"]
 alias = "test-wasm-bindgen-web"
 description = "The wasm-bindgen web runner in headless Chromium: foundation_core's 34 wasm-bindgen cases (spec 88 T9, #586)."

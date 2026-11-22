@@ -5529,7 +5529,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.13"
+version = "0.0.14"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
@@ -5928,7 +5928,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -6116,7 +6116,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
@@ -6167,6 +6167,7 @@ dependencies = [
  "wasm-bindgen-test",
  "web-sys",
  "webpki-roots 0.26.11",
+ "worker",
  "zeroize",
 ]
 

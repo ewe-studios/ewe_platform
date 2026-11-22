@@ -24,6 +24,19 @@ pub struct HttpApp<S> {
     pub ctx: Ctx,
     pub router: Router<S>,
     pub middleware: Vec<Box<dyn RequestMiddleware>>,
+    /// The largest request body the wasm bridges read, in bytes.
+    ///
+    /// WHY: the wasm bridge streams a request body from a JS `ReadableStream`.
+    /// The reader stops at this limit and fails the read, so a large or
+    /// endless upload cannot exhaust memory.
+    ///
+    /// The default is 8 MiB. Cloudflare Workers caps a request body at 100 MB;
+    /// nginx defaults `client_max_body_size` to 1 MiB. 8 MiB leaves room for an
+    /// RPC frame batch and stays far below the platform cap.
+    ///
+    /// Used only by the wasm bridges; the native server reads through its own
+    /// body limit.
+    pub max_request_bytes: usize,
 }
 
 impl<S> HttpApp<S> {
@@ -59,7 +72,15 @@ impl<S> HttpApp<S> {
             ctx,
             router: Router::new(),
             middleware: Vec::new(),
+            max_request_bytes: 8 * 1024 * 1024,
         }
+    }
+
+    /// Replace the wasm request body limit (see [`HttpApp::max_request_bytes`]).
+    #[must_use]
+    pub fn with_max_request_bytes(mut self, bytes: usize) -> Self {
+        self.max_request_bytes = bytes;
+        self
     }
 
     /// Create a new empty `HttpApp`.

@@ -3,12 +3,13 @@
 use std::sync::{Arc, Mutex, Weak};
 
 use foundation_context::Ctx;
+use foundation_netio::shared::client::ClientConfig;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
+use foundation_netio::wasm::client::stream::WasmByteStream;
 use js_sys;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
@@ -16,8 +17,19 @@ use crate::wasm::dispatch::HttpAppCfDispatch;
 use crate::wasm::serve_cf::CfServe;
 use foundation_db::wasm::bindgen::cf::{D1Database, KVNamespace, R2Bucket};
 
-/// Convert a `Request` to a `SimpleIncomingRequest`.
-async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError> {
+/// A `SimpleIncomingRequest` from a JS request, with the body as a stream.
+///
+/// The body stays a [`WasmByteStream`] over `req.body()`, bounded by
+/// `max_request_bytes` and the client's `body_queue_chunks` default. No step
+/// reads the whole body into memory.
+///
+/// # Errors
+///
+/// The `JsError` that the runtime raised while reading the request.
+pub fn request_from_cf(
+    req: &Request,
+    max_request_bytes: usize,
+) -> Result<SimpleIncomingRequest, JsError> {
     let method = SimpleMethod::from(req.method());
     let url = req.url();
 
@@ -32,18 +44,13 @@ async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError
         }
     }
 
-    let text_promise = req
-        .text()
-        .map_err(|e| JsError::new(&format!("failed to get request text: {e:?}")))?;
-    let body_js = JsFuture::from(text_promise)
-        .await
-        .map_err(|e| JsError::new(&format!("failed to read request body: {e:?}")))?;
-    let body_text = body_js.as_string().unwrap_or_default();
-    let body = if body_text.is_empty() {
-        None
-    } else {
-        Some(SendSafeBody::Text(body_text))
-    };
+    let body = req.body().map(|stream| {
+        SendSafeBody::Stream(Some(Box::new(WasmByteStream::new(
+            stream,
+            ClientConfig::default().body_queue_chunks,
+            Some(max_request_bytes),
+        ))))
+    });
 
     let simple_req = SimpleIncomingRequest::builder()
         .with_parsed_url(url)
@@ -91,7 +98,7 @@ impl CfHttpApp {
     /// and any inserts made during the request stay private to that request.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request, env: JsValue) -> Result<Response, JsError> {
-        let simple_req = request_from_cf(&req).await?;
+        let simple_req = request_from_cf(&req, self.inner.max_request_bytes)?;
         let app_ctx = self.app_ctx.fork();
         extract_cf_bindings(&env, &app_ctx);
         Ok(self

@@ -1,0 +1,46 @@
+# Standalone wasm test crate for foundation_connectrpc and the wasm bridges of
+# foundation_http. It is outside the root workspace because the crate's own
+# test targets cannot build for wasm32: its dev-dependency `foundation_testing`
+# pulls `socket2` (issue #576), and `foundation_core/multi` is native-only.
+#
+#   cargo run -p foundation_testbed --features wasm --profile uat \
+#     --bin wasm-testbed -- test bindgen-deno \
+#     backends/foundation_connectrpc/integration/wasm
+[package]
+name = "foundation_connectrpc_wasm_tests"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+foundation_connectrpc = { path = "../..", default-features = false }
+foundation_http = { path = "../../../foundation_http", default-features = false, features = ["wasm", "wasm-bindgen-http"] }
+foundation_netio = { path = "../../../foundation_netio", default-features = false, features = ["wasm-fetch"] }
+foundation_compact = { path = "../../../foundation_compact", default-features = false }
+bytes = "1"
+# Pinned to the versions foundation_testbed pins and the testbed's CI installs:
+# the wasm-bindgen CLI must be >= the crate it processes (0.2.126 exactly here).
+wasm-bindgen = "=0.2.126"
+wasm-bindgen-futures = "=0.4.76"
+js-sys = "=0.3.103"
+web-sys = { version = "=0.3.103", features = [
+    "console",
+    "Headers",
+    "Request",
+    "RequestInit",
+    "Response",
+    "ResponseInit",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "ReadableStreamDefaultController",
+    "UnderlyingSource",
+] }
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.76"
+futures-lite = "2"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
