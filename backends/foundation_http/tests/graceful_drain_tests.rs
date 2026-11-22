@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Graceful shutdown / connection draining (spec-41 F11 / Decision 12 §10).
 //!
 //! WHY: After shutdown is signalled the server must stop accepting, let handlers

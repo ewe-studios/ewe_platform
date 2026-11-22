@@ -1,9 +1,10 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
 // Integration tests for the `WakeableStream` wake side-channel (feature 02).
 //
 // These pin the producer-side firing contract and the forward/default combinator
 // split. They are single-threaded and never block on a real consumer, so they are
 // deterministic.
-
 #![cfg_attr(
     not(feature = "multi"),
     expect(

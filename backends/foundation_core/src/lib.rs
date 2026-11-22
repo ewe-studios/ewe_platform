@@ -36,6 +36,9 @@ compile_error!(
 );
 
 pub mod compati;
+/// The host builders for the effect environment (spec 84).
+#[cfg(feature = "std")]
+pub mod env;
 pub mod extensions;
 pub mod io;
 pub mod macros;

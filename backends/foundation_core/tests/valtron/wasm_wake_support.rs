@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Shared scenarios that prove valtron's waker design (spec 70 feature 80) at
 //! runtime on JS-hosted wasm. Both wasm runtime suites use them:
 //!

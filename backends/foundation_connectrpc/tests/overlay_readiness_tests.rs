@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Feature 06 regression: an RPC over the `WireGuard` overlay parks on the
 //! overlay's own readiness signal (no pollable fd) and completes.
 //!

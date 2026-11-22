@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Public-API coverage for `agentic::serialization` — the SessionRecord <-> row
 //! <-> Arrow batch path plus the columnar analytics helpers. All pure and
 //! deterministic; serialization.rs was 70% region coverage.

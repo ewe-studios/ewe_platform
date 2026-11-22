@@ -167,7 +167,7 @@ pub fn initialize_pool(
     initialize_pool_with_ctx(
         seed_for_rng,
         user_thread_num,
-        crate::valtron::ctx::seeded_root(seed_for_rng),
+        crate::valtron::executors::single::seeded_root_with_env(seed_for_rng, None),
     )
 }
 
@@ -2514,6 +2514,51 @@ pub fn sleep(
     duration: std::time::Duration,
 ) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>> {
     execute(super::sleep::SleepingTask::sleep(duration), None)
+}
+
+/// Schedule a sleep until an absolute deadline on the clock of `ctx`.
+///
+/// Use it when the deadline is already known, so a delay in scheduling cannot
+/// stretch the wait past it.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
+pub fn sleep_until(
+    deadline: foundation_compact::Instant,
+) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>> {
+    execute(super::sleep::SleepingTask::new(deadline), None)
+}
+
+/// Return a [`Future`](std::future::Future) that completes at `deadline` on the
+/// clock of `ctx`.
+///
+/// Native: a [`timer`](crate::valtron::timer) future, woken by the timer
+/// thread. Wasm: a valtron [`sleep_until()`] task, bridged with
+/// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
+pub fn sleep_until_async(
+    deadline: foundation_compact::Instant,
+    ctx: &Ctx,
+) -> impl std::future::Future<Output = ()> {
+    let ctx = ctx.clone();
+    async move {
+        #[cfg(all(feature = "std", not(target_family = "wasm")))]
+        crate::valtron::timer::sleep_until(deadline, &ctx).await;
+
+        #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
+        {
+            use crate::valtron::StreamIteratorExt;
+            let _ = &ctx;
+            match sleep_until(deadline) {
+                Ok(timer) => {
+                    let _ = timer.into_ready_future().await;
+                }
+                // No executor to run the timer: return rather than panic.
+                Err(e) => {
+                    tracing::error!(error = ?e, "sleep_until_async could not schedule its timer");
+                }
+            }
+        }
+    }
 }
 
 /// Return a [`Future`](std::future::Future) that completes after `duration`.

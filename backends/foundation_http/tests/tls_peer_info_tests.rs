@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The TLS peer chain reaches the handler on `ConnectionContext::tls`.
 //!
 //! Spec 80 feature 00 task T4. A mutual-TLS server accepts a client

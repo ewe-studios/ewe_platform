@@ -10,17 +10,17 @@ description = "Per-machine agent RPC model server: load a model once, serve name
 keywords = ["agent", "rpc", "connectrpc", "grpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.21", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.
-foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi"] }
 # Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
 # SQLite default (`TrustedClientStore::open_sqlite`).
 foundation_db = { path = "../foundation_db", version = "0.0.9", default-features = false, features = ["turso"] }
 # The side-effect bundle (`Ctx`) the trusted-client store needs: clocks, entropy
 # and the connection gate. The host builds it; callers pass it in.
-foundation_context = { path = "../foundation_context", version = "0.0.3" }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.13" }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
@@ -63,7 +63,7 @@ prost-types = "0.12"
 [dev-dependencies]
 tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
-foundation_ai = { path = "../foundation_ai", version = "0.0.9", default-features = false, features = ["multi", "testing"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi", "testing"] }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 # State directories (CA, signing key, trusted-client DB) per test.
 tempfile = "3"

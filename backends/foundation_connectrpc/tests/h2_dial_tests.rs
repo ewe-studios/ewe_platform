@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Feature 127 — the H2 client dials without blocking a valtron worker.
 //!
 //! WHY: `H2Transport::open` used to call `TcpStream::connect_timeout`, which

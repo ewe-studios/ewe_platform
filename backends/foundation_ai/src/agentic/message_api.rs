@@ -343,6 +343,10 @@ impl<D> MessageApi<D> {
     /// Append a record to the session log. Returns the record's scru128 id.
     ///
     /// Buffers only (no I/O); see the type docs for what flushes the buffer.
+    ///
+    /// `MessageApi` holds no `Ctx`, so it cannot read the injected `Env`. Issue
+    /// #677 gives it a `Ctx` and removes this allowance.
+    #[allow(clippy::disallowed_methods)]
     #[must_use]
     pub fn append(&self, record: SessionRecord) -> String {
         let id = match &record {

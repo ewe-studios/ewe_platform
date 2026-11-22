@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Candle registry + local-load error paths.
 //!
 //! WHY: I had written these off as "GPU paths". They are not. Candle has no
@@ -25,9 +28,12 @@ use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 #[test]
