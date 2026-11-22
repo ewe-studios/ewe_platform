@@ -96,3 +96,12 @@ See [Todo packaging checks](../../../69-foundation-ui-v2/features/27-single-todo
 
 Expose one public packaging hook for application build scripts. It composes asset producers and the stager for the active target.
 Keep application-specific service generation explicit. Providers own Cargo input tracking and conditional writes.
+
+## Consumer contract for the packaging hook
+
+The framework supplies a public Rust function with documented arguments and defaults.
+The caller supplies application inputs that differ from those defaults. Resolve package-relative inputs inside the framework.
+Accept existing resource declarations without requiring the caller to list their files again.
+Return build failures to Cargo with the input name and failed operation.
+Verify the contract with an external consumer. Its build script invokes the public hook and propagates its result.
+Require the same consumer script to package development and release assets through the supported build entry points.

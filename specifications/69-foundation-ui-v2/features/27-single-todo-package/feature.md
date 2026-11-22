@@ -201,6 +201,9 @@ The build produces a complete directory before the server starts.
 
 - Keep the explicit service generation call. Its arguments identify the application's schema and generated service.
 - Add one public framework packaging call for the remaining asset work, following `examples/platform_demo/build.rs`.
+- Supply application inputs as arguments or manifest entries. Examples include the resource manifest and the browser module's logical name.
+- The framework provides the callable implementation through a public Cargo build dependency. Todo only invokes it and propagates errors.
+- Review the consumer build script against the demo. Reject application-defined packaging helpers, copy loops, and provider orchestration.
 - The packaging helper selects the target, invokes registered asset producers, tracks inputs, and stages their outputs.
 - Keep runtime source paths, Cargo output lookup, rebuild directives, and file comparison logic inside the owning providers.
 - Declare the version file as a generated resource. Its provider owns the write.
