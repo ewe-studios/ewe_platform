@@ -3,8 +3,6 @@ package ewe.todo
 import android.app.Activity
 import android.app.Instrumentation
 import android.os.Bundle
-import ewe.ui.EventId
-import ewe.ui.PropId
 import ewe.ui.android.CoreBinding
 import ewe.ui.android.HttpActionConnection
 import ewe.ui.android.OkHttpChannelFactory
@@ -70,6 +68,7 @@ class ReplayCheck : Instrumentation() {
     }
 
     override fun onStart() {
+        System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
         val results = Bundle()
         try {
             runBlocking {
@@ -88,7 +87,6 @@ class ReplayCheck : Instrumentation() {
                     return@runBlocking
                 }
                 if (dataOnly) {
-                    System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
                     val transport = ewe.ui.android.OkHttpRpcClient(OkHttpClient())
                     io.github.ewe_studios.ewe.core.NativeHttpClient(transport).use { client ->
                         val id = "00000000-0000-4000-8000-000000000042"
@@ -121,51 +119,34 @@ class ReplayCheck : Instrumentation() {
                         )
                     LiveMountHost(store, OkHttpChannelFactory(client, endpoint)).use {
                         CoreBinding(native, store, this).use { core ->
-                            check(store.receive(connection.negotiate(core)))
+                            val caps = connection.negotiate(core)
+                            core.applyCapsFrame(caps)
+                            check(store.receive(caps))
                             check(store.receive(connection.initial("initial")))
                             check(store.nodes.any { it.text == "Android server todo" }) {
                                 "The second client did not receive the server app's todo"
                             }
                             val title = "Android replay verification"
-                            val payload = org.json.JSONObject().put("id", java.util.UUID.randomUUID().toString()).put("title", title)
-                            val add = EventInput(1u, "submit", title, false, 0u, byteArrayOf(), payload.toString().encodeToByteArray())
-                            check(store.receive(requireNotNull(core.trigger("server:add_todo", add))))
-                            val label = withTimeout(5000) {
-                                var updated = store.nodes.lastOrNull { it.text == title }
-                                while (updated == null) {
-                                    delay(50)
-                                    updated = store.nodes.lastOrNull { it.text == title }
-                                }
-                                updated
-                            }
-                            var row = label
-                            while (
-                                row.children.none {
-                                    store.record(it)?.actions?.get(EventId.TAP) == "server:toggle_todo"
-                                }
-                            ) {
-                                row = store.record(requireNotNull(row.parent))!!
-                            }
-                            val toggle =
-                                row.children.mapNotNull(store::record).first {
-                                    it.actions[EventId.TAP] == "server:toggle_todo"
-                                }
-                            val id = toggle.props.getValue(PropId.VALUE).label
-                            val event = EventInput(toggle.id, "tap", id, false, row.id, byteArrayOf())
+                            val id = java.util.UUID.randomUUID().toString()
+                            val payload = org.json.JSONObject().put("id", id).put("title", title)
+                            val add = EventInput(0u, "submit", "", false, 0u, byteArrayOf(), payload.toString().encodeToByteArray())
                             var failure: String? = null
                             store.onError = { code, message -> failure = "$code $message" }
-                            check(
-                                store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
-                            )
-                            check(failure == null) { "First deletion failed: $failure" }
-                            withTimeout(5000) {
-                                while (store.nodes.any { it.text == title }) delay(50)
+                            check(store.receive(requireNotNull(core.trigger("server:add_todo", add))))
+                            check(failure == null) { "Addition failed: $failure" }
+                            val transport = ewe.ui.android.OkHttpRpcClient(client)
+                            io.github.ewe_studios.ewe.core.NativeHttpClient(transport).use { reader ->
+                                check(io.github.ewe_studios.ewe.todo.getTodo(reader, base, id).title == title)
+                                val delete = add.copy(json = org.json.JSONObject.quote(id).encodeToByteArray())
+                                repeat(2) {
+                                    check(store.receive(requireNotNull(core.trigger("server:confirm_delete", delete))))
+                                    check(failure == null) { "Deletion failed: $failure" }
+                                    try {
+                                        io.github.ewe_studios.ewe.todo.getTodo(reader, base, id)
+                                        error("The deleted todo still exists")
+                                    } catch (_: io.github.ewe_studios.ewe.todo.TodoServiceException.NotFound) { }
+                                }
                             }
-                            check(
-                                store.receive(requireNotNull(core.trigger("server:confirm_delete", event)))
-                            )
-                            check(failure == null) { "Repeated delete failed: $failure" }
-                            check(store.nodes.none { it.text == title })
                             results.putString("stream", "Second client received the todo. Repeated delete succeeded.")
                         }
                     }

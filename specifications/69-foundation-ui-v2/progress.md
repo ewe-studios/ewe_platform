@@ -1250,3 +1250,12 @@ Todo uses the shared module loader for its browser module.
 The loader reports the address and HTTP status for a missing resource.
 The loader tests cover missing resources, invalid module bytes, and a valid streamed module.
 The framework task regenerated the readable and minified bundles. Its check passed.
+
+## Feature 37 three-client verification
+
+Chrome, iPhone, and Android each sent changes that reached the other two clients.
+The live test kept the receiving client's search and unfinished draft during updates.
+The iPhone and Android tests retried a failed Add with its saved identifier.
+A separate Chrome test retried failed Add and Delete requests and checked the confirmed count.
+The Android replay client also submitted two Delete requests for the same identifier.
+It checked both replies and verified that the data service returned NotFound after each request.

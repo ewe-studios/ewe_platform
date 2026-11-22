@@ -1028,3 +1028,9 @@ A retry uses the saved todo identifier and leaves the current dialog open.
 Chrome reports a compiler error when the compiler receives a missing resource response.
 The shared module loader can check the HTTP status before it starts compilation.
 It can keep the original compiler or linker error as the cause when the resource exists.
+
+## Android replay verification
+
+Android instrumentation starts a separate process. It must select the same native library as the application.
+The replay client must also apply the server capability reply before it sends structured input.
+The data service can verify each deletion by its record identifier.
