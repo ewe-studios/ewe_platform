@@ -7,6 +7,8 @@ mod e2e;
 mod idp_server;
 mod provider_admin;
 mod provider_service;
+#[cfg(feature = "social-integration-tests")]
+mod social_upstream;
 mod tos_login_gate;
 mod upstream_client;
 

@@ -1,9 +1,11 @@
 # Spec 57 Progress: foundation-social-and-keychain
 
-## Status: In Progress
+## Status: Complete (2026-11-23)
 
 Phase 0 (social login): F001-F007 complete
 Phase 1 (keychain): 008 (staged vault+backends) Stages 1-4 done (native verified); 009 (SSH) done; 010 (DO+WS) done
+F011: social login end to end — complete; 16 tests over real TCP.
+The only open item is the Bitwarden CLI end-to-end test, issue #765.
 
 **2026-07-18 — F007 completed + cross-platform HTTP made real.** `UpstreamOidcClient`
 is now cross-platform (built on `default_http_client()` / `Arc<dyn HttpClient>`, runs on
@@ -68,7 +70,8 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
    - **✅ STAGE 4 (native) — server binary `src/bin/keychain.rs` VERIFIED**: boots valtron pool, opens
      Turso, applies schema, serves; smoke-tested with real `curl` (register → connect/token login return
      correct Bitwarden JSON). `Dockerfile` (multi-stage) + `docker-compose.yml` written.
-   - Remaining (needs external tooling): Bitwarden-CLI e2e (needs `bw` + running server).
+   - Remaining: the Bitwarden CLI end-to-end test. It needs the `bw` binary, which no
+     change carries. Open issue #765 with the fix.
 4. ✅ 009 SSH key provisioning (former 012) — app registry (Argon2id secrets) + Ed25519/RSA keygen
    (`ssh-key`) + age-encrypted private keys at rest; native-gated (`core/provisioning/`); 3 tests;
    wired into the native server (`/api/apps/*`, `/api/credentials/ssh-keys/*`, X-App-Secret/Bearer auth).
@@ -77,6 +80,18 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 > upstream redirect URI is wrong, the OIDC ID token is not verified, and GitHub has no
 > `/user/emails` call. The tests use a local provider simulator, not `ory/hydra`: hydra is a
 > different OAuth2 server and cannot serve the provider-specific JSON. See feature 011.
+
+> **2026-11-23 — F011 complete.** `social_authorize` and `social_callback` now build the
+> upstream redirect URI with `{issuer}{prefix}/callback?provider={id}`. One nonce flows from
+> the authorize request to the session and the ID token check. An OIDC ID token is verified
+> (signature from the discovered JWKS, issuer, audience and nonce, with the injected clock).
+> GitHub's `/user/emails` fallback selects a verified address and never invents one. A local
+> simulator in `foundation_auth/tests/integration/social_upstream/` serves the Google,
+> GitHub, Facebook and Twitter/X wire shapes. Four provider tests, nine refusal tests and one
+> route-prefix test pass over real TCP. The token exchange sends the decrypted upstream
+> `client_secret` from the `ProviderService` that `IdpServer::with_provider_service` gives
+> it; a provider secret without that service is an error, not a public exchange. Two
+> client-secret tests cover both paths, so 16 tests pass. `foundation_auth` is now 0.0.13.
 
 > **2026-07-18 restructure:** former F008–F011 (core, cloudflare, native, integration)
 > consolidated into **008-keychain-vault-and-backends** as 4 sequential stages (each
@@ -98,7 +113,7 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 | 008: Keychain vault + backends (staged) | 1 | ✅ S1-4 (native verified) | 64 core + 1 e2e; wasm compiles |
 | 009: SSH key provisioning | 1 | ✅ Complete | 3 (provisioning) |
 | 010: Workers DO + WebSocket machinery | 1 | ✅ Complete | — (wasm32 + native compile; worker-build green; bindings verified) |
-| 011: Social login end-to-end correctness and tests | 1 | 🔲 Design updated 2026-11-23; implementation next | 4 provider + 6 refusal tests planned |
+| 011: Social login end-to-end correctness and tests | 1 | ✅ Complete 2026-11-23 | 16 (social_upstream) |
 
 ## Test Results (2026-07-19)
 

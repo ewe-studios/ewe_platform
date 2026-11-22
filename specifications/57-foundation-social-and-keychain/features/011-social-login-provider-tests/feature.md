@@ -1,6 +1,6 @@
 # F011: Social Login End-to-End Correctness and Provider Tests
 
-**Status:** Planned — design updated on 2026-11-23 after a code review
+**Status:** Complete — verified on 2026-11-23
 **Depends on:** 001 (provider model), 003 (upstream client), 004 (social login flow), 005 (user provisioning), 006 (provider discovery)
 **Unblocks:** nothing — this is the verification layer
 **Decisions:** [00](../../decisions/00-identity-broker-pattern.md), [01](../../decisions/01-crypto-backend.md)
@@ -69,6 +69,13 @@ shape. A test that returns generic JSON proves nothing.
    provider mapping cover their wire shape. The tests prove it. Facebook `signed_request` is
    for the app-side JavaScript flow, not for a server-side code exchange. Twitter/X OAuth
    version 1 is out of scope; we use its OAuth2 with PKCE.
+
+5. **Send the upstream client secret.** A real Google, GitHub or Facebook web client is
+   confidential and rejects a token exchange without its secret. The provider row keeps the
+   secret encrypted. `IdpServer::with_provider_service` gives the handlers the
+   `ProviderService` that decrypts it. The token form carries the secret. A provider with a
+   secret, but an IdP with no service, is an error; the code never tries a public-client
+   exchange. The value is zeroed on drop and never logged.
 
 ### Part B — A local provider simulator
 
@@ -170,12 +177,14 @@ contains the token, the code or the nonce.
 2. Add `upstream_callback_url` and use it in `social_authorize` and `social_callback`.
 3. Verify the OIDC ID token (signature, issuer, audience, nonce) in `social_callback`.
 4. Add the GitHub `/user/emails` fallback.
-5. Add the `social-integration-tests` feature.
-6. Write the simulator module with the four provider route sets and their recorders.
-7. Write the four provider tests.
-8. Write the six negative tests.
-9. Bump `foundation_auth` 0.0.12 to 0.0.13 and update every consumer requirement.
-10. Update `progress.md` and `LEARNINGS.md`.
+5. Send the decrypted upstream client secret at the token exchange, through
+   `IdpServer::with_provider_service`, and add the two client-secret tests.
+6. Add the `social-integration-tests` feature.
+7. Write the simulator module with the four provider route sets and their recorders.
+8. Write the four provider tests.
+9. Write the six negative tests and the two client-secret tests.
+10. Bump `foundation_auth` 0.0.12 to 0.0.13 and update every consumer requirement.
+11. Update `progress.md` and `LEARNINGS.md`.
 
 ## Tests
 

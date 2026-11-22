@@ -7,7 +7,7 @@ depends:
   - "004-social-login-flow"
   - "005-user-provisioning"
   - "006-provider-discovery"
-status: "ready"
+status: "completed"
 stages:
   - "A-social-flow-fixes"
   - "B-local-provider-simulator"
