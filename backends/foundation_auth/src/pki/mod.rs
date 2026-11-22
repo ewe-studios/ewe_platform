@@ -159,6 +159,11 @@ impl CertificateRequest {
     }
 }
 
+/// The issuance settings of one client certificate. The design of
+/// `requirements.md` section 4.5 names this type `IssueConfig`; it is
+/// [`CertificateRequest`] plus its content.
+pub type IssueConfig = CertificateRequest;
+
 /// Issues the server certificate and signs client certificate signing requests
 /// (CSRs).
 pub struct CertificateAuthority {
