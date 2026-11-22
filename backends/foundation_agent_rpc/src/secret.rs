@@ -34,8 +34,8 @@ use ring::signature::{self, KeyPair as _};
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, Zeroizing};
 
-use crate::auth::sha256_fingerprint;
 use crate::error::{AgentRpcError, AgentRpcResult};
+use foundation_auth::pki::sha256_hex;
 
 /// The format version of a [`SignedSecret`]'s JSON form.
 pub const SECRET_FORMAT_VERSION: u32 = 1;
@@ -259,7 +259,7 @@ impl SigningKey {
     /// Lowercase hex SHA-256 of the public key — safe to log.
     #[must_use]
     pub fn public_key_fingerprint(&self) -> String {
-        sha256_fingerprint(&self.public_key)
+        sha256_hex(&self.public_key)
     }
 
     fn sign(&self, message: &[u8]) -> AgentRpcResult<Vec<u8>> {
@@ -579,7 +579,7 @@ impl SignedSecret {
     /// store and log; it cannot be turned back into the secret.
     #[must_use]
     pub fn id(&self) -> String {
-        sha256_fingerprint(&self.secret)
+        sha256_hex(&self.secret)
     }
 
     /// Whether the signature verifies against the public key the secret
@@ -722,7 +722,7 @@ impl BootstrapSecrets {
 
     /// Verify `presented` at `now` (Unix seconds): well formed, signed by
     /// **this** server's key, and inside its window. Single use is the
-    /// caller's next step ([`crate::trust::TrustedClientStore::consume_secret_use`]).
+    /// caller's next step ([`foundation_auth::trust::TrustedClients::spend_secret`]).
     ///
     /// # Errors
     /// [`AgentRpcError::Auth`] for a malformed secret, one from another key
