@@ -1,8 +1,9 @@
 #![cfg(feature = "build")]
 use std::{fs, path::Path, process::Command};
 
-fn cargo(package: &Path, target: &Path, expect_success: bool) {
-    let output = Command::new(env!("CARGO"))
+fn command(package: &Path, target: &Path) -> Command {
+    let mut command = Command::new(env!("CARGO"));
+    command
         .args([
             "build",
             "--offline",
@@ -13,9 +14,13 @@ fn cargo(package: &Path, target: &Path, expect_success: bool) {
         .arg(target)
         .current_dir(package)
         .env_remove("EWE_RESOURCE_DEST")
-        .env("EWE_RESOURCE_TARGET", "web")
-        .output()
-        .unwrap();
+        .env_remove("EWE_RESOURCE_PAYLOAD")
+        .env("EWE_RESOURCE_TARGET", "web");
+    command
+}
+
+fn cargo(package: &Path, target: &Path, expect_success: bool) {
+    let output = command(package, target).output().unwrap();
     assert_eq!(
         output.status.success(),
         expect_success,
@@ -90,4 +95,22 @@ fn main() -> std::io::Result<()> {
     cargo(&app, &target, true);
     assert!(!public.join("art/logo").exists());
     assert_eq!(fs::read(public.join("user")).unwrap(), b"keep");
+
+    let stage = temp.path().join("apple");
+    let output = command(&app, &target)
+        .env("EWE_RESOURCE_TARGET", "apple")
+        .env("EWE_RESOURCE_DEST", &stage)
+        .env("EWE_RESOURCE_PAYLOAD", "EweResources")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let payload = stage.join("EweResources");
+    assert_eq!(fs::read(payload.join("version")).unwrap(), b"generated");
+    assert!(!payload.join("browser.js").exists());
+    assert!(!payload.join(".ewe-resource-index").exists());
+    assert!(stage.join(".ewe-resource-index").is_file());
 }

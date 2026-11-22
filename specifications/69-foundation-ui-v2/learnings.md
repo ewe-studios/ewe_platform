@@ -955,3 +955,6 @@ Test rejection with an unknown record identifier. Place the initiating element i
 
 Android can continue to show a channel error after live updates resume.
 Check the actual row and the channel status separately. Issue #732 tracks the stale message.
+
+The Todo browser test host supplies its staged public directory because Cargo can place test executables outside the server directory.
+The native read tests use the installed application bundle and asset manager. The iPhone test runner bundle contains different files.

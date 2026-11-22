@@ -13,7 +13,7 @@ fn browser_opens_the_same_packaged_icon() {
         "Run build-module.sh before this test"
     );
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let url = format!("http://{}/art/todo.svg", listener.local_addr().unwrap());
+    let url = format!("http://{}/", listener.local_addr().unwrap());
     let shutdown = Arc::new(ShutdownSignal::new());
     let stop = shutdown.clone();
     let worker = std::thread::spawn(move || {
@@ -36,23 +36,23 @@ fn browser_opens_the_same_packaged_icon() {
         let page = driver.new_page().unwrap();
         page.goto(&url).unwrap();
         let result = page.eval(r#"(async () => {
-            const { default: initialize, BrowserResources } = await import("/resources-wasm/foundation_resources.js");
-            await initialize();
-            const resources = new BrowserResources(location.origin + "/");
-            const file = await resources.open("art/todo.svg");
+            const { openResource } = await import("/app.js");
+            const file = await openResource("art/todo.svg");
             const decoder = new TextDecoder();
             let icon = "", chunk;
             while ((chunk = await file.nextChunk()) !== undefined) icon += decoder.decode(chunk, {stream: true});
             file.free();
             for (const [name, code] of [["invalid/../name", "InvalidName"], ["absent.txt", "Missing"]]) {
-                try { await resources.open(name); throw Error("Expected " + code); }
+                try { await openResource(name); throw Error("Expected " + code); }
                 catch (e) { if (e.name !== code) throw e; }
             }
             const originalFetch = window.fetch;
             let sent = false, cancelled = false;
             try {
                 window.fetch = async (url) => {
-                    if (new URL(url).pathname === "/unavailable") return new Response(null, {status: 503});
+                    const path = new URL(url, location.href).pathname;
+                    if (path === "/unavailable") return new Response(null, {status: 503});
+                    if (path !== "/interrupted" && path !== "/unused") return originalFetch.call(window, url);
                     return new Response(new ReadableStream({
                         pull(controller) {
                             if (sent) controller.error(new Error("Transfer interrupted"));
@@ -61,18 +61,17 @@ fn browser_opens_the_same_packaged_icon() {
                         cancel() { cancelled = true; }
                     }, {highWaterMark: 0}));
                 };
-                try { await resources.open("unavailable"); throw Error("Expected HTTP error"); }
+                try { await openResource("unavailable"); throw Error("Expected HTTP error"); }
                 catch (e) { if (e.name !== "Read") throw e; }
-                const interrupted = await resources.open("interrupted");
+                const interrupted = await openResource("interrupted");
                 if ((await interrupted.nextChunk())[0] !== 42) throw Error("Missing initial data");
                 try { await interrupted.nextChunk(); throw Error("Expected stream error"); }
                 catch (e) { if (e.name !== "Read") throw e; }
                 interrupted.free();
-                const unused = await resources.open("unused");
+                const unused = await openResource("unused");
                 unused.free();
                 if (!cancelled) throw Error("Closing the handle did not cancel the body");
             } finally { window.fetch = originalFetch; }
-            resources.free();
             return icon + decoder.decode();
         })()"#).unwrap();
         assert_eq!(

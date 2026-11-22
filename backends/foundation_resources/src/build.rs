@@ -196,6 +196,16 @@ pub fn stage(
     target: Target,
     destination: &Path,
 ) -> io::Result<Staged> {
+    stage_in(manifest, generated, target, destination, None)
+}
+
+fn stage_in(
+    manifest: &Path,
+    generated: &Path,
+    target: Target,
+    destination: &Path,
+    payload: Option<&ResourceName>,
+) -> io::Result<Staged> {
     let parent = manifest
         .parent()
         .ok_or_else(|| invalid("Resource manifest needs a directory"))?;
@@ -259,7 +269,26 @@ pub fn stage(
                 destination.display()
             )));
         }
-        inputs.add(&entry.name, &src)?;
+        let name = payload.map_or_else(
+            || entry.name.clone(),
+            |base| format!("{}/{}", base.as_str(), entry.name),
+        );
+        inputs.add(&name, &src).map_err(|error| {
+            io::Error::new(
+                error.kind(),
+                format!(
+                    "Resource {} for {}: {error}",
+                    entry.name,
+                    destination.display()
+                ),
+            )
+        })?;
+    }
+    if let Some(payload) = payload {
+        inputs
+            .portable
+            .entry(payload.as_str().to_lowercase())
+            .or_insert_with(|| (payload.as_str().into(), true));
     }
     publish(&inputs, destination).map_err(|error| {
         io::Error::new(
@@ -270,9 +299,14 @@ pub fn stage(
             ),
         )
     })?;
+    let prefix = payload.map_or(String::new(), |base| format!("{}/", base.as_str()));
     Ok(Staged {
-        directory: destination.to_owned(),
-        names: inputs.files.into_keys().collect(),
+        directory: destination.join(&prefix),
+        names: inputs
+            .files
+            .into_keys()
+            .map(|name| name[prefix.len()..].to_owned())
+            .collect(),
         inputs: inputs.paths,
     })
 }
@@ -426,6 +460,7 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
     for key in [
         "EWE_RESOURCE_TARGET",
         "EWE_RESOURCE_DEST",
+        "EWE_RESOURCE_PAYLOAD",
         "CARGO_TARGET_DIR",
     ] {
         println!("cargo:rerun-if-env-changed={key}");
@@ -456,7 +491,21 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
     };
     let dest =
         env::var_os("EWE_RESOURCE_DEST").map_or_else(|| generated.join("resources"), PathBuf::from);
-    let staged = stage(&package.join("resources.toml"), &generated, target, &dest)?;
+    let payload = match env::var("EWE_RESOURCE_PAYLOAD") {
+        Ok(name) => Some(ResourceName::new(&name).map_err(invalid_name)?),
+        Err(env::VarError::NotPresent) => None,
+        Err(error) => return Err(invalid(error.to_string())),
+    };
+    if payload.is_some() && env::var_os("EWE_RESOURCE_DEST").is_none() {
+        return Err(invalid("A package payload needs EWE_RESOURCE_DEST"));
+    }
+    let staged = stage_in(
+        &package.join("resources.toml"),
+        &generated,
+        target,
+        &dest,
+        payload.as_ref(),
+    )?;
     if target == Target::Web && env::var_os("EWE_RESOURCE_DEST").is_none() {
         let profile = generated
             .ancestors()
@@ -471,10 +520,7 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
         let public = profile.join("public").join(var("CARGO_PKG_NAME")?);
         stage(&package.join("resources.toml"), &generated, target, &public)?;
     }
-    println!(
-        "cargo:rerun-if-changed={}",
-        staged.directory.join(INDEX).display()
-    );
+    println!("cargo:rerun-if-changed={}", dest.join(INDEX).display());
     for name in &staged.names {
         println!(
             "cargo:rerun-if-changed={}",

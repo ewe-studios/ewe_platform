@@ -139,3 +139,6 @@ A test for early browser disposal must check that the underlying response body r
 The release manifest names a local candidate. There is no public native-ui-v0.1.1 tag at this checkpoint.
 Generated native packages use the same release setting as their existing dependencies.
 Local verification uses private candidate tags and the prepared native libraries.
+
+A hidden staging index travels with an Xcode folder reference. Put the public payload in a child folder.
+A local Swift package mirror can verify an unpublished candidate without publishing a tag or replacing a public package fingerprint.

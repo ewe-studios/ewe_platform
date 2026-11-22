@@ -27,7 +27,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		EE9000030000000000000002 /* EweResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EweResources; sourceTree = DERIVED_FILE_DIR; };
+		EE9000030000000000000002 /* EweResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EweResourceStage/EweResources; sourceTree = DERIVED_FILE_DIR; };
 		306DBC8958E95277691BA73A /* App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		35DBB79263E15025D7F23DAA /* TodoOnDeviceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TodoOnDeviceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		960E82007BA4E62435E20FA6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -194,10 +194,10 @@
             files = ();
             inputPaths = ();
             name = "Stage resources";
-            outputPaths = ("$(DERIVED_FILE_DIR)/EweResources");
+            outputPaths = ("$(DERIVED_FILE_DIR)/EweResourceStage/EweResources");
             runOnlyForDeploymentPostprocessing = 0;
             shellPath = /bin/sh;
-            shellScript = "set -eu\nexport PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\"\nexport EWE_RESOURCE_TARGET=apple\nexport EWE_RESOURCE_DEST=\"$DERIVED_FILE_DIR/EweResources\"\nexport CARGO_TARGET_DIR=\"${CARGO_TARGET_DIR:-$PROJECT_TEMP_DIR/resource-producer}\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\ncase \"$CONFIGURATION\" in\n  Release*) profile=release ;;\n  *) profile=dev ;;\nesac\ncargo check --profile \"${EWE_RESOURCE_CARGO_PROFILE:-$profile}\" --manifest-path \"$SRCROOT/../../Cargo.toml\" --no-default-features --lib\n";
+            shellScript = "set -eu\nexport PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\"\nexport EWE_RESOURCE_TARGET=apple\nexport EWE_RESOURCE_DEST=\"$DERIVED_FILE_DIR/EweResourceStage\"\nexport EWE_RESOURCE_PAYLOAD=EweResources\nexport CARGO_TARGET_DIR=\"${CARGO_TARGET_DIR:-$PROJECT_TEMP_DIR/resource-producer}\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\ncase \"$CONFIGURATION\" in\n  Release*) profile=release ;;\n  *) profile=dev ;;\nesac\ncargo check --profile \"${EWE_RESOURCE_CARGO_PROFILE:-$profile}\" --manifest-path \"$SRCROOT/../../Cargo.toml\" --no-default-features --lib\n";
         };
 /* End PBXShellScriptBuildPhase section */
 

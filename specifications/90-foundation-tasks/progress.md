@@ -206,3 +206,12 @@ The Android build registers a producer per variant. The Apple project registers 
 Both packaging systems select the Cargo profile from their build configuration.
 The generated mobile layout test passes for server and on-device apps.
 The complete generated application build checks are in progress.
+
+Generated Android and Apple server starters both build against the local SDK candidate.
+Their packages contain the shared title and generated version 0.1.0. They exclude browser.js.
+Both web starter variants pass their generated Cargo project checks.
+The Todo Android debug and release packages and unsigned Apple device package also pass inspection.
+Linux passes all nine resource tests. Native Windows execution still needs a Windows runner.
+Issue #735 records a diagnostic from a legacy Cargo template during Git dependency discovery.
+Issue #736 removes the staging index from the Apple resource payload.
+Feature 2 remains proposed. Automatic installation into arbitrary existing Cargo packages awaits that separate approval.

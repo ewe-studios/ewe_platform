@@ -45,6 +45,8 @@ The helper supplies `EWE_STAGED_RESOURCES` to the compiler for release embedding
 Web development builds also stage `public/<package-name>` beside the server executable.
 A native packager sets `EWE_RESOURCE_TARGET` and `EWE_RESOURCE_DEST` in the Cargo producer environment.
 Use a destination specific to the application, target, and build configuration.
+An Apple packager sets `EWE_RESOURCE_PAYLOAD` to its bundle folder name.
+It copies only that folder. The staging index stays in the parent directory.
 The Todo example registers its producer in both Xcode and Gradle.
 
 ## Read one resource

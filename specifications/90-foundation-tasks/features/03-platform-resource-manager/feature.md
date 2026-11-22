@@ -1,6 +1,6 @@
 # Feature 3. Package application resources
 
-Status: Approved. The tasks agent starts after its current assignment.
+Status: Implemented for generated applications and Todo. Existing-package installation awaits Feature 2 approval.
 
 ## Terms
 

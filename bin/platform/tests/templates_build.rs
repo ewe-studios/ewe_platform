@@ -84,12 +84,12 @@ fn templates_generate_projects_that_build() {
         let source = project_sources(&generated_dir);
         if matches!(*template_name, "web-app" | "static-html-app") {
             assert!(
-                source.contains("send_html"),
-                "template {template_name} must answer with `send_html`"
+                source.contains("foundation_resources::server::register"),
+                "template {template_name} must use the streamed resource handler"
             );
             assert!(
-                source.contains("send_not_found"),
-                "template {template_name} must answer a miss with `send_not_found`"
+                generated_dir.join("public/index.html").is_file(),
+                "template {template_name} must include its root document"
             );
         }
         assert!(

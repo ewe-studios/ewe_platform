@@ -1110,3 +1110,10 @@ The Android screenshot also shows a stale channel error after successful reconne
 The separate one-minute block demonstration remains open under issue #714.
 
 The owner approves one UUID per Todo in Feature 32. The Todo agent owns the record, protocol, binding, and fixture updates.
+
+### Feature 27 resource verification
+
+The Todo icon has identical bytes in Chrome, the installed iPhone simulator app, and the installed Android emulator app.
+Both native readers also identify missing hosts, invalid paths, and browser-only resources.
+The moved development server serves disk edits. The release server embeds its assets and runs alone.
+Specification 90 Feature 3 records the resource implementation, package checks, and installer dependency.
