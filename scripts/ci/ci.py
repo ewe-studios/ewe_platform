@@ -95,6 +95,14 @@ GLOBAL_PATHS = (
 )
 
 STEPS = ("fmt", "build", "clippy", "test", "wasm")
+
+# The manifest contract fixtures (spec 78) live in the spec directory, and each
+# reader keeps a copy in its own crate. A change to a copy must run the
+# `manifest-contract` package, even though the file is not Rust source.
+MANIFEST_CONSUMER_PREFIXES = (
+    "backends/foundation_installer/tests/fixtures/manifest/",
+    "backends/foundation_registrar/tests/fixtures/manifest/",
+)
 MODES = ("enforce", "report", "off")
 PLATFORMS = ("linux", "macos", "windows")
 
@@ -288,6 +296,15 @@ def load_workspace() -> dict[str, Package]:
     packages["wasm-tests"] = Package(
         name="wasm-tests",
         dir="backends/foundation_core/integration/wasm_tests",
+        needs_llama=False,
+    )
+
+    # The manifest contract (spec 78) is JSON and Python, not a crate. Add one
+    # synthetic package that owns the spec directory and runs the schema,
+    # fixture and consumer-copy checks. See `manifest_contract_commands`.
+    packages["manifest-contract"] = Package(
+        name="manifest-contract",
+        dir="specifications/78-manifest-contract",
         needs_llama=False,
     )
     return packages
@@ -625,6 +642,13 @@ def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dic
                 return everything("ci/packages.toml [defaults] changed")
             for name in names & set(packages):
                 only.setdefault(name, "its section of ci/packages.toml changed")
+        elif path.startswith(MANIFEST_CONSUMER_PREFIXES):
+            # A reader's copy of a manifest fixture (spec 78). The drift check
+            # runs once, in the synthetic package, so the fault names both
+            # sides; the reader that owns the copy also runs its own tests.
+            only.setdefault("manifest-contract", f"{path} changed")
+            if owner := owning_package(path, packages):
+                direct.setdefault(owner, f"{path} changed")
         elif is_global(path):
             return everything(f"{path} changed")
         elif owner := owning_package(path, packages):
@@ -807,6 +831,21 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
     return plan
 
 
+def manifest_contract_commands() -> dict[str, list[list[str]]]:
+    """Commands for the synthetic `manifest-contract` package (spec 78).
+
+    (1) Validate the schema document and every canonical fixture. (2) Compare
+    each reader's copy with the canonical file by SHA-256. The copy check
+    passes while a reader has no copies yet.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    plan["build"] = [
+        [sys.executable, "scripts/ci/manifest_contract.py", "--check-schema"],
+        [sys.executable, "scripts/ci/manifest_contract.py", "--check-copies"],
+    ]
+    return plan
+
+
 def test_command(name: str, run: str, profile: str, test_args: list[str]) -> list[str]:
     """One `cargo test` for one feature set."""
     cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
@@ -850,6 +889,8 @@ def commands(
         return examples_commands(profile)
     if name == "wasm-tests":
         return wasm_tests_commands()
+    if name == "manifest-contract":
+        return manifest_contract_commands()
     plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])

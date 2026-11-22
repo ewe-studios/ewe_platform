@@ -681,6 +681,20 @@ wasm = "off"
 timeout-minutes = 120
 env = { MISE_ENV = "wasm" }
 
+# ---------------------------------------------------------------------------
+# Manifest contract (spec 78)
+
+[packages.manifest-contract]
+# The contract is JSON and Python, not a crate. The synthetic package
+# (`manifest_contract_commands` in scripts/ci/ci.py) validates the schema and
+# every fixture, then compares each reader's copy with the canonical file by
+# SHA-256.
+fmt = "off"
+build = "enforce"
+clippy = "off"
+test = "off"
+wasm = "off"
+
 # At zero clippy warnings (spec 70 feature 55): a new one fails CI.
 [packages.foundation_openapi]
 clippy-deny-warnings = true
