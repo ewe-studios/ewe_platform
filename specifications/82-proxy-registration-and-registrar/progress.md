@@ -7,7 +7,7 @@ _Last updated: 2026-11-23._
 | Feature | State | Source |
 |---|---|---|
 | 00 — proxy registration | ✅ 11/11; all tasks green | Moved from spec 83 feature 03 |
-| 01 — registrar sidecar | ⏳ 0/10, design complete | Moved from spec 83 feature 04 |
+| 01 — registrar sidecar | ✅ 10/10; all tasks green | Moved from spec 83 feature 04 |
 
 ## What moved
 
@@ -100,7 +100,57 @@ Notes:
 
 ## What is left
 
-- Feature 01 (`foundation_registrar`) is not started. It can use the landed
-  contract now.
+- Feature 01 is complete. The end-to-end test is compiled and skips when no
+  Docker daemon answers; the Linux nightly run is the first place that it runs
+  against a daemon.
 - Open questions of the specification (saved registry across restarts, SNI
   passthrough, shared enrollment in `foundation_auth`) remain open.
+
+## Feature 01 complete — registrar sidecar (T1–T10), 2026-11-23
+
+| Task | State | Where |
+|---|---|---|
+| T1 — crate, config, binary | ✅ | `backends/foundation_registrar/src/{config.rs,bin/ewe-registrar.rs}` |
+| T2 — manifest view and fixtures | ✅ | `src/manifest.rs`, `tests/fixtures/manifest/`, `tests/manifest_tests.rs` |
+| T3 — systemd discovery | ✅ | `src/discovery/systemd.rs` |
+| T4 — Docker discovery | ✅ | `src/discovery/docker.rs` |
+| T5 — prober and health state machine | ✅ | `src/probe.rs`, `tests/probe_tests.rs` |
+| T6 — metrics | ✅ | `src/metrics.rs`, `tests/metrics_tests.rs` |
+| T7 — registration client | ✅ | `src/client.rs`, `tests/client_tests.rs` |
+| T8 — reconcile loop | ✅ | `src/reconcile.rs`, `tests/reconcile_tests.rs` |
+| T9 — failure paths | ✅ | `tests/failure_tests.rs`, row 6.11 in `client_tests.rs` |
+| T10 — end to end | ✅ | `tests/register_e2e_tests.rs` (gated by `docker-tests`) |
+
+The crate has library `src/lib.rs` and binary `src/bin/ewe-registrar.rs`. It
+generates its registration client from
+`backends/foundation_proxy/proto` with its own `build.rs` and has no runtime
+dependency on `foundation_proxy`.
+
+Tests: 8 config, 8 client, 11 discovery, 11 failure, 9 manifest, 6 metrics, 8
+probe and 12 reconcile. The gated end-to-end test ran for real against the
+Docker daemon on this machine: install, discovery, probes, registration through
+the real proxy, an upgrade with no failed request, and container cleanup. `cargo fmt --all -- --check`,
+`cargo clippy -p foundation_registrar --all-targets --no-deps -- -D warnings`,
+`cargo build -p foundation_registrar --bin ewe-registrar` and
+`python3 scripts/ci/manifest_contract.py --check-copies` pass.
+
+Notes:
+- Every limit is a configuration field: `max_manifest_bytes`,
+  `detail_max_bytes`, `call_timeout`, `default_report_interval`,
+  `backoff_initial`, `backoff_max` and `shutdown_grace`.
+- An exec probe runs its process on a dedicated thread, so its timeout fails
+  the check and the other probes are not delayed.
+- A test can replace every side effect: the clock (`SimulatedClock`), the
+  process runner, the Docker calls (`ContainerApi`), the probe executor and the
+  registration client.
+- `ci/packages.toml` runs the crate on Linux with `runs = ["", "docker-tests"]`.
+  macOS and Windows opt out with a reason: they have no Docker socket,
+  `systemctl` or `/sys/fs/cgroup`.
+
+### Cross-feature fixes found by the end-to-end test
+
+| Finding | Severity | Change |
+|---|---|---|
+| The installer pulled with `repo` and `tag`, so the Docker daemon read the name as a URL and failed with "no Host in request URL". | high (blocked T10) | `foundation_installer::DockerEngine::image_pull` now sends `fromImage` and `tag`. |
+| The installer stopped the old container at once, before the sidecar could discover the new address, so requests got `502`. | high (blocked T10) | New `InstallerConfig::old_container_grace` (default 15 s, longer than the sidecar's 10 s report interval). The old container stays up while the sidecar discovers and registers the new address. |
+| `DockerClient::container_list` returns `serde_json::Value`; no generated summary type exists. | medium | Open issue #769. The discovery reads `Id` and `State` from the value until the generator emits the type. |

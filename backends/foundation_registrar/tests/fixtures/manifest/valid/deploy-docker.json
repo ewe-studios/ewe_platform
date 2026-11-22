@@ -1,0 +1,25 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "vector-db",
+      "version": "1.9.0",
+      "source": {
+        "kind": "docker-image",
+        "repository": "ghcr.io/example/vector-db",
+        "tag": "1.9.0"
+      },
+      "deploy": {
+        "kind": "docker",
+        "ports": [
+          { "host": 6333, "container": 6333, "protocol": "tcp" },
+          { "host": 6334, "container": 6334, "protocol": "udp" }
+        ],
+        "env": { "LOG_LEVEL": "info" },
+        "volumes": [{ "host": "/var/lib/vector-db", "container": "/data" }],
+        "restart": "unless-stopped",
+        "command": ["--config", "/data/config.json"]
+      }
+    }
+  ]
+}

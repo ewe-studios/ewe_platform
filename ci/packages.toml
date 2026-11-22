@@ -622,6 +622,17 @@ wasm-runs = [""]
 # daemon answers. The systemd end-to-end case runs only on a Linux host.
 runs = ["", "docker-tests"]
 
+[packages.foundation_registrar]
+# The Docker discovery and the end-to-end target need a Docker daemon; systemd
+# discovery needs `systemctl` and cgroup metrics need `/sys/fs/cgroup`. The
+# GitHub macOS and Windows runners have none of them.
+macos-tests = "none"
+macos-reason = "Docker discovery, systemd discovery and cgroup metrics need Linux tools: /var/run/docker.sock, systemctl and /sys/fs/cgroup."
+windows-tests = "none"
+windows-reason = "Docker discovery, systemd discovery and cgroup metrics need Linux tools: /var/run/docker.sock, systemctl and /sys/fs/cgroup."
+# The end-to-end run skips itself when no Docker daemon answers.
+runs = ["", "docker-tests"]
+
 [packages.foundation_connectrpc]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 macos-tests = "none"

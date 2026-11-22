@@ -1,0 +1,11 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "ripgrep",
+      "version": "14.1.0",
+      "source": { "kind": "cargo", "crate": "ripgrep", "program": "rg" },
+      "deploy": { "kind": "none" }
+    }
+  ]
+}

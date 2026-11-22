@@ -1,18 +1,18 @@
 ---
 feature: "Registrar Sidecar"
 description: "A sidecar (foundation_registrar, binary ewe-registrar) that runs beside the apps on bare metal, in a Docker container or in a Kubernetes pod. It reads the manifest, finds what is installed and running, runs startup, liveness and readiness probes, reads CPU and memory use, and reports all of it to the proxy registration authority (feature 00). The proxy ends client TLS; the sidecar authenticates only on its own link to the proxy."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["completed/79-manifest-installer/features/00-manifest-installer", "00-proxy-registration"]
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-11-14
+last_updated: 2026-11-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Registrar Sidecar
@@ -27,6 +27,21 @@ control group (cgroup, the Linux kernel feature that limits and counts a group o
 certificate signing request (CSR); identifier (ID); operating system (OS); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100. Section 2
 explains each term.
+
+## 0. Measured state (2026-11-23)
+
+| Item | Where | State |
+|---|---|---|
+| Registration contract | `backends/foundation_proxy/proto/ewe/proxy/registration/v1/registration.proto` | Feature 00 is merged. The sidecar generates its client from this file with its own `build.rs`. |
+| Enrollment, mutual TLS (mTLS) and the server proof | `foundation_auth` 0.0.15 | `mtls::client_config_enrollment`, `mtls::client_config_mutual`, `pki::generate_csr`, `SignedSecret::verifying_key().verify_enroll_proof`. |
+| Certificate and key files | this crate | Write `client_cert.pem`, `client_key.pem` and `ca.pem` in `state_dir`, mode 0600. Key sealing is spec 83 feature 08. |
+| Command runner | `foundation_installer::context::CommandRunner` is public | This crate defines its own small trait, as feature.md asks, so it stays independent of the installer. |
+| Docker | `foundation_deployment_docker` | `DockerClient::{container_list, inspect_container, container_stats}` with generated types. |
+| Side effects | `foundation_context::Ctx` (root rule 11) | Not `Env`. Clock, timers and entropy come from `Ctx`; tests install `simulated_env`. |
+| Certificate signing request (CSR) hash | Feature 00 | The proxy signs `Sha256(csr_pem.as_bytes())` in the server proof. The sidecar computes the same value. |
+
+`RegistrarContext` is the bundle that discovery, probes and metrics read:
+`{ ctx: Ctx, config: Arc<RegistrarConfig>, commands: Arc<dyn CommandRunner>, docker: Option<Arc<DockerClient>> }`.
 
 ## 1. Overview
 
@@ -114,7 +129,7 @@ Feature 00's glossary defines lease, report, rotation, enrollment and registrati
    revoked certificate.
 7. **One binary, two modes**, chosen by configuration.
 8. **Async all the way, side effects injected.** Clock, timers and randomness (for
-   `session_id`) come from `Env` (spec 80 feature 00, `CLAUDE.md` rule 11), so a simulated test can
+   `session_id`) come from `foundation_context::Ctx` (root rule 11), so a simulated test can
    replay a run.
 
 ## 4. Design
@@ -318,7 +333,7 @@ The manifest gives a port only. The sidecar picks the address that the proxy dia
 pub struct Prober {
     http: Arc<dyn HttpClient>,        // foundation_netio
     commands: Arc<dyn CommandRunner>,
-    env: Env,
+    ctx: Ctx,
 }
 
 /// The result of one probe kind after its thresholds.
@@ -409,7 +424,7 @@ pub struct RegistrationClient {
 
 impl RegistrationClient {
     /// Enrolls if there is no valid certificate, then connects with mTLS.
-    pub async fn connect(config: &RegistrarConfig, env: &Env) -> Result<Self, RegistrarError>;
+    pub async fn connect(config: &RegistrarConfig, ctx: &Ctx) -> Result<Self, RegistrarError>;
     pub async fn register(&self, backends: &[BackendSpec]) -> Result<RegisterResponse, RegistrarError>;
     pub async fn report(&self, reports: &[BackendReport]) -> Result<ReportResponse, RegistrarError>;
     pub async fn deregister(&self, backend_ids: &[String]) -> Result<DeregisterResponse, RegistrarError>;
@@ -431,7 +446,7 @@ sequenceDiagram
     participant H as systemd / Docker
     participant A as Apps
     participant P as Proxy registration authority
-    S->>S: load RegistrarConfig, make session_id from Env entropy
+    S->>S: load RegistrarConfig, make session_id from Ctx entropy
     S->>P: Enroll (first start only), then mTLS connect
     S->>M: read and parse
     loop every report_interval (from the proxy)
@@ -483,6 +498,11 @@ pub struct RegistrarConfig {
     pub manifest_path: PathBuf,
     /// The registration authority: "https://10.0.0.2:9443", or "unix:///run/ewe/registration.sock".
     pub proxy: String,
+    /// The enrollment listener: "https://10.0.0.2:9444". It uses server-auth
+    /// TLS, because the registration listener requires a client certificate
+    /// that an unenrolled sidecar does not have. Required when there is no
+    /// valid certificate and `proxy` is not a Unix socket.
+    pub enrollment_url: Option<String>,
     /// Optional extra check at enrollment: the SHA-256 fingerprint of the
     /// proxy registration certificate. The server proof (feature 00, section
     /// 5.2) already proves the proxy; a pin adds protection.
@@ -603,23 +623,25 @@ backends/foundation_registrar/
 
 ## 10. Tasks
 
-- [ ] **T1: Crate, config, binary.** `src/lib.rs`, `src/bin/ewe-registrar.rs`, `RegistrarConfig`.
+- [x] **T1: Crate, config, binary.** `src/lib.rs`, `src/bin/ewe-registrar.rs`, `RegistrarConfig`.
       Test: host mode without `advertise_host` fails with `Config`.
-- [ ] **T2: Manifest view.** Test: entries without `proxy` are not registered; unknown fields
+- [x] **T2: Manifest view.** Test: entries without `proxy` are not registered; unknown fields
       are ignored; a bad probe kind fails with the entry named.
-- [ ] **T3: systemd discovery.** With a fake `CommandRunner`. Test: each `Discovered` variant.
-- [ ] **T4: Docker discovery.** With the Docker test helper. Test: label filter, container IP.
-- [ ] **T5: Prober and health state machine.** With a simulated clock. Test: every transition of
+- [x] **T3: systemd discovery.** With a fake `CommandRunner`. Test: each `Discovered` variant.
+- [x] **T4: Docker discovery.** With the Docker test helper. Test: label filter, container IP.
+- [x] **T5: Prober and health state machine.** With a simulated clock. Test: every transition of
       the diagram in section 4.4.
-- [ ] **T6: Metrics.** Cgroup files from a fixture directory; Docker stats. Test: an unreadable
+- [x] **T6: Metrics.** Cgroup files from a fixture directory; Docker stats. Test: an unreadable
       metric is left out.
-- [ ] **T7: Registration client.** Enrollment, mTLS, renewal, Unix socket. Test against feature
+- [x] **T7: Registration client.** Enrollment, mTLS, renewal, Unix socket. Test against feature
       03's test server.
-- [ ] **T8: Reconcile loop.** Test: `REREGISTER` re-registers all; a changed address sends
+- [x] **T8: Reconcile loop.** Test: `REREGISTER` re-registers all; a changed address sends
       `Register`; a removed entry sends `Deregister`.
-- [ ] **T9: Failure paths.** One test for each row of section 6.
-- [ ] **T10: End to end.** Installer installs a test app with probes; the sidecar registers it; a
+- [x] **T9: Failure paths.** One test for each row of section 6.
+- [x] **T10: End to end.** Installer installs a test app with probes; the sidecar registers it; a
       client request reaches it through the proxy; the app is upgraded with no failed request.
+      The test uses Docker (the installer's Docker deploy target and `DockerClient`) and prints a
+      skip when Docker is absent. It is gated by the `docker-tests` feature.
 
 ## 11. Tests
 
@@ -648,6 +670,9 @@ cargo test -p foundation_registrar --test register_e2e_tests
      `systemctl restart` or `restart_container`.
    - **Recommendation: B, off by default.** Without it, a stuck app stays out of rotation until
      someone acts. Option B needs write access to systemd or Docker.
+   - **Decision (2026-11-23): option A now.** The manifest contract of spec 78 has no
+     `restart_on_failure` field, and spec 78 is complete. The sidecar reports `NOT_LIVE` and
+     does not restart an app. A later feature adds the field and option B.
 2. **In Kubernetes, use the kubelet's probes instead?** The pod already has probes.
    - **Recommendation:** keep our probes for one behavior on every platform. A later option can
      read the pod's readiness from the Kubernetes API.

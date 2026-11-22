@@ -75,3 +75,21 @@ Linux CI job runs it.
 1. Review and commit the change. Add the Linux and Windows CI results.
 2. Run the systemd end-to-end case on the Linux CI image.
 3. Spec 82 feature 01 consumes the same manifest. The marks are in place.
+
+## Follow-up from the registrar end-to-end test (2026-11-23)
+
+The spec 82 feature 01 end-to-end test runs the installer against a real Docker
+daemon. It found two defects and both are fixed:
+
+1. **The image pull sent the wrong fields.** `DockerEngine::image_pull` passed
+   `repo` and `tag` to `POST /images/create`. The daemon read `repo` as a source
+   URL and failed with "no Host in request URL". It now sends `fromImage` and
+   `tag`, as the Docker API requires for a registry pull.
+2. **The old container stopped too early.** The Docker target created and
+   started `{name}-next`, then stopped the old container at once. The registrar
+   sidecar had no time to discover the new address, so the proxy sent requests
+   to a dead address and answered `502`. `InstallerConfig::old_container_grace`
+   (default 15 s, longer than the sidecar's default 10 s report interval) keeps
+   the old container up until the sidecar registers the new address.
+
+The end-to-end test now passes with no failed request during an upgrade.

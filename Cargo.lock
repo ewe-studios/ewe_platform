@@ -4700,7 +4700,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "argon2",
  "async-trait",
@@ -6328,6 +6328,47 @@ dependencies = [
  "libc",
  "tracing",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "foundation_registrar"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "buffa",
+ "buffa-build",
+ "bytes",
+ "chrono",
+ "clap",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_connectrpc",
+ "foundation_connectrpc_codegen",
+ "foundation_context",
+ "foundation_core",
+ "foundation_deployment_docker",
+ "foundation_errstacks",
+ "foundation_http",
+ "foundation_installer",
+ "foundation_nativeapis",
+ "foundation_netio",
+ "foundation_proxy",
+ "futures",
+ "futures-lite",
+ "futures-util",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
+ "rustls 0.23.40",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.19",
+ "tracing",
+ "tracing-subscriber",
+ "x509-parser",
+ "zeroize",
 ]
 
 [[package]]
