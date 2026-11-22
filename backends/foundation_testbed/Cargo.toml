@@ -38,11 +38,12 @@ wasm = [
   "dep:which",
 ]
 
-# F52: re-export #[wasm_bindgen_test] from foundation_testbed so consumer crates
-# can write browser tests without depending on wasm-bindgen directly.
+# F52: enable the browser-test re-exports. A consumer crate still needs
+# `wasm-bindgen-test` as its own direct dev-dependency (a proc-macro attribute
+# cannot be re-exported across crate boundaries), so this feature does not
+# depend on that crate.
 wasm-bindgen-test = [
   "dep:wasm-bindgen",
-  "dep:wasm-bindgen-test",
   "dep:wasm-bindgen-futures",
   "dep:js-sys",
   "dep:web-sys",
@@ -104,8 +105,6 @@ tracing-subscriber = { workspace = true, features = ["env-filter"], optional = t
 #   cargo install wasm-bindgen-cli --version <same as wasm-bindgen below>
 # The runtime version check (>=) allows newer CLI, not older.
 wasm-bindgen = { version = "=0.2.126", optional = true }
-wasm-bindgen-test = { version = "=0.3.76", optional = true }
-wasm-bindgen-test-macro = { version = "=0.3.76", optional = true }
 wasm-bindgen-futures = { version = "=0.4.76", optional = true }
 js-sys = { version = "=0.3.103", optional = true }
 web-sys = { version = "=0.3.103", optional = true, features = [

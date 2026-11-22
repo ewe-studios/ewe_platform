@@ -234,6 +234,9 @@ fn spawn_stream_reader(
                 total = total.saturating_add(bytes.len());
                 tracing::trace!("response chunk: {} bytes", bytes.len());
                 if queue.push(bytes).is_err() {
+                    // The consumer dropped the stream and closed the queue.
+                    // Cancel the JS reader too, so the source stops producing.
+                    let _ = JsFuture::from(reader.cancel()).await;
                     break;
                 }
                 wake.fire();

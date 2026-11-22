@@ -19,10 +19,31 @@ _Last updated: 2026-11-22._
 
 The code for all six tasks is on branch `spec/85-wasm-fetch`. It is not merged into master.
 
-- Verified: the `foundation_netio` wasm library and tests compile.
-- Not verified: the `web-sys` fix for the standalone `foundation_connectrpc` wasm crate;
-  the `wrangler dev --local` test for T5; the T6 wasm testbed suites; native checks,
-  clippy, formatting and the `foundation_netio` tests.
+Verified on macOS 27.2 (aarch64), with wasm-bindgen 0.2.126 and Deno 2.9.7:
+
+| Check | Result |
+|---|---|
+| `cargo fmt --all -- --check` | pass |
+| `cargo clippy` over the four changed crates, `--profile uat --all-targets --no-deps` | pass; only the three workspace-manifest warnings remain |
+| `cargo test` over the four changed crates, `--profile uat` | pass, except #485 and #466: this host cannot make a hanging dial |
+| `cargo check --tests --target wasm32` of `foundation_connectrpc/integration/wasm` | pass |
+| `wasm-testbed test bindgen-deno` of `foundation_netio --features wasm-fetch` | 10 of 10 pass |
+| `wasm-testbed test bindgen-deno` of `foundation_connectrpc/integration/wasm` | 5 of 5 pass |
+| `cargo check --lib --target wasm32 -p foundation_netio --features wasm-fetch,cloudflare` | pass |
+
+The verification found and fixed six defects:
+
+1. The standalone wasm test crate named `foundation_core` but did not declare it.
+2. `ConnectSink::whole` and `open` returned a future that is not `Send`: a valtron `Stream`
+   item lived across an await.
+3. `StubHttpClient::send` declared `+ Send` on a future that holds a JavaScript promise.
+4. The reader task did not cancel the JavaScript reader when the consumer closed the queue.
+5. `WASM_FETCH_CAPABILITIES.request_streaming` changed, but `transport_tests` still asserted
+   the old value.
+6. The websocket test and the Deno host disagreed about `window` and about a dropped closure.
+
+The workspace manifest still warns about three unused dependencies (`anyhow`, `fs_extra`,
+`reqwest`). Issue #709 records them.
 
 ## The capability map (2026-11-15)
 
@@ -164,12 +185,12 @@ It does not.
 
 ## Next steps
 
-1. Re-run the standalone `foundation_connectrpc` wasm check with the `web-sys` fix.
-2. Add and run the T5 Durable Object test under `wrangler dev --local`.
-3. Run the T6 wasm testbed suites.
-4. Run native checks, clippy, formatting and the `foundation_netio` tests.
-5. Merge master into the branch, resolve conflicts, and merge into master.
-6. Close #563 and #565 after their fixes are verified.
+1. Add the T5 Durable Object fetch test under `wrangler dev --local` (#710). The feature
+   compiles and CI checks it, but no test sends a request through a stub.
+2. Run the Linux CI for the changed packages.
+3. Merge master into the branch, then merge the branch into master.
+4. Close #560, #562, #563 and #565 when the branch lands. Keep #561, #564, #709 and #710
+   open.
 
 ## Open questions
 

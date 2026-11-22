@@ -56,11 +56,13 @@ struct SinkState {
 
 /// A [`ResponseSink`] that streams its reply to a JS `Response`.
 ///
-/// [`ConnectSink::new`] returns the sink and a [`ConnectSinkHandle`]. Move the
-/// sink into `ConnectRpcHandler::dispatch_to`; after it resolves, take the
-/// response from the handle.
+/// [`ConnectSink::new_pair`] returns the sink and a [`ConnectSinkHandle`].
+/// Move the sink into `ConnectRpcHandler::dispatch_to`; after it resolves, take
+/// the response from the handle.
 pub struct ConnectSink {
     inner: Arc<Mutex<SinkState>>,
+    /// The frame channel capacity (see [`ConnectSink::with_capacity`]).
+    capacity: usize,
 }
 
 /// The caller's handle to the response that a [`ConnectSink`] builds.
@@ -69,22 +71,39 @@ pub struct ConnectSinkHandle {
 }
 
 impl ConnectSink {
-    /// Create a sink. Its response is not reachable; use
-    /// [`ConnectSink::new_pair`] when the caller must take the response.
+    /// Create a sink with the default capacity. Its response is not reachable;
+    /// use [`ConnectSink::new_pair`] when the caller must take the response.
     #[must_use]
     pub fn new() -> Self {
+        Self::with_capacity(frame_capacity())
+    }
+
+    /// Create a sink that holds at most `capacity` frames ahead of the client.
+    ///
+    /// A value of zero becomes one. The default is the client's
+    /// `body_queue_chunks` default, so the server and client read-ahead bounds
+    /// are the same number.
+    #[must_use]
+    pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: Arc::new(Mutex::new(SinkState {
                 response: None,
                 sender: None,
             })),
+            capacity: capacity.max(1),
         }
     }
 
     /// Create a sink and a handle to the response it builds.
     #[must_use]
     pub fn new_pair() -> (Self, ConnectSinkHandle) {
-        let sink = Self::new();
+        Self::new_pair_with_capacity(frame_capacity())
+    }
+
+    /// Create a sink with `capacity` frames and a handle to its response.
+    #[must_use]
+    pub fn new_pair_with_capacity(capacity: usize) -> (Self, ConnectSinkHandle) {
+        let sink = Self::with_capacity(capacity);
         let handle = ConnectSinkHandle {
             inner: Arc::clone(&sink.inner),
         };
@@ -95,7 +114,7 @@ impl ConnectSink {
     fn start(&mut self, status: usize, headers: &SimpleHeaders) -> io::Result<()> {
         let status = u16::try_from(status).unwrap_or(500);
 
-        let (sender, receiver) = futures::channel::mpsc::channel::<Vec<u8>>(frame_capacity());
+        let (sender, receiver) = futures::channel::mpsc::channel::<Vec<u8>>(self.capacity);
         let response =
             foundation_netio::wasm::response::streaming_response_with(status, headers, receiver)
                 .map_err(|e| {
@@ -134,27 +153,25 @@ impl ConnectSink {
 
     /// Send a body that is already in memory as frames.
     async fn send_body(&self, body: SendSafeBody) -> io::Result<()> {
+        use foundation_core::valtron::Stream;
         let mut iter = SendSafeBodyBytesIterator::new(body);
         loop {
-            match iter.next() {
-                Some(foundation_core::valtron::Stream::Next(
-                    SendSafeBodyBytesItem::Chunk(bytes),
-                )) => self.send_frame(bytes.to_vec()).await?,
-                Some(foundation_core::valtron::Stream::Next(
-                    SendSafeBodyBytesItem::StreamError(error),
-                )) => {
-                    return Err(io::Error::other(format!(
-                        "response body read failed: {error}"
-                    )))
-                }
-                Some(foundation_core::valtron::Stream::Wait) => {
-                    return Err(io::Error::other(
-                        "a whole response body must be ready; it streamed instead",
-                    ))
-                }
-                Some(foundation_core::valtron::Stream::Ignore) => {}
-                Some(_) => {}
+            // Take one item, convert it to a `Send` value, and only then await.
+            // A valtron `Stream` item is not `Send`, so it must not live across
+            // the frame send; the response sink future is `Send`.
+            let step = match iter.next() {
+                Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => Ok(Some(bytes.to_vec())),
+                Some(Stream::Next(SendSafeBodyBytesItem::StreamError(error))) => Err(
+                    io::Error::other(format!("response body read failed: {error}")),
+                ),
+                Some(Stream::Wait) => Err(io::Error::other(
+                    "a whole response body must be ready; it streamed instead",
+                )),
+                Some(_) => Ok(None),
                 None => return Ok(()),
+            };
+            if let Some(bytes) = step? {
+                self.send_frame(bytes).await?;
             }
         }
     }

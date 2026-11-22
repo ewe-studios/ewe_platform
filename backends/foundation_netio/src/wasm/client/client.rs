@@ -577,7 +577,6 @@ fn js_fetch(req: &Request) -> js_sys::Promise {
         .fetch_with_request(req)
 }
 
-
 fn method_str(method: &SimpleMethod) -> &'static str {
     match method {
         SimpleMethod::GET => "GET",

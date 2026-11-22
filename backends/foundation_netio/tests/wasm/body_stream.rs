@@ -19,7 +19,9 @@ use std::rc::Rc;
 
 use foundation_core::url::Uri;
 use foundation_core::valtron::Stream;
-use foundation_netio::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
+use foundation_netio::shared::client::body_reader::{
+    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
+};
 use foundation_netio::shared::client::{ClientConfig, HttpClient, PreparedRequest};
 use foundation_netio::shared::http::{Extensions, SendSafeBody, SimpleHeaders, SimpleMethod};
 use foundation_netio::wasm::client::stream::WasmByteStream;
@@ -99,7 +101,10 @@ fn counting_stream(total: u32, size: usize, cancelled: Rc<Cell<bool>>) -> web_sy
 /// Drive `send_async` against `/stream` and count the chunks the consumer gets.
 async fn read_stream_body(url: String, config: ClientConfig) -> (usize, usize) {
     let client = FetchHttpClient::with_config(config);
-    let response = client.send_async(get_request(url)).await.expect("send_async");
+    let response = client
+        .send_async(get_request(url))
+        .await
+        .expect("send_async");
     let (status, _headers, body) = response.into_parts();
     let status: usize = status.into();
     assert_eq!(status, 200, "the stream endpoint answers 200");
@@ -178,7 +183,10 @@ async fn body_limit() {
         message.contains("max_body_size"),
         "the error names the limit: {message}"
     );
-    assert!(bytes <= 1024, "no more than the limit is handed out: {bytes}");
+    assert!(
+        bytes <= 1024,
+        "no more than the limit is handed out: {bytes}"
+    );
 }
 
 #[wasm_bindgen_test]

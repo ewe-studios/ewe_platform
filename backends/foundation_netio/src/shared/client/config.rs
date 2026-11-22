@@ -236,7 +236,8 @@ impl ClientConfig {
     }
 
     #[must_use]
-    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {        self.full_body_threshold = threshold;
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
+        self.full_body_threshold = threshold;
         self
     }
 

@@ -5555,6 +5555,7 @@ dependencies = [
  "serde_json",
  "socket2 0.6.5",
  "tracing",
+ "web-sys",
  "zstd",
 ]
 
@@ -6406,8 +6407,6 @@ dependencies = [
  "walrus",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-bindgen-test",
- "wasm-bindgen-test-macro",
  "web-sys",
  "which 7.0.3",
 ]

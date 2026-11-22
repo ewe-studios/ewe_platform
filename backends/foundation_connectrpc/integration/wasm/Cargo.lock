@@ -482,6 +482,7 @@ dependencies = [
  "serde_json",
  "socket2",
  "tracing",
+ "web-sys",
 ]
 
 [[package]]
@@ -489,8 +490,8 @@ name = "foundation_connectrpc_wasm_tests"
 version = "0.0.1"
 dependencies = [
  "bytes",
- "foundation_compact",
  "foundation_connectrpc",
+ "foundation_core",
  "foundation_http",
  "foundation_netio",
  "futures-lite",

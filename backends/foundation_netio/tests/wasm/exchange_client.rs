@@ -17,9 +17,7 @@ use foundation_context::Ctx;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_netio::shared::client::http_client::{BoxedSseFutureStream, BoxedSseIterator};
-use foundation_netio::shared::client::request_task::{
-    HttpExchange, HttpExchangeClientTask,
-};
+use foundation_netio::shared::client::request_task::{HttpExchange, HttpExchangeClientTask};
 use foundation_netio::shared::client::{HttpClient, PreparedRequest};
 use foundation_netio::shared::http::{
     Extensions, HttpClientError, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleResponse, Status,
@@ -52,10 +50,7 @@ impl HttpClient for RecordingClient {
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
-        self.seen
-            .lock()
-            .expect("lock")
-            .push(req.url.to_string());
+        self.seen.lock().expect("lock").push(req.url.to_string());
         Ok(SimpleResponse::new(
             Status::OK,
             SimpleHeaders::new(),

@@ -2,15 +2,22 @@ use foundation_netio::wasm::client::FetchHttpClient;
 use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent};
 use foundation_netio::websocket::shared::connector::WebSocketConnector;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
-use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
+use foundation_testbed::bindgen::wasm_bindgen::{JsCast, JsValue};
+use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 async fn yield_now() {
+    // Deno has no `window`; call the global `setTimeout` instead. A microtask
+    // yield is not enough for the fetch/WebSocket callbacks.
     let promise = js_sys::Promise::new(&mut |resolve, _reject| {
-        web_sys::window()
-            .expect("window")
-            .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, 0)
-            .expect("set_timeout");
+        let global = js_sys::global();
+        let set_timeout = js_sys::Reflect::get(&global, &JsValue::from_str("setTimeout"))
+            .expect("setTimeout")
+            .dyn_into::<js_sys::Function>()
+            .expect("setTimeout is a function");
+        set_timeout
+            .call2(&global, &resolve, &JsValue::from_f64(0.0))
+            .expect("setTimeout");
     });
     let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
 }
@@ -48,9 +55,9 @@ async fn open_websocket_refused_surfaces_close() {
 /// Driving `valtron::execute` from a test body hangs under the Deno runner
 /// (#565); a direct `next_status` proves the same contract without the pool.
 #[wasm_bindgen_test]
-fn open_websocket_task_yields_pending_connecting_on_wasm() {
+async fn open_websocket_task_yields_pending_connecting_on_wasm() {
     use foundation_context::Ctx;
-    use foundation_core::valtron::TaskIterator;
+    use foundation_core::valtron::{TaskIterator, TaskStatus};
 
     let client = FetchHttpClient::new();
     let (mut task, _delivery) = client
@@ -61,4 +68,15 @@ fn open_websocket_task_yields_pending_connecting_on_wasm() {
         task.next_status(Ctx::host()).is_some(),
         "first poll should yield a status"
     );
+
+    // Drain the refused dial, so its browser socket closes before the event
+    // closures drop. Deno aborts the whole run when an event calls a dropped
+    // closure, and the next test then reports no summary.
+    for _ in 0..200 {
+        match task.next_status(Ctx::host()) {
+            None | Some(TaskStatus::Ready(_)) => return,
+            Some(_) => yield_now().await,
+        }
+    }
+    panic!("the refused WebSocket never finished");
 }

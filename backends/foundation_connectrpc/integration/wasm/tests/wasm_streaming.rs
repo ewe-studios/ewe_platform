@@ -94,7 +94,8 @@ async fn inbound_body_streams() {
     let request =
         web_sys::Request::new_with_str_and_init("http://example.com/rpc", &init).expect("request");
 
-    let incoming = request_from_cf(&request, 8 * 1024 * 1024).expect("request_from_cf");
+    let incoming =
+        request_from_cf(&request, 8 * 1024 * 1024, 16).expect("request_from_cf");
     let body = incoming.body.expect("the body is a stream");
     assert!(
         matches!(body, SendSafeBody::Stream(_)),

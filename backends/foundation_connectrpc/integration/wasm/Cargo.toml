@@ -16,7 +16,8 @@ edition = "2024"
 foundation_connectrpc = { path = "../..", default-features = false }
 foundation_http = { path = "../../../foundation_http", default-features = false, features = ["wasm", "wasm-bindgen-http"] }
 foundation_netio = { path = "../../../foundation_netio", default-features = false, features = ["wasm-fetch"] }
-foundation_compact = { path = "../../../foundation_compact", default-features = false }
+# The tests read the sink's body as a valtron `Stream`.
+foundation_core = { path = "../../../foundation_core", default-features = false }
 bytes = "1"
 # Pinned to the versions foundation_testbed pins and the testbed's CI installs:
 # the wasm-bindgen CLI must be >= the crate it processes (0.2.126 exactly here).

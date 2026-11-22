@@ -755,6 +755,10 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "-p", "foundation_core", *feature_flags("--no-default-features --features std,js-wasmbindgen")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch")],
+        # Spec 85 T5: the Durable Object stub client sits behind the `cloudflare`
+        # feature, which no other step enables. A compile check keeps it honest.
+        ["cargo", "check", "--lib", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch,cloudflare")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",

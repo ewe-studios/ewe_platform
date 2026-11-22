@@ -37,6 +37,18 @@ pub struct HttpApp<S> {
     /// Used only by the wasm bridges; the native server reads through its own
     /// body limit.
     pub max_request_bytes: usize,
+    /// How many request body chunks a wasm bridge may hold ahead of the
+    /// handler.
+    ///
+    /// WHY: the wasm bridge reads a JS `ReadableStream` in a spawned task. The
+    /// bound stops a slow handler from growing the queue without limit.
+    ///
+    /// The default is the wasm client's `body_queue_chunks` default, so a
+    /// Worker reads a request and a response with the same bound.
+    ///
+    /// Used only by the wasm bridges; the native server reads through its own
+    /// socket buffer.
+    pub body_queue_chunks: usize,
 }
 
 impl<S> HttpApp<S> {
@@ -73,6 +85,7 @@ impl<S> HttpApp<S> {
             router: Router::new(),
             middleware: Vec::new(),
             max_request_bytes: 8 * 1024 * 1024,
+            body_queue_chunks: 16,
         }
     }
 
@@ -80,6 +93,14 @@ impl<S> HttpApp<S> {
     #[must_use]
     pub fn with_max_request_bytes(mut self, bytes: usize) -> Self {
         self.max_request_bytes = bytes;
+        self
+    }
+
+    /// Replace the wasm request read-ahead bound (see
+    /// [`HttpApp::body_queue_chunks`]).
+    #[must_use]
+    pub fn with_body_queue_chunks(mut self, chunks: usize) -> Self {
+        self.body_queue_chunks = chunks;
         self
     }
 

@@ -249,3 +249,69 @@ that knows the protocol. The cost is one line in each host.
    isolate thread. A wait is a `StreamIterator` transition (`Wait`, `Pending`,
    `Depends`); the friendly primitives are `into_ready_future`, `into_future_stream`,
    `into_next_stream` and the parking wake path.
+
+## Verification lessons (2026-11-22)
+
+The first full verification of the six tasks found six defects. The code compiled before
+that check, so each defect needed a check that the earlier work did not run.
+
+### A `Send` future must not hold a valtron `Stream` across an await
+
+`ConnectSink::whole` and `ConnectSink::open` return a future that a `Send` bound rejected.
+The cause was `SendSafeBodyBytesIterator::next()`: its `Stream` item is not `Send`, and the
+old loop matched it inline. The item then lived across `send_frame(...).await`. Take the
+item, convert it to `Vec<u8>` or `io::Error`, and only then await.
+
+### A future that awaits a JavaScript promise is not `Send`
+
+`worker::Stub::fetch_with_request` holds a `JsFuture`. Its future is `!Send`, so
+`StubHttpClient::send` must not declare `+ Send`. The `async_trait` `Send` bound is met by
+`foundation_compact::SendWrapper` in `send_async`, as the fetch client already does.
+
+### A standalone crate must declare every crate it names
+
+`foundation_connectrpc/integration/wasm` named `foundation_core` in its tests but did not
+declare it. Cargo resolves only direct dependencies. It also declared `foundation_compact`
+and never used it.
+
+### A dropped consumer must cancel the JavaScript reader
+
+`WasmByteStream::Drop` closes the queue. When the reader task next tried `queue.push`, the
+push failed and the task stopped without calling `reader.cancel()`. The source kept
+producing. Call `reader.cancel()` on the push failure too.
+
+### The `wasm-testbed` Deno host has no `window`
+
+Deno 2.9.7 defines `setTimeout` on the global object but not `window`. A test helper that
+used `web_sys::window()` panicked at the first yield. Every wasm test yields with the global
+`setTimeout`.
+
+### A dropped closure that JavaScript still calls aborts the Deno run
+
+The first websocket test polled once and dropped its task. Its socket then fired an error
+event, which called a `Closure` that was already dropped. Deno aborted, printed no `test
+result:` summary, and the next test looked broken. Drain the dial before the test returns.
+
+### A capability constant change needs its tests
+
+`WASM_FETCH_CAPABILITIES.request_streaming` became `true`, but `transport_tests` still
+asserted `false`, and its local `FETCH` constant still said `false`. A constant change is
+not complete until every test that encodes it changes in the same commit.
+
+### The full-backlog dial technique does not work on every host
+
+On macOS 27.2 (aarch64), a listener with `listen(0)` and 8 filler connects still accepts the
+probe. With 128 fillers the probe gets `ECONNRESET`, not a timeout. Two tests that need a
+hanging dial fail on master for this reason (#485, #466). They test the host, not the code.
+
+### One target directory, one build
+
+Two `cargo` commands in one worktree corrupted `target/uat`: missing `build/**.rmeta` and
+incremental `dep-graph` errors. Run one build at a time per target directory. A separate
+worktree target and a standalone crate with its own target are safe.
+
+### The `worker` dependency is wasm-only
+
+`worker` compiles only for wasm32. Put it in the `[target.'cfg(target_family = "wasm")']`
+table, as `foundation_db` does. A native `--all-features` build must not compile it.
+

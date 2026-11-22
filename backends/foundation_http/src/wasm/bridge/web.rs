@@ -3,7 +3,6 @@
 use std::sync::{Arc, Mutex, Weak};
 
 use foundation_context::Ctx;
-use foundation_netio::shared::client::ClientConfig;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
@@ -19,8 +18,8 @@ use crate::wasm::dispatch::HttpAppWebDispatch;
 /// body.
 ///
 /// The body stays a [`WasmByteStream`] over `req.body()`, bounded by
-/// `max_request_bytes` and the client's `body_queue_chunks` default. No step
-/// reads the whole body into memory.
+/// `max_request_bytes` and `body_queue_chunks`. No step reads the whole body
+/// into memory.
 ///
 /// # Errors
 ///
@@ -28,6 +27,7 @@ use crate::wasm::dispatch::HttpAppWebDispatch;
 fn request_from_web(
     req: &Request,
     max_request_bytes: usize,
+    body_queue_chunks: usize,
 ) -> Result<SimpleIncomingRequest, JsError> {
     let method = SimpleMethod::from(req.method());
     let url = req.url();
@@ -46,7 +46,7 @@ fn request_from_web(
     let body = req.body().map(|stream| {
         SendSafeBody::Stream(Some(Box::new(WasmByteStream::new(
             stream,
-            ClientConfig::default().body_queue_chunks,
+            body_queue_chunks,
             Some(max_request_bytes),
         ))))
     });
@@ -90,7 +90,11 @@ impl WasmHttpApp {
     /// during a request stay private to that request.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
-        let simple_req = request_from_web(&req, self.inner.max_request_bytes)?;
+        let simple_req = request_from_web(
+            &req,
+            self.inner.max_request_bytes,
+            self.inner.body_queue_chunks,
+        )?;
         let app_ctx = self.app_ctx.fork();
         Ok(self
             .inner

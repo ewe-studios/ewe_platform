@@ -23,6 +23,7 @@ use wasm_bindgen::JsValue;
 use crate::shared::client::http_client::{BoxedSseFutureStream, BoxedSseIterator, HttpClient};
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
+use crate::shared::client::ClientConfig;
 use crate::shared::http::{HttpClientError, SendSafeBody, SimpleResponse};
 use crate::wasm::client::client::{build_web_request, response_from_web};
 use crate::wasm::client::tasks::WasmHttpExchangeTask;
@@ -46,6 +47,20 @@ impl StubHttpClient {
     ///
     /// The error that `worker::Env::durable_object` gives, as a `JsValue`.
     pub fn new(env: &worker::Env, binding: &str, name: &str) -> Result<Self, JsValue> {
+        Self::new_with_config(env, binding, name, &ClientConfig::default())
+    }
+
+    /// The stub for the Durable Object with this name, with `config` limits.
+    ///
+    /// # Errors
+    ///
+    /// The error that `worker::Env::durable_object` gives, as a `JsValue`.
+    pub fn new_with_config(
+        env: &worker::Env,
+        binding: &str,
+        name: &str,
+        config: &ClientConfig,
+    ) -> Result<Self, JsValue> {
         let namespace = env
             .durable_object(binding)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
@@ -55,14 +70,19 @@ impl StubHttpClient {
         let stub = id
             .get_stub()
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        Ok(Self::from_stub(stub))
+        Ok(Self::from_stub_with_config(stub, config))
     }
 
     /// Wrap a stub that the caller already resolved, such as one from
     /// `DurableObjectId::get_stub()`.
     #[must_use]
     pub fn from_stub(stub: worker::Stub) -> Self {
-        let config = crate::shared::client::ClientConfig::default();
+        Self::from_stub_with_config(stub, &ClientConfig::default())
+    }
+
+    /// Wrap a resolved stub with `config` limits.
+    #[must_use]
+    pub fn from_stub_with_config(stub: worker::Stub, config: &ClientConfig) -> Self {
         Self {
             stub: Arc::new(stub),
             body_queue_chunks: config.body_queue_chunks,
@@ -71,9 +91,11 @@ impl StubHttpClient {
     }
 
     /// The address of the `fetch` call in the stub's host runtime.
-    fn send(&self, req: PreparedRequest) -> impl std::future::Future<
-        Output = Result<SimpleResponse<SendSafeBody>, HttpClientError>,
-    > + Send {
+    fn send(
+        &self,
+        req: PreparedRequest,
+    ) -> impl std::future::Future<Output = Result<SimpleResponse<SendSafeBody>, HttpClientError>>
+    {
         let stub = Arc::clone(&self.stub);
         let body_queue_chunks = self.body_queue_chunks;
         let max_body_size = crate::wasm::client::stream::usize_limit(self.max_body_size);
