@@ -55,6 +55,11 @@ The runner checks the leader state and group membership before it accepts this c
 
 The workspace error derive can infer a source from an unnamed field. Explicit source attributes preserve the runner's original error chains.
 
+The native compiler finds the mise compiler cache shim during the platform build.
+Select the installed compiler cache with `MISE_SCCACHE_VERSION=0.18.0` when the shim lacks a default.
+An external Cargo target moves compile-fail fixtures outside the repository.
+Give the temporary package its own migration files so path resolution follows the production contract.
+
 ### Check package requirements outside the workspace
 
 Cargo can resolve a newer local crate even when the manifest still permits an older release.
