@@ -124,7 +124,7 @@ _Last updated: 2026-11-22._
 | Spec 77 pointed mTLS at spec 65, which no longer owns it | medium | Closed by this specification |
 | No task scheduled the CA, trust store or verifier | high | Closed by this specification |
 | `foundation_jsonschema` pedantic clippy warnings | low | Open issue #441 |
-| The agent RPC listener does not write last-seen until spec 83 installs the provider | low | Recorded here; the write belongs to the provider by design |
+| The agent RPC listener does not write last-seen until spec 83 installs the provider | low | Open issue #682; the write belongs to the provider by design |
 
 ## Open questions
 
