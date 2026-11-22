@@ -1,12 +1,12 @@
 ---
 description: "Mutual TLS as one delivered library: the certificate authority, the trust store, the rustls verifiers, the mTLS ClientAuth provider and the peer-certificate facts. The proxy (spec 82), the agent RPC server (spec 83), the sandbox service (spec 77) and the auth library (spec 81) build on it."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-15
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-15
+  last_updated: 2026-11-22
   estimated_effort: "large"
   tags:
     - mtls
@@ -30,13 +30,13 @@ related_specs:
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/77-foundation-platform-sandbox"
-  - "specifications/80-platform-prerequisites"
+  - "specifications/completed/80-platform-prerequisites"
   - "specifications/84-context-injection"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Mutual TLS

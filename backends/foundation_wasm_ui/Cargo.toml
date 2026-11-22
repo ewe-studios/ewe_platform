@@ -33,7 +33,7 @@ foundation_macros = { workspace = true }
 # Theme token model + shared CSS generator (the theme!{} macro, ThemeTokens
 # derive, and runtime Theme builder all route through it).
 foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 tracing = { version = "0.1", default-features = false }
 # Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
 # build_tools — a std, native-only concern, so target-gated rather than

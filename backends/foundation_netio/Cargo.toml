@@ -18,10 +18,15 @@ workspace = true
 
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.9" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 # RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
 # → wasm-clean). std is followed from this crate's `std` feature.
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false }
+# `shared::mime` expands `data/mime.json` at build time. A proc-macro crate
+# compiles for the host, so the wasm build stays clean.
+foundation_macros = { workspace = true }
+# The map type that the macro emits. `foundation_nostd` re-exports it.
+phf = { workspace = true }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -97,6 +102,7 @@ foundation_testbed = { path = "../foundation_testbed", default-features = false,
 wasm-bindgen-test.workspace = true
 # Proc-macro crate — always compiled for host, safe for all targets.
 foundation_macros = { workspace = true }
+new_mime_guess = { workspace = true }
 # Feature 04 TLS regression tests build a slow rustls server, which needs the
 # same `Zeroizing` wrapper the crate's `RustlsAcceptor::from_pem` takes.
 zeroize = { workspace = true }

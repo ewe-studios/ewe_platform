@@ -11,6 +11,10 @@
 //! `text/event-stream` where each `data:` line is `{"response": "<text so far>"}`
 //! (the `response` field is cumulative). There is no `[DONE]` sentinel; the
 //! stream ends when the connection closes.
+// The provider path still mints message ids with the global generator, so a
+// DST run does not repeat them here. Issue #677 injects `Env` into the provider
+// constructors and removes this allowance.
+#![allow(clippy::disallowed_methods)]
 
 use crate::backends::backend_utils::{
     capped_error_body, empty_usage_report, model_id_to_string, prepared_request,
@@ -356,7 +360,7 @@ impl WorkersAiModel {
         if let Some(token) = &self.api_token {
             headers.insert(
                 SimpleHeader::AUTHORIZATION,
-                vec![format!("Bearer {}", token.get())],
+                vec![format!("Bearer {}", token.expose())],
             );
         }
         headers.insert(

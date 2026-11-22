@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! A wake reaches only the task it belongs to (spec 70 feature 80, E1).
 //!
 //! WHY: until feature 80 a source woke a parked task with a process-wide call that

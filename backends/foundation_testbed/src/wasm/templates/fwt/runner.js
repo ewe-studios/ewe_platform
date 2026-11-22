@@ -1,0 +1,142 @@
+// Owned #[wasm_test] runner (features 12/13 — no wasm-bindgen, no wasm-pack).
+//
+// Loads `module.wasm` + `cases.json` (the testbed's __fwt_ discovery output), runs
+// every case on foundation-wasm.js, and prints a summary. One FRESH instance per
+// case: a wasm32 panic aborts, so a trapped instance is dead — re-instantiation is
+// the only safe continuation. should_panic verdicts are inverted here (the module
+// cannot observe its own panic under abort semantics).
+//
+// Runs unchanged under the embedded Deno runtime (foundation_testbed's in-process
+// deno_core; byte loading + result reporting via `op_fwt_*` ops) and the browser
+// (loaded as a module by index.html; bytes via fetch, results mirror into #output).
+
+import { FoundationWasm, TestReports } from "./foundation-wasm.js";
+
+const here = (path) => new URL(path, import.meta.url);
+
+// Embedded runtime exposes `op_fwt_read_file` (local bytes) + `op_fwt_report`
+// (results → Rust). In the browser neither exists: fetch + the #output summary.
+const ops = globalThis.Deno?.core?.ops;
+
+async function loadBytes(url) {
+  if (ops?.op_fwt_read_file) {
+    return new Uint8Array(ops.op_fwt_read_file(decodeURIComponent(url.pathname)));
+  }
+  return new Uint8Array(await (await fetch(url)).arrayBuffer());
+}
+
+const out = [];
+function print(line) {
+  out.push(line);
+  console.log(line);
+  if (typeof document !== "undefined") {
+    const el = document.getElementById("output");
+    if (el) el.textContent = out.join("\n");
+  }
+}
+
+function sendReport(passed, failed, ignored) {
+  // Embedded: hand the structured result to Rust. Browser: the summary line
+  // already printed into #output is the verdict (the page can't set an exit code).
+  if (ops?.op_fwt_report) {
+    ops.op_fwt_report(JSON.stringify({ passed, failed, ignored, output: out.join("\n") }));
+  }
+}
+
+// The case in flight, so a trap that escapes `runCase` still names itself.
+// The panic hook reports a FAIL into `rt.testReports` before the abort trap;
+// that report is lost if the trap leaves no JS frame to catch it (issue #587).
+let liveRun = null;
+
+// What the embedded driver reads when the event loop ends with an error.
+// `snapshot()` includes the report a trap cut off between the hook's delivery
+// and the awaiting continuation (issue #587).
+globalThis.__FWT_DIAGNOSTICS__ = () => ({
+  case: liveRun?.name ?? null,
+  reports: liveRun?.rt?.testReports?.snapshot() ?? [],
+  output: out.join("\n"),
+});
+
+async function runCase(moduleCompiled, testCase) {
+  const rt = new FoundationWasm();
+  liveRun = { rt, name: testCase.name };
+  // Async instantiate for the same reason as the compile above: Chrome
+  // refuses the synchronous form for a module over 8 MiB on the main thread.
+  const instance = await WebAssembly.instantiate(moduleCompiled, { abi: rt.web_abi });
+  rt.init(instance);
+
+  let trapped = false;
+  let pendingAsync = false;
+  try {
+    pendingAsync = Number(instance.exports[testCase.export]()) === 1;
+  } catch (error) {
+    if (!(error instanceof WebAssembly.RuntimeError)) throw error;
+    trapped = true; // the panic hook already reported before the abort trap
+  }
+
+  const report =
+    pendingAsync || trapped || rt.testReports.pending > 0
+      ? await rt.testReports.next()
+      : { status: TestReports.FAIL, message: `${testCase.name}: produced no report` };
+  // The case has its verdict: cancel whatever it left scheduled (a yield's
+  // resume timer, an interval) so none of its code runs while later cases do.
+  rt.dispose();
+
+  if (report.status === TestReports.IGNORED) return { verdict: "ignored", report };
+  const failed = report.status === TestReports.FAIL;
+  if (testCase.should_panic) {
+    // Inverted: the expected outcome IS the panic.
+    return failed && trapped
+      ? { verdict: "pass", report }
+      : { verdict: "fail", report: { ...report, message: `${testCase.name}: expected a panic, none occurred` } };
+  }
+  return { verdict: failed ? "fail" : "pass", report };
+}
+
+async function main() {
+  const decoder = new TextDecoder();
+  const cases = JSON.parse(decoder.decode(await loadBytes(here("./cases.json"))));
+  // The host writes harness.json with the endpoint a case may call. Set the
+  // global before the first case runs (spec 88 invariant I5).
+  try {
+    const harness = JSON.parse(decoder.decode(await loadBytes(here("./harness.json"))));
+    if (harness.baseUrl) globalThis.__FWT_BASE_URL__ = harness.baseUrl;
+  } catch (error) {
+    console.log(`no harness.json: ${error?.message ?? error}`);
+  }
+  // Async compile: Chrome refuses a synchronous WebAssembly.Module for a buffer
+  // over 8 MiB on the main thread. The foundation_core module is larger.
+  const moduleCompiled = await WebAssembly.compile(
+    await loadBytes(here("./module.wasm")),
+  );
+
+  let passed = 0;
+  let failed = 0;
+  let ignored = 0;
+  for (const testCase of cases) {
+    const { verdict, report } = await runCase(moduleCompiled, testCase);
+    if (verdict === "pass") {
+      passed += 1;
+      print(`ok      ${testCase.name}`);
+    } else if (verdict === "ignored") {
+      ignored += 1;
+      print(`ignored ${testCase.name}`);
+    } else {
+      failed += 1;
+      print(`FAILED  ${testCase.name}`);
+      if (report.message) print(`        ${report.message}`);
+    }
+    // Report after each case: a later trap that escapes the event loop must not
+    // lose the verdicts and lines already produced (issue #587).
+    sendReport(passed, failed, ignored);
+  }
+
+  const status = failed === 0 ? "ok" : "FAILED";
+  print(`test result: ${status}. ${passed} passed; ${failed} failed; ${ignored} ignored`);
+  sendReport(passed, failed, ignored);
+}
+
+main().catch((error) => {
+  print(`test result: FAILED. runner error: ${error?.stack ?? error}`);
+  sendReport(0, 1, 0);
+});

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! Regression tests for issue #233: `PoolGuard::shutdown_within` must bound the
 //! background job registry, not only the task worker registry.
 //!

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! A change that lands between the executor's readiness check and its
 //! `EventReadiness::register` call is not lost (spec 70 feature 80).
 //!

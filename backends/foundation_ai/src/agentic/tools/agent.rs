@@ -244,9 +244,20 @@ where
         }
     }
 
+    /// A new ID from the injected effect environment.
+    fn next_id(&self) -> Result<foundation_compact::ids::Id, ToolError> {
+        self.ctx
+            .require_env()
+            .map(|env| env.ids().next_id())
+            .map_err(|error| ToolError::Execution {
+                tool: TOOL.into(),
+                reason: format!("effect environment: {error}"),
+            })
+    }
+
     /// Generate a fresh delegation id.
-    fn new_id() -> String {
-        format!("deleg-{}", foundation_compact::ids::new_scru128())
+    fn new_id(&self) -> Result<String, ToolError> {
+        Ok(format!("deleg-{}", self.next_id()?))
     }
 
     // ------------------------------------------------------------------
@@ -299,8 +310,8 @@ where
         }
 
         // --- build child session ---
-        let child_session_id = SessionId::new();
-        let delegate_id = Self::new_id();
+        let child_session_id = SessionId::from_id(self.next_id()?);
+        let delegate_id = self.new_id()?;
         let output_location = format!("{}/{}.json", self.output_base, delegate_id);
 
         let (doc_store, memory_store) =
@@ -348,7 +359,7 @@ where
         })?;
 
         let prompt = Messages::User {
-            id: foundation_compact::ids::new_scru128(),
+            id: self.next_id()?,
             role: MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: prompt_text,

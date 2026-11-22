@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! The `IdP` sweeps expired cache entries on an interval, as a valtron task,
 //! and stops when the shutdown signal is set.
 

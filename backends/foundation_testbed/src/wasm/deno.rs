@@ -31,6 +31,28 @@ pub struct DenoOutput {
 /// - deno is not on PATH
 /// - deno exits with a non-zero code (error includes captured output)
 pub fn run(integration_dir: &Path, entry_file: &str) -> Result<DenoOutput> {
+    let output = run_status(integration_dir, entry_file)?;
+    if output.exit_code != 0 {
+        return Err(WasmTestbedError::DenoTestFailed(
+            output.exit_code,
+            output.stdout,
+            output.stderr,
+        )
+        .trace());
+    }
+    Ok(output)
+}
+
+/// Run a JS file via Deno and return its output, whatever its exit code.
+///
+/// A wasm-bindgen suite exits non-zero when a case fails. That is a result, not
+/// a runner failure, so the caller reads the summary and decides.
+///
+/// # Errors
+///
+/// Returns an error when `deno` is missing, the entry file is missing, or the
+/// process cannot start.
+pub fn run_status(integration_dir: &Path, entry_file: &str) -> Result<DenoOutput> {
     which::which("deno").map_err(|_| WasmTestbedError::DenoNotFound.trace())?;
 
     info!("Running deno test: {entry_file}");
@@ -63,10 +85,6 @@ pub fn run(integration_dir: &Path, entry_file: &str) -> Result<DenoOutput> {
     }
     if !stderr.is_empty() {
         debug!("deno stderr:\n{stderr}");
-    }
-
-    if exit_code != 0 {
-        return Err(WasmTestbedError::DenoTestFailed(exit_code, stdout, stderr).trace());
     }
 
     Ok(DenoOutput {

@@ -152,12 +152,54 @@ impl SingleExecutorSingleton {
     }
 }
 
+/// The configuration of the single-threaded engine.
+///
+/// A host builds it once per thread. Use [`initialize_pool_with`] to start the
+/// engine from it.
+#[derive(Debug, Clone)]
+pub struct SingleConfig {
+    /// The seed of the shared random number generator.
+    pub seed_for_rng: u64,
+    /// The effects of this program. `None` builds the host effects with
+    /// [`crate::env::system`].
+    pub env: Option<crate::env::Env>,
+}
+
+/// Build a seeded root with the effects installed.
+///
+/// `None` builds the host effects. A failure stops the program with a clear
+/// message, because the entropy source is absent.
+pub(crate) fn seeded_root_with_env(seed_for_rng: u64, env: Option<crate::env::Env>) -> Ctx {
+    let root = crate::valtron::ctx::seeded_root(seed_for_rng);
+    let env = env.unwrap_or_else(|| {
+        crate::env::system(&root).unwrap_or_else(|error| {
+            panic!("the host could not build the effect environment: {error}")
+        })
+    });
+    root.store(env);
+    root
+}
+
+/// Start the single-threaded engine from a [`SingleConfig`].
+///
+/// Idempotent: a thread that already has an engine keeps it, so a later call
+/// does not change the root or the effects.
+pub fn initialize_pool_with(config: SingleConfig) {
+    initialize_pool_with_ctx(
+        config.seed_for_rng,
+        seeded_root_with_env(config.seed_for_rng, config.env),
+    );
+}
+
 /// `initialize` initializes the local single-threaded
 /// execution engine, and is required to call this as your
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
 pub fn initialize_pool(seed_for_rng: u64) {
-    initialize_pool_with_ctx(seed_for_rng, crate::valtron::ctx::seeded_root(seed_for_rng));
+    initialize_pool_with(SingleConfig {
+        seed_for_rng,
+        env: None,
+    });
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -333,6 +375,21 @@ pub fn fork_ctx() -> Ctx {
         Some(pool) => pool.fork_ctx(),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
     })
+}
+
+/// A fork of the current engine's root [`Ctx`].
+///
+/// The fork shares the root's clock, config, random number generator and typed
+/// entries, including the [`crate::env::Env`]. A host that polls a future
+/// outside the engine (the Worker `fetch` entry) passes this value to the code
+/// that runs the future, so the code can read the same effects.
+///
+/// # Panics
+///
+/// Panics if the pool has not been initialized (mirrors [`fork_ctx`]).
+#[must_use]
+pub fn root_ctx() -> Ctx {
+    fork_ctx()
 }
 
 /// The clock of the current engine's stable root.

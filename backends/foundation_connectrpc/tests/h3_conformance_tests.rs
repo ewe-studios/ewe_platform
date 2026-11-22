@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! HTTP/3 `ConnectRPC` conformance — unary over live QUIC (F35).
 //!
 //! WHY: F35 requires Connect+gRPC to pass over HTTP/3. This exercises the

@@ -1,3 +1,6 @@
+// Tests build the effect sources on purpose (spec 84, section 6, item 2).
+#![allow(clippy::disallowed_methods)]
+
 //! `AgentSession` API driven by a `MockModelProvider` — deterministic, no model.
 //!
 //! WHY: `session_tests.rs` only covers the builder + preflight; `run_turn`,
@@ -24,6 +27,14 @@ use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoS
 use futures_lite::future::block_on;
 use futures_lite::StreamExt;
 
+/// A context with the seeded effect environment that the agent loop needs.
+fn effect_ctx() -> foundation_context::Ctx {
+    let ctx = foundation_context::Ctx::host();
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
+}
+
 type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
 
 /// The same session over SQL-backed stores (Turso / `SQLite`), which the
@@ -32,7 +43,7 @@ type SqlSession = AgentSession<SqlDocumentStore<TursoStorage>, KvMemoryStore<Tur
 
 /// A migrated in-memory Turso database, opened asynchronously.
 async fn in_memory_turso() -> TursoStorage {
-    let storage = TursoStorage::new(":memory:", foundation_context::Ctx::host())
+    let storage = TursoStorage::new(":memory:", effect_ctx())
         .await
         .expect("open an in-memory Turso database");
     storage
@@ -87,9 +98,12 @@ fn assistant_texts(records: &[SessionRecord]) -> Vec<String> {
 
 /// The explicit real clock backend for tests.
 fn test_clock() -> foundation_context::Ctx {
-    foundation_context::Ctx::fixed(std::sync::Arc::new(
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
         foundation_context::MonotonicClock::new(),
-    ))
+    ));
+    foundation_core::env::install(&ctx, |ctx| foundation_core::env::simulated(ctx, 0))
+        .expect("a seeded effect environment");
+    ctx
 }
 
 #[valtron_test]

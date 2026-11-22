@@ -68,7 +68,13 @@ fn the_runner_ends_when_the_simulated_clock_passes_the_deadline() {
 
     let url = format!("http://127.0.0.1:{port}/index.html");
     let started = Instant::now();
-    let result = run(&url, &Browser::Chrome, true, &ctx);
+    let result = run(
+        &url,
+        &Browser::Chrome,
+        true,
+        &ctx,
+        &foundation_testbed::wasm::browser::BrowserRunLimits::default(),
+    );
     let real = started.elapsed();
     stop.store(true, Ordering::Relaxed);
     let _ = stepper.join();

@@ -279,8 +279,11 @@ impl AuthManager {
 
             // Build JwtToken for lifecycle tracking
             let jwt_token = JwtToken::from_parts(
-                oauth.access_token.get(),
-                oauth.refresh_token.as_ref().map(ConfidentialText::get),
+                oauth.access_token.expose().to_owned(),
+                oauth
+                    .refresh_token
+                    .as_ref()
+                    .map(|token| token.expose().to_owned()),
                 oauth.expires,
                 None,
                 None,
@@ -465,12 +468,14 @@ impl AuthManager {
                 ..
             } => {
                 let oauth_token = OAuthToken {
-                    access_token: access_token.get(),
+                    access_token: access_token.expose().to_owned(),
                     token_type: "Bearer".to_string(),
                     expires_in: Some(
                         u64::try_from((*expires_at - now_seconds(&self.ctx)).max(0)).unwrap_or(0),
                     ),
-                    refresh_token: refresh_token.as_ref().map(ConfidentialText::get),
+                    refresh_token: refresh_token
+                        .as_ref()
+                        .map(|token| token.expose().to_owned()),
                     scope: scope.clone(),
                     id_token: None,
                 };

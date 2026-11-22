@@ -32,7 +32,7 @@ async fn test_create_session() {
         .unwrap();
 
     assert_eq!(session.user_id, "user_1");
-    assert_ne!(session.token.get(), "");
+    assert_ne!(session.token.expose(), "");
     assert!(!session.revoked);
     assert_ne!(cookies.len(), 0);
 }

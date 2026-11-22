@@ -30,13 +30,15 @@ pub enum BrowserError {
 
     /// The browser binary was not found.
     #[display(
-        "browser '{binary}' not found — install it with `{mise_task}` or set its *_BIN env var"
+        "browser '{binary}' not found — searched {searched:?}. Install it with `{mise_task}` or set its *_BIN env var"
     )]
     BrowserNotInstalled {
         /// The binary we looked for (e.g. `chromium`).
         binary: String,
         /// The `mise` task that installs it.
         mise_task: String,
+        /// Every location searched, in order.
+        searched: Vec<std::path::PathBuf>,
     },
 
     /// The browser returned a protocol-level error for a command.
@@ -55,6 +57,14 @@ pub enum BrowserError {
         op: String,
         /// The elapsed budget in milliseconds.
         after_ms: u64,
+    },
+
+    /// The protocol connection ended, so the command can never be answered.
+    #[display("connection lost: {reason}")]
+    #[from(ignore)]
+    ConnectionLost {
+        /// The reason the reader stopped, or the last frame error.
+        reason: String,
     },
 
     /// A selector matched no element.

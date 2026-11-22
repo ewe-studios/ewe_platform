@@ -350,18 +350,9 @@ impl BackupCodeSet {
 
 /// Constant-time byte comparison to prevent timing attacks.
 ///
-/// Slices of different length compare as not equal.
-#[must_use]
-pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
-    let mut result: u8 = 0;
-    for (x, y) in a.iter().zip(b.iter()) {
-        result |= x ^ y;
-    }
-    result == 0
-}
+/// This is the shared comparison of [`crate::shared::constant_time_eq`],
+/// re-exported here for the existing callers.
+pub use crate::shared::constant_time_eq;
 
 /// 2FA-specific errors.
 #[derive(derive_more::From, Debug)]

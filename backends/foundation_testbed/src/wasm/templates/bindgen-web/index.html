@@ -5,6 +5,22 @@
     <pre id="output"></pre>
     <pre id="console_log"></pre>
     <pre id="console_error"></pre>
+    <script>
+      // A module that fails to load or rejects at top level prints nothing.
+      // Mirror that failure into #output, so the runner names it.
+      const report = (message) => {
+        const output = document.getElementById("output");
+        output.textContent += `\nrunner error: ${message}`;
+      };
+      window.addEventListener("error", (event) => report(event.error?.stack ?? event.message));
+      // The wasm-bindgen panic hook prints its message through console.error.
+      const originalError = console.error.bind(console);
+      console.error = (...args) => {
+        report(args.map((arg) => String(arg)).join(" "));
+        originalError(...args);
+      };
+      window.addEventListener("unhandledrejection", (event) => report(event.reason?.stack ?? event.reason));
+    </script>
     <script type="module" src="run.js"></script>
   </body>
 </html>
