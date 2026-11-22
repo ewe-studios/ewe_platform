@@ -10,13 +10,13 @@ The native call exposes a typed error when the server cannot find the item.
 
 ```swift
 let client = NativeHttpClient(client: URLSessionRpcClient(session: session))
-let todo = try await getTodo(client: client, baseUrl: address, id: 42)
+let todo = try await getTodo(client: client, baseUrl: address, id: "00000000-0000-4000-8000-000000000042")
 print(todo.title)
 ```
 
 ```kotlin
 NativeHttpClient(OkHttpRpcClient(okHttpClient)).use { client ->
-    val todo = getTodo(client, address, 42uL)
+    val todo = getTodo(client, address, "00000000-0000-4000-8000-000000000042")
     println(todo.title)
 }
 ```
@@ -31,7 +31,7 @@ let client = TodosClient::new(transport, base_url, ClientOptions::new())?;
 let reply = client.get_todo(RpcCtx::client(ctx), Request::new(request)).await?;
 ```
 
-Start the data-only example service with this command. It serves todo 42 with title `Buy milk`.
+Start the data-only example service with this command. It serves the identifier in the examples above with the title `Buy milk`.
 Its router registers only the generated data procedure.
 
 ```sh

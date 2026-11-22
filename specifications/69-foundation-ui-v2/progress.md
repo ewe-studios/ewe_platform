@@ -1117,3 +1117,11 @@ The Todo icon has identical bytes in Chrome, the installed iPhone simulator app,
 Both native readers also identify missing hosts, invalid paths, and browser-only resources.
 The moved development server serves disk edits. The release server embeds its assets and runs alone.
 Specification 90 Feature 3 records the resource implementation, package checks, and installer dependency.
+
+### 2026-11-23 — One identifier per Todo
+
+The submitting host generates a version four universally unique identifier (UUID) from injected entropy.
+Pending additions, confirmed records, deletion receipts, and the typed data service use that same identifier.
+The server rejects missing, numeric, and malformed identifiers. A delayed Add after deletion leaves the record absent.
+Four action and startup tests and three native tests pass. Both socket replay and concurrent snapshot tests pass.
+The Android data procedure returns the requested UUID and rejects a numeric string. The three-host run is in progress.

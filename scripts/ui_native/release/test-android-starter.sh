@@ -171,7 +171,7 @@ if [[ $mode == todo ]]; then
     "$adb" -s "$serial" reverse "tcp:$data_port" "tcp:$data_port"
     result=$("$adb" -s "$serial" shell am instrument -w -e data true -e server "$data_url" ewe.todo.test/ewe.todo.ReplayCheck)
     printf '%s\n' "$result"
-    [[ $result == *"GetTodo returned 42, Buy milk, and NotFound."* ]]
+    [[ $result == *"GetTodo returned the requested UUID, Buy milk, and NotFound."* ]]
     "$adb" -s "$serial" reverse --remove "tcp:$data_port"
     kill "$data_pid"
     wait "$data_pid" || true

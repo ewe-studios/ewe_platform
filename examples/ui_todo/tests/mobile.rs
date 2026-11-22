@@ -153,7 +153,7 @@ async fn dialogs_use_one_server_binding_and_cancel_without_transport() {
 }
 
 #[valtron_test]
-async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
+async fn a_failed_addition_survives_restart_and_reuses_its_id() {
     #[derive(Default)]
     struct Offline(std::sync::Mutex<Vec<serde_json::Value>>);
     #[async_trait::async_trait]
@@ -227,7 +227,7 @@ async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
         .iter()
         .any(|frame| shows(&operations(frame), "Pending")));
     let payload = transport.0.lock().unwrap()[0].clone();
-    let key = payload["creation_id"].as_str().unwrap();
+    let key = payload["id"].as_str().unwrap();
     assert_eq!(payload["title"], "Keep this title");
     assert!(path.is_file());
     drop(first);
@@ -274,7 +274,7 @@ async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
         .is_err());
     let requests = transport.0.lock().unwrap();
     assert_eq!(requests[2]["title"], "Corrected title");
-    assert_ne!(requests[2]["creation_id"], payload["creation_id"]);
+    assert_ne!(requests[2]["id"], payload["id"]);
     let saved: std::collections::BTreeMap<String, ui_todo::Pending> =
         serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
     assert_eq!(saved.len(), 1);
@@ -285,14 +285,22 @@ async fn a_failed_addition_survives_restart_and_reuses_its_creation_id() {
 async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("pending.json");
+    let first = "00000000-0000-4000-8000-000000000001";
+    let second = "00000000-0000-4000-8000-000000000002";
     let removal = ui_todo::Pending {
-        change: ui_todo::PendingChange::Delete { id: 1 },
+        change: ui_todo::PendingChange::Delete {
+            id: first.parse().unwrap(),
+        },
         retry: false,
         validation: None,
     };
     std::fs::write(
         &path,
-        serde_json::to_vec(&std::collections::BTreeMap::from([("delete:1", removal)])).unwrap(),
+        serde_json::to_vec(&std::collections::BTreeMap::from([(
+            format!("delete:{first}"),
+            removal,
+        )]))
+        .unwrap(),
     )
     .unwrap();
     let core = ui_todo::create_persistent_todo_core(
@@ -315,8 +323,8 @@ async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
         operations(&frame)
     }
     let rows = serde_json::json!([
-        {"id": 1, "text": "Task one", "done": false},
-        {"id": 2, "text": "Task two", "done": false}
+        {"id": first, "text": "Task one", "done": false},
+        {"id": second, "text": "Task two", "done": false}
     ]);
     deliver(
         &core,
@@ -335,13 +343,13 @@ async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
     assert!(shows(&search, "Task two"));
     let unrelated = deliver(
         &core,
-        serde_json::json!({"Committed":{"position":3,"change":{"Remove":2}}}),
+        serde_json::json!({"Committed":{"position":3,"change":{"Remove":second}}}),
     )
     .await;
     assert!(!shows(&unrelated, "Task one"));
     let confirmed = deliver(
         &core,
-        serde_json::json!({"Committed":{"position":4,"change":{"Remove":1}}}),
+        serde_json::json!({"Committed":{"position":4,"change":{"Remove":first}}}),
     )
     .await;
     assert!(!shows(&confirmed, "Task one"));

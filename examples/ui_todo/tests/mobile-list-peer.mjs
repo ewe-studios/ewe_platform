@@ -130,6 +130,7 @@ try {
     assert.equal(response.status, 200);
     return response.json();
   }
+  const recordIds = new Map();
   async function status(label, expected) {
     if (expected === "absent") {
       await waitFor(async () => !(await seesRow(label)), `Browser still has ${label}`);
@@ -138,8 +139,17 @@ try {
       await waitFor(() => evaluate(`(${toggle})?.textContent === ${JSON.stringify(expected)}`),
         `Browser did not show ${label} with ${expected}`);
     }
+    if (expected !== "absent") {
+      const id = await evaluate(`(${rowAction(label, "server:toggle_todo")})?.value`);
+      assert.match(id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      if (recordIds.has(label)) assert.equal(id, recordIds.get(label));
+      else {
+        assert.ok(![...recordIds.values()].includes(id), "Each distinct record needs its own UUID");
+        recordIds.set(label, id);
+      }
+    }
     const display = await evaluate(`(${row(label)})?.textContent ?? null`);
-    console.log(JSON.stringify({ host: "Chrome", title: label, expected, row: display }));
+    console.log(JSON.stringify({ host: "Chrome", title: label, id: recordIds.get(label), expected, row: display }));
   }
   const iosTitle = "iPhone peer todo";
   const androidTitle = "Android peer todo";

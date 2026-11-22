@@ -185,7 +185,7 @@ impl Device<'_> {
                     self.connected(data, |data| async move {
                         self.instrument(
                             &["-e", "data", "true", "-e", "server", &data],
-                            "GetTodo returned 42, Buy milk, and NotFound.",
+                            "GetTodo returned the requested UUID, Buy milk, and NotFound.",
                         )
                         .await
                     })

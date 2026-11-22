@@ -255,7 +255,7 @@ The Swift application can pass its own URLSession to a generated application cli
 
 ```swift
 let client = NativeHttpClient(client: URLSessionRpcClient(session: session))
-let item = try await getTodo(client: client, baseUrl: base.absoluteString, id: 42)
+let item = try await getTodo(client: client, baseUrl: base.absoluteString, id: "00000000-0000-4000-8000-000000000042")
 print(item.title)
 ```
 

@@ -120,9 +120,11 @@ fn server_and_host_actions_work() {
             .click()
             .unwrap();
         peer_toggle.expect().to_have_count(0).unwrap();
-        let second_delete = page.locator(
-            r#"button[primal\:onclick="host:open_delete_dialog"][value="2"]:not([hidden] *)"#,
-        );
+        let second_id = page.eval(r"Array.from(document.querySelectorAll('.ewe-checklist-row')).find(row => row.querySelector('.ewe-text')?.textContent === 'second todo').querySelector('button[value]').value").unwrap();
+        let second_id: ui_todo::TodoId = second_id.as_str().unwrap().parse().unwrap();
+        let second_delete = page.locator(&format!(
+            r#"button[primal\:onclick="host:open_delete_dialog"][value="{second_id}"]:not([hidden] *)"#,
+        ));
         second_delete.expect().to_be_visible().unwrap();
         second_delete.click().unwrap();
         let confirm_second = page.locator(&button("server:confirm_delete"));
@@ -195,7 +197,7 @@ fn server_and_host_actions_work() {
         peer_toggle.expect().to_have_count(0).unwrap();
         other.eval(r"{
             // A repeated deletion succeeds. An unknown record still returns an error.
-            window.staleTodoButton.value = '99999';
+            window.staleTodoButton.value = '00000000-0000-4000-8000-999999999999';
             document.querySelector('#page').appendChild(window.staleTodoButton);
             window.FoundationWasmUiRuntime.Patcher.runtime.dispatcher.scanAndWire(window.staleTodoButton);
             window.staleTodoButton.click();

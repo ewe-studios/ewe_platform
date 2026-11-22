@@ -23,14 +23,14 @@ pub(crate) use services::TodoFeed;
 #[foundation_ui_http::get("/initial")]
 fn initial(req: ViewRequest) -> Result<Response, Error> {
     let feed = req.require::<TodoFeed>()?;
-    let (state, cursor, retired_creations) = req.require::<TodoStore>()?.published_snapshot(&feed.0);
+    let (state, cursor, retired_ids) = req.require::<TodoStore>()?.published_snapshot(&feed.0);
     let ctx = req.render_context();
     let page = screens::page(&state, feed.0.stream_id(), cursor);
     foundation_ui_runtime::view::full_view(&ctx, ctx.receiver(), &page, None::<&()>)?;
     crate::TodoDelivery::Snapshot {
         position: cursor,
         items: state.items,
-        retired_creations,
+        retired_ids,
     }
     .send(&ctx)?;
     Ok(Response::frame(ctx))
@@ -54,7 +54,7 @@ pub fn app(module: &Path) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
 /// Starts the todo server with a supplied list and its existing identifiers.
 ///
 /// # Errors
-/// Returns an error for duplicate or zero identifiers, or if route setup fails.
+/// Returns an error for duplicate identifiers, or if route setup fails.
 pub fn app_with_todos(
     module: &Path,
     items: Vec<crate::Todo>,
@@ -62,7 +62,7 @@ pub fn app_with_todos(
     let mut ids = std::collections::HashSet::with_capacity(items.len());
     if items
         .iter()
-        .any(|item| item.id == 0 || !ids.insert(item.id))
+        .any(|item| !ids.insert(item.id))
     {
         return Err("Invalid restored todo identifiers".into());
     }
@@ -158,8 +158,7 @@ fn register(
 pub fn data_app() -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut app = HttpApp::new_serve();
     app.context().store(TodoStore::with_items(vec![crate::Todo {
-        creation_id: None,
-        id: 42,
+        id: "00000000-0000-4000-8000-000000000042".parse()?,
         text: "Buy milk".into(),
         done: false,
     }]));

@@ -28,8 +28,8 @@ The application can make this call before it creates a screen. Only the optional
 For example, an application defines this procedure in its service schema:
 
 ```protobuf
-message GetTodoRequest { uint64 id = 1; }
-message Todo { uint64 id = 1; string title = 2; }
+message GetTodoRequest { string id = 1; }
+message Todo { string id = 1; string title = 2; }
 service Todos { rpc GetTodo(GetTodoRequest) returns (Todo); }
 ```
 

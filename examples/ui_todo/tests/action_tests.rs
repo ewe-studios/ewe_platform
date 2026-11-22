@@ -15,7 +15,16 @@ fn server_owns_mutations_and_replays_confirmed_deletions() {
             .get(Origin::Server, name, MountSurface::Web)
             .unwrap();
         let mut input = ActionInputT::default();
-        input.value = Some(value.to_owned());
+        if name == "add_todo" {
+            input.json = Some(
+                serde_json::to_vec(&serde_json::json!({
+                    "id": "00000000-0000-4000-8000-000000000001", "title": value
+                }))
+                .unwrap(),
+            );
+        } else {
+            input.value = Some(value.to_owned());
+        }
         let mut req = ActionRequestT::default();
         req.input = Some(Box::new(input));
         futures_lite::future::block_on(invoke_action(&ctx, entry, MountSurface::Web, None, req))
@@ -69,9 +78,9 @@ fn receiving_cache_orders_and_deduplicates_confirmed_changes() {
     let registry = server_registry().unwrap();
     let packets: Vec<_> = ["Alpha", "Bravo"]
         .into_iter()
-        .map(|title| {
+        .enumerate().map(|(index, title)| {
             let mut input = ActionInputT::default();
-            input.value = Some(title.into());
+            input.json = Some(serde_json::to_vec(&serde_json::json!({"id": format!("00000000-0000-4000-8000-{index:012}"), "title":title})).unwrap());
             let messages = invoke(
                 &server,
                 &registry,
@@ -151,14 +160,17 @@ fn creation_retries_match_the_original_payload_and_respect_deletion() {
     };
     let add = |key: &str, title: &str| {
         let mut input = ActionInputT::default();
-        input.json = Some(
-            serde_json::to_vec(&serde_json::json!({"creation_id": key, "title": title})).unwrap(),
-        );
+        input.json =
+            Some(serde_json::to_vec(&serde_json::json!({"id": key, "title": title})).unwrap());
         call("add_todo", input)
     };
     let first = "00000000-0000-4000-8000-000000000001";
     let second = "00000000-0000-4000-8000-000000000002";
     assert!(add("bad key", "same").is_err());
+    assert!(add("00000000-0000-4000-0000-000000000001", "same").is_err());
+    let mut without_id = ActionInputT::default();
+    without_id.value = Some("missing id".into());
+    assert!(call("add_todo", without_id).is_err());
     add(first, "same").unwrap();
     add(first, "same").unwrap();
     assert!(add(first, "different").is_err());
@@ -166,8 +178,8 @@ fn creation_retries_match_the_original_payload_and_respect_deletion() {
     let store = ctx.get::<TodoStore>().unwrap();
     let items = store.snapshot().items;
     assert_eq!(items.len(), 2);
-    assert_eq!(items[0].creation_id.as_deref(), Some(first));
-    assert_eq!(items[1].creation_id.as_deref(), Some(second));
+    assert_eq!(items[0].id.to_string(), first);
+    assert_eq!(items[1].id.to_string(), second);
     let mut deletion = ActionInputT::default();
     deletion.value = Some(items[0].id.to_string());
     call("confirm_delete", deletion).unwrap();

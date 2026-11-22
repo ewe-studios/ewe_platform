@@ -56,13 +56,20 @@ final class TodoTests: XCTestCase {
   func testOrdinaryDataService() async throws {
     let base = try XCTUnwrap(ProcessInfo.processInfo.environment["EWE_DATA_URL"])
     let client = NativeHttpClient(client: URLSessionRpcClient())
-    let todo = try await getTodo(client: client, baseUrl: base, id: 42)
-    XCTAssertEqual(todo.id, 42)
+    let id = "00000000-0000-4000-8000-000000000042"
+    let todo = try await getTodo(client: client, baseUrl: base, id: id)
+    XCTAssertEqual(todo.id, id)
     XCTAssertEqual(todo.title, "Buy milk")
     do {
-      _ = try await getTodo(client: client, baseUrl: base, id: 999)
+      _ = try await getTodo(client: client, baseUrl: base, id: "00000000-0000-4000-8000-000000000999")
       XCTFail("Expected the service to return NotFound")
     } catch TodoServiceError.NotFound { }
+    do {
+      _ = try await getTodo(client: client, baseUrl: base, id: "42")
+      XCTFail("Expected the client to reject a numeric identifier")
+    } catch TodoServiceError.Failed(let detail) {
+      XCTAssertTrue(detail.contains("UUID"))
+    }
   }
 
   @MainActor func testBrowserPeerUpdatesRowsWithoutReplacingFilterOrDraft() async throws {

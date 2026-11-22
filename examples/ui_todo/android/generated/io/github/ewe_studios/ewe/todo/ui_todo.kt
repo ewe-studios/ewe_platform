@@ -730,7 +730,7 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_ui_todo_fn_func_create_todo_core(`platform`: RustBufferNativePlatform.ByValue,`transport`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    external fun uniffi_ui_todo_fn_func_get_todo(`client`: Long,`baseUrl`: RustBuffer.ByValue,`id`: Long,
+    external fun uniffi_ui_todo_fn_func_get_todo(`client`: Long,`baseUrl`: RustBuffer.ByValue,`id`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_ui_todo_fn_func_initial_todo_frame(`core`: Long,
     ): Long
@@ -864,7 +864,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_ui_todo_checksum_func_create_todo_core() and 0xFFFF) != 12558) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_ui_todo_checksum_func_get_todo() and 0xFFFF) != 60222) {
+    if ((lib.uniffi_ui_todo_checksum_func_get_todo() and 0xFFFF) != 9035) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_ui_todo_checksum_func_initial_todo_frame() and 0xFFFF) != 35916) {
@@ -1009,29 +1009,6 @@ object NoHandle
 /**
  * @suppress
  */
-public object FfiConverterULong: FfiConverter<ULong, Long> {
-    override fun lift(value: Long): ULong {
-        return value.toULong()
-    }
-
-    override fun read(buf: ByteBuffer): ULong {
-        return lift(buf.getLong())
-    }
-
-    override fun lower(value: ULong): Long {
-        return value.toLong()
-    }
-
-    override fun allocationSize(value: ULong) = 8UL
-
-    override fun write(value: ULong, buf: ByteBuffer) {
-        buf.putLong(value.toLong())
-    }
-}
-
-/**
- * @suppress
- */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -1111,7 +1088,7 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
  * A todo returned by the example service.
  */
 data class TodoResult (
-    var `id`: kotlin.ULong
+    var `id`: kotlin.String
     , 
     var `title`: kotlin.String
     
@@ -1130,18 +1107,18 @@ data class TodoResult (
 public object FfiConverterTypeTodoResult: FfiConverterRustBuffer<TodoResult> {
     override fun read(buf: ByteBuffer): TodoResult {
         return TodoResult(
-            FfiConverterULong.read(buf),
+            FfiConverterString.read(buf),
             FfiConverterString.read(buf),
         )
     }
 
     override fun allocationSize(value: TodoResult) = (
-            FfiConverterULong.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`id`) +
             FfiConverterString.allocationSize(value.`title`)
     )
 
     override fun write(value: TodoResult, buf: ByteBuffer) {
-            FfiConverterULong.write(value.`id`, buf)
+            FfiConverterString.write(value.`id`, buf)
             FfiConverterString.write(value.`title`, buf)
     }
 }
@@ -1316,12 +1293,12 @@ object CoreExceptionExternalErrorHandler : UniffiRustCallStatusErrorHandler<Core
          */
     @Throws(TodoServiceException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-     suspend fun `getTodo`(`client`: NativeHttpClient, `baseUrl`: kotlin.String, `id`: kotlin.ULong) : TodoResult {
+     suspend fun `getTodo`(`client`: NativeHttpClient, `baseUrl`: kotlin.String, `id`: kotlin.String) : TodoResult {
         return uniffiRustCallAsync(
         UniffiLib.uniffi_ui_todo_fn_func_get_todo(
         FfiConverterTypeNativeHttpClient.lower(`client`),
         FfiConverterString.lower(`baseUrl`),
-        FfiConverterULong.lower(`id`),),
+        FfiConverterString.lower(`id`),),
         { future, callback, continuation -> UniffiLib.ffi_ui_todo_rust_future_poll_rust_buffer(future, callback, continuation) },
         { future, continuation -> UniffiLib.ffi_ui_todo_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.ffi_ui_todo_rust_future_free_rust_buffer(future) },

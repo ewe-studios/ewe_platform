@@ -1,5 +1,5 @@
 syntax = "proto3";
 package ewe.todo.v1;
-message GetTodoRequest { uint64 id = 1; }
-message Todo { uint64 id = 1; string title = 2; }
+message GetTodoRequest { string id = 1; }
+message Todo { string id = 1; string title = 2; }
 service Todos { rpc GetTodo(GetTodoRequest) returns (Todo); }

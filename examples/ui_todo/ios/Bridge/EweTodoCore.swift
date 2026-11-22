@@ -467,22 +467,6 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
-    typealias FfiType = UInt64
-    typealias SwiftType = UInt64
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt64 {
-        return try lift(readInt(&buf))
-    }
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        writeInt(&buf, lower(value))
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -549,12 +533,12 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
  * A todo returned by the example service.
  */
 public struct TodoResult: Equatable, Hashable {
-    public var id: UInt64
+    public var id: String
     public var title: String
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(id: UInt64, title: String) {
+    public init(id: String, title: String) {
         self.id = id
         self.title = title
     }
@@ -575,13 +559,13 @@ public struct FfiConverterTypeTodoResult: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TodoResult {
         return
             try TodoResult(
-                id: FfiConverterUInt64.read(from: &buf), 
+                id: FfiConverterString.read(from: &buf), 
                 title: FfiConverterString.read(from: &buf)
         )
     }
 
     public static func write(_ value: TodoResult, into buf: inout [UInt8]) {
-        FfiConverterUInt64.write(value.id, into: &buf)
+        FfiConverterString.write(value.id, into: &buf)
         FfiConverterString.write(value.title, into: &buf)
     }
 }
@@ -780,11 +764,11 @@ public func createTodoCore(platform: NativePlatform, transport: HostTransport)th
  * # Errors
  * Returns the service status when the item is absent or a request fails.
  */
-public func getTodo(client: NativeHttpClient, baseUrl: String, id: UInt64)async throws  -> TodoResult  {
+public func getTodo(client: NativeHttpClient, baseUrl: String, id: String)async throws  -> TodoResult  {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
-                uniffi_ui_todo_fn_func_get_todo(FfiConverterTypeNativeHttpClient_lower(client),FfiConverterString.lower(baseUrl),FfiConverterUInt64.lower(id)
+                uniffi_ui_todo_fn_func_get_todo(FfiConverterTypeNativeHttpClient_lower(client),FfiConverterString.lower(baseUrl),FfiConverterString.lower(id)
                 )
             },
             pollFunc: ffi_ui_todo_rust_future_poll_rust_buffer,
@@ -849,7 +833,7 @@ private let initializationResult: InitializationResult = {
     if (uniffi_ui_todo_checksum_func_create_todo_core() != 12558) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_ui_todo_checksum_func_get_todo() != 60222) {
+    if (uniffi_ui_todo_checksum_func_get_todo() != 9035) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_ui_todo_checksum_func_initial_todo_frame() != 35916) {

@@ -215,7 +215,7 @@ The Kotlin application can pass its own OkHttp client to an application procedur
 
 ```kotlin
 NativeHttpClient(OkHttpRpcClient(okHttpClient)).use { network ->
-    val item = getTodo(network, baseUrl, 42uL)
+    val item = getTodo(network, baseUrl, "00000000-0000-4000-8000-000000000042")
     println(item.title)
 }
 ```

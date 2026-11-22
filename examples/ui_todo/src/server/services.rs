@@ -71,6 +71,11 @@ impl crate::todo_rpc::Todos for Todos {
     ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<crate::todo_rpc::Todo>>
     {
         use foundation_connectrpc::{ConnectError, Response};
+        let id = request
+            .msg
+            .id
+            .parse::<crate::TodoId>()
+            .map_err(ConnectError::invalid_argument)?;
         let store = ctx
             .ctx
             .get::<TodoStore>()
@@ -79,10 +84,10 @@ impl crate::todo_rpc::Todos for Todos {
             .snapshot()
             .items
             .into_iter()
-            .find(|todo| todo.id == request.msg.id)
+            .find(|todo| todo.id == id)
             .ok_or_else(|| ConnectError::not_found("Todo not found"))?;
         Ok(Response::new(crate::todo_rpc::Todo {
-            id: todo.id,
+            id: todo.id.to_string(),
             title: todo.text,
             ..Default::default()
         }))

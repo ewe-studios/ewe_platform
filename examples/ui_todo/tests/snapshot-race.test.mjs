@@ -18,6 +18,9 @@ test("concurrent snapshots report the revision of their displayed count",{timeou
   const sender = new FetchActionTransport({url:new URL("/action",base),hello:() => actions.hello()});
   const actions = new WebActionManager({registry,server:sender,frames:{receive(){return true}},
     onError:error => assert.fail(JSON.stringify(error))});
+  const [greeting] = await sender.send(actions.hello());
+  const frame = wire.Frame.getRootAsFrame(new wire.ByteBuffer(greeting));
+  actions.applyCaps(frame.kind(new wire.FrameMessage()).messages(0).control().caps().unpack());
   async function capture() {
     const res = await fetch(new URL("/initial",base),{headers:{"X-Ewe-Hello":base64urlEncode(actions.hello())}});
     const packet = wire.Frame.getRootAsFrame(new wire.ByteBuffer(await readViewResponse(res)));
@@ -38,7 +41,7 @@ test("concurrent snapshots report the revision of their displayed count",{timeou
   const input = {value:"Revision",closest:() => null,getAttribute:() => null};
   assert.equal(await capture(),0n);
   await Promise.all([
-    (async () => { for (let i=0;i<20;i++) await actions.trigger("server:add_todo",input,{type:"submit"}); })(),
+    (async () => { for (let i=0;i<20;i++) await actions.triggerStructured("server:add_todo",input,{id:crypto.randomUUID(), title:input.value},{type:"submit"}); })(),
     ...Array.from({length:3},async () => { for(let i=0;i<10;i++) await capture(); }),
   ]);
   assert.equal(await capture(),20n);

@@ -10,8 +10,14 @@ use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PendingChange {
-    Add { creation_id: String, title: String },
-    Delete { id: u64 },
+    Add {
+        #[serde(alias = "creation_id")]
+        id: super::TodoId,
+        title: String,
+    },
+    Delete {
+        id: super::TodoId,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -163,20 +169,11 @@ pub(crate) async fn prepare(
             if value.trim().is_empty() {
                 return Err(error("Enter a todo title"));
             }
-            let mut bytes = [0u8; 16];
-            ctx.inner()
-                .get::<foundation_context::env::Env>()
-                .ok_or_else(|| error("Missing Todo entropy source"))?
-                .entropy()
-                .fill(&mut bytes)
-                .map_err(|e| error(&e.to_string()))?;
-            bytes[6] = bytes[6] & 0x0f | 0x40;
-            bytes[8] = bytes[8] & 0x3f | 0x80;
-            let creation_id = foundation_compact::uuid::Uuid::from_bytes(bytes).to_string();
+            let id = super::TodoId::generate(ctx.inner()).map_err(|reason| error(&reason))?;
             (
-                format!("add:{creation_id}"),
+                format!("add:{id}"),
                 Some(PendingChange::Add {
-                    creation_id,
+                    id,
                     title: value.into(),
                 }),
             )
@@ -222,15 +219,10 @@ pub(crate) async fn prepare(
             key: None,
         });
     };
-    if let PendingChange::Add { creation_id, title } = selected {
+    if let PendingChange::Add { id, title } = selected {
         input.value = None;
-        input.json = Some(
-            serde_json::to_vec(&AddInput {
-                creation_id: Some(creation_id),
-                title,
-            })
-            .map_err(|e| error(&e.to_string()))?,
-        );
+        input.json =
+            Some(serde_json::to_vec(&AddInput { id, title }).map_err(|e| error(&e.to_string()))?);
     }
     let store = todo_store(ctx)?;
     let mut state = store
@@ -311,12 +303,8 @@ pub(super) async fn reconcile(
 
 fn confirmed(state: &StoreState, change: &PendingChange, snapshot: bool) -> bool {
     match change {
-        PendingChange::Add { creation_id, .. } => {
-            state.retired_creations.contains(creation_id)
-                || state
-                    .items
-                    .iter()
-                    .any(|row| row.creation_id.as_ref() == Some(creation_id))
+        PendingChange::Add { id, .. } => {
+            state.retired_ids.contains(id) || state.items.iter().any(|row| row.id == *id)
         }
         PendingChange::Delete { id } => {
             state.removed.contains_key(id)

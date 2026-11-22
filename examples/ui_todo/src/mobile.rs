@@ -116,7 +116,7 @@ fn todo_context() -> Result<Ctx, CoreError> {
 /// A todo returned by the example service.
 #[derive(uniffi::Record)]
 pub struct TodoResult {
-    pub id: u64,
+    pub id: String,
     pub title: String,
 }
 
@@ -136,9 +136,17 @@ pub enum TodoServiceError {
 pub async fn get_todo(
     client: Arc<foundation_ui_native::rpc::NativeHttpClient>,
     base_url: String,
-    id: u64,
+    id: String,
 ) -> Result<TodoResult, TodoServiceError> {
     use foundation_connectrpc::{ClientOptions, Request, RpcCtx};
+    let parse_id = |value: &str| {
+        value
+            .parse::<crate::TodoId>()
+            .map_err(|detail| TodoServiceError::Failed {
+                detail: detail.into(),
+            })
+    };
+    let id = parse_id(&id)?;
     let failed = |e: foundation_errstacks::ErrorTrace<foundation_connectrpc::ConnectError>| {
         if e.current_context().code() == foundation_connectrpc::Code::NotFound {
             TodoServiceError::NotFound
@@ -155,7 +163,7 @@ pub async fn get_todo(
         .get_todo(
             RpcCtx::client(Ctx::host()),
             Request::new(crate::todo_rpc::GetTodoRequest {
-                id,
+                id: id.to_string(),
                 ..Default::default()
             }),
         )
@@ -163,7 +171,7 @@ pub async fn get_todo(
         .map_err(failed)?
         .msg;
     Ok(TodoResult {
-        id: reply.id,
+        id: parse_id(&reply.id)?.to_string(),
         title: reply.title,
     })
 }

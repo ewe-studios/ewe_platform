@@ -1,4 +1,6 @@
 //! Shared todo views and actions for server and on-device stores.
+mod id;
+pub use id::TodoId;
 pub(crate) mod outbox;
 pub use outbox::{install_pending_storage, Pending, PendingChange, PendingStorage};
 
@@ -27,9 +29,7 @@ pub enum Filter {
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Todo {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub creation_id: Option<String>,
-    pub id: u64,
+    pub id: TodoId,
     pub text: String,
     pub done: bool,
 }
@@ -38,7 +38,7 @@ pub struct TodoApp {
     pub items: Vec<Todo>,
     pub filter: Filter,
     pub add_dialog: bool,
-    pub delete_target: Option<u64>,
+    pub delete_target: Option<TodoId>,
     #[serde(default)]
     pub draft: String,
     #[serde(default)]
@@ -50,7 +50,6 @@ pub struct TodoStore(Mutex<StoreState>);
 
 #[derive(Clone, Default)]
 struct StoreState {
-    last_id: u64,
     items: Vec<Todo>,
     filter: Filter,
     position: u64,
@@ -59,12 +58,12 @@ struct StoreState {
     search_rows: Option<Vec<Todo>>,
     correcting: Option<String>,
     add_dialog: bool,
-    delete_target: Option<u64>,
+    delete_target: Option<TodoId>,
     draft: String,
     deferred: std::collections::BTreeMap<u64, RecordChange>,
-    removed: std::collections::BTreeMap<u64, u64>,
-    retired_creations: std::collections::BTreeSet<String>,
-    creations: std::collections::BTreeMap<String, CreationReceipt>,
+    removed: std::collections::BTreeMap<TodoId, u64>,
+    retired_ids: std::collections::BTreeSet<TodoId>,
+    creations: std::collections::BTreeMap<TodoId, CreationReceipt>,
 }
 
 #[derive(Clone)]
@@ -76,36 +75,8 @@ struct CreationReceipt {
 
 #[derive(Serialize, Deserialize)]
 struct AddInput {
-    creation_id: Option<String>,
+    id: TodoId,
     title: String,
-}
-
-fn decode_add(
-    input: foundation_ui_runtime::action::RawInput,
-) -> Result<AddInput, ErrorTrace<ActionError>> {
-    use foundation_ui_runtime::action::RawInput;
-    let invalid = || {
-        ErrorTrace::new(ActionError::new(
-            ErrorCode::InvalidInput,
-            "A structured addition requires a version 4 UUID",
-        ))
-    };
-    match input {
-        RawInput::Json(_) => {
-            let mut value: AddInput = input.decode()?;
-            let key = value.creation_id.as_deref().ok_or_else(invalid)?;
-            let id = foundation_compact::uuid::Uuid::try_parse(key).map_err(|_| invalid())?;
-            if id.get_version_num() != 4 {
-                return Err(invalid());
-            }
-            value.creation_id = Some(id.to_string());
-            Ok(value)
-        }
-        text => Ok(AddInput {
-            creation_id: None,
-            title: text.decode()?,
-        }),
-    }
 }
 
 impl StoreState {
@@ -126,7 +97,20 @@ impl TodoStore {
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
     pub(crate) fn with_items(items: Vec<Todo>) -> Self {
         Self(Mutex::new(StoreState {
-            last_id: items.iter().map(|item| item.id).max().unwrap_or(0),
+            creations: items
+                .iter()
+                .cloned()
+                .map(|item| {
+                    (
+                        item.id,
+                        CreationReceipt {
+                            submitted_title: item.text.clone(),
+                            item,
+                            position: 0,
+                        },
+                    )
+                })
+                .collect(),
             items,
             ..Default::default()
         }))
@@ -137,7 +121,7 @@ impl TodoStore {
     pub(crate) fn published_snapshot(
         &self,
         feed: &foundation_wasm_ui::server::LiveChannel,
-    ) -> (TodoApp, u64, Vec<String>) {
+    ) -> (TodoApp, u64, Vec<TodoId>) {
         let state = self
             .0
             .lock()
@@ -145,7 +129,7 @@ impl TodoStore {
         (
             state.snapshot(),
             feed.last_sequence(),
-            state.retired_creations.iter().cloned().collect(),
+            state.retired_ids.iter().cloned().collect(),
         )
     }
 
@@ -242,15 +226,15 @@ fn pending_row(title: &str, status: &str, pending: &Pending) -> Html {
     let validation = pending.validation.as_deref();
     let retry = if validation.is_some() {
         match &pending.change {
-            PendingChange::Add { creation_id, .. } => Some(
-                html! {<Button value={format!("correct-add:{creation_id}")} on:tap={open_add_dialog}>Edit title</Button>},
+            PendingChange::Add { id, .. } => Some(
+                html! {<Button value={format!("correct-add:{id}")} on:tap={open_add_dialog}>Edit title</Button>},
             ),
             PendingChange::Delete { .. } => None,
         }
     } else if pending.retry {
         Some(match &pending.change {
-            PendingChange::Add { creation_id, .. } => {
-                html! {<Button value={format!("retry-add:{creation_id}")} on:tap={add_todo}>Try again</Button>}
+            PendingChange::Add { id, .. } => {
+                html! {<Button value={format!("retry-add:{id}")} on:tap={add_todo}>Try again</Button>}
             }
             PendingChange::Delete { id } => {
                 html! {<Button value={id.to_string()} on:tap={confirm_delete}>Try again</Button>}
@@ -345,7 +329,7 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
         html! {
             <ConfirmationDialog>
                 <SheetTitle>Delete this todo?</SheetTitle>
-                <DestructiveButton value={id} on:tap={confirm_delete}>Confirm</DestructiveButton>
+                <DestructiveButton value={id.to_string()} on:tap={confirm_delete}>Confirm</DestructiveButton>
                 {cancel.clone()}
             </ConfirmationDialog>
         }
@@ -391,10 +375,7 @@ async fn open_add_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult 
 }
 #[action(host)]
 async fn open_delete_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    let id: u64 = event
-        .input_value
-        .parse()
-        .map_err(|_| error("Invalid todo identifier"))?;
+    let id = todo_id(&event.input_value)?;
     let store = todo_store(ctx)?;
     let mut cache = store
         .0
@@ -488,7 +469,7 @@ fn todo_store(ctx: &Context) -> Result<Arc<TodoStore>, ErrorTrace<ActionError>> 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) enum RecordChange {
     Upsert(Todo),
-    Remove(u64),
+    Remove(TodoId),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -497,20 +478,17 @@ pub(crate) enum TodoDelivery {
         position: u64,
         items: Vec<Todo>,
         #[serde(default)]
-        retired_creations: Vec<String>,
+        retired_ids: Vec<TodoId>,
     },
     Retired {
-        creation_id: String,
+        id: TodoId,
     },
     Committed {
         position: u64,
         change: RecordChange,
     },
-    Added {
-        submitted_title: String,
-    },
     Deleted {
-        id: u64,
+        id: TodoId,
     },
 }
 
@@ -527,7 +505,6 @@ impl StoreState {
     fn apply_change(&mut self, change: &RecordChange) {
         match change {
             RecordChange::Upsert(item) => {
-                self.last_id = self.last_id.max(item.id);
                 if let Some(row) = self.items.iter_mut().find(|row| row.id == item.id) {
                     row.clone_from(item);
                 } else {
@@ -536,10 +513,9 @@ impl StoreState {
             }
             RecordChange::Remove(id) => {
                 if let Some(index) = self.items.iter().position(|row| row.id == *id) {
-                    if let Some(creation_id) = self.items.remove(index).creation_id {
-                        self.retired_creations.insert(creation_id);
-                    }
+                    self.items.remove(index);
                 }
+                self.retired_ids.insert(*id);
             }
         }
     }
@@ -547,15 +523,13 @@ impl StoreState {
     fn ingest(&mut self, delivery: TodoDelivery) -> bool {
         let before = self.position;
         let snapshot = match delivery {
-            TodoDelivery::Retired { creation_id } => {
-                return self.retired_creations.insert(creation_id)
-            }
+            TodoDelivery::Retired { id } => return self.retired_ids.insert(id),
             TodoDelivery::Snapshot {
                 position,
                 items,
-                retired_creations,
+                retired_ids,
             } if position >= self.position => {
-                self.retired_creations.extend(retired_creations);
+                self.retired_ids.extend(retired_ids);
                 self.items = items;
                 self.position = position;
                 self.deferred.retain(|seq, _| *seq > position);
@@ -597,14 +571,6 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Vec<u8>>) -> 
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         match &delivery {
-            TodoDelivery::Added { submitted_title } => {
-                if state.add_dialog && state.draft.trim() == submitted_title {
-                    state.add_dialog = false;
-                    state.draft.clear();
-                    dialog(ctx, &state.snapshot())?;
-                }
-                return Ok(());
-            }
             TodoDelivery::Deleted { id } => {
                 if state.delete_target == Some(*id) {
                     state.delete_target = None;
@@ -700,11 +666,7 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    if let Some((creation_id, receipt)) = input
-        .creation_id
-        .as_ref()
-        .and_then(|id| state.creations.get_key_value(id))
-    {
+    if let Some(receipt) = state.creations.get(&input.id) {
         if receipt.submitted_title != input.title {
             return Err(ErrorTrace::new(ActionError::new(
                 ErrorCode::InvalidInput,
@@ -713,46 +675,29 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
         }
         let (position, change) = match state.removed.get(&receipt.item.id) {
             Some(position) => {
-                TodoDelivery::Retired {
-                    creation_id: creation_id.clone(),
-                }
-                .send(ctx)?;
+                TodoDelivery::Retired { id: input.id }.send(ctx)?;
                 (*position, RecordChange::Remove(receipt.item.id))
             }
             None => (receipt.position, RecordChange::Upsert(receipt.item.clone())),
         };
         return TodoDelivery::Committed { position, change }.send(ctx);
     }
-    let id = state
-        .last_id
-        .checked_add(1)
-        .ok_or_else(|| error("No more todo identifiers"))?;
     let item = Todo {
-        id,
-        creation_id: input.creation_id.clone(),
+        id: input.id,
         text: title.to_owned(),
         done: false,
     };
     let delivery = commit(ctx, &mut state, RecordChange::Upsert(item.clone()))?;
-    let legacy = input.creation_id.is_none();
-    if let Some(key) = input.creation_id {
-        let position = state.position;
-        state.creations.insert(
-            key,
-            CreationReceipt {
-                item,
-                position,
-                submitted_title: input.title.clone(),
-            },
-        );
-    }
+    let position = state.position;
+    state.creations.insert(
+        input.id,
+        CreationReceipt {
+            item,
+            position,
+            submitted_title: input.title,
+        },
+    );
     delivery.send(ctx)?;
-    if legacy {
-        TodoDelivery::Added {
-            submitted_title: title.to_owned(),
-        }
-        .send(ctx)?;
-    }
     ctx.receiver().data_in_view(b"\xabhost:notify".to_vec());
     Ok(())
 }
@@ -784,8 +729,10 @@ async fn confirm_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
     TodoDelivery::Deleted { id }.send(ctx)
 }
 
-fn todo_id(input: &str) -> Result<u64, ErrorTrace<ActionError>> {
-    input.parse().map_err(|_| error("Invalid todo identifier"))
+fn todo_id(input: &str) -> Result<TodoId, ErrorTrace<ActionError>> {
+    input
+        .parse()
+        .map_err(|reason| ErrorTrace::new(ActionError::new(ErrorCode::InvalidInput, reason)))
 }
 
 #[action(host, mobile)]
@@ -816,7 +763,7 @@ fn action_registry(
     registry.register_for(owner, outbox::uncertain_todo_request)?;
     registry.register_for(owner, notify)?;
     registry.register_for(owner, refresh_count)?;
-    registry.register_for_with_input(owner, add_todo, decode_add)?;
+    registry.register_for(owner, add_todo)?;
     registry.register_for(owner, toggle_todo)?;
     registry.register_for(owner, confirm_delete)?;
     Ok(registry)

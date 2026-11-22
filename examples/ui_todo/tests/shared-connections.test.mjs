@@ -83,20 +83,18 @@ test("shared socket actions and per-subscription replay on SSE and streamed HTTP
   screens[0].server.onReply = result.resolve;
   screens[1].server.onReply = () => { wrongScreen++; };
   const field = {value:"Socket todo",closest:()=>null,getAttribute:name=>name==="primal-id"?"44":null};
-  await screens[0].actions.trigger("server:add_todo",field,{type:"submit"});
+  await screens[0].actions.triggerStructured("server:add_todo",field,{id:crypto.randomUUID(), title:field.value},{type:"submit"});
   const {body,control} = packet(await result.promise);
   assert.equal(body.ack(), 1n);
   assert.equal(control?.error(), undefined);
   const update = packet(await latest.promise).body.unpack();
-  const placements = update.messages.map(message => message.operation?.ui);
-  const texts = placements.flatMap(place => place?.operations ?? [])
-    .filter(operation => operation.uiType === w.UiOperation.SetText)
-    .map(operation => operation.ui.text);
-  assert.ok(texts.includes("Socket todo"));
-  assert.ok(texts.includes("1 open todo"));
+  const received = update.messages.find(message => message.data?.msgpack)?.data.msgpack;
+  const confirmed = body.unpack().messages.find(message => message.data?.msgpack)?.data.msgpack;
+  assert.ok(received?.bytes.length);
+  assert.deepEqual(received.bytes, confirmed.bytes);
   const nextReply = Promise.withResolvers();
   screens[0].server.onReply = nextReply.resolve;
-  await screens[0].actions.trigger("server:add_todo", {...field,value:"Second task"}, {type:"submit"});
+  await screens[0].actions.triggerStructured("server:add_todo", field, {id:crypto.randomUUID(), title:"Second task"}, {type:"submit"});
   await Promise.all([second.promise, nextReply.promise]);
   await listener.send(resume(sessions[0], 76n, 0n));
   await listener.send(resume(sessions[1], 78n, 1n));

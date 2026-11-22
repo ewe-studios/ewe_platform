@@ -84,14 +84,21 @@ class ReplayCheck : Instrumentation() {
                     System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
                     val transport = ewe.ui.android.OkHttpRpcClient(OkHttpClient())
                     io.github.ewe_studios.ewe.core.NativeHttpClient(transport).use { client ->
-                        val todo = io.github.ewe_studios.ewe.todo.getTodo(client, base, 42uL)
-                        check(todo.id == 42uL && todo.title == "Buy milk")
+                        val id = "00000000-0000-4000-8000-000000000042"
+                        val todo = io.github.ewe_studios.ewe.todo.getTodo(client, base, id)
+                        check(todo.id == id && todo.title == "Buy milk")
                         try {
-                            io.github.ewe_studios.ewe.todo.getTodo(client, base, 999uL)
+                            io.github.ewe_studios.ewe.todo.getTodo(client, base, "00000000-0000-4000-8000-000000000999")
                             error("Expected NotFound")
                         } catch (_: io.github.ewe_studios.ewe.todo.TodoServiceException.NotFound) { }
+                        try {
+                            io.github.ewe_studios.ewe.todo.getTodo(client, base, "42")
+                            error("Expected the client to reject a numeric identifier")
+                        } catch (error: io.github.ewe_studios.ewe.todo.TodoServiceException.Failed) {
+                            check(error.detail.contains("UUID"))
+                        }
                     }
-                    results.putString("stream", "GetTodo returned 42, Buy milk, and NotFound.")
+                    results.putString("stream", "GetTodo returned the requested UUID, Buy milk, and NotFound.")
                     return@runBlocking
                 }
                 withContext(Dispatchers.Main) {
