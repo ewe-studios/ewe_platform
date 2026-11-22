@@ -1,7 +1,7 @@
 //! Key material for the certificate authority (CA) and its certificates.
 
-use std::sync::PoisonError;
-
+// The no_std poison guard needs a closure; its function item does not unify.
+#![allow(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 use foundation_compact::rng::Rng;
 use foundation_context::Ctx;
 use zeroize::Zeroizing;

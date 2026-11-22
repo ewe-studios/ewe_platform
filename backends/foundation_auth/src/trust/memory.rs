@@ -1,7 +1,8 @@
 //! The in-memory trust store.
 
+// The no_std poison guard needs a closure; its function item does not unify.
+#![allow(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 use std::collections::HashMap;
-use std::sync::PoisonError;
 
 use foundation_context::sync::{Mutex, RwLock};
 use futures_util::stream;

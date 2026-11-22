@@ -1,7 +1,9 @@
 //! The store that holds the certificate authority (CA) certificate and key.
 
+// The no_std poison guard needs a closure; its function item does not unify.
+#![allow(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::{Arc, Mutex};
 
 use foundation_context::Ctx;
 use zeroize::Zeroizing;

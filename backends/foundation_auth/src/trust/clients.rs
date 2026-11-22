@@ -1,7 +1,9 @@
 //! The trust store plus an in-memory index.
 
+// The no_std poison guard needs a closure; its function item does not unify.
+#![allow(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 use std::collections::HashMap;
-use std::sync::{Arc, PoisonError};
+use std::sync::Arc;
 
 use foundation_compact::Instant;
 use foundation_context::sync::{Mutex, RwLock};
