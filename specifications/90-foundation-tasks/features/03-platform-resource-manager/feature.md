@@ -93,3 +93,6 @@ Stage the Todo module under the web target as `public/module.wasm`. Track the ge
 Use the same staged bytes for development file serving and release embedding.
 The runtime asset handler resolves `/module.wasm` without reading the manifest or searching Cargo directories.
 See [Todo packaging checks](../../../69-foundation-ui-v2/features/27-single-todo-package/feature.md#proposed-revision-build-the-deployable-todo-directory).
+
+Expose one public packaging hook for application build scripts. It composes asset producers and the stager for the active target.
+Keep application-specific service generation explicit. Providers own Cargo input tracking and conditional writes.

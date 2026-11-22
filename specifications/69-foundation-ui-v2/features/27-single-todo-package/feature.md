@@ -199,7 +199,12 @@ flowchart LR
 
 The build produces a complete directory before the server starts.
 
-- Follow the small build script in `examples/platform_demo`. Put staging logic in a reusable synchronous helper.
+- Keep the explicit service generation call. Its arguments identify the application's schema and generated service.
+- Add one public framework packaging call for the remaining asset work, following `examples/platform_demo/build.rs`.
+- The packaging helper selects the target, invokes registered asset producers, tracks inputs, and stages their outputs.
+- Keep runtime source paths, Cargo output lookup, rebuild directives, and file comparison logic inside the owning providers.
+- Declare the version file as a generated resource. Its provider owns the write.
+- Verify that the example uses public build dependencies and has no cross-crate source inclusion.
 - Build the browser target and generated client before staging. Keep nested Cargo builds out of the server build script.
 - Track all staging inputs. Support custom Cargo target directories, target triples, profiles, and repeated builds.
 - Stage the page, application script, theme, runtime files, both bundles, browser module, and generated client dependencies.
