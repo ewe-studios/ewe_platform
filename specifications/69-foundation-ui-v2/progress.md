@@ -5,21 +5,39 @@
 Use `69-foundation-ui-v2` for Specification 69. Commit `b0215cfcf` contains the todo sync repair.
 Commit `1641f0aa0` records the separate Specification 79 edit.
 
-1. Test Android as the source of a todo change. Connect Chrome and an iPhone to the same test server.
-2. Add, complete, reopen, and delete a todo on Android. Check the row on both peers after each action.
-3. Record the results in issues #693 and #698. The earlier run covers the other four directions and replay on all three clients.
-4. Review the graphics worker fix on `fix/696-gpu-worker-shutdown` at `35939b13e`. Native Linux Arm verification remains open.
-5. Review Specification 90 on `90-foundation-tasks` at `622c8b71b`. Its process tests still reference Tokio.
-6. Verify the Valtron replacement before integration. The owner requires Valtron for background work.
-7. Merge the reviewed branches into `69-foundation-ui-v2`. Then fetch and merge the latest master.
+### Relaunch the three agents when implementation resumes
 
+The session owner starts three agents in parallel. Give each agent one brief below.
+Use the external repository at `/Volumes/Outside/Dev/ewe_platform`.
+Fetch the remote branches before creating fresh worktrees outside the copied repository.
+Create each worktree on a new local branch from its specified remote branch.
+Check that `git rev-parse --path-format=absolute --git-common-dir` points to the external drive.
+The copied worktrees still contain absolute Git links to the internal drive.
+
+**Specification 90 — task runner.** Start from `origin/90-foundation-tasks`. The last agent checkpoint is `622c8b71b`.
+Read `specifications/90-foundation-tasks/requirements.md` and its progress file on that branch.
+Replace the remaining Tokio calls in `backends/foundation_tasks/tests/process.rs`.
+Use Valtron for background work. Check concurrent pipe reads, private input, bounded output, cancellation, and child cleanup.
+Run `cargo test -p foundation_tasks --profile uat` first.
+Then test the native task feature, both platform executables, and installation through Cargo.
+Record which checks run on macOS, Linux, and Windows. The earlier passing runs predate the runtime change.
+
+**Specification 69 — todo synchronization.** Start from `origin/69-foundation-ui-v2`. The sync repair is in `b0215cfcf`.
+Use one isolated server for Chrome, iPhone, and Android. Use Android to add, complete, reopen, and delete a todo.
+Verify the actual row on both peers after each action. Check that neither peer needs manual reconnection.
+The earlier run covers the other four directions and automatic replay on all three clients.
+Record the remaining results in issues #693 and #698.
+
+**Specification 69 — graphics worker shutdown.** Start from `origin/fix/696-gpu-worker-shutdown`. The last agent checkpoint is `35939b13e`.
+Read issue #696 and the branch progress notes. Confirm that shutdown waits for the worker to release its graphics resources.
+The fix passes three Linux AMD64 runs at default concurrency. Three hardware tests remain outside those results.
+Run the graphics tests on native 64-bit Arm Linux. Finish the pending Clippy and Linux crate checks.
+Report test counts, skipped hardware tests, and any unavailable platforms.
+
+**Integration.** Each agent reports its branch, commit, test results, and open issues.
+The session owner reviews the three reports and integrates the verified changes into `69-foundation-ui-v2`.
+Then fetch and merge the latest master. Run the affected tests again.
 Branch `checkpoint/69-master-preview` at `dc3776fa` contains an unverified trial merge. It predates the sync and task checkpoints.
-All three work agents stopped after pushing their branches.
-
-The external project root is `/Volumes/Outside/Dev/ewe_platform`.
-The copy preserves absolute Git links in existing worktrees. These links still point to the internal drive.
-Create a separate worktree from the external project root before editing a feature branch there.
-
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
