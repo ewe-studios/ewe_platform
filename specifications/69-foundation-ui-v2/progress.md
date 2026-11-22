@@ -1138,3 +1138,5 @@ Three command-line tests pass on macOS with the `uat` profile.
 A separate loopback server restored eight converted records from a private copy of the live backup.
 The GetTodo procedure returned each saved title and its new identifier.
 All eight completion states and record positions matched the source.
+
+Feature 32 assigns UUID generation with injected entropy to the shared UUID module. Implementation belongs to the next owner.

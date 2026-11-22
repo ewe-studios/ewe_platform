@@ -312,3 +312,11 @@ Use ordinary Rust error handling for immediate failures. Socket acceptance leave
 Route application actions through the manager. Never interpret data bytes as instructions to call a registered function directly.
 
 Implementation handoff: the next owner implements routed child actions and transport outcomes. The current change records requirements only.
+
+### Shared identifier generation
+
+The shared UUID module accepts an injected entropy source and returns a version four UUID or the source error.
+The module owns byte allocation and UUID construction. Todo supplies the host entropy source directly.
+Keep the entropy interface below the context crate to preserve the dependency direction. Reuse that interface in the host context.
+Keep the existing platform generator. Test injected generation with a seeded source and a failing source.
+Preserve the stored identifier text and the wire representation across this change.
