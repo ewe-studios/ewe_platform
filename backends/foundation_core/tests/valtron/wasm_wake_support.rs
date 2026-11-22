@@ -75,7 +75,7 @@ pub const DEADLINE_LATE_WINDOW: Duration = Duration::from_millis(250);
 /// is only exact to a few milliseconds — it never fires early, and it fires late
 /// when the event loop is busy. A timeout over a ticking task waits on one host
 /// timer per tick, so every tick's lateness adds up. On an emulated amd64 CI
-/// container, the 200 ms timeout below ended at about 263 ms.
+/// container, a 500 ms timeout can end hundreds of milliseconds late.
 ///
 /// This widens only the wall-clock ceiling. The tight guard stays the poll bound
 /// in [`timed_end`]: a task that ignores its timer ends early (the lower bound
@@ -88,15 +88,16 @@ pub const HOST_TIMER_LATE_ALLOWANCE: Duration = Duration::from_millis(500);
 /// A park costs about three calls: one when the executor checks that the signal
 /// is not already ready, one for the first look after it registered the waker,
 /// and one after the wake. The bound leaves room for one more look. A timed
-/// re-check at the 1 ms readiness quantum over the 200 ms waits below makes about
-/// two hundred, so it fails the bound.
+/// re-check at the 1 ms readiness quantum over the 500 ms waits below makes hundreds
+/// of calls, so it fails the bound.
 pub const MAX_IS_READY_CALLS: usize = 6;
 
 /// The delay of the host event that makes a readiness ready.
 ///
-/// The wait is long enough that a 10 ms host timer still lands before the
-/// deadline on a loaded host, which is what the deadline-only park asserts.
-const EVENT_DELAY_MS: f64 = 200.0;
+/// The wait must be long enough that parking and the 10 ms probe timer still
+/// fit before the deadline on a loaded host, which is what the deadline-only
+/// park asserts.
+const EVENT_DELAY_MS: f64 = 500.0;
 
 /// A time stamp set once.
 #[derive(Clone, Default)]
@@ -368,7 +369,7 @@ fn park_once(seed: u64, readiness: EventReadinessPtr) -> (Arc<AtomicUsize>, Stam
     (polls, parked_at, resumed_at)
 }
 
-/// A task parked on a [`ResumeSignal`] that a host timer sets 200 ms later runs
+/// A task parked on a [`ResumeSignal`] that a host timer sets 500 ms later runs
 /// again on time, and was not polled meanwhile.
 ///
 /// WHY: `ResumeSignal::set` is the plain "flag plus wake" construct. On wasm its
@@ -596,11 +597,15 @@ pub fn deadline_only_park(after: After) -> Scenario {
     let deadline = Instant::now() + Duration::from_millis(EVENT_DELAY_MS as u64);
     let (counting, counts) =
         CountingReadiness::new(Arc::new(DeadlineOnly { deadline }) as EventReadinessPtr);
-    let (_polls, parked_at, resumed_at) = park_once(104, Arc::new(counting));
 
+    // Schedule the probe timer before the park. Parking itself takes time on a
+    // loaded host; starting the timer after it can leave too little of the
+    // deadline window for the timer to win the race.
     let turned_at = Stamp::default();
     let turned = turned_at.clone();
     after(10.0, Box::new(move || turned.mark()));
+
+    let (_polls, parked_at, resumed_at) = park_once(104, Arc::new(counting));
 
     let done = resumed_at.clone();
     Scenario {
@@ -796,7 +801,7 @@ pub fn sleep_task(_after: After) -> Scenario {
     )
 }
 
-/// A `TimeoutTask` over a task that polls every 10 ms ends once its 200 ms
+/// A `TimeoutTask` over a task that polls every 10 ms ends once its 500 ms
 /// timeout passed.
 ///
 /// WHY: it read `std::time::Instant::now()` on every poll, which panics on wasm32.
@@ -812,7 +817,7 @@ pub fn timeout_task(_after: After) -> Scenario {
     }
     let timeout = Duration::from_millis(EVENT_DELAY_MS as u64);
     // The ticker polls once per 10 ms tick, plus one poll after the timeout.
-    // A 1 ms re-check over a 200 ms wait would poll about two hundred times.
+    // A 1 ms re-check over a 500 ms wait would poll hundreds of times.
     let tick = Duration::from_millis(10);
     let max_polls = usize::try_from(timeout.as_millis() / tick.as_millis()).unwrap_or(0) + 8;
     // The task notices the timeout on the first poll after it, up to one tick late.
