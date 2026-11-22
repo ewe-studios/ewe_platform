@@ -1,21 +1,22 @@
-//! WASM Fetch transport capabilities stub (Decision 11 §Transport).
+//! WASM Fetch transport capabilities (Decision 11 §Transport).
 //!
 //! WHY: Platform code needs a compile-time constant for WASM Fetch capability
-//! checking (`request_streaming: false`, `full_duplex: false`, etc.).
-//! The full `Transport` impl wrapping `WasmHttpExchangeTask` lands in F24
-//! (client-core); this provides the capabilities constant now.
+//! checking. `H1Transport` is the transport on wasm too; this constant states
+//! what the underlying fetch client can do.
 //!
 //! WHAT: `WASM_FETCH_CAPABILITIES` — a `TransportCapabilities` constant usable
 //! by the router and client dispatch.
 
 use super::capabilities::TransportCapabilities;
 
-/// WASM Fetch transport capabilities — the minimum set.
+/// WASM Fetch transport capabilities.
 ///
-/// Fetch has no chunked upload, no full duplex, no HTTP/2 trailers, no
-/// multiplexing. Valid for request types: unary, server-streaming.
+/// Fetch streams a request body: `SendSafeBody::Stream` becomes a JS
+/// `ReadableStream`. Fetch has no full duplex, no HTTP/2 trailers and no
+/// multiplexing. Valid for request types: unary, client-streaming and
+/// server-streaming.
 pub const WASM_FETCH_CAPABILITIES: TransportCapabilities = TransportCapabilities {
-    request_streaming: false,
+    request_streaming: true,
     full_duplex: false,
     h2_trailers: false,
     http_versions: &[],

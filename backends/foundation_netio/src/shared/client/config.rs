@@ -48,6 +48,18 @@ pub struct ClientConfig {
     pub proxy: Option<proxy::ProxyConfig>,
     pub proxy_from_env: bool,
     pub max_body_size: Option<u64>,
+    /// How many body chunks a wasm response reader may hold ahead of the
+    /// consumer.
+    ///
+    /// WHY: the wasm fetch client reads a JS `ReadableStream` in a spawned
+    /// task. Without a bound a slow consumer lets the queue grow without
+    /// limit. A browser chunk is 16 KiB to 64 KiB, so the default of 16 holds
+    /// 256 KiB to 1 MiB. Go `net/http` reads through a 4 KiB buffer; nginx
+    /// defaults to `proxy_buffers 8 4k`.
+    ///
+    /// Used only by the wasm client; the native client reads through its
+    /// socket buffer and ignores this field.
+    pub body_queue_chunks: usize,
     pub full_body_threshold: u64,
     pub batch_size: usize,
     pub max_retries: usize,
@@ -198,6 +210,13 @@ impl ClientConfig {
         self
     }
 
+    /// Set the wasm body read-ahead bound (see [`ClientConfig::body_queue_chunks`]).
+    #[must_use]
+    pub fn with_body_queue_chunks(mut self, chunks: usize) -> Self {
+        self.body_queue_chunks = chunks;
+        self
+    }
+
     #[must_use]
     pub fn with_headers_to_pass_on_redirect(mut self, headers: Option<Vec<SimpleHeader>>) -> Self {
         self.headers_to_pass_on_redirect = headers;
@@ -217,8 +236,7 @@ impl ClientConfig {
     }
 
     #[must_use]
-    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
-        self.full_body_threshold = threshold;
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {        self.full_body_threshold = threshold;
         self
     }
 
@@ -347,6 +365,7 @@ impl Default for ClientConfig {
             proxy: None,
             proxy_from_env: false,
             max_body_size: None,
+            body_queue_chunks: 16,
             full_body_threshold: 512 * 1024,
             batch_size: 8192,
             max_retries: 5,
