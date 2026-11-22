@@ -1125,3 +1125,6 @@ Pending additions, confirmed records, deletion receipts, and the typed data serv
 The server rejects missing, numeric, and malformed identifiers. A delayed Add after deletion leaves the record absent.
 Four action and startup tests and three native tests pass. Both socket replay and concurrent snapshot tests pass.
 The Android data procedure returns the requested UUID and rejects a numeric string. The three-host run is in progress.
+
+Feature 32 now documents routed child actions and direct transport errors. The next owner handles implementation.
+Commit `2fc68c85a` already removed the separate notification marker.

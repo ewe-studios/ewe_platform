@@ -310,3 +310,5 @@ Proposed framework contract:
 Verify immediate replies, socket acceptance followed by a delayed reply, and typed failures through each supported transport.
 Use ordinary Rust error handling for immediate failures. Socket acceptance leaves the local change pending until confirmation.
 Route application actions through the manager. Never interpret data bytes as instructions to call a registered function directly.
+
+Implementation handoff: the next owner implements routed child actions and transport outcomes. The current change records requirements only.

@@ -381,6 +381,15 @@ path.
 14. Write or update the README for each feature or package. Show concrete usage and provide runnable checks.
     Include fixture and generation steps when they apply.
 
+### Actions that submit other actions
+
+A host action can submit a child action through the framework action manager.
+The manager checks the declared owner and caller scope for every submission.
+The caller receives a Rust `Result`. A known transport error identifies the cause and includes available request and endpoint details.
+A successful socket write reports transport acceptance. The application confirms the change when the server reports its outcome.
+Application data cannot select arbitrary handlers. A host registers the action that receives its view data.
+See [Feature 32](features/32-portable-view-targets/feature.md#action-composition-and-delivery-outcomes) for the proposed interface and acceptance checks.
+
 ## Native design standards
 
 Use the shared [Android Material Design guide](../../.agents/skills/android-material-design/SKILL.md) for Compose controls.
