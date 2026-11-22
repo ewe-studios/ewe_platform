@@ -207,13 +207,25 @@ Three issues came out of the review:
 Issue #557 and issue #558 got a correction comment: both said spec 85 adds a `FetchTransport`.
 It does not.
 
+### Follow-up fixes (2026-11-22)
+
+Commit `4098f8259` closes the six open items:
+
+1. #561: the JS stream pull is one future that awaits each `Pending` item. A
+   `ReadableStream` does not pull again when a pull promise resolves without data, so the
+   pull owns the wait loop. A new wasm test `js_stream_park` proves it; the core, netio and
+   connectrpc wasm suites pass.
+2. #485 and #466: the full-backlog dial helper tries 8, 64 and 256 fillers and returns
+   `None` when the host cannot make a hanging dial. The test prints a skip line.
+3. #564: the two Node wasm tasks are gone from `mise.toml`.
+4. #709: the three unused workspace dependencies are gone.
+5. #710: the Durable Object stub client test runs under `wrangler dev --local` and passes
+   1 of 1. The D1/R2/KV suite still passes 7 of 7.
+
 ## Next steps
 
-1. Add the T5 Durable Object fetch test under `wrangler dev --local` (#710). The feature
-   compiles and CI checks it, but no test sends a request through a stub.
-2. Merge the branch into master.
-3. Keep #485, #466, #561, #564, #709 and #710 open. #590, #716 and #717 are fixed on this
-   branch.
+1. Merge the follow-up branch into master.
+2. No open issue remains for this specification.
 
 ## Open questions
 

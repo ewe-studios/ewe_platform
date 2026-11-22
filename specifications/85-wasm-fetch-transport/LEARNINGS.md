@@ -335,4 +335,17 @@ The container also writes into the mounted worktree: `link-submodules.nu` regist
 submodule URLs in `.git/config` and creates `tools/emsdk` as a symlink. The git directory
 must be mounted read-write, and the symlink must be removed after a run.
 
+## A pull promise that resolves without data does not pull again (2026-11-22)
+
+A `ReadableStream` calls `pull` again only when a new read arrives, or when the queue drops
+below its high-water mark. A pull that returns a promise and resolves it with no enqueued
+chunk does not cause another pull. The pending reader then waits forever. This cost two
+hours to a hung Deno process.
+
+So the pull owns the wait loop: on `Pending`, it awaits the readiness (or a `setTimeout(0)`
+when the readiness cannot wake), then asks the source for the next item **inside the same
+pull**. Each wait is an awaited promise, so the event loop turns. The test uses a host timer
+and proves that the timer ran and the next pull delivered the chunk.
+
+
 
