@@ -1,0 +1,15 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "plain-http",
+      "version": "1.0.0",
+      "source": {
+        "kind": "url",
+        "url": "http://example.com/releases/plain-http-1.0.0",
+        "sha256": "8ff7e4ee89ed7abc198aad8d8b0a7486190134051c130de4ac28b10978e5e1e3"
+      },
+      "deploy": { "kind": "none" }
+    }
+  ]
+}

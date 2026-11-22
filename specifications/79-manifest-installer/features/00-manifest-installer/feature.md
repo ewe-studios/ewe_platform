@@ -163,6 +163,32 @@ meaning, so it must not reject a change that only the registrar understands. Thi
 untyped work-around for a missing generated type (`CLAUDE.md` rule 5): no generated type
 exists for these blocks, and the installer never acts on them.
 
+#### Fixture handshake with spec 78
+
+The canonical fixtures are in
+[spec 78 `fixtures/`](../../../78-manifest-contract/fixtures/). This crate copies the files
+into `tests/fixtures/manifest/`, and `tests/manifest_tests.rs` consumes them. This section is a
+cross-reference only. T1 adds the parser and the tests.
+
+| Fixture | What the installer test proves |
+|---|---|
+| `valid/complete.json` | Every field parses; `Entry.proxy` and `Entry.probes` equal the input values. |
+| `valid/unknown-field.json` | An unknown field is ignored. |
+| `valid/empty.json` | An empty `entries` array is accepted and runs zero entries. |
+| `valid/deploy-systemd.json` | A `systemd` deploy target parses. |
+| `valid/deploy-docker.json` | A `docker` deploy target parses. |
+| `valid/deploy-none.json` | A `none` deploy target parses. |
+| `valid/marks.json` | The installer writes `EWE_ENTRY=agent-rpc` and `EWE_VERSION=0.4.0`. |
+| `invalid/v3-version-2.json` | `UnsupportedManifestVersion` at `/manifest_version`. |
+| `invalid/v5-duplicate-name.json` | A validation error at `/entries/1/name`. |
+| `invalid/v6-unknown-kind.json` | `UnknownKind` at `/entries/0/source/kind`. |
+| `invalid/v7-http-url.json` | A validation error at `/entries/0/source/url`. |
+| `invalid/v7-bad-sha256.json` | A validation error at `/entries/0/source/sha256`. |
+
+A change to a canonical file changes the copy in the same change.
+`scripts/ci/manifest_contract.py --check-copies` compares each copy with the canonical file by
+SHA-256 and fails on a difference.
+
 ### 4.2 Sources: `SourceSpec` and `SourceAdapter`
 
 A `SourceSpec` says where one entry's software comes from. Its `kind` field picks the variant.

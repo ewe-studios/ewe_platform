@@ -226,6 +226,30 @@ pub enum ProbeCheck {
 Example: the `agent-rpc` entry in [spec 78 section 5.1](../../../78-manifest-contract/requirements.md#51-complete-example) has a `proxy` block for the
 `agents` service on port 7443 with protocol `grpc`, and three probes.
 
+#### Fixture handshake with spec 78
+
+The canonical fixtures are in
+[spec 78 `fixtures/`](../../../78-manifest-contract/fixtures/). This crate copies the files
+into `tests/fixtures/manifest/`, and `tests/manifest_tests.rs` consumes them. This section is a
+cross-reference only. T2 adds the parser and the tests.
+
+| Fixture | What the sidecar test proves |
+|---|---|
+| `valid/complete.json` | `proxy` and `probes` parse; an entry without `proxy` is not registered. |
+| `valid/marks.json` | The marks `EWE_ENTRY=agent-rpc` and `EWE_VERSION=0.4.0` map the unit to the entry. |
+| `valid/unknown-field.json` | An unknown field is ignored. |
+| `valid/empty.json` | An empty `entries` array is accepted and the sidecar registers nothing. |
+| `invalid/v3-version-2.json` | `UnsupportedManifestVersion` at `/manifest_version`. |
+| `invalid/v5-duplicate-name.json` | A validation error at `/entries/1/name`. |
+| `invalid/v6-unknown-kind.json` | `UnknownKind` at `/entries/0/source/kind`. |
+
+V6 and scenario 4 of spec 78 apply to both readers. The sidecar therefore reads `source.kind`
+to reject an unknown value, even though it ignores the other source fields.
+
+A change to a canonical file changes the copy in the same change.
+`scripts/ci/manifest_contract.py --check-copies` compares each copy with the canonical file by
+SHA-256 and fails on a difference.
+
 ### 4.2 Discovery: installed, running, version
 
 The installer marks what it makes, so the sidecar can find it without reading the installer's
