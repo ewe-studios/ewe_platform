@@ -1,0 +1,39 @@
+[package]
+name = "foundation_tasks"
+version = "0.1.0"
+description = "A task registry and command runner for repository tools"
+autotests = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_macros = { workspace = true }
+clap = { workspace = true }
+futures-util.workspace = true
+async-channel.workspace = true
+thiserror.workspace = true
+foundation_nativeapis = { workspace = true, features = ["signal"] }
+syn = { version = "2", features = ["full"] }
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_Diagnostics_ToolHelp"] }
+
+[dev-dependencies]
+futures-lite.workspace = true
+tempfile.workspace = true
+
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

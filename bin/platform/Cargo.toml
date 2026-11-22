@@ -1,5 +1,7 @@
 [package]
 name = "ewe_platform"
+default-run = "ewe_platform"
+autobins = false
 version = "0.0.4"
 description = "ewe_platform binary CLi"
 edition.workspace = true
@@ -9,12 +11,23 @@ authors.workspace = true
 repository.workspace = true
 keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 
+[[bin]]
+name = "platform"
+path = "src/main.rs"
+
+[[bin]]
+name = "ewe_platform"
+path = "src/compat.rs"
+
 [dependencies]
+foundation_tasks.workspace = true
+foundation_ui_native = { path = "../../backends/foundation_ui_native", features = ["tasks"] }
+blocking.workspace = true
 # -- workspace dependency
-foundation_codegentools = { path = "../../backends/foundation_codegentools", version = "0.1.6", features = ["cli"] }
+foundation_codegentools = { path = "../../backends/foundation_codegentools", version = "0.1.7", features = ["cli"] }
 # Feature 20: each runtime crate owns its build CLI.
-foundation_wasm = { path = "../../backends/foundation_wasm", version = "0.0.10" }
-foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", version = "0.1.7" }
+foundation_wasm = { path = "../../backends/foundation_wasm", version = "0.0.11" }
+foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", version = "0.1.8" }
 foundation_packager = { path = "../../backends/foundation_packager", version = "0.1.6" }
 # ewe_watch_utils = { workspace = true }
 # ewe_watchers = { workspace = true }
@@ -31,7 +44,7 @@ foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.9"
 tracing = { workspace = true }
 
 # cli
-clap = { version = "4.5.54", features = ["derive"] }
+clap.workspace = true
 
 # -- http
 bytes = { version = "1.6.1" }

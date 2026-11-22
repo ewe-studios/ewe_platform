@@ -187,7 +187,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for opt in ("maven", "apple", "out"):
         parser.add_argument("--" + opt, type=Path, required=True)
-    parser.add_argument("--signing-key", help="Fingerprint of the OpenPGP release key")
+    parser.add_argument("--signing-key", default=os.environ.get("NATIVE_SIGNING_KEY") or None, help="Fingerprint of the OpenPGP release key")
     try:
         print(json.dumps(stage_release(parser.parse_args()), indent=2))
     except (ValueError, FileNotFoundError, KeyError, subprocess.CalledProcessError) as error:

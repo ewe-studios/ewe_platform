@@ -1,0 +1,168 @@
+use foundation_tasks::{OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskOutput};
+use futures_util::future::BoxFuture;
+use std::{
+    io,
+    sync::{Arc, Mutex},
+};
+
+struct Query {
+    stdout: Mutex<Vec<u8>>,
+    forward: Arc<dyn TaskOutput>,
+    limit: usize,
+}
+
+impl TaskOutput for Query {
+    fn write<'a>(&'a self, stream: OutputStream, bytes: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
+        Box::pin(async move {
+            if stream == OutputStream::Stderr {
+                return self.forward.write(stream, bytes).await;
+            }
+            let mut stdout = self
+                .stdout
+                .lock()
+                .map_err(|_| io::Error::other("Query buffer is unavailable"))?;
+            if bytes.len() > self.limit.saturating_sub(stdout.len()) {
+                return Err(io::Error::other("Command output exceeds the query limit"));
+            }
+            stdout.extend_from_slice(bytes);
+            Ok(())
+        })
+    }
+
+    fn flush(&self) -> BoxFuture<'_, io::Result<()>> {
+        self.forward.flush()
+    }
+}
+
+pub(super) async fn query(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+) -> Result<Vec<u8>, TaskError> {
+    let env = ctx.require::<super::NativeBuildEnv>()?;
+    let output = Arc::new(Query {
+        stdout: Mutex::default(),
+        forward: ctx.require::<TaskEnv>()?.output.clone(),
+        limit: env.query_bytes,
+    });
+    ctx.exec_with_output(command, output.clone()).await?;
+    let mut bytes = output
+        .stdout
+        .lock()
+        .map_err(|_| TaskError::operation("Query buffer is unavailable"))?;
+    Ok(std::mem::take(&mut *bytes))
+}
+
+struct Artifact {
+    lines: Mutex<ArtifactLines>,
+    package: &'static str,
+    extensions: &'static [&'static str],
+    forward: Arc<dyn TaskOutput>,
+    limit: usize,
+}
+
+#[derive(Default)]
+struct ArtifactLines {
+    pending: Vec<u8>,
+    found: Option<std::path::PathBuf>,
+}
+
+impl Artifact {
+    fn parse(&self, lines: &mut ArtifactLines) -> io::Result<Option<String>> {
+        let event: serde_json::Value = serde_json::from_slice(&lines.pending)?;
+        let reason = event.get("reason").and_then(serde_json::Value::as_str);
+        let name = event
+            .pointer("/target/name")
+            .and_then(serde_json::Value::as_str);
+        if reason == Some("compiler-artifact") && name == Some(self.package) {
+            let product = if self.extensions.is_empty() {
+                event.get("executable").and_then(serde_json::Value::as_str)
+            } else {
+                event
+                    .get("filenames")
+                    .and_then(serde_json::Value::as_array)
+                    .and_then(|filenames| {
+                        filenames
+                            .iter()
+                            .filter_map(serde_json::Value::as_str)
+                            .find(|path| self.extensions.iter().any(|ext| path.ends_with(ext)))
+                    })
+            };
+            if let Some(path) = product {
+                lines.found = Some(std::path::PathBuf::from(path));
+            }
+        }
+        Ok(if reason == Some("compiler-message") {
+            event
+                .pointer("/message/rendered")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned)
+        } else {
+            None
+        })
+    }
+}
+
+impl TaskOutput for Artifact {
+    fn write<'a>(&'a self, stream: OutputStream, bytes: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
+        Box::pin(async move {
+            if stream == OutputStream::Stderr {
+                return self.forward.write(stream, bytes).await;
+            }
+            let diagnostics = {
+                let mut lines = self
+                    .lines
+                    .lock()
+                    .map_err(|_| io::Error::other("Artifact parser is unavailable"))?;
+                let mut diagnostics = Vec::new();
+                for part in bytes.split_inclusive(|byte| *byte == b'\n') {
+                    if part.len() > self.limit.saturating_sub(lines.pending.len()) {
+                        return Err(io::Error::other(
+                            "A Cargo message exceeds the configured limit",
+                        ));
+                    }
+                    lines.pending.extend_from_slice(part);
+                    if part.ends_with(b"\n") {
+                        diagnostics.extend(self.parse(&mut lines)?);
+                        lines.pending.clear();
+                    }
+                }
+                diagnostics
+            };
+            for diagnostic in diagnostics {
+                self.forward
+                    .write(OutputStream::Stderr, diagnostic.as_bytes())
+                    .await?;
+            }
+            Ok(())
+        })
+    }
+
+    fn flush(&self) -> BoxFuture<'_, io::Result<()>> {
+        self.forward.flush()
+    }
+}
+
+pub(super) async fn artifact(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+    package: &'static str,
+    extensions: &'static [&'static str],
+) -> Result<std::path::PathBuf, TaskError> {
+    let env = ctx.require::<super::NativeBuildEnv>()?;
+    let output = Arc::new(Artifact {
+        lines: Mutex::default(),
+        package,
+        extensions,
+        forward: ctx.require::<TaskEnv>()?.output.clone(),
+        limit: env.cargo_message_bytes,
+    });
+    ctx.exec_with_output(command, output.clone()).await?;
+    let mut state = output
+        .lines
+        .lock()
+        .map_err(|_| TaskError::operation("Artifact parser is unavailable"))?;
+    state
+        .found
+        .take()
+        .ok_or_else(|| TaskError::operation(format!("Cargo did not produce {package}")))
+}
