@@ -216,3 +216,26 @@ Set `EWE_TODO_PEER_ADB` to the Android Debug Bridge executable before you start 
 Set `EWE_TODO_PEER_ANDROID_SERIAL` if the emulator uses a serial other than `emulator-5554`.
 Set `TEST_RUNNER_EWE_TODO_PEER_ANDROID=1` for the iPhone test.
 Each client adds, completes, reopens, and deletes one todo. The other two clients check the row after each change.
+
+### Play Mathalley
+
+Select **Play Mathalley** in a Todo screen. Tap the title to start. Select an answer in Train or Gumball.
+Select **Sound** to mute the game. Select **Back to Todos** to return to the same list and filter.
+
+The browser, iPhone and Android hosts register a separate game view. The Todo view keeps its live subscription.
+The host lends the game a drawing surface. Closing the game releases that surface and its sound session.
+The host keeps the graphics device for the next view. Backgrounding the app pauses the game clock and sound.
+
+For Chrome, run `examples/ui_todo/build-module.sh`, start `cargo run --profile uat -p ui_todo`, and open the address it prints.
+For an iPhone simulator, run `scripts/ui_native/prepare-ios-todo.sh`. Open either Todo Xcode project and run its app.
+For Android, run `scripts/ui_native/build-android.sh --with-todo`. Build either Todo Android project against the matching local native package.
+
+For a repeatable Android game check, install the on-device app and run the following command.
+The test uses ImageMagick to check the presented scene. It saves the title, Train, and Gumball images.
+
+```sh
+python3 scripts/ui_native/check-android-todo.py "$ANDROID_HOME/platform-tools/adb" "$DEVICE" mathalley "$CAPTURES"
+```
+
+In Xcode, run `TodoTests.testTrainAndGumballSurviveRotation` in the on-device project.
+Both checks replay seed 13 and rotate the Gumball scene before returning to Todos.

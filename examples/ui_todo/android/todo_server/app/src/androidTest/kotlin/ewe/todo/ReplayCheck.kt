@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient
 class ReplayCheck : Instrumentation() {
     private var base = "http://127.0.0.1:8180/"
 
+    private var gameSound = false
     private var dataOnly = false
     private var subscriptions = false
 
@@ -26,6 +27,7 @@ class ReplayCheck : Instrumentation() {
         super.onCreate(arguments)
         base = arguments?.getString("server") ?: base
         subscriptions = arguments?.getString("subscriptions") == "true"
+        gameSound = arguments?.getString("gameSound") == "true"
         dataOnly = arguments?.getString("data") == "true"
         start()
     }
@@ -69,6 +71,12 @@ class ReplayCheck : Instrumentation() {
         val results = Bundle()
         try {
             runBlocking {
+                if (gameSound) {
+                    System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
+                    verifyGameSound()
+                    results.putString("stream", "The second game output plays after the first closes.")
+                    return@runBlocking
+                }
                 if (subscriptions) {
                     withTimeout(30000) { verifySubscriptions() }
                     results.putString("stream", "SSE, streamed HTTP, and WebSocket delivered targeted expiry.")

@@ -12,6 +12,10 @@ autobins = false
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
+foundation_ui_gpu = { path = "../../backends/foundation_ui_gpu", optional = true }
+bytemuck = { version = "1.25.2", features = ["derive"] }
+font8x8 = "0.3.1"
+foundation_compact = { path = "../../backends/foundation_compact", version = "0.2.7", default-features = false, features = ["std"] }
 foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
 foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
 foundation_context = { path = "../../backends/foundation_context" }
@@ -37,6 +41,9 @@ uniffi = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
+wasm-bindgen = {workspace = true, optional = true}
+js-sys = {workspace = true, optional = true}
+wasm-bindgen-futures = {workspace = true, optional = true}
 foundation_core = { path = "../../backends/foundation_core", optional = true, features = ["js-foundation-wasm"] }
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
@@ -50,10 +57,11 @@ foundation_connectrpc_codegen = { path = "../../backends/foundation_connectrpc_c
 workspace = true
 
 [features]
+mathalley-web = ["dep:foundation_ui_gpu", "dep:wasm-bindgen", "dep:js-sys", "dep:wasm-bindgen-futures","foundation_context/wasm-bindgen"]
 default = ["server"]
 server = ["dep:serde_json", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 web = ["dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
-mobile = ["dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
+mobile = ["dep:foundation_ui_gpu", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
 browser-tests = ["server", "dep:foundation_browser"]
 
 [[bin]]
@@ -75,3 +83,7 @@ required-features = ["server"]
 name = "mobile"
 path = "tests/mobile.rs"
 required-features = ["mobile"]
+
+[[test]]
+name = "mathalley"
+path = "tests/mathalley/mod.rs"

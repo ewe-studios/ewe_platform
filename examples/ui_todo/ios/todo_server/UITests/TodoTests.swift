@@ -1,3 +1,5 @@
+import QuartzCore
+import AVFoundation
 import XCTest
 import EweCore
 import EweTodoCore
@@ -201,5 +203,84 @@ final class TodoTests: XCTestCase {
     XCTAssertTrue(app.staticTexts["0 open todos"].waitForExistence(timeout: 5))
     app.buttons["Reopen"].tap()
     XCTAssertTrue(app.staticTexts["1 open todo"].waitForExistence(timeout: 5))
+  }
+}
+
+extension TodoTests {
+  @MainActor func testMathalleyKeepsTheServerSubscription() async throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let base = environment["EWE_TODO_URL"], let control = environment["EWE_GAME_PEER_URL"] else {
+      throw XCTSkip("This test needs an isolated server and a second Todo client.")
+    }
+    let app = XCUIApplication()
+    app.launchEnvironment["EWE_TODO_URL"] = base
+    app.launch()
+    let bar = app.navigationBars["Todos"]
+    XCTAssertTrue(bar.waitForExistence(timeout: 20))
+    bar.buttons["Add"].tap()
+    let input = app.textFields["Todo title"]
+    input.tap()
+    input.typeText("Game owner task\n")
+    XCTAssertTrue(app.staticTexts["Game owner task"].waitForExistence(timeout: 8))
+    app.buttons["Open"].tap()
+    app.buttons["Play Mathalley"].tap()
+    XCTAssertTrue(app.descendants(matching: .any)["Mathalley game"].waitForExistence(timeout: 15))
+    let (_, response) = try await URLSession.shared.data(from: XCTUnwrap(URL(string: control)))
+    XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+    app.buttons["Back to Todos"].tap()
+    XCTAssertTrue(app.staticTexts["Game peer task"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.staticTexts["Game owner task"].exists)
+    XCTAssertTrue(app.staticTexts["2 open todos"].exists)
+    XCTAssertTrue(app.buttons["Open"].isSelected)
+  }
+}
+
+extension TodoTests {
+  @MainActor func testIndependentGameSoundOnAppleOutput() async throws {
+    let core = try createLocalTodoCore(platform: .ios)
+    let rate: UInt32 = 48_000
+    let frames: UInt32 = 4096
+    let game = try MathalleyGame(core: core, seed: 13, sampleRate: rate)
+    let other = try MathalleyGame(core: core, seed: 13, sampleRate: rate)
+    let music = try game.samples(atFrame: 0, count: frames)
+    XCTAssertTrue(music.contains { abs($0) > 0.001 })
+    XCTAssertEqual(try other.samples(atFrame: 0, count: frames), music)
+    let layer = CAMetalLayer()
+    layer.frame = CGRect(x: 0, y: 0, width: 64, height: 64)
+    layer.drawableSize = layer.frame.size
+    let surface = try await core.graphics().attach(name: "sound-check", layer: layer, width: 64, height: 64)
+    try game.tap(x: 195, y: 422, width: 390, height: 844)
+    try await game.draw(surface: surface, timestampNanos: 0)
+    try await surface.remove()
+    let cue = try game.samples(atFrame: 4096, count: frames)
+    XCTAssertNotEqual(cue, try other.samples(atFrame: 4096, count: frames))
+    try game.tap(x: 292, y: 798, width: 390, height: 844)
+    try game.active(value: false)
+    XCTAssertTrue(try game.samples(atFrame: 4096, count: frames).allSatisfy { $0 == 0 })
+    try game.active(value: true)
+    XCTAssertTrue(try game.samples(atFrame: 8192, count: frames).allSatisfy { $0 == 0 })
+    try game.stopSound()
+    XCTAssertThrowsError(try game.samples(atFrame: 12288, count: frames))
+    let samples = try other.samples(atFrame: 12288, count: frames)
+    XCTAssertTrue(samples.contains { abs($0) > 0.001 })
+
+    let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: Double(rate), channels: 1))
+    let input = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames))
+    input.frameLength = frames
+    samples.withUnsafeBufferPointer { input.floatChannelData![0].update(from: $0.baseAddress!, count: $0.count) }
+    let engine = AVAudioEngine()
+    let player = AVAudioPlayerNode()
+    engine.attach(player)
+    engine.connect(player, to: engine.mainMixerNode, format: format)
+    try engine.enableManualRenderingMode(.offline, format: format, maximumFrameCount: frames)
+    try engine.start()
+    defer { engine.stop() }
+    player.scheduleBuffer(input, completionHandler: nil)
+    player.play()
+    let output = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames))
+    XCTAssertEqual(try engine.renderOffline(frames, to: output), .success)
+    let rendered = UnsafeBufferPointer(start: output.floatChannelData![0], count: Int(output.frameLength))
+    XCTAssertTrue(rendered.contains { abs($0) > 0.001 })
+    try other.stopSound()
   }
 }

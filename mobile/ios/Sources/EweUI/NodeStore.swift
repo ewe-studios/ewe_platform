@@ -156,11 +156,15 @@ import Observation
       guard let msg = frame.messages(at: index) else { continue }
       if let op = msg.operation { operation(op, Int(index), mount) }
       if let data = msg.data {
+        guard let destination = data.targetNode == 0 ? viewRoot(mount) : data.targetNode else {
+          report("AmbiguousView", Int(index))
+          continue
+        }
         dataLog.append([
           "data": data.arrow != nil ? "ArrowIpc" : data.table != nil ? "Table" : "MessagePack",
-          "target": data.targetNode,
+          "target": destination,
         ])
-        onData?(data.targetNode, data)
+        onData?(destination, data)
       }
       if let control = msg.control {
         if let caps = control.caps {

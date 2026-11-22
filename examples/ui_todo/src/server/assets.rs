@@ -19,6 +19,7 @@ pub(super) fn register(
         get(StaticFileHandler::file(module, StaticFileConfig::default())),
     )?;
     if let Some(root) = module.parent() {
+        router.at("/mathalley/*", get(StaticFileHandler::new(root)))?;
         router.at("/rpc/*", get(StaticFileHandler::new(root)))?;
     }
     router.at(
@@ -33,6 +34,11 @@ pub(super) fn register(
             "/",
             "text/html; charset=utf-8",
             include_bytes!("../../web/index.html").as_slice(),
+        ),
+        (
+            "/game-view.js",
+            "text/javascript",
+            include_bytes!("../../web/game-view.js").as_slice(),
         ),
         (
             "/app.js",

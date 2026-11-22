@@ -207,6 +207,7 @@ pub(crate) fn page_tree(state: &TodoApp, local: bool) -> (Html, &TodoApp) {
     html! { state = state, <Stack>
         <NavigationTitle>Todos</NavigationTitle>
         <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
+        <Button on:tap={open_mathalley}>Play Mathalley</Button>
         <SegmentedControl a11y_label="Filter todos">{all}{open}{done}</SegmentedControl>
         {rows}
         {count_view}
@@ -340,6 +341,12 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
         html! {<Stack/>}
     };
     render(&shell, ctx.receiver(), tree, None::<&()>)?;
+    Ok(())
+}
+
+#[action(host)]
+async fn open_mathalley(ctx: &Context, _event: Interaction<()>) -> ActionResult {
+    ctx.receiver().data_in_view(b"\xadopen:mathalley".to_vec());
     Ok(())
 }
 
@@ -553,6 +560,7 @@ pub fn server_registry() -> Result<ActionRegistry, RegistrationError> {
 /// Returns an invalid or duplicate action declaration.
 pub fn host_registry() -> Result<ActionRegistry, RegistrationError> {
     let mut actions = ActionRegistry::new();
+    actions.register(open_mathalley)?;
     actions.register(open_add_dialog)?;
     actions.register(open_delete_dialog)?;
     actions.register(close_dialog)?;

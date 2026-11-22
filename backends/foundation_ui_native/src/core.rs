@@ -235,6 +235,13 @@ impl NativeCore {
     }
 }
 
+impl NativeCore {
+    /// Access services that this host installs at startup.
+    pub fn host_context(&self) -> &Ctx {
+        &self.graphics_ctx
+    }
+}
+
 #[uniffi::export]
 impl NativeCore {
     /// Creates a core for a foreign application that calls actions on a server.

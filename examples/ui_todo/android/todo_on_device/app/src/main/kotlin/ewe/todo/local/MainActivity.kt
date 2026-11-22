@@ -1,5 +1,8 @@
 package ewe.todo.local
 
+import java.security.SecureRandom
+import ewe.todo.game.MathalleyRoute
+import androidx.compose.runtime.mutableStateOf
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,6 +18,13 @@ import io.github.ewe_studios.ewe.todo.createLocalTodoCore
 import io.github.ewe_studios.ewe.todo.initialTodoFrame
 
 class MainActivity : ComponentActivity() {
+    private val foreground = mutableStateOf(false)
+    private val game = MathalleyRoute {
+        intent.getStringExtra("gameSeed")?.toULongOrNull() ?: SecureRandom().nextLong().toULong()
+    }
+    override fun onResume() { super.onResume(); foreground.value = true }
+    override fun onPause() { foreground.value = false; super.onPause() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Use the same native library for both sets of callback tables.
@@ -23,7 +33,8 @@ class MainActivity : ComponentActivity() {
             EweTheme.fromManifest(todoThemeManifest()) else EweTheme()
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                LocalEweScreen({ createLocalTodoCore(NativePlatform.ANDROID) }, ::initialTodoFrame, theme = theme)
+                LocalEweScreen({ createLocalTodoCore(NativePlatform.ANDROID) }, ::initialTodoFrame, theme = theme, onAttached = game::attach)
+                game.Screen(foreground.value)
             }
         }
     }

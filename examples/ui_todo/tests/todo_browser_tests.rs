@@ -411,3 +411,154 @@ fn one_count_publication_reaches_the_open_browser() {
         .to_have_text(&after)
         .unwrap();
 }
+
+#[test]
+fn game_view_keeps_the_todo_subscription_and_draws_on_the_host_device() {
+    let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = format!("http://{}/", listener.local_addr().unwrap());
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let stop = shutdown.clone();
+    let worker = std::thread::spawn(move || {
+        let app = ui_todo::server::app(&module).unwrap();
+        app.server(&listener.local_addr().unwrap().to_string())
+            .serve_with_listener(&listener, &stop);
+    });
+    let result = std::panic::catch_unwind(|| {
+        let driver = BrowserDriver::launch(LaunchConfig {
+            extra_args: vec![
+                "--enable-gpu".into(),
+                "--enable-unsafe-webgpu".into(),
+                "--disable-background-timer-throttling".into(),
+                "--disable-renderer-backgrounding".into(),
+                "--disable-backgrounding-occluded-windows".into(),
+            ],
+            ..LaunchConfig::default().ctx(Ctx::host())
+        })
+        .unwrap();
+        let peer = driver.new_page().unwrap();
+        peer.goto(&url).unwrap();
+        let page = driver.new_page().unwrap();
+        page.goto(&url).unwrap();
+        let add = r#"button[primal\:onclick="host:open_add_dialog"]"#;
+        page.locator(add).expect().to_be_visible().unwrap();
+        peer.locator(add).expect().to_be_visible().unwrap();
+        submit_with_keyboard(&page, &page.locator(add), "First game task");
+        page.locator("button[value=open]").click().unwrap();
+        page.locator("#open-count")
+            .expect()
+            .to_have_text("1 open todo")
+            .unwrap();
+        page.eval(
+            r#"(async () => {
+          const module=await import('/mathalley/ui_todo.js');
+          await module.default();
+          const open=module.MathalleyHost.prototype.open;
+          module.MathalleyHost.prototype.open=function() {return open.call(this,13n);};
+          const tick=module.Mathalley.prototype.tick;
+          window.gameTestTime=0;
+          module.Mathalley.prototype.tick=function() {const result=tick.call(this,window.gameTestTime);window.lastGameTick=window.gameTestTime;return result;};
+          return true;
+        })()"#,
+        )
+        .unwrap();
+        for pass in 0..2 {
+            page.locator(r#"button[primal\:onclick="host:open_mathalley"]"#)
+                .click()
+                .unwrap();
+            let canvas = page.locator(r#"#mathalley[aria-busy="false"] canvas"#);
+            canvas
+                .expect()
+                .to_be_visible()
+                .unwrap_or_else(|e| panic!("{e:?}: {:?}", page.eval("document.body.innerText")));
+            canvas.click().unwrap();
+            let capture = std::env::temp_dir()
+                .join(format!("mathalley-presented-{}.png", std::process::id()));
+            page.screenshot(&capture).unwrap();
+            let png = std::fs::read(&capture).unwrap();
+            std::fs::remove_file(capture).unwrap();
+            page.eval(&format!(
+                "window.gamePresentedPng=new Uint8Array({png:?});true"
+            ))
+            .unwrap();
+            page.eval(include_str!("mathalley/host-device.js")).unwrap();
+            if pass == 0 {
+                page.eval(include_str!("mathalley/sound-views.js")).unwrap();
+                play_both_games(&page);
+                submit_with_keyboard(&peer, &peer.locator(add), "Second game task");
+                page.locator("#open-count")
+                    .expect()
+                    .to_have_text("2 open todos")
+                    .unwrap();
+            }
+            page.locator("#mathalley button").click().unwrap();
+            page.locator("button[value=open]")
+                .expect()
+                .to_be_visible()
+                .unwrap();
+            page.locator("#open-count")
+                .expect()
+                .to_have_text("2 open todos")
+                .unwrap();
+            capture_page(&page, "mathalley-return");
+        }
+    });
+    shutdown.turn_on();
+    worker.join().unwrap();
+    if let Err(panic) = result {
+        std::panic::resume_unwind(panic);
+    }
+}
+
+/// Use the same seed and clock on the reference simulation and the browser input surface.
+fn play_both_games(page: &foundation_browser::Page<'_>) {
+    use ui_todo::mathalley::{
+        game::{Action, Game, LevelState, Phase},
+        scene,
+    };
+    let mut model = Game::new(13);
+    model.apply(Action::Start);
+    let mut time = 1001;
+    model.update(std::time::Duration::from_millis(time));
+    let mut saw_gumball = false;
+    for _ in 0..32 {
+        let (name, index) = match &model.level {
+            LevelState::Train(train) => ("Train", train.correct),
+            LevelState::Gumball(level) => ("Gumball", level.correct),
+            LevelState::Empty => panic!("A playing level has a game"),
+        };
+        page.eval(&format!("window.gameTestTime={time}; new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))")).unwrap();
+        page.locator(&format!(r#"canvas[aria-label="Mathalley {name}"]"#))
+            .expect()
+            .to_be_visible()
+            .unwrap();
+        if name == "Gumball" {
+            capture_page(page, "gumball");
+        }
+        let hit = scene::build(&model, true)
+            .hits
+            .into_iter()
+            .find(|h| h.action == Action::Choose(index))
+            .unwrap();
+        page.eval(&format!(r#"(() => {{
+            const c=document.querySelector('#mathalley canvas'), b=c.getBoundingClientRect();
+            const scale=Math.min(b.width/390,b.height/844);
+            c.dispatchEvent(new PointerEvent('pointerdown', {{bubbles:true,clientX:b.x+(b.width-390*scale)/2+{}*scale,clientY:b.y+(b.height-844*scale)/2+{}*scale}}));
+            return true;
+        }})()"#,hit.x + hit.w / 2.0,hit.y + hit.h / 2.0)).unwrap();
+        model.apply(Action::Choose(index));
+        if name == "Gumball" {
+            saw_gumball = true;
+            break;
+        }
+        time += 1001;
+        model.update(std::time::Duration::from_millis(time));
+        if model.phase == Phase::Intro {
+            page.eval(&format!("window.gameTestTime={time};new Promise(done=>{{function wait(){{if(window.lastGameTick==={time})done(true);else requestAnimationFrame(wait);}}wait();}})")).unwrap();
+            time += 1001;
+            model.update(std::time::Duration::from_millis(time));
+        }
+        assert_eq!(model.phase, Phase::Playing);
+    }
+    assert!(saw_gumball);
+}

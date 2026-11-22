@@ -4,6 +4,8 @@ import * as behaviours from "./foundation-ui-behaviours.js";
 import { installFrameRuntime, base64urlEncode, readViewResponse } from "./foundation-ui-frames.js";
 import { FetchActionTransport, WebSocketActionTransport, WasmActionTransport, JsActionRegistry, installActionRuntime } from "./foundation-ui-actions.js";
 
+import { installMathalley } from "./game-view.js";
+
 async function connectSender() {
     const { default: initialize, BrowserConnectSender } = await import("/rpc/foundation_ui_connectrpc.js");
     await initialize();
@@ -31,12 +33,13 @@ async function boot() {
     const report = error => { notice.value = error.code; console.error(error); };
     const registry = new JsActionRegistry();
     for (const name of ["add_todo", "toggle_todo", "confirm_delete", "refresh_count"]) registry.declare("server", name);
-    for (const name of ["open_add_dialog", "open_delete_dialog", "close_dialog", "filter_todos"]) registry.declare("host", name);
+    for (const name of ["open_mathalley", "open_add_dialog", "open_delete_dialog", "close_dialog", "filter_todos"]) registry.declare("host", name);
     ui.Patcher.runtime.dispatcher = new ui.EventDispatcher(() => {});
     const connections = ui.frameConnections();
     const frames = installFrameRuntime(ui, { connections, onReport: report, viewMount: document.querySelector("#page") });
     ui.registerWebComponents();
     frames.registerView("todos", document.querySelector("#page"));
+    const game = installMathalley(frames);
     const params = new URL(location.href).searchParams;
     const server = params.has("socket") ? WebSocketActionTransport.connect(connections, "/socket") : params.has("rpc")
         ? await connectSender()
@@ -47,6 +50,7 @@ async function boot() {
 
     document.addEventListener("ewe:data", event => {
         const bytes = event.detail.bytes;
+        if (bytes?.[0] === 0xad && new TextDecoder().decode(bytes.subarray(1)) === "open:mathalley") game.open();
         if (bytes?.[0] === 0xab && new TextDecoder().decode(bytes.subarray(1)) === "host:notify") {
             registry.hostFunction("notify")();
         }

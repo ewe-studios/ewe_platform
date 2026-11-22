@@ -14,6 +14,7 @@ android {
         ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
     }
     sourceSets["main"].kotlin.directories.add("../../generated")
+    sourceSets["main"].kotlin.directories.add("../../shared")
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 }

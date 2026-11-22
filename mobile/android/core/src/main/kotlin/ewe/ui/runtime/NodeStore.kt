@@ -27,6 +27,7 @@ class NodeStore(
         it in Names.behaviourId.values && it != "UNKNOWN"
     },
 ) {
+    var onData: ((UInt, Data) -> Unit)? = null
     var recovery: ViewRecovery? = null
         private set
     internal val targets = ViewTargets(this)
@@ -41,6 +42,19 @@ class NodeStore(
         return host.childStores[root] ?: host
     }
 
+    /** Register a named view and allocate its root in this host. */
+    fun registerView(name: String): NodeStore {
+        var root = 1u
+        if (root in targets.roots.values) {
+            do {
+                check(root < UInt.MAX_VALUE) { "No available view root" }
+                root++
+            } while (root in records || root in targets.roots.values)
+        }
+        registerView(name, root)
+        return childStores[root] ?: this
+    }
+
     fun registerView(name: String, root: UInt) {
         require(name.matches(targets.validName) && root != 0u)
         require(name !in targets.roots && root !in targets.roots.values)
@@ -49,6 +63,7 @@ class NodeStore(
             child.parentStore = this
             child.targets.roots[name] = root
             child.subscriptionReplay = subscriptionReplay
+            child.onData = { id, data -> onData?.invoke(id, data) }
             child.onSnapshot = { id, stream -> onSnapshot?.invoke(id, stream) }
             child.onError = { code, message -> onError?.invoke(code, message) }
             child.onCaps = { bytes -> onCaps?.invoke(bytes) }

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import struct
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -66,7 +67,79 @@ def create(title):
 
 local_title = "Android offline todo"
 server_title = "Android server todo"
-if phase == "offline":
+if phase == "mathalley":
+    output = Path(labels[0])
+    output.mkdir(parents=True, exist_ok=True)
+    shell("am", "start", "-S", "-n", app + "/.MainActivity", "--es", "gameSeed", "13")
+    tap("Play Mathalley")
+    wait_for("Back to Todos")
+
+    def screenshot():
+        return subprocess.check_output([adb, "-s", device, "exec-out", "screencap", "-p"])
+
+    def read_scene():
+        png = screenshot()
+        width, height = struct.unpack(">II", png[16:24])
+        pixels = subprocess.run(
+            ["magick", "png:-", "-depth", "8", "rgb:-"],
+            input=png, capture_output=True, check=True,
+        ).stdout
+        background = bytes.fromhex("1b1410")
+        top = next((row for row in range(height)
+                    if pixels[3 * width * row:3 * width * row + 3] == background), None)
+        if top is None:
+            return None
+        scale = min(width / 390, (height - top) / 844)
+
+        def position(x, y):
+            return (round((width - 390 * scale) / 2 + x * scale),
+                    round(top + (height - top - 844 * scale) / 2 + y * scale))
+
+        x, y = position(70, 200)
+        offset = 3 * (y * width + x)
+        return png, position, pixels[offset:offset + 3].hex()
+
+    def wait_for_color(color=None):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            result = read_scene()
+            if result and (color is None or result[2] == color):
+                return result[0], result[1]
+            time.sleep(0.2)
+        raise RuntimeError(f"The rendered game did not show {color}")
+
+    def touch(position, x, y):
+        px, py = position(x, y)
+        shell("input", "tap", str(px), str(py))
+
+    image, position = wait_for_color()
+    (output / "android-title.png").write_bytes(image)
+    touch(position, 195, 422)
+    image, position = wait_for_color("274653")
+    (output / "android-game.png").write_bytes(image)
+    # Seed 13 gives these six carriage answers before Gumball.
+    for index, x in enumerate([75, 195, 315, 315, 75, 315]):
+        touch(position, x, 660)
+        time.sleep(2.5 if index == 2 else 0.45)
+    image, position = wait_for_color("c63f39")
+    (output / "android-gumball.png").write_bytes(image)
+    previous = shell("wm", "user-rotation").strip().split()
+    shell("wm", "user-rotation", "lock", "1")
+    try:
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            image, position = wait_for_color("c63f39")
+            width, height = struct.unpack(">II", image[16:24])
+            if width > height:
+                break
+        else:
+            raise RuntimeError("Gumball did not rotate to landscape")
+        touch(position, 105, 690)
+    finally:
+        shell("wm", "user-rotation", *previous)
+    tap("Back to Todos")
+    wait_for("Play Mathalley")
+elif phase == "offline":
     package = shell("dumpsys", "package", app)
     assert "android.permission.INTERNET" not in package, "Offline app requests internet access"
     wait_for("Todos", "0 open todos", "Add", "All", "Open", "Done")

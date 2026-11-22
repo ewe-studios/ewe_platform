@@ -36,6 +36,14 @@ impl Surfaces {
 #[derive(Debug, Clone)]
 pub struct SurfaceId(u64, std::sync::Weak<()>);
 
+fn validate_extent(device: &wgpu::Device, width: u32, height: u32) -> Result<(), GpuError> {
+    let limit = device.limits().max_texture_dimension_2d;
+    if width != 0 && height != 0 && (width > limit || height > limit) {
+        return Err(GpuError::Unsupported);
+    }
+    Ok(())
+}
+
 impl GpuOwner {
     #[must_use]
     pub fn named_surface(&self, name: &str) -> Option<SurfaceId> {
@@ -70,6 +78,7 @@ impl GpuOwner {
         let surface = host.create_surface(&self.instance)?;
         let (width, height) = host.size();
         let graphics = self.device().await?;
+        validate_extent(&graphics.device, width, height)?;
         if !graphics.adapter.is_surface_supported(&surface) {
             return Err(GpuError::IncompatibleSurface);
         }
@@ -126,6 +135,7 @@ impl GpuOwner {
             .slots
             .get_mut(&id.0)
             .ok_or(GpuError::StaleSurface)?;
+        validate_extent(&device, width, height)?;
         slot.suspended = width == 0 || height == 0;
         if !slot.suspended {
             slot.config.width = width;

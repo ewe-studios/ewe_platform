@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		12EDCE4434F17C2B2334F513 /* TodoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB7CFD9FE593F477A3429B9 /* TodoTests.swift */; };
 		5DAC712F52D8B5AD4E7E3073 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306DBC8958E95277691BA73A /* App.swift */; };
+		ADAC712F52D8B5AD4E7E3073 /* MathalleyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A06DBC8958E95277691BA73A /* MathalleyView.swift */; };
 		79F34E4A5A3127244828D20A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
 		7DF26539FAB5A03767555C17 /* EweTodoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 687EA8B759975BC70FBB8399 /* EweTodoCore */; };
 		9AABEF70D9842747AE1C2CD5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
@@ -27,6 +28,7 @@
 
 /* Begin PBXFileReference section */
 		306DBC8958E95277691BA73A /* App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		A06DBC8958E95277691BA73A /* MathalleyView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ../../Shared/MathalleyView.swift; sourceTree = "<group>"; };
 		35DBB79263E15025D7F23DAA /* TodoOnDeviceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TodoOnDeviceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		960E82007BA4E62435E20FA6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9947D29C522D037A5BA87A3D /* TodoOnDevice.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoOnDevice.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -103,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				306DBC8958E95277691BA73A /* App.swift */,
+				A06DBC8958E95277691BA73A /* MathalleyView.swift */,
 			);
 			name = App;
 			path = App;
@@ -214,6 +217,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5DAC712F52D8B5AD4E7E3073 /* App.swift in Sources */,
+				ADAC712F52D8B5AD4E7E3073 /* MathalleyView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

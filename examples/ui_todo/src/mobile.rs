@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 /// Returns the optional native theme from the shared Rust application.
 #[uniffi::export]
+#[must_use]
 pub fn todo_theme_manifest() -> String {
     crate::todo_theme().native_manifest()
 }
@@ -76,6 +77,9 @@ pub async fn initial_todo_frame(core: Arc<NativeCore>) -> Result<Vec<u8>, CoreEr
 
 fn todo_context() -> Result<Ctx, CoreError> {
     let ctx = Ctx::host();
+    ctx.store(foundation_ui_runtime::sound::SoundHost(Arc::new(
+        foundation_ui_runtime::sound::PullOutput,
+    )));
     crate::install_view_services(&ctx, 1 << 31, u32::MAX).map_err(|e| CoreError::Write {
         detail: e.to_string(),
     })?;

@@ -15,3 +15,8 @@ cargo build --locked --manifest-path "$here/../../backends/foundation_ui_connect
     --release --target wasm32-unknown-unknown --target-dir "$target_dir"
 mise exec -- wasm-bindgen "$target_dir/wasm32-unknown-unknown/release/foundation_ui_connectrpc.wasm" \
     --target web --no-typescript --out-dir "$here/target/web/rpc"
+
+cargo build --locked --manifest-path "$here/Cargo.toml" --lib --no-default-features --features mathalley-web \
+    --target wasm32-unknown-unknown --release --target-dir "$target_dir"
+mise exec -- wasm-bindgen "$target_dir/wasm32-unknown-unknown/release/ui_todo.wasm" \
+    --target web --no-typescript --out-dir "$here/target/web/mathalley"

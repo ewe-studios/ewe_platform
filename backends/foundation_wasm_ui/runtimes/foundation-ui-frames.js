@@ -986,7 +986,7 @@ export class FrameApplicator {
       if (!blob) throw problem("BadFrame");
       detail = {kind: data.arrow() ? "arrow-ipc" : "messagepack", bytes: blob.bytesArray()};
     }
-    const target = data.targetNode() && this.registry.get(data.targetNode());
+    const target = data.targetNode() ? this.node(data.targetNode()) : this.receivingView();
     dispatchEvent(target || this.document, "ewe:data", detail);
   }
   applyControl(control) {

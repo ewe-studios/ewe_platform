@@ -38,6 +38,7 @@ fun RemoteEweScreen(
     rpcBase: HttpUrl? = null,
     socketEndpoint: String? = null,
     connections: ConnectionManager? = null,
+    onAttached: (NativeCore, NodeStore) -> Unit = { _, _ -> },
 ) {
     require(rpcBase == null || socketEndpoint == null)
     EweHost(listOf(endpoint, initialPath, actionPath, rpcBase ?: "", socketEndpoint ?: "", connections ?: ""), "Connecting…", modifier, theme) { host ->
@@ -62,7 +63,9 @@ fun RemoteEweScreen(
                 override suspend fun send(request: ByteArray): ByteArray? = rpc.exchange(request)
             }
         }
-        val binding = host.attach(createCore(sender), factory, manager)
+        val core = createCore(sender)
+        val binding = host.attach(core, factory, manager)
+        onAttached(core, host.store)
         val hello = socket?.let { binding.helloFor(it.requestTag) } ?: binding.hello()
         connection.configure(hello)
         host.apply(requireNotNull(sender.send(hello)) { "Missing server capabilities" }, "capabilities")
@@ -77,10 +80,12 @@ fun LocalEweScreen(
     initialFrame: suspend (NativeCore) -> ByteArray,
     modifier: Modifier = Modifier,
     theme: EweTheme = EweTheme(),
+    onAttached: (NativeCore, NodeStore) -> Unit = { _, _ -> },
 ) {
     EweHost(emptyList(), "Loading…", modifier, theme) { host ->
         val core = createCore()
         host.attach(core, null)
+        onAttached(core, host.store)
         host.applyInitial(initialFrame(core))
     }
 }
