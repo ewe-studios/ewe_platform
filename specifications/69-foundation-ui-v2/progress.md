@@ -923,3 +923,20 @@ Port 8080 keeps the current session and its data during this work.
 - Chrome, iPhone, and Android each recovered by replay. The test recorded three initial snapshots and six resume requests.
 - Android-origin checks remain open. The Android emulator stalled during text entry on the Google APIs image.
 - The Android test image run stopped before the Android-origin sequence completed. Issues #693 and #698 remain open.
+
+### 2026-11-22 — Android to Chrome and iPhone
+
+The Android test emulator starts all four actions on one isolated server.
+The table shows the row named `Android peer todo` on each receiving client.
+
+| Android action | Chrome row | iPhone 17 simulator row |
+| --- | --- | --- |
+| Add | The row has a Complete button. | The row has an empty circle. |
+| Complete | The row has a Reopen button. | The row has a check mark and a line through its title. |
+| Reopen | The row has a Complete button. | The row has an empty circle again. |
+| Delete | The list has no matching row. | The list is empty and shows zero open todos. |
+
+The server reports three live connections after deletion.
+Each client loads its initial view once.
+Both receiving clients show all four changes without manual reconnection.
+These checks complete the two remaining directions in the six-direction test.

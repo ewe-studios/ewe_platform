@@ -841,3 +841,10 @@ Issue #698 tracks this test environment limit. The check uses the Android Automa
 The copied worktrees retain the original drive paths in their Git files.
 The three fresh worktrees use the external repository for shared Git data.
 The command `git rev-parse --path-format=absolute --git-common-dir` shows that path in each worktree.
+
+### Android to Chrome and iPhone
+
+The Android test emulator accepts the full title on a fresh start with software graphics.
+Chrome exposes the current action on each todo row.
+The iPhone uses a check mark and draws a line through a completed title.
+Text recognition can misread that title. Inspect the screenshot to verify the completed row.
