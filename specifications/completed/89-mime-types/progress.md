@@ -1,8 +1,8 @@
 # Progress: Spec 89, MIME Types
 
-_Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
+_Updated 2026-11-23. Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Merged.** This specification is in master as `23c5e6dae` (#656). Updated 2026-11-22.
+**Completed.** All tasks are done. Merged into master as `23c5e6dae` (#656).
 
 ## Where this specification is
 
@@ -15,7 +15,7 @@ _Updated 2026-11-16. Written in ASD-STE100 Simplified Technical English (STE)._
 | Owner approval of the plan | **approved 2026-11-16**: spec 89; the table is a `phf::Map`; an unknown name returns `None` |
 | Implementation | **done 2026-11-16** on branch `spec/89-mime-types` |
 | The Main Agent's review | **done 2026-11-16**: pass, with four findings recorded below |
-| Pull request | draft #656 opened 2026-11-21; merge after the review fixes |
+| Pull request | merged as `23c5e6dae` (#656) |
 
 ## The feature
 

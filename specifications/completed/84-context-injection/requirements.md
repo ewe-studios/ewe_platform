@@ -1,12 +1,12 @@
 ---
 description: "How code gets its side effects: the typed entries of foundation_context's Ctx, and the optional Env entry that carries the timer, the entropy source and the ID source. It refines the old spec 80 feature 00 and moves the code into foundation_context."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-15
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-15
+  last_updated: 2026-11-23
   estimated_effort: "medium"
   tags:
     - context
@@ -33,13 +33,13 @@ related_specs:
   - "specifications/81-foundation-auth"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/77-foundation-platform-sandbox"
-  - "specifications/86-auth-primitives"
-  - "specifications/87-mutual-tls"
+  - "specifications/completed/86-auth-primitives"
+  - "specifications/completed/87-mutual-tls"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Context Injection

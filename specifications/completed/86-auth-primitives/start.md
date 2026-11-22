@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/86-auth-primitives"
-this_file: "specifications/86-auth-primitives/start.md"
+spec_directory: "specifications/completed/86-auth-primitives"
+this_file: "specifications/completed/86-auth-primitives/start.md"
 created: 2026-11-15
 ---
 
@@ -10,11 +10,11 @@ created: 2026-11-15
 ## Agent Workflow
 
 1. Read `requirements.md` in full. Section 3 is the design and section 7 is the task list.
-2. Read `../81-foundation-auth/requirements.md` sections 4 and 7. Spec 81 keeps the signed
+2. Read `../../81-foundation-auth/requirements.md` sections 4 and 7. Spec 81 keeps the signed
    secrets, the key files and the provider set; it does not own the blocks of this spec.
 3. Read `../87-mutual-tls/requirements.md` section 4. The mTLS provider implements the
    `ClientAuth` trait of this specification.
-4. Read `../77-foundation-platform-sandbox/features/00-contract/feature.md` section 6.10 and
+4. Read `../../77-foundation-platform-sandbox/features/00-contract/feature.md` section 6.10 and
    `features/02-control-plane-core/feature.md` section 6.10. They are the two places that
    delete their own secret type and bearer parser.
 5. Read `backends/foundation_auth/src/shared/types.rs`, `shared/middleware.rs`,

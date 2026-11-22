@@ -1,6 +1,6 @@
 # Requirements: Spec 89, MIME Types
 
-_Status: **approved 2026-11-16; implemented in feature 01**. Written in ASD-STE100
+_Status: **completed; merged into master as `23c5e6dae`**. Written in ASD-STE100
 Simplified Technical English (STE). Code and identifiers do not change._
 
 ## Glossary

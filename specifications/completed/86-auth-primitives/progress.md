@@ -1,8 +1,8 @@
 # Spec 86 Progress: Auth Primitives
 
-_Last updated: 2026-11-22._
+_Last updated: 2026-11-23._
 
-**Merged.** This specification is in master as `25d1e699c` (#676).
+**Completed.** All tasks are done. Merged into master as `25d1e699c` (#676).
 
 **Abbreviations.** Continuous integration (CI); Application programming
 interface (API); mutual Transport Layer Security (mTLS); Rust package (crate).

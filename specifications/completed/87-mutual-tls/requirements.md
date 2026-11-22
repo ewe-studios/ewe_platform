@@ -6,7 +6,7 @@ created: 2026-11-15
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-22
+  last_updated: 2026-11-23
   estimated_effort: "large"
   tags:
     - mtls
@@ -23,15 +23,15 @@ metadata:
   tools: []
 has_features: false
 has_fundamentals: false
-builds_on: "specifications/86-auth-primitives"
+builds_on: "specifications/completed/86-auth-primitives"
 related_specs:
   - "specifications/81-foundation-auth"
-  - "specifications/86-auth-primitives"
+  - "specifications/completed/86-auth-primitives"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/completed/80-platform-prerequisites"
-  - "specifications/84-context-injection"
+  - "specifications/completed/84-context-injection"
 tasks:
   completed: 6
   uncompleted: 0

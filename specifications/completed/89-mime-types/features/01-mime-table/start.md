@@ -5,8 +5,8 @@ _Brief for one implementation agent. Written in ASD-STE100 Simplified Technical 
 
 ## What to read first
 
-1. `/Users/darkvoid/Dev/ewe_platform/.claude/worktrees/spec-89-mime-types/specifications/89-mime-types/requirements.md`
-2. `.../specifications/89-mime-types/features/01-mime-table/feature.md` (the design and the tasks)
+1. `/Users/darkvoid/Dev/ewe_platform/.claude/worktrees/spec-89-mime-types/specifications/completed/89-mime-types/requirements.md`
+2. `.../specifications/completed/89-mime-types/features/01-mime-table/feature.md` (the design and the tasks)
 3. `CLAUDE.md` and `.agents/AGENTS.md` at the repository root
 
 The owner approved this plan on 2026-11-16 with two answers: the table is a `phf::Map`, and an
@@ -51,7 +51,7 @@ Run each task in order. Run the command in the task before you start the next on
 4. Write the tests and fixtures in feature section 7. The duplicate-key test cannot be a
    normal test: it must fail the build. Prove it by running `cargo build` on a temporary
    probe crate under `/tmp`, capture the error, and record the command and the message in
-   `LEARNINGS.md` under `specifications/89-mime-types/`. Do not add a compile-fail test
+   `LEARNINGS.md` under `specifications/completed/89-mime-types/`. Do not add a compile-fail test
    framework.
 5. Verify: `cargo test -p foundation_macros --profile uat --test include_json`.
 
@@ -96,8 +96,8 @@ or a map key is an error. Verify: `cargo test -p foundation_macros --profile uat
    dev-dependency.
 2. Add the four entries to the root `[workspace.dependencies]`.
 3. Bump the versions and every consumer requirement as feature section 6.7 names.
-4. Update `specifications/89-mime-types/progress.md` and write
-   `specifications/89-mime-types/LEARNINGS.md`.
+4. Update `specifications/completed/89-mime-types/progress.md` and write
+   `specifications/completed/89-mime-types/LEARNINGS.md`.
 5. Verify: the full verify block of feature section 8, plus `cargo fmt --all -- --check`.
 
 ## Rules you must keep

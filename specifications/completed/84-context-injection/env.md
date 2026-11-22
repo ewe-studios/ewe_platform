@@ -1,6 +1,6 @@
 # Side effects and the `Env` bundle
 
-_Part of [spec 84](./requirements.md); the shared architecture is [agent-rpc-architecture.md](../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [spec 84](./requirements.md); the shared architecture is [agent-rpc-architecture.md](../../83-agent-rpc-serving-system/agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 ## Revision 2 (2026-11-15)
@@ -34,7 +34,7 @@ Query Language (SQL); Hypertext Transfer Protocol (HTTP); JavaScript Object Nota
 store (KV); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
 STE standard ASD-STE100. D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
 abbreviations. The
-[glossary in agent-rpc-architecture.md](../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
+[glossary in agent-rpc-architecture.md](../../83-agent-rpc-serving-system/agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What a side effect is
 
@@ -1055,7 +1055,7 @@ Some libraries read randomness themselves. This table says which steps can use t
 | Time in JWT checks | `jwt-simple` | its own clock (`coarsetime`) | yes, with a change | Set `VerificationOptions::artificial_time` from `Env::wall_now()` on each check. |
 
 `p256` and `ed25519-compact` are pure Rust. `jwt-simple` already brings them into the
-dependency graph, and both build for wasm. [auth.md](../81-foundation-auth/features/00-foundation-auth/auth.md) shows the signer code.
+dependency graph, and both build for wasm. [auth.md](../../81-foundation-auth/features/00-foundation-auth/auth.md) shows the signer code.
 
 ## 9. The input/output seams
 

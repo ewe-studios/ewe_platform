@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/84-context-injection"
-this_file: "specifications/84-context-injection/start.md"
+spec_directory: "specifications/completed/84-context-injection"
+this_file: "specifications/completed/84-context-injection/start.md"
 created: 2026-11-15
 ---
 

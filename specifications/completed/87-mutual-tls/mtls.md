@@ -298,7 +298,7 @@ true. The `DELETE` of expired rows moves out of this call into `prune`, which th
 on a timer (`TrustConfig::prune_interval`).
 
 The SQL is portable to Postgres except the `?` placeholders. foundation_db has no Postgres
-backend (owner decision 7 in [feature.md](../83-agent-rpc-serving-system/agent-rpc-architecture.md): a separate feature).
+backend (owner decision 7 in [feature.md](../../83-agent-rpc-serving-system/agent-rpc-architecture.md): a separate feature).
 
 ### 2.3 `KvTrustStore<K: KeyValueStore>`
 

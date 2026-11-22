@@ -1,8 +1,8 @@
 # Spec 84 Progress: Context Injection
 
-_Last updated: 2026-11-22._
+_Last updated: 2026-11-23._
 
-**Merged.** This specification is in master as `ca83b5115` (#679).
+**Completed.** All tasks are done. Merged into master as `ca83b5115` (#679).
 
 ## Status at a glance
 

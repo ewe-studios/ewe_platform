@@ -1,12 +1,12 @@
 ---
 description: "The small auth types that every server needs and no server should define twice: one redacted Secret, one bearer parser, one constant-time comparison, AuthInfo and the ClientAuth trait with a static-token provider. They live in foundation_auth; spec 81, spec 77 and spec 83 build on them."
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-11-15
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-11-15
+  last_updated: 2026-11-23
   estimated_effort: "small"
   tags:
     - auth
@@ -21,19 +21,19 @@ metadata:
   tools: []
 has_features: false
 has_fundamentals: false
-builds_on: "specifications/84-context-injection"
+builds_on: "specifications/completed/84-context-injection"
 related_specs:
   - "specifications/81-foundation-auth"
-  - "specifications/87-mutual-tls"
+  - "specifications/completed/87-mutual-tls"
   - "specifications/77-foundation-platform-sandbox"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/82-proxy-registration-and-registrar"
   - "specifications/48-foundation-auth-app"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Auth Primitives

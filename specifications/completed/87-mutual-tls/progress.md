@@ -1,8 +1,8 @@
 # Spec 87 Progress: Mutual TLS
 
-_Last updated: 2026-11-22._
+_Last updated: 2026-11-23._
 
-**Merged.** This specification is in master as `0b257b086` (#683).
+**Completed.** All tasks are done. Merged into master as `0b257b086` (#683).
 
 ## Status at a glance
 
