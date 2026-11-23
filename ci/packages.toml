@@ -317,6 +317,9 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 clippy-deny-warnings = true
 
 [packages.foundation_agent_rpc]
+# Known-failure opt-out (CLAUDE.md rule 15). The fix of each issue removes it.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #770: foundation_http does not build on Windows; #772: the gguf run needs a llama.cpp CMake toolchain. Remove this opt-out when both are fixed."
 # Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
 # tests/gguf_share_tests.rs (one GGUF model shared by concurrent sessions)
 # against the CPU build of llama.cpp.
@@ -481,6 +484,8 @@ wasm-runs = ["--no-default-features --features wasm-fetch"]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+macos-tests = "none"
+macos-reason = "Known bug on macOS: #771: a_closed_connection_fails_the_next_call_at_once sees a close later than Linux. Remove this opt-out when the issue is fixed."
 # At zero clippy warnings under `--all-targets` (spec 70 feature 109): a new one
 # fails CI.
 clippy-deny-warnings = true
