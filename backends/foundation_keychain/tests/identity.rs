@@ -62,6 +62,7 @@ fn register_req(email: &str, password_hash: &str) -> RegisterRequest {
         master_password_hash: password_hash.into(),
         master_password_hint: None,
         key: Some("2.userkey|wrapped".into()),
+        keys: None,
         kdf: Some(KdfType::Pbkdf2Sha256),
         kdf_iterations: Some(600_000),
         kdf_memory: None,

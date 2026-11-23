@@ -29,6 +29,9 @@ pub struct UserAccount {
     /// profile to get the user key for decryption.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
+    /// The account RSA private key, protected by the user key.
+    #[serde(rename = "privateKey", skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
     pub name: Option<String>,
     pub email_verified: bool,
     pub culture: String,
@@ -45,10 +48,22 @@ pub struct RegisterRequest {
     pub master_password_hash: String,
     pub master_password_hint: Option<String>,
     pub key: Option<String>,
+    /// The account key pair, made by the client at registration.
+    pub keys: Option<RegisterKeys>,
     pub kdf: Option<KdfType>,
     pub kdf_iterations: Option<i32>,
     pub kdf_memory: Option<i32>,
     pub kdf_parallelism: Option<i32>,
+}
+
+/// The account key pair that the client makes at registration.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegisterKeys {
+    /// Base64 DER of the account RSA public key.
+    pub public_key: String,
+    /// The account RSA private key, protected by the user key.
+    pub encrypted_private_key: String,
 }
 
 #[derive(Debug, Serialize)]

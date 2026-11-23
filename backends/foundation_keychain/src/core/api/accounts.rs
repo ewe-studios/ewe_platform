@@ -51,6 +51,7 @@ fn to_account(row: &UserRow) -> UserAccount {
         id: row.uuid.clone(),
         email: row.email.clone(),
         key: row.akey.clone(),
+        private_key: row.encrypted_private_key.clone(),
         name: row.name.clone(),
         email_verified: row.email_verified,
         culture: DEFAULT_CULTURE.to_string(),
@@ -65,7 +66,7 @@ fn to_profile(row: &UserRow) -> ProfileResponse {
         id: row.uuid.clone(),
         email: row.email.clone(),
         key: row.akey.clone(),
-        private_key: None,
+        private_key: row.encrypted_private_key.clone(),
         name: row.name.clone(),
         email_verified: row.email_verified,
         culture: DEFAULT_CULTURE.to_string(),
@@ -137,6 +138,11 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
         password_iterations: i64::from(crypto::SERVER_ITERATIONS),
         security_stamp: crypto::new_uuid_v4()?.to_string(),
         akey: req.key,
+        public_key: req.keys.as_ref().map(|keys| keys.public_key.clone()),
+        encrypted_private_key: req
+            .keys
+            .as_ref()
+            .map(|keys| keys.encrypted_private_key.clone()),
         client_kdf_type: kdf as i64,
         client_kdf_iter: i64::from(req.kdf_iterations.unwrap_or(DEFAULT_KDF_ITERATIONS)),
         client_kdf_memory: req.kdf_memory.map(i64::from),

@@ -6004,7 +6004,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_keychain"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "aes 0.8.4",
  "age",

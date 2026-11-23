@@ -18,6 +18,7 @@
 // trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
 #![recursion_limit = "256"]
 
+use base64::Engine as _;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::sync::Arc;
@@ -100,6 +101,9 @@ fn form_encode_escapes_base64_and_email_characters() {
 }
 
 const PASSWORD: &str = "correct-horse-battery-staple";
+/// The account RSA key pair that a real client makes at registration.
+const ACCOUNT_PRIVATE_DER: &[u8] = include_bytes!("fixtures/bw-account-private.der");
+const ACCOUNT_PUBLIC_DER: &[u8] = include_bytes!("fixtures/bw-account-public.der");
 
 /// The Bitwarden master key: PBKDF2-SHA256 of the password, salted by the email.
 fn master_key(email: &str, password: &str) -> [u8; 32] {
@@ -128,7 +132,6 @@ fn stretched_master_key(mk: &[u8; 32]) -> [u8; 64] {
 /// A Bitwarden type-2 `EncString`: `2.<iv>|<ciphertext>|<mac>`.
 fn encrypt_enc_string(stretched: &[u8; 64], plaintext: &[u8]) -> String {
     use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
-    use base64::Engine as _;
     use hmac::{Hmac, Mac};
     use sha2::Sha256;
 
@@ -251,7 +254,13 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     // The protected user key that a real client receives at login: 64 bytes
     // encrypted under the stretched master key, as a type-2 EncString.
     let stretched = stretched_master_key(&master_key(&email, PASSWORD));
-    let akey = encrypt_enc_string(&stretched, &[0x5a; 64]);
+    // The user key is a 64-byte AES256-CBC-HMAC key: 32 bytes for encryption
+    // and 32 for the MAC.
+    let user_key = [0x5a_u8; 64];
+    let akey = encrypt_enc_string(&stretched, &user_key);
+    // The account private key is protected by the user key itself.
+    let encrypted_private_key = encrypt_enc_string(&user_key, ACCOUNT_PRIVATE_DER);
+    let public_key = base64::engine::general_purpose::STANDARD.encode(ACCOUNT_PUBLIC_DER);
 
     let (s, b) = http_req(
         "POST",
@@ -260,6 +269,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         &serde_json::to_string(&serde_json::json!({
             "name":"E2E","email":&email,"masterPasswordHash":&hash,
             "kdf":0,"kdfIterations":600_000,"key":&akey,
+            "keys": { "publicKey": &public_key, "encryptedPrivateKey": &encrypted_private_key },
         }))
         .unwrap(),
         "application/json",
@@ -332,12 +342,35 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     let session = login.stdout.trim().to_string();
     assert!(!session.is_empty(), "bw login returns a session key");
 
-    // `bw unlock` and the CLI's vault commands need the account's RSA private
-    // key, which this proof-of-concept server does not store (issue #773).
-    // Login itself proves that the token response is compatible with the real
-    // client: it derives the master key, decrypts the user key and accepts it.
+    let unlock = bw
+        .exec(&["bw", "unlock", PASSWORD, "--raw", "--session", &session])
+        .expect("bw unlock runs");
+    assert!(
+        unlock.success(),
+        "bw unlock (exit {}):\nstdout: {}\nstderr: {}",
+        unlock.exit_code,
+        unlock.stdout,
+        unlock.stderr
+    );
+    let session = unlock.stdout.trim().to_string();
+    assert!(!session.is_empty(), "bw unlock returns a session key");
 
+    let list = bw
+        .exec(&["bw", "list", "items", "--session", &session])
+        .expect("bw list runs");
+    assert!(
+        list.success(),
+        "bw list (exit {}):\nstdout: {}\nstderr: {}",
+        list.exit_code,
+        list.stdout,
+        list.stderr
+    );
+
+    // `bw create item` fails inside the CLI's SDK with "invalid type: unit
+    // value, expected a boolean", even with the CLI's own item template. The
+    // read path works, so this is a writer-state field the SDK requires; issue
+    // #773 records it with the exact error.
     println!(
-        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → real CLI login — all passed"
+        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → CLI login → unlock → list — all passed"
     );
 }

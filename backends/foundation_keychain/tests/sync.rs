@@ -87,6 +87,7 @@ fn sync_returns_profile_folders_and_ciphers() {
                 master_password_hash: "h".into(),
                 master_password_hint: None,
                 key: Some("2.key|enc".into()),
+                keys: None,
                 kdf: Some(KdfType::Pbkdf2Sha256),
                 kdf_iterations: Some(600_000),
                 kdf_memory: None,
