@@ -106,10 +106,24 @@ impl RegistrationAuthority {
         ctx: Ctx,
         shutdown: Arc<ShutdownSignal>,
     ) -> Result<Arc<Self>, RegistrationAuthorityError> {
-        let state_dir = config
-            .state_dir
-            .clone()
-            .unwrap_or_else(|| std::env::temp_dir().join("ewe_proxy_registration"));
+        let state_dir = match &config.state_dir {
+            Some(dir) => dir.clone(),
+            None if config.allow_ephemeral_state => {
+                tracing::warn!(
+                    "the registration authority uses a temporary state directory; \
+                     the CA, the trust store and the token key are lost at reboot"
+                );
+                std::env::temp_dir().join("ewe_proxy_registration")
+            }
+            None => {
+                return Err(RegistrationAuthorityError::Config(
+                    "RegistrationConfig::state_dir is required: the registration CA, the trust \
+                     store and the enrollment-token key must survive a restart. Set a real \
+                     directory, or set allow_ephemeral_state for a test"
+                        .to_string(),
+                ));
+            }
+        };
 
         // 1. The registration certificate authority.
         let (ca, _fresh) = CaStore::file(state_dir.join(CA_DIR))
@@ -198,7 +212,10 @@ impl RegistrationAuthority {
 
         #[cfg(unix)]
         let unix = match &config.unix_socket {
-            Some(path) => Some(Arc::new(UnixSocketAcceptor::bind(path)?)),
+            Some(path) => Some(Arc::new(UnixSocketAcceptor::bind_with_group(
+                path,
+                config.unix_socket_group,
+            )?)),
             None => None,
         };
         #[cfg(not(unix))]

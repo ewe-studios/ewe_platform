@@ -36,6 +36,11 @@ pub struct RegistrationConfig {
     /// Optional same-machine Unix socket (section 5.5). `None` turns it off.
     #[serde(default)]
     pub unix_socket: Option<PathBuf>,
+    /// The group identifier (GID) of the Unix socket file. `None` uses the
+    /// proxy process's effective GID. Set a shared group so a sidecar that runs
+    /// as another user can connect.
+    #[serde(default)]
+    pub unix_socket_group: Option<u32>,
     /// How often sidecars report. Default 10 s: the default `periodSeconds`
     /// of a Kubernetes probe.
     #[serde(default = "default_report_interval", with = "duration_millis")]
@@ -67,11 +72,15 @@ pub struct RegistrationConfig {
     pub client_cert_lifetime: Duration,
     /// Where the registration certificate authority (CA) key, the CA
     /// certificate, the trusted-client store and the enrollment-token key seed
-    /// live. `None` uses `std::env::temp_dir()/ewe_proxy_registration`; set a
-    /// real directory in production so the trust store and the token key
-    /// survive a restart.
+    /// live. A set directory is required: the CA and the trust store must
+    /// survive a restart, or every sidecar fails its next handshake.
     #[serde(default)]
     pub state_dir: Option<PathBuf>,
+    /// Accept a temporary state directory when [`Self::state_dir`] is not set.
+    /// Default `false`. A test or a short demo sets it; it never belongs in a
+    /// real deployment.
+    #[serde(default)]
+    pub allow_ephemeral_state: bool,
     /// The audience that an enrollment token carries: the registration URL.
     /// `None` = the token carries no audience. The verifier requires the same
     /// value, so a token made for one proxy does not enroll on another.
@@ -103,6 +112,7 @@ impl Default for RegistrationConfig {
             bind: None,
             enrollment_bind: None,
             unix_socket: None,
+            unix_socket_group: None,
             report_interval: default_report_interval(),
             lease_ttl: default_lease_ttl(),
             stale_remove_after: default_stale_remove_after(),
@@ -112,6 +122,7 @@ impl Default for RegistrationConfig {
             max_request_bytes: default_max_request_bytes(),
             client_cert_lifetime: default_client_cert_lifetime(),
             state_dir: None,
+            allow_ephemeral_state: false,
             public_url: None,
             server_names: default_server_names(),
             server_cert_lifetime: default_server_cert_lifetime(),
@@ -147,6 +158,14 @@ impl RegistrationConfig {
     #[must_use]
     pub fn with_unix_socket(mut self, path: impl Into<PathBuf>) -> Self {
         self.unix_socket = Some(path.into());
+        self
+    }
+
+    /// Set the group identifier (GID) of the Unix socket file. Default: the
+    /// proxy process's effective GID.
+    #[must_use]
+    pub fn with_unix_socket_group(mut self, group: u32) -> Self {
+        self.unix_socket_group = Some(group);
         self
     }
 
@@ -210,6 +229,13 @@ impl RegistrationConfig {
     #[must_use]
     pub fn with_state_dir(mut self, dir: impl Into<PathBuf>) -> Self {
         self.state_dir = Some(dir.into());
+        self
+    }
+
+    /// Accept a temporary state directory when no `state_dir` is set.
+    #[must_use]
+    pub fn with_allow_ephemeral_state(mut self, allow: bool) -> Self {
+        self.allow_ephemeral_state = allow;
         self
     }
 

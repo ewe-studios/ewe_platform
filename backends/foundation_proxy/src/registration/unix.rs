@@ -47,12 +47,25 @@ impl UnixSocketAcceptor {
     /// [`RegistrationAuthorityError::Socket`] when the directory refuses the
     /// file, the bind fails, or the owner, group or mode is wrong.
     pub fn bind(path: impl Into<PathBuf>) -> Result<Self, RegistrationAuthorityError> {
+        Self::bind_with_group(path, None)
+    }
+
+    /// Bind the socket and give it `group` (a GID). `None` keeps the process's
+    /// effective GID. The process must belong to `group`, unless it is root.
+    ///
+    /// # Errors
+    /// [`RegistrationAuthorityError::Socket`] when the bind, the mode, the
+    /// group or the owner is wrong.
+    pub fn bind_with_group(
+        path: impl Into<PathBuf>,
+        group: Option<u32>,
+    ) -> Result<Self, RegistrationAuthorityError> {
         let path = path.into();
         let _ = std::fs::remove_file(&path);
         let listener = UnixListener::bind(&path).map_err(|e| {
             RegistrationAuthorityError::Socket(format!("bind {}: {e}", path.display()))
         })?;
-        if let Err(error) = set_mode_and_check(&path) {
+        if let Err(error) = set_mode_and_check(&path, group) {
             let _ = std::fs::remove_file(&path);
             return Err(error);
         }
@@ -95,13 +108,39 @@ impl Drop for UnixSocketAcceptor {
     }
 }
 
-/// Set mode `0o660` and refuse a wrong owner, group or mode.
-fn set_mode_and_check(path: &Path) -> Result<(), RegistrationAuthorityError> {
+/// Set mode `0o660`, move the file to `group`, and refuse a wrong owner,
+/// group or mode.
+fn set_mode_and_check(path: &Path, group: Option<u32>) -> Result<(), RegistrationAuthorityError> {
+    use std::os::unix::ffi::OsStrExt as _;
     use std::os::unix::fs::{MetadataExt, PermissionsExt};
 
     std::fs::set_permissions(path, std::fs::Permissions::from_mode(SOCKET_MODE)).map_err(|e| {
         RegistrationAuthorityError::Socket(format!("chmod {}: {e}", path.display()))
     })?;
+    // SAFETY: `geteuid` and `getegid` read process state and take no pointer.
+    let (uid, gid) = unsafe { (libc::geteuid(), libc::getegid()) };
+    let expected_gid = group.unwrap_or(gid);
+    if expected_gid != gid {
+        // The owner stays the process; only the group changes. A process can
+        // move a file to a group that it belongs to, and root can move it to
+        // any group.
+        let c_path = std::ffi::CString::new(path.as_os_str().as_bytes()).map_err(|_| {
+            RegistrationAuthorityError::Socket(format!(
+                "{} has a NUL byte in its path",
+                path.display()
+            ))
+        })?;
+        // SAFETY: `c_path` is a valid null-terminated string that lives for the
+        // call; `chown` reads it and the two ids.
+        let changed = unsafe { libc::chown(c_path.as_ptr(), uid, expected_gid) };
+        if changed != 0 {
+            return Err(RegistrationAuthorityError::Socket(format!(
+                "chown {} to group {expected_gid}: {}",
+                path.display(),
+                std::io::Error::last_os_error()
+            )));
+        }
+    }
     let metadata = std::fs::metadata(path)
         .map_err(|e| RegistrationAuthorityError::Socket(format!("stat {}: {e}", path.display())))?;
     let mode = metadata.mode() & 0o777;
@@ -111,11 +150,9 @@ fn set_mode_and_check(path: &Path) -> Result<(), RegistrationAuthorityError> {
             path.display()
         )));
     }
-    // SAFETY: `geteuid` and `getegid` read process state and take no pointer.
-    let (uid, gid) = unsafe { (libc::geteuid(), libc::getegid()) };
-    if metadata.uid() != uid || metadata.gid() != gid {
+    if metadata.uid() != uid || metadata.gid() != expected_gid {
         return Err(RegistrationAuthorityError::Socket(format!(
-            "{} is owned by {}/{}; the proxy runs as {uid}/{gid}",
+            "{} is owned by {}/{}; the proxy runs as {uid}/{expected_gid}",
             path.display(),
             metadata.uid(),
             metadata.gid()

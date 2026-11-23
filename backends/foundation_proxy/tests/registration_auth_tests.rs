@@ -437,3 +437,93 @@ fn a_token_issued_before_a_restart_still_enrolls() {
     second_shutdown.turn_on();
     second.stop();
 }
+
+#[test]
+#[cfg(unix)]
+fn a_unix_socket_uses_the_configured_group() {
+    use std::os::unix::fs::MetadataExt as _;
+
+    let dir = TempDir::new().expect("temp dir");
+    let path = dir.path().join("reg.sock");
+    // SAFETY: `getegid` reads process state and takes no pointer.
+    let gid = unsafe { libc::getegid() };
+    let _acceptor =
+        foundation_proxy::registration::UnixSocketAcceptor::bind_with_group(&path, Some(gid))
+            .expect("bind socket");
+    assert_eq!(
+        std::fs::metadata(&path).expect("socket metadata").gid(),
+        gid
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn root_can_give_the_socket_another_group() {
+    use std::os::unix::fs::MetadataExt as _;
+
+    // SAFETY: `geteuid` reads process state and takes no pointer.
+    if unsafe { libc::geteuid() } != 0 {
+        eprintln!("skip: not root, so the test cannot move the file to another group");
+        return;
+    }
+    let dir = TempDir::new().expect("temp dir");
+    let path = dir.path().join("reg.sock");
+    let _acceptor =
+        foundation_proxy::registration::UnixSocketAcceptor::bind_with_group(&path, Some(65534))
+            .expect("bind socket");
+    assert_eq!(
+        std::fs::metadata(&path).expect("socket metadata").gid(),
+        65534
+    );
+}
+
+#[test]
+fn the_registration_state_directory_is_required() {
+    let _guard = initialize_pool(111, Some(8));
+    let base = vec![Arc::new(ServiceRuntime::new(ServiceConfig::new(
+        SERVICE, HOST,
+    )))];
+    let router = RouterHandle::new(Arc::new(Router::new(base.clone())));
+    let config = RegistrationConfig::new();
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let ctx = Ctx::host();
+    foundation_core::env::install(&ctx, foundation_core::env::system).expect("host env");
+    let result = block_on(RegistrationAuthority::start(
+        &config,
+        base,
+        router,
+        ctx,
+        Arc::clone(&shutdown),
+    ));
+    assert!(
+        matches!(
+            result,
+            Err(foundation_proxy::registration::RegistrationAuthorityError::Config(_))
+        ),
+        "a missing state directory must be a typed config error"
+    );
+    shutdown.turn_on();
+}
+
+#[test]
+fn an_ephemeral_state_directory_needs_the_flag() {
+    let _guard = initialize_pool(112, Some(8));
+    let base = vec![Arc::new(ServiceRuntime::new(ServiceConfig::new(
+        SERVICE, HOST,
+    )))];
+    let router = RouterHandle::new(Arc::new(Router::new(base.clone())));
+    let config = RegistrationConfig::new().with_allow_ephemeral_state(true);
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let ctx = Ctx::host();
+    foundation_core::env::install(&ctx, foundation_core::env::system).expect("host env");
+    let authority = block_on(RegistrationAuthority::start(
+        &config,
+        base,
+        router,
+        ctx,
+        Arc::clone(&shutdown),
+    ))
+    .expect("an ephemeral state directory is accepted when the flag is set");
+    shutdown.turn_on();
+    authority.stop();
+}

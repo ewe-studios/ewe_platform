@@ -177,3 +177,15 @@ skips with a printed reason when it cannot.
 The test passes on a host that runs Docker directly, and in a Linux `ci`
 container started without `--network` (verified with the amd64 image and the
 host socket). Task T10 is verified on those topologies.
+
+## Follow-ups from the open issues (2026-11-23)
+
+- **#767.** `unix_socket_group` in `RegistrationConfig` sets the socket file's
+  group. `UnixSocketAcceptor::bind_with_group` moves the file to that group and
+  checks the owner, the group and the mode. Tests cover the configured group and
+  the root-only move to another group.
+- **#768.** A `state_dir` is now required. Without it, a start is a typed
+  `Config` error. `allow_ephemeral_state` accepts the temporary directory for a
+  test or a demo, and logs a warning.
+- **#769** is fixed: the generator emits `Vec<T>` for an array response of a
+  generated type, and the Docker client uses its generated summary types.
