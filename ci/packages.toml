@@ -317,6 +317,11 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 clippy-deny-warnings = true
 
 [packages.foundation_agent_rpc]
+# The default tests run on Windows. The `gguf` run waits for #772: the Windows
+# llama.cpp build still fails on a C-runtime mismatch with `esaxx-rs` and on a
+# generated `build-info.cpp` that is not linked. Remove this line when #772 is
+# fixed.
+windows-runs = [""]
 # Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
 # tests/gguf_share_tests.rs (one GGUF model shared by concurrent sessions)
 # against the CPU build of llama.cpp.
