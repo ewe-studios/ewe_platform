@@ -697,19 +697,14 @@ fn main() {
     // the link with LNK2038. Match the Rust side.
     #[cfg(windows)]
     {
-        // llama.cpp declares `cmake_minimum_required` below 3.15, so policy
-        // CMP0091 is OLD and ignores `CMAKE_MSVC_RUNTIME_LIBRARY`. Turn the
-        // policy on so the runtime choice takes effect.
-        config.define("CMAKE_POLICY_DEFAULT_CMP0091", "NEW");
+        // The fragment runs after `project()` and sets policy CMP0091 and the
+        // static runtime, which llama.cpp's low `cmake_minimum_required` would
+        // otherwise ignore.
+        let fragment = Path::new(&manifest_dir).join("msvc_static_runtime.cmake");
         config.define(
-            "CMAKE_MSVC_RUNTIME_LIBRARY",
-            "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+            "CMAKE_PROJECT_TOP_LEVEL_INCLUDES",
+            fragment.to_string_lossy().to_string(),
         );
-        // `esaxx-rs` compiles with `/MT`; force the same flag into llama.cpp's
-        // own compile lines. A changed flag line makes MSBuild rebuild the
-        // objects, so no clean step is needed.
-        config.cflag("/MT");
-        config.cxxflag("/MT");
     }
 
     // Would require extra source files to pointlessly
@@ -1059,6 +1054,26 @@ fn main() {
     }
 
     let build_dir = config.build();
+
+    // `llama-common-base` holds the generated `build-info.cpp` object. It is an
+    // internal CMake target, and the install step may not copy it; without it
+    // the four `llama_build_*` symbols are unresolved on Windows. Copy it next
+    // to the other libraries before their names are collected.
+    #[cfg(windows)]
+    {
+        let pattern = out_dir.join("build/**/llama-common-base.lib");
+        if let Ok(paths) = glob::glob(pattern.to_string_lossy().as_ref()) {
+            if let Some(Ok(path)) = paths.flatten().next() {
+                let dest = out_dir.join("lib").join("llama-common-base.lib");
+                if let Some(parent) = dest.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                if !dest.exists() {
+                    std::fs::copy(&path, &dest).expect("copy llama-common-base.lib");
+                }
+            }
+        }
+    }
 
     // Search paths
     println!(

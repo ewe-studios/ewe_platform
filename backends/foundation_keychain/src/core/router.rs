@@ -133,7 +133,18 @@ pub async fn route(
                     },
                     "object": "environment",
                 },
-                "featureStates": {},
+                // The client gates the SDK cipher paths on these. A self-hosted
+                // proof-of-concept server disables them, so the client uses
+                // its legacy path with complete view data.
+                "featureStates": {
+                    "pm-27632-cipher-crud-operations-to-sdk": false,
+                    "pm-28190-cipher-sharing-ops-to-sdk": false,
+                    "pm-28191-cipher-admin-ops-to-sdk": false,
+                    "pm-28192-cipher-attachment-ops-to-sdk": false,
+                    "pm-22134-sdk-cipher-list-view": false,
+                    "pm-32009-new-item-types": false,
+                    "cipher-key-encryption": false,
+                },
                 "object": "config",
             }),
         ));
