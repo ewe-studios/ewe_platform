@@ -317,9 +317,6 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 clippy-deny-warnings = true
 
 [packages.foundation_agent_rpc]
-# Known-failure opt-out (CLAUDE.md rule 15). The fix of each issue removes it.
-windows-tests = "none"
-windows-reason = "Known bug on Windows: #770: foundation_http does not build on Windows; #772: the gguf run needs a llama.cpp CMake toolchain. Remove this opt-out when both are fixed."
 # Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
 # tests/gguf_share_tests.rs (one GGUF model shared by concurrent sessions)
 # against the CPU build of llama.cpp.

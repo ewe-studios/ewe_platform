@@ -352,6 +352,14 @@ fn main() {
     ensure_llama_sources(Path::new(&llama_dir), Path::new(&manifest_dir));
     let llama_src =
         std::fs::canonicalize(Path::new(&llama_dir)).expect("failed to collect LLAMA_DIR path");
+    // `std::fs::canonicalize` returns an extended-length path (`\\?\...`) on
+    // Windows. MSVC cannot open a source file through that prefix and reports
+    // `error C1083`, so CMake gets the plain path.
+    #[cfg(windows)]
+    let llama_src = match llama_src.to_string_lossy().strip_prefix("\\\\?\\") {
+        Some(plain) => std::path::PathBuf::from(plain),
+        None => llama_src,
+    };
 
     let llama_tools_directory = llama_src.join("tools");
     let llama_mtmh_directory = llama_tools_directory.join("mtmd");
