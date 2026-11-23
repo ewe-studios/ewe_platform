@@ -327,7 +327,7 @@ docker_ws = []
 [package]
 description = "Docker Engine API v1.53 client over DynNetClient + valtron (bollard-free)"
 name = "foundation_deployment_docker"
-version = "0.1.7"
+version = "0.1.8"
 
 [package.authors]
 workspace = true

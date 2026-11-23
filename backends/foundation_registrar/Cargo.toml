@@ -24,7 +24,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.16", features 
 # The generated registration client and the gRPC health probe.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16" }
 # Docker discovery and stats through the generated client.
-foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.7", features = ["docker"] }
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
 # SIGTERM and SIGHUP reception for the binary's lifecycle.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15" }
 # Runtime for the buffa-generated registration messages (same version as the

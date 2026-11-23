@@ -5765,7 +5765,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_docker"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "base85rs",
  "buffa",
