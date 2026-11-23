@@ -692,6 +692,15 @@ fn main() {
 
     let mut config = Config::new(&llama_src);
 
+    // The Rust static library on Windows uses the static C runtime
+    // (`MT`/`MTd`), and objects built against the dynamic runtime (`MD`) fail
+    // the link with LNK2038. Match the Rust side.
+    #[cfg(windows)]
+    config.define(
+        "CMAKE_MSVC_RUNTIME_LIBRARY",
+        "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+    );
+
     // Would require extra source files to pointlessly
     // be included in what's uploaded to and downloaded from
     // crates.io, so deactivating these instead
