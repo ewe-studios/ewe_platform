@@ -1,3 +1,4 @@
+#![cfg(unix)]
 //! T9 — the bootstrap payload: base64 + QR, and a client that connects from
 //! the payload alone.
 

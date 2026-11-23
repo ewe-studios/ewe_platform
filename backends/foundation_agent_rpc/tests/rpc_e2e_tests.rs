@@ -1,3 +1,4 @@
+#![cfg(unix)]
 //! T10 — end to end over gRPC and gRPC-Web (Connect is covered by
 //! `connect_unary_tests` / `connect_stream_tests`), unary and streaming, on
 //! real loopback TCP, with `grpc-status` asserted.

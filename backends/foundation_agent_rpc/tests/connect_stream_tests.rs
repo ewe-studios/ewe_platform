@@ -1,3 +1,4 @@
+#![cfg(unix)]
 //! T7 — `ChatStream` over Connect on real loopback TCP, proven unbuffered.
 //!
 //! WHY: a long answer must reach the client token by token, never assembled

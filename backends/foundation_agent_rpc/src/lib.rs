@@ -32,6 +32,9 @@ pub mod instance;
 pub mod model;
 pub mod proto;
 pub mod secret;
+/// The listener needs the native HTTP server, which is Unix only. Every other
+/// platform gets the client, the model and the registry.
+#[cfg(unix)]
 pub mod server;
 pub mod service;
 pub mod trust;
@@ -43,5 +46,6 @@ pub use instance::{
 #[cfg(feature = "gguf")]
 pub use model::GgufDevice;
 pub use model::{ModelHandle, ModelSource};
+#[cfg(unix)]
 pub use server::{AgentRpcServer, AgentRpcServerBuilder, RunningServer};
 pub use service::{agent_router, AgentRpcService, TurnEventStream};
