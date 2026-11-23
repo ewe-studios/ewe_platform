@@ -641,7 +641,10 @@ backends/foundation_registrar/
 - [x] **T10: End to end.** Installer installs a test app with probes; the sidecar registers it; a
       client request reaches it through the proxy; the app is upgraded with no failed request.
       The test uses Docker (the installer's Docker deploy target and `DockerClient`) and prints a
-      skip when Docker is absent. It is gated by the `docker-tests` feature.
+      skip when Docker is absent, or when the test process cannot reach the app container on its
+      Docker network. A continuous-integration (CI) job that runs in a container on a private
+      network cannot reach a container on the default bridge. It is gated by the `docker-tests`
+      feature.
 
 ## 11. Tests
 

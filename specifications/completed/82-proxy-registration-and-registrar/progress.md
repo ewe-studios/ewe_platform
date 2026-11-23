@@ -164,3 +164,16 @@ Open questions: the saved registry (option B), SNI passthrough and shared
 enrollment in `foundation_auth` stay open for later work. Open issues:
 #769 (the generated container-list type), #767 (the Unix socket group check)
 and #768 (the temporary state directory default).
+
+### The Docker end-to-end test and the CI network (2026-11-23)
+
+The GitHub Actions Linux jobs run the tests inside a `ci` container with the
+runner's Docker socket mounted. A `container:` job puts that container on a
+private network, so it cannot reach an app container on the daemon's default
+bridge. The proxy and the sidecar run in the same process, so they would fail
+the same way. The test now checks whether it can reach the app container and
+skips with a printed reason when it cannot.
+
+The test passes on a host that runs Docker directly, and in a Linux `ci`
+container started without `--network` (verified with the amd64 image and the
+host socket). Task T10 is verified on those topologies.

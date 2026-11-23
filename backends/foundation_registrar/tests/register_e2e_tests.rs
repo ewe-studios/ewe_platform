@@ -136,6 +136,36 @@ fn write_sidecar_manifest(path: &std::path::Path, name: &str, version: &str) {
     .expect("write sidecar manifest");
 }
 
+/// Whether this process can reach the app container on its Docker network.
+///
+/// A CI job that runs in a container on a private network cannot reach a
+/// container on the default bridge, even through the same Docker socket. The
+/// test then has no valid topology, so it skips.
+async fn app_container_is_reachable(client: &DockerClient, name: &str) -> bool {
+    let Ok(inspect) = client.inspect_container(name).await else {
+        return false;
+    };
+    let Some(ip) = inspect
+        .network_settings
+        .as_ref()
+        .and_then(|settings| settings.networks.as_ref())
+        .and_then(|networks| networks.as_object())
+        .and_then(|networks| {
+            networks.values().find_map(|network| {
+                network
+                    .get("IPAddress")
+                    .and_then(serde_json::Value::as_str)
+                    .filter(|ip| !ip.is_empty())
+            })
+        })
+        .and_then(|ip| ip.parse::<std::net::IpAddr>().ok())
+    else {
+        return false;
+    };
+    let addr = SocketAddr::new(ip, 5678);
+    std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(2)).is_ok()
+}
+
 async fn wait_for_reply(
     reconciler: &mut Reconciler,
     addr: SocketAddr,
@@ -256,6 +286,18 @@ async fn install_register_and_upgrade_without_a_failed_request() {
         "expected an applied container, got {:?}",
         first.entries[0]
     );
+
+    // A job container on a private network cannot reach the app container on
+    // the daemon's default bridge. The sidecar and the proxy run here too, so
+    // they would fail the same way; skip instead of reporting a timeout.
+    if !app_container_is_reachable(&client, &name).await {
+        eprintln!(
+            "skip: this process cannot reach the app container on its Docker network; \
+             a container-network CI job needs a shared network"
+        );
+        clean_container(&client, &name).await;
+        return;
+    }
 
     // 4. The sidecar discovers, probes, registers and reports the app.
     let api = Arc::new(DockerContainerApi::new(Arc::new(client.clone())));
