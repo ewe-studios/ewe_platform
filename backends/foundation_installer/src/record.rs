@@ -139,6 +139,15 @@ pub struct InstallerLock {
     file: std::fs::File,
 }
 
+/// Whether a failed `try_lock_exclusive` means another holder has the lock.
+///
+/// Unix reports `WouldBlock`. Windows reports `ERROR_LOCK_VIOLATION` (33),
+/// which does not map to `WouldBlock`.
+fn lock_is_held(err: &std::io::Error) -> bool {
+    err.kind() == std::io::ErrorKind::WouldBlock
+        || (cfg!(windows) && err.raw_os_error() == Some(33))
+}
+
 impl InstallerLock {
     /// Take the lock, retrying until `lock_timeout` elapses.
     ///
@@ -170,7 +179,7 @@ impl InstallerLock {
         loop {
             match FileExt::try_lock_exclusive(&file) {
                 Ok(()) => return Ok(Self { file }),
-                Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                Err(err) if lock_is_held(&err) => {
                     if ctx.context().clock().now() >= deadline {
                         return Err(InstallError::Locked(path));
                     }
