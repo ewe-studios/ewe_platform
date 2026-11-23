@@ -116,6 +116,10 @@ pub struct ContainerDeployOutput {
 /// The transport is Unix only. Another operating system gets a typed error, so
 /// the trait implementation still compiles there.
 #[cfg(unix)]
+#[allow(
+    clippy::unnecessary_wraps,
+    reason = "the other platform's version of this function returns an error, so both share one signature"
+)]
 fn container_client(socket_path: &std::path::Path) -> Result<DockerClient, DockerError> {
     Ok(DockerClient::connect_unix(socket_path))
 }
