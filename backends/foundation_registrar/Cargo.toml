@@ -10,6 +10,7 @@ description = "Registrar sidecar: read the manifest, discover and probe the apps
 keywords = ["registrar", "sidecar", "proxy", "registration", "discovery"]
 
 [dependencies]
+derive_more = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["multi"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
@@ -46,7 +47,6 @@ x509-parser = { workspace = true }
 # The `rustls` client configuration type that `foundation_auth` returns.
 rustls = { workspace = true }
 zeroize = "1"
-thiserror = { workspace = true }
 tracing = { workspace = true }
 
 [build-dependencies]

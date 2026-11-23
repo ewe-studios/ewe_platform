@@ -44,14 +44,16 @@ impl CommandOutput {
 }
 
 /// A process could not be run.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("cannot run {program}: {reason}")]
+#[derive(Debug, Clone, PartialEq, Eq, derive_more::Display)]
+#[display("cannot run {program}: {reason}")]
 pub struct CommandError {
     /// The program.
     pub program: String,
     /// The reason from the operating system.
     pub reason: String,
 }
+
+impl std::error::Error for CommandError {}
 
 /// Runs one program with an argument list.
 ///

@@ -144,8 +144,19 @@ async fn wait_for_reply(
     ctx: &foundation_context::Ctx,
 ) -> bool {
     let start = Instant::now();
+    let mut last_error: Option<String> = None;
     while start.elapsed() < timeout {
-        let _ = reconciler.step().await;
+        match reconciler.step().await {
+            Err(error) => {
+                let text = error.to_string();
+                // Name each new failure once. A repeat would flood the log.
+                if last_error.as_deref() != Some(text.as_str()) {
+                    eprintln!("reconciler step error: {text}");
+                    last_error = Some(text);
+                }
+            }
+            Ok(()) => last_error = None,
+        }
         if http_get(addr, HOST).ok().as_deref() == Some(expected) {
             return true;
         }

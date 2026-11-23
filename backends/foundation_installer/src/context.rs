@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use foundation_context::{Clock, Ctx};
+use foundation_context::Ctx;
 use foundation_deployment_docker::client::ContainerCreateBody;
 use foundation_deployment_docker::generated::create::ContainerCreateResponse;
 use foundation_deployment_docker::generated::json::{ContainerInspectResponse, ImageInspect};
@@ -40,8 +40,8 @@ impl CommandOutput {
 }
 
 /// A process could not be run.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("cannot run {program}: {reason}")]
+#[derive(Debug, Clone, PartialEq, Eq, derive_more::Display)]
+#[display("cannot run {program}: {reason}")]
 pub struct CommandError {
     /// The program that the caller tried to run.
     pub program: String,
@@ -303,17 +303,11 @@ impl InstallContext {
         &self.ctx
     }
 
-    /// The clock that the engine seeded.
-    #[must_use]
-    pub fn clock(&self) -> Arc<dyn Clock> {
-        self.ctx.clock()
-    }
-
     /// The current Unix time in seconds.
     #[must_use]
     pub fn unix_seconds(&self) -> u64 {
         u64::try_from(foundation_compact::time::unix_seconds(
-            self.clock().wall_now(),
+            self.ctx.clock().wall_now(),
         ))
         .unwrap_or_default()
     }
@@ -384,3 +378,5 @@ impl InstallContext {
             .with_commands(Arc::new(SystemCommandRunner)))
     }
 }
+
+impl std::error::Error for CommandError {}

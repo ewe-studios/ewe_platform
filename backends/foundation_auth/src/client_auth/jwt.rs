@@ -9,9 +9,8 @@
 //! HOW: the verifier reads the time from the injected `Ctx`, so an expiry check
 //! follows simulated time in a deterministic simulation test (DST).
 
-use std::sync::Arc;
 
-use foundation_context::{Clock, Ctx};
+use foundation_context::Ctx;
 use foundation_netio::shared::http::SimpleHeader;
 
 use crate::server_credential::{
@@ -23,7 +22,7 @@ use crate::shared::middleware::AuthContext;
 /// The provider that checks a JWT bearer token.
 pub struct JwtAuth {
     verifier: JwtVerifier,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for JwtAuth {
@@ -38,13 +37,13 @@ impl JwtAuth {
     pub fn new(verifier: JwtVerifier, ctx: &Ctx) -> Self {
         Self {
             verifier,
-            clock: ctx.clock(),
+            ctx: ctx.clone(),
         }
     }
 
     fn now_unix(&self) -> u64 {
         u64::try_from(foundation_compact::time::unix_seconds(
-            self.clock.wall_now(),
+            self.ctx.clock().wall_now(),
         ))
         .unwrap_or(0)
     }

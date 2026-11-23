@@ -166,12 +166,12 @@ impl InstallerLock {
                 InstallError::Record(format!("cannot open {}: {err}", path.display()))
             })?;
 
-        let deadline = ctx.clock().now() + config.lock_timeout;
+        let deadline = ctx.context().clock().now() + config.lock_timeout;
         loop {
             match FileExt::try_lock_exclusive(&file) {
                 Ok(()) => return Ok(Self { file }),
                 Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
-                    if ctx.clock().now() >= deadline {
+                    if ctx.context().clock().now() >= deadline {
                         return Err(InstallError::Locked(path));
                     }
                     ctx.sleep(config.lock_poll_interval).await;

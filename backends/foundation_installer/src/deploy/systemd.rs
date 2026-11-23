@@ -353,13 +353,13 @@ async fn wait_active(
     unit: &str,
     ctx: &InstallContext,
 ) -> Result<bool, InstallError> {
-    let deadline = ctx.clock().now() + ctx.config().start_timeout;
+    let deadline = ctx.context().clock().now() + ctx.config().start_timeout;
     loop {
         let output = run_systemctl(entry, ctx, &["is-active", unit]).await?;
         if output.success() && output.stdout.trim() == "active" {
             return Ok(true);
         }
-        if ctx.clock().now() >= deadline {
+        if ctx.context().clock().now() >= deadline {
             return Ok(false);
         }
         ctx.sleep(ctx.config().start_poll_interval).await;

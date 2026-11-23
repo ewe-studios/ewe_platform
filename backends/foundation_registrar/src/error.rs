@@ -6,13 +6,13 @@
 /// The variants group the failure paths of spec 82 feature 01, section 6. A
 /// caller that needs to tell an operator action (an expired certificate) apart
 /// from an automatic retry (an unreachable proxy) matches on the variant.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, Eq, derive_more::Display)]
 pub enum RegistrarError {
     /// The manifest is not valid.
-    #[error("manifest: {0}")]
+    #[display("manifest: {_0}")]
     Manifest(String),
     /// The manifest version is not one that this build reads.
-    #[error("manifest_version {found} is not supported (this build reads {supported})")]
+    #[display("manifest_version {found} is not supported (this build reads {supported})")]
     UnsupportedManifestVersion {
         /// The version in the file.
         found: u32,
@@ -20,13 +20,13 @@ pub enum RegistrarError {
         supported: u32,
     },
     /// The configuration is not usable.
-    #[error("config: {0}")]
+    #[display("config: {_0}")]
     Config(String),
     /// Enrollment failed.
-    #[error("enrollment failed: {0}")]
+    #[display("enrollment failed: {_0}")]
     Enroll(String),
     /// A registration call failed with a Connect status.
-    #[error("registration call failed: {code}: {message}")]
+    #[display("registration call failed: {code}: {message}")]
     Call {
         /// The Connect status code, for example `PERMISSION_DENIED`.
         code: String,
@@ -34,10 +34,10 @@ pub enum RegistrarError {
         message: String,
     },
     /// A newer sidecar with the same host ID replaced this session.
-    #[error("session superseded by a newer sidecar with host_id {0}")]
+    #[display("session superseded by a newer sidecar with host_id {_0}")]
     Superseded(String),
     /// Discovery of one entry failed.
-    #[error("discovery of {entry}: {reason}")]
+    #[display("discovery of {entry}: {reason}")]
     Discovery {
         /// The manifest entry.
         entry: String,
@@ -45,7 +45,7 @@ pub enum RegistrarError {
         reason: String,
     },
     /// A metric source failed.
-    #[error("metrics: {0}")]
+    #[display("metrics: {_0}")]
     Metrics(String),
 }
 
@@ -59,3 +59,5 @@ impl RegistrarError {
         matches!(self, Self::Enroll(reason) if reason.contains("token"))
     }
 }
+
+impl std::error::Error for RegistrarError {}

@@ -10,6 +10,7 @@ description = "Manifest-driven installer: reads a spec 78 manifest, gets each en
 keywords = ["installer", "manifest", "systemd", "docker", "bootstrap"]
 
 [dependencies]
+derive_more = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.22" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
@@ -27,7 +28,6 @@ minijinja = "2.21"
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10"
-thiserror = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]

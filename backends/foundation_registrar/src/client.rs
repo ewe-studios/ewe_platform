@@ -265,20 +265,27 @@ impl RegistrationClient {
             ..Default::default()
         };
         if let Some(path) = config.proxy.strip_prefix("unix://") {
-            if path.is_empty() {
-                return Err(RegistrarError::Config(
-                    "the unix proxy URL has no socket path".to_string(),
-                ));
+            #[cfg(unix)]
+            {
+                if path.is_empty() {
+                    return Err(RegistrarError::Config(
+                        "the unix proxy URL has no socket path".to_string(),
+                    ));
+                }
+                let transport = unix_transport(path);
+                return Ok(Self {
+                    config: config.clone(),
+                    ctx: ctx.clone(),
+                    identity,
+                    transport: RwLock::new(transport),
+                    base_url: "http://localhost".to_string(),
+                    session,
+                });
             }
-            let transport = unix_transport(path);
-            return Ok(Self {
-                config: config.clone(),
-                ctx: ctx.clone(),
-                identity,
-                transport: RwLock::new(transport),
-                base_url: "http://localhost".to_string(),
-                session,
-            });
+            #[cfg(not(unix))]
+            return Err(RegistrarError::Config(
+                "the Unix socket transport is not available on this operating system".to_string(),
+            ));
         }
 
         let now_unix_ms = now_unix_ms(ctx);
@@ -566,6 +573,7 @@ fn mutual_transport(
 }
 
 /// A transport over a Unix socket.
+#[cfg(unix)]
 fn unix_transport(path: &str) -> Arc<dyn Transport> {
     let client = HttpClientBuilder::new().unix_socket(path).build();
     Arc::new(H1Transport::new(client))

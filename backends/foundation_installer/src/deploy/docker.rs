@@ -213,7 +213,7 @@ async fn start_and_wait(entry: &Entry, id: &str, ctx: &InstallContext) -> Result
             reason: format!("cannot start the container: {err}"),
         })?;
 
-    let deadline = ctx.clock().now() + ctx.config().start_timeout;
+    let deadline = ctx.context().clock().now() + ctx.config().start_timeout;
     loop {
         let inspect = match docker.inspect_container(id).await {
             Ok(inspect) => inspect,
@@ -231,7 +231,7 @@ async fn start_and_wait(entry: &Entry, id: &str, ctx: &InstallContext) -> Result
         {
             return Ok(());
         }
-        if ctx.clock().now() >= deadline {
+        if ctx.context().clock().now() >= deadline {
             return Err(InstallError::StartTimeout {
                 entry: entry.name.to_string(),
                 timeout: ctx.config().start_timeout,

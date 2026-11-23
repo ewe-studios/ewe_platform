@@ -372,6 +372,14 @@ fn a_revoked_sidecar_is_refused_and_its_backends_drain() {
 fn a_unix_socket_in_an_unwritable_directory_is_refused() {
     use std::os::unix::fs::PermissionsExt as _;
 
+    // Root ignores the directory mode, so the bind cannot fail that way. The
+    // Linux integration job runs the tests as root.
+    // SAFETY: `geteuid` reads process state and takes no pointer.
+    if unsafe { libc::geteuid() } == 0 {
+        eprintln!("skip: the test runs as root, which ignores the directory mode");
+        return;
+    }
+
     let dir = TempDir::new().expect("temp dir");
     std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o500))
         .expect("make the directory read-only");

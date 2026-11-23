@@ -37,14 +37,14 @@ impl core::fmt::Display for FieldError {
 }
 
 /// Everything that can stop or fail an installer operation.
-#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, derive_more::Display)]
 pub enum InstallError {
     /// The manifest is not valid JSON or breaks a field rule. Every problem
     /// that the parser found is listed, with the entry name and field.
-    #[error("manifest is invalid: {0:?}")]
+    #[display("manifest is invalid: {_0:?}")]
     Parse(Vec<FieldError>),
     /// The manifest file cannot be read.
-    #[error("cannot read the manifest {path}: {reason}")]
+    #[display("cannot read the manifest {path}: {reason}")]
     ManifestIo {
         /// The path the installer tried to read.
         path: String,
@@ -52,7 +52,7 @@ pub enum InstallError {
         reason: String,
     },
     /// The manifest file is larger than the configured limit.
-    #[error("the manifest is {size} bytes, more than the {max} byte limit")]
+    #[display("the manifest is {size} bytes, more than the {max} byte limit")]
     ManifestTooLarge {
         /// The size of the file.
         size: u64,
@@ -60,7 +60,7 @@ pub enum InstallError {
         max: u64,
     },
     /// The manifest version is not one that this build reads.
-    #[error("manifest_version {found} is not supported (this build reads {supported})")]
+    #[display("manifest_version {found} is not supported (this build reads {supported})")]
     UnsupportedManifestVersion {
         /// The value in the manifest.
         found: u32,
@@ -68,7 +68,7 @@ pub enum InstallError {
         supported: u32,
     },
     /// A source or deploy `kind` value is not part of the contract.
-    #[error("unknown kind {kind:?} at {path}")]
+    #[display("unknown kind {kind:?} at {path}")]
     UnknownKind {
         /// JSON Pointer of the `kind` field.
         path: String,
@@ -76,7 +76,7 @@ pub enum InstallError {
         kind: String,
     },
     /// No source adapter is registered for a known source kind.
-    #[error("no source adapter for kind {kind:?} (entry {entry})")]
+    #[display("no source adapter for kind {kind:?} (entry {entry})")]
     UnknownSourceKind {
         /// The entry name.
         entry: String,
@@ -84,7 +84,7 @@ pub enum InstallError {
         kind: String,
     },
     /// No deploy adapter is registered for a known deploy kind.
-    #[error("no deploy adapter for kind {kind:?} (entry {entry})")]
+    #[display("no deploy adapter for kind {kind:?} (entry {entry})")]
     UnknownDeployKind {
         /// The entry name.
         entry: String,
@@ -92,7 +92,7 @@ pub enum InstallError {
         kind: String,
     },
     /// The deploy target cannot run the artifact that the source gives.
-    #[error("deploy kind {deploy} cannot run a {artifact} artifact (entry {entry})")]
+    #[display("deploy kind {deploy} cannot run a {artifact} artifact (entry {entry})")]
     Incompatible {
         /// The entry name.
         entry: String,
@@ -102,7 +102,7 @@ pub enum InstallError {
         artifact: String,
     },
     /// The source cannot get the software.
-    #[error("cannot get the software of {entry}: {reason}")]
+    #[display("cannot get the software of {entry}: {reason}")]
     Resolve {
         /// The entry name.
         entry: String,
@@ -110,7 +110,7 @@ pub enum InstallError {
         reason: String,
     },
     /// The bytes do not match the checksum in the manifest.
-    #[error("checksum mismatch for {entry}: expected {expected}, got {actual}")]
+    #[display("checksum mismatch for {entry}: expected {expected}, got {actual}")]
     ChecksumMismatch {
         /// The entry name.
         entry: String,
@@ -120,7 +120,7 @@ pub enum InstallError {
         actual: String,
     },
     /// The deploy target cannot make the artifact run.
-    #[error("cannot deploy {entry}: {reason}")]
+    #[display("cannot deploy {entry}: {reason}")]
     Apply {
         /// The entry name.
         entry: String,
@@ -128,7 +128,7 @@ pub enum InstallError {
         reason: String,
     },
     /// The new version did not start inside the start timeout.
-    #[error("{entry} did not start within {timeout:?}")]
+    #[display("{entry} did not start within {timeout:?}")]
     StartTimeout {
         /// The entry name.
         entry: String,
@@ -136,13 +136,13 @@ pub enum InstallError {
         timeout: Duration,
     },
     /// Another installer run holds the lock file.
-    #[error("another installer run holds {0}")]
+    #[display("another installer run holds {_0:?}")]
     Locked(PathBuf),
     /// The install record cannot be read or written.
-    #[error("install record I/O: {0}")]
+    #[display("install record I/O: {_0}")]
     Record(String),
     /// A side effect that the operation needs is not in the context.
-    #[error("{0} is not available in this install context")]
+    #[display("{_0} is not available in this install context")]
     MissingSideEffect(String),
 }
 
@@ -157,3 +157,5 @@ impl InstallError {
         }
     }
 }
+
+impl std::error::Error for InstallError {}
