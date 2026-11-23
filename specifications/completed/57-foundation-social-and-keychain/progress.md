@@ -5,7 +5,7 @@
 Phase 0 (social login): F001-F007 complete
 Phase 1 (keychain): 008 (staged vault+backends) Stages 1-4 done (native verified); 009 (SSH) done; 010 (DO+WS) done
 F011: social login end to end — complete; 16 tests over real TCP.
-The Bitwarden CLI end-to-end test exists and passes; the deeper CLI login and CRUD case is issue #773.
+The Bitwarden CLI end-to-end test exists and passes. The real CLI now also logs in: it derives the master key, decrypts the user key and accepts it. CLI unlock and CRUD need the account private key, which the server does not store; issue #773 records that.
 
 **2026-07-18 — F007 completed + cross-platform HTTP made real.** `UpstreamOidcClient`
 is now cross-platform (built on `default_http_client()` / `Arc<dyn HttpClient>`, runs on

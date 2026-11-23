@@ -6004,12 +6004,14 @@ dependencies = [
 
 [[package]]
 name = "foundation_keychain"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
+ "aes 0.8.4",
  "age",
  "async-trait",
  "base32",
  "base64 0.22.1",
+ "cbc",
  "chrono",
  "derive_more",
  "foundation_auth",
@@ -6022,6 +6024,8 @@ dependencies = [
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
+ "hkdf",
+ "hmac",
  "pbkdf2",
  "rmp-serde",
  "secrecy",

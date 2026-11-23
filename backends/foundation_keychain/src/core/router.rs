@@ -113,10 +113,28 @@ pub async fn route(
 
     // ── Server config (bw initial contact) ──────────────────────────────────
     if s == ["api"] || s == ["api", "config"] {
+        // The client reads the environment from `/api/config` at start. A
+        // self-hosted server names no cloud region and no default URLs.
         return Ok((
             200,
             serde_json::json!({
                 "version": env!("CARGO_PKG_VERSION"),
+                "gitHash": null,
+                "server": { "name": "ewe-keychain", "url": null },
+                "environment": {
+                    "cloudRegion": null,
+                    "urls": {
+                        "base": null,
+                        "api": null,
+                        "identity": null,
+                        "icons": null,
+                        "notifications": null,
+                        "events": null,
+                    },
+                    "object": "environment",
+                },
+                "featureStates": {},
+                "object": "config",
             }),
         ));
     }

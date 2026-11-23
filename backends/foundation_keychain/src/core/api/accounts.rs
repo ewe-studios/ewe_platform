@@ -50,6 +50,7 @@ fn to_account(row: &UserRow) -> UserAccount {
     UserAccount {
         id: row.uuid.clone(),
         email: row.email.clone(),
+        key: row.akey.clone(),
         name: row.name.clone(),
         email_verified: row.email_verified,
         culture: DEFAULT_CULTURE.to_string(),
@@ -63,6 +64,8 @@ fn to_profile(row: &UserRow) -> ProfileResponse {
     ProfileResponse {
         id: row.uuid.clone(),
         email: row.email.clone(),
+        key: row.akey.clone(),
+        private_key: None,
         name: row.name.clone(),
         email_verified: row.email_verified,
         culture: DEFAULT_CULTURE.to_string(),
