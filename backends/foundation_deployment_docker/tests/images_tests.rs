@@ -65,7 +65,7 @@ fn images_route(method: &str, path: &str) -> (u16, String) {
         // image_list: GET /images/json
         ("GET", "images/json") => (
             200,
-            r#"[{"Id":"sha256:abc","RepoTags":["alpine:latest"],"Created":1680000000,"Size":7000000,"VirtualSize":7000000,"SharedSize":0,"Containers":0}]"#
+            r#"[{"Id":"sha256:abc","ParentId":"","RepoTags":["alpine:latest"],"RepoDigests":[],"Created":1680000000,"Size":7000000,"VirtualSize":7000000,"SharedSize":0,"Containers":0,"Labels":{}}]"#
                 .to_string(),
         ),
         // image_inspect: GET /images/{name}/json
@@ -332,10 +332,10 @@ async fn image_list_returns_json_array() {
         .await
         .expect("image_list should succeed");
 
-    let arr = result.as_array().expect("response should be a JSON array");
-    assert_eq!(arr.len(), 1);
-    assert_eq!(arr[0]["Id"], "sha256:abc");
-    assert_eq!(arr[0]["RepoTags"][0], "alpine:latest");
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].id.as_str(), "sha256:abc");
+    let tags = &result[0].repo_tags;
+    assert_eq!(tags.first().map(String::as_str), Some("alpine:latest"));
 
     mock_socket::stop(&socket, &stop);
 }
@@ -392,10 +392,9 @@ async fn image_delete_returns_deleted_layers() {
         .await
         .expect("image_delete should succeed");
 
-    let arr = result.as_array().expect("response should be a JSON array");
-    assert_eq!(arr.len(), 2);
-    assert_eq!(arr[0]["Untagged"], "alpine:latest");
-    assert_eq!(arr[1]["Deleted"], "sha256:abc");
+    assert_eq!(result.len(), 2);
+    assert_eq!(result[0].untagged.as_deref(), Some("alpine:latest"));
+    assert_eq!(result[1].deleted.as_deref(), Some("sha256:abc"));
 
     mock_socket::stop(&socket, &stop);
 }

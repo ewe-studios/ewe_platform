@@ -293,3 +293,61 @@ fn get_response_type_with_ref_to_allof_schema() {
         ResponseType::Generated("IamResponseCollectionAccounts".to_string())
     );
 }
+
+#[test]
+fn an_array_response_of_a_generated_type_is_a_vector() {
+    let item = make_schema(Some(BTreeMap::from([(
+        "Id".to_string(),
+        Schema {
+            schema_type: Some("string".to_string()),
+            ..Default::default()
+        },
+    )])));
+    let schemas = BTreeMap::from([("ContainerSummary".to_string(), item)]);
+    let resolver = TypeResolver::new(Arc::new(schemas));
+    let response = Response {
+        description: Some("ok".to_string()),
+        content: Some(BTreeMap::from([(
+            "application/json".to_string(),
+            MediaType {
+                schema: Some(Schema {
+                    schema_type: Some("array".to_string()),
+                    items: Some(Box::new(Schema {
+                        ref_path: Some("#/components/schemas/ContainerSummary".to_string()),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }),
+            },
+        )])),
+    };
+    assert_eq!(
+        resolver.get_response_type(&response),
+        Some(ResponseType::Generated("Vec<ContainerSummary>".to_string()))
+    );
+}
+
+#[test]
+fn an_array_response_of_a_primitive_stays_raw_json() {
+    let resolver = TypeResolver::new(Arc::new(BTreeMap::new()));
+    let response = Response {
+        description: Some("ok".to_string()),
+        content: Some(BTreeMap::from([(
+            "application/json".to_string(),
+            MediaType {
+                schema: Some(Schema {
+                    schema_type: Some("array".to_string()),
+                    items: Some(Box::new(Schema {
+                        schema_type: Some("string".to_string()),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                }),
+            },
+        )])),
+    };
+    assert_eq!(
+        resolver.get_response_type(&response),
+        Some(ResponseType::JsonValue)
+    );
+}

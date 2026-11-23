@@ -6,7 +6,12 @@
 //! Feature flag: `docker_prune `
 
 #![cfg(feature = "docker_prune")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -48,15 +53,9 @@ pub struct ContainerPruneResponse {
 }
 
 /// `ImageDeleteResponseItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImageDeleteResponseItem {
-    /// `Deleted` property.
-    #[serde(rename = "Deleted")]
-    pub deleted: Option<String>,
-    /// `Untagged` property.
-    #[serde(rename = "Untagged")]
-    pub untagged: Option<String>,
-}
+///
+/// Same shape as `super::shared::DeletedUntaggedObject`.
+pub type ImageDeleteResponseItem = super::shared::DeletedUntaggedObject;
 
 /// `ImagePruneResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -162,7 +161,7 @@ pub async fn build_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/build/prune");
+    let path = "/build/prune";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -212,7 +211,7 @@ pub async fn container_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/prune");
+    let path = "/containers/prune";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -258,7 +257,7 @@ pub async fn image_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/prune");
+    let path = "/images/prune";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -304,7 +303,7 @@ pub async fn network_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/prune");
+    let path = "/networks/prune";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -350,7 +349,7 @@ pub async fn volume_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/prune");
+    let path = "/volumes/prune";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)

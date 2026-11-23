@@ -6,7 +6,12 @@
 //! Feature flag: `docker_services `
 
 #![cfg(feature = "docker_services")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -236,11 +241,11 @@ pub async fn service_list_request<F>(
     args: &ServiceListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<Service>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/services");
+    let path = "/services";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)

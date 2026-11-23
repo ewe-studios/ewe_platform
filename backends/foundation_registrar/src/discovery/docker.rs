@@ -17,7 +17,7 @@ use std::net::IpAddr;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_deployment_docker::generated::json::ContainerInspectResponse;
+use foundation_deployment_docker::generated::json::{ContainerInspectResponse, ContainerSummary};
 use foundation_deployment_docker::generated::stats::ContainerStatsResponse;
 use foundation_deployment_docker::DockerClient;
 
@@ -38,14 +38,14 @@ pub const VERSION_LABEL: &str = "dev.ewe.version";
 /// [`DockerContainerApi`], and a test returns generated values.
 #[async_trait]
 pub trait ContainerApi: Send + Sync {
-    /// The containers with `label`, as the daemon's JSON list.
+    /// The containers with `label`, from the generated summary type.
     ///
     /// # Errors
     /// [`RegistrarError::Discovery`] when the daemon fails.
     async fn container_list_label(
         &self,
         label: &str,
-    ) -> Result<Vec<serde_json::Value>, RegistrarError>;
+    ) -> Result<Vec<ContainerSummary>, RegistrarError>;
 
     /// Inspect one container.
     ///
@@ -80,17 +80,15 @@ impl ContainerApi for DockerContainerApi {
     async fn container_list_label(
         &self,
         label: &str,
-    ) -> Result<Vec<serde_json::Value>, RegistrarError> {
+    ) -> Result<Vec<ContainerSummary>, RegistrarError> {
         let filters = serde_json::json!({ "label": [label] }).to_string();
-        let value = self
-            .client
+        self.client
             .container_list(true, None, false, Some(&filters))
             .await
             .map_err(|error| RegistrarError::Discovery {
                 entry: label.to_string(),
                 reason: error.to_string(),
-            })?;
-        Ok(value.as_array().cloned().unwrap_or_default())
+            })
     }
 
     async fn inspect_container(
@@ -124,7 +122,7 @@ impl ContainerApi for UnavailableDocker {
     async fn container_list_label(
         &self,
         label: &str,
-    ) -> Result<Vec<serde_json::Value>, RegistrarError> {
+    ) -> Result<Vec<ContainerSummary>, RegistrarError> {
         Err(RegistrarError::Discovery {
             entry: label.to_string(),
             reason: "no Docker daemon on this host".to_string(),
@@ -194,7 +192,7 @@ impl Discovery for DockerDiscovery {
         let Some(chosen) = choose_container(&containers) else {
             return Ok(Discovered::NotInstalled);
         };
-        let Some(id) = chosen.get("Id").and_then(serde_json::Value::as_str) else {
+        let Some(id) = chosen.id.as_deref() else {
             return Ok(Discovered::NotInstalled);
         };
         let inspect =
@@ -254,12 +252,10 @@ impl Discovery for DockerDiscovery {
 }
 
 /// Prefer a running container, else the newest (the daemon lists newest first).
-fn choose_container(containers: &[serde_json::Value]) -> Option<&serde_json::Value> {
+fn choose_container(containers: &[ContainerSummary]) -> Option<&ContainerSummary> {
     containers
         .iter()
-        .find(|container| {
-            container.get("State").and_then(serde_json::Value::as_str) == Some("running")
-        })
+        .find(|container| container.state.as_deref() == Some("running"))
         .or_else(|| containers.first())
 }
 

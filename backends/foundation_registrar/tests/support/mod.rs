@@ -556,15 +556,14 @@ impl ContainerApi for FakeContainerApi {
     async fn container_list_label(
         &self,
         label: &str,
-    ) -> Result<Vec<serde_json::Value>, RegistrarError> {
+    ) -> Result<Vec<foundation_deployment_docker::generated::json::ContainerSummary>, RegistrarError>
+    {
         self.labels.lock().expect("labels").push(label.to_string());
-        Ok(self
-            .list
-            .lock()
-            .expect("list")
-            .as_array()
-            .cloned()
-            .unwrap_or_default())
+        let value = self.list.lock().expect("list").clone();
+        serde_json::from_value(value).map_err(|error| RegistrarError::Discovery {
+            entry: label.to_string(),
+            reason: error.to_string(),
+        })
     }
 
     async fn inspect_container(

@@ -6,7 +6,12 @@
 //! Feature flag: `docker_search `
 
 #![cfg(feature = "docker_search")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -24,6 +29,21 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ImageSearchResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImageSearchResponseItem {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `is_automated` property.
+    pub is_automated: Option<bool>,
+    /// `is_official` property.
+    pub is_official: Option<bool>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `star_count` property.
+    pub star_count: Option<i64>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -71,11 +91,11 @@ pub async fn image_search_request<F>(
     args: &ImageSearchArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<ImageSearchResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/search");
+    let path = "/images/search";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)

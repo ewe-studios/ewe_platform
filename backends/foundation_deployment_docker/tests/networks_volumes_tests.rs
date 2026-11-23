@@ -159,10 +159,9 @@ async fn network_list_returns_json_array() {
         .network_list(None)
         .await
         .expect("network_list should succeed");
-    let arr = result.as_array().expect("body should be a JSON array");
-    assert_eq!(arr.len(), 1);
-    assert_eq!(arr[0]["Name"], "bridge");
-    assert_eq!(arr[0]["Id"], "abc");
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].name.as_deref(), Some("bridge"));
+    assert_eq!(result[0].id.as_deref(), Some("abc"));
 
     mock_socket::stop(&socket, &stop);
 }

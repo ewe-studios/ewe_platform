@@ -80,13 +80,9 @@ impl NetworkHandle {
             .await
             .map_err(|e| docker_err(DockerError::Network(format!("{e}"))))?;
 
-        for net in networks.as_array().unwrap_or(&vec![]) {
-            if net.get("Name").and_then(|n| n.as_str()) == Some(name) {
-                let id = net
-                    .get("Id")
-                    .and_then(|i| i.as_str())
-                    .unwrap_or(name)
-                    .to_string();
+        for net in &networks {
+            if net.name.as_deref() == Some(name) {
+                let id = net.id.clone().unwrap_or_else(|| name.to_string());
                 return Ok(Some(Self {
                     client: client.clone(),
                     network_id: id,

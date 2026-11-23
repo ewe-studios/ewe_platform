@@ -6,7 +6,12 @@
 //! Feature flag: `docker_ping `
 
 #![cfg(feature = "docker_ping")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -79,7 +84,7 @@ pub async fn system_ping_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/_ping");
+    let path = "/_ping";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -128,7 +133,7 @@ pub async fn system_ping_head_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/_ping");
+    let path = "/_ping";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::head(&endpoint_url)

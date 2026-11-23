@@ -83,15 +83,18 @@ use crate::generated::create::{image_create_request, CreateImageInfo, ImageCreat
 use crate::generated::get::{
     image_get_all_request, image_get_request, ImageGetAllArgs, ImageGetArgs,
 };
-use crate::generated::history::{image_history_request, ImageHistoryArgs};
-use crate::generated::images::{image_delete_request, ImageDeleteArgs};
+use crate::generated::history::{
+    image_history_request, ImageHistoryArgs, ImageHistoryResponseItem,
+};
+use crate::generated::images::{image_delete_request, ImageDeleteArgs, ImageDeleteResponseItem};
 use crate::generated::json::{
     image_inspect_request, image_list_request, ImageInspect, ImageInspectArgs, ImageListArgs,
+    ImageSummary,
 };
 use crate::generated::load::{image_load_request, ImageLoadArgs};
 use crate::generated::prune::{image_prune_request, ImagePruneArgs};
 use crate::generated::push::{image_push_request, ImagePushArgs, PushImageInfo};
-use crate::generated::search::{image_search_request, ImageSearchArgs};
+use crate::generated::search::{image_search_request, ImageSearchArgs, ImageSearchResponseItem};
 use crate::generated::shared::{BuildInfo, IDResponse};
 use crate::generated::tag::{image_tag_request, ImageTagArgs};
 use crate::DockerClient;
@@ -108,7 +111,7 @@ impl DockerClient {
         filters: Option<&str>,
         shared_size: Option<bool>,
         digests: Option<bool>,
-    ) -> Result<serde_json::Value, DockerError> {
+    ) -> Result<Vec<ImageSummary>, DockerError> {
         let args = ImageListArgs {
             all,
             filters: filters.map(str::to_string),
@@ -152,7 +155,10 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn image_history(&self, name: &str) -> Result<serde_json::Value, DockerError> {
+    pub async fn image_history(
+        &self,
+        name: &str,
+    ) -> Result<Vec<ImageHistoryResponseItem>, DockerError> {
         let args = ImageHistoryArgs {
             name: name.to_string(),
             platform: None,
@@ -207,7 +213,7 @@ impl DockerClient {
         name: &str,
         force: Option<bool>,
         noprune: Option<bool>,
-    ) -> Result<serde_json::Value, DockerError> {
+    ) -> Result<Vec<ImageDeleteResponseItem>, DockerError> {
         let args = ImageDeleteArgs {
             name: name.to_string(),
             force,
@@ -236,7 +242,7 @@ impl DockerClient {
         term: Option<&str>,
         limit: Option<u32>,
         filters: Option<&str>,
-    ) -> Result<serde_json::Value, DockerError> {
+    ) -> Result<Vec<ImageSearchResponseItem>, DockerError> {
         let args = ImageSearchArgs {
             term: term.map(str::to_string),
             limit: limit.map(|v| v.to_string()),
