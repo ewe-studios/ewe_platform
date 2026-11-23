@@ -706,11 +706,10 @@ fn main() {
             "MultiThreaded$<$<CONFIG:Debug>:Debug>",
         );
         // `esaxx-rs` compiles with `/MT`; force the same flag into llama.cpp's
-        // own compile lines. A stale build directory keeps the old objects, so
-        // clean first.
+        // own compile lines. A changed flag line makes MSBuild rebuild the
+        // objects, so no clean step is needed.
         config.cflag("/MT");
         config.cxxflag("/MT");
-        config.build_arg("--clean-first");
     }
 
     // Would require extra source files to pointlessly
