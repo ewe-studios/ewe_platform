@@ -705,6 +705,12 @@ fn main() {
             "CMAKE_MSVC_RUNTIME_LIBRARY",
             "MultiThreaded$<$<CONFIG:Debug>:Debug>",
         );
+        // `esaxx-rs` compiles with `/MT`; force the same flag into llama.cpp's
+        // own compile lines. A stale build directory keeps the old objects, so
+        // clean first.
+        config.cflags("/MT");
+        config.cxxflag("/MT");
+        config.build_arg("--clean-first");
     }
 
     // Would require extra source files to pointlessly
