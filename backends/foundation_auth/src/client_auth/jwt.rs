@@ -9,7 +9,6 @@
 //! HOW: the verifier reads the time from the injected `Ctx`, so an expiry check
 //! follows simulated time in a deterministic simulation test (DST).
 
-
 use foundation_context::Ctx;
 use foundation_netio::shared::http::SimpleHeader;
 

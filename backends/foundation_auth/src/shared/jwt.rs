@@ -53,7 +53,7 @@ pub struct JwtVerifierConfig {
 #[derive(Clone)]
 enum VerifiedPublicKey {
     Ed25519(jwt_simple::prelude::Ed25519PublicKey),
-    RS256(jwt_simple::prelude::RS256PublicKey),
+    RS256(Box<jwt_simple::prelude::RS256PublicKey>),
     ES256(jwt_simple::prelude::ES256PublicKey),
 }
 
@@ -64,7 +64,7 @@ impl VerifiedPublicKey {
             return Ok(Self::Ed25519(pk));
         }
         if let Ok(pk) = jwt_simple::prelude::RS256PublicKey::from_pem(pem) {
-            return Ok(Self::RS256(pk));
+            return Ok(Self::RS256(Box::new(pk)));
         }
         if let Ok(pk) = jwt_simple::prelude::ES256PublicKey::from_pem(pem) {
             return Ok(Self::ES256(pk));

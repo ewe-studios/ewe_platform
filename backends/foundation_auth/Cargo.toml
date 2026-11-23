@@ -39,8 +39,10 @@ sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
 hmac = "0.12"             # TOTP, HMAC, PBKDF2
 getrandom = { version = "0.2", optional = true }
 
-# Token formats
-jwt-simple = "0.12"       # JWT support
+# Token formats. The pure-Rust backend: the default `boring` backend links
+# BoringSSL, which cannot share a binary with the OpenSSL that `ssh2` links
+# (the VM tests of foundation_deployment_platform).
+jwt-simple = { version = "0.12", default-features = false, features = ["pure-rust"] }
 
 # Encoding
 base64 = "0.22"
