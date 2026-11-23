@@ -366,11 +366,38 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         list.stderr
     );
 
+    let folder = base64::engine::general_purpose::STANDARD.encode(br#"{"name":"CLI Folder"}"#);
+    let created = bw
+        .exec(&["bw", "create", "folder", &folder, "--session", &session])
+        .expect("bw create folder runs");
+    assert!(
+        created.success(),
+        "bw create folder (exit {}):\nstdout: {}\nstderr: {}",
+        created.exit_code,
+        created.stdout,
+        created.stderr
+    );
+    let folders = bw
+        .exec(&["bw", "list", "folders", "--session", &session])
+        .expect("bw list folders runs");
+    assert!(
+        folders.success(),
+        "bw list folders (exit {}):\nstdout: {}\nstderr: {}",
+        folders.exit_code,
+        folders.stdout,
+        folders.stderr
+    );
+    assert!(
+        folders.stdout.contains("CLI Folder"),
+        "the folder must come back from the CLI list: {}",
+        folders.stdout
+    );
+
     // `bw create item` fails inside the CLI's SDK with "invalid type: unit
     // value, expected a boolean", even with the CLI's own item template. The
     // read path works, so this is a writer-state field the SDK requires; issue
     // #773 records it with the exact error.
     println!(
-        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → CLI login → unlock → list — all passed"
+        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → CLI login → unlock → list → create folder → list folders — all passed"
     );
 }
