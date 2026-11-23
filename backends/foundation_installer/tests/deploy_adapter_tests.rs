@@ -75,6 +75,7 @@ fn the_compatibility_table_holds() {
     }
 }
 
+#[cfg(unix)]
 #[valtron_test]
 async fn systemd_writes_the_expected_unit() {
     let directory = tempfile::tempdir().expect("a temporary directory");

@@ -395,14 +395,11 @@ fn write_features_back(manifest: &str, features: &toml::Table) -> Result<String,
     }
     let mut added = false;
     for (key, value) in features {
-        let entries: Vec<String> = value
-            .as_array()
-            .map(|a| {
-                a.iter()
-                    .filter_map(|v| v.as_str().map(str::to_string))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let entries: Vec<String> = value.as_array().map_or_else(Vec::new, |a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(str::to_string))
+                .collect()
+        });
         let current: Option<Vec<String>> =
             table.get(key).and_then(toml_edit::Item::as_array).map(|a| {
                 a.iter()
@@ -543,12 +540,11 @@ fn fix_hierarchical_features_recursive(
         features
             .get(all_feature)
             .and_then(|v| v.as_array())
-            .map(|arr| {
+            .map_or_else(BTreeSet::new, |arr| {
                 arr.iter()
                     .filter_map(|v| v.as_str().map(String::from))
                     .collect::<BTreeSet<_>>()
             })
-            .unwrap_or_default()
     };
 
     let merged: Vec<String> = existing_all.union(&all_group_features).cloned().collect();
@@ -595,12 +591,11 @@ fn fix_flat_features(
         features
             .get(all_feature)
             .and_then(|v| v.as_array())
-            .map(|arr| {
+            .map_or_else(BTreeSet::new, |arr| {
                 arr.iter()
                     .filter_map(|v| v.as_str().map(String::from))
                     .collect::<BTreeSet<_>>()
             })
-            .unwrap_or_default()
     };
 
     let merged: Vec<String> = existing_all.union(&existing_apis).cloned().collect();
@@ -730,6 +725,12 @@ pub fn command() -> clap::Command {
                         clap::Arg::new("buildrs-overwrite")
                             .long("buildrs-overwrite")
                             .help("Replace the crate's build.rs. Without this, an existing one is left alone — it is a source file people edit")
+                            .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
+                        clap::Arg::new("array-responses")
+                            .long("array-responses")
+                            .help("Turn a JSON response that is an array of a generated type into `Vec<T>` (the Docker client)")
                             .action(clap::ArgAction::SetTrue),
                     )
                     .arg(
@@ -916,10 +917,12 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let api_version = sub_matches.get_one::<String>("api-version").cloned();
             let check_only = sub_matches.get_flag("check");
             let buildrs_overwrite = sub_matches.get_flag("buildrs-overwrite");
+            let array_responses = sub_matches.get_flag("array-responses");
 
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
+                array_responses,
                 ..AnalysisOptions::default()
             };
 

@@ -268,6 +268,7 @@ impl Default for Codegen {
                 min_group_size: 10,
                 max_group_size: 200,
                 hoist_to_shared: Vec::new(),
+                array_responses: false,
             },
             overlays: Vec::new(),
             typed_unions: Vec::new(),

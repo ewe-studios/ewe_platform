@@ -38,6 +38,10 @@ fn input() -> BootstrapInput {
 }
 
 fn embedded_manifest(script: &str) -> String {
+    // A checkout on another operating system may give the template CRLF line
+    // endings. The marker holds an LF, so normalize first.
+    let script = script.replace("\r\n", "\n");
+    let script = script.as_str();
     let start = script
         .find(MARKER_START)
         .map(|index| index + MARKER_START.len())
