@@ -727,12 +727,7 @@ pub fn command() -> clap::Command {
                             .help("Replace the crate's build.rs. Without this, an existing one is left alone — it is a source file people edit")
                             .action(clap::ArgAction::SetTrue),
                     )
-                    .arg(
-                        clap::Arg::new("array-responses")
-                            .long("array-responses")
-                            .help("Turn a JSON response that is an array of a generated type into `Vec<T>` (the Docker client)")
-                            .action(clap::ArgAction::SetTrue),
-                    )
+
                     .arg(
                         clap::Arg::new("fix")
                             .long("fix")
@@ -917,12 +912,10 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let api_version = sub_matches.get_one::<String>("api-version").cloned();
             let check_only = sub_matches.get_flag("check");
             let buildrs_overwrite = sub_matches.get_flag("buildrs-overwrite");
-            let array_responses = sub_matches.get_flag("array-responses");
 
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
-                array_responses,
                 ..AnalysisOptions::default()
             };
 

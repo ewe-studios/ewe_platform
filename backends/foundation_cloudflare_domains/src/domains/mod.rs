@@ -360,6 +360,43 @@ pub struct GetDomainMatchListResponseMatchesItemPublicScans {
     pub submission_id: String,
 }
 
+/// `GetGetDomainQueriesResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGetDomainQueriesResponseItem {
+    /// `created` property.
+    pub created: String,
+    /// `parameters` property.
+    pub parameters: Option<GetGetDomainQueriesResponseItemParameters>,
+    /// `query_id` property.
+    pub query_id: i64,
+    /// `query_tag` property.
+    pub query_tag: String,
+    /// `scan` property.
+    pub scan: bool,
+    /// `updated` property.
+    pub updated: String,
+}
+
+/// `GetGetDomainQueriesResponseItemParameters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGetDomainQueriesResponseItemParameters {
+    /// `max_time` property.
+    pub max_time: Option<String>,
+    /// `min_time` property.
+    pub min_time: Option<String>,
+    /// `string_matches` property.
+    pub string_matches: Vec<GetGetDomainQueriesResponseItemParametersStringMatchesItem>,
+}
+
+/// `GetGetDomainQueriesResponseItemParametersStringMatchesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGetDomainQueriesResponseItemParametersStringMatchesItem {
+    /// `max_edit_distance` property.
+    pub max_edit_distance: f64,
+    /// `pattern` property.
+    pub pattern: String,
+}
+
 /// `IntelAdditionalInformation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IntelAdditionalInformation {
@@ -2130,7 +2167,7 @@ pub async fn get_get_domain_queries_request<F>(
     args: &GetGetDomainQueriesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetGetDomainQueriesResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {

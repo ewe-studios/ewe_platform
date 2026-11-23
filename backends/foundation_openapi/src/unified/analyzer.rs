@@ -763,9 +763,6 @@ pub struct AnalysisOptions {
     /// already; this is the way to name the ones that do not. Everything the
     /// named schemas reference follows them.
     pub hoist_to_shared: Vec<String>,
-    /// Turn a JSON array response of a generated type into `Vec<T>`. Default
-    /// `false`; the Docker client generation sets it.
-    pub array_responses: bool,
 }
 
 impl Default for AnalysisOptions {
@@ -774,7 +771,6 @@ impl Default for AnalysisOptions {
             min_group_size: 10,
             max_group_size: 150,
             hoist_to_shared: Vec::new(),
-            array_responses: false,
         }
     }
 }
@@ -789,7 +785,7 @@ pub fn analyze_spec(
     options: &AnalysisOptions,
 ) -> Result<AnalysisResult, crate::ProcessError> {
     let processor = crate::process_spec(spec_content)?;
-    let endpoints = processor.endpoints_with(options.array_responses);
+    let endpoints = processor.endpoints();
 
     let mut groups_map = apply_provider_grouping(endpoints, provider);
 

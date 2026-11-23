@@ -15,10 +15,6 @@ use std::sync::Arc;
 
 /// Resolver for `OpenAPI` schema types.
 pub struct TypeResolver {
-    /// Turn a JSON array response of a generated type into `Vec<T>`. Off by
-    /// default: a provider that a build script regenerates must keep its
-    /// committed shape until it is regenerated on purpose.
-    array_responses: bool,
     /// Known object schemas (for $ref validation)
     object_schemas: BTreeSet<String>,
     /// All schemas by name
@@ -29,20 +25,8 @@ impl TypeResolver {
     /// Create resolver with schema map.
     #[must_use]
     pub fn new(schemas: Arc<BTreeMap<String, Schema>>) -> Self {
-        Self::with_schemas(schemas, false)
-    }
-
-    /// A resolver that turns an array response of a generated type into `Vec<T>`.
-    #[must_use]
-    pub fn with_array_responses(mut self, on: bool) -> Self {
-        self.array_responses = on;
-        self
-    }
-
-    fn with_schemas(schemas: Arc<BTreeMap<String, Schema>>, array_responses: bool) -> Self {
         let object_schemas = Self::collect_object_schema_names(&schemas);
         Self {
-            array_responses,
             object_schemas,
             schemas,
         }
@@ -117,7 +101,7 @@ impl TypeResolver {
         }
 
         // No $ref or ref didn't resolve - check schema type directly
-        if self.array_responses && schema.schema_type.as_deref() == Some("array") {
+        if schema.schema_type.as_deref() == Some("array") {
             return self.resolve_array_items_type(&schema.items);
         }
 

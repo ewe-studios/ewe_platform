@@ -19391,7 +19391,7 @@ pub async fn bot_management_zone_feedback_list_request<F>(
     args: &BotManagementZoneFeedbackListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<BotManagementFeedbackReport>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {

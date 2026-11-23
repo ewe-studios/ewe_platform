@@ -32,13 +32,6 @@ impl EndpointExtractor {
         Self { spec, resolver }
     }
 
-    /// Turn an array response of a generated type into `Vec<T>`.
-    #[must_use]
-    pub fn with_array_responses(mut self, on: bool) -> Self {
-        self.resolver = self.resolver.with_array_responses(on);
-        self
-    }
-
     /// Extract all endpoints from the spec.
     /// Handles both `OpenAPI` 3.x and GCP Discovery formats.
     #[must_use]

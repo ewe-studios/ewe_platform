@@ -109,15 +109,8 @@ impl SpecProcessor {
     /// Get all endpoints with full type information.
     #[must_use]
     pub fn endpoints(&self) -> Vec<EndpointInfo> {
-        self.endpoints_with(false)
-    }
-
-    /// Endpoints with the array-response mode on or off.
-    #[must_use]
-    pub fn endpoints_with(&self, array_responses: bool) -> Vec<EndpointInfo> {
-        EndpointExtractor::new(self.spec.clone())
-            .with_array_responses(array_responses)
-            .extract_all()
+        let extractor = EndpointExtractor::new(self.spec.clone());
+        extractor.extract_all()
     }
 
     /// Get all schemas from the spec.
