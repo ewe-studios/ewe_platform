@@ -696,10 +696,16 @@ fn main() {
     // (`MT`/`MTd`), and objects built against the dynamic runtime (`MD`) fail
     // the link with LNK2038. Match the Rust side.
     #[cfg(windows)]
-    config.define(
-        "CMAKE_MSVC_RUNTIME_LIBRARY",
-        "MultiThreaded$<$<CONFIG:Debug>:Debug>",
-    );
+    {
+        // llama.cpp declares `cmake_minimum_required` below 3.15, so policy
+        // CMP0091 is OLD and ignores `CMAKE_MSVC_RUNTIME_LIBRARY`. Turn the
+        // policy on so the runtime choice takes effect.
+        config.define("CMAKE_POLICY_DEFAULT_CMP0091", "NEW");
+        config.define(
+            "CMAKE_MSVC_RUNTIME_LIBRARY",
+            "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        );
+    }
 
     // Would require extra source files to pointlessly
     // be included in what's uploaded to and downloaded from
