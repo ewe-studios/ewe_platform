@@ -111,6 +111,23 @@ pub struct ContainerDeployOutput {
     pub container_id: String,
 }
 
+/// A client for the container's Unix socket.
+///
+/// The transport is Unix only. Another operating system gets a typed error, so
+/// the trait implementation still compiles there.
+#[cfg(unix)]
+fn container_client(socket_path: &std::path::Path) -> Result<DockerClient, DockerError> {
+    Ok(DockerClient::connect_unix(socket_path))
+}
+
+/// A client for the container's Unix socket: not available on this platform.
+#[cfg(not(unix))]
+fn container_client(_socket_path: &std::path::Path) -> Result<DockerClient, DockerError> {
+    Err(DockerError::Unavailable(
+        "the Docker Unix socket transport is not available on this operating system".to_string(),
+    ))
+}
+
 impl Deployable for ContainerDeployment {
     const NAMESPACE: &'static str = "docker/containers";
 
@@ -127,7 +144,10 @@ impl Deployable for ContainerDeployment {
         // Docker dials its own Unix socket; ProviderClient is used only for the
         // namespaced state store (built here — needs `&self`/`&client` — and
         // moved into the future so `destroy` can read the container id back).
-        let docker = DockerClient::connect_unix(&self.socket_path);
+        let docker = match container_client(&self.socket_path) {
+            Ok(docker) => docker,
+            Err(error) => return Box::pin(async move { Err(error) }),
+        };
         let body = self.create_body();
         let name = self.name.clone();
         let store = self.store(&client);
@@ -153,7 +173,10 @@ impl Deployable for ContainerDeployment {
         instance_id: usize,
         client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>> {
-        let docker = DockerClient::connect_unix(&self.socket_path);
+        let docker = match container_client(&self.socket_path) {
+            Ok(docker) => docker,
+            Err(error) => return Box::pin(async move { Err(error) }),
+        };
         let store = self.store(&client);
 
         Box::pin(async move {

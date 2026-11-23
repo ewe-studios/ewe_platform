@@ -39,13 +39,12 @@ async fn container_list_with_filters() {
         .container_list(true, None, false, None)
         .await
         .expect("list");
-    let arr = list.as_array().expect("should be JSON array");
-    let found = arr.iter().any(|ctr| {
-        ctr.get("Names")
-            .and_then(|n| n.as_array())
-            .and_then(|a| a.first())
-            .and_then(|n| n.as_str())
-            .is_some_and(|n| n == format!("/{name}"))
+    let found = list.iter().any(|container| {
+        container
+            .names
+            .as_ref()
+            .and_then(|names| names.first())
+            .is_some_and(|entry| entry == &format!("/{name}"))
     });
     assert!(found, "container list should contain /{name}");
 
