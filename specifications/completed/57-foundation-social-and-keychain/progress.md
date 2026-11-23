@@ -5,7 +5,7 @@
 Phase 0 (social login): F001-F007 complete
 Phase 1 (keychain): 008 (staged vault+backends) Stages 1-4 done (native verified); 009 (SSH) done; 010 (DO+WS) done
 F011: social login end to end — complete; 16 tests over real TCP.
-The only open item is the Bitwarden CLI end-to-end test, issue #765.
+The Bitwarden CLI end-to-end test exists and passes; the deeper CLI login and CRUD case is issue #773.
 
 **2026-07-18 — F007 completed + cross-platform HTTP made real.** `UpstreamOidcClient`
 is now cross-platform (built on `default_http_client()` / `Arc<dyn HttpClient>`, runs on
@@ -70,8 +70,9 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
    - **✅ STAGE 4 (native) — server binary `src/bin/keychain.rs` VERIFIED**: boots valtron pool, opens
      Turso, applies schema, serves; smoke-tested with real `curl` (register → connect/token login return
      correct Bitwarden JSON). `Dockerfile` (multi-stage) + `docker-compose.yml` written.
-   - Remaining: the Bitwarden CLI end-to-end test. It needs the `bw` binary, which no
-     change carries. Open issue #765 with the fix.
+   - Done: `tests/bw_e2e_tests.rs` builds a Docker image with the Bitwarden CLI, calls
+     `bw config server`, and drives register → prelogin → login → sync → folders → ciphers.
+     It passes in CI. Full CLI login and CRUD stay open as issue #773.
 4. ✅ 009 SSH key provisioning (former 012) — app registry (Argon2id secrets) + Ed25519/RSA keygen
    (`ssh-key`) + age-encrypted private keys at rest; native-gated (`core/provisioning/`); 3 tests;
    wired into the native server (`/api/apps/*`, `/api/credentials/ssh-keys/*`, X-App-Secret/Bearer auth).
