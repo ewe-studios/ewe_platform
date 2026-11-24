@@ -88,15 +88,16 @@ fn sample(png: &Path, rgb: &Path, color: Option<[u8; 3]>) -> io::Result<Option<S
     let mut row = vec![0; width as usize * 3];
     pixels.seek(SeekFrom::Start(3 * u64::from(width) * u64::from(top)))?;
     pixels.read_exact(&mut row)?;
-    let Some(left) = row.chunks_exact(3).position(|rgb| rgb == background) else {
+    let mut columns = (0..width)
+        .zip(row.as_chunks::<3>().0)
+        .filter_map(|(x, rgb)| (*rgb == background).then_some(x));
+    let Some(left) = columns.next() else {
         return Ok(None);
     };
-    let Some(right) = row.chunks_exact(3).rposition(|rgb| rgb == background) else {
-        return Ok(None);
-    };
+    let right = columns.next_back().unwrap_or(left);
     let scene = Scene {
-        left: left as u32,
-        width: (right - left + 1) as u32,
+        left,
+        width: right - left + 1,
         top,
         height: bottom - top,
     };
