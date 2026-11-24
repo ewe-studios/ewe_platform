@@ -3,6 +3,7 @@ package ewe.todo
 import ewe.ui.android.AndroidResourceSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.darkColorScheme
@@ -20,6 +21,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         // Use the same native library for both sets of callback tables.
         System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
         val endpoint = (intent.getStringExtra("server") ?: "http://10.0.2.2:8180/").toHttpUrl()

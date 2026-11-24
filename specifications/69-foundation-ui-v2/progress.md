@@ -1350,3 +1350,8 @@ Both iPhone Todo hosts pass their search checks. The on-device test runs in ligh
 The large-text test checks that the keyboard leaves both sheet buttons visible.
 The sheet reaches the physical bottom edge when the keyboard closes.
 After the tests, the iPhone and Pixel show both original tasks from the server on port 8181.
+
+Both Android Todo activities now select system bar icon colors from the current system appearance.
+The Pixel shows dark status icons on the light surface and white icons on the dark surface.
+The server host passes in [light appearance](features/23-native-design-and-themes/design/android-status-server-light.png) and [dark appearance](features/23-native-design-and-themes/design/android-status-server-dark.png).
+The local host passes in [light appearance](features/23-native-design-and-themes/design/android-status-local-light.png) and [dark appearance](features/23-native-design-and-themes/design/android-status-local-dark.png).

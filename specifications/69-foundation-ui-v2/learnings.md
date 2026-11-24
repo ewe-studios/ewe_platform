@@ -1091,3 +1091,6 @@ Light mode uses white system status icons above a light background. [Issue 819](
 
 The iPhone test closes its application during cleanup. A successful test does not establish what the owner sees afterward.
 Open Todo Server after the last test. Check a new simulator screenshot for the expected task titles after startup.
+
+A Compose color scheme controls the app surface. Each Todo activity also calls the AndroidX edge-to-edge setup for system icon contrast.
+Android sets its light status bar flag when it draws dark icons. The flag clears when Android draws white icons.
