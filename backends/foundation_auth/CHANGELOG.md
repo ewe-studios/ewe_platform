@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.15](https://github.com/ewe-studios/ewe_platform/compare/foundation_auth-v0.0.10...foundation_auth-v0.0.15) - 2026-11-24
+
+### Added
+
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(ci)* follow the 405 change and the 0.0.15 bump
+- *(http)* answer 405 with Allow for a known path and a wrong method
+- *(ci)* remove the BoringSSL and OpenSSL clash
+- *(ci)* pass the repository guards and the last full run
+
+### Other
+
+- spec 82: add the enrollment TLS client config
+- spec 82: add the registration registry and the enrollment proof API
+- spec 57: finish social login end to end
+- spec 81: add RSA-PSS secrets and the client revocation check
+- spec 81: implement signed secrets, key loading and client auth providers
+- spec 88 feature 02: prove the foundation_http wasm runtimes
+
 ## [0.0.8](https://github.com/ewe-studios/ewe_platform/compare/foundation_auth-v0.0.7...foundation_auth-v0.0.8) - 2026-11-12
 
 ### Other

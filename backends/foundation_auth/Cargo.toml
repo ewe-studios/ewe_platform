@@ -10,10 +10,10 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.22" }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
-foundation_db = { path = "../foundation_db", version = "0.0.9", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.15", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
@@ -102,7 +102,7 @@ web-sys = { version = "0.3", features = [
 ], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["multi"] }
 # RSA-PSS signed-secret keys (feature `secret-rsa`). The `ring` crate seals
 # its random source to the operating system, so it cannot take the entropy of
 # `Ctx`. `rsa` takes a caller-supplied random source instead, and
@@ -125,13 +125,13 @@ time = { workspace = true }
 # re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
 # all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"
 # `test-clock` provides `SimulatedClock`, so a test can prove that the auth
 # code reads the injected clock instead of the real wall clock.
-foundation_core = { path = "../foundation_core", version = "0.0.22", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
 foundation_testing = { path = "../foundation_testing" }
 # The in-memory file system for the key-loading tests.
 foundation_nativeapis = { workspace = true, features = ["vfs"] }

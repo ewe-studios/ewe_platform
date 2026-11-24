@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/ewe-studios/ewe_platform/compare/foundation_wasm_ui-v0.1.3...foundation_wasm_ui-v0.1.4) - 2026-11-24
+
+### Other
+
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+- spec 76 completion, spec 80 (transport and migration groups), and the bindgen/syn fix ([#631](https://github.com/ewe-studios/ewe_platform/pull/631))
+
 ## [0.1.3](https://github.com/ewe-studios/ewe_platform/compare/foundation_wasm_ui-v0.1.2...foundation_wasm_ui-v0.1.3) - 2026-11-12
 
 ### Other

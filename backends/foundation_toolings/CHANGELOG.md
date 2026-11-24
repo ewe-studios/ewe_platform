@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.11](https://github.com/ewe-studios/ewe_platform/compare/foundation_toolings-v0.0.10...foundation_toolings-v0.0.11) - 2026-11-24
+
+### Added
+
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(http)* answer 405 with Allow for a known path and a wrong method
+
+### Other
+
+- spec 88 feature 02: prove the foundation_http wasm runtimes
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+- spec 76 completion, spec 80 (transport and migration groups), and the bindgen/syn fix ([#631](https://github.com/ewe-studios/ewe_platform/pull/631))
+- split spec 65 into focused specifications; Cloudflare control moves to spec 77 ([#553](https://github.com/ewe-studios/ewe_platform/pull/553))
+
 ## [0.0.10](https://github.com/ewe-studios/ewe_platform/compare/foundation_toolings-v0.0.9...foundation_toolings-v0.0.10) - 2026-11-12
 
 ### Other

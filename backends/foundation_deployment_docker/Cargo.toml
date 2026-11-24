@@ -37,7 +37,7 @@ optional = true
 # build.rs pattern uses (README Mode 1), driven per-service here.
 [build-dependencies.foundation_connectrpc_codegen]
 path = "../foundation_connectrpc_codegen"
-version = "0.0.5"
+version = "0.0.6"
 optional = true
 
 [build-dependencies.prost]
@@ -61,7 +61,7 @@ version = "0.0.16"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.22"
+version = "0.0.23"
 
 [dependencies.foundation_context]
 path = "../foundation_context"
@@ -69,12 +69,12 @@ version = "0.0.4"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.6"
+version = "0.0.7"
 optional = true
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.9"
+version = "0.0.10"
 optional = true
 
 # HTTP/2 server for the BuildKit session sidecar (serves FileSync back to
@@ -94,11 +94,11 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.16"
+version = "0.0.17"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"
-version = "0.1.6"
+version = "0.1.7"
 optional = true
 
 [dependencies.serde]
